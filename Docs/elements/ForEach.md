@@ -57,4 +57,6 @@ them through the existing proxy mechanism.
 
 - `Section` header styling inside `List`, `Form`, `Picker` (element `List`).
 - Duplicate-id warning; `onDelete`/`onMove` edit actions; `Subviews`-based `ForEach`.
-- Pixel look of `foreach/*` and `section/*` is text and colour swatches only; see Tier B.
+- Tier B: Chromium and WebKit exact frames on all 14 fixtures (every identity step included);
+  Firefox measures "Vegetables" 0.5 pt wider, which shifts the leading-aligned column of
+  `section/title` and `section/foreach` by 0.25 pt (text-width class, not a ForEach/Section issue).
