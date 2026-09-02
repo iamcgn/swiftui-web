@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Canvas spike</title>
+<style>body{margin:0;font:13px -apple-system,system-ui,sans-serif}#out{white-space:pre;padding:8px;background:#eee}canvas{display:block}</style></head>
+<body>
+<pre id="out">running…</pre>
+<canvas id="c"></canvas>
+<script>
+// Decoder for the spike display list. Ops: 1 fillRRect(x,y,w,h,r, cr,cg,cb,ca) 2 drawText(strIdx,x,y) 3 beginGroup(opacity) 4 endGroup
+const colorCache = new Map();
+function color(r,g,b,a){ const k=((r|0)<<16)|((g|0)<<8)|(b|0); let s=colorCache.get(k); if(!s){ s=`rgba(${r|0},${g|0},${b|0},${a})`; colorCache.set(k,s);} return s; }
+let logged = false;
+window.paintDisplayList = function(rootCtx, buf, strings, dpr, w, h) {
+  if (!logged) { logged = true; const counts={}; for (let k=0;k<buf.length;k++){ const v=buf[k]; if(v===1||v===2||v===3||v===4) counts[v]=(counts[v]||0)+1; } console.log('[spike05] buf type=' + Object.prototype.toString.call(buf) + ' length=' + buf.length + ' head=' + Array.from(buf.slice(0,12)).join(',') + ' strings=' + strings.length + ' opcodes=' + JSON.stringify(counts)); }
+  const t0 = performance.now();
+  rootCtx.setTransform(dpr,0,0,dpr,0,0);
+  rootCtx.clearRect(0,0,w,h);
+  rootCtx.font = '13px -apple-system, system-ui, sans-serif';
+  let ctx = rootCtx; const stack = [];
+  let i = 0; const n = buf.length;
+  while (i < n) {
+    const op = buf[i++];
+    switch (op) {
+      case 1: { const x=buf[i++],y=buf[i++],rw=buf[i++],rh=buf[i++],r=buf[i++]; const cr=buf[i++],cg=buf[i++],cb=buf[i++],ca=buf[i++];
+        ctx.fillStyle = color(cr,cg,cb,ca); ctx.beginPath(); ctx.roundRect(x,y,rw,rh,r); ctx.fill(); break; }
+      case 2: { const s=strings[buf[i++]], x=buf[i++], y=buf[i++]; ctx.fillStyle='#000'; ctx.fillText(s,x,y); break; }
+      case 3: { const opacity=buf[i++]; const off=new OffscreenCanvas(w*dpr,h*dpr); const octx=off.getContext('2d');
+        octx.setTransform(dpr,0,0,dpr,0,0); octx.font=ctx.font; stack.push({ctx, off, opacity}); ctx=octx; break; }
+      case 4: { const g=stack.pop(); const parent=g.ctx; parent.save(); parent.globalAlpha=g.opacity; parent.setTransform(1,0,0,1,0,0);
+        parent.drawImage(g.off,0,0); parent.restore(); ctx=parent; break; }
+    }
+  }
+  return performance.now() - t0;
+};
+window.measureTextBenchmark = function(ctx, strings, count) {
+  ctx.font = '13px -apple-system, system-ui, sans-serif';
+  const t0 = performance.now(); let acc = 0;
+  for (let k = 0; k < count; k++) acc += ctx.measureText(strings[k % strings.length] + k).width;
+  return performance.now() - t0;
+};
+</script>
+<script type="module">
+  import { init } from "./.build/wasm/plugins/PackageToJS/outputs/Package/index.js";
+  await init();
+</script>
+</body></html>

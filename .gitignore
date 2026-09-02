@@ -1,0 +1,13 @@
+.build/
+.swiftpm/
+.index-build/
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+node_modules/
+.DS_Store
+Examples/*/Bundle/
+Examples/*/dist/
+Harness/.build/
+Harness/.swiftpm/
+Playwright/test-results/

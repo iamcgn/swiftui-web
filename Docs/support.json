@@ -1,0 +1,26 @@
+{
+  "sections": [
+    { "title": "App lifecycle", "entries": [
+      { "api": "App / Scene / WindowGroup / @main", "status": "missing" }
+    ]},
+    { "title": "Views", "entries": [
+      { "api": "Text", "status": "missing" },
+      { "api": "VStack / HStack / ZStack", "status": "missing" },
+      { "api": "Spacer", "status": "missing" },
+      { "api": "Button", "status": "missing" }
+    ]},
+    { "title": "State", "entries": [
+      { "api": "@State", "status": "missing" },
+      { "api": "@Binding", "status": "missing" },
+      { "api": "@Environment", "status": "missing" },
+      { "api": "@Observable / @Bindable", "status": "missing" },
+      { "api": "ObservableObject / @Published / @StateObject", "status": "missing", "notes": "Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3)" }
+    ]},
+    { "title": "Modifiers", "entries": [
+      { "api": "padding", "status": "missing" },
+      { "api": "frame", "status": "missing" },
+      { "api": "background / overlay", "status": "missing" },
+      { "api": "foregroundStyle / foregroundColor", "status": "missing" }
+    ]}
+  ]
+}
