@@ -68,7 +68,7 @@ public enum DisplayListEncoder {
                 out.ops.append(DisplayOp.strokePath.rawValue)
                 path(p)
                 out.ops += [style.lineWidth, Double(style.lineCap.rawValue), Double(style.lineJoin.rawValue), style.miterLimit, Double(style.dash.count)]
-                out.ops += style.dash.map(Double.init)
+                out.ops += style.dash.map { Double($0) }
                 out.ops.append(style.dashPhase)
                 color(c)
             case .drawText(let text, let font, let origin, let c):
