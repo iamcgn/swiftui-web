@@ -222,7 +222,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
             let step = CGSize(width: velocity.width * elapsed, height: velocity.height * elapsed)
             let remaining = scroll(by: step)
             // Momentum stops at an edge (no rubber band, see the element doc) and below a floor.
-            let decay = _pow(PlatformMetrics.scrollDecelerationRate, elapsed * 1000)
+            let decay = _decay(PlatformMetrics.scrollDecelerationRate, milliseconds: elapsed * 1000)
             velocity = CGSize(width: remaining.width == 0 ? velocity.width * decay : 0,
                               height: remaining.height == 0 ? velocity.height * decay : 0)
             if abs(velocity.width) < PlatformMetrics.scrollVelocityFloor { velocity.width = 0 }
@@ -442,5 +442,15 @@ extension Runtime {
     }
 }
 
-@_silgen_name("pow") private func _c_pow(_ x: Double, _ y: Double) -> Double
-@inline(__always) package func _pow(_ x: Double, _ y: Double) -> Double { _c_pow(x, y) }
+/// `rate` raised to the whole number of milliseconds, by squaring: no libm (`pow` is not
+/// importable on wasm through `@_silgen_name`, unlike `cos`/`sin`) and deterministic.
+package func _decay(_ rate: Double, milliseconds: Double) -> Double {
+    var exponent = max(0, Int(milliseconds.rounded()))
+    var base = rate, result = 1.0
+    while exponent > 0 {
+        if exponent & 1 == 1 { result *= base }
+        base *= base
+        exponent >>= 1
+    }
+    return result
+}
