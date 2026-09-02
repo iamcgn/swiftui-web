@@ -170,6 +170,14 @@
           "fixtures": [
             "all (probe implementation)"
           ]
+        },
+        {
+          "api": "ScrollView (axes, showsIndicators) / ScrollViewReader / ScrollViewProxy.scrollTo",
+          "status": "partial",
+          "notes": "Fills the proposal along its axes and is exactly content-sized across them, implicit VStack content, clipping, defaultScrollAnchor, scrollTo with/without anchor resolved at layout; wheel scrolling with chaining, touch pan + momentum (0.998/ms), overlay indicators while scrolling (approximate geometry); no bounce, keyboard scrolling, scrollPosition/scrollTargetBehavior, contentMargins or lazy stacks; Tier B exact frames in Chromium, WebKit and Firefox (17/17 renders each)",
+          "fixtures": [
+            "scroll/*"
+          ]
         }
       ]
     },
@@ -272,6 +280,23 @@
           "api": "onTapGesture",
           "status": "partial",
           "notes": "Single tap via the pointer arena; count ignored; Tier B (Chromium) within tolerance"
+        },
+        {
+          "api": "scrollIndicators / scrollDisabled / scrollBounceBehavior / scrollClipDisabled / defaultScrollAnchor",
+          "status": "partial",
+          "notes": "Environment-backed; scrollBounceBehavior is stored but has no effect (no rubber band); defaultScrollAnchor sets the initial offset only",
+          "fixtures": [
+            "scroll/modifiers",
+            "scroll/anchor-bottom"
+          ]
+        },
+        {
+          "api": "onChange(of:initial:_:) (two- and zero-argument actions), deprecated onChange(of:perform:)",
+          "status": "partial",
+          "notes": "Actions run from the scheduler's action queue after the update that changed the value; sibling onChange order is inner first",
+          "fixtures": [
+            "scroll/scroll-to"
+          ]
         }
       ]
     }

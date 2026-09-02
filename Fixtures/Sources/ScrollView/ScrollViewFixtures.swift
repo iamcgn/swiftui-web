@@ -181,6 +181,20 @@ public enum ScrollViewFixtures {
         .probe("row")
     }
 
+    /// 500 rows without per-row probes: the frame-time measurement for scrolling long content
+    /// (`Playwright/scroll-probe.mjs`) and a golden for content far beyond the viewport.
+    public static let long = Fixture("scroll/long", size: CGSize(width: 300, height: 200)) {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(0..<500, id: \.self) { index in
+                    (index.isMultiple(of: 2) ? Color.blue : Color.orange).frame(width: 200, height: 20)
+                }
+            }
+            .probe("content")
+        }
+        .probe("scroll")
+    }
+
     /// Behaviour: `ScrollViewReader.scrollTo` with and without an anchor.
     public static let scrollTo = Fixture(
         "scroll/scroll-to", size: CGSize(width: 300, height: 200),
@@ -196,5 +210,5 @@ public enum ScrollViewFixtures {
     }
 
     public static let all: [Fixture] = [vertical, verticalOverflow, horizontal, both, narrowContent, wideContent, text,
-                                        inStack, padding, anchorBottom, modifiers, children, scrollTo]
+                                        inStack, padding, anchorBottom, modifiers, children, long, scrollTo]
 }

@@ -1,0 +1,21 @@
+{
+  "fixture" : "scroll\/long",
+  "frames" : {
+    "content" : {
+      "height" : 10000,
+      "width" : 200,
+      "x" : 50,
+      "y" : 0
+    },
+    "scroll" : {
+      "height" : 200,
+      "width" : 200,
+      "x" : 50,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

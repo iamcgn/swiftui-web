@@ -47,6 +47,7 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)` | 🟢 partial | macOS text-style table; bold() is a per-style trait; italic keys; Tier B (Chromium) within tolerance | text/styles, text/system-fonts, text/modifiers |
 | `Rectangle / RoundedRectangle / Circle / Ellipse / Capsule, fill / stroke, Path` | 🟢 partial | Fill and plain stroke; no StrokeStyle or InsettableShape; Tier B (Chromium) within tolerance | paint/shapes |
 | `GeometryReader / GeometryProxy (size, frame(in:), bounds(of:))` | 🟢 partial | No safe area or anchors; Tier B (Chromium) within tolerance | all (probe implementation) |
+| `ScrollView (axes, showsIndicators) / ScrollViewReader / ScrollViewProxy.scrollTo` | 🟢 partial | Fills the proposal along its axes and is exactly content-sized across them, implicit VStack content, clipping, defaultScrollAnchor, scrollTo with/without anchor resolved at layout; wheel scrolling with chaining, touch pan + momentum (0.998/ms), overlay indicators while scrolling (approximate geometry); no bounce, keyboard scrolling, scrollPosition/scrollTargetBehavior, contentMargins or lazy stacks; Tier B exact frames in Chromium, WebKit and Firefox (17/17 renders each) | scroll/* |
 
 ## State
 
@@ -71,3 +72,5 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `opacity / clipShape / clipped / cornerRadius` | 🟢 partial | Display-list groups and clips; Tier B (Chromium) within tolerance; applied per element on lists | paint/clipping |
 | `preference / transformPreference / onPreferenceChange / coordinateSpace` | 🟢 partial | Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet; Tier B (Chromium) within tolerance |  |
 | `onTapGesture` | 🟢 partial | Single tap via the pointer arena; count ignored; Tier B (Chromium) within tolerance |  |
+| `scrollIndicators / scrollDisabled / scrollBounceBehavior / scrollClipDisabled / defaultScrollAnchor` | 🟢 partial | Environment-backed; scrollBounceBehavior is stored but has no effect (no rubber band); defaultScrollAnchor sets the initial offset only | scroll/modifiers, scroll/anchor-bottom |
+| `onChange(of:initial:_:) (two- and zero-argument actions), deprecated onChange(of:perform:)` | 🟢 partial | Actions run from the scheduler's action queue after the update that changed the value; sibling onChange order is inner first | scroll/scroll-to |

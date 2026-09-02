@@ -193,7 +193,12 @@ public final class CanvasHost {
         let time = now
         let animating = runtime.advanceScrollAnimations(elapsed: lastFrameTime.map { min(0.1, time - $0) } ?? 0)
         lastFrameTime = time
-        guard needsLayout || runtime.needsFrame else { lastFrameTime = nil; return }
+        guard needsLayout || runtime.needsFrame else {
+            // An animation in a phase that changes nothing on screen (the indicator hold) still
+            // needs the clock to advance.
+            if animating { scheduleFrame() } else { lastFrameTime = nil }
+            return
+        }
         needsLayout = false
         runtime.layout(in: CGSize(width: width, height: height))
         let list = runtime.render(scale: dpr)
@@ -201,12 +206,16 @@ public final class CanvasHost {
         updateOverlay()
         lastDisplayList = list
         frameCount += 1
+        frameMillis = (now - time) * 1000
         // A preference action, observation or scroll animation may need another frame.
         if animating || runtime.needsFrame { scheduleFrame() } else { lastFrameTime = nil }
     }
 
     /// Time of the previous frame while frames run back to back (scroll animations).
     private var lastFrameTime: Double?
+
+    /// Layout + paint time of the most recent frame in milliseconds (debug bridge).
+    public private(set) var frameMillis: Double = 0
 
     /// The most recently painted display list and the number of frames painted (debug bridge).
     public private(set) var lastDisplayList = DisplayList()
@@ -279,10 +288,12 @@ public final class CanvasHost {
             return .object(array)
         }
         let frameCount = JSClosure { [weak self] _ in .number(Double(self?.frameCount ?? 0)) }
-        closures += [frames, displayList, frameCount]
+        let frameMillis = JSClosure { [weak self] _ in .number(self?.frameMillis ?? 0) }
+        closures += [frames, displayList, frameCount, frameMillis]
         debug.frames = .object(frames)
         debug.displayList = .object(displayList)
         debug.frameCount = .object(frameCount)
+        debug.frameMillis = .object(frameMillis)
         JSObject.global.__swiftuiwebDebug = .object(debug)
     }
 }
