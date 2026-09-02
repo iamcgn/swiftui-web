@@ -51,7 +51,7 @@
         {
           "api": "ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent",
           "status": "partial",
-          "notes": "Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) pending",
+          "notes": "Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) exact frames, ≤ 0.3 % pixels incl. every identity step",
           "fixtures": [
             "foreach/*"
           ]
@@ -59,7 +59,7 @@
         {
           "api": "Section (content/header/footer, title forms, deprecated argument orders)",
           "status": "partial",
-          "notes": "Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; no List/Form styling, isExpanded or collapsible; Tier B (Chromium) pending",
+          "notes": "Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; no List/Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels",
           "fixtures": [
             "section/*"
           ]
@@ -211,7 +211,7 @@
         {
           "api": "background / overlay",
           "status": "partial",
-          "notes": "View, style and shape forms; layout exact, display-list painting; Tier B (Chromium) within tolerance",
+          "notes": "View, style and shape forms; layout exact, display-list painting; Tier B (Chromium) within tolerance; one layer per element when applied to a list (foreach/modifier, section/modifier)",
           "fixtures": [
             "paint/background-overlay"
           ]
@@ -242,7 +242,7 @@
         {
           "api": "opacity / clipShape / clipped / cornerRadius",
           "status": "partial",
-          "notes": "Display-list groups and clips; Tier B (Chromium) within tolerance",
+          "notes": "Display-list groups and clips; Tier B (Chromium) within tolerance; applied per element on lists",
           "fixtures": [
             "paint/clipping"
           ]

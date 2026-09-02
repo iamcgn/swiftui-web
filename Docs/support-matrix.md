@@ -27,8 +27,8 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟢 partial | @Entry macro not provided; Tier B (Chromium) within tolerance |  |
 | `Transaction / TransactionKey / withTransaction` | 🟠 stub | No `animation` member until the animation system exists |  |
 | `id(_:) / IDView` | 🟢 partial | Identity change rebuilds the subtree; Tier B (Chromium) within tolerance |  |
-| `ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent` | 🟢 partial | Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) pending | foreach/* |
-| `Section (content/header/footer, title forms, deprecated argument orders)` | 🟢 partial | Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; no List/Form styling, isExpanded or collapsible; Tier B (Chromium) pending | section/* |
+| `ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent` | 🟢 partial | Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) exact frames, ≤ 0.3 % pixels incl. every identity step | foreach/* |
+| `Section (content/header/footer, title forms, deprecated argument orders)` | 🟢 partial | Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; no List/Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels | section/* |
 | `DynamicProperty (custom, nested)` | 🟢 partial | update() and nested installation; Tier B (Chromium) within tolerance |  |
 
 ## Views
@@ -62,10 +62,10 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 |---|---|---|---|
 | `padding` | 🟢 partial | Layout exact; Tier B (Chromium) within tolerance | layout/padding-default, layout/padding-edges |
 | `frame` | 🟢 partial | Fixed and flexible forms exact; Tier B (Chromium) within tolerance | layout/frame-fixed, layout/frame-flex |
-| `background / overlay` | 🟢 partial | View, style and shape forms; layout exact, display-list painting; Tier B (Chromium) within tolerance | paint/background-overlay |
+| `background / overlay` | 🟢 partial | View, style and shape forms; layout exact, display-list painting; Tier B (Chromium) within tolerance; one layer per element when applied to a list (foreach/modifier, section/modifier) | paint/background-overlay |
 | `foregroundStyle / foregroundColor` | 🟢 partial | Flat colours only; Tier B (Chromium) within tolerance |  |
 | `fixedSize / layoutPriority / alignmentGuide` | 🟢 partial | Layout exact; Tier B (Chromium) within tolerance | layout/fixed-size, layout/hstack-priority, layout/alignment-guide |
 | `font(_:)` | 🟢 partial | Environment font; Tier B (Chromium) within tolerance | text/modifiers |
-| `opacity / clipShape / clipped / cornerRadius` | 🟢 partial | Display-list groups and clips; Tier B (Chromium) within tolerance | paint/clipping |
+| `opacity / clipShape / clipped / cornerRadius` | 🟢 partial | Display-list groups and clips; Tier B (Chromium) within tolerance; applied per element on lists | paint/clipping |
 | `preference / transformPreference / onPreferenceChange / coordinateSpace` | 🟢 partial | Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet; Tier B (Chromium) within tolerance |  |
 | `onTapGesture` | 🟢 partial | Single tap via the pointer arena; count ignored; Tier B (Chromium) within tolerance |  |
