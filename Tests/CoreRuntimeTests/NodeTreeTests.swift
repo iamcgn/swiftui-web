@@ -95,7 +95,7 @@ private struct Nested: View {
     @Test func branchSwitchTearsDownOldSubtree() throws {
         let runtime = Runtime()
         let node = try #require(runtime.mount(Composite()) as? CompositeNode<Composite>)
-        let tuple = try #require(node.child as? TupleNode<(Leaf, _ConditionalContent<Pair, Leaf>, Leaf?, Group<TupleView<(Leaf, Leaf)>>, _ConditionalContent<AnyView, AnyView>)>)
+        let tuple = try #require((node.child as ViewNode?) as? TupleNode<(Leaf, _ConditionalContent<Pair, Leaf>, Leaf?, Group<TupleView<(Leaf, Leaf)>>, _ConditionalContent<AnyView, AnyView>)>)
         let conditional = try #require(tuple.children[1] as? ConditionalNode<Pair, Leaf>)
         let firstBranch = conditional.activeNode
         #expect(firstBranch.isMounted)
@@ -122,7 +122,7 @@ private struct Nested: View {
         let runtime = Runtime()
         let node = try #require(runtime.mount(Composite()) as? CompositeNode<Composite>)
         func anyNode() throws -> AnyViewNode {
-            let tuple = try #require(node.child as? TupleNode<(Leaf, _ConditionalContent<Pair, Leaf>, Leaf?, Group<TupleView<(Leaf, Leaf)>>, _ConditionalContent<AnyView, AnyView>)>)
+            let tuple = try #require((node.child as ViewNode?) as? TupleNode<(Leaf, _ConditionalContent<Pair, Leaf>, Leaf?, Group<TupleView<(Leaf, Leaf)>>, _ConditionalContent<AnyView, AnyView>)>)
             let conditional = try #require(tuple.children[4] as? ConditionalNode<AnyView, AnyView>)
             return try #require(conditional.activeNode as? AnyViewNode)
         }
@@ -188,7 +188,7 @@ private struct Nested: View {
         runtime.scheduler.onNeedsFlush = { needsFlushCalls += 1 }
 
         let node = try #require(runtime.mount(Composite()) as? CompositeNode<Composite>)
-        let tuple = try #require(node.child as? TupleNode<(Leaf, _ConditionalContent<Pair, Leaf>, Leaf?, Group<TupleView<(Leaf, Leaf)>>, _ConditionalContent<AnyView, AnyView>)>)
+        let tuple = try #require((node.child as ViewNode?) as? TupleNode<(Leaf, _ConditionalContent<Pair, Leaf>, Leaf?, Group<TupleView<(Leaf, Leaf)>>, _ConditionalContent<AnyView, AnyView>)>)
         let conditional = try #require(tuple.children[1] as? ConditionalNode<Pair, Leaf>)
         let pair = try #require(conditional.activeNode as? CompositeNode<Pair>)
         #expect(node.bodyEvaluations == 1)

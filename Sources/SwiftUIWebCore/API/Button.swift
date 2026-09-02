@@ -186,7 +186,8 @@ extension ButtonStyle where Self == PlainButtonStyle {
 }
 
 package struct ButtonStyleKey: EnvironmentKey {
-    package static let defaultValue: any ButtonStyle = DefaultButtonStyle()
+    // `ButtonStyle` is not Sendable (as in SwiftUI); the default is an immutable value type.
+    package nonisolated(unsafe) static let defaultValue: any ButtonStyle = DefaultButtonStyle()
 }
 
 extension EnvironmentValues {

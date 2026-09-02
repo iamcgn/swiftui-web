@@ -14,9 +14,8 @@ extension Scene {
     }
 }
 
-extension Never: Scene {
-    public static func _rootViews(of scene: Never) -> [AnyView] { switch scene {} }
-}
+/// `Never` as a scene reuses its `View` body; the default `_rootViews` is unreachable.
+extension Never: Scene {}
 
 /// A result builder for composing a collection of scenes into a single composite scene.
 @resultBuilder

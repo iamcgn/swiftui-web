@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 6.2
 import PackageDescription
 
 // SwiftUIWeb: an open-source SwiftUI reimplementation that runs unmodified SwiftUI
@@ -30,18 +30,22 @@ let package = Package(
             dependencies: [
                 "SwiftUIWebCore",
                 .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
-            ]
+            ],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
-            name: "SwiftUIWebCore"
+            name: "SwiftUIWebCore",
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
             name: "SwiftUIWebHeadless",
-            dependencies: ["SwiftUIWebCore"]
+            dependencies: ["SwiftUIWebCore"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
             name: "SwiftUIWebTestSupport",
-            dependencies: ["SwiftUIWebCore", "SwiftUIWebHeadless"]
+            dependencies: ["SwiftUIWebCore", "SwiftUIWebHeadless"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
             name: "SwiftUIWebCanvas",
@@ -49,30 +53,36 @@ let package = Package(
                 "SwiftUIWebCore",
                 .product(name: "JavaScriptKit", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
-            ]
+            ],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // FixtureKit is the SwiftUIWeb twin of Harness/Sources/FixtureKit; SwiftUIWebFixtures compiles
         // the fixture sources shared with Harness/ (which builds them against Apple's SwiftUI).
         .target(
             name: "FixtureKit",
-            dependencies: ["SwiftUI"]
+            dependencies: ["SwiftUI"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
             name: "SwiftUIWebFixtures",
             dependencies: ["SwiftUI", "FixtureKit"],
-            path: "Fixtures/Sources"
+            path: "Fixtures/Sources",
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"]
+            dependencies: ["SwiftUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .testTarget(
             name: "LayoutFidelityTests",
-            dependencies: ["SwiftUI", "SwiftUIWebHeadless", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"]
+            dependencies: ["SwiftUI", "SwiftUIWebHeadless", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .testTarget(
             name: "BrowserTests",
-            dependencies: ["SwiftUI", "SwiftUIWebCanvas", "SwiftUIWebTestSupport"]
+            dependencies: ["SwiftUI", "SwiftUIWebCanvas", "SwiftUIWebTestSupport"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
     ],
     swiftLanguageModes: [.v6]

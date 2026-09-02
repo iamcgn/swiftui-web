@@ -35,7 +35,7 @@ public enum PaintFixtures {
     public static let clipping = Fixture("paint/clipping", size: CGSize(width: 200, height: 200)) {
         VStack(spacing: 10) {
             Color.red.frame(width: 100, height: 60).probe("clipped").clipShape(RoundedRectangle(cornerRadius: 12))
-            Color.blue.frame(width: 100, height: 60).probe("corner").cornerRadius(20)
+            Color.blue.frame(width: 100, height: 60).probe("corner").clipShape(RoundedRectangle(cornerRadius: 20))
             Color.green.frame(width: 100, height: 40).opacity(0.5).probe("faded")
         }
         .probe("stack")
