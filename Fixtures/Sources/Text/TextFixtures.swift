@@ -135,5 +135,5 @@ public enum TextFixtures {
         }
     }
 
-    public static let all: [Fixture] = [hello, styles, systemFonts, wrapped, vstackSpacing, vstackSpacingMixed, hstackSpacing, hstackBaseline, modifiers, boldTrait]
+    public static let all: [Fixture] = [hello, styles, systemFonts, wrapped, vstackSpacing, vstackSpacingMixed, hstackSpacing, hstackBaseline, modifiers, boldTrait] + completeness
 }

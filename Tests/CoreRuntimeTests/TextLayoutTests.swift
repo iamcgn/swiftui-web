@@ -76,8 +76,13 @@ private let large = ResolvedFont(family: "system", size: 26, weight: .regular, i
         #expect(texts(two) == ["one two", "three fou…"])
         // A limit above the line count changes nothing; reservesSpace pads the height.
         #expect(lay(s, width: 100, options: TextLayoutOptions(lineLimit: 5)).lines.count == 2)
-        let reserved = lay("one", width: 100, options: TextLayoutOptions(lineLimit: 3, reservesSpace: true))
+        let reserved = lay("one", width: 100, options: TextLayoutOptions(lineLimit: 3, minimumLines: 3))
         #expect(reserved.size == CGSize(width: 30, height: 48) && reserved.lines.count == 3)
+        #expect(reserved.lastBaseline == 13)   // reserved lines do not move the last baseline
+        // Spaces next to the ellipsis are dropped: "one two " + "…" would fit in 85, but the space goes.
+        #expect(texts(lay("one two three", width: 85, options: TextLayoutOptions(lineLimit: 1))) == ["one two…"])
+        #expect(lay("one two three", width: 85, options: TextLayoutOptions(lineLimit: 1)).size.width == 75)
+        #expect(texts(lay("one two three", width: 85, options: TextLayoutOptions(lineLimit: 1, truncationMode: .head))) == ["…wo three"])   // "…" + "wo three" = 85
     }
 
     @Test func lineSpacingAddsToThePitch() {
@@ -104,7 +109,7 @@ private let large = ResolvedFont(family: "system", size: 26, weight: .regular, i
         #expect(TextMetricsKey.make(runs: [StyledRun("Hi", font: body)], options: .default, width: 150) == "style:body|150.0|Hi")
         #expect(TextMetricsKey.make(runs: [StyledRun("Hi", font: body)], options: TextLayoutOptions(lineLimit: 2, lineSpacing: 4), width: 150) == "style:body|150.0;l2;s4.0|Hi")
         #expect(TextMetricsKey.make(runs: [StyledRun("Hi", font: body)], options: TextLayoutOptions(lineLimit: 1, truncationMode: .head), width: nil) == "style:body|;l1;thead|Hi")
-        #expect(TextMetricsKey.make(runs: [StyledRun("Hi", font: body)], options: TextLayoutOptions(lineLimit: 2, reservesSpace: true), width: nil) == "style:body|;l2;r|Hi")
+        #expect(TextMetricsKey.make(runs: [StyledRun("Hi", font: body)], options: TextLayoutOptions(lineLimit: 2, minimumLines: 2), width: nil) == "style:body|;l2;r2|Hi")
         // Runs in the same font merge (colour boundaries do not matter); different fonts make a rich key.
         #expect(TextMetricsKey.make(runs: [StyledRun("Hel", font: body), StyledRun("lo", font: body)], options: .default, width: nil) == "style:body||Hello")
         #expect(TextMetricsKey.make(runs: [StyledRun("Big ", font: large), StyledRun("small", font: small)], options: .default, width: nil)
@@ -134,6 +139,14 @@ private let large = ResolvedFont(family: "system", size: 26, weight: .regular, i
         runtime2.layout(in: CGSize(width: 100, height: 100))
         node = runtime2.root
         while let n = node, !(n is TextNode) { node = n.structuralChildren.first }
-        #expect((node as? TextNode)?.environment.textLayoutOptions.reservesSpace == true)
+        #expect((node as? TextNode)?.environment.textLayoutOptions == TextLayoutOptions(lineLimit: 2, minimumLines: 2))
+        let runtime3 = Runtime()
+        runtime3.mount(VStack { Text("x").lineLimit(1...3); Text("y").lineLimit(2...); Text("z").lineLimit(...4) })
+        runtime3.layout(in: CGSize(width: 100, height: 100))
+        var texts: [TextNode] = []
+        func collect(_ n: ViewNode) { if let t = n as? TextNode { texts.append(t) }; n.structuralChildren.forEach(collect) }
+        collect(runtime3.root)
+        #expect(texts.map(\.environment.textLayoutOptions) == [
+            TextLayoutOptions(lineLimit: 3, minimumLines: 1), TextLayoutOptions(minimumLines: 2), TextLayoutOptions(lineLimit: 4)])
     }
 }

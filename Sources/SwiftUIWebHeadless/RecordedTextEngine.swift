@@ -75,9 +75,14 @@ public final class RecordedTextEngine: TextEngine {
             return layout(from: exact, runs: runs)
         }
         if let width {
-            // A single-line recording that fits the proposed width needs no wrapping, and neither
-            // a line limit nor truncation nor line spacing changes it (unless space is reserved).
-            if !options.reservesSpace,
+            // An unconstrained recording that fits the proposed width needs no wrapping: first
+            // with the same options (reserved lines change the height), then, when nothing is
+            // reserved, the plain one, since a line limit, truncation or line spacing leave a
+            // single line alone.
+            if let single = entries[TextMetricsKey.make(runs: runs, options: options, width: nil)], single.width <= width {
+                return layout(from: single, runs: runs)
+            }
+            if options.minimumLines <= 1,
                let single = entries[TextMetricsKey.make(runs: runs, options: .default, width: nil)], single.width <= width {
                 return layout(from: single, runs: runs)
             }

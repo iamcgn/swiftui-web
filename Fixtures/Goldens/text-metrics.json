@@ -1,5 +1,71 @@
 {
   "entries" : {
+    "rich:style:largeTitle=4,system:13:400:default=5||Big small" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 74
+    },
+    "rich:style:largeTitle=4,system:13:400:default=5|0.0|Big small" : {
+      "firstBaseline" : 29,
+      "height" : 197,
+      "lastBaseline" : 194,
+      "width" : 0
+    },
+    "rich:style:title=4,style:title:w700=4||Env bold" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 85.5
+    },
+    "rich:style:title=4,style:title:w700=4|0.0|Env bold" : {
+      "firstBaseline" : 25,
+      "height" : 231,
+      "lastBaseline" : 223,
+      "width" : 0
+    },
+    "rich:style:title=6,style:title:italic=6||Title italic" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 90
+    },
+    "rich:style:title=6,style:title:italic=6|0.0|Title italic" : {
+      "firstBaseline" : 25,
+      "height" : 363,
+      "lastBaseline" : 355,
+      "width" : 0
+    },
+    "rich:system:13:700:default=7,system:13:400:default=5||Hello, World" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 76.5
+    },
+    "rich:system:13:700:default=7,system:13:400:default=5|0.0|Hello, World" : {
+      "firstBaseline" : 13,
+      "height" : 176,
+      "lastBaseline" : 173,
+      "width" : 0
+    },
+    "rich:system:13:700:default=12,system:13:400:default=60||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 445
+    },
+    "rich:system:13:700:default=12,system:13:400:default=60|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 976,
+      "lastBaseline" : 973,
+      "width" : 0
+    },
+    "rich:system:13:700:default=12,system:13:400:default=60|150.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 142.5
+    },
     "style:body:w500||Bold" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -287,6 +353,12 @@
       "height" : 56.5,
       "lastBaseline" : 52,
       "width" : 0
+    },
+    "style:body|150.0;s4.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 85.5,
+      "lastBaseline" : 81,
+      "width" : 137
     },
     "style:body|150.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 14,
@@ -708,6 +780,18 @@
       "lastBaseline" : 29,
       "width" : 36.5
     },
+    "style:largeTitle||Big " : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 42.5
+    },
+    "style:largeTitle||End" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 43.5
+    },
     "style:largeTitle||Hg" : {
       "firstBaseline" : 29,
       "height" : 38,
@@ -721,6 +805,18 @@
       "width" : 224
     },
     "style:largeTitle|0.0|Big" : {
+      "firstBaseline" : 29,
+      "height" : 116,
+      "lastBaseline" : 107,
+      "width" : 0
+    },
+    "style:largeTitle|0.0|Big " : {
+      "firstBaseline" : 29,
+      "height" : 116,
+      "lastBaseline" : 107,
+      "width" : 0
+    },
+    "style:largeTitle|0.0|End" : {
       "firstBaseline" : 29,
       "height" : 116,
       "lastBaseline" : 107,
@@ -798,6 +894,18 @@
       "lastBaseline" : 267,
       "width" : 0
     },
+    "style:title:italic||italic" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 44
+    },
+    "style:title:italic|0.0|italic" : {
+      "firstBaseline" : 25,
+      "height" : 198,
+      "lastBaseline" : 190,
+      "width" : 0
+    },
     "style:title:w500||Bold" : {
       "firstBaseline" : 25,
       "height" : 33,
@@ -822,11 +930,23 @@
       "lastBaseline" : 124.5,
       "width" : 0
     },
+    "style:title:w700||bold" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 45.5
+    },
     "style:title:w700||Bold" : {
       "firstBaseline" : 25,
       "height" : 33,
       "lastBaseline" : 25,
       "width" : 46.5
+    },
+    "style:title:w700|0.0|bold" : {
+      "firstBaseline" : 25,
+      "height" : 132,
+      "lastBaseline" : 124,
+      "width" : 0
     },
     "style:title:w700|0.0|Bold" : {
       "firstBaseline" : 25,
@@ -858,11 +978,23 @@
       "lastBaseline" : 25,
       "width" : 35.5
     },
+    "style:title||Env " : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 40.5
+    },
     "style:title||The quick brown fox" : {
       "firstBaseline" : 25,
       "height" : 33,
       "lastBaseline" : 25,
       "width" : 191
+    },
+    "style:title||Title " : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 46
     },
     "style:title|0.0|Count: 0" : {
       "firstBaseline" : 25,
@@ -876,11 +1008,29 @@
       "lastBaseline" : 91,
       "width" : 0
     },
+    "style:title|0.0|Env " : {
+      "firstBaseline" : 25,
+      "height" : 99,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
     "style:title|0.0|The quick brown fox" : {
       "firstBaseline" : 25,
       "height" : 528,
       "lastBaseline" : 520,
       "width" : 0
+    },
+    "style:title|0.0|Title " : {
+      "firstBaseline" : 25,
+      "height" : 165,
+      "lastBaseline" : 157,
+      "width" : 0
+    },
+    "style:title|300.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 25,
+      "height" : 99,
+      "lastBaseline" : 91,
+      "width" : 261.5
     },
     "style:title2:w500||Bold" : {
       "firstBaseline" : 19,
@@ -1026,6 +1176,42 @@
       "lastBaseline" : 237,
       "width" : 0
     },
+    "system:13:400:default|;l1|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 31
+    },
+    "system:13:400:default|;l2;r2|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 13,
+      "width" : 31
+    },
+    "system:13:400:default|;l4;r2|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 13,
+      "width" : 31
+    },
+    "system:13:400:default|;r3|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 13,
+      "width" : 31
+    },
+    "system:13:400:default|;s10.0|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 31
+    },
+    "system:13:400:default|;thead|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 31
+    },
     "system:13:400:default||+" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -1116,6 +1302,12 @@
       "lastBaseline" : 13,
       "width" : 22
     },
+    "system:13:400:default||First line.\nSecond paragraph wraps here as well." : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 230.5
+    },
     "system:13:400:default||Footer" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -1158,6 +1350,12 @@
       "lastBaseline" : 13,
       "width" : 17.5
     },
+    "system:13:400:default||Hi" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 13
+    },
     "system:13:400:default||Increment" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -1181,6 +1379,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 29
+    },
+    "system:13:400:default||Left\nRight side" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 60.5
     },
     "system:13:400:default||OK" : {
       "firstBaseline" : 13,
@@ -1212,6 +1416,12 @@
       "lastBaseline" : 13,
       "width" : 62
     },
+    "system:13:400:default||Red Blue" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 54
+    },
     "system:13:400:default||Row 0" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -1236,6 +1446,12 @@
       "lastBaseline" : 13,
       "width" : 31.5
     },
+    "system:13:400:default||Supercalifragilistic" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 112
+    },
     "system:13:400:default||Three" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -1259,6 +1475,54 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 68
+    },
+    "system:13:400:default||World" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35.5
+    },
+    "system:13:400:default||wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 362
+    },
+    "system:13:400:default|0.0;l1|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0;l2;r2|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0;l4;r2|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0;r3|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0;s10.0|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 120,
+      "lastBaseline" : 117,
+      "width" : 0
+    },
+    "system:13:400:default|0.0;thead|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
     },
     "system:13:400:default|0.0|+" : {
       "firstBaseline" : 13,
@@ -1350,6 +1614,12 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|First line.\nSecond paragraph wraps here as well." : {
+      "firstBaseline" : 13,
+      "height" : 656,
+      "lastBaseline" : 653,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Footer" : {
       "firstBaseline" : 13,
       "height" : 96,
@@ -1392,6 +1662,12 @@
       "lastBaseline" : 29,
       "width" : 0
     },
+    "system:13:400:default|0.0|Hi" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Increment" : {
       "firstBaseline" : 13,
       "height" : 144,
@@ -1414,6 +1690,12 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Left\nRight side" : {
+      "firstBaseline" : 13,
+      "height" : 208,
+      "lastBaseline" : 205,
       "width" : 0
     },
     "system:13:400:default|0.0|OK" : {
@@ -1446,6 +1728,12 @@
       "lastBaseline" : 141,
       "width" : 0
     },
+    "system:13:400:default|0.0|Red Blue" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Row 0" : {
       "firstBaseline" : 13,
       "height" : 64,
@@ -1468,6 +1756,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Supercalifragilistic" : {
+      "firstBaseline" : 13,
+      "height" : 320,
+      "lastBaseline" : 317,
       "width" : 0
     },
     "system:13:400:default|0.0|Three" : {
@@ -1494,17 +1788,137 @@
       "lastBaseline" : 157,
       "width" : 0
     },
+    "system:13:400:default|0.0|World" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 816,
+      "lastBaseline" : 813,
+      "width" : 0
+    },
+    "system:13:400:default|60.0|Supercalifragilistic" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 56.5
+    },
+    "system:13:400:default|100.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 95.5
+    },
+    "system:13:400:default|120.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 118
+    },
+    "system:13:400:default|134.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 134
+    },
+    "system:13:400:default|150.0;l1;thead|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 145
+    },
+    "system:13:400:default|150.0;l1;tmiddle|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 150
+    },
+    "system:13:400:default|150.0;l1|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 144
+    },
+    "system:13:400:default|150.0;l2;tmiddle|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 147
+    },
+    "system:13:400:default|150.0;l2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 144
+    },
+    "system:13:400:default|150.0;l3;r1|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 147
+    },
+    "system:13:400:default|150.0;l3|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 147
+    },
+    "system:13:400:default|150.0;l10|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 137
+    },
+    "system:13:400:default|150.0;s4.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 76,
+      "lastBaseline" : 73,
+      "width" : 137
+    },
+    "system:13:400:default|150.0;s10.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 94,
+      "lastBaseline" : 91,
+      "width" : 137
+    },
     "system:13:400:default|150.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
       "width" : 137
     },
+    "system:13:400:default|200.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 196.5
+    },
+    "system:13:400:default|220.0|First line.\nSecond paragraph wraps here as well." : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 186
+    },
+    "system:13:400:default|260.0;l1|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 258
+    },
     "system:13:400:default|260.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
       "height" : 32,
       "lastBaseline" : 29,
       "width" : 227
+    },
+    "system:13:400:default|300.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 274
     },
     "system:13:400:default|400.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
@@ -1542,10 +1956,34 @@
       "lastBaseline" : 13,
       "width" : 29.5
     },
+    "system:13:700:default||Hello, " : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 41
+    },
+    "system:13:700:default||Layout must " : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 83.5
+    },
     "system:13:700:default|0.0|Bold" : {
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:700:default|0.0|Hello, " : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:700:default|0.0|Layout must " : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
       "width" : 0
     },
     "system:13:800:default||Bold" : {
@@ -2015,6 +2453,14 @@
       "textToText" : 1.5
     },
     "style:title" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 33,
+      "spacingAbove" : 11.092043498811563,
+      "spacingBelow" : 20.9091796875,
+      "textToText" : 0.5
+    },
+    "style:title:italic" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 33,

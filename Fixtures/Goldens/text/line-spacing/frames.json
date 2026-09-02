@@ -1,0 +1,39 @@
+{
+  "fixture" : "text\/line-spacing",
+  "frames" : {
+    "bodyS4" : {
+      "height" : 85.5,
+      "width" : 137,
+      "x" : 125,
+      "y" : 194.25
+    },
+    "column" : {
+      "height" : 271.5,
+      "width" : 150,
+      "x" : 125,
+      "y" : 24.25
+    },
+    "s4" : {
+      "height" : 76,
+      "width" : 137,
+      "x" : 125,
+      "y" : 24.25
+    },
+    "s10" : {
+      "height" : 94,
+      "width" : 137,
+      "x" : 125,
+      "y" : 100.25
+    },
+    "single" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 125,
+      "y" : 279.75
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 400
+  }
+}

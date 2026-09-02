@@ -135,7 +135,7 @@ extension Text: View {
 // MARK: - Environment (line limit, alignment, truncation, spacing)
 
 package struct LineLimitKey: EnvironmentKey { package static let defaultValue: Int? = nil }
-package struct LineLimitReservesSpaceKey: EnvironmentKey { package static let defaultValue = false }
+package struct MinimumLinesKey: EnvironmentKey { package static let defaultValue = 0 }
 package struct MultilineTextAlignmentKey: EnvironmentKey { package static let defaultValue = TextAlignment.leading }
 package struct TruncationModeKey: EnvironmentKey { package static let defaultValue = Text.TruncationMode.tail }
 package struct LineSpacingKey: EnvironmentKey { package static let defaultValue: CGFloat = 0 }
@@ -149,10 +149,11 @@ extension EnvironmentValues {
         set { self[LineLimitKey.self] = newValue }
     }
 
-    /// Whether `lineLimit` reserves the space of the limit even for shorter text.
-    package var lineLimitReservesSpace: Bool {
-        get { self[LineLimitReservesSpaceKey.self] }
-        set { self[LineLimitReservesSpaceKey.self] = newValue }
+    /// Lines whose height text reserves even when it is shorter (`lineLimit(_:reservesSpace:)`,
+    /// the lower bound of a range limit).
+    package var minimumLines: Int {
+        get { self[MinimumLinesKey.self] }
+        set { self[MinimumLinesKey.self] = newValue }
     }
 
     /// An environment value that indicates how a text view aligns its lines when the content
@@ -189,35 +190,36 @@ extension EnvironmentValues {
     }
 
     package var textLayoutOptions: TextLayoutOptions {
-        TextLayoutOptions(lineLimit: lineLimit, truncationMode: truncationMode, lineSpacing: lineSpacing,
-                          reservesSpace: lineLimit != nil && lineLimitReservesSpace)
+        TextLayoutOptions(lineLimit: lineLimit, truncationMode: truncationMode, lineSpacing: lineSpacing, minimumLines: minimumLines)
     }
 }
 
 extension View {
     /// Sets the maximum number of lines that text can occupy in this view.
     nonisolated public func lineLimit(_ number: Int?) -> some View {
-        environment(\.lineLimit, number)
+        environment(\.lineLimit, number).environment(\.minimumLines, 0)
     }
 
-    /// Sets to a partial range the number of lines that text can occupy in this view.
-    /// Only the upper bound of a range constrains the layout on macOS 26 (see `Docs/elements/Text.md`).
+    /// Sets to a partial range the number of lines that text can occupy in this view: the lower
+    /// bound reserves that many lines, there is no upper limit.
     nonisolated public func lineLimit(_ limit: PartialRangeFrom<Int>) -> some View {
-        environment(\.lineLimit, nil)
+        environment(\.lineLimit, nil).environment(\.minimumLines, limit.lowerBound)
     }
 
     nonisolated public func lineLimit(_ limit: PartialRangeThrough<Int>) -> some View {
-        environment(\.lineLimit, limit.upperBound)
+        environment(\.lineLimit, limit.upperBound).environment(\.minimumLines, 0)
     }
 
+    /// Sets to a closed range the number of lines text can occupy: the lower bound reserves
+    /// lines, the upper bound truncates.
     nonisolated public func lineLimit(_ limit: ClosedRange<Int>) -> some View {
-        environment(\.lineLimit, limit.upperBound)
+        environment(\.lineLimit, limit.upperBound).environment(\.minimumLines, limit.lowerBound)
     }
 
     /// Sets a limit for the number of lines text can occupy in this view, optionally reserving
     /// the space of that many lines.
     nonisolated public func lineLimit(_ limit: Int, reservesSpace: Bool) -> some View {
-        environment(\.lineLimit, limit).environment(\.lineLimitReservesSpace, reservesSpace)
+        environment(\.lineLimit, limit).environment(\.minimumLines, reservesSpace ? limit : 0)
     }
 
     /// Sets the alignment of a text view that contains multiple lines of text.

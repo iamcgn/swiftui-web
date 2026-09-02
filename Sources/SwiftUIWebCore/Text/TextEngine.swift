@@ -16,14 +16,15 @@ public struct TextLayoutOptions: Hashable, Sendable {
     public var lineLimit: Int?
     public var truncationMode: Text.TruncationMode
     public var lineSpacing: CGFloat
-    /// `lineLimit(_:reservesSpace: true)`: the height of `lineLimit` lines even for shorter text.
-    public var reservesSpace: Bool
+    /// Lines whose space is reserved even for shorter text: `lineLimit(n, reservesSpace: true)`
+    /// reserves `n`, `lineLimit(a...b)` and `lineLimit(a...)` reserve `a`; 0 reserves nothing.
+    public var minimumLines: Int
 
-    public init(lineLimit: Int? = nil, truncationMode: Text.TruncationMode = .tail, lineSpacing: CGFloat = 0, reservesSpace: Bool = false) {
+    public init(lineLimit: Int? = nil, truncationMode: Text.TruncationMode = .tail, lineSpacing: CGFloat = 0, minimumLines: Int = 0) {
         self.lineLimit = lineLimit
         self.truncationMode = truncationMode
         self.lineSpacing = lineSpacing
-        self.reservesSpace = reservesSpace
+        self.minimumLines = minimumLines
     }
 
     public static let `default` = TextLayoutOptions()
@@ -134,7 +135,7 @@ extension TextEngine {
 /// The key under which the fixture harness records a text measurement
 /// (`Fixtures/Goldens/text-metrics.json`). Must match `TextMetricRequest.key` in
 /// `Fixtures/Sources/TextMetrics/TextMetricsRequests.swift`:
-/// `<font>|<width>[;l<lineLimit>][;r][;s<lineSpacing>][;t<head|middle>]|<string>`, where `<font>` is
+/// `<font>|<width>[;l<lineLimit>][;r<minimumLines>][;s<lineSpacing>][;t<head|middle>]|<string>`, where `<font>` is
 /// `ResolvedFont.key` for one font and `rich:<key>=<count>,…` for a mixed-font text (adjacent
 /// runs in the same font merged; count = characters of each run).
 public enum TextMetricsKey {
@@ -151,7 +152,7 @@ public enum TextMetricsKey {
     public static func widthSlot(width: CGFloat?, options: TextLayoutOptions) -> String {
         var slot = width.map { "\($0)" } ?? ""
         if let limit = options.lineLimit { slot += ";l\(limit)" }
-        if options.reservesSpace { slot += ";r" }
+        if options.minimumLines > 0 { slot += ";r\(options.minimumLines)" }
         if options.lineSpacing != 0 { slot += ";s\(options.lineSpacing)" }
         switch options.truncationMode {
         case .tail: break

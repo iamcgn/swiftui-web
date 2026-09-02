@@ -92,11 +92,15 @@ func requestView(_ request: TextMetricRequest, id: String) -> some View {
     let base = requestText(request).probe(id)
         .lineSpacing(options.lineSpacing)
         .truncationMode(options.truncation == "head" ? .head : options.truncation == "middle" ? .middle : .tail)
+    // The same mapping SwiftUIWeb's View.lineLimit overloads perform, inverted.
     let limited: AnyView = {
-        if let limit = options.lineLimit {
-            return AnyView(options.reservesSpace ? AnyView(base.lineLimit(limit, reservesSpace: true)) : AnyView(base.lineLimit(limit)))
+        switch (options.lineLimit, options.minimumLines) {
+        case (nil, 0): return AnyView(base)
+        case (let limit?, 0): return AnyView(base.lineLimit(limit))
+        case (nil, let minimum): return AnyView(base.lineLimit(minimum...))
+        case (let limit?, let minimum) where limit == minimum: return AnyView(base.lineLimit(limit, reservesSpace: true))
+        case (let limit?, let minimum): return AnyView(base.lineLimit(minimum...limit))
         }
-        return AnyView(base)
     }()
     if let width = request.width {
         limited.frame(width: width, alignment: .topLeading)

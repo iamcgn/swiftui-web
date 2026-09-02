@@ -10,7 +10,8 @@
 /// - widths are rounded up to the half point; the multi-line pitch is the line height rounded up
 ///   plus `lineSpacing`;
 /// - `lineLimit` truncates the last permitted line with an ellipsis at the head, middle or tail,
-///   cutting at character granularity;
+///   cutting at character granularity and dropping spaces next to the ellipsis; `minimumLines`
+///   pads the height with empty lines (the last baseline stays on the last line of text);
 /// - `"\n"` forces a break;
 /// - a line with several fonts takes the tallest run's line height and baseline.
 public struct TextLayouter {
@@ -90,14 +91,21 @@ public struct TextLayouter {
                 x += w
             }
             func appendSegments(_ a: Int, _ b: Int) { for s in segments(a, b) { append(s.text, s.run) } }
+            // Spaces next to the ellipsis are dropped (fixture text/line-limit: "wrap this…" is
+            // 144 wide, not 147.5), so a prefix is measured up to its last non-space character
+            // and a suffix from its first.
+            func suffixStart(_ k: Int) -> Int { var s = k; while s < end, isSpace(chars[s]) { s += 1 }; return s }
+            func prefixWidth(_ k: Int) -> CGFloat { raw(lo, inkEnd(lo, k)) }
+            func suffixWidth(_ k: Int) -> CGFloat { raw(suffixStart(k), end) }
             switch options.truncationMode {
             case .tail:
                 var keep = lo
                 var k = lo + 1
                 while k <= end {
                     let run = runOf[k - 1]
-                    if half(raw(lo, k) + ellipsisWidth(run)) <= limit { keep = k; k += 1 } else { break }
+                    if half(prefixWidth(k) + ellipsisWidth(run)) <= limit { keep = k; k += 1 } else { break }
                 }
+                keep = inkEnd(lo, keep)
                 let run = keep > lo ? runOf[keep - 1] : runOf[min(lo, end - 1)]
                 appendSegments(lo, keep)
                 append(Self.ellipsis, run)
@@ -106,28 +114,33 @@ public struct TextLayouter {
                 var k = end - 1
                 while k >= lo {
                     let run = runOf[k]
-                    if half(ellipsisWidth(run) + raw(k, end)) <= limit { keep = k; k -= 1 } else { break }
+                    if half(ellipsisWidth(run) + suffixWidth(k)) <= limit { keep = k; k -= 1 } else { break }
                 }
+                keep = suffixStart(keep)
                 let run = keep < end ? runOf[keep] : runOf[min(lo, end - 1)]
                 append(Self.ellipsis, run)
                 appendSegments(keep, end)
             case .middle:
                 var a = lo, b = end
                 var growPrefix = true
+                func fits(_ a: Int, _ b: Int) -> Bool {
+                    let run = a > lo ? runOf[a - 1] : runOf[min(b, end - 1)]
+                    return half(prefixWidth(a) + ellipsisWidth(run) + suffixWidth(b)) <= limit
+                }
                 while a < b {
                     let (na, nb) = growPrefix ? (a + 1, b) : (a, b - 1)
-                    let run = growPrefix ? runOf[na - 1] : runOf[nb]
-                    if half(raw(lo, na) + ellipsisWidth(run) + raw(nb, end)) <= limit {
+                    if fits(na, nb) {
                         a = na; b = nb
                         growPrefix.toggle()
-                    } else if growPrefix {
-                        // The prefix cannot grow; try the suffix once more, then stop.
-                        let run2 = runOf[b - 1]
-                        if b - 1 > a, half(raw(lo, a) + ellipsisWidth(run2) + raw(b - 1, end)) <= limit { b -= 1 } else { break }
+                    } else if growPrefix, b - 1 > a, fits(a, b - 1) {
+                        // The prefix cannot grow; the suffix still can.
+                        b -= 1
                     } else {
                         break
                     }
                 }
+                a = inkEnd(lo, a)
+                b = suffixStart(b)
                 let run = a > lo ? runOf[a - 1] : (b < end ? runOf[b] : runOf[min(lo, end - 1)])
                 appendSegments(lo, a)
                 append(Self.ellipsis, run)
@@ -185,9 +198,9 @@ public struct TextLayouter {
                 }
             }
         }
-        if let limit = options.lineLimit, options.reservesSpace, pieces.count < limit {
+        if options.minimumLines > pieces.count {
             let last = pieces.last!
-            for _ in pieces.count..<limit {
+            for _ in pieces.count..<options.minimumLines {
                 pieces.append(Piece(lo: last.hi, hi: last.hi, width: 0, inkWidth: 0, fragments: [], runsShown: last.runsShown))
             }
         }
@@ -210,7 +223,9 @@ public struct TextLayouter {
             height = top + lineHeight
             if index < pieces.count - 1 { top += lineHeight.rounded(.up) + options.lineSpacing }
         }
+        // Reserved (empty) lines add height but the last baseline stays on the last line of text.
+        let lastText = lines.indices.last { !lines[$0].fragments.isEmpty } ?? lines.indices.last
         return TextLayout(size: CGSize(width: widest, height: height),
-                          firstBaseline: lines.first?.baseline ?? 0, lastBaseline: lines.last?.baseline ?? 0, lines: lines)
+                          firstBaseline: lines.first?.baseline ?? 0, lastBaseline: lastText.map { lines[$0].baseline } ?? 0, lines: lines)
     }
 }

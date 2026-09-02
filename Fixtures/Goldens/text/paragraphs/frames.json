@@ -1,0 +1,57 @@
+{
+  "fixture" : "text\/paragraphs",
+  "frames" : {
+    "column" : {
+      "height" : 403,
+      "width" : 300,
+      "x" : 50,
+      "y" : 8.5
+    },
+    "hanging" : {
+      "height" : 64,
+      "width" : 134,
+      "x" : 50,
+      "y" : 8.5
+    },
+    "longWord" : {
+      "height" : 32,
+      "width" : 56.5,
+      "x" : 50,
+      "y" : 200.5
+    },
+    "titleWrap" : {
+      "height" : 99,
+      "width" : 261.5,
+      "x" : 50,
+      "y" : 312.5
+    },
+    "twoFree" : {
+      "height" : 32,
+      "width" : 230.5,
+      "x" : 50,
+      "y" : 232.5
+    },
+    "twoWrapped" : {
+      "height" : 48,
+      "width" : 186,
+      "x" : 50,
+      "y" : 264.5
+    },
+    "w100" : {
+      "height" : 96,
+      "width" : 95.5,
+      "x" : 50,
+      "y" : 72.5
+    },
+    "w300" : {
+      "height" : 32,
+      "width" : 274,
+      "x" : 50,
+      "y" : 168.5
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 400
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "fixture" : "text\/concatenation",
+  "frames" : {
+    "baselineBox" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 199,
+      "y" : 186
+    },
+    "boldPlain" : {
+      "height" : 16,
+      "width" : 76.5,
+      "x" : 125,
+      "y" : 31
+    },
+    "colors" : {
+      "height" : 16,
+      "width" : 54,
+      "x" : 125,
+      "y" : 85
+    },
+    "column" : {
+      "height" : 238,
+      "width" : 150,
+      "x" : 125,
+      "y" : 31
+    },
+    "envBold" : {
+      "height" : 33,
+      "width" : 85.5,
+      "x" : 125,
+      "y" : 134
+    },
+    "mixedBaseline" : {
+      "height" : 38,
+      "width" : 74,
+      "x" : 125,
+      "y" : 167
+    },
+    "mixedSize" : {
+      "height" : 38,
+      "width" : 74,
+      "x" : 125,
+      "y" : 47
+    },
+    "titleItalic" : {
+      "height" : 33,
+      "width" : 90,
+      "x" : 125,
+      "y" : 101
+    },
+    "wrappedRich" : {
+      "height" : 64,
+      "width" : 150,
+      "x" : 125,
+      "y" : 205
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 400
+  }
+}

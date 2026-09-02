@@ -1,0 +1,63 @@
+{
+  "fixture" : "text\/baseline-wrapped",
+  "frames" : {
+    "column" : {
+      "height" : 150,
+      "width" : 173.5,
+      "x" : 113.25,
+      "y" : 25
+    },
+    "first" : {
+      "height" : 80,
+      "width" : 173.5,
+      "x" : 113.25,
+      "y" : 95
+    },
+    "firstBox" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 276.75,
+      "y" : 114
+    },
+    "firstEnd" : {
+      "height" : 38,
+      "width" : 43.5,
+      "x" : 233.25,
+      "y" : 95
+    },
+    "firstWrapped" : {
+      "height" : 64,
+      "width" : 118,
+      "x" : 113.25,
+      "y" : 111
+    },
+    "last" : {
+      "height" : 70,
+      "width" : 173.5,
+      "x" : 113.25,
+      "y" : 25
+    },
+    "lastBox" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 276.75,
+      "y" : 76
+    },
+    "lastEnd" : {
+      "height" : 38,
+      "width" : 43.5,
+      "x" : 233.25,
+      "y" : 57
+    },
+    "lastWrapped" : {
+      "height" : 64,
+      "width" : 118,
+      "x" : 113.25,
+      "y" : 25
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 400
+  }
+}

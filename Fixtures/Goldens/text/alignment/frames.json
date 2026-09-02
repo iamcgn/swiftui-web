@@ -1,0 +1,51 @@
+{
+  "fixture" : "text\/alignment",
+  "frames" : {
+    "center" : {
+      "height" : 48,
+      "width" : 196.5,
+      "x" : 101.75,
+      "y" : 86
+    },
+    "column" : {
+      "height" : 224,
+      "width" : 200,
+      "x" : 100,
+      "y" : 38
+    },
+    "leading" : {
+      "height" : 48,
+      "width" : 196.5,
+      "x" : 101.75,
+      "y" : 38
+    },
+    "newline" : {
+      "height" : 32,
+      "width" : 60.5,
+      "x" : 169.75,
+      "y" : 182
+    },
+    "newlineCenter" : {
+      "height" : 32,
+      "width" : 60.5,
+      "x" : 169.75,
+      "y" : 214
+    },
+    "single" : {
+      "height" : 16,
+      "width" : 13,
+      "x" : 100,
+      "y" : 246
+    },
+    "trailing" : {
+      "height" : 48,
+      "width" : 196.5,
+      "x" : 101.75,
+      "y" : 134
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 400
+  }
+}

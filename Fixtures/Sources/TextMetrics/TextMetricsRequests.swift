@@ -5,8 +5,8 @@ import SwiftUI
 
 /// A font spelled in a toolchain-neutral way. `key` must match `ResolvedFont.key` in SwiftUIWebCore.
 public enum FixtureFont: Hashable, Sendable {
-    case style(String, weight: String? = nil, design: String? = nil)   // "body", "title", … with optional overrides
-    case system(size: CGFloat, weight: String, design: String)          // weight "regular"…"black", design "default"…
+    case style(String, weight: String? = nil, design: String? = nil, italic: Bool = false)   // "body", "title", … with optional overrides
+    case system(size: CGFloat, weight: String, design: String, italic: Bool = false)          // weight "regular"…"black", design "default"…
 
     public static let weights: [String: (Font.Weight, Int)] = [
         "ultraLight": (.ultraLight, 100), "thin": (.thin, 200), "light": (.light, 300), "regular": (.regular, 400),
@@ -30,23 +30,25 @@ public enum FixtureFont: Hashable, Sendable {
 
     public var key: String {
         switch self {
-        case .style(let name, let weight, let design):
+        case .style(let name, let weight, let design, let italic):
             var key = "style:\(name)"
             if let weight { key += ":w\(Self.weights[weight]!.1)" }
             if let design, design != "default" { key += ":\(design)" }
-            return key
-        case .system(let size, let weight, let design):
+            return key + (italic ? ":italic" : "")
+        case .system(let size, let weight, let design, let italic):
             let sizeText = size == size.rounded() ? "\(Int(size))" : "\(size)"
-            return "system:\(sizeText):\(Self.weights[weight]!.1):\(design)"
+            return "system:\(sizeText):\(Self.weights[weight]!.1):\(design)" + (italic ? ":italic" : "")
         }
     }
 
     public var font: Font {
         switch self {
-        case .style(let name, let weight, let design):
-            return Font.system(Self.styles[name]!, design: Self.design(design), weight: weight.map { Self.weights[$0]!.0 })
-        case .system(let size, let weight, let design):
-            return Font.system(size: size, weight: Self.weights[weight]!.0, design: Self.design(design) ?? .default)
+        case .style(let name, let weight, let design, let italic):
+            let font = Font.system(Self.styles[name]!, design: Self.design(design), weight: weight.map { Self.weights[$0]!.0 })
+            return italic ? font.italic() : font
+        case .system(let size, let weight, let design, let italic):
+            let font = Font.system(size: size, weight: Self.weights[weight]!.0, design: Self.design(design) ?? .default)
+            return italic ? font.italic() : font
         }
     }
 }
@@ -55,13 +57,15 @@ public enum FixtureFont: Hashable, Sendable {
 /// Spelled into the key exactly like `TextLayoutOptions` in SwiftUIWebCore (`TextMetricsKey`).
 public struct TextMetricOptions: Hashable, Sendable {
     public var lineLimit: Int? = nil
-    public var reservesSpace = false
+    /// Reserved lines: `lineLimit(n, reservesSpace: true)` when equal to `lineLimit`, otherwise
+    /// the lower bound of a range limit.
+    public var minimumLines = 0
     public var lineSpacing: CGFloat = 0
     public var truncation = "tail"      // "head" | "middle" | "tail"
 
-    public init(lineLimit: Int? = nil, reservesSpace: Bool = false, lineSpacing: CGFloat = 0, truncation: String = "tail") {
+    public init(lineLimit: Int? = nil, minimumLines: Int = 0, lineSpacing: CGFloat = 0, truncation: String = "tail") {
         self.lineLimit = lineLimit
-        self.reservesSpace = reservesSpace
+        self.minimumLines = minimumLines
         self.lineSpacing = lineSpacing
         self.truncation = truncation
     }
@@ -72,7 +76,7 @@ public struct TextMetricOptions: Hashable, Sendable {
     public var keySuffix: String {
         var suffix = ""
         if let lineLimit { suffix += ";l\(lineLimit)" }
-        if reservesSpace { suffix += ";r" }
+        if minimumLines > 0 { suffix += ";r\(minimumLines)" }
         if lineSpacing != 0 { suffix += ";s\(lineSpacing)" }
         if truncation != "tail" { suffix += ";t\(truncation)" }
         return suffix
@@ -142,6 +146,13 @@ public enum TextMetricsRequests {
     public static let styleNames = ["largeTitle", "title", "title2", "title3", "headline", "subheadline", "body", "callout", "footnote", "caption", "caption2"]
     public static let sample = "The quick brown fox"
     public static let paragraph = "Layout must wrap this sentence onto several lines inside a narrow frame."
+    /// Two paragraphs separated by a hard line break.
+    public static let twoParagraphs = "First line.\nSecond paragraph wraps here as well."
+    public static let newlineShort = "Left\nRight side"
+    public static let longWord = "Supercalifragilistic"
+    /// Parts of the mixed-font concatenations in text/concatenation.
+    public static let richParagraphHead = "Layout must "
+    public static let richParagraphTail = "wrap this sentence onto several lines inside a narrow frame."
 
     public static let all: [TextMetricRequest] = {
         var requests: [TextMetricRequest] = [
@@ -205,6 +216,38 @@ public enum TextMetricsRequests {
         for size: CGFloat in [10, 12, 20, 24, 32] { requests.append(TextMetricRequest(sample, .system(size: size, weight: "regular", design: "default"))) }
         for weight in ["light", "medium", "bold", "black"] { requests.append(TextMetricRequest(sample, .system(size: 20, weight: weight, design: "default"))) }
         for design in ["rounded", "serif", "monospaced"] { requests.append(TextMetricRequest(sample, .system(size: 20, weight: "regular", design: design))) }
+
+        // Text completeness (Phase 2): wrapped paragraphs, line limit, truncation, spacing, concatenation.
+        for width: CGFloat in [100, 120, 134, 200, 300] { requests.append(TextMetricRequest(paragraph, defaultFont, width: width)) }
+        for limit in [1, 2, 3, 10] { requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: .init(lineLimit: limit))) }
+        requests.append(TextMetricRequest(paragraph, defaultFont, width: 260, options: .init(lineLimit: 1)))
+        for mode in ["head", "middle"] { requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: .init(lineLimit: 1, truncation: mode))) }
+        requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: .init(lineLimit: 2, truncation: "middle")))
+        requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: .init(lineLimit: 3, minimumLines: 1)))
+        for spacing: CGFloat in [4, 10] { requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: .init(lineSpacing: spacing))) }
+        requests.append(TextMetricRequest(paragraph, .style("body"), width: 150, options: .init(lineSpacing: 4)))
+        requests.append(TextMetricRequest(paragraph, .style("title"), width: 300))
+        requests.append(TextMetricRequest("Hello", defaultFont, options: .init(lineLimit: 1)))
+        requests.append(TextMetricRequest("Hello", defaultFont, options: .init(lineLimit: 2, minimumLines: 2)))
+        requests.append(TextMetricRequest("Hello", defaultFont, options: .init(lineLimit: 4, minimumLines: 2)))
+        requests.append(TextMetricRequest("Hello", defaultFont, options: .init(minimumLines: 3)))
+        requests.append(TextMetricRequest("Hello", defaultFont, options: .init(lineSpacing: 10)))
+        requests.append(TextMetricRequest("Hello", defaultFont, options: .init(truncation: "head")))
+        requests.append(TextMetricRequest(twoParagraphs, defaultFont))
+        requests.append(TextMetricRequest(twoParagraphs, defaultFont, width: 220))
+        requests.append(TextMetricRequest(newlineShort, defaultFont))
+        requests.append(TextMetricRequest(longWord, defaultFont, width: 60))
+        requests.append(TextMetricRequest(longWord, defaultFont))
+        requests.append(TextMetricRequest("Hi", defaultFont))
+        requests.append(TextMetricRequest("End", .style("largeTitle")))
+        let bold13 = defaultFont(weight: "bold")
+        requests.append(TextMetricRequest(runs: [.init("Hello, ", bold13), .init("World", defaultFont)]))
+        requests.append(TextMetricRequest(runs: [.init("Big ", .style("largeTitle")), .init("small", defaultFont)]))
+        requests.append(TextMetricRequest("Red Blue", defaultFont))
+        requests.append(TextMetricRequest(runs: [.init("Title ", .style("title")), .init("italic", .style("title", italic: true))]))
+        requests.append(TextMetricRequest(runs: [.init("Env ", .style("title")), .init("bold", .style("title", weight: "bold"))]))
+        requests.append(TextMetricRequest(runs: [.init(richParagraphHead, bold13), .init(richParagraphTail, defaultFont)], width: 150))
+        requests.append(TextMetricRequest(runs: [.init(richParagraphHead, bold13), .init(richParagraphTail, defaultFont)]))
         return requests
     }()
 }

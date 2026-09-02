@@ -1,0 +1,75 @@
+{
+  "fixture" : "text\/line-limit",
+  "frames" : {
+    "atLeast3" : {
+      "height" : 48,
+      "width" : 31,
+      "x" : 125,
+      "y" : 346
+    },
+    "column" : {
+      "height" : 368,
+      "width" : 150,
+      "x" : 125,
+      "y" : 26
+    },
+    "limit1" : {
+      "height" : 16,
+      "width" : 144,
+      "x" : 125,
+      "y" : 26
+    },
+    "limit2" : {
+      "height" : 32,
+      "width" : 144,
+      "x" : 125,
+      "y" : 42
+    },
+    "limit3" : {
+      "height" : 48,
+      "width" : 147,
+      "x" : 125,
+      "y" : 74
+    },
+    "limit10" : {
+      "height" : 64,
+      "width" : 137,
+      "x" : 125,
+      "y" : 122
+    },
+    "range1to3" : {
+      "height" : 48,
+      "width" : 147,
+      "x" : 125,
+      "y" : 218
+    },
+    "range2to4" : {
+      "height" : 32,
+      "width" : 31,
+      "x" : 125,
+      "y" : 314
+    },
+    "reserved2" : {
+      "height" : 32,
+      "width" : 31,
+      "x" : 125,
+      "y" : 282
+    },
+    "short" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 125,
+      "y" : 266
+    },
+    "upTo2" : {
+      "height" : 32,
+      "width" : 144,
+      "x" : 125,
+      "y" : 186
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 400
+  }
+}
