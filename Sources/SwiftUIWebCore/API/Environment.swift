@@ -1,3 +1,5 @@
+import Observation
+
 /// A key for accessing values in the environment.
 public protocol EnvironmentKey {
     /// The associated type representing the type of the environment key's value.
@@ -40,6 +42,16 @@ public struct EnvironmentValues: CustomStringConvertible {
     public var description: String {
         "EnvironmentValues(\(values.count) keys)"
     }
+
+    /// Reads an observable object of the given type from the environment, or `nil` if none was
+    /// stored with `View.environment(_:)`.
+    public subscript<T: AnyObject & Observable>(objectType: T.Type) -> T? {
+        get { values[ObjectIdentifier(objectType)] as? T }
+        set {
+            values[ObjectIdentifier(objectType)] = newValue
+            didMutate()
+        }
+    }
 }
 
 package enum _EnvironmentGeneration {
@@ -62,6 +74,7 @@ public struct Environment<Value>: DynamicProperty {
     @usableFromInline
     package enum Content {
         case keyPath(KeyPath<EnvironmentValues, Value>)
+        case lookup((EnvironmentValues) -> Value)
         case value(Value)
     }
 
@@ -82,20 +95,79 @@ public struct Environment<Value>: DynamicProperty {
             return value
         case .keyPath(let keyPath):
             return EnvironmentValues()[keyPath: keyPath]
+        case .lookup(let lookup):
+            return lookup(EnvironmentValues())
         }
     }
 
     /// Resolves the property against `values`. Called by the runtime when a view's body is about
     /// to be evaluated.
     package mutating func resolve(in values: EnvironmentValues) {
-        if case .keyPath(let keyPath) = content {
+        switch content {
+        case .keyPath(let keyPath):
             content = .value(values[keyPath: keyPath])
+        case .lookup(let lookup):
+            content = .value(lookup(values))
+        case .value:
+            break
         }
     }
 
     @MainActor
     public mutating func _install(in node: ViewNode, slot: inout AnyObject?) {
         resolve(in: node.environment)
+    }
+}
+
+extension Environment where Value: AnyObject & Observable {
+    /// Creates an environment property to read an observable object from the environment.
+    /// Reading it when no object of that type was stored is a programmer error, as in SwiftUI.
+    public init(_ objectType: Value.Type) {
+        content = .lookup { values in
+            guard let object = values[objectType] else {
+                fatalError("No Observable object of type \(objectType) found. A View.environment(_:) for \(objectType) may be missing as an ancestor of this view.")
+            }
+            return object
+        }
+    }
+}
+
+extension Environment {
+    /// Creates an environment property to read an observable object from the environment,
+    /// returning `nil` if no corresponding object has been set.
+    public init<T: AnyObject & Observable>(_ objectType: T.Type) where Value == T? {
+        content = .lookup { $0[objectType] }
+    }
+}
+
+/// Stores an observable object in the environment. Produced by `View.environment(_:)`.
+public struct _EnvironmentObjectWritingModifier<T: AnyObject & Observable> {
+    public var object: T?
+
+    public init(object: T?) {
+        self.object = object
+    }
+}
+
+extension _EnvironmentObjectWritingModifier: ViewModifier, _EnvironmentModifier {
+    public typealias Body = Never
+
+    package func modifyEnvironment(_ values: inout EnvironmentValues) {
+        values[T.self] = object
+    }
+
+    @MainActor
+    public static func _makeNode<Content: View>(
+        _ context: _NodeContext<ModifiedContent<Content, Self>>
+    ) -> TypedNode<ModifiedContent<Content, Self>> {
+        EnvironmentModifierNode(context)
+    }
+}
+
+extension View {
+    /// Places an observable object in the view's environment.
+    public func environment<T: AnyObject & Observable>(_ object: T?) -> some View {
+        modifier(_EnvironmentObjectWritingModifier(object: object))
     }
 }
 

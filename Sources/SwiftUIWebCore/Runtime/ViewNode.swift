@@ -1,3 +1,5 @@
+import Observation
+
 // The runtime's node tree mirrors the view *type* tree (Docs/ARCHITECTURE.md, invariant 1):
 // every view value in a body is represented by one node whose class is chosen statically
 // through `View._makeNode`. There is no AttributeGraph and no general diffing; identity is
@@ -24,6 +26,10 @@ open class ViewNode {
 
     /// False once `unmount()` has run.
     package private(set) var isMounted = true
+
+    /// Identifies the most recent body evaluation, so an `onChange` from a stale observation
+    /// session (one armed by an earlier evaluation) does not invalidate the node again.
+    package private(set) var observationToken = ObservationToken()
 
     package init(parent: ViewNode?, runtime: Runtime, environment: EnvironmentValues) {
         self.runtime = runtime
@@ -54,6 +60,11 @@ open class ViewNode {
 
     package func clearNeedsUpdate() {
         needsUpdate = false
+    }
+
+    /// Starts a new observation session for this node; earlier sessions become stale.
+    package func beginObservationSession() {
+        observationToken = ObservationToken()
     }
 
     // MARK: Tree
@@ -176,7 +187,7 @@ package final class CompositeNode<V: View>: TypedNode<V> {
     private func evaluateBody() {
         bodyEvaluations += 1
         _DynamicPropertyFields<V>.installAll(into: &view, node: self, slot: &propertyStorage)
-        let body = view.body
+        let body = _trackingObservation(for: self) { view.body }
         if let child {
             child.update(view: body, environment: environment)
         } else {
@@ -195,6 +206,35 @@ open class LeafNode<V: View>: TypedNode<V> {
     public init(_ context: _NodeContext<V>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
                    environment: context.environment)
+    }
+}
+
+// MARK: - Observation
+
+/// Evaluates `body` while recording every `@Observable` property it reads; the first later
+/// mutation of any of them invalidates `node`. Tracking is re-armed by the next evaluation, so
+/// a node only ever depends on what its most recent body actually read.
+@MainActor
+package func _trackingObservation<Result>(for node: ViewNode, _ body: () -> Result) -> Result {
+    node.beginObservationSession()
+    let token = node.observationToken
+    return withObservationTracking(body) {
+        // Observation calls this from the property's `willSet`, on the mutating thread. State
+        // mutation is main-actor only in SwiftUI and here, so hop synchronously.
+        MainActor.assumeIsolated {
+            guard token.isCurrent(for: node) else { return }
+            node.invalidate()
+        }
+    }
+}
+
+/// A fresh identity per observation session.
+package final class ObservationToken: Sendable {
+    package init() {}
+
+    @MainActor
+    package func isCurrent(for node: ViewNode) -> Bool {
+        node.observationToken === self && node.isMounted
     }
 }
 

@@ -62,7 +62,7 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
     private func evaluateBody() {
         bodyEvaluations += 1
         _DynamicPropertyFields<Modifier>.installAll(into: &view.modifier, node: self, slot: &propertyStorage)
-        let body = view.modifier.body(content: _ViewModifier_Content<Modifier>())
+        let body = _trackingObservation(for: self) { view.modifier.body(content: _ViewModifier_Content<Modifier>()) }
         if let child {
             child.update(view: body, environment: environment)
         } else {

@@ -44,8 +44,8 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 |---|---|---|---|
 | `@State` | 🟢 partial | Box per node; writes coalesce; no animation transactions yet |  |
 | `@Binding` | 🟢 partial | get/set, constant, dynamic member lookup, optional and collection projections |  |
-| `@Environment` | 🟢 partial | Key-path form; resolved at install. Object form arrives with @Observable |  |
-| `@Observable / @Bindable` | ❌ missing |  |  |
+| `@Environment` | 🟢 partial | Key-path and Observable-object forms (`Environment(Model.self)`, optional variant); `.environment(object)` |  |
+| `@Observable / @Bindable` | 🟢 partial | Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath |  |
 | `ObservableObject / @Published / @StateObject` | ❌ missing | Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3) |  |
 
 ## Modifiers

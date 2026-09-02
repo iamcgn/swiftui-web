@@ -91,11 +91,12 @@
         {
           "api": "@Environment",
           "status": "partial",
-          "notes": "Key-path form; resolved at install. Object form arrives with @Observable"
+          "notes": "Key-path and Observable-object forms (`Environment(Model.self)`, optional variant); `.environment(object)`"
         },
         {
           "api": "@Observable / @Bindable",
-          "status": "missing"
+          "status": "partial",
+          "notes": "Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath"
         },
         {
           "api": "ObservableObject / @Published / @StateObject",
