@@ -75,7 +75,8 @@ scripts/serve.sh Examples/Counter 8765            # then open http://localhost:8
 scripts/tier-b.sh --filter layout/                # browser fidelity: gallery + Playwright vs goldens
 ```
 
-`Examples/Gallery` lists every fixture in a left pane and mounts the selected one on the right, with
-buttons for its behaviour steps; `index.html?fixture=text/wrapped` opens one directly. `scripts/gen-goldens.sh`
-regenerates goldens with Apple's SwiftUI (macOS only).
+`Examples/Gallery` lists every fixture in a left pane and shows the selected one as code (the
+`Fixture(...)` declaration or its whole file, via `scripts/gen-fixture-sources.py`) next to its live
+preview, with buttons for its behaviour steps; `index.html?fixture=text/wrapped` opens one directly.
+`scripts/gen-goldens.sh` regenerates goldens with Apple's SwiftUI (macOS only).
 

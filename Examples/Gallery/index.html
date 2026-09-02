@@ -1,10 +1,12 @@
 <!doctype html>
 <html>
 <head><meta charset="utf-8"><title>SwiftUIWeb gallery</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
 <style>
+:root{--line:18px}
 html,body{margin:0;height:100%;background:#fff;color:#1d1d1f;font:13px -apple-system,system-ui,sans-serif}
 body{display:flex}
-#sidebar{flex:0 0 240px;display:flex;flex-direction:column;border-right:1px solid #e5e5ea;background:#f5f5f7}
+#sidebar{flex:0 0 220px;display:flex;flex-direction:column;border-right:1px solid #e5e5ea;background:#f5f5f7}
 #sidebar header{padding:12px 12px 8px}
 #sidebar h1{margin:0 0 8px;font-size:14px}
 #filter{width:100%;box-sizing:border-box;padding:5px 8px;border:1px solid #d2d2d7;border-radius:6px;font:inherit}
@@ -16,13 +18,31 @@ body{display:flex}
 #list a.selected{background:#0071e3;color:#fff}
 #list .badge{font-size:10px;padding:0 5px;border-radius:8px;background:#d2d2d7;color:#1d1d1f}
 #list a.selected .badge{background:rgba(255,255,255,.3);color:#fff}
-#detail{flex:1;min-width:0;display:flex;flex-direction:column;overflow:auto}
-#detail header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:12px 16px;border-bottom:1px solid #e5e5ea}
+#detail{flex:1;min-width:0;display:flex;flex-direction:column}
+#detail>header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:12px 16px;border-bottom:1px solid #e5e5ea}
 #title{font-weight:600}
 #steps{display:flex;flex-wrap:wrap;gap:6px}
-#steps button{font:inherit;padding:3px 10px;border:1px solid #d2d2d7;border-radius:6px;background:#fff;cursor:pointer}
-#steps button:hover{background:#f5f5f7}
-#stage{padding:16px}
+button{font:inherit;padding:3px 10px;border:1px solid #d2d2d7;border-radius:6px;background:#fff;cursor:pointer;color:inherit}
+button:hover{background:#f5f5f7}
+#panes{flex:1;min-height:0;display:flex}
+#codecol{flex:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid #e5e5ea}
+#codecol>header,#previewcol>header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 12px;border-bottom:1px solid #e5e5ea;background:#fafafa;color:#6e6e73;font-size:12px}
+#codefile{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#modes{display:flex;flex-shrink:0}
+#modes button{padding:2px 8px;border-radius:0;font-size:12px}
+#modes button:first-child{border-radius:5px 0 0 5px}
+#modes button:last-child{border-radius:0 5px 5px 0;border-left:0}
+#modes button.selected{background:#e8e8ed;font-weight:600}
+#codepane{flex:1;overflow:auto;position:relative}
+#codegrid{display:flex;min-width:max-content;position:relative}
+.codewrap{margin:0;padding:0}
+#gutter,#code{display:block;margin:0;padding:12px 0;font:12px/var(--line) ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:4}
+#gutter{display:flex;flex-direction:column;padding-left:12px;padding-right:12px;text-align:right;color:#a1a1a6;user-select:none;position:sticky;left:0;background:#fff;border-right:1px solid #f0f0f2}
+#gutter .mark{color:#1d1d1f;font-weight:600}
+#code{padding-left:14px;padding-right:24px;white-space:pre;background:transparent}
+#band{position:absolute;left:0;right:0;margin-top:12px;background:rgba(0,113,227,.08);border-left:3px solid #0071e3;pointer-events:none}
+#previewcol{flex:0 0 auto;max-width:60%;display:flex;flex-direction:column}
+#stage{flex:1;overflow:auto;padding:16px}
 #app{position:relative;background:#fff;outline:1px dashed #c7c7cc}
 </style></head>
 <body>
@@ -32,8 +52,18 @@ body{display:flex}
 </aside>
 <main id="detail">
   <header><span id="title">Loading…</span><span id="steps"></span></header>
-  <div id="stage"><div id="app"></div></div>
+  <div id="panes">
+    <section id="codecol">
+      <header><span id="codefile"></span><span id="modes"><button type="button" data-mode="declaration" class="selected">Declaration</button><button type="button" data-mode="file">File</button></span></header>
+      <div id="codepane"><div id="codegrid"><div id="band" hidden></div><pre id="gutter"></pre><pre class="codewrap"><code id="code" class="hljs language-swift"></code></pre></div></div>
+    </section>
+    <section id="previewcol">
+      <header><span>Preview</span></header>
+      <div id="stage"><div id="app"></div></div>
+    </section>
+  </div>
 </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
 <script type="module">
   import { init } from "./.build/wasm/plugins/PackageToJS/outputs/Package/index.js";
   await init();

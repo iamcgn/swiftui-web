@@ -29,10 +29,12 @@ func requestedFixture(in search: String) -> String? {
     return query.first { $0.first == "fixture" }?.last.map(percentDecoded)
 }
 
-/// Two panes: every fixture listed on the left (`#list`), the selected one mounted on the right
-/// (`#app`, sized to the fixture) with its behaviour steps as buttons. Selecting a fixture updates
-/// the URL (`?fixture=<name>`) without reloading, so links stay shareable and the Tier B job
-/// (`Playwright/tier-b.mjs`) can still open one fixture per navigation.
+/// Three panes: every fixture listed on the left (`#list`); the code that declares the selected
+/// one in the middle (`#code`, from the generated `FixtureSources`, highlighted by highlight.js
+/// when the CDN is reachable); and its preview on the right (`#app`, sized to the fixture) with
+/// its behaviour steps as buttons. Selecting a fixture updates the URL (`?fixture=<name>`) without
+/// reloading, so links stay shareable and the Tier B job (`Playwright/tier-b.mjs`) can still open
+/// one fixture per navigation.
 @MainActor
 final class Gallery {
     private let document = JSObject.global.document.object!
@@ -41,9 +43,18 @@ final class Gallery {
     private let title: JSObject
     private let steps: JSObject
     private let app: JSObject
+    private let code: JSObject
+    private let gutter: JSObject
+    private let band: JSObject
+    private let codePane: JSObject
+    private let codeFile: JSObject
+    private let modes: JSObject
     private var host: CanvasHost?
     private var instance: FixtureInstance?
+    private var source: FixtureSource?
+    private var wholeFile = false
     private var closures: [JSClosure] = []
+    private let lineHeight = 18.0   // matches `--line` in index.html
 
     init() {
         list = document.getElementById!("list").object!
@@ -51,6 +62,12 @@ final class Gallery {
         title = document.getElementById!("title").object!
         steps = document.getElementById!("steps").object!
         app = document.getElementById!("app").object!
+        code = document.getElementById!("code").object!
+        gutter = document.getElementById!("gutter").object!
+        band = document.getElementById!("band").object!
+        codePane = document.getElementById!("codepane").object!
+        codeFile = document.getElementById!("codefile").object!
+        modes = document.getElementById!("modes").object!
         renderList()
         // Clicks on list links select in place; the browser's back/forward buttons follow along.
         on(list, "click") { [weak self] event in
@@ -70,6 +87,18 @@ final class Gallery {
                   let index = button.dataset.object?.step.string.flatMap(Int.init) else { return }
             self?.runStep(index)
         }
+        on(modes, "click") { [weak self] event in
+            guard let self, let button = event.target.object?.closest?("button[data-mode]").object else { return }
+            self.wholeFile = button.dataset.object?.mode.string == "file"
+            self.renderCode()
+        }
+        // Behaviour steps: `window.__galleryStep(i)` mutates the model; the host repaints on its own.
+        let step = JSClosure { [weak self] args in
+            if let index = args.first?.number { MainActor.assumeIsolated { self?.runStep(Int(index)) } }
+            return .undefined
+        }
+        closures.append(step)
+        JSObject.global.__galleryStep = .object(step)
     }
 
     private func on(_ target: JSObject, _ event: String, _ handler: @escaping @MainActor (JSObject) -> Void) {
@@ -123,6 +152,8 @@ final class Gallery {
             app.style.object!.height = .string("0px")
             document.title = .string("SwiftUIWeb gallery")
             instance = nil
+            source = nil
+            renderCode()
             host?.mount(AnyView(EmptyView()))
             return
         }
@@ -140,6 +171,8 @@ final class Gallery {
             buttons += "<button type=\"button\" data-step=\"\(i)\">\(i + 1). \(step.name)</button>"
         }
         steps.innerHTML = .string(buttons)
+        source = FixtureSources.source(for: fixture.name)
+        renderCode()
 
         // The host is created once `#app` has its first fixture size; later fixtures resize it.
         if host == nil { host = CanvasHost() }
@@ -158,15 +191,65 @@ final class Gallery {
                     }
                     JSObject.global.__galleryFrames = .object(object)
                 }))
-        // Behaviour steps: `window.__galleryStep(i)` mutates the model; the host repaints on its own.
-        let step = JSClosure { [weak self] args in
-            if let index = args.first?.number { MainActor.assumeIsolated { self?.runStep(Int(index)) } }
-            return .undefined
-        }
-        closures.append(step)
-        JSObject.global.__galleryStep = .object(step)
         JSObject.global.__galleryStepCount = .number(Double(instance.steps.count))
         _ = JSObject.global.console.object!.log!("[gallery] mounted \(fixture.name)")
+    }
+
+    /// Fills the code pane: the fixture's declaration, or its whole file with the declaration
+    /// marked and scrolled into view. Line numbers are the file's.
+    private func renderCode() {
+        guard let source else {
+            code.innerHTML = .string("")
+            gutter.innerHTML = .string("")
+            codeFile.textContent = .string("")
+            band.hidden = .boolean(true)
+            return
+        }
+        let text = wholeFile ? source.fileContents : source.declaration
+        let firstLine = wholeFile ? 1 : source.firstLine
+        let lineCount = text.split(separator: "\n", omittingEmptySubsequences: false).count
+        code.innerHTML = .string(highlighted(text))
+        var numbers = ""
+        for line in firstLine..<(firstLine + lineCount) {
+            let marked = wholeFile && line >= source.firstLine && line <= source.lastLine
+            numbers += "<span class=\"\(marked ? "mark" : "")\">\(line)</span>"
+        }
+        gutter.innerHTML = .string(numbers)
+        codeFile.textContent = .string("\(source.file):\(source.firstLine)")
+        let buttons = modes.querySelectorAll!("button[data-mode]").object!
+        for i in 0..<Int(buttons.length.number ?? 0) {
+            guard let button = buttons[i].object else { continue }
+            let mode = button.dataset.object?.mode.string
+            button.className = .string((mode == "file") == wholeFile ? "selected" : "")
+        }
+        if wholeFile {
+            band.hidden = .boolean(false)
+            band.style.object!.top = .string("\(Double(source.firstLine - 1) * lineHeight)px")
+            band.style.object!.height = .string("\(Double(source.lastLine - source.firstLine + 1) * lineHeight)px")
+            codePane.scrollTop = .number(max(0, Double(source.firstLine - 1) * lineHeight - 2 * lineHeight))
+        } else {
+            band.hidden = .boolean(true)
+            codePane.scrollTop = .number(0)
+        }
+    }
+
+    /// highlight.js output when the library loaded (see index.html), escaped plain text otherwise.
+    private func highlighted(_ text: String) -> String {
+        if let hljs = JSObject.global.hljs.object, !hljs.getLanguage!("swift").isUndefined {
+            let options = JSObject.global.Object.function!.new()
+            options.language = .string("swift")
+            if let value = hljs.highlight!(text, options).object?.value.string { return value }
+        }
+        var escaped = ""
+        for character in text {
+            switch character {
+            case "&": escaped += "&amp;"
+            case "<": escaped += "&lt;"
+            case ">": escaped += "&gt;"
+            default: escaped.append(character)
+            }
+        }
+        return escaped
     }
 
     private func runStep(_ index: Int) {
