@@ -10,8 +10,11 @@ import Foundation
 
 struct GoldenFrames: Decodable {
     struct Rect: Decodable { let x, y, width, height: Double }
+    struct Step: Decodable { let name: String; let frames: [String: Rect] }
     let fixture: String
     let frames: [String: Rect]
+    /// Behaviour fixtures: frames after each step, in order.
+    let steps: [Step]?
 }
 
 enum Goldens {
@@ -29,7 +32,7 @@ enum Goldens {
     }
 
     /// Fixture names whose goldens exist and whose feature area is implemented.
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/"]
 
     @MainActor
     static func textEngine() throws -> RecordedTextEngine {
@@ -47,17 +50,30 @@ enum Goldens {
         let fixture = try #require(AllFixtures.all.first { $0.name == name })
         let golden = try #require(try Goldens.frames(for: fixture), "missing golden for \(name); run scripts/gen-goldens.sh")
         let engine = try Goldens.textEngine()
-        let ours = fixture.layoutFrames(textEngine: engine)
+        let runner = FixtureRunner(fixture, textEngine: engine)
+        try compare(runner.layoutFrames(), to: golden.frames, label: name)
         #expect(engine.misses.isEmpty, "\(name): no recorded text metrics for \(engine.misses)")
-        for (id, expected) in golden.frames.sorted(by: { $0.key < $1.key }) {
-            let actual = try #require(ours[id], "\(name): probe \(id) not recorded")
+
+        // Behaviour steps: mutate the model exactly as the harness did and compare again.
+        let steps = golden.steps ?? []
+        #expect(steps.map(\.name) == fixture.stepNames, "\(name): golden steps differ from the fixture's; regenerate")
+        for (index, step) in steps.enumerated() where index < fixture.stepNames.count {
+            runner.apply(step: index)
+            try compare(runner.layoutFrames(), to: step.frames, label: "\(name)/\(step.name)")
+        }
+        #expect(engine.misses.isEmpty, "\(name): no recorded text metrics for \(engine.misses)")
+    }
+
+    private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
+        for (id, expected) in golden.sorted(by: { $0.key < $1.key }) {
+            let actual = try #require(ours[id], "\(label): probe \(id) not recorded")
             let expectedRect = CGRect(x: expected.x, y: expected.y, width: expected.width, height: expected.height)
             // Exact up to floating-point summation order (Apple's frames carry 1-ulp noise).
             let close = abs(actual.minX - expectedRect.minX) < 1e-9 && abs(actual.minY - expectedRect.minY) < 1e-9
                 && abs(actual.width - expectedRect.width) < 1e-9 && abs(actual.height - expectedRect.height) < 1e-9
-            #expect(close, "\(name)/\(id): \(actual) != \(expectedRect)")
+            #expect(close, "\(label)/\(id): \(actual) != \(expectedRect)")
         }
-        #expect(Set(ours.keys) == Set(golden.frames.keys), "\(name): probe sets differ")
+        #expect(Set(ours.keys) == Set(golden.keys), "\(label): probe sets differ")
     }
 }
 #endif

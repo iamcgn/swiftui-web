@@ -49,57 +49,81 @@ page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.
 
 let failures = 0;
 const report = [];
-for (const name of names) {
-  const golden = JSON.parse(readFileSync(join(root, 'Fixtures', 'Goldens', name, 'frames.json'), 'utf8'));
-  await page.goto(`${url}?fixture=${encodeURIComponent(name)}`);
-  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 30000 });
-  await page.waitForTimeout(50);
-  const frames = await page.evaluate(() => window.__galleryFrames || window.__swiftuiwebDebug.frames());
+
+function compareFrames(name, frames, goldenFrames) {
   const mismatches = [];
-  for (const [id, expected] of Object.entries(golden.frames)) {
+  for (const [id, expected] of Object.entries(goldenFrames)) {
     const actual = frames[id];
     if (!actual) { mismatches.push(`${id}: missing`); continue; }
     for (const key of ['x', 'y', 'width', 'height']) {
       if (Math.abs(actual[key] - expected[key]) > frameTolerance(name, key, expected[key])) { mismatches.push(`${id}.${key}: ${actual[key]} != ${expected[key]}`); }
     }
   }
-  // Pixels: screenshot the canvas at DPR 2 and compare with the golden.
+  return mismatches;
+}
+
+// Screenshots the canvas at DPR 2 and returns the fraction of differing pixels vs the golden.
+async function comparePixels(shotPath, goldenPng) {
   const canvas = page.locator('#app canvas');
-  const shotPath = join(out, name.replace(/\//g, '_') + '.png');
   try { await canvas.screenshot({ path: shotPath, omitBackground: true }); }
   catch { await canvas.screenshot({ path: shotPath }); }   // Firefox: element screenshots cannot omit the background
-  let pixelDiff = null;
-  const goldenPng = join(root, 'Fixtures', 'Goldens', name, 'image@2x.png');
-  if (existsSync(goldenPng)) {
-    const a = PNG.sync.read(readFileSync(shotPath));
-    const b = PNG.sync.read(readFileSync(goldenPng));
-    if (a.width === b.width && a.height === b.height) {
-      let differing = 0;
-      const diff = new PNG({ width: a.width, height: a.height });
-      // Compare composited onto white: the goldens have a transparent background, the canvas is opaque.
-      const over = (data, i, c) => { const alpha = data[i + 3] / 255; return Math.round(data[i + c] * alpha + 255 * (1 - alpha)); };
-      for (let i = 0; i < a.data.length; i += 4) {
-        const d = Math.max(Math.abs(over(a.data, i, 0) - over(b.data, i, 0)), Math.abs(over(a.data, i, 1) - over(b.data, i, 1)),
-                           Math.abs(over(a.data, i, 2) - over(b.data, i, 2)));
-        const bad = d > 32;
-        if (bad) differing++;
-        diff.data[i] = bad ? 255 : a.data[i]; diff.data[i + 1] = bad ? 0 : a.data[i + 1]; diff.data[i + 2] = bad ? 0 : a.data[i + 2]; diff.data[i + 3] = bad ? 255 : Math.max(40, a.data[i + 3]);
-      }
-      pixelDiff = differing / (a.width * a.height);
-      writeFileSync(join(out, name.replace(/\//g, '_') + '.diff.png'), PNG.sync.write(diff));
-    } else {
-      pixelDiff = `size ${a.width}x${a.height} vs ${b.width}x${b.height}`;
-    }
+  if (!existsSync(goldenPng)) return null;
+  const a = PNG.sync.read(readFileSync(shotPath));
+  const b = PNG.sync.read(readFileSync(goldenPng));
+  if (a.width !== b.width || a.height !== b.height) return `size ${a.width}x${a.height} vs ${b.width}x${b.height}`;
+  let differing = 0;
+  const diff = new PNG({ width: a.width, height: a.height });
+  // Compare composited onto white: the goldens have a transparent background, the canvas is opaque.
+  const over = (data, i, c) => { const alpha = data[i + 3] / 255; return Math.round(data[i + c] * alpha + 255 * (1 - alpha)); };
+  for (let i = 0; i < a.data.length; i += 4) {
+    const d = Math.max(Math.abs(over(a.data, i, 0) - over(b.data, i, 0)), Math.abs(over(a.data, i, 1) - over(b.data, i, 1)),
+                       Math.abs(over(a.data, i, 2) - over(b.data, i, 2)));
+    const bad = d > 32;
+    if (bad) differing++;
+    diff.data[i] = bad ? 255 : a.data[i]; diff.data[i + 1] = bad ? 0 : a.data[i + 1]; diff.data[i + 2] = bad ? 0 : a.data[i + 2]; diff.data[i + 3] = bad ? 255 : Math.max(40, a.data[i + 3]);
   }
+  writeFileSync(shotPath.replace(/\.png$/, '.diff.png'), PNG.sync.write(diff));
+  return differing / (a.width * a.height);
+}
+
+// One comparison (the initial render, or the render after a behaviour step).
+async function check(name, label, goldenFrames, goldenPng, shotPath) {
+  const frames = await page.evaluate(() => window.__galleryFrames || window.__swiftuiwebDebug.frames());
+  const mismatches = compareFrames(name, frames, goldenFrames);
+  const pixelDiff = await comparePixels(shotPath, goldenPng);
   const pixelOK = typeof pixelDiff === 'number' ? pixelDiff <= (approximate.includes(name) ? pixelTolerance * 3 : pixelTolerance) : false;
   const ok = mismatches.length === 0 && pixelOK;
   if (!ok) failures++;
-  report.push({ name, frames: ok ? 'exact' : mismatches, pixelDiff, pixelOK });
-  console.log(`${ok ? 'PASS' : 'FAIL'} ${name} frames=${ok ? 'exact' : mismatches.length + ' mismatches'} pixels=${typeof pixelDiff === 'number' ? (pixelDiff * 100).toFixed(2) + '%' : pixelDiff}${pixelOK ? '' : ' (over tolerance)'}`);
+  report.push({ name: label, frames: ok ? 'exact' : mismatches, pixelDiff, pixelOK });
+  console.log(`${ok ? 'PASS' : 'FAIL'} ${label} frames=${ok ? 'exact' : mismatches.length + ' mismatches'} pixels=${typeof pixelDiff === 'number' ? (pixelDiff * 100).toFixed(2) + '%' : pixelDiff}${pixelOK ? '' : ' (over tolerance)'}`);
   for (const m of mismatches) console.log('   ' + m);
+}
+
+const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
+
+for (const name of names) {
+  const goldenDir = join(root, 'Fixtures', 'Goldens', name);
+  const golden = JSON.parse(readFileSync(join(goldenDir, 'frames.json'), 'utf8'));
+  await page.goto(`${url}?fixture=${encodeURIComponent(name)}`);
+  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 30000 });
+  await page.waitForTimeout(50);
+  const base = join(out, name.replace(/\//g, '_'));
+  await check(name, name, golden.frames, join(goldenDir, 'image@2x.png'), base + '.png');
+
+  // Behaviour steps: apply each through the gallery hook, wait for the repaint, compare again.
+  const steps = golden.steps || [];
+  const stepCount = await page.evaluate(() => window.__galleryStepCount || 0);
+  if (stepCount !== steps.length) { failures++; console.log(`FAIL ${name}: gallery has ${stepCount} step(s), golden has ${steps.length}`); continue; }
+  for (let i = 0; i < steps.length; i++) {
+    const before = await frameCount();
+    await page.evaluate(i => window.__galleryStep(i), i);
+    await page.waitForFunction(b => window.__swiftuiwebDebug.frameCount() > b, before, { timeout: 10000 });
+    await page.waitForTimeout(50);
+    await check(name, `${name}/${steps[i].name}`, steps[i].frames, join(goldenDir, `step-${i + 1}@2x.png`), `${base}_step-${i + 1}.png`);
+  }
 }
 writeFileSync(join(out, 'report.json'), JSON.stringify(report, null, 2));
 if (errors.length) console.log(errors.join('\n'));
 await browser.close();
-console.log(`${names.length - failures}/${names.length} fixtures with exact frames; pixel report in ${out}`);
+console.log(`${report.length - failures}/${report.length} renders within tolerance across ${names.length} fixtures; pixel report in ${out}`);
 process.exit(failures || errors.length ? 1 : 0);

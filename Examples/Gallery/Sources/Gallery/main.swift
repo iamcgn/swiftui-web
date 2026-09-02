@@ -46,8 +46,9 @@ if let name = requested, let fixture = AllFixtures.all.first(where: { $0.name ==
     app.style.object!.width = .string("\(fixture.size.width)px")
     app.style.object!.height = .string("\(fixture.size.height)px")
     let host = CanvasHost()
+    let instance = fixture.instantiate()
     host.mount(AnyView(
-        fixture.content()
+        instance.view
             .frame(width: fixture.size.width, height: fixture.size.height)
             .coordinateSpace(name: fixtureRootSpace)
             .onPreferenceChange(ProbeKey.self) { frames in
@@ -61,10 +62,20 @@ if let name = requested, let fixture = AllFixtures.all.first(where: { $0.name ==
                 }
                 JSObject.global.__galleryFrames = .object(object)
             }))
+    // Behaviour steps: `window.__galleryStep(i)` mutates the model; the host repaints on its own.
+    let step = JSClosure { args in
+        guard let index = args.first?.number, Int(index) < instance.steps.count else { return .undefined }
+        instance.steps[Int(index)].run()
+        return .undefined
+    }
+    JSObject.global.__galleryStep = .object(step)
+    JSObject.global.__galleryStepCount = .number(Double(instance.steps.count))
     _ = JSObject.global.console.object!.log!("[gallery] mounted \(name)")
     galleryHost = host
+    galleryStep = step
 } else {
     mountIndex()
 }
 nonisolated(unsafe) var galleryHost: CanvasHost?
+nonisolated(unsafe) var galleryStep: JSClosure?
 #endif

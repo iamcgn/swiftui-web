@@ -27,9 +27,9 @@ final class FrameCollector: ObservableObject {
 }
 
 @MainActor
-func fixtureRoot(_ fixture: Fixture, collector: FrameCollector) -> some View {
-    fixture.content()
-        .frame(width: fixture.size.width, height: fixture.size.height)
+func fixtureRoot(_ view: AnyView, size: CGSize, collector: FrameCollector) -> some View {
+    view
+        .frame(width: size.width, height: size.height)
         .coordinateSpace(name: fixtureRootSpace)
         .onPreferenceChange(ProbeKey.self) { collector.frames = $0 }
         .environment(\.locale, Locale(identifier: "en_US"))
@@ -38,24 +38,40 @@ func fixtureRoot(_ fixture: Fixture, collector: FrameCollector) -> some View {
         .transaction { $0.animation = nil }
 }
 
-/// Hosts a view in an offscreen window so layout and preferences run for real; returns probes.
+/// Hosts a view in an offscreen window so layout and preferences run for real. Kept alive across
+/// behaviour steps so view state survives exactly as it would on screen.
+@MainActor
+final class FrameHost {
+    private let collector = FrameCollector()
+    private let hosting: NSHostingView<AnyView>
+    private let window: NSWindow
+
+    init<V: View>(_ view: V, size: CGSize) {
+        let collector = collector
+        let root = view
+            .coordinateSpace(name: fixtureRootSpace)
+            .onPreferenceChange(ProbeKey.self) { collector.frames = $0 }
+            .environment(\.locale, Locale(identifier: "en_US"))
+            .environment(\.colorScheme, .light)
+            .dynamicTypeSize(.large)
+            .transaction { $0.animation = nil }
+        hosting = NSHostingView(rootView: AnyView(root))
+        hosting.frame = CGRect(origin: .zero, size: size)
+        window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        window.contentView = hosting
+    }
+
+    /// Lays out (again) and returns the probe frames once preference callbacks have delivered.
+    func frames() -> [String: CGRect] {
+        hosting.layoutSubtreeIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        return collector.frames
+    }
+}
+
 @MainActor
 func collectFrames<V: View>(_ view: V, size: CGSize) -> [String: CGRect] {
-    let collector = FrameCollector()
-    let root = view
-        .coordinateSpace(name: fixtureRootSpace)
-        .onPreferenceChange(ProbeKey.self) { collector.frames = $0 }
-        .environment(\.locale, Locale(identifier: "en_US"))
-        .environment(\.colorScheme, .light)
-        .dynamicTypeSize(.large)
-        .transaction { $0.animation = nil }
-    let hosting = NSHostingView(rootView: root)
-    hosting.frame = CGRect(origin: .zero, size: size)
-    let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
-    window.contentView = hosting
-    hosting.layoutSubtreeIfNeeded()
-    RunLoop.main.run(until: Date().addingTimeInterval(0.05))   // let preference callbacks deliver
-    return collector.frames
+    FrameHost(view, size: size).frames()
 }
 
 /// Measures one text request: size plus first/last baseline. A 10×10 marker aligned on the
@@ -150,34 +166,57 @@ func generateTextMetrics(into root: URL) throws {
     print("text-metrics.json: \(entries.count) entries, \(fonts.count) fonts")
 }
 
+func framesDictionary(_ frames: [String: CGRect]) -> [String: [String: Double]] {
+    var result: [String: [String: Double]] = [:]
+    for (id, r) in frames {
+        result[id] = ["x": r.minX, "y": r.minY, "width": r.width, "height": r.height]
+    }
+    return result
+}
+
+@MainActor
+func writePNG(_ renderer: ImageRenderer<some View>, to url: URL, fixture: Fixture) throws -> (Int, Int) {
+    guard let cg = renderer.cgImage else { throw NSError(domain: "GoldenGen", code: 1, userInfo: [NSLocalizedDescriptionKey: "no image for \(fixture.name)"]) }
+    let rep = NSBitmapImageRep(cgImage: cg)
+    guard let png = rep.representation(using: .png, properties: [:]) else { throw NSError(domain: "GoldenGen", code: 2) }
+    try png.write(to: url)
+    return (cg.width, cg.height)
+}
+
 @MainActor
 func generate(_ fixture: Fixture, into root: URL) throws {
     let dir = root.appendingPathComponent(fixture.name, isDirectory: true)
     try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
-    // Frames: host in an offscreen window so layout and preferences run for real.
-    let collector = FrameCollector()
-    collector.frames = collectFrames(fixture.content().frame(width: fixture.size.width, height: fixture.size.height), size: fixture.size)
+    // Frames: host in an offscreen window so layout and preferences run for real. Pixels:
+    // ImageRenderer at scale 2, sRGB. Each gets its own instance (own model); behaviour steps
+    // are applied to both so their state evolves identically.
+    let frameInstance = fixture.instantiate()
+    let host = FrameHost(frameInstance.view.frame(width: fixture.size.width, height: fixture.size.height), size: fixture.size)
+    let initialFrames = host.frames()
 
-    // Pixels: ImageRenderer at scale 2, sRGB.
-    let renderer = ImageRenderer(content: fixtureRoot(fixture, collector: collector))
+    let pixelInstance = fixture.instantiate()
+    let renderer = ImageRenderer(content: fixtureRoot(pixelInstance.view, size: fixture.size, collector: FrameCollector()))
     renderer.scale = 2
     renderer.proposedSize = ProposedViewSize(fixture.size)
-    guard let cg = renderer.cgImage else { throw NSError(domain: "GoldenGen", code: 1, userInfo: [NSLocalizedDescriptionKey: "no image for \(fixture.name)"]) }
-    let rep = NSBitmapImageRep(cgImage: cg)
-    guard let png = rep.representation(using: .png, properties: [:]) else { throw NSError(domain: "GoldenGen", code: 2) }
-    try png.write(to: dir.appendingPathComponent("image@2x.png"))
+    let (width, height) = try writePNG(renderer, to: dir.appendingPathComponent("image@2x.png"), fixture: fixture)
+
+    var steps: [[String: Any]] = []
+    for (index, step) in frameInstance.steps.enumerated() {
+        step.run()
+        pixelInstance.steps[index].run()
+        let frames = host.frames()
+        _ = try writePNG(renderer, to: dir.appendingPathComponent("step-\(index + 1)@2x.png"), fixture: fixture)
+        steps.append(["name": step.name, "frames": framesDictionary(frames)])
+    }
 
     // frames.json
-    var frames: [String: [String: Double]] = [:]
-    for (id, r) in collector.frames {
-        frames[id] = ["x": r.minX, "y": r.minY, "width": r.width, "height": r.height]
-    }
-    let framesDoc: [String: Any] = [
+    var framesDoc: [String: Any] = [
         "fixture": fixture.name,
         "size": ["width": fixture.size.width, "height": fixture.size.height],
-        "frames": frames,
+        "frames": framesDictionary(initialFrames),
     ]
+    if !steps.isEmpty { framesDoc["steps"] = steps }
     try JSONSerialization.data(withJSONObject: framesDoc, options: [.prettyPrinted, .sortedKeys])
         .write(to: dir.appendingPathComponent("frames.json"))
 
@@ -193,7 +232,8 @@ func generate(_ fixture: Fixture, into root: URL) throws {
     ]
     try JSONSerialization.data(withJSONObject: meta, options: [.prettyPrinted, .sortedKeys])
         .write(to: dir.appendingPathComponent("meta.json"))
-    print("\(fixture.name): \(collector.frames.count) probe(s), \(cg.width)x\(cg.height)px")
+    let stepNote = steps.isEmpty ? "" : ", \(steps.count) step(s)"
+    print("\(fixture.name): \(initialFrames.count) probe(s), \(width)x\(height)px\(stepNote)")
 }
 
 let options = Options()
