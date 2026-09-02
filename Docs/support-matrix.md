@@ -16,6 +16,17 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 |---|---|---|---|
 | `App / Scene / WindowGroup / @main` | ❌ missing |  |  |
 
+## View composition
+
+| API | Status | Notes | Fixtures |
+|---|---|---|---|
+| `View / ViewBuilder (if/else, optional, switch, #available, any child count)` | 🟠 stub | Type-checks; runtime arrives with the node tree (Phase 1 step 2) |  |
+| `EmptyView / TupleView / Group / _ConditionalContent / Optional` | 🟠 stub |  |  |
+| `AnyView` | 🟠 stub |  |  |
+| `ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)` | 🟠 stub |  |  |
+| `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟠 stub | @Entry macro not provided |  |
+| `Transaction / TransactionKey / withTransaction` | 🟠 stub | No `animation` member until the animation system exists |  |
+
 ## Views
 
 | API | Status | Notes | Fixtures |
@@ -31,7 +42,7 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 |---|---|---|---|
 | `@State` | ❌ missing |  |  |
 | `@Binding` | ❌ missing |  |  |
-| `@Environment` | ❌ missing |  |  |
+| `@Environment` | 🟠 stub | Key-path form only; resolved by the runtime from step 3 |  |
 | `@Observable / @Bindable` | ❌ missing |  |  |
 | `ObservableObject / @Published / @StateObject` | ❌ missing | Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3) |  |
 

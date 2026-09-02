@@ -1,26 +1,114 @@
 {
   "sections": [
-    { "title": "App lifecycle", "entries": [
-      { "api": "App / Scene / WindowGroup / @main", "status": "missing" }
-    ]},
-    { "title": "Views", "entries": [
-      { "api": "Text", "status": "missing" },
-      { "api": "VStack / HStack / ZStack", "status": "missing" },
-      { "api": "Spacer", "status": "missing" },
-      { "api": "Button", "status": "missing" }
-    ]},
-    { "title": "State", "entries": [
-      { "api": "@State", "status": "missing" },
-      { "api": "@Binding", "status": "missing" },
-      { "api": "@Environment", "status": "missing" },
-      { "api": "@Observable / @Bindable", "status": "missing" },
-      { "api": "ObservableObject / @Published / @StateObject", "status": "missing", "notes": "Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3)" }
-    ]},
-    { "title": "Modifiers", "entries": [
-      { "api": "padding", "status": "missing" },
-      { "api": "frame", "status": "missing" },
-      { "api": "background / overlay", "status": "missing" },
-      { "api": "foregroundStyle / foregroundColor", "status": "missing" }
-    ]}
+    {
+      "title": "App lifecycle",
+      "entries": [
+        {
+          "api": "App / Scene / WindowGroup / @main",
+          "status": "missing"
+        }
+      ]
+    },
+    {
+      "title": "View composition",
+      "entries": [
+        {
+          "api": "View / ViewBuilder (if/else, optional, switch, #available, any child count)",
+          "status": "stub",
+          "notes": "Type-checks; runtime arrives with the node tree (Phase 1 step 2)"
+        },
+        {
+          "api": "EmptyView / TupleView / Group / _ConditionalContent / Optional",
+          "status": "stub"
+        },
+        {
+          "api": "AnyView",
+          "status": "stub"
+        },
+        {
+          "api": "ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)",
+          "status": "stub"
+        },
+        {
+          "api": "EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment",
+          "status": "stub",
+          "notes": "@Entry macro not provided"
+        },
+        {
+          "api": "Transaction / TransactionKey / withTransaction",
+          "status": "stub",
+          "notes": "No `animation` member until the animation system exists"
+        }
+      ]
+    },
+    {
+      "title": "Views",
+      "entries": [
+        {
+          "api": "Text",
+          "status": "missing"
+        },
+        {
+          "api": "VStack / HStack / ZStack",
+          "status": "missing"
+        },
+        {
+          "api": "Spacer",
+          "status": "missing"
+        },
+        {
+          "api": "Button",
+          "status": "missing"
+        }
+      ]
+    },
+    {
+      "title": "State",
+      "entries": [
+        {
+          "api": "@State",
+          "status": "missing"
+        },
+        {
+          "api": "@Binding",
+          "status": "missing"
+        },
+        {
+          "api": "@Environment",
+          "status": "stub",
+          "notes": "Key-path form only; resolved by the runtime from step 3"
+        },
+        {
+          "api": "@Observable / @Bindable",
+          "status": "missing"
+        },
+        {
+          "api": "ObservableObject / @Published / @StateObject",
+          "status": "missing",
+          "notes": "Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3)"
+        }
+      ]
+    },
+    {
+      "title": "Modifiers",
+      "entries": [
+        {
+          "api": "padding",
+          "status": "missing"
+        },
+        {
+          "api": "frame",
+          "status": "missing"
+        },
+        {
+          "api": "background / overlay",
+          "status": "missing"
+        },
+        {
+          "api": "foregroundStyle / foregroundColor",
+          "status": "missing"
+        }
+      ]
+    }
   ]
 }

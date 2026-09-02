@@ -170,6 +170,12 @@ public protocol Layout: Animatable { /* exactly Apple's: sizeThatFits/placeSubvi
 
 Phase 1 done: Counter (`@main App`, `@State`, `VStack/HStack/Text/Button/Spacer/padding/frame/background`) builds unmodified with `swift package --swift-sdk … js` and runs in Chrome, Safari and Firefox with working clicks, keyboard and VoiceOver; ≥ 30 layout fixtures exact in Tier A on macOS + Linux; Tier B within tolerance and Inter-family pixel diff ≤ 0.5% on the macOS runner; Canvas and headless display lists identical; runtime semantics covered by `CoreRuntimeTests`; bundle within the size budget.
 
+### Phase 1 status
+
+| # | Step | Status |
+|---|---|---|
+| 1 | API skeleton | done 2026-09-02: `Sources/SwiftUIWebCore/API/`, `Tests/CoreRuntimeTests/ViewBuilderTests.swift`. Library view types conform to `View` in extensions so their inits stay nonisolated and the nonisolated `ViewBuilder` can construct them under Swift 6 strict concurrency. |
+
 ### Phase 2 — Element workflow, one element per PR (`Docs/ELEMENT_WORKFLOW.md`)
 
 Per element: (1) `Docs/elements/<Element>.md` with the API surface from Apple docs, documented behaviours, constants to infer; (2) fixtures under `Fixtures/Sources/<Element>/` (≥ 5 layout fixtures, a behaviour fixture where applicable); (3) `scripts/gen-goldens.sh <Element>` on the Mac, commit goldens; (4) implement API + runtime/layout/paint; (5) `swift test --filter <Element>` exact, wasm build green, browser Tier B within tolerance, gallery page added with a screenshot in the PR; (6) `support.json` updated honestly (full / partial / approximate / stub / missing) and matrix regenerated; measured constants recorded in the element doc.
