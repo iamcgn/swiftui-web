@@ -182,10 +182,18 @@ public struct CGAffineTransform: Equatable, Hashable, Sendable {
     }
 }
 
-// Minimal trig without libm's Foundation wrapper: wasi-libc provides these C symbols.
-@_silgen_name("cos") private func _c_cos(_ x: Double) -> Double
-@_silgen_name("sin") private func _c_sin(_ x: Double) -> Double
-@inline(__always) package func _cos(_ x: Double) -> Double { _c_cos(x) }
-@inline(__always) package func _sin(_ x: Double) -> Double { _c_sin(x) }
+/// How the ends of an open path are drawn when stroked.
+public enum CGLineCap: Int32, Sendable {
+    case butt = 0
+    case round = 1
+    case square = 2
+}
+
+/// How the joints between path segments are drawn when stroked.
+public enum CGLineJoin: Int32, Sendable {
+    case miter = 0
+    case round = 1
+    case bevel = 2
+}
 
 #endif

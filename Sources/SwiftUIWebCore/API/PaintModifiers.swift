@@ -86,17 +86,17 @@ extension View {
 
     /// Sets the view's background to a style.
     nonisolated public func background<S: ShapeStyle>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
-        modifier(_BackgroundModifier(background: _ShapeView(shape: Rectangle(), style: style, fillStyle: FillStyle()), alignment: .center))
+        modifier(_BackgroundModifier(background: FillShapeView(shape: Rectangle(), style: style, fillStyle: FillStyle(), background: EmptyView()), alignment: .center))
     }
 
     /// Sets the view's background to a shape filled with a style.
     nonisolated public func background<S: ShapeStyle, T: Shape>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View {
-        modifier(_BackgroundModifier(background: _ShapeView(shape: shape, style: style, fillStyle: fillStyle), alignment: .center))
+        modifier(_BackgroundModifier(background: FillShapeView(shape: shape, style: style, fillStyle: fillStyle, background: EmptyView()), alignment: .center))
     }
 
     /// Sets the view's background to a shape filled with the foreground style.
     nonisolated public func background<T: Shape>(in shape: T, fillStyle: FillStyle = FillStyle()) -> some View {
-        modifier(_BackgroundModifier(background: _ShapeView(shape: shape, style: ForegroundStyle(), fillStyle: fillStyle), alignment: .center))
+        modifier(_BackgroundModifier(background: FillShapeView(shape: shape, style: ForegroundStyle(), fillStyle: fillStyle, background: EmptyView()), alignment: .center))
     }
 
     /// Layers a secondary view in front of this view (soft-deprecated by Apple; see `background`).
@@ -112,12 +112,17 @@ extension View {
 
     /// Layers a style in front of this view.
     nonisolated public func overlay<S: ShapeStyle>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
-        modifier(_OverlayModifier(overlay: _ShapeView(shape: Rectangle(), style: style, fillStyle: FillStyle()), alignment: .center))
+        modifier(_OverlayModifier(overlay: FillShapeView(shape: Rectangle(), style: style, fillStyle: FillStyle(), background: EmptyView()), alignment: .center))
     }
 
     /// Layers a shape filled with a style in front of this view.
     nonisolated public func overlay<S: ShapeStyle, T: Shape>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View {
-        modifier(_OverlayModifier(overlay: _ShapeView(shape: shape, style: style, fillStyle: fillStyle), alignment: .center))
+        modifier(_OverlayModifier(overlay: FillShapeView(shape: shape, style: style, fillStyle: fillStyle, background: EmptyView()), alignment: .center))
+    }
+
+    /// Adds a border to this view with the specified style and width, inside the view's bounds.
+    nonisolated public func border<S: ShapeStyle>(_ content: S, width: CGFloat = 1) -> some View {
+        overlay(Rectangle().strokeBorder(content, lineWidth: width))
     }
 
     /// Sets the transparency of this view.

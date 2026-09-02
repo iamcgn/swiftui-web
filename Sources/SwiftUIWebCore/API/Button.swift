@@ -122,7 +122,7 @@ extension BorderedButtonStyle: ButtonStyle {
             .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
             .frame(minHeight: PlatformMetrics.buttonHeight)
             .background(
-                RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius)
+                RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
                     .fill(configuration.isPressed ? PlatformMetrics.buttonPressedFill : PlatformMetrics.buttonFill))
     }
 }
@@ -140,7 +140,7 @@ extension BorderedProminentButtonStyle: ButtonStyle {
             .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
             .frame(minHeight: PlatformMetrics.buttonHeight)
             .background(
-                RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius)
+                RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
                     .fill(Color.accentColor.opacity(configuration.isPressed ? 0.8 : 1)))
     }
 }

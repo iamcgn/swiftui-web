@@ -12,6 +12,8 @@ enum PainterScript {
         if (!s) { s = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; colorCache.set(k, s); }
         return s;
       }
+      const lineCaps = ['butt', 'round', 'square'];
+      const lineJoins = ['miter', 'round', 'bevel'];
       function readPath(ctx, buf, i) {
         const count = buf[i++];
         ctx.beginPath();
@@ -116,7 +118,7 @@ enum PainterScript {
             case 2: ctx.restore(); break;
             case 3: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++]; ctx.beginPath(); ctx.rect(x, y, rw, rh); ctx.clip(); break; }
             case 4: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++], r = buf[i++]; ctx.beginPath(); ctx.roundRect(x, y, rw, rh, r); ctx.clip(); break; }
-            case 5: { i = readPath(ctx, buf, i); ctx.clip(); break; }
+            case 5: { i = readPath(ctx, buf, i); ctx.clip(buf[i++] === 1 ? 'evenodd' : 'nonzero'); break; }
             case 6: {
               const opacity = buf[i++];
               const off = new OffscreenCanvas(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
@@ -140,8 +142,22 @@ enum PainterScript {
             }
             case 8: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++]; ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fillRect(x, y, rw, rh); break; }
             case 9: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++], r = buf[i++]; ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.beginPath(); ctx.roundRect(x, y, rw, rh, r); ctx.fill(); break; }
-            case 10: { i = readPath(ctx, buf, i); ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fill(); break; }
-            case 11: { i = readPath(ctx, buf, i); ctx.lineWidth = buf[i++]; ctx.strokeStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.stroke(); break; }
+            case 10: { i = readPath(ctx, buf, i); ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fill(buf[i++] === 1 ? 'evenodd' : 'nonzero'); break; }
+            case 11: {
+              i = readPath(ctx, buf, i);
+              ctx.lineWidth = buf[i++];
+              ctx.lineCap = lineCaps[buf[i++]];
+              ctx.lineJoin = lineJoins[buf[i++]];
+              ctx.miterLimit = buf[i++];
+              const dashCount = buf[i++];
+              const dashes = [];
+              for (let k = 0; k < dashCount; k++) dashes.push(buf[i++]);
+              ctx.setLineDash(dashes);
+              ctx.lineDashOffset = buf[i++];
+              ctx.strokeStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]);
+              ctx.stroke();
+              break;
+            }
             case 12: {
               const text = strings[buf[i++]], font = strings[buf[i++]], x = buf[i++], y = buf[i++];
               ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]);
@@ -170,7 +186,7 @@ enum PainterScript {
         return w;
       }
       window.__swiftuiweb = {
-        paint: paint, measure: measure, version: 2,
+        paint: paint, measure: measure, version: 3,
         setImageLoadHandler: function (handler) { onImageLoad = handler; },
         pendingImages: function () { return pending; },
       };

@@ -3,8 +3,10 @@
 /// (`Canvas2DPainter` JS) and tests (`DisplayListDecoder`).
 public enum DisplayOp: Double, Sendable {
     case save = 1, restore = 2
+    /// clipPath: path, eoFill
     case clipRect = 3, clipRRect = 4, clipPath = 5
     case beginGroup = 6, endGroup = 7
+    /// fillPath: path, colour, eoFill. strokePath: path, width, cap, join, miter limit, dash count, dashes, phase, colour
     case fillRect = 8, fillRRect = 9, fillPath = 10, strokePath = 11
     case drawText = 12
     /// file, scale, pixel w/h, rect, tile, insets (top, leading, bottom, trailing), smoothing, hasTint, colour
@@ -56,13 +58,19 @@ public enum DisplayListEncoder {
             case .restore: out.ops.append(DisplayOp.restore.rawValue)
             case .clipRect(let r): out.ops.append(DisplayOp.clipRect.rawValue); rect(r)
             case .clipRRect(let r, let radius): out.ops.append(DisplayOp.clipRRect.rawValue); rect(r); out.ops.append(radius)
-            case .clipPath(let p): out.ops.append(DisplayOp.clipPath.rawValue); path(p)
+            case .clipPath(let p, let eo): out.ops.append(DisplayOp.clipPath.rawValue); path(p); out.ops.append(eo ? 1 : 0)
             case .beginGroup(let opacity): out.ops += [DisplayOp.beginGroup.rawValue, opacity]
             case .endGroup: out.ops.append(DisplayOp.endGroup.rawValue)
             case .fillRect(let r, let c): out.ops.append(DisplayOp.fillRect.rawValue); rect(r); color(c)
             case .fillRRect(let r, let radius, let c): out.ops.append(DisplayOp.fillRRect.rawValue); rect(r); out.ops.append(radius); color(c)
-            case .fillPath(let p, let c): out.ops.append(DisplayOp.fillPath.rawValue); path(p); color(c)
-            case .strokePath(let p, let width, let c): out.ops.append(DisplayOp.strokePath.rawValue); path(p); out.ops.append(width); color(c)
+            case .fillPath(let p, let c, let eo): out.ops.append(DisplayOp.fillPath.rawValue); path(p); color(c); out.ops.append(eo ? 1 : 0)
+            case .strokePath(let p, let style, let c):
+                out.ops.append(DisplayOp.strokePath.rawValue)
+                path(p)
+                out.ops += [style.lineWidth, Double(style.lineCap.rawValue), Double(style.lineJoin.rawValue), style.miterLimit, Double(style.dash.count)]
+                out.ops += style.dash.map(Double.init)
+                out.ops.append(style.dashPhase)
+                color(c)
             case .drawText(let text, let font, let origin, let c):
                 out.ops += [DisplayOp.drawText.rawValue, intern(text), intern(fontString(font)), origin.x, origin.y]
                 color(c)
@@ -125,13 +133,21 @@ public enum DisplayListDecoder {
             case .restore: out.append("restore")
             case .clipRect: out.append("clipRect \(f(rect()))")
             case .clipRRect: out.append("clipRRect \(f(rect())) r\(next())")
-            case .clipPath: out.append("clipPath \(path())")
+            case .clipPath: let p = path(); out.append("clipPath \(p)\(next() == 1 ? " eo" : "")")
             case .beginGroup: out.append("beginGroup \(next())")
             case .endGroup: out.append("endGroup")
             case .fillRect: out.append("fillRect \(f(rect())) \(color())")
             case .fillRRect: let r = rect(); out.append("fillRRect \(f(r)) r\(next()) \(color())")
-            case .fillPath: let p = path(); out.append("fillPath \(p) \(color())")
-            case .strokePath: let p = path(); out.append("strokePath \(p) w\(next()) \(color())")
+            case .fillPath: let p = path(); let c = color(); out.append("fillPath \(p) \(c)\(next() == 1 ? " eo" : "")")
+            case .strokePath:
+                let p = path()
+                let width = next(), cap = Int(next()), join = Int(next()), miter = next()
+                let dashes = (0..<Int(next())).map { _ in next() }
+                let phase = next()
+                var text = "strokePath \(p) w\(width)"
+                if cap != 0 || join != 0 || miter != 10 { text += " cap\(cap) join\(join) miter\(miter)" }
+                if !dashes.isEmpty { text += " dash\(dashes) phase\(phase)" }
+                out.append("\(text) \(color())")
             case .drawText:
                 let text = encoded.strings[Int(next())], font = encoded.strings[Int(next())]
                 out.append("drawText '\(text)' [\(font)] \(next()),\(next()) \(color())")

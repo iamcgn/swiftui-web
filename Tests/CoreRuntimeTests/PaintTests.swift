@@ -65,8 +65,8 @@ import SwiftUIWebHeadless
     @Test func shapesFillAndStroke() {
         #expect(render(Rectangle().fill(Color.red).frame(width: 20, height: 10)) == ["fillRect(90, 45, 20, 10) #FF383C"])
         #expect(render(Rectangle().frame(width: 20, height: 10)) == ["fillRect(90, 45, 20, 10) #000000@0.85"])
-        #expect(render(RoundedRectangle(cornerRadius: 4).fill(Color.green).frame(width: 20, height: 10)) == ["fillRRect(90, 45, 20, 10) r=4 #34C759"])
-        #expect(render(Capsule().fill(Color.green).frame(width: 20, height: 10)) == ["fillRRect(90, 45, 20, 10) r=5 #34C759"])
+        #expect(render(RoundedRectangle(cornerRadius: 4, style: .circular).fill(Color.green).frame(width: 20, height: 10)) == ["fillRRect(90, 45, 20, 10) r=4 #34C759"])
+        #expect(render(Capsule(style: .circular).fill(Color.green).frame(width: 20, height: 10)) == ["fillRRect(90, 45, 20, 10) r=5 #34C759"])
         #expect(render(Circle().fill(Color.blue).frame(width: 20, height: 10)) == ["fillPath(6 elements) #0088FF"])
         #expect(render(Circle().stroke(Color.blue, lineWidth: 2).frame(width: 20, height: 20)) == ["strokePath(6 elements) w=2 #0088FF"])
         // A circle takes the smaller dimension of its share; the ellipse gets what is left.
@@ -92,7 +92,7 @@ import SwiftUIWebHeadless
             "fillRect(85, 40, 30, 20) #FFCC00",
             "fillRect(90, 45, 20, 10) #FF383C",
         ])
-        #expect(render(Color.red.frame(width: 20, height: 10).background(.blue, in: RoundedRectangle(cornerRadius: 3))) == [
+        #expect(render(Color.red.frame(width: 20, height: 10).background(.blue, in: RoundedRectangle(cornerRadius: 3, style: .circular))) == [
             "fillRRect(90, 45, 20, 10) r=3 #0088FF",
             "fillRect(90, 45, 20, 10) #FF383C",
         ])
@@ -104,7 +104,7 @@ import SwiftUIWebHeadless
         ])
         #expect(render(Color.red.frame(width: 20, height: 10).opacity(0)).isEmpty)
         #expect(render(Color.red.frame(width: 20, height: 10).opacity(1)) == ["fillRect(90, 45, 20, 10) #FF383C"])
-        #expect(render(Color.red.frame(width: 20, height: 10).clipShape(RoundedRectangle(cornerRadius: 4))) == [
+        #expect(render(Color.red.frame(width: 20, height: 10).clipShape(RoundedRectangle(cornerRadius: 4, style: .circular))) == [
             "save", "clipRRect(90, 45, 20, 10) r=4", "fillRect(90, 45, 20, 10) #FF383C", "restore",
         ])
         #expect(render(Color.red.frame(width: 20, height: 10).clipped()) == [
@@ -140,7 +140,7 @@ import SwiftUIWebHeadless
         #expect(path.asRect == CGRect(x: 0, y: 0, width: 10, height: 5))
         #expect(Path(CGRect(x: 1, y: 2, width: 3, height: 4)).boundingRect == CGRect(x: 1, y: 2, width: 3, height: 4))
         #expect(Path(ellipseIn: CGRect(x: 0, y: 0, width: 10, height: 10)).elements.count == 6)
-        #expect(Path(roundedRect: CGRect(x: 0, y: 0, width: 10, height: 10), cornerRadius: 2).elements.count == 10)
+        #expect(Path(roundedRect: CGRect(x: 0, y: 0, width: 10, height: 10), cornerRadius: 2, style: .circular).elements.count == 10)
         #expect(path.offsetBy(dx: 1, dy: 1).asRect == CGRect(x: 1, y: 1, width: 10, height: 5))
     }
 }

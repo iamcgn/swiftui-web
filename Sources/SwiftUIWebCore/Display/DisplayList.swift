@@ -75,13 +75,13 @@ public enum DisplayCommand: Equatable, Sendable {
     case restore
     case clipRect(CGRect)
     case clipRRect(CGRect, cornerRadius: CGFloat)
-    case clipPath(Path)
+    case clipPath(Path, eoFill: Bool = false)
     case beginGroup(opacity: Double)
     case endGroup
     case fillRect(CGRect, RGBA)
     case fillRRect(CGRect, cornerRadius: CGFloat, RGBA)
-    case fillPath(Path, RGBA)
-    case strokePath(Path, lineWidth: CGFloat, RGBA)
+    case fillPath(Path, RGBA, eoFill: Bool = false)
+    case strokePath(Path, style: StrokeStyle, RGBA)
     /// Draws one line of text with its baseline at `origin.y`.
     case drawText(String, DisplayFont, origin: CGPoint, RGBA)
     case drawImage(ImageDraw)
@@ -122,13 +122,19 @@ extension DisplayCommand: CustomStringConvertible {
         case .restore: return "restore"
         case .clipRect(let rect): return "clipRect\(r(rect))"
         case .clipRRect(let rect, let radius): return "clipRRect\(r(rect)) r=\(f(radius))"
-        case .clipPath(let path): return "clipPath(\(path.elements.count) elements)"
+        case .clipPath(let path, let eo): return "clipPath(\(path.elements.count) elements)\(eo ? " eo" : "")"
         case .beginGroup(let opacity): return "beginGroup(opacity: \(opacity))"
         case .endGroup: return "endGroup"
         case .fillRect(let rect, let color): return "fillRect\(r(rect)) \(c(color))"
         case .fillRRect(let rect, let radius, let color): return "fillRRect\(r(rect)) r=\(f(radius)) \(c(color))"
-        case .fillPath(let path, let color): return "fillPath(\(path.elements.count) elements) \(c(color))"
-        case .strokePath(let path, let width, let color): return "strokePath(\(path.elements.count) elements) w=\(f(width)) \(c(color))"
+        case .fillPath(let path, let color, let eo): return "fillPath(\(path.elements.count) elements)\(eo ? " eo" : "") \(c(color))"
+        case .strokePath(let path, let style, let color):
+            var text = "strokePath(\(path.elements.count) elements) w=\(f(style.lineWidth))"
+            if style.lineCap != .butt { text += " cap=\(style.lineCap == .round ? "round" : "square")" }
+            if style.lineJoin != .miter { text += " join=\(style.lineJoin == .round ? "round" : "bevel")" }
+            if style.miterLimit != 10 { text += " miter=\(f(style.miterLimit))" }
+            if !style.dash.isEmpty { text += " dash=[\(style.dash.map(f).joined(separator: ","))]" + (style.dashPhase != 0 ? " phase=\(f(style.dashPhase))" : "") }
+            return text + " \(c(color))"
         case .drawText(let text, let font, let origin, let color):
             return "drawText(\"\(text)\" \(font.family) \(f(font.size)) w\(font.weight) at \(f(origin.x)),\(f(origin.y)) \(c(color)))"
         case .drawImage(let draw):
