@@ -1,0 +1,39 @@
+{
+  "fixture" : "scroll\/vertical",
+  "frames" : {
+    "content" : {
+      "height" : 60,
+      "width" : 120,
+      "x" : 90,
+      "y" : 0
+    },
+    "row0" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 20
+    },
+    "row2" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 40
+    },
+    "scroll" : {
+      "height" : 200,
+      "width" : 120,
+      "x" : 90,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

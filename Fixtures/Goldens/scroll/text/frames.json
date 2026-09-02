@@ -1,0 +1,21 @@
+{
+  "fixture" : "scroll\/text",
+  "frames" : {
+    "scroll" : {
+      "height" : 200,
+      "width" : 274,
+      "x" : 13,
+      "y" : 0
+    },
+    "text" : {
+      "height" : 32,
+      "width" : 274,
+      "x" : 13,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

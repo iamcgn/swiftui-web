@@ -1,0 +1,691 @@
+{
+  "fixture" : "scroll\/scroll-to",
+  "frames" : {
+    "content" : {
+      "height" : 400,
+      "width" : 120,
+      "x" : 90,
+      "y" : 0
+    },
+    "row0" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 20
+    },
+    "row2" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 40
+    },
+    "row3" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 60
+    },
+    "row4" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 80
+    },
+    "row5" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 100
+    },
+    "row6" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 120
+    },
+    "row7" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 140
+    },
+    "row8" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 160
+    },
+    "row9" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 180
+    },
+    "row10" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 200
+    },
+    "row11" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 220
+    },
+    "row12" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 240
+    },
+    "row13" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 260
+    },
+    "row14" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 280
+    },
+    "row15" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 300
+    },
+    "row16" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 320
+    },
+    "row17" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 340
+    },
+    "row18" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 360
+    },
+    "row19" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 380
+    },
+    "scroll" : {
+      "height" : 200,
+      "width" : 120,
+      "x" : 90,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "content" : {
+          "height" : 400,
+          "width" : 120,
+          "x" : 90,
+          "y" : -120
+        },
+        "row0" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -120
+        },
+        "row1" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -100
+        },
+        "row2" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -80
+        },
+        "row3" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -60
+        },
+        "row4" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -40
+        },
+        "row5" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -20
+        },
+        "row6" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 0
+        },
+        "row7" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 20
+        },
+        "row8" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 40
+        },
+        "row9" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 60
+        },
+        "row10" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 80
+        },
+        "row11" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 100
+        },
+        "row12" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 120
+        },
+        "row13" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 140
+        },
+        "row14" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 160
+        },
+        "row15" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 180
+        },
+        "row16" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 200
+        },
+        "row17" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 220
+        },
+        "row18" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 240
+        },
+        "row19" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 260
+        },
+        "scroll" : {
+          "height" : 200,
+          "width" : 120,
+          "x" : 90,
+          "y" : 0
+        }
+      },
+      "name" : "row15"
+    },
+    {
+      "frames" : {
+        "content" : {
+          "height" : 400,
+          "width" : 120,
+          "x" : 90,
+          "y" : -60
+        },
+        "row0" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -60
+        },
+        "row1" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -40
+        },
+        "row2" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -20
+        },
+        "row3" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 0
+        },
+        "row4" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 20
+        },
+        "row5" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 40
+        },
+        "row6" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 60
+        },
+        "row7" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 80
+        },
+        "row8" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 100
+        },
+        "row9" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 120
+        },
+        "row10" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 140
+        },
+        "row11" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 160
+        },
+        "row12" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 180
+        },
+        "row13" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 200
+        },
+        "row14" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 220
+        },
+        "row15" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 240
+        },
+        "row16" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 260
+        },
+        "row17" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 280
+        },
+        "row18" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 300
+        },
+        "row19" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 320
+        },
+        "scroll" : {
+          "height" : 200,
+          "width" : 120,
+          "x" : 90,
+          "y" : 0
+        }
+      },
+      "name" : "row3-top"
+    },
+    {
+      "frames" : {
+        "content" : {
+          "height" : 400,
+          "width" : 120,
+          "x" : 90,
+          "y" : -110
+        },
+        "row0" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -110
+        },
+        "row1" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -90
+        },
+        "row2" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -70
+        },
+        "row3" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -50
+        },
+        "row4" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -30
+        },
+        "row5" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : -10
+        },
+        "row6" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 10
+        },
+        "row7" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 30
+        },
+        "row8" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 50
+        },
+        "row9" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 70
+        },
+        "row10" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 90
+        },
+        "row11" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 110
+        },
+        "row12" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 130
+        },
+        "row13" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 150
+        },
+        "row14" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 170
+        },
+        "row15" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 190
+        },
+        "row16" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 210
+        },
+        "row17" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 230
+        },
+        "row18" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 250
+        },
+        "row19" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 270
+        },
+        "scroll" : {
+          "height" : 200,
+          "width" : 120,
+          "x" : 90,
+          "y" : 0
+        }
+      },
+      "name" : "row10-center"
+    },
+    {
+      "frames" : {
+        "content" : {
+          "height" : 400,
+          "width" : 120,
+          "x" : 90,
+          "y" : 0
+        },
+        "row0" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 0
+        },
+        "row1" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 20
+        },
+        "row2" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 40
+        },
+        "row3" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 60
+        },
+        "row4" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 80
+        },
+        "row5" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 100
+        },
+        "row6" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 120
+        },
+        "row7" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 140
+        },
+        "row8" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 160
+        },
+        "row9" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 180
+        },
+        "row10" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 200
+        },
+        "row11" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 220
+        },
+        "row12" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 240
+        },
+        "row13" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 260
+        },
+        "row14" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 280
+        },
+        "row15" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 300
+        },
+        "row16" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 320
+        },
+        "row17" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 340
+        },
+        "row18" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 360
+        },
+        "row19" : {
+          "height" : 20,
+          "width" : 120,
+          "x" : 90,
+          "y" : 380
+        },
+        "scroll" : {
+          "height" : 200,
+          "width" : 120,
+          "x" : 90,
+          "y" : 0
+        }
+      },
+      "name" : "row0"
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+// Phase 2, element 3: ScrollView sizing, offsets, programmatic and user scrolling, clipping.
+import Testing
+import SwiftUI
+
+@Observable
+private final class Target {
+    var row: Int? = nil
+}
+
+private struct Reader: View {
+    let target: Target
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(0..<20, id: \.self) { index in
+                        Color.blue.frame(width: 100, height: 20)._probe("row\(index)").id(index)
+                    }
+                }
+            }
+            ._probe("scroll")
+            .onChange(of: target.row) { _, row in
+                if let row { proxy.scrollTo(row, anchor: row == 3 ? .top : nil) }
+            }
+        }
+    }
+}
+
+@Observable
+private final class Counter {
+    var value = 0
+}
+
+private struct Changing: View {
+    let counter: Counter
+    let log: (String) -> Void
+    var body: some View {
+        Color.red
+            .onChange(of: counter.value) { old, new in log("\(old)->\(new)") }
+            .onChange(of: counter.value, initial: true) { log("any") }
+    }
+}
+
+@Suite @MainActor struct ScrollViewTests {
+    private func rows(_ count: Int, width: CGFloat = 100) -> some View {
+        VStack(spacing: 0) {
+            ForEach(0..<count, id: \.self) { _ in Color.blue.frame(width: width, height: 20) }
+        }
+        ._probe("content")
+    }
+
+    @Test func fillsScrollAxisAndFitsContentAcrossIt() {
+        let runtime = Runtime()
+        runtime.mount(ScrollView { rows(5) }._probe("scroll"))
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["scroll"] == CGRect(x: 100, y: 0, width: 100, height: 200))
+        #expect(runtime.probeFrames["content"] == CGRect(x: 100, y: 0, width: 100, height: 100))
+
+        let horizontal = Runtime()
+        horizontal.mount(ScrollView(.horizontal) { Color.blue.frame(width: 500, height: 40)._probe("content") }._probe("scroll"))
+        horizontal.layout(in: CGSize(width: 300, height: 200))
+        #expect(horizontal.probeFrames["scroll"] == CGRect(x: 0, y: 80, width: 300, height: 40))
+        #expect(horizontal.probeFrames["content"] == CGRect(x: 0, y: 80, width: 500, height: 40))
+    }
+
+    @Test func wideContentWidensTheScrollView() {
+        let runtime = Runtime()
+        runtime.mount(ScrollView { Color.blue.frame(width: 400, height: 400)._probe("content") }._probe("scroll"))
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["scroll"] == CGRect(x: -50, y: 0, width: 400, height: 200))
+    }
+
+    @Test func defaultAnchorStartsAtTheEnd() {
+        let runtime = Runtime()
+        runtime.mount(ScrollView { rows(20) }.defaultScrollAnchor(.bottom)._probe("scroll"))
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["content"] == CGRect(x: 100, y: -200, width: 100, height: 400))
+    }
+
+    @Test func wheelScrollingClampsAndChains() {
+        let runtime = Runtime()
+        runtime.mount(
+            ScrollView(.horizontal) {
+                HStack(spacing: 0) {
+                    ScrollView { rows(20) }._probe("inner").frame(width: 100, height: 200)
+                    Color.red.frame(width: 400, height: 200)
+                }
+            }
+            ._probe("outer"))
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        let inside = CGPoint(x: 50, y: 100)
+        runtime.scrollWheel(by: CGSize(width: 0, height: 50), at: inside)
+        #expect(runtime.needsFrame)
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["content"]?.minY == -50)
+        #expect(!runtime.layoutRequested)
+
+        // Past the end: the inner clamps at 200 and nothing else moves vertically.
+        runtime.scrollWheel(by: CGSize(width: 0, height: 1000), at: inside)
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["content"]?.minY == -200)
+        #expect(runtime.probeFrames["inner"]?.minX == 0)
+
+        // A horizontal delta over the inner (vertical-only) view chains to the outer.
+        runtime.scrollWheel(by: CGSize(width: 120, height: 0), at: inside)
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["inner"]?.minX == -120)
+        #expect(runtime.probeFrames["content"]?.minY == -200)
+
+        // Negative deltas scroll back and clamp at zero. The inner view moved out from under the
+        // point with the outer's content, so only the outer takes the first delta.
+        runtime.scrollWheel(by: CGSize(width: -500, height: -500), at: inside)
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["inner"]?.minX == 0)
+        #expect(runtime.probeFrames["content"]?.minY == -200)
+        runtime.scrollWheel(by: CGSize(width: 0, height: -500), at: inside)
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["content"]?.minY == 0)
+    }
+
+    @Test func scrollDisabledIgnoresInput() {
+        let runtime = Runtime()
+        runtime.mount(ScrollView { rows(20) }.scrollDisabled(true))
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        runtime.scrollWheel(by: CGSize(width: 0, height: 50), at: CGPoint(x: 150, y: 100))
+        #expect(!runtime.needsFrame)
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["content"]?.minY == 0)
+    }
+
+    @Test func scrollToAlignsOnTheAnchorOrMinimally() {
+        let target = Target()
+        let runtime = Runtime()
+        runtime.mount(Reader(target: target))
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["row15"]?.minY == 300)
+
+        target.row = 15                       // below the fold, no anchor: bottom-aligned
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["row15"]?.minY == 180)
+        #expect(runtime.probeFrames["row0"]?.minY == -120)
+
+        target.row = 3                        // anchor .top
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["row3"]?.minY == 0)
+
+        target.row = 0                        // above, no anchor: back to the top
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["row0"]?.minY == 0)
+
+        target.row = 99                       // unknown id: nothing moves
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["row0"]?.minY == 0)
+    }
+
+    @Test func onChangeRunsAfterUpdatesWithOldAndNewValues() {
+        let counter = Counter()
+        var log: [String] = []
+        let runtime = Runtime()
+        runtime.mount(Changing(counter: counter, log: { log.append($0) }))
+        runtime.layout(in: CGSize(width: 100, height: 100))
+        #expect(log == ["any"])
+        counter.value = 2
+        runtime.layout(in: CGSize(width: 100, height: 100))
+        #expect(log == ["any", "0->2", "any"])
+        counter.value = 2                     // same value: no action
+        runtime.layout(in: CGSize(width: 100, height: 100))
+        #expect(log == ["any", "0->2", "any"])
+    }
+
+    @Test func paintsClippedContentAtTheOffset() {
+        let runtime = Runtime()
+        runtime.mount(ScrollView { rows(3, width: 50) }.frame(width: 50, height: 30))
+        runtime.layout(in: CGSize(width: 50, height: 30))
+        runtime.scrollWheel(by: CGSize(width: 0, height: 10), at: CGPoint(x: 25, y: 15))
+        runtime.layout(in: CGSize(width: 50, height: 30))
+        let commands = runtime.render(scale: 2).commands.map(\.description)
+        #expect(commands.prefix(5) == ["save", "clipRect(0, 0, 50, 30)",
+                                       "fillRect(0, -10, 50, 20) #0088FF", "fillRect(0, 10, 50, 20) #0088FF", "fillRect(0, 30, 50, 20) #0088FF"])
+        #expect(commands[5] == "restore")
+        // The indicator shows while scrolling: a 20 pt knob 3 pt from the trailing edge, a third of
+        // the way along its 4 pt travel (offset 10 of 30), then it fades.
+        #expect(commands.count == 7)
+        #expect(commands[6] == "fillRRect(40, 4.5, 7, 20) r=3.5 #000000@0.5")
+        #expect(runtime.advanceScrollAnimations(elapsed: 0.5))
+        #expect(runtime.advanceScrollAnimations(elapsed: 0.5))
+        #expect(!runtime.advanceScrollAnimations(elapsed: 0.5))
+        runtime.layout(in: CGSize(width: 50, height: 30))
+        #expect(runtime.render(scale: 2).commands.count == 6)
+
+        let unclipped = Runtime()
+        unclipped.mount(ScrollView { rows(3, width: 50) }.scrollClipDisabled().frame(width: 50, height: 30))
+        unclipped.layout(in: CGSize(width: 50, height: 30))
+        #expect(unclipped.render(scale: 2).commands.map(\.description).first == "fillRect(0, 0, 50, 20) #0088FF")
+    }
+
+    @Test func touchPanScrollsAndDecelerates() {
+        let runtime = Runtime()
+        runtime.mount(ScrollView { rows(50) })
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        runtime.pointerDown(at: CGPoint(x: 150, y: 150), type: .touch, time: 0)
+        runtime.pointerMoved(to: CGPoint(x: 150, y: 145), time: 0.01)      // within the slop: no pan yet
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["content"]?.minY == 0)
+        runtime.pointerMoved(to: CGPoint(x: 150, y: 100), time: 0.02)      // 50 pt in 20 ms
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["content"]?.minY == -50)
+        runtime.pointerUp(at: CGPoint(x: 150, y: 100), time: 0.03)
+        #expect(runtime.needsFrame)
+        // Momentum keeps the content moving, slowing down and stopping on its own.
+        #expect(runtime.advanceScrollAnimations(elapsed: 0.016))
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        let afterOneFrame = runtime.probeFrames["content"]!.minY
+        #expect(afterOneFrame < -50)
+        var frames = 0
+        while runtime.advanceScrollAnimations(elapsed: 0.016) { frames += 1; #expect(frames < 1000) }
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["content"]!.minY < afterOneFrame)
+        #expect(runtime.probeFrames["content"]!.minY >= -800)
+    }
+
+    @Test func mouseInputStillPressesButtons() {
+        var taps = 0
+        let runtime = Runtime()
+        runtime.mount(ScrollView { Button("Tap") { taps += 1 }.frame(width: 100, height: 40) })
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        runtime.pointerDown(at: CGPoint(x: 150, y: 20))
+        runtime.pointerUp(at: CGPoint(x: 150, y: 20))
+        #expect(taps == 1)
+        // A touch that pans cancels the press instead of activating it.
+        runtime.pointerDown(at: CGPoint(x: 150, y: 20), type: .touch, time: 0)
+        runtime.pointerMoved(to: CGPoint(x: 150, y: 60), time: 0.05)
+        runtime.pointerUp(at: CGPoint(x: 150, y: 60), time: 0.1)
+        #expect(taps == 1)
+    }
+}

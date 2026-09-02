@@ -1,0 +1,93 @@
+{
+  "fixture" : "scroll\/horizontal",
+  "frames" : {
+    "cell0" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 0,
+      "y" : 80
+    },
+    "cell1" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 68,
+      "y" : 80
+    },
+    "cell2" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 136,
+      "y" : 80
+    },
+    "cell3" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 204,
+      "y" : 80
+    },
+    "cell4" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 272,
+      "y" : 80
+    },
+    "cell5" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 340,
+      "y" : 80
+    },
+    "cell6" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 408,
+      "y" : 80
+    },
+    "cell7" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 476,
+      "y" : 80
+    },
+    "cell8" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 544,
+      "y" : 80
+    },
+    "cell9" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 612,
+      "y" : 80
+    },
+    "cell10" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 680,
+      "y" : 80
+    },
+    "cell11" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 748,
+      "y" : 80
+    },
+    "content" : {
+      "height" : 40,
+      "width" : 808,
+      "x" : 0,
+      "y" : 80
+    },
+    "scroll" : {
+      "height" : 40,
+      "width" : 300,
+      "x" : 0,
+      "y" : 80
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

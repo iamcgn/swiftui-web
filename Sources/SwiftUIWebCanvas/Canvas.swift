@@ -92,18 +92,42 @@ public final class CanvasHost {
         on(canvas, "pointerdown") { [weak self] e in
             guard let self else { return }
             _ = self.canvas.setPointerCapture?(e.pointerId)
-            self.runtime.pointerDown(at: self.point(of: e))
+            self.runtime.pointerDown(at: self.point(of: e), type: self.pointerType(of: e), time: self.seconds(of: e))
             self.scheduleFrame()
         }
         on(canvas, "pointermove") { [weak self] e in
             guard let self else { return }
-            self.runtime.pointerMoved(to: self.point(of: e))
+            self.runtime.pointerMoved(to: self.point(of: e), time: self.seconds(of: e))
+            if self.runtime.needsFrame { self.scheduleFrame() }
         }
         on(canvas, "pointerup") { [weak self] e in
             guard let self else { return }
-            self.runtime.pointerUp(at: self.point(of: e))
+            self.runtime.pointerUp(at: self.point(of: e), time: self.seconds(of: e))
             self.scheduleFrame()
         }
+        on(canvas, "pointercancel") { [weak self] e in
+            guard let self else { return }
+            self.runtime.pointerUp(at: CGPoint(x: -1, y: -1), time: self.seconds(of: e))
+            self.scheduleFrame()
+        }
+        // Wheel deltas are consumed here (non-passive, so the page does not scroll too): pixel
+        // deltas map to points, lines to 16 pt, pages to the viewport.
+        let wheel = JSClosure { [weak self] args in
+            MainActor.assumeIsolated {
+                guard let self, let e = args.first?.object else { return }
+                _ = e.preventDefault!()
+                let mode = e.deltaMode.number ?? 0
+                let factor = mode == 1 ? 16.0 : mode == 2 ? self.height : 1.0
+                let delta = CGSize(width: (e.deltaX.number ?? 0) * factor, height: (e.deltaY.number ?? 0) * factor)
+                self.runtime.scrollWheel(by: delta, at: self.point(of: e))
+                if self.runtime.needsFrame { self.scheduleFrame() }
+            }
+            return .undefined
+        }
+        closures.append(wheel)
+        let wheelOptions = JSObject.global.Object.function!.new()
+        wheelOptions.passive = .boolean(false)
+        _ = canvas.addEventListener!("wheel", wheel, wheelOptions)
         on(window, "resize") { [weak self] _ in self?.resize() }
         if let resizeObserver = window.ResizeObserver.function {
             let closure = JSClosure { [weak self] _ in
@@ -119,6 +143,21 @@ public final class CanvasHost {
     private func point(of event: JSObject) -> CGPoint {
         CGPoint(x: event.offsetX.number ?? 0, y: event.offsetY.number ?? 0)
     }
+
+    private func pointerType(of event: JSObject) -> PointerType {
+        switch event.pointerType.string {
+        case "touch": return .touch
+        case "pen": return .pen
+        default: return .mouse
+        }
+    }
+
+    /// The event's timestamp in seconds (same clock as `performance.now()`).
+    private func seconds(of event: JSObject) -> Double {
+        (event.timeStamp.number ?? 0) / 1000
+    }
+
+    private var now: Double { (window.performance.object?.now?().number ?? 0) / 1000 }
 
     private func resize() {
         let newWidth = container.clientWidth.number ?? 0
@@ -151,7 +190,10 @@ public final class CanvasHost {
 
     private func tick() {
         frameScheduled = false
-        guard needsLayout || runtime.scheduler.hasPendingWork else { return }
+        let time = now
+        let animating = runtime.advanceScrollAnimations(elapsed: lastFrameTime.map { min(0.1, time - $0) } ?? 0)
+        lastFrameTime = time
+        guard needsLayout || runtime.needsFrame else { lastFrameTime = nil; return }
         needsLayout = false
         runtime.layout(in: CGSize(width: width, height: height))
         let list = runtime.render(scale: dpr)
@@ -159,9 +201,12 @@ public final class CanvasHost {
         updateOverlay()
         lastDisplayList = list
         frameCount += 1
-        // A preference action or observation may have invalidated during layout.
-        if runtime.scheduler.hasPendingWork { scheduleFrame() }
+        // A preference action, observation or scroll animation may need another frame.
+        if animating || runtime.needsFrame { scheduleFrame() } else { lastFrameTime = nil }
     }
+
+    /// Time of the previous frame while frames run back to back (scroll animations).
+    private var lastFrameTime: Double?
 
     /// The most recently painted display list and the number of frames painted (debug bridge).
     public private(set) var lastDisplayList = DisplayList()

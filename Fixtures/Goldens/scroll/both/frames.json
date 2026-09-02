@@ -1,0 +1,21 @@
+{
+  "fixture" : "scroll\/both",
+  "frames" : {
+    "content" : {
+      "height" : 400,
+      "width" : 500,
+      "x" : 0,
+      "y" : 0
+    },
+    "scroll" : {
+      "height" : 200,
+      "width" : 300,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "fixture" : "scroll\/narrow-content",
+  "frames" : {
+    "content" : {
+      "height" : 400,
+      "width" : 100,
+      "x" : 100,
+      "y" : 25
+    },
+    "frame" : {
+      "height" : 150,
+      "width" : 250,
+      "x" : 25,
+      "y" : 25
+    },
+    "scroll" : {
+      "height" : 150,
+      "width" : 100,
+      "x" : 100,
+      "y" : 25
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

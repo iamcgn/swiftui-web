@@ -73,23 +73,28 @@ extension Runtime {
         return nil
     }
 
-    /// Pointer went down at `point` (points, window coordinates).
-    public func pointerDown(at point: CGPoint) {
+    /// Pointer went down at `point` (points, window coordinates). A touch also starts tracking a
+    /// pan of the scroll views under it; `time` is in seconds (any monotonic clock).
+    public func pointerDown(at point: CGPoint, type: PointerType = .mouse, time: Double = 0) {
+        if type == .touch { beginPan(at: point, time: time) }
         guard let node = interactiveNode(at: point) else { return }
         pressedNode = node
         node.pressBegan()
     }
 
     /// Pointer moved while down.
-    public func pointerMoved(to point: CGPoint) {
+    public func pointerMoved(to point: CGPoint, time: Double = 0) {
         pointerPosition = point
+        continuePan(to: point, time: time)
     }
 
-    /// Pointer released at `point`. Activates the pressed node if the pointer is still over it.
-    public func pointerUp(at point: CGPoint) {
+    /// Pointer released at `point`. Activates the pressed node if the pointer is still over it
+    /// and no pan took the touch.
+    public func pointerUp(at point: CGPoint, time: Double = 0) {
+        let panned = endPan(time: time)
         guard let node = pressedNode else { return }
         pressedNode = nil
-        let inside = interactiveNode(at: point) === node
+        let inside = !panned && interactiveNode(at: point) === node
         node.pressEnded(inside: inside)
     }
 

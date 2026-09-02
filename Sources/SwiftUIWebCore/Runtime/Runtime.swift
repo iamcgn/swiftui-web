@@ -43,10 +43,30 @@ public final class Runtime {
     package var pressedNode: (ViewNode & _Interactive)?
     package var pointerPosition: CGPoint = .zero
 
+    /// A touch pan of scroll views in progress.
+    package var pan: PanState?
+
+    /// Scroll views with momentum or fading indicators (`advanceScrollAnimations`).
+    package var animatingScrollNodes: [ViewNode & _Scrollable] = []
+
+    /// Set when geometry changed without a state update (scrolling, `scrollTo`): the next frame
+    /// must lay out again. Cleared by `layout(in:)`.
+    public private(set) var layoutRequested = false
+
+    /// Whether the host should produce another frame.
+    public var needsFrame: Bool { scheduler.hasPendingWork || layoutRequested }
+
+    package func requestLayout() {
+        guard !layoutRequested else { return }
+        layoutRequested = true
+        if !scheduler.hasPendingWork { scheduler.onNeedsFlush?() }
+    }
+
     /// Applies pending updates, then lays the tree out in a window of `size`. As in SwiftUI,
     /// the root view is proposed the full size and centred.
     public func layout(in size: CGSize) {
         flush()
+        layoutRequested = false
         layoutGeneration += 1
         layoutSize = size
         probeFrames.removeAll(keepingCapacity: true)
@@ -98,6 +118,9 @@ package final class RootNode: ViewNode {
 package final class UpdateScheduler {
     private var dirty: [ObjectIdentifier: ViewNode] = [:]
 
+    /// Actions to run after the next batch of updates (`onChange`, `initial` actions).
+    private var actions: [@MainActor () -> Void] = []
+
     /// Called the first time work becomes pending after an idle period. Hosts use it to request
     /// an animation frame; headless callers flush explicitly.
     package var onNeedsFlush: (@MainActor () -> Void)?
@@ -105,21 +128,28 @@ package final class UpdateScheduler {
     /// Number of `flush` calls that did work, for tests.
     package private(set) var flushCount = 0
 
-    package var hasPendingWork: Bool { !dirty.isEmpty }
+    package var hasPendingWork: Bool { !dirty.isEmpty || !actions.isEmpty }
 
     package init() {}
 
     package func schedule(_ node: ViewNode) {
-        let wasIdle = dirty.isEmpty
+        let wasIdle = !hasPendingWork
         dirty[ObjectIdentifier(node)] = node
         if wasIdle { onNeedsFlush?() }
     }
 
+    /// Runs `action` once the pending updates have been applied, in the same flush.
+    package func enqueue(_ action: @escaping @MainActor () -> Void) {
+        let wasIdle = !hasPendingWork
+        actions.append(action)
+        if wasIdle { onNeedsFlush?() }
+    }
+
     package func flush() {
-        guard !dirty.isEmpty else { return }
+        guard hasPendingWork else { return }
         flushCount += 1
         var passes = 0
-        while !dirty.isEmpty {
+        while hasPendingWork {
             passes += 1
             precondition(passes < 1000, "UpdateScheduler: updates keep invalidating nodes; giving up")
             let batch = dirty.values.sorted { $0.depth < $1.depth }
@@ -127,6 +157,9 @@ package final class UpdateScheduler {
             for node in batch {
                 node.updateIfNeeded()
             }
+            let pending = actions
+            actions.removeAll()
+            for action in pending { action() }
         }
     }
 }

@@ -1,0 +1,63 @@
+{
+  "fixture" : "scroll\/children",
+  "frames" : {
+    "hBlock" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 80,
+      "y" : 24.15087890625
+    },
+    "hBottom" : {
+      "height" : 16,
+      "width" : 44.5,
+      "x" : 87.75,
+      "y" : 58.89306640625
+    },
+    "hScroll" : {
+      "height" : 74.89306640625,
+      "width" : 220,
+      "x" : 80,
+      "y" : 0
+    },
+    "hTop" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 98.75,
+      "y" : 0
+    },
+    "row" : {
+      "height" : 200,
+      "width" : 300,
+      "x" : 0,
+      "y" : 0
+    },
+    "vBlock" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 0,
+      "y" : 24.15087890625
+    },
+    "vBottom" : {
+      "height" : 16,
+      "width" : 44.5,
+      "x" : 7.75,
+      "y" : 58.89306640625
+    },
+    "vScroll" : {
+      "height" : 200,
+      "width" : 60,
+      "x" : 0,
+      "y" : 0
+    },
+    "vTop" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 18.75,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}
