@@ -106,10 +106,11 @@ public final class FixtureRunner {
     private let instance: FixtureInstance
     private let collector = FrameCollector()
 
-    public init(_ fixture: Fixture, textEngine: (any TextEngine)? = nil) {
+    public init(_ fixture: Fixture, textEngine: (any TextEngine)? = nil, assets: AssetCatalog = .empty) {
         self.fixture = fixture
         runtime = Runtime()
         if let textEngine { runtime.textEngine = textEngine }
+        runtime.assetCatalog = assets
         instance = fixture.instantiate()
         let collector = collector
         runtime.mount(
@@ -134,7 +135,7 @@ public final class FixtureRunner {
 extension Fixture {
     /// Mounts the fixture in a fresh runtime, lays it out at its size and returns the probe frames.
     @MainActor
-    public func layoutFrames(textEngine: (any TextEngine)? = nil) -> [String: CGRect] {
-        FixtureRunner(self, textEngine: textEngine).layoutFrames()
+    public func layoutFrames(textEngine: (any TextEngine)? = nil, assets: AssetCatalog = .empty) -> [String: CGRect] {
+        FixtureRunner(self, textEngine: textEngine, assets: assets).layoutFrames()
     }
 }

@@ -11,9 +11,28 @@ public final class Runtime {
     /// Environment the root view is mounted in.
     package var rootEnvironment: EnvironmentValues
 
+    private let assetStore = _AssetStore()
+
+    /// The app's asset catalogs (images and colours by name). Hosts install theirs before the
+    /// first layout; replacing it later re-evaluates the mounted tree.
+    public var assetCatalog: AssetCatalog {
+        get { assetStore.catalog }
+        set {
+            assetStore.catalog = newValue
+            root.child?.invalidate()
+        }
+    }
+
     public init(environment: EnvironmentValues = EnvironmentValues()) {
+        var environment = environment
+        environment[AssetStoreKey.self] = assetStore
         self.rootEnvironment = environment
         self.root = RootNode(runtime: self, environment: environment)
+    }
+
+    /// Asks the host for another frame without a state change (an image finished loading).
+    public func setNeedsDisplay() {
+        requestLayout()
     }
 
     /// Mounts `view` as the root, replacing any previous root view.

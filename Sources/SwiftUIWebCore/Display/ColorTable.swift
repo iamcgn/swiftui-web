@@ -37,6 +37,9 @@ extension Color {
             base = RGBA(red: r, green: g, blue: b, alpha: a)
         case .system(let system):
             base = environment.platformProfile.resolve(system)
+        case .named(let name):
+            // A missing colour set draws nothing (an assumption, see Docs/elements/Image.md).
+            base = environment.assetCatalog.color(named: name, scheme: environment.colorScheme, idiom: environment.assetIdiom) ?? .clear
         }
         return base.multiplyingAlpha(by: opacityMultiplier)
     }

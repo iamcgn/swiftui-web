@@ -32,7 +32,12 @@ enum Goldens {
     }
 
     /// Fixture names whose goldens exist and whose feature area is implemented.
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/"]
+
+    /// The fixtures' asset catalog as `scripts/assets.py` reads it (Fixtures/Assets.manifest.json).
+    static func assets() throws -> AssetCatalog {
+        try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
+    }
 
     @MainActor
     static func textEngine() throws -> RecordedTextEngine {
@@ -50,7 +55,7 @@ enum Goldens {
         let fixture = try #require(AllFixtures.all.first { $0.name == name })
         let golden = try #require(try Goldens.frames(for: fixture), "missing golden for \(name); run scripts/gen-goldens.sh")
         let engine = try Goldens.textEngine()
-        let runner = FixtureRunner(fixture, textEngine: engine)
+        let runner = FixtureRunner(fixture, textEngine: engine, assets: try Goldens.assets())
         try compare(runner.layoutFrames(), to: golden.frames, label: name)
         #expect(engine.misses.isEmpty, "\(name): no recorded text metrics for \(engine.misses)")
 

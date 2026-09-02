@@ -1,3 +1,7 @@
+#if !os(WASI)
+import Foundation
+#endif
+
 /// A representation of a color that adapts to a given context.
 ///
 /// Step 5 provides the value type and its role as a flexible view (ideal size 10×10, fills its
@@ -7,6 +11,8 @@ public struct Color: Hashable, Sendable {
     package enum Storage: Hashable, Sendable {
         case rgba(red: Double, green: Double, blue: Double, opacity: Double)
         case system(SystemColor)
+        /// A colour set of the app's asset catalogs (decision 0011).
+        case named(String)
     }
 
     package enum SystemColor: String, Hashable, Sendable, CaseIterable {
@@ -26,6 +32,18 @@ public struct Color: Hashable, Sendable {
     public init(red: Double, green: Double, blue: Double, opacity: Double = 1) {
         self.init(storage: .rgba(red: red, green: green, blue: blue, opacity: opacity))
     }
+
+    #if os(WASI)
+    /// Creates a color from a color set in the app's asset catalogs. There is no `Bundle` on wasm.
+    public init(_ name: String) {
+        self.init(storage: .named(name))
+    }
+    #else
+    /// Creates a color from a color set in the app's asset catalogs; the bundle is ignored.
+    public init(_ name: String, bundle: Bundle? = nil) {
+        self.init(storage: .named(name))
+    }
+    #endif
 
     /// Creates a constant grayscale color.
     public init(white: Double, opacity: Double = 1) {

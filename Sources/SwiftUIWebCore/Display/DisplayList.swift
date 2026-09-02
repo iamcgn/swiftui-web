@@ -43,6 +43,31 @@ public struct DisplayFont: Hashable, Sendable {
     }
 }
 
+/// One image draw: a catalog file scaled (or tiled, or nine-part stretched) into `rect`.
+public struct ImageDraw: Equatable, Sendable {
+    /// Path of the variant, relative to the manifest base.
+    public var file: String
+    /// Pixels per point of the file, and its pixel size.
+    public var scale: CGFloat
+    public var pixelSize: CGSize
+    public var rect: CGRect
+    /// Rigid border of a nine-part draw, in points; zero draws the whole image at once.
+    public var capInsets = EdgeInsets()
+    /// Tile the stretched parts (edges and centre of a nine-part draw, or the whole image).
+    public var tiles = false
+    /// Resample smoothly (`false` is nearest neighbour).
+    public var smoothing = true
+    /// Fill the image's alpha with this colour (template rendering).
+    public var tint: RGBA?
+
+    public init(file: String, scale: CGFloat, pixelSize: CGSize, rect: CGRect) {
+        self.file = file
+        self.scale = scale
+        self.pixelSize = pixelSize
+        self.rect = rect
+    }
+}
+
 /// One drawing command. Coordinates are absolute points in the window, already rounded to the
 /// pixel grid where SwiftUI rounds (frame edges).
 public enum DisplayCommand: Equatable, Sendable {
@@ -59,6 +84,7 @@ public enum DisplayCommand: Equatable, Sendable {
     case strokePath(Path, lineWidth: CGFloat, RGBA)
     /// Draws one line of text with its baseline at `origin.y`.
     case drawText(String, DisplayFont, origin: CGPoint, RGBA)
+    case drawImage(ImageDraw)
 }
 
 /// The flat command list a painter consumes for one frame (decision 0002).
@@ -105,6 +131,13 @@ extension DisplayCommand: CustomStringConvertible {
         case .strokePath(let path, let width, let color): return "strokePath(\(path.elements.count) elements) w=\(f(width)) \(c(color))"
         case .drawText(let text, let font, let origin, let color):
             return "drawText(\"\(text)\" \(font.family) \(f(font.size)) w\(font.weight) at \(f(origin.x)),\(f(origin.y)) \(c(color)))"
+        case .drawImage(let draw):
+            var text = "drawImage(\(draw.file) @\(f(draw.scale))x \(r(draw.rect))"
+            if draw.capInsets != EdgeInsets() { text += " insets=\(f(draw.capInsets.top)),\(f(draw.capInsets.leading)),\(f(draw.capInsets.bottom)),\(f(draw.capInsets.trailing))" }
+            if draw.tiles { text += " tile" }
+            if !draw.smoothing { text += " nearest" }
+            if let tint = draw.tint { text += " tint=\(c(tint))" }
+            return text + ")"
         }
     }
 }

@@ -8,11 +8,12 @@ public final class HeadlessRenderer {
     public var size: CGSize
     public var scale: CGFloat
 
-    public init(size: CGSize, scale: CGFloat = 2, textEngine: (any TextEngine)? = nil) {
+    public init(size: CGSize, scale: CGFloat = 2, textEngine: (any TextEngine)? = nil, assets: AssetCatalog = .empty) {
         runtime = Runtime()
         self.size = size
         self.scale = scale
         if let textEngine { runtime.textEngine = textEngine }
+        runtime.assetCatalog = assets
     }
 
     /// Mounts (or updates) the root view.

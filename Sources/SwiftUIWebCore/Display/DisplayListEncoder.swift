@@ -7,6 +7,8 @@ public enum DisplayOp: Double, Sendable {
     case beginGroup = 6, endGroup = 7
     case fillRect = 8, fillRRect = 9, fillPath = 10, strokePath = 11
     case drawText = 12
+    /// file, scale, pixel w/h, rect, tile, insets (top, leading, bottom, trailing), smoothing, hasTint, colour
+    case drawImage = 13
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -64,6 +66,12 @@ public enum DisplayListEncoder {
             case .drawText(let text, let font, let origin, let c):
                 out.ops += [DisplayOp.drawText.rawValue, intern(text), intern(fontString(font)), origin.x, origin.y]
                 color(c)
+            case .drawImage(let draw):
+                out.ops += [DisplayOp.drawImage.rawValue, intern(draw.file), draw.scale, draw.pixelSize.width, draw.pixelSize.height]
+                rect(draw.rect)
+                out.ops += [draw.tiles ? 1 : 0, draw.capInsets.top, draw.capInsets.leading, draw.capInsets.bottom, draw.capInsets.trailing,
+                            draw.smoothing ? 1 : 0, draw.tint == nil ? 0 : 1]
+                color(draw.tint ?? .clear)
             }
         }
         return out
@@ -127,6 +135,15 @@ public enum DisplayListDecoder {
             case .drawText:
                 let text = encoded.strings[Int(next())], font = encoded.strings[Int(next())]
                 out.append("drawText '\(text)' [\(font)] \(next()),\(next()) \(color())")
+            case .drawImage:
+                let file = encoded.strings[Int(next())]
+                let scale = next(), pw = next(), ph = next()
+                let r = rect()
+                let tile = next() == 1
+                let insets = "\(next()),\(next()),\(next()),\(next())"
+                let smoothing = next() == 1, hasTint = next() == 1
+                let tint = color()
+                out.append("drawImage \(file) @\(scale)x \(Int(pw))x\(Int(ph)) \(f(r))\(tile ? " tile" : "") insets \(insets)\(smoothing ? "" : " nearest")\(hasTint ? " tint " + tint : "")")
             }
         }
         return out
