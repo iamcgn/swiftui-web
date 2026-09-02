@@ -20,11 +20,11 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `View / ViewBuilder (if/else, optional, switch, #available, any child count)` | 🟠 stub | Type-checks; runtime arrives with the node tree (Phase 1 step 2) |  |
-| `EmptyView / TupleView / Group / _ConditionalContent / Optional` | 🟠 stub |  |  |
-| `AnyView` | 🟠 stub |  |  |
-| `ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)` | 🟠 stub |  |  |
-| `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟠 stub | @Entry macro not provided |  |
+| `View / ViewBuilder (if/else, optional, switch, #available, any child count)` | 🟢 partial | Runtime node tree with structural identity; no layout or painting yet |  |
+| `EmptyView / TupleView / Group / _ConditionalContent / Optional` | 🟢 partial | Runtime nodes exist; no layout yet |  |
+| `AnyView` | 🟢 partial | Runtime nodes exist; no layout yet |  |
+| `ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)` | 🟢 partial | Runtime nodes exist; no layout yet |  |
+| `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟢 partial | @Entry macro not provided |  |
 | `Transaction / TransactionKey / withTransaction` | 🟠 stub | No `animation` member until the animation system exists |  |
 
 ## Views

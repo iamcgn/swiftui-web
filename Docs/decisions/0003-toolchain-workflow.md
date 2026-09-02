@@ -23,6 +23,10 @@ from Apple's toolchain. Both must coexist on one machine.
   generated `index.js` imports bare npm specifiers and needs a bundler such as Vite).
 - `js test` runs `npm install` from inside the SwiftPM plugin sandbox, which has no network;
   run it with `--disable-sandbox`.
+- After adding or removing a **protocol requirement** in `SwiftUIWebCore` (for example the hidden
+  `View._makeNode` hook), run `swift package clean` before `swift test`. Observed 2026-09-02: the
+  incremental build kept stale witness tables in the test bundle and the process died with
+  SIGBUS/SIGSEGV inside the first call through the new requirement; a clean build was green.
 
 ## Evidence
 Root package: `swift test` (7 tests, macOS native) and `swift build --swift-sdk ... --target

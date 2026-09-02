@@ -175,6 +175,7 @@ Phase 1 done: Counter (`@main App`, `@State`, `VStack/HStack/Text/Button/Spacer/
 | # | Step | Status |
 |---|---|---|
 | 1 | API skeleton | done 2026-09-02: `Sources/SwiftUIWebCore/API/`, `Tests/CoreRuntimeTests/ViewBuilderTests.swift`. Library view types conform to `View` in extensions so their inits stay nonisolated and the nonisolated `ViewBuilder` can construct them under Swift 6 strict concurrency. |
+| 2 | Node tree | done 2026-09-02: `Sources/SwiftUIWebCore/Runtime/` (`ViewNode`/`TypedNode<V>`, `CompositeNode`, `LeafNode`, `TupleNode` via cached tuple key paths, `ConditionalNode`, `OptionalNode`, `GroupNode`, `AnyViewNode`, `ModifierBodyNode` + `ModifierContentNode`, `EnvironmentModifierNode`, `Runtime`/`RootNode`, `UpdateScheduler`). `View._makeNode` and `ViewModifier._makeNode` are protocol requirements (hidden, underscored) so primitives dispatch statically. `EnvironmentValues.generation` lets unchanged subtrees skip re-evaluation. Tests: `NodeTreeTests` (tree dumps, flattening counts, branch/optional/AnyView teardown, modifier placeholders, scheduler coalescing). |
 
 ### Phase 2 — Element workflow, one element per PR (`Docs/ELEMENT_WORKFLOW.md`)
 

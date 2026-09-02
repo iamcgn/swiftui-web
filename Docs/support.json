@@ -14,24 +14,27 @@
       "entries": [
         {
           "api": "View / ViewBuilder (if/else, optional, switch, #available, any child count)",
-          "status": "stub",
-          "notes": "Type-checks; runtime arrives with the node tree (Phase 1 step 2)"
+          "status": "partial",
+          "notes": "Runtime node tree with structural identity; no layout or painting yet"
         },
         {
           "api": "EmptyView / TupleView / Group / _ConditionalContent / Optional",
-          "status": "stub"
+          "status": "partial",
+          "notes": "Runtime nodes exist; no layout yet"
         },
         {
           "api": "AnyView",
-          "status": "stub"
+          "status": "partial",
+          "notes": "Runtime nodes exist; no layout yet"
         },
         {
           "api": "ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)",
-          "status": "stub"
+          "status": "partial",
+          "notes": "Runtime nodes exist; no layout yet"
         },
         {
           "api": "EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment",
-          "status": "stub",
+          "status": "partial",
           "notes": "@Entry macro not provided"
         },
         {

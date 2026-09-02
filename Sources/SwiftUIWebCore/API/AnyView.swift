@@ -40,6 +40,7 @@ public struct AnyView {
     }
 
     /// Opens the type-erased view for a generic visitor.
+    @MainActor
     package func visit<Visitor: _AnyViewVisitor>(_ visitor: inout Visitor) -> Visitor.Result {
         storage.visit(&visitor)
     }
@@ -50,6 +51,7 @@ extension AnyView: View {
 }
 
 /// A visitor that can receive the concrete view stored in an `AnyView`.
+@MainActor
 package protocol _AnyViewVisitor {
     associatedtype Result
     mutating func visit<V: View>(_ view: V) -> Result
@@ -64,6 +66,7 @@ package class AnyViewStorageBase {
         fatalError("AnyViewStorageBase is abstract")
     }
 
+    @MainActor
     package func visit<Visitor: _AnyViewVisitor>(_ visitor: inout Visitor) -> Visitor.Result {
         fatalError("AnyViewStorageBase is abstract")
     }
@@ -81,6 +84,7 @@ package final class AnyViewStorage<V: View>: AnyViewStorageBase {
         V.self
     }
 
+    @MainActor
     package override func visit<Visitor: _AnyViewVisitor>(_ visitor: inout Visitor) -> Visitor.Result {
         visitor.visit(view)
     }

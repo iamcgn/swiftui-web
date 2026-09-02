@@ -12,8 +12,16 @@ public struct EnvironmentValues: CustomStringConvertible {
     /// Stored values by key type. Absent keys resolve to `K.defaultValue`.
     package var values: [ObjectIdentifier: Any] = [:]
 
+    /// Identity of this set of values: two `EnvironmentValues` with the same generation are
+    /// copies of one another with no mutation in between, so nodes can skip re-evaluation.
+    package private(set) var generation: UInt64 = 0
+
     /// Creates an environment values instance.
     public init() {}
+
+    private mutating func didMutate() {
+        generation = _EnvironmentGeneration.next()
+    }
 
     /// Accesses the environment value associated with a custom key.
     public subscript<K: EnvironmentKey>(key: K.Type) -> K.Value {
@@ -25,11 +33,22 @@ public struct EnvironmentValues: CustomStringConvertible {
         }
         set {
             values[ObjectIdentifier(key)] = newValue
+            didMutate()
         }
     }
 
     public var description: String {
         "EnvironmentValues(\(values.count) keys)"
+    }
+}
+
+package enum _EnvironmentGeneration {
+    nonisolated(unsafe) private static var counter: UInt64 = 0
+
+    /// Environment values are only mutated on the main actor (view bodies, modifiers).
+    package static func next() -> UInt64 {
+        counter += 1
+        return counter
     }
 }
 

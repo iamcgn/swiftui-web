@@ -16,6 +16,11 @@ public protocol View {
 
     /// The content and behavior of the view.
     @ViewBuilder @MainActor @preconcurrency var body: Self.Body { get }
+
+    /// Hidden runtime hook: builds the node that represents a value of this view type and
+    /// performs its first update. Composite views use the default (`CompositeNode`); primitive
+    /// views provide their own node. Apps never implement this.
+    @MainActor static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self>
 }
 
 extension View where Body == Never {

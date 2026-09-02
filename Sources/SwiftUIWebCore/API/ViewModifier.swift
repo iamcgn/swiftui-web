@@ -10,6 +10,12 @@ public protocol ViewModifier {
 
     /// The content view type passed to `body(content:)`.
     typealias Content = _ViewModifier_Content<Self>
+
+    /// Hidden runtime hook: builds the node for `content.modifier(self)`. Modifiers with a
+    /// `body(content:)` use the default; primitive modifiers provide their own node.
+    @MainActor static func _makeNode<Content: View>(
+        _ context: _NodeContext<ModifiedContent<Content, Self>>
+    ) -> TypedNode<ModifiedContent<Content, Self>>
 }
 
 extension ViewModifier where Body == Never {
