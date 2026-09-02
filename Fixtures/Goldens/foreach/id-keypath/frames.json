@@ -1,0 +1,33 @@
+{
+  "fixture" : "foreach\/id-keypath",
+  "frames" : {
+    "Alpha" : {
+      "height" : 16,
+      "width" : 34.5,
+      "x" : 132.75,
+      "y" : 76
+    },
+    "Beta" : {
+      "height" : 16,
+      "width" : 28,
+      "x" : 136,
+      "y" : 92
+    },
+    "Gamma" : {
+      "height" : 16,
+      "width" : 46.5,
+      "x" : 126.75,
+      "y" : 108
+    },
+    "stack" : {
+      "height" : 48,
+      "width" : 46.5,
+      "x" : 126.75,
+      "y" : 76
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

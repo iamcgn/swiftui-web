@@ -1,0 +1,51 @@
+{
+  "fixture" : "foreach\/modifier",
+  "frames" : {
+    "framed0" : {
+      "height" : 16,
+      "width" : 37.5,
+      "x" : 131.25,
+      "y" : 155
+    },
+    "framed1" : {
+      "height" : 16,
+      "width" : 35.5,
+      "x" : 132.25,
+      "y" : 185
+    },
+    "framedLast" : {
+      "height" : 30,
+      "width" : 120,
+      "x" : 90,
+      "y" : 178
+    },
+    "padded0" : {
+      "height" : 16,
+      "width" : 37.5,
+      "x" : 131.25,
+      "y" : 68
+    },
+    "padded1" : {
+      "height" : 16,
+      "width" : 35.5,
+      "x" : 132.25,
+      "y" : 116
+    },
+    "paddedLast" : {
+      "height" : 48,
+      "width" : 67.5,
+      "x" : 116.25,
+      "y" : 100
+    },
+    "stack" : {
+      "height" : 156,
+      "width" : 120,
+      "x" : 90,
+      "y" : 52
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 300
+  }
+}

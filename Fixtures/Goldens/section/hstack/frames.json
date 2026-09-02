@@ -1,0 +1,39 @@
+{
+  "fixture" : "section\/hstack",
+  "frames" : {
+    "a" : {
+      "height" : 16,
+      "width" : 9,
+      "x" : 139.75,
+      "y" : 92
+    },
+    "b" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 156.75,
+      "y" : 92
+    },
+    "footer" : {
+      "height" : 16,
+      "width" : 39.5,
+      "x" : 173.25,
+      "y" : 92
+    },
+    "header" : {
+      "height" : 16,
+      "width" : 44.5,
+      "x" : 87.25,
+      "y" : 92
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 125.5,
+      "x" : 87.25,
+      "y" : 92
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

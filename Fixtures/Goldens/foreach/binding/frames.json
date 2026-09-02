@@ -1,0 +1,27 @@
+{
+  "fixture" : "foreach\/binding",
+  "frames" : {
+    "Apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 127.5,
+      "y" : 84
+    },
+    "Banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 127.5,
+      "y" : 100
+    },
+    "stack" : {
+      "height" : 32,
+      "width" : 45,
+      "x" : 127.5,
+      "y" : 84
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

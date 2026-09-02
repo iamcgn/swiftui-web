@@ -1,0 +1,45 @@
+{
+  "fixture" : "section\/mixed",
+  "frames" : {
+    "apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 132.5,
+      "y" : 101
+    },
+    "banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 127.5,
+      "y" : 117
+    },
+    "bottom" : {
+      "height" : 16,
+      "width" : 44.5,
+      "x" : 127.75,
+      "y" : 149
+    },
+    "footer" : {
+      "height" : 16,
+      "width" : 39.5,
+      "x" : 130.25,
+      "y" : 133
+    },
+    "stack" : {
+      "height" : 80,
+      "width" : 45,
+      "x" : 127.5,
+      "y" : 85
+    },
+    "top" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 138.75,
+      "y" : 85
+    }
+  },
+  "size" : {
+    "height" : 250,
+    "width" : 300
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "fixture" : "section\/foreach",
+  "frames" : {
+    "Apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 116,
+      "y" : 93
+    },
+    "Banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 116,
+      "y" : 109
+    },
+    "Carrot" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 116,
+      "y" : 141
+    },
+    "Leek" : {
+      "height" : 16,
+      "width" : 29,
+      "x" : 116,
+      "y" : 157
+    },
+    "stack" : {
+      "height" : 96,
+      "width" : 68,
+      "x" : 116,
+      "y" : 77
+    }
+  },
+  "size" : {
+    "height" : 250,
+    "width" : 300
+  }
+}

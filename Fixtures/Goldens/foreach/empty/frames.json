@@ -1,0 +1,45 @@
+{
+  "fixture" : "foreach\/empty",
+  "frames" : {
+    "a" : {
+      "height" : 16,
+      "width" : 9,
+      "x" : 137.25,
+      "y" : 92
+    },
+    "b" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 154.25,
+      "y" : 92
+    },
+    "bottom" : {
+      "height" : 16,
+      "width" : 44.5,
+      "x" : 127.75,
+      "y" : 108
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 25.5,
+      "x" : 137.25,
+      "y" : 92
+    },
+    "stack" : {
+      "height" : 48,
+      "width" : 44.5,
+      "x" : 127.75,
+      "y" : 76
+    },
+    "top" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 138.75,
+      "y" : 76
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

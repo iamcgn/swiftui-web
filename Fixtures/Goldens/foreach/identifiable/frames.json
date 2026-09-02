@@ -1,0 +1,33 @@
+{
+  "fixture" : "foreach\/identifiable",
+  "frames" : {
+    "Apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 81.25,
+      "y" : 92
+    },
+    "Banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 124.25,
+      "y" : 92
+    },
+    "Cherry" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 177.25,
+      "y" : 92
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 137.5,
+      "x" : 81.25,
+      "y" : 92
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

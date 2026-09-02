@@ -1,0 +1,27 @@
+{
+  "fixture" : "section\/title",
+  "frames" : {
+    "apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 116,
+      "y" : 109
+    },
+    "carrot" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 116,
+      "y" : 141
+    },
+    "stack" : {
+      "height" : 64,
+      "width" : 68,
+      "x" : 116,
+      "y" : 93
+    }
+  },
+  "size" : {
+    "height" : 250,
+    "width" : 300
+  }
+}

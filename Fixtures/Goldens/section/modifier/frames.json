@@ -1,0 +1,51 @@
+{
+  "fixture" : "section\/modifier",
+  "frames" : {
+    "apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 132.5,
+      "y" : 111
+    },
+    "banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 127.5,
+      "y" : 150
+    },
+    "footer" : {
+      "height" : 16,
+      "width" : 39.5,
+      "x" : 130.25,
+      "y" : 180
+    },
+    "framedLast" : {
+      "height" : 30,
+      "width" : 120,
+      "x" : 90,
+      "y" : 173
+    },
+    "header" : {
+      "height" : 16,
+      "width" : 34.5,
+      "x" : 132.75,
+      "y" : 63
+    },
+    "paddedLast" : {
+      "height" : 48,
+      "width" : 67,
+      "x" : 116.5,
+      "y" : 95
+    },
+    "stack" : {
+      "height" : 156,
+      "width" : 120,
+      "x" : 90,
+      "y" : 47
+    }
+  },
+  "size" : {
+    "height" : 250,
+    "width" : 300
+  }
+}

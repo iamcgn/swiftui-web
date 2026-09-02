@@ -1,0 +1,39 @@
+{
+  "fixture" : "section\/vstack",
+  "frames" : {
+    "apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 127.5,
+      "y" : 109
+    },
+    "banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 127.5,
+      "y" : 125
+    },
+    "footer" : {
+      "height" : 16,
+      "width" : 39.5,
+      "x" : 127.5,
+      "y" : 141
+    },
+    "header" : {
+      "height" : 16,
+      "width" : 34.5,
+      "x" : 127.5,
+      "y" : 93
+    },
+    "stack" : {
+      "height" : 64,
+      "width" : 45,
+      "x" : 127.5,
+      "y" : 93
+    }
+  },
+  "size" : {
+    "height" : 250,
+    "width" : 300
+  }
+}
