@@ -2,13 +2,14 @@
 // the "+" button (through the accessibility overlay's position) repaints "Count: 1", keyboard
 // activation via the overlay works, and a screenshot is saved.
 //   node counter.mjs http://127.0.0.1:8765/index.html [--shot counter.png]
-import { chromium } from 'playwright';
+import { chromium, webkit, firefox } from 'playwright';
 const args = process.argv.slice(2);
 const url = args.find(a => !a.startsWith('--'));
 const opt = (name, def) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : def; };
 const shot = opt('--shot', null);
 
-const browser = await chromium.launch();
+const engine = { chromium, webkit, firefox }[opt('--browser', 'chromium')];
+const browser = await engine.launch();
 const context = await browser.newContext({ deviceScaleFactor: 2, viewport: { width: 600, height: 400 } });
 const page = await context.newPage();
 const problems = [];

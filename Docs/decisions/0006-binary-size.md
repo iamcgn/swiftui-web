@@ -29,6 +29,11 @@ not in `FoundationEssentials`, so getting them from Foundation costs the full 12
 - Budget: the Phase 1 Counter release bundle must stay under **3 MB brotli**; CI reports size and
   fails on regressions above the budget.
 
+## Phase 1 result (2026-09-02)
+`Examples/Counter` release (`-Osize`, wasm-opt via PackageToJS): 4.29 MB raw, **1.15 MB brotli**,
+within the 3 MB budget. `scripts/size-gate.sh` enforces it; the thin module re-exports
+`FoundationEssentials` on wasm so no app links `Foundation` by accident.
+
 ## Open items
 - Whether a user's explicit `import Foundation` next to `import SwiftUI` makes `CGRect` ambiguous
   on wasm (two modules declaring it). Test in Phase 1 step 1; if it does, evaluate a

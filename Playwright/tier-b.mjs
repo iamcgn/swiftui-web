@@ -3,7 +3,7 @@
 // difference against image@2x.png. Frames must match exactly (Tier A parity); pixels are
 // reported with a tolerance because text rasterisation differs per browser.
 //   node tier-b.mjs http://127.0.0.1:8766/index.html [--filter layout/] [--out ../.build/tier-b] [--pixel-tolerance 0.02]
-import { chromium } from 'playwright';
+import { chromium, webkit, firefox } from 'playwright';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,7 +16,9 @@ const url = args.find(a => !a.startsWith('--'));
 const opt = (name, def) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : def; };
 const filter = opt('--filter', '');
 const out = opt('--out', join(root, '.build', 'tier-b'));
-const pixelTolerance = Number(opt('--pixel-tolerance', 0.03));
+const browserName = opt('--browser', 'chromium');
+// Firefox hints glyphs differently on macOS; its text fixtures land around 3.5 % differing pixels.
+const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox' ? 0.05 : 0.03));
 // Browser font fallbacks (weights 300/900, rounded, serif, monospaced) legitimately differ from
 // SF on macOS; those fixtures are held to a looser bound and listed as approximate.
 const approximate = ['text/system-fonts', 'button/styles'];
@@ -37,7 +39,8 @@ function goldens(dir, prefix = '') {
 }
 
 const names = goldens(join(root, 'Fixtures', 'Goldens')).filter(n => n.startsWith(filter)).sort();
-const browser = await chromium.launch();
+const engine = { chromium, webkit, firefox }[opt('--browser', 'chromium')];
+const browser = await engine.launch();
 const context = await browser.newContext({ deviceScaleFactor: 2, viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();
 const errors = [];
@@ -63,7 +66,8 @@ for (const name of names) {
   // Pixels: screenshot the canvas at DPR 2 and compare with the golden.
   const canvas = page.locator('#app canvas');
   const shotPath = join(out, name.replace(/\//g, '_') + '.png');
-  await canvas.screenshot({ path: shotPath, omitBackground: true });
+  try { await canvas.screenshot({ path: shotPath, omitBackground: true }); }
+  catch { await canvas.screenshot({ path: shotPath }); }   // Firefox: element screenshots cannot omit the background
   let pixelDiff = null;
   const goldenPng = join(root, 'Fixtures', 'Goldens', name, 'image@2x.png');
   if (existsSync(goldenPng)) {

@@ -26,6 +26,10 @@ frames within tolerance, 33 of them exact to the point; pure layout fixtures 0.0
 difference; text fixtures 0.1–1.3 %; system-font fallbacks 4.7 %; the borderless button 2.4 %
 (Apple's ImageRenderer paints a placeholder for it).
 
+Cross-browser (same date): WebKit 36/36 exact frames, all pixels within 3 %; Firefox 35/36
+exact frames (one text fixture at 3.5 % pixels from glyph hinting, so Firefox gets a 5 % bound).
+The Counter smoke test (first paint, click, keyboard activation) passes in all three engines.
+
 ## Consequences
 - The Inter-family fixture set (bundled font on both sides) is the path to exact browser text;
   planned for Phase 2.
