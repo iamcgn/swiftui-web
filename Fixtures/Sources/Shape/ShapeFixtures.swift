@@ -128,14 +128,12 @@ public enum ShapeFixtures {
         .probe("stack")
     }
 
-    /// A pentagram: nonzero winding fills the centre, even-odd leaves it empty.
+    /// A pentagram (radius 26 about (30, 30), every second vertex): nonzero winding fills the
+    /// centre, even-odd leaves it empty. Literal points: fixtures compile without libm on wasm.
     static var star: Path {
         var p = Path()
-        let points = (0..<5).map { i -> CGPoint in
-            let angle = -Double.pi / 2 + Double(i) * 4 * Double.pi / 5
-            return CGPoint(x: 30 + 26 * cos(angle), y: 30 + 26 * sin(angle))
-        }
-        p.addLines(points)
+        p.addLines([CGPoint(x: 30, y: 4), CGPoint(x: 45.28241, y: 51.03444), CGPoint(x: 5.27252, y: 21.96556),
+                    CGPoint(x: 54.72748, y: 21.96556), CGPoint(x: 14.71759, y: 51.03444)])
         p.closeSubpath()
         return p
     }
