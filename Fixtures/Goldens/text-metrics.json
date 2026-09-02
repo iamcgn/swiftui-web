@@ -48,6 +48,30 @@
       "lastBaseline" : 71,
       "width" : 0
     },
+    "style:body||+" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 8.5
+    },
+    "style:body||−" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 8.5
+    },
+    "style:body||Bordered" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 56
+    },
+    "style:body||Borderless" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 65
+    },
     "style:body||Count: 0" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -66,17 +90,53 @@
       "lastBaseline" : 14,
       "width" : 17.5
     },
+    "style:body||Increment" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 61
+    },
+    "style:body||Label" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 33
+    },
     "style:body||Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 439.5
     },
+    "style:body||OK" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 18.5
+    },
     "style:body||One" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 25
+    },
+    "style:body||Padded" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 46.5
+    },
+    "style:body||Plain" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 29.5
+    },
+    "style:body||Prominent" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 62
     },
     "style:body||small" : {
       "firstBaseline" : 14,
@@ -102,6 +162,30 @@
       "lastBaseline" : 14,
       "width" : 25
     },
+    "style:body|0.0|+" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|−" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|Bordered" : {
+      "firstBaseline" : 14,
+      "height" : 151.5,
+      "lastBaseline" : 147,
+      "width" : 0
+    },
+    "style:body|0.0|Borderless" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
+      "width" : 0
+    },
     "style:body|0.0|Count: 0" : {
       "firstBaseline" : 14,
       "height" : 132.5,
@@ -120,16 +204,52 @@
       "lastBaseline" : 33,
       "width" : 0
     },
+    "style:body|0.0|Increment" : {
+      "firstBaseline" : 14,
+      "height" : 170.5,
+      "lastBaseline" : 166,
+      "width" : 0
+    },
+    "style:body|0.0|Label" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
     "style:body|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 14,
       "height" : 987.5,
       "lastBaseline" : 1002,
       "width" : 0
     },
+    "style:body|0.0|OK" : {
+      "firstBaseline" : 14,
+      "height" : 37.5,
+      "lastBaseline" : 33,
+      "width" : 0
+    },
     "style:body|0.0|One" : {
       "firstBaseline" : 14,
       "height" : 56.5,
       "lastBaseline" : 52,
+      "width" : 0
+    },
+    "style:body|0.0|Padded" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body|0.0|Plain" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|Prominent" : {
+      "firstBaseline" : 14,
+      "height" : 170.5,
+      "lastBaseline" : 166,
       "width" : 0
     },
     "style:body|0.0|small" : {
@@ -376,6 +496,126 @@
       "firstBaseline" : 12,
       "height" : 240,
       "lastBaseline" : 237,
+      "width" : 0
+    },
+    "system:13:400:default||+" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 8.5
+    },
+    "system:13:400:default||−" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 8.5
+    },
+    "system:13:400:default||Bordered" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 56
+    },
+    "system:13:400:default||Count: 0" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 52
+    },
+    "system:13:400:default||Go" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 17.5
+    },
+    "system:13:400:default||Increment" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 61
+    },
+    "system:13:400:default||Label" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 33
+    },
+    "system:13:400:default||OK" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 18.5
+    },
+    "system:13:400:default||Padded" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 46.5
+    },
+    "system:13:400:default||Prominent" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 62
+    },
+    "system:13:400:default|0.0|+" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|−" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Bordered" : {
+      "firstBaseline" : 13,
+      "height" : 128,
+      "lastBaseline" : 125,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Count: 0" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Go" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Increment" : {
+      "firstBaseline" : 13,
+      "height" : 144,
+      "lastBaseline" : 141,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Label" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|OK" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Padded" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Prominent" : {
+      "firstBaseline" : 13,
+      "height" : 144,
+      "lastBaseline" : 141,
       "width" : 0
     },
     "system:20:300:default||The quick brown fox" : {
@@ -626,6 +866,14 @@
       "lineHeight" : 15,
       "spacingAbove" : 4.03125,
       "spacingBelow" : 7.177734375,
+      "textToText" : 0
+    },
+    "system:13:400:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 4.7421875,
+      "spacingBelow" : 8.15087890625,
       "textToText" : 0
     },
     "system:20:300:default" : {

@@ -20,3 +20,24 @@ public struct SwiftUIWebMarker: Sendable {
     public init() {}
     public static let implementation = "SwiftUIWeb"
 }
+
+#if os(WASI)
+import SwiftUIWebCanvas
+#endif
+
+extension App {
+    /// Launches the app: in the browser, mounts the first window's root view in a canvas host;
+    /// elsewhere (native tests, CLIs) lays it out headlessly once and returns.
+    public static func main() {
+        #if os(WASI)
+        CanvasHost.launch { Self._rootView() }
+        #else
+        MainActor.assumeIsolated {
+            let runtime = Runtime()
+            runtime.mount(Self._rootView())
+            runtime.layout(in: CGSize(width: 800, height: 600))
+            print("SwiftUIWeb: no window host on this platform; laid out \(Self.self) headlessly.")
+        }
+        #endif
+    }
+}

@@ -5,7 +5,8 @@
       "entries": [
         {
           "api": "App / Scene / WindowGroup / @main",
-          "status": "missing"
+          "status": "partial",
+          "notes": "App/Scene/WindowGroup/SceneBuilder API; main() mounts the first WindowGroup in the canvas host (wasm) or lays out headlessly"
         }
       ]
     },
@@ -84,7 +85,12 @@
         },
         {
           "api": "Button",
-          "status": "missing"
+          "status": "partial",
+          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate; custom ButtonStyle; press state; no roles/disabled",
+          "fixtures": [
+            "button/basic",
+            "button/styles"
+          ]
         },
         {
           "api": "Divider",
@@ -229,6 +235,11 @@
           "api": "preference / transformPreference / onPreferenceChange / coordinateSpace",
           "status": "partial",
           "notes": "Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet"
+        },
+        {
+          "api": "onTapGesture",
+          "status": "partial",
+          "notes": "Single tap via the pointer arena; count ignored"
         }
       ]
     }

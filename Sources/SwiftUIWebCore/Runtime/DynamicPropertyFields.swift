@@ -1,8 +1,11 @@
 @_spi(Reflection) import Swift
 
-/// The dynamic-property fields of a type, discovered once by key-path reflection and cached.
-/// Each installer opens the field's concrete `DynamicProperty` type so installation is a plain
-/// generic call per body evaluation.
+/// The dynamic-property fields of a type, discovered once by stdlib field reflection and cached.
+///
+/// `_forEachField` (name, byte offset, type) is used rather than `_forEachFieldWithKeyPath`:
+/// the key-path variant refuses any struct that has a plain closure stored property
+/// (`() -> Void`), which view structs with action callbacks routinely have (verified 2026-09-02,
+/// Swift 6.3.3). Installation writes through the field's offset with the opened property type.
 @MainActor
 package struct _DynamicPropertyFields<Root> {
     package struct Field {
@@ -17,18 +20,15 @@ package struct _DynamicPropertyFields<Root> {
         let key = ObjectIdentifier(Root.self)
         if let cached = dynamicPropertyFieldCache[key] as? _DynamicPropertyFields<Root> { return cached }
         var fields: [Field] = []
-        _ = _forEachFieldWithKeyPath(of: Root.self, options: []) { name, keyPath in
-            guard let propertyType = type(of: keyPath).valueType as? any DynamicProperty.Type else {
-                return true
-            }
+        _ = _forEachField(of: Root.self, options: []) { name, offset, type, _ in
+            guard let propertyType = type as? any DynamicProperty.Type else { return true }
             @MainActor func open<P: DynamicProperty>(_: P.Type) {
-                guard let typed = keyPath as? WritableKeyPath<Root, P> else {
-                    // `let` properties cannot be installed; SwiftUI requires `var` too.
-                    return
-                }
                 fields.append(Field(name: String(cString: name), propertyType: P.self) { root, node, slot in
-                    root[keyPath: typed]._install(in: node, slot: &slot)
-                    root[keyPath: typed].update()
+                    withUnsafeMutablePointer(to: &root) { base in
+                        let property = UnsafeMutableRawPointer(base).advanced(by: offset).assumingMemoryBound(to: P.self)
+                        property.pointee._install(in: node, slot: &slot)
+                        property.pointee.update()
+                    }
                 })
             }
             open(propertyType)

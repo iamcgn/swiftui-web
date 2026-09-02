@@ -14,7 +14,7 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `App / Scene / WindowGroup / @main` | ❌ missing |  |  |
+| `App / Scene / WindowGroup / @main` | 🟢 partial | App/Scene/WindowGroup/SceneBuilder API; main() mounts the first WindowGroup in the canvas host (wasm) or lays out headlessly |  |
 
 ## View composition
 
@@ -36,7 +36,7 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `Text` | 🟢 partial | Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet | text/* |
 | `VStack / HStack / ZStack` | 🟢 partial | Layout exact against goldens; no painting yet | layout/* |
 | `Spacer` | 🟢 partial | Layout exact; no painting yet | layout/spacer, layout/spacer-min-length |
-| `Button` | ❌ missing |  |  |
+| `Button` | 🟢 partial | bordered (default), borderedProminent, plain exact in layout; borderless approximate; custom ButtonStyle; press state; no roles/disabled | button/basic, button/styles |
 | `Divider` | 🟢 partial | Layout exact (1pt); no painting yet | layout/divider |
 | `Color (as a view)` | 🟢 partial | macOS light system colour table; painting via display list | paint/system-colors |
 | `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL |  |
@@ -66,3 +66,4 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `font(_:)` | 🟢 partial | Environment font | text/modifiers |
 | `opacity / clipShape / clipped / cornerRadius` | 🟢 partial | Display-list groups and clips | paint/clipping |
 | `preference / transformPreference / onPreferenceChange / coordinateSpace` | 🟢 partial | Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet |  |
+| `onTapGesture` | 🟢 partial | Single tap via the pointer arena; count ignored |  |

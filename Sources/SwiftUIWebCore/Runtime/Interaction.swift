@@ -1,0 +1,182 @@
+// Hit testing and pointer handling live entirely in Swift (decision 0002): hosts forward raw
+// pointer events in points; the runtime finds the deepest interactive node under the point.
+
+/// A layout node that reacts to pointer input.
+@MainActor
+package protocol _Interactive: AnyObject {
+    /// Called when a press starts inside the node.
+    func pressBegan()
+    /// Called when the press ends; `inside` tells whether the pointer is still over the node.
+    func pressEnded(inside: Bool)
+    /// Accessibility role and label for the semantics overlay.
+    var semantics: SemanticsNode { get }
+}
+
+/// One element of the accessibility tree hosts expose (DOM overlay in the browser).
+public struct SemanticsNode: Equatable, Sendable {
+    public enum Role: String, Sendable { case button }
+    public var role: Role
+    public var label: String
+    public var frame: CGRect
+    public var identifier: Int
+
+    public init(role: Role, label: String, frame: CGRect, identifier: Int) {
+        self.role = role
+        self.label = label
+        self.frame = frame
+        self.identifier = identifier
+    }
+}
+
+extension ViewNode {
+    /// Whether `point` (in this node's coordinate space) is inside the node's bounds.
+    package func contains(_ point: CGPoint) -> Bool {
+        CGRect(origin: .zero, size: frame.size).contains(point)
+    }
+
+    /// The deepest node containing `point` (in this node's space) that satisfies `predicate`,
+    /// searching later-painted children first.
+    package func hitTest(_ point: CGPoint, where predicate: (ViewNode) -> Bool) -> ViewNode? {
+        for child in paintedChildren.reversed() {
+            let local = CGPoint(x: point.x - child.frame.minX, y: point.y - child.frame.minY)
+            guard child.contains(local) else { continue }
+            if let hit = child.hitTest(local, where: predicate) { return hit }
+        }
+        return predicate(self) && contains(point) ? self : nil
+    }
+
+    /// All nodes in paint order that satisfy `predicate`.
+    package func collectNodes(where predicate: (ViewNode) -> Bool) -> [ViewNode] {
+        var result: [ViewNode] = []
+        if predicate(self) { result.append(self) }
+        for child in paintedChildren { result += child.collectNodes(where: predicate) }
+        return result
+    }
+
+    /// All nodes in structural order that satisfy `predicate`.
+    package func descendants(where predicate: (ViewNode) -> Bool) -> [ViewNode] {
+        var result: [ViewNode] = []
+        if predicate(self) { result.append(self) }
+        for child in structuralChildren { result += child.descendants(where: predicate) }
+        return result
+    }
+}
+
+extension Runtime {
+    /// The interactive node under `point` (window coordinates), if any.
+    package func interactiveNode(at point: CGPoint) -> (ViewNode & _Interactive)? {
+        for node in root.layoutChildren.reversed() {
+            let local = CGPoint(x: point.x - node.frame.minX, y: point.y - node.frame.minY)
+            guard node.contains(local) else { continue }
+            if let hit = node.hitTest(local, where: { $0 is _Interactive }) { return hit as? (ViewNode & _Interactive) }
+        }
+        return nil
+    }
+
+    /// Pointer went down at `point` (points, window coordinates).
+    public func pointerDown(at point: CGPoint) {
+        guard let node = interactiveNode(at: point) else { return }
+        pressedNode = node
+        node.pressBegan()
+    }
+
+    /// Pointer moved while down.
+    public func pointerMoved(to point: CGPoint) {
+        pointerPosition = point
+    }
+
+    /// Pointer released at `point`. Activates the pressed node if the pointer is still over it.
+    public func pointerUp(at point: CGPoint) {
+        guard let node = pressedNode else { return }
+        pressedNode = nil
+        let inside = interactiveNode(at: point) === node
+        node.pressEnded(inside: inside)
+    }
+
+    /// A click delivered by the accessibility overlay, by semantics identifier.
+    public func activate(semanticsIdentifier: Int) {
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) else { return }
+        node.pressBegan()
+        node.pressEnded(inside: true)
+    }
+
+    package var interactiveNodes: [ViewNode & _Interactive] {
+        root.layoutChildren.flatMap { $0.collectNodes(where: { $0 is _Interactive }) }.compactMap { $0 as? (ViewNode & _Interactive) }
+    }
+
+    /// The accessibility tree after the last layout, in window coordinates.
+    public func semanticsTree() -> [SemanticsNode] {
+        interactiveNodes.map { node in
+            var semantics = node.semantics
+            semantics.frame = node.frameInRoot
+            return semantics
+        }
+    }
+}
+
+/// Transparent modifier node: the button's press state and activation.
+@MainActor
+package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
+    package private(set) var child: TypedNode<AnyView>!
+    private static var nextIdentifier = 0
+    private let identifier: Int
+
+    package init(_ context: _NodeContext<_ButtonHost>) {
+        Self.nextIdentifier += 1
+        identifier = Self.nextIdentifier
+        super.init(view: context.view, parent: context.parent, runtime: context.runtime, environment: context.environment)
+        child = AnyView._makeNode(_NodeContext(view: context.view.label, parent: self, environment: context.environment))
+    }
+
+    override package func update(view: _ButtonHost, environment: EnvironmentValues, force: Bool) {
+        self.view = view
+        self.environment = environment
+        clearNeedsUpdate()
+        child.update(view: view.label, environment: environment, force: force)
+    }
+
+    private var target: ViewNode? { child.layoutChildren.first }
+
+    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        target?.sizeThatFits(proposal) ?? .zero
+    }
+    override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
+        target?.dimensions(in: proposal) ?? ViewDimensions(size: .zero)
+    }
+    override package func layoutContents(proposal: ProposedViewSize) {
+        target?.place(at: .zero, anchor: .topLeading, proposal: proposal, by: self)
+    }
+    override package var layoutSpacing: ViewSpacing { target?.layoutSpacing ?? ViewSpacing() }
+    override package var paintedChildren: [ViewNode] { target.map { [$0] } ?? [] }
+    override package var structuralChildren: [ViewNode] { [child] }
+    override package var nodeDescription: String { "Button" }
+
+    package func pressBegan() { view.isPressed.wrappedValue = true }
+    package func pressEnded(inside: Bool) {
+        view.isPressed.wrappedValue = false
+        if inside { view.action.run() }
+    }
+
+    package var semantics: SemanticsNode {
+        let label = child.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }.joined(separator: " ")
+        return SemanticsNode(role: .button, label: label, frame: frameInRoot, identifier: identifier)
+    }
+}
+
+@MainActor
+private var nextTapIdentifier = 1_000_000
+
+@MainActor
+package final class TapGestureNode<Content: View>: UnaryLayoutModifierNode<Content, _TapGestureModifier>, _Interactive {
+    private let identifier: Int
+
+    override package init(_ context: _NodeContext<ModifiedContent<Content, _TapGestureModifier>>) {
+        nextTapIdentifier += 1
+        identifier = nextTapIdentifier
+        super.init(context)
+    }
+
+    package func pressBegan() {}
+    package func pressEnded(inside: Bool) { if inside { modifier.action.run() } }
+    package var semantics: SemanticsNode { SemanticsNode(role: .button, label: "", frame: frameInRoot, identifier: identifier) }
+}

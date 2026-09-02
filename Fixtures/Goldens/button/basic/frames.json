@@ -1,0 +1,57 @@
+{
+  "fixture" : "button\/basic",
+  "frames" : {
+    "increment" : {
+      "height" : 24,
+      "width" : 85,
+      "x" : 107.5,
+      "y" : 70
+    },
+    "labelButton" : {
+      "height" : 24,
+      "width" : 57,
+      "x" : 121.5,
+      "y" : 106
+    },
+    "labelText" : {
+      "height" : 16,
+      "width" : 33,
+      "x" : 133.5,
+      "y" : 110
+    },
+    "minus" : {
+      "height" : 24,
+      "width" : 32.5,
+      "x" : 113.5,
+      "y" : 142
+    },
+    "ok" : {
+      "height" : 24,
+      "width" : 42.5,
+      "x" : 128.75,
+      "y" : 34
+    },
+    "plus" : {
+      "height" : 24,
+      "width" : 32.5,
+      "x" : 154,
+      "y" : 142
+    },
+    "row" : {
+      "height" : 24,
+      "width" : 73,
+      "x" : 113.5,
+      "y" : 142
+    },
+    "stack" : {
+      "height" : 132,
+      "width" : 85,
+      "x" : 107.5,
+      "y" : 34
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

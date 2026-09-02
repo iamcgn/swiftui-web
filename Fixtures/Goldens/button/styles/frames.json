@@ -1,0 +1,39 @@
+{
+  "fixture" : "button\/styles",
+  "frames" : {
+    "bordered" : {
+      "height" : 24,
+      "width" : 80,
+      "x" : 110,
+      "y" : 36
+    },
+    "borderless" : {
+      "height" : 18.5,
+      "width" : 65,
+      "x" : 117.5,
+      "y" : 72
+    },
+    "paddedOuter" : {
+      "height" : 56,
+      "width" : 102.5,
+      "x" : 98.75,
+      "y" : 138.5
+    },
+    "plain" : {
+      "height" : 18.5,
+      "width" : 29.5,
+      "x" : 135.25,
+      "y" : 5.5
+    },
+    "prominent" : {
+      "height" : 24,
+      "width" : 86,
+      "x" : 107,
+      "y" : 102.5
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

@@ -93,10 +93,25 @@ public enum TextMetricsRequests {
             TextMetricRequest(paragraph, .style("body"), width: 400),
             TextMetricRequest(paragraph, .style("body")),
             TextMetricRequest("Hg", .style("body")),
+            TextMetricRequest("OK", .style("body")),
+            TextMetricRequest("Increment", .style("body")),
+            TextMetricRequest("Label", .style("body")),
+            TextMetricRequest("−", .style("body")),
+            TextMetricRequest("+", .style("body")),
+            TextMetricRequest("Plain", .style("body")),
+            TextMetricRequest("Bordered", .style("body")),
+            TextMetricRequest("Borderless", .style("body")),
+            TextMetricRequest("Prominent", .style("body")),
+            TextMetricRequest("Padded", .style("body")),
+            TextMetricRequest("Count: 0", .system(size: 13, weight: "regular", design: "default")),
             TextMetricRequest("Hg", .style("largeTitle")),
             TextMetricRequest("Hg", .style("caption2")),
         ]
         for style in styleNames { requests.append(TextMetricRequest(sample, .style(style))) }
+        // Bordered button labels use the 13 pt point-size font.
+        for label in ["OK", "Increment", "Label", "−", "+", "Bordered", "Prominent", "Padded", "Go"] {
+            requests.append(TextMetricRequest(label, .system(size: 13, weight: "regular", design: "default")))
+        }
         for size: CGFloat in [10, 12, 20, 24, 32] { requests.append(TextMetricRequest(sample, .system(size: size, weight: "regular", design: "default"))) }
         for weight in ["light", "medium", "bold", "black"] { requests.append(TextMetricRequest(sample, .system(size: 20, weight: weight, design: "default"))) }
         for design in ["rounded", "serif", "monospaced"] { requests.append(TextMetricRequest(sample, .system(size: 20, weight: "regular", design: design))) }

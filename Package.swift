@@ -25,7 +25,10 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftUI",
-            dependencies: ["SwiftUIWebCore"]
+            dependencies: [
+                "SwiftUIWebCore",
+                .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
+            ]
         ),
         .target(
             name: "SwiftUIWebCore"

@@ -29,7 +29,7 @@ enum Goldens {
     }
 
     /// Fixture names whose goldens exist and whose feature area is implemented.
-    static let enabledPrefixes = ["layout/", "paint/", "text/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/"]
 
     @MainActor
     static func textEngine() throws -> RecordedTextEngine {

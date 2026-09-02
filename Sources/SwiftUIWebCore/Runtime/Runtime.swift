@@ -39,6 +39,10 @@ public final class Runtime {
     /// `onPreferenceChange` nodes, evaluated after each layout pass.
     package var preferenceObservers: [WeakObserver] = []
 
+    /// The interactive node a pointer is currently pressing, and the last pointer position.
+    package var pressedNode: (ViewNode & _Interactive)?
+    package var pointerPosition: CGPoint = .zero
+
     /// Applies pending updates, then lays the tree out in a window of `size`. As in SwiftUI,
     /// the root view is proposed the full size and centred.
     public func layout(in size: CGSize) {

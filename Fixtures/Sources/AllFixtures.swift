@@ -3,5 +3,5 @@ import FixtureKit
 
 /// Every fixture the harness and the tests know about. Keep sorted by name.
 public enum AllFixtures {
-    public static let all: [Fixture] = LayoutFixtures.all + PaintFixtures.all + TextFixtures.all
+    public static let all: [Fixture] = LayoutFixtures.all + PaintFixtures.all + TextFixtures.all + ButtonFixtures.all
 }
