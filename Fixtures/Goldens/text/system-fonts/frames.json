@@ -1,0 +1,81 @@
+{
+  "fixture" : "text\/system-fonts",
+  "frames" : {
+    "black" : {
+      "height" : 24,
+      "width" : 202,
+      "x" : 62.5,
+      "y" : 247
+    },
+    "bold" : {
+      "height" : 24,
+      "width" : 189.5,
+      "x" : 62.5,
+      "y" : 223
+    },
+    "light" : {
+      "height" : 24,
+      "width" : 174,
+      "x" : 62.5,
+      "y" : 175
+    },
+    "medium" : {
+      "height" : 24,
+      "width" : 181,
+      "x" : 62.5,
+      "y" : 199
+    },
+    "monospaced" : {
+      "height" : 24,
+      "width" : 235,
+      "x" : 62.5,
+      "y" : 319
+    },
+    "rounded" : {
+      "height" : 24,
+      "width" : 175,
+      "x" : 62.5,
+      "y" : 271
+    },
+    "s10" : {
+      "height" : 13,
+      "width" : 97.5,
+      "x" : 62.5,
+      "y" : 57
+    },
+    "s12" : {
+      "height" : 15,
+      "width" : 114.5,
+      "x" : 62.5,
+      "y" : 70
+    },
+    "s20" : {
+      "height" : 24,
+      "width" : 176.5,
+      "x" : 62.5,
+      "y" : 85
+    },
+    "s24" : {
+      "height" : 28,
+      "width" : 207,
+      "x" : 62.5,
+      "y" : 109
+    },
+    "s32" : {
+      "height" : 38,
+      "width" : 275,
+      "x" : 62.5,
+      "y" : 137
+    },
+    "serif" : {
+      "height" : 24,
+      "width" : 185.5,
+      "x" : 62.5,
+      "y" : 295
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 400
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "fixture" : "text\/wrapped",
+  "frames" : {
+    "column" : {
+      "height" : 150.5,
+      "width" : 355.5,
+      "x" : 22.25,
+      "y" : 74.75
+    },
+    "free" : {
+      "height" : 37.5,
+      "width" : 355.5,
+      "x" : 22.25,
+      "y" : 187.75
+    },
+    "narrow" : {
+      "height" : 75.5,
+      "width" : 137,
+      "x" : 22.25,
+      "y" : 74.75
+    },
+    "narrowFrame" : {
+      "height" : 75.5,
+      "width" : 150,
+      "x" : 22.25,
+      "y" : 74.75
+    },
+    "wide" : {
+      "height" : 37.5,
+      "width" : 227,
+      "x" : 22.25,
+      "y" : 150.25
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 400
+  }
+}

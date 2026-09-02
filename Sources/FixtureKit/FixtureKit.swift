@@ -27,8 +27,9 @@ extension View {
 extension Fixture {
     /// Mounts the fixture in a fresh runtime, lays it out at its size and returns the probe frames.
     @MainActor
-    public func layoutFrames() -> [String: CGRect] {
+    public func layoutFrames(textEngine: (any TextEngine)? = nil) -> [String: CGRect] {
         let runtime = Runtime()
+        if let textEngine { runtime.textEngine = textEngine }
         runtime.mount(content().frame(width: size.width, height: size.height))
         runtime.layout(in: size)
         return runtime.probeFrames

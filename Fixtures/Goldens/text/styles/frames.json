@@ -1,0 +1,81 @@
+{
+  "fixture" : "text\/styles",
+  "frames" : {
+    "body" : {
+      "height" : 18.5,
+      "width" : 122.5,
+      "x" : 88,
+      "y" : 236
+    },
+    "callout" : {
+      "height" : 17.5,
+      "width" : 114.5,
+      "x" : 88,
+      "y" : 254.5
+    },
+    "caption" : {
+      "height" : 15,
+      "width" : 97.5,
+      "x" : 88,
+      "y" : 287
+    },
+    "caption2" : {
+      "height" : 15,
+      "width" : 100,
+      "x" : 88,
+      "y" : 302
+    },
+    "column" : {
+      "height" : 234,
+      "width" : 224,
+      "x" : 88,
+      "y" : 83
+    },
+    "footnote" : {
+      "height" : 15,
+      "width" : 97.5,
+      "x" : 88,
+      "y" : 272
+    },
+    "headline" : {
+      "height" : 18.5,
+      "width" : 130.5,
+      "x" : 88,
+      "y" : 201.5
+    },
+    "largeTitle" : {
+      "height" : 38,
+      "width" : 224,
+      "x" : 88,
+      "y" : 83
+    },
+    "subheadline" : {
+      "height" : 16,
+      "width" : 106,
+      "x" : 88,
+      "y" : 220
+    },
+    "title" : {
+      "height" : 33,
+      "width" : 191,
+      "x" : 88,
+      "y" : 121
+    },
+    "title2" : {
+      "height" : 25.5,
+      "width" : 154,
+      "x" : 88,
+      "y" : 154
+    },
+    "title3" : {
+      "height" : 22,
+      "width" : 138.5,
+      "x" : 88,
+      "y" : 179.5
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 400
+  }
+}

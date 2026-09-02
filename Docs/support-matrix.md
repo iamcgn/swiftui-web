@@ -33,13 +33,14 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `Text` | ❌ missing |  |  |
+| `Text` | 🟢 partial | Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet | text/* |
 | `VStack / HStack / ZStack` | 🟢 partial | Layout exact against goldens; no painting yet | layout/* |
 | `Spacer` | 🟢 partial | Layout exact; no painting yet | layout/spacer, layout/spacer-min-length |
 | `Button` | ❌ missing |  |  |
 | `Divider` | 🟢 partial | Layout exact (1pt); no painting yet | layout/divider |
 | `Color (as a view)` | 🟢 partial | Layout only; painting in step 7 | layout/fixed-size |
 | `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL |  |
+| `Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)` | 🟢 partial | macOS text-style table; bold() is the semibold face as measured | text/styles, text/system-fonts, text/modifiers |
 
 ## State
 
@@ -58,5 +59,6 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `padding` | 🟢 partial | Layout exact | layout/padding-default, layout/padding-edges |
 | `frame` | 🟢 partial | Fixed and flexible forms exact | layout/frame-fixed, layout/frame-flex |
 | `background / overlay` | ❌ missing |  |  |
-| `foregroundStyle / foregroundColor` | ❌ missing |  |  |
+| `foregroundStyle / foregroundColor` | 🟠 stub | Environment plumbing only; painting in step 7 |  |
 | `fixedSize / layoutPriority / alignmentGuide` | 🟢 partial | Layout exact | layout/fixed-size, layout/hstack-priority, layout/alignment-guide |
+| `font(_:)` | 🟢 partial | Environment font | text/modifiers |

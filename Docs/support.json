@@ -59,7 +59,11 @@
       "entries": [
         {
           "api": "Text",
-          "status": "missing"
+          "status": "partial",
+          "notes": "Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet",
+          "fixtures": [
+            "text/*"
+          ]
         },
         {
           "api": "VStack / HStack / ZStack",
@@ -102,6 +106,16 @@
           "api": "Layout protocol / custom layouts / layoutValue",
           "status": "partial",
           "notes": "sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL"
+        },
+        {
+          "api": "Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)",
+          "status": "partial",
+          "notes": "macOS text-style table; bold() is the semibold face as measured",
+          "fixtures": [
+            "text/styles",
+            "text/system-fonts",
+            "text/modifiers"
+          ]
         }
       ]
     },
@@ -162,7 +176,8 @@
         },
         {
           "api": "foregroundStyle / foregroundColor",
-          "status": "missing"
+          "status": "stub",
+          "notes": "Environment plumbing only; painting in step 7"
         },
         {
           "api": "fixedSize / layoutPriority / alignmentGuide",
@@ -172,6 +187,14 @@
             "layout/fixed-size",
             "layout/hstack-priority",
             "layout/alignment-guide"
+          ]
+        },
+        {
+          "api": "font(_:)",
+          "status": "partial",
+          "notes": "Environment font",
+          "fixtures": [
+            "text/modifiers"
           ]
         }
       ]

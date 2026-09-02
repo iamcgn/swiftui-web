@@ -1,0 +1,51 @@
+{
+  "fixture" : "text\/hstack-baseline",
+  "frames" : {
+    "big" : {
+      "height" : 38,
+      "width" : 36.5,
+      "x" : 103,
+      "y" : 12
+    },
+    "big2" : {
+      "height" : 38,
+      "width" : 36.5,
+      "x" : 112,
+      "y" : 50
+    },
+    "box" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 187,
+      "y" : 31
+    },
+    "first" : {
+      "height" : 38,
+      "width" : 94,
+      "x" : 103,
+      "y" : 12
+    },
+    "last" : {
+      "height" : 38,
+      "width" : 76,
+      "x" : 112,
+      "y" : 50
+    },
+    "small" : {
+      "height" : 18.5,
+      "width" : 31.5,
+      "x" : 147.5,
+      "y" : 27
+    },
+    "small2" : {
+      "height" : 18.5,
+      "width" : 31.5,
+      "x" : 156.5,
+      "y" : 65
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 300
+  }
+}

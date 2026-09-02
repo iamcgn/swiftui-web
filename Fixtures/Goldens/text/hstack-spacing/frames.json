@@ -1,0 +1,39 @@
+{
+  "fixture" : "text\/hstack-spacing",
+  "frames" : {
+    "box" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 156.25,
+      "y" : 45
+    },
+    "one" : {
+      "height" : 18.5,
+      "width" : 25,
+      "x" : 90.25,
+      "y" : 40.75
+    },
+    "stack" : {
+      "height" : 18.5,
+      "width" : 119.5,
+      "x" : 90.25,
+      "y" : 40.75
+    },
+    "three" : {
+      "height" : 18.5,
+      "width" : 35.5,
+      "x" : 174.25,
+      "y" : 40.75
+    },
+    "two" : {
+      "height" : 18.5,
+      "width" : 25,
+      "x" : 123.25,
+      "y" : 40.75
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 300
+  }
+}

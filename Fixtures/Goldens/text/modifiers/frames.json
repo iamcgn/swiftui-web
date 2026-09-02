@@ -1,0 +1,63 @@
+{
+  "fixture" : "text\/modifiers",
+  "frames" : {
+    "bold" : {
+      "height" : 18.5,
+      "width" : 28.5,
+      "x" : 109,
+      "y" : 2.25
+    },
+    "env" : {
+      "height" : 33,
+      "width" : 35.5,
+      "x" : 109,
+      "y" : 113.25
+    },
+    "fontBold" : {
+      "height" : 18.5,
+      "width" : 28.5,
+      "x" : 109,
+      "y" : 39.25
+    },
+    "fontWeight700" : {
+      "height" : 18.5,
+      "width" : 29.5,
+      "x" : 109,
+      "y" : 57.75
+    },
+    "fontWeightBold" : {
+      "height" : 18.5,
+      "width" : 29.5,
+      "x" : 109,
+      "y" : 20.75
+    },
+    "interpolated" : {
+      "height" : 33,
+      "width" : 82,
+      "x" : 109,
+      "y" : 146.25
+    },
+    "interpolatedBody" : {
+      "height" : 18.5,
+      "width" : 52,
+      "x" : 109,
+      "y" : 179.25
+    },
+    "semibold" : {
+      "height" : 18.5,
+      "width" : 28.5,
+      "x" : 109,
+      "y" : 76.25
+    },
+    "weight" : {
+      "height" : 18.5,
+      "width" : 44.5,
+      "x" : 109,
+      "y" : 94.75
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

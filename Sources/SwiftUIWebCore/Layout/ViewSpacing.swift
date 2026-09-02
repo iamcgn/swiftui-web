@@ -31,9 +31,27 @@ public struct ViewSpacing: Sendable, Equatable {
     /// A view spacing instance that contains zero on all edges.
     public static let zero = ViewSpacing(uniform: 0)
 
-    /// Initializes an instance with default spacing values.
+    /// Initializes an instance with default spacing values: the default category on every edge,
+    /// plus zero for the text-edge categories so a text neighbour's font-derived distance wins.
     public init() {
         self.init(uniform: Self.defaultDistance)
+        self[.edgeBelowText, .top] = 0
+        self[.edgeAboveText, .bottom] = 0
+    }
+
+    /// Spacing of a text run (see `FontMetrics`).
+    package static func text(_ metrics: FontMetrics) -> ViewSpacing {
+        var spacing = ViewSpacing(minima: [:])
+        spacing[nil, .leading] = Self.defaultDistance
+        spacing[nil, .trailing] = Self.defaultDistance
+        spacing[.edgeBelowText, .bottom] = metrics.spacingBelow
+        spacing[.edgeAboveText, .top] = metrics.spacingAbove
+        // Between two text runs the lower run's value applies (measured: largeTitle over body
+        // gives body's 1.0, body over largeTitle gives largeTitle's 1.5), so only the top edge
+        // carries it.
+        spacing[.textToText, .bottom] = 0
+        spacing[.textToText, .top] = metrics.textToText
+        return spacing
     }
 
     package init(minima: [Key: CGFloat]) {

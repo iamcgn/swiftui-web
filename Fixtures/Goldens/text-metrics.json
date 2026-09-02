@@ -1,0 +1,714 @@
+{
+  "entries" : {
+    "style:body:w600||Bold" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 28.5
+    },
+    "style:body:w600||Weight" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 44.5
+    },
+    "style:body:w600|0.0|Bold" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body:w600|0.0|Weight" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w700||Bold" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 29.5
+    },
+    "style:body:w700|0.0|Bold" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body:w800||Bold" : {
+      "firstBaseline" : 14,
+      "height" : 19,
+      "lastBaseline" : 14,
+      "width" : 30.5
+    },
+    "style:body:w800|0.0|Bold" : {
+      "firstBaseline" : 14,
+      "height" : 76,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body||Count: 0" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 52
+    },
+    "style:body||Hello" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 31
+    },
+    "style:body||Hg" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 17.5
+    },
+    "style:body||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 439.5
+    },
+    "style:body||One" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 25
+    },
+    "style:body||small" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 31.5
+    },
+    "style:body||The quick brown fox" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 122.5
+    },
+    "style:body||Three" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 35.5
+    },
+    "style:body||Two" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 25
+    },
+    "style:body|0.0|Count: 0" : {
+      "firstBaseline" : 14,
+      "height" : 132.5,
+      "lastBaseline" : 128,
+      "width" : 0
+    },
+    "style:body|0.0|Hello" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|Hg" : {
+      "firstBaseline" : 14,
+      "height" : 37.5,
+      "lastBaseline" : 33,
+      "width" : 0
+    },
+    "style:body|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 987.5,
+      "lastBaseline" : 1002,
+      "width" : 0
+    },
+    "style:body|0.0|One" : {
+      "firstBaseline" : 14,
+      "height" : 56.5,
+      "lastBaseline" : 52,
+      "width" : 0
+    },
+    "style:body|0.0|small" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|The quick brown fox" : {
+      "firstBaseline" : 14,
+      "height" : 303.5,
+      "lastBaseline" : 299,
+      "width" : 0
+    },
+    "style:body|0.0|Three" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|Two" : {
+      "firstBaseline" : 14,
+      "height" : 56.5,
+      "lastBaseline" : 52,
+      "width" : 0
+    },
+    "style:body|150.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 137
+    },
+    "style:body|260.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 37.5,
+      "lastBaseline" : 33,
+      "width" : 227
+    },
+    "style:body|400.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 37.5,
+      "lastBaseline" : 33,
+      "width" : 355.5
+    },
+    "style:callout||The quick brown fox" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 114.5
+    },
+    "style:callout|0.0|The quick brown fox" : {
+      "firstBaseline" : 13,
+      "height" : 287.5,
+      "lastBaseline" : 283,
+      "width" : 0
+    },
+    "style:caption||The quick brown fox" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 97.5
+    },
+    "style:caption|0.0|The quick brown fox" : {
+      "firstBaseline" : 11,
+      "height" : 255,
+      "lastBaseline" : 251,
+      "width" : 0
+    },
+    "style:caption2||Hg" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 14.5
+    },
+    "style:caption2||The quick brown fox" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 100
+    },
+    "style:caption2|0.0|Hg" : {
+      "firstBaseline" : 11,
+      "height" : 31,
+      "lastBaseline" : 27,
+      "width" : 0
+    },
+    "style:caption2|0.0|The quick brown fox" : {
+      "firstBaseline" : 11,
+      "height" : 255,
+      "lastBaseline" : 251,
+      "width" : 0
+    },
+    "style:footnote||The quick brown fox" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 97.5
+    },
+    "style:footnote|0.0|The quick brown fox" : {
+      "firstBaseline" : 11,
+      "height" : 255,
+      "lastBaseline" : 251,
+      "width" : 0
+    },
+    "style:headline||The quick brown fox" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 130.5
+    },
+    "style:headline|0.0|The quick brown fox" : {
+      "firstBaseline" : 14,
+      "height" : 303.5,
+      "lastBaseline" : 299,
+      "width" : 0
+    },
+    "style:largeTitle||Big" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 36.5
+    },
+    "style:largeTitle||Hg" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 33.5
+    },
+    "style:largeTitle||The quick brown fox" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 224
+    },
+    "style:largeTitle|0.0|Big" : {
+      "firstBaseline" : 29,
+      "height" : 116,
+      "lastBaseline" : 107,
+      "width" : 0
+    },
+    "style:largeTitle|0.0|Hg" : {
+      "firstBaseline" : 29,
+      "height" : 77,
+      "lastBaseline" : 68,
+      "width" : 0
+    },
+    "style:largeTitle|0.0|The quick brown fox" : {
+      "firstBaseline" : 29,
+      "height" : 623,
+      "lastBaseline" : 614,
+      "width" : 0
+    },
+    "style:subheadline||The quick brown fox" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 106
+    },
+    "style:subheadline|0.0|The quick brown fox" : {
+      "firstBaseline" : 12,
+      "height" : 271,
+      "lastBaseline" : 267,
+      "width" : 0
+    },
+    "style:title||Count: 0" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 82
+    },
+    "style:title||Env" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 35.5
+    },
+    "style:title||The quick brown fox" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 191
+    },
+    "style:title|0.0|Count: 0" : {
+      "firstBaseline" : 25,
+      "height" : 231,
+      "lastBaseline" : 223,
+      "width" : 0
+    },
+    "style:title|0.0|Env" : {
+      "firstBaseline" : 25,
+      "height" : 99,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:title|0.0|The quick brown fox" : {
+      "firstBaseline" : 25,
+      "height" : 528,
+      "lastBaseline" : 520,
+      "width" : 0
+    },
+    "style:title2||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 154
+    },
+    "style:title2|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 430.5,
+      "lastBaseline" : 424,
+      "width" : 0
+    },
+    "style:title3||The quick brown fox" : {
+      "firstBaseline" : 17,
+      "height" : 22,
+      "lastBaseline" : 17,
+      "width" : 138.5
+    },
+    "style:title3|0.0|The quick brown fox" : {
+      "firstBaseline" : 17,
+      "height" : 382,
+      "lastBaseline" : 377,
+      "width" : 0
+    },
+    "system:10:400:default||The quick brown fox" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 97.5
+    },
+    "system:10:400:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 10,
+      "height" : 208,
+      "lastBaseline" : 205,
+      "width" : 0
+    },
+    "system:12:400:default||The quick brown fox" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 114.5
+    },
+    "system:12:400:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 12,
+      "height" : 240,
+      "lastBaseline" : 237,
+      "width" : 0
+    },
+    "system:20:300:default||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 174
+    },
+    "system:20:300:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 384,
+      "lastBaseline" : 379,
+      "width" : 0
+    },
+    "system:20:400:default||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 176.5
+    },
+    "system:20:400:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 384,
+      "lastBaseline" : 379,
+      "width" : 0
+    },
+    "system:20:400:monospaced||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 235
+    },
+    "system:20:400:monospaced|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 384,
+      "lastBaseline" : 379,
+      "width" : 0
+    },
+    "system:20:400:rounded||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 175
+    },
+    "system:20:400:rounded|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 384,
+      "lastBaseline" : 379,
+      "width" : 0
+    },
+    "system:20:400:serif||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 185.5
+    },
+    "system:20:400:serif|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 384,
+      "lastBaseline" : 379,
+      "width" : 0
+    },
+    "system:20:500:default||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 181
+    },
+    "system:20:500:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 384,
+      "lastBaseline" : 379,
+      "width" : 0
+    },
+    "system:20:700:default||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 189.5
+    },
+    "system:20:700:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 384,
+      "lastBaseline" : 379,
+      "width" : 0
+    },
+    "system:20:900:default||The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 202
+    },
+    "system:20:900:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 19,
+      "height" : 384,
+      "lastBaseline" : 379,
+      "width" : 0
+    },
+    "system:24:400:default||The quick brown fox" : {
+      "firstBaseline" : 23,
+      "height" : 28,
+      "lastBaseline" : 23,
+      "width" : 207
+    },
+    "system:24:400:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 23,
+      "height" : 448,
+      "lastBaseline" : 443,
+      "width" : 0
+    },
+    "system:32:400:default||The quick brown fox" : {
+      "firstBaseline" : 31,
+      "height" : 38,
+      "lastBaseline" : 31,
+      "width" : 275
+    },
+    "system:32:400:default|0.0|The quick brown fox" : {
+      "firstBaseline" : 31,
+      "height" : 608,
+      "lastBaseline" : 601,
+      "width" : 0
+    }
+  },
+  "fonts" : {
+    "style:body" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "spacingAbove" : 6.2240598101696385,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
+    "style:body:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "spacingAbove" : 6.238154983224689,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
+    "style:body:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "spacingAbove" : 6.2732698149907584,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
+    "style:body:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 19,
+      "spacingAbove" : 6.317688712396123,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
+    "style:callout" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 17.5,
+      "spacingAbove" : 5.9523682831795242,
+      "spacingBelow" : 10.677734374999993,
+      "textToText" : 1
+    },
+    "style:caption" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9089852291993061,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:caption2" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9146757604505495,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:footnote" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9089852291993061,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:headline" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "spacingAbove" : 6.2732698149907584,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
+    "style:largeTitle" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 38,
+      "spacingAbove" : 12.678809606772006,
+      "spacingBelow" : 23.3017578125,
+      "textToText" : 1.5
+    },
+    "style:subheadline" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 5.6806767561894169,
+      "spacingBelow" : 10.20458984375,
+      "textToText" : 1.5
+    },
+    "style:title" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 33,
+      "spacingAbove" : 11.092043498811563,
+      "spacingBelow" : 20.9091796875,
+      "textToText" : 0.5
+    },
+    "style:title2" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 25.5,
+      "spacingAbove" : 8.7722058909955436,
+      "spacingBelow" : 16.04345703125,
+      "textToText" : 2
+    },
+    "style:title3" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 22,
+      "spacingAbove" : 7.4981328505825928,
+      "spacingBelow" : 13.59716796875,
+      "textToText" : 2.5
+    },
+    "system:10:400:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 13,
+      "spacingAbove" : 3.609375,
+      "spacingBelow" : 6.2314453125,
+      "textToText" : 0
+    },
+    "system:12:400:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.03125,
+      "spacingBelow" : 7.177734375,
+      "textToText" : 0
+    },
+    "system:20:300:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 24,
+      "spacingAbove" : 6.71875,
+      "spacingBelow" : 11.962890625,
+      "textToText" : 0
+    },
+    "system:20:400:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 24,
+      "spacingAbove" : 6.71875,
+      "spacingBelow" : 11.962890625,
+      "textToText" : 0
+    },
+    "system:20:400:monospaced" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 24,
+      "spacingAbove" : 6.71875,
+      "spacingBelow" : 11.962890625,
+      "textToText" : 0
+    },
+    "system:20:400:rounded" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 24,
+      "spacingAbove" : 6.71875,
+      "spacingBelow" : 11.962890625,
+      "textToText" : 0
+    },
+    "system:20:400:serif" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 24,
+      "spacingAbove" : 7.32421875,
+      "spacingBelow" : 12.265625,
+      "textToText" : 0
+    },
+    "system:20:500:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 24,
+      "spacingAbove" : 6.71875,
+      "spacingBelow" : 11.962890625,
+      "textToText" : 0
+    },
+    "system:20:700:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 24,
+      "spacingAbove" : 6.71875,
+      "spacingBelow" : 11.962890625,
+      "textToText" : 0
+    },
+    "system:20:900:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 24,
+      "spacingAbove" : 6.71875,
+      "spacingBelow" : 11.962890625,
+      "textToText" : 0
+    },
+    "system:24:400:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 28,
+      "spacingAbove" : 8.0625,
+      "spacingBelow" : 14.35546875,
+      "textToText" : 0
+    },
+    "system:32:400:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 38,
+      "spacingAbove" : 10.75,
+      "spacingBelow" : 19.140625,
+      "textToText" : 0
+    }
+  },
+  "macOS" : "26.2.0",
+  "platformProfile" : "macOS"
+}

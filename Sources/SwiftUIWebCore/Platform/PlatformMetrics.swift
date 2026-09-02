@@ -8,4 +8,6 @@ package enum PlatformMetrics {
     package static let defaultSpacing: CGFloat = 8           // macOS 26.2: fixtures layout/spacing-default, layout/spacer-min-length
     /// `Divider` thickness.
     package static let dividerThickness: CGFloat = 1         // macOS 26.2: fixture layout/divider
+    /// Weight the bold trait (`Font.bold()`, `Text.bold()`) resolves to.
+    package static let boldTraitWeight: Font.Weight = .semibold   // macOS 26.2: fixture text/modifiers
 }

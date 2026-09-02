@@ -38,6 +38,118 @@ func fixtureRoot(_ fixture: Fixture, collector: FrameCollector) -> some View {
         .transaction { $0.animation = nil }
 }
 
+/// Hosts a view in an offscreen window so layout and preferences run for real; returns probes.
+@MainActor
+func collectFrames<V: View>(_ view: V, size: CGSize) -> [String: CGRect] {
+    let collector = FrameCollector()
+    let root = view
+        .coordinateSpace(name: fixtureRootSpace)
+        .onPreferenceChange(ProbeKey.self) { collector.frames = $0 }
+        .environment(\.locale, Locale(identifier: "en_US"))
+        .environment(\.colorScheme, .light)
+        .dynamicTypeSize(.large)
+        .transaction { $0.animation = nil }
+    let hosting = NSHostingView(rootView: root)
+    hosting.frame = CGRect(origin: .zero, size: size)
+    let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+    window.contentView = hosting
+    hosting.layoutSubtreeIfNeeded()
+    RunLoop.main.run(until: Date().addingTimeInterval(0.05))   // let preference callbacks deliver
+    return collector.frames
+}
+
+/// Measures one text request: size plus first/last baseline. A 10×10 marker aligned on the
+/// baseline has its bottom on that baseline (non-text views' baseline guides are their bottom).
+@MainActor
+func measure(_ request: TextMetricRequest) -> [String: Double] {
+    let canvas = CGSize(width: 2000, height: 2000)
+    @ViewBuilder func text(_ id: String) -> some View {
+        if let width = request.width {
+            Text(request.string).font(request.font.font).probe(id).frame(width: width, alignment: .topLeading)
+        } else {
+            Text(request.string).font(request.font.font).probe(id)
+        }
+    }
+    let view = VStack(alignment: .leading, spacing: 0) {
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            text("text1")
+            Color.clear.frame(width: 10, height: 10).probe("first")
+        }
+        HStack(alignment: .lastTextBaseline, spacing: 0) {
+            text("text2")
+            Color.clear.frame(width: 10, height: 10).probe("last")
+        }
+    }
+    .frame(width: canvas.width, height: canvas.height, alignment: .topLeading)
+    let frames = collectFrames(view, size: canvas)
+    guard let text1 = frames["text1"], let text2 = frames["text2"], let first = frames["first"], let last = frames["last"] else {
+        fatalError("could not measure \(request.key)")
+    }
+    return ["width": text1.width, "height": text1.height,
+            "firstBaseline": first.maxY - text1.minY, "lastBaseline": last.maxY - text2.minY]
+}
+
+/// Per-font values a text run contributes to stack spacing: distance to a non-text neighbour
+/// below and above, and to another text run of the same font below.
+@MainActor
+func measureFontSpacing(_ font: FixtureFont) -> [String: Double] {
+    let canvas = CGSize(width: 2000, height: 2000)
+    let view = HStack(alignment: .top, spacing: 50) {
+        VStack(spacing: nil) {
+            Text("Hg").font(font.font).probe("t1")
+            Color.clear.frame(width: 10, height: 10).probe("b1")
+        }
+        VStack(spacing: nil) {
+            Color.clear.frame(width: 10, height: 10).probe("b2")
+            Text("Hg").font(font.font).probe("t2")
+        }
+        VStack(spacing: nil) {
+            Text("Hg").font(font.font).probe("t3")
+            Text("Hg").font(font.font).probe("t4")
+        }
+        HStack(spacing: nil) {
+            Text("Hg").font(font.font).probe("t5")
+            Text("Hg").font(font.font).probe("t6")
+            Color.clear.frame(width: 10, height: 10).probe("b3")
+        }
+    }
+    .frame(width: canvas.width, height: canvas.height, alignment: .topLeading)
+    let f = collectFrames(view, size: canvas)
+    return [
+        "spacingBelow": f["b1"]!.minY - f["t1"]!.maxY,
+        "spacingAbove": f["t2"]!.minY - f["b2"]!.maxY,
+        "textToText": f["t4"]!.minY - f["t3"]!.maxY,
+        "horizontalTextToText": f["t6"]!.minX - f["t5"]!.maxX,
+        "horizontalTrailing": f["b3"]!.minX - f["t6"]!.maxX,
+        "lineHeight": f["t1"]!.height,
+    ]
+}
+
+@MainActor
+func generateTextMetrics(into root: URL) throws {
+    var entries: [String: [String: Double]] = [:]
+    var fonts: [String: [String: Double]] = [:]
+    for request in TextMetricsRequests.all {
+        entries[request.key] = measure(request)
+        if request.width == nil {
+            // Stacks probe minimum sizes with a zero-width proposal; record that layout too.
+            let minimum = TextMetricRequest(request.string, request.font, width: 0)
+            entries[minimum.key] = measure(minimum)
+        }
+        if fonts[request.font.key] == nil { fonts[request.font.key] = measureFontSpacing(request.font) }
+    }
+    let os = ProcessInfo.processInfo.operatingSystemVersion
+    let doc: [String: Any] = [
+        "platformProfile": "macOS",
+        "macOS": "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)",
+        "entries": entries,
+        "fonts": fonts,
+    ]
+    try JSONSerialization.data(withJSONObject: doc, options: [.prettyPrinted, .sortedKeys])
+        .write(to: root.appendingPathComponent("text-metrics.json"))
+    print("text-metrics.json: \(entries.count) entries, \(fonts.count) fonts")
+}
+
 @MainActor
 func generate(_ fixture: Fixture, into root: URL) throws {
     let dir = root.appendingPathComponent(fixture.name, isDirectory: true)
@@ -45,12 +157,7 @@ func generate(_ fixture: Fixture, into root: URL) throws {
 
     // Frames: host in an offscreen window so layout and preferences run for real.
     let collector = FrameCollector()
-    let hosting = NSHostingView(rootView: fixtureRoot(fixture, collector: collector))
-    hosting.frame = CGRect(origin: .zero, size: fixture.size)
-    let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
-    window.contentView = hosting
-    hosting.layoutSubtreeIfNeeded()
-    RunLoop.main.run(until: Date().addingTimeInterval(0.1))   // let preference callbacks deliver
+    collector.frames = collectFrames(fixture.content().frame(width: fixture.size.width, height: fixture.size.height), size: fixture.size)
 
     // Pixels: ImageRenderer at scale 2, sRGB.
     let renderer = ImageRenderer(content: fixtureRoot(fixture, collector: collector))
@@ -94,6 +201,10 @@ let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 Task { @MainActor in
     var failures = 0
+    if options.filter == nil || options.filter == "text/" || options.filter == "text-metrics" {
+        do { try generateTextMetrics(into: options.output) }
+        catch { failures += 1; FileHandle.standardError.write("FAILED text-metrics: \(error)\n".data(using: .utf8)!) }
+    }
     for fixture in AllFixtures.all where options.filter.map({ fixture.name.hasPrefix($0) }) ?? true {
         do { try generate(fixture, into: options.output) }
         catch { failures += 1; FileHandle.standardError.write("FAILED \(fixture.name): \(error)\n".data(using: .utf8)!) }

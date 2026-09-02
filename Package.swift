@@ -63,7 +63,7 @@ let package = Package(
         ),
         .testTarget(
             name: "LayoutFidelityTests",
-            dependencies: ["SwiftUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"]
+            dependencies: ["SwiftUI", "SwiftUIWebHeadless", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"]
         ),
         .testTarget(
             name: "BrowserTests",
