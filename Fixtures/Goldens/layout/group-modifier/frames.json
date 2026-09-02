@@ -1,0 +1,27 @@
+{
+  "fixture" : "layout\/group-modifier",
+  "frames" : {
+    "a" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 5,
+      "y" : 25
+    },
+    "b" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 65,
+      "y" : 25
+    },
+    "c" : {
+      "height" : 100,
+      "width" : 180,
+      "x" : 120,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 300
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "fixture" : "layout\/spacer",
+  "frames" : {
+    "a" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 0,
+      "y" : 25
+    },
+    "b" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 250,
+      "y" : 25
+    },
+    "spacer" : {
+      "height" : 0,
+      "width" : 200,
+      "x" : 50,
+      "y" : 50
+    },
+    "stack" : {
+      "height" : 50,
+      "width" : 300,
+      "x" : 0,
+      "y" : 25
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 300
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "fixture" : "layout\/hstack-priority",
+  "frames" : {
+    "a" : {
+      "height" : 100,
+      "width" : 20,
+      "x" : 0,
+      "y" : 0
+    },
+    "b" : {
+      "height" : 100,
+      "width" : 220,
+      "x" : 20,
+      "y" : 0
+    },
+    "c" : {
+      "height" : 100,
+      "width" : 60,
+      "x" : 240,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 300
+  }
+}

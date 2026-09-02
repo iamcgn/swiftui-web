@@ -1,0 +1,21 @@
+{
+  "fixture" : "layout\/padding-default",
+  "frames" : {
+    "inner" : {
+      "height" : 68,
+      "width" : 168,
+      "x" : 16,
+      "y" : 16
+    },
+    "outer" : {
+      "height" : 100,
+      "width" : 200,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 200
+  }
+}

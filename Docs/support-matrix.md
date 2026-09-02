@@ -34,9 +34,12 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
 | `Text` | ❌ missing |  |  |
-| `VStack / HStack / ZStack` | ❌ missing |  |  |
-| `Spacer` | ❌ missing |  |  |
+| `VStack / HStack / ZStack` | 🟢 partial | Layout exact against goldens; no painting yet | layout/* |
+| `Spacer` | 🟢 partial | Layout exact; no painting yet | layout/spacer, layout/spacer-min-length |
 | `Button` | ❌ missing |  |  |
+| `Divider` | 🟢 partial | Layout exact (1pt); no painting yet | layout/divider |
+| `Color (as a view)` | 🟢 partial | Layout only; painting in step 7 | layout/fixed-size |
+| `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL |  |
 
 ## State
 
@@ -52,7 +55,8 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `padding` | ❌ missing |  |  |
-| `frame` | ❌ missing |  |  |
+| `padding` | 🟢 partial | Layout exact | layout/padding-default, layout/padding-edges |
+| `frame` | 🟢 partial | Fixed and flexible forms exact | layout/frame-fixed, layout/frame-flex |
 | `background / overlay` | ❌ missing |  |  |
 | `foregroundStyle / foregroundColor` | ❌ missing |  |  |
+| `fixedSize / layoutPriority / alignmentGuide` | 🟢 partial | Layout exact | layout/fixed-size, layout/hstack-priority, layout/alignment-guide |

@@ -1,0 +1,21 @@
+{
+  "fixture" : "layout\/fixed-size",
+  "frames" : {
+    "both" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 95,
+      "y" : 80
+    },
+    "horizontal" : {
+      "height" : 30,
+      "width" : 10,
+      "x" : 95,
+      "y" : 90
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 200
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "fixture" : "layout\/vstack-alignment",
+  "frames" : {
+    "l1" : {
+      "height" : 20,
+      "width" : 100,
+      "x" : 50,
+      "y" : 78
+    },
+    "l2" : {
+      "height" : 20,
+      "width" : 50,
+      "x" : 50,
+      "y" : 102
+    },
+    "leading" : {
+      "height" : 44,
+      "width" : 100,
+      "x" : 50,
+      "y" : 78
+    },
+    "t1" : {
+      "height" : 20,
+      "width" : 100,
+      "x" : 150,
+      "y" : 78
+    },
+    "t2" : {
+      "height" : 20,
+      "width" : 50,
+      "x" : 200,
+      "y" : 102
+    },
+    "trailing" : {
+      "height" : 44,
+      "width" : 100,
+      "x" : 150,
+      "y" : 78
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

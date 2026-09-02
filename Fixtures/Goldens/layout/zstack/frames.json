@@ -1,0 +1,27 @@
+{
+  "fixture" : "layout\/zstack",
+  "frames" : {
+    "a" : {
+      "height" : 100,
+      "width" : 100,
+      "x" : 50,
+      "y" : 50
+    },
+    "b" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 120,
+      "y" : 120
+    },
+    "stack" : {
+      "height" : 100,
+      "width" : 100,
+      "x" : 50,
+      "y" : 50
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 200
+  }
+}

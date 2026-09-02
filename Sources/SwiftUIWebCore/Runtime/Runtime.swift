@@ -1,27 +1,50 @@
 /// Owns one mounted view tree, its scheduler and (from step 9) the layout and painting
 /// pipeline. Hosts (canvas, headless) create one runtime per window.
 @MainActor
-package final class Runtime {
+public final class Runtime {
     package let scheduler = UpdateScheduler()
     package private(set) var root: RootNode!
 
     /// Environment the root view is mounted in.
     package var rootEnvironment: EnvironmentValues
 
-    package init(environment: EnvironmentValues = EnvironmentValues()) {
+    public init(environment: EnvironmentValues = EnvironmentValues()) {
         self.rootEnvironment = environment
         self.root = RootNode(runtime: self, environment: environment)
     }
 
     /// Mounts `view` as the root, replacing any previous root view.
     @discardableResult
-    package func mount<V: View>(_ view: V) -> TypedNode<V> {
+    public func mount<V: View>(_ view: V) -> TypedNode<V> {
         root.mount(view)
     }
 
     /// Applies pending invalidations (top-down by depth). Hosts call this once per frame.
     package func flush() {
         scheduler.flush()
+    }
+
+    /// Incremented at the start of every layout pass; size caches are keyed by it.
+    package private(set) var layoutGeneration: UInt64 = 0
+
+    /// The size most recently laid out into.
+    package private(set) var layoutSize: CGSize = .zero
+
+    /// Frames recorded by `_probe` modifiers during the most recent layout pass.
+    public internal(set) var probeFrames: [String: CGRect] = [:]
+
+    /// Applies pending updates, then lays the tree out in a window of `size`. As in SwiftUI,
+    /// the root view is proposed the full size and centred.
+    public func layout(in size: CGSize) {
+        flush()
+        layoutGeneration += 1
+        layoutSize = size
+        probeFrames.removeAll(keepingCapacity: true)
+        root.frame = CGRect(origin: .zero, size: size)
+        for node in root.layoutChildren {
+            node.place(at: CGPoint(x: size.width / 2, y: size.height / 2), anchor: .center,
+                       proposal: ProposedViewSize(size), by: root)
+        }
     }
 }
 

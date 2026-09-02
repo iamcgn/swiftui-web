@@ -1,0 +1,45 @@
+{
+  "fixture" : "layout\/nested-stacks",
+  "frames" : {
+    "a" : {
+      "height" : 110,
+      "width" : 190,
+      "x" : 10,
+      "y" : 10
+    },
+    "b" : {
+      "height" : 110,
+      "width" : 80,
+      "x" : 210,
+      "y" : 10
+    },
+    "bottom" : {
+      "height" : 60,
+      "width" : 300,
+      "x" : 0,
+      "y" : 140
+    },
+    "c" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 0,
+      "y" : 150
+    },
+    "d" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 260,
+      "y" : 150
+    },
+    "row" : {
+      "height" : 130,
+      "width" : 300,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

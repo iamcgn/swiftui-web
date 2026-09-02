@@ -1,0 +1,39 @@
+{
+  "fixture" : "layout\/hstack-ideal",
+  "frames" : {
+    "a" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 50,
+      "y" : 80
+    },
+    "b" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 86,
+      "y" : 80
+    },
+    "column" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 50,
+      "y" : 80
+    },
+    "row" : {
+      "height" : 30,
+      "width" : 76,
+      "x" : 50,
+      "y" : 80
+    },
+    "wide" : {
+      "height" : 10,
+      "width" : 200,
+      "x" : 50,
+      "y" : 110
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

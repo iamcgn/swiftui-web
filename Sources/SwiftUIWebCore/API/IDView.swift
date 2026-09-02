@@ -19,7 +19,7 @@ extension IDView: View where Content: View {
 extension View {
     /// Binds a view's identity to the given proxy value.
     @inlinable
-    public func id<ID: Hashable>(_ id: ID) -> some View {
+    nonisolated public func id<ID: Hashable>(_ id: ID) -> some View {
         IDView(self, id: id)
     }
 }

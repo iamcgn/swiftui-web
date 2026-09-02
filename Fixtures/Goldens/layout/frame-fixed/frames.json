@@ -1,0 +1,21 @@
+{
+  "fixture" : "layout\/frame-fixed",
+  "frames" : {
+    "inner" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 40,
+      "y" : 60
+    },
+    "outer" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 40,
+      "y" : 60
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 200
+  }
+}

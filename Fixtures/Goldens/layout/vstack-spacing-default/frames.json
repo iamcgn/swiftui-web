@@ -1,0 +1,27 @@
+{
+  "fixture" : "layout\/vstack-spacing-default",
+  "frames" : {
+    "a" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 25,
+      "y" : 96
+    },
+    "b" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 25,
+      "y" : 154
+    },
+    "stack" : {
+      "height" : 108,
+      "width" : 50,
+      "x" : 25,
+      "y" : 96
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 100
+  }
+}

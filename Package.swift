@@ -46,15 +46,24 @@ let package = Package(
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
             ]
         ),
-        // Phase 1 adds: FixtureKit (Sources/FixtureKit) and SwiftUIWebFixtures (path: "Fixtures/Sources"),
-        // the fixture sources shared with Harness/ (which compiles them against Apple's SwiftUI).
+        // FixtureKit is the SwiftUIWeb twin of Harness/Sources/FixtureKit; SwiftUIWebFixtures compiles
+        // the fixture sources shared with Harness/ (which builds them against Apple's SwiftUI).
+        .target(
+            name: "FixtureKit",
+            dependencies: ["SwiftUI"]
+        ),
+        .target(
+            name: "SwiftUIWebFixtures",
+            dependencies: ["SwiftUI", "FixtureKit"],
+            path: "Fixtures/Sources"
+        ),
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "SwiftUIWebTestSupport"]
+            dependencies: ["SwiftUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"]
         ),
         .testTarget(
             name: "LayoutFidelityTests",
-            dependencies: ["SwiftUI", "SwiftUIWebTestSupport"]
+            dependencies: ["SwiftUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"]
         ),
         .testTarget(
             name: "BrowserTests",

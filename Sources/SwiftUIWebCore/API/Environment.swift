@@ -166,7 +166,7 @@ extension _EnvironmentObjectWritingModifier: ViewModifier, _EnvironmentModifier 
 
 extension View {
     /// Places an observable object in the view's environment.
-    public func environment<T: AnyObject & Observable>(_ object: T?) -> some View {
+    nonisolated public func environment<T: AnyObject & Observable>(_ object: T?) -> some View {
         modifier(_EnvironmentObjectWritingModifier(object: object))
     }
 }
@@ -223,7 +223,7 @@ extension _EnvironmentKeyTransformModifier: ViewModifier, _EnvironmentModifier {
 extension View {
     /// Sets the environment value of the specified key path to the given value.
     @inlinable
-    public func environment<V>(
+    nonisolated public func environment<V>(
         _ keyPath: WritableKeyPath<EnvironmentValues, V>,
         _ value: V
     ) -> some View {
@@ -232,7 +232,7 @@ extension View {
 
     /// Transforms the environment value of the specified key path with the given function.
     @inlinable
-    public func transformEnvironment<V>(
+    nonisolated public func transformEnvironment<V>(
         _ keyPath: WritableKeyPath<EnvironmentValues, V>,
         transform: @escaping (inout V) -> Void
     ) -> some View {

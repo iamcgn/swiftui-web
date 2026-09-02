@@ -63,15 +63,45 @@
         },
         {
           "api": "VStack / HStack / ZStack",
-          "status": "missing"
+          "status": "partial",
+          "notes": "Layout exact against goldens; no painting yet",
+          "fixtures": [
+            "layout/*"
+          ]
         },
         {
           "api": "Spacer",
-          "status": "missing"
+          "status": "partial",
+          "notes": "Layout exact; no painting yet",
+          "fixtures": [
+            "layout/spacer",
+            "layout/spacer-min-length"
+          ]
         },
         {
           "api": "Button",
           "status": "missing"
+        },
+        {
+          "api": "Divider",
+          "status": "partial",
+          "notes": "Layout exact (1pt); no painting yet",
+          "fixtures": [
+            "layout/divider"
+          ]
+        },
+        {
+          "api": "Color (as a view)",
+          "status": "partial",
+          "notes": "Layout only; painting in step 7",
+          "fixtures": [
+            "layout/fixed-size"
+          ]
+        },
+        {
+          "api": "Layout protocol / custom layouts / layoutValue",
+          "status": "partial",
+          "notes": "sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL"
         }
       ]
     },
@@ -110,11 +140,21 @@
       "entries": [
         {
           "api": "padding",
-          "status": "missing"
+          "status": "partial",
+          "notes": "Layout exact",
+          "fixtures": [
+            "layout/padding-default",
+            "layout/padding-edges"
+          ]
         },
         {
           "api": "frame",
-          "status": "missing"
+          "status": "partial",
+          "notes": "Fixed and flexible forms exact",
+          "fixtures": [
+            "layout/frame-fixed",
+            "layout/frame-flex"
+          ]
         },
         {
           "api": "background / overlay",
@@ -123,6 +163,16 @@
         {
           "api": "foregroundStyle / foregroundColor",
           "status": "missing"
+        },
+        {
+          "api": "fixedSize / layoutPriority / alignmentGuide",
+          "status": "partial",
+          "notes": "Layout exact",
+          "fixtures": [
+            "layout/fixed-size",
+            "layout/hstack-priority",
+            "layout/alignment-guide"
+          ]
         }
       ]
     }

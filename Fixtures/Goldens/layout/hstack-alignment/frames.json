@@ -1,0 +1,33 @@
+{
+  "fixture" : "layout\/hstack-alignment",
+  "frames" : {
+    "bottom1" : {
+      "height" : 60,
+      "width" : 20,
+      "x" : 128,
+      "y" : 100
+    },
+    "bottom2" : {
+      "height" : 30,
+      "width" : 20,
+      "x" : 152,
+      "y" : 130
+    },
+    "top1" : {
+      "height" : 60,
+      "width" : 20,
+      "x" : 128,
+      "y" : 40
+    },
+    "top2" : {
+      "height" : 30,
+      "width" : 20,
+      "x" : 152,
+      "y" : 40
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

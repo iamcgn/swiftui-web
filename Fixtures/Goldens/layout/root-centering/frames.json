@@ -1,0 +1,15 @@
+{
+  "fixture" : "layout\/root-centering",
+  "frames" : {
+    "box" : {
+      "height" : 30,
+      "width" : 50,
+      "x" : 75,
+      "y" : 35
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 200
+  }
+}

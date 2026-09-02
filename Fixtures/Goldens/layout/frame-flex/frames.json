@@ -1,0 +1,45 @@
+{
+  "fixture" : "layout\/frame-flex",
+  "frames" : {
+    "clampFlexible" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 90,
+      "y" : 170
+    },
+    "fill" : {
+      "height" : 20,
+      "width" : 300,
+      "x" : 0,
+      "y" : 130
+    },
+    "ideal" : {
+      "height" : 20,
+      "width" : 150,
+      "x" : 75,
+      "y" : 150
+    },
+    "max" : {
+      "height" : 20,
+      "width" : 200,
+      "x" : 50,
+      "y" : 110
+    },
+    "min" : {
+      "height" : 20,
+      "width" : 100,
+      "x" : 100,
+      "y" : 90
+    },
+    "overflow" : {
+      "height" : 20,
+      "width" : 200,
+      "x" : 50,
+      "y" : 190
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 300
+  }
+}

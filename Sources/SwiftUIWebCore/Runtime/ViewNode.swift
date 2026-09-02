@@ -31,6 +31,26 @@ open class ViewNode {
     /// session (one armed by an earlier evaluation) does not invalidate the node again.
     package private(set) var observationToken = ObservationToken()
 
+    // MARK: Layout state (meaningful for layout nodes only)
+
+    /// The node's frame in the coordinate space of `layoutParent`'s bounds.
+    package var frame: CGRect = .zero
+
+    /// The layout node that placed this node (a container, a modifier, or the root).
+    package private(set) weak var layoutParent: ViewNode?
+
+    /// Orientation of the stack that contains this node directly, set by the container before
+    /// measuring; `Spacer` and `Divider` read it. Modifier nodes forward it to their content.
+    package var stackOrientation: Axis? {
+        didSet { if stackOrientation != oldValue { stackOrientationDidChange() } }
+    }
+
+    /// Hook for nodes that wrap other layout nodes.
+    package func stackOrientationDidChange() {}
+
+    private var sizeCache: [ProposedViewSize: CGSize] = [:]
+    private var sizeCacheGeneration: UInt64 = 0
+
     package init(parent: ViewNode?, runtime: Runtime, environment: EnvironmentValues) {
         self.runtime = runtime
         self.parent = parent
@@ -87,6 +107,70 @@ open class ViewNode {
         for child in structuralChildren { child.unmount() }
         isMounted = false
         needsUpdate = false
+    }
+
+    // MARK: Layout
+
+    /// Whether this node occupies a slot in its container's layout (as opposed to contributing
+    /// its children).
+    package var isLayoutNode: Bool { false }
+
+    /// The layout priority a containing stack uses to apportion space.
+    package var layoutPriority: Double { 0 }
+
+    /// The preferred spacing to neighbours.
+    package var layoutSpacing: ViewSpacing { ViewSpacing() }
+
+    /// The value stored for a `LayoutValueKey`, or its default.
+    package func layoutValue<K: LayoutValueKey>(for key: K.Type) -> K.Value { K.defaultValue }
+
+    /// The size this node wants for `proposal`, memoised for the duration of one layout pass.
+    package final func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        let generation = runtime.layoutGeneration
+        if sizeCacheGeneration != generation {
+            sizeCache.removeAll(keepingCapacity: true)
+            sizeCacheGeneration = generation
+        }
+        if let cached = sizeCache[proposal] { return cached }
+        let size = computeSizeThatFits(proposal)
+        sizeCache[proposal] = size
+        return size
+    }
+
+    /// Layout nodes override this.
+    package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        fatalError("\(nodeDescription) is not a layout node")
+    }
+
+    /// Size plus alignment guides for `proposal`. Default: no explicit guides.
+    package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
+        ViewDimensions(size: sizeThatFits(proposal))
+    }
+
+    /// Positions this node: computes its size for `proposal`, records the frame relative to
+    /// `placer`, then lays out its own contents.
+    package final func place(at position: CGPoint, anchor: UnitPoint, proposal: ProposedViewSize, by placer: ViewNode) {
+        let size = sizeThatFits(proposal)
+        layoutParent = placer
+        frame = CGRect(x: position.x - size.width * anchor.x, y: position.y - size.height * anchor.y,
+                       width: size.width, height: size.height)
+        layoutContents(proposal: proposal)
+    }
+
+    /// Lays out children inside `CGRect(origin: .zero, size: frame.size)`. Layout nodes with
+    /// children override this.
+    package func layoutContents(proposal: ProposedViewSize) {}
+
+    /// This node's frame in the root's coordinate space, following the chain of placers.
+    package var frameInRoot: CGRect {
+        var origin = frame.origin
+        var ancestor = layoutParent
+        while let node = ancestor, node.parent != nil || node.layoutParent != nil {
+            origin.x += node.frame.origin.x
+            origin.y += node.frame.origin.y
+            ancestor = node.layoutParent
+        }
+        return CGRect(origin: origin, size: frame.size)
     }
 
     /// Indented dump of the subtree, one node per line, for tests and debugging.
@@ -197,16 +281,6 @@ package final class CompositeNode<V: View>: TypedNode<V> {
 
     override package var structuralChildren: [ViewNode] { child.map { [$0] } ?? [] }
     override package var layoutChildren: [ViewNode] { child?.layoutChildren ?? [] }
-}
-
-/// Node for a primitive view that participates in layout on its own (Text, Spacer, stacks…).
-/// Step 5 adds the layout entry points; until then it only holds the value.
-@MainActor
-open class LeafNode<V: View>: TypedNode<V> {
-    public init(_ context: _NodeContext<V>) {
-        super.init(view: context.view, parent: context.parent, runtime: context.runtime,
-                   environment: context.environment)
-    }
 }
 
 // MARK: - Observation

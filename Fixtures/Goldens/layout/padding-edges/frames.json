@@ -1,0 +1,21 @@
+{
+  "fixture" : "layout\/padding-edges",
+  "frames" : {
+    "inner" : {
+      "height" : 64,
+      "width" : 164,
+      "x" : 32,
+      "y" : 17
+    },
+    "outer" : {
+      "height" : 100,
+      "width" : 200,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 200
+  }
+}

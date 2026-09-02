@@ -1,0 +1,21 @@
+{
+  "fixture" : "layout\/zstack-fill",
+  "frames" : {
+    "b" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 0,
+      "y" : 0
+    },
+    "fill" : {
+      "height" : 200,
+      "width" : 200,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 200
+  }
+}

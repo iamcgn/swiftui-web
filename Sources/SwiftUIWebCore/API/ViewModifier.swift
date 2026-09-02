@@ -20,7 +20,7 @@ public protocol ViewModifier {
 
 extension ViewModifier where Body == Never {
     /// Primitive modifiers (those the runtime applies directly) have no body.
-    public func body(content: Content) -> Never {
+    nonisolated public func body(content: Content) -> Never {
         _primitiveBodyError(Self.self)
     }
 }
@@ -28,7 +28,7 @@ extension ViewModifier where Body == Never {
 extension ViewModifier {
     /// Returns a new modifier that is the result of concatenating `self` with `modifier`.
     @inlinable
-    public func concat<T>(_ modifier: T) -> ModifiedContent<Self, T> {
+    nonisolated public func concat<T>(_ modifier: T) -> ModifiedContent<Self, T> {
         ModifiedContent(content: self, modifier: modifier)
     }
 }
@@ -36,7 +36,7 @@ extension ViewModifier {
 extension View {
     /// Applies a modifier to a view and returns a new view.
     @inlinable
-    public func modifier<T>(_ modifier: T) -> ModifiedContent<Self, T> {
+    nonisolated public func modifier<T>(_ modifier: T) -> ModifiedContent<Self, T> {
         ModifiedContent(content: self, modifier: modifier)
     }
 }
