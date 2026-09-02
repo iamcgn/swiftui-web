@@ -10,13 +10,27 @@ public struct SystemFontMetrics: Sendable, Equatable {
     public var spacingBelow: CGFloat
     public var spacingAbove: CGFloat
     public var textToText: CGFloat
+    /// Distance between the baselines of consecutive lines without `lineSpacing` (19 for `.body`,
+    /// whose single line is 18.5; 39 for `.largeTitle`, single line 38).
+    public var linePitch: CGFloat
+    /// The font's unrounded line height, which `lineSpacing` adds to: the pitch with spacing `s`
+    /// is `max(linePitch, unroundedLineHeight + s)` (18.333 for `.body`, 37.667 for `.largeTitle`).
+    public var unroundedLineHeight: CGFloat
 
-    public init(lineHeight: CGFloat, baseline: CGFloat, spacingBelow: CGFloat, spacingAbove: CGFloat, textToText: CGFloat) {
+    public init(lineHeight: CGFloat, baseline: CGFloat, spacingBelow: CGFloat, spacingAbove: CGFloat, textToText: CGFloat,
+                linePitch: CGFloat? = nil, unroundedLineHeight: CGFloat? = nil) {
         self.lineHeight = lineHeight
         self.baseline = baseline
         self.spacingBelow = spacingBelow
         self.spacingAbove = spacingAbove
         self.textToText = textToText
+        self.linePitch = linePitch ?? lineHeight.rounded(.up)
+        self.unroundedLineHeight = unroundedLineHeight ?? lineHeight
+    }
+
+    /// The baseline-to-baseline distance with `lineSpacing` applied.
+    public func pitch(lineSpacing: CGFloat) -> CGFloat {
+        max(linePitch, unroundedLineHeight + lineSpacing)
     }
 
     public var fontMetrics: FontMetrics {
@@ -31,6 +45,8 @@ extension PlatformProfile {
             if font.weightOverridden, let face = Self.macOSTextStyleWeightOverrides[style]?[font.weight.value] {
                 metrics.lineHeight = face.lineHeight
                 metrics.baseline = face.baseline
+                metrics.linePitch = face.lineHeight.rounded(.up)
+                metrics.unroundedLineHeight = face.lineHeight
             }
             return metrics
         }

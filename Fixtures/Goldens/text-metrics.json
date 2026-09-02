@@ -2136,577 +2136,721 @@
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 18.5,
+      "linePitch" : 19,
       "spacingAbove" : 6.2240598101696385,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:body:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 18.5,
+      "linePitch" : 19,
       "spacingAbove" : 6.2311109244282186,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:body:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 18.5,
+      "linePitch" : 19,
       "spacingAbove" : 6.238154983224689,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:body:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 18.5,
+      "linePitch" : 19,
       "spacingAbove" : 6.2732698149907584,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:body:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 19,
+      "linePitch" : 19,
       "spacingAbove" : 6.317688712396123,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:callout" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 17.5,
+      "linePitch" : 18,
       "spacingAbove" : 5.9523682831795242,
       "spacingBelow" : 10.677734374999993,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 17.125
     },
     "style:callout:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 17.5,
+      "linePitch" : 18,
       "spacingAbove" : 5.9589658697689956,
       "spacingBelow" : 10.677734375,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 17.125
     },
     "style:callout:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 17.5,
+      "linePitch" : 18,
       "spacingAbove" : 5.9655568547036779,
       "spacingBelow" : 10.677734375,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 17.125
     },
     "style:callout:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 17.5,
+      "linePitch" : 18,
       "spacingAbove" : 5.9984131004905521,
       "spacingBelow" : 10.677734375,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 17.125
     },
     "style:callout:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 17.5,
+      "linePitch" : 18,
       "spacingAbove" : 6.0399749744148039,
       "spacingBelow" : 10.677734374999993,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 17.125
     },
     "style:caption" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9089852291993061,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9146757604505495,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9203605976616558,
       "spacingBelow" : 9.2314453125000036,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9486996714901395,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9845474984521658,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption2" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9146757604505495,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption2:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9146757604505495,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption2:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9203605976616558,
       "spacingBelow" : 9.2314453125000036,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption2:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9486996714901395,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:caption2:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9845474984521658,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:footnote" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9089852291993061,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:footnote:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9146757604505495,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:footnote:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9203605976616558,
       "spacingBelow" : 9.2314453125000036,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:footnote:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9486996714901395,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:footnote:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 16,
       "spacingAbove" : 4.9845474984521658,
       "spacingBelow" : 9.2314453125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
     },
     "style:headline" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 18.5,
+      "linePitch" : 19,
       "spacingAbove" : 6.2732698149907584,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:headline:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 18.5,
+      "linePitch" : 19,
       "spacingAbove" : 6.2311109244282186,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:headline:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 18.5,
+      "linePitch" : 19,
       "spacingAbove" : 6.238154983224689,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:headline:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 18.5,
+      "linePitch" : 19,
       "spacingAbove" : 6.2732698149907584,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:headline:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 19,
+      "linePitch" : 19,
       "spacingAbove" : 6.317688712396123,
       "spacingBelow" : 11.15087890625,
-      "textToText" : 1
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
     },
     "style:largeTitle" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 38,
+      "linePitch" : 39,
       "spacingAbove" : 12.678809606772006,
       "spacingBelow" : 23.3017578125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 37.625
     },
     "style:largeTitle:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 38,
+      "linePitch" : 39,
       "spacingAbove" : 12.693296920142544,
       "spacingBelow" : 23.3017578125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 37.625
     },
     "style:largeTitle:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 38,
+      "linePitch" : 39,
       "spacingAbove" : 12.70776973726656,
       "spacingBelow" : 23.3017578125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 37.625
     },
     "style:largeTitle:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 38,
+      "linePitch" : 39,
       "spacingAbove" : 12.779917138810873,
       "spacingBelow" : 23.3017578125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 37.625
     },
     "style:largeTitle:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 38,
+      "linePitch" : 39,
       "spacingAbove" : 12.871180797671904,
       "spacingBelow" : 23.3017578125,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 37.625
     },
     "style:subheadline" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 17,
       "spacingAbove" : 5.6806767561894169,
       "spacingBelow" : 10.20458984375,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 15.958333333333329
     },
     "style:subheadline:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 17,
       "spacingAbove" : 5.6868208151097726,
       "spacingBelow" : 10.20458984375,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 15.958333333333329
     },
     "style:subheadline:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 17,
       "spacingAbove" : 5.6929587261826669,
       "spacingBelow" : 10.20458984375,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 15.958333333333329
     },
     "style:subheadline:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 17,
       "spacingAbove" : 5.7235563859903493,
       "spacingBelow" : 10.20458984375,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 15.958333333333329
     },
     "style:subheadline:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 17,
       "spacingAbove" : 5.7622612364334884,
       "spacingBelow" : 10.20458984375,
-      "textToText" : 1.5
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 15.958333333333329
     },
     "style:title" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 33,
+      "linePitch" : 33,
       "spacingAbove" : 11.092043498811563,
       "spacingBelow" : 20.9091796875,
-      "textToText" : 0.5
+      "textToText" : 0.5,
+      "unroundedLineHeight" : 32.916666666666671
     },
     "style:title:italic" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 33,
+      "linePitch" : 33,
       "spacingAbove" : 11.092043498811563,
       "spacingBelow" : 20.9091796875,
-      "textToText" : 0.5
+      "textToText" : 0.5,
+      "unroundedLineHeight" : 32.916666666666671
     },
     "style:title:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 33,
+      "linePitch" : 33,
       "spacingAbove" : 11.104716701505652,
       "spacingBelow" : 20.909179687500007,
-      "textToText" : 0.5
+      "textToText" : 0.5,
+      "unroundedLineHeight" : 32.916666666666671
     },
     "style:title:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 33,
+      "linePitch" : 33,
       "spacingAbove" : 11.117377223182515,
       "spacingBelow" : 20.909179687500007,
-      "textToText" : 0.5
+      "textToText" : 0.5,
+      "unroundedLineHeight" : 32.916666666666671
     },
     "style:title:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 33,
+      "linePitch" : 33,
       "spacingAbove" : 11.180490280810048,
       "spacingBelow" : 20.9091796875,
-      "textToText" : 0.5
+      "textToText" : 0.5,
+      "unroundedLineHeight" : 32.916666666666671
     },
     "style:title:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 33,
+      "linePitch" : 33,
       "spacingAbove" : 11.260325845746635,
       "spacingBelow" : 20.9091796875,
-      "textToText" : 0.5
+      "textToText" : 0.5,
+      "unroundedLineHeight" : 32.916666666666671
     },
     "style:title2" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 25.5,
+      "linePitch" : 27,
       "spacingAbove" : 8.7722058909955436,
       "spacingBelow" : 16.04345703125,
-      "textToText" : 2
+      "textToText" : 2,
+      "unroundedLineHeight" : 25
     },
     "style:title2:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 25.5,
+      "linePitch" : 27,
       "spacingAbove" : 8.7818412856373236,
       "spacingBelow" : 16.04345703125,
-      "textToText" : 2
+      "textToText" : 2,
+      "unroundedLineHeight" : 25
     },
     "style:title2:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 25.5,
+      "linePitch" : 27,
       "spacingAbove" : 8.7914670389430931,
       "spacingBelow" : 16.04345703125,
-      "textToText" : 2
+      "textToText" : 2,
+      "unroundedLineHeight" : 25
     },
     "style:title2:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 25.5,
+      "linePitch" : 27,
       "spacingAbove" : 8.8394516906503036,
       "spacingBelow" : 16.04345703125,
-      "textToText" : 2
+      "textToText" : 2,
+      "unroundedLineHeight" : 25
     },
     "style:title2:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 25.5,
+      "linePitch" : 27,
       "spacingAbove" : 8.9001504100807161,
       "spacingBelow" : 16.043457031249993,
-      "textToText" : 2
+      "textToText" : 2,
+      "unroundedLineHeight" : 25
     },
     "style:title3" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 22,
+      "linePitch" : 24,
       "spacingAbove" : 7.4981328505825928,
       "spacingBelow" : 13.59716796875,
-      "textToText" : 2.5
+      "textToText" : 2.5,
+      "unroundedLineHeight" : 21.666666666666671
     },
     "style:title3:w500" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 23,
+      "linePitch" : 24,
       "spacingAbove" : 7.5064761050327711,
       "spacingBelow" : 13.59716796875,
-      "textToText" : 2.5
+      "textToText" : 2.5,
+      "unroundedLineHeight" : 21.666666666666671
     },
     "style:title3:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 23,
+      "linePitch" : 24,
       "spacingAbove" : 7.5148110110838928,
       "spacingBelow" : 13.59716796875,
-      "textToText" : 2.5
+      "textToText" : 2.5,
+      "unroundedLineHeight" : 21.666666666666671
     },
     "style:title3:w700" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 23,
+      "linePitch" : 24,
       "spacingAbove" : 7.556360752820531,
       "spacingBelow" : 13.59716796875,
-      "textToText" : 2.5
+      "textToText" : 2.5,
+      "unroundedLineHeight" : 21.666666666666671
     },
     "style:title3:w800" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 23,
+      "linePitch" : 24,
       "spacingAbove" : 7.6089195612384195,
       "spacingBelow" : 13.59716796875,
-      "textToText" : 2.5
+      "textToText" : 2.5,
+      "unroundedLineHeight" : 21.666666666666671
     },
     "system:10:400:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 13,
+      "linePitch" : 13,
       "spacingAbove" : 3.609375,
       "spacingBelow" : 6.2314453125,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 13
     },
     "system:12:400:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
+      "linePitch" : 15,
       "spacingAbove" : 4.03125,
       "spacingBelow" : 7.177734375,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 15
     },
     "system:13:400:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 16,
       "spacingAbove" : 4.7421875,
       "spacingBelow" : 8.15087890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 16
     },
     "system:13:600:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 16,
       "spacingAbove" : 4.7421875,
       "spacingBelow" : 8.15087890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 16
     },
     "system:13:700:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 16,
       "spacingAbove" : 4.7421875,
       "spacingBelow" : 8.15087890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 16
     },
     "system:13:800:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,
+      "linePitch" : 16,
       "spacingAbove" : 4.7421875,
       "spacingBelow" : 8.15087890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 16
     },
     "system:20:300:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 24,
+      "linePitch" : 24,
       "spacingAbove" : 6.71875,
       "spacingBelow" : 11.962890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 24
     },
     "system:20:400:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 24,
+      "linePitch" : 24,
       "spacingAbove" : 6.71875,
       "spacingBelow" : 11.962890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 24
     },
     "system:20:400:monospaced" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 24,
+      "linePitch" : 24,
       "spacingAbove" : 6.71875,
       "spacingBelow" : 11.962890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 24
     },
     "system:20:400:rounded" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 24,
+      "linePitch" : 24,
       "spacingAbove" : 6.71875,
       "spacingBelow" : 11.962890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 24
     },
     "system:20:400:serif" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 24,
+      "linePitch" : 24,
       "spacingAbove" : 7.32421875,
       "spacingBelow" : 12.265625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 24
     },
     "system:20:500:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 24,
+      "linePitch" : 24,
       "spacingAbove" : 6.71875,
       "spacingBelow" : 11.962890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 24
     },
     "system:20:700:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 24,
+      "linePitch" : 24,
       "spacingAbove" : 6.71875,
       "spacingBelow" : 11.962890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 24
     },
     "system:20:900:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 24,
+      "linePitch" : 24,
       "spacingAbove" : 6.71875,
       "spacingBelow" : 11.962890625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 24
     },
     "system:24:400:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 28,
+      "linePitch" : 28,
       "spacingAbove" : 8.0625,
       "spacingBelow" : 14.35546875,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 28
     },
     "system:32:400:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 38,
+      "linePitch" : 38,
       "spacingAbove" : 10.75,
       "spacingBelow" : 19.140625,
-      "textToText" : 0
+      "textToText" : 0,
+      "unroundedLineHeight" : 38
     }
   },
   "macOS" : "26.2.0",

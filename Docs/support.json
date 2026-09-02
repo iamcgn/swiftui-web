@@ -75,12 +75,28 @@
       "title": "Views",
       "entries": [
         {
-          "api": "Text",
+          "api": "Text (verbatim/localized/interpolation, concatenation with mixed styles)",
           "status": "partial",
-          "notes": "Layout exact with recorded metrics; default font is the 13 pt system font and bold() resolves per text style (decision 0010); no lineLimit, truncation or localization yet; Tier B (Chromium) within tolerance",
+          "notes": "Layout exact with recorded metrics on 17 fixtures; default font is the 13 pt system font and bold() resolves per text style (decision 0010); concatenated parts keep font/weight/traits/colour; wrapping, character wrapping, hard newlines, lineLimit (Int, ranges, reservesSpace), truncationMode head/middle/tail, multilineTextAlignment, lineSpacing; no localization tables, kerning/tracking, attributed strings, height-pressure truncation; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting)",
           "fixtures": [
             "text/*"
           ]
+        },
+        {
+          "api": "lineLimit / multilineTextAlignment / truncationMode / lineSpacing (View + EnvironmentValues)",
+          "status": "partial",
+          "notes": "All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure does not drop lines yet; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting)",
+          "fixtures": [
+            "text/line-limit",
+            "text/truncation",
+            "text/alignment",
+            "text/line-spacing"
+          ]
+        },
+        {
+          "api": "allowsTightening / minimumScaleFactor",
+          "status": "stub",
+          "notes": "Environment values stored, not applied to layout"
         },
         {
           "api": "VStack / HStack / ZStack",
@@ -132,7 +148,7 @@
         {
           "api": "Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)",
           "status": "partial",
-          "notes": "macOS text-style table; bold() is the semibold face as measured; Tier B (Chromium) within tolerance",
+          "notes": "macOS text-style table; bold() is a per-style trait; italic keys; Tier B (Chromium) within tolerance",
           "fixtures": [
             "text/styles",
             "text/system-fonts",

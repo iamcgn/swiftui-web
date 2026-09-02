@@ -56,6 +56,37 @@ private let large = ResolvedFont(family: "system", size: 26, weight: .regular, i
         #expect(lay("ab cd", width: 0).lines.count == 4)
     }
 
+    @Test func twoLineParagraphsAvoidALoneLastWord() {
+        // Greedy would give "aaaa bbbb cc" / "dd" (120 vs 20); moving "cc" down evens the lines out.
+        let pushed = lay("aaaa bbbb cc dd", width: 125)
+        #expect(texts(pushed) == ["aaaa bbbb", "cc dd"])
+        #expect(pushed.lines[0].width == 100)   // "aaaa bbbb " including the hanging space
+        // Greedy "aaaa bb" / "cccccccc" (70 vs 80) is already more even than "aaaa" / "bb cccccccc" (40 vs 110).
+        #expect(texts(lay("aaaa bb cccccccc", width: 100)) == ["aaaa bb", "cccccccc"])
+        // The pushed-down line must still fit: "cc dddddddddd" (130) does not at 125.
+        #expect(texts(lay("aaaa bbbb cc dddddddddd", width: 125)) == ["aaaa bbbb cc", "dddddddddd"])
+        // Only two-line paragraphs: with three lines the lone word stays.
+        #expect(texts(lay("aaaa bbbb cc dd ee ff gg hhhh", width: 125)) == ["aaaa bbbb cc", "dd ee ff gg", "hhhh"])
+        // Each hard-break paragraph is balanced on its own.
+        #expect(texts(lay("x\naaaa bbbb cc dd", width: 125)) == ["x", "aaaa bbbb", "cc dd"])
+    }
+
+    @Test func pitchIsTheLargerOfBasePitchAndUnroundedHeightPlusSpacing() {
+        // A body-like font: single line 18.5, pitch 19, unrounded 18.333.
+        let body = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: .body)
+        let engine = TextLayouter(
+            measure: { text, _ in CGFloat(text.count) * 10 },
+            metrics: { _ in SystemFontMetrics(lineHeight: 18.5, baseline: 14, spacingBelow: 0, spacingAbove: 0, textToText: 0,
+                                             linePitch: 19, unroundedLineHeight: 18 + 1.0 / 3) })
+        let plain = engine.layout([StyledRun("aaaa bbbb", font: body)], options: .default, width: 60)
+        #expect(plain.size.height == 37.5 && plain.lastBaseline == 33)        // 18.5 + 19, 14 + 19
+        let spaced = engine.layout([StyledRun("aaaa bbbb", font: body)], options: TextLayoutOptions(lineSpacing: 4), width: 60)
+        #expect(abs(spaced.size.height - (18.5 + 18 + 1.0 / 3 + 4)) < 1e-9)  // spacing adds to the unrounded height
+        let barely = engine.layout([StyledRun("aaaa bbbb", font: body)], options: TextLayoutOptions(lineSpacing: 0.5), width: 60)
+        #expect(barely.size.height == 37.5)                                     // 18.833 < 19: the base pitch wins
+        #expect(SystemFontMetrics(lineHeight: 16, baseline: 13, spacingBelow: 0, spacingAbove: 0, textToText: 0).pitch(lineSpacing: 0.25) == 16.25)
+    }
+
     @Test func newlinesForceBreaks() {
         let l = lay("a b\ncd", width: nil)
         #expect(texts(l) == ["a b", "cd"])

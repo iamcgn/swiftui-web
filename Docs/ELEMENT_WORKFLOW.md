@@ -8,7 +8,11 @@
    `Fixture(name, size:, model: { Model() }, steps: [FixtureStep("insert") { $0.items.insert(…) }, …]) { model in … }`
    with an `@Observable` model read inside the content. Every string a fixture shows goes into
    `Fixtures/Sources/TextMetrics/TextMetricsRequests.swift` under the font it is shown in (the
-   default font is `TextMetricsRequests.defaultFont`, the 13 pt system font, not `.body`).
+   default font is `TextMetricsRequests.defaultFont`, the 13 pt system font, not `.body`), with the
+   width it is proposed and its `TextMetricOptions` (`lineLimit`, reserved lines, `lineSpacing`,
+   truncation) when any is set; a concatenation with several fonts is one request with `runs:`.
+   The recorded engine also answers an unconstrained request that fits the proposal, so a
+   default-font word only needs the plain entry.
 3. **Goldens**: `scripts/gen-goldens.sh <Element>/` on a Mac (plus `scripts/gen-goldens.sh text-metrics`
    when strings or fonts were added, then `scripts/font-metrics-table.py`); commit
    `Fixtures/Goldens/<Element>/`. Frames and pixels come from a hosted key window (decision

@@ -50,12 +50,13 @@ rules below through `TextLayouter`, which native tests cover with a synthetic me
 | `.body` line height | 18.5 pt (13 pt SF); `.system(size: 13)` is 16 pt: text styles carry their own leading | `text/styles`, `text/system-fonts` |
 | Text-style sizes (macOS) | largeTitle 26, title 22, title2 17, title3 15, headline 13 bold, subheadline 11, body 13, callout 12, footnote 10, caption 10, caption2 10 medium | `text/styles` |
 | `Text.bold()` / `Font.bold()` | a bold *trait* resolved per font: point-size and default font → bold (w700); `.body`, `.callout`, `.footnote`, `.subheadline`, `.title3`, `.caption2` → semibold (w600); `.largeTitle`, `.title`, `.title2` → bold; `.headline` → heavy (w800); `.caption` → medium (w500). `fontWeight(_:)` always wins | `text/modifiers`, `text/bold-trait` |
-| Line breaking | after spaces; a line fits if its **drawn** width is within the proposal, its trailing space hangs (width 134 keeps "Layout must wrap this", 133.5 drawn, on one line) | `text/paragraphs` (`hanging`) |
+| Line breaking | greedy, after spaces; a line fits if its **drawn** width is within the proposal, its trailing space hangs (133.5 keeps "Layout must wrap this", 133.34 drawn, on one line; 133 wraps it). Probed with a hosted `NSHostingView` sweep at 0.5 pt steps, 60–445 pt | `text/paragraphs` (`hanging`), `text/wrapped` |
+| Two-line paragraphs never end in a lone word | when a paragraph wraps to exactly two lines and the second holds one word, the first line's last word moves down **if that makes the two widths more even and still fits**: "Layout must wrap" at 75–107 pt is "Layout" / "must wrap" (not "Layout must" / "wrap"); the paragraph at 397–439 pt is "…inside a" / "narrow frame." (355.5 wide, not 400); but "Layout wrap sentence" at 89–129 pt keeps "sentence" alone (pushing "wrap" would make 40.6 / 89 less even than 74 / 55.5). Three or more lines are plain greedy ("frame." stays alone at 100 and 201 pt); each `"\n"` paragraph is balanced on its own | `text/wrapped` (`free`), `text/paragraphs` (`twoWrapped`), sweep 2026-09-02 |
 | Reported width of a wrapped line | drawn width **plus the trailing space**, capped at the proposal: 137 in a 150 frame, 134 in a 134 frame | `text/wrapped`, `text/paragraphs` |
 | Paragraph at 100 / 120 / 150 / 200 / 300 (default font) | 6 / 4 / 4 / 3 / 2 lines, 95.5 / 118 / 137 / 196.5 / 274 wide | `text/paragraphs`, `text/wrapped` |
 | Word wider than the proposal | wraps by character: "Supercalifragilistic" (112) in 60 → 2 lines, 56.5 wide; a zero proposal gives one character per line and reports width 0 | `text/paragraphs` (`longWord`), `|0.0|` recordings |
-| Multi-line pitch | line height rounded up: 19 for `.body` (18.5), 16 for the default font, 33 for `.title` | `text/wrapped`, `text/paragraphs` (`titleWrap`) |
-| `lineSpacing(s)` | adds `s` to every pitch: 4 lines at 150 are 64 → 76 (`s = 4`) → 94 (`s = 10`); `.body` 75.5 → 85.5; a single line is unchanged | `text/line-spacing` |
+| Multi-line pitch | per font, recorded as `linePitch` (13 lines of "Hg"): 16 for the default font, 19 for `.body` (single line 18.5), 33 `.title`, **39** `.largeTitle` (single line 38), **27** `.title2` (25.5), 18 `.callout`, 24 for 20 pt; point-size fonts have pitch = line height | `text/wrapped`, `text/paragraphs` (`titleWrap`), `fonts` in text-metrics.json |
+| `lineSpacing(s)` | pitch = `max(linePitch, unroundedLineHeight + s)`, where the unrounded height is the font's own (16 default, 18.333 `.body`, 32.917 `.title`, 37.625 `.largeTitle`, 25 `.title2`, 17.125 `.callout`, 24 for 20 pt): default 4 lines 64 → 76 (`s = 4`) → 94 (`s = 10`); `.body` 75.5 → 85.5 (`s = 4`, pitch 22.333) but unchanged for `s ≤ 0.5`; `.largeTitle` unchanged for `s ≤ 1`; a single line is unchanged | `text/line-spacing`, spacing sweep 2026-09-02 |
 | `"\n"` | forces a break; the text is as wide as its widest line ("Left\nRight side" 60.5 × 32) | `text/alignment` (`newline`), `text/paragraphs` (`two*`) |
 | `lineLimit(n)` | at most `n` lines; the last permitted line is truncated with "…" at **character** granularity ("lines inside a narrow fr…" is 147 wide); spaces next to the ellipsis are dropped ("Layout must wrap this…" is 144, not 147.5); a limit above the line count changes nothing | `text/line-limit` |
 | `lineLimit(...n)` | the upper bound only, as `lineLimit(n)` | `text/line-limit` (`upTo2`) |
@@ -87,6 +88,9 @@ uses its first part's font for spacing (unverified for mixed fonts).
   frame.
 - Middle truncation balances prefix and suffix by width in SwiftUI; ours alternates one character
   at a time (same widths within the half-point for the fixture, may differ elsewhere).
+- The two-line balance rule is inferred from 17 probe strings; whether it also applies to the
+  line before a `lineLimit` truncation is unmeasured (we do not balance truncated paragraphs).
+- Unrounded line heights are measured to 1/24 pt (13-line probe, pixel-rounded frames).
 - Browser line breaking is space-only (no UAX #14: hyphens, CJK, emoji clusters); Firefox and
   fallback fonts measure some words differently (decision 0008).
 - `kerning`/`tracking`, `allowsTightening`/`minimumScaleFactor` (stored only), custom fonts,

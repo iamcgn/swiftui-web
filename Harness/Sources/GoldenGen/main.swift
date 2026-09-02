@@ -156,16 +156,27 @@ func measureFontSpacing(_ font: FixtureFont) -> [String: Double] {
             Text("Hg").font(font.font).probe("t6")
             Color.clear.frame(width: 10, height: 10).probe("b3")
         }
+        // Thirteen lines: the pitch without line spacing, and with a large spacing, whose excess
+        // over the spacing is the font's unrounded line height (pitch = max(pitch, unrounded +
+        // spacing)). Twelve gaps keep the pixel rounding of the frame below 0.05 pt.
+        Text(Array(repeating: "Hg", count: 13).joined(separator: "\n")).font(font.font).probe("many")
+        Text(Array(repeating: "Hg", count: 13).joined(separator: "\n")).font(font.font).lineSpacing(50).probe("manySpaced")
     }
     .frame(width: canvas.width, height: canvas.height, alignment: .topLeading)
     let f = collectFrames(view, size: canvas)
+    let lineHeight: Double = f["t1"]!.height
+    let manyHeight: Double = f["many"]!.height, manySpacedHeight: Double = f["manySpaced"]!.height
+    let linePitch: Double = (manyHeight - lineHeight) / 12
+    let unroundedLineHeight: Double = (manySpacedHeight - lineHeight) / 12 - 50
     return [
         "spacingBelow": f["b1"]!.minY - f["t1"]!.maxY,
         "spacingAbove": f["t2"]!.minY - f["b2"]!.maxY,
         "textToText": f["t4"]!.minY - f["t3"]!.maxY,
         "horizontalTextToText": f["t6"]!.minX - f["t5"]!.maxX,
         "horizontalTrailing": f["b3"]!.minX - f["t6"]!.maxX,
-        "lineHeight": f["t1"]!.height,
+        "lineHeight": lineHeight,
+        "linePitch": linePitch,
+        "unroundedLineHeight": unroundedLineHeight,
     ]
 }
 

@@ -7,8 +7,10 @@
 ///   at the proposal);
 /// - a word wider than the proposal wraps by character (a zero proposal gives one character per
 ///   line), and a line never reports more than the proposal;
-/// - widths are rounded up to the half point; the multi-line pitch is the line height rounded up
-///   plus `lineSpacing`;
+/// - widths are rounded up to the half point; consecutive baselines are `linePitch` apart, or the
+///   font's unrounded line height plus `lineSpacing` when that is more (`SystemFontMetrics`);
+/// - a paragraph that wraps to exactly two lines moves the first line's last word down rather
+///   than leave a single word alone, when that evens the two widths out and fits;
 /// - `lineLimit` truncates the last permitted line with an ellipsis at the head, middle or tail,
 ///   cutting at character granularity and dropping spaces next to the ellipsis; `minimumLines`
 ///   pads the height with empty lines (the last baseline stays on the last line of text);
@@ -61,7 +63,7 @@ public struct TextLayouter {
             return end
         }
 
-        struct Piece { var lo: Int; var hi: Int; var width: CGFloat; var inkWidth: CGFloat; var fragments: [TextLayout.Fragment]; var runsShown: [Int] }
+        struct Piece { var lo: Int; var hi: Int; var width: CGFloat; var inkWidth: CGFloat; var fragments: [TextLayout.Fragment]; var runsShown: [Int]; var truncated = false }
         func plainPiece(_ lo: Int, _ hi: Int, limit: CGFloat?) -> Piece {
             let ink = inkEnd(lo, hi)
             // A hard-broken or final line reports its ink; a wrapped line includes its trailing space.
@@ -148,7 +150,7 @@ public struct TextLayouter {
             }
             let width = min(half(x), limit)
             let shown = Array(Set(fragments.map(\.run))).sorted()
-            return Piece(lo: lo, hi: end, width: width, inkWidth: width, fragments: fragments, runsShown: shown)
+            return Piece(lo: lo, hi: end, width: width, inkWidth: width, fragments: fragments, runsShown: shown, truncated: true)
         }
 
         // Break the text into pieces (lines before vertical placement).
@@ -198,6 +200,36 @@ public struct TextLayouter {
                 }
             }
         }
+        // A paragraph that wraps to exactly two lines does not leave a single word alone on the
+        // second: the first line's last word moves down when that makes the two lines more
+        // even in width and still fits (measured: "Layout must wrap" at 75–107 pt is
+        // "Layout" / "must wrap", but "Layout wrap sentence" at 89–129 pt keeps "sentence" alone).
+        if let maxWidth {
+            var start = 0
+            var index = 0
+            while index < pieces.count {
+                let piece = pieces[index]
+                let endsParagraph = piece.hi >= chars.count || chars[piece.hi - 1] == "\n"
+                if endsParagraph {
+                    if index - start == 1, !pieces[start].truncated, !piece.truncated {
+                        let first = pieces[start], second = piece
+                        let ink1 = inkEnd(first.lo, first.hi), ink2 = inkEnd(second.lo, second.hi)
+                        let secondIsOneWord = !chars[second.lo..<ink2].contains(" ")
+                        if secondIsOneWord, let lastSpace = chars[first.lo..<ink1].lastIndex(of: " ") {
+                            let split = lastSpace + 1
+                            let width1 = raw(first.lo, ink1), width2 = raw(second.lo, ink2)
+                            let newWidth1 = raw(first.lo, inkEnd(first.lo, split)), newWidth2 = raw(split, ink2)
+                            if half(newWidth2) <= maxWidth, abs(newWidth1 - newWidth2) < abs(width1 - width2) {
+                                pieces[start] = plainPiece(first.lo, split, limit: maxWidth)
+                                pieces[index] = plainPiece(split, second.hi, limit: maxWidth)
+                            }
+                        }
+                    }
+                    start = index + 1
+                }
+                index += 1
+            }
+        }
         if options.minimumLines > pieces.count {
             let last = pieces.last!
             for _ in pieces.count..<options.minimumLines {
@@ -215,13 +247,14 @@ public struct TextLayouter {
             let lineMetrics = lineFonts.map(metrics)
             let lineHeight = lineMetrics.map(\.lineHeight).max() ?? 0
             let baseline = lineMetrics.map(\.baseline).max() ?? 0
+            let pitch = lineMetrics.map { $0.pitch(lineSpacing: options.lineSpacing) }.max() ?? 0
             let start = string.index(string.startIndex, offsetBy: piece.lo)
             let end = string.index(string.startIndex, offsetBy: piece.hi)
             lines.append(TextLayout.Line(range: start..<end, width: piece.width, inkWidth: piece.inkWidth,
                                          baseline: top + baseline, fragments: piece.fragments))
             widest = max(widest, piece.width)
             height = top + lineHeight
-            if index < pieces.count - 1 { top += lineHeight.rounded(.up) + options.lineSpacing }
+            if index < pieces.count - 1 { top += pitch }
         }
         // Reserved (empty) lines add height but the last baseline stays on the last line of text.
         let lastText = lines.indices.last { !lines[$0].fragments.isEmpty } ?? lines.indices.last

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerates Sources/SwiftUIWebCore/Text/SystemFontMetricsTable.swift from
-Fixtures/Goldens/text-metrics.json: per-text-style and per-point-size line metrics and spacing
-(the `fonts` section), plus line-height overrides for (style, weight) pairs whose "Bold" entry
+Fixtures/Goldens/text-metrics.json: per-text-style and per-point-size line metrics, multi-line
+pitch and unrounded line height, and spacing (the `fonts` section), plus line-height overrides for (style, weight) pairs whose "Bold" entry
 measured a different line than the style's regular face."""
 import json, pathlib, re
 root = pathlib.Path(__file__).resolve().parent.parent
@@ -29,7 +29,7 @@ lines = [
 ]
 for s in styles:
     f = fonts[f"style:{s}"]
-    lines.append(f"        .{s}: .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(f'style:{s}'))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])}),")
+    lines.append(f"        .{s}: .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(f'style:{s}'))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])}, linePitch: {fmt(f['linePitch'])}, unroundedLineHeight: {fmt(f['unroundedLineHeight'])}),")
 lines += ["    ]", "",
           "    /// (style, weight) faces whose line differs from the style's regular face.",
           "    package static let macOSTextStyleWeightOverrides: [Font.TextStyle: [Int: (lineHeight: CGFloat, baseline: CGFloat)]] = ["]
@@ -50,7 +50,7 @@ sizes = sorted({float(k.split(":")[1]) for k in fonts if k.startswith("system:")
 for size in sizes:
     key = f"system:{int(size) if size.is_integer() else size}:400:default"
     f = fonts[key]
-    lines.append(f"        ({fmt(size)}, .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(key))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])})),")
+    lines.append(f"        ({fmt(size)}, .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(key))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])}, linePitch: {fmt(f['linePitch'])}, unroundedLineHeight: {fmt(f['unroundedLineHeight'])})),")
 lines += ["    ]", "}", ""]
 out = root / "Sources/SwiftUIWebCore/Text/SystemFontMetricsTable.swift"
 out.write_text("\n".join(lines))
