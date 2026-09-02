@@ -67,6 +67,15 @@ the painter loads it. Fixtures draw from `Fixtures/Assets.xcassets` (generated b
 | Cap insets with `.tile` tile the edges and the centre; the golden shows the bottom edge and corners missing (an AppKit drawing quirk, not reproduced: SwiftUIWeb draws all nine parts, within Tier B tolerance) | `slicedTiled` |
 | A 2× file drawn at 1.5× (96 × 60 from 64 × 40) is resampled; `interpolation(.none)` picks nearest neighbour | `nearest` |
 
+## Verification (2026-09-02)
+
+Tier A: all 8 fixtures exact (`image/swap` steps included). Tier B: frames exact in Chromium,
+WebKit and Firefox; pixels 0 % for pixel-aligned draws, ≤ 0.5 % where an image is resampled
+(`image/resizable`), 1.6 % for `image/tiling` (the AppKit bottom-row quirk above). Build:
+`scripts/build-wasm.sh` runs `scripts/assets.py` on the package (the fixture catalog for the
+Gallery) and `index.html` includes `assets/manifest.js` before the module script; SwiftPM itself
+ignores an undeclared `.xcassets` and copies a declared one verbatim, so either is fine.
+
 ## Not yet covered
 
 `Image(systemName:)` glyphs, `symbolRenderingMode`, `imageScale` effects, PDF/SVG sets, slicing

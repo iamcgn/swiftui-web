@@ -178,6 +178,44 @@
           "fixtures": [
             "scroll/*"
           ]
+        },
+        {
+          "api": "Image(_:bundle:) / Image(decorative:bundle:) / Image(_:bundle:label:) from asset catalogs",
+          "status": "partial",
+          "notes": "scripts/assets.py reads *.xcassets into a manifest (decision 0011): image sets with 1x/2x/3x, mac/universal idiom, light/dark appearance, folder namespaces, template intent; PNG/JPEG/GIF. Rigid at pixels ÷ scale; missing name is 0 × 0. Tier A exact; Tier B exact frames in Chromium, WebKit and Firefox. Open: PDF/SVG sets, slicing metadata, dark-appearance goldens, bundle: ignored (absent on wasm)",
+          "fixtures": [
+            "image/intrinsic",
+            "image/stack-spacing",
+            "image/swap"
+          ]
+        },
+        {
+          "api": "Image.resizable(capInsets:resizingMode:) / renderingMode / interpolation / antialiased",
+          "status": "partial",
+          "notes": "Stretch, nine-part stretch, tile and nine-part tile; template tint from the foreground style; interpolation(.none) is nearest neighbour, other levels smooth; antialiased stored only. Cap insets with .tile draw all nine parts where AppKit drops the bottom row (1.6 % pixels in image/tiling)",
+          "fixtures": [
+            "image/resizable",
+            "image/template",
+            "image/tiling"
+          ]
+        },
+        {
+          "api": "Image(systemName:) / Image.Scale / imageScale(_:)",
+          "status": "stub",
+          "notes": "Compiles; a symbol image lays out at 0 × 0 and draws nothing until the icon table lands"
+        },
+        {
+          "api": "Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:) / AsyncImage",
+          "status": "missing",
+          "notes": "No CGImage/NSImage on wasm"
+        },
+        {
+          "api": "Color(_:bundle:) from asset catalog colour sets / ColorScheme / colorScheme environment",
+          "status": "partial",
+          "notes": "sRGB components in float, hex and integer spellings; the light or dark variant per environment.colorScheme (default light; nothing else reads it yet). Display P3 components are used as sRGB. A missing name is clear (assumed)",
+          "fixtures": [
+            "color/named"
+          ]
         }
       ]
     },
@@ -296,6 +334,14 @@
           "notes": "Actions run from the scheduler's action queue after the update that changed the value; sibling onChange order is inner first",
           "fixtures": [
             "scroll/scroll-to"
+          ]
+        },
+        {
+          "api": "aspectRatio(_:contentMode:) / aspectRatio(_ size:contentMode:) / scaledToFit / scaledToFill / ContentMode",
+          "status": "full",
+          "notes": "Ratio explicit or from the content's ideal size; the content is proposed the fitted or filling rectangle and keeps the last word (rigid images stay rigid). Exact against goldens for full, partial and absent proposals",
+          "fixtures": [
+            "image/aspect-ratio"
           ]
         }
       ]

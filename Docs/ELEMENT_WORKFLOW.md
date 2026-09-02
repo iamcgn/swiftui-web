@@ -13,6 +13,9 @@
    truncation) when any is set; a concatenation with several fonts is one request with `runs:`.
    The recorded engine also answers an unconstrained request that fits the proposal, so a
    default-font word only needs the plain entry.
+   Images and colours come from `Fixtures/Assets.xcassets` (edit `scripts/gen-fixture-assets.py`, rerun
+   it, then `scripts/assets.py Fixtures --json Fixtures/Assets.manifest.json`); fixture sources use
+   `Image("name")` / `Color("name")` as an app would (decision 0011).
 3. **Goldens**: `scripts/gen-goldens.sh <Element>/` on a Mac (plus `scripts/gen-goldens.sh text-metrics`
    when strings or fonts were added, then `scripts/font-metrics-table.py`); commit
    `Fixtures/Goldens/<Element>/`. Frames and pixels come from a hosted key window (decision

@@ -22,6 +22,7 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 // Browser font fallbacks (weights 300/900, rounded, serif, monospaced) legitimately differ from
 // SF on macOS; those fixtures are held to a looser bound and listed as approximate.
 const approximate = ['text/system-fonts', 'button/styles'];
+const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 const frameTolerance = (name, key, expected) => name.startsWith('text/') && (key === 'width' || key === 'x')
   ? Math.max(0.5, Math.abs(expected) * 0.03) : 1e-6;
 mkdirSync(out, { recursive: true });
@@ -86,8 +87,17 @@ async function comparePixels(shotPath, goldenPng) {
   return differing / (a.width * a.height);
 }
 
+// Catalog images load asynchronously: wait until none is pending, then for the repaint.
+async function settleImages() {
+  const before = await frameCount();
+  await page.waitForFunction(() => window.__swiftuiwebDebug.pendingImages() === 0, null, { timeout: 30000 });
+  await page.waitForFunction(b => window.__swiftuiwebDebug.pendingImages() === 0 && window.__swiftuiwebDebug.frameCount() >= b, before, { timeout: 10000 });
+  await page.waitForTimeout(50);
+}
+
 // One comparison (the initial render, or the render after a behaviour step).
 async function check(name, label, goldenFrames, goldenPng, shotPath) {
+  await settleImages();
   const frames = await page.evaluate(() => window.__galleryFrames || window.__swiftuiwebDebug.frames());
   const mismatches = compareFrames(name, frames, goldenFrames);
   const pixelDiff = await comparePixels(shotPath, goldenPng);
@@ -98,8 +108,6 @@ async function check(name, label, goldenFrames, goldenPng, shotPath) {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${label} frames=${ok ? 'exact' : mismatches.length + ' mismatches'} pixels=${typeof pixelDiff === 'number' ? (pixelDiff * 100).toFixed(2) + '%' : pixelDiff}${pixelOK ? '' : ' (over tolerance)'}`);
   for (const m of mismatches) console.log('   ' + m);
 }
-
-const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 
 for (const name of names) {
   const goldenDir = join(root, 'Fixtures', 'Goldens', name);

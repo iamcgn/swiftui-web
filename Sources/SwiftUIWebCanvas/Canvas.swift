@@ -66,10 +66,61 @@ public final class CanvasHost {
         _ = container.appendChild!(overlay)
 
         runtime.textEngine = Canvas2DTextEngine(context: context, bridge: bridge)
+        runtime.assetCatalog = Self.assetCatalog(from: window.__swiftuiwebAssets)
         runtime.scheduler.onNeedsFlush = { [weak self] in self?.scheduleFrame() }
+        // An image the painter had to fetch has arrived: paint the frame again.
+        let imageLoaded = JSClosure { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.runtime.setNeedsDisplay()
+                self?.scheduleFrame()
+            }
+            return .undefined
+        }
+        closures.append(imageLoaded)
+        _ = bridge.setImageLoadHandler!(imageLoaded)
         installEventHandlers()
         resize()
         installDebugBridge()
+    }
+
+    /// The catalog `scripts/assets.py --js` published as `window.__swiftuiwebAssets`, or an empty
+    /// one when the page has no manifest script.
+    static func assetCatalog(from manifest: JSValue) -> AssetCatalog {
+        guard let manifest = manifest.object else { return .empty }
+        var images: [String: ImageResource] = [:]
+        if let sets = manifest.images.object, let names = JSObject.global.Object.function!.keys!(sets).object {
+            for index in 0..<Int(names.length.number ?? 0) {
+                guard let name = names[index].string, let set = sets[dynamicMember: name].object,
+                      let variants = set.variants.object else { continue }
+                var resource = ImageResource(name: name, isTemplate: set.template.boolean ?? false, variants: [])
+                for v in 0..<Int(variants.length.number ?? 0) {
+                    guard let variant = variants[v].object, let file = variant.file.string else { continue }
+                    resource.variants.append(ImageVariant(
+                        file: file, scale: CGFloat(variant.scale.number ?? 1),
+                        pixelWidth: Int(variant.width.number ?? 0), pixelHeight: Int(variant.height.number ?? 0),
+                        idiom: variant.idiom.string ?? "universal", appearance: variant.appearance.string ?? "any"))
+                }
+                images[name] = resource
+            }
+        }
+        var colors: [String: [ColorVariant]] = [:]
+        if let sets = manifest.colors.object, let names = JSObject.global.Object.function!.keys!(sets).object {
+            for index in 0..<Int(names.length.number ?? 0) {
+                guard let name = names[index].string, let set = sets[dynamicMember: name].object,
+                      let variants = set.variants.object else { continue }
+                var entries: [ColorVariant] = []
+                for v in 0..<Int(variants.length.number ?? 0) {
+                    guard let variant = variants[v].object else { continue }
+                    entries.append(ColorVariant(
+                        idiom: variant.idiom.string ?? "universal", appearance: variant.appearance.string ?? "any",
+                        colorSpace: variant.colorSpace.string ?? "srgb",
+                        red: variant.red.number ?? 0, green: variant.green.number ?? 0, blue: variant.blue.number ?? 0,
+                        alpha: variant.alpha.number ?? 1))
+                }
+                colors[name] = entries
+            }
+        }
+        return AssetCatalog(images: images, colors: colors)
     }
 
     /// Mounts (or replaces) the root view and schedules a frame.
@@ -289,7 +340,9 @@ public final class CanvasHost {
         }
         let frameCount = JSClosure { [weak self] _ in .number(Double(self?.frameCount ?? 0)) }
         let frameMillis = JSClosure { [weak self] _ in .number(self?.frameMillis ?? 0) }
-        closures += [frames, displayList, frameCount, frameMillis]
+        let pendingImages = JSClosure { [weak self] _ in self?.bridge.pendingImages!() ?? .number(0) }
+        closures += [frames, displayList, frameCount, frameMillis, pendingImages]
+        debug.pendingImages = .object(pendingImages)
         debug.frames = .object(frames)
         debug.displayList = .object(displayList)
         debug.frameCount = .object(frameCount)

@@ -27,6 +27,80 @@ enum PainterScript {
         }
         return i;
       }
+      // Catalog images by file, loaded on first use; the host is told when one arrives so it
+      // can paint again. `base` comes from the manifest script (window.__swiftuiwebAssets).
+      const images = new Map();
+      let pending = 0;
+      let onImageLoad = null;
+      function image(file) {
+        let entry = images.get(file);
+        if (entry) return entry.ready ? entry.img : null;
+        const img = new Image();
+        entry = { img: img, ready: false };
+        images.set(file, entry);
+        pending++;
+        const done = () => { pending--; if (onImageLoad) onImageLoad(file, entry.ready); };
+        img.onload = () => { entry.ready = true; done(); };
+        img.onerror = () => { console.error('SwiftUIWeb: could not load image ' + file); done(); };
+        const base = (window.__swiftuiwebAssets && window.__swiftuiwebAssets.base) || '';
+        img.src = base + file;
+        return null;
+      }
+      // Draws `img` (or one part of it) tinted: the image's alpha filled with `tint`.
+      function tinted(img, sx, sy, sw, sh, dw, dh, dpr, tint, smoothing) {
+        const pw = Math.max(1, Math.round(dw * dpr)), ph = Math.max(1, Math.round(dh * dpr));
+        const off = new OffscreenCanvas(pw, ph);
+        const octx = off.getContext('2d');
+        octx.imageSmoothingEnabled = smoothing;
+        octx.drawImage(img, sx, sy, sw, sh, 0, 0, pw, ph);
+        octx.globalCompositeOperation = 'source-in';
+        octx.fillStyle = tint;
+        octx.fillRect(0, 0, pw, ph);
+        return off;
+      }
+      // One part of a draw: source rect in image pixels, destination in points, stretched or tiled.
+      function part(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh, tile, scale, dpr, tint, smoothing) {
+        if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
+        if (tile) {
+          const tw = sw / scale, th = sh / scale;
+          ctx.save();
+          ctx.beginPath(); ctx.rect(dx, dy, dw, dh); ctx.clip();
+          for (let y = dy; y < dy + dh; y += th) {
+            for (let x = dx; x < dx + dw; x += tw) {
+              if (tint) { ctx.drawImage(tinted(img, sx, sy, sw, sh, tw, th, dpr, tint, smoothing), x, y, tw, th); }
+              else { ctx.drawImage(img, sx, sy, sw, sh, x, y, tw, th); }
+            }
+          }
+          ctx.restore();
+        } else if (tint) {
+          ctx.drawImage(tinted(img, sx, sy, sw, sh, dw, dh, dpr, tint, smoothing), dx, dy, dw, dh);
+        } else {
+          ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+        }
+      }
+      function drawImage(ctx, dpr, file, scale, pw, ph, x, y, w, h, tile, top, leading, bottom, trailing, smoothing, tint) {
+        const img = image(file);
+        if (!img) return;
+        const previous = ctx.imageSmoothingEnabled;
+        ctx.imageSmoothingEnabled = smoothing;
+        if (top === 0 && leading === 0 && bottom === 0 && trailing === 0) {
+          part(ctx, img, 0, 0, pw, ph, x, y, w, h, tile, scale, dpr, tint, smoothing);
+        } else {
+          // Nine parts: rigid corners, edges stretched (or tiled) along one axis, the centre along both.
+          const l = leading * scale, r = trailing * scale, t = top * scale, b = bottom * scale;
+          const sxs = [0, l, pw - r], sws = [l, pw - l - r, r];
+          const sys = [0, t, ph - b], shs = [t, ph - t - b, b];
+          const dxs = [x, x + leading, x + w - trailing], dws = [leading, w - leading - trailing, trailing];
+          const dys = [y, y + top, y + h - bottom], dhs = [top, h - top - bottom, bottom];
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              const rigid = i !== 1 && j !== 1;
+              part(ctx, img, sxs[i], sys[j], sws[i], shs[j], dxs[i], dys[j], dws[i], dhs[j], tile && !rigid, scale, dpr, tint, smoothing);
+            }
+          }
+        }
+        ctx.imageSmoothingEnabled = previous;
+      }
       function paint(rootCtx, buf, strings, dpr, w, h) {
         rootCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         rootCtx.clearRect(0, 0, w, h);
@@ -75,6 +149,15 @@ enum PainterScript {
               ctx.fillText(text, x, y);
               break;
             }
+            case 13: {
+              const file = strings[buf[i++]], scale = buf[i++], pw = buf[i++], ph = buf[i++];
+              const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
+              const tile = buf[i++] === 1, top = buf[i++], leading = buf[i++], bottom = buf[i++], trailing = buf[i++];
+              const smoothing = buf[i++] === 1, hasTint = buf[i++] === 1;
+              const tint = color(buf[i++], buf[i++], buf[i++], buf[i++]);
+              drawImage(ctx, dpr, file, scale, pw, ph, x, y, rw, rh, tile, top, leading, bottom, trailing, smoothing, hasTint ? tint : null);
+              break;
+            }
             default: throw new Error('SwiftUIWeb: unknown display op ' + op + ' at ' + (i - 1));
           }
         }
@@ -86,7 +169,11 @@ enum PainterScript {
         if (w === undefined) { ctx.font = font; w = ctx.measureText(text).width; measureCache.set(k, w); }
         return w;
       }
-      window.__swiftuiweb = { paint: paint, measure: measure, version: 1 };
+      window.__swiftuiweb = {
+        paint: paint, measure: measure, version: 2,
+        setImageLoadHandler: function (handler) { onImageLoad = handler; },
+        pendingImages: function () { return pending; },
+      };
     })();
     """#
 }
