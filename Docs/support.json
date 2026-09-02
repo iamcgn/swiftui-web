@@ -49,6 +49,22 @@
           "notes": "Identity change rebuilds the subtree; Tier B (Chromium) within tolerance"
         },
         {
+          "api": "ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent",
+          "status": "partial",
+          "notes": "Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) pending",
+          "fixtures": [
+            "foreach/*"
+          ]
+        },
+        {
+          "api": "Section (content/header/footer, title forms, deprecated argument orders)",
+          "status": "partial",
+          "notes": "Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; no List/Form styling, isExpanded or collapsible; Tier B (Chromium) pending",
+          "fixtures": [
+            "section/*"
+          ]
+        },
+        {
           "api": "DynamicProperty (custom, nested)",
           "status": "partial",
           "notes": "update() and nested installation; Tier B (Chromium) within tolerance"
@@ -61,7 +77,7 @@
         {
           "api": "Text",
           "status": "partial",
-          "notes": "Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet; Tier B (Chromium) within tolerance",
+          "notes": "Layout exact with recorded metrics; default font is the 13 pt system font and bold() resolves per text style (decision 0010); no lineLimit, truncation or localization yet; Tier B (Chromium) within tolerance",
           "fixtures": [
             "text/*"
           ]
@@ -86,7 +102,7 @@
         {
           "api": "Button",
           "status": "partial",
-          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate; custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance",
+          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance",
           "fixtures": [
             "button/basic",
             "button/styles"

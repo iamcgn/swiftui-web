@@ -197,6 +197,12 @@ Per element: (1) `Docs/elements/<Element>.md` with the API surface from Apple do
 
 Order (each unlocks the next): `ForEach` + `Section` (keyed reconciliation, `Identifiable`, `id:`) → `Text` completeness (concatenation, `lineLimit`, `multilineTextAlignment`, `truncationMode`, baseline alignment, wrapped-paragraph fixtures) → `ScrollView` (own physics; drives damage rects and layer caching) → `Image` (async `ImageHandle` load that invalidates layout; `systemName` via icon table) → `Shape`/`Path`/`stroke`/`fill`/`Capsule`/`Ellipse`/`border` → `Toggle` + `Label` → `TextField`/`SecureField` (`TextInputHost`, IME, painted caret and selection) → `List` (macOS inset/plain styles) → `NavigationStack`/`NavigationLink`/`navigationTitle`/`navigationDestination` → `Picker`/`Slider`/`Stepper` → `Form` → `.onAppear/.onDisappear/.task` (cancellation via JS event loop) → animation (`withAnimation`, `.animation`, transitions) → `sheet`/`popover` → custom `Layout` → `Grid` → `Canvas`.
 
+### Phase 2 status
+
+| Element | Status |
+|---|---|
+| ForEach + Section | done 2026-09-02: `API/ForEach.swift`, `API/Section.swift`, `Runtime/CollectionNodes.swift` (keyed `ForEachNode`, `SectionNode`), `CoreRuntimeTests/ForEachTests`; 14 fixtures exact incl. the 4-step `foreach/identity` behaviour fixture (`Docs/elements/ForEach.md`). Along the way: **behaviour fixtures** (`Fixture(name, model:steps:content:)`, `FixtureRunner`, per-step goldens, gallery `__galleryStep`, Tier B per step) and **decision 0010**: goldens now come from a key hosted window (frames *and* pixels), which showed the default font is the 13 pt system font (16 pt line), not `.body`; `bold()` is a per-text-style trait (`text/bold-trait`). |
+
 ### Phase 3 — Compatibility and accessibility
 
 Semantics tree → ARIA DOM overlay; `@FocusState`, keyboard navigation, text selection, VoiceOver checks in Safari. Minimal in-house `ObservableObject`/`@Published`/`@StateObject`/`@ObservedObject` (Combine is absent on wasm/Linux; ~200 lines, no OpenCombine dependency). `#Preview` macro plugin that expands to nothing (prebuilt swift-syntax). `TimelineView`/timers via renderer hooks (Foundation `Timer`/`RunLoop` do not fire on wasm; document it).

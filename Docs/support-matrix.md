@@ -27,16 +27,18 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟢 partial | @Entry macro not provided; Tier B (Chromium) within tolerance |  |
 | `Transaction / TransactionKey / withTransaction` | 🟠 stub | No `animation` member until the animation system exists |  |
 | `id(_:) / IDView` | 🟢 partial | Identity change rebuilds the subtree; Tier B (Chromium) within tolerance |  |
+| `ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent` | 🟢 partial | Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) pending | foreach/* |
+| `Section (content/header/footer, title forms, deprecated argument orders)` | 🟢 partial | Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; no List/Form styling, isExpanded or collapsible; Tier B (Chromium) pending | section/* |
 | `DynamicProperty (custom, nested)` | 🟢 partial | update() and nested installation; Tier B (Chromium) within tolerance |  |
 
 ## Views
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `Text` | 🟢 partial | Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet; Tier B (Chromium) within tolerance | text/* |
+| `Text` | 🟢 partial | Layout exact with recorded metrics; default font is the 13 pt system font and bold() resolves per text style (decision 0010); no lineLimit, truncation or localization yet; Tier B (Chromium) within tolerance | text/* |
 | `VStack / HStack / ZStack` | 🟢 partial | Layout exact against goldens; no painting yet; Tier B (Chromium) within tolerance | layout/* |
 | `Spacer` | 🟢 partial | Layout exact; no painting yet; Tier B (Chromium) within tolerance | layout/spacer, layout/spacer-min-length |
-| `Button` | 🟢 partial | bordered (default), borderedProminent, plain exact in layout; borderless approximate; custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance | button/basic, button/styles |
+| `Button` | 🟢 partial | bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance | button/basic, button/styles |
 | `Divider` | 🟢 partial | Layout exact (1pt); no painting yet; Tier B (Chromium) within tolerance | layout/divider |
 | `Color (as a view)` | 🟢 partial | macOS light system colour table; painting via display list; Tier B (Chromium) within tolerance | paint/system-colors |
 | `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL; Tier B (Chromium) within tolerance |  |

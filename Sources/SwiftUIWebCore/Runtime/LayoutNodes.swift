@@ -117,6 +117,7 @@ package protocol _UnaryLayoutModifier: AnyObject {
     func priority(of target: ViewNode) -> Double
     func spacing(of target: ViewNode) -> ViewSpacing
     func layoutValue<K: LayoutValueKey>(of target: ViewNode, for key: K.Type) -> K.Value
+    func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext)
 }
 
 /// Base class for modifiers that wrap exactly one layout child (frame, padding, background…).
@@ -235,6 +236,16 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
         return targets.count == 1 ? targets : []
     }
 
+    override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
+        for target in paintedChildren { paintTarget(target, in: self, into: &list, context: context) }
+    }
+
+    /// Paints one target inside `node` (this node, or the proxy standing in for the target when
+    /// the content is a list). Painting modifiers override this so they apply per element.
+    package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        target.paint(into: &list, context: context.child(at: target.frame))
+    }
+
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "\(_shortTypeName(Modifier.self))" }
 }
@@ -268,6 +279,9 @@ package final class LayoutModifierProxy: ViewNode {
     override package var layoutPriority: Double { owner.priority(of: target) }
     override package var layoutSpacing: ViewSpacing { owner.spacing(of: target) }
     override package var paintedChildren: [ViewNode] { [target] }
+    override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
+        owner.paintTarget(target, in: self, into: &list, context: context)
+    }
     override package var nodeDescription: String { "Proxy" }
 }
 

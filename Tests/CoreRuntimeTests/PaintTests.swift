@@ -16,6 +16,37 @@ import SwiftUIWebHeadless
         return runtime.render(scale: scale).commands.map(\.description)
     }
 
+    @Test func paintingModifiersApplyPerListElement() {
+        // A background on a Group draws one background per element; the same for opacity and clipping.
+        let rows = VStack(spacing: 0) {
+            Group {
+                Color.red.frame(width: 20, height: 10)
+                Color.red.frame(width: 20, height: 10)
+            }
+            .background(Color.blue)
+        }
+        #expect(render(rows) == ["fillRect(90, 40, 20, 10) #0088FF", "fillRect(90, 40, 20, 10) #FF383C",
+                                 "fillRect(90, 50, 20, 10) #0088FF", "fillRect(90, 50, 20, 10) #FF383C"])
+        let faded = VStack(spacing: 0) {
+            Group {
+                Color.red.frame(width: 20, height: 10)
+                Color.red.frame(width: 20, height: 10)
+            }
+            .opacity(0.5)
+        }
+        #expect(render(faded) == ["beginGroup(opacity: 0.5)", "fillRect(90, 40, 20, 10) #FF383C", "endGroup",
+                                  "beginGroup(opacity: 0.5)", "fillRect(90, 50, 20, 10) #FF383C", "endGroup"])
+        let clipped = VStack(spacing: 0) {
+            Group {
+                Color.red.frame(width: 20, height: 10)
+                Color.red.frame(width: 20, height: 10)
+            }
+            .clipped()
+        }
+        #expect(render(clipped) == ["save", "clipRect(90, 40, 20, 10)", "fillRect(90, 40, 20, 10) #FF383C", "restore",
+                                    "save", "clipRect(90, 50, 20, 10)", "fillRect(90, 50, 20, 10) #FF383C", "restore"])
+    }
+
     @Test func colorFillsItsPixelAlignedFrame() {
         #expect(render(Color.red.frame(width: 50, height: 30)) == ["fillRect(75, 35, 50, 30) #FF383C"])
         // 84.5 is on the half-pixel grid at 2×; 40.75 rounds to 41 (edges round independently).

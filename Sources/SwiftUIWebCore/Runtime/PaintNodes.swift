@@ -62,10 +62,17 @@ package func _clipCommand<S: Shape>(_ shape: S, in bounds: CGRect) -> DisplayCom
     return .clipPath(shape.path(in: bounds))
 }
 
-/// Background / overlay: a second subtree laid out against the content's size.
+/// Background / overlay: a second subtree laid out against the content's size. When the content
+/// is a list, every element gets its own layer instance (`Group { A; B }.background(...)` draws
+/// two backgrounds), created when the element is first placed and dropped when it goes away.
 @MainActor
 package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: View>: UnaryLayoutModifierNode<Content, Modifier> {
-    package private(set) var layer: TypedNode<Layer>!
+    private struct Slot {
+        weak var target: ViewNode?
+        let layer: TypedNode<Layer>
+    }
+
+    private var slots: [ObjectIdentifier: Slot] = [:]
     private let layerPath: KeyPath<ModifiedContent<Content, Modifier>, Layer>
     private let alignmentPath: KeyPath<ModifiedContent<Content, Modifier>, Alignment>
     private let isOverlay: Bool
@@ -77,12 +84,39 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
         alignmentPath = alignment
         self.isOverlay = isOverlay
         super.init(context)
-        self.layer = Layer._makeNode(_NodeContext(view: context.view[keyPath: layer], parent: self, environment: context.environment))
+        for target in targets { _ = self.layer(for: target) }
+    }
+
+    /// The layer subtree for one element, in target order.
+    package var layers: [TypedNode<Layer>] { targets.compactMap { slots[ObjectIdentifier($0)]?.layer } }
+
+    /// For tests: the single layer of a non-list content.
+    package var layer: TypedNode<Layer>! { layers.first }
+
+    private func layer(for target: ViewNode) -> TypedNode<Layer> {
+        let key = ObjectIdentifier(target)
+        if let slot = slots[key], slot.target === target { return slot.layer }
+        let node = Layer._makeNode(_NodeContext(view: view[keyPath: layerPath], parent: self, environment: environment))
+        slots[key] = Slot(target: target, layer: node)
+        return node
     }
 
     override package func update(view: ModifiedContent<Content, Modifier>, environment: EnvironmentValues, force: Bool) {
         super.update(view: view, environment: environment, force: force)
-        layer.update(view: view[keyPath: layerPath], environment: environment, force: force)
+        let live = Set(targets.map(ObjectIdentifier.init))
+        for (key, slot) in slots where !live.contains(key) || slot.target == nil {
+            slot.layer.unmount()
+            slots[key] = nil
+        }
+        for target in targets {
+            layer(for: target).update(view: view[keyPath: layerPath], environment: environment, force: force)
+        }
+    }
+
+    override package func unmount() {
+        for slot in slots.values { slot.layer.unmount() }
+        slots.removeAll()
+        super.unmount()
     }
 
     override package func placeTarget(_ target: ViewNode, in bounds: CGRect, proposal: ProposedViewSize, by placer: ViewNode) {
@@ -91,7 +125,7 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
         let alignment = view[keyPath: alignmentPath]
         let container = ViewDimensions(size: bounds.size)
         let layerProposal = ProposedViewSize(bounds.size)
-        for node in layer.layoutChildren {
+        for node in layer(for: target).layoutChildren {
             let dims = node.dimensions(in: layerProposal)
             let origin = CGPoint(x: bounds.minX + container[alignment.horizontal] - dims[alignment.horizontal],
                                  y: bounds.minY + container[alignment.vertical] - dims[alignment.vertical])
@@ -99,42 +133,42 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
         }
     }
 
-    override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
-        let layers = layer.layoutChildren
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        let layerNodes = layer(for: target).layoutChildren
         if !isOverlay {
-            for node in layers { node.paint(into: &list, context: context.child(at: node.frame)) }
+            for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.frame)) }
         }
-        super.paintChildren(into: &list, context: context)
+        super.paintTarget(target, in: node, into: &list, context: context)
         if isOverlay {
-            for node in layers { node.paint(into: &list, context: context.child(at: node.frame)) }
+            for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.frame)) }
         }
     }
 
-    override package var structuralChildren: [ViewNode] { [child, layer] }
+    override package var structuralChildren: [ViewNode] { [child] + layers }
     override package var nodeDescription: String { isOverlay ? "Overlay" : "Background" }
 }
 
 @MainActor
 package final class OpacityNode<Content: View>: UnaryLayoutModifierNode<Content, _OpacityEffect> {
-    override package func paint(into list: inout DisplayList, context: PaintContext) {
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
         let opacity = modifier.opacity
         guard opacity > 0 else { return }
         if opacity >= 1 {
-            super.paint(into: &list, context: context)
+            super.paintTarget(target, in: node, into: &list, context: context)
             return
         }
         list.append(.beginGroup(opacity: opacity))
-        super.paint(into: &list, context: context)
+        super.paintTarget(target, in: node, into: &list, context: context)
         list.append(.endGroup)
     }
 }
 
 @MainActor
 package final class ClipNode<Content: View, S: Shape>: UnaryLayoutModifierNode<Content, _ClipEffect<S>> {
-    override package func paint(into list: inout DisplayList, context: PaintContext) {
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
         list.append(.save)
-        list.append(_clipCommand(modifier.shape, in: absoluteBounds(context)))
-        super.paint(into: &list, context: context)
+        list.append(_clipCommand(modifier.shape, in: context.absoluteRect(CGRect(origin: .zero, size: node.frame.size))))
+        super.paintTarget(target, in: node, into: &list, context: context)
         list.append(.restore)
     }
 }
