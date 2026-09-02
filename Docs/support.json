@@ -41,6 +41,16 @@
           "api": "Transaction / TransactionKey / withTransaction",
           "status": "stub",
           "notes": "No `animation` member until the animation system exists"
+        },
+        {
+          "api": "id(_:) / IDView",
+          "status": "partial",
+          "notes": "Identity change rebuilds the subtree"
+        },
+        {
+          "api": "DynamicProperty (custom, nested)",
+          "status": "partial",
+          "notes": "update() and nested installation"
         }
       ]
     },
@@ -70,16 +80,18 @@
       "entries": [
         {
           "api": "@State",
-          "status": "missing"
+          "status": "partial",
+          "notes": "Box per node; writes coalesce; no animation transactions yet"
         },
         {
           "api": "@Binding",
-          "status": "missing"
+          "status": "partial",
+          "notes": "get/set, constant, dynamic member lookup, optional and collection projections"
         },
         {
           "api": "@Environment",
-          "status": "stub",
-          "notes": "Key-path form only; resolved by the runtime from step 3"
+          "status": "partial",
+          "notes": "Key-path form; resolved at install. Object form arrives with @Observable"
         },
         {
           "api": "@Observable / @Bindable",

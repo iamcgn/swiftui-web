@@ -92,6 +92,11 @@ public struct Environment<Value>: DynamicProperty {
             content = .value(values[keyPath: keyPath])
         }
     }
+
+    @MainActor
+    public mutating func _install(in node: ViewNode, slot: inout AnyObject?) {
+        resolve(in: node.environment)
+    }
 }
 
 /// Modifiers that change the environment for their content. The runtime applies them when it

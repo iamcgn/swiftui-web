@@ -154,6 +154,9 @@ package final class CompositeNode<V: View>: TypedNode<V> {
     /// Number of body evaluations, for tests.
     package private(set) var bodyEvaluations = 0
 
+    /// Storage for the view's dynamic properties (`@State` boxes and the like).
+    package private(set) var propertyStorage: AnyObject?
+
     package init(_ context: _NodeContext<V>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
                    environment: context.environment)
@@ -172,6 +175,7 @@ package final class CompositeNode<V: View>: TypedNode<V> {
 
     private func evaluateBody() {
         bodyEvaluations += 1
+        _DynamicPropertyFields<V>.installAll(into: &view, node: self, slot: &propertyStorage)
         let body = view.body
         if let child {
             child.update(view: body, environment: environment)

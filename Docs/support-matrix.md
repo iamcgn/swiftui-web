@@ -26,6 +26,8 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)` | 🟢 partial | Runtime nodes exist; no layout yet |  |
 | `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟢 partial | @Entry macro not provided |  |
 | `Transaction / TransactionKey / withTransaction` | 🟠 stub | No `animation` member until the animation system exists |  |
+| `id(_:) / IDView` | 🟢 partial | Identity change rebuilds the subtree |  |
+| `DynamicProperty (custom, nested)` | 🟢 partial | update() and nested installation |  |
 
 ## Views
 
@@ -40,9 +42,9 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `@State` | ❌ missing |  |  |
-| `@Binding` | ❌ missing |  |  |
-| `@Environment` | 🟠 stub | Key-path form only; resolved by the runtime from step 3 |  |
+| `@State` | 🟢 partial | Box per node; writes coalesce; no animation transactions yet |  |
+| `@Binding` | 🟢 partial | get/set, constant, dynamic member lookup, optional and collection projections |  |
+| `@Environment` | 🟢 partial | Key-path form; resolved at install. Object form arrives with @Observable |  |
 | `@Observable / @Bindable` | ❌ missing |  |  |
 | `ObservableObject / @Published / @StateObject` | ❌ missing | Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3) |  |
 

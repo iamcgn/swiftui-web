@@ -39,6 +39,7 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
 {
     package private(set) var child: TypedNode<Modifier.Body>!
     package private(set) var bodyEvaluations = 0
+    package private(set) var propertyStorage: AnyObject?
 
     init(_ context: _NodeContext<ModifiedContent<Content, Modifier>>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
@@ -60,6 +61,7 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
 
     private func evaluateBody() {
         bodyEvaluations += 1
+        _DynamicPropertyFields<Modifier>.installAll(into: &view.modifier, node: self, slot: &propertyStorage)
         let body = view.modifier.body(content: _ViewModifier_Content<Modifier>())
         if let child {
             child.update(view: body, environment: environment)
