@@ -1,0 +1,81 @@
+{
+  "fixture" : "shape\/path",
+  "frames" : {
+    "curves" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : -16,
+      "y" : 84
+    },
+    "parsed" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 188,
+      "y" : 84
+    },
+    "pie" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 86,
+      "y" : 16
+    },
+    "pieClockwise" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 154,
+      "y" : 16
+    },
+    "ring" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 222,
+      "y" : 16
+    },
+    "rounded" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 256,
+      "y" : 84
+    },
+    "row1" : {
+      "height" : 60,
+      "width" : 264,
+      "x" : 18,
+      "y" : 16
+    },
+    "row2" : {
+      "height" : 60,
+      "width" : 332,
+      "x" : -16,
+      "y" : 84
+    },
+    "stack" : {
+      "height" : 128,
+      "width" : 332,
+      "x" : -16,
+      "y" : 16
+    },
+    "starEvenOdd" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 120,
+      "y" : 84
+    },
+    "starNonzero" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 52,
+      "y" : 84
+    },
+    "triangle" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 18,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 300
+  }
+}

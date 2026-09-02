@@ -369,7 +369,9 @@ public struct StrokeBorderShapeView<Content: InsettableShape, Style: ShapeStyle,
 extension StrokeBorderShapeView: ShapeView, _ShapePainting {
     public typealias Body = Never
 
-    package func _shapeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.sizeThatFits(proposal) }
+    /// Sized as the inset shape (SwiftUI builds `strokeBorder` from `inset(by:)`, which lays out
+    /// like a plain shape: an inset circle is not square).
+    package func _shapeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.inset(by: strokeStyle.lineWidth / 2).sizeThatFits(proposal) }
 
     package func _paintShape(in bounds: CGRect, environment: EnvironmentValues, into list: inout DisplayList) {
         _paintBackground(background, in: bounds, environment: environment, into: &list)

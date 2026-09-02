@@ -1,0 +1,117 @@
+{
+  "fixture" : "shape\/layout",
+  "frames" : {
+    "c1" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 0,
+      "y" : 7
+    },
+    "cap1" : {
+      "height" : 40,
+      "width" : 110,
+      "x" : 150,
+      "y" : 7
+    },
+    "capsuleFixedWidth" : {
+      "height" : 30,
+      "width" : 20,
+      "x" : 176,
+      "y" : 55
+    },
+    "circleIdeal" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 113,
+      "y" : 138
+    },
+    "column" : {
+      "height" : 100,
+      "width" : 60,
+      "x" : 141,
+      "y" : 93
+    },
+    "e1" : {
+      "height" : 40,
+      "width" : 110,
+      "x" : 40,
+      "y" : 7
+    },
+    "ideal" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 99,
+      "y" : 138
+    },
+    "maxWidth" : {
+      "height" : 30,
+      "width" : 50,
+      "x" : 200,
+      "y" : 55
+    },
+    "r1" : {
+      "height" : 30,
+      "width" : 78,
+      "x" : 50,
+      "y" : 55
+    },
+    "r2" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 132,
+      "y" : 55
+    },
+    "row1" : {
+      "height" : 40,
+      "width" : 300,
+      "x" : 0,
+      "y" : 7
+    },
+    "row2" : {
+      "height" : 30,
+      "width" : 200,
+      "x" : 50,
+      "y" : 55
+    },
+    "row3" : {
+      "height" : 100,
+      "width" : 102,
+      "x" : 99,
+      "y" : 93
+    },
+    "stack" : {
+      "height" : 186,
+      "width" : 300,
+      "x" : 0,
+      "y" : 7
+    },
+    "strokedFlex" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 260,
+      "y" : 7
+    },
+    "strokedIdeal" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 127,
+      "y" : 138
+    },
+    "vCircle" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 146,
+      "y" : 93
+    },
+    "vRect" : {
+      "height" : 50,
+      "width" : 60,
+      "x" : 141,
+      "y" : 143
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

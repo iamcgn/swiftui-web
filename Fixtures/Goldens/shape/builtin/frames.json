@@ -1,0 +1,105 @@
+{
+  "fixture" : "shape\/builtin",
+  "frames" : {
+    "any" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 267,
+      "y" : 153
+    },
+    "capsule" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 8,
+      "y" : 95
+    },
+    "capsuleCircular" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 116,
+      "y" : 95
+    },
+    "capsuleTall" : {
+      "height" : 60,
+      "width" : 30,
+      "x" : 224,
+      "y" : 85
+    },
+    "circleWide" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 277,
+      "y" : 95
+    },
+    "circular" : {
+      "height" : 50,
+      "width" : 80,
+      "x" : 96,
+      "y" : 27
+    },
+    "clamped" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 189,
+      "y" : 153
+    },
+    "continuous" : {
+      "height" : 50,
+      "width" : 80,
+      "x" : 8,
+      "y" : 27
+    },
+    "ellipse" : {
+      "height" : 40,
+      "width" : 90,
+      "x" : 23,
+      "y" : 153
+    },
+    "elliptical" : {
+      "height" : 50,
+      "width" : 80,
+      "x" : 184,
+      "y" : 27
+    },
+    "rect" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 121,
+      "y" : 153
+    },
+    "row1" : {
+      "height" : 50,
+      "width" : 324,
+      "x" : 8,
+      "y" : 27
+    },
+    "row2" : {
+      "height" : 60,
+      "width" : 324,
+      "x" : 8,
+      "y" : 85
+    },
+    "row3" : {
+      "height" : 40,
+      "width" : 294,
+      "x" : 23,
+      "y" : 153
+    },
+    "stack" : {
+      "height" : 166,
+      "width" : 324,
+      "x" : 8,
+      "y" : 27
+    },
+    "uneven" : {
+      "height" : 50,
+      "width" : 60,
+      "x" : 272,
+      "y" : 27
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 340
+  }
+}

@@ -209,7 +209,8 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
         #expect(Rectangle().transform(CGAffineTransform(scaleX: 2, y: 2)).path(in: rect).description == "0 0 m 200 0 l 200 120 l 0 120 l h")
         #expect(AnyShape(Circle()).path(in: rect) == Circle().path(in: rect))
         #expect(AnyShape(Circle()).sizeThatFits(ProposedViewSize(rect.size)) == CGSize(width: 60, height: 60))
-        #expect(Circle().scale(0.5).sizeThatFits(ProposedViewSize(rect.size)) == CGSize(width: 60, height: 60))
+        #expect(Circle().scale(0.5).sizeThatFits(ProposedViewSize(rect.size)) == CGSize(width: 100, height: 60))
+        #expect(Circle().trim(from: 0, to: 0.5).sizeThatFits(ProposedViewSize(rect.size)) == CGSize(width: 60, height: 60))
         #expect(ContainerRelativeShape().path(in: rect) == Path(rect))
         #expect(Rectangle().stroke(lineWidth: 2).path(in: rect).boundingRect == CGRect(x: -1, y: -1, width: 102, height: 62))
     }
@@ -303,19 +304,26 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
         #expect(border.boundingRect == CGRect(x: 91, y: 46, width: 18, height: 8))
     }
 
-    @Test func layoutForwardsToTheBaseShape() {
+    @Test func onlyTrimmedAndStrokedShapesLayOutLikeTheirBase() {
+        // Measured against SwiftUI (Docs/elements/Shape.md): trim and stroke keep a circle
+        // square; offset, scale, rotation, transform, size, inset and strokeBorder take the proposal.
         let runtime = Runtime()
         runtime.mount(HStack(spacing: 0) {
             Circle().scale(0.5)._probe("scaled")
             Circle().stroke(lineWidth: 2)._probe("stroked")
-            Circle().inset(by: 4).offset(x: 2)._probe("inset")
-            Rectangle().trim(from: 0, to: 0.5)._probe("trimmed")
+            Circle().inset(by: 4)._probe("inset")
+            Circle().trim(from: 0, to: 0.5)._probe("trimmed")
         })
         runtime.layout(in: CGSize(width: 200, height: 40))
-        #expect(runtime.probeFrames["scaled"] == CGRect(x: 0, y: 0, width: 40, height: 40))
-        #expect(runtime.probeFrames["stroked"] == CGRect(x: 40, y: 0, width: 40, height: 40))
-        #expect(runtime.probeFrames["inset"] == CGRect(x: 80, y: 0, width: 40, height: 40))
-        #expect(runtime.probeFrames["trimmed"] == CGRect(x: 120, y: 0, width: 80, height: 40))
+        #expect(runtime.probeFrames["scaled"] == CGRect(x: 0, y: 0, width: 60, height: 40))
+        #expect(runtime.probeFrames["stroked"] == CGRect(x: 60, y: 0, width: 40, height: 40))
+        #expect(runtime.probeFrames["inset"] == CGRect(x: 100, y: 0, width: 60, height: 40))
+        #expect(runtime.probeFrames["trimmed"] == CGRect(x: 160, y: 0, width: 40, height: 40))
+        let border = Runtime()
+        border.mount(HStack(spacing: 0) { Circle().strokeBorder(lineWidth: 2)._probe("border"); Circle().stroke(Color.red, lineWidth: 2)._probe("stroke") })
+        border.layout(in: CGSize(width: 100, height: 40))
+        #expect(border.probeFrames["border"] == CGRect(x: 0, y: 0, width: 60, height: 40))
+        #expect(border.probeFrames["stroke"] == CGRect(x: 60, y: 0, width: 40, height: 40))
     }
 
     @Test func styledStrokesEncode() {

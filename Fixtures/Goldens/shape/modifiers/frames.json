@@ -1,0 +1,117 @@
+{
+  "fixture" : "shape\/modifiers",
+  "frames" : {
+    "anchored" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 208,
+      "y" : 95
+    },
+    "inset" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 72,
+      "y" : 95
+    },
+    "insetStroke" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 276,
+      "y" : 95
+    },
+    "offset" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 72,
+      "y" : 47
+    },
+    "offsetIdeal" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 138,
+      "y" : 143
+    },
+    "pathIdeal" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 174,
+      "y" : 143
+    },
+    "rotated" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 140,
+      "y" : 47
+    },
+    "row1" : {
+      "height" : 40,
+      "width" : 332,
+      "x" : 4,
+      "y" : 47
+    },
+    "row2" : {
+      "height" : 40,
+      "width" : 332,
+      "x" : 4,
+      "y" : 95
+    },
+    "row3" : {
+      "height" : 10,
+      "width" : 64,
+      "x" : 138,
+      "y" : 143
+    },
+    "scaled" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 4,
+      "y" : 47
+    },
+    "sheared" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 208,
+      "y" : 47
+    },
+    "sized" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 276,
+      "y" : 47
+    },
+    "sizedIdeal" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 156,
+      "y" : 143
+    },
+    "stack" : {
+      "height" : 106,
+      "width" : 332,
+      "x" : 4,
+      "y" : 47
+    },
+    "strokedOffset" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 140,
+      "y" : 95
+    },
+    "trimIdeal" : {
+      "height" : 10,
+      "width" : 10,
+      "x" : 192,
+      "y" : 143
+    },
+    "trimmed" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 14,
+      "y" : 95
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 340
+  }
+}

@@ -13,7 +13,8 @@ extension _InsetPathProviding {
     }
 }
 
-/// A built-in shape inset by an amount; insetting again accumulates.
+/// A built-in shape inset by an amount; insetting again accumulates. Lays out like a plain
+/// shape (an inset circle takes the whole proposal, measured in `Docs/elements/Shape.md`).
 @frozen
 public struct _InsetShape<Base: _InsetPathProviding> {
     public var shape: Base
@@ -28,7 +29,6 @@ public struct _InsetShape<Base: _InsetPathProviding> {
 extension _InsetShape: InsettableShape, _InsetPathProviding {
     nonisolated public func path(in rect: CGRect) -> Path { shape._insetPath(in: rect, by: amount) }
     nonisolated public func _insetPath(in rect: CGRect, by extra: CGFloat) -> Path { shape._insetPath(in: rect, by: amount + extra) }
-    nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.sizeThatFits(proposal) }
     nonisolated public func inset(by extra: CGFloat) -> _InsetShape<Base> { _InsetShape(shape: shape, amount: amount + extra) }
 
     public typealias AnimatableData = AnimatablePair<Base.AnimatableData, CGFloat>

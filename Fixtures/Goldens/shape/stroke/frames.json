@@ -1,0 +1,99 @@
+{
+  "fixture" : "shape\/stroke",
+  "frames" : {
+    "bevel" : {
+      "height" : 40,
+      "width" : 70,
+      "x" : 203,
+      "y" : 137
+    },
+    "capsuleDash" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 208,
+      "y" : 85
+    },
+    "dashed" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 32,
+      "y" : 85
+    },
+    "dots" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 120,
+      "y" : 85
+    },
+    "fillStroke" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 193,
+      "y" : 23
+    },
+    "miter" : {
+      "height" : 40,
+      "width" : 70,
+      "x" : 47,
+      "y" : 137
+    },
+    "round" : {
+      "height" : 40,
+      "width" : 70,
+      "x" : 125,
+      "y" : 137
+    },
+    "row1" : {
+      "height" : 50,
+      "width" : 282,
+      "x" : 19,
+      "y" : 23
+    },
+    "row2" : {
+      "height" : 40,
+      "width" : 256,
+      "x" : 32,
+      "y" : 85
+    },
+    "row3" : {
+      "height" : 40,
+      "width" : 226,
+      "x" : 47,
+      "y" : 137
+    },
+    "stack" : {
+      "height" : 154,
+      "width" : 282,
+      "x" : 19,
+      "y" : 23
+    },
+    "stroke" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 19,
+      "y" : 23
+    },
+    "strokeBorder" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 77,
+      "y" : 23
+    },
+    "strokeFill" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 251,
+      "y" : 23
+    },
+    "strokeShape" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 135,
+      "y" : 23
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

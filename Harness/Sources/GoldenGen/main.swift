@@ -211,6 +211,23 @@ func generateTextMetrics(into root: URL) throws {
     print("text-metrics.json: \(entries.count) entries, \(fonts.count) fonts")
 }
 
+/// Apple's `Path.description` for every shared path request (PathGoldenTests compares ours).
+@MainActor
+func generatePathGoldens(into root: URL) throws {
+    var paths: [String: String] = [:]
+    for request in PathRequests.all { paths[request.name] = request.make().description }
+    let os = ProcessInfo.processInfo.operatingSystemVersion
+    let doc: [String: Any] = [
+        "macOS": "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)",
+        "paths": paths,
+    ]
+    let dir = root.appendingPathComponent("shape", isDirectory: true)
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    try JSONSerialization.data(withJSONObject: doc, options: [.prettyPrinted, .sortedKeys])
+        .write(to: dir.appendingPathComponent("paths.json"))
+    print("shape/paths.json: \(paths.count) paths")
+}
+
 func framesDictionary(_ frames: [String: CGRect]) -> [String: [String: Double]] {
     var result: [String: [String: Double]] = [:]
     for (id, r) in frames {
@@ -273,6 +290,10 @@ Task { @MainActor in
     if options.filter == nil || options.filter == "text/" || options.filter == "text-metrics" {
         do { try generateTextMetrics(into: options.output) }
         catch { failures += 1; FileHandle.standardError.write("FAILED text-metrics: \(error)\n".data(using: .utf8)!) }
+    }
+    if options.filter == nil || options.filter == "shape/" || options.filter == "shape-paths" {
+        do { try generatePathGoldens(into: options.output) }
+        catch { failures += 1; FileHandle.standardError.write("FAILED shape-paths: \(error)\n".data(using: .utf8)!) }
     }
     for fixture in AllFixtures.all where options.filter.map({ fixture.name.hasPrefix($0) }) ?? true {
         do { try generate(fixture, into: options.output) }

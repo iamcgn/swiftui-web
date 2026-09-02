@@ -1,0 +1,98 @@
+{
+  "fixture" : "shape\/steps",
+  "frames" : {
+    "arc" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 146,
+      "y" : 40
+    },
+    "box" : {
+      "height" : 60,
+      "width" : 120,
+      "x" : 14,
+      "y" : 30
+    },
+    "row" : {
+      "height" : 60,
+      "width" : 172,
+      "x" : 14,
+      "y" : 30
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 200
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "arc" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 146,
+          "y" : 40
+        },
+        "box" : {
+          "height" : 60,
+          "width" : 120,
+          "x" : 14,
+          "y" : 30
+        },
+        "row" : {
+          "height" : 60,
+          "width" : 172,
+          "x" : 14,
+          "y" : 30
+        }
+      },
+      "name" : "rounder"
+    },
+    {
+      "frames" : {
+        "arc" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 146,
+          "y" : 40
+        },
+        "box" : {
+          "height" : 60,
+          "width" : 120,
+          "x" : 14,
+          "y" : 30
+        },
+        "row" : {
+          "height" : 60,
+          "width" : 172,
+          "x" : 14,
+          "y" : 30
+        }
+      },
+      "name" : "thicker"
+    },
+    {
+      "frames" : {
+        "arc" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 146,
+          "y" : 40
+        },
+        "box" : {
+          "height" : 60,
+          "width" : 120,
+          "x" : 14,
+          "y" : 30
+        },
+        "row" : {
+          "height" : 60,
+          "width" : 172,
+          "x" : 14,
+          "y" : 30
+        }
+      },
+      "name" : "half"
+    }
+  ]
+}

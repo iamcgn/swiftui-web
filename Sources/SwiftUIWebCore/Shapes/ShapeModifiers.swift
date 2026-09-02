@@ -1,5 +1,6 @@
 // Shapes derived from other shapes: offset, scaled, rotated, transformed, sized, trimmed,
-// stroked. Layout forwards to the base shape (`Docs/elements/Shape.md`, "Layout").
+// stroked. Only trimmed and stroked shapes lay out like their base (a trimmed circle is still
+// square); the transforms take the proposal like a plain shape (`Docs/elements/Shape.md`, "Layout").
 
 /// A shape with a translation offset transform applied to it.
 @frozen
@@ -15,7 +16,6 @@ public struct OffsetShape<Content: Shape> {
 
 extension OffsetShape: Shape {
     nonisolated public func path(in rect: CGRect) -> Path { shape.path(in: rect).offsetBy(dx: offset.width, dy: offset.height) }
-    nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.sizeThatFits(proposal) }
 
     public typealias AnimatableData = AnimatablePair<Content.AnimatableData, CGSize.AnimatableData>
     public var animatableData: AnimatableData {
@@ -54,7 +54,6 @@ extension ScaledShape: Shape {
             .concatenating(CGAffineTransform(translationX: ax, y: ay))
         return shape.path(in: rect).applying(transform)
     }
-    nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.sizeThatFits(proposal) }
 
     public typealias AnimatableData = AnimatablePair<Content.AnimatableData, AnimatablePair<CGSize.AnimatableData, UnitPoint.AnimatableData>>
     public var animatableData: AnimatableData {
@@ -97,7 +96,6 @@ extension RotatedShape: Shape {
             .concatenating(CGAffineTransform(translationX: ax, y: ay))
         return shape.path(in: rect).applying(transform)
     }
-    nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.sizeThatFits(proposal) }
 
     public typealias AnimatableData = AnimatablePair<Content.AnimatableData, AnimatablePair<Angle.AnimatableData, UnitPoint.AnimatableData>>
     public var animatableData: AnimatableData {
@@ -132,7 +130,6 @@ public struct TransformedShape<Content: Shape> {
 
 extension TransformedShape: Shape {
     nonisolated public func path(in rect: CGRect) -> Path { shape.path(in: rect).applying(transform) }
-    nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.sizeThatFits(proposal) }
 
     public typealias AnimatableData = Content.AnimatableData
     public var animatableData: AnimatableData {
@@ -163,7 +160,6 @@ public struct _SizedShape<Content: Shape> {
 
 extension _SizedShape: Shape {
     nonisolated public func path(in rect: CGRect) -> Path { shape.path(in: CGRect(origin: rect.origin, size: size)) }
-    nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.sizeThatFits(proposal) }
 
     public typealias AnimatableData = AnimatablePair<Content.AnimatableData, CGSize.AnimatableData>
     public var animatableData: AnimatableData {

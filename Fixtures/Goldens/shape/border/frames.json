@@ -1,0 +1,75 @@
+{
+  "fixture" : "shape\/border",
+  "frames" : {
+    "circle" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 207,
+      "y" : 83
+    },
+    "color" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 63,
+      "y" : 83
+    },
+    "nested" : {
+      "height" : 38,
+      "width" : 68,
+      "x" : 131,
+      "y" : 79
+    },
+    "padded" : {
+      "height" : 28,
+      "width" : 43,
+      "x" : 122,
+      "y" : 43
+    },
+    "row1" : {
+      "height" : 28,
+      "width" : 134,
+      "x" : 83,
+      "y" : 43
+    },
+    "row2" : {
+      "height" : 38,
+      "width" : 174,
+      "x" : 63,
+      "y" : 79
+    },
+    "stack" : {
+      "height" : 74,
+      "width" : 174,
+      "x" : 63,
+      "y" : 43
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 83,
+      "y" : 49
+    },
+    "textInner" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 83,
+      "y" : 49
+    },
+    "thick" : {
+      "height" : 16,
+      "width" : 17.5,
+      "x" : 173,
+      "y" : 49
+    },
+    "zero" : {
+      "height" : 16,
+      "width" : 18.5,
+      "x" : 198.5,
+      "y" : 49
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 300
+  }
+}
