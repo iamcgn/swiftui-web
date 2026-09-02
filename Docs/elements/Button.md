@@ -4,18 +4,18 @@ Apple docs: [Button](https://developer.apple.com/documentation/swiftui/button),
 [ButtonStyle](https://developer.apple.com/documentation/swiftui/buttonstyle),
 [PrimitiveButtonStyle](https://developer.apple.com/documentation/swiftui/primitivebuttonstyle) (not yet).
 
-## Measured (macOS 26.2, `button/basic`, `button/styles`, pixels sampled from goldens)
+## Measured (macOS 26.2, `button/basic`, `button/styles`; frames from a hosted window since decision 0010)
 
 | Property | Value |
 |---|---|
 | Bordered (default) height | 24 pt (`frame(minHeight:)`) |
 | Bordered horizontal padding | 12 pt each side: width = label width + 24 |
-| Bordered label font | 13 pt point-size system font (16 pt line, baseline 13), **not** `.body` (18.5 pt line) |
+| Bordered label font | the default 13 pt system font (16 pt line, baseline 13); the same font plain text gets in a window (decision 0010) |
 | Bordered corner radius | 6 pt (from the anti-aliasing ramp at 2×) |
-| Bordered fill | black at 19/255 ≈ 7.5 % (ImageRenderer draws a flat fill, no gradient or border) |
+| Bordered fill | black at 19/255 ≈ 7.5 % (sampled from the earlier ImageRenderer goldens; the window golden reads 20/255) |
 | Prominent | same geometry; fill accent blue (0, 136, 255); white label |
-| Plain | label only, `.body` metrics |
-| Borderless | label only (65 pt for "Borderless"), `.body` metrics; ImageRenderer draws an "unsupported" placeholder, so its look is **approximate** (accent-coloured label) |
+| Plain | label only, default-font metrics (16 pt line) |
+| Borderless | label only (65 pt for "Borderless"), default-font metrics; look **approximate** (accent-coloured label) |
 | Spacing between buttons | 8 pt default |
 | Pressed appearance | unverified (fill darkened to 50/255) |
 

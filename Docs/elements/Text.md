@@ -17,9 +17,10 @@ Fonts are keyed as `style:<name>[:w<weight>][:<design>][:italic]` or
 
 | Behaviour | Value | Fixture |
 |---|---|---|
+| Default font (nothing set) | the 13 pt system font: 16 pt line, baseline 13 — **not** `.body` (decision 0010) | `text/hello`, every default-font fixture |
 | `.body` line height | 18.5 pt (13 pt SF); `.system(size: 13)` is 16 pt: text styles carry their own leading | `text/styles`, `text/system-fonts` |
 | Text-style sizes (macOS) | largeTitle 26, title 22, title2 17, title3 15, headline 13 bold, subheadline 11, body 13, callout 12, footnote 10, caption 10, caption2 10 medium | `text/styles` |
-| `Text.bold()` / `Font.bold()` | the **semibold** face (w600); `fontWeight(.bold)` is w700 | `text/modifiers` |
+| `Text.bold()` / `Font.bold()` | a bold *trait* resolved per font: point-size and default font → bold (w700); `.body`, `.callout`, `.footnote`, `.subheadline`, `.title3`, `.caption2` → semibold (w600); `.largeTitle`, `.title`, `.title2` → bold; `.headline` → heavy (w800); `.caption` → medium (w500). `fontWeight(_:)` always wins | `text/modifiers`, `text/bold-trait` |
 | Wrapped text width | the widest line **including its trailing space** (133.5 + 3.5 = 137 in a 150 frame); a line fits only if that width is within the proposal | `text/wrapped` |
 | Multi-line pitch | 19 pt for `.body` (line height 18.5 rounded up) | `text/wrapped` |
 | Minimum width (zero proposal) | widest word; recorded as the `|0.0|` entry | `text/hstack-baseline` |

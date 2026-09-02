@@ -5,7 +5,8 @@ import SwiftUIWebHeadless
 
 #if !os(WASI)
 @MainActor private func engine() -> RecordedTextEngine {
-    let body = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: .body)
+    // The default font is the 13 pt system font (decision 0010); the numbers here are synthetic.
+    let body = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
     let title = ResolvedFont(family: "system", size: 22, weight: .regular, italic: false, textStyle: .title)
     var entries: [String: RecordedTextEngine.Entry] = [:]
     func add(_ font: ResolvedFont, _ s: String, width: CGFloat? = nil, w: Double, h: Double, base: Double) {
@@ -13,12 +14,13 @@ import SwiftUIWebHeadless
             .init(width: w, height: h, firstBaseline: base, lastBaseline: base)
     }
     add(body, "Hello", w: 31, h: 18.5, base: 14)
+    add(ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: .body), "Hello", w: 31, h: 18.5, base: 14)
     add(title, "Hello", w: 52, h: 33, base: 24)
     add(body, "A long sentence", w: 100, h: 18.5, base: 14)
     add(body, "A long sentence", width: 60, w: 58, h: 37, base: 14)
     add(body, "Count: 3", w: 52, h: 18.5, base: 14)
-    add(ResolvedFont(family: "system", size: 22, weight: .semibold, italic: false, textStyle: .title, weightOverridden: true), "Hello", w: 55, h: 33, base: 24)
-    let fonts = ["style:body": RecordedTextEngine.FontEntry(lineHeight: 18.5, spacingBelow: 11, spacingAbove: 6, textToText: 1)]
+    add(ResolvedFont(family: "system", size: 22, weight: .bold, italic: false, textStyle: .title, weightOverridden: true), "Hello", w: 55, h: 33, base: 24)
+    let fonts = ["system:13:400:default": RecordedTextEngine.FontEntry(lineHeight: 18.5, spacingBelow: 11, spacingAbove: 6, textToText: 1)]
     return RecordedTextEngine(entries: entries, fonts: fonts)
 }
 
@@ -38,6 +40,10 @@ import SwiftUIWebHeadless
         #expect(Font.system(size: 20).resolve(profile: profile).key == "system:20:400:default")
         #expect(Font.system(size: 20, weight: .bold, design: .rounded).resolve(profile: profile).key == "system:20:700:rounded")
         #expect(Font.body.bold().resolve(profile: profile).key == "style:body:w600")
+        #expect(Font.title.bold().resolve(profile: profile).key == "style:title:w700")
+        #expect(Font.headline.bold().resolve(profile: profile).key == "style:headline:w800")
+        #expect(Font.system(size: 20).bold().resolve(profile: profile).key == "system:20:700:default")
+        #expect(Font.body.bold().weight(.light).resolve(profile: profile).key == "style:body:w300")
         #expect(Font.body.weight(.bold).resolve(profile: profile).key == "style:body:w700")
         #expect(Font.system(size: 11.5).resolve(profile: profile).key == "system:11.5:400:default")
         #expect(Font.headline.resolve(profile: profile).key == "style:headline")
@@ -69,7 +75,7 @@ import SwiftUIWebHeadless
         }.font(.title))
         #expect(f["env"]?.size == CGSize(width: 52, height: 33))
         #expect(f["own"]?.size == CGSize(width: 31, height: 18.5))
-        #expect(f["bold"]?.size == CGSize(width: 55, height: 33))   // title from the environment, semibold face
+        #expect(f["bold"]?.size == CGSize(width: 55, height: 33))   // title from the environment; its bold trait is w700
     }
 
     @Test func wrappingUsesProposedWidth() {

@@ -2,34 +2,34 @@
   "fixture" : "text\/wrapped",
   "frames" : {
     "column" : {
-      "height" : 150.5,
+      "height" : 128,
       "width" : 355.5,
       "x" : 22.25,
-      "y" : 74.75
+      "y" : 86
     },
     "free" : {
-      "height" : 37.5,
+      "height" : 32,
       "width" : 355.5,
       "x" : 22.25,
-      "y" : 187.75
+      "y" : 182
     },
     "narrow" : {
-      "height" : 75.5,
+      "height" : 64,
       "width" : 137,
       "x" : 22.25,
-      "y" : 74.75
+      "y" : 86
     },
     "narrowFrame" : {
-      "height" : 75.5,
+      "height" : 64,
       "width" : 150,
       "x" : 22.25,
-      "y" : 74.75
+      "y" : 86
     },
     "wide" : {
-      "height" : 37.5,
+      "height" : 32,
       "width" : 227,
       "x" : 22.25,
-      "y" : 150.25
+      "y" : 150
     }
   },
   "size" : {

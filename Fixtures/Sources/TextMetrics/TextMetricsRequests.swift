@@ -69,6 +69,11 @@ public struct TextMetricRequest: Hashable, Sendable {
 }
 
 public enum TextMetricsRequests {
+    /// The font text gets when nothing sets one: on macOS the 13 pt system font (16 pt line), not
+    /// `.body` (18.5 pt line) — see decision 0010.
+    public static let defaultFont = FixtureFont.system(size: 13, weight: "regular", design: "default")
+    static func defaultFont(weight: String) -> FixtureFont { .system(size: 13, weight: weight, design: "default") }
+
     public static let styleNames = ["largeTitle", "title", "title2", "title3", "headline", "subheadline", "body", "callout", "footnote", "caption", "caption2"]
     public static let sample = "The quick brown fox"
     public static let paragraph = "Layout must wrap this sentence onto several lines inside a narrow frame."
@@ -108,6 +113,26 @@ public enum TextMetricsRequests {
             TextMetricRequest("Hg", .style("caption2")),
         ]
         for style in styleNames { requests.append(TextMetricRequest(sample, .style(style))) }
+        // Strings that fixtures show in the default font (layout, paint, button, ForEach, Section).
+        for word in ["Hello", "One", "Two", "Three", "small", "Env", "Count: 0", "Hg", "OK", "Increment", "Label", "−", "+",
+                     "Plain", "Bordered", "Borderless", "Prominent", "Padded",
+                     "Row 0", "Row 1", "Row 2", "Apple", "Banana", "Cherry", "Alpha", "Beta", "Gamma", "Fruits",
+                     "Vegetables", "Carrot", "Leek", "Header", "Footer", "Top", "Bottom", "A", "B"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+        }
+        requests.append(TextMetricRequest(paragraph, defaultFont))
+        for width: CGFloat in [150, 260, 400] { requests.append(TextMetricRequest(paragraph, defaultFont, width: width)) }
+        for weight in ["semibold", "bold", "heavy"] { requests.append(TextMetricRequest("Bold", defaultFont(weight: weight))) }
+        requests.append(TextMetricRequest("Weight", defaultFont(weight: "semibold")))
+        // Bold trait per text style (text/bold-trait): record the candidate weights.
+        for style in styleNames {
+            for weight in ["medium", "semibold", "bold", "heavy"] { requests.append(TextMetricRequest("Bold", .style(style, weight: weight))) }
+        }
+        requests.append(TextMetricRequest("Bold", .system(size: 20, weight: "bold", design: "default")))
+        // Section headers, should they turn out to be styled outside List/Form.
+        for word in ["Fruits", "Vegetables", "Header"] {
+            requests.append(TextMetricRequest(word, .style("headline")))
+        }
         // Bordered button labels use the 13 pt point-size font.
         for label in ["OK", "Increment", "Label", "−", "+", "Bordered", "Prominent", "Padded", "Go"] {
             requests.append(TextMetricRequest(label, .system(size: 13, weight: "regular", design: "default")))

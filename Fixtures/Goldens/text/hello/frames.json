@@ -2,10 +2,10 @@
   "fixture" : "text\/hello",
   "frames" : {
     "hello" : {
-      "height" : 18.5,
+      "height" : 16,
       "width" : 31,
       "x" : 84.5,
-      "y" : 40.75
+      "y" : 42
     }
   },
   "size" : {

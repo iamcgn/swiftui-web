@@ -57,10 +57,18 @@ public struct Fixture: Sendable {
         self.stepNames = steps.map(\.name)
         self.instantiate = {
             let model = model()
-            return FixtureInstance(view: AnyView(content(model)),
+            return FixtureInstance(view: AnyView(_ModelView(model: model, content: content)),
                                    steps: steps.map { step in .init(name: step.name, run: { @MainActor in step.run(model) }) })
         }
     }
+}
+
+/// Reads the model inside a `body`, so observation re-renders the fixture after each step.
+public struct _ModelView<Model: AnyObject, Content: View>: View {
+    let model: Model
+    let content: @MainActor @Sendable (Model) -> Content
+
+    public var body: some View { content(model) }
 }
 
 public struct ProbeKey: PreferenceKey {

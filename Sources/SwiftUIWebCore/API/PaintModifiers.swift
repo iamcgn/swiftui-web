@@ -71,7 +71,10 @@ extension _ClipEffect: ViewModifier {
 }
 
 extension View {
-    /// Layers the given view behind this view.
+    /// Layers the given view behind this view. Apple soft-deprecates this form in favour of
+    /// `background(alignment:content:)`, which is also what makes `.background(Color.blue)`
+    /// pick the `ShapeStyle` overload; disfavouring it here has the same effect.
+    @_disfavoredOverload
     nonisolated public func background<Background: View>(_ background: Background, alignment: Alignment = .center) -> some View {
         modifier(_BackgroundModifier(background: background, alignment: alignment))
     }
@@ -96,7 +99,8 @@ extension View {
         modifier(_BackgroundModifier(background: _ShapeView(shape: shape, style: ForegroundStyle(), fillStyle: fillStyle), alignment: .center))
     }
 
-    /// Layers a secondary view in front of this view.
+    /// Layers a secondary view in front of this view (soft-deprecated by Apple; see `background`).
+    @_disfavoredOverload
     nonisolated public func overlay<Overlay: View>(_ overlay: Overlay, alignment: Alignment = .center) -> some View {
         modifier(_OverlayModifier(overlay: overlay, alignment: alignment))
     }

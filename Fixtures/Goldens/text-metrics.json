@@ -1,5 +1,17 @@
 {
   "entries" : {
+    "style:body:w500||Bold" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 28
+    },
+    "style:body:w500|0.0|Bold" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
     "style:body:w600||Bold" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -294,6 +306,54 @@
       "lastBaseline" : 33,
       "width" : 355.5
     },
+    "style:callout:w500||Bold" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 26.5
+    },
+    "style:callout:w500|0.0|Bold" : {
+      "firstBaseline" : 13,
+      "height" : 71.5,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "style:callout:w600||Bold" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 26.5
+    },
+    "style:callout:w600|0.0|Bold" : {
+      "firstBaseline" : 13,
+      "height" : 71.5,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "style:callout:w700||Bold" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 27.5
+    },
+    "style:callout:w700|0.0|Bold" : {
+      "firstBaseline" : 13,
+      "height" : 71.5,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "style:callout:w800||Bold" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 28.5
+    },
+    "style:callout:w800|0.0|Bold" : {
+      "firstBaseline" : 13,
+      "height" : 71.5,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
     "style:callout||The quick brown fox" : {
       "firstBaseline" : 13,
       "height" : 17.5,
@@ -306,6 +366,54 @@
       "lastBaseline" : 283,
       "width" : 0
     },
+    "style:caption:w500||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
+    },
+    "style:caption:w500|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption:w600||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23
+    },
+    "style:caption:w600|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:caption:w700||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23.5
+    },
+    "style:caption:w700|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption:w800||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 24
+    },
+    "style:caption:w800|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
+      "width" : 0
+    },
     "style:caption||The quick brown fox" : {
       "firstBaseline" : 11,
       "height" : 15,
@@ -316,6 +424,54 @@
       "firstBaseline" : 11,
       "height" : 255,
       "lastBaseline" : 251,
+      "width" : 0
+    },
+    "style:caption2:w500||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
+    },
+    "style:caption2:w500|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption2:w600||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23
+    },
+    "style:caption2:w600|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:caption2:w700||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23.5
+    },
+    "style:caption2:w700|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption2:w800||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 24
+    },
+    "style:caption2:w800|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
       "width" : 0
     },
     "style:caption2||Hg" : {
@@ -342,6 +498,54 @@
       "lastBaseline" : 251,
       "width" : 0
     },
+    "style:footnote:w500||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
+    },
+    "style:footnote:w500|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:footnote:w600||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23
+    },
+    "style:footnote:w600|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:footnote:w700||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23.5
+    },
+    "style:footnote:w700|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:footnote:w800||Bold" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 24
+    },
+    "style:footnote:w800|0.0|Bold" : {
+      "firstBaseline" : 11,
+      "height" : 63,
+      "lastBaseline" : 59,
+      "width" : 0
+    },
     "style:footnote||The quick brown fox" : {
       "firstBaseline" : 11,
       "height" : 15,
@@ -354,16 +558,148 @@
       "lastBaseline" : 251,
       "width" : 0
     },
+    "style:headline:w500||Bold" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 28
+    },
+    "style:headline:w500|0.0|Bold" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:headline:w600||Bold" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 28.5
+    },
+    "style:headline:w600|0.0|Bold" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:headline:w700||Bold" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 29.5
+    },
+    "style:headline:w700|0.0|Bold" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:headline:w800||Bold" : {
+      "firstBaseline" : 14,
+      "height" : 19,
+      "lastBaseline" : 14,
+      "width" : 30.5
+    },
+    "style:headline:w800|0.0|Bold" : {
+      "firstBaseline" : 14,
+      "height" : 76,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:headline||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 38
+    },
+    "style:headline||Header" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 47.5
+    },
     "style:headline||The quick brown fox" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 130.5
     },
+    "style:headline||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 72.5
+    },
+    "style:headline|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline|0.0|Header" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
     "style:headline|0.0|The quick brown fox" : {
       "firstBaseline" : 14,
       "height" : 303.5,
       "lastBaseline" : 299,
+      "width" : 0
+    },
+    "style:headline|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
+      "width" : 0
+    },
+    "style:largeTitle:w500||Bold" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 52.5
+    },
+    "style:largeTitle:w500|0.0|Bold" : {
+      "firstBaseline" : 29,
+      "height" : 155,
+      "lastBaseline" : 146,
+      "width" : 0
+    },
+    "style:largeTitle:w600||Bold" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 53.5
+    },
+    "style:largeTitle:w600|0.0|Bold" : {
+      "firstBaseline" : 29,
+      "height" : 155,
+      "lastBaseline" : 146,
+      "width" : 0
+    },
+    "style:largeTitle:w700||Bold" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 55
+    },
+    "style:largeTitle:w700|0.0|Bold" : {
+      "firstBaseline" : 29,
+      "height" : 155,
+      "lastBaseline" : 146,
+      "width" : 0
+    },
+    "style:largeTitle:w800||Bold" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 57
+    },
+    "style:largeTitle:w800|0.0|Bold" : {
+      "firstBaseline" : 29,
+      "height" : 155,
+      "lastBaseline" : 146,
       "width" : 0
     },
     "style:largeTitle||Big" : {
@@ -402,6 +738,54 @@
       "lastBaseline" : 614,
       "width" : 0
     },
+    "style:subheadline:w500||Bold" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 24.5
+    },
+    "style:subheadline:w500|0.0|Bold" : {
+      "firstBaseline" : 12,
+      "height" : 67,
+      "lastBaseline" : 63,
+      "width" : 0
+    },
+    "style:subheadline:w600||Bold" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 25
+    },
+    "style:subheadline:w600|0.0|Bold" : {
+      "firstBaseline" : 12,
+      "height" : 67,
+      "lastBaseline" : 63,
+      "width" : 0
+    },
+    "style:subheadline:w700||Bold" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 25.5
+    },
+    "style:subheadline:w700|0.0|Bold" : {
+      "firstBaseline" : 12,
+      "height" : 67,
+      "lastBaseline" : 63,
+      "width" : 0
+    },
+    "style:subheadline:w800||Bold" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 26
+    },
+    "style:subheadline:w800|0.0|Bold" : {
+      "firstBaseline" : 12,
+      "height" : 67,
+      "lastBaseline" : 63,
+      "width" : 0
+    },
     "style:subheadline||The quick brown fox" : {
       "firstBaseline" : 12,
       "height" : 16,
@@ -412,6 +796,54 @@
       "firstBaseline" : 12,
       "height" : 271,
       "lastBaseline" : 267,
+      "width" : 0
+    },
+    "style:title:w500||Bold" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 44.5
+    },
+    "style:title:w500|0.0|Bold" : {
+      "firstBaseline" : 25,
+      "height" : 132,
+      "lastBaseline" : 124.5,
+      "width" : 0
+    },
+    "style:title:w600||Bold" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 45.5
+    },
+    "style:title:w600|0.0|Bold" : {
+      "firstBaseline" : 25,
+      "height" : 132,
+      "lastBaseline" : 124.5,
+      "width" : 0
+    },
+    "style:title:w700||Bold" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 46.5
+    },
+    "style:title:w700|0.0|Bold" : {
+      "firstBaseline" : 25,
+      "height" : 132,
+      "lastBaseline" : 124,
+      "width" : 0
+    },
+    "style:title:w800||Bold" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 48.5
+    },
+    "style:title:w800|0.0|Bold" : {
+      "firstBaseline" : 25,
+      "height" : 132,
+      "lastBaseline" : 124,
       "width" : 0
     },
     "style:title||Count: 0" : {
@@ -450,6 +882,54 @@
       "lastBaseline" : 520,
       "width" : 0
     },
+    "style:title2:w500||Bold" : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 35.5
+    },
+    "style:title2:w500|0.0|Bold" : {
+      "firstBaseline" : 19,
+      "height" : 106.5,
+      "lastBaseline" : 100,
+      "width" : 0
+    },
+    "style:title2:w600||Bold" : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 36
+    },
+    "style:title2:w600|0.0|Bold" : {
+      "firstBaseline" : 19,
+      "height" : 106.5,
+      "lastBaseline" : 100,
+      "width" : 0
+    },
+    "style:title2:w700||Bold" : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 37
+    },
+    "style:title2:w700|0.0|Bold" : {
+      "firstBaseline" : 19,
+      "height" : 106.5,
+      "lastBaseline" : 100,
+      "width" : 0
+    },
+    "style:title2:w800||Bold" : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 38
+    },
+    "style:title2:w800|0.0|Bold" : {
+      "firstBaseline" : 19,
+      "height" : 106.5,
+      "lastBaseline" : 100,
+      "width" : 0
+    },
     "style:title2||The quick brown fox" : {
       "firstBaseline" : 19,
       "height" : 25.5,
@@ -460,6 +940,54 @@
       "firstBaseline" : 19,
       "height" : 430.5,
       "lastBaseline" : 424,
+      "width" : 0
+    },
+    "style:title3:w500||Bold" : {
+      "firstBaseline" : 17,
+      "height" : 23,
+      "lastBaseline" : 17,
+      "width" : 32
+    },
+    "style:title3:w500|0.0|Bold" : {
+      "firstBaseline" : 17,
+      "height" : 95,
+      "lastBaseline" : 89,
+      "width" : 0
+    },
+    "style:title3:w600||Bold" : {
+      "firstBaseline" : 17,
+      "height" : 23,
+      "lastBaseline" : 17,
+      "width" : 32.5
+    },
+    "style:title3:w600|0.0|Bold" : {
+      "firstBaseline" : 17,
+      "height" : 95,
+      "lastBaseline" : 89,
+      "width" : 0
+    },
+    "style:title3:w700||Bold" : {
+      "firstBaseline" : 17,
+      "height" : 23,
+      "lastBaseline" : 17,
+      "width" : 33
+    },
+    "style:title3:w700|0.0|Bold" : {
+      "firstBaseline" : 17,
+      "height" : 95,
+      "lastBaseline" : 89,
+      "width" : 0
+    },
+    "style:title3:w800||Bold" : {
+      "firstBaseline" : 17,
+      "height" : 23,
+      "lastBaseline" : 17,
+      "width" : 34.5
+    },
+    "style:title3:w800|0.0|Bold" : {
+      "firstBaseline" : 17,
+      "height" : 95,
+      "lastBaseline" : 89,
       "width" : 0
     },
     "style:title3||The quick brown fox" : {
@@ -510,11 +1038,71 @@
       "lastBaseline" : 13,
       "width" : 8.5
     },
+    "system:13:400:default||A" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 9
+    },
+    "system:13:400:default||Alpha" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 34.5
+    },
+    "system:13:400:default||Apple" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35
+    },
+    "system:13:400:default||B" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 8.5
+    },
+    "system:13:400:default||Banana" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 45
+    },
+    "system:13:400:default||Beta" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 28
+    },
     "system:13:400:default||Bordered" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 56
+    },
+    "system:13:400:default||Borderless" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 65
+    },
+    "system:13:400:default||Bottom" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 44.5
+    },
+    "system:13:400:default||Carrot" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 38.5
+    },
+    "system:13:400:default||Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 41.5
     },
     "system:13:400:default||Count: 0" : {
       "firstBaseline" : 13,
@@ -522,7 +1110,49 @@
       "lastBaseline" : 13,
       "width" : 52
     },
+    "system:13:400:default||Env" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 22
+    },
+    "system:13:400:default||Footer" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 39.5
+    },
+    "system:13:400:default||Fruits" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 34.5
+    },
+    "system:13:400:default||Gamma" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 46.5
+    },
     "system:13:400:default||Go" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 17.5
+    },
+    "system:13:400:default||Header" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 44.5
+    },
+    "system:13:400:default||Hello" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 31
+    },
+    "system:13:400:default||Hg" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
@@ -540,11 +1170,29 @@
       "lastBaseline" : 13,
       "width" : 33
     },
+    "system:13:400:default||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 439.5
+    },
+    "system:13:400:default||Leek" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 29
+    },
     "system:13:400:default||OK" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 18.5
+    },
+    "system:13:400:default||One" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 25
     },
     "system:13:400:default||Padded" : {
       "firstBaseline" : 13,
@@ -552,11 +1200,65 @@
       "lastBaseline" : 13,
       "width" : 46.5
     },
+    "system:13:400:default||Plain" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 29.5
+    },
     "system:13:400:default||Prominent" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 62
+    },
+    "system:13:400:default||Row 0" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 37.5
+    },
+    "system:13:400:default||Row 1" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35.5
+    },
+    "system:13:400:default||Row 2" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 37
+    },
+    "system:13:400:default||small" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 31.5
+    },
+    "system:13:400:default||Three" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35.5
+    },
+    "system:13:400:default||Top" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 22.5
+    },
+    "system:13:400:default||Two" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 25
+    },
+    "system:13:400:default||Vegetables" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 68
     },
     "system:13:400:default|0.0|+" : {
       "firstBaseline" : 13,
@@ -570,10 +1272,70 @@
       "lastBaseline" : 13,
       "width" : 0
     },
+    "system:13:400:default|0.0|A" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Alpha" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Apple" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|B" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Banana" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Beta" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Bordered" : {
       "firstBaseline" : 13,
       "height" : 128,
       "lastBaseline" : 125,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Borderless" : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Bottom" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Carrot" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|0.0|Count: 0" : {
@@ -582,7 +1344,49 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "system:13:400:default|0.0|Env" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Footer" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Fruits" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Gamma" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Go" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Header" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Hg" : {
       "firstBaseline" : 13,
       "height" : 32,
       "lastBaseline" : 29,
@@ -600,10 +1404,28 @@
       "lastBaseline" : 77,
       "width" : 0
     },
+    "system:13:400:default|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 976,
+      "lastBaseline" : 973,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Leek" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|OK" : {
       "firstBaseline" : 13,
       "height" : 32,
       "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|One" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
       "width" : 0
     },
     "system:13:400:default|0.0|Padded" : {
@@ -612,10 +1434,130 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:400:default|0.0|Plain" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Prominent" : {
       "firstBaseline" : 13,
       "height" : 144,
       "lastBaseline" : 141,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Row 0" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Row 1" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Row 2" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|small" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Three" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Top" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Two" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Vegetables" : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|150.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 137
+    },
+    "system:13:400:default|260.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 227
+    },
+    "system:13:400:default|400.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 355.5
+    },
+    "system:13:600:default||Bold" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 28.5
+    },
+    "system:13:600:default||Weight" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 44.5
+    },
+    "system:13:600:default|0.0|Bold" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:600:default|0.0|Weight" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:700:default||Bold" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 29.5
+    },
+    "system:13:700:default|0.0|Bold" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:800:default||Bold" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 30.5
+    },
+    "system:13:800:default|0.0|Bold" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:20:300:default||The quick brown fox" : {
@@ -690,11 +1632,23 @@
       "lastBaseline" : 379,
       "width" : 0
     },
+    "system:20:700:default||Bold" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 42.5
+    },
     "system:20:700:default||The quick brown fox" : {
       "firstBaseline" : 19,
       "height" : 24,
       "lastBaseline" : 19,
       "width" : 189.5
+    },
+    "system:20:700:default|0.0|Bold" : {
+      "firstBaseline" : 19,
+      "height" : 96,
+      "lastBaseline" : 91,
+      "width" : 0
     },
     "system:20:700:default|0.0|The quick brown fox" : {
       "firstBaseline" : 19,
@@ -748,6 +1702,14 @@
       "spacingBelow" : 11.15087890625,
       "textToText" : 1
     },
+    "style:body:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "spacingAbove" : 6.2311109244282186,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
     "style:body:w600" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
@@ -780,11 +1742,75 @@
       "spacingBelow" : 10.677734374999993,
       "textToText" : 1
     },
+    "style:callout:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 17.5,
+      "spacingAbove" : 5.9589658697689956,
+      "spacingBelow" : 10.677734375,
+      "textToText" : 1
+    },
+    "style:callout:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 17.5,
+      "spacingAbove" : 5.9655568547036779,
+      "spacingBelow" : 10.677734375,
+      "textToText" : 1
+    },
+    "style:callout:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 17.5,
+      "spacingAbove" : 5.9984131004905521,
+      "spacingBelow" : 10.677734375,
+      "textToText" : 1
+    },
+    "style:callout:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 17.5,
+      "spacingAbove" : 6.0399749744148039,
+      "spacingBelow" : 10.677734374999993,
+      "textToText" : 1
+    },
     "style:caption" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
       "spacingAbove" : 4.9089852291993061,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:caption:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9146757604505495,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:caption:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9203605976616558,
+      "spacingBelow" : 9.2314453125000036,
+      "textToText" : 1.5
+    },
+    "style:caption:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9486996714901395,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:caption:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9845474984521658,
       "spacingBelow" : 9.2314453125,
       "textToText" : 1.5
     },
@@ -796,11 +1822,75 @@
       "spacingBelow" : 9.2314453125,
       "textToText" : 1.5
     },
+    "style:caption2:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9146757604505495,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:caption2:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9203605976616558,
+      "spacingBelow" : 9.2314453125000036,
+      "textToText" : 1.5
+    },
+    "style:caption2:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9486996714901395,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:caption2:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9845474984521658,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
     "style:footnote" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 15,
       "spacingAbove" : 4.9089852291993061,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:footnote:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9146757604505495,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:footnote:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9203605976616558,
+      "spacingBelow" : 9.2314453125000036,
+      "textToText" : 1.5
+    },
+    "style:footnote:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9486996714901395,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5
+    },
+    "style:footnote:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "spacingAbove" : 4.9845474984521658,
       "spacingBelow" : 9.2314453125,
       "textToText" : 1.5
     },
@@ -812,11 +1902,75 @@
       "spacingBelow" : 11.15087890625,
       "textToText" : 1
     },
+    "style:headline:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "spacingAbove" : 6.2311109244282186,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
+    "style:headline:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "spacingAbove" : 6.238154983224689,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
+    "style:headline:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "spacingAbove" : 6.2732698149907584,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
+    "style:headline:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 19,
+      "spacingAbove" : 6.317688712396123,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1
+    },
     "style:largeTitle" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 38,
       "spacingAbove" : 12.678809606772006,
+      "spacingBelow" : 23.3017578125,
+      "textToText" : 1.5
+    },
+    "style:largeTitle:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 38,
+      "spacingAbove" : 12.693296920142544,
+      "spacingBelow" : 23.3017578125,
+      "textToText" : 1.5
+    },
+    "style:largeTitle:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 38,
+      "spacingAbove" : 12.70776973726656,
+      "spacingBelow" : 23.3017578125,
+      "textToText" : 1.5
+    },
+    "style:largeTitle:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 38,
+      "spacingAbove" : 12.779917138810873,
+      "spacingBelow" : 23.3017578125,
+      "textToText" : 1.5
+    },
+    "style:largeTitle:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 38,
+      "spacingAbove" : 12.871180797671904,
       "spacingBelow" : 23.3017578125,
       "textToText" : 1.5
     },
@@ -828,11 +1982,75 @@
       "spacingBelow" : 10.20458984375,
       "textToText" : 1.5
     },
+    "style:subheadline:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 5.6868208151097726,
+      "spacingBelow" : 10.20458984375,
+      "textToText" : 1.5
+    },
+    "style:subheadline:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 5.6929587261826669,
+      "spacingBelow" : 10.20458984375,
+      "textToText" : 1.5
+    },
+    "style:subheadline:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 5.7235563859903493,
+      "spacingBelow" : 10.20458984375,
+      "textToText" : 1.5
+    },
+    "style:subheadline:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 5.7622612364334884,
+      "spacingBelow" : 10.20458984375,
+      "textToText" : 1.5
+    },
     "style:title" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 33,
       "spacingAbove" : 11.092043498811563,
+      "spacingBelow" : 20.9091796875,
+      "textToText" : 0.5
+    },
+    "style:title:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 33,
+      "spacingAbove" : 11.104716701505652,
+      "spacingBelow" : 20.909179687500007,
+      "textToText" : 0.5
+    },
+    "style:title:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 33,
+      "spacingAbove" : 11.117377223182515,
+      "spacingBelow" : 20.909179687500007,
+      "textToText" : 0.5
+    },
+    "style:title:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 33,
+      "spacingAbove" : 11.180490280810048,
+      "spacingBelow" : 20.9091796875,
+      "textToText" : 0.5
+    },
+    "style:title:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 33,
+      "spacingAbove" : 11.260325845746635,
       "spacingBelow" : 20.9091796875,
       "textToText" : 0.5
     },
@@ -844,11 +2062,75 @@
       "spacingBelow" : 16.04345703125,
       "textToText" : 2
     },
+    "style:title2:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 25.5,
+      "spacingAbove" : 8.7818412856373236,
+      "spacingBelow" : 16.04345703125,
+      "textToText" : 2
+    },
+    "style:title2:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 25.5,
+      "spacingAbove" : 8.7914670389430931,
+      "spacingBelow" : 16.04345703125,
+      "textToText" : 2
+    },
+    "style:title2:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 25.5,
+      "spacingAbove" : 8.8394516906503036,
+      "spacingBelow" : 16.04345703125,
+      "textToText" : 2
+    },
+    "style:title2:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 25.5,
+      "spacingAbove" : 8.9001504100807161,
+      "spacingBelow" : 16.043457031249993,
+      "textToText" : 2
+    },
     "style:title3" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 22,
       "spacingAbove" : 7.4981328505825928,
+      "spacingBelow" : 13.59716796875,
+      "textToText" : 2.5
+    },
+    "style:title3:w500" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 23,
+      "spacingAbove" : 7.5064761050327711,
+      "spacingBelow" : 13.59716796875,
+      "textToText" : 2.5
+    },
+    "style:title3:w600" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 23,
+      "spacingAbove" : 7.5148110110838928,
+      "spacingBelow" : 13.59716796875,
+      "textToText" : 2.5
+    },
+    "style:title3:w700" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 23,
+      "spacingAbove" : 7.556360752820531,
+      "spacingBelow" : 13.59716796875,
+      "textToText" : 2.5
+    },
+    "style:title3:w800" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 23,
+      "spacingAbove" : 7.6089195612384195,
       "spacingBelow" : 13.59716796875,
       "textToText" : 2.5
     },
@@ -869,6 +2151,30 @@
       "textToText" : 0
     },
     "system:13:400:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 4.7421875,
+      "spacingBelow" : 8.15087890625,
+      "textToText" : 0
+    },
+    "system:13:600:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 4.7421875,
+      "spacingBelow" : 8.15087890625,
+      "textToText" : 0
+    },
+    "system:13:700:default" : {
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "spacingAbove" : 4.7421875,
+      "spacingBelow" : 8.15087890625,
+      "textToText" : 0
+    },
+    "system:13:800:default" : {
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
       "lineHeight" : 16,

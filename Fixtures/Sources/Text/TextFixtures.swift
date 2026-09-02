@@ -98,6 +98,26 @@ public enum TextFixtures {
         }
     }
 
+    /// The bold trait resolves to a different weight per text style (decision 0010).
+    public static let boldTrait = Fixture("text/bold-trait", size: CGSize(width: 300, height: 320)) {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Bold").bold().probe("default")
+            Text("Bold").font(.largeTitle).bold().probe("largeTitle")
+            Text("Bold").font(.title).bold().probe("title")
+            Text("Bold").font(.title2).bold().probe("title2")
+            Text("Bold").font(.title3).bold().probe("title3")
+            Text("Bold").font(.headline).bold().probe("headline")
+            Text("Bold").font(.subheadline).bold().probe("subheadline")
+            Text("Bold").font(.body).bold().probe("body")
+            Text("Bold").font(.callout).bold().probe("callout")
+            Text("Bold").font(.footnote).bold().probe("footnote")
+            Text("Bold").font(.caption).bold().probe("caption")
+            Text("Bold").font(.caption2).bold().probe("caption2")
+            Text("Bold").font(.system(size: 20).bold()).probe("size20")
+        }
+        .probe("column")
+    }
+
     public static let modifiers = Fixture("text/modifiers", size: CGSize(width: 300, height: 200)) {
         VStack(alignment: .leading, spacing: 0) {
             Text("Bold").bold().probe("bold")
@@ -115,5 +135,5 @@ public enum TextFixtures {
         }
     }
 
-    public static let all: [Fixture] = [hello, styles, systemFonts, wrapped, vstackSpacing, vstackSpacingMixed, hstackSpacing, hstackBaseline, modifiers]
+    public static let all: [Fixture] = [hello, styles, systemFonts, wrapped, vstackSpacing, vstackSpacingMixed, hstackSpacing, hstackBaseline, modifiers, boldTrait]
 }

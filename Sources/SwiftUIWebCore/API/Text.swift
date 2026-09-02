@@ -31,6 +31,7 @@ public struct Text: Equatable, Sendable {
     package struct Modifiers: Equatable, Sendable {
         package var font: Font?
         package var weight: Font.Weight?
+        package var bold = false
         package var italic = false
         package var foregroundColor: Color?
     }
@@ -68,7 +69,7 @@ public struct Text: Equatable, Sendable {
     public func font(_ font: Font?) -> Text { var t = self; t.modifiers.font = font; return t }
     public func fontWeight(_ weight: Font.Weight?) -> Text { var t = self; t.modifiers.weight = weight; return t }
     /// See `Font.bold()`: the bold trait is the semibold face on macOS.
-    public func bold() -> Text { fontWeight(PlatformMetrics.boldTraitWeight) }
+    public func bold() -> Text { var t = self; t.modifiers.bold = true; return t }
     public func bold(_ isActive: Bool) -> Text { isActive ? bold() : self }
     public func italic() -> Text { var t = self; t.modifiers.italic = true; return t }
     public func italic(_ isActive: Bool) -> Text { isActive ? italic() : self }
@@ -103,9 +104,13 @@ extension Text: View {
 @MainActor
 package final class TextNode: LeafNode<Text> {
     package var resolvedFont: ResolvedFont {
-        let font = view.modifiers.font ?? environment.font ?? .body
+        let font = view.modifiers.font ?? environment.font ?? environment.platformProfile.defaultFont
         var resolved = font.resolve(profile: environment.platformProfile)
-        if let weight = view.modifiers.weight { resolved.weight = weight; resolved.weightOverridden = true }
+        if let weight = view.modifiers.weight {
+            resolved.weight = weight; resolved.weightOverridden = true
+        } else if view.modifiers.bold {
+            resolved.weight = environment.platformProfile.boldTraitWeight(for: resolved.textStyle); resolved.weightOverridden = true
+        }
         if view.modifiers.italic { resolved.italic = true }
         return resolved
     }

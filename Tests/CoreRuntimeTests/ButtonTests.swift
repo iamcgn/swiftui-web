@@ -54,7 +54,7 @@ private struct Tracking: ButtonStyle {
         renderer.mount(Button("OK") {}.buttonStyle(Tracking(counter: counter))._probe("button"))
         renderer.renderFrame()
         #expect(counter.pressed == [false])
-        #expect(renderer.probeFrames["button"]?.size == CGSize(width: 22.5, height: 22.5))
+        #expect(renderer.probeFrames["button"]?.size == CGSize(width: 22.5, height: 20))   // 16 pt label + 2 pt padding
         let inside = CGPoint(x: 100, y: 50)
         renderer.runtime.pointerDown(at: inside)
         renderer.renderFrame()

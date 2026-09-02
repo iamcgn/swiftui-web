@@ -44,6 +44,8 @@ public struct Font: Hashable, Sendable {
 
     package struct Modifiers: Hashable, Sendable {
         package var weight: Weight?
+        /// The bold *trait*: resolves to a weight that depends on the text style (decision 0010).
+        package var bold = false
         package var italic = false
         package var monospacedDigit = false
         package var monospaced = false
@@ -102,9 +104,10 @@ public struct Font: Hashable, Sendable {
     // MARK: Modifiers
 
     public func weight(_ weight: Weight) -> Font { var f = self; f.modifiers.weight = weight; return f }
-    /// `bold()` applies the bold *trait*, which on macOS resolves to the semibold face
-    /// (fixture text/modifiers: `Text.bold()` measures like `.fontWeight(.semibold)`).
-    public func bold() -> Font { weight(PlatformMetrics.boldTraitWeight) }
+    /// `bold()` applies the bold *trait*. On macOS it resolves per text style (semibold for
+    /// `.body`, bold for `.title`, heavy for `.headline`…) and to bold for point-size fonts
+    /// (fixtures text/modifiers, text/bold-trait); see `PlatformProfile.TextStyleMetrics`.
+    public func bold() -> Font { var f = self; f.modifiers.bold = true; return f }
     public func italic() -> Font { var f = self; f.modifiers.italic = true; return f }
     public func monospaced() -> Font { var f = self; f.modifiers.monospaced = true; return f }
     public func monospacedDigit() -> Font { var f = self; f.modifiers.monospacedDigit = true; return f }
@@ -196,7 +199,11 @@ extension Font {
             family = name
             size = s
         }
-        if let w = modifiers.weight { weight = w; weightOverridden = true }
+        if let w = modifiers.weight {
+            weight = w; weightOverridden = true
+        } else if modifiers.bold {
+            weight = profile.boldTraitWeight(for: textStyle); weightOverridden = true
+        }
         if modifiers.monospaced { family = "system-monospaced" }
         return ResolvedFont(family: family, size: size, weight: weight, italic: modifiers.italic,
                             textStyle: textStyle, weightOverridden: weightOverridden)

@@ -7,7 +7,7 @@ import SwiftUIWebHeadless
 @Suite @MainActor struct PaintTests {
     private func render<V: View>(_ view: V, size: CGSize = CGSize(width: 200, height: 100), scale: CGFloat = 2) -> [String] {
         let runtime = Runtime()
-        let body = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: .body)
+        let body = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)   // the default font
         runtime.textEngine = RecordedTextEngine(entries: [
             RecordedTextEngine.key(font: body, width: nil, string: "Hello"): .init(width: 31, height: 18.5, firstBaseline: 14, lastBaseline: 14),
         ])
