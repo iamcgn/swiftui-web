@@ -124,6 +124,14 @@
           "fixtures": [
             "paint/shapes"
           ]
+        },
+        {
+          "api": "GeometryReader / GeometryProxy (size, frame(in:), bounds(of:))",
+          "status": "partial",
+          "notes": "No safe area or anchors",
+          "fixtures": [
+            "all (probe implementation)"
+          ]
         }
       ]
     },
@@ -216,6 +224,11 @@
           "fixtures": [
             "paint/clipping"
           ]
+        },
+        {
+          "api": "preference / transformPreference / onPreferenceChange / coordinateSpace",
+          "status": "partial",
+          "notes": "Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet"
         }
       ]
     }

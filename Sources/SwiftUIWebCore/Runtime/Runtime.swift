@@ -36,6 +36,9 @@ public final class Runtime {
     /// Frames recorded by `_probe` modifiers during the most recent layout pass.
     public internal(set) var probeFrames: [String: CGRect] = [:]
 
+    /// `onPreferenceChange` nodes, evaluated after each layout pass.
+    package var preferenceObservers: [WeakObserver] = []
+
     /// Applies pending updates, then lays the tree out in a window of `size`. As in SwiftUI,
     /// the root view is proposed the full size and centred.
     public func layout(in size: CGSize) {
@@ -47,6 +50,15 @@ public final class Runtime {
         for node in root.layoutChildren {
             node.place(at: CGPoint(x: size.width / 2, y: size.height / 2), anchor: .center,
                        proposal: ProposedViewSize(size), by: root)
+        }
+        deliverPreferences()
+    }
+
+    /// Runs every live `onPreferenceChange` action whose value changed in this pass.
+    package func deliverPreferences() {
+        preferenceObservers.removeAll { $0.node == nil || $0.node?.isMounted == false }
+        for observer in preferenceObservers {
+            observer.node?.evaluatePreference()
         }
     }
 }

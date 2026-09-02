@@ -15,13 +15,29 @@ public struct Fixture: Sendable {
     }
 }
 
+public struct ProbeKey: PreferenceKey {
+    public static let defaultValue: [String: CGRect] = [:]
+    public static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { $1 })
+    }
+}
+
 public let fixtureRootSpace = "fixtureRoot"
 
 extension View {
     /// Records this view's frame (in the fixture root's coordinate space) under `id`.
+    /// Identical to the Apple-side FixtureKit, so the whole GeometryReader/preference chain is
+    /// exercised by every fixture.
     public func probe(_ id: String) -> some View {
-        _probe(id)
+        background(GeometryReader { proxy in
+            Color.clear.preference(key: ProbeKey.self, value: [id: proxy.frame(in: .named(fixtureRootSpace))])
+        })
     }
+}
+
+@MainActor
+private final class FrameCollector {
+    var frames: [String: CGRect] = [:]
 }
 
 extension Fixture {
@@ -30,8 +46,13 @@ extension Fixture {
     public func layoutFrames(textEngine: (any TextEngine)? = nil) -> [String: CGRect] {
         let runtime = Runtime()
         if let textEngine { runtime.textEngine = textEngine }
-        runtime.mount(content().frame(width: size.width, height: size.height))
+        let collector = FrameCollector()
+        runtime.mount(
+            content()
+                .frame(width: size.width, height: size.height)
+                .coordinateSpace(name: fixtureRootSpace)
+                .onPreferenceChange(ProbeKey.self) { collector.frames = $0 })
         runtime.layout(in: size)
-        return runtime.probeFrames
+        return collector.frames
     }
 }

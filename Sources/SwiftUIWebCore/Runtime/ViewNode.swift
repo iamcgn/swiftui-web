@@ -173,6 +173,27 @@ open class ViewNode {
         return CGRect(origin: origin, size: frame.size)
     }
 
+    // MARK: Preferences
+
+    /// The subtree's value for `key`, or `nil` if nothing in it writes the key.
+    package func preferenceValue<K: PreferenceKey>(for key: K.Type) -> K.Value? {
+        var result: K.Value?
+        for child in structuralChildren {
+            guard let value = child.preferenceValue(for: key) else { continue }
+            if result == nil {
+                result = value
+            } else {
+                K.reduce(value: &result!, nextValue: { value })
+            }
+        }
+        return transformPreference(key, result)
+    }
+
+    /// Hook for nodes that write or transform a preference. Default: pass through.
+    package func transformPreference<K: PreferenceKey>(_ key: K.Type, _ value: K.Value?) -> K.Value? {
+        value
+    }
+
     // MARK: Painting
 
     /// Emits this node's drawing (self first, then children). Only layout nodes are painted; a

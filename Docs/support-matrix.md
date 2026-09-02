@@ -42,6 +42,7 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL |  |
 | `Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)` | 🟢 partial | macOS text-style table; bold() is the semibold face as measured | text/styles, text/system-fonts, text/modifiers |
 | `Rectangle / RoundedRectangle / Circle / Ellipse / Capsule, fill / stroke, Path` | 🟢 partial | Fill and plain stroke; no StrokeStyle or InsettableShape | paint/shapes |
+| `GeometryReader / GeometryProxy (size, frame(in:), bounds(of:))` | 🟢 partial | No safe area or anchors | all (probe implementation) |
 
 ## State
 
@@ -64,3 +65,4 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `fixedSize / layoutPriority / alignmentGuide` | 🟢 partial | Layout exact | layout/fixed-size, layout/hstack-priority, layout/alignment-guide |
 | `font(_:)` | 🟢 partial | Environment font | text/modifiers |
 | `opacity / clipShape / clipped / cornerRadius` | 🟢 partial | Display-list groups and clips | paint/clipping |
+| `preference / transformPreference / onPreferenceChange / coordinateSpace` | 🟢 partial | Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet |  |
