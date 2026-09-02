@@ -1,0 +1,153 @@
+{
+  "fixture" : "image\/aspect-ratio",
+  "frames" : {
+    "colorRatio" : {
+      "height" : 50,
+      "width" : 100,
+      "x" : 150,
+      "y" : 253
+    },
+    "colorRatioFrame" : {
+      "height" : 100,
+      "width" : 100,
+      "x" : 150,
+      "y" : 228
+    },
+    "fill" : {
+      "height" : 60,
+      "width" : 40,
+      "x" : 181,
+      "y" : 12
+    },
+    "fillClipped" : {
+      "height" : 60,
+      "width" : 40,
+      "x" : 229,
+      "y" : 12
+    },
+    "fillClippedImage" : {
+      "height" : 60,
+      "width" : 96,
+      "x" : 201,
+      "y" : 12
+    },
+    "fillImage" : {
+      "height" : 60,
+      "width" : 96,
+      "x" : 153,
+      "y" : 12
+    },
+    "fitTall" : {
+      "height" : 100,
+      "width" : 40,
+      "x" : 133,
+      "y" : 12
+    },
+    "fitTallImage" : {
+      "height" : 25,
+      "width" : 40,
+      "x" : 133,
+      "y" : 49.5
+    },
+    "fitWide" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 25,
+      "y" : 12
+    },
+    "fitWideImage" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 43,
+      "y" : 12
+    },
+    "flexibleImage" : {
+      "height" : 100,
+      "width" : 31.25,
+      "x" : 320.375,
+      "y" : 120
+    },
+    "heightOnly" : {
+      "height" : 30,
+      "width" : 48,
+      "x" : 156.375,
+      "y" : 120
+    },
+    "heightOnlyImage" : {
+      "height" : 30,
+      "width" : 48,
+      "x" : 156.375,
+      "y" : 120
+    },
+    "rigid" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 212.375,
+      "y" : 120
+    },
+    "rigidImage" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 230.375,
+      "y" : 120
+    },
+    "row1" : {
+      "height" : 100,
+      "width" : 350,
+      "x" : 25,
+      "y" : 12
+    },
+    "row2" : {
+      "height" : 100,
+      "width" : 303.25,
+      "x" : 48.375,
+      "y" : 120
+    },
+    "square" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 277,
+      "y" : 12
+    },
+    "squareImage" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 287,
+      "y" : 12
+    },
+    "stack" : {
+      "height" : 316,
+      "width" : 350,
+      "x" : 25,
+      "y" : 12
+    },
+    "third" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 345,
+      "y" : 12
+    },
+    "thirdImage" : {
+      "height" : 90,
+      "width" : 30,
+      "x" : 345,
+      "y" : -18
+    },
+    "widthOnly" : {
+      "height" : 62.5,
+      "width" : 100,
+      "x" : 48.375,
+      "y" : 120
+    },
+    "widthOnlyImage" : {
+      "height" : 62.5,
+      "width" : 100,
+      "x" : 48.375,
+      "y" : 120
+    }
+  },
+  "size" : {
+    "height" : 340,
+    "width" : 400
+  }
+}

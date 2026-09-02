@@ -1,0 +1,45 @@
+{
+  "fixture" : "color\/named",
+  "frames" : {
+    "accent" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 25.25,
+      "y" : 30
+    },
+    "panel" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 93.25,
+      "y" : 30
+    },
+    "row" : {
+      "height" : 60,
+      "width" : 289.5,
+      "x" : 25.25,
+      "y" : 30
+    },
+    "shape" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 229.25,
+      "y" : 30
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 17.5,
+      "x" : 297.25,
+      "y" : 52
+    },
+    "warm" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 161.25,
+      "y" : 30
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 340
+  }
+}

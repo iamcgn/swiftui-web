@@ -1,0 +1,51 @@
+{
+  "fixture" : "image\/tiling",
+  "frames" : {
+    "nearest" : {
+      "height" : 60,
+      "width" : 96,
+      "x" : 181,
+      "y" : 114
+    },
+    "row1" : {
+      "height" : 80,
+      "width" : 248,
+      "x" : 26,
+      "y" : 11
+    },
+    "row2" : {
+      "height" : 90,
+      "width" : 254,
+      "x" : 23,
+      "y" : 99
+    },
+    "sliced" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 26,
+      "y" : 11
+    },
+    "slicedTiled" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 154,
+      "y" : 11
+    },
+    "stack" : {
+      "height" : 178,
+      "width" : 254,
+      "x" : 23,
+      "y" : 11
+    },
+    "tiled" : {
+      "height" : 90,
+      "width" : 150,
+      "x" : 23,
+      "y" : 99
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

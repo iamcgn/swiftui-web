@@ -1,0 +1,98 @@
+{
+  "fixture" : "image\/swap",
+  "frames" : {
+    "image" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 105.25,
+      "y" : 80
+    },
+    "row" : {
+      "height" : 40,
+      "width" : 89.5,
+      "x" : 105.25,
+      "y" : 80
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 17.5,
+      "x" : 177.25,
+      "y" : 80
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "image" : {
+          "height" : 64,
+          "width" : 20,
+          "x" : 127.25,
+          "y" : 68
+        },
+        "row" : {
+          "height" : 64,
+          "width" : 45.5,
+          "x" : 127.25,
+          "y" : 68
+        },
+        "text" : {
+          "height" : 16,
+          "width" : 17.5,
+          "x" : 155.25,
+          "y" : 68
+        }
+      },
+      "name" : "tall"
+    },
+    {
+      "frames" : {
+        "image" : {
+          "height" : 0,
+          "width" : 0,
+          "x" : 137.25,
+          "y" : 92
+        },
+        "row" : {
+          "height" : 16,
+          "width" : 25.5,
+          "x" : 137.25,
+          "y" : 92
+        },
+        "text" : {
+          "height" : 16,
+          "width" : 17.5,
+          "x" : 145.25,
+          "y" : 92
+        }
+      },
+      "name" : "missing"
+    },
+    {
+      "frames" : {
+        "image" : {
+          "height" : 40,
+          "width" : 64,
+          "x" : 105.25,
+          "y" : 80
+        },
+        "row" : {
+          "height" : 40,
+          "width" : 89.5,
+          "x" : 105.25,
+          "y" : 80
+        },
+        "text" : {
+          "height" : 16,
+          "width" : 17.5,
+          "x" : 177.25,
+          "y" : 80
+        }
+      },
+      "name" : "back"
+    }
+  ]
+}

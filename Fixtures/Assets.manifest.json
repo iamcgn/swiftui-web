@@ -1,0 +1,223 @@
+{
+  "catalogs": [
+    "Assets.xcassets"
+  ],
+  "colors": {
+    "Accent": {
+      "variants": [
+        {
+          "alpha": 1.0,
+          "appearance": "any",
+          "blue": 1.0,
+          "colorSpace": "srgb",
+          "green": 0.533,
+          "idiom": "universal",
+          "red": 0.0
+        }
+      ]
+    },
+    "Panel": {
+      "variants": [
+        {
+          "alpha": 1.0,
+          "appearance": "any",
+          "blue": 0.9686274509803922,
+          "colorSpace": "srgb",
+          "green": 0.9490196078431372,
+          "idiom": "universal",
+          "red": 0.9490196078431372
+        },
+        {
+          "alpha": 1.0,
+          "appearance": "dark",
+          "blue": 0.11764705882352941,
+          "colorSpace": "srgb",
+          "green": 0.10980392156862745,
+          "idiom": "universal",
+          "red": 0.10980392156862745
+        }
+      ]
+    },
+    "Warm": {
+      "variants": [
+        {
+          "alpha": 0.5,
+          "appearance": "any",
+          "blue": 0.1568627450980392,
+          "colorSpace": "srgb",
+          "green": 0.5529411764705883,
+          "idiom": "universal",
+          "red": 1.0
+        }
+      ]
+    }
+  },
+  "images": {
+    "Folder/nested": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/Folder/nested.imageset/nested.png",
+          "height": 16,
+          "idiom": "universal",
+          "scale": 1,
+          "width": 32
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/Folder/nested.imageset/nested@2x.png",
+          "height": 32,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 64
+        }
+      ]
+    },
+    "badge": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/badge.imageset/badge@2x.png",
+          "height": 40,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 40
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/badge.imageset/badge~mac@2x.png",
+          "height": 40,
+          "idiom": "mac",
+          "scale": 2,
+          "width": 40
+        }
+      ]
+    },
+    "dual": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/dual.imageset/dual@2x.png",
+          "height": 48,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 96
+        },
+        {
+          "appearance": "dark",
+          "file": "Assets.xcassets/dual.imageset/dual-dark@2x.png",
+          "height": 48,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 96
+        }
+      ]
+    },
+    "icon": {
+      "template": true,
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/icon.imageset/icon.png",
+          "height": 24,
+          "idiom": "universal",
+          "scale": 1,
+          "width": 24
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/icon.imageset/icon@2x.png",
+          "height": 48,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 48
+        }
+      ]
+    },
+    "loose": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/Plain/loose.imageset/loose.png",
+          "height": 16,
+          "idiom": "universal",
+          "scale": 1,
+          "width": 32
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/Plain/loose.imageset/loose@2x.png",
+          "height": 32,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 64
+        }
+      ]
+    },
+    "panel": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/panel.imageset/panel.png",
+          "height": 40,
+          "idiom": "universal",
+          "scale": 1,
+          "width": 40
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/panel.imageset/panel@2x.png",
+          "height": 80,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 80
+        }
+      ]
+    },
+    "photo": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/photo.imageset/photo@2x.jpg",
+          "height": 120,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 160
+        }
+      ]
+    },
+    "swatch": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/swatch.imageset/swatch.png",
+          "height": 40,
+          "idiom": "universal",
+          "scale": 1,
+          "width": 64
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/swatch.imageset/swatch@2x.png",
+          "height": 80,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 128
+        }
+      ]
+    },
+    "tall": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/tall.imageset/tall@2x.png",
+          "height": 128,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 40
+        }
+      ]
+    }
+  },
+  "version": 1
+}

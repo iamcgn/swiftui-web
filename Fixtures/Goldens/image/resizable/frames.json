@@ -1,0 +1,75 @@
+{
+  "fixture" : "image\/resizable",
+  "frames" : {
+    "flexA" : {
+      "height" : 40,
+      "width" : 150,
+      "x" : 0,
+      "y" : 81
+    },
+    "flexB" : {
+      "height" : 40,
+      "width" : 150,
+      "x" : 150,
+      "y" : 81
+    },
+    "flexibleWidth" : {
+      "height" : 24,
+      "width" : 300,
+      "x" : 0,
+      "y" : 49
+    },
+    "overflow" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 187,
+      "y" : 11
+    },
+    "overflowClipped" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 225,
+      "y" : 11
+    },
+    "padded" : {
+      "height" : 60,
+      "width" : 120,
+      "x" : 90,
+      "y" : 129
+    },
+    "row1" : {
+      "height" : 30,
+      "width" : 210,
+      "x" : 45,
+      "y" : 11
+    },
+    "row3" : {
+      "height" : 40,
+      "width" : 300,
+      "x" : 0,
+      "y" : 81
+    },
+    "shrunk" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 45,
+      "y" : 11
+    },
+    "stack" : {
+      "height" : 178,
+      "width" : 300,
+      "x" : 0,
+      "y" : 11
+    },
+    "stretched" : {
+      "height" : 30,
+      "width" : 96,
+      "x" : 83,
+      "y" : 11
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "fixture" : "image\/template",
+  "frames" : {
+    "big" : {
+      "height" : 48,
+      "width" : 48,
+      "x" : 296,
+      "y" : 36
+    },
+    "blue" : {
+      "height" : 24,
+      "width" : 24,
+      "x" : 88,
+      "y" : 48
+    },
+    "default" : {
+      "height" : 24,
+      "width" : 24,
+      "x" : 24,
+      "y" : 48
+    },
+    "faded" : {
+      "height" : 24,
+      "width" : 24,
+      "x" : 352,
+      "y" : 48
+    },
+    "forced" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 152,
+      "y" : 40
+    },
+    "forcedDefault" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 224,
+      "y" : 40
+    },
+    "original" : {
+      "height" : 24,
+      "width" : 24,
+      "x" : 120,
+      "y" : 48
+    },
+    "red" : {
+      "height" : 24,
+      "width" : 24,
+      "x" : 56,
+      "y" : 48
+    },
+    "row" : {
+      "height" : 48,
+      "width" : 352,
+      "x" : 24,
+      "y" : 36
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 400
+  }
+}
