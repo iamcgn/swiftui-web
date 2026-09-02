@@ -18,6 +18,8 @@ let package = Package(
         .library(name: "SwiftUI", targets: ["SwiftUI"]),
         .library(name: "SwiftUIWebCanvas", targets: ["SwiftUIWebCanvas"]),
         .library(name: "SwiftUIWebHeadless", targets: ["SwiftUIWebHeadless"]),
+        .library(name: "FixtureKit", targets: ["FixtureKit"]),
+        .library(name: "SwiftUIWebFixtures", targets: ["SwiftUIWebFixtures"]),
     ],
     dependencies: [
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),

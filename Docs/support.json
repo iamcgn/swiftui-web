@@ -6,7 +6,7 @@
         {
           "api": "App / Scene / WindowGroup / @main",
           "status": "partial",
-          "notes": "App/Scene/WindowGroup/SceneBuilder API; main() mounts the first WindowGroup in the canvas host (wasm) or lays out headlessly"
+          "notes": "App/Scene/WindowGroup/SceneBuilder API; main() mounts the first WindowGroup in the canvas host (wasm) or lays out headlessly; Tier B (Chromium) within tolerance"
         }
       ]
     },
@@ -16,27 +16,27 @@
         {
           "api": "View / ViewBuilder (if/else, optional, switch, #available, any child count)",
           "status": "partial",
-          "notes": "Runtime node tree with structural identity; no layout or painting yet"
+          "notes": "Runtime node tree with structural identity; no layout or painting yet; Tier B (Chromium) within tolerance"
         },
         {
           "api": "EmptyView / TupleView / Group / _ConditionalContent / Optional",
           "status": "partial",
-          "notes": "Runtime nodes exist; no layout yet"
+          "notes": "Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance"
         },
         {
           "api": "AnyView",
           "status": "partial",
-          "notes": "Runtime nodes exist; no layout yet"
+          "notes": "Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance"
         },
         {
           "api": "ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)",
           "status": "partial",
-          "notes": "Runtime nodes exist; no layout yet"
+          "notes": "Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance"
         },
         {
           "api": "EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment",
           "status": "partial",
-          "notes": "@Entry macro not provided"
+          "notes": "@Entry macro not provided; Tier B (Chromium) within tolerance"
         },
         {
           "api": "Transaction / TransactionKey / withTransaction",
@@ -46,12 +46,12 @@
         {
           "api": "id(_:) / IDView",
           "status": "partial",
-          "notes": "Identity change rebuilds the subtree"
+          "notes": "Identity change rebuilds the subtree; Tier B (Chromium) within tolerance"
         },
         {
           "api": "DynamicProperty (custom, nested)",
           "status": "partial",
-          "notes": "update() and nested installation"
+          "notes": "update() and nested installation; Tier B (Chromium) within tolerance"
         }
       ]
     },
@@ -61,7 +61,7 @@
         {
           "api": "Text",
           "status": "partial",
-          "notes": "Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet",
+          "notes": "Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet; Tier B (Chromium) within tolerance",
           "fixtures": [
             "text/*"
           ]
@@ -69,7 +69,7 @@
         {
           "api": "VStack / HStack / ZStack",
           "status": "partial",
-          "notes": "Layout exact against goldens; no painting yet",
+          "notes": "Layout exact against goldens; no painting yet; Tier B (Chromium) within tolerance",
           "fixtures": [
             "layout/*"
           ]
@@ -77,7 +77,7 @@
         {
           "api": "Spacer",
           "status": "partial",
-          "notes": "Layout exact; no painting yet",
+          "notes": "Layout exact; no painting yet; Tier B (Chromium) within tolerance",
           "fixtures": [
             "layout/spacer",
             "layout/spacer-min-length"
@@ -86,7 +86,7 @@
         {
           "api": "Button",
           "status": "partial",
-          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate; custom ButtonStyle; press state; no roles/disabled",
+          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate; custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance",
           "fixtures": [
             "button/basic",
             "button/styles"
@@ -95,7 +95,7 @@
         {
           "api": "Divider",
           "status": "partial",
-          "notes": "Layout exact (1pt); no painting yet",
+          "notes": "Layout exact (1pt); no painting yet; Tier B (Chromium) within tolerance",
           "fixtures": [
             "layout/divider"
           ]
@@ -103,7 +103,7 @@
         {
           "api": "Color (as a view)",
           "status": "partial",
-          "notes": "macOS light system colour table; painting via display list",
+          "notes": "macOS light system colour table; painting via display list; Tier B (Chromium) within tolerance",
           "fixtures": [
             "paint/system-colors"
           ]
@@ -111,12 +111,12 @@
         {
           "api": "Layout protocol / custom layouts / layoutValue",
           "status": "partial",
-          "notes": "sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL"
+          "notes": "sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL; Tier B (Chromium) within tolerance"
         },
         {
           "api": "Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)",
           "status": "partial",
-          "notes": "macOS text-style table; bold() is the semibold face as measured",
+          "notes": "macOS text-style table; bold() is the semibold face as measured; Tier B (Chromium) within tolerance",
           "fixtures": [
             "text/styles",
             "text/system-fonts",
@@ -126,7 +126,7 @@
         {
           "api": "Rectangle / RoundedRectangle / Circle / Ellipse / Capsule, fill / stroke, Path",
           "status": "partial",
-          "notes": "Fill and plain stroke; no StrokeStyle or InsettableShape",
+          "notes": "Fill and plain stroke; no StrokeStyle or InsettableShape; Tier B (Chromium) within tolerance",
           "fixtures": [
             "paint/shapes"
           ]
@@ -134,7 +134,7 @@
         {
           "api": "GeometryReader / GeometryProxy (size, frame(in:), bounds(of:))",
           "status": "partial",
-          "notes": "No safe area or anchors",
+          "notes": "No safe area or anchors; Tier B (Chromium) within tolerance",
           "fixtures": [
             "all (probe implementation)"
           ]
@@ -147,22 +147,22 @@
         {
           "api": "@State",
           "status": "partial",
-          "notes": "Box per node; writes coalesce; no animation transactions yet"
+          "notes": "Box per node; writes coalesce; no animation transactions yet; Tier B (Chromium) within tolerance"
         },
         {
           "api": "@Binding",
           "status": "partial",
-          "notes": "get/set, constant, dynamic member lookup, optional and collection projections"
+          "notes": "get/set, constant, dynamic member lookup, optional and collection projections; Tier B (Chromium) within tolerance"
         },
         {
           "api": "@Environment",
           "status": "partial",
-          "notes": "Key-path and Observable-object forms (`Environment(Model.self)`, optional variant); `.environment(object)`"
+          "notes": "Key-path and Observable-object forms (`Environment(Model.self)`, optional variant); `.environment(object)`; Tier B (Chromium) within tolerance"
         },
         {
           "api": "@Observable / @Bindable",
           "status": "partial",
-          "notes": "Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath"
+          "notes": "Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath; Tier B (Chromium) within tolerance"
         },
         {
           "api": "ObservableObject / @Published / @StateObject",
@@ -177,7 +177,7 @@
         {
           "api": "padding",
           "status": "partial",
-          "notes": "Layout exact",
+          "notes": "Layout exact; Tier B (Chromium) within tolerance",
           "fixtures": [
             "layout/padding-default",
             "layout/padding-edges"
@@ -186,7 +186,7 @@
         {
           "api": "frame",
           "status": "partial",
-          "notes": "Fixed and flexible forms exact",
+          "notes": "Fixed and flexible forms exact; Tier B (Chromium) within tolerance",
           "fixtures": [
             "layout/frame-fixed",
             "layout/frame-flex"
@@ -195,7 +195,7 @@
         {
           "api": "background / overlay",
           "status": "partial",
-          "notes": "View, style and shape forms; layout exact, display-list painting",
+          "notes": "View, style and shape forms; layout exact, display-list painting; Tier B (Chromium) within tolerance",
           "fixtures": [
             "paint/background-overlay"
           ]
@@ -203,12 +203,12 @@
         {
           "api": "foregroundStyle / foregroundColor",
           "status": "partial",
-          "notes": "Flat colours only"
+          "notes": "Flat colours only; Tier B (Chromium) within tolerance"
         },
         {
           "api": "fixedSize / layoutPriority / alignmentGuide",
           "status": "partial",
-          "notes": "Layout exact",
+          "notes": "Layout exact; Tier B (Chromium) within tolerance",
           "fixtures": [
             "layout/fixed-size",
             "layout/hstack-priority",
@@ -218,7 +218,7 @@
         {
           "api": "font(_:)",
           "status": "partial",
-          "notes": "Environment font",
+          "notes": "Environment font; Tier B (Chromium) within tolerance",
           "fixtures": [
             "text/modifiers"
           ]
@@ -226,7 +226,7 @@
         {
           "api": "opacity / clipShape / clipped / cornerRadius",
           "status": "partial",
-          "notes": "Display-list groups and clips",
+          "notes": "Display-list groups and clips; Tier B (Chromium) within tolerance",
           "fixtures": [
             "paint/clipping"
           ]
@@ -234,12 +234,12 @@
         {
           "api": "preference / transformPreference / onPreferenceChange / coordinateSpace",
           "status": "partial",
-          "notes": "Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet"
+          "notes": "Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet; Tier B (Chromium) within tolerance"
         },
         {
           "api": "onTapGesture",
           "status": "partial",
-          "notes": "Single tap via the pointer arena; count ignored"
+          "notes": "Single tap via the pointer arena; count ignored; Tier B (Chromium) within tolerance"
         }
       ]
     }

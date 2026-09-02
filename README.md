@@ -64,3 +64,17 @@ swift test                      # native runtime + layout tests (fast)
 
 Apache-2.0. Ideas and small pieces are borrowed with attribution from Tokamak (Apache-2.0),
 ElementaryUI (Apache-2.0) and OpenSwiftUI (MIT); see `NOTICE`.
+
+## Running the examples
+
+```sh
+. scripts/env.sh                                  # swiftly toolchain + Apple ld shim
+swift test                                        # native: runtime, layout and golden-frame tests
+scripts/build-wasm.sh Examples/Counter --debug    # wasm bundle for the Counter app
+scripts/serve.sh Examples/Counter 8765            # then open http://localhost:8765/
+scripts/tier-b.sh --filter layout/                # browser fidelity: gallery + Playwright vs goldens
+```
+
+`Examples/Gallery` mounts any fixture (`index.html?fixture=text/wrapped`); `scripts/gen-goldens.sh`
+regenerates goldens with Apple's SwiftUI (macOS only).
+

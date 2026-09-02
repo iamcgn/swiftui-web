@@ -14,56 +14,56 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `App / Scene / WindowGroup / @main` | 🟢 partial | App/Scene/WindowGroup/SceneBuilder API; main() mounts the first WindowGroup in the canvas host (wasm) or lays out headlessly |  |
+| `App / Scene / WindowGroup / @main` | 🟢 partial | App/Scene/WindowGroup/SceneBuilder API; main() mounts the first WindowGroup in the canvas host (wasm) or lays out headlessly; Tier B (Chromium) within tolerance |  |
 
 ## View composition
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `View / ViewBuilder (if/else, optional, switch, #available, any child count)` | 🟢 partial | Runtime node tree with structural identity; no layout or painting yet |  |
-| `EmptyView / TupleView / Group / _ConditionalContent / Optional` | 🟢 partial | Runtime nodes exist; no layout yet |  |
-| `AnyView` | 🟢 partial | Runtime nodes exist; no layout yet |  |
-| `ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)` | 🟢 partial | Runtime nodes exist; no layout yet |  |
-| `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟢 partial | @Entry macro not provided |  |
+| `View / ViewBuilder (if/else, optional, switch, #available, any child count)` | 🟢 partial | Runtime node tree with structural identity; no layout or painting yet; Tier B (Chromium) within tolerance |  |
+| `EmptyView / TupleView / Group / _ConditionalContent / Optional` | 🟢 partial | Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance |  |
+| `AnyView` | 🟢 partial | Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance |  |
+| `ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)` | 🟢 partial | Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance |  |
+| `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟢 partial | @Entry macro not provided; Tier B (Chromium) within tolerance |  |
 | `Transaction / TransactionKey / withTransaction` | 🟠 stub | No `animation` member until the animation system exists |  |
-| `id(_:) / IDView` | 🟢 partial | Identity change rebuilds the subtree |  |
-| `DynamicProperty (custom, nested)` | 🟢 partial | update() and nested installation |  |
+| `id(_:) / IDView` | 🟢 partial | Identity change rebuilds the subtree; Tier B (Chromium) within tolerance |  |
+| `DynamicProperty (custom, nested)` | 🟢 partial | update() and nested installation; Tier B (Chromium) within tolerance |  |
 
 ## Views
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `Text` | 🟢 partial | Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet | text/* |
-| `VStack / HStack / ZStack` | 🟢 partial | Layout exact against goldens; no painting yet | layout/* |
-| `Spacer` | 🟢 partial | Layout exact; no painting yet | layout/spacer, layout/spacer-min-length |
-| `Button` | 🟢 partial | bordered (default), borderedProminent, plain exact in layout; borderless approximate; custom ButtonStyle; press state; no roles/disabled | button/basic, button/styles |
-| `Divider` | 🟢 partial | Layout exact (1pt); no painting yet | layout/divider |
-| `Color (as a view)` | 🟢 partial | macOS light system colour table; painting via display list | paint/system-colors |
-| `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL |  |
-| `Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)` | 🟢 partial | macOS text-style table; bold() is the semibold face as measured | text/styles, text/system-fonts, text/modifiers |
-| `Rectangle / RoundedRectangle / Circle / Ellipse / Capsule, fill / stroke, Path` | 🟢 partial | Fill and plain stroke; no StrokeStyle or InsettableShape | paint/shapes |
-| `GeometryReader / GeometryProxy (size, frame(in:), bounds(of:))` | 🟢 partial | No safe area or anchors | all (probe implementation) |
+| `Text` | 🟢 partial | Layout exact with recorded metrics; no painting, lineLimit, truncation or localization yet; Tier B (Chromium) within tolerance | text/* |
+| `VStack / HStack / ZStack` | 🟢 partial | Layout exact against goldens; no painting yet; Tier B (Chromium) within tolerance | layout/* |
+| `Spacer` | 🟢 partial | Layout exact; no painting yet; Tier B (Chromium) within tolerance | layout/spacer, layout/spacer-min-length |
+| `Button` | 🟢 partial | bordered (default), borderedProminent, plain exact in layout; borderless approximate; custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance | button/basic, button/styles |
+| `Divider` | 🟢 partial | Layout exact (1pt); no painting yet; Tier B (Chromium) within tolerance | layout/divider |
+| `Color (as a view)` | 🟢 partial | macOS light system colour table; painting via display list; Tier B (Chromium) within tolerance | paint/system-colors |
+| `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL; Tier B (Chromium) within tolerance |  |
+| `Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)` | 🟢 partial | macOS text-style table; bold() is the semibold face as measured; Tier B (Chromium) within tolerance | text/styles, text/system-fonts, text/modifiers |
+| `Rectangle / RoundedRectangle / Circle / Ellipse / Capsule, fill / stroke, Path` | 🟢 partial | Fill and plain stroke; no StrokeStyle or InsettableShape; Tier B (Chromium) within tolerance | paint/shapes |
+| `GeometryReader / GeometryProxy (size, frame(in:), bounds(of:))` | 🟢 partial | No safe area or anchors; Tier B (Chromium) within tolerance | all (probe implementation) |
 
 ## State
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `@State` | 🟢 partial | Box per node; writes coalesce; no animation transactions yet |  |
-| `@Binding` | 🟢 partial | get/set, constant, dynamic member lookup, optional and collection projections |  |
-| `@Environment` | 🟢 partial | Key-path and Observable-object forms (`Environment(Model.self)`, optional variant); `.environment(object)` |  |
-| `@Observable / @Bindable` | 🟢 partial | Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath |  |
+| `@State` | 🟢 partial | Box per node; writes coalesce; no animation transactions yet; Tier B (Chromium) within tolerance |  |
+| `@Binding` | 🟢 partial | get/set, constant, dynamic member lookup, optional and collection projections; Tier B (Chromium) within tolerance |  |
+| `@Environment` | 🟢 partial | Key-path and Observable-object forms (`Environment(Model.self)`, optional variant); `.environment(object)`; Tier B (Chromium) within tolerance |  |
+| `@Observable / @Bindable` | 🟢 partial | Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath; Tier B (Chromium) within tolerance |  |
 | `ObservableObject / @Published / @StateObject` | ❌ missing | Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3) |  |
 
 ## Modifiers
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `padding` | 🟢 partial | Layout exact | layout/padding-default, layout/padding-edges |
-| `frame` | 🟢 partial | Fixed and flexible forms exact | layout/frame-fixed, layout/frame-flex |
-| `background / overlay` | 🟢 partial | View, style and shape forms; layout exact, display-list painting | paint/background-overlay |
-| `foregroundStyle / foregroundColor` | 🟢 partial | Flat colours only |  |
-| `fixedSize / layoutPriority / alignmentGuide` | 🟢 partial | Layout exact | layout/fixed-size, layout/hstack-priority, layout/alignment-guide |
-| `font(_:)` | 🟢 partial | Environment font | text/modifiers |
-| `opacity / clipShape / clipped / cornerRadius` | 🟢 partial | Display-list groups and clips | paint/clipping |
-| `preference / transformPreference / onPreferenceChange / coordinateSpace` | 🟢 partial | Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet |  |
-| `onTapGesture` | 🟢 partial | Single tap via the pointer arena; count ignored |  |
+| `padding` | 🟢 partial | Layout exact; Tier B (Chromium) within tolerance | layout/padding-default, layout/padding-edges |
+| `frame` | 🟢 partial | Fixed and flexible forms exact; Tier B (Chromium) within tolerance | layout/frame-fixed, layout/frame-flex |
+| `background / overlay` | 🟢 partial | View, style and shape forms; layout exact, display-list painting; Tier B (Chromium) within tolerance | paint/background-overlay |
+| `foregroundStyle / foregroundColor` | 🟢 partial | Flat colours only; Tier B (Chromium) within tolerance |  |
+| `fixedSize / layoutPriority / alignmentGuide` | 🟢 partial | Layout exact; Tier B (Chromium) within tolerance | layout/fixed-size, layout/hstack-priority, layout/alignment-guide |
+| `font(_:)` | 🟢 partial | Environment font; Tier B (Chromium) within tolerance | text/modifiers |
+| `opacity / clipShape / clipped / cornerRadius` | 🟢 partial | Display-list groups and clips; Tier B (Chromium) within tolerance | paint/clipping |
+| `preference / transformPreference / onPreferenceChange / coordinateSpace` | 🟢 partial | Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet; Tier B (Chromium) within tolerance |  |
+| `onTapGesture` | 🟢 partial | Single tap via the pointer arena; count ignored; Tier B (Chromium) within tolerance |  |

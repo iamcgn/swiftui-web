@@ -1,8 +1,10 @@
 // swift-tools-version: 6.1
 import PackageDescription
 
+// Fixture gallery: mounts any fixture by name (`index.html?fixture=layout/spacer`) for the
+// browser Tier B job and for eyeballing elements. Build: scripts/build-wasm.sh Examples/Gallery
 let package = Package(
-    name: "Counter",
+    name: "Gallery",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "../.."),
@@ -11,10 +13,14 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "Counter",
+            name: "Gallery",
             dependencies: [
                 .product(name: "SwiftUI", package: "SwiftUIWeb"),
                 .product(name: "SwiftUIWebCanvas", package: "SwiftUIWeb"),
+                .product(name: "SwiftUIWebFixtures", package: "SwiftUIWeb"),
+                .product(name: "FixtureKit", package: "SwiftUIWeb"),
+                .product(name: "JavaScriptKit", package: "JavaScriptKit"),
+                .product(name: "JavaScriptEventLoop", package: "JavaScriptKit"),
             ]
         ),
     ]
