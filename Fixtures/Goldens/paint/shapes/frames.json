@@ -1,0 +1,45 @@
+{
+  "fixture" : "paint\/shapes",
+  "frames" : {
+    "capsule" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 180,
+      "y" : 85
+    },
+    "circle" : {
+      "height" : 70,
+      "width" : 70,
+      "x" : 0,
+      "y" : 65
+    },
+    "ellipse" : {
+      "height" : 30,
+      "width" : 50,
+      "x" : 250,
+      "y" : 85
+    },
+    "rect" : {
+      "height" : 100,
+      "width" : 40,
+      "x" : 80,
+      "y" : 50
+    },
+    "rounded" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 130,
+      "y" : 80
+    },
+    "row" : {
+      "height" : 100,
+      "width" : 300,
+      "x" : 0,
+      "y" : 50
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

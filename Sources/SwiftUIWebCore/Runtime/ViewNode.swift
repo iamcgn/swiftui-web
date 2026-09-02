@@ -173,6 +173,32 @@ open class ViewNode {
         return CGRect(origin: origin, size: frame.size)
     }
 
+    // MARK: Painting
+
+    /// Emits this node's drawing (self first, then children). Only layout nodes are painted; a
+    /// placer paints the nodes it placed at their frames.
+    package func paint(into list: inout DisplayList, context: PaintContext) {
+        paintSelf(into: &list, context: context)
+        paintChildren(into: &list, context: context)
+    }
+
+    /// This node's own drawing, before its children.
+    package func paintSelf(into list: inout DisplayList, context: PaintContext) {}
+
+    /// The layout nodes this node placed, painted at their frames. Default: none.
+    package var paintedChildren: [ViewNode] { [] }
+
+    package func paintChildren(into list: inout DisplayList, context: PaintContext) {
+        for child in paintedChildren {
+            child.paint(into: &list, context: context.child(at: child.frame))
+        }
+    }
+
+    /// This node's own bounds, pixel aligned, in absolute coordinates.
+    package func absoluteBounds(_ context: PaintContext) -> CGRect {
+        context.absoluteRect(CGRect(origin: .zero, size: frame.size))
+    }
+
     /// Indented dump of the subtree, one node per line, for tests and debugging.
     package func dump(indent: Int = 0) -> String {
         var lines = [String(repeating: "  ", count: indent) + nodeDescription]

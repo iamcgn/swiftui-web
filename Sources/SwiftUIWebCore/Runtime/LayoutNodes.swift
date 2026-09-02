@@ -101,6 +101,7 @@ package final class LayoutContainerNode<V: View, L: Layout, Content: View>: Layo
         withCache(subviews) { layout.placeSubviews(in: bounds, proposal: proposal, subviews: subviews, cache: &$0) }
     }
 
+    override package var paintedChildren: [ViewNode] { child.layoutChildren }
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "Layout<\(_shortTypeName(L.self))>" }
 }
@@ -229,6 +230,11 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
     override package var layoutPriority: Double { targets.first.map(priority(of:)) ?? 0 }
     override package var layoutSpacing: ViewSpacing { targets.first.map(spacing(of:)) ?? ViewSpacing() }
 
+    override package var paintedChildren: [ViewNode] {
+        let targets = targets
+        return targets.count == 1 ? targets : []
+    }
+
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "\(_shortTypeName(Modifier.self))" }
 }
@@ -261,6 +267,7 @@ package final class LayoutModifierProxy: ViewNode {
     }
     override package var layoutPriority: Double { owner.priority(of: target) }
     override package var layoutSpacing: ViewSpacing { owner.spacing(of: target) }
+    override package var paintedChildren: [ViewNode] { [target] }
     override package var nodeDescription: String { "Proxy" }
 }
 
@@ -376,7 +383,13 @@ package final class LayoutValueNode<Content: View, K: LayoutValueKey>: UnaryLayo
 // MARK: - Leaves
 
 @MainActor
-package final class ColorNode: LeafNode<Color> {}
+package final class ColorNode: LeafNode<Color> {
+    override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
+        let color = view.resolve(in: environment)
+        guard color.alpha > 0 else { return }
+        list.append(.fillRect(absoluteBounds(context), color))
+    }
+}
 
 @MainActor
 package final class SpacerNode: LeafNode<Spacer> {

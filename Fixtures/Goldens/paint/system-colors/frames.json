@@ -1,0 +1,153 @@
+{
+  "fixture" : "paint\/system-colors",
+  "frames" : {
+    "accentColor" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 100,
+      "y" : 160
+    },
+    "black" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 300,
+      "y" : 80
+    },
+    "blue" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 350,
+      "y" : 0
+    },
+    "brown" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 150,
+      "y" : 80
+    },
+    "clear" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 350,
+      "y" : 80
+    },
+    "cyan" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 300,
+      "y" : 0
+    },
+    "gray" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 250,
+      "y" : 80
+    },
+    "green" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 150,
+      "y" : 0
+    },
+    "indigo" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 0,
+      "y" : 80
+    },
+    "mint" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 200,
+      "y" : 0
+    },
+    "orange" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 50,
+      "y" : 0
+    },
+    "pink" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 100,
+      "y" : 80
+    },
+    "primary" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 0,
+      "y" : 160
+    },
+    "purple" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 50,
+      "y" : 80
+    },
+    "red" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 0,
+      "y" : 0
+    },
+    "redHalf" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 250,
+      "y" : 160
+    },
+    "redQuarter" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 300,
+      "y" : 160
+    },
+    "rgb" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 150,
+      "y" : 160
+    },
+    "secondary" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 50,
+      "y" : 160
+    },
+    "shapeDefault" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 350,
+      "y" : 160
+    },
+    "teal" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 250,
+      "y" : 0
+    },
+    "white" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 200,
+      "y" : 80
+    },
+    "white50" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 200,
+      "y" : 160
+    },
+    "yellow" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 100,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 400
+  }
+}

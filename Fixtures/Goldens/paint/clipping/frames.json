@@ -1,0 +1,33 @@
+{
+  "fixture" : "paint\/clipping",
+  "frames" : {
+    "clipped" : {
+      "height" : 60,
+      "width" : 100,
+      "x" : 50,
+      "y" : 10
+    },
+    "corner" : {
+      "height" : 60,
+      "width" : 100,
+      "x" : 50,
+      "y" : 80
+    },
+    "faded" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 50,
+      "y" : 150
+    },
+    "stack" : {
+      "height" : 180,
+      "width" : 100,
+      "x" : 50,
+      "y" : 10
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 200
+  }
+}

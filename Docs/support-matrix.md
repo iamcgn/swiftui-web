@@ -38,9 +38,10 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `Spacer` | 🟢 partial | Layout exact; no painting yet | layout/spacer, layout/spacer-min-length |
 | `Button` | ❌ missing |  |  |
 | `Divider` | 🟢 partial | Layout exact (1pt); no painting yet | layout/divider |
-| `Color (as a view)` | 🟢 partial | Layout only; painting in step 7 | layout/fixed-size |
+| `Color (as a view)` | 🟢 partial | macOS light system colour table; painting via display list | paint/system-colors |
 | `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL |  |
 | `Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)` | 🟢 partial | macOS text-style table; bold() is the semibold face as measured | text/styles, text/system-fonts, text/modifiers |
+| `Rectangle / RoundedRectangle / Circle / Ellipse / Capsule, fill / stroke, Path` | 🟢 partial | Fill and plain stroke; no StrokeStyle or InsettableShape | paint/shapes |
 
 ## State
 
@@ -58,7 +59,8 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 |---|---|---|---|
 | `padding` | 🟢 partial | Layout exact | layout/padding-default, layout/padding-edges |
 | `frame` | 🟢 partial | Fixed and flexible forms exact | layout/frame-fixed, layout/frame-flex |
-| `background / overlay` | ❌ missing |  |  |
-| `foregroundStyle / foregroundColor` | 🟠 stub | Environment plumbing only; painting in step 7 |  |
+| `background / overlay` | 🟢 partial | View, style and shape forms; layout exact, display-list painting | paint/background-overlay |
+| `foregroundStyle / foregroundColor` | 🟢 partial | Flat colours only |  |
 | `fixedSize / layoutPriority / alignmentGuide` | 🟢 partial | Layout exact | layout/fixed-size, layout/hstack-priority, layout/alignment-guide |
 | `font(_:)` | 🟢 partial | Environment font | text/modifiers |
+| `opacity / clipShape / clipped / cornerRadius` | 🟢 partial | Display-list groups and clips | paint/clipping |

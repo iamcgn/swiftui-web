@@ -97,9 +97,9 @@
         {
           "api": "Color (as a view)",
           "status": "partial",
-          "notes": "Layout only; painting in step 7",
+          "notes": "macOS light system colour table; painting via display list",
           "fixtures": [
-            "layout/fixed-size"
+            "paint/system-colors"
           ]
         },
         {
@@ -115,6 +115,14 @@
             "text/styles",
             "text/system-fonts",
             "text/modifiers"
+          ]
+        },
+        {
+          "api": "Rectangle / RoundedRectangle / Circle / Ellipse / Capsule, fill / stroke, Path",
+          "status": "partial",
+          "notes": "Fill and plain stroke; no StrokeStyle or InsettableShape",
+          "fixtures": [
+            "paint/shapes"
           ]
         }
       ]
@@ -172,12 +180,16 @@
         },
         {
           "api": "background / overlay",
-          "status": "missing"
+          "status": "partial",
+          "notes": "View, style and shape forms; layout exact, display-list painting",
+          "fixtures": [
+            "paint/background-overlay"
+          ]
         },
         {
           "api": "foregroundStyle / foregroundColor",
-          "status": "stub",
-          "notes": "Environment plumbing only; painting in step 7"
+          "status": "partial",
+          "notes": "Flat colours only"
         },
         {
           "api": "fixedSize / layoutPriority / alignmentGuide",
@@ -195,6 +207,14 @@
           "notes": "Environment font",
           "fixtures": [
             "text/modifiers"
+          ]
+        },
+        {
+          "api": "opacity / clipShape / clipped / cornerRadius",
+          "status": "partial",
+          "notes": "Display-list groups and clips",
+          "fixtures": [
+            "paint/clipping"
           ]
         }
       ]

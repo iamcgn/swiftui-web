@@ -129,6 +129,21 @@ package final class TextNode: LeafNode<Text> {
         ])
     }
 
+    override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
+        let layout = textLayout(width: frame.width)
+        let color = (view.modifiers.foregroundColor ?? environment.foregroundColor ?? .primary).resolve(in: environment)
+        let font = DisplayFont(resolvedFont)
+        let bounds = absoluteBounds(context)
+        let string = view.resolvedString
+        if layout.lines.isEmpty {
+            list.append(.drawText(string, font, origin: CGPoint(x: bounds.minX, y: bounds.minY + layout.firstBaseline), color))
+        } else {
+            for line in layout.lines {
+                list.append(.drawText(String(string[line.range]), font, origin: CGPoint(x: bounds.minX, y: bounds.minY + line.baseline), color))
+            }
+        }
+    }
+
     /// Text declares no default category vertically: its distances to neighbours come from the
     /// font (fixtures text/vstack-spacing*). Horizontally it behaves like any view (8 points).
     override package var layoutSpacing: ViewSpacing {
