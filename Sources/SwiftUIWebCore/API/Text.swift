@@ -19,21 +19,45 @@ public struct LocalizedStringKey: Equatable, Sendable, ExpressibleByStringInterp
     }
 }
 
+/// An alignment position for text along the horizontal axis.
+public enum TextAlignment: Hashable, CaseIterable, Sendable {
+    case leading, center, trailing
+}
+
 /// A view that displays one or more lines of read-only text.
 public struct Text: Equatable, Sendable {
+    /// The type of truncation to apply to a line of text when it's too long to fit in the
+    /// available space.
+    public enum TruncationMode: Hashable, Sendable {
+        case head, tail, middle
+    }
+
     package enum Storage: Equatable, Sendable {
         case verbatim(String)
         case localized(LocalizedStringKey)
         case concatenated([Text])
     }
 
-    /// Modifiers applied on the `Text` value itself (they win over the environment).
+    /// Modifiers applied on the `Text` value itself (they win over the environment). In a
+    /// concatenation, a part's own modifiers win over the modifiers of the whole.
     package struct Modifiers: Equatable, Sendable {
         package var font: Font?
         package var weight: Font.Weight?
         package var bold = false
         package var italic = false
         package var foregroundColor: Color?
+
+        /// `self` applied on top of the enclosing text's modifiers.
+        package func inheriting(_ parent: Modifiers) -> Modifiers {
+            Modifiers(font: font ?? parent.font, weight: weight ?? parent.weight, bold: bold || parent.bold,
+                      italic: italic || parent.italic, foregroundColor: foregroundColor ?? parent.foregroundColor)
+        }
+    }
+
+    /// One leaf of a (possibly concatenated) text with every modifier resolved.
+    package struct Part: Equatable, Sendable {
+        package var string: String
+        package var modifiers: Modifiers
     }
 
     package let storage: Storage
@@ -64,11 +88,21 @@ public struct Text: Equatable, Sendable {
         }
     }
 
+    /// The leaves of this text in order, each with the modifiers that apply to it.
+    package func parts(inheriting parent: Modifiers = Modifiers()) -> [Part] {
+        let effective = modifiers.inheriting(parent)
+        switch storage {
+        case .verbatim(let s): return [Part(string: s, modifiers: effective)]
+        case .localized(let key): return [Part(string: key.key, modifiers: effective)]
+        case .concatenated(let texts): return texts.flatMap { $0.parts(inheriting: effective) }
+        }
+    }
+
     // MARK: Text-level modifiers (return Text, as in SwiftUI)
 
     public func font(_ font: Font?) -> Text { var t = self; t.modifiers.font = font; return t }
     public func fontWeight(_ weight: Font.Weight?) -> Text { var t = self; t.modifiers.weight = weight; return t }
-    /// See `Font.bold()`: the bold trait is the semibold face on macOS.
+    /// See `Font.bold()`: the bold trait resolves per text style.
     public func bold() -> Text { var t = self; t.modifiers.bold = true; return t }
     public func bold(_ isActive: Bool) -> Text { isActive ? bold() : self }
     public func italic() -> Text { var t = self; t.modifiers.italic = true; return t }
@@ -82,9 +116,7 @@ public struct Text: Equatable, Sendable {
 
     /// Concatenates the text of two text views.
     public static func + (lhs: Text, rhs: Text) -> Text {
-        var t = Text(verbatim: "")
-        t = Text(storage: .concatenated([lhs, rhs]))
-        return t
+        Text(storage: .concatenated([lhs, rhs]))
     }
 
     package init(storage: Storage) {
@@ -100,23 +132,151 @@ extension Text: View {
     }
 }
 
+// MARK: - Environment (line limit, alignment, truncation, spacing)
+
+package struct LineLimitKey: EnvironmentKey { package static let defaultValue: Int? = nil }
+package struct LineLimitReservesSpaceKey: EnvironmentKey { package static let defaultValue = false }
+package struct MultilineTextAlignmentKey: EnvironmentKey { package static let defaultValue = TextAlignment.leading }
+package struct TruncationModeKey: EnvironmentKey { package static let defaultValue = Text.TruncationMode.tail }
+package struct LineSpacingKey: EnvironmentKey { package static let defaultValue: CGFloat = 0 }
+package struct AllowsTighteningKey: EnvironmentKey { package static let defaultValue = false }
+package struct MinimumScaleFactorKey: EnvironmentKey { package static let defaultValue: CGFloat = 1 }
+
+extension EnvironmentValues {
+    /// The maximum number of lines that text can occupy in a view.
+    public var lineLimit: Int? {
+        get { self[LineLimitKey.self] }
+        set { self[LineLimitKey.self] = newValue }
+    }
+
+    /// Whether `lineLimit` reserves the space of the limit even for shorter text.
+    package var lineLimitReservesSpace: Bool {
+        get { self[LineLimitReservesSpaceKey.self] }
+        set { self[LineLimitReservesSpaceKey.self] = newValue }
+    }
+
+    /// An environment value that indicates how a text view aligns its lines when the content
+    /// wraps or contains newlines.
+    public var multilineTextAlignment: TextAlignment {
+        get { self[MultilineTextAlignmentKey.self] }
+        set { self[MultilineTextAlignmentKey.self] = newValue }
+    }
+
+    /// A value that indicates how the layout truncates the last line of text to fit into the
+    /// available space.
+    public var truncationMode: Text.TruncationMode {
+        get { self[TruncationModeKey.self] }
+        set { self[TruncationModeKey.self] = newValue }
+    }
+
+    /// The distance in points between the bottom of one line fragment and the top of the next.
+    public var lineSpacing: CGFloat {
+        get { self[LineSpacingKey.self] }
+        set { self[LineSpacingKey.self] = newValue }
+    }
+
+    /// Whether inter-character spacing should tighten to fit the text into the available space.
+    /// Stored, not applied.
+    public var allowsTightening: Bool {
+        get { self[AllowsTighteningKey.self] }
+        set { self[AllowsTighteningKey.self] = newValue }
+    }
+
+    /// The minimum permissible proportion to shrink the font size to fit the text. Stored, not applied.
+    public var minimumScaleFactor: CGFloat {
+        get { self[MinimumScaleFactorKey.self] }
+        set { self[MinimumScaleFactorKey.self] = newValue }
+    }
+
+    package var textLayoutOptions: TextLayoutOptions {
+        TextLayoutOptions(lineLimit: lineLimit, truncationMode: truncationMode, lineSpacing: lineSpacing,
+                          reservesSpace: lineLimit != nil && lineLimitReservesSpace)
+    }
+}
+
+extension View {
+    /// Sets the maximum number of lines that text can occupy in this view.
+    nonisolated public func lineLimit(_ number: Int?) -> some View {
+        environment(\.lineLimit, number)
+    }
+
+    /// Sets to a partial range the number of lines that text can occupy in this view.
+    /// Only the upper bound of a range constrains the layout on macOS 26 (see `Docs/elements/Text.md`).
+    nonisolated public func lineLimit(_ limit: PartialRangeFrom<Int>) -> some View {
+        environment(\.lineLimit, nil)
+    }
+
+    nonisolated public func lineLimit(_ limit: PartialRangeThrough<Int>) -> some View {
+        environment(\.lineLimit, limit.upperBound)
+    }
+
+    nonisolated public func lineLimit(_ limit: ClosedRange<Int>) -> some View {
+        environment(\.lineLimit, limit.upperBound)
+    }
+
+    /// Sets a limit for the number of lines text can occupy in this view, optionally reserving
+    /// the space of that many lines.
+    nonisolated public func lineLimit(_ limit: Int, reservesSpace: Bool) -> some View {
+        environment(\.lineLimit, limit).environment(\.lineLimitReservesSpace, reservesSpace)
+    }
+
+    /// Sets the alignment of a text view that contains multiple lines of text.
+    nonisolated public func multilineTextAlignment(_ alignment: TextAlignment) -> some View {
+        environment(\.multilineTextAlignment, alignment)
+    }
+
+    /// Sets the truncation mode for lines of text that are too long to fit in the available space.
+    nonisolated public func truncationMode(_ mode: Text.TruncationMode) -> some View {
+        environment(\.truncationMode, mode)
+    }
+
+    /// Sets the amount of space between lines of text in this view.
+    nonisolated public func lineSpacing(_ lineSpacing: CGFloat) -> some View {
+        environment(\.lineSpacing, lineSpacing)
+    }
+
+    /// Sets whether text in this view can compress the space between characters when necessary
+    /// to fit text in a line. Stored only.
+    nonisolated public func allowsTightening(_ flag: Bool) -> some View {
+        environment(\.allowsTightening, flag)
+    }
+
+    /// Sets the minimum amount that text in this view scales down to fit in the available space.
+    /// Stored only.
+    nonisolated public func minimumScaleFactor(_ factor: CGFloat) -> some View {
+        environment(\.minimumScaleFactor, factor)
+    }
+}
+
+// MARK: - Node
+
 /// Lays out a text run with the runtime's text engine.
 @MainActor
 package final class TextNode: LeafNode<Text> {
-    package var resolvedFont: ResolvedFont {
-        let font = view.modifiers.font ?? environment.font ?? environment.platformProfile.defaultFont
+    package func resolveFont(_ modifiers: Text.Modifiers) -> ResolvedFont {
+        let font = modifiers.font ?? environment.font ?? environment.platformProfile.defaultFont
         var resolved = font.resolve(profile: environment.platformProfile)
-        if let weight = view.modifiers.weight {
+        if let weight = modifiers.weight {
             resolved.weight = weight; resolved.weightOverridden = true
-        } else if view.modifiers.bold {
+        } else if modifiers.bold {
             resolved.weight = environment.platformProfile.boldTraitWeight(for: resolved.textStyle); resolved.weightOverridden = true
         }
-        if view.modifiers.italic { resolved.italic = true }
+        if modifiers.italic { resolved.italic = true }
         return resolved
     }
 
+    /// The font of the text as a whole (its own modifiers over the environment); parts of a
+    /// concatenation may differ.
+    package var resolvedFont: ResolvedFont { resolveFont(view.modifiers) }
+
+    /// The text's leaves as the engine sees them, with each part's colour.
+    package var styledRuns: (runs: [StyledRun], colors: [Color?]) {
+        let parts = view.parts()
+        return (parts.map { StyledRun($0.string, font: resolveFont($0.modifiers)) }, parts.map(\.modifiers.foregroundColor))
+    }
+
     package func textLayout(width: CGFloat?) -> TextLayout {
-        runtime.textEngine.layout(view.resolvedString, font: resolvedFont, width: width)
+        runtime.textEngine.layout(styledRuns.runs, options: environment.textLayoutOptions, width: width)
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
@@ -135,16 +295,25 @@ package final class TextNode: LeafNode<Text> {
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
-        let layout = textLayout(width: frame.width)
-        let color = (view.modifiers.foregroundColor ?? environment.foregroundColor ?? .primary).resolve(in: environment)
-        let font = DisplayFont(resolvedFont)
+        let (runs, colors) = styledRuns
+        let layout = runtime.textEngine.layout(runs, options: environment.textLayoutOptions, width: frame.width)
+        let inherited = (environment.foregroundColor ?? .primary)
+        let resolvedColors = colors.map { ($0 ?? inherited).resolve(in: environment) }
+        let fonts = runs.map { DisplayFont($0.font) }
         let bounds = absoluteBounds(context)
-        let string = view.resolvedString
-        if layout.lines.isEmpty {
-            list.append(.drawText(string, font, origin: CGPoint(x: bounds.minX, y: bounds.minY + layout.firstBaseline), color))
-        } else {
-            for line in layout.lines {
-                list.append(.drawText(String(string[line.range]), font, origin: CGPoint(x: bounds.minX, y: bounds.minY + line.baseline), color))
+        let alignment: CGFloat
+        switch environment.multilineTextAlignment {
+        case .leading: alignment = 0
+        case .center: alignment = 0.5
+        case .trailing: alignment = 1
+        }
+        for line in layout.lines {
+            let lineX = bounds.minX + (frame.width - line.inkWidth) * alignment
+            for fragment in line.fragments where !fragment.text.isEmpty {
+                let run = min(max(fragment.run, 0), max(runs.count - 1, 0))
+                list.append(.drawText(fragment.text, fonts.indices.contains(run) ? fonts[run] : DisplayFont(resolvedFont),
+                                      origin: CGPoint(x: lineX + fragment.x, y: bounds.minY + line.baseline),
+                                      resolvedColors.indices.contains(run) ? resolvedColors[run] : inherited.resolve(in: environment)))
             }
         }
     }
@@ -152,7 +321,7 @@ package final class TextNode: LeafNode<Text> {
     /// Text declares no default category vertically: its distances to neighbours come from the
     /// font (fixtures text/vstack-spacing*). Horizontally it behaves like any view (8 points).
     override package var layoutSpacing: ViewSpacing {
-        let metrics = runtime.textEngine.metrics(for: resolvedFont)
+        let metrics = runtime.textEngine.metrics(for: styledRuns.runs.first?.font ?? resolvedFont)
         return ViewSpacing.text(metrics)
     }
 }

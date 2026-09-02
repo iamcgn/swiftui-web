@@ -81,25 +81,42 @@ func collectFrames<V: View>(_ view: V, size: CGSize) -> [String: CGRect] {
     FrameHost(view, size: size).frames()
 }
 
+/// The SwiftUI view of a text request: its runs concatenated, with the layout modifiers applied.
+func requestText(_ request: TextMetricRequest) -> Text {
+    request.runs.map { Text($0.string).font($0.font.font) }.dropFirst().reduce(Text(request.runs[0].string).font(request.runs[0].font.font), +)
+}
+
+@ViewBuilder
+func requestView(_ request: TextMetricRequest, id: String) -> some View {
+    let options = request.options
+    let base = requestText(request).probe(id)
+        .lineSpacing(options.lineSpacing)
+        .truncationMode(options.truncation == "head" ? .head : options.truncation == "middle" ? .middle : .tail)
+    let limited: AnyView = {
+        if let limit = options.lineLimit {
+            return AnyView(options.reservesSpace ? AnyView(base.lineLimit(limit, reservesSpace: true)) : AnyView(base.lineLimit(limit)))
+        }
+        return AnyView(base)
+    }()
+    if let width = request.width {
+        limited.frame(width: width, alignment: .topLeading)
+    } else {
+        limited
+    }
+}
+
 /// Measures one text request: size plus first/last baseline. A 10×10 marker aligned on the
 /// baseline has its bottom on that baseline (non-text views' baseline guides are their bottom).
 @MainActor
 func measure(_ request: TextMetricRequest) -> [String: Double] {
     let canvas = CGSize(width: 2000, height: 2000)
-    @ViewBuilder func text(_ id: String) -> some View {
-        if let width = request.width {
-            Text(request.string).font(request.font.font).probe(id).frame(width: width, alignment: .topLeading)
-        } else {
-            Text(request.string).font(request.font.font).probe(id)
-        }
-    }
     let view = VStack(alignment: .leading, spacing: 0) {
         HStack(alignment: .firstTextBaseline, spacing: 0) {
-            text("text1")
+            requestView(request, id: "text1")
             Color.clear.frame(width: 10, height: 10).probe("first")
         }
         HStack(alignment: .lastTextBaseline, spacing: 0) {
-            text("text2")
+            requestView(request, id: "text2")
             Color.clear.frame(width: 10, height: 10).probe("last")
         }
     }
@@ -152,14 +169,20 @@ func measureFontSpacing(_ font: FixtureFont) -> [String: Double] {
 func generateTextMetrics(into root: URL) throws {
     var entries: [String: [String: Double]] = [:]
     var fonts: [String: [String: Double]] = [:]
-    for request in TextMetricsRequests.all {
+    var pending = TextMetricsRequests.all
+    // A mixed-font request also records each of its parts alone: the headless engine places the
+    // parts of a concatenation with those widths.
+    for request in TextMetricsRequests.all where request.runs.count > 1 {
+        pending += request.runs.map { TextMetricRequest($0.string, $0.font) }
+    }
+    for request in pending {
         entries[request.key] = measure(request)
         if request.width == nil {
             // Stacks probe minimum sizes with a zero-width proposal; record that layout too.
-            let minimum = TextMetricRequest(request.string, request.font, width: 0)
+            let minimum = TextMetricRequest(runs: request.runs, width: 0, options: request.options)
             entries[minimum.key] = measure(minimum)
         }
-        if fonts[request.font.key] == nil { fonts[request.font.key] = measureFontSpacing(request.font) }
+        for font in request.fonts where fonts[font.key] == nil { fonts[font.key] = measureFontSpacing(font) }
     }
     let os = ProcessInfo.processInfo.operatingSystemVersion
     let doc: [String: Any] = [

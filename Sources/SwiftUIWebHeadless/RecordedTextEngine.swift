@@ -64,34 +64,48 @@ public final class RecordedTextEngine: TextEngine {
                            spacingAbove: entry.spacingAbove, textToText: entry.textToText)
     }
 
+    /// Key of a single-font, default-options recording (see `TextMetricsKey`).
     public static func key(font: ResolvedFont, width: CGFloat?, string: String) -> String {
-        "\(font.key)|\(width.map { "\($0)" } ?? "")|\(string)"
+        TextMetricsKey.make(runs: [StyledRun(string, font: font)], options: .default, width: width)
     }
 
-    public func layout(_ string: String, font: ResolvedFont, width: CGFloat?) -> TextLayout {
-        if let exact = entries[Self.key(font: font, width: width, string: string)] {
-            return layout(from: exact, string: string)
+    public func layout(_ runs: [StyledRun], options: TextLayoutOptions, width: CGFloat?) -> TextLayout {
+        let key = TextMetricsKey.make(runs: runs, options: options, width: width)
+        if let exact = entries[key] {
+            return layout(from: exact, runs: runs)
         }
         if let width {
-            // A single-line recording that fits the proposed width needs no wrapping.
-            if let single = entries[Self.key(font: font, width: nil, string: string)], single.width <= width {
-                return layout(from: single, string: string)
+            // A single-line recording that fits the proposed width needs no wrapping, and neither
+            // a line limit nor truncation nor line spacing changes it (unless space is reserved).
+            if !options.reservesSpace,
+               let single = entries[TextMetricsKey.make(runs: runs, options: .default, width: nil)], single.width <= width {
+                return layout(from: single, runs: runs)
             }
-            // Below the minimum (widest word) the layout is the zero-width one.
-            if let minimum = entries[Self.key(font: font, width: 0, string: string)], width <= minimum.width {
-                return layout(from: minimum, string: string)
+            // Below the minimum the layout is the zero-width one.
+            if let minimum = entries[TextMetricsKey.make(runs: runs, options: options, width: 0)], width <= minimum.width {
+                return layout(from: minimum, runs: runs)
             }
         }
-        misses.append(Self.key(font: font, width: width, string: string))
+        misses.append(key)
         return TextLayout(size: .zero, firstBaseline: 0, lastBaseline: 0, lines: [])
     }
 
-    private func layout(from entry: Entry, string: String) -> TextLayout {
-        TextLayout(
-            size: CGSize(width: entry.width, height: entry.height),
-            firstBaseline: entry.firstBaseline,
-            lastBaseline: entry.lastBaseline,
-            lines: [TextLayout.Line(range: string.startIndex..<string.endIndex, width: entry.width, baseline: entry.firstBaseline)])
+    /// One line holding every run. Each run's fragment width comes from its own single-run
+    /// recording when there is one (rich requests record their parts), so headless painting
+    /// places the parts of a concatenation where the browser would.
+    private func layout(from entry: Entry, runs: [StyledRun]) -> TextLayout {
+        var widths: [CGFloat] = []
+        if runs.count == 1 {
+            widths = [entry.width]
+        } else {
+            for run in runs {
+                widths.append(entries[Self.key(font: run.font, width: nil, string: run.string)].map { CGFloat($0.width) } ?? 0)
+            }
+        }
+        var layout = TextLayout.singleLine(runs, size: CGSize(width: entry.width, height: entry.height),
+                                           baseline: entry.firstBaseline, runWidths: widths)
+        layout.lastBaseline = entry.lastBaseline
+        return layout
     }
 }
 #endif

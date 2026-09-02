@@ -51,20 +51,85 @@ public enum FixtureFont: Hashable, Sendable {
     }
 }
 
-public struct TextMetricRequest: Hashable, Sendable {
-    public let string: String
-    public let font: FixtureFont
-    public let width: CGFloat?
+/// Layout options a text is measured with (`lineLimit`, `truncationMode`, `lineSpacing`).
+/// Spelled into the key exactly like `TextLayoutOptions` in SwiftUIWebCore (`TextMetricsKey`).
+public struct TextMetricOptions: Hashable, Sendable {
+    public var lineLimit: Int? = nil
+    public var reservesSpace = false
+    public var lineSpacing: CGFloat = 0
+    public var truncation = "tail"      // "head" | "middle" | "tail"
 
-    public init(_ string: String, _ font: FixtureFont, width: CGFloat? = nil) {
-        self.string = string
-        self.font = font
-        self.width = width
+    public init(lineLimit: Int? = nil, reservesSpace: Bool = false, lineSpacing: CGFloat = 0, truncation: String = "tail") {
+        self.lineLimit = lineLimit
+        self.reservesSpace = reservesSpace
+        self.lineSpacing = lineSpacing
+        self.truncation = truncation
     }
 
-    /// Key in text-metrics.json.
+    public static let `default` = TextMetricOptions()
+
+    /// The suffix appended to the width slot of a key.
+    public var keySuffix: String {
+        var suffix = ""
+        if let lineLimit { suffix += ";l\(lineLimit)" }
+        if reservesSpace { suffix += ";r" }
+        if lineSpacing != 0 { suffix += ";s\(lineSpacing)" }
+        if truncation != "tail" { suffix += ";t\(truncation)" }
+        return suffix
+    }
+}
+
+public struct TextMetricRequest: Hashable, Sendable {
+    /// One part of a concatenated text: a string in a font.
+    public struct Run: Hashable, Sendable {
+        public let string: String
+        public let font: FixtureFont
+        public init(_ string: String, _ font: FixtureFont) {
+            self.string = string
+            self.font = font
+        }
+    }
+
+    public let runs: [Run]
+    public let width: CGFloat?
+    public let options: TextMetricOptions
+
+    public init(_ string: String, _ font: FixtureFont, width: CGFloat? = nil, options: TextMetricOptions = .default) {
+        self.runs = [Run(string, font)]
+        self.width = width
+        self.options = options
+    }
+
+    /// A mixed-font text (`Text("a").font(f1) + Text("b").font(f2)`).
+    public init(runs: [Run], width: CGFloat? = nil, options: TextMetricOptions = .default) {
+        self.runs = runs
+        self.width = width
+        self.options = options
+    }
+
+    public var string: String { runs.map(\.string).joined() }
+    /// The fonts the request uses (one per run, in order).
+    public var fonts: [FixtureFont] { runs.map(\.font) }
+
+    /// Adjacent runs in the same font, merged: colour boundaries do not affect measurement.
+    public var mergedRuns: [Run] {
+        var merged: [Run] = []
+        for run in runs {
+            if let last = merged.last, last.font == run.font {
+                merged[merged.count - 1] = Run(last.string + run.string, run.font)
+            } else {
+                merged.append(run)
+            }
+        }
+        return merged
+    }
+
+    /// Key in text-metrics.json: `<font>|<width><options>|<string>`, with `rich:<key>=<count>,…`
+    /// as the font of a mixed-font text (see `TextMetricsKey` in SwiftUIWebCore).
     public var key: String {
-        "\(font.key)|\(width.map { "\($0)" } ?? "")|\(string)"
+        let merged = mergedRuns
+        let fontSlot = merged.count == 1 ? merged[0].font.key : "rich:" + merged.map { "\($0.font.key)=\($0.string.count)" }.joined(separator: ",")
+        return "\(fontSlot)|\(width.map { "\($0)" } ?? "")\(options.keySuffix)|\(string)"
     }
 }
 
