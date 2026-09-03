@@ -85,6 +85,7 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `@Observable / @Bindable` | 🟢 partial | Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath; Tier B (Chromium) within tolerance |  |
 | `ObservableObject / @Published / @StateObject` | ❌ missing | Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3) |  |
 | `ObservableObject / ObservableObjectPublisher / AnyCancellable / @Published / @StateObject / @ObservedObject / @EnvironmentObject / environmentObject` | 🟢 partial | Combine-free implementation: closure subscribers, enclosing-instance @Published, per-identity state objects, re-subscription on replacement; no Combine operators or onReceive | observable/object |
+| `@FocusState (Bool, optional Hashable) / focused(_:) / focused(_:equals:)` | 🟢 partial | Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); no focusable(), FocusedValue, key handling | focus/basic |
 
 ## Modifiers
 

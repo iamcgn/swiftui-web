@@ -452,6 +452,14 @@
           "fixtures": [
             "observable/object"
           ]
+        },
+        {
+          "api": "@FocusState (Bool, optional Hashable) / focused(_:) / focused(_:equals:)",
+          "status": "partial",
+          "notes": "Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); no focusable(), FocusedValue, key handling",
+          "fixtures": [
+            "focus/basic"
+          ]
         }
       ]
     },
