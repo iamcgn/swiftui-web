@@ -229,6 +229,15 @@
           ]
         },
         {
+          "api": "Canvas / GraphicsContext (fill, stroke, text, transforms, opacity, clip, drawLayer) / ResolvedText",
+          "status": "partial",
+          "notes": "Immediate-mode drawing recorded into the display list (a concat op for rotated text); pixels within 0.11 % of Apple's; no gradients, images, blend modes, filters or symbols",
+          "fixtures": [
+            "canvas/basic",
+            "canvas/sizing"
+          ]
+        },
+        {
           "api": "TextField (title/prompt/label forms) / SecureField / TextFieldStyle (automatic, roundedBorder, squareBorder, plain) / textFieldStyle",
           "status": "partial",
           "notes": "Bezel, insets, baseline, placeholder, bullets and disabled look measured; editing through the host's transparent <input> (browser caret/selection/IME); no @FocusState, multi-line (axis), formatted values or custom styles",
