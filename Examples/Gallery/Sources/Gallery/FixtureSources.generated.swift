@@ -798,6 +798,90 @@ public static let systemColors = Fixture("paint/system-colors", size: CGSize(wid
     }
 }
 """#),
+        FixtureSource(name: "picker/basic", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 15, lastLine: 43, declaration: #"""
+public static let basic = Fixture("picker/basic", size: CGSize(width: 320, height: 320)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Picker("Fruit", selection: .constant(1)) {
+            Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+        }
+        .probe("menu")
+        Picker("Fruit", selection: .constant(2)) {
+            Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+        }
+        .labelsHidden()
+        .probe("menuHidden")
+        Picker("Fruit", selection: .constant(1)) {
+            Text("Apple").tag(1).probe("segApple"); Text("Banana").tag(2).probe("segBanana"); Text("Cherry").tag(3).probe("segCherry")
+        }
+        .pickerStyle(.segmented)
+        .probe("segmented")
+        Picker("Fruit", selection: .constant(1)) {
+            Text("Apple").tag(1).probe("radioApple"); Text("Banana").tag(2).probe("radioBanana"); Text("Cherry").tag(3).probe("radioCherry")
+        }
+        .pickerStyle(.radioGroup)
+        .probe("radio")
+        Picker("Fruit", selection: .constant(1)) {
+            Text("Apple").tag(1).probe("inlineApple"); Text("Banana").tag(2).probe("inlineBanana")
+        }
+        .pickerStyle(.inline)
+        .probe("inline")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "picker/forms", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 45, lastLine: 75, declaration: #"""
+public static let forms = Fixture("picker/forms", size: CGSize(width: 320, height: 260)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Picker("Fruit", selection: .constant(1)) {
+            ForEach(ListItem.fruits) { Text($0.name) }
+        }
+        .probe("forEach")
+        Picker(selection: .constant(1)) {
+            Text("Apple").tag(1); Text("Banana").tag(2)
+        } label: {
+            Label("Fruit", image: "icon")
+        }
+        .probe("labelPicker")
+        Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Banana").tag(2) }
+            .disabled(true)
+            .probe("disabled")
+        Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Banana").tag(2) }
+            .frame(width: 200)
+            .probe("fixed")
+        Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Banana").tag(2) }
+            .pickerStyle(.segmented)
+            .frame(width: 200)
+            .probe("fixedSegmented")
+        HStack(spacing: 8) {
+            Text("Row").probe("rowText")
+            Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Banana").tag(2) }.labelsHidden().probe("rowPicker")
+            Button("OK") {}.probe("rowButton")
+        }
+        .probe("row")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "picker/steps", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 77, lastLine: 94, declaration: #"""
+public static let steps = Fixture(
+    "picker/steps", size: CGSize(width: 320, height: 160),
+    model: { PickerModel() },
+    steps: [
+        FixtureStep("banana") { $0.selection = 2 },
+        FixtureStep("cherry") { $0.selection = 3 },
+    ]
+) { model in
+    let selection = Binding(get: { model.selection }, set: { model.selection = $0 })
+    VStack(alignment: .leading, spacing: 12) {
+        Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }.probe("menu")
+        Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
+            .pickerStyle(.segmented).probe("segmented")
+        Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
+            .pickerStyle(.radioGroup).probe("radio")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "scroll/anchor-bottom", file: "Fixtures/Sources/ScrollView/ScrollViewFixtures.swift", firstLine: 139, lastLine: 146, declaration: #"""
 /// `defaultScrollAnchor(.bottom)` starts at the end of the content.
 public static let anchorBottom = Fixture("scroll/anchor-bottom", size: CGSize(width: 300, height: 200)) {
@@ -1288,6 +1372,80 @@ public static let stroke = Fixture("shape/stroke", size: CGSize(width: 320, heig
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "slider/basic", file: "Fixtures/Sources/Controls/SliderFixtures.swift", firstLine: 14, lastLine: 31, declaration: #"""
+public static let basic = Fixture("slider/basic", size: CGSize(width: 320, height: 300)) {
+    VStack(spacing: 12) {
+        Slider(value: .constant(0.5)).probe("half")
+        Slider(value: .constant(0)).probe("zero")
+        Slider(value: .constant(1)).probe("full")
+        Slider(value: .constant(25), in: 0...100, step: 5).probe("stepped")
+        Slider(value: .constant(0.5)) { Text("Volume") }.probe("labelled")
+        Slider(value: .constant(0.5), in: 0...1) { Text("Volume") } minimumValueLabel: { Text("Min").probe("min") } maximumValueLabel: { Text("Max").probe("max") }.probe("minMax")
+        Slider(value: .constant(0.5)).frame(width: 120).probe("narrow")
+        Slider(value: .constant(0.5)).disabled(true).probe("disabled")
+        HStack(spacing: 8) {
+            Text("Row").probe("rowText")
+            Slider(value: .constant(0.5)).probe("rowSlider")
+        }
+        .probe("row")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "slider/steps", file: "Fixtures/Sources/Controls/SliderFixtures.swift", firstLine: 33, lastLine: 47, declaration: #"""
+public static let steps = Fixture(
+    "slider/steps", size: CGSize(width: 320, height: 100),
+    model: { SliderModel() },
+    steps: [
+        FixtureStep("half") { $0.value = 0.5 },
+        FixtureStep("full") { $0.value = 1 },
+        FixtureStep("zero") { $0.value = 0 },
+    ]
+) { model in
+    HStack(spacing: 12) {
+        Slider(value: Binding(get: { model.value }, set: { model.value = $0 })).probe("slider")
+        Text("\(Int((model.value * 100).rounded()))").probe("echo")
+    }
+    .probe("row")
+}
+"""#),
+        FixtureSource(name: "stepper/basic", file: "Fixtures/Sources/Controls/StepperFixtures.swift", firstLine: 14, lastLine: 31, declaration: #"""
+public static let basic = Fixture("stepper/basic", size: CGSize(width: 320, height: 320)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Stepper("Count", value: .constant(1)).probe("basic")
+        Stepper("Count", value: .constant(1), in: 0...10, step: 2).probe("ranged")
+        Stepper("Count", value: .constant(1)).labelsHidden().probe("hidden")
+        Stepper(value: .constant(1)) { Label("Count", image: "icon") }.probe("labelStepper")
+        Stepper("Count", onIncrement: {}, onDecrement: {}).probe("closures")
+        HStack(spacing: 8) {
+            Text("Row").probe("rowText")
+            Stepper("Count", value: .constant(1)).labelsHidden().probe("rowStepper")
+            Button("OK") {}.probe("rowButton")
+        }
+        .probe("row")
+        Stepper("Count", value: .constant(1)).disabled(true).probe("disabled")
+        Stepper("Count", value: .constant(1)).frame(width: 200).probe("fixed")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "stepper/steps", file: "Fixtures/Sources/Controls/StepperFixtures.swift", firstLine: 33, lastLine: 47, declaration: #"""
+public static let steps = Fixture(
+    "stepper/steps", size: CGSize(width: 320, height: 80),
+    model: { StepperModel() },
+    steps: [
+        FixtureStep("one") { $0.count = 1 },
+        FixtureStep("two") { $0.count = 2 },
+        FixtureStep("reset") { $0.count = 0 },
+    ]
+) { model in
+    HStack(spacing: 12) {
+        Stepper("Count", value: Binding(get: { model.count }, set: { model.count = $0 })).probe("stepper")
+        Text("\(model.count)").probe("echo")
+    }
+    .probe("row")
+}
+"""#),
         FixtureSource(name: "text/alignment", file: "Fixtures/Sources/Text/TextCompletenessFixtures.swift", firstLine: 57, lastLine: 67, declaration: #"""
 public static let alignment = Fixture("text/alignment", size: CGSize(width: 400, height: 300)) {
     VStack(spacing: 0) {
@@ -1706,6 +1864,209 @@ public enum ColorFixtures {
     }
 
     public static let all: [Fixture] = [named]
+}
+"""#,
+        "Fixtures/Sources/Controls/PickerFixtures.swift": #"""
+// Picker fixtures: the macOS pop-up button (default), hidden labels, segmented, radio group and
+// inline styles, data-driven options, custom labels, disabled, and a behaviour fixture whose
+// selection follows the model.
+import SwiftUI
+import FixtureKit
+
+/// Drives `picker/steps`.
+@Observable
+public final class PickerModel {
+    public var selection = 1
+    public init() {}
+}
+
+public enum PickerFixtures {
+    public static let basic = Fixture("picker/basic", size: CGSize(width: 320, height: 320)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker("Fruit", selection: .constant(1)) {
+                Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+            }
+            .probe("menu")
+            Picker("Fruit", selection: .constant(2)) {
+                Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+            }
+            .labelsHidden()
+            .probe("menuHidden")
+            Picker("Fruit", selection: .constant(1)) {
+                Text("Apple").tag(1).probe("segApple"); Text("Banana").tag(2).probe("segBanana"); Text("Cherry").tag(3).probe("segCherry")
+            }
+            .pickerStyle(.segmented)
+            .probe("segmented")
+            Picker("Fruit", selection: .constant(1)) {
+                Text("Apple").tag(1).probe("radioApple"); Text("Banana").tag(2).probe("radioBanana"); Text("Cherry").tag(3).probe("radioCherry")
+            }
+            .pickerStyle(.radioGroup)
+            .probe("radio")
+            Picker("Fruit", selection: .constant(1)) {
+                Text("Apple").tag(1).probe("inlineApple"); Text("Banana").tag(2).probe("inlineBanana")
+            }
+            .pickerStyle(.inline)
+            .probe("inline")
+        }
+        .probe("stack")
+    }
+
+    public static let forms = Fixture("picker/forms", size: CGSize(width: 320, height: 260)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker("Fruit", selection: .constant(1)) {
+                ForEach(ListItem.fruits) { Text($0.name) }
+            }
+            .probe("forEach")
+            Picker(selection: .constant(1)) {
+                Text("Apple").tag(1); Text("Banana").tag(2)
+            } label: {
+                Label("Fruit", image: "icon")
+            }
+            .probe("labelPicker")
+            Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Banana").tag(2) }
+                .disabled(true)
+                .probe("disabled")
+            Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Banana").tag(2) }
+                .frame(width: 200)
+                .probe("fixed")
+            Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Banana").tag(2) }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
+                .probe("fixedSegmented")
+            HStack(spacing: 8) {
+                Text("Row").probe("rowText")
+                Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Banana").tag(2) }.labelsHidden().probe("rowPicker")
+                Button("OK") {}.probe("rowButton")
+            }
+            .probe("row")
+        }
+        .probe("stack")
+    }
+
+    public static let steps = Fixture(
+        "picker/steps", size: CGSize(width: 320, height: 160),
+        model: { PickerModel() },
+        steps: [
+            FixtureStep("banana") { $0.selection = 2 },
+            FixtureStep("cherry") { $0.selection = 3 },
+        ]
+    ) { model in
+        let selection = Binding(get: { model.selection }, set: { model.selection = $0 })
+        VStack(alignment: .leading, spacing: 12) {
+            Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }.probe("menu")
+            Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
+                .pickerStyle(.segmented).probe("segmented")
+            Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
+                .pickerStyle(.radioGroup).probe("radio")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic, forms, steps]
+}
+"""#,
+        "Fixtures/Sources/Controls/SliderFixtures.swift": #"""
+// Slider fixtures: values along the track, ranges and steps, labels, widths, disabled, and a
+// behaviour fixture whose knob follows the model.
+import SwiftUI
+import FixtureKit
+
+/// Drives `slider/steps`.
+@Observable
+public final class SliderModel {
+    public var value = 0.25
+    public init() {}
+}
+
+public enum SliderFixtures {
+    public static let basic = Fixture("slider/basic", size: CGSize(width: 320, height: 300)) {
+        VStack(spacing: 12) {
+            Slider(value: .constant(0.5)).probe("half")
+            Slider(value: .constant(0)).probe("zero")
+            Slider(value: .constant(1)).probe("full")
+            Slider(value: .constant(25), in: 0...100, step: 5).probe("stepped")
+            Slider(value: .constant(0.5)) { Text("Volume") }.probe("labelled")
+            Slider(value: .constant(0.5), in: 0...1) { Text("Volume") } minimumValueLabel: { Text("Min").probe("min") } maximumValueLabel: { Text("Max").probe("max") }.probe("minMax")
+            Slider(value: .constant(0.5)).frame(width: 120).probe("narrow")
+            Slider(value: .constant(0.5)).disabled(true).probe("disabled")
+            HStack(spacing: 8) {
+                Text("Row").probe("rowText")
+                Slider(value: .constant(0.5)).probe("rowSlider")
+            }
+            .probe("row")
+        }
+        .probe("stack")
+    }
+
+    public static let steps = Fixture(
+        "slider/steps", size: CGSize(width: 320, height: 100),
+        model: { SliderModel() },
+        steps: [
+            FixtureStep("half") { $0.value = 0.5 },
+            FixtureStep("full") { $0.value = 1 },
+            FixtureStep("zero") { $0.value = 0 },
+        ]
+    ) { model in
+        HStack(spacing: 12) {
+            Slider(value: Binding(get: { model.value }, set: { model.value = $0 })).probe("slider")
+            Text("\(Int((model.value * 100).rounded()))").probe("echo")
+        }
+        .probe("row")
+    }
+
+    public static let all: [Fixture] = [basic, steps]
+}
+"""#,
+        "Fixtures/Sources/Controls/StepperFixtures.swift": #"""
+// Stepper fixtures: label forms, ranges, hidden labels, custom labels, closures, rows, disabled,
+// and a behaviour fixture whose echo text follows the model.
+import SwiftUI
+import FixtureKit
+
+/// Drives `stepper/steps`.
+@Observable
+public final class StepperModel {
+    public var count = 0
+    public init() {}
+}
+
+public enum StepperFixtures {
+    public static let basic = Fixture("stepper/basic", size: CGSize(width: 320, height: 320)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Stepper("Count", value: .constant(1)).probe("basic")
+            Stepper("Count", value: .constant(1), in: 0...10, step: 2).probe("ranged")
+            Stepper("Count", value: .constant(1)).labelsHidden().probe("hidden")
+            Stepper(value: .constant(1)) { Label("Count", image: "icon") }.probe("labelStepper")
+            Stepper("Count", onIncrement: {}, onDecrement: {}).probe("closures")
+            HStack(spacing: 8) {
+                Text("Row").probe("rowText")
+                Stepper("Count", value: .constant(1)).labelsHidden().probe("rowStepper")
+                Button("OK") {}.probe("rowButton")
+            }
+            .probe("row")
+            Stepper("Count", value: .constant(1)).disabled(true).probe("disabled")
+            Stepper("Count", value: .constant(1)).frame(width: 200).probe("fixed")
+        }
+        .probe("stack")
+    }
+
+    public static let steps = Fixture(
+        "stepper/steps", size: CGSize(width: 320, height: 80),
+        model: { StepperModel() },
+        steps: [
+            FixtureStep("one") { $0.count = 1 },
+            FixtureStep("two") { $0.count = 2 },
+            FixtureStep("reset") { $0.count = 0 },
+        ]
+    ) { model in
+        HStack(spacing: 12) {
+            Stepper("Count", value: Binding(get: { model.count }, set: { model.count = $0 })).probe("stepper")
+            Text("\(model.count)").probe("echo")
+        }
+        .probe("row")
+    }
+
+    public static let all: [Fixture] = [basic, steps]
 }
 """#,
         "Fixtures/Sources/ForEach/ForEachFixtures.swift": #"""

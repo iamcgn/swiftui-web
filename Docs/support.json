@@ -167,6 +167,34 @@
           ]
         },
         {
+          "api": "Picker (title, string, custom label) / PickerStyle (automatic, menu, segmented, radioGroup, inline, palette) / pickerStyle / tag",
+          "status": "partial",
+          "notes": "macOS pop-up button, segmented control and radio group geometry measured; segmented and radio selection by press; the pop-up menu does not open yet (presentation layer); text options only in the pop-up and segmented styles",
+          "fixtures": [
+            "picker/basic",
+            "picker/forms",
+            "picker/steps"
+          ]
+        },
+        {
+          "api": "Slider (value, range, step, label, min/max value labels, onEditingChanged)",
+          "status": "partial",
+          "notes": "16 pt flexible track with a 22 × 16 knob, ticks when stepped, body label and footnote value labels pixel-aligned; presses jump and drags follow; no keyboard control or vertical sliders",
+          "fixtures": [
+            "slider/basic",
+            "slider/steps"
+          ]
+        },
+        {
+          "api": "Stepper (value/step/bounds and closure forms, onEditingChanged)",
+          "status": "partial",
+          "notes": "20 × 26 chevron button pair 8 pt after the body label; top half increments, bottom half decrements within bounds; no press-and-hold repeat or keyboard control",
+          "fixtures": [
+            "stepper/basic",
+            "stepper/steps"
+          ]
+        },
+        {
           "api": "TextField (title/prompt/label forms) / SecureField / TextFieldStyle (automatic, roundedBorder, squareBorder, plain) / textFieldStyle",
           "status": "partial",
           "notes": "Bezel, insets, baseline, placeholder, bullets and disabled look measured; editing through the host's transparent <input> (browser caret/selection/IME); no @FocusState, multi-line (axis), formatted values or custom styles",
