@@ -436,6 +436,14 @@
           "api": "ObservableObject / @Published / @StateObject",
           "status": "missing",
           "notes": "Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3)"
+        },
+        {
+          "api": "ObservableObject / ObservableObjectPublisher / AnyCancellable / @Published / @StateObject / @ObservedObject / @EnvironmentObject / environmentObject",
+          "status": "partial",
+          "notes": "Combine-free implementation: closure subscribers, enclosing-instance @Published, per-identity state objects, re-subscription on replacement; no Combine operators or onReceive",
+          "fixtures": [
+            "observable/object"
+          ]
         }
       ]
     },

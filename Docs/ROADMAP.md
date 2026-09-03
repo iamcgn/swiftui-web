@@ -225,6 +225,12 @@ Phase 2 element list complete 2026-09-03: every element in the order above has l
 
 Semantics tree → ARIA DOM overlay; `@FocusState`, keyboard navigation, text selection, VoiceOver checks in Safari. Minimal in-house `ObservableObject`/`@Published`/`@StateObject`/`@ObservedObject` (Combine is absent on wasm/Linux; ~200 lines, no OpenCombine dependency). `#Preview` macro plugin that expands to nothing (prebuilt swift-syntax). `TimelineView`/timers via renderer hooks (Foundation `Timer`/`RunLoop` do not fire on wasm; document it).
 
+### Phase 3 status
+
+| Item | Status |
+|---|---|
+| ObservableObject family | done 2026-09-03: `API/ObservableObject.swift` (Combine-free `ObservableObject`, `ObservableObjectPublisher`, `AnyCancellable`, `@Published` via the enclosing-instance subscript, `@StateObject`, `@ObservedObject`, `@EnvironmentObject`, `environmentObject`), typealiases in the `SwiftUI` shim against Foundation's Combine re-export. `observable/object` exact in Tier A (2 steps), Tier B 3/3 Chromium/WebKit (`Docs/elements/ObservableObject.md`). Open: `onReceive`, Combine operators. |
+
 ### Phase 4 — Native executables
 
 1. `Tools/Host`: Swift executable embedding WKWebView (macOS) / WebKitGTK (Linux) that serves and loads a built wasm bundle: `swift run swiftui-host <bundle-dir>`.
