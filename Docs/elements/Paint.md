@@ -45,5 +45,6 @@ painters consume the same list (decision 0002); the flat `Float64` encoding for 
 
 ## Not yet covered
 
-Gradients, materials, `shadow`, `border`, `stroke(style:)`, `InsettableShape`, dark appearance,
-`blendMode`, `mask`, `ImageRenderer`-style pixel comparison (Tier B, step 13).
+Gradients, materials, `shadow`, dark appearance, `blendMode`, `mask`. Shapes, strokes, `border`
+and `Path` are in `Shape.md`; `RoundedRectangle` and `Capsule` default to continuous corners,
+so only the `.circular` style uses the `fillRRect`/`clipRRect` commands.

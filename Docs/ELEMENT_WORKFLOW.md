@@ -16,6 +16,9 @@
    Images and colours come from `Fixtures/Assets.xcassets` (edit `scripts/gen-fixture-assets.py`, rerun
    it, then `scripts/assets.py Fixtures --json Fixtures/Assets.manifest.json`); fixture sources use
    `Image("name")` / `Color("name")` as an app would (decision 0011).
+   Geometry that must match Apple's `Path` output goes into `Fixtures/Sources/Shape/PathRequests.swift`
+   (the harness records each path's `description` into `Fixtures/Goldens/shape/paths.json`,
+   `PathGoldenTests` compares element by element; `scripts/gen-goldens.sh shape-paths` alone).
 3. **Goldens**: `scripts/gen-goldens.sh <Element>/` on a Mac (plus `scripts/gen-goldens.sh text-metrics`
    when strings or fonts were added, then `scripts/font-metrics-table.py`); commit
    `Fixtures/Goldens/<Element>/`. Frames and pixels come from a hosted key window (decision

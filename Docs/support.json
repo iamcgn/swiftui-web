@@ -156,11 +156,78 @@
           ]
         },
         {
-          "api": "Rectangle / RoundedRectangle / Circle / Ellipse / Capsule, fill / stroke, Path",
-          "status": "partial",
-          "notes": "Fill and plain stroke; no StrokeStyle or InsettableShape; Tier B (Chromium) within tolerance",
+          "api": "Rectangle / RoundedRectangle (circular, continuous) / UnevenRoundedRectangle / Circle / Ellipse / Capsule",
+          "status": "full",
+          "notes": "Paths identical to Apple's element for element (74 recorded paths, PathGoldenTests): continuous corner curves, radius limits, start points; Tier B pixels ≤ 0.24 % Chromium, ≤ 0.11 % WebKit",
           "fixtures": [
+            "shape/builtin",
+            "shape/layout",
             "paint/shapes"
+          ]
+        },
+        {
+          "api": "Path (move/line/curves, addArc/addRelativeArc, rects, ellipses, rounded rects, description and init?(_:), applying, contains, trimmedPath, forEach)",
+          "status": "full",
+          "notes": "Element order, arc sweep rules and trimming match Apple; addArc(tangent1End:…) implemented from CGPath's definition, unverified; no cgPath",
+          "fixtures": [
+            "shape/path",
+            "shape/modifiers"
+          ]
+        },
+        {
+          "api": "Path.strokedPath(_:)",
+          "status": "approximate",
+          "notes": "Oriented polygons per segment, join and cap (a nonzero fill unions them), dashes honoured; Apple computes the offset outline. Painters stroke natively, so this only affects clipping and hit testing with a stroked shape",
+          "fixtures": [
+            "shape/modifiers"
+          ]
+        },
+        {
+          "api": "Shape.fill / stroke, StrokeStyle (caps, joins, miter limit, dash, phase), FillStyle (eoFill), FillShapeView / StrokeShapeView / StrokeBorderShapeView chaining",
+          "status": "full",
+          "notes": "antialiased flags stored without effect (canvas always antialiases); Tier B within tolerance in three browsers",
+          "fixtures": [
+            "shape/stroke",
+            "shape/path",
+            "shape/steps"
+          ]
+        },
+        {
+          "api": "InsettableShape / inset(by:) / strokeBorder",
+          "status": "full",
+          "notes": "Rounded rectangles shrink their radii by the inset like Apple; an inset shape lays out like a plain shape (measured)",
+          "fixtures": [
+            "shape/stroke",
+            "shape/modifiers"
+          ]
+        },
+        {
+          "api": "Shape modifiers: trim / offset / scale / rotation / transform / size / stroke(style:) as a Shape, AnyShape",
+          "status": "full",
+          "notes": "Only trim and stroke keep the base shape's layout (a trimmed circle stays square); the others take the proposal (measured)",
+          "fixtures": [
+            "shape/modifiers",
+            "shape/layout"
+          ]
+        },
+        {
+          "api": "ContainerRelativeShape",
+          "status": "approximate",
+          "notes": "A rectangle; container shapes are not modelled",
+          "fixtures": []
+        },
+        {
+          "api": "Shape boolean operations (union / intersection / subtracting / symmetricDifference / lineIntersection / lineSubtraction)",
+          "status": "missing",
+          "notes": "",
+          "fixtures": []
+        },
+        {
+          "api": "Angle",
+          "status": "full",
+          "notes": "radians/degrees, Comparable, Animatable",
+          "fixtures": [
+            "shape/path"
           ]
         },
         {
@@ -342,6 +409,14 @@
           "notes": "Ratio explicit or from the content's ideal size; the content is proposed the fitted or filling rectangle and keeps the last word (rigid images stay rigid). Exact against goldens for full, partial and absent proposals",
           "fixtures": [
             "image/aspect-ratio"
+          ]
+        },
+        {
+          "api": "border(_:width:)",
+          "status": "full",
+          "notes": "An inset rectangle stroke overlaid on the content; no layout change (measured)",
+          "fixtures": [
+            "shape/border"
           ]
         }
       ]
