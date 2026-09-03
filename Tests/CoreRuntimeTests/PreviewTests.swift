@@ -18,6 +18,6 @@ struct SamplePreviews: PreviewProvider {
 @Suite struct PreviewTests {
     @Test func previewsExpandToNothing() {
         // Compiling this file is the test; the previews leave no declarations behind.
-        #expect(true)
+        #expect(Bool(true))
     }
 }
