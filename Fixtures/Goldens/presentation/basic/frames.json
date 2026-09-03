@@ -1,0 +1,39 @@
+{
+  "fixture" : "presentation\/basic",
+  "frames" : {
+    "alert" : {
+      "height" : 24,
+      "width" : 53,
+      "x" : 153.5,
+      "y" : 126
+    },
+    "picker" : {
+      "height" : 24,
+      "width" : 128.5,
+      "x" : 115.75,
+      "y" : 162
+    },
+    "popover" : {
+      "height" : 24,
+      "width" : 74,
+      "x" : 143,
+      "y" : 90
+    },
+    "sheet" : {
+      "height" : 24,
+      "width" : 59.5,
+      "x" : 150.25,
+      "y" : 54
+    },
+    "stack" : {
+      "height" : 132,
+      "width" : 128.5,
+      "x" : 115.75,
+      "y" : 54
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 360
+  }
+}

@@ -167,6 +167,24 @@ package enum PlatformMetrics {
     package static let formGroupedSectionSpacing: CGFloat = 20                     // unverified
     package static let formGroupedHeaderSpacing: CGFloat = 8                       // unverified
 
+    // Presentations (approximate: separate windows on macOS, Docs/elements/Presentation.md)
+    package static let presentationPadding: CGFloat = 20
+    package static let presentationCornerRadius: CGFloat = 10
+    package static let presentationDimAlpha = 0.2
+    package static let presentationShadowAlpha = 0.12
+    package static let presentationBorderAlpha = 0.15
+    package static let sheetMargin: CGFloat = 20
+    package static let alertWidth: CGFloat = 260
+    package static let popoverArrowHeight: CGFloat = 10
+    package static let popoverArrowWidth: CGFloat = 24
+    package static let menuGap: CGFloat = 2
+    package static let menuCornerRadius: CGFloat = 6
+    package static let menuRowHeight: CGFloat = 22
+    package static let menuCheckWidth: CGFloat = 22
+    package static let menuTrailingPadding: CGFloat = 16
+    package static let menuMinimumWidth: CGFloat = 92.5
+    package static let menuVerticalPadding: CGFloat = 4
+
     // Label (macOS 26.2: fixture label/basic, Docs/elements/Label.md)
     package static let labelIconSpacing: CGFloat = 8
 

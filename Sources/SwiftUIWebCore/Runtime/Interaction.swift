@@ -85,6 +85,8 @@ extension ViewNode {
 extension Runtime {
     /// The interactive node under `point` (window coordinates), if any.
     package func interactiveNode(at point: CGPoint) -> (ViewNode & _Interactive)? {
+        let presented = presentationHit(at: point)
+        if presented.handled { return presented.node }
         for node in root.layoutChildren.reversed() {
             let local = CGPoint(x: point.x - node.frame.minX, y: point.y - node.frame.minY)
             guard node.contains(local) else { continue }
@@ -133,6 +135,7 @@ extension Runtime {
 
     package var interactiveNodes: [ViewNode & _Interactive] {
         root.layoutChildren.flatMap { $0.collectNodes(where: { $0 is _Interactive }) }.compactMap { $0 as? (ViewNode & _Interactive) }
+            + presentations.flatMap(\.interactiveNodes)
     }
 
     /// The accessibility tree after the last layout, in window coordinates.
@@ -187,7 +190,10 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
     package func pressBegan() { if environment.isEnabled { view.isPressed.wrappedValue = true } }
     package func pressEnded(inside: Bool) {
         view.isPressed.wrappedValue = false
-        if inside, environment.isEnabled { view.action.run() }
+        if inside, environment.isEnabled {
+            view.action.run()
+            if environment._dismissesOnActivation { environment.dismiss() }
+        }
     }
 
     package var semantics: SemanticsNode {

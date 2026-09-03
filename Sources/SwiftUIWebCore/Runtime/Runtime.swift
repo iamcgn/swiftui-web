@@ -26,6 +26,9 @@ public final class Runtime {
     package var activeAnimationScopes = 0
     package var animatingNodes: [WeakNode] = []
 
+    /// Sheets, popovers, alerts and menus over the window, bottom to top (Runtime/PresentationNodes.swift).
+    package var presentations: [PresentationNode] = []
+
     private let assetStore = _AssetStore()
 
     /// The app's asset catalogs (images and colours by name). Hosts install theirs before the
@@ -116,6 +119,7 @@ public final class Runtime {
             node.place(at: CGPoint(x: size.width / 2, y: size.height / 2), anchor: .center,
                        proposal: ProposedViewSize(size), by: root)
         }
+        layoutPresentations(in: size)
         isLayingOut = false
         layoutAnimation = nil
         updateAnimation = nil

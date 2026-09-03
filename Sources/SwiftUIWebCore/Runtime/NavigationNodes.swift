@@ -31,6 +31,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
     private var contentEnvironment: EnvironmentValues {
         var environment = environment
         environment._navigationContext = context
+        environment.dismiss = DismissAction { [weak self] in self?.pop() }
         return environment
     }
 

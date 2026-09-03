@@ -354,7 +354,14 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
         guard inside, enabled else { return }
         switch style {
         case .menu:
-            return   // opening the menu needs a presentation layer (Docs/elements/Picker.md)
+            let titles = options.map(\.title)
+            let selectedIndex = options.firstIndex(where: isSelected)
+            let select = view.select
+            let tags = options.map(\.tag)
+            let list = _MenuList(titles: titles, selected: selectedIndex, select: _MenuSelection { index in
+                if let tag = tags[index] { select.select(tag) }
+            })
+            runtime.present(kind: .menu, view: AnyView(list), environment: environment, anchor: self) {}
         case .segmented, .radioGroup:
             guard let option = options.first(where: { $0.frame.contains(point) }), let tag = option.tag else { return }
             view.select.select(tag)

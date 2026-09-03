@@ -7962,6 +7962,18 @@
       "lastBaseline" : 13,
       "width" : 50
     },
+    "system:13:400:default||Alert" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 29
+    },
+    "system:13:400:default||Alert title" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 55.5
+    },
     "system:13:400:default||Alpha" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8190,6 +8202,12 @@
       "lastBaseline" : 13,
       "width" : 25.5
     },
+    "system:13:400:default||Message" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 54.5
+    },
     "system:13:400:default||Min" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8274,6 +8292,18 @@
       "lastBaseline" : 13,
       "width" : 29.5
     },
+    "system:13:400:default||Popover" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 50
+    },
+    "system:13:400:default||Popover content" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 100
+    },
     "system:13:400:default||Prominent" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8333,6 +8363,18 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 29.5
+    },
+    "system:13:400:default||Sheet" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35.5
+    },
+    "system:13:400:default||Sheet content" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 85.5
     },
     "system:13:400:default||small" : {
       "firstBaseline" : 13,
@@ -8554,6 +8596,18 @@
       "firstBaseline" : 13,
       "height" : 112,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Alert" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Alert title" : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
       "width" : 0
     },
     "system:13:400:default|0.0|Alpha" : {
@@ -8784,6 +8838,12 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|Message" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Min" : {
       "firstBaseline" : 13,
       "height" : 48,
@@ -8868,6 +8928,18 @@
       "lastBaseline" : 77,
       "width" : 0
     },
+    "system:13:400:default|0.0|Popover" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Popover content" : {
+      "firstBaseline" : 13,
+      "height" : 224,
+      "lastBaseline" : 221,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Prominent" : {
       "firstBaseline" : 13,
       "height" : 144,
@@ -8926,6 +8998,18 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Sheet" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Sheet content" : {
+      "firstBaseline" : 13,
+      "height" : 192,
+      "lastBaseline" : 189,
       "width" : 0
     },
     "system:13:400:default|0.0|small" : {

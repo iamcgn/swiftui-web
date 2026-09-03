@@ -36,6 +36,7 @@ extension Runtime {
         for node in root.layoutChildren {
             node.paint(into: &list, context: context.child(at: node.presentedFrame))
         }
+        paintPresentations(into: &list, context: context)
         return list
     }
 }
