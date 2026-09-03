@@ -30,6 +30,8 @@ public final class Runtime {
     package var presentations: [PresentationNode] = []
     /// Timeline views re-rendering every frame (Runtime/TimelineNodes.swift).
     package var frameSubscribers: [WeakFrameSubscriber] = []
+    /// Focus states told when the focused text field changes (Runtime/FocusNodes.swift).
+    package var focusBoxes: [WeakFocusBox] = []
 
     private let assetStore = _AssetStore()
 

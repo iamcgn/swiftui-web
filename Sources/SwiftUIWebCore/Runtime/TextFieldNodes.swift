@@ -30,7 +30,7 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     }
 
     private static var nextIdentifier = 3_000_000
-    private let identifier: Int
+    package let identifier: Int
 
     override package init(_ context: _NodeContext<_TextFieldCore>) {
         Self.nextIdentifier += 1
@@ -136,8 +136,7 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     package func pressBegan() {}
     package func pressEnded(inside: Bool) {
         guard inside, environment.isEnabled else { return }
-        runtime.focusedTextFieldIdentifier = identifier
-        runtime.setNeedsDisplay()
+        runtime.focusTextField(identifier)
     }
 
     package var semantics: SemanticsNode {
@@ -175,10 +174,9 @@ extension Runtime {
     /// The host's input gained or lost focus.
     public func textField(_ semanticsIdentifier: Int, focused: Bool) {
         if focused {
-            focusedTextFieldIdentifier = semanticsIdentifier
+            focusTextField(semanticsIdentifier)
         } else if focusedTextFieldIdentifier == semanticsIdentifier {
-            focusedTextFieldIdentifier = nil
+            focusTextField(nil)
         }
-        setNeedsDisplay()
     }
 }

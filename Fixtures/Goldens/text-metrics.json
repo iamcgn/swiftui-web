@@ -8172,6 +8172,12 @@
       "lastBaseline" : 13,
       "width" : 8
     },
+    "system:13:400:default||Email" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 32.5
+    },
     "system:13:400:default||Enabled" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8207,6 +8213,30 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 26
+    },
+    "system:13:400:default||Focus email" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 72.5
+    },
+    "system:13:400:default||Focused: email" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 91.5
+    },
+    "system:13:400:default||Focused: name" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 92.5
+    },
+    "system:13:400:default||Focused: none" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 89.5
     },
     "system:13:400:default||Footer" : {
       "firstBaseline" : 13,
@@ -8940,6 +8970,12 @@
       "lastBaseline" : 13,
       "width" : 0
     },
+    "system:13:400:default|0.0|Email" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Enabled" : {
       "firstBaseline" : 13,
       "height" : 112,
@@ -8974,6 +9010,30 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Focus email" : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Focused: email" : {
+      "firstBaseline" : 13,
+      "height" : 208,
+      "lastBaseline" : 205,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Focused: name" : {
+      "firstBaseline" : 13,
+      "height" : 192,
+      "lastBaseline" : 189,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Focused: none" : {
+      "firstBaseline" : 13,
+      "height" : 192,
+      "lastBaseline" : 189,
       "width" : 0
     },
     "system:13:400:default|0.0|Footer" : {

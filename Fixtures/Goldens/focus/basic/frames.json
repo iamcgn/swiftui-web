@@ -1,0 +1,39 @@
+{
+  "fixture" : "focus\/basic",
+  "frames" : {
+    "button" : {
+      "height" : 24,
+      "width" : 96.5,
+      "x" : 111.75,
+      "y" : 138
+    },
+    "email" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 74
+    },
+    "form" : {
+      "height" : 124,
+      "width" : 320,
+      "x" : 0,
+      "y" : 38
+    },
+    "name" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 38
+    },
+    "status" : {
+      "height" : 16,
+      "width" : 89.5,
+      "x" : 115.25,
+      "y" : 110
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

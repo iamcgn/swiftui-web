@@ -302,6 +302,10 @@ public enum TextMetricsRequests {
         for word in ["Canvas", "Corner"] { requests.append(TextMetricRequest(word, defaultFont)); requests.append(TextMetricRequest(word, defaultFont, width: 100)) }
         for word in ["Count: 0", "Count: 1", "Count: 2", "Flag"] { requests.append(TextMetricRequest(word, defaultFont)); requests.append(TextMetricRequest(word, .style("body"))) }
         for word in ["Ticks: 0", "Ticks: 1", "Live", "Slow"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        for word in ["Email", "Focused: none", "Focused: name", "Focused: email", "Focus email"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+            requests.append(TextMetricRequest(word, .system(size: 13, weight: "regular", design: "default")))
+        }
         requests.append(TextMetricRequest("Hi", defaultFont))
         requests.append(TextMetricRequest("End", .style("largeTitle")))
         let bold13 = defaultFont(weight: "bold")
