@@ -143,6 +143,16 @@
           ]
         },
         {
+          "api": "TextField (title/prompt/label forms) / SecureField / TextFieldStyle (automatic, roundedBorder, squareBorder, plain) / textFieldStyle",
+          "status": "partial",
+          "notes": "Bezel, insets, baseline, placeholder, bullets and disabled look measured; editing through the host's transparent <input> (browser caret/selection/IME); no @FocusState, multi-line (axis), formatted values or custom styles",
+          "fixtures": [
+            "textfield/basic",
+            "textfield/styles",
+            "textfield/steps"
+          ]
+        },
+        {
           "api": "Divider",
           "status": "partial",
           "notes": "Layout exact (1pt); no painting yet; Tier B (Chromium) within tolerance",
@@ -453,6 +463,18 @@
           "fixtures": [
             "toggle/basic"
           ]
+        },
+        {
+          "api": "onSubmit(_:) / onSubmit(of:_:) / SubmitTriggers",
+          "status": "partial",
+          "notes": "Return in a text field runs the action; triggers ignored",
+          "fixtures": []
+        },
+        {
+          "api": "autocorrectionDisabled(_:)",
+          "status": "stub",
+          "notes": "Stored only",
+          "fixtures": []
         }
       ]
     }

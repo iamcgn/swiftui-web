@@ -43,6 +43,7 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `Button` | 🟢 partial | bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance | button/basic, button/styles |
 | `Toggle (isOn:label:, title, image, systemImage, configuration) / ToggleStyle / ToggleStyleConfiguration / toggleStyle` | 🟢 partial | Checkbox (default), switch and button styles measured in layout and on/off pixels; activation on release inside; checkbox semantics (aria-checked); no pressed/hover/focus looks, keyboard, mixed state or Toggle(sources:) | toggle/basic, toggle/styles, toggle/steps |
 | `Label (title:icon:, image, systemImage) / LabelStyle (automatic, titleAndIcon, titleOnly, iconOnly) / labelStyle` | 🟢 partial | Icon centred on half the cap height above the title's baseline, 8 pt spacing (measured); systemImage is the stub symbol; the automatic style is not context sensitive | label/basic |
+| `TextField (title/prompt/label forms) / SecureField / TextFieldStyle (automatic, roundedBorder, squareBorder, plain) / textFieldStyle` | 🟢 partial | Bezel, insets, baseline, placeholder, bullets and disabled look measured; editing through the host's transparent <input> (browser caret/selection/IME); no @FocusState, multi-line (axis), formatted values or custom styles | textfield/basic, textfield/styles, textfield/steps |
 | `Divider` | 🟢 partial | Layout exact (1pt); no painting yet; Tier B (Chromium) within tolerance | layout/divider |
 | `Color (as a view)` | 🟢 partial | macOS light system colour table; painting via display list; Tier B (Chromium) within tolerance | paint/system-colors |
 | `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL; Tier B (Chromium) within tolerance |  |
@@ -93,3 +94,5 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `border(_:width:)` | ✅ full | An inset rectangle stroke overlaid on the content; no layout change (measured) | shape/border |
 | `labelsHidden()` | ✅ full | Controls drop their label and its spacing (measured on Toggle) | toggle/basic, toggle/styles |
 | `disabled(_:) / EnvironmentValues.isEnabled` | 🟢 partial | Blocks activation of buttons and toggles; toggles dim their control and label (measured), buttons do not dim yet | toggle/basic |
+| `onSubmit(_:) / onSubmit(of:_:) / SubmitTriggers` | 🟢 partial | Return in a text field runs the action; triggers ignored |  |
+| `autocorrectionDisabled(_:)` | 🟠 stub | Stored only |  |
