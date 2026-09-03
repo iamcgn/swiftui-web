@@ -243,8 +243,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     }
 
     package var semantics: SemanticsNode {
-        SemanticsNode(role: .button, label: "", frame: frameInRoot, identifier: identifier)
+        SemanticsNode(role: .group, label: "", frame: frameInRoot, identifier: identifier)
     }
+    package var exposesChildren: Bool { true }
 }
 
 /// How a container styles the headers and footers of its sections.

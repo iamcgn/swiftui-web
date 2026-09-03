@@ -295,7 +295,7 @@ public final class CanvasHost {
             if let existing = overlayButtons[node.identifier] {
                 element = existing
             } else {
-                element = document.createElement!("button").object!
+                element = document.createElement!(Self.overlayTag(for: node)).object!
                 let style = element.style.object!
                 style.position = .string("absolute")
                 style.opacity = .string("0")
@@ -304,9 +304,27 @@ public final class CanvasHost {
                 style.padding = .string("0")
                 style.border = .string("0")
                 let id = node.identifier
-                on(element, "click") { [weak self] _ in
-                    self?.runtime.activate(semanticsIdentifier: id)
-                    self?.scheduleFrame()
+                switch node.role {
+                case .slider:
+                    on(element, "input") { [weak self] e in
+                        guard let self, let target = e.target.object, let value = Double(target.value.string ?? "") else { return }
+                        self.runtime.setValue(semanticsIdentifier: id, value: value)
+                        self.scheduleFrame()
+                    }
+                case .stepper:
+                    on(element, "keydown") { [weak self] e in
+                        guard let self, let key = e.key.string, key == "ArrowUp" || key == "ArrowDown" else { return }
+                        _ = e.preventDefault?()
+                        self.runtime.adjust(semanticsIdentifier: id, increment: key == "ArrowUp")
+                        self.scheduleFrame()
+                    }
+                case .text, .heading, .image, .group:
+                    break
+                default:
+                    on(element, "click") { [weak self] _ in
+                        self?.runtime.activate(semanticsIdentifier: id)
+                        self?.scheduleFrame()
+                    }
                 }
                 _ = overlay.appendChild!(element)
                 overlayButtons[node.identifier] = element
@@ -316,17 +334,62 @@ public final class CanvasHost {
             style.top = .string("\(node.frame.minY)px")
             style.width = .string("\(node.frame.width)px")
             style.height = .string("\(node.frame.height)px")
-            element.textContent = .string(node.label)
-            if node.role == .checkbox {
-                _ = element.setAttribute!("role", "checkbox")
-                _ = element.setAttribute!("aria-checked", node.isOn == true ? "true" : "false")
-            }
-            _ = element.setAttribute!("aria-label", node.label)
+            Self.applyAttributes(of: node, to: element)
         }
         for (id, element) in overlayButtons where !seen.contains(id) {
             _ = element.remove!()
             overlayButtons[id] = nil
         }
+    }
+
+    /// The overlay element for a semantics role: real controls where the browser has them
+    /// (buttons, range inputs), headings and plain elements for static content.
+    private static func overlayTag(for node: SemanticsNode) -> String {
+        switch node.role {
+        case .slider: return "input"
+        case .heading: return "h2"
+        case .text, .image, .group: return "div"
+        default: return "button"
+        }
+    }
+
+    /// ARIA attributes and text for an element from its semantics.
+    private static func applyAttributes(of node: SemanticsNode, to element: JSObject) {
+        element.textContent = .string(node.label)
+        _ = element.setAttribute!("aria-label", node.label)
+        switch node.role {
+        case .checkbox:
+            _ = element.setAttribute!("role", "checkbox")
+            _ = element.setAttribute!("aria-checked", node.isOn == true ? "true" : "false")
+        case .switch:
+            _ = element.setAttribute!("role", "switch")
+            _ = element.setAttribute!("aria-checked", node.isOn == true ? "true" : "false")
+        case .slider:
+            element.type = .string("range")
+            if let range = node.range {
+                _ = element.setAttribute!("min", "\(range.minimum)")
+                _ = element.setAttribute!("max", "\(range.maximum)")
+                _ = element.setAttribute!("step", range.step.map { "\($0)" } ?? "any")
+                if element.value.string != "\(range.value)" { element.value = .string("\(range.value)") }
+            }
+        case .stepper:
+            _ = element.setAttribute!("role", "spinbutton")
+        case .popUpButton:
+            _ = element.setAttribute!("aria-haspopup", "listbox")
+        case .segmented, .radioGroup:
+            _ = element.setAttribute!("role", "radiogroup")
+        case .image:
+            _ = element.setAttribute!("role", "img")
+        case .group:
+            _ = element.setAttribute!("role", "group")
+        case .link:
+            _ = element.setAttribute!("role", "link")
+        case .text, .heading, .button, .textField:
+            break
+        }
+        if let value = node.value { _ = element.setAttribute!("aria-valuetext", value) }
+        if let hint = node.hint { _ = element.setAttribute!("aria-description", hint) }
+        if let identifier = node.accessibilityIdentifier { _ = element.setAttribute!("data-testid", identifier) }
     }
 
     /// A text field's editor: a real `<input>` over the text line with transparent text (the
@@ -415,8 +478,22 @@ public final class CanvasHost {
         let frameMillis = JSClosure { [weak self] _ in .number(self?.frameMillis ?? 0) }
         let pendingImages = JSClosure { [weak self] _ in self?.bridge.pendingImages!() ?? .number(0) }
         let animating = JSClosure { [weak self] _ in .boolean(self?.runtime.isAnimating ?? false) }
-        closures += [frames, displayList, frameCount, frameMillis, pendingImages, animating]
+        let semantics = JSClosure { [weak self] _ in
+            guard let self else { return .undefined }
+            let array = JSObject.global.Array.function!.new()
+            for node in self.runtime.semanticsTree() {
+                let object = JSObject.global.Object.function!.new()
+                object.role = .string(node.role.rawValue)
+                object.label = .string(node.label)
+                if let value = node.value { object.value = .string(value) }
+                if let identifier = node.accessibilityIdentifier { object.identifier = .string(identifier) }
+                _ = array.push!(object)
+            }
+            return .object(array)
+        }
+        closures += [frames, displayList, frameCount, frameMillis, pendingImages, animating, semantics]
         debug.animating = .object(animating)
+        debug.semantics = .object(semantics)
         debug.pendingImages = .object(pendingImages)
         debug.frames = .object(frames)
         debug.displayList = .object(displayList)

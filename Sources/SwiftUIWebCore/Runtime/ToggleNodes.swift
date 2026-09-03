@@ -49,7 +49,8 @@ package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive {
 
     package var semantics: SemanticsNode {
         let label = child.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }.joined(separator: " ")
-        return SemanticsNode(role: .checkbox, label: label, frame: frameInRoot, identifier: identifier, isOn: view.isOn.wrappedValue)
+        let isSwitch = !child.descendants(where: { $0 is SwitchNode }).isEmpty
+        return SemanticsNode(role: isSwitch ? .switch : .checkbox, label: label, frame: frameInRoot, identifier: identifier, isOn: view.isOn.wrappedValue)
     }
 }
 

@@ -46,6 +46,15 @@ public struct Image: Equatable, Sendable {
     package var source: Source
     package var label: String?
     package var isDecorative = false
+    /// The name assistive technology reads: the label, else the asset name; nothing when decorative.
+    package var _accessibilityName: String {
+        if isDecorative { return "" }
+        if let label { return label }
+        switch source {
+        case .named(let name): return name
+        case .system(let name): return name
+        }
+    }
     package var resizing: Resizing?
     package var renderingMode: TemplateRenderingMode?
     package var interpolation: Interpolation = .high

@@ -18,25 +18,55 @@ package protocol _Interactive: AnyObject {
     func pressEnded(inside: Bool, at point: CGPoint)
     /// Accessibility role and label for the semantics overlay.
     var semantics: SemanticsNode { get }
+    /// Whether the element's descendants are exposed as their own elements (containers).
+    var exposesChildren: Bool { get }
 }
 
 extension _Interactive {
     package func pressBegan(at point: CGPoint) { pressBegan() }
     package func pressMoved(to point: CGPoint) {}
     package func pressEnded(inside: Bool, at point: CGPoint) { pressEnded(inside: inside) }
+    package var exposesChildren: Bool { false }
+}
+
+/// A node that is an accessibility element without being interactive (text, images).
+@MainActor
+package protocol _SemanticsProviding: AnyObject {
+    var staticSemantics: SemanticsNode? { get }
+}
+
+/// A node whose value assistive technology can adjust or set (sliders, steppers).
+@MainActor
+package protocol _Adjustable: AnyObject {
+    func adjust(increment: Bool)
+    func setValue(_ value: Double)
 }
 
 /// One element of the accessibility tree hosts expose (DOM overlay in the browser).
 public struct SemanticsNode: Equatable, Sendable {
-    public enum Role: String, Sendable { case button, checkbox, textField }
+    public enum Role: String, Sendable {
+        case button, checkbox, textField
+        case text, heading, image, group, link
+        case `switch`, slider, stepper, popUpButton, radioGroup, segmented
+    }
     public var role: Role
     public var label: String
     public var frame: CGRect
     public var identifier: Int
-    /// The state of a checkbox.
+    /// The state of a checkbox or switch.
     public var isOn: Bool?
     /// What a text field's input element shows and where.
     public var textInput: TextInputInfo?
+    /// A description of the element's value (`accessibilityValue`, a slider's percentage).
+    public var value: String?
+    /// What happens on activation (`accessibilityHint`).
+    public var hint: String?
+    /// The developer identifier (`accessibilityIdentifier`).
+    public var accessibilityIdentifier: String?
+    /// A slider's range and current value, for `<input type=range>`.
+    public var range: SemanticsRange?
+    /// Whether the element can be incremented and decremented (steppers, sliders).
+    public var isAdjustable = false
 
     public init(role: Role, label: String, frame: CGRect, identifier: Int, isOn: Bool? = nil, textInput: TextInputInfo? = nil) {
         self.role = role
@@ -45,6 +75,13 @@ public struct SemanticsNode: Equatable, Sendable {
         self.identifier = identifier
         self.isOn = isOn
         self.textInput = textInput
+    }
+}
+
+public struct SemanticsRange: Equatable, Sendable {
+    public var minimum: Double, maximum: Double, value: Double, step: Double?
+    public init(minimum: Double, maximum: Double, value: Double, step: Double? = nil) {
+        self.minimum = minimum; self.maximum = maximum; self.value = value; self.step = step
     }
 }
 
@@ -138,13 +175,28 @@ extension Runtime {
             + presentations.flatMap(\.interactiveNodes)
     }
 
-    /// The accessibility tree after the last layout, in window coordinates.
+    /// The accessibility tree after the last layout, in window coordinates: interactive nodes,
+    /// static text and images, in paint order, with accessibility modifiers applied
+    /// (Runtime/AccessibilityNodes.swift).
     public func semanticsTree() -> [SemanticsNode] {
-        interactiveNodes.map { node in
-            var semantics = node.semantics
-            semantics.frame = node.frameInRoot
-            return semantics
+        var result: [SemanticsNode] = []
+        for node in root.layoutChildren { collectSemantics(node, attributes: nil, into: &result) }
+        for presentation in presentations {
+            for node in presentation.structuralChildren { collectSemantics(node, attributes: nil, into: &result) }
         }
+        return result
+    }
+
+    /// Increments or decrements an adjustable element (arrow keys on a stepper or slider).
+    public func adjust(semanticsIdentifier: Int, increment: Bool) {
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _Adjustable else { return }
+        node.adjust(increment: increment)
+    }
+
+    /// Sets a slider's value from its range input.
+    public func setValue(semanticsIdentifier: Int, value: Double) {
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _Adjustable else { return }
+        node.setValue(value)
     }
 }
 

@@ -371,7 +371,15 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
 
     package var semantics: SemanticsNode {
         let text = label?.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }.joined(separator: " ") ?? ""
-        return SemanticsNode(role: .button, label: text, frame: frameInRoot, identifier: identifier)
+        let role: SemanticsNode.Role
+        switch style {
+        case .menu: role = .popUpButton
+        case .segmented: role = .segmented
+        case .radioGroup: role = .radioGroup
+        }
+        var node = SemanticsNode(role: role, label: text, frame: frameInRoot, identifier: identifier)
+        node.value = options.first(where: isSelected)?.title
+        return node
     }
 }
 
@@ -468,7 +476,27 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
     }
 
     package var semantics: SemanticsNode {
-        SemanticsNode(role: .button, label: "", frame: frameInRoot, identifier: identifier)
+        var node = SemanticsNode(role: .slider, label: "", frame: frameInRoot, identifier: identifier)
+        let current = view.value.get()
+        node.range = SemanticsRange(minimum: view.range.lowerBound, maximum: view.range.upperBound, value: current, step: view.step)
+        let span = view.range.upperBound - view.range.lowerBound
+        node.value = "\(Int(((span > 0 ? (current - view.range.lowerBound) / span : 0) * 100).rounded())) percent"
+        node.isAdjustable = true
+        return node
+    }
+}
+
+extension SliderTrackNode: _Adjustable {
+    package func adjust(increment: Bool) {
+        let step = view.step ?? (view.range.upperBound - view.range.lowerBound) / 10
+        setValue(view.value.get() + (increment ? step : -step))
+    }
+
+    package func setValue(_ value: Double) {
+        let clamped = min(max(value, view.range.lowerBound), view.range.upperBound)
+        guard clamped != view.value.get() else { return }
+        view.value.set(clamped)
+        runtime.setNeedsDisplay()
     }
 }
 
@@ -520,8 +548,20 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive 
     }
 
     package var semantics: SemanticsNode {
-        SemanticsNode(role: .button, label: "", frame: frameInRoot, identifier: identifier)
+        var node = SemanticsNode(role: .stepper, label: "", frame: frameInRoot, identifier: identifier)
+        node.isAdjustable = true
+        return node
     }
+}
+
+extension StepperControlNode: _Adjustable {
+    package func adjust(increment: Bool) {
+        guard environment.isEnabled else { return }
+        if increment { view.increment.run() } else { view.decrement.run() }
+        runtime.setNeedsDisplay()
+    }
+
+    package func setValue(_ value: Double) {}
 }
 
 // MARK: - Pixel alignment
