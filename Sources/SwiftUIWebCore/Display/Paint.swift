@@ -34,7 +34,7 @@ extension Runtime {
         var list = DisplayList()
         let context = PaintContext(origin: .zero, scale: scale)
         for node in root.layoutChildren {
-            node.paint(into: &list, context: context.child(at: node.frame))
+            node.paint(into: &list, context: context.child(at: node.presentedFrame))
         }
         return list
     }
