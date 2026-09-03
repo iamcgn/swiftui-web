@@ -81,7 +81,8 @@ extension Runtime {
         // Repaint while animating and once more when the last animation ends, so the final frame
         // shows the settled state rather than the last interpolated one.
         if hadAnimations { setNeedsDisplay() }
-        return !remaining.isEmpty
+        let subscribers = advanceFrameSubscribers()
+        return !remaining.isEmpty || subscribers
     }
 
     package func register(animating node: ViewNode) {

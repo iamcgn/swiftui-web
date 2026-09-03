@@ -28,6 +28,8 @@ public final class Runtime {
 
     /// Sheets, popovers, alerts and menus over the window, bottom to top (Runtime/PresentationNodes.swift).
     package var presentations: [PresentationNode] = []
+    /// Timeline views re-rendering every frame (Runtime/TimelineNodes.swift).
+    package var frameSubscribers: [WeakFrameSubscriber] = []
 
     private let assetStore = _AssetStore()
 

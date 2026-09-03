@@ -8328,6 +8328,12 @@
       "lastBaseline" : 29,
       "width" : 60.5
     },
+    "system:13:400:default||Live" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 25
+    },
     "system:13:400:default||Low" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8520,6 +8526,12 @@
       "lastBaseline" : 13,
       "width" : 18.5
     },
+    "system:13:400:default||Slow" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 29
+    },
     "system:13:400:default||small" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8543,6 +8555,18 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 35.5
+    },
+    "system:13:400:default||Ticks: 0" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 47.5
+    },
+    "system:13:400:default||Ticks: 1" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 45.5
     },
     "system:13:400:default||Title" : {
       "firstBaseline" : 13,
@@ -9072,6 +9096,12 @@
       "lastBaseline" : 205,
       "width" : 0
     },
+    "system:13:400:default|0.0|Live" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Low" : {
       "firstBaseline" : 13,
       "height" : 48,
@@ -9264,6 +9294,12 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|Slow" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|small" : {
       "firstBaseline" : 13,
       "height" : 80,
@@ -9286,6 +9322,18 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Ticks: 0" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Ticks: 1" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "system:13:400:default|0.0|Title" : {

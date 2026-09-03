@@ -1,0 +1,27 @@
+{
+  "fixture" : "timeline\/basic",
+  "frames" : {
+    "animation" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 147.5,
+      "y" : 54
+    },
+    "periodic" : {
+      "height" : 16,
+      "width" : 47.5,
+      "x" : 136.25,
+      "y" : 30
+    },
+    "stack" : {
+      "height" : 40,
+      "width" : 47.5,
+      "x" : 136.25,
+      "y" : 30
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 320
+  }
+}
