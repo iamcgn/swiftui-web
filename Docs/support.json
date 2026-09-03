@@ -217,6 +217,18 @@
           ]
         },
         {
+          "api": "Grid / GridRow / gridCellColumns / gridColumnAlignment / gridCellAnchor / gridCellUnsizedAxes",
+          "status": "partial",
+          "notes": "Column sizing, spans, flexible sharing, spacing from cell preferences, alignment and anchors match Apple's frames exactly; no GridLayout value or lazy grids",
+          "fixtures": [
+            "grid/basic",
+            "grid/spacing",
+            "grid/modifiers",
+            "grid/alignment",
+            "grid/flexible"
+          ]
+        },
+        {
           "api": "TextField (title/prompt/label forms) / SecureField / TextFieldStyle (automatic, roundedBorder, squareBorder, plain) / textFieldStyle",
           "status": "partial",
           "notes": "Bezel, insets, baseline, placeholder, bullets and disabled look measured; editing through the host's transparent <input> (browser caret/selection/IME); no @FocusState, multi-line (axis), formatted values or custom styles",
