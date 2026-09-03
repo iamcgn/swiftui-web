@@ -575,6 +575,24 @@
           "fixtures": [
             "lifecycle/appear"
           ]
+        },
+        {
+          "api": "Animation (linear, ease curves, timingCurve, springs, delay/speed/repeat) / withAnimation / Transaction.animation",
+          "status": "partial",
+          "notes": "Curves evaluated per frame; frames, opacity and Color fills tween; no transforms, shape/text colour, Animatable custom data, completion callbacks or blending",
+          "fixtures": [
+            "animation/frame",
+            "animation/implicit"
+          ]
+        },
+        {
+          "api": "animation(_:value:) / transaction(_:) / transition(_:) / AnyTransition (identity, opacity, move, slide, offset, combined, asymmetric)",
+          "status": "partial",
+          "notes": "Scopes take precedence over the transaction for their subtree; removed views linger as ghosts through their transition; .scale fades (no transforms yet)",
+          "fixtures": [
+            "animation/implicit",
+            "animation/transition"
+          ]
         }
       ]
     }
