@@ -8,7 +8,7 @@ Apple docs: [Button](https://developer.apple.com/documentation/swiftui/button),
 
 | Property | Value |
 |---|---|
-| Bordered (default) height | 24 pt (`frame(minHeight:)`) |
+| Bordered (default) height | 24 pt: the label plus 4 pt above and below, at least 24 (a 24 pt `Label` makes a 32 pt button, `label/basic`) |
 | Bordered horizontal padding | 12 pt each side: width = label width + 24 |
 | Bordered label font | the default 13 pt system font (16 pt line, baseline 13); the same font plain text gets in a window (decision 0010) |
 | Bordered corner radius | 6 pt (from the anti-aliasing ramp at 2×) |
@@ -32,7 +32,9 @@ path.
 Runtime note: stdlib key-path reflection refuses structs with plain closure fields, which is why
 dynamic-property installation uses `_forEachField` offsets (`DynamicPropertyFields.swift`).
 
+`disabled(_:)` stops activation (and the pressed state); the dimmed look is not drawn yet.
+
 ## Not yet covered
 
-`PrimitiveButtonStyle`, `role` appearance, `disabled`, keyboard shortcuts, `controlSize`,
+`PrimitiveButtonStyle`, `role` appearance, the disabled look, keyboard shortcuts, `controlSize`,
 `Label(_:systemImage:)` labels, hover, focus ring.

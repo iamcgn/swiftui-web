@@ -322,6 +322,26 @@ public static let tiling = Fixture("image/tiling", size: CGSize(width: 300, heig
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "label/basic", file: "Fixtures/Sources/Label/LabelFixtures.swift", firstLine: 7, lastLine: 24, declaration: #"""
+public static let basic = Fixture("label/basic", size: CGSize(width: 320, height: 300)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Label("Title", image: "icon").probe("label")
+        Label("Title", image: "icon").labelStyle(.titleOnly).probe("titleOnly")
+        Label("Title", image: "icon").labelStyle(.iconOnly).probe("iconOnly")
+        Label("Title", image: "icon").labelStyle(.titleAndIcon).probe("titleAndIcon")
+        Label(title: { Text("Title").probe("customTitle") },
+              icon: { Circle().fill(Color.red).frame(width: 12, height: 12).probe("customIcon") }).probe("custom")
+        Label(title: { Text("Hg").probe("tallTitle") }, icon: { Image("swatch").probe("tallIcon") }).probe("tall")
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Label("Hg", image: "icon").probe("rowLabel")
+            Text("Hg").probe("rowText")
+        }
+        .probe("row")
+        Button(action: {}) { Label("Title", image: "icon").probe("buttonLabel") }.probe("button")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "layout/alignment-guide", file: "Fixtures/Sources/Layout/LayoutFixtures.swift", firstLine: 164, lastLine: 171, declaration: #"""
 public static let alignmentGuide = Fixture("layout/alignment-guide", size: CGSize(width: 300, height: 200)) {
     VStack(alignment: .leading, spacing: 4) {
@@ -1349,6 +1369,63 @@ public static let wrapped = Fixture("text/wrapped", size: CGSize(width: 400, hei
     .probe("column")
 }
 """#),
+        FixtureSource(name: "toggle/basic", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 14, lastLine: 31, declaration: #"""
+/// Checkbox geometry: control, label spacing, baseline alignment with plain text, hidden
+/// label, disabled appearance.
+public static let basic = Fixture("toggle/basic", size: CGSize(width: 320, height: 240)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Toggle("Enabled", isOn: .constant(true)).probe("on")
+        Toggle("Enabled", isOn: .constant(false)).probe("off")
+        Toggle(isOn: .constant(true)) { Text("Hg").probe("customText") }.probe("custom")
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Toggle("Hg", isOn: .constant(true)).probe("baselineToggle")
+            Text("Hg").probe("baselineText")
+        }
+        .probe("baselineRow")
+        Toggle("Enabled", isOn: .constant(true)).labelsHidden().probe("hidden")
+        Toggle("Enabled", isOn: .constant(true)).disabled(true).probe("disabled")
+        Toggle("Enabled", isOn: .constant(false)).disabled(true).probe("disabledOff")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "toggle/steps", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 52, lastLine: 66, declaration: #"""
+/// Behaviour: the checkbox and a text follow the model.
+public static let steps = Fixture(
+    "toggle/steps", size: CGSize(width: 240, height: 120),
+    model: { ToggleModel() },
+    steps: [
+        FixtureStep("on") { $0.isOn = true },
+        FixtureStep("off") { $0.isOn = false },
+    ]
+) { model in
+    HStack(spacing: 12) {
+        Toggle("Enabled", isOn: Binding(get: { model.isOn }, set: { model.isOn = $0 })).probe("toggle")
+        Text(model.isOn ? "On" : "Off").probe("state")
+    }
+    .probe("row")
+}
+"""#),
+        FixtureSource(name: "toggle/styles", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 33, lastLine: 50, declaration: #"""
+/// Switch, button and explicit checkbox styles; a switch next to a bordered button.
+public static let styles = Fixture("toggle/styles", size: CGSize(width: 320, height: 300)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).probe("switchOn")
+        Toggle("Enabled", isOn: .constant(false)).toggleStyle(.switch).probe("switchOff")
+        Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).labelsHidden().probe("switchHidden")
+        Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button).probe("buttonOn")
+        Toggle("Enabled", isOn: .constant(false)).toggleStyle(.button).probe("buttonOff")
+        Toggle("Enabled", isOn: .constant(true)).toggleStyle(.checkbox).probe("checkbox")
+        HStack(spacing: 8) {
+            Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).probe("rowSwitch")
+            Button("OK") {}.probe("rowButton")
+            Toggle("Enabled", isOn: .constant(true)).probe("rowCheckbox")
+        }
+        .probe("row")
+    }
+    .probe("stack")
+}
+"""#),
     ]
 
     static let files: [String: String] = [
@@ -1733,6 +1810,35 @@ public enum ImageFixtures {
     }
 
     public static let all: [Fixture] = [intrinsic, resizable, aspectRatio, template, stackSpacing, tiling, swap]
+}
+"""#,
+        "Fixtures/Sources/Label/LabelFixtures.swift": #"""
+// Label fixtures: icon and title from a catalog image, the label styles, custom title and icon
+// views, a tall icon, baseline alignment, and a label inside a bordered button.
+import SwiftUI
+import FixtureKit
+
+public enum LabelFixtures {
+    public static let basic = Fixture("label/basic", size: CGSize(width: 320, height: 300)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Title", image: "icon").probe("label")
+            Label("Title", image: "icon").labelStyle(.titleOnly).probe("titleOnly")
+            Label("Title", image: "icon").labelStyle(.iconOnly).probe("iconOnly")
+            Label("Title", image: "icon").labelStyle(.titleAndIcon).probe("titleAndIcon")
+            Label(title: { Text("Title").probe("customTitle") },
+                  icon: { Circle().fill(Color.red).frame(width: 12, height: 12).probe("customIcon") }).probe("custom")
+            Label(title: { Text("Hg").probe("tallTitle") }, icon: { Image("swatch").probe("tallIcon") }).probe("tall")
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Label("Hg", image: "icon").probe("rowLabel")
+                Text("Hg").probe("rowText")
+            }
+            .probe("row")
+            Button(action: {}) { Label("Title", image: "icon").probe("buttonLabel") }.probe("button")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic]
 }
 """#,
         "Fixtures/Sources/Layout/LayoutFixtures.swift": #"""
@@ -2853,6 +2959,77 @@ public enum TextFixtures {
     }
 
     public static let all: [Fixture] = [hello, styles, systemFonts, wrapped, vstackSpacing, vstackSpacingMixed, hstackSpacing, hstackBaseline, modifiers, boldTrait] + completeness
+}
+"""#,
+        "Fixtures/Sources/Toggle/ToggleFixtures.swift": #"""
+// Toggle fixtures: the macOS checkbox (default), switch and button styles, label alignment,
+// hidden labels, the disabled look, and a behaviour fixture driven by a model.
+import SwiftUI
+import FixtureKit
+
+/// Drives `toggle/steps`.
+@Observable
+public final class ToggleModel {
+    public var isOn = false
+    public init() {}
+}
+
+public enum ToggleFixtures {
+    /// Checkbox geometry: control, label spacing, baseline alignment with plain text, hidden
+    /// label, disabled appearance.
+    public static let basic = Fixture("toggle/basic", size: CGSize(width: 320, height: 240)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle("Enabled", isOn: .constant(true)).probe("on")
+            Toggle("Enabled", isOn: .constant(false)).probe("off")
+            Toggle(isOn: .constant(true)) { Text("Hg").probe("customText") }.probe("custom")
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Toggle("Hg", isOn: .constant(true)).probe("baselineToggle")
+                Text("Hg").probe("baselineText")
+            }
+            .probe("baselineRow")
+            Toggle("Enabled", isOn: .constant(true)).labelsHidden().probe("hidden")
+            Toggle("Enabled", isOn: .constant(true)).disabled(true).probe("disabled")
+            Toggle("Enabled", isOn: .constant(false)).disabled(true).probe("disabledOff")
+        }
+        .probe("stack")
+    }
+
+    /// Switch, button and explicit checkbox styles; a switch next to a bordered button.
+    public static let styles = Fixture("toggle/styles", size: CGSize(width: 320, height: 300)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).probe("switchOn")
+            Toggle("Enabled", isOn: .constant(false)).toggleStyle(.switch).probe("switchOff")
+            Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).labelsHidden().probe("switchHidden")
+            Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button).probe("buttonOn")
+            Toggle("Enabled", isOn: .constant(false)).toggleStyle(.button).probe("buttonOff")
+            Toggle("Enabled", isOn: .constant(true)).toggleStyle(.checkbox).probe("checkbox")
+            HStack(spacing: 8) {
+                Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).probe("rowSwitch")
+                Button("OK") {}.probe("rowButton")
+                Toggle("Enabled", isOn: .constant(true)).probe("rowCheckbox")
+            }
+            .probe("row")
+        }
+        .probe("stack")
+    }
+
+    /// Behaviour: the checkbox and a text follow the model.
+    public static let steps = Fixture(
+        "toggle/steps", size: CGSize(width: 240, height: 120),
+        model: { ToggleModel() },
+        steps: [
+            FixtureStep("on") { $0.isOn = true },
+            FixtureStep("off") { $0.isOn = false },
+        ]
+    ) { model in
+        HStack(spacing: 12) {
+            Toggle("Enabled", isOn: Binding(get: { model.isOn }, set: { model.isOn = $0 })).probe("toggle")
+            Text(model.isOn ? "On" : "Off").probe("state")
+        }
+        .probe("row")
+    }
+
+    public static let all: [Fixture] = [basic, styles, steps]
 }
 """#,
     ]

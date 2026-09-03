@@ -125,6 +125,24 @@
           ]
         },
         {
+          "api": "Toggle (isOn:label:, title, image, systemImage, configuration) / ToggleStyle / ToggleStyleConfiguration / toggleStyle",
+          "status": "partial",
+          "notes": "Checkbox (default), switch and button styles measured in layout and on/off pixels; activation on release inside; checkbox semantics (aria-checked); no pressed/hover/focus looks, keyboard, mixed state or Toggle(sources:)",
+          "fixtures": [
+            "toggle/basic",
+            "toggle/styles",
+            "toggle/steps"
+          ]
+        },
+        {
+          "api": "Label (title:icon:, image, systemImage) / LabelStyle (automatic, titleAndIcon, titleOnly, iconOnly) / labelStyle",
+          "status": "partial",
+          "notes": "Icon centred on half the cap height above the title's baseline, 8 pt spacing (measured); systemImage is the stub symbol; the automatic style is not context sensitive",
+          "fixtures": [
+            "label/basic"
+          ]
+        },
+        {
           "api": "Divider",
           "status": "partial",
           "notes": "Layout exact (1pt); no painting yet; Tier B (Chromium) within tolerance",
@@ -417,6 +435,23 @@
           "notes": "An inset rectangle stroke overlaid on the content; no layout change (measured)",
           "fixtures": [
             "shape/border"
+          ]
+        },
+        {
+          "api": "labelsHidden()",
+          "status": "full",
+          "notes": "Controls drop their label and its spacing (measured on Toggle)",
+          "fixtures": [
+            "toggle/basic",
+            "toggle/styles"
+          ]
+        },
+        {
+          "api": "disabled(_:) / EnvironmentValues.isEnabled",
+          "status": "partial",
+          "notes": "Blocks activation of buttons and toggles; toggles dim their control and label (measured), buttons do not dim yet",
+          "fixtures": [
+            "toggle/basic"
           ]
         }
       ]
