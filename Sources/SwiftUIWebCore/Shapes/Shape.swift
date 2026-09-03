@@ -344,7 +344,7 @@ extension StrokeShapeView: ShapeView, _ShapePainting {
         _paintBackground(background, in: bounds, environment: environment, into: &list)
         let color = style.resolveColor(in: environment)
         guard color.alpha > 0, strokeStyle.lineWidth > 0 else { return }
-        list.append(.strokePath(shape.path(in: bounds), style: strokeStyle, color))
+        list.append(.strokePath(_localPath(shape, in: bounds), style: strokeStyle, color))
     }
 }
 
@@ -377,8 +377,15 @@ extension StrokeBorderShapeView: ShapeView, _ShapePainting {
         _paintBackground(background, in: bounds, environment: environment, into: &list)
         let color = style.resolveColor(in: environment)
         guard color.alpha > 0, strokeStyle.lineWidth > 0 else { return }
-        list.append(.strokePath(shape.inset(by: strokeStyle.lineWidth / 2).path(in: bounds), style: strokeStyle, color))
+        list.append(.strokePath(_localPath(shape.inset(by: strokeStyle.lineWidth / 2), in: bounds), style: strokeStyle, color))
     }
+}
+
+/// The path of `shape` for a view whose frame is `bounds`: SwiftUI asks shapes for a rect at the
+/// origin of the view's own space (a `Path` is in local coordinates), then places the result.
+@MainActor
+package func _localPath<S: Shape>(_ shape: S, in bounds: CGRect) -> Path {
+    shape.path(in: CGRect(origin: .zero, size: bounds.size)).offsetBy(dx: bounds.minX, dy: bounds.minY)
 }
 
 /// A shape that is the stroked outline of another; painters stroke the base natively.
@@ -391,7 +398,8 @@ package protocol _StrokeOutline {
 @MainActor
 package func _fillCommand<S: Shape>(_ shape: S, in bounds: CGRect, color: RGBA, fillStyle: FillStyle = FillStyle()) -> DisplayCommand {
     if let outline = shape as? any _StrokeOutline {
-        return .strokePath(outline._basePath(in: bounds), style: outline._strokeStyle, color)
+        return .strokePath(outline._basePath(in: CGRect(origin: .zero, size: bounds.size)).offsetBy(dx: bounds.minX, dy: bounds.minY),
+                           style: outline._strokeStyle, color)
     }
     if !fillStyle.isEOFilled {
         if S.self == Rectangle.self {
@@ -404,7 +412,7 @@ package func _fillCommand<S: Shape>(_ shape: S, in bounds: CGRect, color: RGBA, 
             return .fillRRect(bounds, cornerRadius: min(bounds.width, bounds.height) / 2, color)
         }
     }
-    return .fillPath(shape.path(in: bounds), color, eoFill: fillStyle.isEOFilled)
+    return .fillPath(_localPath(shape, in: bounds), color, eoFill: fillStyle.isEOFilled)
 }
 
 @MainActor
@@ -417,5 +425,5 @@ package func _clipCommand<S: Shape>(_ shape: S, in bounds: CGRect, fillStyle: Fi
             return .clipRRect(bounds, cornerRadius: rounded.cornerSize.width)
         }
     }
-    return .clipPath(shape.path(in: bounds), eoFill: fillStyle.isEOFilled)
+    return .clipPath(_localPath(shape, in: bounds), eoFill: fillStyle.isEOFilled)
 }

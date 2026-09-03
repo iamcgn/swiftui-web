@@ -5,6 +5,7 @@
 import Testing
 import SwiftUI
 import SwiftUIWebHeadless
+import SwiftUIWebCore
 
 /// Compares two path descriptions number by number (Apple's carry 1e-16 noise from CGPath).
 func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourceLocation: SourceLocation = #_sourceLocation) {
@@ -341,3 +342,32 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
     }
 }
 #endif
+
+/// The wasm build carries its own trigonometry (`Geometry/Math.swift`); every platform checks
+/// the series against known values so a regression shows up natively too.
+@Suite struct TrigonometryTests {
+    @Test func seriesMatchKnownValues() {
+        let cases: [(Double, Double, Double)] = [
+            (0, 0, 1), (.pi / 6, 0.5, 0.8660254037844387), (.pi / 4, 0.7071067811865476, 0.7071067811865476),
+            (.pi / 2, 1, 0), (2, 0.9092974268256817, -0.4161468365471424), (.pi, 0, -1), (4, -0.7568024953079282, -0.6536436208636119),
+            (-1, -0.8414709848078965, 0.5403023058681398), (7, 0.6569865987187891, 0.7539022543433046), (100, -0.5063656411097588, 0.8623188722876839),
+        ]
+        for (x, s, c) in cases {
+            #expect(abs(_sin(x) - s) < 1e-14, "sin \(x)")
+            #expect(abs(_cos(x) - c) < 1e-14, "cos \(x)")
+        }
+        #expect(abs(_tan(.pi / 4) - 1) < 1e-14)
+        #expect(abs(_tan(1) - 1.5574077246549023) < 1e-13)
+        #expect(abs(_atan2(1, 1) - .pi / 4) < 1e-14)
+        #expect(abs(_atan2(1, -1) - 3 * .pi / 4) < 1e-14)
+        #expect(abs(_atan2(-1, -1) + 3 * .pi / 4) < 1e-14)
+        #expect(abs(_atan2(-2, 1) + 1.1071487177940904) < 1e-14)
+        #expect(abs(_atan2(1, 0) - .pi / 2) < 1e-14)
+        #expect(abs(_atan2(0, -1) - .pi) < 1e-14)
+        #expect(abs(_atan2(5, 0.1) - 1.550798992821746) < 1e-13)
+        #expect(abs(_acos(0.5) - .pi / 3) < 1e-14)
+        #expect(abs(_acos(-1) - .pi) < 1e-14)
+        #expect(abs(_acos(1)) < 1e-14)
+        #expect(abs(_acos(0.1) - 1.4706289056333368) < 1e-14)
+    }
+}

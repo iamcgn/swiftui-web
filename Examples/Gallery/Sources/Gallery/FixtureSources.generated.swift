@@ -878,7 +878,7 @@ public static let vstack = Fixture("section/vstack", size: CGSize(width: 300, he
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "shape/border", file: "Fixtures/Sources/Shape/ShapeFixtures.swift", firstLine: 175, lastLine: 193, declaration: #"""
+        FixtureSource(name: "shape/border", file: "Fixtures/Sources/Shape/ShapeFixtures.swift", firstLine: 173, lastLine: 191, declaration: #"""
 /// `border` draws inside the view's bounds and changes no layout.
 public static let border = Fixture("shape/border", size: CGSize(width: 300, height: 160)) {
     VStack(spacing: 8) {
@@ -930,7 +930,7 @@ public static let builtin = Fixture("shape/builtin", size: CGSize(width: 340, he
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "shape/layout", file: "Fixtures/Sources/Shape/ShapeFixtures.swift", firstLine: 195, lastLine: 229, declaration: #"""
+        FixtureSource(name: "shape/layout", file: "Fixtures/Sources/Shape/ShapeFixtures.swift", firstLine: 193, lastLine: 227, declaration: #"""
 /// Shapes in stacks: flexible, 10 × 10 ideal, the circle's square, stroked and modified
 /// shapes laid out like their base.
 public static let layout = Fixture("shape/layout", size: CGSize(width: 300, height: 200)) {
@@ -967,7 +967,7 @@ public static let layout = Fixture("shape/layout", size: CGSize(width: 300, heig
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "shape/modifiers", file: "Fixtures/Sources/Shape/ShapeFixtures.swift", firstLine: 143, lastLine: 173, declaration: #"""
+        FixtureSource(name: "shape/modifiers", file: "Fixtures/Sources/Shape/ShapeFixtures.swift", firstLine: 141, lastLine: 171, declaration: #"""
 /// Shape modifiers (offset, scale, rotation, transform, size, trim, inset, stroke as a
 /// shape) and the layout they produce: forwarded from the base shape, and the ideal size.
 public static let modifiers = Fixture("shape/modifiers", size: CGSize(width: 340, height: 200)) {
@@ -1047,7 +1047,7 @@ public static let path = Fixture("shape/path", size: CGSize(width: 300, height: 
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "shape/steps", file: "Fixtures/Sources/Shape/ShapeFixtures.swift", firstLine: 231, lastLine: 249, declaration: #"""
+        FixtureSource(name: "shape/steps", file: "Fixtures/Sources/Shape/ShapeFixtures.swift", firstLine: 229, lastLine: 247, declaration: #"""
 /// Behaviour: stroke and trim parameters follow the model (frames constant, pixels change).
 public static let steps = Fixture(
     "shape/steps", size: CGSize(width: 200, height: 120),
@@ -2479,14 +2479,12 @@ public enum ShapeFixtures {
         .probe("stack")
     }
 
-    /// A pentagram: nonzero winding fills the centre, even-odd leaves it empty.
+    /// A pentagram (radius 26 about (30, 30), every second vertex): nonzero winding fills the
+    /// centre, even-odd leaves it empty. Literal points: fixtures compile without libm on wasm.
     static var star: Path {
         var p = Path()
-        let points = (0..<5).map { i -> CGPoint in
-            let angle = -Double.pi / 2 + Double(i) * 4 * Double.pi / 5
-            return CGPoint(x: 30 + 26 * cos(angle), y: 30 + 26 * sin(angle))
-        }
-        p.addLines(points)
+        p.addLines([CGPoint(x: 30, y: 4), CGPoint(x: 45.28241, y: 51.03444), CGPoint(x: 5.27252, y: 21.96556),
+                    CGPoint(x: 54.72748, y: 21.96556), CGPoint(x: 14.71759, y: 51.03444)])
         p.closeSubpath()
         return p
     }
