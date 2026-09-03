@@ -8,7 +8,7 @@
 /// are ordered like the data. Duplicate ids get independent nodes, as SwiftUI does (it warns).
 @MainActor
 package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Content: View>:
-    TypedNode<ForEach<Data, ID, Content>>
+    TypedNode<ForEach<Data, ID, Content>>, _ForEachNodeProviding
 {
     package struct Entry {
         package let id: ID
@@ -61,6 +61,8 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
 
     package var children: [TypedNode<Content>] { entries.map(\.node) }
 
+    package var _entries: [(AnyHashable, ViewNode)] { entries.map { (AnyHashable($0.id), $0.node) } }
+
     override package var structuralChildren: [ViewNode] { entries.map(\.node) }
     override package var layoutChildren: [ViewNode] { entries.flatMap { $0.node.layoutChildren } }
     override package var nodeDescription: String { "ForEach(\(entries.count))" }
@@ -80,18 +82,28 @@ package final class SectionNode<Parent: View, Content: View, Footer: View>:
     init(_ context: _NodeContext<Section<Parent, Content, Footer>>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
                    environment: context.environment)
-        header = Parent._makeNode(_NodeContext(view: context.view.header, parent: self, environment: context.environment))
+        header = Parent._makeNode(_NodeContext(view: context.view.header, parent: self, environment: Self.headerEnvironment(context.environment)))
         content = Content._makeNode(_NodeContext(view: context.view.content, parent: self, environment: context.environment))
-        footer = Footer._makeNode(_NodeContext(view: context.view.footer, parent: self, environment: context.environment))
+        footer = Footer._makeNode(_NodeContext(view: context.view.footer, parent: self, environment: Self.headerEnvironment(context.environment)))
     }
 
     override package func update(view: Section<Parent, Content, Footer>, environment: EnvironmentValues, force: Bool) {
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
-        header.update(view: view.header, environment: environment, force: force)
+        header.update(view: view.header, environment: Self.headerEnvironment(environment), force: force)
         content.update(view: view.content, environment: environment, force: force)
-        footer.update(view: view.footer, environment: environment, force: force)
+        footer.update(view: view.footer, environment: Self.headerEnvironment(environment), force: force)
+    }
+
+    /// Inside a `List` the header and footer take the container's styling (`_sectionStyling`).
+    private static func headerEnvironment(_ environment: EnvironmentValues) -> EnvironmentValues {
+        guard let styling = environment._sectionStyling else { return environment }
+        var styled = environment
+        styled.font = styling.font
+        styled.foregroundColor = styling.foreground
+        styled._sectionStyling = nil
+        return styled
     }
 
     override package var structuralChildren: [ViewNode] { [header, content, footer] }
@@ -99,4 +111,10 @@ package final class SectionNode<Parent: View, Content: View, Footer: View>:
         header.layoutChildren + content.layoutChildren + footer.layoutChildren
     }
     override package var nodeDescription: String { "Section" }
+}
+
+extension SectionNode: _SectionNodeProviding {
+    package var _headerNode: ViewNode { header }
+    package var _contentNode: ViewNode { content }
+    package var _footerNode: ViewNode { footer }
 }

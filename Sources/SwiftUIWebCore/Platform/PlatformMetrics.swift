@@ -54,6 +54,33 @@ package enum PlatformMetrics {
     package static let focusRingWidth: CGFloat = 3                       // unverified (no focused golden)
     package static let focusRingOpacity = 0.5                            // unverified
 
+    // List (macOS 26.2: fixtures list/*, pixels sampled, Docs/elements/List.md)
+    package static let listInsetMargin: CGFloat = 16
+    package static let listPlainMargin: CGFloat = 8
+    package static let listBorderedMargin: CGFloat = 7
+    package static let listBorderWidth: CGFloat = 1
+    package static let listBorderColor = Color(red: 0, green: 0, blue: 0, opacity: 63.0 / 255)
+    package static let listTopInset: CGFloat = 10
+    package static let listRowVerticalInset: CGFloat = 4
+    package static let listRowMinimumHeight: CGFloat = 24
+    package static let listSidebarRowHeight: CGFloat = 32
+    package static let listSidebarBackground = Color(red: 240.0 / 255, green: 240.0 / 255, blue: 240.0 / 255)
+    package static let listSidebarForeground = Color(red: 0, green: 0, blue: 0, opacity: 0.7)
+    package static let listSectionHeaderPadding: CGFloat = 6
+    package static let listSectionSpacing: CGFloat = 20
+    package static let listSeparatorThickness: CGFloat = 1
+    package static let listSeparatorAlpha = 25.0 / 255
+    package static let listSelectionInset: CGFloat = 10
+    package static let listSelectionCornerRadius: CGFloat = 7                 // approximate
+    package static let listSelectionAlpha = 35.0 / 255
+    package static let listPinnedHeaderHeight: CGFloat = 27
+    package static let listPinnedHeaderLine: CGFloat = 1
+    package static let listPinnedHeaderShadowAlpha = 7.0 / 255
+    package static let listPinnedHeaderLineAlpha = 48.0 / 255
+    package static let listLabelIconWidth: CGFloat = 16                        // 13 pt font; list/basic `label`
+    package static let listLabelIconSpacing: CGFloat = 6
+    package static let listIdealWidth: CGFloat = 200                           // unverified
+
     // Label (macOS 26.2: fixture label/basic, Docs/elements/Label.md)
     package static let labelIconSpacing: CGFloat = 8
 

@@ -243,6 +243,21 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(word, defaultFont))
             requests.append(TextMetricRequest(word, .style("body")))
         }
+        // Sidebar list rows use the body font.
+        for word in ["Apple", "Banana", "Cherry"] { requests.append(TextMetricRequest(word, .style("body"))) }
+        // List section headers and footers: candidate styles and weights.
+        for word in ["Fruits", "Vegetables", "Footer"] {
+            for style in ["headline", "subheadline", "footnote", "caption", "caption2", "body"] {
+                for weight in ["regular", "medium", "semibold", "bold"] {
+                    requests.append(TextMetricRequest(word, .style(style, weight: weight)))
+                }
+            }
+            for size: CGFloat in [11, 12] {
+                for weight in ["regular", "medium", "semibold", "bold"] {
+                    requests.append(TextMetricRequest(word, .system(size: size, weight: weight, design: "default")))
+                }
+            }
+        }
         requests.append(TextMetricRequest("Hi", defaultFont))
         requests.append(TextMetricRequest("End", .style("largeTitle")))
         let bold13 = defaultFont(weight: "bold")

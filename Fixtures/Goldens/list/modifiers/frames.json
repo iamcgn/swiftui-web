@@ -1,0 +1,57 @@
+{
+  "fixture" : "list\/modifiers",
+  "frames" : {
+    "background" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 38
+    },
+    "inset" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 46,
+      "y" : 14
+    },
+    "item1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 110
+    },
+    "item2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 134
+    },
+    "item3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 158
+    },
+    "list" : {
+      "height" : 260,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "noSeparator" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 62
+    },
+    "tinted" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 16,
+      "y" : 86
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

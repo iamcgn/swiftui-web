@@ -8,8 +8,15 @@ package protocol _Interactive: AnyObject {
     func pressBegan()
     /// Called when the press ends; `inside` tells whether the pointer is still over the node.
     func pressEnded(inside: Bool)
+    /// Like `pressEnded(inside:)`, with the release point in the node's coordinate space (lists
+    /// pick the row from it). The default forwards to `pressEnded(inside:)`.
+    func pressEnded(inside: Bool, at point: CGPoint)
     /// Accessibility role and label for the semantics overlay.
     var semantics: SemanticsNode { get }
+}
+
+extension _Interactive {
+    package func pressEnded(inside: Bool, at point: CGPoint) { pressEnded(inside: inside) }
 }
 
 /// One element of the accessibility tree hosts expose (DOM overlay in the browser).
@@ -101,7 +108,8 @@ extension Runtime {
         guard let node = pressedNode else { return }
         pressedNode = nil
         let inside = !panned && interactiveNode(at: point) === node
-        node.pressEnded(inside: inside)
+        let origin = node.frameInRoot.origin
+        node.pressEnded(inside: inside, at: CGPoint(x: point.x - origin.x, y: point.y - origin.y))
     }
 
     /// A click delivered by the accessibility overlay, by semantics identifier.

@@ -1,0 +1,87 @@
+{
+  "fixture" : "list\/styles",
+  "frames" : {
+    "bordered" : {
+      "height" : 70,
+      "width" : 320,
+      "x" : 0,
+      "y" : 164
+    },
+    "borderedRow1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 7,
+      "y" : 169
+    },
+    "borderedRow2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 7,
+      "y" : 193
+    },
+    "inset" : {
+      "height" : 70,
+      "width" : 320,
+      "x" : 0,
+      "y" : 8
+    },
+    "insetRow1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 22
+    },
+    "insetRow2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 46
+    },
+    "plain" : {
+      "height" : 70,
+      "width" : 320,
+      "x" : 0,
+      "y" : 86
+    },
+    "plainRow1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 8,
+      "y" : 90
+    },
+    "plainRow2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 8,
+      "y" : 114
+    },
+    "sidebar" : {
+      "height" : 70,
+      "width" : 320,
+      "x" : 0,
+      "y" : 242
+    },
+    "sidebarRow1" : {
+      "height" : 18.5,
+      "width" : 35,
+      "x" : 16,
+      "y" : 258.75
+    },
+    "sidebarRow2" : {
+      "height" : 18.5,
+      "width" : 45,
+      "x" : 16,
+      "y" : 290.75
+    },
+    "stack" : {
+      "height" : 304,
+      "width" : 320,
+      "x" : 0,
+      "y" : 8
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  }
+}

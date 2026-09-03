@@ -94,9 +94,53 @@ public struct DefaultLabelStyle: LabelStyle {
 public struct TitleAndIconLabelStyle: LabelStyle {
     nonisolated public init() {}
     public func makeBody(configuration: Configuration) -> some View {
-        HStack(alignment: ._iconCenter, spacing: PlatformMetrics.labelIconSpacing) {
-            configuration.icon
-            _IconAlignedTitle(content: configuration.title)
+        _TitleAndIconLabel(configuration: configuration)
+    }
+}
+
+/// How a container lays out the icons of its labels: `List` gives them a fixed-width slot the
+/// icon is centred in (overflowing it when larger) and the accent tint (`Docs/elements/List.md`).
+package struct _LabelIconLayout: Equatable {
+    package var iconWidth: CGFloat
+    package var spacing: CGFloat
+    package var tint: Color
+
+    package init(iconWidth: CGFloat, spacing: CGFloat, tint: Color) {
+        self.iconWidth = iconWidth
+        self.spacing = spacing
+        self.tint = tint
+    }
+}
+
+package struct LabelIconLayoutKey: EnvironmentKey {
+    package static let defaultValue: _LabelIconLayout? = nil
+}
+
+extension EnvironmentValues {
+    package var _labelIconLayout: _LabelIconLayout? {
+        get { self[LabelIconLayoutKey.self] }
+        set { self[LabelIconLayoutKey.self] = newValue }
+    }
+}
+
+/// The icon and title side by side; inside a list the icon takes the container's slot and tint.
+package struct _TitleAndIconLabel: View {
+    package let configuration: LabelStyleConfiguration
+    @Environment(\._labelIconLayout) private var iconLayout
+
+    package init(configuration: LabelStyleConfiguration) { self.configuration = configuration }
+
+    package var body: some View {
+        if let iconLayout {
+            HStack(alignment: ._iconCenter, spacing: iconLayout.spacing) {
+                configuration.icon.foregroundStyle(iconLayout.tint).frame(width: iconLayout.iconWidth)
+                _IconAlignedTitle(content: configuration.title)
+            }
+        } else {
+            HStack(alignment: ._iconCenter, spacing: PlatformMetrics.labelIconSpacing) {
+                configuration.icon
+                _IconAlignedTitle(content: configuration.title)
+            }
         }
     }
 }

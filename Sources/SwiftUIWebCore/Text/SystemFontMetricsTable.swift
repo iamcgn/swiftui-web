@@ -28,6 +28,7 @@ extension PlatformProfile {
     /// Measured point-size fonts (`Font.system(size:)`), keyed by size.
     package static let macOSPointSizeMetrics: [(size: CGFloat, metrics: SystemFontMetrics)] = [
         (10, .init(lineHeight: 13, baseline: 10, spacingBelow: 6.2314453125, spacingAbove: 3.609375, textToText: 0, linePitch: 13, unroundedLineHeight: 13, capHeight: 7.0458984375)),
+        (11, .init(lineHeight: 14, baseline: 11, spacingBelow: 6.70458984375, spacingAbove: 3.8203125, textToText: 0, linePitch: 14, unroundedLineHeight: 14, capHeight: 7.75048828125)),
         (12, .init(lineHeight: 15, baseline: 12, spacingBelow: 7.177734375, spacingAbove: 4.03125, textToText: 0, linePitch: 15, unroundedLineHeight: 15, capHeight: 8.455078125)),
         (13, .init(lineHeight: 16, baseline: 13, spacingBelow: 8.15087890625, spacingAbove: 4.7421875, textToText: 0, linePitch: 16, unroundedLineHeight: 16, capHeight: 9.15966796875)),
         (20, .init(lineHeight: 24, baseline: 19, spacingBelow: 11.962890625, spacingAbove: 6.71875, textToText: 0, linePitch: 24, unroundedLineHeight: 24, capHeight: 14.091796875)),

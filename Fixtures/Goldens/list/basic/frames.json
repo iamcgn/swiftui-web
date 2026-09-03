@@ -1,0 +1,63 @@
+{
+  "fixture" : "list\/basic",
+  "frames" : {
+    "label" : {
+      "height" : 24,
+      "width" : 48.5,
+      "x" : 16,
+      "y" : 134
+    },
+    "list" : {
+      "height" : 260,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 14
+    },
+    "row2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 38
+    },
+    "tall" : {
+      "height" : 40,
+      "width" : 288,
+      "x" : 16,
+      "y" : 62
+    },
+    "toggle" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 16,
+      "y" : 166
+    },
+    "wide" : {
+      "height" : 16,
+      "width" : 288,
+      "x" : 16,
+      "y" : 110
+    },
+    "wideText" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 110
+    },
+    "wideTrailing" : {
+      "height" : 16,
+      "width" : 9,
+      "x" : 295,
+      "y" : 110
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

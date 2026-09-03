@@ -111,6 +111,10 @@ package final class LayoutContainerNode<V: View, L: Layout, Content: View>: Layo
 /// Type-erased operations of a unary modifier on one target node, used by proxies.
 @MainActor
 package protocol _UnaryLayoutModifier: AnyObject {
+    /// The node of the modified content (not the modifier's own layers, e.g. a background).
+    var modifiedContent: ViewNode { get }
+    /// The layout children of the modified content, one per proxy in `layoutChildren`.
+    var targets: [ViewNode] { get }
     func measure(_ target: ViewNode, proposal: ProposedViewSize) -> CGSize
     func dimensions(of target: ViewNode, in proposal: ProposedViewSize) -> ViewDimensions
     func placeTarget(_ target: ViewNode, in bounds: CGRect, proposal: ProposedViewSize, by placer: ViewNode)
@@ -146,6 +150,7 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
         child.update(view: view.content, environment: environment, force: force)
     }
 
+    package var modifiedContent: ViewNode { child }
     package var targets: [ViewNode] { child.layoutChildren }
 
     override package func stackOrientationDidChange() {

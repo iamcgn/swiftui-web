@@ -1,0 +1,110 @@
+{
+  "fixture" : "list\/steps",
+  "frames" : {
+    "item1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 14
+    },
+    "item2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 38
+    },
+    "item3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 62
+    },
+    "list" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "item1" : {
+          "height" : 16,
+          "width" : 35,
+          "x" : 16,
+          "y" : 14
+        },
+        "item2" : {
+          "height" : 16,
+          "width" : 45,
+          "x" : 16,
+          "y" : 38
+        },
+        "item3" : {
+          "height" : 16,
+          "width" : 41.5,
+          "x" : 16,
+          "y" : 62
+        },
+        "list" : {
+          "height" : 200,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "select"
+    },
+    {
+      "frames" : {
+        "item2" : {
+          "height" : 16,
+          "width" : 45,
+          "x" : 16,
+          "y" : 14
+        },
+        "item3" : {
+          "height" : 16,
+          "width" : 41.5,
+          "x" : 16,
+          "y" : 38
+        },
+        "list" : {
+          "height" : 200,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "remove"
+    },
+    {
+      "frames" : {
+        "item2" : {
+          "height" : 16,
+          "width" : 45,
+          "x" : 16,
+          "y" : 14
+        },
+        "item3" : {
+          "height" : 16,
+          "width" : 41.5,
+          "x" : 16,
+          "y" : 38
+        },
+        "list" : {
+          "height" : 200,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "deselect"
+    }
+  ]
+}

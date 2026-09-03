@@ -66,11 +66,65 @@
       "lastBaseline" : 61,
       "width" : 142.5
     },
+    "style:body:w400||Footer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 39.5
+    },
+    "style:body:w400||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 34.5
+    },
+    "style:body:w400||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 68
+    },
+    "style:body:w400|0.0|Footer" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w400|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w400|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
+      "width" : 0
+    },
     "style:body:w500||Bold" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 28
+    },
+    "style:body:w500||Footer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 40.5
+    },
+    "style:body:w500||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 35.5
+    },
+    "style:body:w500||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 69.5
     },
     "style:body:w500|0.0|Bold" : {
       "firstBaseline" : 14,
@@ -78,11 +132,47 @@
       "lastBaseline" : 71,
       "width" : 0
     },
+    "style:body:w500|0.0|Footer" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w500|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w500|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
+      "width" : 0
+    },
     "style:body:w600||Bold" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 28.5
+    },
+    "style:body:w600||Footer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 41.5
+    },
+    "style:body:w600||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 36.5
+    },
+    "style:body:w600||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 71
     },
     "style:body:w600||Weight" : {
       "firstBaseline" : 14,
@@ -94,6 +184,24 @@
       "firstBaseline" : 14,
       "height" : 75.5,
       "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body:w600|0.0|Footer" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w600|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w600|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
       "width" : 0
     },
     "style:body:w600|0.0|Weight" : {
@@ -108,10 +216,46 @@
       "lastBaseline" : 14,
       "width" : 29.5
     },
+    "style:body:w700||Footer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 42.5
+    },
+    "style:body:w700||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 38
+    },
+    "style:body:w700||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 72.5
+    },
     "style:body:w700|0.0|Bold" : {
       "firstBaseline" : 14,
       "height" : 75.5,
       "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body:w700|0.0|Footer" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w700|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body:w700|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
       "width" : 0
     },
     "style:body:w800||Bold" : {
@@ -144,11 +288,23 @@
       "lastBaseline" : 14,
       "width" : 9
     },
+    "style:body||Apple" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 35
+    },
     "style:body||B" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 8.5
+    },
+    "style:body||Banana" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 45
     },
     "style:body||Bordered" : {
       "firstBaseline" : 14,
@@ -161,6 +317,12 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 65
+    },
+    "style:body||Cherry" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 41.5
     },
     "style:body||Count: 0" : {
       "firstBaseline" : 14,
@@ -312,10 +474,22 @@
       "lastBaseline" : 14,
       "width" : 0
     },
+    "style:body|0.0|Apple" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
     "style:body|0.0|B" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|Banana" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "style:body|0.0|Bordered" : {
@@ -328,6 +502,12 @@
       "firstBaseline" : 14,
       "height" : 189.5,
       "lastBaseline" : 185,
+      "width" : 0
+    },
+    "style:body|0.0|Cherry" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "style:body|0.0|Count: 0" : {
@@ -546,16 +726,88 @@
       "lastBaseline" : 283,
       "width" : 0
     },
+    "style:caption:w400||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 31.5
+    },
+    "style:caption:w400||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 27.5
+    },
+    "style:caption:w400||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 54
+    },
+    "style:caption:w400|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w400|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w400|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
+      "width" : 0
+    },
     "style:caption:w500||Bold" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 22.5
     },
+    "style:caption:w500||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 32.5
+    },
+    "style:caption:w500||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 28.5
+    },
+    "style:caption:w500||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 55.5
+    },
     "style:caption:w500|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption:w500|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w500|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w500|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:caption:w600||Bold" : {
@@ -564,10 +816,46 @@
       "lastBaseline" : 11,
       "width" : 23
     },
+    "style:caption:w600||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
+    "style:caption:w600||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29
+    },
+    "style:caption:w600||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 56.5
+    },
     "style:caption:w600|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:caption:w600|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:caption:w600|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:caption:w600|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:caption:w700||Bold" : {
@@ -576,10 +864,46 @@
       "lastBaseline" : 11,
       "width" : 23.5
     },
+    "style:caption:w700||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34
+    },
+    "style:caption:w700||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 30
+    },
+    "style:caption:w700||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 57.5
+    },
     "style:caption:w700|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption:w700|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w700|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w700|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:caption:w800||Bold" : {
@@ -606,16 +930,88 @@
       "lastBaseline" : 251,
       "width" : 0
     },
+    "style:caption2:w400||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 31.5
+    },
+    "style:caption2:w400||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 27.5
+    },
+    "style:caption2:w400||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 54
+    },
+    "style:caption2:w400|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w400|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w400|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
+      "width" : 0
+    },
     "style:caption2:w500||Bold" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 22.5
     },
+    "style:caption2:w500||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 32.5
+    },
+    "style:caption2:w500||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 28.5
+    },
+    "style:caption2:w500||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 55.5
+    },
     "style:caption2:w500|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption2:w500|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w500|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w500|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:caption2:w600||Bold" : {
@@ -624,10 +1020,46 @@
       "lastBaseline" : 11,
       "width" : 23
     },
+    "style:caption2:w600||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
+    "style:caption2:w600||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29
+    },
+    "style:caption2:w600||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 56.5
+    },
     "style:caption2:w600|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:caption2:w600|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:caption2:w600|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:caption2:w600|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:caption2:w700||Bold" : {
@@ -636,10 +1068,46 @@
       "lastBaseline" : 11,
       "width" : 23.5
     },
+    "style:caption2:w700||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34
+    },
+    "style:caption2:w700||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 30
+    },
+    "style:caption2:w700||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 57.5
+    },
     "style:caption2:w700|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption2:w700|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w700|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w700|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:caption2:w800||Bold" : {
@@ -678,16 +1146,88 @@
       "lastBaseline" : 251,
       "width" : 0
     },
+    "style:footnote:w400||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 31.5
+    },
+    "style:footnote:w400||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 27.5
+    },
+    "style:footnote:w400||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 54
+    },
+    "style:footnote:w400|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w400|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w400|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
+      "width" : 0
+    },
     "style:footnote:w500||Bold" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 22.5
     },
+    "style:footnote:w500||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 32.5
+    },
+    "style:footnote:w500||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 28.5
+    },
+    "style:footnote:w500||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 55.5
+    },
     "style:footnote:w500|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:footnote:w500|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w500|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w500|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:footnote:w600||Bold" : {
@@ -696,10 +1236,46 @@
       "lastBaseline" : 11,
       "width" : 23
     },
+    "style:footnote:w600||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
+    "style:footnote:w600||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29
+    },
+    "style:footnote:w600||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 56.5
+    },
     "style:footnote:w600|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:footnote:w600|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:footnote:w600|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:footnote:w600|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:footnote:w700||Bold" : {
@@ -708,10 +1284,46 @@
       "lastBaseline" : 11,
       "width" : 23.5
     },
+    "style:footnote:w700||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34
+    },
+    "style:footnote:w700||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 30
+    },
+    "style:footnote:w700||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 57.5
+    },
     "style:footnote:w700|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:footnote:w700|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w700|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w700|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 159,
+      "lastBaseline" : 155,
       "width" : 0
     },
     "style:footnote:w800||Bold" : {
@@ -738,16 +1350,88 @@
       "lastBaseline" : 251,
       "width" : 0
     },
+    "style:headline:w400||Footer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 39.5
+    },
+    "style:headline:w400||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 34.5
+    },
+    "style:headline:w400||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 68
+    },
+    "style:headline:w400|0.0|Footer" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline:w400|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline:w400|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
+      "width" : 0
+    },
     "style:headline:w500||Bold" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 28
     },
+    "style:headline:w500||Footer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 40.5
+    },
+    "style:headline:w500||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 35.5
+    },
+    "style:headline:w500||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 69.5
+    },
     "style:headline:w500|0.0|Bold" : {
       "firstBaseline" : 14,
       "height" : 75.5,
       "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:headline:w500|0.0|Footer" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline:w500|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline:w500|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
       "width" : 0
     },
     "style:headline:w600||Bold" : {
@@ -756,10 +1440,46 @@
       "lastBaseline" : 14,
       "width" : 28.5
     },
+    "style:headline:w600||Footer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 41.5
+    },
+    "style:headline:w600||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 36.5
+    },
+    "style:headline:w600||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 71
+    },
     "style:headline:w600|0.0|Bold" : {
       "firstBaseline" : 14,
       "height" : 75.5,
       "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:headline:w600|0.0|Footer" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline:w600|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline:w600|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
       "width" : 0
     },
     "style:headline:w700||Bold" : {
@@ -768,10 +1488,46 @@
       "lastBaseline" : 14,
       "width" : 29.5
     },
+    "style:headline:w700||Footer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 42.5
+    },
+    "style:headline:w700||Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 38
+    },
+    "style:headline:w700||Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 72.5
+    },
     "style:headline:w700|0.0|Bold" : {
       "firstBaseline" : 14,
       "height" : 75.5,
       "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:headline:w700|0.0|Footer" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline:w700|0.0|Fruits" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:headline:w700|0.0|Vegetables" : {
+      "firstBaseline" : 14,
+      "height" : 189.5,
+      "lastBaseline" : 185,
       "width" : 0
     },
     "style:headline:w800||Bold" : {
@@ -942,16 +1698,88 @@
       "lastBaseline" : 614,
       "width" : 0
     },
+    "style:subheadline:w400||Footer" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 34.5
+    },
+    "style:subheadline:w400||Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 30
+    },
+    "style:subheadline:w400||Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 58.5
+    },
+    "style:subheadline:w400|0.0|Footer" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w400|0.0|Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w400|0.0|Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 169,
+      "lastBaseline" : 165,
+      "width" : 0
+    },
     "style:subheadline:w500||Bold" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 24.5
     },
+    "style:subheadline:w500||Footer" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 35
+    },
+    "style:subheadline:w500||Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 31
+    },
+    "style:subheadline:w500||Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 60
+    },
     "style:subheadline:w500|0.0|Bold" : {
       "firstBaseline" : 12,
       "height" : 67,
       "lastBaseline" : 63,
+      "width" : 0
+    },
+    "style:subheadline:w500|0.0|Footer" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w500|0.0|Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w500|0.0|Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 169,
+      "lastBaseline" : 165,
       "width" : 0
     },
     "style:subheadline:w600||Bold" : {
@@ -960,10 +1788,46 @@
       "lastBaseline" : 12,
       "width" : 25
     },
+    "style:subheadline:w600||Footer" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 36
+    },
+    "style:subheadline:w600||Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 31.5
+    },
+    "style:subheadline:w600||Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 61.5
+    },
     "style:subheadline:w600|0.0|Bold" : {
       "firstBaseline" : 12,
       "height" : 67,
       "lastBaseline" : 63,
+      "width" : 0
+    },
+    "style:subheadline:w600|0.0|Footer" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w600|0.0|Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w600|0.0|Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 169,
+      "lastBaseline" : 165,
       "width" : 0
     },
     "style:subheadline:w700||Bold" : {
@@ -972,10 +1836,46 @@
       "lastBaseline" : 12,
       "width" : 25.5
     },
+    "style:subheadline:w700||Footer" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 36.5
+    },
+    "style:subheadline:w700||Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 33
+    },
+    "style:subheadline:w700||Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 63
+    },
     "style:subheadline:w700|0.0|Bold" : {
       "firstBaseline" : 12,
       "height" : 67,
       "lastBaseline" : 63,
+      "width" : 0
+    },
+    "style:subheadline:w700|0.0|Footer" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w700|0.0|Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w700|0.0|Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 169,
+      "lastBaseline" : 165,
       "width" : 0
     },
     "style:subheadline:w800||Bold" : {
@@ -1272,16 +2172,304 @@
       "lastBaseline" : 205,
       "width" : 0
     },
+    "system:11:400:default||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 34.5
+    },
+    "system:11:400:default||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 30
+    },
+    "system:11:400:default||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 58.5
+    },
+    "system:11:400:default|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 140,
+      "lastBaseline" : 137,
+      "width" : 0
+    },
+    "system:11:500:default||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 35
+    },
+    "system:11:500:default||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 31
+    },
+    "system:11:500:default||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 60
+    },
+    "system:11:500:default|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:500:default|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:500:default|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 140,
+      "lastBaseline" : 137,
+      "width" : 0
+    },
+    "system:11:600:default||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 36
+    },
+    "system:11:600:default||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 31.5
+    },
+    "system:11:600:default||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 61.5
+    },
+    "system:11:600:default|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:600:default|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:600:default|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 140,
+      "lastBaseline" : 137,
+      "width" : 0
+    },
+    "system:11:700:default||Footer" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 36.5
+    },
+    "system:11:700:default||Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
+    "system:11:700:default||Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 63
+    },
+    "system:11:700:default|0.0|Footer" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:700:default|0.0|Fruits" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:700:default|0.0|Vegetables" : {
+      "firstBaseline" : 11,
+      "height" : 140,
+      "lastBaseline" : 137,
+      "width" : 0
+    },
+    "system:12:400:default||Footer" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 37
+    },
+    "system:12:400:default||Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 32
+    },
     "system:12:400:default||The quick brown fox" : {
       "firstBaseline" : 12,
       "height" : 15,
       "lastBaseline" : 12,
       "width" : 114.5
     },
+    "system:12:400:default||Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 63.5
+    },
+    "system:12:400:default|0.0|Footer" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:400:default|0.0|Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
     "system:12:400:default|0.0|The quick brown fox" : {
       "firstBaseline" : 12,
       "height" : 240,
       "lastBaseline" : 237,
+      "width" : 0
+    },
+    "system:12:400:default|0.0|Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 150,
+      "lastBaseline" : 147,
+      "width" : 0
+    },
+    "system:12:500:default||Footer" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 38
+    },
+    "system:12:500:default||Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 33.5
+    },
+    "system:12:500:default||Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 65
+    },
+    "system:12:500:default|0.0|Footer" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:500:default|0.0|Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:500:default|0.0|Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 150,
+      "lastBaseline" : 147,
+      "width" : 0
+    },
+    "system:12:600:default||Footer" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 38.5
+    },
+    "system:12:600:default||Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 34
+    },
+    "system:12:600:default||Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 66
+    },
+    "system:12:600:default|0.0|Footer" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:600:default|0.0|Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:600:default|0.0|Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 150,
+      "lastBaseline" : 147,
+      "width" : 0
+    },
+    "system:12:700:default||Footer" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 39.5
+    },
+    "system:12:700:default||Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 35.5
+    },
+    "system:12:700:default||Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 68
+    },
+    "system:12:700:default|0.0|Footer" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:700:default|0.0|Fruits" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:700:default|0.0|Vegetables" : {
+      "firstBaseline" : 12,
+      "height" : 150,
+      "lastBaseline" : 147,
       "width" : 0
     },
     "system:13:400:default|;l1|Hello" : {
@@ -2335,6 +3523,17 @@
       "textToText" : 1,
       "unroundedLineHeight" : 18.333333333333329
     },
+    "style:body:w400" : {
+      "capHeight" : 9.15966796875,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "linePitch" : 19,
+      "spacingAbove" : 6.2240598101696385,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
+    },
     "style:body:w500" : {
       "capHeight" : 9.15966796875,
       "horizontalTextToText" : 8,
@@ -2445,6 +3644,17 @@
       "textToText" : 1.5,
       "unroundedLineHeight" : 14.791666666666671
     },
+    "style:caption:w400" : {
+      "capHeight" : 7.0458984375,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "linePitch" : 16,
+      "spacingAbove" : 4.9089852291993061,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
+    },
     "style:caption:w500" : {
       "capHeight" : 7.0458984375,
       "horizontalTextToText" : 8,
@@ -2500,6 +3710,17 @@
       "textToText" : 1.5,
       "unroundedLineHeight" : 14.791666666666671
     },
+    "style:caption2:w400" : {
+      "capHeight" : 7.0458984375,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "linePitch" : 16,
+      "spacingAbove" : 4.9089852291993061,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
+    },
     "style:caption2:w500" : {
       "capHeight" : 7.0458984375,
       "horizontalTextToText" : 8,
@@ -2545,6 +3766,17 @@
       "unroundedLineHeight" : 14.791666666666671
     },
     "style:footnote" : {
+      "capHeight" : 7.0458984375,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "linePitch" : 16,
+      "spacingAbove" : 4.9089852291993061,
+      "spacingBelow" : 9.2314453125,
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 14.791666666666671
+    },
+    "style:footnote:w400" : {
       "capHeight" : 7.0458984375,
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
@@ -2606,6 +3838,17 @@
       "lineHeight" : 18.5,
       "linePitch" : 19,
       "spacingAbove" : 6.2732698149907584,
+      "spacingBelow" : 11.15087890625,
+      "textToText" : 1,
+      "unroundedLineHeight" : 18.333333333333329
+    },
+    "style:headline:w400" : {
+      "capHeight" : 9.15966796875,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 18.5,
+      "linePitch" : 19,
+      "spacingAbove" : 6.2240598101696385,
       "spacingBelow" : 11.15087890625,
       "textToText" : 1,
       "unroundedLineHeight" : 18.333333333333329
@@ -2710,6 +3953,17 @@
       "unroundedLineHeight" : 37.625
     },
     "style:subheadline" : {
+      "capHeight" : 7.75048828125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "linePitch" : 17,
+      "spacingAbove" : 5.6806767561894169,
+      "spacingBelow" : 10.20458984375,
+      "textToText" : 1.5,
+      "unroundedLineHeight" : 15.958333333333329
+    },
+    "style:subheadline:w400" : {
       "capHeight" : 7.75048828125,
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
@@ -2951,7 +4205,84 @@
       "textToText" : 0,
       "unroundedLineHeight" : 13
     },
+    "system:11:400:default" : {
+      "capHeight" : 7.75048828125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 14,
+      "linePitch" : 14,
+      "spacingAbove" : 3.8203125,
+      "spacingBelow" : 6.70458984375,
+      "textToText" : 0,
+      "unroundedLineHeight" : 14
+    },
+    "system:11:500:default" : {
+      "capHeight" : 7.75048828125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 14,
+      "linePitch" : 14,
+      "spacingAbove" : 3.8203125,
+      "spacingBelow" : 6.70458984375,
+      "textToText" : 0,
+      "unroundedLineHeight" : 14
+    },
+    "system:11:600:default" : {
+      "capHeight" : 7.75048828125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 14,
+      "linePitch" : 14,
+      "spacingAbove" : 3.8203125,
+      "spacingBelow" : 6.70458984375,
+      "textToText" : 0,
+      "unroundedLineHeight" : 14
+    },
+    "system:11:700:default" : {
+      "capHeight" : 7.75048828125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 14,
+      "linePitch" : 14,
+      "spacingAbove" : 3.8203125,
+      "spacingBelow" : 6.70458984375,
+      "textToText" : 0,
+      "unroundedLineHeight" : 14
+    },
     "system:12:400:default" : {
+      "capHeight" : 8.455078125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "linePitch" : 15,
+      "spacingAbove" : 4.03125,
+      "spacingBelow" : 7.177734375,
+      "textToText" : 0,
+      "unroundedLineHeight" : 15
+    },
+    "system:12:500:default" : {
+      "capHeight" : 8.455078125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "linePitch" : 15,
+      "spacingAbove" : 4.03125,
+      "spacingBelow" : 7.177734375,
+      "textToText" : 0,
+      "unroundedLineHeight" : 15
+    },
+    "system:12:600:default" : {
+      "capHeight" : 8.455078125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 15,
+      "linePitch" : 15,
+      "spacingAbove" : 4.03125,
+      "spacingBelow" : 7.177734375,
+      "textToText" : 0,
+      "unroundedLineHeight" : 15
+    },
+    "system:12:700:default" : {
       "capHeight" : 8.455078125,
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
