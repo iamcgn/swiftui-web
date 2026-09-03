@@ -1,0 +1,75 @@
+{
+  "fixture" : "toggle\/basic",
+  "frames" : {
+    "baselineRow" : {
+      "height" : 18.5,
+      "width" : 64,
+      "x" : 125,
+      "y" : 112
+    },
+    "baselineText" : {
+      "height" : 16,
+      "width" : 17.5,
+      "x" : 171.5,
+      "y" : 113
+    },
+    "baselineToggle" : {
+      "height" : 18.5,
+      "width" : 38.5,
+      "x" : 125,
+      "y" : 112
+    },
+    "custom" : {
+      "height" : 18.5,
+      "width" : 38.5,
+      "x" : 125,
+      "y" : 81.5
+    },
+    "customText" : {
+      "height" : 18.5,
+      "width" : 17.5,
+      "x" : 146,
+      "y" : 81.5
+    },
+    "disabled" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 125,
+      "y" : 170.5
+    },
+    "disabledOff" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 125,
+      "y" : 201
+    },
+    "hidden" : {
+      "height" : 16,
+      "width" : 16,
+      "x" : 125,
+      "y" : 142.5
+    },
+    "off" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 125,
+      "y" : 51
+    },
+    "on" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 125,
+      "y" : 20.5
+    },
+    "stack" : {
+      "height" : 199,
+      "width" : 70,
+      "x" : 125,
+      "y" : 20.5
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

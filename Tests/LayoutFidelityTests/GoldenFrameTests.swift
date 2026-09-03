@@ -32,7 +32,7 @@ enum Goldens {
     }
 
     /// Fixture names whose goldens exist and whose feature area is implemented.
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/"]
 
     /// The fixtures' asset catalog as `scripts/assets.py` reads it (Fixtures/Assets.manifest.json).
     static func assets() throws -> AssetCatalog {

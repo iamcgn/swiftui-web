@@ -14,17 +14,20 @@ package protocol _Interactive: AnyObject {
 
 /// One element of the accessibility tree hosts expose (DOM overlay in the browser).
 public struct SemanticsNode: Equatable, Sendable {
-    public enum Role: String, Sendable { case button }
+    public enum Role: String, Sendable { case button, checkbox }
     public var role: Role
     public var label: String
     public var frame: CGRect
     public var identifier: Int
+    /// The state of a checkbox.
+    public var isOn: Bool?
 
-    public init(role: Role, label: String, frame: CGRect, identifier: Int) {
+    public init(role: Role, label: String, frame: CGRect, identifier: Int, isOn: Bool? = nil) {
         self.role = role
         self.label = label
         self.frame = frame
         self.identifier = identifier
+        self.isOn = isOn
     }
 }
 
@@ -156,10 +159,10 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "Button" }
 
-    package func pressBegan() { view.isPressed.wrappedValue = true }
+    package func pressBegan() { if environment.isEnabled { view.isPressed.wrappedValue = true } }
     package func pressEnded(inside: Bool) {
         view.isPressed.wrappedValue = false
-        if inside { view.action.run() }
+        if inside, environment.isEnabled { view.action.run() }
     }
 
     package var semantics: SemanticsNode {

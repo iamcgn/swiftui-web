@@ -1,0 +1,75 @@
+{
+  "fixture" : "toggle\/styles",
+  "frames" : {
+    "buttonOff" : {
+      "height" : 24,
+      "width" : 73,
+      "x" : 40.25,
+      "y" : 176.75
+    },
+    "buttonOn" : {
+      "height" : 24,
+      "width" : 73,
+      "x" : 40.25,
+      "y" : 140.75
+    },
+    "checkbox" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 40.25,
+      "y" : 212.75
+    },
+    "row" : {
+      "height" : 24,
+      "width" : 239.5,
+      "x" : 40.25,
+      "y" : 243.25
+    },
+    "rowButton" : {
+      "height" : 24,
+      "width" : 42.5,
+      "x" : 159.25,
+      "y" : 243.25
+    },
+    "rowCheckbox" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 209.75,
+      "y" : 246
+    },
+    "rowSwitch" : {
+      "height" : 24,
+      "width" : 111,
+      "x" : 40.25,
+      "y" : 243.25
+    },
+    "stack" : {
+      "height" : 234.5,
+      "width" : 239.5,
+      "x" : 40.25,
+      "y" : 32.75
+    },
+    "switchHidden" : {
+      "height" : 24,
+      "width" : 54,
+      "x" : 40.25,
+      "y" : 104.75
+    },
+    "switchOff" : {
+      "height" : 24,
+      "width" : 111,
+      "x" : 40.25,
+      "y" : 68.75
+    },
+    "switchOn" : {
+      "height" : 24,
+      "width" : 111,
+      "x" : 40.25,
+      "y" : 32.75
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

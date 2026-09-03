@@ -310,6 +310,10 @@ public final class CanvasHost {
             style.width = .string("\(node.frame.width)px")
             style.height = .string("\(node.frame.height)px")
             element.textContent = .string(node.label)
+            if node.role == .checkbox {
+                _ = element.setAttribute!("role", "checkbox")
+                _ = element.setAttribute!("aria-checked", node.isOn == true ? "true" : "false")
+            }
             _ = element.setAttribute!("aria-label", node.label)
         }
         for (id, element) in overlayButtons where !seen.contains(id) {

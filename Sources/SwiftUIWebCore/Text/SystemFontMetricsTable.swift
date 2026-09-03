@@ -5,17 +5,17 @@ extension PlatformProfile {
     /// Measured per text style (weight and design variants share the style's values unless
     /// `macOSTextStyleWeightOverrides` lists them).
     package static let macOSTextStyleMetrics: [Font.TextStyle: SystemFontMetrics] = [
-        .largeTitle: .init(lineHeight: 38, baseline: 29, spacingBelow: 23.3017578125, spacingAbove: 12.678809606772006, textToText: 1.5, linePitch: 39, unroundedLineHeight: 37.625),
-        .title: .init(lineHeight: 33, baseline: 25, spacingBelow: 20.9091796875, spacingAbove: 11.092043498811563, textToText: 0.5, linePitch: 33, unroundedLineHeight: 32.91666666666667),
-        .title2: .init(lineHeight: 25.5, baseline: 19, spacingBelow: 16.04345703125, spacingAbove: 8.772205890995544, textToText: 2, linePitch: 27, unroundedLineHeight: 25),
-        .title3: .init(lineHeight: 22, baseline: 17, spacingBelow: 13.59716796875, spacingAbove: 7.498132850582593, textToText: 2.5, linePitch: 24, unroundedLineHeight: 21.66666666666667),
-        .headline: .init(lineHeight: 18.5, baseline: 14, spacingBelow: 11.15087890625, spacingAbove: 6.273269814990758, textToText: 1, linePitch: 19, unroundedLineHeight: 18.33333333333333),
-        .subheadline: .init(lineHeight: 16, baseline: 12, spacingBelow: 10.20458984375, spacingAbove: 5.680676756189417, textToText: 1.5, linePitch: 17, unroundedLineHeight: 15.958333333333329),
-        .body: .init(lineHeight: 18.5, baseline: 14, spacingBelow: 11.15087890625, spacingAbove: 6.2240598101696385, textToText: 1, linePitch: 19, unroundedLineHeight: 18.33333333333333),
-        .callout: .init(lineHeight: 17.5, baseline: 13, spacingBelow: 10.677734374999993, spacingAbove: 5.952368283179524, textToText: 1, linePitch: 18, unroundedLineHeight: 17.125),
-        .footnote: .init(lineHeight: 15, baseline: 11, spacingBelow: 9.2314453125, spacingAbove: 4.908985229199306, textToText: 1.5, linePitch: 16, unroundedLineHeight: 14.791666666666671),
-        .caption: .init(lineHeight: 15, baseline: 11, spacingBelow: 9.2314453125, spacingAbove: 4.908985229199306, textToText: 1.5, linePitch: 16, unroundedLineHeight: 14.791666666666671),
-        .caption2: .init(lineHeight: 15, baseline: 11, spacingBelow: 9.2314453125, spacingAbove: 4.9146757604505495, textToText: 1.5, linePitch: 16, unroundedLineHeight: 14.791666666666671),
+        .largeTitle: .init(lineHeight: 38, baseline: 29, spacingBelow: 23.3017578125, spacingAbove: 12.678809606772006, textToText: 1.5, linePitch: 39, unroundedLineHeight: 37.625, capHeight: 18.3193359375),
+        .title: .init(lineHeight: 33, baseline: 25, spacingBelow: 20.9091796875, spacingAbove: 11.092043498811563, textToText: 0.5, linePitch: 33, unroundedLineHeight: 32.91666666666667, capHeight: 15.5009765625),
+        .title2: .init(lineHeight: 25.5, baseline: 19, spacingBelow: 16.04345703125, spacingAbove: 8.772205890995544, textToText: 2, linePitch: 27, unroundedLineHeight: 25, capHeight: 11.97802734375),
+        .title3: .init(lineHeight: 22, baseline: 17, spacingBelow: 13.59716796875, spacingAbove: 7.498132850582593, textToText: 2.5, linePitch: 24, unroundedLineHeight: 21.66666666666667, capHeight: 10.56884765625),
+        .headline: .init(lineHeight: 18.5, baseline: 14, spacingBelow: 11.15087890625, spacingAbove: 6.273269814990758, textToText: 1, linePitch: 19, unroundedLineHeight: 18.33333333333333, capHeight: 9.15966796875),
+        .subheadline: .init(lineHeight: 16, baseline: 12, spacingBelow: 10.20458984375, spacingAbove: 5.680676756189417, textToText: 1.5, linePitch: 17, unroundedLineHeight: 15.958333333333329, capHeight: 7.75048828125),
+        .body: .init(lineHeight: 18.5, baseline: 14, spacingBelow: 11.15087890625, spacingAbove: 6.2240598101696385, textToText: 1, linePitch: 19, unroundedLineHeight: 18.33333333333333, capHeight: 9.15966796875),
+        .callout: .init(lineHeight: 17.5, baseline: 13, spacingBelow: 10.677734374999993, spacingAbove: 5.952368283179524, textToText: 1, linePitch: 18, unroundedLineHeight: 17.125, capHeight: 8.455078125),
+        .footnote: .init(lineHeight: 15, baseline: 11, spacingBelow: 9.2314453125, spacingAbove: 4.908985229199306, textToText: 1.5, linePitch: 16, unroundedLineHeight: 14.791666666666671, capHeight: 7.0458984375),
+        .caption: .init(lineHeight: 15, baseline: 11, spacingBelow: 9.2314453125, spacingAbove: 4.908985229199306, textToText: 1.5, linePitch: 16, unroundedLineHeight: 14.791666666666671, capHeight: 7.0458984375),
+        .caption2: .init(lineHeight: 15, baseline: 11, spacingBelow: 9.2314453125, spacingAbove: 4.9146757604505495, textToText: 1.5, linePitch: 16, unroundedLineHeight: 14.791666666666671, capHeight: 7.0458984375),
     ]
 
     /// (style, weight) faces whose line differs from the style's regular face.
@@ -27,11 +27,11 @@ extension PlatformProfile {
 
     /// Measured point-size fonts (`Font.system(size:)`), keyed by size.
     package static let macOSPointSizeMetrics: [(size: CGFloat, metrics: SystemFontMetrics)] = [
-        (10, .init(lineHeight: 13, baseline: 10, spacingBelow: 6.2314453125, spacingAbove: 3.609375, textToText: 0, linePitch: 13, unroundedLineHeight: 13)),
-        (12, .init(lineHeight: 15, baseline: 12, spacingBelow: 7.177734375, spacingAbove: 4.03125, textToText: 0, linePitch: 15, unroundedLineHeight: 15)),
-        (13, .init(lineHeight: 16, baseline: 13, spacingBelow: 8.15087890625, spacingAbove: 4.7421875, textToText: 0, linePitch: 16, unroundedLineHeight: 16)),
-        (20, .init(lineHeight: 24, baseline: 19, spacingBelow: 11.962890625, spacingAbove: 6.71875, textToText: 0, linePitch: 24, unroundedLineHeight: 24)),
-        (24, .init(lineHeight: 28, baseline: 23, spacingBelow: 14.35546875, spacingAbove: 8.0625, textToText: 0, linePitch: 28, unroundedLineHeight: 28)),
-        (32, .init(lineHeight: 38, baseline: 31, spacingBelow: 19.140625, spacingAbove: 10.75, textToText: 0, linePitch: 38, unroundedLineHeight: 38)),
+        (10, .init(lineHeight: 13, baseline: 10, spacingBelow: 6.2314453125, spacingAbove: 3.609375, textToText: 0, linePitch: 13, unroundedLineHeight: 13, capHeight: 7.0458984375)),
+        (12, .init(lineHeight: 15, baseline: 12, spacingBelow: 7.177734375, spacingAbove: 4.03125, textToText: 0, linePitch: 15, unroundedLineHeight: 15, capHeight: 8.455078125)),
+        (13, .init(lineHeight: 16, baseline: 13, spacingBelow: 8.15087890625, spacingAbove: 4.7421875, textToText: 0, linePitch: 16, unroundedLineHeight: 16, capHeight: 9.15966796875)),
+        (20, .init(lineHeight: 24, baseline: 19, spacingBelow: 11.962890625, spacingAbove: 6.71875, textToText: 0, linePitch: 24, unroundedLineHeight: 24, capHeight: 14.091796875)),
+        (24, .init(lineHeight: 28, baseline: 23, spacingBelow: 14.35546875, spacingAbove: 8.0625, textToText: 0, linePitch: 28, unroundedLineHeight: 28, capHeight: 16.91015625)),
+        (32, .init(lineHeight: 38, baseline: 31, spacingBelow: 19.140625, spacingAbove: 10.75, textToText: 0, linePitch: 38, unroundedLineHeight: 38, capHeight: 22.546875)),
     ]
 }

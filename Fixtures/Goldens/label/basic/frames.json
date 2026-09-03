@@ -1,0 +1,105 @@
+{
+  "fixture" : "label\/basic",
+  "frames" : {
+    "button" : {
+      "height" : 32,
+      "width" : 82.5,
+      "x" : 115.25,
+      "y" : 260
+    },
+    "buttonLabel" : {
+      "height" : 24,
+      "width" : 58.5,
+      "x" : 127.25,
+      "y" : 264
+    },
+    "custom" : {
+      "height" : 16,
+      "width" : 46.5,
+      "x" : 115.25,
+      "y" : 144
+    },
+    "customIcon" : {
+      "height" : 12,
+      "width" : 12,
+      "x" : 115.25,
+      "y" : 146.420166015625
+    },
+    "customTitle" : {
+      "height" : 16,
+      "width" : 26.5,
+      "x" : 135.25,
+      "y" : 144
+    },
+    "iconOnly" : {
+      "height" : 24,
+      "width" : 24,
+      "x" : 115.25,
+      "y" : 72
+    },
+    "label" : {
+      "height" : 24,
+      "width" : 58.5,
+      "x" : 115.25,
+      "y" : 8
+    },
+    "row" : {
+      "height" : 24,
+      "width" : 75,
+      "x" : 115.25,
+      "y" : 224
+    },
+    "rowLabel" : {
+      "height" : 24,
+      "width" : 49.5,
+      "x" : 115.25,
+      "y" : 224
+    },
+    "rowText" : {
+      "height" : 16,
+      "width" : 17.5,
+      "x" : 172.75,
+      "y" : 227.579833984375
+    },
+    "stack" : {
+      "height" : 284,
+      "width" : 89.5,
+      "x" : 115.25,
+      "y" : 8
+    },
+    "tall" : {
+      "height" : 40,
+      "width" : 89.5,
+      "x" : 115.25,
+      "y" : 172
+    },
+    "tallIcon" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 115.25,
+      "y" : 172
+    },
+    "tallTitle" : {
+      "height" : 16,
+      "width" : 17.5,
+      "x" : 187.25,
+      "y" : 183.579833984375
+    },
+    "titleAndIcon" : {
+      "height" : 24,
+      "width" : 58.5,
+      "x" : 115.25,
+      "y" : 108
+    },
+    "titleOnly" : {
+      "height" : 16,
+      "width" : 26.5,
+      "x" : 115.25,
+      "y" : 44
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

@@ -168,3 +168,12 @@ extension Color {
         self = FixtureAssets.color(named: name)
     }
 }
+
+extension Label where Title == Text, Icon == Image {
+    /// A label whose icon comes from the fixtures' asset catalog: SwiftUI's own `Label(_:image:)`
+    /// resolves the name through the bundle (0 × 0 without a compiled catalog), so the shim
+    /// builds the `Image` through the shadowed initialiser above.
+    public init(_ title: String, image name: String) {
+        self.init(title: { Text(title) }, icon: { Image(name) })
+    }
+}

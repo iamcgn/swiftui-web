@@ -16,9 +16,12 @@ public struct SystemFontMetrics: Sendable, Equatable {
     /// The font's unrounded line height, which `lineSpacing` adds to: the pitch with spacing `s`
     /// is `max(linePitch, unroundedLineHeight + s)` (18.333 for `.body`, 37.667 for `.largeTitle`).
     public var unroundedLineHeight: CGFloat
+    /// Height of a capital letter above the baseline (`NSFont.capHeight`); icons and checkboxes
+    /// centre on half of it (`Docs/elements/Label.md`). 0 when unmeasured.
+    public var capHeight: CGFloat
 
     public init(lineHeight: CGFloat, baseline: CGFloat, spacingBelow: CGFloat, spacingAbove: CGFloat, textToText: CGFloat,
-                linePitch: CGFloat? = nil, unroundedLineHeight: CGFloat? = nil) {
+                linePitch: CGFloat? = nil, unroundedLineHeight: CGFloat? = nil, capHeight: CGFloat = 0) {
         self.lineHeight = lineHeight
         self.baseline = baseline
         self.spacingBelow = spacingBelow
@@ -26,6 +29,7 @@ public struct SystemFontMetrics: Sendable, Equatable {
         self.textToText = textToText
         self.linePitch = linePitch ?? lineHeight.rounded(.up)
         self.unroundedLineHeight = unroundedLineHeight ?? lineHeight
+        self.capHeight = capHeight
     }
 
     /// The baseline-to-baseline distance with `lineSpacing` applied.
@@ -58,12 +62,14 @@ extension PlatformProfile {
             let ratio = font.size / nearest.size
             let m = nearest.metrics
             return SystemFontMetrics(lineHeight: (m.lineHeight * ratio).rounded(), baseline: (m.baseline * ratio).rounded(),
-                                     spacingBelow: m.spacingBelow * ratio, spacingAbove: m.spacingAbove * ratio, textToText: 0)
+                                     spacingBelow: m.spacingBelow * ratio, spacingAbove: m.spacingAbove * ratio, textToText: 0,
+                                     capHeight: m.capHeight * ratio)
         }
         let t = (font.size - lower.size) / (upper.size - lower.size)
         func lerp(_ a: CGFloat, _ b: CGFloat) -> CGFloat { a + (b - a) * t }
         let a = lower.metrics, b = upper.metrics
         return SystemFontMetrics(lineHeight: lerp(a.lineHeight, b.lineHeight).rounded(), baseline: lerp(a.baseline, b.baseline).rounded(),
-                                 spacingBelow: lerp(a.spacingBelow, b.spacingBelow), spacingAbove: lerp(a.spacingAbove, b.spacingAbove), textToText: 0)
+                                 spacingBelow: lerp(a.spacingBelow, b.spacingBelow), spacingAbove: lerp(a.spacingAbove, b.spacingAbove), textToText: 0,
+                                 capHeight: lerp(a.capHeight, b.capHeight))
     }
 }

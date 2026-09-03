@@ -238,6 +238,11 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest(newlineShort, defaultFont))
         requests.append(TextMetricRequest(longWord, defaultFont, width: 60))
         requests.append(TextMetricRequest(longWord, defaultFont))
+        // Toggle and Label fixtures (default font and, should the controls style their labels, body).
+        for word in ["Enabled", "Title", "On", "Off"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+            requests.append(TextMetricRequest(word, .style("body")))
+        }
         requests.append(TextMetricRequest("Hi", defaultFont))
         requests.append(TextMetricRequest("End", .style("largeTitle")))
         let bold13 = defaultFont(weight: "bold")

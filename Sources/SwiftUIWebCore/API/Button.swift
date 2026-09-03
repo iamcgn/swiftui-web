@@ -120,6 +120,7 @@ extension BorderedButtonStyle: ButtonStyle {
         configuration.label
             .font(.system(size: PlatformMetrics.buttonLabelSize))
             .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
+            .padding(.vertical, PlatformMetrics.buttonVerticalPadding)
             .frame(minHeight: PlatformMetrics.buttonHeight)
             .background(
                 RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
@@ -138,6 +139,7 @@ extension BorderedProminentButtonStyle: ButtonStyle {
             .font(.system(size: PlatformMetrics.buttonLabelSize))
             .foregroundStyle(Color.white)
             .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
+            .padding(.vertical, PlatformMetrics.buttonVerticalPadding)
             .frame(minHeight: PlatformMetrics.buttonHeight)
             .background(
                 RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)

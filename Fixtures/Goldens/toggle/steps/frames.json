@@ -1,0 +1,75 @@
+{
+  "fixture" : "toggle\/steps",
+  "frames" : {
+    "row" : {
+      "height" : 18.5,
+      "width" : 101.5,
+      "x" : 69.25,
+      "y" : 50.75
+    },
+    "state" : {
+      "height" : 16,
+      "width" : 19.5,
+      "x" : 151.25,
+      "y" : 52
+    },
+    "toggle" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 69.25,
+      "y" : 50.75
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 240
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "row" : {
+          "height" : 18.5,
+          "width" : 99.5,
+          "x" : 70.25,
+          "y" : 50.75
+        },
+        "state" : {
+          "height" : 16,
+          "width" : 17.5,
+          "x" : 152.25,
+          "y" : 52
+        },
+        "toggle" : {
+          "height" : 18.5,
+          "width" : 70,
+          "x" : 70.25,
+          "y" : 50.75
+        }
+      },
+      "name" : "on"
+    },
+    {
+      "frames" : {
+        "row" : {
+          "height" : 18.5,
+          "width" : 101.5,
+          "x" : 69.25,
+          "y" : 50.75
+        },
+        "state" : {
+          "height" : 16,
+          "width" : 19.5,
+          "x" : 151.25,
+          "y" : 52
+        },
+        "toggle" : {
+          "height" : 18.5,
+          "width" : 70,
+          "x" : 69.25,
+          "y" : 50.75
+        }
+      },
+      "name" : "off"
+    }
+  ]
+}

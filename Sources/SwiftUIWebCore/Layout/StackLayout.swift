@@ -164,6 +164,12 @@ extension VStackLayout: Layout {
                                                 spacing: spacing, proposal: proposal, subviews: subviews)
     }
 
+    public func explicitAlignment(of guide: VerticalAlignment, in bounds: CGRect, proposal: ProposedViewSize,
+                                  subviews: Subviews, cache: inout Void) -> CGFloat? {
+        _StackAxisLayout.explicitAxisBaseline(axis: .vertical, stackGuide: alignment.key, guide: guide.key,
+                                              spacing: spacing, in: bounds, proposal: proposal, subviews: subviews)
+    }
+
     public typealias AnimatableData = EmptyAnimatableData
 }
 
@@ -265,11 +271,33 @@ package enum _StackAxisLayout {
     }
 
     /// A stack reports an explicit cross-axis guide when asked for the guide it aligns on: the
-    /// position where its children's guides meet.
+    /// position where its children's guides meet. An `HStack` also reports text baselines across
+    /// its axis: the topmost first baseline and the bottommost last baseline of its children
+    /// (a `Label` in a baseline-aligned row sits on its title's baseline, `label/basic` `row`).
     package static func explicitCrossAlignment(axis: Axis, stackGuide: AlignmentKey, guide: AlignmentKey,
                                                spacing: CGFloat?, proposal: ProposedViewSize,
                                                subviews: LayoutSubviews) -> CGFloat? {
-        guard guide == stackGuide, !subviews.isEmpty else { return nil }
-        return plan(axis: axis, guide: stackGuide, spacing: spacing, proposal: proposal, subviews: subviews).extent.guide
+        guard !subviews.isEmpty else { return nil }
+        let plan = plan(axis: axis, guide: stackGuide, spacing: spacing, proposal: proposal, subviews: subviews)
+        if guide == stackGuide { return plan.extent.guide }
+        let first = VerticalAlignment.firstTextBaseline.key, last = VerticalAlignment.lastTextBaseline.key
+        guard axis == .horizontal, guide == first || guide == last else { return nil }
+        let values = plan.dimensions.map { dims in plan.extent.guide - dims[stackGuide] + dims[guide] }
+        return guide == first ? values.min() : values.max()
+    }
+
+    /// A `VStack`'s text baselines run along its axis: the first child's first baseline and the
+    /// last child's last baseline, where the children sit when the stack is placed in `bounds`.
+    package static func explicitAxisBaseline(axis: Axis, stackGuide: AlignmentKey, guide: AlignmentKey,
+                                             spacing: CGFloat?, in bounds: CGRect, proposal: ProposedViewSize,
+                                             subviews: LayoutSubviews) -> CGFloat? {
+        let first = VerticalAlignment.firstTextBaseline.key, last = VerticalAlignment.lastTextBaseline.key
+        guard axis == .vertical, guide == first || guide == last, !subviews.isEmpty else { return nil }
+        let plan = plan(axis: axis, guide: stackGuide, spacing: spacing, proposal: proposal, subviews: subviews)
+        let used = plan.sizes.reduce(0) { $0 + $1[axis] } + plan.gaps.reduce(0, +)
+        var cursor = (bounds.size[axis] - used) / 2
+        if guide == first { return cursor + plan.dimensions[0][guide] }
+        for index in 0..<(subviews.count - 1) { cursor += plan.sizes[index][axis] + plan.gaps[index] }
+        return cursor + plan.dimensions[subviews.count - 1][guide]
     }
 }

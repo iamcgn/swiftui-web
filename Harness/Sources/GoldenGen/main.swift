@@ -135,6 +135,32 @@ func measure(_ request: TextMetricRequest) -> [String: Double] {
 
 /// Per-font values a text run contributes to stack spacing: distance to a non-text neighbour
 /// below and above, and to another text run of the same font below.
+/// The AppKit font behind a fixture font, for metrics layout cannot reveal (cap height).
+func nsFont(_ font: FixtureFont) -> NSFont {
+    let weights: [String: NSFont.Weight] = ["ultraLight": .ultraLight, "thin": .thin, "light": .light, "regular": .regular, "medium": .medium,
+                                            "semibold": .semibold, "bold": .bold, "heavy": .heavy, "black": .black]
+    let designs: [String: NSFontDescriptor.SystemDesign] = ["rounded": .rounded, "serif": .serif, "monospaced": .monospaced]
+    let styles: [String: NSFont.TextStyle] = ["largeTitle": .largeTitle, "title": .title1, "title2": .title2, "title3": .title3, "headline": .headline,
+                                              "subheadline": .subheadline, "body": .body, "callout": .callout, "footnote": .footnote,
+                                              "caption": .caption1, "caption2": .caption2]
+    var result: NSFont
+    var design: String?
+    switch font {
+    case .system(let size, let weight, let d, _):
+        result = NSFont.systemFont(ofSize: size, weight: weights[weight]!)
+        design = d
+    case .style(let name, let weight, let d, _):
+        result = NSFont.preferredFont(forTextStyle: styles[name]!)
+        if let weight { result = NSFont.systemFont(ofSize: result.pointSize, weight: weights[weight]!) }
+        design = d
+    }
+    if let design, let systemDesign = designs[design], let descriptor = result.fontDescriptor.withDesign(systemDesign),
+       let designed = NSFont(descriptor: descriptor, size: result.pointSize) {
+        result = designed
+    }
+    return result
+}
+
 @MainActor
 func measureFontSpacing(_ font: FixtureFont) -> [String: Double] {
     let canvas = CGSize(width: 2000, height: 2000)
@@ -177,6 +203,7 @@ func measureFontSpacing(_ font: FixtureFont) -> [String: Double] {
         "lineHeight": lineHeight,
         "linePitch": linePitch,
         "unroundedLineHeight": unroundedLineHeight,
+        "capHeight": Double(nsFont(font).capHeight),
     ]
 }
 
