@@ -155,6 +155,18 @@
           ]
         },
         {
+          "api": "NavigationStack (root, NavigationPath and collection path bindings) / NavigationPath / NavigationLink (destination, value forms)",
+          "status": "partial",
+          "notes": "Content-sized stack (macOS hosted window), pushed views centred with earlier views laid out beneath, bordered-button links outside lists and plain row links inside, Runtime.navigateBack() for hosts; no back button/title chrome, animation, NavigationSplitView, toolbars, navigationDestination(item:)",
+          "fixtures": [
+            "nav/basic",
+            "nav/list",
+            "nav/title",
+            "nav/sizing",
+            "nav/steps"
+          ]
+        },
+        {
           "api": "TextField (title/prompt/label forms) / SecureField / TextFieldStyle (automatic, roundedBorder, squareBorder, plain) / textFieldStyle",
           "status": "partial",
           "notes": "Bezel, insets, baseline, placeholder, bullets and disabled look measured; editing through the host's transparent <input> (browser caret/selection/IME); no @FocusState, multi-line (axis), formatted values or custom styles",
@@ -498,6 +510,21 @@
         },
         {
           "api": "listSectionSeparator / listSectionSeparatorTint / listItemTint",
+          "status": "stub",
+          "notes": "Stored only",
+          "fixtures": []
+        },
+        {
+          "api": "navigationDestination(for:) / navigationDestination(isPresented:) / navigationTitle",
+          "status": "partial",
+          "notes": "Destinations registered by type with the enclosing stack, isPresented pushes and pops through observation, the title is recorded on the runtime (window chrome on macOS)",
+          "fixtures": [
+            "nav/basic",
+            "nav/steps"
+          ]
+        },
+        {
+          "api": "navigationSubtitle / navigationBarBackButtonHidden",
           "status": "stub",
           "notes": "Stored only",
           "fixtures": []
