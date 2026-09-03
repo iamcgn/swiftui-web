@@ -657,6 +657,14 @@
           "fixtures": [
             "presentation/basic"
           ]
+        },
+        {
+          "api": "accessibilityLabel / Hint / Value / Identifier / Hidden / AddTraits / RemoveTraits / accessibilityElement(children:)",
+          "status": "partial",
+          "notes": "Applied on the semantics tree that the canvas host mirrors as an ARIA DOM overlay (headings, images, groups, switches, range inputs, spinbuttons); no custom actions, sort priority or rotors",
+          "fixtures": [
+            "accessibility/basic"
+          ]
         }
       ]
     }
