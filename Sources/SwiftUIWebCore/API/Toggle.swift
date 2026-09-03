@@ -14,10 +14,19 @@ public struct Toggle<Label: View>: View {
     }
 
     @Environment(\.toggleStyle) private var style
+    @Environment(\._formStyle) private var formStyle
+    @Environment(\.labelsHidden) private var labelsHidden
 
     public var body: some View {
         let configuration = ToggleStyleConfiguration(label: ToggleStyleConfiguration.Label(AnyView(label)), isOn: isOn)
-        _ToggleHost(isOn: isOn, content: AnyView(style.makeBodyErased(configuration)))
+        if formStyle == .grouped {
+            // A grouped form row: the label leading, a switch trailing (Docs/elements/Form.md).
+            _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
+                            content: AnyView(_ToggleHost(isOn: isOn, content: AnyView(_SwitchControl(isOn: isOn.wrappedValue, small: true)))),
+                            mode: .grouped)
+        } else {
+            _ToggleHost(isOn: isOn, content: AnyView(style.makeBodyErased(configuration)))
+        }
     }
 }
 
@@ -253,10 +262,14 @@ public struct _CheckboxControl: View {
     }
 }
 
-/// The 54 × 24 macOS switch.
+/// The 54 × 24 macOS switch (or the small one grouped forms use).
 public struct _SwitchControl: View {
     package let isOn: Bool
-    package init(isOn: Bool) { self.isOn = isOn }
+    package let small: Bool
+    package init(isOn: Bool, small: Bool = false) {
+        self.isOn = isOn
+        self.small = small
+    }
 
     public typealias Body = Never
 

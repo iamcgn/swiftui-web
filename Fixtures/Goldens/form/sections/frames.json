@@ -1,0 +1,63 @@
+{
+  "fixture" : "form\/sections",
+  "frames" : {
+    "account" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 43.5,
+      "y" : 152.37890625
+    },
+    "field" : {
+      "height" : 24,
+      "width" : 360,
+      "x" : 0,
+      "y" : 122.37890625
+    },
+    "form" : {
+      "height" : 163.5439453125,
+      "width" : 360,
+      "x" : 0,
+      "y" : 98.22802734375
+    },
+    "options" : {
+      "height" : 16,
+      "width" : 39.5,
+      "x" : 43.5,
+      "y" : 245.77197265625
+    },
+    "optionsFooter" : {
+      "height" : 16,
+      "width" : 39.5,
+      "x" : 43.5,
+      "y" : 245.77197265625
+    },
+    "optionsHeader" : {
+      "height" : 16,
+      "width" : 47.5,
+      "x" : 43.5,
+      "y" : 176.87890625
+    },
+    "segmented" : {
+      "height" : 24,
+      "width" : 168,
+      "x" : 7.5,
+      "y" : 201.02978515625
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 29.5,
+      "x" : 43.5,
+      "y" : 229.77197265625
+    },
+    "toggle" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 43.5,
+      "y" : 152.37890625
+    }
+  },
+  "size" : {
+    "height" : 360,
+    "width" : 360
+  }
+}

@@ -46,8 +46,22 @@ public struct TextField<Label: View>: View {
 
     @Environment(\.textFieldStyle) private var style
 
+    @Environment(\._formStyle) private var formStyle
+    @Environment(\.labelsHidden) private var labelsHidden
+
     public var body: some View {
-        _TextFieldCore(text: text, placeholder: prompt?.resolvedString ?? _labelString, isSecure: isSecure, style: style)
+        let core = _TextFieldCore(text: text, placeholder: prompt?.resolvedString ?? _labelString, isSecure: isSecure, style: style)
+        switch formStyle {
+        case nil:
+            core
+        case .columns:
+            _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)), content: AnyView(core), mode: .firstTextBaseline)
+        case .grouped:
+            _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
+                            content: AnyView(_TextFieldCore(text: text, placeholder: prompt?.resolvedString ?? _labelString, isSecure: isSecure,
+                                                            style: PlainTextFieldStyle(), fitsText: true)),
+                            mode: .grouped)
+        }
     }
 
     private var _labelString: String {
@@ -190,12 +204,15 @@ public struct _TextFieldCore: View {
     package let placeholder: String
     package let isSecure: Bool
     package let style: any TextFieldStyle
+    /// Sized to its text (the placeholder when empty) instead of the proposal: grouped form rows.
+    package let fitsText: Bool
 
-    package init(text: Binding<String>, placeholder: String, isSecure: Bool, style: any TextFieldStyle) {
+    package init(text: Binding<String>, placeholder: String, isSecure: Bool, style: any TextFieldStyle, fitsText: Bool = false) {
         self.text = text
         self.placeholder = placeholder
         self.isSecure = isSecure
         self.style = style
+        self.fitsText = fitsText
     }
 
     public typealias Body = Never

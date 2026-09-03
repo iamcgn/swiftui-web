@@ -24,14 +24,27 @@ public struct Slider<Label: View, ValueLabel: View>: View {
     }
 
     @Environment(\.labelsHidden) private var labelsHidden
+    @Environment(\._formStyle) private var formStyle
 
     public var body: some View {
         let current = value.get()   // read here so observation tracks it
-        HStack(alignment: .center, spacing: PlatformMetrics.controlLabelSpacing) {
-            if !labelsHidden { _ControlLabel(label: label)._pixelAligned() }
+        let track = HStack(alignment: .center, spacing: PlatformMetrics.controlLabelSpacing) {
             minimumValueLabel.font(.footnote).foregroundStyle(Color.secondary)._pixelAligned()
             _SliderTrack(value: value, current: current, range: range, step: step, onEditingChanged: onEditingChanged)._pixelAligned()
             maximumValueLabel.font(.footnote).foregroundStyle(Color.secondary)._pixelAligned()
+        }
+        switch formStyle {
+        case nil:
+            HStack(alignment: .center, spacing: PlatformMetrics.controlLabelSpacing) {
+                if !labelsHidden { _ControlLabel(label: label)._pixelAligned() }
+                track
+            }
+        case .columns:
+            // The form draws the label in the default font on a 23 pt row (Docs/elements/Form.md).
+            _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label).font(.system(size: PlatformMetrics.buttonLabelSize))),
+                            content: AnyView(track), mode: .sliderColumns)
+        case .grouped:
+            _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)), content: AnyView(track), mode: .grouped)
         }
     }
 }

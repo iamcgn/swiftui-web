@@ -35,12 +35,12 @@ public struct Stepper<Label: View>: View {
     }
 
     @Environment(\.labelsHidden) private var labelsHidden
+    @Environment(\._formStyle) private var formStyle
 
     public var body: some View {
-        HStack(alignment: .center, spacing: PlatformMetrics.controlLabelSpacing) {
-            if !labelsHidden { _ControlLabel(label: label)._pixelAligned() }
-            _StepperControl(increment: increment, decrement: decrement, onEditingChanged: onEditingChanged)._pixelAligned()
-        }
+        _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
+                        content: AnyView(_StepperControl(increment: increment, decrement: decrement, onEditingChanged: onEditingChanged)),
+                        mode: formStyle == .grouped ? .grouped : .centered)
     }
 }
 

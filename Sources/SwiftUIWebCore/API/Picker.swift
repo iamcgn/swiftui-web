@@ -18,13 +18,19 @@ public struct Picker<Label: View, SelectionValue: Hashable, Content: View>: View
 
     @Environment(\.pickerStyle) private var style
     @Environment(\.labelsHidden) private var labelsHidden
+    @Environment(\._formStyle) private var formStyle
 
     public var body: some View {
         let selected = AnyHashable(selection.wrappedValue)   // read here so observation tracks it
         let binding = selection
-        _PickerHost(label: labelsHidden ? nil : AnyView(label), content: AnyView(content), selected: selected,
-                    select: _PickerSelection { if let value = $0.base as? SelectionValue { binding.wrappedValue = value } },
-                    style: style._kind)
+        let select = _PickerSelection { if let value = $0.base as? SelectionValue { binding.wrappedValue = value } }
+        if formStyle == .grouped {
+            _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
+                            content: AnyView(_PickerHost(label: nil, content: AnyView(content), selected: selected, select: select, style: style._kind)),
+                            mode: .grouped)
+        } else {
+            _PickerHost(label: labelsHidden ? nil : AnyView(label), content: AnyView(content), selected: selected, select: select, style: style._kind)
+        }
     }
 }
 

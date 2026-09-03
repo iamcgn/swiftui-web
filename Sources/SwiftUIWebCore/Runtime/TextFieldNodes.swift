@@ -24,6 +24,11 @@ public struct TextInputInfo: Equatable, Sendable {
 
 @MainActor
 package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
+    override package var layoutSpacing: ViewSpacing {
+        .control(top: PlatformMetrics.textFieldSpacing, bottom: PlatformMetrics.textFieldSpacing,
+                 belowText: PlatformMetrics.textFieldSpacing, aboveText: PlatformMetrics.textFieldSpacing)
+    }
+
     private static var nextIdentifier = 3_000_000
     private let identifier: Int
 
@@ -56,6 +61,11 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         let lineHeight = metrics.lineHeight
         // Flexible across the proposal; the ideal width fits the longer of text and placeholder.
         let ideal = max(textWidth(view.text.wrappedValue), textWidth(view.placeholder)) + insets.leading + insets.trailing
+        if view.fitsText {
+            let shown = view.text.wrappedValue.isEmpty ? view.placeholder : view.text.wrappedValue
+            return CGSize(width: textWidth(shown) + insets.leading + insets.trailing,
+                          height: max(lineHeight + insets.top + insets.bottom, bezel == .plain ? 0 : PlatformMetrics.textFieldHeight))
+        }
         let width = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? ideal
         let height = max(lineHeight + insets.top + insets.bottom, bezel == .plain ? 0 : PlatformMetrics.textFieldHeight)
         return CGSize(width: width, height: height)

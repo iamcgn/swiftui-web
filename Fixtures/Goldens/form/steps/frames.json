@@ -1,0 +1,81 @@
+{
+  "fixture" : "form\/steps",
+  "frames" : {
+    "field" : {
+      "height" : 24,
+      "width" : 360,
+      "x" : 0,
+      "y" : 100.25
+    },
+    "form" : {
+      "height" : 48.5,
+      "width" : 360,
+      "x" : 0,
+      "y" : 75.75
+    },
+    "toggle" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 43.5,
+      "y" : 75.75
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 360
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "field" : {
+          "height" : 24,
+          "width" : 360,
+          "x" : 0,
+          "y" : 100.25
+        },
+        "form" : {
+          "height" : 48.5,
+          "width" : 360,
+          "x" : 0,
+          "y" : 75.75
+        },
+        "toggle" : {
+          "height" : 18.5,
+          "width" : 70,
+          "x" : 43.5,
+          "y" : 75.75
+        }
+      },
+      "name" : "enable"
+    },
+    {
+      "frames" : {
+        "field" : {
+          "height" : 24,
+          "width" : 360,
+          "x" : 0,
+          "y" : 112.325439453125
+        },
+        "form" : {
+          "height" : 72.65087890625,
+          "width" : 360,
+          "x" : 0,
+          "y" : 63.674560546875
+        },
+        "name" : {
+          "height" : 16,
+          "width" : 31,
+          "x" : 43.5,
+          "y" : 88.174560546875
+        },
+        "toggle" : {
+          "height" : 18.5,
+          "width" : 70,
+          "x" : 43.5,
+          "y" : 63.674560546875
+        }
+      },
+      "name" : "name"
+    }
+  ]
+}

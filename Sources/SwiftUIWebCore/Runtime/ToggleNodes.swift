@@ -33,7 +33,10 @@ package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive {
     override package func layoutContents(proposal: ProposedViewSize) {
         target?.place(at: .zero, anchor: .topLeading, proposal: proposal, by: self)
     }
-    override package var layoutSpacing: ViewSpacing { target?.layoutSpacing ?? ViewSpacing() }
+    override package var layoutSpacing: ViewSpacing {
+        .control(top: PlatformMetrics.checkboxSpacing, bottom: PlatformMetrics.checkboxSpacing,
+                 belowText: PlatformMetrics.checkboxSpacing, aboveText: PlatformMetrics.checkboxSpacing)
+    }
     override package var paintedChildren: [ViewNode] { target.map { [$0] } ?? [] }
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "Toggle" }
@@ -79,7 +82,7 @@ package final class CheckboxNode: LeafNode<_CheckboxControl> {
 @MainActor
 package final class SwitchNode: LeafNode<_SwitchControl> {
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        PlatformMetrics.switchSize
+        view.small ? PlatformMetrics.formGroupedSwitchSize : PlatformMetrics.switchSize
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
@@ -88,8 +91,8 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
         var fill = view.isOn ? PlatformMetrics.switchTrackOn : PlatformMetrics.switchTrackOff
         if !enabled { fill /= 2 }
         list.append(.fillRRect(track, cornerRadius: track.height / 2, RGBA(red: 0, green: 0, blue: 0, alpha: fill)))
-        let inset = context.round(PlatformMetrics.switchKnobInset)
-        let knobSize = PlatformMetrics.switchKnobSize
+        let inset = context.round(view.small ? 1 : PlatformMetrics.switchKnobInset)
+        let knobSize = view.small ? PlatformMetrics.formGroupedSwitchKnobSize : PlatformMetrics.switchKnobSize
         let knob = CGRect(x: view.isOn ? track.maxX - inset - knobSize.width : track.minX + inset,
                           y: track.minY + inset, width: knobSize.width, height: knobSize.height)
         list.append(.fillRRect(knob, cornerRadius: knob.height / 2, RGBA(red: 1, green: 1, blue: 1, alpha: enabled ? 1 : 0.6)))

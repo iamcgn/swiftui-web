@@ -6,6 +6,25 @@
 @MainActor
 private var nextControlIdentifier = 5_000_000
 
+extension ViewSpacing {
+    /// The default-stack spacing a macOS control declares: `top`/`bottom` towards plain
+    /// neighbours, `belowText` under a text, `aboveText` over one (form/basic row gaps).
+    package static func control(top: CGFloat, bottom: CGFloat, belowText: CGFloat = 0, aboveText: CGFloat = 0) -> ViewSpacing {
+        var spacing = ViewSpacing()
+        spacing[nil, .top] = top
+        spacing[nil, .bottom] = bottom
+        spacing[.edgeBelowText, .top] = belowText
+        spacing[.edgeAboveText, .bottom] = aboveText
+        return spacing
+    }
+
+    /// A pop-up button or stepper: text-like (4.74 above, 8.15 below).
+    package static let textLikeControl = ViewSpacing.control(top: PlatformMetrics.controlSpacingAbove, bottom: PlatformMetrics.controlSpacingBelow,
+                                                             aboveText: PlatformMetrics.controlSpacingBelow)
+    /// A segmented control or slider: 4.74 on both sides, nothing extra next to text.
+    package static let plainControl = ViewSpacing.control(top: PlatformMetrics.controlSpacingAbove, bottom: PlatformMetrics.controlSpacingAbove)
+}
+
 /// The layout leaves of a picker's content with their tags (`ForEach` ids stand in for missing
 /// tags); a unary modifier on a `ForEach` applies to each option through its proxies.
 @MainActor
@@ -203,6 +222,14 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { plan().size }
 
+    /// In a columns form the control column starts where the control does.
+    override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
+        let plan = plan()
+        var dims = ViewDimensions(size: plan.size)
+        dims.explicit[HorizontalAlignment._formControlColumn.key] = plan.control.minX
+        return dims
+    }
+
     override package func layoutContents(proposal: ProposedViewSize) {
         let plan = plan()
         options = plan.options
@@ -229,6 +256,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
     override package var paintedChildren: [ViewNode] {
         (label?.layoutChildren ?? []) + options.compactMap { style == .menu && !isSelected($0) ? nil : $0.shown }
     }
+    override package var layoutSpacing: ViewSpacing { style == .segmented ? .plainControl : .textLikeControl }
     override package var structuralChildren: [ViewNode] { [label as ViewNode?, content].compactMap { $0 } + titles }
     override package var nodeDescription: String { "Picker" }
 
@@ -356,6 +384,7 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         CGSize(width: proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? PlatformMetrics.sliderIdealWidth, height: PlatformMetrics.sliderHeight)
     }
+    override package var layoutSpacing: ViewSpacing { .plainControl }
 
     /// Where the knob's centre sits for the current value, in local coordinates.
     private var knobCenterX: CGFloat {
@@ -449,6 +478,7 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive 
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { PlatformMetrics.stepperSize }
+    override package var layoutSpacing: ViewSpacing { .textLikeControl }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)

@@ -1,0 +1,63 @@
+{
+  "fixture" : "form\/styles",
+  "frames" : {
+    "columns" : {
+      "height" : 110,
+      "width" : 360,
+      "x" : 0,
+      "y" : 125
+    },
+    "columnsField" : {
+      "height" : 24,
+      "width" : 360,
+      "x" : 0,
+      "y" : 155.75
+    },
+    "columnsToggle" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 43.5,
+      "y" : 185.75
+    },
+    "grouped" : {
+      "height" : 110,
+      "width" : 360,
+      "x" : 0,
+      "y" : 7
+    },
+    "groupedField" : {
+      "height" : 18.5,
+      "width" : 300,
+      "x" : 30,
+      "y" : 37
+    },
+    "groupedToggle" : {
+      "height" : 18.5,
+      "width" : 300,
+      "x" : 30,
+      "y" : 76.5
+    },
+    "narrow" : {
+      "height" : 110,
+      "width" : 200,
+      "x" : 80,
+      "y" : 243
+    },
+    "narrowToggle" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 145,
+      "y" : 288.75
+    },
+    "stack" : {
+      "height" : 346,
+      "width" : 360,
+      "x" : 0,
+      "y" : 7
+    }
+  },
+  "size" : {
+    "height" : 360,
+    "width" : 360
+  }
+}

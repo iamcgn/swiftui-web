@@ -144,6 +144,29 @@ package enum PlatformMetrics {
     package static let stepperDividerAlpha = 43.0 / 255
     package static let stepperDividerInset: CGFloat = 3
 
+    // Default stack spacing of controls (macOS 26.2: form/basic, form/sections row gaps; the 13 pt
+    // text spacings 4.7421875 above / 8.15087890625 below, Docs/elements/Form.md)
+    package static let controlSpacingAbove: CGFloat = 4.7421875
+    package static let controlSpacingBelow: CGFloat = 8.15087890625
+    package static let checkboxSpacing: CGFloat = 6
+    package static let textFieldSpacing: CGFloat = 6
+
+    // Form (macOS 26.2: fixtures form/*, Docs/elements/Form.md)
+    package static let formSliderRowHeight: CGFloat = 23
+    package static let formSliderLabelTop: CGFloat = 7
+    package static let formSliderTrackTop: CGFloat = 1
+    package static let formGroupedInset: CGFloat = 20
+    package static let formGroupedRowPadding: CGFloat = 10
+    package static let formGroupedRowMinimumHeight: CGFloat = 38.5
+    package static let formGroupedCardCornerRadius: CGFloat = 10                  // approximate
+    package static let formGroupedCardFill = 8.0 / 255
+    package static let formGroupedSeparatorAlpha = 20.0 / 255
+    package static let formGroupedSeparatorHeight: CGFloat = 1                     // between rows, not overlapping
+    package static let formGroupedSwitchSize = CGSize(width: 36, height: 16)        // approximate (form/styles pixels)
+    package static let formGroupedSwitchKnobSize = CGSize(width: 22, height: 14)    // approximate
+    package static let formGroupedSectionSpacing: CGFloat = 20                     // unverified
+    package static let formGroupedHeaderSpacing: CGFloat = 8                       // unverified
+
     // Label (macOS 26.2: fixture label/basic, Docs/elements/Label.md)
     package static let labelIconSpacing: CGFloat = 8
 

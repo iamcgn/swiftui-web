@@ -280,6 +280,16 @@ public enum TextMetricsRequests {
                 for weight in ["regular", "medium", "semibold"] { requests.append(TextMetricRequest(word, .system(size: size, weight: weight, design: "default"))) }
             }
         }
+        // Form rows, headers and footers.
+        for word in ["Name", "Enabled", "Fruit", "Volume", "Count", "Save", "Plain", "Hello", "Account", "Options", "Footer"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+            requests.append(TextMetricRequest(word, .style("body")))
+            requests.append(TextMetricRequest(word, .system(size: 13, weight: "regular", design: "default")))
+            for style in ["headline", "subheadline", "footnote", "caption", "callout", "title3"] {
+                requests.append(TextMetricRequest(word, .style(style)))
+                for weight in ["medium", "semibold", "bold"] { requests.append(TextMetricRequest(word, .style(style, weight: weight))) }
+            }
+        }
         requests.append(TextMetricRequest("Hi", defaultFont))
         requests.append(TextMetricRequest("End", .style("largeTitle")))
         let bold13 = defaultFont(weight: "bold")

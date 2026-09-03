@@ -177,7 +177,9 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
     override package func layoutContents(proposal: ProposedViewSize) {
         target?.place(at: .zero, anchor: .topLeading, proposal: proposal, by: self)
     }
-    override package var layoutSpacing: ViewSpacing { target?.layoutSpacing ?? ViewSpacing() }
+    /// A button spaces like a plain view (8 to controls, the text's distance next to text:
+    /// form/basic `button` sits 8.15 under a stepper and 4.74 over a text).
+    override package var layoutSpacing: ViewSpacing { ViewSpacing() }
     override package var paintedChildren: [ViewNode] { target.map { [$0] } ?? [] }
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "Button" }
