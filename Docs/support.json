@@ -169,7 +169,7 @@
         {
           "api": "Picker (title, string, custom label) / PickerStyle (automatic, menu, segmented, radioGroup, inline, palette) / pickerStyle / tag",
           "status": "partial",
-          "notes": "macOS pop-up button, segmented control and radio group geometry measured; segmented and radio selection by press; the pop-up menu does not open yet (presentation layer); text options only in the pop-up and segmented styles",
+          "notes": "macOS pop-up button, segmented control and radio group geometry measured; segmented and radio selection by press; the pop-up opens a menu through the presentation layer (approximate look); text options only in the pop-up and segmented styles",
           "fixtures": [
             "picker/basic",
             "picker/forms",
@@ -592,6 +592,14 @@
           "fixtures": [
             "animation/implicit",
             "animation/transition"
+          ]
+        },
+        {
+          "api": "sheet / popover (isPresented and item forms) / alert / confirmationDialog / dismiss environment action",
+          "status": "approximate",
+          "notes": "Presented over the window by the runtime's presentation layer (modal sheets and alerts, popovers and menus dismissed outside); the looks approximate macOS (separate windows there, no goldens); no fullScreenCover, detents, Menu, contextMenu",
+          "fixtures": [
+            "presentation/basic"
           ]
         }
       ]

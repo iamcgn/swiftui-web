@@ -13,7 +13,7 @@ Apple docs: [Picker](https://developer.apple.com/documentation/swiftui/picker),
 | `Picker(sources:selection:…)`, `tag(_:includeOptional:)` | missing |
 | `tag(_:)` | implemented as a layout value; a `ForEach` option without a tag uses its id |
 | `PickerStyle`: `.automatic` (= pop-up on macOS), `.menu`, `.segmented`, `.radioGroup`, `.inline` (= radio group on macOS), `.palette` (= menu); `pickerStyle(_:)` | implemented; custom styles are not (Apple's protocol is closed) |
-| Opening the pop-up menu | **missing**: the pop-up button paints but a press does nothing until the presentation layer (sheet/popover) lands; use `.segmented` or `.radioGroup` for interactive pickers |
+| Opening the pop-up menu | implemented through the presentation layer (`Docs/elements/Presentation.md`): a menu of the options below the button, the selected row checked; a row press selects and closes, a press outside closes (look approximate) |
 | Segmented and radio selection by press | implemented |
 | `labelsHidden()`, `disabled(_:)` | implemented (hidden: control only; disabled: lighter fill, dimmed titles, presses ignored) |
 | Option images, `Label` options, `Divider` in menus, `Section` in menus, keyboard navigation | missing (options contribute their text only in the pop-up and segmented styles) |
@@ -28,7 +28,7 @@ to find the options and their tags. For the pop-up and segmented styles it never
 views out: like `NSPopUpButton` and `NSSegmentedControl` it shows each option's text (the joined
 `Text` descendants) in its own title nodes, so probes inside such options are not recorded, as
 with Apple. The radio group lays the option views out on rows. A press on a segment or a radio
-row calls the setter; a press on the pop-up is ignored for now.
+row calls the setter; a press on the pop-up presents a `_MenuList` of the titles as a menu.
 
 ## Measured (macOS 26.2, `picker/basic`, `picker/forms`, `picker/steps`, 2026-09-02)
 
@@ -52,6 +52,6 @@ wasm js tests pass.
 
 ## Not yet covered
 
-Opening the pop-up menu (presentation layer), the focused (accent) look of segmented and radio
+The real menu look (highlighted rows, separators), the focused (accent) look of segmented and radio
 controls (goldens come from an unfocused window: grey), image and `Label` options, menu
 sections and dividers, keyboard navigation, `palette` icons, `Picker(sources:)`.
