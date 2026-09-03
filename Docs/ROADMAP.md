@@ -230,6 +230,7 @@ Semantics tree → ARIA DOM overlay; `@FocusState`, keyboard navigation, text se
 | Item | Status |
 |---|---|
 | ObservableObject family | done 2026-09-03: `API/ObservableObject.swift` (Combine-free `ObservableObject`, `ObservableObjectPublisher`, `AnyCancellable`, `@Published` via the enclosing-instance subscript, `@StateObject`, `@ObservedObject`, `@EnvironmentObject`, `environmentObject`), typealiases in the `SwiftUI` shim against Foundation's Combine re-export. `observable/object` exact in Tier A (2 steps), Tier B 3/3 Chromium/WebKit (`Docs/elements/ObservableObject.md`). Open: `onReceive`, Combine operators. |
+| TimelineView / timers | done 2026-09-03: `API/TimelineView.swift` (schedules, `TimelineViewDefaultContext`), `Runtime/TimelineNodes.swift` (`TimelineNode` waking through `Task.sleep`, frame subscribers for `.animation` advanced from `advanceAnimations`). `timeline/basic` exact in Tier A, Tier B Chromium/WebKit, `Playwright/timeline-probe.mjs` counts browser ticks (`Docs/elements/TimelineView.md`). Foundation `Timer`/`RunLoop` documented as non-firing on wasm. |
 
 ### Phase 4 — Native executables
 
