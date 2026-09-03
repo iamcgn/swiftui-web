@@ -106,3 +106,4 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `listSectionSeparator / listSectionSeparatorTint / listItemTint` | 🟠 stub | Stored only |  |
 | `navigationDestination(for:) / navigationDestination(isPresented:) / navigationTitle` | 🟢 partial | Destinations registered by type with the enclosing stack, isPresented pushes and pops through observation, the title is recorded on the runtime (window chrome on macOS) | nav/basic, nav/steps |
 | `navigationSubtitle / navigationBarBackButtonHidden` | 🟠 stub | Stored only |  |
+| `onAppear / onDisappear / task(priority:) / task(id:priority:)` | 🟢 partial | Actions run through the scheduler after the update that inserts or removes the view; tasks start on appear, cancel on disappear and restart on an id change; no onReceive or scene-phase actions | lifecycle/appear |

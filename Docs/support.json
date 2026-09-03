@@ -567,6 +567,14 @@
           "status": "stub",
           "notes": "Stored only",
           "fixtures": []
+        },
+        {
+          "api": "onAppear / onDisappear / task(priority:) / task(id:priority:)",
+          "status": "partial",
+          "notes": "Actions run through the scheduler after the update that inserts or removes the view; tasks start on appear, cancel on disappear and restart on an id change; no onReceive or scene-phase actions",
+          "fixtures": [
+            "lifecycle/appear"
+          ]
         }
       ]
     }
