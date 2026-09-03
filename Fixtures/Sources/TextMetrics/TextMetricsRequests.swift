@@ -299,6 +299,7 @@ public enum TextMetricsRequests {
         }
         for word in ["One", "Two", "Three", "Four", "Five", "Six", "A", "B", "D", "E", "Low", "High", "Last"] { requests.append(TextMetricRequest(word, defaultFont)) }
         for word in ["BB", "CCC", "F", "G", "H", "Header"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        for word in ["Canvas", "Corner"] { requests.append(TextMetricRequest(word, defaultFont)); requests.append(TextMetricRequest(word, defaultFont, width: 100)) }
         requests.append(TextMetricRequest("Hi", defaultFont))
         requests.append(TextMetricRequest("End", .style("largeTitle")))
         let bold13 = defaultFont(weight: "bold")

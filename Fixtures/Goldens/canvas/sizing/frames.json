@@ -1,0 +1,33 @@
+{
+  "fixture" : "canvas\/sizing",
+  "frames" : {
+    "above" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 140.75,
+      "y" : 0
+    },
+    "fill" : {
+      "height" : 158,
+      "width" : 320,
+      "x" : 0,
+      "y" : 24
+    },
+    "framed" : {
+      "height" : 50,
+      "width" : 80,
+      "x" : 120,
+      "y" : 190
+    },
+    "stack" : {
+      "height" : 240,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "fixture" : "canvas\/basic",
+  "frames" : {
+    "canvas" : {
+      "height" : 240,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

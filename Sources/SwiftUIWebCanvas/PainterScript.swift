@@ -174,6 +174,7 @@ enum PainterScript {
               drawImage(ctx, dpr, file, scale, pw, ph, x, y, rw, rh, tile, top, leading, bottom, trailing, smoothing, hasTint ? tint : null);
               break;
             }
+            case 14: { const a = buf[i++], b = buf[i++], c = buf[i++], d = buf[i++], e = buf[i++], f = buf[i++]; ctx.transform(a, b, c, d, e, f); break; }
             default: throw new Error('SwiftUIWeb: unknown display op ' + op + ' at ' + (i - 1));
           }
         }

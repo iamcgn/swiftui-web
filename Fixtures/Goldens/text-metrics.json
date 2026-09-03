@@ -8040,6 +8040,12 @@
       "lastBaseline" : 13,
       "width" : 44.5
     },
+    "system:13:400:default||Canvas" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 44.5
+    },
     "system:13:400:default||Carrot" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8069,6 +8075,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 48.5
+    },
+    "system:13:400:default||Corner" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 42
     },
     "system:13:400:default||Count" : {
       "firstBaseline" : 13,
@@ -8754,6 +8766,12 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:400:default|0.0|Canvas" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Carrot" : {
       "firstBaseline" : 13,
       "height" : 96,
@@ -8782,6 +8800,12 @@
       "firstBaseline" : 13,
       "height" : 112,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Corner" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|0.0|Count" : {
@@ -9257,6 +9281,18 @@
       "height" : 32,
       "lastBaseline" : 29,
       "width" : 56.5
+    },
+    "system:13:400:default|100.0|Canvas" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 44.5
+    },
+    "system:13:400:default|100.0|Corner" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 42
     },
     "system:13:400:default|100.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,

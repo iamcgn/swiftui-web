@@ -11,6 +11,8 @@ public enum DisplayOp: Double, Sendable {
     case drawText = 12
     /// file, scale, pixel w/h, rect, tile, insets (top, leading, bottom, trailing), smoothing, hasTint, colour
     case drawImage = 13
+    /// a, b, c, d, tx, ty
+    case concat = 14
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -61,6 +63,7 @@ public enum DisplayListEncoder {
             case .clipPath(let p, let eo): out.ops.append(DisplayOp.clipPath.rawValue); path(p); out.ops.append(eo ? 1 : 0)
             case .beginGroup(let opacity): out.ops += [DisplayOp.beginGroup.rawValue, opacity]
             case .endGroup: out.ops.append(DisplayOp.endGroup.rawValue)
+            case .concat(let t): out.ops += [DisplayOp.concat.rawValue, t.a, t.b, t.c, t.d, t.tx, t.ty]
             case .fillRect(let r, let c): out.ops.append(DisplayOp.fillRect.rawValue); rect(r); color(c)
             case .fillRRect(let r, let radius, let c): out.ops.append(DisplayOp.fillRRect.rawValue); rect(r); out.ops.append(radius); color(c)
             case .fillPath(let p, let c, let eo): out.ops.append(DisplayOp.fillPath.rawValue); path(p); color(c); out.ops.append(eo ? 1 : 0)
@@ -136,6 +139,7 @@ public enum DisplayListDecoder {
             case .clipPath: let p = path(); out.append("clipPath \(p)\(next() == 1 ? " eo" : "")")
             case .beginGroup: out.append("beginGroup \(next())")
             case .endGroup: out.append("endGroup")
+            case .concat: out.append("concat \(next()),\(next()),\(next()),\(next()),\(next()),\(next())")
             case .fillRect: out.append("fillRect \(f(rect())) \(color())")
             case .fillRRect: let r = rect(); out.append("fillRRect \(f(r)) r\(next()) \(color())")
             case .fillPath: let p = path(); let c = color(); out.append("fillPath \(p) \(c)\(next() == 1 ? " eo" : "")")

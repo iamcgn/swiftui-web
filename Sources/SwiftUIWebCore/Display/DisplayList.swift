@@ -78,6 +78,8 @@ public enum DisplayCommand: Equatable, Sendable {
     case clipPath(Path, eoFill: Bool = false)
     case beginGroup(opacity: Double)
     case endGroup
+    /// Multiplies the current transform (inside save/restore) for Canvas drawing and effects.
+    case concat(CGAffineTransform)
     case fillRect(CGRect, RGBA)
     case fillRRect(CGRect, cornerRadius: CGFloat, RGBA)
     case fillPath(Path, RGBA, eoFill: Bool = false)
@@ -125,6 +127,7 @@ extension DisplayCommand: CustomStringConvertible {
         case .clipPath(let path, let eo): return "clipPath(\(path.elements.count) elements)\(eo ? " eo" : "")"
         case .beginGroup(let opacity): return "beginGroup(opacity: \(opacity))"
         case .endGroup: return "endGroup"
+        case .concat(let t): return "concat(\(f(t.a)), \(f(t.b)), \(f(t.c)), \(f(t.d)), \(f(t.tx)), \(f(t.ty)))"
         case .fillRect(let rect, let color): return "fillRect\(r(rect)) \(c(color))"
         case .fillRRect(let rect, let radius, let color): return "fillRRect\(r(rect)) r=\(f(radius)) \(c(color))"
         case .fillPath(let path, let color, let eo): return "fillPath(\(path.elements.count) elements)\(eo ? " eo" : "") \(c(color))"
