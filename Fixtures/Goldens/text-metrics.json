@@ -8004,6 +8004,12 @@
       "lastBaseline" : 13,
       "width" : 45
     },
+    "system:13:400:default||BB" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 17
+    },
     "system:13:400:default||Below" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8039,6 +8045,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 38.5
+    },
+    "system:13:400:default||CCC" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 28
     },
     "system:13:400:default||Cherry" : {
       "firstBaseline" : 13,
@@ -8112,6 +8124,12 @@
       "lastBaseline" : 13,
       "width" : 22
     },
+    "system:13:400:default||F" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 7.5
+    },
     "system:13:400:default||First line.\nSecond paragraph wraps here as well." : {
       "firstBaseline" : 13,
       "height" : 32,
@@ -8148,6 +8166,12 @@
       "lastBaseline" : 13,
       "width" : 34.5
     },
+    "system:13:400:default||G" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 10
+    },
     "system:13:400:default||Gamma" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8159,6 +8183,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 17.5
+    },
+    "system:13:400:default||H" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 10
     },
     "system:13:400:default||Header" : {
       "firstBaseline" : 13,
@@ -8688,6 +8718,12 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:400:default|0.0|BB" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Below" : {
       "firstBaseline" : 13,
       "height" : 80,
@@ -8722,6 +8758,12 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|CCC" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
       "width" : 0
     },
     "system:13:400:default|0.0|Cherry" : {
@@ -8796,6 +8838,12 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|F" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
     "system:13:400:default|0.0|First line.\nSecond paragraph wraps here as well." : {
       "firstBaseline" : 13,
       "height" : 656,
@@ -8832,6 +8880,12 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:400:default|0.0|G" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Gamma" : {
       "firstBaseline" : 13,
       "height" : 80,
@@ -8842,6 +8896,12 @@
       "firstBaseline" : 13,
       "height" : 32,
       "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|H" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
       "width" : 0
     },
     "system:13:400:default|0.0|Header" : {
