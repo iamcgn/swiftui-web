@@ -239,7 +239,7 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest(longWord, defaultFont, width: 60))
         requests.append(TextMetricRequest(longWord, defaultFont))
         // Toggle and Label fixtures (default font and, should the controls style their labels, body).
-        for word in ["Enabled", "Title", "On", "Off"] {
+        for word in ["Enabled", "Title", "On", "Off", "Placeholder", "Name", "Password", "A", "B"] {
             requests.append(TextMetricRequest(word, defaultFont))
             requests.append(TextMetricRequest(word, .style("body")))
         }

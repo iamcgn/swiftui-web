@@ -60,6 +60,9 @@ public final class Runtime {
 
     /// The interactive node a pointer is currently pressing, and the last pointer position.
     package var pressedNode: (ViewNode & _Interactive)?
+
+    /// The text field with keyboard focus (its semantics identifier), for the focus ring.
+    public internal(set) var focusedTextFieldIdentifier: Int?
     package var pointerPosition: CGPoint = .zero
 
     /// A touch pan of scroll views in progress.

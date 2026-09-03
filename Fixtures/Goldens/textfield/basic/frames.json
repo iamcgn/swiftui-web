@@ -1,0 +1,57 @@
+{
+  "fixture" : "textfield\/basic",
+  "frames" : {
+    "disabled" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 190
+    },
+    "empty" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 10
+    },
+    "filled" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 46
+    },
+    "hidden" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 82
+    },
+    "narrow" : {
+      "height" : 24,
+      "width" : 120,
+      "x" : 0,
+      "y" : 226
+    },
+    "secureEmpty" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 118
+    },
+    "secureFilled" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 154
+    },
+    "stack" : {
+      "height" : 240,
+      "width" : 320,
+      "x" : 0,
+      "y" : 10
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

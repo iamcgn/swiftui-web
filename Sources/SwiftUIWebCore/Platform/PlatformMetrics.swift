@@ -39,6 +39,21 @@ package enum PlatformMetrics {
     /// Disabled control labels keep 30 % of their alpha (66/216 for the primary label colour).
     package static let disabledLabelOpacity = 0.3
 
+    // TextField (macOS 26.2: fixtures textfield/basic, textfield/styles; pixels sampled, Docs/elements/TextField.md)
+    package static let textFieldHeight: CGFloat = 24
+    package static let textFieldHorizontalPadding: CGFloat = 6
+    package static let textFieldVerticalPadding: CGFloat = 4
+    package static let textFieldCornerRadius: CGFloat = 5                // approximate: the border ramp reads 5–6 pt
+    package static let textFieldBorderWidth: CGFloat = 1                 // drawn outside the frame
+    package static let textFieldBorderAlpha = 23.0 / 255
+    package static let textFieldDisabledFillAlpha = 192.0 / 255
+    package static let secureBulletDiameter: CGFloat = 5.5
+    package static let secureBulletPitch: CGFloat = 8
+    package static let secureBulletInset: CGFloat = 1.5                  // first bullet's ink starts 7.5 pt in
+    package static let secureBulletBaselineOffset: CGFloat = 5           // centre 5 pt above the baseline
+    package static let focusRingWidth: CGFloat = 3                       // unverified (no focused golden)
+    package static let focusRingOpacity = 0.5                            // unverified
+
     // Label (macOS 26.2: fixture label/basic, Docs/elements/Label.md)
     package static let labelIconSpacing: CGFloat = 8
 

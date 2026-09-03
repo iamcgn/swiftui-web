@@ -1,0 +1,75 @@
+{
+  "fixture" : "textfield\/steps",
+  "frames" : {
+    "echo" : {
+      "height" : 16,
+      "width" : 19.5,
+      "x" : 236.25,
+      "y" : 52
+    },
+    "field" : {
+      "height" : 24,
+      "width" : 160,
+      "x" : 64.25,
+      "y" : 48
+    },
+    "row" : {
+      "height" : 24,
+      "width" : 191.5,
+      "x" : 64.25,
+      "y" : 48
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 17.5,
+          "x" : 237.25,
+          "y" : 52
+        },
+        "field" : {
+          "height" : 24,
+          "width" : 160,
+          "x" : 65.25,
+          "y" : 48
+        },
+        "row" : {
+          "height" : 24,
+          "width" : 189.5,
+          "x" : 65.25,
+          "y" : 48
+        }
+      },
+      "name" : "typed"
+    },
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 19.5,
+          "x" : 236.25,
+          "y" : 52
+        },
+        "field" : {
+          "height" : 24,
+          "width" : 160,
+          "x" : 64.25,
+          "y" : 48
+        },
+        "row" : {
+          "height" : 24,
+          "width" : 191.5,
+          "x" : 64.25,
+          "y" : 48
+        }
+      },
+      "name" : "cleared"
+    }
+  ]
+}

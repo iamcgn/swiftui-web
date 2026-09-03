@@ -138,6 +138,18 @@
       "lastBaseline" : 14,
       "width" : 8.5
     },
+    "style:body||A" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 9
+    },
+    "style:body||B" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 8.5
+    },
     "style:body||Bordered" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -192,6 +204,12 @@
       "lastBaseline" : 14,
       "width" : 439.5
     },
+    "style:body||Name" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 35.5
+    },
     "style:body||Off" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -221,6 +239,18 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 46.5
+    },
+    "style:body||Password" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 58.5
+    },
+    "style:body||Placeholder" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 72
     },
     "style:body||Plain" : {
       "firstBaseline" : 14,
@@ -271,6 +301,18 @@
       "width" : 0
     },
     "style:body|0.0|−" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|A" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|B" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
@@ -330,6 +372,12 @@
       "lastBaseline" : 1002,
       "width" : 0
     },
+    "style:body|0.0|Name" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
     "style:body|0.0|Off" : {
       "firstBaseline" : 14,
       "height" : 56.5,
@@ -358,6 +406,18 @@
       "firstBaseline" : 14,
       "height" : 113.5,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body|0.0|Password" : {
+      "firstBaseline" : 14,
+      "height" : 151.5,
+      "lastBaseline" : 147,
+      "width" : 0
+    },
+    "style:body|0.0|Placeholder" : {
+      "firstBaseline" : 14,
+      "height" : 208.5,
+      "lastBaseline" : 204,
       "width" : 0
     },
     "style:body|0.0|Plain" : {
@@ -1440,6 +1500,12 @@
       "lastBaseline" : 29,
       "width" : 60.5
     },
+    "system:13:400:default||Name" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35.5
+    },
     "system:13:400:default||Off" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -1469,6 +1535,18 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 46.5
+    },
+    "system:13:400:default||Password" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 58.5
+    },
+    "system:13:400:default||Placeholder" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 72
     },
     "system:13:400:default||Plain" : {
       "firstBaseline" : 13,
@@ -1776,6 +1854,12 @@
       "lastBaseline" : 205,
       "width" : 0
     },
+    "system:13:400:default|0.0|Name" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Off" : {
       "firstBaseline" : 13,
       "height" : 48,
@@ -1804,6 +1888,18 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Password" : {
+      "firstBaseline" : 13,
+      "height" : 128,
+      "lastBaseline" : 125,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Placeholder" : {
+      "firstBaseline" : 13,
+      "height" : 176,
+      "lastBaseline" : 173,
       "width" : 0
     },
     "system:13:400:default|0.0|Plain" : {

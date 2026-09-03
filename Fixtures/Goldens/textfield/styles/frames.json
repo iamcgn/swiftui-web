@@ -1,0 +1,81 @@
+{
+  "fixture" : "textfield\/styles",
+  "frames" : {
+    "halfA" : {
+      "height" : 24,
+      "width" : 156,
+      "x" : 0,
+      "y" : 200
+    },
+    "halfB" : {
+      "height" : 24,
+      "width" : 156,
+      "x" : 164,
+      "y" : 200
+    },
+    "halves" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 200
+    },
+    "plain" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 72
+    },
+    "plainEmpty" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 136
+    },
+    "rounded" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 36
+    },
+    "row" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 164
+    },
+    "rowButton" : {
+      "height" : 24,
+      "width" : 42.5,
+      "x" : 277.5,
+      "y" : 164
+    },
+    "rowField" : {
+      "height" : 24,
+      "width" : 226,
+      "x" : 43.5,
+      "y" : 164
+    },
+    "rowLabel" : {
+      "height" : 16,
+      "width" : 35.5,
+      "x" : 0,
+      "y" : 168
+    },
+    "square" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 100
+    },
+    "stack" : {
+      "height" : 188,
+      "width" : 320,
+      "x" : 0,
+      "y" : 36
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

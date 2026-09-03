@@ -284,6 +284,10 @@ public final class CanvasHost {
         var seen = Set<Int>()
         for node in runtime.semanticsTree() {
             seen.insert(node.identifier)
+            if let input = node.textInput {
+                updateInputElement(node, input)
+                continue
+            }
             let element: JSObject
             if let existing = overlayButtons[node.identifier] {
                 element = existing
@@ -319,6 +323,68 @@ public final class CanvasHost {
         for (id, element) in overlayButtons where !seen.contains(id) {
             _ = element.remove!()
             overlayButtons[id] = nil
+        }
+    }
+
+    /// A text field's editor: a real `<input>` over the text line with transparent text (the
+    /// canvas paints it), so typing, IME composition, caret, selection and copy/paste are the
+    /// browser's. Its value flows into the binding on every `input` event.
+    private func updateInputElement(_ node: SemanticsNode, _ info: TextInputInfo) {
+        let element: JSObject
+        if let existing = overlayButtons[node.identifier] {
+            element = existing
+        } else {
+            element = document.createElement!("input").object!
+            let style = element.style.object!
+            style.position = .string("absolute")
+            style.margin = .string("0")
+            style.padding = .string("0")
+            style.border = .string("0")
+            style.outline = .string("none")
+            style.background = .string("transparent")
+            style.color = .string("transparent")
+            style.caretColor = .string("black")
+            style.pointerEvents = .string("auto")
+            style.boxSizing = .string("border-box")
+            _ = element.setAttribute!("autocomplete", "off")
+            _ = element.setAttribute!("autocapitalize", "off")
+            _ = element.setAttribute!("spellcheck", "false")
+            let id = node.identifier
+            on(element, "input") { [weak self] e in
+                guard let self, let target = e.target.object else { return }
+                self.runtime.textField(id, didChange: target.value.string ?? "")
+                self.scheduleFrame()
+            }
+            on(element, "keydown") { [weak self] e in
+                guard let self, e.key.string == "Enter" else { return }
+                self.runtime.textFieldDidSubmit(id)
+                self.scheduleFrame()
+            }
+            on(element, "focus") { [weak self] _ in
+                self?.runtime.textField(id, focused: true)
+                self?.scheduleFrame()
+            }
+            on(element, "blur") { [weak self] _ in
+                self?.runtime.textField(id, focused: false)
+                self?.scheduleFrame()
+            }
+            _ = overlay.appendChild!(element)
+            overlayButtons[node.identifier] = element
+        }
+        let style = element.style.object!
+        style.left = .string("\(info.textRect.minX)px")
+        style.top = .string("\(info.textRect.minY)px")
+        style.width = .string("\(info.textRect.width)px")
+        style.height = .string("\(info.textRect.height)px")
+        style.font = .string(DisplayListEncoder.cssFont(info.font))
+        style.lineHeight = .string("\(info.textRect.height)px")
+        element.type = .string(info.isSecure ? "password" : "text")
+        element.disabled = .boolean(!info.isEnabled)
+        _ = element.setAttribute!("aria-label", node.label)
+        if element.value.string != info.text { element.value = .string(info.text) }
+        // A field the runtime focused (a canvas press) takes the browser focus too.
+        if runtime.focusedTextFieldIdentifier == node.identifier, document.activeElement.object != element {
+            _ = element.focus?()
         }
     }
 

@@ -14,20 +14,23 @@ package protocol _Interactive: AnyObject {
 
 /// One element of the accessibility tree hosts expose (DOM overlay in the browser).
 public struct SemanticsNode: Equatable, Sendable {
-    public enum Role: String, Sendable { case button, checkbox }
+    public enum Role: String, Sendable { case button, checkbox, textField }
     public var role: Role
     public var label: String
     public var frame: CGRect
     public var identifier: Int
     /// The state of a checkbox.
     public var isOn: Bool?
+    /// What a text field's input element shows and where.
+    public var textInput: TextInputInfo?
 
-    public init(role: Role, label: String, frame: CGRect, identifier: Int, isOn: Bool? = nil) {
+    public init(role: Role, label: String, frame: CGRect, identifier: Int, isOn: Bool? = nil, textInput: TextInputInfo? = nil) {
         self.role = role
         self.label = label
         self.frame = frame
         self.identifier = identifier
         self.isOn = isOn
+        self.textInput = textInput
     }
 }
 
