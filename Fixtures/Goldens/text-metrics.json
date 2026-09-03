@@ -294,6 +294,12 @@
       "lastBaseline" : 14,
       "width" : 35
     },
+    "style:body||Apple detail" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 72
+    },
     "style:body||B" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -324,17 +330,41 @@
       "lastBaseline" : 14,
       "width" : 41.5
     },
+    "style:body||Content" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 48.5
+    },
     "style:body||Count: 0" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 52
     },
+    "style:body||Deeper" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 44.5
+    },
+    "style:body||Detail" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 35
+    },
     "style:body||Enabled" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 49
+    },
+    "style:body||Go" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 17.5
     },
     "style:body||Hello" : {
       "firstBaseline" : 14,
@@ -366,11 +396,35 @@
       "lastBaseline" : 14,
       "width" : 439.5
     },
+    "style:body||Left" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 24
+    },
     "style:body||Name" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 35.5
+    },
+    "style:body||Number 1" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 58
+    },
+    "style:body||Number 2" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 60
+    },
+    "style:body||Number 3" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 60.5
     },
     "style:body||Off" : {
       "firstBaseline" : 14,
@@ -426,11 +480,35 @@
       "lastBaseline" : 14,
       "width" : 62
     },
+    "style:body||Push" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 30
+    },
+    "style:body||Right" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 32
+    },
+    "style:body||Root" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 28.5
+    },
     "style:body||small" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 31.5
+    },
+    "style:body||Small" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 33
     },
     "style:body||The quick brown fox" : {
       "firstBaseline" : 14,
@@ -456,6 +534,18 @@
       "lastBaseline" : 14,
       "width" : 25
     },
+    "style:body||Value" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 33.5
+    },
+    "style:body||Wide" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 31
+    },
     "style:body|0.0|+" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -478,6 +568,12 @@
       "firstBaseline" : 14,
       "height" : 94.5,
       "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|Apple detail" : {
+      "firstBaseline" : 14,
+      "height" : 208.5,
+      "lastBaseline" : 204,
       "width" : 0
     },
     "style:body|0.0|B" : {
@@ -510,16 +606,40 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "style:body|0.0|Content" : {
+      "firstBaseline" : 14,
+      "height" : 132.5,
+      "lastBaseline" : 128,
+      "width" : 0
+    },
     "style:body|0.0|Count: 0" : {
       "firstBaseline" : 14,
       "height" : 132.5,
       "lastBaseline" : 128,
       "width" : 0
     },
+    "style:body|0.0|Deeper" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "style:body|0.0|Detail" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
     "style:body|0.0|Enabled" : {
       "firstBaseline" : 14,
       "height" : 132.5,
       "lastBaseline" : 128,
+      "width" : 0
+    },
+    "style:body|0.0|Go" : {
+      "firstBaseline" : 14,
+      "height" : 37.5,
+      "lastBaseline" : 33,
       "width" : 0
     },
     "style:body|0.0|Hello" : {
@@ -552,10 +672,34 @@
       "lastBaseline" : 1002,
       "width" : 0
     },
+    "style:body|0.0|Left" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
     "style:body|0.0|Name" : {
       "firstBaseline" : 14,
       "height" : 75.5,
       "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body|0.0|Number 1" : {
+      "firstBaseline" : 14,
+      "height" : 132.5,
+      "lastBaseline" : 128,
+      "width" : 0
+    },
+    "style:body|0.0|Number 2" : {
+      "firstBaseline" : 14,
+      "height" : 132.5,
+      "lastBaseline" : 128,
+      "width" : 0
+    },
+    "style:body|0.0|Number 3" : {
+      "firstBaseline" : 14,
+      "height" : 132.5,
+      "lastBaseline" : 128,
       "width" : 0
     },
     "style:body|0.0|Off" : {
@@ -612,7 +756,31 @@
       "lastBaseline" : 166,
       "width" : 0
     },
+    "style:body|0.0|Push" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body|0.0|Right" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|Root" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
     "style:body|0.0|small" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|Small" : {
       "firstBaseline" : 14,
       "height" : 94.5,
       "lastBaseline" : 90,
@@ -640,6 +808,18 @@
       "firstBaseline" : 14,
       "height" : 56.5,
       "lastBaseline" : 52,
+      "width" : 0
+    },
+    "style:body|0.0|Value" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|Wide" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
       "width" : 0
     },
     "style:body|150.0;s4.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
@@ -2538,6 +2718,12 @@
       "lastBaseline" : 13,
       "width" : 35
     },
+    "system:13:400:default||Apple detail" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 72
+    },
     "system:13:400:default||B" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -2586,11 +2772,29 @@
       "lastBaseline" : 13,
       "width" : 41.5
     },
+    "system:13:400:default||Content" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 48.5
+    },
     "system:13:400:default||Count: 0" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 52
+    },
+    "system:13:400:default||Deeper" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 44.5
+    },
+    "system:13:400:default||Detail" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35
     },
     "system:13:400:default||Enabled" : {
       "firstBaseline" : 13,
@@ -2682,6 +2886,12 @@
       "lastBaseline" : 13,
       "width" : 29
     },
+    "system:13:400:default||Left" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 24
+    },
     "system:13:400:default||Left\nRight side" : {
       "firstBaseline" : 13,
       "height" : 32,
@@ -2693,6 +2903,24 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 35.5
+    },
+    "system:13:400:default||Number 1" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 58
+    },
+    "system:13:400:default||Number 2" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 60
+    },
+    "system:13:400:default||Number 3" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 60.5
     },
     "system:13:400:default||Off" : {
       "firstBaseline" : 13,
@@ -2748,11 +2976,29 @@
       "lastBaseline" : 13,
       "width" : 62
     },
+    "system:13:400:default||Push" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 30
+    },
     "system:13:400:default||Red Blue" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 54
+    },
+    "system:13:400:default||Right" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 32
+    },
+    "system:13:400:default||Root" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 28.5
     },
     "system:13:400:default||Row 0" : {
       "firstBaseline" : 13,
@@ -2777,6 +3023,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 31.5
+    },
+    "system:13:400:default||Small" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 33
     },
     "system:13:400:default||Supercalifragilistic" : {
       "firstBaseline" : 13,
@@ -2808,11 +3060,23 @@
       "lastBaseline" : 13,
       "width" : 25
     },
+    "system:13:400:default||Value" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 33.5
+    },
     "system:13:400:default||Vegetables" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 68
+    },
+    "system:13:400:default||Wide" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 31
     },
     "system:13:400:default||World" : {
       "firstBaseline" : 13,
@@ -2892,6 +3156,12 @@
       "lastBaseline" : 77,
       "width" : 0
     },
+    "system:13:400:default|0.0|Apple detail" : {
+      "firstBaseline" : 13,
+      "height" : 176,
+      "lastBaseline" : 173,
+      "width" : 0
+    },
     "system:13:400:default|0.0|B" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -2940,10 +3210,28 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:400:default|0.0|Content" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Count: 0" : {
       "firstBaseline" : 13,
       "height" : 112,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Deeper" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Detail" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|0.0|Enabled" : {
@@ -3036,6 +3324,12 @@
       "lastBaseline" : 61,
       "width" : 0
     },
+    "system:13:400:default|0.0|Left" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Left\nRight side" : {
       "firstBaseline" : 13,
       "height" : 208,
@@ -3046,6 +3340,24 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Number 1" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Number 2" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Number 3" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "system:13:400:default|0.0|Off" : {
@@ -3102,10 +3414,28 @@
       "lastBaseline" : 141,
       "width" : 0
     },
+    "system:13:400:default|0.0|Push" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Red Blue" : {
       "firstBaseline" : 13,
       "height" : 112,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Right" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Root" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|Row 0" : {
@@ -3127,6 +3457,12 @@
       "width" : 0
     },
     "system:13:400:default|0.0|small" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Small" : {
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
@@ -3162,10 +3498,22 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|Value" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Vegetables" : {
       "firstBaseline" : 13,
       "height" : 160,
       "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Wide" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|World" : {

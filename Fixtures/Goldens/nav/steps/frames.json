@@ -1,0 +1,199 @@
+{
+  "fixture" : "nav\/steps",
+  "frames" : {
+    "link" : {
+      "height" : 24,
+      "width" : 54,
+      "x" : 133,
+      "y" : 102
+    },
+    "nav" : {
+      "height" : 52,
+      "width" : 54,
+      "x" : 133,
+      "y" : 74
+    },
+    "root" : {
+      "height" : 16,
+      "width" : 28.5,
+      "x" : 145.75,
+      "y" : 74
+    },
+    "stack" : {
+      "height" : 52,
+      "width" : 54,
+      "x" : 133,
+      "y" : 74
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "deeper1" : {
+          "height" : 24,
+          "width" : 68.5,
+          "x" : 125.75,
+          "y" : 102
+        },
+        "link" : {
+          "height" : 24,
+          "width" : 54,
+          "x" : 133,
+          "y" : 102
+        },
+        "nav" : {
+          "height" : 52,
+          "width" : 68.5,
+          "x" : 125.75,
+          "y" : 74
+        },
+        "number1" : {
+          "height" : 16,
+          "width" : 58,
+          "x" : 131,
+          "y" : 74
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 74
+        },
+        "stack" : {
+          "height" : 52,
+          "width" : 54,
+          "x" : 133,
+          "y" : 74
+        }
+      },
+      "name" : "push1"
+    },
+    {
+      "frames" : {
+        "deeper1" : {
+          "height" : 24,
+          "width" : 68.5,
+          "x" : 125.75,
+          "y" : 102
+        },
+        "deeper2" : {
+          "height" : 24,
+          "width" : 68.5,
+          "x" : 125.75,
+          "y" : 102
+        },
+        "link" : {
+          "height" : 24,
+          "width" : 54,
+          "x" : 133,
+          "y" : 102
+        },
+        "nav" : {
+          "height" : 52,
+          "width" : 68.5,
+          "x" : 125.75,
+          "y" : 74
+        },
+        "number1" : {
+          "height" : 16,
+          "width" : 58,
+          "x" : 131,
+          "y" : 74
+        },
+        "number2" : {
+          "height" : 16,
+          "width" : 60,
+          "x" : 130,
+          "y" : 74
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 74
+        },
+        "stack" : {
+          "height" : 52,
+          "width" : 54,
+          "x" : 133,
+          "y" : 74
+        }
+      },
+      "name" : "push2"
+    },
+    {
+      "frames" : {
+        "deeper1" : {
+          "height" : 24,
+          "width" : 68.5,
+          "x" : 125.75,
+          "y" : 102
+        },
+        "link" : {
+          "height" : 24,
+          "width" : 54,
+          "x" : 133,
+          "y" : 102
+        },
+        "nav" : {
+          "height" : 52,
+          "width" : 68.5,
+          "x" : 125.75,
+          "y" : 74
+        },
+        "number1" : {
+          "height" : 16,
+          "width" : 58,
+          "x" : 131,
+          "y" : 74
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 74
+        },
+        "stack" : {
+          "height" : 52,
+          "width" : 54,
+          "x" : 133,
+          "y" : 74
+        }
+      },
+      "name" : "pop"
+    },
+    {
+      "frames" : {
+        "link" : {
+          "height" : 24,
+          "width" : 54,
+          "x" : 133,
+          "y" : 102
+        },
+        "nav" : {
+          "height" : 52,
+          "width" : 54,
+          "x" : 133,
+          "y" : 74
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 74
+        },
+        "stack" : {
+          "height" : 52,
+          "width" : 54,
+          "x" : 133,
+          "y" : 74
+        }
+      },
+      "name" : "popAll"
+    }
+  ]
+}

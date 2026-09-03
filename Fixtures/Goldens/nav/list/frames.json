@@ -1,0 +1,45 @@
+{
+  "fixture" : "nav\/list",
+  "frames" : {
+    "list" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "nav" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 14
+    },
+    "row2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 38
+    },
+    "row3" : {
+      "height" : 24,
+      "width" : 39.5,
+      "x" : 16,
+      "y" : 62
+    },
+    "row4" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 94
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

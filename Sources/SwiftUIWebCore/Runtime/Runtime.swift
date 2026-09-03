@@ -10,6 +10,8 @@ public final class Runtime {
 
     /// Environment the root view is mounted in.
     package var rootEnvironment: EnvironmentValues
+    /// The last `navigationTitle` applied in the tree, for hosts (window or document title).
+    public internal(set) var navigationTitle: String?
 
     private let assetStore = _AssetStore()
 

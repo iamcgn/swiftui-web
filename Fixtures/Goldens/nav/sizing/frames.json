@@ -1,0 +1,63 @@
+{
+  "fixture" : "nav\/sizing",
+  "frames" : {
+    "fill" : {
+      "height" : 192,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "left" : {
+      "height" : 16,
+      "width" : 24,
+      "x" : 128,
+      "y" : 224
+    },
+    "navFill" : {
+      "height" : 192,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "navLeft" : {
+      "height" : 16,
+      "width" : 100,
+      "x" : 90,
+      "y" : 224
+    },
+    "navText" : {
+      "height" : 16,
+      "width" : 33,
+      "x" : 143.5,
+      "y" : 200
+    },
+    "right" : {
+      "height" : 16,
+      "width" : 32,
+      "x" : 198,
+      "y" : 224
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 140,
+      "x" : 90,
+      "y" : 224
+    },
+    "small" : {
+      "height" : 16,
+      "width" : 33,
+      "x" : 143.5,
+      "y" : 200
+    },
+    "stack" : {
+      "height" : 240,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

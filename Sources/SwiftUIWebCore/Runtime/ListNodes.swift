@@ -43,6 +43,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         environment._sectionStyling = _SectionStyling(font: .subheadline.weight(.semibold), foreground: .secondary)
         environment._labelIconLayout = _LabelIconLayout(iconWidth: PlatformMetrics.listLabelIconWidth,
                                                         spacing: PlatformMetrics.listLabelIconSpacing, tint: .accentColor)
+        environment._inListRow = true
         return environment
     }
 
@@ -232,10 +233,13 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     package func pressEnded(inside: Bool) {}
 
     package func pressEnded(inside: Bool, at point: CGPoint) {
-        guard inside, let selection = view.selection else { return }
-        guard let element = elements.first(where: { $0.kind == .row && $0.frame.contains(point) }), let id = element.id else { return }
-        selection.toggle(id)
-        runtime.setNeedsDisplay()
+        guard inside, let element = elements.first(where: { $0.kind == .row && $0.frame.contains(point) }) else { return }
+        // A row that is a `NavigationLink` pushes; a selectable row toggles its selection.
+        element.node.layoutValue(for: NavigationLinkActivationKey.self)?.run()
+        if let selection = view.selection, let id = element.id {
+            selection.toggle(id)
+            runtime.setNeedsDisplay()
+        }
     }
 
     package var semantics: SemanticsNode {

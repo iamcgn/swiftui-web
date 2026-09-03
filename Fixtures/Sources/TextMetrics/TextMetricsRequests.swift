@@ -258,6 +258,13 @@ public enum TextMetricsRequests {
                 }
             }
         }
+        // NavigationLink labels: default font, the 13 pt point-size font of bordered buttons, body.
+        for word in ["Root", "Detail", "Value", "Wide", "Push", "Deeper", "Content", "Small", "Left", "Right", "Apple detail",
+                     "Number 1", "Number 2", "Number 3", "Go"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+            requests.append(TextMetricRequest(word, .system(size: 13, weight: "regular", design: "default")))
+            requests.append(TextMetricRequest(word, .style("body")))
+        }
         requests.append(TextMetricRequest("Hi", defaultFont))
         requests.append(TextMetricRequest("End", .style("largeTitle")))
         let bold13 = defaultFont(weight: "bold")

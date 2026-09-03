@@ -1,0 +1,27 @@
+{
+  "fixture" : "nav\/title",
+  "frames" : {
+    "content" : {
+      "height" : 16,
+      "width" : 48.5,
+      "x" : 135.75,
+      "y" : 52
+    },
+    "nav" : {
+      "height" : 16,
+      "width" : 48.5,
+      "x" : 135.75,
+      "y" : 52
+    },
+    "stack" : {
+      "height" : 16,
+      "width" : 48.5,
+      "x" : 135.75,
+      "y" : 52
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 320
+  }
+}
