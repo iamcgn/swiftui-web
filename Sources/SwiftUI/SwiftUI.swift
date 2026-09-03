@@ -41,3 +41,13 @@ extension App {
         #endif
     }
 }
+
+// The Combine-free ObservableObject family: on Apple platforms Foundation re-exports Combine's
+// names, so the module declares these to shadow them (declarations beat re-exports).
+public typealias ObservableObject = SwiftUIWebCore.ObservableObject
+public typealias ObservableObjectPublisher = SwiftUIWebCore.ObservableObjectPublisher
+public typealias Published = SwiftUIWebCore.Published
+public typealias StateObject = SwiftUIWebCore.StateObject
+public typealias ObservedObject = SwiftUIWebCore.ObservedObject
+public typealias EnvironmentObject = SwiftUIWebCore.EnvironmentObject
+public typealias AnyCancellable = SwiftUIWebCore.AnyCancellable

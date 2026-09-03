@@ -1,0 +1,75 @@
+{
+  "fixture" : "observable\/object",
+  "frames" : {
+    "count" : {
+      "height" : 16,
+      "width" : 52,
+      "x" : 134,
+      "y" : 38.75
+    },
+    "toggle" : {
+      "height" : 18.5,
+      "width" : 47,
+      "x" : 136.5,
+      "y" : 62.75
+    },
+    "view" : {
+      "height" : 42.5,
+      "width" : 52,
+      "x" : 134,
+      "y" : 38.75
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "count" : {
+          "height" : 16,
+          "width" : 50,
+          "x" : 135,
+          "y" : 38.75
+        },
+        "toggle" : {
+          "height" : 18.5,
+          "width" : 47,
+          "x" : 136.5,
+          "y" : 62.75
+        },
+        "view" : {
+          "height" : 42.5,
+          "width" : 50,
+          "x" : 135,
+          "y" : 38.75
+        }
+      },
+      "name" : "increment"
+    },
+    {
+      "frames" : {
+        "count" : {
+          "height" : 16,
+          "width" : 50,
+          "x" : 135,
+          "y" : 38.75
+        },
+        "toggle" : {
+          "height" : 18.5,
+          "width" : 47,
+          "x" : 136.5,
+          "y" : 62.75
+        },
+        "view" : {
+          "height" : 42.5,
+          "width" : 50,
+          "x" : 135,
+          "y" : 38.75
+        }
+      },
+      "name" : "flag"
+    }
+  ]
+}

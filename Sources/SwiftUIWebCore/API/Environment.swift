@@ -21,7 +21,7 @@ public struct EnvironmentValues: CustomStringConvertible {
     /// Creates an environment values instance.
     public init() {}
 
-    private mutating func didMutate() {
+    package mutating func didMutate() {
         generation = _EnvironmentGeneration.next()
     }
 
