@@ -282,6 +282,48 @@
       "lastBaseline" : 14,
       "width" : 8.5
     },
+    "style:body||0" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 8.5
+    },
+    "style:body||1" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 6
+    },
+    "style:body||2" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 8
+    },
+    "style:body||25" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 16
+    },
+    "style:body||50" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 16.5
+    },
+    "style:body||75" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 15.5
+    },
+    "style:body||100" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 22.5
+    },
     "style:body||A" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -336,6 +378,12 @@
       "lastBaseline" : 14,
       "width" : 48.5
     },
+    "style:body||Count" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 36.5
+    },
     "style:body||Count: 0" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -359,6 +407,12 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 49
+    },
+    "style:body||Fruit" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 28
     },
     "style:body||Go" : {
       "firstBaseline" : 14,
@@ -401,6 +455,18 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 24
+    },
+    "style:body||Max" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 25.5
+    },
+    "style:body||Min" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 22
     },
     "style:body||Name" : {
       "firstBaseline" : 14,
@@ -498,6 +564,12 @@
       "lastBaseline" : 14,
       "width" : 28.5
     },
+    "style:body||Row" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 26
+    },
     "style:body||small" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -540,6 +612,12 @@
       "lastBaseline" : 14,
       "width" : 33.5
     },
+    "style:body||Volume" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 45
+    },
     "style:body||Wide" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -556,6 +634,48 @@
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|0" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|1" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|2" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|25" : {
+      "firstBaseline" : 14,
+      "height" : 37.5,
+      "lastBaseline" : 33,
+      "width" : 0
+    },
+    "style:body|0.0|50" : {
+      "firstBaseline" : 14,
+      "height" : 37.5,
+      "lastBaseline" : 33,
+      "width" : 0
+    },
+    "style:body|0.0|75" : {
+      "firstBaseline" : 14,
+      "height" : 37.5,
+      "lastBaseline" : 33,
+      "width" : 0
+    },
+    "style:body|0.0|100" : {
+      "firstBaseline" : 14,
+      "height" : 56.5,
+      "lastBaseline" : 52,
       "width" : 0
     },
     "style:body|0.0|A" : {
@@ -612,6 +732,12 @@
       "lastBaseline" : 128,
       "width" : 0
     },
+    "style:body|0.0|Count" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
     "style:body|0.0|Count: 0" : {
       "firstBaseline" : 14,
       "height" : 132.5,
@@ -634,6 +760,12 @@
       "firstBaseline" : 14,
       "height" : 132.5,
       "lastBaseline" : 128,
+      "width" : 0
+    },
+    "style:body|0.0|Fruit" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
       "width" : 0
     },
     "style:body|0.0|Go" : {
@@ -676,6 +808,18 @@
       "firstBaseline" : 14,
       "height" : 75.5,
       "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body|0.0|Max" : {
+      "firstBaseline" : 14,
+      "height" : 56.5,
+      "lastBaseline" : 52,
+      "width" : 0
+    },
+    "style:body|0.0|Min" : {
+      "firstBaseline" : 14,
+      "height" : 56.5,
+      "lastBaseline" : 52,
       "width" : 0
     },
     "style:body|0.0|Name" : {
@@ -774,6 +918,12 @@
       "lastBaseline" : 71,
       "width" : 0
     },
+    "style:body|0.0|Row" : {
+      "firstBaseline" : 14,
+      "height" : 56.5,
+      "lastBaseline" : 52,
+      "width" : 0
+    },
     "style:body|0.0|small" : {
       "firstBaseline" : 14,
       "height" : 94.5,
@@ -816,6 +966,12 @@
       "lastBaseline" : 90,
       "width" : 0
     },
+    "style:body|0.0|Volume" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
     "style:body|0.0|Wide" : {
       "firstBaseline" : 14,
       "height" : 75.5,
@@ -846,11 +1002,131 @@
       "lastBaseline" : 33,
       "width" : 355.5
     },
+    "style:callout:w400||Apple" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 33
+    },
+    "style:callout:w400||Banana" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 42
+    },
+    "style:callout:w400||Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 38.5
+    },
+    "style:callout:w400||Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 26
+    },
+    "style:callout:w400||Max" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 23.5
+    },
+    "style:callout:w400||Min" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 20.5
+    },
+    "style:callout:w400|0.0|Apple" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout:w400|0.0|Banana" : {
+      "firstBaseline" : 13,
+      "height" : 107.5,
+      "lastBaseline" : 103,
+      "width" : 0
+    },
+    "style:callout:w400|0.0|Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 107.5,
+      "lastBaseline" : 103,
+      "width" : 0
+    },
+    "style:callout:w400|0.0|Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout:w400|0.0|Max" : {
+      "firstBaseline" : 13,
+      "height" : 53.5,
+      "lastBaseline" : 49,
+      "width" : 0
+    },
+    "style:callout:w400|0.0|Min" : {
+      "firstBaseline" : 13,
+      "height" : 53.5,
+      "lastBaseline" : 49,
+      "width" : 0
+    },
+    "style:callout:w500||Apple" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 34
+    },
+    "style:callout:w500||Banana" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 43
+    },
     "style:callout:w500||Bold" : {
       "firstBaseline" : 13,
       "height" : 17.5,
       "lastBaseline" : 13,
       "width" : 26.5
+    },
+    "style:callout:w500||Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 39.5
+    },
+    "style:callout:w500||Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 27
+    },
+    "style:callout:w500||Max" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 24
+    },
+    "style:callout:w500||Min" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 21
+    },
+    "style:callout:w500|0.0|Apple" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout:w500|0.0|Banana" : {
+      "firstBaseline" : 13,
+      "height" : 107.5,
+      "lastBaseline" : 103,
+      "width" : 0
     },
     "style:callout:w500|0.0|Bold" : {
       "firstBaseline" : 13,
@@ -858,16 +1134,112 @@
       "lastBaseline" : 67,
       "width" : 0
     },
+    "style:callout:w500|0.0|Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 107.5,
+      "lastBaseline" : 103,
+      "width" : 0
+    },
+    "style:callout:w500|0.0|Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout:w500|0.0|Max" : {
+      "firstBaseline" : 13,
+      "height" : 53.5,
+      "lastBaseline" : 49,
+      "width" : 0
+    },
+    "style:callout:w500|0.0|Min" : {
+      "firstBaseline" : 13,
+      "height" : 53.5,
+      "lastBaseline" : 49,
+      "width" : 0
+    },
+    "style:callout:w600||Apple" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 34.5
+    },
+    "style:callout:w600||Banana" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 44
+    },
     "style:callout:w600||Bold" : {
       "firstBaseline" : 13,
       "height" : 17.5,
       "lastBaseline" : 13,
       "width" : 26.5
     },
+    "style:callout:w600||Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 40.5
+    },
+    "style:callout:w600||Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 27.5
+    },
+    "style:callout:w600||Max" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 24.5
+    },
+    "style:callout:w600||Min" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 21.5
+    },
+    "style:callout:w600|0.0|Apple" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout:w600|0.0|Banana" : {
+      "firstBaseline" : 13,
+      "height" : 107.5,
+      "lastBaseline" : 103,
+      "width" : 0
+    },
     "style:callout:w600|0.0|Bold" : {
       "firstBaseline" : 13,
       "height" : 71.5,
       "lastBaseline" : 67,
+      "width" : 0
+    },
+    "style:callout:w600|0.0|Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 107.5,
+      "lastBaseline" : 103,
+      "width" : 0
+    },
+    "style:callout:w600|0.0|Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout:w600|0.0|Max" : {
+      "firstBaseline" : 13,
+      "height" : 53.5,
+      "lastBaseline" : 49,
+      "width" : 0
+    },
+    "style:callout:w600|0.0|Min" : {
+      "firstBaseline" : 13,
+      "height" : 53.5,
+      "lastBaseline" : 49,
       "width" : 0
     },
     "style:callout:w700||Bold" : {
@@ -894,11 +1266,83 @@
       "lastBaseline" : 67,
       "width" : 0
     },
+    "style:callout||Apple" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 33
+    },
+    "style:callout||Banana" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 42
+    },
+    "style:callout||Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 38.5
+    },
+    "style:callout||Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 26
+    },
+    "style:callout||Max" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 23.5
+    },
+    "style:callout||Min" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 20.5
+    },
     "style:callout||The quick brown fox" : {
       "firstBaseline" : 13,
       "height" : 17.5,
       "lastBaseline" : 13,
       "width" : 114.5
+    },
+    "style:callout|0.0|Apple" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout|0.0|Banana" : {
+      "firstBaseline" : 13,
+      "height" : 107.5,
+      "lastBaseline" : 103,
+      "width" : 0
+    },
+    "style:callout|0.0|Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 107.5,
+      "lastBaseline" : 103,
+      "width" : 0
+    },
+    "style:callout|0.0|Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout|0.0|Max" : {
+      "firstBaseline" : 13,
+      "height" : 53.5,
+      "lastBaseline" : 49,
+      "width" : 0
+    },
+    "style:callout|0.0|Min" : {
+      "firstBaseline" : 13,
+      "height" : 53.5,
+      "lastBaseline" : 49,
+      "width" : 0
     },
     "style:callout|0.0|The quick brown fox" : {
       "firstBaseline" : 13,
@@ -906,11 +1350,35 @@
       "lastBaseline" : 283,
       "width" : 0
     },
+    "style:caption:w400||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 28
+    },
+    "style:caption:w400||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 35.5
+    },
+    "style:caption:w400||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
     "style:caption:w400||Footer" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 31.5
+    },
+    "style:caption:w400||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
     },
     "style:caption:w400||Fruits" : {
       "firstBaseline" : 11,
@@ -918,16 +1386,52 @@
       "lastBaseline" : 11,
       "width" : 27.5
     },
+    "style:caption:w400||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20
+    },
+    "style:caption:w400||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 17.5
+    },
     "style:caption:w400||Vegetables" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 54
     },
+    "style:caption:w400|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption:w400|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w400|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
     "style:caption:w400|0.0|Footer" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w400|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
       "width" : 0
     },
     "style:caption:w400|0.0|Fruits" : {
@@ -936,11 +1440,35 @@
       "lastBaseline" : 91,
       "width" : 0
     },
+    "style:caption:w400|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:caption:w400|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
     "style:caption:w400|0.0|Vegetables" : {
       "firstBaseline" : 11,
       "height" : 159,
       "lastBaseline" : 155,
       "width" : 0
+    },
+    "style:caption:w500||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29
+    },
+    "style:caption:w500||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 36.5
     },
     "style:caption:w500||Bold" : {
       "firstBaseline" : 11,
@@ -948,11 +1476,23 @@
       "lastBaseline" : 11,
       "width" : 22.5
     },
+    "style:caption:w500||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34
+    },
     "style:caption:w500||Footer" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 32.5
+    },
+    "style:caption:w500||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23
     },
     "style:caption:w500||Fruits" : {
       "firstBaseline" : 11,
@@ -960,16 +1500,46 @@
       "lastBaseline" : 11,
       "width" : 28.5
     },
+    "style:caption:w500||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20.5
+    },
+    "style:caption:w500||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 18
+    },
     "style:caption:w500||Vegetables" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 55.5
     },
+    "style:caption:w500|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption:w500|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
     "style:caption:w500|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption:w500|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
       "width" : 0
     },
     "style:caption:w500|0.0|Footer" : {
@@ -978,10 +1548,28 @@
       "lastBaseline" : 91,
       "width" : 0
     },
+    "style:caption:w500|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "style:caption:w500|0.0|Fruits" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption:w500|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:caption:w500|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
       "width" : 0
     },
     "style:caption:w500|0.0|Vegetables" : {
@@ -990,11 +1578,29 @@
       "lastBaseline" : 155,
       "width" : 0
     },
+    "style:caption:w600||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29.5
+    },
+    "style:caption:w600||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 37
+    },
     "style:caption:w600||Bold" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 23
+    },
+    "style:caption:w600||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34.5
     },
     "style:caption:w600||Footer" : {
       "firstBaseline" : 11,
@@ -1002,11 +1608,29 @@
       "lastBaseline" : 11,
       "width" : 33
     },
+    "style:caption:w600||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23.5
+    },
     "style:caption:w600||Fruits" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 29
+    },
+    "style:caption:w600||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 21
+    },
+    "style:caption:w600||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 18.5
     },
     "style:caption:w600||Vegetables" : {
       "firstBaseline" : 11,
@@ -1014,10 +1638,28 @@
       "lastBaseline" : 11,
       "width" : 56.5
     },
+    "style:caption:w600|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75.5,
+      "width" : 0
+    },
+    "style:caption:w600|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
     "style:caption:w600|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:caption:w600|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
       "width" : 0
     },
     "style:caption:w600|0.0|Footer" : {
@@ -1026,10 +1668,28 @@
       "lastBaseline" : 91.5,
       "width" : 0
     },
+    "style:caption:w600|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75.5,
+      "width" : 0
+    },
     "style:caption:w600|0.0|Fruits" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:caption:w600|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43.5,
+      "width" : 0
+    },
+    "style:caption:w600|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43.5,
       "width" : 0
     },
     "style:caption:w600|0.0|Vegetables" : {
@@ -1098,11 +1758,83 @@
       "lastBaseline" : 59,
       "width" : 0
     },
+    "style:caption||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 28
+    },
+    "style:caption||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 35.5
+    },
+    "style:caption||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
+    "style:caption||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
+    },
+    "style:caption||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20
+    },
+    "style:caption||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 17.5
+    },
     "style:caption||The quick brown fox" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 97.5
+    },
+    "style:caption|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:caption|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
     },
     "style:caption|0.0|The quick brown fox" : {
       "firstBaseline" : 11,
@@ -1110,11 +1842,35 @@
       "lastBaseline" : 251,
       "width" : 0
     },
+    "style:caption2:w400||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 28
+    },
+    "style:caption2:w400||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 35.5
+    },
+    "style:caption2:w400||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
     "style:caption2:w400||Footer" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 31.5
+    },
+    "style:caption2:w400||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
     },
     "style:caption2:w400||Fruits" : {
       "firstBaseline" : 11,
@@ -1122,16 +1878,52 @@
       "lastBaseline" : 11,
       "width" : 27.5
     },
+    "style:caption2:w400||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20
+    },
+    "style:caption2:w400||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 17.5
+    },
     "style:caption2:w400||Vegetables" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 54
     },
+    "style:caption2:w400|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption2:w400|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w400|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
     "style:caption2:w400|0.0|Footer" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w400|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
       "width" : 0
     },
     "style:caption2:w400|0.0|Fruits" : {
@@ -1140,11 +1932,35 @@
       "lastBaseline" : 91,
       "width" : 0
     },
+    "style:caption2:w400|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:caption2:w400|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
     "style:caption2:w400|0.0|Vegetables" : {
       "firstBaseline" : 11,
       "height" : 159,
       "lastBaseline" : 155,
       "width" : 0
+    },
+    "style:caption2:w500||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29
+    },
+    "style:caption2:w500||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 36.5
     },
     "style:caption2:w500||Bold" : {
       "firstBaseline" : 11,
@@ -1152,11 +1968,23 @@
       "lastBaseline" : 11,
       "width" : 22.5
     },
+    "style:caption2:w500||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34
+    },
     "style:caption2:w500||Footer" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 32.5
+    },
+    "style:caption2:w500||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23
     },
     "style:caption2:w500||Fruits" : {
       "firstBaseline" : 11,
@@ -1164,16 +1992,46 @@
       "lastBaseline" : 11,
       "width" : 28.5
     },
+    "style:caption2:w500||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20.5
+    },
+    "style:caption2:w500||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 18
+    },
     "style:caption2:w500||Vegetables" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 55.5
     },
+    "style:caption2:w500|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption2:w500|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
     "style:caption2:w500|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:caption2:w500|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
       "width" : 0
     },
     "style:caption2:w500|0.0|Footer" : {
@@ -1182,10 +2040,28 @@
       "lastBaseline" : 91,
       "width" : 0
     },
+    "style:caption2:w500|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "style:caption2:w500|0.0|Fruits" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2:w500|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:caption2:w500|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
       "width" : 0
     },
     "style:caption2:w500|0.0|Vegetables" : {
@@ -1194,11 +2070,29 @@
       "lastBaseline" : 155,
       "width" : 0
     },
+    "style:caption2:w600||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29.5
+    },
+    "style:caption2:w600||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 37
+    },
     "style:caption2:w600||Bold" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 23
+    },
+    "style:caption2:w600||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34.5
     },
     "style:caption2:w600||Footer" : {
       "firstBaseline" : 11,
@@ -1206,11 +2100,29 @@
       "lastBaseline" : 11,
       "width" : 33
     },
+    "style:caption2:w600||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23.5
+    },
     "style:caption2:w600||Fruits" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 29
+    },
+    "style:caption2:w600||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 21
+    },
+    "style:caption2:w600||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 18.5
     },
     "style:caption2:w600||Vegetables" : {
       "firstBaseline" : 11,
@@ -1218,10 +2130,28 @@
       "lastBaseline" : 11,
       "width" : 56.5
     },
+    "style:caption2:w600|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75.5,
+      "width" : 0
+    },
+    "style:caption2:w600|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
     "style:caption2:w600|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:caption2:w600|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
       "width" : 0
     },
     "style:caption2:w600|0.0|Footer" : {
@@ -1230,10 +2160,28 @@
       "lastBaseline" : 91.5,
       "width" : 0
     },
+    "style:caption2:w600|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75.5,
+      "width" : 0
+    },
     "style:caption2:w600|0.0|Fruits" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:caption2:w600|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43.5,
+      "width" : 0
+    },
+    "style:caption2:w600|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43.5,
       "width" : 0
     },
     "style:caption2:w600|0.0|Vegetables" : {
@@ -1302,11 +2250,47 @@
       "lastBaseline" : 59,
       "width" : 0
     },
+    "style:caption2||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29
+    },
+    "style:caption2||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 36.5
+    },
+    "style:caption2||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34
+    },
+    "style:caption2||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23
+    },
     "style:caption2||Hg" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 14.5
+    },
+    "style:caption2||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20.5
+    },
+    "style:caption2||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 18
     },
     "style:caption2||The quick brown fox" : {
       "firstBaseline" : 11,
@@ -1314,10 +2298,46 @@
       "lastBaseline" : 11,
       "width" : 100
     },
+    "style:caption2|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption2|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:caption2|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "style:caption2|0.0|Hg" : {
       "firstBaseline" : 11,
       "height" : 31,
       "lastBaseline" : 27,
+      "width" : 0
+    },
+    "style:caption2|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:caption2|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
       "width" : 0
     },
     "style:caption2|0.0|The quick brown fox" : {
@@ -1326,11 +2346,35 @@
       "lastBaseline" : 251,
       "width" : 0
     },
+    "style:footnote:w400||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 28
+    },
+    "style:footnote:w400||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 35.5
+    },
+    "style:footnote:w400||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
     "style:footnote:w400||Footer" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 31.5
+    },
+    "style:footnote:w400||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
     },
     "style:footnote:w400||Fruits" : {
       "firstBaseline" : 11,
@@ -1338,16 +2382,52 @@
       "lastBaseline" : 11,
       "width" : 27.5
     },
+    "style:footnote:w400||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20
+    },
+    "style:footnote:w400||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 17.5
+    },
     "style:footnote:w400||Vegetables" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 54
     },
+    "style:footnote:w400|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:footnote:w400|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w400|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
     "style:footnote:w400|0.0|Footer" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w400|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
       "width" : 0
     },
     "style:footnote:w400|0.0|Fruits" : {
@@ -1356,11 +2436,35 @@
       "lastBaseline" : 91,
       "width" : 0
     },
+    "style:footnote:w400|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:footnote:w400|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
     "style:footnote:w400|0.0|Vegetables" : {
       "firstBaseline" : 11,
       "height" : 159,
       "lastBaseline" : 155,
       "width" : 0
+    },
+    "style:footnote:w500||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29
+    },
+    "style:footnote:w500||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 36.5
     },
     "style:footnote:w500||Bold" : {
       "firstBaseline" : 11,
@@ -1368,11 +2472,23 @@
       "lastBaseline" : 11,
       "width" : 22.5
     },
+    "style:footnote:w500||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34
+    },
     "style:footnote:w500||Footer" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 32.5
+    },
+    "style:footnote:w500||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23
     },
     "style:footnote:w500||Fruits" : {
       "firstBaseline" : 11,
@@ -1380,16 +2496,46 @@
       "lastBaseline" : 11,
       "width" : 28.5
     },
+    "style:footnote:w500||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20.5
+    },
+    "style:footnote:w500||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 18
+    },
     "style:footnote:w500||Vegetables" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 55.5
     },
+    "style:footnote:w500|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:footnote:w500|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
     "style:footnote:w500|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59,
+      "width" : 0
+    },
+    "style:footnote:w500|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
       "width" : 0
     },
     "style:footnote:w500|0.0|Footer" : {
@@ -1398,10 +2544,28 @@
       "lastBaseline" : 91,
       "width" : 0
     },
+    "style:footnote:w500|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "style:footnote:w500|0.0|Fruits" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote:w500|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:footnote:w500|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
       "width" : 0
     },
     "style:footnote:w500|0.0|Vegetables" : {
@@ -1410,11 +2574,29 @@
       "lastBaseline" : 155,
       "width" : 0
     },
+    "style:footnote:w600||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 29.5
+    },
+    "style:footnote:w600||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 37
+    },
     "style:footnote:w600||Bold" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 23
+    },
+    "style:footnote:w600||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 34.5
     },
     "style:footnote:w600||Footer" : {
       "firstBaseline" : 11,
@@ -1422,11 +2604,29 @@
       "lastBaseline" : 11,
       "width" : 33
     },
+    "style:footnote:w600||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23.5
+    },
     "style:footnote:w600||Fruits" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 29
+    },
+    "style:footnote:w600||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 21
+    },
+    "style:footnote:w600||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 18.5
     },
     "style:footnote:w600||Vegetables" : {
       "firstBaseline" : 11,
@@ -1434,10 +2634,28 @@
       "lastBaseline" : 11,
       "width" : 56.5
     },
+    "style:footnote:w600|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75.5,
+      "width" : 0
+    },
+    "style:footnote:w600|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
+      "width" : 0
+    },
     "style:footnote:w600|0.0|Bold" : {
       "firstBaseline" : 11,
       "height" : 63,
       "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "style:footnote:w600|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91.5,
       "width" : 0
     },
     "style:footnote:w600|0.0|Footer" : {
@@ -1446,10 +2664,28 @@
       "lastBaseline" : 91.5,
       "width" : 0
     },
+    "style:footnote:w600|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75.5,
+      "width" : 0
+    },
     "style:footnote:w600|0.0|Fruits" : {
       "firstBaseline" : 11,
       "height" : 95,
       "lastBaseline" : 91.5,
+      "width" : 0
+    },
+    "style:footnote:w600|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43.5,
+      "width" : 0
+    },
+    "style:footnote:w600|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43.5,
       "width" : 0
     },
     "style:footnote:w600|0.0|Vegetables" : {
@@ -1518,11 +2754,83 @@
       "lastBaseline" : 59,
       "width" : 0
     },
+    "style:footnote||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 28
+    },
+    "style:footnote||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 35.5
+    },
+    "style:footnote||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 33
+    },
+    "style:footnote||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
+    },
+    "style:footnote||Max" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 20
+    },
+    "style:footnote||Min" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 17.5
+    },
     "style:footnote||The quick brown fox" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 97.5
+    },
+    "style:footnote|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:footnote|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 95,
+      "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:footnote|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:footnote|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:footnote|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 47,
+      "lastBaseline" : 43,
+      "width" : 0
     },
     "style:footnote|0.0|The quick brown fox" : {
       "firstBaseline" : 11,
@@ -1878,11 +3186,35 @@
       "lastBaseline" : 614,
       "width" : 0
     },
+    "style:subheadline:w400||Apple" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 30.5
+    },
+    "style:subheadline:w400||Banana" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 39
+    },
+    "style:subheadline:w400||Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 36
+    },
     "style:subheadline:w400||Footer" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 34.5
+    },
+    "style:subheadline:w400||Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 24
     },
     "style:subheadline:w400||Fruits" : {
       "firstBaseline" : 12,
@@ -1890,16 +3222,52 @@
       "lastBaseline" : 12,
       "width" : 30
     },
+    "style:subheadline:w400||Max" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 22
+    },
+    "style:subheadline:w400||Min" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 19
+    },
     "style:subheadline:w400||Vegetables" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 58.5
     },
+    "style:subheadline:w400|0.0|Apple" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
+      "width" : 0
+    },
+    "style:subheadline:w400|0.0|Banana" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w400|0.0|Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
     "style:subheadline:w400|0.0|Footer" : {
       "firstBaseline" : 12,
       "height" : 101,
       "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w400|0.0|Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
       "width" : 0
     },
     "style:subheadline:w400|0.0|Fruits" : {
@@ -1908,11 +3276,35 @@
       "lastBaseline" : 97,
       "width" : 0
     },
+    "style:subheadline:w400|0.0|Max" : {
+      "firstBaseline" : 12,
+      "height" : 50,
+      "lastBaseline" : 46,
+      "width" : 0
+    },
+    "style:subheadline:w400|0.0|Min" : {
+      "firstBaseline" : 12,
+      "height" : 50,
+      "lastBaseline" : 46,
+      "width" : 0
+    },
     "style:subheadline:w400|0.0|Vegetables" : {
       "firstBaseline" : 12,
       "height" : 169,
       "lastBaseline" : 165,
       "width" : 0
+    },
+    "style:subheadline:w500||Apple" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 31.5
+    },
+    "style:subheadline:w500||Banana" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 40
     },
     "style:subheadline:w500||Bold" : {
       "firstBaseline" : 12,
@@ -1920,11 +3312,23 @@
       "lastBaseline" : 12,
       "width" : 24.5
     },
+    "style:subheadline:w500||Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 37
+    },
     "style:subheadline:w500||Footer" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 35
+    },
+    "style:subheadline:w500||Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 25
     },
     "style:subheadline:w500||Fruits" : {
       "firstBaseline" : 12,
@@ -1932,16 +3336,46 @@
       "lastBaseline" : 12,
       "width" : 31
     },
+    "style:subheadline:w500||Max" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 22.5
+    },
+    "style:subheadline:w500||Min" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 19.5
+    },
     "style:subheadline:w500||Vegetables" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 60
     },
+    "style:subheadline:w500|0.0|Apple" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
+      "width" : 0
+    },
+    "style:subheadline:w500|0.0|Banana" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
     "style:subheadline:w500|0.0|Bold" : {
       "firstBaseline" : 12,
       "height" : 67,
       "lastBaseline" : 63,
+      "width" : 0
+    },
+    "style:subheadline:w500|0.0|Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
       "width" : 0
     },
     "style:subheadline:w500|0.0|Footer" : {
@@ -1950,10 +3384,28 @@
       "lastBaseline" : 97,
       "width" : 0
     },
+    "style:subheadline:w500|0.0|Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
+      "width" : 0
+    },
     "style:subheadline:w500|0.0|Fruits" : {
       "firstBaseline" : 12,
       "height" : 101,
       "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w500|0.0|Max" : {
+      "firstBaseline" : 12,
+      "height" : 50,
+      "lastBaseline" : 46,
+      "width" : 0
+    },
+    "style:subheadline:w500|0.0|Min" : {
+      "firstBaseline" : 12,
+      "height" : 50,
+      "lastBaseline" : 46,
       "width" : 0
     },
     "style:subheadline:w500|0.0|Vegetables" : {
@@ -1962,11 +3414,29 @@
       "lastBaseline" : 165,
       "width" : 0
     },
+    "style:subheadline:w600||Apple" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 32
+    },
+    "style:subheadline:w600||Banana" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 40.5
+    },
     "style:subheadline:w600||Bold" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 25
+    },
+    "style:subheadline:w600||Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 37.5
     },
     "style:subheadline:w600||Footer" : {
       "firstBaseline" : 12,
@@ -1974,11 +3444,29 @@
       "lastBaseline" : 12,
       "width" : 36
     },
+    "style:subheadline:w600||Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 25.5
+    },
     "style:subheadline:w600||Fruits" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 31.5
+    },
+    "style:subheadline:w600||Max" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 23
+    },
+    "style:subheadline:w600||Min" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 20
     },
     "style:subheadline:w600||Vegetables" : {
       "firstBaseline" : 12,
@@ -1986,10 +3474,28 @@
       "lastBaseline" : 12,
       "width" : 61.5
     },
+    "style:subheadline:w600|0.0|Apple" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
+      "width" : 0
+    },
+    "style:subheadline:w600|0.0|Banana" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
     "style:subheadline:w600|0.0|Bold" : {
       "firstBaseline" : 12,
       "height" : 67,
       "lastBaseline" : 63,
+      "width" : 0
+    },
+    "style:subheadline:w600|0.0|Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
       "width" : 0
     },
     "style:subheadline:w600|0.0|Footer" : {
@@ -1998,10 +3504,28 @@
       "lastBaseline" : 97,
       "width" : 0
     },
+    "style:subheadline:w600|0.0|Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
+      "width" : 0
+    },
     "style:subheadline:w600|0.0|Fruits" : {
       "firstBaseline" : 12,
       "height" : 101,
       "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline:w600|0.0|Max" : {
+      "firstBaseline" : 12,
+      "height" : 50,
+      "lastBaseline" : 46,
+      "width" : 0
+    },
+    "style:subheadline:w600|0.0|Min" : {
+      "firstBaseline" : 12,
+      "height" : 50,
+      "lastBaseline" : 46,
       "width" : 0
     },
     "style:subheadline:w600|0.0|Vegetables" : {
@@ -2070,11 +3594,83 @@
       "lastBaseline" : 63,
       "width" : 0
     },
+    "style:subheadline||Apple" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 30.5
+    },
+    "style:subheadline||Banana" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 39
+    },
+    "style:subheadline||Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 36
+    },
+    "style:subheadline||Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 24
+    },
+    "style:subheadline||Max" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 22
+    },
+    "style:subheadline||Min" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 19
+    },
     "style:subheadline||The quick brown fox" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 106
+    },
+    "style:subheadline|0.0|Apple" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
+      "width" : 0
+    },
+    "style:subheadline|0.0|Banana" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline|0.0|Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 101,
+      "lastBaseline" : 97,
+      "width" : 0
+    },
+    "style:subheadline|0.0|Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
+      "width" : 0
+    },
+    "style:subheadline|0.0|Max" : {
+      "firstBaseline" : 12,
+      "height" : 50,
+      "lastBaseline" : 46,
+      "width" : 0
+    },
+    "style:subheadline|0.0|Min" : {
+      "firstBaseline" : 12,
+      "height" : 50,
+      "lastBaseline" : 46,
+      "width" : 0
     },
     "style:subheadline|0.0|The quick brown fox" : {
       "firstBaseline" : 12,
@@ -2340,11 +3936,83 @@
       "lastBaseline" : 377,
       "width" : 0
     },
+    "system:10:400:default||Apple" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 28
+    },
+    "system:10:400:default||Banana" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 35.5
+    },
+    "system:10:400:default||Cherry" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 33
+    },
+    "system:10:400:default||Fruit" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 22.5
+    },
+    "system:10:400:default||Max" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 20
+    },
+    "system:10:400:default||Min" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 17.5
+    },
     "system:10:400:default||The quick brown fox" : {
       "firstBaseline" : 10,
       "height" : 13,
       "lastBaseline" : 10,
       "width" : 97.5
+    },
+    "system:10:400:default|0.0|Apple" : {
+      "firstBaseline" : 10,
+      "height" : 65,
+      "lastBaseline" : 62,
+      "width" : 0
+    },
+    "system:10:400:default|0.0|Banana" : {
+      "firstBaseline" : 10,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:10:400:default|0.0|Cherry" : {
+      "firstBaseline" : 10,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:10:400:default|0.0|Fruit" : {
+      "firstBaseline" : 10,
+      "height" : 65,
+      "lastBaseline" : 62,
+      "width" : 0
+    },
+    "system:10:400:default|0.0|Max" : {
+      "firstBaseline" : 10,
+      "height" : 39,
+      "lastBaseline" : 36,
+      "width" : 0
+    },
+    "system:10:400:default|0.0|Min" : {
+      "firstBaseline" : 10,
+      "height" : 39,
+      "lastBaseline" : 36,
+      "width" : 0
     },
     "system:10:400:default|0.0|The quick brown fox" : {
       "firstBaseline" : 10,
@@ -2352,11 +4020,179 @@
       "lastBaseline" : 205,
       "width" : 0
     },
+    "system:10:500:default||Apple" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 29
+    },
+    "system:10:500:default||Banana" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 36.5
+    },
+    "system:10:500:default||Cherry" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 34
+    },
+    "system:10:500:default||Fruit" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 23
+    },
+    "system:10:500:default||Max" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 20.5
+    },
+    "system:10:500:default||Min" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 18
+    },
+    "system:10:500:default|0.0|Apple" : {
+      "firstBaseline" : 10,
+      "height" : 65,
+      "lastBaseline" : 62,
+      "width" : 0
+    },
+    "system:10:500:default|0.0|Banana" : {
+      "firstBaseline" : 10,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:10:500:default|0.0|Cherry" : {
+      "firstBaseline" : 10,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:10:500:default|0.0|Fruit" : {
+      "firstBaseline" : 10,
+      "height" : 65,
+      "lastBaseline" : 62,
+      "width" : 0
+    },
+    "system:10:500:default|0.0|Max" : {
+      "firstBaseline" : 10,
+      "height" : 39,
+      "lastBaseline" : 36,
+      "width" : 0
+    },
+    "system:10:500:default|0.0|Min" : {
+      "firstBaseline" : 10,
+      "height" : 39,
+      "lastBaseline" : 36,
+      "width" : 0
+    },
+    "system:10:600:default||Apple" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 29.5
+    },
+    "system:10:600:default||Banana" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 37
+    },
+    "system:10:600:default||Cherry" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 34.5
+    },
+    "system:10:600:default||Fruit" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 23.5
+    },
+    "system:10:600:default||Max" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 21
+    },
+    "system:10:600:default||Min" : {
+      "firstBaseline" : 10,
+      "height" : 13,
+      "lastBaseline" : 10,
+      "width" : 18.5
+    },
+    "system:10:600:default|0.0|Apple" : {
+      "firstBaseline" : 10,
+      "height" : 65,
+      "lastBaseline" : 62,
+      "width" : 0
+    },
+    "system:10:600:default|0.0|Banana" : {
+      "firstBaseline" : 10,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:10:600:default|0.0|Cherry" : {
+      "firstBaseline" : 10,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:10:600:default|0.0|Fruit" : {
+      "firstBaseline" : 10,
+      "height" : 65,
+      "lastBaseline" : 62,
+      "width" : 0
+    },
+    "system:10:600:default|0.0|Max" : {
+      "firstBaseline" : 10,
+      "height" : 39,
+      "lastBaseline" : 36,
+      "width" : 0
+    },
+    "system:10:600:default|0.0|Min" : {
+      "firstBaseline" : 10,
+      "height" : 39,
+      "lastBaseline" : 36,
+      "width" : 0
+    },
+    "system:11:400:default||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 30.5
+    },
+    "system:11:400:default||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 39
+    },
+    "system:11:400:default||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 36
+    },
     "system:11:400:default||Footer" : {
       "firstBaseline" : 11,
       "height" : 14,
       "lastBaseline" : 11,
       "width" : 34.5
+    },
+    "system:11:400:default||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 24
     },
     "system:11:400:default||Fruits" : {
       "firstBaseline" : 11,
@@ -2364,16 +4200,52 @@
       "lastBaseline" : 11,
       "width" : 30
     },
+    "system:11:400:default||Max" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 22
+    },
+    "system:11:400:default||Min" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 19
+    },
     "system:11:400:default||Vegetables" : {
       "firstBaseline" : 11,
       "height" : 14,
       "lastBaseline" : 11,
       "width" : 58.5
     },
+    "system:11:400:default|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
     "system:11:400:default|0.0|Footer" : {
       "firstBaseline" : 11,
       "height" : 84,
       "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
       "width" : 0
     },
     "system:11:400:default|0.0|Fruits" : {
@@ -2382,11 +4254,41 @@
       "lastBaseline" : 81,
       "width" : 0
     },
+    "system:11:400:default|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 42,
+      "lastBaseline" : 39,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 42,
+      "lastBaseline" : 39,
+      "width" : 0
+    },
     "system:11:400:default|0.0|Vegetables" : {
       "firstBaseline" : 11,
       "height" : 140,
       "lastBaseline" : 137,
       "width" : 0
+    },
+    "system:11:500:default||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 31.5
+    },
+    "system:11:500:default||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 40
+    },
+    "system:11:500:default||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 37
     },
     "system:11:500:default||Footer" : {
       "firstBaseline" : 11,
@@ -2394,11 +4296,29 @@
       "lastBaseline" : 11,
       "width" : 35
     },
+    "system:11:500:default||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 25
+    },
     "system:11:500:default||Fruits" : {
       "firstBaseline" : 11,
       "height" : 14,
       "lastBaseline" : 11,
       "width" : 31
+    },
+    "system:11:500:default||Max" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 22.5
+    },
+    "system:11:500:default||Min" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 19.5
     },
     "system:11:500:default||Vegetables" : {
       "firstBaseline" : 11,
@@ -2406,10 +4326,34 @@
       "lastBaseline" : 11,
       "width" : 60
     },
+    "system:11:500:default|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "system:11:500:default|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:500:default|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
     "system:11:500:default|0.0|Footer" : {
       "firstBaseline" : 11,
       "height" : 84,
       "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:500:default|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
       "width" : 0
     },
     "system:11:500:default|0.0|Fruits" : {
@@ -2418,11 +4362,41 @@
       "lastBaseline" : 81,
       "width" : 0
     },
+    "system:11:500:default|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 42,
+      "lastBaseline" : 39,
+      "width" : 0
+    },
+    "system:11:500:default|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 42,
+      "lastBaseline" : 39,
+      "width" : 0
+    },
     "system:11:500:default|0.0|Vegetables" : {
       "firstBaseline" : 11,
       "height" : 140,
       "lastBaseline" : 137,
       "width" : 0
+    },
+    "system:11:600:default||Apple" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 32
+    },
+    "system:11:600:default||Banana" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 40.5
+    },
+    "system:11:600:default||Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 37.5
     },
     "system:11:600:default||Footer" : {
       "firstBaseline" : 11,
@@ -2430,11 +4404,29 @@
       "lastBaseline" : 11,
       "width" : 36
     },
+    "system:11:600:default||Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 25.5
+    },
     "system:11:600:default||Fruits" : {
       "firstBaseline" : 11,
       "height" : 14,
       "lastBaseline" : 11,
       "width" : 31.5
+    },
+    "system:11:600:default||Max" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 23
+    },
+    "system:11:600:default||Min" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 20
     },
     "system:11:600:default||Vegetables" : {
       "firstBaseline" : 11,
@@ -2442,16 +4434,52 @@
       "lastBaseline" : 11,
       "width" : 61.5
     },
+    "system:11:600:default|0.0|Apple" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "system:11:600:default|0.0|Banana" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:600:default|0.0|Cherry" : {
+      "firstBaseline" : 11,
+      "height" : 84,
+      "lastBaseline" : 81,
+      "width" : 0
+    },
     "system:11:600:default|0.0|Footer" : {
       "firstBaseline" : 11,
       "height" : 84,
       "lastBaseline" : 81,
       "width" : 0
     },
+    "system:11:600:default|0.0|Fruit" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
     "system:11:600:default|0.0|Fruits" : {
       "firstBaseline" : 11,
       "height" : 84,
       "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:600:default|0.0|Max" : {
+      "firstBaseline" : 11,
+      "height" : 42,
+      "lastBaseline" : 39,
+      "width" : 0
+    },
+    "system:11:600:default|0.0|Min" : {
+      "firstBaseline" : 11,
+      "height" : 42,
+      "lastBaseline" : 39,
       "width" : 0
     },
     "system:11:600:default|0.0|Vegetables" : {
@@ -2496,17 +4524,53 @@
       "lastBaseline" : 137,
       "width" : 0
     },
+    "system:12:400:default||Apple" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 33
+    },
+    "system:12:400:default||Banana" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 42
+    },
+    "system:12:400:default||Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 38.5
+    },
     "system:12:400:default||Footer" : {
       "firstBaseline" : 12,
       "height" : 15,
       "lastBaseline" : 12,
       "width" : 37
     },
+    "system:12:400:default||Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 26
+    },
     "system:12:400:default||Fruits" : {
       "firstBaseline" : 12,
       "height" : 15,
       "lastBaseline" : 12,
       "width" : 32
+    },
+    "system:12:400:default||Max" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 23.5
+    },
+    "system:12:400:default||Min" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 20.5
     },
     "system:12:400:default||The quick brown fox" : {
       "firstBaseline" : 12,
@@ -2520,16 +4584,52 @@
       "lastBaseline" : 12,
       "width" : 63.5
     },
+    "system:12:400:default|0.0|Apple" : {
+      "firstBaseline" : 12,
+      "height" : 75,
+      "lastBaseline" : 72,
+      "width" : 0
+    },
+    "system:12:400:default|0.0|Banana" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:400:default|0.0|Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
     "system:12:400:default|0.0|Footer" : {
       "firstBaseline" : 12,
       "height" : 90,
       "lastBaseline" : 87,
       "width" : 0
     },
+    "system:12:400:default|0.0|Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 75,
+      "lastBaseline" : 72,
+      "width" : 0
+    },
     "system:12:400:default|0.0|Fruits" : {
       "firstBaseline" : 12,
       "height" : 90,
       "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:400:default|0.0|Max" : {
+      "firstBaseline" : 12,
+      "height" : 45,
+      "lastBaseline" : 42,
+      "width" : 0
+    },
+    "system:12:400:default|0.0|Min" : {
+      "firstBaseline" : 12,
+      "height" : 45,
+      "lastBaseline" : 42,
       "width" : 0
     },
     "system:12:400:default|0.0|The quick brown fox" : {
@@ -2544,11 +4644,35 @@
       "lastBaseline" : 147,
       "width" : 0
     },
+    "system:12:500:default||Apple" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 34
+    },
+    "system:12:500:default||Banana" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 43
+    },
+    "system:12:500:default||Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 39.5
+    },
     "system:12:500:default||Footer" : {
       "firstBaseline" : 12,
       "height" : 15,
       "lastBaseline" : 12,
       "width" : 38
+    },
+    "system:12:500:default||Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 27
     },
     "system:12:500:default||Fruits" : {
       "firstBaseline" : 12,
@@ -2556,16 +4680,52 @@
       "lastBaseline" : 12,
       "width" : 33.5
     },
+    "system:12:500:default||Max" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 24
+    },
+    "system:12:500:default||Min" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 21
+    },
     "system:12:500:default||Vegetables" : {
       "firstBaseline" : 12,
       "height" : 15,
       "lastBaseline" : 12,
       "width" : 65
     },
+    "system:12:500:default|0.0|Apple" : {
+      "firstBaseline" : 12,
+      "height" : 75,
+      "lastBaseline" : 72,
+      "width" : 0
+    },
+    "system:12:500:default|0.0|Banana" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:500:default|0.0|Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
     "system:12:500:default|0.0|Footer" : {
       "firstBaseline" : 12,
       "height" : 90,
       "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:500:default|0.0|Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 75,
+      "lastBaseline" : 72,
       "width" : 0
     },
     "system:12:500:default|0.0|Fruits" : {
@@ -2574,11 +4734,41 @@
       "lastBaseline" : 87,
       "width" : 0
     },
+    "system:12:500:default|0.0|Max" : {
+      "firstBaseline" : 12,
+      "height" : 45,
+      "lastBaseline" : 42,
+      "width" : 0
+    },
+    "system:12:500:default|0.0|Min" : {
+      "firstBaseline" : 12,
+      "height" : 45,
+      "lastBaseline" : 42,
+      "width" : 0
+    },
     "system:12:500:default|0.0|Vegetables" : {
       "firstBaseline" : 12,
       "height" : 150,
       "lastBaseline" : 147,
       "width" : 0
+    },
+    "system:12:600:default||Apple" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 34.5
+    },
+    "system:12:600:default||Banana" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 44
+    },
+    "system:12:600:default||Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 40.5
     },
     "system:12:600:default||Footer" : {
       "firstBaseline" : 12,
@@ -2586,11 +4776,29 @@
       "lastBaseline" : 12,
       "width" : 38.5
     },
+    "system:12:600:default||Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 27.5
+    },
     "system:12:600:default||Fruits" : {
       "firstBaseline" : 12,
       "height" : 15,
       "lastBaseline" : 12,
       "width" : 34
+    },
+    "system:12:600:default||Max" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 24.5
+    },
+    "system:12:600:default||Min" : {
+      "firstBaseline" : 12,
+      "height" : 15,
+      "lastBaseline" : 12,
+      "width" : 21.5
     },
     "system:12:600:default||Vegetables" : {
       "firstBaseline" : 12,
@@ -2598,16 +4806,52 @@
       "lastBaseline" : 12,
       "width" : 66
     },
+    "system:12:600:default|0.0|Apple" : {
+      "firstBaseline" : 12,
+      "height" : 75,
+      "lastBaseline" : 72,
+      "width" : 0
+    },
+    "system:12:600:default|0.0|Banana" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:600:default|0.0|Cherry" : {
+      "firstBaseline" : 12,
+      "height" : 90,
+      "lastBaseline" : 87,
+      "width" : 0
+    },
     "system:12:600:default|0.0|Footer" : {
       "firstBaseline" : 12,
       "height" : 90,
       "lastBaseline" : 87,
       "width" : 0
     },
+    "system:12:600:default|0.0|Fruit" : {
+      "firstBaseline" : 12,
+      "height" : 75,
+      "lastBaseline" : 72,
+      "width" : 0
+    },
     "system:12:600:default|0.0|Fruits" : {
       "firstBaseline" : 12,
       "height" : 90,
       "lastBaseline" : 87,
+      "width" : 0
+    },
+    "system:12:600:default|0.0|Max" : {
+      "firstBaseline" : 12,
+      "height" : 45,
+      "lastBaseline" : 42,
+      "width" : 0
+    },
+    "system:12:600:default|0.0|Min" : {
+      "firstBaseline" : 12,
+      "height" : 45,
+      "lastBaseline" : 42,
       "width" : 0
     },
     "system:12:600:default|0.0|Vegetables" : {
@@ -2700,6 +4944,48 @@
       "lastBaseline" : 13,
       "width" : 8.5
     },
+    "system:13:400:default||0" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 8.5
+    },
+    "system:13:400:default||1" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 6
+    },
+    "system:13:400:default||2" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 8
+    },
+    "system:13:400:default||25" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 16
+    },
+    "system:13:400:default||50" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 16.5
+    },
+    "system:13:400:default||75" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 15.5
+    },
+    "system:13:400:default||100" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 22.5
+    },
     "system:13:400:default||A" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -2778,6 +5064,12 @@
       "lastBaseline" : 13,
       "width" : 48.5
     },
+    "system:13:400:default||Count" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 36.5
+    },
     "system:13:400:default||Count: 0" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -2819,6 +5111,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 39.5
+    },
+    "system:13:400:default||Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 28
     },
     "system:13:400:default||Fruits" : {
       "firstBaseline" : 13,
@@ -2897,6 +5195,18 @@
       "height" : 32,
       "lastBaseline" : 29,
       "width" : 60.5
+    },
+    "system:13:400:default||Max" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 25.5
+    },
+    "system:13:400:default||Min" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 22
     },
     "system:13:400:default||Name" : {
       "firstBaseline" : 13,
@@ -3000,6 +5310,12 @@
       "lastBaseline" : 13,
       "width" : 28.5
     },
+    "system:13:400:default||Row" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 26
+    },
     "system:13:400:default||Row 0" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -3072,6 +5388,12 @@
       "lastBaseline" : 13,
       "width" : 68
     },
+    "system:13:400:default||Volume" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 45
+    },
     "system:13:400:default||Wide" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -3136,6 +5458,48 @@
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|0" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|1" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|2" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|25" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|50" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|75" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|100" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
       "width" : 0
     },
     "system:13:400:default|0.0|A" : {
@@ -3216,6 +5580,12 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "system:13:400:default|0.0|Count" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Count: 0" : {
       "firstBaseline" : 13,
       "height" : 112,
@@ -3256,6 +5626,12 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
       "width" : 0
     },
     "system:13:400:default|0.0|Fruits" : {
@@ -3334,6 +5710,18 @@
       "firstBaseline" : 13,
       "height" : 208,
       "lastBaseline" : 205,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Max" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Min" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
       "width" : 0
     },
     "system:13:400:default|0.0|Name" : {
@@ -3438,6 +5826,12 @@
       "lastBaseline" : 61,
       "width" : 0
     },
+    "system:13:400:default|0.0|Row" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Row 0" : {
       "firstBaseline" : 13,
       "height" : 64,
@@ -3508,6 +5902,12 @@
       "firstBaseline" : 13,
       "height" : 160,
       "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Volume" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|0.0|Wide" : {
@@ -3654,11 +6054,119 @@
       "lastBaseline" : 29,
       "width" : 355.5
     },
+    "system:13:500:default||Apple" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 36
+    },
+    "system:13:500:default||Banana" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 46
+    },
+    "system:13:500:default||Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 42.5
+    },
+    "system:13:500:default||Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 29
+    },
+    "system:13:500:default||Max" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 26
+    },
+    "system:13:500:default||Min" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 22.5
+    },
+    "system:13:500:default|0.0|Apple" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:500:default|0.0|Banana" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:500:default|0.0|Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:500:default|0.0|Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:500:default|0.0|Max" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:500:default|0.0|Min" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:600:default||Apple" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 37
+    },
+    "system:13:600:default||Banana" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 47
+    },
     "system:13:600:default||Bold" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 28.5
+    },
+    "system:13:600:default||Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 43.5
+    },
+    "system:13:600:default||Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 29.5
+    },
+    "system:13:600:default||Max" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 26.5
+    },
+    "system:13:600:default||Min" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 23
     },
     "system:13:600:default||Weight" : {
       "firstBaseline" : 13,
@@ -3666,10 +6174,46 @@
       "lastBaseline" : 13,
       "width" : 44.5
     },
+    "system:13:600:default|0.0|Apple" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:600:default|0.0|Banana" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
     "system:13:600:default|0.0|Bold" : {
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:600:default|0.0|Cherry" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:600:default|0.0|Fruit" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:600:default|0.0|Max" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:600:default|0.0|Min" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
       "width" : 0
     },
     "system:13:600:default|0.0|Weight" : {
@@ -3927,6 +6471,17 @@
       "unroundedLineHeight" : 18.333333333333329
     },
     "style:callout" : {
+      "capHeight" : 8.455078125,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 17.5,
+      "linePitch" : 18,
+      "spacingAbove" : 5.9523682831795242,
+      "spacingBelow" : 10.677734374999993,
+      "textToText" : 1,
+      "unroundedLineHeight" : 17.125
+    },
+    "style:callout:w400" : {
       "capHeight" : 8.455078125,
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,
@@ -4553,6 +7108,28 @@
       "textToText" : 0,
       "unroundedLineHeight" : 13
     },
+    "system:10:500:default" : {
+      "capHeight" : 7.0458984375,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 13,
+      "linePitch" : 13,
+      "spacingAbove" : 3.609375,
+      "spacingBelow" : 6.2314453125,
+      "textToText" : 0,
+      "unroundedLineHeight" : 13
+    },
+    "system:10:600:default" : {
+      "capHeight" : 7.0458984375,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 13,
+      "linePitch" : 13,
+      "spacingAbove" : 3.609375,
+      "spacingBelow" : 6.2314453125,
+      "textToText" : 0,
+      "unroundedLineHeight" : 13
+    },
     "system:11:400:default" : {
       "capHeight" : 7.75048828125,
       "horizontalTextToText" : 8,
@@ -4642,6 +7219,17 @@
       "unroundedLineHeight" : 15
     },
     "system:13:400:default" : {
+      "capHeight" : 9.15966796875,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 16,
+      "linePitch" : 16,
+      "spacingAbove" : 4.7421875,
+      "spacingBelow" : 8.15087890625,
+      "textToText" : 0,
+      "unroundedLineHeight" : 16
+    },
+    "system:13:500:default" : {
       "capHeight" : 9.15966796875,
       "horizontalTextToText" : 8,
       "horizontalTrailing" : 8,

@@ -166,12 +166,14 @@ extension View {
 // MARK: - Style bodies
 
 /// The label a control shows: hidden by `labelsHidden`, dimmed when disabled, in `.body`.
-private struct _ControlLabel: View {
-    let label: ToggleStyleConfiguration.Label
+package struct _ControlLabel<Content: View>: View {
+    package let label: Content
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\.isEnabled) private var isEnabled
 
-    var body: some View {
+    package init(label: Content) { self.label = label }
+
+    package var body: some View {
         if !labelsHidden {
             _IconAlignedTitle(content: label)
                 .font(.body)

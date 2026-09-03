@@ -1,0 +1,98 @@
+{
+  "fixture" : "slider\/steps",
+  "frames" : {
+    "echo" : {
+      "height" : 16,
+      "width" : 16,
+      "x" : 304,
+      "y" : 42
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 42
+    },
+    "slider" : {
+      "height" : 16,
+      "width" : 292,
+      "x" : 0,
+      "y" : 42
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 16.5,
+          "x" : 303.5,
+          "y" : 42
+        },
+        "row" : {
+          "height" : 16,
+          "width" : 320,
+          "x" : 0,
+          "y" : 42
+        },
+        "slider" : {
+          "height" : 16,
+          "width" : 291.5,
+          "x" : 0,
+          "y" : 42
+        }
+      },
+      "name" : "half"
+    },
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 22.5,
+          "x" : 297.5,
+          "y" : 42
+        },
+        "row" : {
+          "height" : 16,
+          "width" : 320,
+          "x" : 0,
+          "y" : 42
+        },
+        "slider" : {
+          "height" : 16,
+          "width" : 285.5,
+          "x" : 0,
+          "y" : 42
+        }
+      },
+      "name" : "full"
+    },
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 8.5,
+          "x" : 311.5,
+          "y" : 42
+        },
+        "row" : {
+          "height" : 16,
+          "width" : 320,
+          "x" : 0,
+          "y" : 42
+        },
+        "slider" : {
+          "height" : 16,
+          "width" : 299.5,
+          "x" : 0,
+          "y" : 42
+        }
+      },
+      "name" : "zero"
+    }
+  ]
+}

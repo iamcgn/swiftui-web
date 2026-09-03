@@ -81,6 +81,69 @@ package enum PlatformMetrics {
     package static let listLabelIconSpacing: CGFloat = 6
     package static let listIdealWidth: CGFloat = 200                           // unverified
 
+    // Controls with labels (Picker, Slider, Stepper; macOS 26.2, Docs/elements/{Picker,Slider,Stepper}.md)
+    package static let controlLabelSpacing: CGFloat = 8
+
+    // Picker: pop-up button (fixtures picker/*)
+    package static let popUpHeight: CGFloat = 24
+    package static let popUpTextInset: CGFloat = 12
+    package static let popUpChevronGap: CGFloat = 18                           // widest option to chevron
+    package static let popUpChevronWidth: CGFloat = 7
+    package static let popUpChevronTrailing: CGFloat = 10.5
+    package static let popUpChevronHalfHeight: CGFloat = 3.5                    // one chevron's rise
+    package static let popUpChevronOffset: CGFloat = 2.5                        // centre line to chevron base
+    package static let popUpChevronStroke: CGFloat = 1.5
+    package static let popUpCornerRadius: CGFloat = 6
+    package static let popUpFill = 20.0 / 255
+    package static let popUpDisabledFill = 10.0 / 255
+    package static let popUpDisabledTextAlpha = 73.0 / 255
+    // Picker: segmented control
+    package static let segmentPadding: CGFloat = 21                             // segment = widest option + 21
+    package static let segmentedHeight: CGFloat = 24
+    package static let segmentedFill = 20.0 / 255
+    package static let segmentedSelectedFill = 50.0 / 255
+    package static let segmentedCornerRadius: CGFloat = 6
+    package static let segmentedTextAlpha = 137.0 / 255
+    package static let segmentedSelectedTextAlpha = 152.0 / 255
+    package static let segmentedDividerAlpha = 43.0 / 255
+    package static let segmentedDividerInset: CGFloat = 6                       // approximate
+    // Picker: radio group
+    package static let radioSize: CGFloat = 16
+    package static let radioLabelSpacing: CGFloat = 5
+    package static let radioRowSpacing: CGFloat = 6
+    package static let radioFillOff = 25.0 / 255
+    package static let radioFillOn = 36.0 / 255
+    package static let radioDotSize: CGFloat = 5
+    package static let radioDotAlpha = 216.0 / 255
+
+    // Slider (fixtures slider/*)
+    package static let sliderHeight: CGFloat = 16
+    package static let sliderTrackHeight: CGFloat = 5
+    package static let sliderKnobSize = CGSize(width: 22, height: 16)
+    package static let sliderKnobInset: CGFloat = 11                            // knob centre travel, each end
+    package static let sliderFilledAlpha = 58.0 / 255
+    package static let sliderTrackAlpha = 25.0 / 255
+    package static let sliderDisabledFilledAlpha = 42.0 / 255
+    package static let sliderKnobShadowAlpha = 12.0 / 255                       // approximate (Apple's is a blur)
+    package static let sliderTickSize: CGFloat = 2
+    package static let sliderTickTop: CGFloat = 14
+    package static let sliderIdealWidth: CGFloat = 100                          // unverified
+
+    // Stepper (fixtures stepper/*)
+    package static let stepperSize = CGSize(width: 20, height: 26)
+    package static let stepperCornerRadius: CGFloat = 5
+    package static let stepperFill = 20.0 / 255
+    package static let stepperDisabledFill = 10.0 / 255
+    package static let stepperChevronAlpha = 137.0 / 255
+    package static let stepperDisabledChevronAlpha = 132.0 / 255
+    package static let stepperChevronInset: CGFloat = 4.5                       // x, each side
+    package static let stepperChevronRise: CGFloat = 5                          // chevron height
+    package static let stepperChevronStroke: CGFloat = 1.5
+    package static let stepperUpChevronBase: CGFloat = 9.25                     // y of the up chevron's feet
+    package static let stepperDownChevronBase: CGFloat = 17.25                  // y of the down chevron's feet
+    package static let stepperDividerAlpha = 43.0 / 255
+    package static let stepperDividerInset: CGFloat = 3
+
     // Label (macOS 26.2: fixture label/basic, Docs/elements/Label.md)
     package static let labelIconSpacing: CGFloat = 8
 

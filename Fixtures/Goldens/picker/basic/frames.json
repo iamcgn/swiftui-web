@@ -1,0 +1,75 @@
+{
+  "fixture" : "picker\/basic",
+  "frames" : {
+    "inline" : {
+      "height" : 43,
+      "width" : 102,
+      "x" : 43,
+      "y" : 232.25
+    },
+    "inlineApple" : {
+      "height" : 18.5,
+      "width" : 35,
+      "x" : 100,
+      "y" : 232.25
+    },
+    "inlineBanana" : {
+      "height" : 18.5,
+      "width" : 45,
+      "x" : 100,
+      "y" : 256.75
+    },
+    "menu" : {
+      "height" : 24,
+      "width" : 128.5,
+      "x" : 43,
+      "y" : 44.75
+    },
+    "menuHidden" : {
+      "height" : 24,
+      "width" : 92.5,
+      "x" : 43,
+      "y" : 80.75
+    },
+    "radio" : {
+      "height" : 67.5,
+      "width" : 102,
+      "x" : 43,
+      "y" : 152.75
+    },
+    "radioApple" : {
+      "height" : 18.5,
+      "width" : 35,
+      "x" : 100,
+      "y" : 152.75
+    },
+    "radioBanana" : {
+      "height" : 18.5,
+      "width" : 45,
+      "x" : 100,
+      "y" : 177.25
+    },
+    "radioCherry" : {
+      "height" : 18.5,
+      "width" : 41.5,
+      "x" : 100,
+      "y" : 201.75
+    },
+    "segmented" : {
+      "height" : 24,
+      "width" : 234,
+      "x" : 43,
+      "y" : 116.75
+    },
+    "stack" : {
+      "height" : 230.5,
+      "width" : 234,
+      "x" : 43,
+      "y" : 44.75
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  }
+}

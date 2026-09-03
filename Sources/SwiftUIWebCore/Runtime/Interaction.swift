@@ -6,6 +6,11 @@
 package protocol _Interactive: AnyObject {
     /// Called when a press starts inside the node.
     func pressBegan()
+    /// Like `pressBegan()`, with the press point in the node's coordinate space (sliders jump to
+    /// it). The default forwards to `pressBegan()`.
+    func pressBegan(at point: CGPoint)
+    /// The pointer moved while pressed, in the node's coordinate space. The default ignores it.
+    func pressMoved(to point: CGPoint)
     /// Called when the press ends; `inside` tells whether the pointer is still over the node.
     func pressEnded(inside: Bool)
     /// Like `pressEnded(inside:)`, with the release point in the node's coordinate space (lists
@@ -16,6 +21,8 @@ package protocol _Interactive: AnyObject {
 }
 
 extension _Interactive {
+    package func pressBegan(at point: CGPoint) { pressBegan() }
+    package func pressMoved(to point: CGPoint) {}
     package func pressEnded(inside: Bool, at point: CGPoint) { pressEnded(inside: inside) }
 }
 
@@ -92,13 +99,19 @@ extension Runtime {
         if type == .touch { beginPan(at: point, time: time) }
         guard let node = interactiveNode(at: point) else { return }
         pressedNode = node
-        node.pressBegan()
+        node.pressBegan(at: local(point, in: node))
     }
 
     /// Pointer moved while down.
     public func pointerMoved(to point: CGPoint, time: Double = 0) {
         pointerPosition = point
         continuePan(to: point, time: time)
+        if let node = pressedNode { node.pressMoved(to: local(point, in: node)) }
+    }
+
+    private func local(_ point: CGPoint, in node: ViewNode) -> CGPoint {
+        let origin = node.frameInRoot.origin
+        return CGPoint(x: point.x - origin.x, y: point.y - origin.y)
     }
 
     /// Pointer released at `point`. Activates the pressed node if the pointer is still over it
@@ -108,8 +121,7 @@ extension Runtime {
         guard let node = pressedNode else { return }
         pressedNode = nil
         let inside = !panned && interactiveNode(at: point) === node
-        let origin = node.frameInRoot.origin
-        node.pressEnded(inside: inside, at: CGPoint(x: point.x - origin.x, y: point.y - origin.y))
+        node.pressEnded(inside: inside, at: local(point, in: node))
     }
 
     /// A click delivered by the accessibility overlay, by semantics identifier.

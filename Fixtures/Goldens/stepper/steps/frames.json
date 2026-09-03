@@ -1,0 +1,98 @@
+{
+  "fixture" : "stepper\/steps",
+  "frames" : {
+    "echo" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 194,
+      "y" : 32
+    },
+    "row" : {
+      "height" : 26,
+      "width" : 85,
+      "x" : 117.5,
+      "y" : 27
+    },
+    "stepper" : {
+      "height" : 26,
+      "width" : 64.5,
+      "x" : 117.5,
+      "y" : 27
+    }
+  },
+  "size" : {
+    "height" : 80,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 6,
+          "x" : 195.25,
+          "y" : 32
+        },
+        "row" : {
+          "height" : 26,
+          "width" : 82.5,
+          "x" : 118.75,
+          "y" : 27
+        },
+        "stepper" : {
+          "height" : 26,
+          "width" : 64.5,
+          "x" : 118.75,
+          "y" : 27
+        }
+      },
+      "name" : "one"
+    },
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 8,
+          "x" : 194.25,
+          "y" : 32
+        },
+        "row" : {
+          "height" : 26,
+          "width" : 84.5,
+          "x" : 117.75,
+          "y" : 27
+        },
+        "stepper" : {
+          "height" : 26,
+          "width" : 64.5,
+          "x" : 117.75,
+          "y" : 27
+        }
+      },
+      "name" : "two"
+    },
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 8.5,
+          "x" : 194,
+          "y" : 32
+        },
+        "row" : {
+          "height" : 26,
+          "width" : 85,
+          "x" : 117.5,
+          "y" : 27
+        },
+        "stepper" : {
+          "height" : 26,
+          "width" : 64.5,
+          "x" : 117.5,
+          "y" : 27
+        }
+      },
+      "name" : "reset"
+    }
+  ]
+}

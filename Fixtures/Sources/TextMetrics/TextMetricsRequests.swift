@@ -265,6 +265,21 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(word, .system(size: 13, weight: "regular", design: "default")))
             requests.append(TextMetricRequest(word, .style("body")))
         }
+        // Picker, Slider and Stepper labels and options: candidate fonts for control text.
+        for word in ["Fruit", "Volume", "Min", "Max", "Count", "Row", "0", "1", "2", "25", "50", "75", "100"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+            requests.append(TextMetricRequest(word, .style("body")))
+            requests.append(TextMetricRequest(word, .system(size: 13, weight: "regular", design: "default")))
+        }
+        for word in ["Apple", "Banana", "Cherry", "Fruit", "Min", "Max"] {
+            for style in ["callout", "footnote", "caption", "caption2", "subheadline"] {
+                requests.append(TextMetricRequest(word, .style(style)))
+                for weight in ["regular", "medium", "semibold"] { requests.append(TextMetricRequest(word, .style(style, weight: weight))) }
+            }
+            for size: CGFloat in [10, 11, 12, 13] {
+                for weight in ["regular", "medium", "semibold"] { requests.append(TextMetricRequest(word, .system(size: size, weight: weight, design: "default"))) }
+            }
+        }
         requests.append(TextMetricRequest("Hi", defaultFont))
         requests.append(TextMetricRequest("End", .style("largeTitle")))
         let bold13 = defaultFont(weight: "bold")

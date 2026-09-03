@@ -1,0 +1,81 @@
+{
+  "fixture" : "stepper\/basic",
+  "frames" : {
+    "basic" : {
+      "height" : 26,
+      "width" : 64.5,
+      "x" : 60,
+      "y" : 14
+    },
+    "closures" : {
+      "height" : 26,
+      "width" : 64.5,
+      "x" : 60,
+      "y" : 166
+    },
+    "disabled" : {
+      "height" : 26,
+      "width" : 64.5,
+      "x" : 60,
+      "y" : 242
+    },
+    "fixed" : {
+      "height" : 26,
+      "width" : 200,
+      "x" : 60,
+      "y" : 280
+    },
+    "hidden" : {
+      "height" : 26,
+      "width" : 20,
+      "x" : 60,
+      "y" : 90
+    },
+    "labelStepper" : {
+      "height" : 26,
+      "width" : 96.5,
+      "x" : 60,
+      "y" : 128
+    },
+    "ranged" : {
+      "height" : 26,
+      "width" : 64.5,
+      "x" : 60,
+      "y" : 52
+    },
+    "row" : {
+      "height" : 26,
+      "width" : 104.5,
+      "x" : 60,
+      "y" : 204
+    },
+    "rowButton" : {
+      "height" : 24,
+      "width" : 42.5,
+      "x" : 122,
+      "y" : 205
+    },
+    "rowStepper" : {
+      "height" : 26,
+      "width" : 20,
+      "x" : 94,
+      "y" : 204
+    },
+    "rowText" : {
+      "height" : 16,
+      "width" : 26,
+      "x" : 60,
+      "y" : 209
+    },
+    "stack" : {
+      "height" : 292,
+      "width" : 200,
+      "x" : 60,
+      "y" : 14
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  }
+}

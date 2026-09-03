@@ -1,0 +1,93 @@
+{
+  "fixture" : "slider\/basic",
+  "frames" : {
+    "disabled" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 228.5
+    },
+    "full" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 83.5
+    },
+    "half" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 27.5
+    },
+    "labelled" : {
+      "height" : 18.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 139.5
+    },
+    "max" : {
+      "height" : 15,
+      "width" : 20,
+      "x" : 300,
+      "y" : 172
+    },
+    "min" : {
+      "height" : 15,
+      "width" : 17.5,
+      "x" : 53,
+      "y" : 172
+    },
+    "minMax" : {
+      "height" : 18.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 170
+    },
+    "narrow" : {
+      "height" : 16,
+      "width" : 120,
+      "x" : 100,
+      "y" : 200.5
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 256.5
+    },
+    "rowSlider" : {
+      "height" : 16,
+      "width" : 286,
+      "x" : 34,
+      "y" : 256.5
+    },
+    "rowText" : {
+      "height" : 16,
+      "width" : 26,
+      "x" : 0,
+      "y" : 256.5
+    },
+    "stack" : {
+      "height" : 245,
+      "width" : 320,
+      "x" : 0,
+      "y" : 27.5
+    },
+    "stepped" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 111.5
+    },
+    "zero" : {
+      "height" : 16,
+      "width" : 320,
+      "x" : 0,
+      "y" : 55.5
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

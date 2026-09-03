@@ -1,0 +1,93 @@
+{
+  "fixture" : "picker\/steps",
+  "frames" : {
+    "menu" : {
+      "height" : 24,
+      "width" : 128.5,
+      "x" : 43,
+      "y" : 10.25
+    },
+    "radio" : {
+      "height" : 67.5,
+      "width" : 102,
+      "x" : 43,
+      "y" : 82.25
+    },
+    "segmented" : {
+      "height" : 24,
+      "width" : 234,
+      "x" : 43,
+      "y" : 46.25
+    },
+    "stack" : {
+      "height" : 139.5,
+      "width" : 234,
+      "x" : 43,
+      "y" : 10.25
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "menu" : {
+          "height" : 24,
+          "width" : 128.5,
+          "x" : 43,
+          "y" : 10.25
+        },
+        "radio" : {
+          "height" : 67.5,
+          "width" : 102,
+          "x" : 43,
+          "y" : 82.25
+        },
+        "segmented" : {
+          "height" : 24,
+          "width" : 234,
+          "x" : 43,
+          "y" : 46.25
+        },
+        "stack" : {
+          "height" : 139.5,
+          "width" : 234,
+          "x" : 43,
+          "y" : 10.25
+        }
+      },
+      "name" : "banana"
+    },
+    {
+      "frames" : {
+        "menu" : {
+          "height" : 24,
+          "width" : 128.5,
+          "x" : 43,
+          "y" : 10.25
+        },
+        "radio" : {
+          "height" : 67.5,
+          "width" : 102,
+          "x" : 43,
+          "y" : 82.25
+        },
+        "segmented" : {
+          "height" : 24,
+          "width" : 234,
+          "x" : 43,
+          "y" : 46.25
+        },
+        "stack" : {
+          "height" : 139.5,
+          "width" : 234,
+          "x" : 43,
+          "y" : 10.25
+        }
+      },
+      "name" : "cherry"
+    }
+  ]
+}
