@@ -290,6 +290,8 @@ public enum TextMetricsRequests {
                 for weight in ["medium", "semibold", "bold"] { requests.append(TextMetricRequest(word, .style(style, weight: weight))) }
             }
         }
+        // Lifecycle fixtures.
+        for word in ["A0 D0", "A1 D0", "A1 D1", "A2 D1", "A2 D2", "Child", "Waiting", "Done"] { requests.append(TextMetricRequest(word, defaultFont)) }
         requests.append(TextMetricRequest("Hi", defaultFont))
         requests.append(TextMetricRequest("End", .style("largeTitle")))
         let bold13 = defaultFont(weight: "bold")

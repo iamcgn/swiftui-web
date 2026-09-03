@@ -1,0 +1,69 @@
+{
+  "fixture" : "lifecycle\/appear",
+  "frames" : {
+    "child" : {
+      "height" : 16,
+      "width" : 31.5,
+      "x" : 144.25,
+      "y" : 64
+    },
+    "counts" : {
+      "height" : 16,
+      "width" : 35.5,
+      "x" : 142.25,
+      "y" : 40
+    },
+    "stack" : {
+      "height" : 40,
+      "width" : 35.5,
+      "x" : 142.25,
+      "y" : 40
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "counts" : {
+          "height" : 16,
+          "width" : 33.5,
+          "x" : 143.25,
+          "y" : 52
+        },
+        "stack" : {
+          "height" : 16,
+          "width" : 33.5,
+          "x" : 143.25,
+          "y" : 52
+        }
+      },
+      "name" : "hide"
+    },
+    {
+      "frames" : {
+        "child" : {
+          "height" : 16,
+          "width" : 31.5,
+          "x" : 144.25,
+          "y" : 64
+        },
+        "counts" : {
+          "height" : 16,
+          "width" : 35.5,
+          "x" : 142.25,
+          "y" : 40
+        },
+        "stack" : {
+          "height" : 40,
+          "width" : 35.5,
+          "x" : 142.25,
+          "y" : 40
+        }
+      },
+      "name" : "show"
+    }
+  ]
+}

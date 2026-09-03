@@ -339,11 +339,13 @@ package final class CompositeNode<V: View>: TypedNode<V> {
 package func _trackingObservation<Result>(for node: ViewNode, _ body: () -> Result) -> Result {
     node.beginObservationSession()
     let token = node.observationToken
-    return withObservationTracking(body) {
+    return withObservationTracking(body) { [weak node] in
         // Observation calls this from the property's `willSet`, on the mutating thread. State
-        // mutation is main-actor only in SwiftUI and here, so hop synchronously.
+        // mutation is main-actor only in SwiftUI and here, so hop synchronously. The node is held
+        // weakly: a task finishing after its tree was torn down must not revive a dead node (whose
+        // runtime is unowned).
         MainActor.assumeIsolated {
-            guard token.isCurrent(for: node) else { return }
+            guard let node, token.isCurrent(for: node) else { return }
             node.invalidate()
         }
     }
