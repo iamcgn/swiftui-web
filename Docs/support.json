@@ -206,6 +206,17 @@
           ]
         },
         {
+          "api": "Layout protocol (custom layouts, caches, LayoutSubviews/LayoutSubview, LayoutValueKey) / AnyLayout / HStackLayout / VStackLayout / ZStackLayout",
+          "status": "partial",
+          "notes": "Custom layouts written on the public API match Apple's frames exactly; AnyLayout switches layouts keeping subview state; no Animatable layout parameters or right-to-left direction",
+          "fixtures": [
+            "customlayout/flow",
+            "customlayout/radial",
+            "customlayout/values",
+            "customlayout/any"
+          ]
+        },
+        {
           "api": "TextField (title/prompt/label forms) / SecureField / TextFieldStyle (automatic, roundedBorder, squareBorder, plain) / textFieldStyle",
           "status": "partial",
           "notes": "Bezel, insets, baseline, placeholder, bullets and disabled look measured; editing through the host's transparent <input> (browser caret/selection/IME); no @FocusState, multi-line (axis), formatted values or custom styles",
