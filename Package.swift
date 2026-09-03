@@ -1,5 +1,6 @@
 // swift-tools-version: 6.2
 import PackageDescription
+import CompilerPluginSupport
 
 // SwiftUIWeb: an open-source SwiftUI reimplementation that runs unmodified SwiftUI
 // source in the browser (WebAssembly + Canvas) and, later, natively.
@@ -23,13 +24,25 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),
+        // Only for the `#Preview` macro plugin (expands to nothing); SwiftPM uses prebuilt libraries.
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
     ],
     targets: [
         .target(
             name: "SwiftUI",
             dependencies: [
                 "SwiftUIWebCore",
+                "SwiftUIWebMacros",
                 .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
+            ],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // Compiler plugin: `#Preview` expands to nothing, so preview blocks in app sources compile.
+        .macro(
+            name: "SwiftUIWebMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
