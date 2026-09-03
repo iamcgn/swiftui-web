@@ -33,6 +33,9 @@ public struct List<SelectionValue: Hashable, Content: View>: View {
     public var body: some View {
         let profile = style._profile
         let pinnedTitle = profile.name == "sidebar" ? nil : _firstSectionTitle(of: content)
+        // Read the selection here, inside the body, so observation tracks the model it comes
+        // from; painting reads it again but is not tracked.
+        let _: Void = selection?.read() ?? ()
         ScrollView(.vertical) {
             _ListContent(content: content, selection: selection, profile: profile, pinsFirstHeader: pinnedTitle != nil)
         }
@@ -111,8 +114,11 @@ extension List where SelectionValue == Never {
 package final class _ListSelection {
     package let isSelected: (AnyHashable) -> Bool
     package let toggle: (AnyHashable) -> Void
+    /// Reads the binding (for observation tracking in a view body).
+    package let read: () -> Void
 
     package init<V: Hashable>(single binding: Binding<V?>) {
+        read = { _ = binding.wrappedValue }
         isSelected = { id in (id.base as? V).map { $0 == binding.wrappedValue } ?? false }
         toggle = { id in
             guard let value = id.base as? V else { return }
@@ -131,6 +137,7 @@ package final class _ListSelection {
     }
 
     package init<V: Hashable>(multiple binding: Binding<Set<V>>) {
+        read = { _ = binding.wrappedValue }
         isSelected = { id in (id.base as? V).map { binding.wrappedValue.contains($0) } ?? false }
         toggle = { id in
             guard let value = id.base as? V else { return }
