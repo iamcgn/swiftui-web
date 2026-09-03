@@ -178,3 +178,99 @@ extension _LayoutView: View {
         LayoutContainerNode(context, layout: \.layout, content: \.content)
     }
 }
+
+// MARK: - AnyLayout
+
+/// A type-erased instance of the layout protocol: switching between layouts keeps the subviews.
+public struct AnyLayout: Layout {
+    package let base: any Layout
+    private let makeCacheBox: @MainActor (LayoutSubviews) -> Any
+    private let updateCacheBox: @MainActor (inout Any, LayoutSubviews) -> Void
+    private let spacingBox: @MainActor (LayoutSubviews, inout Any) -> ViewSpacing
+    private let sizeBox: @MainActor (ProposedViewSize, LayoutSubviews, inout Any) -> CGSize
+    private let placeBox: @MainActor (CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> Void
+    private let horizontalGuideBox: @MainActor (HorizontalAlignment, CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> CGFloat?
+    private let verticalGuideBox: @MainActor (VerticalAlignment, CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> CGFloat?
+
+    /// Creates an instance that type-erases `layout`.
+    public init<L: Layout>(_ layout: L) {
+        base = layout
+        makeCacheBox = { layout.makeCache(subviews: $0) }
+        updateCacheBox = { cache, subviews in
+            var typed = cache as! L.Cache
+            layout.updateCache(&typed, subviews: subviews)
+            cache = typed
+        }
+        spacingBox = { subviews, cache in
+            var typed = cache as! L.Cache
+            defer { cache = typed }
+            return layout.spacing(subviews: subviews, cache: &typed)
+        }
+        sizeBox = { proposal, subviews, cache in
+            var typed = cache as! L.Cache
+            defer { cache = typed }
+            return layout.sizeThatFits(proposal: proposal, subviews: subviews, cache: &typed)
+        }
+        placeBox = { bounds, proposal, subviews, cache in
+            var typed = cache as! L.Cache
+            defer { cache = typed }
+            layout.placeSubviews(in: bounds, proposal: proposal, subviews: subviews, cache: &typed)
+        }
+        horizontalGuideBox = { guide, bounds, proposal, subviews, cache in
+            var typed = cache as! L.Cache
+            defer { cache = typed }
+            return layout.explicitAlignment(of: guide, in: bounds, proposal: proposal, subviews: subviews, cache: &typed)
+        }
+        verticalGuideBox = { guide, bounds, proposal, subviews, cache in
+            var typed = cache as! L.Cache
+            defer { cache = typed }
+            return layout.explicitAlignment(of: guide, in: bounds, proposal: proposal, subviews: subviews, cache: &typed)
+        }
+    }
+
+    /// The erased layout's cache, plus the type it was made for so a swapped layout starts afresh.
+    public struct Cache {
+        package var value: Any
+        package let type: ObjectIdentifier
+    }
+
+    private var typeIdentifier: ObjectIdentifier { ObjectIdentifier(Swift.type(of: base)) }
+
+    public static var layoutProperties: LayoutProperties { LayoutProperties() }
+
+    public func makeCache(subviews: Subviews) -> Cache {
+        Cache(value: makeCacheBox(subviews), type: typeIdentifier)
+    }
+
+    public func updateCache(_ cache: inout Cache, subviews: Subviews) {
+        if cache.type != typeIdentifier { cache = makeCache(subviews: subviews); return }
+        updateCacheBox(&cache.value, subviews)
+    }
+
+    private func withFreshCache<R>(_ cache: inout Cache, subviews: Subviews, _ body: (inout Any) -> R) -> R {
+        if cache.type != typeIdentifier { cache = makeCache(subviews: subviews) }
+        return body(&cache.value)
+    }
+
+    public func spacing(subviews: Subviews, cache: inout Cache) -> ViewSpacing {
+        withFreshCache(&cache, subviews: subviews) { spacingBox(subviews, &$0) }
+    }
+
+    public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
+        withFreshCache(&cache, subviews: subviews) { sizeBox(proposal, subviews, &$0) }
+    }
+
+    public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
+        withFreshCache(&cache, subviews: subviews) { placeBox(bounds, proposal, subviews, &$0) }
+    }
+
+    public func explicitAlignment(of guide: HorizontalAlignment, in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGFloat? {
+        withFreshCache(&cache, subviews: subviews) { horizontalGuideBox(guide, bounds, proposal, subviews, &$0) }
+    }
+
+    public func explicitAlignment(of guide: VerticalAlignment, in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGFloat? {
+        withFreshCache(&cache, subviews: subviews) { verticalGuideBox(guide, bounds, proposal, subviews, &$0) }
+    }
+
+    public typealias AnimatableData = EmptyAnimatableData
+}

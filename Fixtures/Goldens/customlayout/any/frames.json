@@ -1,0 +1,93 @@
+{
+  "fixture" : "customlayout\/any",
+  "frames" : {
+    "box" : {
+      "height" : 20,
+      "width" : 30,
+      "x" : 99.75,
+      "y" : 50
+    },
+    "one" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 66.75,
+      "y" : 52
+    },
+    "stack" : {
+      "height" : 20,
+      "width" : 106.5,
+      "x" : 66.75,
+      "y" : 50
+    },
+    "three" : {
+      "height" : 16,
+      "width" : 35.5,
+      "x" : 137.75,
+      "y" : 52
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 240
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "box" : {
+          "height" : 20,
+          "width" : 30,
+          "x" : 105,
+          "y" : 50
+        },
+        "one" : {
+          "height" : 16,
+          "width" : 25,
+          "x" : 107.5,
+          "y" : 30
+        },
+        "stack" : {
+          "height" : 60,
+          "width" : 35.5,
+          "x" : 102.25,
+          "y" : 30
+        },
+        "three" : {
+          "height" : 16,
+          "width" : 35.5,
+          "x" : 102.25,
+          "y" : 74
+        }
+      },
+      "name" : "vertical"
+    },
+    {
+      "frames" : {
+        "box" : {
+          "height" : 20,
+          "width" : 30,
+          "x" : 99.75,
+          "y" : 50
+        },
+        "one" : {
+          "height" : 16,
+          "width" : 25,
+          "x" : 66.75,
+          "y" : 52
+        },
+        "stack" : {
+          "height" : 20,
+          "width" : 106.5,
+          "x" : 66.75,
+          "y" : 50
+        },
+        "three" : {
+          "height" : 16,
+          "width" : 35.5,
+          "x" : 137.75,
+          "y" : 52
+        }
+      },
+      "name" : "horizontal"
+    }
+  ]
+}

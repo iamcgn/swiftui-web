@@ -1,0 +1,57 @@
+{
+  "fixture" : "customlayout\/flow",
+  "frames" : {
+    "box" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 113,
+      "y" : 76
+    },
+    "five" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 80,
+      "y" : 76
+    },
+    "flow" : {
+      "height" : 52,
+      "width" : 160,
+      "x" : 80,
+      "y" : 54
+    },
+    "four" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 189.5,
+      "y" : 54
+    },
+    "one" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 80,
+      "y" : 54
+    },
+    "six" : {
+      "height" : 16,
+      "width" : 18.5,
+      "x" : 181,
+      "y" : 76
+    },
+    "three" : {
+      "height" : 16,
+      "width" : 35.5,
+      "x" : 146,
+      "y" : 54
+    },
+    "two" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 113,
+      "y" : 54
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 320
+  }
+}

@@ -8070,6 +8070,12 @@
       "lastBaseline" : 13,
       "width" : 52
     },
+    "system:13:400:default||D" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 9.5
+    },
     "system:13:400:default||Deeper" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8087,6 +8093,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 32
+    },
+    "system:13:400:default||E" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 8
     },
     "system:13:400:default||Enabled" : {
       "firstBaseline" : 13,
@@ -8106,11 +8118,23 @@
       "lastBaseline" : 29,
       "width" : 230.5
     },
+    "system:13:400:default||Five" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 25
+    },
     "system:13:400:default||Footer" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 39.5
+    },
+    "system:13:400:default||Four" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 27.5
     },
     "system:13:400:default||Fruit" : {
       "firstBaseline" : 13,
@@ -8160,6 +8184,12 @@
       "lastBaseline" : 13,
       "width" : 13
     },
+    "system:13:400:default||High" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 28.5
+    },
     "system:13:400:default||Increment" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8171,6 +8201,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 33
+    },
+    "system:13:400:default||Last" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 26
     },
     "system:13:400:default||Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
@@ -8195,6 +8231,12 @@
       "height" : 32,
       "lastBaseline" : 29,
       "width" : 60.5
+    },
+    "system:13:400:default||Low" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 24.5
     },
     "system:13:400:default||Max" : {
       "firstBaseline" : 13,
@@ -8375,6 +8417,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 85.5
+    },
+    "system:13:400:default||Six" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 18.5
     },
     "system:13:400:default||small" : {
       "firstBaseline" : 13,
@@ -8706,6 +8754,12 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "system:13:400:default|0.0|D" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Deeper" : {
       "firstBaseline" : 13,
       "height" : 96,
@@ -8722,6 +8776,12 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|E" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
       "width" : 0
     },
     "system:13:400:default|0.0|Enabled" : {
@@ -8742,10 +8802,22 @@
       "lastBaseline" : 653,
       "width" : 0
     },
+    "system:13:400:default|0.0|Five" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Footer" : {
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Four" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|Fruit" : {
@@ -8796,6 +8868,12 @@
       "lastBaseline" : 29,
       "width" : 0
     },
+    "system:13:400:default|0.0|High" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Increment" : {
       "firstBaseline" : 13,
       "height" : 144,
@@ -8806,6 +8884,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Last" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
@@ -8830,6 +8914,12 @@
       "firstBaseline" : 13,
       "height" : 208,
       "lastBaseline" : 205,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Low" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
       "width" : 0
     },
     "system:13:400:default|0.0|Max" : {
@@ -9010,6 +9100,12 @@
       "firstBaseline" : 13,
       "height" : 192,
       "lastBaseline" : 189,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Six" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
       "width" : 0
     },
     "system:13:400:default|0.0|small" : {
