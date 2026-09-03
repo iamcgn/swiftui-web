@@ -270,7 +270,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
     // MARK: Painting
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
-        if let target = label?.layoutChildren.first { target.paint(into: &list, context: context.child(at: target.frame)) }
+        if let target = label?.layoutChildren.first { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
         switch style {
         case .menu: paintPopUp(into: &list, context: context)
         case .segmented: paintSegmented(into: &list, context: context)
@@ -285,7 +285,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
         list.append(.fillRRect(control, cornerRadius: PlatformMetrics.popUpCornerRadius,
                                black(enabled ? PlatformMetrics.popUpFill : PlatformMetrics.popUpDisabledFill)))
         if let shown = options.first(where: isSelected)?.shown {
-            shown.paint(into: &list, context: context.child(at: shown.frame))
+            shown.paint(into: &list, context: context.child(at: shown.presentedFrame))
         }
         // Up and down chevrons before the trailing edge.
         let x0 = control.maxX - PlatformMetrics.popUpChevronTrailing - PlatformMetrics.popUpChevronWidth
@@ -320,7 +320,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
             list.append(.fillRect(line, black(PlatformMetrics.segmentedDividerAlpha)))
         }
         for option in options {
-            if let shown = option.shown { shown.paint(into: &list, context: context.child(at: shown.frame)) }
+            if let shown = option.shown { shown.paint(into: &list, context: context.child(at: shown.presentedFrame)) }
         }
     }
 
@@ -341,7 +341,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
                 dotPath.addEllipse(in: dot)
                 list.append(.fillPath(dotPath, black(enabled ? PlatformMetrics.radioDotAlpha : PlatformMetrics.radioDotAlpha / 2)))
             }
-            if let shown = option.shown { shown.paint(into: &list, context: context.child(at: shown.frame)) }
+            if let shown = option.shown { shown.paint(into: &list, context: context.child(at: shown.presentedFrame)) }
         }
     }
 

@@ -1,0 +1,87 @@
+{
+  "fixture" : "animation\/transition",
+  "frames" : {
+    "above" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 140.75,
+      "y" : 48
+    },
+    "below" : {
+      "height" : 16,
+      "width" : 36.5,
+      "x" : 141.75,
+      "y" : 96
+    },
+    "hello" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 144.5,
+      "y" : 72
+    },
+    "stack" : {
+      "height" : 64,
+      "width" : 38.5,
+      "x" : 140.75,
+      "y" : 48
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "above" : {
+          "height" : 16,
+          "width" : 38.5,
+          "x" : 140.75,
+          "y" : 60
+        },
+        "below" : {
+          "height" : 16,
+          "width" : 36.5,
+          "x" : 141.75,
+          "y" : 84
+        },
+        "stack" : {
+          "height" : 40,
+          "width" : 38.5,
+          "x" : 140.75,
+          "y" : 60
+        }
+      },
+      "name" : "hide"
+    },
+    {
+      "frames" : {
+        "above" : {
+          "height" : 16,
+          "width" : 38.5,
+          "x" : 140.75,
+          "y" : 48
+        },
+        "below" : {
+          "height" : 16,
+          "width" : 36.5,
+          "x" : 141.75,
+          "y" : 96
+        },
+        "hello" : {
+          "height" : 16,
+          "width" : 31,
+          "x" : 144.5,
+          "y" : 72
+        },
+        "stack" : {
+          "height" : 64,
+          "width" : 38.5,
+          "x" : 140.75,
+          "y" : 48
+        }
+      },
+      "name" : "show"
+    }
+  ]
+}

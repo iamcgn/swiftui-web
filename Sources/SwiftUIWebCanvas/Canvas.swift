@@ -242,7 +242,9 @@ public final class CanvasHost {
     private func tick() {
         frameScheduled = false
         let time = now
-        let animating = runtime.advanceScrollAnimations(elapsed: lastFrameTime.map { min(0.1, time - $0) } ?? 0)
+        let elapsed = lastFrameTime.map { min(0.1, time - $0) } ?? 0
+        var animating = runtime.advanceScrollAnimations(elapsed: elapsed)
+        if runtime.advanceAnimations(elapsed: elapsed) { animating = true }
         lastFrameTime = time
         guard needsLayout || runtime.needsFrame else {
             // An animation in a phase that changes nothing on screen (the indicator hold) still
@@ -258,8 +260,9 @@ public final class CanvasHost {
         lastDisplayList = list
         frameCount += 1
         frameMillis = (now - time) * 1000
-        // A preference action, observation or scroll animation may need another frame.
-        if animating || runtime.needsFrame { scheduleFrame() } else { lastFrameTime = nil }
+        // A preference action, observation, scroll animation or an animation the layout just
+        // started may need another frame.
+        if animating || runtime.isAnimating || runtime.needsFrame { scheduleFrame() } else { lastFrameTime = nil }
     }
 
     /// Time of the previous frame while frames run back to back (scroll animations).
@@ -411,7 +414,9 @@ public final class CanvasHost {
         let frameCount = JSClosure { [weak self] _ in .number(Double(self?.frameCount ?? 0)) }
         let frameMillis = JSClosure { [weak self] _ in .number(self?.frameMillis ?? 0) }
         let pendingImages = JSClosure { [weak self] _ in self?.bridge.pendingImages!() ?? .number(0) }
-        closures += [frames, displayList, frameCount, frameMillis, pendingImages]
+        let animating = JSClosure { [weak self] _ in .boolean(self?.runtime.isAnimating ?? false) }
+        closures += [frames, displayList, frameCount, frameMillis, pendingImages, animating]
+        debug.animating = .object(animating)
         debug.pendingImages = .object(pendingImages)
         debug.frames = .object(frames)
         debug.displayList = .object(displayList)

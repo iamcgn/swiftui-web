@@ -252,6 +252,6 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
                 list.append(.fillRect(context.absoluteRect(line), RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.formGroupedSeparatorAlpha)))
             }
         }
-        for child in paintedChildren { child.paint(into: &list, context: context.child(at: child.frame)) }
+        for child in paintedChildren { child.paint(into: &list, context: context.child(at: child.presentedFrame)) }
     }
 }

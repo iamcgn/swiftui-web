@@ -9,11 +9,14 @@ public protocol TransactionKey {
 
 /// The context of the current state-processing update.
 ///
-/// Stub for Phase 1: carries the documented flags and custom keys so modifiers and
-/// `withTransaction` type-check. `animation` is added with the animation system in Phase 2.
+/// Carries the animation (`withAnimation`), the documented flags and custom keys; the runtime
+/// reads `animation` while flushing the state changes made inside `withTransaction`.
 @frozen
 public struct Transaction {
     package var values: [ObjectIdentifier: Any] = [:]
+
+    /// The animation, if any, for the current state changes.
+    public var animation: Animation? = nil
 
     /// A Boolean value that indicates whether views should disable animations.
     public var disablesAnimations: Bool = false
@@ -52,6 +55,14 @@ public func withTransaction<Result>(
     Transaction._current = transaction
     defer { Transaction._current = previous }
     return try body()
+}
+
+/// Returns the result of recomputing the view's body with the provided animation.
+@MainActor
+public func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
+    var transaction = Transaction()
+    transaction.animation = animation
+    return try withTransaction(transaction, body)
 }
 
 extension Transaction {

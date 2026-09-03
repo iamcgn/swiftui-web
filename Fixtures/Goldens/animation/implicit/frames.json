@@ -1,0 +1,75 @@
+{
+  "fixture" : "animation\/implicit",
+  "frames" : {
+    "faded" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 114,
+      "y" : 40
+    },
+    "moved" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 166,
+      "y" : 40
+    },
+    "row" : {
+      "height" : 40,
+      "width" : 92,
+      "x" : 114,
+      "y" : 40
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "faded" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 84,
+          "y" : 40
+        },
+        "moved" : {
+          "height" : 40,
+          "width" : 100,
+          "x" : 136,
+          "y" : 40
+        },
+        "row" : {
+          "height" : 40,
+          "width" : 152,
+          "x" : 84,
+          "y" : 40
+        }
+      },
+      "name" : "move"
+    },
+    {
+      "frames" : {
+        "faded" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 84,
+          "y" : 40
+        },
+        "moved" : {
+          "height" : 40,
+          "width" : 100,
+          "x" : 136,
+          "y" : 40
+        },
+        "row" : {
+          "height" : 40,
+          "width" : 152,
+          "x" : 84,
+          "y" : 40
+        }
+      },
+      "name" : "fade"
+    }
+  ]
+}

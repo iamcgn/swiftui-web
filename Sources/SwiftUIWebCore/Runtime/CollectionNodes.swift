@@ -51,10 +51,11 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
                 created += 1
                 let node = Content._makeNode(_NodeContext(view: content, parent: self, environment: environment))
                 next.append(Entry(id: id, node: node))
+                if !previous.isEmpty { noteInserted(node) }
             }
         }
         for nodes in available.values {
-            for node in nodes { node.unmount() }
+            for node in nodes { retire(node) }
         }
         entries = next
     }

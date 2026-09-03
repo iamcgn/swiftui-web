@@ -13,6 +13,19 @@ public final class Runtime {
     /// The last `navigationTitle` applied in the tree, for hosts (window or document title).
     public internal(set) var navigationTitle: String?
 
+    // Animation (Runtime/AnimationNodes.swift)
+    /// Seconds of animation time, advanced by hosts through `advanceAnimations(elapsed:)`.
+    package var animationClock: Double = 0
+    /// The transaction animation recorded when state changed; consumed by the next layout.
+    package var pendingAnimation: Animation?
+    /// The animation in effect while nodes update (transitions, opacity and colour changes).
+    package var updateAnimation: Animation?
+    /// The animation in effect while nodes are placed (frame changes).
+    package var layoutAnimation: Animation?
+    package var isLayingOut = false
+    package var activeAnimationScopes = 0
+    package var animatingNodes: [WeakNode] = []
+
     private let assetStore = _AssetStore()
 
     /// The app's asset catalogs (images and colours by name). Hosts install theirs before the
@@ -89,9 +102,13 @@ public final class Runtime {
     /// Applies pending updates, then lays the tree out in a window of `size`. As in SwiftUI,
     /// the root view is proposed the full size and centred.
     public func layout(in size: CGSize) {
+        updateAnimation = pendingAnimation
         flush()
         layoutRequested = false
         layoutGeneration += 1
+        layoutAnimation = pendingAnimation
+        pendingAnimation = nil
+        isLayingOut = true
         layoutSize = size
         probeFrames.removeAll(keepingCapacity: true)
         root.frame = CGRect(origin: .zero, size: size)
@@ -99,6 +116,9 @@ public final class Runtime {
             node.place(at: CGPoint(x: size.width / 2, y: size.height / 2), anchor: .center,
                        proposal: ProposedViewSize(size), by: root)
         }
+        isLayingOut = false
+        layoutAnimation = nil
+        updateAnimation = nil
         deliverPreferences()
     }
 

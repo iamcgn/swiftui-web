@@ -248,7 +248,7 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
     /// Paints one target inside `node` (this node, or the proxy standing in for the target when
     /// the content is a list). Painting modifiers override this so they apply per element.
     package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
-        target.paint(into: &list, context: context.child(at: target.frame))
+        target.paint(into: &list, context: context.child(at: target.presentedFrame))
     }
 
     override package var structuralChildren: [ViewNode] { [child] }
@@ -403,8 +403,30 @@ package final class LayoutValueNode<Content: View, K: LayoutValueKey>: UnaryLayo
 
 @MainActor
 package final class ColorNode: LeafNode<Color> {
+    override package func update(view: Color, environment: EnvironmentValues, force: Bool) {
+        let old = presentedColor
+        super.update(view: view, environment: environment, force: force)
+        let new = view.resolve(in: environment)
+        guard new != old else { return }
+        if let animation = runtime.effectiveUpdateAnimation(for: self) {
+            let presentation = self.presentation ?? NodePresentation()
+            presentation.color = Tween(from: [old.red, old.green, old.blue, old.alpha], to: [new.red, new.green, new.blue, new.alpha],
+                                       animation: animation, start: runtime.animationClock)
+            self.presentation = presentation
+            runtime.register(animating: self)
+        } else {
+            presentation?.color = nil
+        }
+    }
+
+    /// The colour to paint: the tween's value while animating.
+    package var presentedColor: RGBA {
+        if let v = presentation?.color?.value(at: runtime.animationClock) { return RGBA(red: v[0], green: v[1], blue: v[2], alpha: v[3]) }
+        return view.resolve(in: environment)
+    }
+
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
-        let color = view.resolve(in: environment)
+        let color = presentedColor
         guard color.alpha > 0 else { return }
         list.append(.fillRect(absoluteBounds(context), color))
     }

@@ -93,12 +93,32 @@ package func _acos(_ x: Double) -> Double {
     guard x >= -1, x <= 1 else { return .nan }
     return _halfPi - _atan2(x, (1 - x * x).squareRoot())
 }
+
+/// exp by range reduction (x = k·ln2 + r, |r| ≤ ln2/2) and a 14-term Taylor series.
+package func _exp(_ x: Double) -> Double {
+    if x > 700 { return .infinity }
+    if x < -700 { return 0 }
+    let ln2 = 0.6931471805599453
+    let k = (x / ln2).rounded()
+    let r = x - k * ln2
+    var term = 1.0, sum = 1.0
+    for n in 1...14 {
+        term *= r / Double(n)
+        sum += term
+    }
+    var scale = 1.0
+    var count = Int(k)
+    while count > 0 { scale *= 2; count -= 1 }
+    while count < 0 { scale /= 2; count += 1 }
+    return sum * scale
+}
 #else
 @inline(__always) package func _cos(_ x: Double) -> Double { cos(x) }
 @inline(__always) package func _sin(_ x: Double) -> Double { sin(x) }
 @inline(__always) package func _tan(_ x: Double) -> Double { tan(x) }
 @inline(__always) package func _atan2(_ y: Double, _ x: Double) -> Double { atan2(y, x) }
 @inline(__always) package func _acos(_ x: Double) -> Double { acos(x) }
+@inline(__always) package func _exp(_ x: Double) -> Double { exp(x) }
 #endif
 
 @inline(__always) package func _hypot(_ x: Double, _ y: Double) -> Double { (x * x + y * y).squareRoot() }

@@ -11,6 +11,11 @@ import Observation
 open class ViewNode {
     /// The runtime this node belongs to.
     package unowned let runtime: Runtime
+    /// Animation state while a tween or transition runs (Runtime/AnimationNodes.swift).
+    package var presentation: NodePresentation?
+    /// Structural children removed under an animation that still paint their removal transition.
+    package var exitingChildren: [ViewNode] = []
+    package var hasBeenPlaced = false
 
     /// The structural parent, `nil` for the root.
     package private(set) weak var parent: ViewNode?
@@ -60,9 +65,14 @@ open class ViewNode {
 
     // MARK: Invalidation
 
-    /// Marks the node dirty and asks the scheduler for a flush.
+    /// Marks the node dirty and asks the scheduler for a flush; the transaction's animation, if
+    /// any, is kept for the flush and layout that apply the change.
     package func invalidate() {
-        guard isMounted, !needsUpdate else { return }
+        guard isMounted else { return }
+        if let transaction = Transaction._current, !transaction.disablesAnimations, let animation = transaction.animation {
+            runtime.pendingAnimation = animation
+        }
+        guard !needsUpdate else { return }
         needsUpdate = true
         runtime.scheduler.schedule(self)
     }
@@ -151,9 +161,19 @@ open class ViewNode {
     /// `placer`, then lays out its own contents.
     package final func place(at position: CGPoint, anchor: UnitPoint, proposal: ProposedViewSize, by placer: ViewNode) {
         let size = sizeThatFits(proposal)
+        let previous = hasBeenPlaced ? presentedFrame : nil
+        let oldTarget = frame
         layoutParent = placer
         frame = CGRect(x: position.x - size.width * anchor.x, y: position.y - size.height * anchor.y,
                        width: size.width, height: size.height)
+        if let previous, frame != oldTarget {
+            if let animation = runtime.effectiveLayoutAnimation(for: self) {
+                beginFrameTween(from: previous, animation: animation)
+            } else {
+                presentation?.frame = nil
+            }
+        }
+        hasBeenPlaced = true
         layoutContents(proposal: proposal)
     }
 
@@ -199,8 +219,20 @@ open class ViewNode {
     /// Emits this node's drawing (self first, then children). Only layout nodes are painted; a
     /// placer paints the nodes it placed at their frames.
     package func paint(into list: inout DisplayList, context: PaintContext) {
+        let opacity = presentedTransitionOpacity
+        guard opacity > 0 else { return }
+        if opacity < 1 { list.append(.beginGroup(opacity: opacity)) }
         paintSelf(into: &list, context: context)
         paintChildren(into: &list, context: context)
+        paintExiting(into: &list, context: context)
+        if opacity < 1 { list.append(.endGroup) }
+    }
+
+    /// Ghosts of removed subtrees still animating out, at the frames they last had.
+    package func paintExiting(into list: inout DisplayList, context: PaintContext) {
+        for ghost in collectExiting() {
+            ghost.paint(into: &list, context: context.child(at: ghost.presentedFrame))
+        }
     }
 
     /// This node's own drawing, before its children.
@@ -211,13 +243,14 @@ open class ViewNode {
 
     package func paintChildren(into list: inout DisplayList, context: PaintContext) {
         for child in paintedChildren {
-            child.paint(into: &list, context: context.child(at: child.frame))
+            child.paint(into: &list, context: context.child(at: child.presentedFrame))
         }
     }
 
-    /// This node's own bounds, pixel aligned, in absolute coordinates.
+    /// This node's own bounds (the presented size while animating), pixel aligned, in absolute
+    /// coordinates.
     package func absoluteBounds(_ context: PaintContext) -> CGRect {
-        context.absoluteRect(CGRect(origin: .zero, size: frame.size))
+        context.absoluteRect(CGRect(origin: .zero, size: presentedFrame.size))
     }
 
     /// Indented dump of the subtree, one node per line, for tests and debugging.

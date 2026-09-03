@@ -102,8 +102,9 @@ package final class ConditionalNode<TrueContent: View, FalseContent: View>:
         case (.falseContent(let content), .second(let node)):
             node.update(view: content, environment: environment)
         default:
-            activeNode.unmount()
+            retire(activeNode)
             branch = makeBranch(for: view, environment: environment)
+            noteInserted(activeNode)
         }
     }
 
@@ -155,9 +156,11 @@ package final class OptionalNode<Wrapped: View>: TypedNode<Wrapped?> {
         case (.some(let wrapped), .some(let node)):
             node.update(view: wrapped, environment: environment)
         case (.some(let wrapped), .none):
-            child = Wrapped._makeNode(_NodeContext(view: wrapped, parent: self, environment: environment))
+            let node = Wrapped._makeNode(_NodeContext(view: wrapped, parent: self, environment: environment))
+            child = node
+            noteInserted(node)
         case (.none, .some(let node)):
-            node.unmount()
+            retire(node)
             child = nil
         case (.none, .none):
             break

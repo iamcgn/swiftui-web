@@ -125,7 +125,8 @@ for (const name of names) {
   for (let i = 0; i < steps.length; i++) {
     const before = await frameCount();
     await page.evaluate(i => window.__galleryStep(i), i);
-    await page.waitForFunction(b => window.__swiftuiwebDebug.frameCount() > b, before, { timeout: 10000 });
+    // Wait for the repaint and for any animation the step started to settle (goldens hold end states).
+    await page.waitForFunction(b => window.__swiftuiwebDebug.frameCount() > b && !(window.__swiftuiwebDebug.animating && window.__swiftuiwebDebug.animating()), before, { timeout: 10000 });
     await page.waitForTimeout(50);
     await check(name, `${name}/${steps[i].name}`, steps[i].frames, join(goldenDir, `step-${i + 1}@2x.png`), `${base}_step-${i + 1}.png`);
   }

@@ -216,14 +216,14 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         }
         for (index, element) in elements.enumerated() where !element.isHidden {
             if element.kind == .row, let background = backgrounds[ObjectIdentifier(element.node)] {
-                for layer in background.layoutChildren { layer.paint(into: &list, context: context.child(at: layer.frame)) }
+                for layer in background.layoutChildren { layer.paint(into: &list, context: context.child(at: layer.presentedFrame)) }
             }
             if selected[index] {
                 let cell = context.absoluteRect(element.frame.insetBy(dx: PlatformMetrics.listSelectionInset, dy: 0))
                 list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius,
                                        RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.listSelectionAlpha)))
             }
-            element.node.paint(into: &list, context: context.child(at: element.node.frame))
+            element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))
         }
     }
 

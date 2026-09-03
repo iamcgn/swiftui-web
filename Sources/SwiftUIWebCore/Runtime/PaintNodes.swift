@@ -87,11 +87,11 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
     override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
         let layerNodes = layer(for: target).layoutChildren
         if !isOverlay {
-            for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.frame)) }
+            for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.presentedFrame)) }
         }
         super.paintTarget(target, in: node, into: &list, context: context)
         if isOverlay {
-            for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.frame)) }
+            for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.presentedFrame)) }
         }
     }
 
@@ -101,8 +101,29 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
 
 @MainActor
 package final class OpacityNode<Content: View>: UnaryLayoutModifierNode<Content, _OpacityEffect> {
+    override package func update(view: ModifiedContent<Content, _OpacityEffect>, environment: EnvironmentValues, force: Bool) {
+        let old = presentedOpacity
+        let changed = modifier.opacity != view.modifier.opacity
+        super.update(view: view, environment: environment, force: force)
+        if changed {
+            if let animation = runtime.effectiveUpdateAnimation(for: self) {
+                let presentation = self.presentation ?? NodePresentation()
+                presentation.opacity = Tween(from: [old], to: [view.modifier.opacity], animation: animation, start: runtime.animationClock)
+                self.presentation = presentation
+                runtime.register(animating: self)
+            } else {
+                presentation?.opacity = nil
+            }
+        }
+    }
+
+    /// The opacity to paint with: the tween's value while animating.
+    package var presentedOpacity: Double {
+        presentation?.opacity?.value(at: runtime.animationClock).first ?? modifier.opacity
+    }
+
     override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
-        let opacity = modifier.opacity
+        let opacity = presentedOpacity
         guard opacity > 0 else { return }
         if opacity >= 1 {
             super.paintTarget(target, in: node, into: &list, context: context)

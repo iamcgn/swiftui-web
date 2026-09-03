@@ -1,0 +1,75 @@
+{
+  "fixture" : "animation\/frame",
+  "frames" : {
+    "below" : {
+      "height" : 16,
+      "width" : 36.5,
+      "x" : 141.75,
+      "y" : 96
+    },
+    "box" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 110,
+      "y" : 48
+    },
+    "stack" : {
+      "height" : 64,
+      "width" : 100,
+      "x" : 110,
+      "y" : 48
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "below" : {
+          "height" : 16,
+          "width" : 36.5,
+          "x" : 141.75,
+          "y" : 106
+        },
+        "box" : {
+          "height" : 60,
+          "width" : 200,
+          "x" : 60,
+          "y" : 38
+        },
+        "stack" : {
+          "height" : 84,
+          "width" : 200,
+          "x" : 60,
+          "y" : 38
+        }
+      },
+      "name" : "expand"
+    },
+    {
+      "frames" : {
+        "below" : {
+          "height" : 16,
+          "width" : 36.5,
+          "x" : 141.75,
+          "y" : 96
+        },
+        "box" : {
+          "height" : 40,
+          "width" : 100,
+          "x" : 110,
+          "y" : 48
+        },
+        "stack" : {
+          "height" : 64,
+          "width" : 100,
+          "x" : 110,
+          "y" : 48
+        }
+      },
+      "name" : "collapse"
+    }
+  ]
+}
