@@ -24,6 +24,10 @@ Apple docs: [Label](https://developer.apple.com/documentation/swiftui/label),
 | `titleOnly` is the title alone (26.5 × 16), `iconOnly` the icon alone (24 × 24), `titleAndIcon` the automatic layout | `titleOnly`, `iconOnly`, `titleAndIcon` |
 | Inside a bordered button the label keeps its layout and the button grows to 32: 4 pt above and below any label (`Docs/elements/Button.md`) | `button`, `buttonLabel` |
 
+Inside a `List` row (`list/basic` `label`, 48.5 × 24) the icon gets a 16 pt slot it is centred in
+(a 24 pt icon overflows 4 pt each side), 6 pt to the title, and the accent tint; the container sets
+this through the `_labelIconLayout` environment (`Docs/elements/List.md`).
+
 The same guide (`VerticalAlignment._iconCenter`) positions a checkbox against its label.
 
 ## Verification (2026-09-02)
@@ -32,5 +36,5 @@ Tier A exact; Tier B frames exact, pixels ≤ 0.08 % in all three browsers.
 
 ## Not yet covered
 
-SF Symbols, the automatic style's context sensitivity, `Label` in `List`/`Menu`/toolbars,
+SF Symbols, the automatic style's context sensitivity, `Label` in `Menu`/toolbars,
 multi-line titles (the guide uses the first line), `Text`-only icons.

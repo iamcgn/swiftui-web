@@ -59,7 +59,7 @@
         {
           "api": "Section (content/header/footer, title forms, deprecated argument orders)",
           "status": "partial",
-          "notes": "Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; no List/Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels",
+          "notes": "Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; inside List: styled header/footer, spacing, pinned first header (list/sections); no Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels",
           "fixtures": [
             "section/*"
           ]
@@ -140,6 +140,18 @@
           "notes": "Icon centred on half the cap height above the title's baseline, 8 pt spacing (measured); systemImage is the stub symbol; the automatic style is not context sensitive",
           "fixtures": [
             "label/basic"
+          ]
+        },
+        {
+          "api": "List (content, selection, data/id/Range forms) / ListStyle (automatic, inset, plain, bordered, sidebar) / listStyle",
+          "status": "partial",
+          "notes": "macOS row geometry, separators, section headers/footers with the pinned first header, styles, single and multiple selection by press, labels' icon slot and tint measured; no outline lists, edit actions, keyboard selection, focused (accent) highlight, alternating backgrounds or custom styles",
+          "fixtures": [
+            "list/basic",
+            "list/sections",
+            "list/styles",
+            "list/modifiers",
+            "list/steps"
           ]
         },
         {
@@ -472,6 +484,20 @@
         },
         {
           "api": "autocorrectionDisabled(_:)",
+          "status": "stub",
+          "notes": "Stored only",
+          "fixtures": []
+        },
+        {
+          "api": "listRowInsets / listRowBackground / listRowSeparator / listRowSeparatorTint",
+          "status": "partial",
+          "notes": "Per-row insets, edge-to-edge background, bottom separator visibility and tint (top edge ignored); apply per element through a ForEach or Section",
+          "fixtures": [
+            "list/modifiers"
+          ]
+        },
+        {
+          "api": "listSectionSeparator / listSectionSeparatorTint / listItemTint",
           "status": "stub",
           "notes": "Stored only",
           "fixtures": []

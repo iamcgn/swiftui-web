@@ -55,7 +55,7 @@ them through the existing proxy mechanism.
 
 ## Open
 
-- `Section` header styling inside `List`, `Form`, `Picker` (element `List`).
+- `Section` header styling inside `Form`, `Picker` (`List` is done: `Docs/elements/List.md`).
 - Duplicate-id warning; `onDelete`/`onMove` edit actions; `Subviews`-based `ForEach`.
 - Tier B: Chromium and WebKit exact frames on all 14 fixtures (every identity step included);
   Firefox measures "Vegetables" 0.5 pt wider, which shifts the leading-aligned column of
