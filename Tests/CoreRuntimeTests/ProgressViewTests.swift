@@ -54,7 +54,7 @@ import SwiftUIWebHeadless
         // recorded test engine, which has no font spacing; the golden shows the font's 4.74).
         #expect(commands(ProgressView(value: 1).progressViewStyle(.circular))[1].contains("w=5 #000000@"))
         let labelled = runtime(ProgressView("Loading", value: 0.5).progressViewStyle(.circular)._probe("whole"))
-        #expect(labelled.probeFrames["whole"]?.height == 32 + 8 + 16)
+        #expect(abs((labelled.probeFrames["whole"]?.height ?? 0) - 56) < 1e-9)
         // The spinner: eight spokes, fading; the control size scales it.
         let spinner = commands(ProgressView())
         #expect(spinner.count == 8 && spinner.allSatisfy { $0.hasPrefix("strokePath(2 elements) w=3 cap=round") })
