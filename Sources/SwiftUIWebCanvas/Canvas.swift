@@ -342,13 +342,6 @@ public final class CanvasHost {
                         self.runtime.setValue(semanticsIdentifier: id, value: value)
                         self.scheduleFrame()
                     }
-                case .stepper:
-                    on(element, "keydown") { [weak self] e in
-                        guard let self, let key = e.key.string, key == "ArrowUp" || key == "ArrowDown" else { return }
-                        _ = e.preventDefault?()
-                        self.runtime.adjust(semanticsIdentifier: id, increment: key == "ArrowUp")
-                        self.scheduleFrame()
-                    }
                 case .text, .heading, .image, .group, .list:
                     break
                 default:

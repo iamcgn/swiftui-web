@@ -54,7 +54,7 @@ package func _collectOptions(_ node: ViewNode, wrap: @MainActor (ViewNode) -> Vi
 // MARK: - Picker
 
 @MainActor
-package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
+package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandling {
     private let identifier: Int
     package private(set) var label: TypedNode<AnyView>?
     package private(set) var content: TypedNode<AnyView>!
@@ -367,6 +367,31 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive {
             view.select.select(tag)
             runtime.setNeedsDisplay()
         }
+    }
+
+    /// Left/Right (and Up/Down) move a segmented or radio group's selection to the previous or
+    /// next option; a pop-up opens its menu on Down.
+    package func handleKey(_ press: KeyPress) -> Bool {
+        guard enabled, press.modifiers.shortcutModifiers.isEmpty else { return false }
+        let step: Int
+        switch press.key {
+        case .rightArrow, .downArrow: step = 1
+        case .leftArrow, .upArrow: step = -1
+        default: return false
+        }
+        if style == .menu {
+            guard step == 1 else { return false }
+            pressEnded(inside: true, at: .zero)
+            return true
+        }
+        let selectable = options.filter { $0.tag != nil }
+        guard !selectable.isEmpty else { return false }
+        let current = selectable.firstIndex(where: isSelected) ?? (step == 1 ? -1 : selectable.count)
+        let next = min(max(current + step, 0), selectable.count - 1)
+        guard let tag = selectable[next].tag, next != current else { return true }
+        view.select.select(tag)
+        runtime.setNeedsDisplay()
+        return true
     }
 
     package var semantics: SemanticsNode {

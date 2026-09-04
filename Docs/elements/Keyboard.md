@@ -19,6 +19,7 @@ Apple docs: [onKeyPress](https://developer.apple.com/documentation/swiftui/view/
 | Menus by keyboard | implemented: Up/Down highlight, Return/Space activates, Escape closes |
 | Escape dismissing sheets, popovers, alerts and menus | implemented |
 | Tab / Shift-Tab focus traversal (`Runtime.focusOrder`, `moveFocus`) | implemented 2026-09-04: controls, text fields, focusable views and selectable lists in paint order, wrapping; the topmost modal presentation's alone while one is up; the host mirrors the focus into its overlay |
+| Arrow keys on a focused slider or stepper (Up/Right increment, Down/Left decrement) and on a segmented or radio picker (previous/next option; Down opens a pop-up) | implemented 2026-09-04 in the runtime; the browser's range input follows the runtime's value |
 | Space / Return activating the focused control | implemented 2026-09-04 in the runtime; a consumed press keeps the browser's overlay button from clicking too |
 | `onKeyPress(characters:)`, `onCommand`, `onPasteCommand`, `onCopyCommand`, `focusSection`, `defaultFocus`, `prefersDefaultFocus`, `FocusedValue`, `@FocusedBinding`, Tab order control, `onPlayPauseCommand`, Cmd/Ctrl ranges in lists, type-to-select | missing |
 
@@ -41,7 +42,8 @@ input keeps its own keys except Escape) builds a
 activating the focused control; keyboard shortcuts in presented content (a sheet's
 default and cancel buttons); Escape dismissing the topmost presentation; the window's
 keyboard shortcuts. A consumed press has its browser default prevented. Steppers and sliders
-keep their overlay's native arrow handling.
+no longer need their overlay's native arrow handling: the runtime adjusts them and the
+consumed press stops the range input from moving twice.
 
 **Lists.** Up/Down select the previous/next row from the last selected one (the first or last
 row when nothing is selected), Home/End the first/last; Shift extends a multiple selection from

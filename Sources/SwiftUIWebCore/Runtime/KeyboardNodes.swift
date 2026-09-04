@@ -176,6 +176,15 @@ extension Runtime {
         // An open menu takes the keys next; then Tab moves focus and Space or Return activates the
         // focused control (a consumed press keeps a browser overlay button from clicking as well).
         if let top = presentations.last, top.kind.isMenu, top.handleKey(press) { return true }
+        // Arrows adjust a focused slider or stepper (Up/Right increment, Down/Left decrement).
+        if press.modifiers.shortcutModifiers.isEmpty, let focusedIdentifier,
+           let adjustable = interactiveNode(semanticsIdentifier: focusedIdentifier) as? any _Adjustable {
+            switch press.key {
+            case .upArrow, .rightArrow: adjustable.adjust(increment: true); setNeedsDisplay(); return true
+            case .downArrow, .leftArrow: adjustable.adjust(increment: false); setNeedsDisplay(); return true
+            default: break
+            }
+        }
         if press.key == .tab, press.modifiers.shortcutModifiers.isSubset(of: [.shift]) {
             return moveFocus(forward: !press.modifiers.contains(.shift))
         }

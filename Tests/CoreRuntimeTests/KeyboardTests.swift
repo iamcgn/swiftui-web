@@ -171,6 +171,35 @@ import SwiftUIWebHeadless
         #expect(!r.keyDown(key(.space)) && box.log == "save")
     }
 
+    @Observable final class ControlsModel: @unchecked Sendable {
+        var count = 0
+        var fruit = 1
+    }
+
+    @Test func arrowsAdjustControls() {
+        let box = _KeyBox()
+        let model = ControlsModel()
+        let r = runtime(VStack {
+            Stepper("Count", value: Binding(get: { box.count }, set: { box.count = $0 }), in: 0...3)
+            Picker("Fruit", selection: Binding(get: { model.fruit }, set: { model.fruit = $0 })) {
+                Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+            }.pickerStyle(.segmented)
+        })
+        let stepper = r.semanticsTree().first { $0.role == .stepper }!
+        r.focus(semanticsIdentifier: stepper.identifier)
+        #expect(r.keyDown(key(.upArrow)) && box.count == 1)
+        #expect(r.keyDown(key(.rightArrow)) && box.count == 2)
+        #expect(r.keyDown(key(.downArrow)) && box.count == 1)
+        let picker = r.semanticsTree().first { $0.role == .segmented }!
+        r.focus(semanticsIdentifier: picker.identifier)
+        #expect(r.keyDown(key(.rightArrow)) && model.fruit == 2)
+        relayout(r)
+        #expect(r.keyDown(key(.rightArrow)) && model.fruit == 3)
+        relayout(r)
+        #expect(r.keyDown(key(.rightArrow)) && model.fruit == 3)
+        #expect(r.keyDown(key(.leftArrow)) && model.fruit == 2)
+    }
+
     @Test func domKeys() {
         #expect(KeyEquivalent(domKey: "ArrowUp") == .upArrow)
         #expect(KeyEquivalent(domKey: "Enter") == .return)
@@ -184,6 +213,7 @@ private final class _KeyBox: @unchecked Sendable {
     var log = ""
     var selection: Int? = nil
     var sheet = false
+    var count = 0
 }
 private final class _KeySetBox: @unchecked Sendable { var value: Set<Int> = [] }
 #endif

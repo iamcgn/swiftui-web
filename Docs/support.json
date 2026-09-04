@@ -476,9 +476,12 @@
           "notes": "Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath; Tier B (Chromium) within tolerance"
         },
         {
-          "api": "ObservableObject / @Published / @StateObject",
-          "status": "missing",
-          "notes": "Combine is unavailable on wasm/Linux; minimal in-house implementation planned (Phase 3)"
+          "api": "ObservableObject / @Published / @StateObject / @ObservedObject / @EnvironmentObject",
+          "status": "partial",
+          "notes": "Combine-free implementation (ObservableObjectPublisher, AnyCancellable, @Published through the enclosing-instance subscript); typealiases in the SwiftUI shim shadow Foundation's Combine re-export on macOS; no onReceive or Combine operators (Docs/elements/ObservableObject.md)",
+          "fixtures": [
+            "observable/object"
+          ]
         },
         {
           "api": "ObservableObject / ObservableObjectPublisher / AnyCancellable / @Published / @StateObject / @ObservedObject / @EnvironmentObject / environmentObject",
