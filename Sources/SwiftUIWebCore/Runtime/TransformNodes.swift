@@ -45,6 +45,7 @@ private func aboutAnchor(_ local: CGAffineTransform, origin: CGPoint, size: CGSi
 
 @MainActor
 package final class OffsetNode<Content: View>: UnaryLayoutModifierNode<Content, _OffsetEffect> {
+    override package var paintsOutsideFrame: Bool { true }
     private var current: [Double] { [modifier.offset.width, modifier.offset.height] }
 
     override package func update(view: ModifiedContent<Content, _OffsetEffect>, environment: EnvironmentValues, force: Bool) {
@@ -105,6 +106,7 @@ package final class ScaleNode<Content: View>: UnaryLayoutModifierNode<Content, _
 
 @MainActor
 package final class TransformNode<Content: View>: UnaryLayoutModifierNode<Content, _TransformEffect> {
+    override package var paintsOutsideFrame: Bool { true }
     private var current: [Double] { let t = modifier.transform; return [t.a, t.b, t.c, t.d, t.tx, t.ty] }
 
     override package func update(view: ModifiedContent<Content, _TransformEffect>, environment: EnvironmentValues, force: Bool) {

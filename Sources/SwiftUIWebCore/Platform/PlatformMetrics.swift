@@ -362,6 +362,9 @@ package enum PlatformMetrics {
     package static let tableChevronStroke: CGFloat = 1.5
     package static let tableIdealSize = CGSize(width: 300, height: 200)     // unverified
 
+    // Painting: a scroll view skips subtrees further than this outside its viewport.
+    package static let scrollCullMargin: CGFloat = 256
+
     // ColorPicker (macOS 26.2: fixtures colorpicker/*, Docs/elements/ColorPicker.md)
     package static let colorWellSize = CGSize(width: 48, height: 24)
     package static let colorWellCornerRadius: CGFloat = 11

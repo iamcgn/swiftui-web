@@ -88,7 +88,9 @@ public final class Runtime {
     /// Mounts `view` as the root, replacing any previous root view.
     @discardableResult
     public func mount<V: View>(_ view: V) -> TypedNode<V> {
-        root.mount(view)
+        // A root replaced or updated outside the scheduler changes sizes like any update would.
+        sizesInvalidated = true
+        return root.mount(view)
     }
 
     /// Applies pending invalidations (top-down by depth). Hosts call this once per frame.
@@ -132,7 +134,12 @@ public final class Runtime {
     /// Whether the host should produce another frame.
     public var needsFrame: Bool { scheduler.hasPendingWork || layoutRequested }
 
-    package func requestLayout() {
+    /// Whether the next layout may find different sizes: state updates, image loads and resizes
+    /// say so; a scroll only moves content, so the memoised sizes stay valid across its frames.
+    private var sizesInvalidated = true
+
+    package func requestLayout(invalidatingSizes: Bool = true) {
+        if invalidatingSizes { sizesInvalidated = true }
         guard !layoutRequested else { return }
         layoutRequested = true
         if !scheduler.hasPendingWork { scheduler.onNeedsFlush?() }
@@ -142,9 +149,12 @@ public final class Runtime {
     /// the root view is proposed the full size and centred.
     public func layout(in size: CGSize) {
         updateAnimation = pendingAnimation
+        if scheduler.hasPendingWork || size != layoutSize || pendingAnimation != nil || isAnimating { sizesInvalidated = true }
         flush()
         layoutRequested = false
-        layoutGeneration += 1
+        // The generation keys every node's size memo: a frame that only scrolled keeps it.
+        if sizesInvalidated { layoutGeneration += 1 }
+        sizesInvalidated = false
         layoutAnimation = pendingAnimation
         pendingAnimation = nil
         isLayingOut = true

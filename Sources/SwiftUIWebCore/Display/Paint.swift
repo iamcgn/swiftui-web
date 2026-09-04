@@ -4,6 +4,9 @@ public struct PaintContext {
     package var origin: CGPoint
     /// Pixels per point; frame edges are rounded to this grid.
     package let scale: CGFloat
+    /// Absolute area a clipping scroll view can show, plus a margin: nodes whose frames lie
+    /// outside it are not painted (`ViewNode.paintChildren`).
+    package var visibleRect: CGRect?
 
     package init(origin: CGPoint, scale: CGFloat) {
         self.origin = origin
@@ -24,7 +27,9 @@ public struct PaintContext {
 
     /// The context for a child placed at `frame` within this node.
     package func child(at frame: CGRect) -> PaintContext {
-        PaintContext(origin: CGPoint(x: origin.x + frame.minX, y: origin.y + frame.minY), scale: scale)
+        var child = PaintContext(origin: CGPoint(x: origin.x + frame.minX, y: origin.y + frame.minY), scale: scale)
+        child.visibleRect = visibleRect
+        return child
     }
 }
 

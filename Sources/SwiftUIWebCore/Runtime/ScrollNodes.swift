@@ -182,7 +182,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     package func scrollTo(id: AnyHashable, anchor: UnitPoint?) -> Bool {
         guard identifiedNode(id) != nil else { return false }
         pendingTarget = (id, anchor)
-        runtime.requestLayout()
+        runtime.requestLayout(invalidatingSizes: false)
         return true
     }
 
@@ -199,7 +199,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         }
         if offset != contentOffset {
             contentOffset = offset
-            runtime.requestLayout()
+            runtime.requestLayout(invalidatingSizes: false)
         }
         return remaining
     }
@@ -236,7 +236,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
                 indicatorHold = max(0, indicatorHold - elapsed)
             } else {
                 indicatorOpacity = max(0, indicatorOpacity - elapsed / PlatformMetrics.scrollerFadeSeconds)
-                runtime.requestLayout()
+                runtime.requestLayout(invalidatingSizes: false)
             }
             if indicatorOpacity > 0 { animating = true }
         }
@@ -249,9 +249,13 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         let clips = !environment.isScrollClipDisabled
+        var context = context
         if clips {
+            let bounds = absoluteBounds(context)
             list.append(.save)
-            list.append(.clipRect(absoluteBounds(context)))
+            list.append(.clipRect(bounds))
+            // Subtrees entirely outside the viewport (by more than the margin) are not painted.
+            context.visibleRect = bounds.insetBy(dx: -PlatformMetrics.scrollCullMargin, dy: -PlatformMetrics.scrollCullMargin)
         }
         paintChildren(into: &list, context: context)
         if clips { list.append(.restore) }
@@ -384,7 +388,7 @@ extension Runtime {
     /// Registers a scroll view whose momentum or indicators need frames.
     package func animate(_ node: ViewNode & _Scrollable) {
         if !animatingScrollNodes.contains(where: { $0 === node }) { animatingScrollNodes.append(node) }
-        requestLayout()
+        requestLayout(invalidatingSizes: false)
     }
 
     /// Advances scroll momentum and indicator fades by `elapsed` seconds. Hosts call this once

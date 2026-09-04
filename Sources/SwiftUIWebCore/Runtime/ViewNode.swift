@@ -260,9 +260,18 @@ open class ViewNode {
 
     package func paintChildren(into list: inout DisplayList, context: PaintContext) {
         for child in paintedChildren {
-            child.paint(into: &list, context: context.child(at: child.presentedFrame))
+            let frame = child.presentedFrame
+            if let visible = context.visibleRect, !child.paintsOutsideFrame, frame.width > 0, frame.height > 0,
+               !frame.offsetBy(dx: context.origin.x, dy: context.origin.y).intersects(visible) {
+                continue
+            }
+            child.paint(into: &list, context: context.child(at: frame))
         }
     }
+
+    /// Whether this node's painting can reach beyond its frame (offsets, transforms): such
+    /// nodes are never culled by a scroll view's viewport.
+    package var paintsOutsideFrame: Bool { false }
 
     /// This node's own bounds (the presented size while animating), pixel aligned, in absolute
     /// coordinates.

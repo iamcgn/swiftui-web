@@ -22,6 +22,8 @@ public final class CanvasHost {
     private var frameScheduled = false
     private var needsLayout = true
     private var overlayButtons: [Int: JSObject] = [:]
+    /// The semantics each overlay element was last written from (writes cross the JS bridge).
+    private var overlayState: [Int: SemanticsNode] = [:]
     private var closures: [JSClosure] = []
     private var frameClosure: JSClosure?
 
@@ -377,12 +379,22 @@ public final class CanvasHost {
                 _ = overlay.appendChild!(element)
                 overlayButtons[node.identifier] = element
             }
-            let style = element.style.object!
-            style.left = .string("\(node.frame.minX)px")
-            style.top = .string("\(node.frame.minY)px")
-            style.width = .string("\(node.frame.width)px")
-            style.height = .string("\(node.frame.height)px")
-            Self.applyAttributes(of: node, to: element)
+            let previous = overlayState[node.identifier]
+            if previous?.frame != node.frame {
+                let style = element.style.object!
+                style.left = .string("\(node.frame.minX)px")
+                style.top = .string("\(node.frame.minY)px")
+                if previous?.frame.size != node.frame.size {
+                    style.width = .string("\(node.frame.width)px")
+                    style.height = .string("\(node.frame.height)px")
+                }
+            }
+            var unmoved = node
+            unmoved.frame = previous?.frame ?? .zero
+            if previous == nil || previous != unmoved {
+                Self.applyAttributes(of: node, to: element)
+            }
+            overlayState[node.identifier] = node
             // Programmatic focus (`FocusState`, a click on a focusable view) moves the host's focus.
             if runtime.focusedIdentifier == node.identifier, !(document.activeElement.object === element) {
                 _ = element.focus?()
@@ -391,6 +403,7 @@ public final class CanvasHost {
         for (id, element) in overlayButtons where !seen.contains(id) {
             _ = element.remove!()
             overlayButtons[id] = nil
+            overlayState[id] = nil
         }
     }
 
