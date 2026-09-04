@@ -234,6 +234,9 @@ package enum PlatformMetrics {
     package static let spinnerMaxAlpha = 53.0 / 255
     package static let spinnerMinAlpha = 17.0 / 255
 
+    // Link (macOS 26.2: fixture link/basic, Docs/elements/Link.md)
+    package static let linkDisabledOpacity = 0.5
+
     // GroupBox (macOS 26.2: fixture groupbox/basic, Docs/elements/GroupBox.md)
     package static let groupBoxPadding: CGFloat = 5
     package static let groupBoxCornerRadius: CGFloat = 12

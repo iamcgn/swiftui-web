@@ -21,6 +21,7 @@ extension PlatformProfile {
         .primary: RGBA(r: 0, g: 0, b: 0, a: 0.85),      // labelColor (216/255)
         .secondary: RGBA(r: 0, g: 0, b: 0, a: 0.5),     // secondaryLabelColor (127/255)
         .accentColor: RGBA(r: 0, g: 136, b: 255),       // default accent = blue
+        .link: RGBA(r: 0, g: 104, b: 218),              // link/basic: 0, 104, 218
     ]
 
     package func resolve(_ system: Color.SystemColor) -> RGBA {

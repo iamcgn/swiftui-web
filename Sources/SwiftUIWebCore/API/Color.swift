@@ -18,6 +18,8 @@ public struct Color: Hashable, Sendable {
     package enum SystemColor: String, Hashable, Sendable, CaseIterable {
         case red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown
         case white, gray, black, clear, primary, secondary, accentColor
+        /// The colour of links (`Link`): the fixed blue macOS uses, not the accent.
+        case link
     }
 
     package let storage: Storage

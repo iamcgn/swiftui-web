@@ -1,0 +1,39 @@
+{
+  "fixture" : "labeledcontent\/form",
+  "frames" : {
+    "count" : {
+      "height" : 16,
+      "width" : 53,
+      "x" : 0,
+      "y" : 83.924560546875
+    },
+    "countContent" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 44.5,
+      "y" : 83.924560546875
+    },
+    "field" : {
+      "height" : 24,
+      "width" : 356,
+      "x" : 4,
+      "y" : 108.075439453125
+    },
+    "form" : {
+      "height" : 64.15087890625,
+      "width" : 360,
+      "x" : 0,
+      "y" : 67.924560546875
+    },
+    "value" : {
+      "height" : 16,
+      "width" : 79.5,
+      "x" : 1,
+      "y" : 67.924560546875
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 360
+  }
+}

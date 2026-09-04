@@ -1,0 +1,63 @@
+{
+  "fixture" : "link\/basic",
+  "frames" : {
+    "custom" : {
+      "height" : 24,
+      "width" : 90.5,
+      "x" : 114.75,
+      "y" : 51.5
+    },
+    "customLabel" : {
+      "height" : 24,
+      "width" : 90.5,
+      "x" : 115,
+      "y" : 51.5
+    },
+    "disabled" : {
+      "height" : 16,
+      "width" : 53,
+      "x" : 133.5,
+      "y" : 115.5
+    },
+    "inline" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 154.75,
+      "y" : 87.5
+    },
+    "large" : {
+      "height" : 33,
+      "width" : 54,
+      "x" : 133,
+      "y" : 143.5
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 79.5,
+      "x" : 120.25,
+      "y" : 87.5
+    },
+    "stack" : {
+      "height" : 153,
+      "width" : 90.5,
+      "x" : 114.75,
+      "y" : 23.5
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 26.5,
+      "x" : 120.25,
+      "y" : 87.5
+    },
+    "titled" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 142.5,
+      "y" : 23.5
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

@@ -68,6 +68,8 @@ public final class CanvasHost {
         runtime.textEngine = Canvas2DTextEngine(context: context, bridge: bridge)
         runtime.assetCatalog = Self.assetCatalog(from: window.__swiftuiwebAssets)
         runtime.scheduler.onNeedsFlush = { [weak self] in self?.scheduleFrame() }
+        // Links open in a new tab.
+        OpenURLAction.systemHandler = { url in _ = JSObject.global.window.object?.open?(url.absoluteString, "_blank", "noopener") }
         // An image the painter had to fetch has arrived: paint the frame again.
         let imageLoaded = JSClosure { [weak self] _ in
             MainActor.assumeIsolated {

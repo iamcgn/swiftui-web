@@ -1,0 +1,93 @@
+{
+  "fixture" : "labeledcontent\/basic",
+  "frames" : {
+    "count" : {
+      "height" : 18.5,
+      "width" : 53,
+      "x" : 133.5,
+      "y" : 58.25
+    },
+    "countContent" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 178,
+      "y" : 59.5
+    },
+    "custom" : {
+      "height" : 24,
+      "width" : 138,
+      "x" : 91,
+      "y" : 88.75
+    },
+    "customContent" : {
+      "height" : 16,
+      "width" : 47,
+      "x" : 182,
+      "y" : 92.75
+    },
+    "customLabel" : {
+      "height" : 24,
+      "width" : 83,
+      "x" : 91,
+      "y" : 88.75
+    },
+    "hidden" : {
+      "height" : 16,
+      "width" : 41,
+      "x" : 139.5,
+      "y" : 124.75
+    },
+    "narrow" : {
+      "height" : 18.5,
+      "width" : 160,
+      "x" : 80,
+      "y" : 183.25
+    },
+    "narrowContent" : {
+      "height" : 16,
+      "width" : 33.5,
+      "x" : 169.25,
+      "y" : 184.5
+    },
+    "narrowLabel" : {
+      "height" : 18.5,
+      "width" : 44,
+      "x" : 117.25,
+      "y" : 183.25
+    },
+    "stack" : {
+      "height" : 244.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 7.75
+    },
+    "toggle" : {
+      "height" : 18.5,
+      "width" : 65,
+      "x" : 127.5,
+      "y" : 152.75
+    },
+    "toggleContent" : {
+      "height" : 16,
+      "width" : 16,
+      "x" : 176.5,
+      "y" : 154
+    },
+    "value" : {
+      "height" : 18.5,
+      "width" : 79.5,
+      "x" : 120.25,
+      "y" : 27.75
+    },
+    "wide" : {
+      "height" : 18.5,
+      "width" : 280,
+      "x" : 20,
+      "y" : 213.75
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

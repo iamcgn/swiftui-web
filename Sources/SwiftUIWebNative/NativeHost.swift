@@ -61,6 +61,7 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
         let view = RuntimeView(frame: NSRect(origin: .zero, size: size), host: self)
         self.view = view
         runtime.scheduler.onNeedsFlush = { [weak view] in view?.needsDisplay = true }
+        OpenURLAction.systemHandler = { url in NSWorkspace.shared.open(url) }
         runtime.mount(root())
         return view
     }
