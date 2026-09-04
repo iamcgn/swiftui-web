@@ -193,8 +193,6 @@ public final class CanvasHost {
         on(window, "keydown") { [weak self] e in
             guard let self, let domKey = e.key.string, let key = KeyEquivalent(domKey: domKey) else { return }
             if let target = e.target.object, target.tagName.string == "INPUT", target.type.string != "range", key != .escape { return }
-            // Overlay buttons activate on Space and Return themselves (a click follows).
-            if key == .space || key == .return, let target = e.target.object, target.tagName.string == "BUTTON" { return }
             var modifiers: EventModifiers = []
             if e.shiftKey.boolean == true { modifiers.insert(.shift) }
             if e.ctrlKey.boolean == true { modifiers.insert(.control) }

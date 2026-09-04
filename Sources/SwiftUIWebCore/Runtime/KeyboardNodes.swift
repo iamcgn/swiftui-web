@@ -174,7 +174,7 @@ extension Runtime {
             }
         }
         // An open menu takes the keys next; then Tab moves focus and Space or Return activates the
-        // focused control (native hosts: the browser's overlay buttons do this themselves).
+        // focused control (a consumed press keeps a browser overlay button from clicking as well).
         if let top = presentations.last, top.kind.isMenu, top.handleKey(press) { return true }
         if press.key == .tab, press.modifiers.shortcutModifiers.isSubset(of: [.shift]) {
             return moveFocus(forward: !press.modifiers.contains(.shift))

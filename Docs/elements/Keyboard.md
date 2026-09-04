@@ -19,7 +19,7 @@ Apple docs: [onKeyPress](https://developer.apple.com/documentation/swiftui/view/
 | Menus by keyboard | implemented: Up/Down highlight, Return/Space activates, Escape closes |
 | Escape dismissing sheets, popovers, alerts and menus | implemented |
 | Tab / Shift-Tab focus traversal (`Runtime.focusOrder`, `moveFocus`) | implemented 2026-09-04: controls, text fields, focusable views and selectable lists in paint order, wrapping; the topmost modal presentation's alone while one is up; the host mirrors the focus into its overlay |
-| Space / Return activating the focused control | implemented 2026-09-04 in the runtime (native hosts); the browser's overlay buttons do it themselves |
+| Space / Return activating the focused control | implemented 2026-09-04 in the runtime; a consumed press keeps the browser's overlay button from clicking too |
 | `onKeyPress(characters:)`, `onCommand`, `onPasteCommand`, `onCopyCommand`, `focusSection`, `defaultFocus`, `prefersDefaultFocus`, `FocusedValue`, `@FocusedBinding`, Tab order control, `onPlayPauseCommand`, Cmd/Ctrl ranges in lists, type-to-select | missing |
 
 ## Behaviour
@@ -35,7 +35,7 @@ focusable view). Focusable lists and views get `tabindex="0"`; a list with a sel
 `listbox` (its rows stay their own elements).
 
 **Dispatch.** `Runtime.keyDown(KeyEvent) -> Bool` (the host's `window` `keydown`; a text field's
-input keeps its own keys except Escape, an overlay button its Space and Return) builds a
+input keeps its own keys except Escape) builds a
 `KeyPress` and tries, in order: the focused node and its ancestors (`KeyPressNode`,
 `CommandNode`, a list's own navigation) until one consumes the press; the topmost menu; Tab moving focus; Space or Return
 activating the focused control; keyboard shortcuts in presented content (a sheet's
