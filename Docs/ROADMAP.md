@@ -290,6 +290,7 @@ effects → `mask`/`compositingGroup` → `position`/safe areas → `onHover`/`h
 |---|---|
 | shadow | done 2026-09-04: `_ShadowEffect`/`ShadowNode`, `DisplayCommand.beginShadow` (op 18) in the JS and CoreGraphics painters (sigma = radius, device-space blur and offset), `Color.RGBColorSpace` inits. 3 fixtures exact in Tier A, Tier C 0.00 % (`Docs/elements/Effects.md`; `effects/shadow-offset` is frames-only because the offscreen harness window flips `y`). |
 | zIndex, hidden | done 2026-09-04: the `zIndex` node trait orders `paintOrderedChildren` and hit testing; `hidden` empties the painted children. Tier A exact, Tier C 0.00 %. |
+| dark mode | done 2026-09-04: `ColorTable.macOSDarkColors` (measured on `dark/*`), `controlInk`/`controlBackground`/`windowBackground`/`knob` system colours used by every control node, `preferredColorScheme`, `Runtime.hostColorScheme` from `prefers-color-scheme` and the window's appearance, hosts paint the window background; fixtures choose their scheme (`Fixture.colorScheme`, a `darkAqua` harness window, dark catalog variants). 4 fixtures exact in Tier A, Tier C ≤ 0.33 % (`Docs/elements/DarkMode.md`). |
 | underline, strikethrough, textCase, baselineOffset | done 2026-09-04: `Text.LineStyle`, text- and view-level modifiers, CoreText decoration metrics in the font table with weight/design ratios, pixel-snapped lines and dash patterns, cased measurement, baseline-offset growth. 5 fixtures exact in Tier A, Tier C ≤ 0.10 % (`Docs/elements/TextStyle.md`). |
 
 ## Risk register

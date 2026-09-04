@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 84, .stub: 6, .full: 11, .approximate: 3, .missing: 17]
+    static let counts: [SupportStatus: Int] = [.partial: 85, .stub: 6, .full: 11, .approximate: 3, .missing: 17]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -141,7 +141,8 @@ partial	Image(_:bundle:) / Image(decorative:bundle:) / Image(_:bundle:label:) fr
 partial	Image.resizable(capInsets:resizingMode:) / renderingMode / interpolation / antialiased	Stretch, nine-part stretch, tile and nine-part tile; template tint from the foreground style; interpolation(.none) is nearest neighbour, other levels smooth; antialiased stored only. Cap insets with .tile draw all nine parts where AppKit drops the bottom row (1.6 % pixels in image/tiling)	3
 partial	Image(systemName:) / Image.Scale / imageScale(_:) / View.fontWeight / View.bold	Measured SF Symbol layout (240 symbols at the text-style sizes, 13 pt weights and image scales; scaled elsewhere) with Lucide icons (ISC) standing in for the glyphs, 1551 names; no rendering modes, variants or effects	2
 missing	Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:) / AsyncImage	No CGImage/NSImage on wasm	0
-partial	Color(_:bundle:) from asset catalog colour sets / ColorScheme / colorScheme environment	sRGB components in float, hex and integer spellings; the light or dark variant per environment.colorScheme (default light; nothing else reads it yet). Display P3 components are used as sRGB. A missing name is clear (assumed)	1
+partial	Color(_:bundle:) from asset catalog colour sets	sRGB components in float, hex and integer spellings; the light or dark variant per environment.colorScheme. Display P3 components are used as sRGB. A missing name is clear (assumed)	2
+partial	ColorScheme / colorScheme environment / preferredColorScheme / dark appearance	Measured dark tables for system colours, labels, link and accent; controls draw with a scheme-aware ink and background; hosts follow the system appearance and preferredColorScheme takes the window. Sidebars, panels, colour picker and gauge chrome unverified in dark (Docs/elements/DarkMode.md)	4
 missing	AsyncImage / Image(nsImage:) / Image(cgImage:)	Only asset-catalog images and SF Symbol stand-ins are drawn	0
 missing	Toolbar / ToolbarItem / toolbar(_:) / navigationBar customisation	Not implemented; NavigationStack shows its title only	0
 missing	searchable(_:) / Searchable modifiers	Not implemented	0

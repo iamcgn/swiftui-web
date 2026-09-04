@@ -590,11 +590,23 @@
           "notes": "No CGImage/NSImage on wasm"
         },
         {
-          "api": "Color(_:bundle:) from asset catalog colour sets / ColorScheme / colorScheme environment",
+          "api": "Color(_:bundle:) from asset catalog colour sets",
           "status": "partial",
-          "notes": "sRGB components in float, hex and integer spellings; the light or dark variant per environment.colorScheme (default light; nothing else reads it yet). Display P3 components are used as sRGB. A missing name is clear (assumed)",
+          "notes": "sRGB components in float, hex and integer spellings; the light or dark variant per environment.colorScheme. Display P3 components are used as sRGB. A missing name is clear (assumed)",
           "fixtures": [
-            "color/named"
+            "color/named",
+            "dark/system-colors"
+          ]
+        },
+        {
+          "api": "ColorScheme / colorScheme environment / preferredColorScheme / dark appearance",
+          "status": "partial",
+          "notes": "Measured dark tables for system colours, labels, link and accent; controls draw with a scheme-aware ink and background; hosts follow the system appearance and preferredColorScheme takes the window. Sidebars, panels, colour picker and gauge chrome unverified in dark (Docs/elements/DarkMode.md)",
+          "fixtures": [
+            "dark/system-colors",
+            "dark/text",
+            "dark/controls",
+            "dark/list"
           ]
         },
         {
