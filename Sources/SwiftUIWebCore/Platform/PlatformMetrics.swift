@@ -234,6 +234,19 @@ package enum PlatformMetrics {
     package static let spinnerMaxAlpha = 53.0 / 255
     package static let spinnerMinAlpha = 17.0 / 255
 
+    // Lazy grids (macOS 26.2: fixture lazy/grids, Docs/elements/Lazy.md)
+    package static let gridItemSpacing: CGFloat = 8
+
+    // DisclosureGroup (macOS 26.2: fixture disclosure/basic, Docs/elements/DisclosureGroup.md)
+    package static let disclosureRowPadding: CGFloat = 4
+    package static let disclosureChevronWidth: CGFloat = 6.5              // the chevron's slot before the 5 pt gap
+    package static let disclosureChevronHeight: CGFloat = 8
+    package static let disclosureChevronSpacing: CGFloat = 5
+    package static let disclosureChevronSpan: CGFloat = 5.5               // approximate: the chevron's width across its arms
+    package static let disclosureChevronRise: CGFloat = 3
+    package static let disclosureChevronStroke: CGFloat = 1.5
+    package static let disclosureChevronAlpha = 64.0 / 255                // 191 over white
+
     // Link (macOS 26.2: fixture link/basic, Docs/elements/Link.md)
     package static let linkDisabledOpacity = 0.5
 

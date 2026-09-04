@@ -1,0 +1,75 @@
+{
+  "fixture" : "lazy\/stacks",
+  "frames" : {
+    "alpha" : {
+      "height" : 16,
+      "width" : 34.5,
+      "x" : 0,
+      "y" : 0
+    },
+    "beta" : {
+      "height" : 16,
+      "width" : 28,
+      "x" : 0,
+      "y" : 48
+    },
+    "green" : {
+      "height" : 20,
+      "width" : 50,
+      "x" : 177.25,
+      "y" : 16
+    },
+    "header" : {
+      "height" : 16,
+      "width" : 44.5,
+      "x" : 180,
+      "y" : 0
+    },
+    "hi" : {
+      "height" : 16,
+      "width" : 13,
+      "x" : 307,
+      "y" : 224
+    },
+    "hstack" : {
+      "height" : 240,
+      "width" : 37,
+      "x" : 283,
+      "y" : 0
+    },
+    "orange" : {
+      "height" : 30,
+      "width" : 20,
+      "x" : 283,
+      "y" : 210
+    },
+    "red" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 0,
+      "y" : 22
+    },
+    "row" : {
+      "height" : 240,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "sections" : {
+      "height" : 56,
+      "width" : 121.5,
+      "x" : 141.5,
+      "y" : 0
+    },
+    "vstack" : {
+      "height" : 64,
+      "width" : 121.5,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

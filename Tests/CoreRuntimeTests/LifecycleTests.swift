@@ -51,7 +51,7 @@ import SwiftUIWebHeadless
                         model.log.append("start \(id)")
                         guard id < 2 else { model.log.append("done \(id)"); return }
                         do {
-                            try await Task.sleep(nanoseconds: 10_000_000_000)
+                            try await Task.sleep(nanoseconds: 600_000_000_000)   // far longer than a loaded test run (Tier C takes seconds)
                             model.log.append("done \(id)")
                         } catch {
                             model.log.append("cancelled \(id)")

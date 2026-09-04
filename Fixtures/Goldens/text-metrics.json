@@ -420,6 +420,12 @@
       "lastBaseline" : 14,
       "width" : 35
     },
+    "style:body||Details" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 42
+    },
     "style:body||Email" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -479,6 +485,12 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 61
+    },
+    "style:body||Inner" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 31
     },
     "style:body||Label" : {
       "firstBaseline" : 14,
@@ -581,6 +593,12 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 47.5
+    },
+    "style:body||Outer" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 34.5
     },
     "style:body||Padded" : {
       "firstBaseline" : 14,
@@ -858,6 +876,12 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "style:body|0.0|Details" : {
+      "firstBaseline" : 14,
+      "height" : 132.5,
+      "lastBaseline" : 128,
+      "width" : 0
+    },
     "style:body|0.0|Email" : {
       "firstBaseline" : 14,
       "height" : 94.5,
@@ -916,6 +940,12 @@
       "firstBaseline" : 14,
       "height" : 170.5,
       "lastBaseline" : 166,
+      "width" : 0
+    },
+    "style:body|0.0|Inner" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
       "width" : 0
     },
     "style:body|0.0|Label" : {
@@ -1018,6 +1048,12 @@
       "firstBaseline" : 14,
       "height" : 132.5,
       "lastBaseline" : 128,
+      "width" : 0
+    },
+    "style:body|0.0|Outer" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
       "width" : 0
     },
     "style:body|0.0|Padded" : {
@@ -8454,6 +8490,12 @@
       "lastBaseline" : 13,
       "width" : 35
     },
+    "system:13:400:default||Details" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 42
+    },
     "system:13:400:default||Disabled" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -9520,6 +9562,12 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Details" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "system:13:400:default|0.0|Disabled" : {

@@ -1,0 +1,129 @@
+{
+  "fixture" : "lazy\/grids",
+  "frames" : {
+    "adaptive" : {
+      "height" : 56,
+      "width" : 240,
+      "x" : 40,
+      "y" : 109
+    },
+    "adaptive0" : {
+      "height" : 24,
+      "width" : 52.5,
+      "x" : 40,
+      "y" : 109
+    },
+    "adaptive1" : {
+      "height" : 24,
+      "width" : 52.5,
+      "x" : 102.5,
+      "y" : 109
+    },
+    "adaptive2" : {
+      "height" : 24,
+      "width" : 52.5,
+      "x" : 165,
+      "y" : 109
+    },
+    "adaptive3" : {
+      "height" : 24,
+      "width" : 52.5,
+      "x" : 227.5,
+      "y" : 109
+    },
+    "adaptive4" : {
+      "height" : 24,
+      "width" : 52.5,
+      "x" : 40,
+      "y" : 141
+    },
+    "cell0" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 31,
+      "y" : 49
+    },
+    "cell1" : {
+      "height" : 20,
+      "width" : 102,
+      "x" : 99,
+      "y" : 49
+    },
+    "cell2" : {
+      "height" : 20,
+      "width" : 80,
+      "x" : 209,
+      "y" : 49
+    },
+    "cell3" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 31,
+      "y" : 73
+    },
+    "cell4" : {
+      "height" : 20,
+      "width" : 102,
+      "x" : 99,
+      "y" : 73
+    },
+    "cell5" : {
+      "height" : 20,
+      "width" : 80,
+      "x" : 209,
+      "y" : 73
+    },
+    "columns" : {
+      "height" : 44,
+      "width" : 280,
+      "x" : 20,
+      "y" : 49
+    },
+    "hcell0" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 94,
+      "y" : 182
+    },
+    "hcell1" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 94,
+      "y" : 220
+    },
+    "hcell2" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 140,
+      "y" : 182
+    },
+    "hcell3" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 140,
+      "y" : 220
+    },
+    "hcell4" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 186,
+      "y" : 182
+    },
+    "rows" : {
+      "height" : 70,
+      "width" : 132,
+      "x" : 94,
+      "y" : 181
+    },
+    "stack" : {
+      "height" : 202,
+      "width" : 280,
+      "x" : 20,
+      "y" : 49
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}
