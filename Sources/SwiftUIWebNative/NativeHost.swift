@@ -4,8 +4,9 @@ import SwiftUIWebCore
 import SwiftUIWebHeadless
 
 /// Hosts a `Runtime` in an AppKit window: a flipped `NSView` lays out and paints the display
-/// list with `CoreGraphicsPainter` in `draw(_:)`, forwards mouse, scroll and key events, and
-/// keeps frames coming while the runtime animates (Docs/ROADMAP.md, Phase 4.2).
+/// list with `CoreGraphicsPainter` in `draw(_:)`, forwards mouse, scroll and key events, takes
+/// text input for the focused text field (`NSTextInputClient`), exposes the semantics tree to
+/// accessibility, and keeps frames coming while the runtime animates (decision 0012).
 ///
 /// Environment for scripts: `SWIFTUIWEB_SCREENSHOT=out.png` writes the first frame and quits,
 /// `SWIFTUIWEB_TIMEOUT=seconds` quits after that long, `SWIFTUIWEB_ASSETS=manifest.json` loads
@@ -17,8 +18,8 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
     public let painter: CoreGraphicsPainter
     private let root: @MainActor () -> AnyView
     private let size: CGSize
-    private var window: NSWindow!
-    private var view: RuntimeView!
+    private var window: NSWindow?
+    public private(set) var view: RuntimeView!
 
     public init(size: CGSize, root: @escaping @MainActor () -> AnyView) {
         self.root = root
@@ -43,28 +44,38 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
         exit(0)
     }
 
-    public func applicationDidFinishLaunching(_ notification: Notification) {
+    /// Installs the text engine and assets, mounts the root view and creates the view that
+    /// paints it (no window: tests drive the view directly).
+    @discardableResult
+    public func makeView(assetManifest: URL? = nil) -> RuntimeView {
+        if let view { return view }
         runtime.textEngine = textEngine
-        let environment = ProcessInfo.processInfo.environment
-        if let manifest = environment["SWIFTUIWEB_ASSETS"] {
-            let url = URL(fileURLWithPath: manifest)
-            if let catalog = try? AssetCatalog(contentsOf: url) {
+        if let manifest = assetManifest {
+            if let catalog = try? AssetCatalog(contentsOf: manifest) {
                 runtime.assetCatalog = catalog
-                painter.assetBase = url.deletingLastPathComponent()
+                painter.assetBase = manifest.deletingLastPathComponent()
             } else {
-                FileHandle.standardError.write(Data("SwiftUIWeb: could not read the asset manifest at \(manifest)\n".utf8))
+                FileHandle.standardError.write(Data("SwiftUIWeb: could not read the asset manifest at \(manifest.path)\n".utf8))
             }
         }
-        view = RuntimeView(frame: NSRect(origin: .zero, size: size), host: self)
-        window = NSWindow(contentRect: view.frame, styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        let view = RuntimeView(frame: NSRect(origin: .zero, size: size), host: self)
+        self.view = view
+        runtime.scheduler.onNeedsFlush = { [weak view] in view?.needsDisplay = true }
+        runtime.mount(root())
+        return view
+    }
+
+    public func applicationDidFinishLaunching(_ notification: Notification) {
+        let environment = ProcessInfo.processInfo.environment
+        let view = makeView(assetManifest: environment["SWIFTUIWEB_ASSETS"].map { URL(fileURLWithPath: $0) })
+        let window = NSWindow(contentRect: view.frame, styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = ProcessInfo.processInfo.processName
         window.contentView = view
         window.center()
         window.makeKeyAndOrderFront(nil)
         window.makeFirstResponder(view)
+        self.window = window
         NSApp.activate(ignoringOtherApps: true)
-        runtime.scheduler.onNeedsFlush = { [weak self] in self?.view.needsDisplay = true }
-        runtime.mount(root())
         view.needsDisplay = true
         if let text = environment["SWIFTUIWEB_TIMEOUT"], let seconds = Double(text) {
             DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { exit(0) }
@@ -120,14 +131,21 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
             self.view.needsDisplay = true
         }
     }
+
+    // MARK: Text fields
+
+    /// The focused text field's semantics, if a text field has focus.
+    fileprivate var focusedTextField: SemanticsNode? {
+        guard let id = runtime.focusedTextFieldIdentifier else { return nil }
+        return runtime.semanticsTree().first { $0.identifier == id && $0.textInput != nil }
+    }
 }
 
 /// The window's content: paints the runtime and forwards input in the runtime's coordinates
 /// (points from the top left, which a flipped view gives directly).
 @MainActor
-final class RuntimeView: NSView {
+public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
     unowned let host: NativeHost
-    private var trackingArea: NSTrackingArea?
 
     init(frame: NSRect, host: NativeHost) {
         self.host = host
@@ -136,45 +154,57 @@ final class RuntimeView: NSView {
 
     required init?(coder: NSCoder) { nil }
 
-    override var isFlipped: Bool { true }
-    override var acceptsFirstResponder: Bool { true }
+    override public var isFlipped: Bool { true }
+    override public var acceptsFirstResponder: Bool { true }
 
-    override func draw(_ dirtyRect: NSRect) {
+    override public func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
         NSColor.white.setFill()
         bounds.fill()
         host.paintFrame(into: ctx, size: bounds.size) { [weak self] title in self?.window?.title = title }
+        drawCaret(in: ctx)
     }
 
-    override func setFrameSize(_ newSize: NSSize) {
+    /// A caret after the focused text field's text (the runtime paints the text itself).
+    private func drawCaret(in ctx: CGContext) {
+        guard let field = host.focusedTextField, let input = field.textInput, input.isEnabled else { return }
+        let shown = input.isSecure ? String(repeating: "•", count: input.text.count) : input.text
+        let x = input.textRect.minX + host.textEngine.advance(of: shown, font: input.font)
+        ctx.setFillColor(NSColor.controlAccentColor.cgColor)
+        ctx.fill(CGRect(x: x.rounded(), y: input.textRect.minY, width: 1, height: input.textRect.height))
+    }
+
+    override public func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
         needsDisplay = true
     }
 
+    // MARK: Pointer
+
     private func point(_ event: NSEvent) -> CGPoint { convert(event.locationInWindow, from: nil) }
 
-    override func mouseDown(with event: NSEvent) {
+    override public func mouseDown(with event: NSEvent) {
         window?.makeFirstResponder(self)
         host.runtime.pointerDown(at: point(event), type: .mouse, time: event.timestamp)
         needsDisplay = true
     }
 
-    override func mouseDragged(with event: NSEvent) {
+    override public func mouseDragged(with event: NSEvent) {
         host.runtime.pointerMoved(to: point(event), time: event.timestamp)
         if host.runtime.needsFrame { needsDisplay = true }
     }
 
-    override func mouseUp(with event: NSEvent) {
+    override public func mouseUp(with event: NSEvent) {
         host.runtime.pointerUp(at: point(event), time: event.timestamp)
         needsDisplay = true
     }
 
-    override func rightMouseDown(with event: NSEvent) {
+    override public func rightMouseDown(with event: NSEvent) {
         host.runtime.secondaryPointerDown(at: point(event))
         needsDisplay = true
     }
 
-    override func scrollWheel(with event: NSEvent) {
+    override public func scrollWheel(with event: NSEvent) {
         // AppKit's deltas are positive when the content should move down; the runtime scrolls
         // the content up for a positive delta (wheel semantics), so flip them.
         let factor: CGFloat = event.hasPreciseScrollingDeltas ? 1 : 16
@@ -183,8 +213,21 @@ final class RuntimeView: NSView {
         needsDisplay = true
     }
 
-    override func keyDown(with event: NSEvent) {
+    // MARK: Keys
+
+    override public func keyDown(with event: NSEvent) {
+        // A focused text field takes typing through the input context (dead keys, IME); the
+        // commands it produces (newline, delete, arrows, escape) come back through `doCommand`.
+        if host.focusedTextField != nil, !event.modifierFlags.contains(.command) {
+            interpretKeyEvents([event])
+            needsDisplay = true
+            return
+        }
         guard let key = Self.keyEquivalent(event) else { return super.keyDown(with: event) }
+        if host.runtime.keyDown(Self.keyEvent(event, key: key)) { needsDisplay = true } else { super.keyDown(with: event) }
+    }
+
+    static func keyEvent(_ event: NSEvent, key: KeyEquivalent) -> KeyEvent {
         var modifiers: EventModifiers = []
         if event.modifierFlags.contains(.shift) { modifiers.insert(.shift) }
         if event.modifierFlags.contains(.control) { modifiers.insert(.control) }
@@ -194,9 +237,8 @@ final class RuntimeView: NSView {
         if event.modifierFlags.contains(.numericPad) { modifiers.insert(.numericPad) }
         if event.modifierFlags.contains(.function) { modifiers.insert(.function) }
         let characters = event.charactersIgnoringModifiers ?? ""
-        let keyEvent = KeyEvent(key: key, characters: characters.count == 1 && key.character.isLetter || key.character.isNumber ? characters : "",
-                                modifiers: modifiers, isRepeat: event.isARepeat)
-        if host.runtime.keyDown(keyEvent) { needsDisplay = true } else { super.keyDown(with: event) }
+        let printable = characters.count == 1 && (key.character.isLetter || key.character.isNumber || key.character.isPunctuation || key.character.isSymbol)
+        return KeyEvent(key: key, characters: printable ? characters : "", modifiers: modifiers, isRepeat: event.isARepeat)
     }
 
     /// The key equivalent of a key event: special keys by their function-key code, others by
@@ -231,6 +273,163 @@ final class RuntimeView: NSView {
         guard let characters = event.charactersIgnoringModifiers, let first = characters.first else { return nil }
         if first == " " { return .space }
         return KeyEquivalent(Character(first.lowercased()))
+    }
+
+    // MARK: NSTextInputClient (the focused text field's editor: typing at the end of the text)
+
+    private func setFocusedText(_ text: String) {
+        guard let field = host.focusedTextField else { return }
+        host.runtime.textField(field.identifier, didChange: text)
+        needsDisplay = true
+    }
+
+    public func insertText(_ string: Any, replacementRange: NSRange) {
+        guard let field = host.focusedTextField, let input = field.textInput else { return }
+        let inserted = (string as? NSAttributedString)?.string ?? (string as? String) ?? ""
+        setFocusedText(input.text + inserted)
+    }
+
+    override public func doCommand(by selector: Selector) {
+        guard let field = host.focusedTextField, let input = field.textInput else { return }
+        switch selector {
+        case #selector(NSResponder.deleteBackward(_:)), #selector(NSResponder.deleteWordBackward(_:)):
+            setFocusedText(String(input.text.dropLast(selector == #selector(NSResponder.deleteWordBackward(_:)) ? input.text.split(separator: " ").last?.count ?? 1 : 1)))
+        case #selector(NSResponder.insertNewline(_:)):
+            host.runtime.textFieldDidSubmit(field.identifier)
+            needsDisplay = true
+        case #selector(NSResponder.cancelOperation(_:)):
+            _ = host.runtime.keyDown(KeyEvent(key: .escape))
+            needsDisplay = true
+        case #selector(NSResponder.moveUp(_:)): _ = host.runtime.keyDown(KeyEvent(key: .upArrow))
+        case #selector(NSResponder.moveDown(_:)): _ = host.runtime.keyDown(KeyEvent(key: .downArrow))
+        case #selector(NSResponder.insertTab(_:)): _ = host.runtime.keyDown(KeyEvent(key: .tab))
+        default: break
+        }
+    }
+
+    public func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {}
+    public func unmarkText() {}
+    public func selectedRange() -> NSRange {
+        let count = host.focusedTextField?.textInput?.text.utf16.count ?? 0
+        return NSRange(location: count, length: 0)
+    }
+    public func markedRange() -> NSRange { NSRange(location: NSNotFound, length: 0) }
+    public func hasMarkedText() -> Bool { false }
+    public func attributedSubstring(forProposedRange range: NSRange, actualRange: NSRangePointer?) -> NSAttributedString? { nil }
+    public func validAttributesForMarkedText() -> [NSAttributedString.Key] { [] }
+    public func firstRect(forCharacterRange range: NSRange, actualRange: NSRangePointer?) -> NSRect {
+        guard let input = host.focusedTextField?.textInput else { return .zero }
+        let rect = convert(input.textRect, to: nil)
+        return window?.convertToScreen(rect) ?? rect
+    }
+    public func characterIndex(for point: NSPoint) -> Int { 0 }
+
+    // MARK: Accessibility (the semantics tree as accessibility elements)
+
+    override public func isAccessibilityElement() -> Bool { false }
+    override public func accessibilityRole() -> NSAccessibility.Role? { .group }
+    override public func accessibilityLabel() -> String? { "SwiftUI content" }
+
+    override public func accessibilityChildren() -> [Any]? {
+        accessibilityElements()
+    }
+
+    /// One `NSAccessibilityElement` per semantics node, positioned on screen when the view is in
+    /// a window (in the view otherwise).
+    public func accessibilityElements() -> [RuntimeAccessibilityElement] {
+        host.runtime.semanticsTree().map { node in
+            let frameInView = node.frame
+            let frameInWindow = convert(frameInView, to: nil)
+            let frame = window?.convertToScreen(frameInWindow) ?? frameInWindow
+            let element = RuntimeAccessibilityElement(host: host, node: node)
+            element.setAccessibilityFrame(frame)
+            element.setAccessibilityParent(self)
+            return element
+        }
+    }
+}
+
+/// An accessibility element for one semantics node: role, label, value, and press/adjust
+/// actions that go back to the runtime.
+@MainActor
+public final class RuntimeAccessibilityElement: NSAccessibilityElement {
+    unowned let host: NativeHost
+    public let node: SemanticsNode
+
+    init(host: NativeHost, node: SemanticsNode) {
+        self.host = host
+        self.node = node
+        super.init()
+        setAccessibilityRole(Self.role(for: node.role))
+        setAccessibilityLabel(node.label)
+        setAccessibilityElement(true)
+        if let hint = node.hint { setAccessibilityHelp(hint) }
+        if let identifier = node.accessibilityIdentifier { setAccessibilityIdentifier(identifier) }
+        switch node.role {
+        case .checkbox, .switch: setAccessibilityValue(node.isOn == true ? 1 : 0)
+        case .slider, .stepper:
+            if let range = node.range { setAccessibilityValue(range.value) } else if let value = node.value { setAccessibilityValue(value) }
+        case .textField: setAccessibilityValue(node.textInput?.text ?? node.value ?? "")
+        default: if let value = node.value { setAccessibilityValue(value) }
+        }
+        setAccessibilityEnabled(node.textInput?.isEnabled ?? true)
+    }
+
+    static func role(for role: SemanticsNode.Role) -> NSAccessibility.Role {
+        switch role {
+        case .button: return .button
+        case .checkbox, .switch: return .checkBox
+        case .textField: return .textField
+        case .text: return .staticText
+        case .heading: return .staticText
+        case .image: return .image
+        case .group: return .group
+        case .link: return .link
+        case .slider: return .slider
+        case .stepper: return .incrementor
+        case .popUpButton: return .popUpButton
+        case .radioGroup, .segmented: return .radioGroup
+        case .list: return .list
+        }
+    }
+
+    override public nonisolated func accessibilityPerformPress() -> Bool {
+        nonisolated(unsafe) let element = self
+        return MainActor.assumeIsolated { element.accessibilityPerformPressOnMain() }
+    }
+
+    private func accessibilityPerformPressOnMain() -> Bool {
+        switch node.role {
+        case .text, .heading, .image, .group, .list: return false
+        default:
+            host.runtime.activate(semanticsIdentifier: node.identifier)
+            host.view?.needsDisplay = true
+            return true
+        }
+    }
+
+    override public nonisolated func accessibilityPerformIncrement() -> Bool {
+        nonisolated(unsafe) let element = self
+        return MainActor.assumeIsolated { element.accessibilityPerformIncrementOnMain() }
+    }
+
+    private func accessibilityPerformIncrementOnMain() -> Bool {
+        guard node.isAdjustable else { return false }
+        host.runtime.adjust(semanticsIdentifier: node.identifier, increment: true)
+        host.view?.needsDisplay = true
+        return true
+    }
+
+    override public nonisolated func accessibilityPerformDecrement() -> Bool {
+        nonisolated(unsafe) let element = self
+        return MainActor.assumeIsolated { element.accessibilityPerformDecrementOnMain() }
+    }
+
+    private func accessibilityPerformDecrementOnMain() -> Bool {
+        guard node.isAdjustable else { return false }
+        host.runtime.adjust(semanticsIdentifier: node.identifier, increment: false)
+        host.view?.needsDisplay = true
+        return true
     }
 }
 #endif

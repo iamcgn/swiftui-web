@@ -44,9 +44,11 @@ a painter for the display list, a window with input, and a way to prove it match
 - One display list, three painters (Canvas2D, CoreGraphics, and the recorded/headless path)
   and three fidelity tiers, all against the same goldens; a painter bug shows up as a Tier C
   pixel number, a layout bug in every tier.
-- The native app has no accessibility tree and no text input yet: the browser's DOM overlay and
-  hidden `<input>` have no AppKit counterpart here (`NSAccessibility`, `NSTextInputClient` are
-  the next steps), and only the first `WindowGroup` opens.
+- The view is the text field editor (`NSTextInputClient`: typing appends, delete, Return
+  submits, Escape and arrows go to the runtime; no selection or marked text yet) and the
+  accessibility container (one `NSAccessibilityElement` per semantics node with press and
+  increment actions), the AppKit counterparts of the browser's hidden `<input>` and DOM overlay.
+  Only the first `WindowGroup` opens.
 - CoreText reproduces Apple's text pixels far better than browsers do, so Tier C's numbers are
   the ones to watch for painter regressions; the browsers' numbers stay bounded by their text
   rasterisation.

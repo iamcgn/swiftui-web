@@ -45,6 +45,12 @@ public final class CoreTextEngine: TextEngine {
         return nsFont(ResolvedFont(family: font.family, size: font.size, weight: weights[font.weight] ?? .regular, italic: font.italic, textStyle: nil))
     }
 
+    /// The advance of `text` in a display font (the host's caret).
+    public func advance(of text: String, font: DisplayFont) -> CGFloat {
+        let weights: [Int: Font.Weight] = [100: .ultraLight, 200: .thin, 300: .light, 400: .regular, 500: .medium, 600: .semibold, 700: .bold, 800: .heavy, 900: .black]
+        return width(of: text, font: ResolvedFont(family: font.family, size: font.size, weight: weights[font.weight] ?? .regular, italic: font.italic, textStyle: nil))
+    }
+
     /// Unrounded advance of `text` in `font` (rounding to the half point happens per line).
     private func width(of text: String, font: ResolvedFont) -> CGFloat {
         let key = font.key + "|" + text
