@@ -339,6 +339,15 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Header", defaultFont))
         requests.append(TextMetricRequest("Hi", defaultFont))
         for word in ["Menu", "Select"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        // Gauge fixtures: 13 pt labels, the accessory styles' 17 pt semibold, 12 pt, 11 pt and 24 pt medium value labels.
+        for word in ["Battery", "Level", "60%", "Range", "30", "Total", "Tinted", "Cap", "Hidden", "40", "Bare"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        for word in ["40", "30", "0", "100"] {
+            requests.append(TextMetricRequest(word, .system(size: 17, weight: "semibold", design: "default")))
+            requests.append(TextMetricRequest(word, .system(size: 11, weight: "regular", design: "default")))
+            requests.append(TextMetricRequest(word, .system(size: 24, weight: "medium", design: "default")))
+            requests.append(TextMetricRequest(word, .system(size: 12, weight: "regular", design: "default")))
+        }
+        for word in ["A", "B", "C", "D"] { requests.append(TextMetricRequest(word, .system(size: 11, weight: "regular", design: "default"))) }
         requests.append(TextMetricRequest("Details", .style("body")))
         requests.append(TextMetricRequest("Outer", .style("body")))
         requests.append(TextMetricRequest("Inner", .style("body")))

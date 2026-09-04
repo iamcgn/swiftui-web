@@ -245,6 +245,31 @@ package enum PlatformMetrics {
     package static let tabBoxFillAlpha = 8.0 / 255
     package static let tabBoxBorderAlpha = 10.0 / 255                    // approximate: the 245 edge on the 247 fill
 
+    // Gauge (macOS 26.2: fixtures gauge/basic, gauge/accessory, Docs/elements/Gauge.md)
+    package static let gaugeBarHeight: CGFloat = 16
+    package static let gaugeBarCornerRadius: CGFloat = 1.5                  // from the corner ramp at 2×
+    package static let gaugeTrackAlpha = 18.0 / 255
+    package static let gaugeBoundsSpacing: CGFloat = 8                      // bounds labels to the bar
+    package static let gaugeAccessoryBarHeight: CGFloat = 8
+    package static let gaugeAccessorySpacing: CGFloat = 6                   // label, capsule and value in the accessory capacity style
+    package static let gaugeAccessoryValueSize: CGFloat = 17                // semibold, the accessory linear labels
+    package static let gaugeAccessoryCapacityValueSize: CGFloat = 12        // the secondary value under the capsule
+    package static let gaugeAccessoryValueExtraGap: CGFloat = 1             // that value sits 7 under the capsule, not 6
+    package static let gaugePrimaryAlpha = 216.0 / 255                      // the primary label black (39 over white)
+    package static let gaugeKnobRadius: CGFloat = 4
+    package static let gaugeKnobHaloRadius: CGFloat = 8
+    package static let gaugeRingDiameter: CGFloat = 58
+    package static let gaugeRingRadius: CGFloat = 26
+    package static let gaugeRingStroke: CGFloat = 6
+    package static let gaugeRingTrackAlpha = 76.0 / 255                     // 179 over white
+    package static let gaugeRingTrimDegrees: Double = 14                    // each end, with bounds labels
+    package static let gaugeMarkerRadius: CGFloat = 2.5
+    package static let gaugeMarkerHaloRadius: CGFloat = 4.5                 // approximate
+    package static let gaugeRingValueSize: CGFloat = 24                     // medium, the centre value
+    package static let gaugeRingLabelSize: CGFloat = 11
+    package static let gaugeRingValueLift: CGFloat = 1                      // the centre value sits 1 pt above the centre
+    package static let gaugeRingEndOffset: CGFloat = 18.385                 // 26 / √2: the arc ends' x and y from the centre
+
     // NavigationSplitView (macOS 26.2: fixtures splitview/*, Docs/elements/NavigationSplitView.md)
     package static let sidebarDefaultWidth: CGFloat = 140                // the panel; the column is 8 wider
     package static let splitContentDefaultWidth: CGFloat = 200

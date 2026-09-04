@@ -1,0 +1,75 @@
+{
+  "fixture" : "gauge\/accessory",
+  "frames" : {
+    "circular" : {
+      "height" : 58,
+      "width" : 58,
+      "x" : 23,
+      "y" : 47
+    },
+    "circularBare" : {
+      "height" : 58,
+      "width" : 58,
+      "x" : 239,
+      "y" : 47
+    },
+    "circularBounds" : {
+      "height" : 58,
+      "width" : 58,
+      "x" : 167,
+      "y" : 47
+    },
+    "circularCapacity" : {
+      "height" : 58,
+      "width" : 58,
+      "x" : 95,
+      "y" : 47
+    },
+    "circulars" : {
+      "height" : 58,
+      "width" : 274,
+      "x" : 23,
+      "y" : 47
+    },
+    "linear" : {
+      "height" : 8,
+      "width" : 280,
+      "x" : 20,
+      "y" : 125
+    },
+    "linearBare" : {
+      "height" : 8,
+      "width" : 280,
+      "x" : 20,
+      "y" : 325
+    },
+    "linearBounds" : {
+      "height" : 8,
+      "width" : 280,
+      "x" : 20,
+      "y" : 225
+    },
+    "linearCapacity" : {
+      "height" : 52,
+      "width" : 280,
+      "x" : 20,
+      "y" : 153
+    },
+    "linearCapacityBounds" : {
+      "height" : 52,
+      "width" : 280,
+      "x" : 20,
+      "y" : 253
+    },
+    "stack" : {
+      "height" : 326,
+      "width" : 320,
+      "x" : 0,
+      "y" : 27
+    }
+  },
+  "size" : {
+    "height" : 380,
+    "width" : 320
+  }
+}
