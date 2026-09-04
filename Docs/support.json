@@ -286,6 +286,23 @@
           ]
         },
         {
+          "api": "LabeledContent (content:label:, title, value:) / LabeledContentStyle (automatic) / labeledContentStyle(_:)",
+          "status": "partial",
+          "notes": "Label (body font) + 8 + content centred, the form's label column inside a Form; no FormatStyle values",
+          "fixtures": [
+            "labeledcontent/basic",
+            "labeledcontent/form"
+          ]
+        },
+        {
+          "api": "Link / OpenURLAction / EnvironmentValues.openURL",
+          "status": "partial",
+          "notes": "Link blue (0, 104, 218), half opacity disabled, label snapped to the pixel grid; openURL with custom handlers, the browser opens a tab and the native host asks NSWorkspace; no ShareLink or hover looks",
+          "fixtures": [
+            "link/basic"
+          ]
+        },
+        {
           "api": "TimelineView / TimelineSchedule (periodic, everyMinute, explicit, animation, custom)",
           "status": "partial",
           "notes": "Wakes through main-actor Task.sleep (no Foundation timers on wasm); the animation schedule follows host frames; no lowFrequency distinction or Timer APIs",

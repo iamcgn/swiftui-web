@@ -830,6 +830,31 @@ public static let basic = Fixture("label/basic", size: CGSize(width: 320, height
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "labeledcontent/basic", file: "Fixtures/Sources/LabeledContent/LabeledContentFixtures.swift", firstLine: 7, lastLine: 19, declaration: #"""
+public static let basic = Fixture("labeledcontent/basic", size: CGSize(width: 320, height: 260)) {
+    VStack(spacing: 12) {
+        LabeledContent("Name", value: "Corey").probe("value")
+        LabeledContent("Count") { Text("3").probe("countContent") }.probe("count")
+        LabeledContent { Text("Custom").probe("customContent") } label: { Label("Network", image: "icon").probe("customLabel") }.probe("custom")
+        LabeledContent("Hidden", value: "Shown").labelsHidden().probe("hidden")
+        LabeledContent("Toggle") { Toggle("", isOn: .constant(true)).labelsHidden().probe("toggleContent") }.probe("toggle")
+        LabeledContent { Text("Value").probe("narrowContent") } label: { Text("Narrow").probe("narrowLabel") }.frame(width: 160).probe("narrow")
+        LabeledContent("Wide", value: "Value").frame(maxWidth: .infinity).probe("wide")
+    }
+    .padding(20)
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "labeledcontent/form", file: "Fixtures/Sources/LabeledContent/LabeledContentFixtures.swift", firstLine: 21, lastLine: 28, declaration: #"""
+public static let form = Fixture("labeledcontent/form", size: CGSize(width: 360, height: 200)) {
+    Form {
+        LabeledContent("Name", value: "Corey").probe("value")
+        LabeledContent("Count") { Text("3").probe("countContent") }.probe("count")
+        TextField("Email", text: .constant("")).probe("field")
+    }
+    .probe("form")
+}
+"""#),
         FixtureSource(name: "layout/alignment-guide", file: "Fixtures/Sources/Layout/LayoutFixtures.swift", firstLine: 164, lastLine: 171, declaration: #"""
 public static let alignmentGuide = Fixture("layout/alignment-guide", size: CGSize(width: 300, height: 200)) {
     VStack(alignment: .leading, spacing: 4) {
@@ -1073,6 +1098,22 @@ public static let appear = Fixture(
                 .onDisappear { model.disappeared += 1 }
                 .probe("child")
         }
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "link/basic", file: "Fixtures/Sources/Link/LinkFixtures.swift", firstLine: 7, lastLine: 20, declaration: #"""
+public static let basic = Fixture("link/basic", size: CGSize(width: 320, height: 200)) {
+    VStack(spacing: 12) {
+        Link("Apple", destination: URL(string: "https://www.apple.com")!).probe("titled")
+        Link(destination: URL(string: "https://www.apple.com")!) { Label("Open site", image: "icon").probe("customLabel") }.probe("custom")
+        HStack(spacing: 8) {
+            Text("Visit").probe("text")
+            Link("the site", destination: URL(string: "https://www.apple.com")!).probe("inline")
+        }
+        .probe("row")
+        Link("Disabled", destination: URL(string: "https://www.apple.com")!).disabled(true).probe("disabled")
+        Link("Large", destination: URL(string: "https://www.apple.com")!).font(.title).probe("large")
     }
     .probe("stack")
 }
@@ -3909,6 +3950,39 @@ public enum LabelFixtures {
     public static let all: [Fixture] = [basic]
 }
 """#,
+        "Fixtures/Sources/LabeledContent/LabeledContentFixtures.swift": #"""
+// LabeledContent fixtures: label/value pairs in a stack and in a form (the label column), custom
+// labels and content, hidden labels.
+import SwiftUI
+import FixtureKit
+
+public enum LabeledContentFixtures {
+    public static let basic = Fixture("labeledcontent/basic", size: CGSize(width: 320, height: 260)) {
+        VStack(spacing: 12) {
+            LabeledContent("Name", value: "Corey").probe("value")
+            LabeledContent("Count") { Text("3").probe("countContent") }.probe("count")
+            LabeledContent { Text("Custom").probe("customContent") } label: { Label("Network", image: "icon").probe("customLabel") }.probe("custom")
+            LabeledContent("Hidden", value: "Shown").labelsHidden().probe("hidden")
+            LabeledContent("Toggle") { Toggle("", isOn: .constant(true)).labelsHidden().probe("toggleContent") }.probe("toggle")
+            LabeledContent { Text("Value").probe("narrowContent") } label: { Text("Narrow").probe("narrowLabel") }.frame(width: 160).probe("narrow")
+            LabeledContent("Wide", value: "Value").frame(maxWidth: .infinity).probe("wide")
+        }
+        .padding(20)
+        .probe("stack")
+    }
+
+    public static let form = Fixture("labeledcontent/form", size: CGSize(width: 360, height: 200)) {
+        Form {
+            LabeledContent("Name", value: "Corey").probe("value")
+            LabeledContent("Count") { Text("3").probe("countContent") }.probe("count")
+            TextField("Email", text: .constant("")).probe("field")
+        }
+        .probe("form")
+    }
+
+    public static let all: [Fixture] = [basic, form]
+}
+"""#,
         "Fixtures/Sources/Layout/LayoutFixtures.swift": #"""
 // Layout fixtures: only Color, stacks, Spacer, Divider and layout modifiers, so they hold
 // before text exists. Each also pins one undocumented constant (see PlatformMetrics).
@@ -4171,6 +4245,31 @@ public enum LifecycleFixtures {
     // `.task` has no golden: the harness captures before the task's turn, the browser after it.
 
     public static let all: [Fixture] = [appear]
+}
+"""#,
+        "Fixtures/Sources/Link/LinkFixtures.swift": #"""
+// Link fixtures: a titled link, a link with a custom label, links in a stack next to text
+// (colour and spacing) and a disabled link.
+import SwiftUI
+import FixtureKit
+
+public enum LinkFixtures {
+    public static let basic = Fixture("link/basic", size: CGSize(width: 320, height: 200)) {
+        VStack(spacing: 12) {
+            Link("Apple", destination: URL(string: "https://www.apple.com")!).probe("titled")
+            Link(destination: URL(string: "https://www.apple.com")!) { Label("Open site", image: "icon").probe("customLabel") }.probe("custom")
+            HStack(spacing: 8) {
+                Text("Visit").probe("text")
+                Link("the site", destination: URL(string: "https://www.apple.com")!).probe("inline")
+            }
+            .probe("row")
+            Link("Disabled", destination: URL(string: "https://www.apple.com")!).disabled(true).probe("disabled")
+            Link("Large", destination: URL(string: "https://www.apple.com")!).font(.title).probe("large")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic]
 }
 """#,
         "Fixtures/Sources/List/ListFixtures.swift": #"""
