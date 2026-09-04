@@ -30,5 +30,9 @@ scripts/landing-gist.sh push                                     # create a new 
 The page is hosted at https://iamcgn.github.io/swiftui-web/. `scripts/deploy-landing.sh` builds
 the release bundle (under a per-build directory name, so cached copies of an older bundle are never
 reused) and pushes `dist/` as the `gh-pages` branch, which Pages serves from its root
-(repository settings: Pages source "Deploy from a branch", `gh-pages`, `/`). Rerun it after
-changing the page or the support matrix.
+(repository settings: Pages source "Deploy from a branch", `gh-pages`, `/`).
+
+The `Landing page` GitHub Action (`.github/workflows/landing.yml`) runs the same script on every
+push to `main` that touches the page, the runtime sources, `Docs/support.json` or the build
+scripts (and on demand from the Actions tab), so the hosted page follows `main` without a manual
+deploy; `scripts/deploy-landing.sh` remains the way to publish from a machine.

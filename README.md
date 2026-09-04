@@ -107,7 +107,8 @@ scripts/tier-b.sh --filter layout/                # browser fidelity: gallery + 
 `Examples/Landing` is the project's landing page written in SwiftUI and rendered by SwiftUIWeb: a
 sales page with live controls and the support matrix (generated from `Docs/support.json` by
 `scripts/gen-landing-support.py`). `scripts/build-landing.sh` builds it into `Examples/Landing/dist`
-and `scripts/deploy-landing.sh` publishes that to GitHub Pages (the `gh-pages` branch). See
+and `scripts/deploy-landing.sh` publishes that to GitHub Pages (the `gh-pages` branch); the
+`Landing page` workflow does the same on every push to `main` that changes the page. See
 `Examples/Landing/README.md`.
 
 `Examples/Gallery` lists every fixture in a left pane and shows the selected one as code (the

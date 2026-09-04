@@ -17,7 +17,9 @@ cp -R "$DIST/." "$TMP/"
 cd "$TMP"
 git init -q -b gh-pages
 git add -A
-git -c user.name="$(git -C "$ROOT" config user.name)" -c user.email="$(git -C "$ROOT" config user.email)" \
+# The committer: the repository's identity, else the environment's (CI sets GIT_COMMITTER_*).
+NAME="$(git -C "$ROOT" config user.name || true)"; EMAIL="$(git -C "$ROOT" config user.email || true)"
+git -c user.name="${NAME:-${GIT_COMMITTER_NAME:-swiftui-web}}" -c user.email="${EMAIL:-${GIT_COMMITTER_EMAIL:-noreply@example.com}}" \
   commit -q -m "Landing page built from $SHA"
 git push -f "$REMOTE" gh-pages:gh-pages
 echo "Pushed gh-pages ($(du -sh "$TMP" | cut -f1)); Pages serves it at https://<owner>.github.io/<repo>/ once enabled."

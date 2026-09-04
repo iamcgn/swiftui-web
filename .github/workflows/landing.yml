@@ -1,0 +1,59 @@
+name: Landing page
+# Builds Examples/Landing (release wasm bundle) and publishes it as the gh-pages branch, which
+# GitHub Pages serves at https://iamcgn.github.io/swiftui-web/ (repository settings: Pages source
+# "Deploy from a branch", gh-pages, /). The same as running scripts/deploy-landing.sh locally.
+on:
+  push:
+    branches: [main]
+    paths:
+      - Examples/Landing/**
+      - Sources/**
+      - Package.swift
+      - Package.resolved
+      - Docs/support.json
+      - scripts/build-landing.sh
+      - scripts/build-wasm.sh
+      - scripts/deploy-landing.sh
+      - scripts/gen-landing-support.py
+      - scripts/assets.py
+      - .github/workflows/landing.yml
+  workflow_dispatch:
+concurrency:
+  group: landing-pages
+  cancel-in-progress: true
+permissions:
+  contents: write
+env:
+  SWIFT_VERSION: "6.3.3"
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    container: swift:6.3.3
+    steps:
+      - name: Tools (git, python, node for PackageToJS, binaryen for wasm-opt)
+        run: |
+          apt-get update -q
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -q git python3 nodejs binaryen ca-certificates
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/checkout@v4
+      - name: Install wasm SDK
+        run: |
+          swift sdk install https://download.swift.org/swift-${SWIFT_VERSION}-release/wasm-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_wasm.artifactbundle.tar.gz \
+            --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
+      - name: Cache the wasm build
+        uses: actions/cache@v4
+        with:
+          path: Examples/Landing/.build/wasm
+          key: landing-wasm-${{ env.SWIFT_VERSION }}-${{ hashFiles('Examples/Landing/Package.resolved', 'Package.resolved') }}
+          restore-keys: landing-wasm-${{ env.SWIFT_VERSION }}-
+      - name: Build the site
+        run: scripts/build-landing.sh
+      - name: Publish gh-pages
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: scripts/deploy-landing.sh --no-build "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+      - uses: actions/upload-artifact@v4
+        with: { name: landing-dist, path: Examples/Landing/dist }
