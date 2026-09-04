@@ -908,9 +908,31 @@
           ]
         },
         {
-          "api": "blur / brightness / contrast / saturation / hueRotation / grayscale / blendMode / colorInvert / colorMultiply / luminanceToAlpha",
-          "status": "missing",
-          "notes": "Colour and blend effects are not painted yet (Phase 6)"
+          "api": "brightness / contrast / saturation / grayscale / hueRotation / colorInvert / colorMultiply / luminanceToAlpha",
+          "status": "partial",
+          "notes": "Colour-matrix filter groups measured against SwiftUI's rasteriser (Tier C pixel-identical); the browser applies the matrix to the group's pixels, CoreGraphics to a bitmap layer. Not animated; only the view's frame is filtered (Docs/elements/Effects.md)",
+          "fixtures": [
+            "effects/brightness",
+            "effects/saturation",
+            "effects/color-map",
+            "effects/color-text"
+          ]
+        },
+        {
+          "api": "blur(radius:opaque:)",
+          "status": "full",
+          "notes": "Gaussian with sigma = radius, spreading outside the frame; an opaque blur keeps the edges with an edge-normalised kernel. Canvas filter blur where the browser has one, a JS Gaussian otherwise",
+          "fixtures": [
+            "effects/blur"
+          ]
+        },
+        {
+          "api": "blendMode(_:) / BlendMode (all 21 modes)",
+          "status": "full",
+          "notes": "Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance)",
+          "fixtures": [
+            "effects/blend"
+          ]
         },
         {
           "api": "zIndex / hidden",

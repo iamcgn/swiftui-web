@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 85, .stub: 6, .full: 11, .approximate: 3, .missing: 17]
+    static let counts: [SupportStatus: Int] = [.partial: 86, .stub: 6, .full: 13, .approximate: 3, .missing: 16]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -185,7 +185,9 @@ approximate	sheet / popover (isPresented and item forms) / alert / confirmationD
 partial	accessibilityLabel / Hint / Value / Identifier / Hidden / AddTraits / RemoveTraits / accessibilityElement(children:)	Applied on the semantics tree that the canvas host mirrors as an ARIA DOM overlay (headings, images, groups, switches, range inputs, spinbuttons); no custom actions, sort priority or rotors	1
 partial	offset / rotationEffect / scaleEffect / transformEffect / AnyTransition.scale	Painted through the display list's concat op about their anchors, parameters animate, offsets move hit testing; no hit testing through rotation/scale, no GeometryEffect or 3D	2
 full	shadow(color:radius:x:y:) / Color.RGBColorSpace inits	A shadow group in the display list (op 18); the browser and CoreGraphics painters blur the composite with sigma = radius; the default third-opaque linear black; Tier C pixel-identical (Docs/elements/Effects.md)	3
-missing	blur / brightness / contrast / saturation / hueRotation / grayscale / blendMode / colorInvert / colorMultiply / luminanceToAlpha	Colour and blend effects are not painted yet (Phase 6)	0
+partial	brightness / contrast / saturation / grayscale / hueRotation / colorInvert / colorMultiply / luminanceToAlpha	Colour-matrix filter groups measured against SwiftUI's rasteriser (Tier C pixel-identical); the browser applies the matrix to the group's pixels, CoreGraphics to a bitmap layer. Not animated; only the view's frame is filtered (Docs/elements/Effects.md)	4
+full	blur(radius:opaque:)	Gaussian with sigma = radius, spreading outside the frame; an opaque blur keeps the edges with an edge-normalised kernel. Canvas filter blur where the browser has one, a JS Gaussian otherwise	1
+full	blendMode(_:) / BlendMode (all 21 modes)	Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance)	1
 full	zIndex / hidden	zIndex reorders painting and hit testing among a container's children (ties keep declaration order); hidden keeps the layout and removes the view from painting, hit testing and semantics	2
 missing	position / mask / compositingGroup / drawingGroup	Not implemented (Phase 6)	0
 missing	ignoresSafeArea / safeAreaInset / safeAreaPadding	Not implemented; the browser window has no safe areas	0
