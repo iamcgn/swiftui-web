@@ -15,6 +15,8 @@ struct LandingApp: App {
             GeometryReader { proxy in
                 LandingPage().environment(\.isCompact, proxy.size.width < Site.compactWidth)
             }
+            // The page is designed on white paper: keep it light when the visitor's system is dark.
+            .preferredColorScheme(.light)
         }
     }
 }
