@@ -2098,6 +2098,16 @@ public static let stroke = Fixture("shape/stroke", size: CGSize(width: 320, heig
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "sharelink/basic", file: "Fixtures/Sources/ShareLink/ShareLinkFixtures.swift", firstLine: 6, lastLine: 13, declaration: #"""
+public static let basic = Fixture("sharelink/basic", size: CGSize(width: 320, height: 160)) {
+    VStack(spacing: 12) {
+        ShareLink(item: URL(string: "https://www.apple.com")!).probe("plain")
+        ShareLink("Send", item: URL(string: "https://www.apple.com")!).probe("titled")
+        ShareLink(item: URL(string: "https://www.apple.com")!) { Label("Custom", image: "icon").probe("customLabel") }.probe("custom")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "slider/basic", file: "Fixtures/Sources/Controls/SliderFixtures.swift", firstLine: 14, lastLine: 31, declaration: #"""
 public static let basic = Fixture("slider/basic", size: CGSize(width: 320, height: 300)) {
     VStack(spacing: 12) {
@@ -2244,6 +2254,32 @@ public static let basic = Fixture("symbol/basic", size: CGSize(width: 400, heigh
     }
     .frame(maxHeight: .infinity, alignment: .top)
     .probe("stack")
+}
+"""#),
+        FixtureSource(name: "tabview/basic", file: "Fixtures/Sources/TabView/TabViewFixtures.swift", firstLine: 13, lastLine: 26, declaration: #"""
+public static let basic = Fixture(
+    "tabview/basic", size: CGSize(width: 360, height: 260),
+    model: { TabModel() },
+    steps: [FixtureStep("second") { $0.selection = 1 }]
+) { model in
+    TabView(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+        // Only the selected tab's content is probed: hidden tabs are laid out somewhere
+        // else by AppKit, which nothing here reproduces.
+        Group { if model.selection == 0 { Text("First").probe("first") } else { Text("First") } }.tabItem { Text("One") }.tag(0)
+        Group { if model.selection == 1 { Text("Second").probe("second") } else { Text("Second") } }.tabItem { Label("Two", image: "icon") }.tag(1)
+        Color.red.frame(width: 60, height: 40).tabItem { Text("Three") }.tag(2)
+    }
+    .probe("tabs")
+}
+"""#),
+        FixtureSource(name: "tabview/sized", file: "Fixtures/Sources/TabView/TabViewFixtures.swift", firstLine: 28, lastLine: 35, declaration: #"""
+public static let sized = Fixture("tabview/sized", size: CGSize(width: 360, height: 260)) {
+    TabView {
+        Text("Alpha").probe("alpha").tabItem { Text("A") }
+        Text("Beta").tabItem { Text("B") }
+    }
+    .frame(width: 240, height: 160)
+    .probe("tabs")
 }
 """#),
         FixtureSource(name: "text/alignment", file: "Fixtures/Sources/Text/TextCompletenessFixtures.swift", firstLine: 57, lastLine: 67, declaration: #"""
@@ -2655,6 +2691,16 @@ public static let steps = Fixture(
         Color.green.frame(width: 40, height: 40).offset(x: model.turned ? 20 : 0).probe("slide")
     }
     .probe("row")
+}
+"""#),
+        FixtureSource(name: "unavailable/basic", file: "Fixtures/Sources/Unavailable/UnavailableFixtures.swift", firstLine: 6, lastLine: 13, declaration: #"""
+public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, height: 400)) {
+    VStack(spacing: 8) {
+        ContentUnavailableView("No Mail", systemImage: "tray", description: Text("Try again later.")).probe("titled")
+        ContentUnavailableView { Label("No Results", image: "icon").probe("customLabel") } description: { Text("Search again.").probe("description") } actions: { Button("Retry") {}.probe("action") }.probe("custom")
+        ContentUnavailableView.search.probe("search")
+    }
+    .probe("stack")
 }
 """#),
     ]
@@ -5484,6 +5530,24 @@ public enum ShapeFixtures {
     public static let all: [Fixture] = [builtin, stroke, path, modifiers, border, layout, steps]
 }
 """#,
+        "Fixtures/Sources/ShareLink/ShareLinkFixtures.swift": #"""
+// ShareLink fixtures: the default "Share" button, a titled one and a custom label.
+import SwiftUI
+import FixtureKit
+
+public enum ShareLinkFixtures {
+    public static let basic = Fixture("sharelink/basic", size: CGSize(width: 320, height: 160)) {
+        VStack(spacing: 12) {
+            ShareLink(item: URL(string: "https://www.apple.com")!).probe("plain")
+            ShareLink("Send", item: URL(string: "https://www.apple.com")!).probe("titled")
+            ShareLink(item: URL(string: "https://www.apple.com")!) { Label("Custom", image: "icon").probe("customLabel") }.probe("custom")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic]
+}
+"""#,
         "Fixtures/Sources/Symbol/SymbolFixtures.swift": #"""
 // SF Symbol fixtures. `symbol/catalog` measures the layout size of common symbols at the body
 // font (the metrics table, scripts/symbol-metrics-table.py); `symbol/basic` measures the rules:
@@ -5628,6 +5692,46 @@ public enum SymbolFixtures {
     }
 
     public static let all: [Fixture] = catalogs + [basic]
+}
+"""#,
+        "Fixtures/Sources/TabView/TabViewFixtures.swift": #"""
+// TabView fixtures: the macOS tab view (a segmented tab bar over a bordered content area), a
+// selection binding switched in a step, tab items with images.
+import SwiftUI
+import FixtureKit
+
+@Observable
+public final class TabModel {
+    public var selection = 0
+    public init() {}
+}
+
+public enum TabViewFixtures {
+    public static let basic = Fixture(
+        "tabview/basic", size: CGSize(width: 360, height: 260),
+        model: { TabModel() },
+        steps: [FixtureStep("second") { $0.selection = 1 }]
+    ) { model in
+        TabView(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+            // Only the selected tab's content is probed: hidden tabs are laid out somewhere
+            // else by AppKit, which nothing here reproduces.
+            Group { if model.selection == 0 { Text("First").probe("first") } else { Text("First") } }.tabItem { Text("One") }.tag(0)
+            Group { if model.selection == 1 { Text("Second").probe("second") } else { Text("Second") } }.tabItem { Label("Two", image: "icon") }.tag(1)
+            Color.red.frame(width: 60, height: 40).tabItem { Text("Three") }.tag(2)
+        }
+        .probe("tabs")
+    }
+
+    public static let sized = Fixture("tabview/sized", size: CGSize(width: 360, height: 260)) {
+        TabView {
+            Text("Alpha").probe("alpha").tabItem { Text("A") }
+            Text("Beta").tabItem { Text("B") }
+        }
+        .frame(width: 240, height: 160)
+        .probe("tabs")
+    }
+
+    public static let all: [Fixture] = [basic, sized]
 }
 """#,
         "Fixtures/Sources/Text/TextCompletenessFixtures.swift": #"""
@@ -6103,6 +6207,24 @@ public enum TransformFixtures {
     }
 
     public static let all: [Fixture] = [basic, steps]
+}
+"""#,
+        "Fixtures/Sources/Unavailable/UnavailableFixtures.swift": #"""
+// ContentUnavailableView fixtures: title with an image, a description, the search preset.
+import SwiftUI
+import FixtureKit
+
+public enum UnavailableFixtures {
+    public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, height: 400)) {
+        VStack(spacing: 8) {
+            ContentUnavailableView("No Mail", systemImage: "tray", description: Text("Try again later.")).probe("titled")
+            ContentUnavailableView { Label("No Results", image: "icon").probe("customLabel") } description: { Text("Search again.").probe("description") } actions: { Button("Retry") {}.probe("action") }.probe("custom")
+            ContentUnavailableView.search.probe("search")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic]
 }
 """#,
     ]

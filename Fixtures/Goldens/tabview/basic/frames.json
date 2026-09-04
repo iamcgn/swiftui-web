@@ -1,0 +1,46 @@
+{
+  "fixture" : "tabview\/basic",
+  "frames" : {
+    "first" : {
+      "height" : 16,
+      "width" : 27,
+      "x" : 166.5,
+      "y" : 134
+    },
+    "tabs" : {
+      "height" : 260,
+      "width" : 360,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 360
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "first" : {
+          "height" : 16,
+          "width" : 27,
+          "x" : 163.5,
+          "y" : 107
+        },
+        "second" : {
+          "height" : 16,
+          "width" : 46,
+          "x" : 157,
+          "y" : 134
+        },
+        "tabs" : {
+          "height" : 260,
+          "width" : 360,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "second"
+    }
+  ]
+}

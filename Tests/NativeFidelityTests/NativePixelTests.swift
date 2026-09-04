@@ -28,7 +28,7 @@ enum NativeGoldens {
         return url.appendingPathComponent("Fixtures/Goldens")
     }()
 
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/"]
 
     /// Fixtures whose browser render is held to a looser bound (font fallbacks); natively the
     /// fonts are real, but the bound is kept for parity with Tier B.
@@ -38,6 +38,8 @@ enum NativeGoldens {
         "symbol/basic": ["size24", "size40", "baselineText40", "largeSize24", "light", "black", "blue30", "chevronSemibold", "approximateRow", "stack"],
     ]
     static let pixelTolerance = 0.03
+    /// Probes Apple reports but nothing reproduces (a hidden tab's stale frame), as in Tier A.
+    static let ignoredProbes: [String: Set<String>] = ["tabview/basic/second": ["first"]]
 
     static func frames(for name: String) throws -> NativeGoldenFrames? {
         let file = root.appendingPathComponent(name).appendingPathComponent("frames.json")
@@ -131,7 +133,8 @@ struct Bitmap {
 
     private func compare(_ ours: [String: CGRect], to golden: [String: NativeGoldenFrames.Rect], label: String) {
         let approximate = NativeGoldens.approximateProbes[label] ?? []
-        for (id, expected) in golden.sorted(by: { $0.key < $1.key }) {
+        let ignored = NativeGoldens.ignoredProbes[label] ?? []
+        for (id, expected) in golden.sorted(by: { $0.key < $1.key }) where !ignored.contains(id) {
             guard let actual = ours[id] else { Issue.record("\(label): probe \(id) not recorded"); continue }
             let tolerance = approximate.contains(id) ? 2 + 1e-9 : 1e-9
             // Text fixtures: CoreText's truncated widths land within the half point (Tier B's rule).

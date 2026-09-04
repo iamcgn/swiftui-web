@@ -70,6 +70,14 @@ public final class CanvasHost {
         runtime.scheduler.onNeedsFlush = { [weak self] in self?.scheduleFrame() }
         // Links open in a new tab.
         OpenURLAction.systemHandler = { url in _ = JSObject.global.window.object?.open?(url.absoluteString, "_blank", "noopener") }
+        // Share links use Web Share where the browser offers it (a user gesture is in flight).
+        ShareAction.systemHandler = { items, subject in
+            guard let navigator = JSObject.global.navigator.object, navigator.share.function != nil else { return }
+            let data = JSObject.global.Object.function!.new()
+            if let first = items.first, first.hasPrefix("http") { data.url = .string(first) } else { data.text = .string(items.joined(separator: "\n")) }
+            if let subject { data.title = .string(subject) }
+            _ = navigator.share!(data)
+        }
         // An image the painter had to fetch has arrived: paint the frame again.
         let imageLoaded = JSClosure { [weak self] _ in
             MainActor.assumeIsolated {

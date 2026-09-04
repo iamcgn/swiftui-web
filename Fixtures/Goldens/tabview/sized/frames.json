@@ -1,0 +1,21 @@
+{
+  "fixture" : "tabview\/sized",
+  "frames" : {
+    "alpha" : {
+      "height" : 16,
+      "width" : 34.5,
+      "x" : 162.75,
+      "y" : 134
+    },
+    "tabs" : {
+      "height" : 160,
+      "width" : 240,
+      "x" : 60,
+      "y" : 50
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 360
+  }
+}

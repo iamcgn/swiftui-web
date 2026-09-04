@@ -234,6 +234,21 @@ package enum PlatformMetrics {
     package static let spinnerMaxAlpha = 53.0 / 255
     package static let spinnerMinAlpha = 17.0 / 255
 
+    // TabView (macOS 26.2: fixtures tabview/*, Docs/elements/TabView.md)
+    package static let tabBarHeight: CGFloat = 24
+    package static let tabBarCornerRadius: CGFloat = 6
+    package static let tabSegmentPadding: CGFloat = 12                   // each side of a title
+    package static let tabDividerWidth: CGFloat = 1
+    package static let tabSelectedInset: CGFloat = 0.5
+    package static let tabBoxTop: CGFloat = 10
+    package static let tabBoxCornerRadius: CGFloat = 4.5
+    package static let tabBoxFillAlpha = 8.0 / 255
+    package static let tabBoxBorderAlpha = 10.0 / 255                    // approximate: the 245 edge on the 247 fill
+
+    // ContentUnavailableView (macOS 26.2: fixture unavailable/basic, Docs/elements/ContentUnavailableView.md)
+    package static let unavailableSpacing: CGFloat = 12
+    package static let unavailableTopPadding: CGFloat = 20
+
     // Lazy grids (macOS 26.2: fixture lazy/grids, Docs/elements/Lazy.md)
     package static let gridItemSpacing: CGFloat = 8
 

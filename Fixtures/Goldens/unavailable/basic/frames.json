@@ -1,0 +1,51 @@
+{
+  "fixture" : "unavailable\/basic",
+  "frames" : {
+    "action" : {
+      "height" : 24,
+      "width" : 56.5,
+      "x" : 151.75,
+      "y" : 236.5
+    },
+    "custom" : {
+      "height" : 128,
+      "width" : 360,
+      "x" : 0,
+      "y" : 136
+    },
+    "customLabel" : {
+      "height" : 38,
+      "width" : 130.5,
+      "x" : 114.75,
+      "y" : 156
+    },
+    "description" : {
+      "height" : 18.5,
+      "width" : 82.5,
+      "x" : 138.75,
+      "y" : 206
+    },
+    "search" : {
+      "height" : 128,
+      "width" : 360,
+      "x" : 0,
+      "y" : 272
+    },
+    "stack" : {
+      "height" : 400,
+      "width" : 360,
+      "x" : 0,
+      "y" : 0
+    },
+    "titled" : {
+      "height" : 128,
+      "width" : 360,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 360
+  }
+}

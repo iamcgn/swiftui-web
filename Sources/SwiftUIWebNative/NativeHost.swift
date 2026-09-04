@@ -62,6 +62,12 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
         self.view = view
         runtime.scheduler.onNeedsFlush = { [weak view] in view?.needsDisplay = true }
         OpenURLAction.systemHandler = { url in NSWorkspace.shared.open(url) }
+        ShareAction.systemHandler = { [weak view] items, _ in
+            guard let view else { return }
+            let objects: [Any] = items.map { item -> Any in URL(string: item).flatMap { $0.scheme != nil ? $0 : nil } ?? item }
+            let picker = NSSharingServicePicker(items: objects)
+            picker.show(relativeTo: NSRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1), of: view, preferredEdge: .minY)
+        }
         runtime.mount(root())
         return view
     }
