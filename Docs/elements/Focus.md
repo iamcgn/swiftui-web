@@ -11,7 +11,7 @@ Apple docs: [FocusState](https://developer.apple.com/documentation/swiftui/focus
 | `@FocusState` (`Bool` and optional `Hashable` forms), `FocusState.Binding` | implemented |
 | `focused(_:)`, `focused(_:equals:)` on a view containing a text field | implemented (the first text field in the modified subtree is the focus target) |
 | Tab between fields, click to focus, blur | the browser's, mirrored into the state through the host's focus/blur events |
-| `focusable()`, `FocusedValue`, `@FocusedBinding`, `focusSection`, `prefersDefaultFocus`, `defaultFocus`, focus on buttons and custom views, `onKeyPress`, `keyboardShortcut`, arrow-key navigation in lists | missing |
+| `focusable()`, `FocusedValue`, `@FocusedBinding`, `focusSection`, `prefersDefaultFocus`, `defaultFocus`, focus on buttons and custom views, `onKeyPress`, `keyboardShortcut`, arrow-key navigation in lists (now in `Docs/elements/Keyboard.md`) | missing |
 
 ## Behaviour
 
@@ -45,3 +45,7 @@ follows). wasm js tests pass.
 
 Focus on non-text views, the focus ring's real look, `FocusedValue`, key handling, the focus
 order across presentations, restoring focus after a sheet closes.
+
+Since 2026-09-04 focus is general (`Docs/elements/Keyboard.md`): `focused` works on buttons and
+`focusable` views, `Runtime.focusedIdentifier` covers every element, and the focus ring paints
+for keyboard focus on any of them.

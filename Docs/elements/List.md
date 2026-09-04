@@ -20,7 +20,7 @@ Apple docs: [List](https://developer.apple.com/documentation/swiftui/list),
 | `listRowSeparator(_:edges:)`, `listRowSeparatorTint(_:edges:)` | implemented for the bottom edge (macOS draws one separator per row); the top edge is ignored |
 | `listSectionSeparator(_:edges:)`, `listSectionSeparatorTint(_:edges:)`, `listItemTint(_:)` | stored only |
 | `Visibility`, `VerticalEdge`, `VerticalEdge.Set` | implemented |
-| Selection by press: single (press again deselects), multiple (accumulates) | implemented; keyboard navigation, Shift/Cmd ranges, the focused (accent) highlight missing |
+| Selection by press: single (press again deselects), multiple (accumulates) | implemented; keyboard navigation with Shift ranges and an accent selection when focused since 2026-09-04 (`Docs/elements/Keyboard.md`); Cmd ranges and the real focused look missing |
 | `Section` inside a list: header and footer styling, spacing, pinned first header | implemented (`Docs/elements/ForEach.md` for `Section` itself) |
 | `Label` inside a list: fixed icon slot and accent tint | implemented (`Docs/elements/Label.md`) |
 | `listRowSpacing`, `listSectionSpacing`, `alternatingRowBackgrounds`, `listRowHoverEffect`, `swipeActions`, `onDelete`/`onMove`, `deleteDisabled`/`moveDisabled`, `editMode`, `refreshable`, `scrollContentBackground`, `headerProminence` | missing |

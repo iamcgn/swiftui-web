@@ -15,7 +15,7 @@ Apple docs: [sheet(isPresented:onDismiss:content:)](https://developer.apple.com/
 | `confirmationDialog(_:isPresented:titleVisibility:actions:message:)` | implemented as an alert-style panel |
 | `@Environment(\.dismiss)`, `DismissAction` | implemented: dismisses the presentation the view is in, else pops the enclosing `NavigationStack` |
 | Pop-up `Picker` menu | implemented (`Docs/elements/Picker.md`): a menu below the button with the selected row checked |
-| `fullScreenCover`, `presentationDetents`, `presentationDragIndicator`, `interactiveDismissDisabled`, `Menu`, `contextMenu`, `fileImporter`, `presentationMode`, keyboard dismissal (Escape) | missing |
+| `fullScreenCover`, `presentationDetents`, `presentationDragIndicator`, `interactiveDismissDisabled`, `Menu`, `contextMenu`, `fileImporter`, `presentationMode`, keyboard dismissal (Escape) | implemented 2026-09-04 (`Docs/elements/Keyboard.md`) |
 
 ## Behaviour
 

@@ -260,6 +260,14 @@
           ]
         },
         {
+          "api": "onKeyPress / onMoveCommand / onExitCommand / onDeleteCommand / keyboardShortcut / focusable / KeyEquivalent / EventModifiers / KeyPress",
+          "status": "partial",
+          "notes": "Key presses dispatched from the focused view outwards, then menus, shortcuts and Escape; general focus with a ring for buttons and focusable views; list arrow-key selection and menu keyboard navigation (looks unverified); no key-up phases, onKeyPress(characters:), focus sections or default focus",
+          "fixtures": [
+            "keyboard/basic"
+          ]
+        },
+        {
           "api": "TimelineView / TimelineSchedule (periodic, everyMinute, explicit, animation, custom)",
           "status": "partial",
           "notes": "Wakes through main-actor Task.sleep (no Foundation timers on wasm); the animation schedule follows host frames; no lowFrequency distinction or Timer APIs",
@@ -482,7 +490,7 @@
         {
           "api": "@FocusState (Bool, optional Hashable) / focused(_:) / focused(_:equals:)",
           "status": "partial",
-          "notes": "Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); no focusable(), FocusedValue, key handling",
+          "notes": "Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); no focusable(), FocusedValue, key handling; focus on buttons and focusable views too (Docs/elements/Keyboard.md)",
           "fixtures": [
             "focus/basic"
           ]
