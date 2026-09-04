@@ -15,10 +15,61 @@ struct LandingApp: App {
             GeometryReader { proxy in
                 LandingPage().environment(\.isCompact, proxy.size.width < Site.compactWidth)
             }
-            // The page is designed on white paper: keep it light when the visitor's system is dark.
-            .preferredColorScheme(.light)
         }
     }
+}
+
+enum Theme: CaseIterable {
+    case system, light, dark
+
+    /// The scheme to prefer: `nil` follows the system.
+    var scheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .system: return "desktopcomputer"
+        case .light: return "sun.max"
+        case .dark: return "moon"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .system: return "System appearance"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+}
+
+/// The page's surfaces per appearance; text uses the system label colours, which follow the
+/// scheme on their own.
+struct Palette {
+    let page: Color
+    let paper: Color
+    let card: Color
+    let line: Color
+    let code: Color
+    let codeText: Color
+    let pillSelected: Color
+    let pillSelectedText: Color
+
+    static let light = Palette(page: .white, paper: Site.paper, card: .white, line: Site.line, code: Site.ink,
+                               codeText: Color(white: 0.92), pillSelected: Site.ink, pillSelectedText: .white)
+    static let dark = Palette(page: Color(red: 0.09, green: 0.09, blue: 0.11), paper: Color(red: 0.14, green: 0.14, blue: 0.17),
+                              card: Color(red: 0.12, green: 0.12, blue: 0.14), line: Color(red: 0.24, green: 0.24, blue: 0.27),
+                              code: Color(red: 0.16, green: 0.16, blue: 0.19), codeText: Color(white: 0.92),
+                              pillSelected: Color(white: 0.92), pillSelectedText: Site.ink)
+}
+
+extension EnvironmentValues {
+    var palette: Palette { colorScheme == .dark ? .dark : .light }
 }
 
 /// Phone-width layouts: one column, smaller display type, stacked rows.
@@ -75,11 +126,14 @@ enum Site {
 }
 
 struct LandingPage: View {
+    /// The header's theme switch: the system appearance, or a scheme the visitor picked.
+    @State private var theme: Theme = .system
     @Environment(\.isCompact) private var compact
+    @Environment(\.palette) private var palette
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                NavigationBar()
+                NavigationBar(theme: $theme)
                 Hero()
                 Highlights()
                 Demos()
@@ -91,21 +145,24 @@ struct LandingPage: View {
             .padding(.horizontal, compact ? 16 : 24)
             .frame(maxWidth: .infinity)
         }
-        .background(Color.white)
+        .background(palette.page)
+        .preferredColorScheme(theme.scheme)
     }
 }
 
 // MARK: - Navigation bar
 
 struct NavigationBar: View {
+    @Binding var theme: Theme
     @Environment(\.openURL) private var openURL
     @Environment(\.isCompact) private var compact
+    @Environment(\.palette) private var palette
 
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: compact ? 12 : 20) {
             HStack(spacing: 8) {
                 Wordmark(size: 22)
-                Text("SwiftUIWeb").font(.system(size: 18, weight: .semibold)).fixedSize()
+                if !compact { Text("SwiftUIWeb").font(.system(size: 18, weight: .semibold)).fixedSize() }
             }
             Spacer()
             if !compact {
@@ -113,11 +170,38 @@ struct NavigationBar: View {
                 Link("Support matrix", destination: Site.matrix)
                 Link("Roadmap", destination: Site.roadmap)
             }
+            ThemeSwitcher(theme: $theme)
             Button { openURL(Site.repository) } label: { Label("GitHub", systemImage: "link") }
                 .buttonStyle(.borderedProminent)
         }
         .padding(.vertical, 16)
-        .overlay(alignment: .bottom) { Rectangle().fill(Site.line).frame(height: 1) }
+        .overlay(alignment: .bottom) { Rectangle().fill(palette.line).frame(height: 1) }
+    }
+}
+
+/// System / light / dark, as three symbol buttons in a capsule; the choice becomes the page's
+/// `preferredColorScheme`.
+struct ThemeSwitcher: View {
+    @Binding var theme: Theme
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(Theme.allCases, id: \.self) { option in
+                Button { theme = option } label: {
+                    Image(systemName: option.symbol)
+                        .font(.system(size: 13, weight: .medium))
+                        .frame(width: 28, height: 24)
+                        .background(Capsule().fill(option == theme ? palette.pillSelected : .clear))
+                        .foregroundColor(option == theme ? palette.pillSelectedText : .secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(option.title)
+            }
+        }
+        .padding(3)
+        .background(Capsule().fill(palette.paper))
+        .overlay(Capsule().stroke(palette.line, lineWidth: 1))
     }
 }
 
@@ -139,6 +223,7 @@ struct Hero: View {
     @State private var count = 0
     @Environment(\.openURL) private var openURL
     @Environment(\.isCompact) private var compact
+    @Environment(\.palette) private var palette
 
     var body: some View {
         VStack(spacing: 22) {
@@ -150,8 +235,8 @@ struct Hero: View {
             .foregroundColor(.secondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
-            .background(Capsule().fill(Site.paper))
-            .overlay(Capsule().stroke(Site.line, lineWidth: 1))
+            .background(Capsule().fill(palette.paper))
+            .overlay(Capsule().stroke(palette.line, lineWidth: 1))
 
             Text("Your SwiftUI.\nIn the browser.")
                 .font(.system(size: compact ? 40 : 60, weight: .bold))
@@ -184,8 +269,8 @@ struct Hero: View {
                 Text("The README's counter, running unmodified.").font(.footnote).foregroundColor(.secondary)
             }
             .padding(20)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Site.paper))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Site.line, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(palette.paper))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(palette.line, lineWidth: 1))
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16)], spacing: 20) {
                 Stat(value: "\(SupportData.total)", label: "APIs tracked in the matrix")
@@ -262,12 +347,13 @@ struct SectionHeader: View {
 
 struct Card<Content: View>: View {
     @ViewBuilder let content: Content
+    @Environment(\.palette) private var palette
     var body: some View {
         content
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Site.line, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(palette.card))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(palette.line, lineWidth: 1))
     }
 }
 
@@ -424,6 +510,7 @@ struct DataDemo: View {
 
 struct DrawingDemo: View {
     @Bindable var model: DemoModel
+    @Environment(\.palette) private var palette
     private let symbols = ["star.fill", "heart.fill", "bolt.fill", "leaf.fill", "sun.max.fill", "moon.fill", "globe", "camera", "bell", "flag", "tag", "bookmark"]
 
     var body: some View {
@@ -447,7 +534,7 @@ struct DrawingDemo: View {
                     context.stroke(Path { path in
                         path.move(to: CGPoint(x: 0, y: size.height - 0.5))
                         path.addLine(to: CGPoint(x: size.width, y: size.height - 0.5))
-                    }, with: .color(Site.line), lineWidth: 1)
+                    }, with: .color(palette.line), lineWidth: 1)
                 }
                 .frame(height: 140)
                 Slider(value: $model.volume, in: 0...1) { Text("Phase") }
@@ -486,6 +573,7 @@ struct DrawingDemo: View {
 struct StateDemo: View {
     @Bindable var model: DemoModel
     @State private var pulse = false
+    @Environment(\.palette) private var palette
 
     var body: some View {
         Columns(secondWidth: 320) {
@@ -529,7 +617,7 @@ struct StateDemo: View {
                     .font(.callout)
                     .frame(height: 80)
                     .padding(6)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Site.line, lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(palette.line, lineWidth: 1))
                 Text("\(model.notes.count) characters").font(.caption).foregroundColor(.secondary)
             }
         }
@@ -596,6 +684,8 @@ struct CodeSample: View {
     }
     """
 
+    @Environment(\.palette) private var palette
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
@@ -610,14 +700,14 @@ struct CodeSample: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 Text(Self.code)
                     .font(.system(size: 13).monospaced())
-                    .foregroundColor(Color(white: 0.92))
+                    .foregroundColor(palette.codeText)
                     .fixedSize()
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Site.ink))
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(palette.code))
     }
 }
 
@@ -678,19 +768,20 @@ struct StatusPill: View {
     let count: Int
     let selected: Bool
     let action: @MainActor @Sendable () -> Void
+    @Environment(\.palette) private var palette
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 if let status { StatusDot(status: status) }
-                Text(status?.title ?? "All")
-                Text("\(count)").foregroundColor(.secondary)
+                Text(status?.title ?? "All").fixedSize()
+                Text("\(count)").foregroundColor(selected ? palette.pillSelectedText.opacity(0.6) : .secondary)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Capsule().fill(selected ? Site.ink : Site.paper))
-            .foregroundColor(selected ? .white : .primary)
-            .overlay(Capsule().stroke(Site.line, lineWidth: selected ? 0 : 1))
+            .background(Capsule().fill(selected ? palette.pillSelected : palette.paper))
+            .foregroundColor(selected ? palette.pillSelectedText : .primary)
+            .overlay(Capsule().stroke(palette.line, lineWidth: selected ? 0 : 1))
         }
         .buttonStyle(.plain)
     }
