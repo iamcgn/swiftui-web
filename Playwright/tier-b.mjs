@@ -23,8 +23,10 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 // SF on macOS; those fixtures are held to a looser bound and listed as approximate.
 // splitview/*: Apple's capture drops the sidebar's rows and selection and fills the 8 pt bands
 // beside the sidebar panel with a black-to-clear gradient (about 3.4 % of a 480 × 300 window).
+// texteditor/basic: NSTextView sets SF tighter between letters and wider at spaces than SwiftUI's
+// Text does, so its paragraph keeps one more word on the first line.
 const approximate = ['text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
-  'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility'];
+  'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 const frameTolerance = (name, key, expected) => name.startsWith('text/') && (key === 'width' || key === 'x')
   ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;

@@ -330,6 +330,14 @@ package enum PlatformMetrics {
     package static let clockMinuteHandWidth: CGFloat = 2.5                  // approximate
     package static let clockCapRadius: CGFloat = 4.5
 
+    // TextEditor (macOS 26.2: fixtures texteditor/*, Docs/elements/TextEditor.md)
+    package static let textEditorInset: CGFloat = 5                          // the text view's line fragment padding
+    package static let textEditorLineFactor: CGFloat = 0.955                 // 13 pt → a 12 pt pitch, 22 pt → 21 (unverified)
+    package static let textEditorBaseSize: CGFloat = 13
+    package static let textEditorTopGrowth: CGFloat = 0.944                  // the 22 pt title's cap top sits 8.5 down; 13 pt's at the top
+    package static let textEditorTextColor = RGBA(red: 0, green: 0, blue: 0, alpha: 1)   // pure black, unlike SwiftUI text
+    package static let textEditorIdealSize = CGSize(width: 100, height: 100)  // unverified
+
     // NavigationSplitView (macOS 26.2: fixtures splitview/*, Docs/elements/NavigationSplitView.md)
     package static let sidebarDefaultWidth: CGFloat = 140                // the panel; the column is 8 wider
     package static let splitContentDefaultWidth: CGFloat = 200

@@ -1,0 +1,45 @@
+{
+  "fixture" : "texteditor\/styles",
+  "frames" : {
+    "disabled" : {
+      "height" : 40,
+      "width" : 280,
+      "x" : 20,
+      "y" : 140
+    },
+    "noBackground" : {
+      "height" : 40,
+      "width" : 280,
+      "x" : 20,
+      "y" : 264
+    },
+    "red" : {
+      "height" : 40,
+      "width" : 280,
+      "x" : 20,
+      "y" : 88
+    },
+    "spaced" : {
+      "height" : 60,
+      "width" : 280,
+      "x" : 20,
+      "y" : 192
+    },
+    "stack" : {
+      "height" : 328,
+      "width" : 320,
+      "x" : 0,
+      "y" : -4
+    },
+    "title" : {
+      "height" : 60,
+      "width" : 280,
+      "x" : 20,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  }
+}

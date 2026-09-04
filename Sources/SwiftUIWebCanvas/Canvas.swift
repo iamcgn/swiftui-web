@@ -455,7 +455,7 @@ public final class CanvasHost {
         if let existing = overlayButtons[node.identifier] {
             element = existing
         } else {
-            element = document.createElement!("input").object!
+            element = document.createElement!(info.isMultiline ? "textarea" : "input").object!
             let style = element.style.object!
             style.position = .string("absolute")
             style.margin = .string("0")
@@ -467,6 +467,12 @@ public final class CanvasHost {
             style.caretColor = .string("black")
             style.pointerEvents = .string("auto")
             style.boxSizing = .string("border-box")
+            if info.isMultiline {
+                style.resize = .string("none")
+                style.overflow = .string("hidden")
+                style.whiteSpace = .string("pre-wrap")
+                style.wordBreak = .string("break-word")
+            }
             _ = element.setAttribute!("autocomplete", "off")
             _ = element.setAttribute!("autocapitalize", "off")
             _ = element.setAttribute!("spellcheck", "false")
@@ -476,10 +482,12 @@ public final class CanvasHost {
                 self.runtime.textField(id, didChange: target.value.string ?? "")
                 self.scheduleFrame()
             }
-            on(element, "keydown") { [weak self] e in
-                guard let self, e.key.string == "Enter" else { return }
-                self.runtime.textFieldDidSubmit(id)
-                self.scheduleFrame()
+            if !info.isMultiline {
+                on(element, "keydown") { [weak self] e in
+                    guard let self, e.key.string == "Enter" else { return }
+                    self.runtime.textFieldDidSubmit(id)
+                    self.scheduleFrame()
+                }
             }
             on(element, "focus") { [weak self] _ in
                 self?.runtime.textField(id, focused: true)
@@ -498,8 +506,15 @@ public final class CanvasHost {
         style.width = .string("\(info.textRect.width)px")
         style.height = .string("\(info.textRect.height)px")
         style.font = .string(DisplayListEncoder.cssFont(info.font))
-        style.lineHeight = .string("\(info.textRect.height)px")
-        element.type = .string(info.isSecure ? "password" : "text")
+        if info.isMultiline {
+            // The textarea's first baseline lands where the canvas paints it: pad the top by the
+            // difference between the runtime's first baseline and the line box's own.
+            style.lineHeight = .string("\(info.lineHeight)px")
+            style.paddingTop = .string("\(max(0, info.firstBaseline - info.lineHeight * 0.8))px")
+        } else {
+            style.lineHeight = .string("\(info.textRect.height)px")
+            element.type = .string(info.isSecure ? "password" : "text")
+        }
         element.disabled = .boolean(!info.isEnabled)
         _ = element.setAttribute!("aria-label", node.label)
         if element.value.string != info.text { element.value = .string(info.text) }

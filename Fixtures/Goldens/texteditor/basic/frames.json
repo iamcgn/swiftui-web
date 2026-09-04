@@ -1,0 +1,39 @@
+{
+  "fixture" : "texteditor\/basic",
+  "frames" : {
+    "empty" : {
+      "height" : 40,
+      "width" : 280,
+      "x" : 20,
+      "y" : 196
+    },
+    "lines" : {
+      "height" : 60,
+      "width" : 280,
+      "x" : 20,
+      "y" : 32
+    },
+    "narrow" : {
+      "height" : 40,
+      "width" : 160,
+      "x" : 80,
+      "y" : 248
+    },
+    "stack" : {
+      "height" : 296,
+      "width" : 320,
+      "x" : 0,
+      "y" : 12
+    },
+    "wrapping" : {
+      "height" : 80,
+      "width" : 280,
+      "x" : 20,
+      "y" : 104
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  }
+}

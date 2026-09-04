@@ -6588,6 +6588,12 @@
       "lastBaseline" : 25,
       "width" : 40.5
     },
+    "style:title||Hello" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 49
+    },
     "style:title||Large" : {
       "firstBaseline" : 25,
       "height" : 33,
@@ -6634,6 +6640,12 @@
       "firstBaseline" : 25,
       "height" : 99,
       "lastBaseline" : 91,
+      "width" : 0
+    },
+    "style:title|0.0|Hello" : {
+      "firstBaseline" : 25,
+      "height" : 165,
+      "lastBaseline" : 157,
       "width" : 0
     },
     "style:title|0.0|Large" : {
@@ -9522,6 +9534,12 @@
       "lastBaseline" : 13,
       "width" : 32.5
     },
+    "system:13:400:default||Empty" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 38.5
+    },
     "system:13:400:default||Enabled" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -9545,6 +9563,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 29
+    },
+    "system:13:400:default||Filled" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 32.5
     },
     "system:13:400:default||First" : {
       "firstBaseline" : 13,
@@ -9665,6 +9689,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 31
+    },
+    "system:13:400:default||Hello\nWorld" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 35.5
     },
     "system:13:400:default||Hg" : {
       "firstBaseline" : 13,
@@ -10944,6 +10974,12 @@
       "lastBaseline" : 77,
       "width" : 0
     },
+    "system:13:400:default|0.0|Empty" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Enabled" : {
       "firstBaseline" : 13,
       "height" : 112,
@@ -10966,6 +11002,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Filled" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|0.0|First" : {
@@ -11086,6 +11128,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Hello\nWorld" : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
       "width" : 0
     },
     "system:13:400:default|0.0|Hg" : {
@@ -11873,6 +11921,24 @@
       "height" : 32,
       "lastBaseline" : 29,
       "width" : 227
+    },
+    "system:13:400:default|270.0|Hello\nWorld" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 35.5
+    },
+    "system:13:400:default|270.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 227
+    },
+    "system:13:400:default|270.0|Left" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 24
     },
     "system:13:400:default|300.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,

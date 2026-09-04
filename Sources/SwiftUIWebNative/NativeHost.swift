@@ -176,9 +176,17 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
     private func drawCaret(in ctx: CGContext) {
         guard let field = host.focusedTextField, let input = field.textInput, input.isEnabled else { return }
         let shown = input.isSecure ? String(repeating: "•", count: input.text.count) : input.text
-        let x = input.textRect.minX + host.textEngine.advance(of: shown, font: input.font)
         ctx.setFillColor(NSColor.controlAccentColor.cgColor)
-        ctx.fill(CGRect(x: x.rounded(), y: input.textRect.minY, width: 1, height: input.textRect.height))
+        if input.isMultiline {
+            // After the last line of the editor (lines are the text's newlines; wrapping is not tracked).
+            let lines = shown.split(separator: "\n", omittingEmptySubsequences: false)
+            let x = input.textRect.minX + host.textEngine.advance(of: String(lines.last ?? ""), font: input.font)
+            let baseline = input.textRect.minY + input.firstBaseline + CGFloat(lines.count - 1) * input.lineHeight
+            ctx.fill(CGRect(x: x.rounded(), y: baseline - input.font.size, width: 1, height: input.font.size * 1.2))
+        } else {
+            let x = input.textRect.minX + host.textEngine.advance(of: shown, font: input.font)
+            ctx.fill(CGRect(x: x.rounded(), y: input.textRect.minY, width: 1, height: input.textRect.height))
+        }
     }
 
     override public func setFrameSize(_ newSize: NSSize) {

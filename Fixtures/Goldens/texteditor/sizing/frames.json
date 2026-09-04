@@ -1,0 +1,45 @@
+{
+  "fixture" : "texteditor\/sizing",
+  "frames" : {
+    "above" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 140.75,
+      "y" : 0
+    },
+    "fill" : {
+      "height" : 148,
+      "width" : 320,
+      "x" : 0,
+      "y" : 24
+    },
+    "left" : {
+      "height" : 60,
+      "width" : 280,
+      "x" : 0,
+      "y" : 180
+    },
+    "right" : {
+      "height" : 16,
+      "width" : 32,
+      "x" : 288,
+      "y" : 202
+    },
+    "row" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 180
+    },
+    "stack" : {
+      "height" : 240,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

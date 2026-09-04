@@ -11,6 +11,12 @@ public struct TextInputInfo: Equatable, Sendable {
     public var textRect: CGRect
     public var font: DisplayFont
     public var isEnabled: Bool
+    /// A multi-line editor: the host gives it a multi-line input and Return inserts a newline.
+    public var isMultiline = false
+    /// The editor's distance between baselines and its first baseline below the text rect's
+    /// top (0 for a single-line field, whose text line is the rect).
+    public var lineHeight: CGFloat = 0
+    public var firstBaseline: CGFloat = 0
 
     public init(text: String, placeholder: String, isSecure: Bool, textRect: CGRect, font: DisplayFont, isEnabled: Bool) {
         self.text = text
@@ -158,16 +164,25 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     }
 }
 
+/// A node whose text the host's input edits (text fields and editors).
+@MainActor
+package protocol _TextInputNode: AnyObject {
+    func setText(_ text: String)
+    func submit()
+}
+
+extension TextFieldNode: _TextInputNode {}
+
 extension Runtime {
     /// Text typed into the field with this semantics identifier (from the host's input element).
     public func textField(_ semanticsIdentifier: Int, didChange text: String) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? TextFieldNode else { return }
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode else { return }
         node.setText(text)
     }
 
-    /// Return pressed in the field with this identifier.
+    /// Return pressed in the field with this identifier (an editor inserts a newline).
     public func textFieldDidSubmit(_ semanticsIdentifier: Int) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? TextFieldNode else { return }
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode else { return }
         node.submit()
     }
 

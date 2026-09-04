@@ -362,6 +362,13 @@ public enum TextMetricsRequests {
         for day in 1...31 { requests.append(TextMetricRequest("\(day)", .system(size: 11, weight: "regular", design: "default"))) }
         for hour in 1...12 { requests.append(TextMetricRequest("\(hour)", defaultFont)) }
         for word in ["PM", "AM"] { requests.append(TextMetricRequest(word, defaultFont(weight: "medium"))) }
+        // TextEditor fixtures: the paragraph wrapped in the editor's 270 pt, the title font, the echo texts.
+        requests.append(TextMetricRequest(paragraph, defaultFont, width: 270))
+        requests.append(TextMetricRequest("Hello", .style("title")))
+        requests.append(TextMetricRequest("Hello\nWorld", defaultFont))
+        requests.append(TextMetricRequest("Hello\nWorld", defaultFont, width: 270))
+        requests.append(TextMetricRequest("Left", defaultFont, width: 270))
+        for word in ["Empty", "Filled"] { requests.append(TextMetricRequest(word, defaultFont)) }
         requests.append(TextMetricRequest("Details", .style("body")))
         requests.append(TextMetricRequest("Outer", .style("body")))
         requests.append(TextMetricRequest("Inner", .style("body")))

@@ -1,0 +1,75 @@
+{
+  "fixture" : "texteditor\/steps",
+  "frames" : {
+    "echo" : {
+      "height" : 16,
+      "width" : 32.5,
+      "x" : 143.75,
+      "y" : 108
+    },
+    "editor" : {
+      "height" : 60,
+      "width" : 280,
+      "x" : 20,
+      "y" : 36
+    },
+    "stack" : {
+      "height" : 128,
+      "width" : 320,
+      "x" : 0,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 32.5,
+          "x" : 143.75,
+          "y" : 108
+        },
+        "editor" : {
+          "height" : 60,
+          "width" : 280,
+          "x" : 20,
+          "y" : 36
+        },
+        "stack" : {
+          "height" : 128,
+          "width" : 320,
+          "x" : 0,
+          "y" : 16
+        }
+      },
+      "name" : "append"
+    },
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 38.5,
+          "x" : 140.75,
+          "y" : 108
+        },
+        "editor" : {
+          "height" : 60,
+          "width" : 280,
+          "x" : 20,
+          "y" : 36
+        },
+        "stack" : {
+          "height" : 128,
+          "width" : 320,
+          "x" : 0,
+          "y" : 16
+        }
+      },
+      "name" : "clear"
+    }
+  ]
+}
