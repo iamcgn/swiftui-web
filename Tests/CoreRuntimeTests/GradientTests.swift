@@ -51,5 +51,46 @@ import SwiftUIWebHeadless
         // Half a turn: the stops end at 0.5 and the end colour holds to 1.
         #expect(abs(resolved.stops[resolved.stops.count - 2].location - 0.5) < 1e-9 && resolved.stops.last?.location == 1)
     }
+
+    @Test func textAndCanvasGradients() {
+        let font = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
+        let engine = RecordedTextEngine(entries: [
+            RecordedTextEngine.key(font: font, width: nil, string: "Sky"): .init(width: 22.5, height: 16, firstBaseline: 13, lastBaseline: 13),
+            RecordedTextEngine.key(font: font, width: 60, string: "Sky"): .init(width: 22.5, height: 16, firstBaseline: 13, lastBaseline: 13),
+        ])
+        func render<V: View>(_ view: V) -> [String] {
+            let r = Runtime()
+            r.textEngine = engine
+            r.mount(view)
+            r.layout(in: CGSize(width: 60, height: 40))
+            return r.render(scale: 2).commands.map(\.description)
+        }
+        // A gradient foreground style fills the text with the gradient across its frame.
+        let gradient = LinearGradient(colors: [.red, .blue], startPoint: .leading, endPoint: .trailing)
+        let text = render(Text("Sky").foregroundStyle(gradient))
+        #expect(text.count == 1 && text[0].hasPrefix("drawText(\"Sky\" system 13 w400 at 19,25 linear"))
+        // A colour set afterwards replaces it; a colour on a part of the text keeps its colour.
+        #expect(render(Text("Sky").foregroundStyle(gradient).foregroundColor(.red)).first?.hasSuffix("#FF383C)") == true)
+        #expect(render(Text("Sky").foregroundColor(.red).foregroundStyle(gradient)).first?.contains(" linear ") == true)
+        // Hierarchical styles keep the inherited style (`.primary`) or fade it.
+        #expect(render(Text("Sky").foregroundStyle(.red).foregroundStyle(.primary)).first?.hasSuffix("#FF383C)") == true)
+        #expect(render(Text("Sky").foregroundStyle(.red).foregroundStyle(.secondary)).first?.hasSuffix("#FF383C@0.5)") == true)
+        #expect(render(Text("Sky").foregroundStyle(.secondary)).first?.hasSuffix("@0.5)") == true)
+        // Canvas shadings: linear, radial and conic gradients follow the transform, a gradient
+        // style resolves against the path's bounds, and colours still fill flat.
+        let canvas = render(Canvas { context, _ in
+            context.fill(Path(CGRect(x: 0, y: 0, width: 20, height: 10)), with: .linearGradient(Gradient(colors: [.red, .blue]), startPoint: .zero, endPoint: CGPoint(x: 20, y: 0)))
+            context.translateBy(x: 10, y: 10)
+            context.stroke(Path(CGRect(x: 0, y: 0, width: 10, height: 10)), with: .radialGradient(Gradient(colors: [.red, .blue]), center: CGPoint(x: 5, y: 5), startRadius: 0, endRadius: 5), lineWidth: 2)
+            context.fill(Path(CGRect(x: 0, y: 0, width: 10, height: 10)), with: .style(AngularGradient(colors: [.red, .blue], center: .center)))
+            context.fill(Path(CGRect(x: 0, y: 0, width: 4, height: 4)), with: .color(.green))
+        }.frame(width: 40, height: 30))
+        // (Inside the canvas's save/clip/restore.)
+        #expect(canvas.count == 7)
+        #expect(canvas[2].hasPrefix("fillGradient(") && canvas[2].contains("linear 10.0,5.0→30.0,5.0"))
+        #expect(canvas[3].hasPrefix("strokeGradient(") && canvas[3].contains("w=2") && canvas[3].contains("radial 25.0,20.0 r0.0→5.0"))
+        #expect(canvas[4].hasPrefix("fillGradient(") && canvas[4].contains("angular 25.0,20.0"))
+        #expect(canvas[5].hasPrefix("fillPath(") && canvas[5].hasSuffix("#34C759"))
+    }
 }
 #endif

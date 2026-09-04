@@ -21,5 +21,29 @@ public enum GradientFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic]
+    /// Gradient foreground styles on text and gradient shadings in a Canvas.
+    public static let text = Fixture("gradient/text", size: CGSize(width: 320, height: 180)) {
+        VStack(spacing: 16) {
+            Text("Gradient").font(.largeTitle)
+                .foregroundStyle(LinearGradient(colors: [.red, .blue], startPoint: .leading, endPoint: .trailing))
+                .probe("text")
+            HStack(spacing: 16) {
+                Text("Sky").foregroundStyle(.red).probe("red")
+                Text("Sky").foregroundStyle(.red).foregroundStyle(.primary).probe("hierarchical")
+            }
+            Canvas { context, size in
+                context.fill(Path(CGRect(x: 0, y: 0, width: 120, height: 40)),
+                             with: .linearGradient(Gradient(colors: [.green, .yellow]), startPoint: .zero, endPoint: CGPoint(x: 120, y: 0)))
+                context.stroke(Path(ellipseIn: CGRect(x: 140, y: 4, width: 32, height: 32)),
+                               with: .radialGradient(Gradient(colors: [.blue, .purple]), center: CGPoint(x: 156, y: 20), startRadius: 0, endRadius: 16), lineWidth: 6)
+                context.fill(Path(CGRect(x: 0, y: 48, width: 180, height: 12)),
+                             with: .style(AngularGradient(colors: [.red, .orange, .red], center: .center)))
+            }
+            .frame(width: 180, height: 60)
+            .probe("canvas")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic, text]
 }

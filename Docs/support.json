@@ -237,18 +237,19 @@
         {
           "api": "Canvas / GraphicsContext (fill, stroke, text, transforms, opacity, clip, drawLayer) / ResolvedText",
           "status": "partial",
-          "notes": "Immediate-mode drawing recorded into the display list (a concat op for rotated text); pixels within 0.11 % of Apple's; no gradients, images, blend modes, filters or symbols",
+          "notes": "Immediate-mode drawing recorded into the display list (a concat op for rotated text); pixels within 0.11 % of Apple's; gradient shadings, images, blend modes, filters or symbols",
           "fixtures": [
             "canvas/basic",
             "canvas/sizing"
           ]
         },
         {
-          "api": "Gradient / LinearGradient / RadialGradient / AngularGradient (fills, strokes, strokeBorder, backgrounds)",
+          "api": "Gradient / LinearGradient / RadialGradient / AngularGradient / HierarchicalShapeStyle (fills, strokes, backgrounds, text, Canvas shading)",
           "status": "partial",
-          "notes": "Display-list gradient ops painted by Canvas2D, stops blended in Oklab to match Apple's perceptual blending (≤ 0.08 % pixels); no text/image foreground gradients, elliptical or mesh gradients",
+          "notes": "Display-list gradient ops painted by Canvas2D, stops blended in Oklab (≤ 0.08 % pixels); text foreground gradients through an offscreen mask; Canvas gradient shadings; .primary keeps the inherited style; no elliptical or mesh gradients, image gradients",
           "fixtures": [
-            "gradient/basic"
+            "gradient/basic",
+            "gradient/text"
           ]
         },
         {

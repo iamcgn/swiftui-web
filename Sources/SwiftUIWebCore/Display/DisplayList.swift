@@ -89,6 +89,8 @@ public enum DisplayCommand: Equatable, Sendable {
     case strokeGradient(Path, style: StrokeStyle, DisplayGradient)
     /// Draws one line of text with its baseline at `origin.y`.
     case drawText(String, DisplayFont, origin: CGPoint, RGBA)
+    /// Draws one line of text filled with a gradient (absolute coordinates).
+    case drawTextGradient(String, DisplayFont, origin: CGPoint, DisplayGradient)
     case drawImage(ImageDraw)
 }
 
@@ -145,6 +147,8 @@ extension DisplayCommand: CustomStringConvertible {
             return text + " \(c(color))"
         case .drawText(let text, let font, let origin, let color):
             return "drawText(\"\(text)\" \(font.family) \(f(font.size)) w\(font.weight) at \(f(origin.x)),\(f(origin.y)) \(c(color)))"
+        case .drawTextGradient(let text, let font, let origin, let gradient):
+            return "drawText(\"\(text)\" \(font.family) \(f(font.size)) w\(font.weight) at \(f(origin.x)),\(f(origin.y)) \(gradient.summary))"
         case .drawImage(let draw):
             var text = "drawImage(\(draw.file) @\(f(draw.scale))x \(r(draw.rect))"
             if draw.capInsets != EdgeInsets() { text += " insets=\(f(draw.capInsets.top)),\(f(draw.capInsets.leading)),\(f(draw.capInsets.bottom)),\(f(draw.capInsets.trailing))" }

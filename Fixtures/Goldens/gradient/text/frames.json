@@ -1,0 +1,39 @@
+{
+  "fixture" : "gradient\/text",
+  "frames" : {
+    "canvas" : {
+      "height" : 60,
+      "width" : 180,
+      "x" : 70,
+      "y" : 103
+    },
+    "hierarchical" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 168,
+      "y" : 71
+    },
+    "red" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 129.5,
+      "y" : 71
+    },
+    "stack" : {
+      "height" : 146,
+      "width" : 180,
+      "x" : 70,
+      "y" : 17
+    },
+    "text" : {
+      "height" : 38,
+      "width" : 97,
+      "x" : 111.5,
+      "y" : 17
+    }
+  },
+  "size" : {
+    "height" : 180,
+    "width" : 320
+  }
+}

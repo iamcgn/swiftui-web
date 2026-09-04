@@ -5136,6 +5136,12 @@
       "lastBaseline" : 29,
       "width" : 43.5
     },
+    "style:largeTitle||Gradient" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 97
+    },
     "style:largeTitle||Hg" : {
       "firstBaseline" : 29,
       "height" : 38,
@@ -5164,6 +5170,12 @@
       "firstBaseline" : 29,
       "height" : 116,
       "lastBaseline" : 107,
+      "width" : 0
+    },
+    "style:largeTitle|0.0|Gradient" : {
+      "firstBaseline" : 29,
+      "height" : 311,
+      "lastBaseline" : 302,
       "width" : 0
     },
     "style:largeTitle|0.0|Hg" : {

@@ -175,6 +175,31 @@ enum PainterScript {
               ctx.fillText(text, x, y);
               break;
             }
+            case 17: {
+              // Gradient text: the text is drawn into an offscreen the size of its ink, the
+              // gradient is filled through it (source-in) in the same absolute coordinates, and
+              // the result is composited back.
+              const text = strings[buf[i++]], font = strings[buf[i++]], x = buf[i++], y = buf[i++];
+              ctx.font = font;
+              const m = ctx.measureText(text);
+              const ascent = (m.actualBoundingBoxAscent || 0) + 2, descent = (m.actualBoundingBoxDescent || 0) + 2;
+              const left = (m.actualBoundingBoxLeft || 0) + 2, width = Math.ceil(m.width + left + (m.actualBoundingBoxRight || 0) + 4);
+              const height = Math.ceil(ascent + descent);
+              const ox = x - left, oy = y - ascent;
+              const off = new OffscreenCanvas(Math.max(1, Math.ceil(width * dpr)), Math.max(1, Math.ceil(height * dpr)));
+              const octx = off.getContext('2d');
+              octx.setTransform(dpr, 0, 0, dpr, -ox * dpr, -oy * dpr);
+              octx.textBaseline = 'alphabetic';
+              octx.font = font;
+              octx.fillStyle = '#000';
+              octx.fillText(text, x, y);
+              const g = readGradient(octx, buf, i); i = g.i;
+              octx.globalCompositeOperation = 'source-in';
+              octx.fillStyle = g.style;
+              octx.fillRect(ox, oy, width, height);
+              ctx.drawImage(off, ox, oy, width, height);
+              break;
+            }
             case 13: {
               const file = strings[buf[i++]], scale = buf[i++], pw = buf[i++], ph = buf[i++];
               const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];

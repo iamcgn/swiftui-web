@@ -323,6 +323,7 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Star button", defaultFont))
         requests.append(TextMetricRequest("Star", .style("title")))
         requests.append(TextMetricRequest("Star label", .style("title")))
+        requests.append(TextMetricRequest("Gradient", .style("largeTitle")))
         requests.append(TextMetricRequest("Star label", .style("body")))
         requests.append(TextMetricRequest("Star", .system(size: 11, weight: "regular", design: "default")))
         requests.append(TextMetricRequest("Star", .system(size: 12, weight: "regular", design: "default")))

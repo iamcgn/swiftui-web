@@ -12,7 +12,10 @@ Apple docs: [Gradient](https://developer.apple.com/documentation/swiftui/gradien
 | `Gradient(colors:)`, `Gradient(stops:)`, `Gradient.Stop` | implemented |
 | `LinearGradient(gradient:/colors:/stops:, startPoint:endPoint:)`, `RadialGradient(…, center:startRadius:endRadius:)`, `AngularGradient(…, center:startAngle:endAngle:)`, `AngularGradient(…, center:angle:)` | implemented; `.linearGradient/.radialGradient/.angularGradient/.conicGradient` shorthands too |
 | Gradients as fills, strokes, `strokeBorder` and `background(_:)` of shapes | implemented |
-| `foregroundStyle(gradient)` on text, `EllipticalGradient`, `MeshGradient`, `ShapeStyle.in(_:)`, gradient `opacity`, `GraphicsContext.Shading.linearGradient` | missing (text keeps the primary colour; the canvas shading takes a colour) |
+| `foregroundStyle(gradient)` on text | implemented 2026-09-04: the text's runs without a colour of their own draw through `drawTextGradient` (op 17: the painter draws the text into an offscreen the size of its ink and fills the gradient through it with `source-in`); the gradient spans the text's frame |
+| `GraphicsContext.Shading.linearGradient/radialGradient/conicGradient/style(_:)`, `GradientOptions` | implemented 2026-09-04: points and radii follow the context's transform, a gradient style resolves against the path's bounds; options accepted, no repeat/mirror |
+| `HierarchicalShapeStyle` (`.primary` … `.quinary`) in `foregroundStyle` | implemented 2026-09-04: `.primary` keeps the inherited style (a red text stays red under `.primary`, `gradient/text` `hierarchical`), lower levels fade the inherited colour to 50/35/25/18 % (approximate) |
+| `EllipticalGradient`, `MeshGradient`, `ShapeStyle.in(_:)`, gradient `opacity`, gradients on images and symbols, fading a gradient with `.secondary` | missing |
 
 ## Behaviour
 
@@ -41,12 +44,12 @@ sweep compresses its stops into the sweep and holds the end colour to a full tur
 
 ## Verification (2026-09-03)
 
-Tier A: `gradient/basic` exact. Tier B 1/1 in all three browsers (Chromium 0.08 %, WebKit and
-Firefox 0.05 %). `GradientTests` cover the gradient geometry of fills and strokes, the Oklab
+Tier A: `gradient/basic` and `gradient/text` exact. Tier B 2/2 in all three browsers (`basic` ≤ 0.08 %;
+`text` 1.64 % Chromium, 1.44 % WebKit, 1.57 % Firefox: the text's own anti-aliasing under the gradient). `GradientTests` cover the gradient geometry of fills and strokes, the Oklab
 midpoint, evenly spaced colours and partial sweeps. wasm js tests pass.
 
 ## Not yet covered
 
-Text and image foreground gradients, elliptical and mesh gradients, gradient shading in
-`Canvas`, gradients in `Color.opacity`-style modifiers, the exact perceptual space Apple uses
+Image and symbol foreground gradients, elliptical and mesh gradients, repeating/mirrored
+canvas gradients, gradients in `Color.opacity`-style modifiers, the exact perceptual space Apple uses
 (Oklab is within a few units, not identical).

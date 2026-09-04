@@ -16,6 +16,8 @@ public enum DisplayOp: Double, Sendable {
     /// fillGradient: path, gradient, eoFill. strokeGradient: path, stroke style (as strokePath), gradient.
     /// A gradient is: kind (0 linear x0,y0,x1,y1; 1 radial cx,cy,r0,r1; 2 angular cx,cy,angle), stop count, stops (location, colour).
     case fillGradient = 15, strokeGradient = 16
+    /// text, font, origin, gradient
+    case drawTextGradient = 17
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -96,6 +98,9 @@ public enum DisplayListEncoder {
             case .drawText(let text, let font, let origin, let c):
                 out.ops += [DisplayOp.drawText.rawValue, intern(text), intern(fontString(font)), origin.x, origin.y]
                 color(c)
+            case .drawTextGradient(let text, let font, let origin, let g):
+                out.ops += [DisplayOp.drawTextGradient.rawValue, intern(text), intern(fontString(font)), origin.x, origin.y]
+                gradient(g)
             case .drawImage(let draw):
                 out.ops += [DisplayOp.drawImage.rawValue, intern(draw.file), draw.scale, draw.pixelSize.width, draw.pixelSize.height]
                 rect(draw.rect)
@@ -189,6 +194,10 @@ public enum DisplayListDecoder {
             case .drawText:
                 let text = encoded.strings[Int(next())], font = encoded.strings[Int(next())]
                 out.append("drawText '\(text)' [\(font)] \(next()),\(next()) \(color())")
+            case .drawTextGradient:
+                let text = encoded.strings[Int(next())], font = encoded.strings[Int(next())]
+                let x = next(), y = next()
+                out.append("drawText '\(text)' [\(font)] \(x),\(y) \(gradientText())")
             case .drawImage:
                 let file = encoded.strings[Int(next())]
                 let scale = next(), pw = next(), ph = next()

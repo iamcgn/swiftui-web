@@ -72,8 +72,6 @@ extension ShapeStyle where Self == Color {
     public static var gray: Color { .gray }
     public static var black: Color { .black }
     public static var clear: Color { .clear }
-    public static var primary: Color { .primary }
-    public static var secondary: Color { .secondary }
     public static var accentColor: Color { .accentColor }
 }
 

@@ -12,7 +12,7 @@ Apple docs: [Canvas](https://developer.apple.com/documentation/swiftui/canvas),
 | `draw(Text, at:anchor:)`, `draw(Text, in:)`, `resolve(Text)`, `ResolvedText.measure(in:)`/`firstBaseline(in:)` | implemented (text uses the environment's font and colour; `draw(in:)` wraps at the rect's width from its top leading corner, as Apple does) |
 | `transform`, `translateBy`, `scaleBy`, `rotate(by:)`, `concatenate` | implemented (paths are transformed before recording; text rotation uses the display list's new `concat` op) |
 | `opacity`, `clip(to:style:options:)`, `clipBoundingRect`, `drawLayer` | implemented (`ClipOptions.inverse` ignored; `blendMode` stored, only `.normal` painted) |
-| `Shading.color`, `.foreground`, `.backgroundStyle` | implemented; gradients, `tiledImage`, `style(ShapeStyle)` missing |
+| `Shading.color`, `.foreground`, `.backgroundStyle`, `.linearGradient`, `.radialGradient`, `.conicGradient`, `.style(_:)` | implemented (gradients since 2026-09-04, `Docs/elements/Gradient.md`); `tiledImage` missing |
 | `draw(Image, …)`, `resolveSymbol`, `addFilter`, `withCGContext` | missing (images draw nothing) |
 
 ## Behaviour
@@ -46,6 +46,6 @@ and flexibility. wasm js tests pass.
 
 ## Not yet covered
 
-Gradients and images (display-list ops), blend modes and filters (`addFilter`, shadows,
+Images, `tiledImage` shading, blend modes and filters (`addFilter`, shadows,
 blur), symbols, `withCGContext`, `rendersAsynchronously`, invalidation on state read inside the
 renderer (the renderer runs at every paint), `Path` text outlines.

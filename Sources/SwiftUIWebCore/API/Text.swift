@@ -46,11 +46,14 @@ public struct Text: Equatable, Sendable {
         package var bold = false
         package var italic = false
         package var foregroundColor: Color?
+        /// A gradient foreground style set on the text itself (`Text.foregroundStyle`).
+        package var foregroundGradient: _GradientBox?
 
         /// `self` applied on top of the enclosing text's modifiers.
         package func inheriting(_ parent: Modifiers) -> Modifiers {
             Modifiers(font: font ?? parent.font, weight: weight ?? parent.weight, bold: bold || parent.bold,
-                      italic: italic || parent.italic, foregroundColor: foregroundColor ?? parent.foregroundColor)
+                      italic: italic || parent.italic, foregroundColor: foregroundColor ?? parent.foregroundColor,
+                      foregroundGradient: foregroundColor != nil ? nil : (foregroundGradient ?? parent.foregroundGradient))
         }
     }
 
@@ -107,10 +110,30 @@ public struct Text: Equatable, Sendable {
     public func bold(_ isActive: Bool) -> Text { isActive ? bold() : self }
     public func italic() -> Text { var t = self; t.modifiers.italic = true; return t }
     public func italic(_ isActive: Bool) -> Text { isActive ? italic() : self }
-    public func foregroundColor(_ color: Color?) -> Text { var t = self; t.modifiers.foregroundColor = color; return t }
+    public func foregroundColor(_ color: Color?) -> Text {
+        var t = self
+        t.modifiers.foregroundColor = color
+        t.modifiers.foregroundGradient = nil
+        return t
+    }
+
+    /// A colour or gradient replaces the text's style; a hierarchical style keeps it (`.primary`)
+    /// or fades it; other styles leave it (`View.foregroundStyle`).
     public func foregroundStyle<S: ShapeStyle>(_ style: S) -> Text {
         var t = self
-        t.modifiers.foregroundColor = style as? Color
+        if let color = style as? Color {
+            t.modifiers.foregroundColor = color
+            t.modifiers.foregroundGradient = nil
+        } else if let level = style as? HierarchicalShapeStyle {
+            if level.level > 0 {
+                t.modifiers.foregroundColor = t.modifiers.foregroundColor.map { $0.opacity(level.opacity) }
+                    ?? (level.level == 1 ? Color.secondary : Color.primary.opacity(level.opacity))
+                t.modifiers.foregroundGradient = nil
+            }
+        } else if let gradient = MainActor.assumeIsolated({ style as? any _GradientStyle }) {
+            t.modifiers.foregroundColor = nil
+            t.modifiers.foregroundGradient = _GradientBox(gradient)
+        }
         return t
     }
 
@@ -281,6 +304,9 @@ package final class TextNode: LeafNode<Text> {
         return (parts.map { StyledRun($0.string, font: resolveFont($0.modifiers)) }, parts.map(\.modifiers.foregroundColor))
     }
 
+    /// Each part's own gradient, if it has one.
+    package var runGradients: [(any _GradientStyle)?] { view.parts().map { $0.modifiers.foregroundGradient?.style } }
+
     package func textLayout(width: CGFloat?) -> TextLayout {
         runtime.textEngine.layout(styledRuns.runs, options: environment.textLayoutOptions, width: width)
     }
@@ -307,6 +333,10 @@ package final class TextNode: LeafNode<Text> {
         let resolvedColors = colors.map { ($0 ?? inherited).resolve(in: environment) }
         let fonts = runs.map { DisplayFont($0.font) }
         let bounds = absoluteBounds(context)
+        // A gradient foreground style (the text's own or the environment's) fills the runs
+        // without a colour of their own.
+        let runGradients = runGradients
+        let inheritedGradient = environment.foregroundGradient?._resolveGradient(in: bounds, environment: environment)
         let alignment: CGFloat
         switch environment.multilineTextAlignment {
         case .leading: alignment = 0
@@ -317,9 +347,15 @@ package final class TextNode: LeafNode<Text> {
             let lineX = bounds.minX + (frame.width - line.inkWidth) * alignment
             for fragment in line.fragments where !fragment.text.isEmpty {
                 let run = min(max(fragment.run, 0), max(runs.count - 1, 0))
-                list.append(.drawText(fragment.text, fonts.indices.contains(run) ? fonts[run] : DisplayFont(resolvedFont),
-                                      origin: CGPoint(x: lineX + fragment.x, y: bounds.minY + line.baseline),
-                                      resolvedColors.indices.contains(run) ? resolvedColors[run] : inherited.resolve(in: environment)))
+                let font = fonts.indices.contains(run) ? fonts[run] : DisplayFont(resolvedFont)
+                let origin = CGPoint(x: lineX + fragment.x, y: bounds.minY + line.baseline)
+                let own = runGradients.indices.contains(run) ? runGradients[run]?._resolveGradient(in: bounds, environment: environment) : nil
+                if let gradient = own ?? inheritedGradient, colors.indices.contains(run) ? colors[run] == nil : true {
+                    list.append(.drawTextGradient(fragment.text, font, origin: origin, gradient))
+                } else {
+                    list.append(.drawText(fragment.text, font, origin: origin,
+                                          resolvedColors.indices.contains(run) ? resolvedColors[run] : inherited.resolve(in: environment)))
+                }
             }
         }
     }

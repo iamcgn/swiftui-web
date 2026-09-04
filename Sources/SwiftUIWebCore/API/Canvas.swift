@@ -79,7 +79,15 @@ public struct GraphicsContext {
 
     /// A color or pattern that you can use to outline or fill paths and shapes.
     public struct Shading: Sendable {
-        package enum Kind: Sendable { case color(Color), foreground, background }
+        package enum Kind: Sendable {
+            case color(Color), foreground, background
+            /// Gradients in the context's space (transformed when drawn).
+            case linear(Gradient, start: CGPoint, end: CGPoint)
+            case radial(Gradient, center: CGPoint, startRadius: CGFloat, endRadius: CGFloat)
+            case conic(Gradient, center: CGPoint, angle: Angle)
+            /// A shape style resolved against the drawn path's bounds.
+            case style(any ShapeStyle)
+        }
         package let kind: Kind
 
         public static func color(_ color: Color) -> Shading { Shading(kind: .color(color)) }
@@ -88,14 +96,56 @@ public struct GraphicsContext {
         public static func color(red: Double, green: Double, blue: Double, opacity: Double = 1) -> Shading {
             Shading(kind: .color(Color(red: red, green: green, blue: blue, opacity: opacity)))
         }
+        public static func linearGradient(_ gradient: Gradient, startPoint: CGPoint, endPoint: CGPoint, options: GradientOptions = GradientOptions()) -> Shading {
+            Shading(kind: .linear(gradient, start: startPoint, end: endPoint))
+        }
+        public static func radialGradient(_ gradient: Gradient, center: CGPoint, startRadius: CGFloat, endRadius: CGFloat, options: GradientOptions = GradientOptions()) -> Shading {
+            Shading(kind: .radial(gradient, center: center, startRadius: startRadius, endRadius: endRadius))
+        }
+        public static func conicGradient(_ gradient: Gradient, center: CGPoint, angle: Angle = .zero, options: GradientOptions = GradientOptions()) -> Shading {
+            Shading(kind: .conic(gradient, center: center, angle: angle))
+        }
+        public static func style<S: ShapeStyle>(_ style: S) -> Shading { Shading(kind: .style(style)) }
 
+        /// The flat colour of a colour shading (gradients resolve through `gradient`).
         @MainActor package func resolve(in environment: EnvironmentValues) -> RGBA {
             switch kind {
             case .color(let color): return color.resolve(in: environment)
             case .foreground: return (environment.foregroundColor ?? .primary).resolve(in: environment)
             case .background: return Color.white.resolve(in: environment)
+            case .style(let style): return (style as? Color ?? .primary).resolve(in: environment)
+            case .linear, .radial, .conic: return Color.primary.resolve(in: environment)
             }
         }
+
+        /// The gradient a gradient shading paints, in the canvas's absolute space: the
+        /// context's points through `transform`, a style against the path's `bounds`.
+        @MainActor package func gradient(bounds: CGRect, transform: CGAffineTransform, environment: EnvironmentValues) -> DisplayGradient? {
+            let magnitude = (transform.a * transform.a + transform.b * transform.b).squareRoot()
+            switch kind {
+            case .linear(let gradient, let start, let end):
+                return DisplayGradient(kind: .linear(start: start.applying(transform), end: end.applying(transform)), stops: gradient.resolvedStops(in: environment))
+            case .radial(let gradient, let center, let r0, let r1):
+                return DisplayGradient(kind: .radial(center: center.applying(transform), startRadius: r0 * magnitude, endRadius: r1 * magnitude),
+                                       stops: gradient.resolvedStops(in: environment))
+            case .conic(let gradient, let center, let angle):
+                return DisplayGradient(kind: .angular(center: center.applying(transform), startAngle: angle.radians + _atan2(Double(transform.b), Double(transform.a))),
+                                       stops: gradient.resolvedStops(in: environment))
+            case .style(let style):
+                return (style as? any _GradientStyle)?._resolveGradient(in: bounds, environment: environment)
+            case .color, .foreground, .background:
+                return nil
+            }
+        }
+    }
+
+    /// Options for gradient shadings (accepted; gradients neither mirror nor repeat here).
+    public struct GradientOptions: OptionSet, Sendable {
+        public let rawValue: UInt32
+        public init(rawValue: UInt32) { self.rawValue = rawValue }
+        public static let `repeat` = GradientOptions(rawValue: 1)
+        public static let mirror = GradientOptions(rawValue: 2)
+        public static let linearColor = GradientOptions(rawValue: 4)
     }
 
     // MARK: Transforms
@@ -144,8 +194,13 @@ public struct GraphicsContext {
     /// Fills a path with the given shading.
     @MainActor public func fill(_ path: Path, with shading: Shading, style: FillStyle = FillStyle()) {
         guard opacity > 0 else { return }
+        let transformed = path.applying(transform)
+        if let gradient = shading.gradient(bounds: transformed.boundingRect, transform: transform, environment: environment) {
+            withState { $0.append(.fillGradient(transformed, gradient, eoFill: style.isEOFilled)) }
+            return
+        }
         let color = shading.resolve(in: environment)
-        withState { $0.append(.fillPath(path.applying(transform), color, eoFill: style.isEOFilled)) }
+        withState { $0.append(.fillPath(transformed, color, eoFill: style.isEOFilled)) }
     }
 
     /// Strokes a path with the given shading and line width.
@@ -160,7 +215,12 @@ public struct GraphicsContext {
         let scale = (transform.a * transform.a + transform.b * transform.b).squareRoot()
         var scaled = style
         scaled.lineWidth = style.lineWidth * (scale > 0 ? scale : 1)
-        withState { $0.append(.strokePath(path.applying(transform), style: scaled, color)) }
+        let transformed = path.applying(transform)
+        if let gradient = shading.gradient(bounds: transformed.boundingRect, transform: transform, environment: environment) {
+            withState { $0.append(.strokeGradient(transformed, style: scaled, gradient)) }
+            return
+        }
+        withState { $0.append(.strokePath(transformed, style: scaled, color)) }
     }
 
     /// Draws a text view, positioned by an anchor point.
