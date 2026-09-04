@@ -95,8 +95,9 @@ extension ViewNode {
     /// searching later-painted children first.
     package func hitTest(_ point: CGPoint, where predicate: (ViewNode) -> Bool) -> ViewNode? {
         for child in paintedChildren.reversed() {
-            let local = CGPoint(x: point.x - child.frame.minX, y: point.y - child.frame.minY)
-            guard child.contains(local) else { continue }
+            let shift = child.hitTestOffset
+            let local = CGPoint(x: point.x - child.frame.minX - shift.x, y: point.y - child.frame.minY - shift.y)
+            if child.clipsHitTesting, !child.contains(local) { continue }
             if let hit = child.hitTest(local, where: predicate) { return hit }
         }
         return predicate(self) && contains(point) ? self : nil
@@ -125,8 +126,9 @@ extension Runtime {
         let presented = presentationHit(at: point)
         if presented.handled { return presented.node }
         for node in root.layoutChildren.reversed() {
-            let local = CGPoint(x: point.x - node.frame.minX, y: point.y - node.frame.minY)
-            guard node.contains(local) else { continue }
+            let shift = node.hitTestOffset
+            let local = CGPoint(x: point.x - node.frame.minX - shift.x, y: point.y - node.frame.minY - shift.y)
+            if node.clipsHitTesting, !node.contains(local) { continue }
             if let hit = node.hitTest(local, where: { $0 is _Interactive }) { return hit as? (ViewNode & _Interactive) }
         }
         return nil

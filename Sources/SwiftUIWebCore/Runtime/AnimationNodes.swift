@@ -42,9 +42,10 @@ package final class NodePresentation {
     package var frame: Tween?
     package var opacity: Tween?
     package var color: Tween?
+    package var effect: Tween?
     package var transition: TransitionState?
 
-    package var isEmpty: Bool { frame == nil && opacity == nil && color == nil && transition == nil }
+    package var isEmpty: Bool { frame == nil && opacity == nil && color == nil && effect == nil && transition == nil }
 }
 
 /// A weak reference for the runtime's list of animating nodes.
@@ -69,6 +70,7 @@ extension Runtime {
             if let tween = presentation.frame, tween.isFinished(at: now) { presentation.frame = nil }
             if let tween = presentation.opacity, tween.isFinished(at: now) { presentation.opacity = nil }
             if let tween = presentation.color, tween.isFinished(at: now) { presentation.color = nil }
+            if let tween = presentation.effect, tween.isFinished(at: now) { presentation.effect = nil }
             if let transition = presentation.transition, transition.isFinished(at: now) {
                 presentation.transition = nil
                 if let onFinish = transition.onFinish { finished.append(onFinish) }
@@ -295,5 +297,11 @@ extension ViewNode {
     package var presentedTransitionOpacity: Double {
         guard let transition = presentation?.transition, transition.effects.fades else { return 1 }
         return 1 - transition.factor(at: runtime.animationClock)
+    }
+
+    /// The scale a transition applies while painting this node (1 when none).
+    package var presentedTransitionScale: CGFloat {
+        guard let transition = presentation?.transition, transition.effects.scale != 1 else { return 1 }
+        return 1 + (transition.effects.scale - 1) * CGFloat(transition.factor(at: runtime.animationClock))
     }
 }

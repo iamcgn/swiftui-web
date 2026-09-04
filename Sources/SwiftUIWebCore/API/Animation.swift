@@ -238,6 +238,7 @@ public struct AnyTransition: Sendable {
         case opacity
         case move(Edge)
         case offset(CGFloat, CGFloat)
+        case scale(CGFloat)
         case combined(Kind, Kind)
         case asymmetric(insertion: Kind, removal: Kind)
     }
@@ -262,9 +263,9 @@ public struct AnyTransition: Sendable {
     /// Returns a transition that offsets the view by the specified amount.
     public static func offset(_ offset: CGSize) -> AnyTransition { AnyTransition(kind: .offset(offset.width, offset.height)) }
     public static func offset(x: CGFloat = 0, y: CGFloat = 0) -> AnyTransition { AnyTransition(kind: .offset(x, y)) }
-    /// Scale transitions fade for now (the display list has no transform yet).
-    public static let scale = AnyTransition(kind: .opacity)
-    public static func scale(_ scale: Double, anchor: UnitPoint = .center) -> AnyTransition { AnyTransition(kind: .opacity) }
+    /// Returns a transition that scales the view (about its centre).
+    public static let scale = AnyTransition(kind: .scale(0))
+    public static func scale(_ scale: Double, anchor: UnitPoint = .center) -> AnyTransition { AnyTransition(kind: .scale(CGFloat(scale))) }
     /// Provides a composite transition that uses a different transition for insertion versus removal.
     public static func asymmetric(insertion: AnyTransition, removal: AnyTransition) -> AnyTransition {
         AnyTransition(kind: .asymmetric(insertion: insertion.kind, removal: removal.kind), animation: insertion.animation ?? removal.animation)
@@ -287,7 +288,9 @@ public struct AnyTransition: Sendable {
         package var fades = false
         package var fraction = CGSize.zero
         package var points = CGSize.zero
-        package var isIdentity: Bool { !fades && fraction == .zero && points == .zero }
+        /// The scale at the removed end (1 = none).
+        package var scale: CGFloat = 1
+        package var isIdentity: Bool { !fades && fraction == .zero && points == .zero && scale == 1 }
     }
 
     package func effects(insertion: Bool) -> Effects {
@@ -306,6 +309,8 @@ public struct AnyTransition: Sendable {
             case .offset(let x, let y):
                 effects.points.width += x
                 effects.points.height += y
+            case .scale(let s):
+                effects.scale = s
             case .combined(let a, let b):
                 add(a); add(b)
             case .asymmetric(let insertionKind, let removalKind):

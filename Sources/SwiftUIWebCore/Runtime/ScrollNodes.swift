@@ -39,6 +39,7 @@ extension Axis.Set {
 /// (fixture `scroll/children`), which is the single content node placed at `-contentOffset`.
 @MainActor
 package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, _ScrollTarget, _Scrollable {
+    override package var clipsHitTesting: Bool { true }
     package private(set) var child: TypedNode<VStack<Content>>!
 
     /// The current offset of the content within the viewport, clamped to the content at layout.

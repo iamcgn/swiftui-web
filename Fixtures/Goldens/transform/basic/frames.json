@@ -1,0 +1,69 @@
+{
+  "fixture" : "transform\/basic",
+  "frames" : {
+    "affine" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 130,
+      "y" : 184
+    },
+    "anchored" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 70.25,
+      "y" : 120
+    },
+    "offset" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 60,
+      "y" : 56
+    },
+    "rotated" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 140,
+      "y" : 56
+    },
+    "row1" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 60,
+      "y" : 56
+    },
+    "row2" : {
+      "height" : 40,
+      "width" : 179.5,
+      "x" : 70.25,
+      "y" : 120
+    },
+    "scaled" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 220,
+      "y" : 56
+    },
+    "stack" : {
+      "height" : 148,
+      "width" : 200,
+      "x" : 60,
+      "y" : 56
+    },
+    "stretched" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 150.25,
+      "y" : 120
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 19.5,
+      "x" : 230.25,
+      "y" : 132
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

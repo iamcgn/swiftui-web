@@ -8616,6 +8616,12 @@
       "lastBaseline" : 13,
       "width" : 45.5
     },
+    "system:13:400:default||Tilt" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 19.5
+    },
     "system:13:400:default||Title" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -9430,6 +9436,12 @@
       "firstBaseline" : 13,
       "height" : 112,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Tilt" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|Title" : {

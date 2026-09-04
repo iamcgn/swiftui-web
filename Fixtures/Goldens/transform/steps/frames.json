@@ -1,0 +1,64 @@
+{
+  "fixture" : "transform\/steps",
+  "frames" : {
+    "grow" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 140,
+      "y" : 40
+    },
+    "row" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 60,
+      "y" : 40
+    },
+    "slide" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 220,
+      "y" : 40
+    },
+    "spin" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 60,
+      "y" : 40
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "grow" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 140,
+          "y" : 40
+        },
+        "row" : {
+          "height" : 40,
+          "width" : 200,
+          "x" : 60,
+          "y" : 40
+        },
+        "slide" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 220,
+          "y" : 40
+        },
+        "spin" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 60,
+          "y" : 40
+        }
+      },
+      "name" : "turn"
+    }
+  ]
+}

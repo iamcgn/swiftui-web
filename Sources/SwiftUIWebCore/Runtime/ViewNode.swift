@@ -107,6 +107,14 @@ open class ViewNode {
     /// contribute their children; layout-participating nodes contribute themselves.
     package var layoutChildren: [ViewNode] { [self] }
 
+    /// Where this node's painted content sits relative to its frame (an `offset` effect moves
+    /// hit testing with it).
+    package var hitTestOffset: CGPoint { .zero }
+
+    /// Whether points outside this node's bounds cannot hit its descendants (scroll views clip;
+    /// other containers let offset or transformed children be hit where they paint).
+    package var clipsHitTesting: Bool { false }
+
     /// Short description of the node for tree dumps.
     package var nodeDescription: String {
         String(describing: type(of: self))
@@ -222,9 +230,18 @@ open class ViewNode {
         let opacity = presentedTransitionOpacity
         guard opacity > 0 else { return }
         if opacity < 1 { list.append(.beginGroup(opacity: opacity)) }
+        let scale = presentedTransitionScale
+        if scale != 1 {
+            let size = presentedFrame.size
+            let centre = CGPoint(x: context.origin.x + size.width / 2, y: context.origin.y + size.height / 2)
+            list.append(.save)
+            list.append(.concat(CGAffineTransform(translationX: -centre.x, y: -centre.y).concatenating(CGAffineTransform(scaleX: scale, y: scale))
+                                    .concatenating(CGAffineTransform(translationX: centre.x, y: centre.y))))
+        }
         paintSelf(into: &list, context: context)
         paintChildren(into: &list, context: context)
         paintExiting(into: &list, context: context)
+        if scale != 1 { list.append(.restore) }
         if opacity < 1 { list.append(.endGroup) }
     }
 
