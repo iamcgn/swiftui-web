@@ -303,6 +303,23 @@
           ]
         },
         {
+          "api": "DisclosureGroup (title, isExpanded:, custom label) / DisclosureGroupStyle (automatic) / disclosureGroupStyle(_:)",
+          "status": "partial",
+          "notes": "A full-width 24 pt row (grey chevron, 5, label, 4 above/below) toggling the content centred below; own state without a binding; no animation, outline rows in lists or OutlineGroup",
+          "fixtures": [
+            "disclosure/basic"
+          ]
+        },
+        {
+          "api": "LazyVStack / LazyHStack / LazyVGrid / LazyHGrid / GridItem (fixed, flexible, adaptive) / PinnedScrollableViews",
+          "status": "partial",
+          "notes": "Eager: stacks fill their cross axis; grids resolve fixed/flexible (clamped, no redistribution)/adaptive tracks and flow cells line by line, centred in the frame; no laziness, pinned headers or sections in grids",
+          "fixtures": [
+            "lazy/stacks",
+            "lazy/grids"
+          ]
+        },
+        {
           "api": "TimelineView / TimelineSchedule (periodic, everyMinute, explicit, animation, custom)",
           "status": "partial",
           "notes": "Wakes through main-actor Task.sleep (no Foundation timers on wasm); the animation schedule follows host frames; no lowFrequency distinction or Timer APIs",

@@ -233,6 +233,36 @@ public static let values = Fixture("customlayout/values", size: CGSize(width: 24
     .probe("values")
 }
 """#),
+        FixtureSource(name: "disclosure/basic", file: "Fixtures/Sources/Disclosure/DisclosureFixtures.swift", firstLine: 13, lastLine: 40, declaration: #"""
+public static let basic = Fixture(
+    "disclosure/basic", size: CGSize(width: 320, height: 300),
+    model: { DisclosureModel() },
+    steps: [FixtureStep("expand") { $0.expanded = true }]
+) { model in
+    VStack(alignment: .leading, spacing: 12) {
+        DisclosureGroup("Details", isExpanded: Binding(get: { model.expanded }, set: { model.expanded = $0 })) {
+            Text("Inside").probe("inside")
+            Toggle("Option", isOn: .constant(true)).probe("toggle")
+        }
+        .probe("group")
+        DisclosureGroup(isExpanded: .constant(true)) {
+            Text("Shown").probe("shownContent")
+        } label: {
+            Label("Network", image: "icon").probe("customLabel")
+        }
+        .probe("expanded")
+        DisclosureGroup("Outer", isExpanded: .constant(true)) {
+            DisclosureGroup("Inner", isExpanded: .constant(true)) {
+                Text("Nested").probe("nested")
+            }
+            .probe("inner")
+        }
+        .probe("outer")
+    }
+    .padding(20)
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "focus/basic", file: "Fixtures/Sources/Focus/FocusFixtures.swift", firstLine: 37, lastLine: 43, declaration: #"""
 public static let basic = Fixture(
     "focus/basic", size: CGSize(width: 320, height: 200),
@@ -1078,6 +1108,61 @@ public static let zstackFill = Fixture("layout/zstack-fill", size: CGSize(width:
         Color.red.probe("fill")
         box(.blue, 30, 30).probe("b")
     }
+}
+"""#),
+        FixtureSource(name: "lazy/grids", file: "Fixtures/Sources/Lazy/LazyFixtures.swift", firstLine: 34, lastLine: 59, declaration: #"""
+public static let grids = Fixture("lazy/grids", size: CGSize(width: 320, height: 300)) {
+    VStack(spacing: 16) {
+        LazyVGrid(columns: [GridItem(.fixed(60)), GridItem(.flexible()), GridItem(.flexible(minimum: 20, maximum: 80))], spacing: 4) {
+            ForEach(0..<6, id: \.self) { index in
+                Color.red.frame(height: 20).probe("cell\(index)")
+            }
+        }
+        .frame(width: 280)
+        .probe("columns")
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 10)], alignment: .leading, spacing: 8) {
+            ForEach(0..<5, id: \.self) { index in
+                Color.blue.frame(height: 24).probe("adaptive\(index)")
+            }
+        }
+        .frame(width: 240)
+        .probe("adaptive")
+        LazyHGrid(rows: [GridItem(.fixed(30)), GridItem(.fixed(30))], spacing: 6) {
+            ForEach(0..<5, id: \.self) { index in
+                Color.green.frame(width: 40).probe("hcell\(index)")
+            }
+        }
+        .frame(height: 70)
+        .probe("rows")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "lazy/stacks", file: "Fixtures/Sources/Lazy/LazyFixtures.swift", firstLine: 8, lastLine: 32, declaration: #"""
+public static let stacks = Fixture("lazy/stacks", size: CGSize(width: 320, height: 240)) {
+    HStack(alignment: .top, spacing: 20) {
+        LazyVStack(alignment: .leading, spacing: 6) {
+            Text("Alpha").probe("alpha")
+            Color.red.frame(width: 60, height: 20).probe("red")
+            Text("Beta").probe("beta")
+        }
+        .probe("vstack")
+        LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
+            Section {
+                Color.green.frame(width: 50, height: 20).probe("green")
+                Color.blue.frame(width: 50, height: 20)
+            } header: {
+                Text("Header").probe("header")
+            }
+        }
+        .probe("sections")
+        LazyHStack(alignment: .bottom, spacing: 4) {
+            Color.orange.frame(width: 20, height: 30).probe("orange")
+            Text("Hi").probe("hi")
+        }
+        .probe("hstack")
+    }
+    .probe("row")
 }
 """#),
         FixtureSource(name: "lifecycle/appear", file: "Fixtures/Sources/Lifecycle/LifecycleFixtures.swift", firstLine: 15, lastLine: 34, declaration: #"""
@@ -3174,6 +3259,51 @@ public enum CustomLayoutFixtures {
     public static let all: [Fixture] = [flow, radial, values, any]
 }
 """#,
+        "Fixtures/Sources/Disclosure/DisclosureFixtures.swift": #"""
+// DisclosureGroup fixtures: a collapsed group that expands in a step, an expanded group, a
+// custom label, and nested groups.
+import SwiftUI
+import FixtureKit
+
+@Observable
+public final class DisclosureModel {
+    public var expanded = false
+    public init() {}
+}
+
+public enum DisclosureFixtures {
+    public static let basic = Fixture(
+        "disclosure/basic", size: CGSize(width: 320, height: 300),
+        model: { DisclosureModel() },
+        steps: [FixtureStep("expand") { $0.expanded = true }]
+    ) { model in
+        VStack(alignment: .leading, spacing: 12) {
+            DisclosureGroup("Details", isExpanded: Binding(get: { model.expanded }, set: { model.expanded = $0 })) {
+                Text("Inside").probe("inside")
+                Toggle("Option", isOn: .constant(true)).probe("toggle")
+            }
+            .probe("group")
+            DisclosureGroup(isExpanded: .constant(true)) {
+                Text("Shown").probe("shownContent")
+            } label: {
+                Label("Network", image: "icon").probe("customLabel")
+            }
+            .probe("expanded")
+            DisclosureGroup("Outer", isExpanded: .constant(true)) {
+                DisclosureGroup("Inner", isExpanded: .constant(true)) {
+                    Text("Nested").probe("nested")
+                }
+                .probe("inner")
+            }
+            .probe("outer")
+        }
+        .padding(20)
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic]
+}
+"""#,
         "Fixtures/Sources/Focus/FocusFixtures.swift": #"""
 // FocusState fixture: two fields bound to a focus state through `focused(_:equals:)`, a text
 // showing which is focused and a button moving focus programmatically. The golden holds the
@@ -4204,6 +4334,70 @@ public enum LayoutFixtures {
         zstack, zstackFill, frameFixed, frameFlex, fixedSize, alignmentGuide, groupModifier,
         nestedStacks, hstackIdeal,
     ]
+}
+"""#,
+        "Fixtures/Sources/Lazy/LazyFixtures.swift": #"""
+// Lazy stacks and grids: LazyVStack/LazyHStack with alignment and spacing and section headers,
+// LazyVGrid with fixed, flexible and adaptive columns, LazyHGrid rows. Everything is laid out
+// eagerly here; the fixtures measure the layouts.
+import SwiftUI
+import FixtureKit
+
+public enum LazyFixtures {
+    public static let stacks = Fixture("lazy/stacks", size: CGSize(width: 320, height: 240)) {
+        HStack(alignment: .top, spacing: 20) {
+            LazyVStack(alignment: .leading, spacing: 6) {
+                Text("Alpha").probe("alpha")
+                Color.red.frame(width: 60, height: 20).probe("red")
+                Text("Beta").probe("beta")
+            }
+            .probe("vstack")
+            LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
+                Section {
+                    Color.green.frame(width: 50, height: 20).probe("green")
+                    Color.blue.frame(width: 50, height: 20)
+                } header: {
+                    Text("Header").probe("header")
+                }
+            }
+            .probe("sections")
+            LazyHStack(alignment: .bottom, spacing: 4) {
+                Color.orange.frame(width: 20, height: 30).probe("orange")
+                Text("Hi").probe("hi")
+            }
+            .probe("hstack")
+        }
+        .probe("row")
+    }
+
+    public static let grids = Fixture("lazy/grids", size: CGSize(width: 320, height: 300)) {
+        VStack(spacing: 16) {
+            LazyVGrid(columns: [GridItem(.fixed(60)), GridItem(.flexible()), GridItem(.flexible(minimum: 20, maximum: 80))], spacing: 4) {
+                ForEach(0..<6, id: \.self) { index in
+                    Color.red.frame(height: 20).probe("cell\(index)")
+                }
+            }
+            .frame(width: 280)
+            .probe("columns")
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 10)], alignment: .leading, spacing: 8) {
+                ForEach(0..<5, id: \.self) { index in
+                    Color.blue.frame(height: 24).probe("adaptive\(index)")
+                }
+            }
+            .frame(width: 240)
+            .probe("adaptive")
+            LazyHGrid(rows: [GridItem(.fixed(30)), GridItem(.fixed(30))], spacing: 6) {
+                ForEach(0..<5, id: \.self) { index in
+                    Color.green.frame(width: 40).probe("hcell\(index)")
+                }
+            }
+            .frame(height: 70)
+            .probe("rows")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [stacks, grids]
 }
 """#,
         "Fixtures/Sources/Lifecycle/LifecycleFixtures.swift": #"""
