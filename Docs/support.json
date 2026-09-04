@@ -163,13 +163,27 @@
         {
           "api": "NavigationStack (root, NavigationPath and collection path bindings) / NavigationPath / NavigationLink (destination, value forms)",
           "status": "partial",
-          "notes": "Content-sized stack (macOS hosted window), pushed views centred with earlier views laid out beneath, bordered-button links outside lists and plain row links inside, Runtime.navigateBack() for hosts; no back button/title chrome, animation, NavigationSplitView, toolbars, navigationDestination(item:)",
+          "notes": "Content-sized stack (macOS hosted window), pushed views centred with earlier views laid out beneath, bordered-button links outside lists and plain row links inside, Runtime.navigateBack() for hosts; no back button/title chrome, animation, toolbars, navigationDestination(item:)",
           "fixtures": [
             "nav/basic",
             "nav/list",
             "nav/title",
             "nav/sizing",
             "nav/steps"
+          ]
+        },
+        {
+          "api": "NavigationSplitView (two/three columns, columnVisibility, preferredCompactColumn) / NavigationSplitViewVisibility / navigationSplitViewColumnWidth / NavigationSplitViewStyle",
+          "status": "partial",
+          "notes": "The macOS 26 split: a white sidebar panel inset 8 pt (140 wide by default, corner radius 7.5), a 200 pt content column with a 1 pt divider, the detail centred in the rest; column widths (ideal clamped to min/max), visibility through the binding, Runtime.toggleSidebar() and ⌃⌘S; sidebar lists take the sidebar style; links in the leading columns push onto the detail; no toolbar button, material, drag-resizing or collapse animation",
+          "fixtures": [
+            "splitview/basic",
+            "splitview/widths",
+            "splitview/three",
+            "splitview/columns",
+            "splitview/sized",
+            "splitview/selection",
+            "splitview/visibility"
           ]
         },
         {

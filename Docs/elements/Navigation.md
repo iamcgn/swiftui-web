@@ -19,7 +19,8 @@ Apple docs: [NavigationStack](https://developer.apple.com/documentation/swiftui/
 | `navigationDestination(item:destination:)` | missing |
 | `navigationTitle(_:)` (`Text`, key, string) | recorded on `Runtime.navigationTitle` for hosts; not drawn (window chrome on macOS) |
 | `navigationSubtitle`, `navigationBarBackButtonHidden` | stored only |
-| `navigationBarTitleDisplayMode`, `toolbar`, `toolbarBackground`, `NavigationSplitView`, `NavigationView` (deprecated), `navigationViewStyle` | missing |
+| `NavigationSplitView` | see `Docs/elements/NavigationSplitView.md` |
+| `navigationBarTitleDisplayMode`, `toolbar`, `toolbarBackground`, `NavigationView` (deprecated), `navigationViewStyle` | missing |
 | Back navigation | `Runtime.navigateBack()` pops the innermost stack (hosts wire a button or key); no painted back button or slide animation |
 
 ## Behaviour
@@ -59,6 +60,6 @@ wasm js tests pass.
 ## Not yet covered
 
 Back button and title in chrome (hosts), push/pop animation, `navigationDestination(item:)`,
-`NavigationSplitView` and sidebars, toolbars, `NavigationPath` codable representation, links
+toolbars, `NavigationPath` codable representation, links
 that pop to the root or replace the path, a value pushed from a view that a later path change
 removes (the destination-link entry stays on top), keyboard shortcuts (⌘[ / Escape).
