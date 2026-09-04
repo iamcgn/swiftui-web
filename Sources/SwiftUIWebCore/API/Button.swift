@@ -34,11 +34,17 @@ public struct Button<Label: View>: View {
     }
 
     @Environment(\.buttonStyle) private var style
+    @Environment(\._inMenu) private var inMenu
 
     public var body: some View {
-        let configuration = ButtonStyleConfiguration(
-            label: ButtonStyleConfiguration.Label(AnyView(label)), isPressed: isPressed, role: role)
-        _ButtonHost(action: action, isPressed: $isPressed, label: AnyView(style.makeBodyErased(configuration)))
+        if inMenu {
+            // A menu item: the label in a row, no button chrome.
+            _ButtonHost(action: action, isPressed: $isPressed, label: AnyView(_MenuRowLabel(label: AnyView(label), submenu: false)))
+        } else {
+            let configuration = ButtonStyleConfiguration(
+                label: ButtonStyleConfiguration.Label(AnyView(label)), isPressed: isPressed, role: role)
+            _ButtonHost(action: action, isPressed: $isPressed, label: AnyView(style.makeBodyErased(configuration)))
+        }
     }
 }
 

@@ -184,6 +184,24 @@ package enum PlatformMetrics {
     package static let menuTrailingPadding: CGFloat = 16
     package static let menuMinimumWidth: CGFloat = 92.5
     package static let menuVerticalPadding: CGFloat = 4
+    package static let menuSeparatorHeight: CGFloat = 11                       // 5 above and below the line
+    package static let menuSeparatorInset: CGFloat = 8
+    package static let menuSeparatorAlpha = 0.1
+    package static let menuSubmenuChevronGap: CGFloat = 12
+    package static let menuSubmenuChevronSize = CGSize(width: 4, height: 8)
+    package static let menuSubmenuChevronStroke: CGFloat = 1.5
+
+    // Menu pull-down button (macOS 26.2: fixture menu/basic, Docs/elements/Menu.md). Shares the
+    // pop-up's box, insets and chevron gap; one chevron centred 12 pt before the trailing edge.
+    package static let pullDownChevronTrailing: CGFloat = 12
+    package static let pullDownChevronHalfHeight: CGFloat = 1.75
+    package static let menuSplitGap: CGFloat = 8                               // label to divider
+    package static let menuSplitDividerWidth: CGFloat = 1
+    package static let menuSplitDividerInset: CGFloat = 5
+    package static let menuSplitDividerAlpha = 0.12
+    package static let menuSplitTrailing: CGFloat = 24                         // divider to trailing edge
+    package static let menuSplitChevronTrailing: CGFloat = 11.25
+    package static let menuSplitChevronStroke: CGFloat = 1
 
     // Label (macOS 26.2: fixture label/basic, Docs/elements/Label.md)
     package static let labelIconSpacing: CGFloat = 8

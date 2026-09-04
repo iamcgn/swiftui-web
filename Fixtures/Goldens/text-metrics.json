@@ -7998,6 +7998,12 @@
       "lastBaseline" : 13,
       "width" : 50
     },
+    "system:13:400:default||Action" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 39
+    },
     "system:13:400:default||Alert" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8118,6 +8124,12 @@
       "lastBaseline" : 13,
       "width" : 48.5
     },
+    "system:13:400:default||Copy" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 31.5
+    },
     "system:13:400:default||Corner" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8148,6 +8160,18 @@
       "lastBaseline" : 13,
       "width" : 52
     },
+    "system:13:400:default||Custom" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 47
+    },
+    "system:13:400:default||Cut" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 21.5
+    },
     "system:13:400:default||D" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8159,6 +8183,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 44.5
+    },
+    "system:13:400:default||Delete" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 39.5
     },
     "system:13:400:default||Detail" : {
       "firstBaseline" : 13,
@@ -8322,6 +8352,12 @@
       "lastBaseline" : 13,
       "width" : 13
     },
+    "system:13:400:default||Hidden" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 43.5
+    },
     "system:13:400:default||High" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8345,6 +8381,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 26
+    },
+    "system:13:400:default||Last: none 0" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 75
     },
     "system:13:400:default||Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
@@ -8399,6 +8441,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 22
+    },
+    "system:13:400:default||More" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 31
     },
     "system:13:400:default||Name" : {
       "firstBaseline" : 13,
@@ -8466,6 +8514,12 @@
       "lastBaseline" : 13,
       "width" : 58.5
     },
+    "system:13:400:default||Paste" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 34
+    },
     "system:13:400:default||Placeholder" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8490,6 +8544,12 @@
       "lastBaseline" : 13,
       "width" : 100
     },
+    "system:13:400:default||Primary" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 46.5
+    },
     "system:13:400:default||Prominent" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8513,6 +8573,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 32
+    },
+    "system:13:400:default||Right-click me" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 87.5
     },
     "system:13:400:default||Root" : {
       "firstBaseline" : 13,
@@ -8826,6 +8892,12 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "system:13:400:default|0.0|Action" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Alert" : {
       "firstBaseline" : 13,
       "height" : 80,
@@ -8946,6 +9018,12 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "system:13:400:default|0.0|Copy" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Corner" : {
       "firstBaseline" : 13,
       "height" : 96,
@@ -8976,6 +9054,18 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "system:13:400:default|0.0|Custom" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Cut" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
     "system:13:400:default|0.0|D" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8983,6 +9073,12 @@
       "width" : 0
     },
     "system:13:400:default|0.0|Deeper" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Delete" : {
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
@@ -9150,6 +9246,12 @@
       "lastBaseline" : 29,
       "width" : 0
     },
+    "system:13:400:default|0.0|Hidden" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
     "system:13:400:default|0.0|High" : {
       "firstBaseline" : 13,
       "height" : 64,
@@ -9172,6 +9274,12 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Last: none 0" : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
       "width" : 0
     },
     "system:13:400:default|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
@@ -9226,6 +9334,12 @@
       "firstBaseline" : 13,
       "height" : 48,
       "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|More" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|Name" : {
@@ -9294,6 +9408,12 @@
       "lastBaseline" : 125,
       "width" : 0
     },
+    "system:13:400:default|0.0|Paste" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Placeholder" : {
       "firstBaseline" : 13,
       "height" : 176,
@@ -9318,6 +9438,12 @@
       "lastBaseline" : 221,
       "width" : 0
     },
+    "system:13:400:default|0.0|Primary" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Prominent" : {
       "firstBaseline" : 13,
       "height" : 144,
@@ -9340,6 +9466,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Right-click me" : {
+      "firstBaseline" : 13,
+      "height" : 208,
+      "lastBaseline" : 205,
       "width" : 0
     },
     "system:13:400:default|0.0|Root" : {

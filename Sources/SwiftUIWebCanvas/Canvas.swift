@@ -142,17 +142,24 @@ public final class CanvasHost {
     private func installEventHandlers() {
         on(canvas, "pointerdown") { [weak self] e in
             guard let self else { return }
+            if (e.button.number ?? 0) == 2 {
+                self.runtime.secondaryPointerDown(at: self.point(of: e))
+                self.scheduleFrame()
+                return
+            }
             _ = self.canvas.setPointerCapture?(e.pointerId)
             self.runtime.pointerDown(at: self.point(of: e), type: self.pointerType(of: e), time: self.seconds(of: e))
             self.scheduleFrame()
         }
+        // Context menus are the runtime's (`contextMenu`); the browser's stays closed.
+        on(canvas, "contextmenu") { e in _ = e.preventDefault!() }
         on(canvas, "pointermove") { [weak self] e in
             guard let self else { return }
             self.runtime.pointerMoved(to: self.point(of: e), time: self.seconds(of: e))
             if self.runtime.needsFrame { self.scheduleFrame() }
         }
         on(canvas, "pointerup") { [weak self] e in
-            guard let self else { return }
+            guard let self, (e.button.number ?? 0) != 2 else { return }
             self.runtime.pointerUp(at: self.point(of: e), time: self.seconds(of: e))
             self.scheduleFrame()
         }

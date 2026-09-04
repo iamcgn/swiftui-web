@@ -37,6 +37,10 @@ public enum _PresentationKind: Sendable, Equatable {
     case popover(arrowEdge: Edge)
     case alert
     case menu
+    /// A menu beside the row of a parent menu.
+    case submenu
+
+    package var isMenu: Bool { self == .menu || self == .submenu }
 }
 
 /// Where a popover attaches to its source view.

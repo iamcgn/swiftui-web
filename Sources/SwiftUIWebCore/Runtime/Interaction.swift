@@ -184,7 +184,7 @@ extension Runtime {
         var result: [SemanticsNode] = []
         for node in root.layoutChildren { collectSemantics(node, attributes: nil, into: &result) }
         for presentation in presentations {
-            for node in presentation.structuralChildren { collectSemantics(node, attributes: nil, into: &result) }
+            for node in presentation.semanticsRoots { collectSemantics(node, attributes: nil, into: &result) }
         }
         return result
     }
@@ -246,7 +246,9 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
         view.isPressed.wrappedValue = false
         if inside, environment.isEnabled {
             view.action.run()
-            if environment._dismissesOnActivation { environment.dismiss() }
+            if environment._dismissesOnActivation {
+                if environment._inMenu { runtime.dismissMenus() } else { environment.dismiss() }
+            }
         }
     }
 

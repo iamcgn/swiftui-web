@@ -454,6 +454,10 @@ package final class SpacerNode: LeafNode<Spacer> {
 @MainActor
 package final class DividerNode: LeafNode<Divider> {
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        if environment._inMenu {
+            // A menu separator: a full-width line with the menu's spacing above and below.
+            return CGSize(width: proposal.width ?? 0, height: PlatformMetrics.menuSeparatorHeight)
+        }
         let thickness = PlatformMetrics.dividerThickness
         switch stackOrientation {
         case .horizontal:
@@ -461,5 +465,13 @@ package final class DividerNode: LeafNode<Divider> {
         default:
             return CGSize(width: proposal.width ?? CGSize.unspecifiedIdeal.width, height: thickness)
         }
+    }
+
+    override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
+        guard environment._inMenu else { return }
+        let bounds = absoluteBounds(context)
+        let line = CGRect(x: bounds.minX + PlatformMetrics.menuSeparatorInset, y: context.round(bounds.midY - PlatformMetrics.dividerThickness / 2),
+                          width: max(0, bounds.width - 2 * PlatformMetrics.menuSeparatorInset), height: PlatformMetrics.dividerThickness)
+        list.append(.fillRect(line, RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.menuSeparatorAlpha)))
     }
 }

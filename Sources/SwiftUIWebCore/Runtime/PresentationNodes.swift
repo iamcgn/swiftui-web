@@ -9,6 +9,8 @@ package final class PresentationNode: ViewNode {
     package let kind: _PresentationKind
     package private(set) var content: TypedNode<AnyView>!
     package weak var anchor: ViewNode?
+    /// Where a menu without an anchor node opens (context menus: the pointer).
+    package let anchorPoint: CGPoint?
     /// Resets the presenting binding; runs `onDismiss`.
     package let onDismissRequested: @MainActor () -> Void
     package private(set) var panel: CGRect = .zero
@@ -16,9 +18,10 @@ package final class PresentationNode: ViewNode {
     private var arrow: (edge: Edge, tip: CGPoint)?
 
     package init(runtime: Runtime, kind: _PresentationKind, view: AnyView, environment: EnvironmentValues, anchor: ViewNode?,
-                 onDismissRequested: @escaping @MainActor () -> Void) {
+                 anchorPoint: CGPoint? = nil, onDismissRequested: @escaping @MainActor () -> Void) {
         self.kind = kind
         self.anchor = anchor
+        self.anchorPoint = anchorPoint
         self.onDismissRequested = onDismissRequested
         super.init(parent: runtime.root, runtime: runtime, environment: environment)
         var contentEnvironment = environment
@@ -29,7 +32,7 @@ package final class PresentationNode: ViewNode {
     package var isModal: Bool {
         switch kind {
         case .sheet, .alert: return true
-        case .popover, .menu: return false
+        case .popover, .menu, .submenu: return false
         }
     }
 
@@ -49,7 +52,7 @@ package final class PresentationNode: ViewNode {
 
     package func layout(in window: CGSize) {
         guard let target else { return }
-        let padding = kind == .menu ? 0 : PlatformMetrics.presentationPadding
+        let padding = kind.isMenu ? 0 : PlatformMetrics.presentationPadding
         switch kind {
         case .sheet:
             let limit = ProposedViewSize(width: window.width - 2 * PlatformMetrics.sheetMargin - 2 * padding, height: nil)
@@ -85,10 +88,20 @@ package final class PresentationNode: ViewNode {
             arrow = (edge, tip)
         case .menu:
             let size = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
-            let source = anchor?.frameInRoot ?? .zero
+            let source = anchor?.frameInRoot ?? anchorPoint.map { CGRect(origin: $0, size: .zero) } ?? .zero
             var origin = CGPoint(x: source.minX, y: source.maxY + PlatformMetrics.menuGap)
             origin.x = min(max(origin.x, 0), max(0, window.width - size.width))
             if origin.y + size.height > window.height { origin.y = max(0, source.minY - PlatformMetrics.menuGap - size.height) }
+            panel = CGRect(origin: origin, size: size)
+            arrow = nil
+        case .submenu:
+            // Beside the parent row, its first item level with the row; flipped to the left
+            // when it would overflow.
+            let size = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+            let source = anchor?.frameInRoot ?? .zero
+            var origin = CGPoint(x: source.maxX, y: source.minY - PlatformMetrics.menuVerticalPadding)
+            if origin.x + size.width > window.width { origin.x = max(0, source.minX - size.width) }
+            origin.y = min(max(origin.y, 0), max(0, window.height - size.height))
             panel = CGRect(origin: origin, size: size)
             arrow = nil
         }
@@ -104,7 +117,7 @@ package final class PresentationNode: ViewNode {
             list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: runtime.layoutSize)), black(PlatformMetrics.presentationDimAlpha)))
         }
         let rect = context.absoluteRect(panel)
-        let radius = kind == .menu ? PlatformMetrics.menuCornerRadius : PlatformMetrics.presentationCornerRadius
+        let radius = kind.isMenu ? PlatformMetrics.menuCornerRadius : PlatformMetrics.presentationCornerRadius
         // A soft shadow ring, then the panel and its border.
         list.append(.fillRRect(rect.insetBy(dx: -2, dy: -2), cornerRadius: radius + 2, black(PlatformMetrics.presentationShadowAlpha)))
         list.append(.fillRRect(rect, cornerRadius: radius, RGBA(red: 1, green: 1, blue: 1, alpha: 1)))
@@ -143,6 +156,9 @@ package final class PresentationNode: ViewNode {
 
     override package var structuralChildren: [ViewNode] { [content] }
     override package var layoutChildren: [ViewNode] { [] }
+    /// The content's layout nodes, where the semantics walk starts (it follows painted children,
+    /// which only layout nodes have).
+    package var semanticsRoots: [ViewNode] { content.layoutChildren }
     override package var nodeDescription: String { "Presentation(\(kind))" }
 
     override package func unmount() {
@@ -154,9 +170,10 @@ package final class PresentationNode: ViewNode {
 extension Runtime {
     /// Presents `view` in a panel of `kind` over the window.
     @discardableResult
-    package func present(kind: _PresentationKind, view: AnyView, environment: EnvironmentValues, anchor: ViewNode?,
+    package func present(kind: _PresentationKind, view: AnyView, environment: EnvironmentValues, anchor: ViewNode?, at point: CGPoint? = nil,
                          onDismissRequested: @escaping @MainActor () -> Void) -> PresentationNode {
-        let node = PresentationNode(runtime: self, kind: kind, view: view, environment: environment, anchor: anchor, onDismissRequested: onDismissRequested)
+        let node = PresentationNode(runtime: self, kind: kind, view: view, environment: environment, anchor: anchor, anchorPoint: point,
+                                    onDismissRequested: onDismissRequested)
         presentations.append(node)
         requestLayout()
         return node
@@ -198,6 +215,8 @@ extension Runtime {
             if presentation.panel.contains(point) { return (nil, true) }
             if presentation.isModal { return (nil, true) }
             presentation.dismiss()
+            // A press outside a submenu closes it and goes on to its parent menu.
+            if presentation.kind == .submenu { continue }
             return (nil, true)
         }
         return (nil, false)

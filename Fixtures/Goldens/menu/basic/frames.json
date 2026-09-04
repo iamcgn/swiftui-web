@@ -1,0 +1,57 @@
+{
+  "fixture" : "menu\/basic",
+  "frames" : {
+    "buttonStyle" : {
+      "height" : 24,
+      "width" : 77,
+      "x" : 141.5,
+      "y" : 116
+    },
+    "context" : {
+      "height" : 16,
+      "width" : 87.5,
+      "x" : 136.25,
+      "y" : 188
+    },
+    "custom" : {
+      "height" : 24,
+      "width" : 94.5,
+      "x" : 132.75,
+      "y" : 44
+    },
+    "last" : {
+      "height" : 16,
+      "width" : 75,
+      "x" : 142.5,
+      "y" : 216
+    },
+    "noIndicator" : {
+      "height" : 24,
+      "width" : 67.5,
+      "x" : 146.25,
+      "y" : 152
+    },
+    "options" : {
+      "height" : 24,
+      "width" : 95,
+      "x" : 132.5,
+      "y" : 8
+    },
+    "primary" : {
+      "height" : 24,
+      "width" : 91.5,
+      "x" : 134.25,
+      "y" : 80
+    },
+    "stack" : {
+      "height" : 224,
+      "width" : 95,
+      "x" : 132.5,
+      "y" : 8
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 360
+  }
+}
