@@ -93,6 +93,11 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `Image(systemName:) / Image.Scale / imageScale(_:) / View.fontWeight / View.bold` | 🟢 partial | Measured SF Symbol layout (240 symbols at the text-style sizes, 13 pt weights and image scales; scaled elsewhere) with Lucide icons (ISC) standing in for the glyphs, 1551 names; no rendering modes, variants or effects | symbol/basic, symbol/catalog-13 |
 | `Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:) / AsyncImage` | ❌ missing | No CGImage/NSImage on wasm |  |
 | `Color(_:bundle:) from asset catalog colour sets / ColorScheme / colorScheme environment` | 🟢 partial | sRGB components in float, hex and integer spellings; the light or dark variant per environment.colorScheme (default light; nothing else reads it yet). Display P3 components are used as sRGB. A missing name is clear (assumed) | color/named |
+| `AsyncImage / Image(nsImage:) / Image(cgImage:)` | ❌ missing | Only asset-catalog images and SF Symbol stand-ins are drawn |  |
+| `Toolbar / ToolbarItem / toolbar(_:) / navigationBar customisation` | ❌ missing | Not implemented; NavigationStack shows its title only |  |
+| `searchable(_:) / Searchable modifiers` | ❌ missing | Not implemented |  |
+| `Chart (Swift Charts) / Map / VideoPlayer / WebView` | ❌ missing | Separate frameworks, not part of the SwiftUI module yet |  |
+| `Sheet and window management: WindowGroup identifiers, openWindow, Settings scene, MenuBarExtra` | ❌ missing | Only the first WindowGroup's root is shown |  |
 
 ## State
 
@@ -137,3 +142,13 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `sheet / popover (isPresented and item forms) / alert / confirmationDialog / dismiss environment action` | 🟡 approximate | Presented over the window by the runtime's presentation layer (modal sheets and alerts, popovers and menus dismissed outside); the looks approximate macOS (separate windows there, no goldens); no fullScreenCover, detents, Menu, contextMenu | presentation/basic |
 | `accessibilityLabel / Hint / Value / Identifier / Hidden / AddTraits / RemoveTraits / accessibilityElement(children:)` | 🟢 partial | Applied on the semantics tree that the canvas host mirrors as an ARIA DOM overlay (headings, images, groups, switches, range inputs, spinbuttons); no custom actions, sort priority or rotors | accessibility/basic |
 | `offset / rotationEffect / scaleEffect / transformEffect / AnyTransition.scale` | 🟢 partial | Painted through the display list's concat op about their anchors, parameters animate, offsets move hit testing; no hit testing through rotation/scale, no GeometryEffect or 3D | transform/basic, transform/steps |
+| `shadow / blur / brightness / contrast / saturation / hueRotation / grayscale / blendMode / colorInvert / colorMultiply / luminanceToAlpha` | ❌ missing | Colour and layer effects are not painted yet (Phase 6) |  |
+| `zIndex / hidden / position / mask / compositingGroup / drawingGroup` | ❌ missing | Not implemented (Phase 6) |  |
+| `ignoresSafeArea / safeAreaInset / safeAreaPadding` | ❌ missing | Not implemented; the browser window has no safe areas |  |
+| `onHover / help / pointerStyle / onContinuousHover` | ❌ missing | Not implemented (Phase 6) |  |
+| `gesture / DragGesture / LongPressGesture / MagnifyGesture / RotateGesture / simultaneousGesture / highPriorityGesture` | ❌ missing | Only onTapGesture; drags exist for sliders and scrolling only (Phase 6) |  |
+| `kerning / tracking / underline / strikethrough / baselineOffset / textCase / textSelection / textScale` | ❌ missing | Text styling beyond fonts and colours is not implemented (Phase 6) |  |
+| `matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator` | ❌ missing | Not implemented |  |
+| `dropDestination / draggable / onDrag / onDrop / pasteboard` | ❌ missing | Not implemented |  |
+| `redacted / privacySensitive / unredacted` | ❌ missing | Not implemented |  |
+| `symbolEffect / symbolRenderingMode / symbolVariant` | ❌ missing | SF Symbols are Lucide stand-ins; symbol effects are not implemented |  |

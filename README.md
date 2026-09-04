@@ -77,6 +77,12 @@ scripts/tier-b.sh --filter layout/                # browser fidelity: gallery + 
 (cd Examples/Counter && swift run Counter)          # the same app natively: AppKit window, CoreGraphics painter
 ```
 
+`Examples/Landing` is the project's landing page written in SwiftUI and rendered by SwiftUIWeb: a
+sales page with live controls and the support matrix (generated from `Docs/support.json` by
+`scripts/gen-landing-support.py`). `scripts/build-landing.sh` builds it into `Examples/Landing/dist`
+for GitHub Pages (`.github/workflows/landing.yml` deploys it); `scripts/landing-gist.sh` keeps its two
+source files in a gist. See `Examples/Landing/README.md`.
+
 `Examples/Gallery` lists every fixture in a left pane and shows the selected one as code (the
 `Fixture(...)` declaration or its whole file, via `scripts/gen-fixture-sources.py`) next to its live
 preview, with buttons for its behaviour steps; `index.html?fixture=text/wrapped` opens one directly.

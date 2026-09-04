@@ -596,6 +596,31 @@
           "fixtures": [
             "color/named"
           ]
+        },
+        {
+          "api": "AsyncImage / Image(nsImage:) / Image(cgImage:)",
+          "status": "missing",
+          "notes": "Only asset-catalog images and SF Symbol stand-ins are drawn"
+        },
+        {
+          "api": "Toolbar / ToolbarItem / toolbar(_:) / navigationBar customisation",
+          "status": "missing",
+          "notes": "Not implemented; NavigationStack shows its title only"
+        },
+        {
+          "api": "searchable(_:) / Searchable modifiers",
+          "status": "missing",
+          "notes": "Not implemented"
+        },
+        {
+          "api": "Chart (Swift Charts) / Map / VideoPlayer / WebView",
+          "status": "missing",
+          "notes": "Separate frameworks, not part of the SwiftUI module yet"
+        },
+        {
+          "api": "Sheet and window management: WindowGroup identifiers, openWindow, Settings scene, MenuBarExtra",
+          "status": "missing",
+          "notes": "Only the first WindowGroup's root is shown"
         }
       ]
     },
@@ -859,6 +884,56 @@
             "transform/basic",
             "transform/steps"
           ]
+        },
+        {
+          "api": "shadow / blur / brightness / contrast / saturation / hueRotation / grayscale / blendMode / colorInvert / colorMultiply / luminanceToAlpha",
+          "status": "missing",
+          "notes": "Colour and layer effects are not painted yet (Phase 6)"
+        },
+        {
+          "api": "zIndex / hidden / position / mask / compositingGroup / drawingGroup",
+          "status": "missing",
+          "notes": "Not implemented (Phase 6)"
+        },
+        {
+          "api": "ignoresSafeArea / safeAreaInset / safeAreaPadding",
+          "status": "missing",
+          "notes": "Not implemented; the browser window has no safe areas"
+        },
+        {
+          "api": "onHover / help / pointerStyle / onContinuousHover",
+          "status": "missing",
+          "notes": "Not implemented (Phase 6)"
+        },
+        {
+          "api": "gesture / DragGesture / LongPressGesture / MagnifyGesture / RotateGesture / simultaneousGesture / highPriorityGesture",
+          "status": "missing",
+          "notes": "Only onTapGesture; drags exist for sliders and scrolling only (Phase 6)"
+        },
+        {
+          "api": "kerning / tracking / underline / strikethrough / baselineOffset / textCase / textSelection / textScale",
+          "status": "missing",
+          "notes": "Text styling beyond fonts and colours is not implemented (Phase 6)"
+        },
+        {
+          "api": "matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator",
+          "status": "missing",
+          "notes": "Not implemented"
+        },
+        {
+          "api": "dropDestination / draggable / onDrag / onDrop / pasteboard",
+          "status": "missing",
+          "notes": "Not implemented"
+        },
+        {
+          "api": "redacted / privacySensitive / unredacted",
+          "status": "missing",
+          "notes": "Not implemented"
+        },
+        {
+          "api": "symbolEffect / symbolRenderingMode / symbolVariant",
+          "status": "missing",
+          "notes": "SF Symbols are Lucide stand-ins; symbol effects are not implemented"
         }
       ]
     }
