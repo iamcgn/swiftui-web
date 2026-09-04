@@ -1,0 +1,75 @@
+{
+  "fixture" : "datepicker\/basic",
+  "frames" : {
+    "date" : {
+      "height" : 22,
+      "width" : 131.5,
+      "x" : 78.5,
+      "y" : 46
+    },
+    "dateTime" : {
+      "height" : 22,
+      "width" : 203,
+      "x" : 78.5,
+      "y" : 80
+    },
+    "disabled" : {
+      "height" : 22,
+      "width" : 122.5,
+      "x" : 78.5,
+      "y" : 216
+    },
+    "hidden" : {
+      "height" : 22,
+      "width" : 95,
+      "x" : 78.5,
+      "y" : 148
+    },
+    "range" : {
+      "height" : 22,
+      "width" : 141.5,
+      "x" : 78.5,
+      "y" : 182
+    },
+    "row" : {
+      "height" : 24,
+      "width" : 179.5,
+      "x" : 78.5,
+      "y" : 250
+    },
+    "rowButton" : {
+      "height" : 24,
+      "width" : 42.5,
+      "x" : 215.5,
+      "y" : 250
+    },
+    "rowLabel" : {
+      "height" : 16,
+      "width" : 26,
+      "x" : 78.5,
+      "y" : 254
+    },
+    "rowPicker" : {
+      "height" : 22,
+      "width" : 95,
+      "x" : 112.5,
+      "y" : 251
+    },
+    "stack" : {
+      "height" : 268,
+      "width" : 243,
+      "x" : 58.5,
+      "y" : 26
+    },
+    "time" : {
+      "height" : 22,
+      "width" : 118,
+      "x" : 78.5,
+      "y" : 114
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 360
+  }
+}

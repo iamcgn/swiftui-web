@@ -1,0 +1,75 @@
+{
+  "fixture" : "datepicker\/steps",
+  "frames" : {
+    "echo" : {
+      "height" : 16,
+      "width" : 30.5,
+      "x" : 81.75,
+      "y" : 69
+    },
+    "picker" : {
+      "height" : 22,
+      "width" : 196.5,
+      "x" : 81.75,
+      "y" : 35
+    },
+    "stack" : {
+      "height" : 90,
+      "width" : 236.5,
+      "x" : 61.75,
+      "y" : 15
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 360
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 30.5,
+          "x" : 81.75,
+          "y" : 69
+        },
+        "picker" : {
+          "height" : 22,
+          "width" : 196.5,
+          "x" : 81.75,
+          "y" : 35
+        },
+        "stack" : {
+          "height" : 90,
+          "width" : 236.5,
+          "x" : 61.75,
+          "y" : 15
+        }
+      },
+      "name" : "nextDay"
+    },
+    {
+      "frames" : {
+        "echo" : {
+          "height" : 16,
+          "width" : 30.5,
+          "x" : 81.75,
+          "y" : 69
+        },
+        "picker" : {
+          "height" : 22,
+          "width" : 196.5,
+          "x" : 81.75,
+          "y" : 35
+        },
+        "stack" : {
+          "height" : 90,
+          "width" : 236.5,
+          "x" : 61.75,
+          "y" : 15
+        }
+      },
+      "name" : "newYear"
+    }
+  ]
+}

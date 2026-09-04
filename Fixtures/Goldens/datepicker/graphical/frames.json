@@ -1,0 +1,15 @@
+{
+  "fixture" : "datepicker\/graphical",
+  "frames" : {
+    "calendar" : {
+      "height" : 188,
+      "width" : 241,
+      "x" : 59.5,
+      "y" : 56
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 360
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "fixture" : "datepicker\/styles",
+  "frames" : {
+    "compact" : {
+      "height" : 22,
+      "width" : 158,
+      "x" : 90.25,
+      "y" : 42
+    },
+    "compactTime" : {
+      "height" : 22,
+      "width" : 122.5,
+      "x" : 90.25,
+      "y" : 176
+    },
+    "field" : {
+      "height" : 21,
+      "width" : 115,
+      "x" : 90.25,
+      "y" : 76
+    },
+    "fieldBoth" : {
+      "height" : 21,
+      "width" : 179.5,
+      "x" : 90.25,
+      "y" : 143
+    },
+    "stack" : {
+      "height" : 196,
+      "width" : 219.5,
+      "x" : 70.25,
+      "y" : 22
+    },
+    "stepper" : {
+      "height" : 22,
+      "width" : 151.5,
+      "x" : 90.25,
+      "y" : 109
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 360
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "fixture" : "datepicker\/clock",
+  "frames" : {
+    "clock" : {
+      "height" : 159,
+      "width" : 201.5,
+      "x" : 79.25,
+      "y" : 40.5
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 360
+  }
+}

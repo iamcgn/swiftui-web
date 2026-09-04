@@ -348,6 +348,20 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(word, .system(size: 12, weight: "regular", design: "default")))
         }
         for word in ["A", "B", "C", "D"] { requests.append(TextMetricRequest(word, .system(size: 11, weight: "regular", design: "default"))) }
+        // DatePicker fixtures: body labels, the field's 13 pt components, the calendar's 13 pt bold
+        // header, 10 pt bold weekdays and 11 pt days, the clock's 13 pt numerals and 13 pt medium period.
+        for word in ["Date", "When", "Time", "Range", "Off", "Compact", "Field", "Stepper", "Both", "Clock", "Calendar", "Echo"] {
+            requests.append(TextMetricRequest(word, .style("body")))
+            requests.append(TextMetricRequest(word, defaultFont))
+        }
+        for word in ["3", "15", "16", "2025", "2026", "1", "12", "31", "59", "09", "00", "/", ":", ",", " ", "PM", "AM", " PM", ", "] {
+            requests.append(TextMetricRequest(word, defaultFont))
+        }
+        for word in ["Mar 2025", "Feb 2025", "Apr 2025", "Jan 2026", "Dec 2025"] { requests.append(TextMetricRequest(word, defaultFont(weight: "bold"))) }
+        for word in ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] { requests.append(TextMetricRequest(word, .system(size: 10, weight: "bold", design: "default"))) }
+        for day in 1...31 { requests.append(TextMetricRequest("\(day)", .system(size: 11, weight: "regular", design: "default"))) }
+        for hour in 1...12 { requests.append(TextMetricRequest("\(hour)", defaultFont)) }
+        for word in ["PM", "AM"] { requests.append(TextMetricRequest(word, defaultFont(weight: "medium"))) }
         requests.append(TextMetricRequest("Details", .style("body")))
         requests.append(TextMetricRequest("Outer", .style("body")))
         requests.append(TextMetricRequest("Inner", .style("body")))
