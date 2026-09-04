@@ -18,6 +18,8 @@ Apple docs: [onKeyPress](https://developer.apple.com/documentation/swiftui/view/
 | `List` selection by keyboard | implemented: Up/Down, Home/End, Shift ranges |
 | Menus by keyboard | implemented: Up/Down highlight, Return/Space activates, Escape closes |
 | Escape dismissing sheets, popovers, alerts and menus | implemented |
+| Tab / Shift-Tab focus traversal (`Runtime.focusOrder`, `moveFocus`) | implemented 2026-09-04: controls, text fields, focusable views and selectable lists in paint order, wrapping; the topmost modal presentation's alone while one is up; the host mirrors the focus into its overlay |
+| Space / Return activating the focused control | implemented 2026-09-04 in the runtime (native hosts); the browser's overlay buttons do it themselves |
 | `onKeyPress(characters:)`, `onCommand`, `onPasteCommand`, `onCopyCommand`, `focusSection`, `defaultFocus`, `prefersDefaultFocus`, `FocusedValue`, `@FocusedBinding`, Tab order control, `onPlayPauseCommand`, Cmd/Ctrl ranges in lists, type-to-select | missing |
 
 ## Behaviour
@@ -33,9 +35,10 @@ focusable view). Focusable lists and views get `tabindex="0"`; a list with a sel
 `listbox` (its rows stay their own elements).
 
 **Dispatch.** `Runtime.keyDown(KeyEvent) -> Bool` (the host's `window` `keydown`; a text field's
-input keeps its own keys except Escape) builds a `KeyPress` and tries, in order: the focused
-node and its ancestors (`KeyPressNode`, `CommandNode`, a list's own navigation) until one
-consumes the press; the topmost menu; keyboard shortcuts in presented content (a sheet's
+input keeps its own keys except Escape, an overlay button its Space and Return) builds a
+`KeyPress` and tries, in order: the focused node and its ancestors (`KeyPressNode`,
+`CommandNode`, a list's own navigation) until one consumes the press; the topmost menu; Tab moving focus; Space or Return
+activating the focused control; keyboard shortcuts in presented content (a sheet's
 default and cancel buttons); Escape dismissing the topmost presentation; the window's
 keyboard shortcuts. A consumed press has its browser default prevented. Steppers and sliders
 keep their overlay's native arrow handling.
@@ -69,10 +72,10 @@ Tier A: `keyboard/basic` exact. Tier B 1/1 in Chromium (1.18 %), WebKit and Fire
 `KeyboardTests` cover list arrow keys and Shift ranges, `onKeyPress` and the commands on a
 focused view, the focus ring, shortcuts (⌘S, default and cancel actions), Escape with and
 without a cancel button in the sheet, and menu highlight/Return/Escape; `Playwright/keyboard-probe.mjs`
-drives the same in Chromium through the overlay (12 checks). wasm js tests pass.
+drives the same in Chromium through the overlay (13 checks, Tab included). wasm js tests pass.
 
 ## Not yet covered
 
-The real focus ring, list highlight and menu highlight looks; Tab order beyond the browser's;
+The real focus ring, list highlight and menu highlight looks; Tab order control (`focusSection`);
 Cmd-click and Shift-click ranges; key-up phases; `onKeyPress(characters:)`; commands beyond
 move/exit/delete; focus restoration after a presentation closes; key equivalents shown in menus.

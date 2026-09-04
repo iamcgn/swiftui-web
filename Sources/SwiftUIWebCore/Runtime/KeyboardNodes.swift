@@ -120,6 +120,42 @@ extension Runtime {
         if focusedIdentifier == semanticsIdentifier { focus(semanticsIdentifier: nil) }
     }
 
+    /// The elements Tab moves focus through, in paint order: controls, text fields, focusable
+    /// views and selectable lists (static text, images and plain groups are skipped), the
+    /// topmost presentation's alone while one is up.
+    public var focusOrder: [Int] {
+        let nodes: [ViewNode & _Interactive]
+        if let top = presentations.last, top.isModal {
+            nodes = top.interactiveNodes
+        } else {
+            nodes = interactiveNodes
+        }
+        return nodes.compactMap { node in
+            let semantics = node.semantics
+            switch semantics.role {
+            case .text, .heading, .image, .group, .list: return semantics.isFocusable ? semantics.identifier : nil
+            default: return semantics.identifier
+            }
+        }
+    }
+
+    /// Moves keyboard focus to the next (or previous) element in `focusOrder`, wrapping;
+    /// returns whether anything took focus.
+    @discardableResult
+    public func moveFocus(forward: Bool = true) -> Bool {
+        let order = focusOrder
+        guard !order.isEmpty else { return false }
+        let current = focusedIdentifier.flatMap { order.firstIndex(of: $0) }
+        let next: Int
+        if let current {
+            next = (current + (forward ? 1 : order.count - 1)) % order.count
+        } else {
+            next = forward ? 0 : order.count - 1
+        }
+        focus(semanticsIdentifier: order[next], keyboard: true)
+        return true
+    }
+
     /// A key went down. Dispatch: the focused view and its ancestors (`onKeyPress`, the move/
     /// exit/delete commands, list navigation), the open menu, keyboard shortcuts, then Escape
     /// dismissing the topmost presentation. Returns whether the press was consumed (hosts then
@@ -137,7 +173,23 @@ extension Runtime {
                 current = node.parent
             }
         }
+        // An open menu takes the keys next; then Tab moves focus and Space or Return activates the
+        // focused control (native hosts: the browser's overlay buttons do this themselves).
         if let top = presentations.last, top.kind.isMenu, top.handleKey(press) { return true }
+        if press.key == .tab, press.modifiers.shortcutModifiers.isSubset(of: [.shift]) {
+            return moveFocus(forward: !press.modifiers.contains(.shift))
+        }
+        if press.key == .space || press.key == .return, press.modifiers.shortcutModifiers.isEmpty,
+           let focusedIdentifier, focusedTextFieldIdentifier == nil, let focused = interactiveNode(semanticsIdentifier: focusedIdentifier) {
+            switch focused.semantics.role {
+            case .text, .heading, .image, .group, .list, .slider, .stepper: break
+            default:
+                focused.pressBegan()
+                focused.pressEnded(inside: true)
+                setNeedsDisplay()
+                return true
+            }
+        }
         // Shortcuts in presented content (a sheet's default and cancel buttons) come before
         // Escape closing the presentation, which comes before the window's shortcuts.
         let shortcuts = shortcutNodes

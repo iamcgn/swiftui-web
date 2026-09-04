@@ -147,6 +147,30 @@ import SwiftUIWebHeadless
         #expect(r.keyDown(key(.escape)) && r.presentations.isEmpty)
     }
 
+    @Test func tabMovesFocusAndSpaceActivates() {
+        let box = _KeyBox()
+        let r = runtime(VStack {
+            Text("Focus me")
+            Button("Save") { box.log = "save" }
+            Text("Focus me").focusable()
+            Button("Go") { box.log = "go" }
+        })
+        let ids = r.semanticsTree().filter { $0.role == .button || $0.isFocusable }.map(\.identifier)
+        #expect(r.focusOrder == ids && ids.count == 3)
+        // Tab from nothing focuses the first element, then cycles; Shift-Tab goes back.
+        #expect(r.keyDown(key(.tab)) && r.focusedIdentifier == ids[0] && r.focusVisible)
+        #expect(r.keyDown(key(.tab)) && r.focusedIdentifier == ids[1])
+        #expect(r.keyDown(key(.tab, .shift)) && r.focusedIdentifier == ids[0])
+        #expect(r.keyDown(key(.tab, .shift)) && r.focusedIdentifier == ids[2])
+        // Space and Return activate a focused button, not a focusable view.
+        #expect(r.keyDown(key(.space)) && box.log == "go")
+        r.moveFocus(forward: true)
+        #expect(r.focusedIdentifier == ids[0])
+        #expect(r.keyDown(key(.return)) && box.log == "save")
+        r.focus(semanticsIdentifier: ids[1])
+        #expect(!r.keyDown(key(.space)) && box.log == "save")
+    }
+
     @Test func domKeys() {
         #expect(KeyEquivalent(domKey: "ArrowUp") == .upArrow)
         #expect(KeyEquivalent(domKey: "Enter") == .return)
