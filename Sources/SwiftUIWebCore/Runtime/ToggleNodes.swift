@@ -33,9 +33,15 @@ package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive {
     override package func layoutContents(proposal: ProposedViewSize) {
         target?.place(at: .zero, anchor: .topLeading, proposal: proposal, by: self)
     }
+    /// A checkbox keeps 6 from its neighbours; under a text its 6 replaces the text's 8.15
+    /// (groupbox/basic `content`), which the text-to-text category expresses (the lower
+    /// neighbour's value applies), unlike text fields, which keep the text's distance.
     override package var layoutSpacing: ViewSpacing {
-        .control(top: PlatformMetrics.checkboxSpacing, bottom: PlatformMetrics.checkboxSpacing,
-                 belowText: PlatformMetrics.checkboxSpacing, aboveText: PlatformMetrics.checkboxSpacing)
+        var spacing = ViewSpacing.control(top: PlatformMetrics.checkboxSpacing, bottom: PlatformMetrics.checkboxSpacing,
+                                          belowText: PlatformMetrics.checkboxSpacing, aboveText: PlatformMetrics.checkboxSpacing)
+        spacing[.edgeBelowText, .top] = nil
+        spacing[.textToText, .top] = PlatformMetrics.checkboxSpacing
+        return spacing
     }
     override package var paintedChildren: [ViewNode] { target.map { [$0] } ?? [] }
     override package var structuralChildren: [ViewNode] { [child] }

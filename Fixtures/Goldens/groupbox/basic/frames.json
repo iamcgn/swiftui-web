@@ -1,0 +1,93 @@
+{
+  "fixture" : "groupbox\/basic",
+  "frames" : {
+    "content" : {
+      "height" : 40.5,
+      "width" : 62,
+      "x" : 129,
+      "y" : 66.25
+    },
+    "custom" : {
+      "height" : 53,
+      "width" : 82.5,
+      "x" : 118.75,
+      "y" : 161.75
+    },
+    "customLabel" : {
+      "height" : 24,
+      "width" : 72.5,
+      "x" : 128.75,
+      "y" : 161.75
+    },
+    "inner" : {
+      "height" : 45,
+      "width" : 53.5,
+      "x" : 133.25,
+      "y" : 307.75
+    },
+    "inside" : {
+      "height" : 16,
+      "width" : 36.5,
+      "x" : 129,
+      "y" : 66.25
+    },
+    "nested" : {
+      "height" : 16,
+      "width" : 43.5,
+      "x" : 138.25,
+      "y" : 331.75
+    },
+    "outer" : {
+      "height" : 74,
+      "width" : 63.5,
+      "x" : 128.25,
+      "y" : 283.75
+    },
+    "plain" : {
+      "height" : 26,
+      "width" : 89.5,
+      "x" : 115.25,
+      "y" : 123.75
+    },
+    "plainContent" : {
+      "height" : 16,
+      "width" : 79.5,
+      "x" : 120.25,
+      "y" : 128.75
+    },
+    "stack" : {
+      "height" : 315.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 42.25
+    },
+    "titled" : {
+      "height" : 69.5,
+      "width" : 72,
+      "x" : 124,
+      "y" : 42.25
+    },
+    "toggle" : {
+      "height" : 18.5,
+      "width" : 62,
+      "x" : 129,
+      "y" : 88.25
+    },
+    "wide" : {
+      "height" : 45,
+      "width" : 320,
+      "x" : 0,
+      "y" : 226.75
+    },
+    "wideContent" : {
+      "height" : 16,
+      "width" : 310,
+      "x" : 5,
+      "y" : 250.75
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}
