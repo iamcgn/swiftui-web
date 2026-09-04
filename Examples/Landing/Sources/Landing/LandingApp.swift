@@ -11,7 +11,44 @@ import SwiftUI
 struct LandingApp: App {
     var body: some Scene {
         WindowGroup {
-            LandingPage()
+            // The reader sits outside the scroll view so scrolling never re-lays the page out.
+            GeometryReader { proxy in
+                LandingPage().environment(\.isCompact, proxy.size.width < Site.compactWidth)
+            }
+        }
+    }
+}
+
+/// Phone-width layouts: one column, smaller display type, stacked rows.
+struct CompactKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var isCompact: Bool {
+        get { self[CompactKey.self] }
+        set { self[CompactKey.self] = newValue }
+    }
+}
+
+/// Two columns side by side, or stacked when compact.
+struct Columns<First: View, Second: View>: View {
+    @Environment(\.isCompact) private var compact
+    let secondWidth: CGFloat
+    @ViewBuilder let first: First
+    @ViewBuilder let second: Second
+
+    var body: some View {
+        if compact {
+            VStack(alignment: .leading, spacing: 24) {
+                first
+                second
+            }
+        } else {
+            HStack(alignment: .top, spacing: 32) {
+                first.frame(maxWidth: .infinity, alignment: .leading)
+                second.frame(width: secondWidth)
+            }
         }
     }
 }
@@ -26,6 +63,7 @@ enum Site {
     static let workflow = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ELEMENT_WORKFLOW.md")!
     static let license = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/LICENSE")!
     static let contentWidth: CGFloat = 960
+    static let compactWidth: CGFloat = 700
     static let accent = Color(red: 0.98, green: 0.36, blue: 0.22)
     static let accentEnd = Color(red: 0.62, green: 0.20, blue: 0.85)
     static let ink = Color(red: 0.10, green: 0.10, blue: 0.12)
@@ -35,6 +73,7 @@ enum Site {
 }
 
 struct LandingPage: View {
+    @Environment(\.isCompact) private var compact
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -47,7 +86,7 @@ struct LandingPage: View {
                 Footer()
             }
             .frame(maxWidth: Site.contentWidth)
-            .padding(.horizontal, 24)
+            .padding(.horizontal, compact ? 16 : 24)
             .frame(maxWidth: .infinity)
         }
         .background(Color.white)
@@ -58,17 +97,20 @@ struct LandingPage: View {
 
 struct NavigationBar: View {
     @Environment(\.openURL) private var openURL
+    @Environment(\.isCompact) private var compact
 
     var body: some View {
         HStack(spacing: 20) {
             HStack(spacing: 8) {
                 Wordmark(size: 22)
-                Text("SwiftUIWeb").font(.system(size: 18, weight: .semibold))
+                Text("SwiftUIWeb").font(.system(size: 18, weight: .semibold)).fixedSize()
             }
             Spacer()
-            Link("Docs", destination: Site.architecture)
-            Link("Support matrix", destination: Site.matrix)
-            Link("Roadmap", destination: Site.roadmap)
+            if !compact {
+                Link("Docs", destination: Site.architecture)
+                Link("Support matrix", destination: Site.matrix)
+                Link("Roadmap", destination: Site.roadmap)
+            }
             Button { openURL(Site.repository) } label: { Label("GitHub", systemImage: "link") }
                 .buttonStyle(.borderedProminent)
         }
@@ -94,12 +136,13 @@ struct Wordmark: View {
 struct Hero: View {
     @State private var count = 0
     @Environment(\.openURL) private var openURL
+    @Environment(\.isCompact) private var compact
 
     var body: some View {
         VStack(spacing: 22) {
             HStack(spacing: 8) {
                 Image(systemName: "sparkles")
-                Text("This whole page is SwiftUI, painted on a canvas")
+                Text(compact ? "This page is SwiftUI on a canvas" : "This whole page is SwiftUI, painted on a canvas")
             }
             .font(.callout)
             .foregroundColor(.secondary)
@@ -109,12 +152,12 @@ struct Hero: View {
             .overlay(Capsule().stroke(Site.line, lineWidth: 1))
 
             Text("Your SwiftUI.\nIn the browser.")
-                .font(.system(size: 60, weight: .bold))
+                .font(.system(size: compact ? 40 : 60, weight: .bold))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Site.gradient)
 
             Text("SwiftUIWeb runs unmodified SwiftUI source in any browser through WebAssembly, and natively on macOS. No custom compiler, no DOM translation: a layout engine written from the documented semantics and a painter that draws exactly what Apple's SwiftUI draws, verified pixel by pixel against goldens rendered by the real thing.")
-                .font(.title3)
+                .font(compact ? .body : .title3)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 680)
@@ -127,6 +170,7 @@ struct Hero: View {
                     .buttonStyle(.bordered)
                     .controlSize(.large)
             }
+            .fixedSize()
 
             // The Counter from the README, alive, in the page it advertises.
             VStack(spacing: 12) {
@@ -141,15 +185,16 @@ struct Hero: View {
             .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Site.paper))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Site.line, lineWidth: 1))
 
-            HStack(spacing: 28) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16)], spacing: 20) {
                 Stat(value: "\(SupportData.total)", label: "APIs tracked in the matrix")
                 Stat(value: "\(SupportData.counts[.full, default: 0] + SupportData.counts[.partial, default: 0])", label: "verified against Apple's goldens")
                 Stat(value: "3", label: "browsers checked: Chromium, WebKit, Firefox")
                 Stat(value: "0", label: "lines of your SwiftUI changed")
             }
+            .frame(maxWidth: 720)
             .padding(.top, 8)
         }
-        .padding(.vertical, 64)
+        .padding(.vertical, compact ? 40 : 64)
     }
 }
 
@@ -274,7 +319,7 @@ struct Demos: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
-            .frame(width: 360)
+            .frame(maxWidth: 360)
             Card {
                 switch tab {
                 case 0: ControlsDemo(model: model)
@@ -292,7 +337,7 @@ struct ControlsDemo: View {
     @Bindable var model: DemoModel
 
     var body: some View {
-        HStack(alignment: .top, spacing: 32) {
+        Columns(secondWidth: 360) {
             Form {
                 TextField("Name", text: $model.name)
                 Toggle("Notifications", isOn: $model.enabled)
@@ -306,9 +351,9 @@ struct ControlsDemo: View {
                 DatePicker("Delivery", selection: $model.date, displayedComponents: .date)
                 ColorPicker("Accent", selection: $model.accent)
             }
-            .frame(width: 420)
+            .frame(maxWidth: 420)
             .disabled(!model.enabled)
-
+        } second: {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Reads back").font(.headline)
                 LabeledContent("Name", value: model.name.isEmpty ? "—" : model.name)
@@ -339,20 +384,20 @@ struct DataDemo: View {
     @Bindable var model: DemoModel
 
     var body: some View {
-        HStack(alignment: .top, spacing: 32) {
+        Columns(secondWidth: 360) {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Table: click a header to sort, a row to select").font(.headline)
                 Table(elements.sorted(using: model.order), selection: $model.selection, sortOrder: $model.order) {
-                    TableColumn("Symbol", value: \.symbol)
+                    TableColumn("Symbol", value: \.symbol).width(min: 50, ideal: 60)
                     TableColumn("Name", value: \.name)
-                    TableColumn("Since", value: \.number) { Text("\($0.number)") }
+                    TableColumn("Since", value: \.number) { Text("\($0.number)") }.width(min: 50, ideal: 60)
                 }
                 .frame(height: 160)
                 Text(model.selection.flatMap { id in elements.first { $0.id == id } }.map { "Selected: \($0.name)" } ?? "Nothing selected")
                     .font(.callout).foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
+        } second: {
             VStack(alignment: .leading, spacing: 14) {
                 Text("List, disclosure and grid").font(.headline)
                 List(elements) { element in
@@ -371,7 +416,6 @@ struct DataDemo: View {
                 }
                 .font(.callout)
             }
-            .frame(width: 360)
         }
     }
 }
@@ -381,7 +425,7 @@ struct DrawingDemo: View {
     private let symbols = ["star.fill", "heart.fill", "bolt.fill", "leaf.fill", "sun.max.fill", "moon.fill", "globe", "camera", "bell", "flag", "tag", "bookmark"]
 
     var body: some View {
-        HStack(alignment: .top, spacing: 32) {
+        Columns(secondWidth: 320) {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Canvas, gradients and shapes").font(.headline)
                 Canvas { context, size in
@@ -413,7 +457,7 @@ struct DrawingDemo: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
+        } second: {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Symbols, text and time").font(.headline)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 36))], spacing: 10) {
@@ -433,7 +477,6 @@ struct DrawingDemo: View {
                     .font(.callout)
                 }
             }
-            .frame(width: 320)
         }
     }
 }
@@ -443,7 +486,7 @@ struct StateDemo: View {
     @State private var pulse = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 32) {
+        Columns(secondWidth: 320) {
             VStack(alignment: .leading, spacing: 12) {
                 Text("An @Observable to-do list").font(.headline)
                 HStack {
@@ -469,7 +512,7 @@ struct StateDemo: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
+        } second: {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Animation and text editing").font(.headline)
                 HStack(spacing: 16) {
@@ -487,12 +530,11 @@ struct StateDemo: View {
                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(Site.line, lineWidth: 1))
                 Text("\(model.notes.count) characters").font(.caption).foregroundColor(.secondary)
             }
-            .frame(width: 320)
         }
     }
 
     private func add() {
-        let text = model.newTodo.trimmingCharacters(in: .whitespaces)
+        let text = String(model.newTodo.drop(while: { $0 == " " }).reversed().drop(while: { $0 == " " }).reversed())
         guard !text.isEmpty else { return }
         model.todos.append(text)
         model.newTodo = ""
@@ -511,7 +553,7 @@ struct HowItWorks: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             SectionHeader(kicker: "How", title: "Three steps, no compiler tricks")
-            HStack(alignment: .top, spacing: 16) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 16)], spacing: 16) {
                 ForEach(Self.steps, id: \.0) { step in
                     Card {
                         VStack(alignment: .leading, spacing: 10) {
@@ -563,12 +605,15 @@ struct CodeSample: View {
                 Spacer()
             }
             .padding(12)
-            Text(Self.code)
-                .font(.system(size: 13).monospaced())
-                .foregroundColor(Color(white: 0.92))
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            ScrollView(.horizontal, showsIndicators: false) {
+                Text(Self.code)
+                    .font(.system(size: 13).monospaced())
+                    .foregroundColor(Color(white: 0.92))
+                    .fixedSize()
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Site.ink))
     }
@@ -579,13 +624,14 @@ struct CodeSample: View {
 struct SupportMatrix: View {
     @State private var filter: SupportStatus? = nil
     @State private var expanded: Set<String> = ["Views"]
+    @Environment(\.isCompact) private var compact
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             SectionHeader(kicker: "Status", title: "What works today")
             Text("Generated from the repository's support matrix on \(SupportData.generated). Anything not listed is not implemented; the missing rows are the next phase's plan.")
                 .foregroundColor(.secondary)
-            HStack(spacing: 10) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 10)], alignment: .leading, spacing: 10) {
                 StatusPill(status: nil, count: SupportData.total, selected: filter == nil) { filter = nil }
                 ForEach(SupportStatus.allCases, id: \.self) { status in
                     StatusPill(status: status, count: SupportData.counts[status, default: 0], selected: filter == status) { filter = status }
@@ -612,7 +658,7 @@ struct SupportMatrix: View {
                     }
                 }
             }
-            HStack(spacing: 16) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: 12)], alignment: .leading, spacing: 8) {
                 ForEach(SupportStatus.allCases, id: \.self) { status in
                     HStack(spacing: 6) {
                         StatusDot(status: status)
@@ -664,6 +710,7 @@ struct StatusDot: View {
 
 struct SupportRow: View {
     let entry: SupportEntry
+    @Environment(\.isCompact) private var compact
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             StatusDot(status: entry.status).padding(.top, 5)
@@ -674,7 +721,9 @@ struct SupportRow: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            Text(entry.status.title).font(.caption).foregroundColor(.secondary).frame(width: 84, alignment: .trailing)
+            if !compact {
+                Text(entry.status.title).font(.caption).foregroundColor(.secondary).frame(width: 84, alignment: .trailing)
+            }
         }
         .padding(.vertical, 8)
     }
@@ -686,17 +735,17 @@ struct Footer: View {
     var body: some View {
         VStack(spacing: 16) {
             Divider()
-            HStack(spacing: 20) {
-                HStack(spacing: 8) {
-                    Wordmark(size: 18)
-                    Text("SwiftUIWeb").font(.headline)
-                }
+            HStack(spacing: 8) {
+                Wordmark(size: 18)
+                Text("SwiftUIWeb").font(.headline)
                 Spacer()
+                ShareLink(item: Site.repository) { Label("Share", systemImage: "square.and.arrow.up") }
+            }
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 12)], alignment: .leading, spacing: 8) {
                 Link("GitHub", destination: Site.repository)
                 Link("Architecture", destination: Site.architecture)
                 Link("Element workflow", destination: Site.workflow)
                 Link("Apache-2.0", destination: Site.license)
-                ShareLink(item: Site.repository) { Label("Share", systemImage: "square.and.arrow.up") }
             }
             Text("Open source, Apache-2.0. Borrows ideas with attribution from Tokamak, ElementaryUI and OpenSwiftUI. This page is Examples/Landing in the repository: a SwiftUI view, nothing else.")
                 .font(.footnote)

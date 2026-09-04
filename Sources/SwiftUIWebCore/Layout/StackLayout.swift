@@ -279,7 +279,12 @@ package enum _StackAxisLayout {
                                                subviews: LayoutSubviews) -> CGFloat? {
         guard !subviews.isEmpty else { return nil }
         let plan = plan(axis: axis, guide: stackGuide, spacing: spacing, proposal: proposal, subviews: subviews)
-        if guide == stackGuide { return plan.extent.guide }
+        if guide == stackGuide {
+            // The aligned line is the stack's guide only when a child's value for it is explicit
+            // (SwiftUI's rule); a plain edge or centre stays implicit, so `padding` and an outer
+            // aligning frame keep a stack's inset (`VStack(alignment: .leading).padding()`).
+            return plan.dimensions.contains { $0.explicitValue(guide) != nil } ? plan.extent.guide : nil
+        }
         let first = VerticalAlignment.firstTextBaseline.key, last = VerticalAlignment.lastTextBaseline.key
         guard axis == .horizontal, guide == first || guide == last else { return nil }
         let values = plan.dimensions.map { dims in plan.extent.guide - dims[stackGuide] + dims[guide] }

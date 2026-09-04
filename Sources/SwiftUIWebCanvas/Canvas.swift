@@ -51,6 +51,9 @@ public final class CanvasHost {
         if (containerStyle.position.string ?? "").isEmpty {
             containerStyle.position = .string("relative")
         }
+        // Overlay elements sit wherever their views are, including outside the window on a
+        // scrolled page: clipped, or mobile browsers widen the layout viewport to fit them.
+        containerStyle.overflow = .string("hidden")
         canvas = document.createElement!("canvas").object!
         canvas.style.object!.display = .string("block")
         canvas.style.object!.touchAction = .string("none")
@@ -64,6 +67,7 @@ public final class CanvasHost {
         overlayStyle.width = .string("100%")
         overlayStyle.height = .string("100%")
         overlayStyle.pointerEvents = .string("none")
+        overlayStyle.overflow = .string("hidden")
         _ = overlay.setAttribute!("aria-label", "SwiftUI content")
         _ = container.appendChild!(overlay)
 
