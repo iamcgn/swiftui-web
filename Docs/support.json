@@ -292,6 +292,15 @@
           ]
         },
         {
+          "api": "Gauge (value/bounds, label, current/minimum/maximum value labels, marked labels accepted) / GaugeStyle (automatic, linearCapacity, accessoryLinear, accessoryLinearCapacity, accessoryCircular, accessoryCircularCapacity) / gaugeStyle",
+          "status": "partial",
+          "notes": "The macOS linear capacity gauge (13 pt label over a 16 pt tinted bar, value and bounds labels at the stack spacings) and the monochrome accessory styles: the 8 pt track with a knob and 17 pt semibold labels, the capsule capacity bar with a 12 pt secondary value, the 58 pt open ring (270°, trimmed 14° per end for bounds labels) with a marker and 24 pt medium value, the capacity ring; no animation or marked value labels",
+          "fixtures": [
+            "gauge/basic",
+            "gauge/accessory"
+          ]
+        },
+        {
           "api": "GroupBox (content, title, custom label) / GroupBoxStyle (automatic) / groupBoxStyle(_:)",
           "status": "partial",
           "notes": "macOS 26 card (radius 12, black 8/255, content padded 5) under a subheadline label; measured exactly; no dark appearance or Form insets",
