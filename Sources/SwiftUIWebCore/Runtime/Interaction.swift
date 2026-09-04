@@ -142,6 +142,8 @@ extension Runtime {
     /// pan of the scroll views under it; `time` is in seconds (any monotonic clock).
     public func pointerDown(at point: CGPoint, type: PointerType = .mouse, time: Double = 0) {
         if type == .touch { beginPan(at: point, time: time) }
+        // A touch that stopped a decelerating scroll view belongs to it, not to a control.
+        if pan?.active == true { return }
         guard let node = interactiveNode(at: point) else { return }
         pressedNode = node
         node.pressBegan(at: local(point, in: node))

@@ -27,6 +27,10 @@ package protocol _Scrollable: AnyObject {
     func showIndicators()
     /// Starts decelerating from `velocity` (points per second).
     func beginMomentum(velocity: CGSize)
+    /// Whether momentum is still carrying the content.
+    var isDecelerating: Bool { get }
+    /// Stops momentum where the content is (a finger landing on a decelerating scroll view).
+    func stopMomentum()
     /// Advances momentum and indicator fading by `elapsed` seconds; true while still animating.
     func advance(elapsed: Double) -> Bool
     /// Whether a frame that only scrolled can move the content instead of laying out (nothing
@@ -235,8 +239,16 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     package func beginMomentum(velocity: CGSize) {
+        guard velocity != .zero else { return }
         self.velocity = velocity
         runtime.animate(self)
+    }
+
+    package var isDecelerating: Bool { velocity != .zero }
+
+    package func stopMomentum() {
+        velocity = .zero
+        indicatorHold = PlatformMetrics.scrollerHoldSeconds
     }
 
     package func advance(elapsed: Double) -> Bool {
@@ -427,7 +439,16 @@ extension Runtime {
     package func beginPan(at point: CGPoint, time: Double) {
         let nodes = scrollableNodes(at: point)
         guard !nodes.isEmpty else { return }
-        pan = PanState(nodes: nodes, start: point, last: point, lastTime: time)
+        var state = PanState(nodes: nodes, start: point, last: point, lastTime: time)
+        // A finger landing on decelerating content stops it where it is and owns the touch:
+        // the content follows it at once and lifting delivers no press (iOS behaviour).
+        let decelerating = nodes.filter(\.isDecelerating)
+        if !decelerating.isEmpty {
+            for node in decelerating { node.stopMomentum() }
+            state.active = true
+            requestLayout(invalidatingSizes: false)
+        }
+        pan = state
     }
 
     /// Feeds a touch move to the pan; once the finger has travelled `PlatformMetrics.panSlop`

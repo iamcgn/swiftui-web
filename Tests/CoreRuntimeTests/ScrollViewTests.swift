@@ -219,6 +219,45 @@ private struct Changing: View {
         #expect(runtime.probeFrames["content"]!.minY >= -800)
     }
 
+    @Test func touchDuringDecelerationStopsItAndOwnsTheTouch() {
+        let counter = Counter()
+        let runtime = Runtime()
+        runtime.mount(ScrollView {
+            VStack(spacing: 0) {
+                ForEach(0..<50, id: \.self) { _ in
+                    Button("Row") { counter.value += 1 }.frame(width: 300, height: 20)
+                }
+            }
+            ._probe("content")
+        })
+        let size = CGSize(width: 300, height: 200)
+        runtime.layout(in: size)
+        // A flick, then lift: momentum runs.
+        runtime.pointerDown(at: CGPoint(x: 150, y: 150), type: .touch, time: 0)
+        runtime.pointerMoved(to: CGPoint(x: 150, y: 100), time: 0.02)
+        runtime.pointerUp(at: CGPoint(x: 150, y: 100), time: 0.03)
+        #expect(runtime.advanceScrollAnimations(elapsed: 0.016))
+        runtime.layout(in: size)
+        let stoppedAt = runtime.probeFrames["content"]!.minY
+        #expect(stoppedAt < -50)
+        // A finger landing on the moving content stops it where it is...
+        runtime.pointerDown(at: CGPoint(x: 150, y: 100), type: .touch, time: 1)
+        _ = runtime.advanceScrollAnimations(elapsed: 0.016)   // only the indicator fade is left
+        runtime.layout(in: size)
+        #expect(runtime.probeFrames["content"]?.minY == stoppedAt)
+        // ...follows it at once, without the slop...
+        runtime.pointerMoved(to: CGPoint(x: 150, y: 96), time: 1.02)
+        runtime.layout(in: size)
+        #expect(runtime.probeFrames["content"]?.minY == stoppedAt - 4)
+        // ...and lifting presses nothing (the row under the finger stays untapped).
+        runtime.pointerUp(at: CGPoint(x: 150, y: 96), time: 1.5)
+        #expect(counter.value == 0)
+        // A touch on resting content still taps.
+        runtime.pointerDown(at: CGPoint(x: 150, y: 96), type: .touch, time: 2)
+        runtime.pointerUp(at: CGPoint(x: 150, y: 96), time: 2.05)
+        #expect(counter.value == 1)
+    }
+
     @Test func mouseInputStillPressesButtons() {
         var taps = 0
         let runtime = Runtime()
