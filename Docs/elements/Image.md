@@ -20,12 +20,15 @@ the painter loads it. Fixtures draw from `Fixtures/Assets.xcassets` (generated b
 | API | Notes |
 |---|---|
 | `Image(_ name: String, bundle: Bundle? = nil)`, `Image(decorative:bundle:)`, `Image(_:bundle:label:)` | implemented; the bundle is ignored (the manifest is the search path) and absent on wasm |
-| `Image(systemName:)`, `Image(_:variableValue:bundle:)`, `Image(systemName:variableValue:)` | stub: 0 × 0, draws nothing (SF Symbols need the icon table, a later step) |
+| `Image(systemName:)`, `Image(systemName:variableValue:)` | implemented, approximate: the symbol's measured SF Symbol layout size and baseline, drawn with a Lucide icon standing in for the glyph (see Symbols below); the variable value has no effect |
+| `Image(_:variableValue:bundle:)` | missing |
 | `Image(nsImage:)`, `Image(_ cgImage:scale:orientation:label:)`, `Image(decorative:scale:orientation:)`, `Image(size:label:opaque:colorMode:renderer:)` | missing (no `CGImage`/`NSImage` on wasm) |
 | `resizable(capInsets:resizingMode:)`, `Image.ResizingMode` (`stretch`, `tile`) | implemented: stretch, nine-part stretch, tile, nine-part tile |
 | `renderingMode(_:)`, `Image.TemplateRenderingMode` (`template`, `original`) | implemented; `nil` restores the catalog's intent; the last call wins |
 | `interpolation(_:)`, `Image.Interpolation`; `antialiased(_:)` | implemented as a smoothing on/off flag (`none` vs the rest); `antialiased` stored, no effect |
-| `Image.Scale`, `View.imageScale(_:)`, `EnvironmentValues.imageScale` | stub (symbols only) |
+| `Image.Scale`, `View.imageScale(_:)`, `EnvironmentValues.imageScale` | implemented for symbols (measured at 13 pt, scaled elsewhere) |
+| `View.fontWeight(_:)`, `View.bold(_:)` | implemented: weigh text and symbols in the environment |
+| `symbolRenderingMode`, `symbolVariant`, `symbolEffect` | missing |
 | `View.aspectRatio(_ ratio: CGFloat?, contentMode:)`, `aspectRatio(_ size: CGSize, contentMode:)`, `scaledToFit()`, `scaledToFill()`, `ContentMode` | implemented |
 | `Color(_ name: String, bundle: Bundle? = nil)` | implemented from colour sets (sRGB and extended sRGB; Display P3 components are used as sRGB and flagged approximate) |
 | `ColorScheme`, `EnvironmentValues.colorScheme` | added (default `.light`); selects dark image and colour variants, nothing else reads it yet |
@@ -67,9 +70,45 @@ the painter loads it. Fixtures draw from `Fixtures/Assets.xcassets` (generated b
 | Cap insets with `.tile` tile the edges and the centre; the golden shows the bottom edge and corners missing (an AppKit drawing quirk, not reproduced: SwiftUIWeb draws all nine parts, within Tier B tolerance) | `slicedTiled` |
 | A 2× file drawn at 1.5× (96 × 60 from 64 × 40) is resampled; `interpolation(.none)` picks nearest neighbour | `nearest` |
 
-## Verification (2026-09-02)
+## Symbols (`Image(systemName:)`, macOS 26.2, `symbol/*` fixtures, 2026-09-04)
 
-Tier A: all 8 fixtures exact (`image/swap` steps included). Tier B: frames exact in Chromium,
+SF Symbols are never shipped (`Docs/ROADMAP.md`). A symbol image has two parts:
+
+- **Layout** is measured. `scripts/symbol-metrics-table.py` reads the `symbol/catalog-*`
+  goldens (240 common symbols in baseline-aligned rows) into `SystemSymbolMetricsTable`: the
+  width, height and descent below the baseline of every symbol at the macOS text-style sizes
+  10, 11, 12, 13, 15, 17, 22 and 26 pt, at 13 pt semibold and bold, and at 13 pt with the small
+  and large image scales. `SystemSymbolMetrics.size` returns the measured triple at those
+  variants; other point sizes scale the nearest measured size at or below linearly, other
+  weights and scales apply the 13 pt ratios (light weights the inverse of semibold), all to the
+  half point. Symbol frames are glyph bounds, so a 40 pt star (Apple 51.5 × 47) can come out a
+  point or two off (`symbol/basic` `approximateRow`, allowed 2 pt in Tier A and Tier B).
+- **Painting** is a stand-in. `scripts/symbol-glyphs.py` maps SF Symbol names to icons of the
+  Lucide set (ISC licence, notice in the generated `SystemSymbolGlyphs.swift`) and converts
+  their SVG (paths with arcs, circles, rects, lines, polygons) into cubic path commands on the
+  24 × 24 grid; 1551 names over 609 icons, stored as string blobs parsed on first use (array
+  literals of that size compiled into 80 MB of wasm). The outline is scaled uniformly to fit the
+  frame and stroked with round caps and joins in the foreground colour, 2 grid units × 0.8 for
+  regular weights (1.0 semibold, 1.2 bold and up, 0.6 light); `.fill` names fill and stroke,
+  `.circle.fill`-style names fill their first element and stroke the rest in white. A symbol
+  with a glyph but no measurement takes the star's size; a name without a glyph is 0 × 0 and
+  draws nothing, as Apple does for an unknown name.
+
+| Rule | Probe |
+|---|---|
+| 13 pt: star 16.5 × 16, chevron.right 10 × 13.5, ellipsis 14 × 4.5, rectangle.portrait 14 × 16, line.3.horizontal 16 × 8.5 | `symbol/catalog-13`, `body`, `chevron`, `wide`, `tall` |
+| Text styles: caption (10) 13 × 11.5, title (22) 28.5 × 26, largeTitle (26) 33.5 × 31.5 | `caption`, `title`, `largeTitle` |
+| `imageScale`: small 13.5 × 13, large 21.5 × 20.5 (≈ 0.81 and 1.28 of the point size); `bold()` 17 × 16.5, semibold 17 × 16 | `small`, `large`, `bold`, `semibold` |
+| Baselines: the frame's bottom sits 3 below the baseline at 13 pt (2 at 10, 3.5 at 17, 4.5 at 22, 5.5 at 26), the ellipsis 2.5 above it; both text baselines are the same | `baselineRow`, `baselineRow2` |
+| Labels centre a symbol half a cap height above its baseline with the cap height taken to the half point: 4.5 at 13 pt (a 16.08 tall label), 7.75 at 22 pt; catalog images centre on their own middle (`Docs/elements/Label.md`) | `labelIcon`, `labelTitleIcon`, `labelBodyIcon`, `labelImageIcon` |
+| `resizable()` symbols take the frame (50 × 50; `scaledToFit` in 50 × 30) | `resizable`, `fit` |
+| Unknown name: 0 × 0 | `unknown` |
+
+## Verification (2026-09-02, symbols 2026-09-04)
+
+Tier A: all 8 image fixtures exact (`image/swap` steps included); the 12 symbol catalogs and
+`symbol/basic` exact except the scaled-size row (within 2 pt). Tier B for symbols checks frames
+only (the glyphs are stand-ins): 13/13 fixtures with exact frames in Chromium, WebKit and Firefox. Tier B: frames exact in Chromium,
 WebKit and Firefox; pixels 0 % for pixel-aligned draws, ≤ 0.5 % where an image is resampled
 (`image/resizable`), 1.6 % for `image/tiling` (the AppKit bottom-row quirk above). Build:
 `scripts/build-wasm.sh` runs `scripts/assets.py` on the package (the fixture catalog for the
@@ -78,6 +117,7 @@ ignores an undeclared `.xcassets` and copies a declared one verbatim, so either 
 
 ## Not yet covered
 
-`Image(systemName:)` glyphs, `symbolRenderingMode`, `imageScale` effects, PDF/SVG sets, slicing
+SF Symbol glyphs themselves (stand-ins only), symbols beyond the 240 measured (sizes fall back to
+the star's), `symbolRenderingMode`/variants/effects, multicolour and hierarchical symbols, PDF/SVG sets, slicing
 metadata in the catalog, dark-appearance goldens, `AsyncImage`, `Image` from `CGImage`/`NSImage`,
 `Color("name")` for a missing name (assumed clear), `luminanceToAlpha`, `colorMultiply`.

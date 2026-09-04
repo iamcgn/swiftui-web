@@ -9,7 +9,7 @@ Apple docs: [Label](https://developer.apple.com/documentation/swiftui/label),
 | API | Notes |
 |---|---|
 | `Label(title:icon:)`, `Label(_ titleKey:image:)`, `Label(_ title: S, image:)` | implemented (images from the asset catalog, decision 0011; the harness shadows `Label(_:image:)` like `Image(_:)`) |
-| `Label(_:systemImage:)` | stub icon: `Image(systemName:)` has no size until the icon table lands |
+| `Label(_:systemImage:)` | implemented: the symbol's measured size, centred half a cap height (to the half point) above its baseline, drawn with a stand-in glyph (`Docs/elements/Image.md`) |
 | `LabelStyle`, `LabelStyleConfiguration` (`title`, `icon`), `labelStyle(_:)` | implemented |
 | `.automatic` / `DefaultLabelStyle` (= title and icon), `.titleAndIcon`, `.iconOnly`, `.titleOnly` | implemented |
 | Context-dependent automatic style (icon only in toolbars, etc.) | missing: always title and icon |
@@ -28,7 +28,9 @@ Inside a `List` row (`list/basic` `label`, 48.5 × 24) the icon gets a 16 pt slo
 (a 24 pt icon overflows 4 pt each side), 6 pt to the title, and the accent tint; the container sets
 this through the `_labelIconLayout` environment (`Docs/elements/List.md`).
 
-The same guide (`VerticalAlignment._iconCenter`) positions a checkbox against its label.
+The same guide (`VerticalAlignment._iconCenter`) positions a checkbox against its label. A symbol
+icon supplies its own guide (its baseline less half the font's cap height rounded to the half
+point), so `Label("Star label", systemImage: "star")` is 16.08 tall at 13 pt (`symbol/basic` `label`).
 
 ## Verification (2026-09-02)
 
@@ -36,5 +38,5 @@ Tier A exact; Tier B frames exact, pixels ≤ 0.08 % in all three browsers.
 
 ## Not yet covered
 
-SF Symbols, the automatic style's context sensitivity, `Label` in `Menu`/toolbars,
+SF Symbol glyphs (stand-ins), the automatic style's context sensitivity, `Label` in `Menu`/toolbars,
 multi-line titles (the guide uses the first line), `Text`-only icons.

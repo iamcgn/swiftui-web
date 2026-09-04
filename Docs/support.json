@@ -420,9 +420,13 @@
           ]
         },
         {
-          "api": "Image(systemName:) / Image.Scale / imageScale(_:)",
-          "status": "stub",
-          "notes": "Compiles; a symbol image lays out at 0 × 0 and draws nothing until the icon table lands"
+          "api": "Image(systemName:) / Image.Scale / imageScale(_:) / View.fontWeight / View.bold",
+          "status": "partial",
+          "notes": "Measured SF Symbol layout (240 symbols at the text-style sizes, 13 pt weights and image scales; scaled elsewhere) with Lucide icons (ISC) standing in for the glyphs, 1551 names; no rendering modes, variants or effects",
+          "fixtures": [
+            "symbol/basic",
+            "symbol/catalog-13"
+          ]
         },
         {
           "api": "Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:) / AsyncImage",
