@@ -671,6 +671,15 @@
           "fixtures": [
             "accessibility/basic"
           ]
+        },
+        {
+          "api": "offset / rotationEffect / scaleEffect / transformEffect / AnyTransition.scale",
+          "status": "partial",
+          "notes": "Painted through the display list's concat op about their anchors, parameters animate, offsets move hit testing; no hit testing through rotation/scale, no GeometryEffect or 3D",
+          "fixtures": [
+            "transform/basic",
+            "transform/steps"
+          ]
         }
       ]
     }
