@@ -23,6 +23,9 @@ public final class CoreGraphicsPainter {
     private enum Group {
         case layer
         case bitmap(parent: CGContext, filter: DisplayFilter, device: CGRect, sigma: CGFloat)
+        /// The mask draws into a bitmap; `beginMasked` turns it into a clip on the parent.
+        case mask(parent: CGContext, device: CGRect)
+        case masked
     }
 
     public func paint(_ list: DisplayList, into root: CGContext) {
@@ -59,6 +62,44 @@ public final class CoreGraphicsPainter {
                 bitmap.concatenate(ctm)
                 groups.append(.bitmap(parent: ctx, filter: filter, device: device, sigma: sigma))
                 ctx = bitmap
+            case .beginMask(let bounds):
+                let ctm = ctx.ctm
+                let device = bounds.applying(ctm).integral
+                guard device.width >= 1, device.height >= 1,
+                      let bitmap = CGContext(data: nil, width: Int(device.width), height: Int(device.height), bitsPerComponent: 8, bytesPerRow: 0,
+                                             space: Self.colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+                else {
+                    // Nothing can show: clip everything away until the group ends.
+                    ctx.saveGState()
+                    ctx.clip(to: .null)
+                    groups.append(.mask(parent: ctx, device: .null))
+                    continue
+                }
+                bitmap.setAllowsAntialiasing(true)
+                bitmap.setShouldAntialias(true)
+                bitmap.translateBy(x: -device.minX, y: -device.minY)
+                bitmap.concatenate(ctm)
+                groups.append(.mask(parent: ctx, device: device))
+                ctx = bitmap
+            case .beginMasked:
+                guard case .mask(let parent, let device)? = groups.popLast() else { continue }
+                if device.isNull {
+                    groups.append(.masked)
+                    continue
+                }
+                let image = ctx.makeImage()
+                ctx = parent
+                ctx.saveGState()
+                if let image {
+                    // The clip is set in base space, where the mask bitmap was drawn.
+                    let ctm = ctx.ctm
+                    ctx.concatenate(ctm.inverted())
+                    ctx.clip(to: device, mask: image)
+                    ctx.concatenate(ctm)
+                } else {
+                    ctx.clip(to: .null)
+                }
+                groups.append(.masked)
             case .beginBlend(let mode, _):
                 ctx.saveGState()
                 ctx.setBlendMode(Self.cgBlendMode(mode))
@@ -76,6 +117,12 @@ public final class CoreGraphicsPainter {
                         parent.restoreGState()
                     }
                     ctx = parent
+                case .masked:
+                    ctx.restoreGState()
+                case .mask(let parent, let device):
+                    // A mask without content: drop the bitmap (or the empty clip).
+                    ctx = parent
+                    if device.isNull { ctx.restoreGState() }
                 default:
                     ctx.endTransparencyLayer()
                     ctx.restoreGState()

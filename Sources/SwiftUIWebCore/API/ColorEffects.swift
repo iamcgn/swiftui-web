@@ -123,3 +123,63 @@ extension View {
         modifier(_BlendModeEffect(blendMode: blendMode))
     }
 }
+
+/// Collects the content into one compositing group: the effects applied outside (opacity,
+/// shadow, colour filters, blend modes) then act on the group's composite instead of on each
+/// element.
+@frozen
+public struct _CompositingGroupEffect: Equatable {
+    public init() {}
+}
+
+extension _CompositingGroupEffect: ViewModifier {
+    public typealias Body = Never
+
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        CompositingGroupNode(context)
+    }
+}
+
+/// Masks the content with another view's alpha.
+public struct _MaskEffect<Mask: View> {
+    public var mask: Mask
+    public var alignment: Alignment
+
+    public init(mask: Mask, alignment: Alignment) {
+        self.mask = mask
+        self.alignment = alignment
+    }
+}
+
+extension _MaskEffect: ViewModifier {
+    public typealias Body = Never
+
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        LayeredNode(context, layer: \.modifier.mask, alignment: \.modifier.alignment, mode: .mask)
+    }
+}
+
+extension View {
+    /// Wraps this view in a compositing group, so that effects applied to it (opacity, shadow,
+    /// colour effects, blend modes) act on the whole rendering rather than on each element.
+    nonisolated public func compositingGroup() -> some View {
+        modifier(_CompositingGroupEffect())
+    }
+
+    /// Composites this view's contents into an offscreen image before applying effects; here
+    /// the same as `compositingGroup` (`opaque` and `colorMode` are accepted without effect).
+    nonisolated public func drawingGroup(opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear) -> some View {
+        modifier(_CompositingGroupEffect())
+    }
+
+    /// Masks this view using the alpha channel of the given view, laid out over this view's
+    /// frame with `alignment`.
+    nonisolated public func mask<Mask: View>(alignment: Alignment = .center, @ViewBuilder _ mask: () -> Mask) -> some View {
+        modifier(_MaskEffect(mask: mask(), alignment: alignment))
+    }
+
+    /// Masks this view using the alpha channel of the given view.
+    nonisolated public func mask<Mask: View>(_ mask: Mask) -> some View {
+        modifier(_MaskEffect(mask: mask, alignment: .center))
+    }
+}

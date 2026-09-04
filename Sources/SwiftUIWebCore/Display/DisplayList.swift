@@ -85,6 +85,10 @@ public enum DisplayCommand: Equatable, Sendable {
     case beginFilter(DisplayFilter, bounds: CGRect)
     /// Starts a group (ended by `endGroup`) composited with a blend mode; `bounds` as above.
     case beginBlend(BlendMode, bounds: CGRect)
+    /// Starts a mask: the commands up to `beginMasked` draw the mask, those up to `endGroup`
+    /// the content, which shows through the mask's alpha within `bounds`.
+    case beginMask(bounds: CGRect)
+    case beginMasked
     case endGroup
     /// Multiplies the current transform (inside save/restore) for Canvas drawing and effects.
     case concat(CGAffineTransform)
@@ -145,6 +149,8 @@ extension DisplayCommand: CustomStringConvertible {
         case .beginShadow(let color, let radius, let offset): return "beginShadow(\(c(color)) r=\(f(radius)) dx=\(f(offset.width)) dy=\(f(offset.height)))"
         case .beginFilter(let filter, let bounds): return "beginFilter(\(filter)\(r(bounds)))"
         case .beginBlend(let mode, let bounds): return "beginBlend(\(mode)\(r(bounds)))"
+        case .beginMask(let bounds): return "beginMask\(r(bounds))"
+        case .beginMasked: return "beginMasked"
         case .endGroup: return "endGroup"
         case .concat(let t): return "concat(\(f(t.a)), \(f(t.b)), \(f(t.c)), \(f(t.d)), \(f(t.tx)), \(f(t.ty)))"
         case .fillRect(let rect, let color): return "fillRect\(r(rect)) \(c(color))"

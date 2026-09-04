@@ -169,6 +169,51 @@ import SwiftUIWebHeadless
         #expect(PixelFilters.gaussianKernel(sigma: 2).count == 13)
     }
 
+    @Test func effectsApplyPerElementUnlessAGroupComposites() {
+        let pair = ZStack {
+            Color.red.frame(width: 40, height: 40).frame(width: 60, alignment: .leading)
+            Color.blue.frame(width: 40, height: 40).frame(width: 60, alignment: .trailing)
+        }
+        // Opacity, shadow, filters and blend modes wrap every element in its own group.
+        let opacity = render(pair.opacity(0.5))
+        #expect(opacity == ["beginGroup(opacity: 0.5)", "fillRect(70, 30, 40, 40) #FF383C", "endGroup",
+                            "beginGroup(opacity: 0.5)", "fillRect(90, 30, 40, 40) #0088FF", "endGroup"])
+        #expect(render(pair.shadow(color: .black, radius: 2)).filter { $0.hasPrefix("beginShadow") }.count == 2)
+        let inverted = render(pair.colorInvert())
+        #expect(inverted.filter { $0.hasPrefix("beginFilter") }.count == 2)
+        // Each element's group takes that element's own frame.
+        #expect(inverted[0].hasSuffix("(70, 30, 40, 40))") && inverted[3].hasSuffix("(90, 30, 40, 40))"))
+        #expect(render(pair.blendMode(.multiply)).filter { $0.hasPrefix("beginBlend") }.count == 2)
+        // Nested effects nest per element, outermost first.
+        let nested = render(pair.opacity(0.5).colorInvert())
+        #expect(nested.prefix(2).map { String($0.prefix(11)) } == ["beginFilter", "beginGroup("])
+        // A compositing group (and drawingGroup) collects them into one group over the whole frame.
+        let grouped = render(pair.compositingGroup().opacity(0.5))
+        #expect(grouped == ["beginGroup(opacity: 0.5)", "fillRect(70, 30, 40, 40) #FF383C", "fillRect(90, 30, 40, 40) #0088FF", "endGroup"])
+        #expect(render(pair.drawingGroup().shadow(color: .black, radius: 2)) == ["beginShadow(#000000 r=2 dx=0 dy=0)", "fillRect(70, 30, 40, 40) #FF383C", "fillRect(90, 30, 40, 40) #0088FF", "endGroup"])
+        // Without pending effects the group is transparent; a text's background gets its own shadow.
+        #expect(render(pair.compositingGroup()) == ["fillRect(70, 30, 40, 40) #FF383C", "fillRect(90, 30, 40, 40) #0088FF"])
+        let label = render(Color.red.frame(width: 20, height: 10).padding(5).background(Color.white).shadow(color: .black, radius: 1))
+        #expect(label.filter { $0.hasPrefix("beginShadow") }.count == 2)
+    }
+
+    @Test func maskShowsTheContentThroughTheMaskAlpha() {
+        let commands = render(Color.red.frame(width: 40, height: 20).mask { Color.black.frame(width: 20, height: 20) })
+        #expect(commands == ["beginMask(80, 40, 40, 20)", "fillRect(90, 40, 20, 20) #000000", "beginMasked", "fillRect(80, 40, 40, 20) #FF383C", "endGroup"])
+        // Alignment places the mask like an overlay; the mask ignores the distributed effects,
+        // the content keeps them.
+        let aligned = render(Color.red.frame(width: 40, height: 20).mask(alignment: .topLeading) { Color.black.frame(width: 20, height: 10) }.opacity(0.5))
+        #expect(aligned == ["beginMask(80, 40, 40, 20)", "fillRect(80, 40, 20, 10) #000000", "beginMasked",
+                            "beginGroup(opacity: 0.5)", "fillRect(80, 40, 40, 20) #FF383C", "endGroup", "endGroup"])
+        // The deprecated spelling, and layout untouched.
+        #expect(render(Color.red.frame(width: 40, height: 20).mask(Circle())).first == "beginMask(80, 40, 40, 20)")
+        var list = DisplayList()
+        list.append(.beginMask(bounds: CGRect(x: 1, y: 2, width: 3, height: 4)))
+        list.append(.beginMasked)
+        list.append(.endGroup)
+        #expect(DisplayListDecoder.decode(DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)) == ["beginMask 1.0,2.0,3.0,4.0", "beginMasked", "endGroup"])
+    }
+
     @Test func hiddenKeepsLayoutAndDrawsNothing() {
         let commands = render(VStack(spacing: 0) {
             Color.red.frame(width: 20, height: 10)

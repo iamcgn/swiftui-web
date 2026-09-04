@@ -24,6 +24,9 @@ public enum DisplayOp: Double, Sendable {
     case beginFilter = 19
     /// blend mode index, bounds; ended by endGroup
     case beginBlend = 20
+    /// bounds; the mask's commands follow until beginMasked, the content's until endGroup
+    case beginMask = 21
+    case beginMasked = 22
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -99,6 +102,8 @@ public enum DisplayListEncoder {
                 }
             case .beginBlend(let mode, let bounds):
                 out.ops += [DisplayOp.beginBlend.rawValue, Double(mode._index)]; rect(bounds)
+            case .beginMask(let bounds): out.ops.append(DisplayOp.beginMask.rawValue); rect(bounds)
+            case .beginMasked: out.ops.append(DisplayOp.beginMasked.rawValue)
             case .endGroup: out.ops.append(DisplayOp.endGroup.rawValue)
             case .concat(let t): out.ops += [DisplayOp.concat.rawValue, t.a, t.b, t.c, t.d, t.tx, t.ty]
             case .fillRect(let r, let c): out.ops.append(DisplayOp.fillRect.rawValue); rect(r); color(c)
@@ -196,6 +201,8 @@ public enum DisplayListDecoder {
                     out.append("beginFilter \(bounds) blur \(next())\(next() == 1 ? " opaque" : "")")
                 }
             case .beginBlend: let mode = Int(next()); out.append("beginBlend \(mode) \(f(rect()))")
+            case .beginMask: out.append("beginMask \(f(rect()))")
+            case .beginMasked: out.append("beginMasked")
             case .endGroup: out.append("endGroup")
             case .concat: out.append("concat \(next()),\(next()),\(next()),\(next()),\(next()),\(next())")
             case .fillGradient:

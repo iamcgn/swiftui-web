@@ -10044,6 +10044,12 @@
       "lastBaseline" : 13,
       "width" : 24.5
     },
+    "system:13:400:default||Masked text" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 74
+    },
     "system:13:400:default||Max" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -11640,6 +11646,12 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|Masked text" : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Max" : {
       "firstBaseline" : 13,
       "height" : 48,
@@ -13103,6 +13115,18 @@
       "height" : 188,
       "lastBaseline" : 180,
       "width" : 0
+    },
+    "system:40:700:default||Mask" : {
+      "firstBaseline" : 39,
+      "height" : 47,
+      "lastBaseline" : 39,
+      "width" : 99.5
+    },
+    "system:40:700:default|0.0|Mask" : {
+      "firstBaseline" : 39,
+      "height" : 188,
+      "lastBaseline" : 180,
+      "width" : 0
     }
   },
   "fonts" : {
@@ -14463,6 +14487,20 @@
       "underlineThickness" : 2.34375,
       "unroundedLineHeight" : 47,
       "xHeight" : 20.3125
+    },
+    "system:40:700:default" : {
+      "capHeight" : 28.18359375,
+      "horizontalTextToText" : 8,
+      "horizontalTrailing" : 8,
+      "lineHeight" : 47,
+      "linePitch" : 47,
+      "spacingAbove" : 13.4375,
+      "spacingBelow" : 23.92578125,
+      "textToText" : 0,
+      "underlinePosition" : -5.46875,
+      "underlineThickness" : 3.7109375,
+      "unroundedLineHeight" : 47,
+      "xHeight" : 20.9375
     }
   },
   "macOS" : "26.2.0",

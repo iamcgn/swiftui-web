@@ -23,19 +23,27 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
         let layer: TypedNode<Layer>
     }
 
+    package enum Mode { case background, overlay, mask }
+
     private var slots: [ObjectIdentifier: Slot] = [:]
     private let layerPath: KeyPath<ModifiedContent<Content, Modifier>, Layer>
     private let alignmentPath: KeyPath<ModifiedContent<Content, Modifier>, Alignment>
-    private let isOverlay: Bool
+    private let mode: Mode
 
     package init(_ context: _NodeContext<ModifiedContent<Content, Modifier>>,
                  layer: KeyPath<ModifiedContent<Content, Modifier>, Layer>,
-                 alignment: KeyPath<ModifiedContent<Content, Modifier>, Alignment>, isOverlay: Bool) {
+                 alignment: KeyPath<ModifiedContent<Content, Modifier>, Alignment>, mode: Mode) {
         layerPath = layer
         alignmentPath = alignment
-        self.isOverlay = isOverlay
+        self.mode = mode
         super.init(context)
         for target in targets { _ = self.layer(for: target) }
+    }
+
+    package convenience init(_ context: _NodeContext<ModifiedContent<Content, Modifier>>,
+                             layer: KeyPath<ModifiedContent<Content, Modifier>, Layer>,
+                             alignment: KeyPath<ModifiedContent<Content, Modifier>, Alignment>, isOverlay: Bool) {
+        self.init(context, layer: layer, alignment: alignment, mode: isOverlay ? .overlay : .background)
     }
 
     /// The layer subtree for one element, in target order.
@@ -44,10 +52,20 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
     /// For tests: the single layer of a non-list content.
     package var layer: TypedNode<Layer>! { layers.first }
 
+    /// The environment the layer sees: a mask draws with an opaque black foreground (the
+    /// label colour's 85 % alpha would otherwise fade the masked content).
+    private var layerEnvironment: EnvironmentValues {
+        guard mode == .mask else { return environment }
+        var masked = environment
+        masked.foregroundColor = .black
+        masked.foregroundGradient = nil
+        return masked
+    }
+
     private func layer(for target: ViewNode) -> TypedNode<Layer> {
         let key = ObjectIdentifier(target)
         if let slot = slots[key], slot.target === target { return slot.layer }
-        let node = Layer._makeNode(_NodeContext(view: view[keyPath: layerPath], parent: self, environment: environment))
+        let node = Layer._makeNode(_NodeContext(view: view[keyPath: layerPath], parent: self, environment: layerEnvironment))
         slots[key] = Slot(target: target, layer: node)
         return node
     }
@@ -59,8 +77,9 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
             slot.layer.unmount()
             slots[key] = nil
         }
+        let layerEnvironment = layerEnvironment
         for target in targets {
-            layer(for: target).update(view: view[keyPath: layerPath], environment: environment, force: force)
+            layer(for: target).update(view: view[keyPath: layerPath], environment: layerEnvironment, force: force)
         }
     }
 
@@ -86,17 +105,34 @@ package final class LayeredNode<Content: View, Modifier: ViewModifier, Layer: Vi
 
     override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
         let layerNodes = layer(for: target).layoutChildren
-        if !isOverlay {
+        switch mode {
+        case .background:
             for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.presentedFrame)) }
-        }
-        super.paintTarget(target, in: node, into: &list, context: context)
-        if isOverlay {
+            super.paintTarget(target, in: node, into: &list, context: context)
+        case .overlay:
+            super.paintTarget(target, in: node, into: &list, context: context)
             for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.presentedFrame)) }
+        case .mask:
+            // The mask draws free of the distributed effects (they act on the masked result);
+            // the content keeps them.
+            var maskContext = context
+            maskContext.effects = []
+            list.append(.beginMask(bounds: context.absoluteRect(target.presentedFrame)))
+            for layerNode in layerNodes { layerNode.paint(into: &list, context: maskContext.child(at: layerNode.presentedFrame)) }
+            list.append(.beginMasked)
+            super.paintTarget(target, in: node, into: &list, context: context)
+            list.append(.endGroup)
         }
     }
 
     override package var structuralChildren: [ViewNode] { [child] + layers }
-    override package var nodeDescription: String { isOverlay ? "Overlay" : "Background" }
+    override package var nodeDescription: String {
+        switch mode {
+        case .background: return "Background"
+        case .overlay: return "Overlay"
+        case .mask: return "Mask"
+        }
+    }
 }
 
 @MainActor
@@ -129,14 +165,15 @@ package final class OpacityNode<Content: View>: UnaryLayoutModifierNode<Content,
             super.paintTarget(target, in: node, into: &list, context: context)
             return
         }
-        list.append(.beginGroup(opacity: opacity))
+        var context = context
+        context.effects.append(.opacity(opacity))
         super.paintTarget(target, in: node, into: &list, context: context)
-        list.append(.endGroup)
     }
 }
 
-/// `shadow`: the target paints into a group whose composite casts the shadow (the painters
-/// blur the group's alpha). Layout is untouched and the shadow reaches outside the frame.
+/// `shadow`: every element of the target paints into a group whose composite casts the shadow
+/// (the painters blur the group's alpha), as SwiftUI does without a compositing group. Layout is
+/// untouched and the shadow reaches outside the frame.
 @MainActor
 package final class ShadowNode<Content: View>: UnaryLayoutModifierNode<Content, _ShadowEffect> {
     override package var paintsOutsideFrame: Bool { true }
@@ -147,9 +184,9 @@ package final class ShadowNode<Content: View>: UnaryLayoutModifierNode<Content, 
             super.paintTarget(target, in: node, into: &list, context: context)
             return
         }
-        list.append(.beginShadow(color, radius: max(0, modifier.radius), offset: modifier.offset))
+        var context = context
+        context.effects.append(.shadow(color, radius: max(0, modifier.radius), offset: modifier.offset))
         super.paintTarget(target, in: node, into: &list, context: context)
-        list.append(.endGroup)
     }
 }
 
@@ -163,9 +200,9 @@ package final class ColorMatrixNode<Content: View>: UnaryLayoutModifierNode<Cont
             super.paintTarget(target, in: node, into: &list, context: context)
             return
         }
-        list.append(.beginFilter(.colorMatrix(matrix), bounds: context.absoluteRect(target.presentedFrame)))
+        var context = context
+        context.effects.append(.filter(.colorMatrix(matrix)))
         super.paintTarget(target, in: node, into: &list, context: context)
-        list.append(.endGroup)
     }
 }
 
@@ -180,9 +217,9 @@ package final class BlurNode<Content: View>: UnaryLayoutModifierNode<Content, _B
             super.paintTarget(target, in: node, into: &list, context: context)
             return
         }
-        list.append(.beginFilter(.blur(radius: modifier.radius, opaque: modifier.isOpaque), bounds: context.absoluteRect(target.presentedFrame)))
+        var context = context
+        context.effects.append(.filter(.blur(radius: modifier.radius, opaque: modifier.isOpaque)))
         super.paintTarget(target, in: node, into: &list, context: context)
-        list.append(.endGroup)
     }
 }
 
@@ -194,9 +231,22 @@ package final class BlendModeNode<Content: View>: UnaryLayoutModifierNode<Conten
             super.paintTarget(target, in: node, into: &list, context: context)
             return
         }
-        list.append(.beginBlend(modifier.blendMode, bounds: context.absoluteRect(target.presentedFrame)))
+        var context = context
+        context.effects.append(.blend(modifier.blendMode))
         super.paintTarget(target, in: node, into: &list, context: context)
-        list.append(.endGroup)
+    }
+}
+
+/// `compositingGroup` / `drawingGroup`: the pending effects open once around the whole target
+/// instead of around each of its elements.
+@MainActor
+package final class CompositingGroupNode<Content: View>: UnaryLayoutModifierNode<Content, _CompositingGroupEffect> {
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        var inner = context
+        inner.effects = []
+        context.withEffects(context.absoluteRect(target.presentedFrame), into: &list) { list in
+            super.paintTarget(target, in: node, into: &list, context: inner)
+        }
     }
 }
 

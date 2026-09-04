@@ -1,0 +1,63 @@
+{
+  "fixture" : "effects\/mask",
+  "frames" : {
+    "aligned" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 290,
+      "y" : 15
+    },
+    "circle" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 30,
+      "y" : 15
+    },
+    "fade" : {
+      "height" : 50,
+      "width" : 120,
+      "x" : 143,
+      "y" : 140
+    },
+    "gradientText" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 140,
+      "y" : 15
+    },
+    "half" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 33,
+      "y" : 125
+    },
+    "row1" : {
+      "height" : 80,
+      "width" : 340,
+      "x" : 30,
+      "y" : 15
+    },
+    "row2" : {
+      "height" : 80,
+      "width" : 334,
+      "x" : 33,
+      "y" : 125
+    },
+    "stack" : {
+      "height" : 190,
+      "width" : 340,
+      "x" : 30,
+      "y" : 15
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 74,
+      "x" : 293,
+      "y" : 157
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 400
+  }
+}

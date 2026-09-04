@@ -230,10 +230,12 @@ enum PainterScript {
         parent.clearRect(b.x, b.y, b.w, b.h);
         parent.drawImage(patch, b.x, b.y);
       }
+      // A canvas-sized offscreen for a group, drawing in the parent's current space (groups can
+      // begin inside a transform); it is composited back in device space.
       function beginOffscreen(ctx, dpr, w, h) {
         const off = new OffscreenCanvas(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
         const octx = off.getContext('2d');
-        octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        octx.setTransform(ctx.getTransform());
         octx.textBaseline = 'alphabetic';
         return { off: off, octx: octx };
       }
@@ -255,18 +257,24 @@ enum PainterScript {
             case 5: { i = readPath(ctx, buf, i); ctx.clip(buf[i++] === 1 ? 'evenodd' : 'nonzero'); break; }
             case 6: {
               const opacity = buf[i++];
-              const off = new OffscreenCanvas(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
-              const octx = off.getContext('2d');
-              octx.setTransform(dpr, 0, 0, dpr, 0, 0);
-              octx.textBaseline = 'alphabetic';
-              groups.push({ ctx: ctx, off: off, opacity: opacity });
-              ctx = octx;
+              const o = beginOffscreen(ctx, dpr, w, h);
+              groups.push({ ctx: ctx, off: o.off, opacity: opacity });
+              ctx = o.octx;
               break;
             }
             case 7: {
               const g = groups.pop();
               const parent = g.ctx;
               let source = g.off;
+              if (g.mask) {
+                // The content shows through the mask's alpha.
+                const cctx = source.getContext('2d');
+                cctx.save();
+                cctx.setTransform(1, 0, 0, 1, 0, 0);
+                cctx.globalCompositeOperation = 'destination-in';
+                cctx.drawImage(g.mask, 0, 0);
+                cctx.restore();
+              }
               if (g.filter) {
                 if (g.filter.matrix) applyColorMatrix(g.off.getContext('2d'), g.bounds, g.filter.matrix);
                 else source = blurred(g.off, g.bounds, g.filter.sigma, g.filter.opaque);
@@ -308,6 +316,23 @@ enum PainterScript {
               ctx = o.octx;
               break;
             }
+            case 21: {
+              const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
+              const o = beginOffscreen(ctx, dpr, w, h);
+              groups.push({ ctx: ctx, off: o.off, opacity: 1, maskPending: true });
+              ctx = o.octx;
+              break;
+            }
+            case 22: {
+              // The mask is drawn; the content goes into a second offscreen.
+              const g = groups[groups.length - 1];
+              const o = beginOffscreen(g.ctx, dpr, w, h);
+              g.mask = g.off;
+              g.off = o.off;
+              g.maskPending = false;
+              ctx = o.octx;
+              break;
+            }
             case 20: {
               const mode = buf[i++];
               const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
@@ -320,12 +345,9 @@ enum PainterScript {
             case 18: {
               const shadowColor = color(buf[i++], buf[i++], buf[i++], buf[i++]);
               const radius = buf[i++], dx = buf[i++], dy = buf[i++];
-              const off = new OffscreenCanvas(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
-              const octx = off.getContext('2d');
-              octx.setTransform(dpr, 0, 0, dpr, 0, 0);
-              octx.textBaseline = 'alphabetic';
-              groups.push({ ctx: ctx, off: off, opacity: 1, shadow: { color: shadowColor, radius: radius, dx: dx, dy: dy } });
-              ctx = octx;
+              const o = beginOffscreen(ctx, dpr, w, h);
+              groups.push({ ctx: ctx, off: o.off, opacity: 1, shadow: { color: shadowColor, radius: radius, dx: dx, dy: dy } });
+              ctx = o.octx;
               break;
             }
             case 8: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++]; ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fillRect(x, y, rw, rh); break; }

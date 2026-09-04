@@ -1,0 +1,111 @@
+{
+  "fixture" : "effects\/compositing",
+  "frames" : {
+    "blend" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 20,
+      "y" : 120
+    },
+    "blendGroup" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 120,
+      "y" : 120
+    },
+    "blur" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 220,
+      "y" : 120
+    },
+    "blurGroup" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 320,
+      "y" : 120
+    },
+    "invert" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 189,
+      "y" : 200
+    },
+    "invertOpacity" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 289,
+      "y" : 200
+    },
+    "labelShadow" : {
+      "height" : 32,
+      "width" : 49,
+      "x" : 51,
+      "y" : 214
+    },
+    "labelShadowGroup" : {
+      "height" : 32,
+      "width" : 49,
+      "x" : 120,
+      "y" : 214
+    },
+    "opacity" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 20,
+      "y" : 40
+    },
+    "opacityGroup" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 120,
+      "y" : 40
+    },
+    "row1" : {
+      "height" : 60,
+      "width" : 380,
+      "x" : 20,
+      "y" : 40
+    },
+    "row2" : {
+      "height" : 60,
+      "width" : 380,
+      "x" : 20,
+      "y" : 120
+    },
+    "row3" : {
+      "height" : 60,
+      "width" : 318,
+      "x" : 51,
+      "y" : 200
+    },
+    "shadow" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 220,
+      "y" : 40
+    },
+    "shadowGroup" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 320,
+      "y" : 40
+    },
+    "stack" : {
+      "height" : 220,
+      "width" : 380,
+      "x" : 20,
+      "y" : 40
+    },
+    "zstack" : {
+      "height" : 280,
+      "width" : 400,
+      "x" : 10,
+      "y" : 10
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 420
+  }
+}

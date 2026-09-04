@@ -264,3 +264,16 @@ public struct DisplayGradient: Equatable, Sendable {
         self.stops = stops
     }
 }
+
+// Gradients are also views: a rectangle filled with the gradient, flexible like `Color`.
+extension LinearGradient: View {
+    public var body: some View { Rectangle().fill(self) }
+}
+
+extension RadialGradient: View {
+    public var body: some View { Rectangle().fill(self) }
+}
+
+extension AngularGradient: View {
+    public var body: some View { Rectangle().fill(self) }
+}

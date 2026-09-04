@@ -242,7 +242,11 @@ open class ViewNode {
             list.append(.concat(CGAffineTransform(translationX: -centre.x, y: -centre.y).concatenating(CGAffineTransform(scaleX: scale, y: scale))
                                     .concatenating(CGAffineTransform(translationX: centre.x, y: centre.y))))
         }
-        paintSelf(into: &list, context: context)
+        if context.effects.isEmpty {
+            paintSelf(into: &list, context: context)
+        } else {
+            context.withEffects(absoluteBounds(context), into: &list) { paintSelf(into: &$0, context: context) }
+        }
         paintChildren(into: &list, context: context)
         paintExiting(into: &list, context: context)
         if scale != 1 { list.append(.restore) }
