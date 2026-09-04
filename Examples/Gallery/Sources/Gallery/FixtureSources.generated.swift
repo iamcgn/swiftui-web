@@ -397,6 +397,85 @@ public static let basic = Fixture(
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "effects/hidden", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 66, lastLine: 79, declaration: #"""
+public static let hidden = Fixture("effects/hidden", size: CGSize(width: 240, height: 200)) {
+    VStack(spacing: 10) {
+        Text("Above").probe("above")
+        Color.red.frame(width: 80, height: 30).hidden().probe("hidden")
+        Text("Below").probe("below")
+        HStack(spacing: 8) {
+            Button("Ghost") {}.hidden().probe("ghostButton")
+            Color.blue.frame(width: 40, height: 20).probe("visible")
+        }
+        .probe("row")
+        Color.green.frame(width: 60, height: 20).opacity(0).probe("transparent")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "effects/shadow", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 7, lastLine: 23, declaration: #"""
+public static let shadow = Fixture("effects/shadow", size: CGSize(width: 360, height: 260)) {
+    VStack(spacing: 50) {
+        HStack(spacing: 60) {
+            Color.red.frame(width: 60, height: 60).shadow(radius: 8).probe("default")
+            Color.blue.frame(width: 60, height: 60).shadow(color: .black, radius: 4, x: 6).probe("offset")
+            Circle().fill(Color.green).frame(width: 60, height: 60).shadow(color: .blue.opacity(0.5), radius: 0, x: 4).probe("hard")
+        }
+        .probe("row1")
+        HStack(spacing: 60) {
+            Text("Shadow").font(.title).shadow(radius: 2).probe("text")
+            RoundedRectangle(cornerRadius: 12).fill(Color.orange).frame(width: 90, height: 50).shadow(color: .purple, radius: 12).probe("rounded")
+            Color.gray.frame(width: 60, height: 60).opacity(0.5).shadow(radius: 6).probe("faded")
+        }
+        .probe("row2")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "effects/shadow-offset", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 36, lastLine: 45, declaration: #"""
+/// Vertical offsets. The harness's offscreen window draws them upwards (a CoreGraphics
+/// base-space offset), unlike a window on screen, so this fixture's pixels are not compared.
+public static let shadowOffset = Fixture("effects/shadow-offset", size: CGSize(width: 360, height: 160)) {
+    HStack(spacing: 60) {
+        Color.blue.frame(width: 60, height: 60).shadow(color: .black, radius: 4, x: 6, y: 6).probe("offset")
+        Color.black.frame(width: 60, height: 60).shadow(color: .red, radius: 0, x: 5, y: 5).probe("sharp")
+        Text("Shadow").font(.title).shadow(radius: 2, y: 2).probe("text")
+    }
+    .probe("row")
+}
+"""#),
+        FixtureSource(name: "effects/shadow-profile", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 25, lastLine: 34, declaration: #"""
+/// Black squares on a transparent background: the golden's alpha across each edge gives
+/// the blur profile (Docs/elements/Effects.md).
+public static let shadowProfile = Fixture("effects/shadow-profile", size: CGSize(width: 360, height: 160)) {
+    HStack(spacing: 60) {
+        Color.black.frame(width: 60, height: 60).shadow(color: .black, radius: 10).probe("blur10")
+        Color.black.frame(width: 60, height: 60).shadow(color: .black, radius: 4, x: 10).probe("blur4")
+        Color.black.frame(width: 60, height: 60).shadow(color: .red, radius: 0, x: 5).probe("sharp")
+    }
+    .probe("row")
+}
+"""#),
+        FixtureSource(name: "effects/zindex", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 47, lastLine: 64, declaration: #"""
+public static let zIndex = Fixture("effects/zindex", size: CGSize(width: 320, height: 240)) {
+    VStack(spacing: 30) {
+        ZStack {
+            Color.red.frame(width: 80, height: 80).offset(x: -25, y: -15).zIndex(2).probe("red")
+            Color.blue.frame(width: 80, height: 80).probe("blue")
+            Color.green.frame(width: 80, height: 80).offset(x: 25, y: 15).zIndex(1).probe("green")
+            Color.yellow.frame(width: 120, height: 120).zIndex(-1).probe("yellow")
+        }
+        .probe("zstack")
+        HStack(spacing: -30) {
+            Color.orange.frame(width: 70, height: 50).probe("first")
+            Color.purple.frame(width: 70, height: 50).zIndex(1).probe("middle")
+            Color.mint.frame(width: 70, height: 50).probe("last")
+        }
+        .probe("hstack")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "focus/basic", file: "Fixtures/Sources/Focus/FocusFixtures.swift", firstLine: 37, lastLine: 43, declaration: #"""
 public static let basic = Fixture(
     "focus/basic", size: CGSize(width: 320, height: 200),
@@ -3030,6 +3109,84 @@ public static let styles = Fixture("textfield/styles", size: CGSize(width: 320, 
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "textstyle/baseline", file: "Fixtures/Sources/TextStyle/TextStyleFixtures.swift", firstLine: 62, lastLine: 78, declaration: #"""
+public static let baseline = Fixture("textstyle/baseline", size: CGSize(width: 260, height: 160)) {
+    VStack(alignment: .leading, spacing: 16) {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text("Base").probe("base")
+            Text("Up").baselineOffset(6).probe("up")
+            Text("Down").baselineOffset(-4).probe("down")
+        }
+        .probe("row")
+        HStack(spacing: 12) {
+            Text("Base").probe("centerBase")
+            Text("Up").baselineOffset(6).probe("centerUp")
+        }
+        .probe("centerRow")
+        Text("Raised").baselineOffset(8).probe("raised")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "textstyle/case", file: "Fixtures/Sources/TextStyle/TextStyleFixtures.swift", firstLine: 52, lastLine: 60, declaration: #"""
+public static let textCase = Fixture("textstyle/case", size: CGSize(width: 260, height: 140)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Text("mixed Case").textCase(.uppercase).probe("upper")
+        Text("mixed Case").textCase(.lowercase).probe("lower")
+        Text("mixed Case").textCase(nil).probe("none")
+        VStack(alignment: .leading) { Text("mixed Case").probe("inherited") }.textCase(.uppercase).probe("group")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "textstyle/patterns", file: "Fixtures/Sources/TextStyle/TextStyleFixtures.swift", firstLine: 39, lastLine: 50, declaration: #"""
+public static let patterns = Fixture("textstyle/patterns", size: CGSize(width: 260, height: 260)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Text("Solid").underline(true, pattern: .solid).probe("solid")
+        Text("Dotted").underline(true, pattern: .dot).probe("dot")
+        Text("Dashed").underline(true, pattern: .dash).probe("dash")
+        Text("Dash dot").underline(true, pattern: .dashDot).probe("dashDot")
+        Text("Dash dot dot").underline(true, pattern: .dashDotDot).probe("dashDotDot")
+        Text("Dash strike").strikethrough(true, pattern: .dash, color: .blue).probe("dashStrike")
+        Text("Dotted title").font(.title).underline(true, pattern: .dot).probe("dotTitle")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "textstyle/strikethrough", file: "Fixtures/Sources/TextStyle/TextStyleFixtures.swift", firstLine: 26, lastLine: 37, declaration: #"""
+public static let strikethrough = Fixture("textstyle/strikethrough", size: CGSize(width: 260, height: 240)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Text("Struck").strikethrough().probe("body")
+        Text("Title strike").font(.title).strikethrough().probe("title")
+        Text("Red strike").strikethrough(true, color: .red).probe("colored")
+        Text("Caption strike").font(.caption).strikethrough().probe("caption")
+        Text("Bold strike").bold().strikethrough().probe("bold")
+        (Text("Mixed ") + Text("line").strikethrough()).probe("partial")
+        Text("Large strike").font(.largeTitle).strikethrough().probe("large")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "textstyle/underline", file: "Fixtures/Sources/TextStyle/TextStyleFixtures.swift", firstLine: 7, lastLine: 24, declaration: #"""
+public static let underline = Fixture("textstyle/underline", size: CGSize(width: 260, height: 300)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Text("Underlined").underline().probe("body")
+        Text("Title line").font(.title).underline().probe("title")
+        Text("Colored").underline(true, color: .red).probe("colored")
+        Text("Caption small").font(.caption).underline().probe("caption")
+        Text("Bold Under").bold().underline().probe("bold")
+        (Text("Hello ").underline() + Text("World")).probe("partial")
+        VStack(alignment: .leading, spacing: 4) {
+            Text("First").probe("first")
+            Text("Second").underline(false).probe("second")
+        }
+        .underline()
+        .probe("viewLevel")
+        Text("Both").underline().strikethrough().probe("both")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "timeline/basic", file: "Fixtures/Sources/Timeline/TimelineFixtures.swift", firstLine: 16, lastLine: 26, declaration: #"""
 public static let basic = Fixture("timeline/basic", size: CGSize(width: 320, height: 100)) {
     VStack(spacing: 8) {
@@ -3954,6 +4111,90 @@ public enum DisclosureFixtures {
     }
 
     public static let all: [Fixture] = [basic]
+}
+"""#,
+        "Fixtures/Sources/Effects/EffectsFixtures.swift": #"""
+// Layer effect fixtures: `shadow` paints outside the frame without changing layout, `zIndex`
+// reorders overlapping siblings, and `hidden` keeps a view's space while drawing nothing.
+import SwiftUI
+import FixtureKit
+
+public enum EffectsFixtures {
+    public static let shadow = Fixture("effects/shadow", size: CGSize(width: 360, height: 260)) {
+        VStack(spacing: 50) {
+            HStack(spacing: 60) {
+                Color.red.frame(width: 60, height: 60).shadow(radius: 8).probe("default")
+                Color.blue.frame(width: 60, height: 60).shadow(color: .black, radius: 4, x: 6).probe("offset")
+                Circle().fill(Color.green).frame(width: 60, height: 60).shadow(color: .blue.opacity(0.5), radius: 0, x: 4).probe("hard")
+            }
+            .probe("row1")
+            HStack(spacing: 60) {
+                Text("Shadow").font(.title).shadow(radius: 2).probe("text")
+                RoundedRectangle(cornerRadius: 12).fill(Color.orange).frame(width: 90, height: 50).shadow(color: .purple, radius: 12).probe("rounded")
+                Color.gray.frame(width: 60, height: 60).opacity(0.5).shadow(radius: 6).probe("faded")
+            }
+            .probe("row2")
+        }
+        .probe("stack")
+    }
+
+    /// Black squares on a transparent background: the golden's alpha across each edge gives
+    /// the blur profile (Docs/elements/Effects.md).
+    public static let shadowProfile = Fixture("effects/shadow-profile", size: CGSize(width: 360, height: 160)) {
+        HStack(spacing: 60) {
+            Color.black.frame(width: 60, height: 60).shadow(color: .black, radius: 10).probe("blur10")
+            Color.black.frame(width: 60, height: 60).shadow(color: .black, radius: 4, x: 10).probe("blur4")
+            Color.black.frame(width: 60, height: 60).shadow(color: .red, radius: 0, x: 5).probe("sharp")
+        }
+        .probe("row")
+    }
+
+    /// Vertical offsets. The harness's offscreen window draws them upwards (a CoreGraphics
+    /// base-space offset), unlike a window on screen, so this fixture's pixels are not compared.
+    public static let shadowOffset = Fixture("effects/shadow-offset", size: CGSize(width: 360, height: 160)) {
+        HStack(spacing: 60) {
+            Color.blue.frame(width: 60, height: 60).shadow(color: .black, radius: 4, x: 6, y: 6).probe("offset")
+            Color.black.frame(width: 60, height: 60).shadow(color: .red, radius: 0, x: 5, y: 5).probe("sharp")
+            Text("Shadow").font(.title).shadow(radius: 2, y: 2).probe("text")
+        }
+        .probe("row")
+    }
+
+    public static let zIndex = Fixture("effects/zindex", size: CGSize(width: 320, height: 240)) {
+        VStack(spacing: 30) {
+            ZStack {
+                Color.red.frame(width: 80, height: 80).offset(x: -25, y: -15).zIndex(2).probe("red")
+                Color.blue.frame(width: 80, height: 80).probe("blue")
+                Color.green.frame(width: 80, height: 80).offset(x: 25, y: 15).zIndex(1).probe("green")
+                Color.yellow.frame(width: 120, height: 120).zIndex(-1).probe("yellow")
+            }
+            .probe("zstack")
+            HStack(spacing: -30) {
+                Color.orange.frame(width: 70, height: 50).probe("first")
+                Color.purple.frame(width: 70, height: 50).zIndex(1).probe("middle")
+                Color.mint.frame(width: 70, height: 50).probe("last")
+            }
+            .probe("hstack")
+        }
+        .probe("stack")
+    }
+
+    public static let hidden = Fixture("effects/hidden", size: CGSize(width: 240, height: 200)) {
+        VStack(spacing: 10) {
+            Text("Above").probe("above")
+            Color.red.frame(width: 80, height: 30).hidden().probe("hidden")
+            Text("Below").probe("below")
+            HStack(spacing: 8) {
+                Button("Ghost") {}.hidden().probe("ghostButton")
+                Color.blue.frame(width: 40, height: 20).probe("visible")
+            }
+            .probe("row")
+            Color.green.frame(width: 60, height: 20).opacity(0).probe("transparent")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden]
 }
 """#,
         "Fixtures/Sources/Focus/FocusFixtures.swift": #"""
@@ -7045,6 +7286,89 @@ public enum TextFieldFixtures {
     }
 
     public static let all: [Fixture] = [basic, styles, steps]
+}
+"""#,
+        "Fixtures/Sources/TextStyle/TextStyleFixtures.swift": #"""
+// Text decoration fixtures: underline and strikethrough (line styles, patterns, colours, on the
+// text and on the view), text case, and baseline offsets.
+import SwiftUI
+import FixtureKit
+
+public enum TextStyleFixtures {
+    public static let underline = Fixture("textstyle/underline", size: CGSize(width: 260, height: 300)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Underlined").underline().probe("body")
+            Text("Title line").font(.title).underline().probe("title")
+            Text("Colored").underline(true, color: .red).probe("colored")
+            Text("Caption small").font(.caption).underline().probe("caption")
+            Text("Bold Under").bold().underline().probe("bold")
+            (Text("Hello ").underline() + Text("World")).probe("partial")
+            VStack(alignment: .leading, spacing: 4) {
+                Text("First").probe("first")
+                Text("Second").underline(false).probe("second")
+            }
+            .underline()
+            .probe("viewLevel")
+            Text("Both").underline().strikethrough().probe("both")
+        }
+        .probe("stack")
+    }
+
+    public static let strikethrough = Fixture("textstyle/strikethrough", size: CGSize(width: 260, height: 240)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Struck").strikethrough().probe("body")
+            Text("Title strike").font(.title).strikethrough().probe("title")
+            Text("Red strike").strikethrough(true, color: .red).probe("colored")
+            Text("Caption strike").font(.caption).strikethrough().probe("caption")
+            Text("Bold strike").bold().strikethrough().probe("bold")
+            (Text("Mixed ") + Text("line").strikethrough()).probe("partial")
+            Text("Large strike").font(.largeTitle).strikethrough().probe("large")
+        }
+        .probe("stack")
+    }
+
+    public static let patterns = Fixture("textstyle/patterns", size: CGSize(width: 260, height: 260)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Solid").underline(true, pattern: .solid).probe("solid")
+            Text("Dotted").underline(true, pattern: .dot).probe("dot")
+            Text("Dashed").underline(true, pattern: .dash).probe("dash")
+            Text("Dash dot").underline(true, pattern: .dashDot).probe("dashDot")
+            Text("Dash dot dot").underline(true, pattern: .dashDotDot).probe("dashDotDot")
+            Text("Dash strike").strikethrough(true, pattern: .dash, color: .blue).probe("dashStrike")
+            Text("Dotted title").font(.title).underline(true, pattern: .dot).probe("dotTitle")
+        }
+        .probe("stack")
+    }
+
+    public static let textCase = Fixture("textstyle/case", size: CGSize(width: 260, height: 140)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("mixed Case").textCase(.uppercase).probe("upper")
+            Text("mixed Case").textCase(.lowercase).probe("lower")
+            Text("mixed Case").textCase(nil).probe("none")
+            VStack(alignment: .leading) { Text("mixed Case").probe("inherited") }.textCase(.uppercase).probe("group")
+        }
+        .probe("stack")
+    }
+
+    public static let baseline = Fixture("textstyle/baseline", size: CGSize(width: 260, height: 160)) {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text("Base").probe("base")
+                Text("Up").baselineOffset(6).probe("up")
+                Text("Down").baselineOffset(-4).probe("down")
+            }
+            .probe("row")
+            HStack(spacing: 12) {
+                Text("Base").probe("centerBase")
+                Text("Up").baselineOffset(6).probe("centerUp")
+            }
+            .probe("centerRow")
+            Text("Raised").baselineOffset(8).probe("raised")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [underline, strikethrough, patterns, textCase, baseline]
 }
 """#,
         "Fixtures/Sources/Timeline/TimelineFixtures.swift": #"""

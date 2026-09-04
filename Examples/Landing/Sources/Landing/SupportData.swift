@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 83, .stub: 6, .full: 9, .approximate: 3, .missing: 17]
+    static let counts: [SupportStatus: Int] = [.partial: 84, .stub: 6, .full: 11, .approximate: 3, .missing: 17]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -183,12 +183,15 @@ partial	animation(_:value:) / transaction(_:) / transition(_:) / AnyTransition (
 approximate	sheet / popover (isPresented and item forms) / alert / confirmationDialog / dismiss environment action	Presented over the window by the runtime's presentation layer (modal sheets and alerts, popovers and menus dismissed outside); the looks approximate macOS (separate windows there, no goldens); no fullScreenCover, detents, Menu, contextMenu	1
 partial	accessibilityLabel / Hint / Value / Identifier / Hidden / AddTraits / RemoveTraits / accessibilityElement(children:)	Applied on the semantics tree that the canvas host mirrors as an ARIA DOM overlay (headings, images, groups, switches, range inputs, spinbuttons); no custom actions, sort priority or rotors	1
 partial	offset / rotationEffect / scaleEffect / transformEffect / AnyTransition.scale	Painted through the display list's concat op about their anchors, parameters animate, offsets move hit testing; no hit testing through rotation/scale, no GeometryEffect or 3D	2
-missing	shadow / blur / brightness / contrast / saturation / hueRotation / grayscale / blendMode / colorInvert / colorMultiply / luminanceToAlpha	Colour and layer effects are not painted yet (Phase 6)	0
-missing	zIndex / hidden / position / mask / compositingGroup / drawingGroup	Not implemented (Phase 6)	0
+full	shadow(color:radius:x:y:) / Color.RGBColorSpace inits	A shadow group in the display list (op 18); the browser and CoreGraphics painters blur the composite with sigma = radius; the default third-opaque linear black; Tier C pixel-identical (Docs/elements/Effects.md)	3
+missing	blur / brightness / contrast / saturation / hueRotation / grayscale / blendMode / colorInvert / colorMultiply / luminanceToAlpha	Colour and blend effects are not painted yet (Phase 6)	0
+full	zIndex / hidden	zIndex reorders painting and hit testing among a container's children (ties keep declaration order); hidden keeps the layout and removes the view from painting, hit testing and semantics	2
+missing	position / mask / compositingGroup / drawingGroup	Not implemented (Phase 6)	0
 missing	ignoresSafeArea / safeAreaInset / safeAreaPadding	Not implemented; the browser window has no safe areas	0
 missing	onHover / help / pointerStyle / onContinuousHover	Not implemented (Phase 6)	0
 missing	gesture / DragGesture / LongPressGesture / MagnifyGesture / RotateGesture / simultaneousGesture / highPriorityGesture	Only onTapGesture; drags exist for sliders and scrolling only (Phase 6)	0
-missing	kerning / tracking / underline / strikethrough / baselineOffset / textCase / textSelection / textScale	Text styling beyond fonts and colours is not implemented (Phase 6)	0
+partial	underline / strikethrough (Text and View, Text.LineStyle patterns and colours) / textCase / baselineOffset	Lines at CoreText's underline offset and half x-height, snapped to device pixels, weight and design ratios; patterns in multiples of the thickness; textCase before measurement; baselineOffset grows the text and moves the baseline guide as Apple does. Some weights draw the line one pixel off (Docs/elements/TextStyle.md)	5
+missing	kerning / tracking / textSelection / textScale	Not implemented (Phase 6)	0
 missing	matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator	Not implemented	0
 missing	dropDestination / draggable / onDrag / onDrop / pasteboard	Not implemented	0
 missing	redacted / privacySensitive / unredacted	Not implemented	0

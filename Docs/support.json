@@ -886,12 +886,31 @@
           ]
         },
         {
-          "api": "shadow / blur / brightness / contrast / saturation / hueRotation / grayscale / blendMode / colorInvert / colorMultiply / luminanceToAlpha",
-          "status": "missing",
-          "notes": "Colour and layer effects are not painted yet (Phase 6)"
+          "api": "shadow(color:radius:x:y:) / Color.RGBColorSpace inits",
+          "status": "full",
+          "notes": "A shadow group in the display list (op 18); the browser and CoreGraphics painters blur the composite with sigma = radius; the default third-opaque linear black; Tier C pixel-identical (Docs/elements/Effects.md)",
+          "fixtures": [
+            "effects/shadow",
+            "effects/shadow-profile",
+            "effects/shadow-offset"
+          ]
         },
         {
-          "api": "zIndex / hidden / position / mask / compositingGroup / drawingGroup",
+          "api": "blur / brightness / contrast / saturation / hueRotation / grayscale / blendMode / colorInvert / colorMultiply / luminanceToAlpha",
+          "status": "missing",
+          "notes": "Colour and blend effects are not painted yet (Phase 6)"
+        },
+        {
+          "api": "zIndex / hidden",
+          "status": "full",
+          "notes": "zIndex reorders painting and hit testing among a container's children (ties keep declaration order); hidden keeps the layout and removes the view from painting, hit testing and semantics",
+          "fixtures": [
+            "effects/zindex",
+            "effects/hidden"
+          ]
+        },
+        {
+          "api": "position / mask / compositingGroup / drawingGroup",
           "status": "missing",
           "notes": "Not implemented (Phase 6)"
         },
@@ -911,9 +930,21 @@
           "notes": "Only onTapGesture; drags exist for sliders and scrolling only (Phase 6)"
         },
         {
-          "api": "kerning / tracking / underline / strikethrough / baselineOffset / textCase / textSelection / textScale",
+          "api": "underline / strikethrough (Text and View, Text.LineStyle patterns and colours) / textCase / baselineOffset",
+          "status": "partial",
+          "notes": "Lines at CoreText's underline offset and half x-height, snapped to device pixels, weight and design ratios; patterns in multiples of the thickness; textCase before measurement; baselineOffset grows the text and moves the baseline guide as Apple does. Some weights draw the line one pixel off (Docs/elements/TextStyle.md)",
+          "fixtures": [
+            "textstyle/underline",
+            "textstyle/strikethrough",
+            "textstyle/patterns",
+            "textstyle/case",
+            "textstyle/baseline"
+          ]
+        },
+        {
+          "api": "kerning / tracking / textSelection / textScale",
           "status": "missing",
-          "notes": "Text styling beyond fonts and colours is not implemented (Phase 6)"
+          "notes": "Not implemented (Phase 6)"
         },
         {
           "api": "matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator",

@@ -275,6 +275,23 @@ Common views the Phase 2 list did not name, in the order they unlock each other:
 | Element | Status |
 |---|---|
 
+### Phase 6 — Modifier sweep
+
+The modifiers apps reach for that the element phases skipped, each with the element workflow
+(fixtures, goldens, Tier A/B/C, doc, support row): `shadow` → `zIndex`/`hidden` → text
+decorations (`underline`, `strikethrough`, `textCase`, `baselineOffset`) → dark mode
+(`colorScheme`, `preferredColorScheme`, the dark system colours and control looks) → colour
+effects → `mask`/`compositingGroup` → `position`/safe areas → `onHover`/`help` → `toolbar` →
+`searchable` → gestures beyond tap → `kerning`/`tracking`.
+
+### Phase 6 status
+
+| Modifier | Status |
+|---|---|
+| shadow | done 2026-09-04: `_ShadowEffect`/`ShadowNode`, `DisplayCommand.beginShadow` (op 18) in the JS and CoreGraphics painters (sigma = radius, device-space blur and offset), `Color.RGBColorSpace` inits. 3 fixtures exact in Tier A, Tier C 0.00 % (`Docs/elements/Effects.md`; `effects/shadow-offset` is frames-only because the offscreen harness window flips `y`). |
+| zIndex, hidden | done 2026-09-04: the `zIndex` node trait orders `paintOrderedChildren` and hit testing; `hidden` empties the painted children. Tier A exact, Tier C 0.00 %. |
+| underline, strikethrough, textCase, baselineOffset | done 2026-09-04: `Text.LineStyle`, text- and view-level modifiers, CoreText decoration metrics in the font table with weight/design ratios, pixel-snapped lines and dash patterns, cased measurement, baseline-offset growth. 5 fixtures exact in Tier A, Tier C ≤ 0.10 % (`Docs/elements/TextStyle.md`). |
+
 ## Risk register
 
 | Risk | Mitigation |
