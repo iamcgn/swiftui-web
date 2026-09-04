@@ -15,6 +15,8 @@ package final class PresentationNode: ViewNode {
     package let onDismissRequested: @MainActor () -> Void
     package private(set) var panel: CGRect = .zero
     package private(set) var contentFrame: CGRect = .zero
+    /// The menu row the arrow keys highlighted (an index into `interactiveNodes`).
+    package private(set) var highlightedIndex: Int?
     private var arrow: (edge: Edge, tip: CGPoint)?
 
     package init(runtime: Runtime, kind: _PresentationKind, view: AnyView, environment: EnvironmentValues, anchor: ViewNode?,
@@ -137,7 +139,42 @@ package final class PresentationNode: ViewNode {
             path.closeSubpath()
             list.append(.fillPath(path, RGBA(red: 1, green: 1, blue: 1, alpha: 1)))
         }
+        if let highlightedIndex, kind.isMenu {
+            let rows = interactiveNodes
+            if highlightedIndex < rows.count {
+                let row = context.absoluteRect(rows[highlightedIndex].frameInRoot).insetBy(dx: PlatformMetrics.menuHighlightInset, dy: 0)
+                list.append(.fillRRect(row, cornerRadius: PlatformMetrics.menuHighlightCornerRadius, black(PlatformMetrics.menuHighlightAlpha)))
+            }
+        }
         if let target { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
+    }
+
+    // MARK: Keyboard
+
+    /// Menus: Up/Down move the highlight over the rows (wrapping), Return or Space activates the
+    /// highlighted row, Escape closes the menu.
+    package func handleKey(_ press: KeyPress) -> Bool {
+        guard kind.isMenu, press.modifiers.shortcutModifiers.isEmpty else { return false }
+        let rows = interactiveNodes
+        switch press.key {
+        case .downArrow:
+            guard !rows.isEmpty else { return true }
+            highlightedIndex = highlightedIndex.map { ($0 + 1) % rows.count } ?? 0
+        case .upArrow:
+            guard !rows.isEmpty else { return true }
+            highlightedIndex = highlightedIndex.map { ($0 + rows.count - 1) % rows.count } ?? rows.count - 1
+        case .return, .space:
+            guard let highlightedIndex, highlightedIndex < rows.count else { return false }
+            let row = rows[highlightedIndex]
+            row.pressBegan()
+            row.pressEnded(inside: true)
+        case .escape:
+            dismiss()
+        default:
+            return false
+        }
+        runtime.setNeedsDisplay()
+        return true
     }
 
     // MARK: Hit testing

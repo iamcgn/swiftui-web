@@ -187,6 +187,23 @@ public final class CanvasHost {
         wheelOptions.passive = .boolean(false)
         _ = canvas.addEventListener!("wheel", wheel, wheelOptions)
         on(window, "resize") { [weak self] _ in self?.resize() }
+        // Keys go to the runtime (Runtime/KeyboardNodes.swift): the focused element's handlers,
+        // the open menu, keyboard shortcuts, Escape. A text field's input keeps its own keys
+        // except Escape.
+        on(window, "keydown") { [weak self] e in
+            guard let self, let domKey = e.key.string, let key = KeyEquivalent(domKey: domKey) else { return }
+            if let target = e.target.object, target.tagName.string == "INPUT", target.type.string != "range", key != .escape { return }
+            var modifiers: EventModifiers = []
+            if e.shiftKey.boolean == true { modifiers.insert(.shift) }
+            if e.ctrlKey.boolean == true { modifiers.insert(.control) }
+            if e.altKey.boolean == true { modifiers.insert(.option) }
+            if e.metaKey.boolean == true { modifiers.insert(.command) }
+            let event = KeyEvent(key: key, characters: domKey.count == 1 ? domKey : "", modifiers: modifiers, isRepeat: e["repeat"].boolean == true)
+            if self.runtime.keyDown(event) {
+                _ = e.preventDefault?()
+                self.scheduleFrame()
+            }
+        }
         if let resizeObserver = window.ResizeObserver.function {
             let closure = JSClosure { [weak self] _ in
                 MainActor.assumeIsolated { self?.resize() }
@@ -325,11 +342,25 @@ public final class CanvasHost {
                         self.runtime.adjust(semanticsIdentifier: id, increment: key == "ArrowUp")
                         self.scheduleFrame()
                     }
-                case .text, .heading, .image, .group:
+                case .text, .heading, .image, .group, .list:
                     break
                 default:
                     on(element, "click") { [weak self] _ in
                         self?.runtime.activate(semanticsIdentifier: id)
+                        self?.scheduleFrame()
+                    }
+                }
+                // Keyboard focus is mirrored into the runtime: the ring shows for keyboard focus
+                // (`:focus-visible`), not for a click.
+                if node.isFocusable || ![.text, .heading, .image, .group].contains(node.role) {
+                    on(element, "focus") { [weak self] e in
+                        guard let self else { return }
+                        let visible = e.target.object?.matches?(":focus-visible").boolean ?? true
+                        self.runtime.focus(semanticsIdentifier: id, keyboard: visible)
+                        self.scheduleFrame()
+                    }
+                    on(element, "blur") { [weak self] _ in
+                        self?.runtime.blur(semanticsIdentifier: id)
                         self?.scheduleFrame()
                     }
                 }
@@ -342,6 +373,10 @@ public final class CanvasHost {
             style.width = .string("\(node.frame.width)px")
             style.height = .string("\(node.frame.height)px")
             Self.applyAttributes(of: node, to: element)
+            // Programmatic focus (`FocusState`, a click on a focusable view) moves the host's focus.
+            if runtime.focusedIdentifier == node.identifier, !(document.activeElement.object === element) {
+                _ = element.focus?()
+            }
         }
         for (id, element) in overlayButtons where !seen.contains(id) {
             _ = element.remove!()
@@ -355,7 +390,7 @@ public final class CanvasHost {
         switch node.role {
         case .slider: return "input"
         case .heading: return "h2"
-        case .text, .image, .group: return "div"
+        case .text, .image, .group, .list: return "div"
         default: return "button"
         }
     }
@@ -389,11 +424,14 @@ public final class CanvasHost {
             _ = element.setAttribute!("role", "img")
         case .group:
             _ = element.setAttribute!("role", "group")
+        case .list:
+            _ = element.setAttribute!("role", "listbox")
         case .link:
             _ = element.setAttribute!("role", "link")
         case .text, .heading, .button, .textField:
             break
         }
+        if node.isFocusable { _ = element.setAttribute!("tabindex", "0") }
         if let value = node.value { _ = element.setAttribute!("aria-valuetext", value) }
         if let hint = node.hint { _ = element.setAttribute!("aria-description", hint) }
         if let identifier = node.accessibilityIdentifier { _ = element.setAttribute!("data-testid", identifier) }

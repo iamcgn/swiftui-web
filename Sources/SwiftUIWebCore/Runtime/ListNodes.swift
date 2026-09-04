@@ -6,7 +6,7 @@
 private var nextListIdentifier = 4_000_000
 
 @MainActor
-package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Content>>, _Interactive {
+package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Content>>, _Interactive, _KeyHandling {
     package private(set) var child: TypedNode<Content>!
     private let identifier: Int
 
@@ -220,8 +220,11 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             }
             if selected[index] {
                 let cell = context.absoluteRect(element.frame.insetBy(dx: PlatformMetrics.listSelectionInset, dy: 0))
-                list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius,
-                                       RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.listSelectionAlpha)))
+                // A focused list shows its selection in the accent colour.
+                let color = runtime.focusedIdentifier == identifier && runtime.focusVisible
+                    ? Color.accentColor.opacity(PlatformMetrics.listFocusedSelectionAlpha).resolve(in: environment)
+                    : RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.listSelectionAlpha)
+                list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, color))
             }
             element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))
         }
@@ -243,9 +246,42 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     }
 
     package var semantics: SemanticsNode {
-        SemanticsNode(role: .group, label: "", frame: frameInRoot, identifier: identifier)
+        var node = SemanticsNode(role: view.selection == nil ? .group : .list, label: "", frame: frameInRoot, identifier: identifier)
+        node.isFocusable = view.selection != nil
+        return node
     }
     package var exposesChildren: Bool { true }
+
+    // MARK: Keyboard
+
+    /// The row a Shift-extended range starts from (an index into the selectable rows).
+    private var selectionAnchor: Int?
+
+    /// Up/Down move the selection to the previous/next row (from the last selected one; from the
+    /// ends when nothing is selected), Home/End to the first/last; Shift extends a range from the
+    /// anchor row in a multiple selection.
+    package func handleKey(_ press: KeyPress) -> Bool {
+        guard let selection = view.selection, press.modifiers.shortcutModifiers.isSubset(of: [.shift]) else { return false }
+        let rows = elements.filter { $0.kind == .row && $0.id != nil }
+        guard !rows.isEmpty else { return false }
+        let current = rows.lastIndex { selection.isSelected($0.id!) }
+        let target: Int
+        switch press.key {
+        case .downArrow: target = current.map { min($0 + 1, rows.count - 1) } ?? 0
+        case .upArrow: target = current.map { max($0 - 1, 0) } ?? rows.count - 1
+        case .home: target = 0
+        case .end: target = rows.count - 1
+        default: return false
+        }
+        if press.modifiers.contains(.shift), let anchor = selectionAnchor ?? current {
+            selection.select(rows[min(anchor, target)...max(anchor, target)].map { $0.id! })
+        } else {
+            selectionAnchor = target
+            selection.select([rows[target].id!])
+        }
+        runtime.setNeedsDisplay()
+        return true
+    }
 }
 
 /// How a container styles the headers and footers of its sections.

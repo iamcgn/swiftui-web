@@ -114,6 +114,8 @@ extension List where SelectionValue == Never {
 package final class _ListSelection {
     package let isSelected: (AnyHashable) -> Bool
     package let toggle: (AnyHashable) -> Void
+    /// Selects exactly these rows (keyboard navigation; a single selection keeps the last).
+    package let select: ([AnyHashable]) -> Void
     /// Reads the binding (for observation tracking in a view body).
     package let read: () -> Void
 
@@ -124,6 +126,7 @@ package final class _ListSelection {
             guard let value = id.base as? V else { return }
             binding.wrappedValue = binding.wrappedValue == value ? nil : value
         }
+        select = { ids in binding.wrappedValue = ids.last?.base as? V }
     }
 
     package static func single<V: Hashable>(_ binding: Binding<V?>?) -> _ListSelection? {
@@ -143,6 +146,7 @@ package final class _ListSelection {
             guard let value = id.base as? V else { return }
             if binding.wrappedValue.contains(value) { binding.wrappedValue.remove(value) } else { binding.wrappedValue.insert(value) }
         }
+        select = { ids in binding.wrappedValue = Set(ids.compactMap { $0.base as? V }) }
     }
 }
 

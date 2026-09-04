@@ -85,6 +85,10 @@ public final class Runtime {
 
     /// The text field with keyboard focus (its semantics identifier), for the focus ring.
     public internal(set) var focusedTextFieldIdentifier: Int?
+    /// The element with keyboard focus (any interactive or focusable view; a focused text field
+    /// sets both), and whether the focus ring shows (Runtime/KeyboardNodes.swift).
+    public internal(set) var focusedIdentifier: Int?
+    public internal(set) var focusVisible = false
     package var pointerPosition: CGPoint = .zero
 
     /// A touch pan of scroll views in progress.

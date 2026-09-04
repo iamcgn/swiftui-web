@@ -37,6 +37,7 @@ extension Runtime {
             node.paint(into: &list, context: context.child(at: node.presentedFrame))
         }
         paintPresentations(into: &list, context: context)
+        paintFocusRing(into: &list, context: context)
         return list
     }
 }

@@ -77,9 +77,9 @@ package final class _FocusStateBox<Value: Hashable> {
         node?.invalidate()
         guard let runtime = node?.runtime else { return }
         if let target = targets.first(where: { $0.value == newValue })?.node.node as? any _FocusTargetProviding {
-            runtime.focusTextField(target.focusTargetIdentifier)
+            runtime.focus(semanticsIdentifier: target.focusTargetIdentifier)
         } else if isUnfocusedValue(newValue) {
-            runtime.focusTextField(nil)
+            runtime.focus(semanticsIdentifier: nil)
         }
     }
 

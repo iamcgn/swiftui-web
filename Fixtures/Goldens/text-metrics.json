@@ -8154,6 +8154,12 @@
       "lastBaseline" : 13,
       "width" : 44.5
     },
+    "system:13:400:default||Cancel" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 42
+    },
     "system:13:400:default||Canvas" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8328,6 +8334,12 @@
       "lastBaseline" : 13,
       "width" : 72.5
     },
+    "system:13:400:default||Focus me" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 59
+    },
     "system:13:400:default||Focused: email" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -8489,6 +8501,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 25
+    },
+    "system:13:400:default||Log: none" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 60
     },
     "system:13:400:default||Low" : {
       "firstBaseline" : 13,
@@ -8693,6 +8711,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 39.5
+    },
+    "system:13:400:default||Selected: none" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 91
     },
     "system:13:400:default||Sheet" : {
       "firstBaseline" : 13,
@@ -9066,6 +9090,12 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:400:default|0.0|Cancel" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Canvas" : {
       "firstBaseline" : 13,
       "height" : 96,
@@ -9240,6 +9270,12 @@
       "lastBaseline" : 157,
       "width" : 0
     },
+    "system:13:400:default|0.0|Focus me" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Focused: email" : {
       "firstBaseline" : 13,
       "height" : 208,
@@ -9400,6 +9436,12 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Log: none" : {
+      "firstBaseline" : 13,
+      "height" : 128,
+      "lastBaseline" : 125,
       "width" : 0
     },
     "system:13:400:default|0.0|Low" : {
@@ -9604,6 +9646,12 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Selected: none" : {
+      "firstBaseline" : 13,
+      "height" : 208,
+      "lastBaseline" : 205,
       "width" : 0
     },
     "system:13:400:default|0.0|Sheet" : {

@@ -48,6 +48,8 @@ public struct SemanticsNode: Equatable, Sendable {
         case button, checkbox, textField
         case text, heading, image, group, link
         case `switch`, slider, stepper, popUpButton, radioGroup, segmented
+        /// A list with a selection: a focusable listbox whose rows are their own elements.
+        case list
     }
     public var role: Role
     public var label: String
@@ -67,6 +69,8 @@ public struct SemanticsNode: Equatable, Sendable {
     public var range: SemanticsRange?
     /// Whether the element can be incremented and decremented (steppers, sliders).
     public var isAdjustable = false
+    /// Whether a static-looking element takes keyboard focus (`focusable` views, lists).
+    public var isFocusable = false
 
     public init(role: Role, label: String, frame: CGRect, identifier: Int, isOn: Bool? = nil, textInput: TextInputInfo? = nil) {
         self.role = role

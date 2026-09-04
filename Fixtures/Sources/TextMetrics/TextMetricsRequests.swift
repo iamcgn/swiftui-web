@@ -312,6 +312,12 @@ public enum TextMetricsRequests {
         }
         requests.append(TextMetricRequest("Tilt", defaultFont))
         requests.append(TextMetricRequest("Sky", defaultFont))
+        requests.append(TextMetricRequest("Focus me", defaultFont))
+        requests.append(TextMetricRequest("Save", defaultFont))
+        requests.append(TextMetricRequest("Go", defaultFont))
+        requests.append(TextMetricRequest("Cancel", defaultFont))
+        requests.append(TextMetricRequest("Log: none", defaultFont))
+        requests.append(TextMetricRequest("Selected: none", defaultFont))
         requests.append(TextMetricRequest("Star", defaultFont))
         requests.append(TextMetricRequest("Star label", defaultFont))
         requests.append(TextMetricRequest("Star button", defaultFont))

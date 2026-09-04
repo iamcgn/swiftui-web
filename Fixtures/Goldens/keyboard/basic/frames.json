@@ -1,0 +1,51 @@
+{
+  "fixture" : "keyboard\/basic",
+  "frames" : {
+    "buttons" : {
+      "height" : 24,
+      "width" : 185,
+      "x" : 87.5,
+      "y" : 179
+    },
+    "focusable" : {
+      "height" : 28,
+      "width" : 71,
+      "x" : 144.5,
+      "y" : 141
+    },
+    "list" : {
+      "height" : 100,
+      "width" : 360,
+      "x" : 0,
+      "y" : 31
+    },
+    "log" : {
+      "height" : 16,
+      "width" : 60,
+      "x" : 150,
+      "y" : 247
+    },
+    "row" : {
+      "height" : 24,
+      "width" : 166.5,
+      "x" : 96.75,
+      "y" : 213
+    },
+    "selected" : {
+      "height" : 16,
+      "width" : 91,
+      "x" : 134.5,
+      "y" : 273
+    },
+    "stack" : {
+      "height" : 258,
+      "width" : 360,
+      "x" : 0,
+      "y" : 31
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 360
+  }
+}

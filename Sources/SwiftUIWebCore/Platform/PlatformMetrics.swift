@@ -53,6 +53,11 @@ package enum PlatformMetrics {
     package static let secureBulletBaselineOffset: CGFloat = 5           // centre 5 pt above the baseline
     package static let focusRingWidth: CGFloat = 3                       // unverified (no focused golden)
     package static let focusRingOpacity = 0.5                            // unverified
+    package static let focusRingCornerRadius: CGFloat = 6                // unverified: buttons and focusable views
+    package static let listFocusedSelectionAlpha = 0.25                  // unverified: the accent selection of a focused list
+    package static let menuHighlightAlpha = 0.1                          // unverified: the keyboard-highlighted menu row
+    package static let menuHighlightInset: CGFloat = 5
+    package static let menuHighlightCornerRadius: CGFloat = 4
 
     // List (macOS 26.2: fixtures list/*, pixels sampled, Docs/elements/List.md)
     package static let listInsetMargin: CGFloat = 16
