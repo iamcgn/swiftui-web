@@ -45,7 +45,7 @@ sweep compresses its stops into the sweep and holds the end colour to a full tur
 ## Verification (2026-09-03)
 
 Tier A: `gradient/basic` and `gradient/text` exact. Tier B 2/2 in all three browsers (`basic` ≤ 0.08 %;
-`text` 1.64 % Chromium, 1.44 % WebKit, 1.57 % Firefox: the text's own anti-aliasing under the gradient). `GradientTests` cover the gradient geometry of fills and strokes, the Oklab
+`text` 0.63 % Chromium, 0.01 % WebKit, 0.54 % Firefox: the text's own anti-aliasing under the gradient). `GradientTests` cover the gradient geometry of fills and strokes, the Oklab
 midpoint, evenly spaced colours and partial sweeps. wasm js tests pass.
 
 ## Not yet covered
