@@ -16,13 +16,13 @@ scripts/build-landing.sh                         # release bundle + Examples/Lan
 
 ## The gist
 
-The two source files depend on nothing but `import SwiftUI`, so they can live in a GitHub gist
-and be edited there:
+The two source files depend on nothing but `import SwiftUI`, so they live in a GitHub gist as
+well: https://gist.github.com/iamcgn/f7e74fe1718809dd1efb3df1acfd37f3 (id `f7e74fe1718809dd1efb3df1acfd37f3`).
 
 ```sh
-scripts/landing-gist.sh push            # create a public gist from Sources/Landing (needs gh)
-scripts/landing-gist.sh push <gist-id>  # update it
-scripts/landing-gist.sh pull <gist-id>  # fetch the gist's files back into Sources/Landing
+scripts/landing-gist.sh push f7e74fe1718809dd1efb3df1acfd37f3   # update the gist from Sources/Landing (needs gh)
+scripts/landing-gist.sh pull f7e74fe1718809dd1efb3df1acfd37f3   # fetch the gist's files back into Sources/Landing
+scripts/landing-gist.sh push                                     # create a new public gist
 ```
 
 ## GitHub Pages

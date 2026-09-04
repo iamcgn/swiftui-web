@@ -19,12 +19,12 @@ struct LandingApp: App {
 // MARK: - Page
 
 enum Site {
-    static let repository = URL(string: "https://github.com/iamcgn/swiftui-to-html")!
-    static let matrix = URL(string: "https://github.com/iamcgn/swiftui-to-html/blob/main/Docs/support-matrix.md")!
-    static let roadmap = URL(string: "https://github.com/iamcgn/swiftui-to-html/blob/main/Docs/ROADMAP.md")!
-    static let architecture = URL(string: "https://github.com/iamcgn/swiftui-to-html/blob/main/Docs/ARCHITECTURE.md")!
-    static let workflow = URL(string: "https://github.com/iamcgn/swiftui-to-html/blob/main/Docs/ELEMENT_WORKFLOW.md")!
-    static let license = URL(string: "https://github.com/iamcgn/swiftui-to-html/blob/main/LICENSE")!
+    static let repository = URL(string: "https://github.com/iamcgn/swiftui-web")!
+    static let matrix = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/support-matrix.md")!
+    static let roadmap = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ROADMAP.md")!
+    static let architecture = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ARCHITECTURE.md")!
+    static let workflow = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ELEMENT_WORKFLOW.md")!
+    static let license = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/LICENSE")!
     static let contentWidth: CGFloat = 960
     static let accent = Color(red: 0.98, green: 0.36, blue: 0.22)
     static let accentEnd = Color(red: 0.62, green: 0.20, blue: 0.85)

@@ -4,6 +4,11 @@ An open-source reimplementation of SwiftUI that runs **unmodified SwiftUI source
 browser (WebAssembly + Canvas) today and natively on macOS/Linux later, with 1:1 rendering
 and behaviour fidelity measured against the real SwiftUI.
 
+Landing page (itself written in SwiftUI and rendered by SwiftUIWeb): source in
+[`Examples/Landing`](Examples/Landing) and as a gist at
+[gist.github.com/iamcgn/f7e74fe1718809dd1efb3df1acfd37f3](https://gist.github.com/iamcgn/f7e74fe1718809dd1efb3df1acfd37f3); the current support matrix is
+[`Docs/support-matrix.md`](Docs/support-matrix.md).
+
 ```swift
 import SwiftUI
 
@@ -29,9 +34,32 @@ Every element is verified against goldens rendered by Apple's SwiftUI on macOS.
 
 ## Status
 
-Phase 0 (toolchain and spikes) is nearly complete; see `Docs/ROADMAP.md` for the status table and
-`Docs/decisions/` for measured results. No SwiftUI API is implemented yet; `Docs/support-matrix.md`
-will track that from Phase 1.
+Phases 0 to 5 of `Docs/ROADMAP.md` are done: the core views, controls, state, navigation,
+presentations, animation, accessibility and the native macOS painter, each verified against
+goldens rendered by Apple's SwiftUI. `Docs/support-matrix.md` lists every API with its status,
+including what is still missing (the Phase 6 modifier sweep is next). `Docs/decisions/` holds the
+measured results behind the design.
+
+## Trademark and licensing notice
+
+SwiftUI, Swift, SF Symbols, macOS, iOS and Apple are trademarks of Apple Inc., registered in the
+U.S. and other countries. SwiftUIWeb is an independent open-source project. It is not affiliated
+with, sponsored by, endorsed by or otherwise associated with Apple Inc.
+
+SwiftUIWeb is a complete, from-scratch reproduction of SwiftUI's public API surface and its
+observable behaviour. It contains no Apple source code, binaries, fonts, symbols or other
+proprietary assets. Everything in this repository was written from Apple's public documentation
+and published Swift interface files, and from behaviour measured by rendering fixtures with Apple's
+own SwiftUI on macOS (the goldens in `Fixtures/Goldens`, which are this project's own output).
+The module is named `SwiftUI` solely so that unmodified application source compiles against it;
+this nominative use of the name describes interface compatibility and implies no endorsement.
+Apple's SwiftUI framework remains subject to Apple's own license terms, and nothing in this
+repository grants any rights to it. SF Symbols and the San Francisco fonts are never shipped:
+`Image(systemName:)` draws Lucide (ISC) icons as stand-ins and text is set in the viewer's
+system fonts.
+
+The code in this repository is licensed under the Apache License 2.0 (`LICENSE`). Third-party
+components and the projects whose ideas are borrowed with attribution are listed in `NOTICE`.
 
 ## Getting started
 
