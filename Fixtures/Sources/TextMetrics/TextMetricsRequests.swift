@@ -476,6 +476,9 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest(runs: [.init("Env ", .style("title")), .init("bold", .style("title", weight: "bold"))]))
         requests.append(TextMetricRequest(runs: [.init(richParagraphHead, bold13), .init(richParagraphTail, defaultFont)], width: 150))
         requests.append(TextMetricRequest(runs: [.init(richParagraphHead, bold13), .init(richParagraphTail, defaultFont)]))
+        // Effects and text decorations (Phase 6).
+        requests.append(TextMetricRequest("Shadow", .style("title")))
+        requests.append(TextMetricRequest("Ghost", defaultFont))
         return requests
     }()
 }

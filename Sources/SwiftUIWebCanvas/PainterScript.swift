@@ -145,9 +145,27 @@ enum PainterScript {
               parent.save();
               parent.globalAlpha = g.opacity;
               parent.setTransform(1, 0, 0, 1, 0, 0);
+              if (g.shadow) {
+                // Canvas blur is twice the Gaussian sigma; everything is in device pixels here.
+                parent.shadowColor = g.shadow.color;
+                parent.shadowBlur = g.shadow.radius * 2 * dpr;
+                parent.shadowOffsetX = g.shadow.dx * dpr;
+                parent.shadowOffsetY = g.shadow.dy * dpr;
+              }
               parent.drawImage(g.off, 0, 0);
               parent.restore();
               ctx = parent;
+              break;
+            }
+            case 18: {
+              const shadowColor = color(buf[i++], buf[i++], buf[i++], buf[i++]);
+              const radius = buf[i++], dx = buf[i++], dy = buf[i++];
+              const off = new OffscreenCanvas(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
+              const octx = off.getContext('2d');
+              octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+              octx.textBaseline = 'alphabetic';
+              groups.push({ ctx: ctx, off: off, opacity: 1, shadow: { color: shadowColor, radius: radius, dx: dx, dy: dy } });
+              ctx = octx;
               break;
             }
             case 8: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++]; ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fillRect(x, y, rw, rh); break; }

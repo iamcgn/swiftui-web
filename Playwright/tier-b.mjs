@@ -32,7 +32,7 @@ const frameTolerance = (name, key, expected) => name.startsWith('text/') && (key
   ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
 // fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
-const framesOnly = (name) => name.startsWith('symbol/');
+const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset';
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {

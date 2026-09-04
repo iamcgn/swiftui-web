@@ -1,0 +1,33 @@
+{
+  "fixture" : "effects\/shadow-profile",
+  "frames" : {
+    "blur4" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 150,
+      "y" : 50
+    },
+    "blur10" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 30,
+      "y" : 50
+    },
+    "row" : {
+      "height" : 60,
+      "width" : 300,
+      "x" : 30,
+      "y" : 50
+    },
+    "sharp" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 270,
+      "y" : 50
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 360
+  }
+}

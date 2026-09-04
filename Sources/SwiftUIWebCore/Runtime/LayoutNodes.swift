@@ -120,6 +120,9 @@ package protocol _UnaryLayoutModifier: AnyObject {
     func placeTarget(_ target: ViewNode, in bounds: CGRect, proposal: ProposedViewSize, by placer: ViewNode)
     func priority(of target: ViewNode) -> Double
     func spacing(of target: ViewNode) -> ViewSpacing
+    func zIndex(of target: ViewNode) -> Double
+    /// Whether the targets are hidden (`hidden`): not painted, hit tested or exposed.
+    var hidesTargets: Bool { get }
     func layoutValue<K: LayoutValueKey>(of target: ViewNode, for key: K.Type) -> K.Value
     func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext)
 }
@@ -189,6 +192,8 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
 
     package func priority(of target: ViewNode) -> Double { target.layoutPriority }
     package func spacing(of target: ViewNode) -> ViewSpacing { target.layoutSpacing }
+    package func zIndex(of target: ViewNode) -> Double { target.zIndex }
+    package var hidesTargets: Bool { false }
     package func layoutValue<K: LayoutValueKey>(of target: ViewNode, for key: K.Type) -> K.Value {
         target.layoutValue(for: key)
     }
@@ -235,10 +240,11 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
 
     override package var layoutPriority: Double { targets.first.map(priority(of:)) ?? 0 }
     override package var layoutSpacing: ViewSpacing { targets.first.map(spacing(of:)) ?? ViewSpacing() }
+    override package var zIndex: Double { targets.first.map(zIndex(of:)) ?? 0 }
 
     override package var paintedChildren: [ViewNode] {
         let targets = targets
-        return targets.count == 1 ? targets : []
+        return targets.count == 1 && !hidesTargets ? targets : []
     }
 
     override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
@@ -283,7 +289,8 @@ package final class LayoutModifierProxy: ViewNode {
     }
     override package var layoutPriority: Double { owner.priority(of: target) }
     override package var layoutSpacing: ViewSpacing { owner.spacing(of: target) }
-    override package var paintedChildren: [ViewNode] { [target] }
+    override package var zIndex: Double { owner.zIndex(of: target) }
+    override package var paintedChildren: [ViewNode] { owner.hidesTargets ? [] : [target] }
     override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
         owner.paintTarget(target, in: self, into: &list, context: context)
     }

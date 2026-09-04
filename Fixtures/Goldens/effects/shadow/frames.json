@@ -1,0 +1,63 @@
+{
+  "fixture" : "effects\/shadow",
+  "frames" : {
+    "default" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 30,
+      "y" : 45
+    },
+    "faded" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 293.75,
+      "y" : 155
+    },
+    "hard" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 270,
+      "y" : 45
+    },
+    "offset" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 150,
+      "y" : 45
+    },
+    "rounded" : {
+      "height" : 50,
+      "width" : 90,
+      "x" : 143.75,
+      "y" : 160
+    },
+    "row1" : {
+      "height" : 60,
+      "width" : 300,
+      "x" : 30,
+      "y" : 45
+    },
+    "row2" : {
+      "height" : 60,
+      "width" : 347.5,
+      "x" : 6.25,
+      "y" : 155
+    },
+    "stack" : {
+      "height" : 170,
+      "width" : 347.5,
+      "x" : 6.25,
+      "y" : 45
+    },
+    "text" : {
+      "height" : 33,
+      "width" : 77.5,
+      "x" : 6.25,
+      "y" : 168.5
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 360
+  }
+}

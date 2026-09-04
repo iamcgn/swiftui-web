@@ -1,0 +1,69 @@
+{
+  "fixture" : "effects\/zindex",
+  "frames" : {
+    "blue" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 120,
+      "y" : 40
+    },
+    "first" : {
+      "height" : 50,
+      "width" : 70,
+      "x" : 85,
+      "y" : 170
+    },
+    "green" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 120,
+      "y" : 40
+    },
+    "hstack" : {
+      "height" : 50,
+      "width" : 150,
+      "x" : 85,
+      "y" : 170
+    },
+    "last" : {
+      "height" : 50,
+      "width" : 70,
+      "x" : 165,
+      "y" : 170
+    },
+    "middle" : {
+      "height" : 50,
+      "width" : 70,
+      "x" : 125,
+      "y" : 170
+    },
+    "red" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 120,
+      "y" : 40
+    },
+    "stack" : {
+      "height" : 200,
+      "width" : 150,
+      "x" : 85,
+      "y" : 20
+    },
+    "yellow" : {
+      "height" : 120,
+      "width" : 120,
+      "x" : 100,
+      "y" : 20
+    },
+    "zstack" : {
+      "height" : 120,
+      "width" : 120,
+      "x" : 100,
+      "y" : 20
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

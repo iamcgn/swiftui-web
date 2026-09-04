@@ -18,6 +18,8 @@ public enum DisplayOp: Double, Sendable {
     case fillGradient = 15, strokeGradient = 16
     /// text, font, origin, gradient
     case drawTextGradient = 17
+    /// colour, radius, dx, dy; ended by endGroup
+    case beginShadow = 18
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -83,6 +85,8 @@ public enum DisplayListEncoder {
             case .clipRRect(let r, let radius): out.ops.append(DisplayOp.clipRRect.rawValue); rect(r); out.ops.append(radius)
             case .clipPath(let p, let eo): out.ops.append(DisplayOp.clipPath.rawValue); path(p); out.ops.append(eo ? 1 : 0)
             case .beginGroup(let opacity): out.ops += [DisplayOp.beginGroup.rawValue, opacity]
+            case .beginShadow(let c, let radius, let offset):
+                out.ops.append(DisplayOp.beginShadow.rawValue); color(c); out.ops += [radius, offset.width, offset.height]
             case .endGroup: out.ops.append(DisplayOp.endGroup.rawValue)
             case .concat(let t): out.ops += [DisplayOp.concat.rawValue, t.a, t.b, t.c, t.d, t.tx, t.ty]
             case .fillRect(let r, let c): out.ops.append(DisplayOp.fillRect.rawValue); rect(r); color(c)
@@ -170,6 +174,7 @@ public enum DisplayListDecoder {
             case .clipRRect: out.append("clipRRect \(f(rect())) r\(next())")
             case .clipPath: let p = path(); out.append("clipPath \(p)\(next() == 1 ? " eo" : "")")
             case .beginGroup: out.append("beginGroup \(next())")
+            case .beginShadow: let c = color(); out.append("beginShadow \(c) r\(next()) \(next()),\(next())")
             case .endGroup: out.append("endGroup")
             case .concat: out.append("concat \(next()),\(next()),\(next()),\(next()),\(next()),\(next())")
             case .fillGradient:

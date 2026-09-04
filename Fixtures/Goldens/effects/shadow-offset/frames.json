@@ -1,0 +1,33 @@
+{
+  "fixture" : "effects\/shadow-offset",
+  "frames" : {
+    "offset" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 21.25,
+      "y" : 50
+    },
+    "row" : {
+      "height" : 60,
+      "width" : 317.5,
+      "x" : 21.25,
+      "y" : 50
+    },
+    "sharp" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 141.25,
+      "y" : 50
+    },
+    "text" : {
+      "height" : 33,
+      "width" : 77.5,
+      "x" : 261.25,
+      "y" : 63.5
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 360
+  }
+}

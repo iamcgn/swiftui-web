@@ -136,6 +136,10 @@ open class ViewNode {
     /// The layout priority a containing stack uses to apportion space.
     package var layoutPriority: Double { 0 }
 
+    /// The `zIndex` trait: a containing node paints its children in ascending order of this
+    /// value (declaration order among equals) and hit tests them in the reverse.
+    package var zIndex: Double { 0 }
+
     /// The preferred spacing to neighbours.
     package var layoutSpacing: ViewSpacing { ViewSpacing() }
 
@@ -258,8 +262,17 @@ open class ViewNode {
     /// The layout nodes this node placed, painted at their frames. Default: none.
     package var paintedChildren: [ViewNode] { [] }
 
+    /// `paintedChildren` in painting order: stable-sorted by `zIndex`.
+    package var paintOrderedChildren: [ViewNode] {
+        let children = paintedChildren
+        guard children.contains(where: { $0.zIndex != 0 }) else { return children }
+        return children.enumerated().sorted { a, b in
+            a.element.zIndex != b.element.zIndex ? a.element.zIndex < b.element.zIndex : a.offset < b.offset
+        }.map(\.element)
+    }
+
     package func paintChildren(into list: inout DisplayList, context: PaintContext) {
-        for child in paintedChildren {
+        for child in paintOrderedChildren {
             let frame = child.presentedFrame
             if let visible = context.visibleRect, !child.paintsOutsideFrame, frame.width > 0, frame.height > 0,
                !frame.offsetBy(dx: context.origin.x, dy: context.origin.y).intersects(visible) {

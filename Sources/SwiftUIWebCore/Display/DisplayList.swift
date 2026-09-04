@@ -77,6 +77,9 @@ public enum DisplayCommand: Equatable, Sendable {
     case clipRRect(CGRect, cornerRadius: CGFloat)
     case clipPath(Path, eoFill: Bool = false)
     case beginGroup(opacity: Double)
+    /// Starts a group (ended by `endGroup`) whose composite casts a shadow: `radius` is
+    /// SwiftUI's blur radius (the Gaussian sigma in points), `offset` in points.
+    case beginShadow(RGBA, radius: CGFloat, offset: CGSize)
     case endGroup
     /// Multiplies the current transform (inside save/restore) for Canvas drawing and effects.
     case concat(CGAffineTransform)
@@ -131,6 +134,7 @@ extension DisplayCommand: CustomStringConvertible {
         case .clipRRect(let rect, let radius): return "clipRRect\(r(rect)) r=\(f(radius))"
         case .clipPath(let path, let eo): return "clipPath(\(path.elements.count) elements)\(eo ? " eo" : "")"
         case .beginGroup(let opacity): return "beginGroup(opacity: \(opacity))"
+        case .beginShadow(let color, let radius, let offset): return "beginShadow(\(c(color)) r=\(f(radius)) dx=\(f(offset.width)) dy=\(f(offset.height)))"
         case .endGroup: return "endGroup"
         case .concat(let t): return "concat(\(f(t.a)), \(f(t.b)), \(f(t.c)), \(f(t.d)), \(f(t.tx)), \(f(t.ty)))"
         case .fillRect(let rect, let color): return "fillRect\(r(rect)) \(c(color))"

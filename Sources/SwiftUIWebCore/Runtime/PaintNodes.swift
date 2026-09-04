@@ -135,6 +135,37 @@ package final class OpacityNode<Content: View>: UnaryLayoutModifierNode<Content,
     }
 }
 
+/// `shadow`: the target paints into a group whose composite casts the shadow (the painters
+/// blur the group's alpha). Layout is untouched and the shadow reaches outside the frame.
+@MainActor
+package final class ShadowNode<Content: View>: UnaryLayoutModifierNode<Content, _ShadowEffect> {
+    override package var paintsOutsideFrame: Bool { true }
+
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        let color = modifier.color.resolve(in: environment)
+        guard color.alpha > 0 else {
+            super.paintTarget(target, in: node, into: &list, context: context)
+            return
+        }
+        list.append(.beginShadow(color, radius: max(0, modifier.radius), offset: modifier.offset))
+        super.paintTarget(target, in: node, into: &list, context: context)
+        list.append(.endGroup)
+    }
+}
+
+/// `zIndex`: transparent to layout and painting; the value surfaces as the node's trait.
+@MainActor
+package final class ZIndexNode<Content: View>: UnaryLayoutModifierNode<Content, _ZIndexEffect> {
+    override package func zIndex(of target: ViewNode) -> Double { modifier.value }
+}
+
+/// `hidden`: the target keeps its layout but is neither painted, hit tested nor exposed.
+@MainActor
+package final class HiddenNode<Content: View>: UnaryLayoutModifierNode<Content, _HiddenModifier> {
+    override package var hidesTargets: Bool { true }
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {}
+}
+
 @MainActor
 package final class ClipNode<Content: View, S: Shape>: UnaryLayoutModifierNode<Content, _ClipEffect<S>> {
     override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {

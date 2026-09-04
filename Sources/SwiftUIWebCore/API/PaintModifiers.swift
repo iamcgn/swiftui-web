@@ -51,6 +51,28 @@ extension _OpacityEffect: ViewModifier {
     }
 }
 
+/// Draws a shadow of the content's rendering behind it.
+@frozen
+public struct _ShadowEffect: Equatable {
+    public var color: Color
+    public var radius: CGFloat
+    public var offset: CGSize
+
+    public init(color: Color, radius: CGFloat, offset: CGSize) {
+        self.color = color
+        self.radius = radius
+        self.offset = offset
+    }
+}
+
+extension _ShadowEffect: ViewModifier {
+    public typealias Body = Never
+
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        ShadowNode(context)
+    }
+}
+
 /// Clips the content to a shape.
 public struct _ClipEffect<ClipShape: Shape> {
     public var shape: ClipShape
@@ -128,6 +150,12 @@ extension View {
     /// Sets the transparency of this view.
     nonisolated public func opacity(_ opacity: Double) -> some View {
         modifier(_OpacityEffect(opacity: opacity))
+    }
+
+    /// Adds a shadow to this view: the content's rendering, blurred by `radius` and moved by
+    /// `x`/`y`, painted behind it. The default colour is a third-opaque black.
+    nonisolated public func shadow(color: Color = Color(.sRGBLinear, white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> some View {
+        modifier(_ShadowEffect(color: color, radius: radius, offset: CGSize(width: x, height: y)))
     }
 
     /// Sets a clipping shape for this view.

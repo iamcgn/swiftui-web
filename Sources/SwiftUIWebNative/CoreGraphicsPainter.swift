@@ -38,6 +38,16 @@ public final class CoreGraphicsPainter {
                 ctx.saveGState()
                 ctx.setAlpha(CGFloat(opacity))
                 ctx.beginTransparencyLayer(auxiliaryInfo: nil)
+            case .beginShadow(let color, let radius, let offset):
+                ctx.saveGState()
+                // CoreGraphics takes the offset and blur in base (device) space, y up; the blur
+                // is twice the Gaussian sigma, and SwiftUI's radius is the sigma in points.
+                let ctm = ctx.ctm
+                let sx = (ctm.a * ctm.a + ctm.b * ctm.b).squareRoot(), sy = (ctm.c * ctm.c + ctm.d * ctm.d).squareRoot()
+                let flipped = ctm.d < 0
+                ctx.setShadow(offset: CGSize(width: offset.width * sx, height: (flipped ? -offset.height : offset.height) * sy),
+                              blur: radius * 2 * max(sx, sy), color: Self.cgColor(color))
+                ctx.beginTransparencyLayer(auxiliaryInfo: nil)
             case .endGroup:
                 ctx.endTransparencyLayer()
                 ctx.restoreGState()

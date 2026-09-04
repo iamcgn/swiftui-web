@@ -28,7 +28,7 @@ enum NativeGoldens {
         return url.appendingPathComponent("Fixtures/Goldens")
     }()
 
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/"]
 
     /// Fixtures whose browser render is held to a looser bound (font fallbacks); natively the
     /// fonts are real, but the bound is kept for parity with Tier B.
@@ -95,6 +95,18 @@ struct Bitmap {
         return Bitmap(width: width, height: height, data: data)
     }
 
+    /// Writes the bitmap as a PNG (debugging: `TIER_C_DUMP`).
+    func writePNG(to url: URL) throws {
+        var copy = data
+        let image: CGImage? = copy.withUnsafeMutableBytes { bytes in
+            CGContext(data: bytes.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                      space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)?.makeImage()
+        }
+        guard let image, let destination = CGImageDestinationCreateWithURL(url as CFURL, "public.png" as CFString, 1, nil) else { return }
+        CGImageDestinationAddImage(destination, image, nil)
+        CGImageDestinationFinalize(destination)
+    }
+
     /// The fraction of pixels differing by more than 32 in a channel, or nil for a size mismatch.
     func differingFraction(from other: Bitmap) -> Double? {
         guard width == other.width, height == other.height else { return nil }
@@ -111,8 +123,10 @@ struct Bitmap {
 }
 
 @Suite @MainActor struct NativePixelTests {
+    /// `TIER_C_FILTER=<prefix>` restricts the run; `TIER_C_DUMP=<dir>` writes every render there.
     nonisolated static var fixtureNames: [String] {
-        AllFixtures.all.filter { fixture in NativeGoldens.enabledPrefixes.contains { fixture.name.hasPrefix($0) } }.map(\.name)
+        let filter = ProcessInfo.processInfo.environment["TIER_C_FILTER"] ?? ""
+        return AllFixtures.all.filter { fixture in NativeGoldens.enabledPrefixes.contains { fixture.name.hasPrefix($0) } && fixture.name.hasPrefix(filter) }.map(\.name)
     }
 
     @Test(arguments: fixtureNames)
@@ -122,7 +136,7 @@ struct Bitmap {
         let engine = CoreTextEngine()
         let painter = CoreGraphicsPainter(textEngine: engine, assetBase: NativeGoldens.assetBase)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
-        let framesOnly = name.hasPrefix("symbol/")
+        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset"
         compare(runner.layoutFrames(), to: golden.frames, label: name)
         try comparePixels(runner, fixture: fixture, png: "image@2x.png", label: name, framesOnly: framesOnly, painter: painter)
         for (index, step) in (golden.steps ?? []).enumerated() where index < fixture.stepNames.count {
@@ -160,6 +174,9 @@ struct Bitmap {
         guard FileManager.default.fileExists(atPath: file.path) else { return }
         let golden = try #require(Bitmap.golden(file), "\(label): unreadable golden \(png)")
         let ours = Bitmap.render(runner.runtime.render(scale: 2), size: fixture.size, scale: 2, painter: painter)
+        if let dump = ProcessInfo.processInfo.environment["TIER_C_DUMP"] {
+            try ours.writePNG(to: URL(fileURLWithPath: dump).appendingPathComponent(label.replacingOccurrences(of: "/", with: "_") + ".png"))
+        }
         let fraction = try #require(ours.differingFraction(from: golden), "\(label): size \(ours.width)x\(ours.height) vs \(golden.width)x\(golden.height)")
         let tolerance = NativeGoldens.pixelTolerance * (NativeGoldens.approximate.contains(fixture.name) ? 3 : 1)
         if ProcessInfo.processInfo.environment["TIER_C_REPORT"] != nil { print("TierC \(label) pixels=\(String(format: "%.2f", fraction * 100))%") }
