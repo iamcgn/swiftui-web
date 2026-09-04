@@ -52,3 +52,7 @@ pixels, WebKit ≤ 0.19 %, Firefox ≤ 0.42 %.
 
 Pressed and hovered looks, focus ring, keyboard toggling, `controlSize`, `tint`, mixed state,
 `Toggle(sources:)`, the switch knob's shadow, the accent-coloured (active window) checkbox.
+
+2026-09-04 (`groupbox/basic` `content`): a checkbox directly under a text sits 6 below it, its own
+spacing replacing the text's 8.15, so the toggle declares that value in the text-to-text category
+(where the lower neighbour's value applies); a text field under a text keeps the text's 8.15.

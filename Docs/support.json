@@ -278,6 +278,14 @@
           ]
         },
         {
+          "api": "GroupBox (content, title, custom label) / GroupBoxStyle (automatic) / groupBoxStyle(_:)",
+          "status": "partial",
+          "notes": "macOS 26 card (radius 12, black 8/255, content padded 5) under a subheadline label; measured exactly; no dark appearance or Form insets",
+          "fixtures": [
+            "groupbox/basic"
+          ]
+        },
+        {
           "api": "TimelineView / TimelineSchedule (periodic, everyMinute, explicit, animation, custom)",
           "status": "partial",
           "notes": "Wakes through main-actor Task.sleep (no Foundation timers on wasm); the animation schedule follows host frames; no lowFrequency distinction or Timer APIs",
