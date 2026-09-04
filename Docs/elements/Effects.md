@@ -1,4 +1,4 @@
-# shadow, zIndex, hidden, colour effects, blur, blendMode
+# shadow, zIndex, hidden, colour effects, blur, blendMode, mask, compositingGroup
 
 Apple docs: [shadow(color:radius:x:y:)](https://developer.apple.com/documentation/swiftui/view/shadow(color:radius:x:y:)),
 [zIndex(_:)](https://developer.apple.com/documentation/swiftui/view/zindex(_:)),
@@ -12,7 +12,10 @@ Apple docs: [shadow(color:radius:x:y:)](https://developer.apple.com/documentatio
 [colorMultiply(_:)](https://developer.apple.com/documentation/swiftui/view/colormultiply(_:)),
 [luminanceToAlpha()](https://developer.apple.com/documentation/swiftui/view/luminancetoalpha()),
 [blur(radius:opaque:)](https://developer.apple.com/documentation/swiftui/view/blur(radius:opaque:)),
-[blendMode(_:)](https://developer.apple.com/documentation/swiftui/view/blendmode(_:)).
+[blendMode(_:)](https://developer.apple.com/documentation/swiftui/view/blendmode(_:)),
+[mask(alignment:_:)](https://developer.apple.com/documentation/swiftui/view/mask(alignment:_:)),
+[compositingGroup()](https://developer.apple.com/documentation/swiftui/view/compositinggroup()),
+[drawingGroup(opaque:colorMode:)](https://developer.apple.com/documentation/swiftui/view/drawinggroup(opaque:colormode:)).
 
 ## API surface
 
@@ -25,7 +28,9 @@ Apple docs: [shadow(color:radius:x:y:)](https://developer.apple.com/documentatio
 | `brightness`, `contrast`, `saturation`, `grayscale`, `hueRotation`, `colorInvert`, `colorMultiply`, `luminanceToAlpha` | implemented (colour-matrix filter groups; not animated) |
 | `blur(radius:opaque:)` | implemented (Gaussian, sigma = radius; `opaque` keeps the edges) |
 | `blendMode(_:)` with every `BlendMode` | implemented (`plusDarker` is composited by hand in the browser) |
-| `compositingGroup`, `drawingGroup`, `mask`, `position` | missing |
+| `mask(alignment:_:)`, `mask(_:)` | implemented (the mask's alpha; laid out like an overlay) |
+| `compositingGroup()`, `drawingGroup(opaque:colorMode:)` | implemented (one group for the distributed effects; `opaque`/`colorMode` accepted without effect) |
+| `position` | missing |
 
 ## Behaviour
 
@@ -67,6 +72,31 @@ computed as max(0, source + destination − 1) over the box). The CoreGraphics p
 groups into a bitmap context covering the box in device space, runs `ColorMatrix.apply(toPremultiplied:)`
 or `PixelFilters.gaussianBlur` on it and draws the image back; blend groups are transparency layers
 begun with the matching `CGBlendMode`.
+
+### Effects apply per element
+
+SwiftUI applies `opacity`, `shadow`, the colour effects, `blur` and `blendMode` to every element
+of the modified view separately, not to its composite (`effects/compositing`: two overlapping
+circles under `opacity(0.5)` show the overlap darker; under `shadow` the front circle's shadow
+falls on the back one; a text with a white background under `shadow` gets a shadow of the text
+on the background as well). `compositingGroup()` and `drawingGroup()` collect the subtree into one
+group first, so the effect acts on the composite. SwiftUIWeb models this with
+`PaintContext.effects`: an effect node appends a `PendingEffect` (opacity, shadow, filter, blend)
+to the context instead of opening a group, and `ViewNode.paint` wraps each node's own drawing
+(`paintSelf`) in the pending groups over that node's frame, outermost first; nothing is emitted
+for nodes that draw nothing. `CompositingGroupNode` opens the pending groups once over its
+target's frame and paints the subtree with an empty effect list. Transition opacity stays a group
+around the whole node.
+
+`mask` is a `LayeredNode` in `.mask` mode: the mask view is laid out over the content like an
+overlay (proposed the content's size, aligned by `alignment`), and painting emits
+`beginMask(bounds:)`, the mask's commands, `beginMasked`, the content's commands and `endGroup`
+(ops 21/22). The mask draws with an opaque black foreground (the label colour's 85 % alpha would
+fade the content: a `Circle()` or `Text` mask shows the content at full strength, measured on
+`effects/mask`) and free of the distributed effects, which the content keeps. The browser painter
+draws the mask and the content into two offscreens and composites the mask into the content with
+`destination-in`; the CoreGraphics painter draws the mask into a bitmap and sets it as the clip
+mask (`clip(to:mask:)` in base space) while the content paints.
 
 ## Measured (macOS 26.2, `effects/shadow-profile`, 2026-09-04)
 
@@ -125,7 +155,10 @@ with Apple, the canvas `soft-light` follows W3C and lands within Tier B's tolera
 
 ## Verification (2026-09-04)
 
-Tier A: 11 fixtures exact. Tier C: every effects fixture within tolerance; `effects/brightness`,
+Tier A: 13 fixtures exact. `effects/mask` Tier C 0.31 %, `effects/compositing` 0.18 % (both with
+the per-element distribution); Tier B Chromium, WebKit and Firefox exact frames on both, pixels ≤ 0.7 %.
+
+Earlier the same day, before mask and compositing: Tier A: 11 fixtures exact. Tier C: every effects fixture within tolerance; `effects/brightness`,
 `effects/saturation`, `effects/color-map` and `effects/blend` pixel-identical (0.00 %),
 `effects/blur` 0.28 %, `effects/color-text` 0.77 % (text antialiasing). Tier C now paints onto a
 transparent bitmap and composites over white afterwards, like the goldens, so `destinationOut`
@@ -138,7 +171,8 @@ their encoding and the Gaussian blur.
 
 ## Not yet covered
 
-`mask`, `compositingGroup`/`drawingGroup`, `position`, animated effect values, a Canvas context's
-`blendMode`, filtering of content painted outside its frame, and shadows of views inside a
-transformed or clipped ancestor (the group is composited in the ancestor's space, as Apple does;
-the clip then also clips the shadow).
+`position`, animated effect values, a Canvas context's `blendMode`, filtering of content painted
+outside its frame, `drawingGroup`'s rasterisation semantics (text stays vector, platform views stay),
+masks of content inside a transformed ancestor, and shadows of views inside a transformed or clipped
+ancestor (the group is composited in the ancestor's space, as Apple does; the clip then also clips
+the shadow).

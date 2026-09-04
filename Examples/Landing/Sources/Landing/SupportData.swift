@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 86, .stub: 6, .full: 13, .approximate: 3, .missing: 16]
+    static let counts: [SupportStatus: Int] = [.partial: 87, .stub: 6, .full: 14, .approximate: 3, .missing: 16]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -184,12 +184,14 @@ partial	animation(_:value:) / transaction(_:) / transition(_:) / AnyTransition (
 approximate	sheet / popover (isPresented and item forms) / alert / confirmationDialog / dismiss environment action	Presented over the window by the runtime's presentation layer (modal sheets and alerts, popovers and menus dismissed outside); the looks approximate macOS (separate windows there, no goldens); no fullScreenCover, detents, Menu, contextMenu	1
 partial	accessibilityLabel / Hint / Value / Identifier / Hidden / AddTraits / RemoveTraits / accessibilityElement(children:)	Applied on the semantics tree that the canvas host mirrors as an ARIA DOM overlay (headings, images, groups, switches, range inputs, spinbuttons); no custom actions, sort priority or rotors	1
 partial	offset / rotationEffect / scaleEffect / transformEffect / AnyTransition.scale	Painted through the display list's concat op about their anchors, parameters animate, offsets move hit testing; no hit testing through rotation/scale, no GeometryEffect or 3D	2
-full	shadow(color:radius:x:y:) / Color.RGBColorSpace inits	A shadow group in the display list (op 18); the browser and CoreGraphics painters blur the composite with sigma = radius; the default third-opaque linear black; Tier C pixel-identical (Docs/elements/Effects.md)	3
+full	shadow(color:radius:x:y:) / Color.RGBColorSpace inits	A shadow group in the display list (op 18) around every element of the view (one around the composite under a compositingGroup); the browser and CoreGraphics painters blur the composite with sigma = radius; the default third-opaque linear black; Tier C pixel-identical (Docs/elements/Effects.md)	3
 partial	brightness / contrast / saturation / grayscale / hueRotation / colorInvert / colorMultiply / luminanceToAlpha	Colour-matrix filter groups measured against SwiftUI's rasteriser (Tier C pixel-identical); the browser applies the matrix to the group's pixels, CoreGraphics to a bitmap layer. Not animated; only the view's frame is filtered (Docs/elements/Effects.md)	4
 full	blur(radius:opaque:)	Gaussian with sigma = radius, spreading outside the frame; an opaque blur keeps the edges with an edge-normalised kernel. Canvas filter blur where the browser has one, a JS Gaussian otherwise	1
 full	blendMode(_:) / BlendMode (all 21 modes)	Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance)	1
 full	zIndex / hidden	zIndex reorders painting and hit testing among a container's children (ties keep declaration order); hidden keeps the layout and removes the view from painting, hit testing and semantics	2
-missing	position / mask / compositingGroup / drawingGroup	Not implemented (Phase 6)	0
+full	mask(alignment:_:) / mask(_:)	The mask view's alpha clips the content (laid out like an overlay, drawn with an opaque black foreground as SwiftUI does); a mask group in the display list composited with destination-in in the browser and a CoreGraphics clip mask natively	1
+partial	compositingGroup / drawingGroup / per-element effects	opacity, shadow, colour effects, blur and blendMode apply to every element of a view as SwiftUI does; compositingGroup and drawingGroup collect them into one group first. drawingGroup's opaque/colorMode are accepted without effect and nothing is rasterised	1
+missing	position(x:y:) / position(_:)	Not implemented (Phase 6)	0
 missing	ignoresSafeArea / safeAreaInset / safeAreaPadding	Not implemented; the browser window has no safe areas	0
 missing	onHover / help / pointerStyle / onContinuousHover	Not implemented (Phase 6)	0
 missing	gesture / DragGesture / LongPressGesture / MagnifyGesture / RotateGesture / simultaneousGesture / highPriorityGesture	Only onTapGesture; drags exist for sliders and scrolling only (Phase 6)	0

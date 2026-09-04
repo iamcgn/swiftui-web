@@ -900,7 +900,7 @@
         {
           "api": "shadow(color:radius:x:y:) / Color.RGBColorSpace inits",
           "status": "full",
-          "notes": "A shadow group in the display list (op 18); the browser and CoreGraphics painters blur the composite with sigma = radius; the default third-opaque linear black; Tier C pixel-identical (Docs/elements/Effects.md)",
+          "notes": "A shadow group in the display list (op 18) around every element of the view (one around the composite under a compositingGroup); the browser and CoreGraphics painters blur the composite with sigma = radius; the default third-opaque linear black; Tier C pixel-identical (Docs/elements/Effects.md)",
           "fixtures": [
             "effects/shadow",
             "effects/shadow-profile",
@@ -944,7 +944,23 @@
           ]
         },
         {
-          "api": "position / mask / compositingGroup / drawingGroup",
+          "api": "mask(alignment:_:) / mask(_:)",
+          "status": "full",
+          "notes": "The mask view's alpha clips the content (laid out like an overlay, drawn with an opaque black foreground as SwiftUI does); a mask group in the display list composited with destination-in in the browser and a CoreGraphics clip mask natively",
+          "fixtures": [
+            "effects/mask"
+          ]
+        },
+        {
+          "api": "compositingGroup / drawingGroup / per-element effects",
+          "status": "partial",
+          "notes": "opacity, shadow, colour effects, blur and blendMode apply to every element of a view as SwiftUI does; compositingGroup and drawingGroup collect them into one group first. drawingGroup's opaque/colorMode are accepted without effect and nothing is rasterised",
+          "fixtures": [
+            "effects/compositing"
+          ]
+        },
+        {
+          "api": "position(x:y:) / position(_:)",
           "status": "missing",
           "notes": "Not implemented (Phase 6)"
         },

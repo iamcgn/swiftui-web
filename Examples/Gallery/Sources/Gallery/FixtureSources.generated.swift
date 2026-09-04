@@ -553,6 +553,38 @@ public static let colorText = Fixture("effects/color-text", size: CGSize(width: 
     .probe("zstack")
 }).rasterized()
 """#),
+        FixtureSource(name: "effects/compositing", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 262, lastLine: 291, declaration: #"""
+public static let compositing = Fixture("effects/compositing", size: CGSize(width: 420, height: 300), content: {
+    ZStack {
+        Color(red: 0.9, green: 0.9, blue: 0.6).frame(width: 400, height: 280)
+        VStack(spacing: 20) {
+            HStack(spacing: 20) {
+                pair().opacity(0.5).probe("opacity")
+                pair().compositingGroup().opacity(0.5).probe("opacityGroup")
+                pair().shadow(color: .black, radius: 3, x: 6).probe("shadow")
+                pair().compositingGroup().shadow(color: .black, radius: 3, x: 6).probe("shadowGroup")
+            }
+            .probe("row1")
+            HStack(spacing: 20) {
+                pair().blendMode(.multiply).probe("blend")
+                pair().compositingGroup().blendMode(.multiply).probe("blendGroup")
+                pair().blur(radius: 3).probe("blur")
+                pair().drawingGroup().blur(radius: 3).probe("blurGroup")
+            }
+            .probe("row2")
+            HStack(spacing: 20) {
+                Text("Label").padding(8).background(Color.white).shadow(color: .black, radius: 2, x: 4).probe("labelShadow")
+                Text("Label").padding(8).background(Color.white).compositingGroup().shadow(color: .black, radius: 2, x: 4).probe("labelShadowGroup")
+                pair().colorInvert().probe("invert")
+                pair().opacity(0.5).colorInvert().probe("invertOpacity")
+            }
+            .probe("row3")
+        }
+        .probe("stack")
+    }
+    .probe("zstack")
+}).rasterized()
+"""#),
         FixtureSource(name: "effects/hidden", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 66, lastLine: 79, declaration: #"""
 public static let hidden = Fixture("effects/hidden", size: CGSize(width: 240, height: 200)) {
     VStack(spacing: 10) {
@@ -568,6 +600,31 @@ public static let hidden = Fixture("effects/hidden", size: CGSize(width: 240, he
     }
     .probe("stack")
 }
+"""#),
+        FixtureSource(name: "effects/mask", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 228, lastLine: 250, declaration: #"""
+/// `mask`: the content shows through the mask's alpha; the mask is laid out like an overlay.
+public static let mask = Fixture("effects/mask", size: CGSize(width: 400, height: 220), content: {
+    VStack(spacing: 30) {
+        HStack(spacing: 30) {
+            Color.red.frame(width: 80, height: 80).mask { Circle() }.probe("circle")
+            LinearGradient(colors: [.blue, .green], startPoint: .leading, endPoint: .trailing)
+                .frame(width: 120, height: 80)
+                .mask { Text("Mask").font(.system(size: 40, weight: .bold)) }
+                .probe("gradientText")
+            Color.blue.frame(width: 80, height: 80).mask(alignment: .topLeading) { Rectangle().frame(width: 40, height: 40) }.probe("aligned")
+        }
+        .probe("row1")
+        HStack(spacing: 30) {
+            Color.green.frame(width: 80, height: 80).mask { Circle().opacity(0.5) }.probe("half")
+            Color.purple.frame(width: 120, height: 50)
+                .mask { LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing) }
+                .probe("fade")
+            Text("Masked text").mask { Rectangle().frame(width: 50) }.probe("text")
+        }
+        .probe("row2")
+    }
+    .probe("stack")
+}).rasterized()
 """#),
         FixtureSource(name: "effects/shadow", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 7, lastLine: 23, declaration: #"""
 public static let shadow = Fixture("effects/shadow", size: CGSize(width: 360, height: 260)) {
@@ -4580,7 +4637,74 @@ public enum EffectsFixtures {
         .probe("zstack")
     }).rasterized()
 
-    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden, brightness, saturation, colorMap, colorText, blur, blend]
+    // MARK: Masks and compositing
+
+    /// `mask`: the content shows through the mask's alpha; the mask is laid out like an overlay.
+    public static let mask = Fixture("effects/mask", size: CGSize(width: 400, height: 220), content: {
+        VStack(spacing: 30) {
+            HStack(spacing: 30) {
+                Color.red.frame(width: 80, height: 80).mask { Circle() }.probe("circle")
+                LinearGradient(colors: [.blue, .green], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: 120, height: 80)
+                    .mask { Text("Mask").font(.system(size: 40, weight: .bold)) }
+                    .probe("gradientText")
+                Color.blue.frame(width: 80, height: 80).mask(alignment: .topLeading) { Rectangle().frame(width: 40, height: 40) }.probe("aligned")
+            }
+            .probe("row1")
+            HStack(spacing: 30) {
+                Color.green.frame(width: 80, height: 80).mask { Circle().opacity(0.5) }.probe("half")
+                Color.purple.frame(width: 120, height: 50)
+                    .mask { LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing) }
+                    .probe("fade")
+                Text("Masked text").mask { Rectangle().frame(width: 50) }.probe("text")
+            }
+            .probe("row2")
+        }
+        .probe("stack")
+    }).rasterized()
+
+    /// Two overlapping circles under an effect, with and without a compositing group: SwiftUI
+    /// applies opacity, shadows and blend modes to each element unless the group composites them.
+    static func pair() -> some View {
+        ZStack {
+            Circle().fill(Color.red).frame(width: 50, height: 50).offset(x: -12)
+            Circle().fill(Color.blue).frame(width: 50, height: 50).offset(x: 12)
+        }
+        .frame(width: 80, height: 60)
+    }
+
+    public static let compositing = Fixture("effects/compositing", size: CGSize(width: 420, height: 300), content: {
+        ZStack {
+            Color(red: 0.9, green: 0.9, blue: 0.6).frame(width: 400, height: 280)
+            VStack(spacing: 20) {
+                HStack(spacing: 20) {
+                    pair().opacity(0.5).probe("opacity")
+                    pair().compositingGroup().opacity(0.5).probe("opacityGroup")
+                    pair().shadow(color: .black, radius: 3, x: 6).probe("shadow")
+                    pair().compositingGroup().shadow(color: .black, radius: 3, x: 6).probe("shadowGroup")
+                }
+                .probe("row1")
+                HStack(spacing: 20) {
+                    pair().blendMode(.multiply).probe("blend")
+                    pair().compositingGroup().blendMode(.multiply).probe("blendGroup")
+                    pair().blur(radius: 3).probe("blur")
+                    pair().drawingGroup().blur(radius: 3).probe("blurGroup")
+                }
+                .probe("row2")
+                HStack(spacing: 20) {
+                    Text("Label").padding(8).background(Color.white).shadow(color: .black, radius: 2, x: 4).probe("labelShadow")
+                    Text("Label").padding(8).background(Color.white).compositingGroup().shadow(color: .black, radius: 2, x: 4).probe("labelShadowGroup")
+                    pair().colorInvert().probe("invert")
+                    pair().opacity(0.5).colorInvert().probe("invertOpacity")
+                }
+                .probe("row3")
+            }
+            .probe("stack")
+        }
+        .probe("zstack")
+    }).rasterized()
+
+    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden, brightness, saturation, colorMap, colorText, blur, blend, mask, compositing]
 }
 """#,
         "Fixtures/Sources/Focus/FocusFixtures.swift": #"""
