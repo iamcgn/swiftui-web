@@ -1,0 +1,135 @@
+{
+  "fixture" : "table\/regimes",
+  "frames" : {
+    "gcolor1" : {
+      "height" : 16,
+      "width" : 23.5,
+      "x" : 162.5,
+      "y" : 165
+    },
+    "gcolor2" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 162.5,
+      "y" : 189
+    },
+    "gcolor3" : {
+      "height" : 16,
+      "width" : 23.5,
+      "x" : 162.5,
+      "y" : 213
+    },
+    "gcount1" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 309,
+      "y" : 165
+    },
+    "gcount2" : {
+      "height" : 16,
+      "width" : 14,
+      "x" : 309,
+      "y" : 189
+    },
+    "gcount3" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 309,
+      "y" : 213
+    },
+    "gempty1" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 455.5,
+      "y" : 165
+    },
+    "gempty2" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 455.5,
+      "y" : 189
+    },
+    "gempty3" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 455.5,
+      "y" : 213
+    },
+    "gname1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 165
+    },
+    "gname2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 189
+    },
+    "gname3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 213
+    },
+    "grow" : {
+      "height" : 172,
+      "width" : 600,
+      "x" : 0,
+      "y" : 128
+    },
+    "ocolor1" : {
+      "height" : 16,
+      "width" : 23.5,
+      "x" : 333,
+      "y" : 37
+    },
+    "ocolor2" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 333,
+      "y" : 61
+    },
+    "ocolor3" : {
+      "height" : 16,
+      "width" : 23.5,
+      "x" : 333,
+      "y" : 85
+    },
+    "oname1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 216,
+      "y" : 37
+    },
+    "oname2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 216,
+      "y" : 61
+    },
+    "oname3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 216,
+      "y" : 85
+    },
+    "overflow" : {
+      "height" : 120,
+      "width" : 200,
+      "x" : 200,
+      "y" : 0
+    },
+    "stack" : {
+      "height" : 300,
+      "width" : 600,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 600
+  }
+}

@@ -32,7 +32,7 @@ enum Goldens {
     }
 
     /// Fixture names whose goldens exist and whose feature area is implemented.
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/"]
 
     /// The fixtures' asset catalog as `scripts/assets.py` reads it (Fixtures/Assets.manifest.json).
     static func assets() throws -> AssetCatalog {
@@ -82,6 +82,8 @@ enum Goldens {
         // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
         "splitview/visibility": ["sidebar", "row1", "detail"],
         "splitview/visibility/detailOnly": ["sidebar", "row1", "detail"],
+        // Apple's table re-creates the cells of rows a sort moves, and their probes never report.
+        "table/sorting/byCount": ["name2", "name3", "count2", "count3"],
     ]
 
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {

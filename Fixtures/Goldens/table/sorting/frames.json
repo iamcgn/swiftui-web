@@ -1,0 +1,100 @@
+{
+  "fixture" : "table\/sorting",
+  "frames" : {
+    "count1" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 188.5,
+      "y" : 37
+    },
+    "count2" : {
+      "height" : 16,
+      "width" : 14,
+      "x" : 188.5,
+      "y" : 61
+    },
+    "count3" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 188.5,
+      "y" : 85
+    },
+    "name1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 37
+    },
+    "name2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 61
+    },
+    "name3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 85
+    },
+    "table" : {
+      "height" : 220,
+      "width" : 360,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 360
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "count1" : {
+          "height" : 16,
+          "width" : 8.5,
+          "x" : 188.5,
+          "y" : 85
+        },
+        "count2" : {
+          "height" : 16,
+          "width" : 0,
+          "x" : 0,
+          "y" : -8
+        },
+        "count3" : {
+          "height" : 16,
+          "width" : 0,
+          "x" : 0,
+          "y" : -8
+        },
+        "name1" : {
+          "height" : 16,
+          "width" : 35,
+          "x" : 16,
+          "y" : 85
+        },
+        "name2" : {
+          "height" : 16,
+          "width" : 0,
+          "x" : 0,
+          "y" : -8
+        },
+        "name3" : {
+          "height" : 16,
+          "width" : 0,
+          "x" : 0,
+          "y" : -8
+        },
+        "table" : {
+          "height" : 220,
+          "width" : 360,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "byCount"
+    }
+  ]
+}

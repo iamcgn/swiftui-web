@@ -369,6 +369,13 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Hello\nWorld", defaultFont, width: 270))
         requests.append(TextMetricRequest("Left", defaultFont, width: 270))
         for word in ["Empty", "Filled"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        // Table fixtures: headers (bold when sorted), cells.
+        for word in ["Name", "Color", "Count"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+            requests.append(TextMetricRequest(word, defaultFont(weight: "bold")))
+        }
+        requests.append(TextMetricRequest("Empty", defaultFont(weight: "bold")))
+        for word in ["Red", "Yellow", "40"] { requests.append(TextMetricRequest(word, defaultFont)) }
         requests.append(TextMetricRequest("Details", .style("body")))
         requests.append(TextMetricRequest("Outer", .style("body")))
         requests.append(TextMetricRequest("Inner", .style("body")))

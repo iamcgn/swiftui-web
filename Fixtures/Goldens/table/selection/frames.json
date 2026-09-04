@@ -1,0 +1,122 @@
+{
+  "fixture" : "table\/selection",
+  "frames" : {
+    "name1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 37
+    },
+    "name2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 61
+    },
+    "name3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 85
+    },
+    "table" : {
+      "height" : 220,
+      "width" : 360,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 360
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "name1" : {
+          "height" : 16,
+          "width" : 35,
+          "x" : 16,
+          "y" : 37
+        },
+        "name2" : {
+          "height" : 16,
+          "width" : 45,
+          "x" : 16,
+          "y" : 61
+        },
+        "name3" : {
+          "height" : 16,
+          "width" : 41.5,
+          "x" : 16,
+          "y" : 85
+        },
+        "table" : {
+          "height" : 220,
+          "width" : 360,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "select1"
+    },
+    {
+      "frames" : {
+        "name1" : {
+          "height" : 16,
+          "width" : 35,
+          "x" : 16,
+          "y" : 37
+        },
+        "name2" : {
+          "height" : 16,
+          "width" : 45,
+          "x" : 16,
+          "y" : 61
+        },
+        "name3" : {
+          "height" : 16,
+          "width" : 41.5,
+          "x" : 16,
+          "y" : 85
+        },
+        "table" : {
+          "height" : 220,
+          "width" : 360,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "select3"
+    },
+    {
+      "frames" : {
+        "name1" : {
+          "height" : 16,
+          "width" : 35,
+          "x" : 16,
+          "y" : 37
+        },
+        "name2" : {
+          "height" : 16,
+          "width" : 45,
+          "x" : 16,
+          "y" : 61
+        },
+        "name3" : {
+          "height" : 16,
+          "width" : 41.5,
+          "x" : 16,
+          "y" : 85
+        },
+        "table" : {
+          "height" : 220,
+          "width" : 360,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "clear"
+    }
+  ]
+}

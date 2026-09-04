@@ -9396,6 +9396,12 @@
       "lastBaseline" : 13,
       "width" : 34.5
     },
+    "system:13:400:default||Color" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 33
+    },
     "system:13:400:default||Compact" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10020,6 +10026,12 @@
       "lastBaseline" : 13,
       "width" : 38.5
     },
+    "system:13:400:default||Red" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 23.5
+    },
     "system:13:400:default||Red Blue" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10355,6 +10367,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 362
+    },
+    "system:13:400:default||Yellow" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 38.5
     },
     "system:13:400:default|0.0;l1|Hello" : {
       "firstBaseline" : 13,
@@ -10831,6 +10849,12 @@
       "width" : 0
     },
     "system:13:400:default|0.0|Clock" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Color" : {
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
@@ -11460,6 +11484,12 @@
       "lastBaseline" : 77,
       "width" : 0
     },
+    "system:13:400:default|0.0|Red" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Red Blue" : {
       "firstBaseline" : 13,
       "height" : 112,
@@ -11794,6 +11824,12 @@
       "firstBaseline" : 13,
       "height" : 816,
       "lastBaseline" : 813,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Yellow" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|60.0|Supercalifragilistic" : {
@@ -12168,11 +12204,29 @@
       "lastBaseline" : 13,
       "width" : 29.5
     },
+    "system:13:700:default||Color" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35
+    },
+    "system:13:700:default||Count" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 39
+    },
     "system:13:700:default||Dec 2025" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 62.5
+    },
+    "system:13:700:default||Empty" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 41.5
     },
     "system:13:700:default||Feb 2025" : {
       "firstBaseline" : 13,
@@ -12204,6 +12258,12 @@
       "lastBaseline" : 13,
       "width" : 62.5
     },
+    "system:13:700:default||Name" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 37.5
+    },
     "system:13:700:default||Star" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -12222,10 +12282,28 @@
       "lastBaseline" : 61,
       "width" : 0
     },
+    "system:13:700:default|0.0|Color" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:700:default|0.0|Count" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
     "system:13:700:default|0.0|Dec 2025" : {
       "firstBaseline" : 13,
       "height" : 112,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:700:default|0.0|Empty" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
       "width" : 0
     },
     "system:13:700:default|0.0|Feb 2025" : {
@@ -12256,6 +12334,12 @@
       "firstBaseline" : 13,
       "height" : 112,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:700:default|0.0|Name" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:700:default|0.0|Star" : {

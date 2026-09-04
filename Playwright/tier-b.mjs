@@ -61,7 +61,8 @@ const report = [];
 
 // Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame.
 // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
-const ignoredProbes = { 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'] };
+const ignoredProbes = { 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'],
+  'table/sorting/byCount': ['name2', 'name3', 'count2', 'count3'] };
 function compareFrames(name, frames, goldenFrames) {
   const mismatches = [];
   const ignored = ignoredProbes[name] || [];

@@ -338,6 +338,30 @@ package enum PlatformMetrics {
     package static let textEditorTextColor = RGBA(red: 0, green: 0, blue: 0, alpha: 1)   // pure black, unlike SwiftUI text
     package static let textEditorIdealSize = CGSize(width: 100, height: 100)  // unverified
 
+    // Table (macOS 26.2: fixtures table/*, Docs/elements/Table.md)
+    package static let tableHeaderHeight: CGFloat = 28
+    package static let tableHeaderTitleInset: CGFloat = 10
+    package static let tableLineAlpha = 26.0 / 255                          // the header's bottom line and dividers (229)
+    package static let tableDividerInset: CGFloat = 6                       // the dividers run from 6 to 22
+    package static let tableRowsTop: CGFloat = 5                            // rows start 33 down
+    package static let tableRowHeight: CGFloat = 24
+    package static let tableCellInset: CGFloat = 8                          // a cell's leading inset in its column
+    package static let tableCellTrailingInset: CGFloat = 6                  // NSTableColumn.width = the SwiftUI width + 14
+    package static let tableIntercellSpacing: CGFloat = 3                   // between columns; the divider is its last point
+    package static let tableCellTop: CGFloat = 4
+    package static let tableLeadingMargin: CGFloat = 8
+    package static let tableTrailingMargin: CGFloat = 7                     // columns fill the width less 15
+    package static let tableColumnIdealWidth: CGFloat = 100                 // automatic columns: pitch 117
+    package static let tableColumnMinWidth: CGFloat = 10                    // unverified (NSTableColumn's default)
+    package static let tableBandInset: CGFloat = 10
+    package static let tableBandCornerRadius: CGFloat = 6                   // approximate
+    package static let tableBandAlpha = 11.0 / 255                          // 244
+    package static let tableSelectionAlpha = 35.0 / 255                     // 220, the inactive window's selection
+    package static let tableChevronSize = CGSize(width: 7, height: 4)
+    package static let tableChevronTrailing: CGFloat = 8                    // from the header cell's end (the next column, or the last column's content end)
+    package static let tableChevronStroke: CGFloat = 1.5
+    package static let tableIdealSize = CGSize(width: 300, height: 200)     // unverified
+
     // NavigationSplitView (macOS 26.2: fixtures splitview/*, Docs/elements/NavigationSplitView.md)
     package static let sidebarDefaultWidth: CGFloat = 140                // the panel; the column is 8 wider
     package static let splitContentDefaultWidth: CGFloat = 200

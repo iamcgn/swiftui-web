@@ -1,0 +1,51 @@
+{
+  "fixture" : "table\/basic",
+  "frames" : {
+    "color1" : {
+      "height" : 16,
+      "width" : 23.5,
+      "x" : 128,
+      "y" : 37
+    },
+    "color2" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 128,
+      "y" : 61
+    },
+    "color3" : {
+      "height" : 16,
+      "width" : 23.5,
+      "x" : 128,
+      "y" : 85
+    },
+    "count1" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 240,
+      "y" : 37
+    },
+    "count2" : {
+      "height" : 16,
+      "width" : 14,
+      "x" : 240,
+      "y" : 61
+    },
+    "count3" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 240,
+      "y" : 85
+    },
+    "table" : {
+      "height" : 220,
+      "width" : 360,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 360
+  }
+}

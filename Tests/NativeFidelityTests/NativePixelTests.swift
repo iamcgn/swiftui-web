@@ -28,7 +28,7 @@ enum NativeGoldens {
         return url.appendingPathComponent("Fixtures/Goldens")
     }()
 
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/"]
 
     /// Fixtures whose browser render is held to a looser bound (font fallbacks); natively the
     /// fonts are real, but the bound is kept for parity with Tier B.
@@ -47,6 +47,7 @@ enum NativeGoldens {
         "tabview/basic/second": ["first"],
         "splitview/visibility": ["sidebar", "row1", "detail"],
         "splitview/visibility/detailOnly": ["sidebar", "row1", "detail"],
+        "table/sorting/byCount": ["name2", "name3", "count2", "count3"],
     ]
 
     static func frames(for name: String) throws -> NativeGoldenFrames? {

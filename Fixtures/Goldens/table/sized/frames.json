@@ -1,0 +1,45 @@
+{
+  "fixture" : "table\/sized",
+  "frames" : {
+    "above" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 160.75,
+      "y" : 38
+    },
+    "name1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 76,
+      "y" : 99
+    },
+    "name2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 76,
+      "y" : 123
+    },
+    "name3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 76,
+      "y" : 147
+    },
+    "stack" : {
+      "height" : 144,
+      "width" : 240,
+      "x" : 60,
+      "y" : 38
+    },
+    "table" : {
+      "height" : 120,
+      "width" : 240,
+      "x" : 60,
+      "y" : 62
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 360
+  }
+}
