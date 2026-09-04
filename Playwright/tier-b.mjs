@@ -21,7 +21,7 @@ const browserName = opt('--browser', 'chromium');
 const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox' ? 0.05 : 0.03));
 // Browser font fallbacks (weights 300/900, rounded, serif, monospaced) legitimately differ from
 // SF on macOS; those fixtures are held to a looser bound and listed as approximate.
-const approximate = ['text/system-fonts', 'button/styles'];
+const approximate = ['text/system-fonts', 'button/styles', 'progress/indeterminate'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 const frameTolerance = (name, key, expected) => name.startsWith('text/') && (key === 'width' || key === 'x')
   ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;

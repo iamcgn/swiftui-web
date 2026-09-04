@@ -208,6 +208,32 @@ package enum PlatformMetrics {
     package static let menuSplitChevronTrailing: CGFloat = 11.25
     package static let menuSplitChevronStroke: CGFloat = 1
 
+    // ProgressView (macOS 26.2: fixtures progress/*, Docs/elements/ProgressView.md; the greys of
+    // the inactive golden window)
+    package static let progressRowHeight: CGFloat = 20
+    package static let progressBarHeight: CGFloat = 8
+    package static let progressBarIdealWidth: CGFloat = 100                  // unverified: no fixture proposes nothing
+    package static let progressTrackAlpha = 15.0 / 255
+    package static let progressFillAlpha = 85.0 / 255
+    package static let progressIndeterminateSegment: CGFloat = 8
+    package static let progressRingStroke: CGFloat = 5
+    package static let progressRingTrackAlpha = 13.0 / 255
+    package static let progressRingFillAlpha = 70.0 / 255
+    package static func progressRingDiameter(_ size: ControlSize) -> CGFloat {
+        switch size {
+        case .mini: return 12          // unverified
+        case .small: return 16
+        case .regular: return 32
+        case .large, .extraLarge: return 32   // unverified
+        }
+    }
+    package static let spinnerSpokes = 8
+    package static let spinnerInnerRadius: CGFloat = 6.5                     // approximate: the spinner animates
+    package static let spinnerOuterRadius: CGFloat = 14
+    package static let spinnerSpokeWidth: CGFloat = 3
+    package static let spinnerMaxAlpha = 53.0 / 255
+    package static let spinnerMinAlpha = 17.0 / 255
+
     // Label (macOS 26.2: fixture label/basic, Docs/elements/Label.md)
     package static let labelIconSpacing: CGFloat = 8
 

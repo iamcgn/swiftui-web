@@ -28,11 +28,11 @@ enum NativeGoldens {
         return url.appendingPathComponent("Fixtures/Goldens")
     }()
 
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/"]
 
     /// Fixtures whose browser render is held to a looser bound (font fallbacks); natively the
     /// fonts are real, but the bound is kept for parity with Tier B.
-    static let approximate: Set<String> = ["text/system-fonts", "button/styles"]
+    static let approximate: Set<String> = ["text/system-fonts", "button/styles", "progress/indeterminate"]
     /// Probes allowed two points (symbol sizes the metrics table scales to), as in Tier A.
     static let approximateProbes: [String: Set<String>] = [
         "symbol/basic": ["size24", "size40", "baselineText40", "largeSize24", "light", "black", "blue30", "chevronSemibold", "approximateRow", "stack"],
