@@ -1,7 +1,11 @@
 // Image: a named image from the app's asset catalogs (decision 0011), its resizing, rendering
 // and interpolation modifiers, and the aspect-ratio layout modifier. Docs/elements/Image.md.
 #if !os(WASI)
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 #endif
 
 /// A view that displays an image.

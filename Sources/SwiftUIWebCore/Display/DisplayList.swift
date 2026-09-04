@@ -176,7 +176,12 @@ extension DisplayGradient {
         case .radial(let center, let r0, let r1): kindText = "radial \(p(center)) r\(r0)→\(r1)"
         case .angular(let center, let angle): kindText = "angular \(p(center)) a\(angle)"
         }
-        let stopsText = stops.map { "\($0.location):\(String(format: "%02X%02X%02X", Int(($0.color.red * 255).rounded()), Int(($0.color.green * 255).rounded()), Int(($0.color.blue * 255).rounded())))" }.joined(separator: " ")
+        func hex(_ value: Double) -> String {
+            let byte = Int((value * 255).rounded())
+            let digits = String(byte, radix: 16, uppercase: true)
+            return byte < 16 ? "0" + digits : digits
+        }
+        let stopsText = stops.map { "\($0.location):\(hex($0.color.red))\(hex($0.color.green))\(hex($0.color.blue))" }.joined(separator: " ")
         return "\(kindText) [\(stopsText)]"
     }
 }

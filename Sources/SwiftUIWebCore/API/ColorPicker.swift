@@ -1,7 +1,11 @@
 // ColorPicker (Docs/elements/ColorPicker.md): the macOS colour well (a grey rounded rect with a
 // concentric swatch over a black/white diagonal ground) with its label; a press opens a popover
 // of preset swatches and, when opacity is supported, an opacity slider.
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// A control used to select a colour from the system colour picker UI.
 public struct ColorPicker<Label: View>: View {

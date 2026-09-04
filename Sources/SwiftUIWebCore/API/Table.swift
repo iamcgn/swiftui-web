@@ -1,7 +1,11 @@
 // Table (Docs/elements/Table.md): the macOS table with a header row, columns (key-path, custom
 // content, fixed and flexible widths, sortable), alternating row bands, a selection binding and
 // a sort order binding.
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// A container that presents rows of data arranged in one or more columns.
 public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View where Data.Element == Value, Value.ID: Hashable {

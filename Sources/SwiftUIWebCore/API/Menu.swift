@@ -1,7 +1,11 @@
 // Menu: a pull-down button that presents its content as a menu (Docs/elements/Menu.md), the
 // menu styles, `menuIndicator`, `menuOrder`, and `contextMenu` (a menu at the pointer on a
 // secondary click). Menus reuse the presentation layer (`_PresentationKind.menu`/`.submenu`).
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// A control for presenting a menu of actions.
 public struct Menu<Label: View, Content: View>: View {

@@ -1,6 +1,10 @@
 // ShareLink (Docs/elements/ShareLink.md): a bordered button with the share symbol that hands
 // its items to the host's share sheet.
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// An action that shares items (the host's share sheet; the browser's Web Share).
 public struct ShareAction: Sendable {

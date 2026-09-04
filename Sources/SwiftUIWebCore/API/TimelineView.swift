@@ -1,4 +1,8 @@
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// A view that updates according to a schedule that you provide (`Docs/elements/TimelineView.md`).
 ///

@@ -1,6 +1,10 @@
 // Link (Docs/elements/Link.md): a control that opens a URL through the `openURL` environment
 // action; hosts open it in the browser or the default application.
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// A control for navigating to a URL.
 public struct Link<Label: View>: View {

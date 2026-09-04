@@ -3,7 +3,11 @@
 // comparator that `Table` sorting and `sorted(using:)` calls need). Apple platforms use
 // Foundation's.
 #if os(WASI)
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// A comparator that compares two values by a key path's value.
 // The value closures only read the key path they capture (`@unchecked`: closures over a

@@ -2,7 +2,11 @@
 // dividers at the end of each 3 pt intercell gap, a bottom line), 24 pt rows from 33 with cells
 // 8 pt in and 4 down, alternating rounded bands running to the bottom, the selection band, and
 // sorting by header presses.
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 @MainActor
 private var nextTableIdentifier = 9_800_000

@@ -2,7 +2,11 @@
 // with the colour in a concentric swatch inset 3 pt over a black/white diagonal ground, a 10 %
 // inner stroke and a darker top edge; half opacity when disabled; the label's baseline 1.5 pt
 // above the bottom. A press opens the preset panel as a popover below the well.
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 @MainActor
 private var nextColorWellIdentifier = 9_900_000

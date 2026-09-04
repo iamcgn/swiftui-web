@@ -1,5 +1,9 @@
 #if !os(WASI)
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 #endif
 
 /// A representation of a color that adapts to a given context.

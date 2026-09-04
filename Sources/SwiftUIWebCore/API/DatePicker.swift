@@ -1,7 +1,11 @@
 // DatePicker (Docs/elements/DatePicker.md): the macOS textual date field (two-digit component
 // slots in a bezel, an optional mini stepper), the graphical calendar and clock; styles, the
 // displayed components, ranges, and the time zone / calendar environment.
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// A control for selecting an absolute date.
 public struct DatePicker<Label: View>: View {
