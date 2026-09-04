@@ -204,7 +204,13 @@ extension Runtime {
         let shortcuts = shortcutNodes
         if activateShortcut(in: shortcuts.presented, for: press) { return true }
         if press.key == .escape, press.modifiers.shortcutModifiers.isEmpty, dismissTopmostPresentation() { return true }
-        return activateShortcut(in: shortcuts.window, for: press)
+        if activateShortcut(in: shortcuts.window, for: press) { return true }
+        // ⌃⌘S toggles the sidebar of a navigation split view (the macOS View menu command).
+        if press.key == KeyEquivalent("s"), press.modifiers.shortcutModifiers == [.control, .command], toggleSidebar() {
+            setNeedsDisplay()
+            return true
+        }
+        return false
     }
 
     private func activateShortcut(in nodes: [any _ShortcutMatching], for press: KeyPress) -> Bool {

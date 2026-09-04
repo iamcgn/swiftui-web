@@ -21,7 +21,10 @@ const browserName = opt('--browser', 'chromium');
 const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox' ? 0.05 : 0.03));
 // Browser font fallbacks (weights 300/900, rounded, serif, monospaced) legitimately differ from
 // SF on macOS; those fixtures are held to a looser bound and listed as approximate.
-const approximate = ['text/system-fonts', 'button/styles', 'progress/indeterminate'];
+// splitview/*: Apple's capture drops the sidebar's rows and selection and fills the 8 pt bands
+// beside the sidebar panel with a black-to-clear gradient (about 3.4 % of a 480 × 300 window).
+const approximate = ['text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
+  'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 const frameTolerance = (name, key, expected) => name.startsWith('text/') && (key === 'width' || key === 'x')
   ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
@@ -55,7 +58,8 @@ let failures = 0;
 const report = [];
 
 // Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame.
-const ignoredProbes = { 'tabview/basic/second': ['first'] };
+// A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
+const ignoredProbes = { 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'] };
 function compareFrames(name, frames, goldenFrames) {
   const mismatches = [];
   const ignored = ignoredProbes[name] || [];

@@ -245,6 +245,14 @@ package enum PlatformMetrics {
     package static let tabBoxFillAlpha = 8.0 / 255
     package static let tabBoxBorderAlpha = 10.0 / 255                    // approximate: the 245 edge on the 247 fill
 
+    // NavigationSplitView (macOS 26.2: fixtures splitview/*, Docs/elements/NavigationSplitView.md)
+    package static let sidebarDefaultWidth: CGFloat = 140                // the panel; the column is 8 wider
+    package static let splitContentDefaultWidth: CGFloat = 200
+    package static let sidebarInset: CGFloat = 8
+    package static let sidebarCornerRadius: CGFloat = 7.5                // from the corner ramp at 2×, approximate
+    package static let sidebarPanelColor = RGBA(red: 1, green: 1, blue: 1, alpha: 1)
+    package static let splitDividerAlpha = 25.0 / 255                    // the divider's alpha in the golden; black, unverified hue
+
     // ContentUnavailableView (macOS 26.2: fixture unavailable/basic, Docs/elements/ContentUnavailableView.md)
     package static let unavailableSpacing: CGFloat = 12
     package static let unavailableTopPadding: CGFloat = 20

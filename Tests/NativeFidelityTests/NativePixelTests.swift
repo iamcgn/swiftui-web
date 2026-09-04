@@ -28,18 +28,25 @@ enum NativeGoldens {
         return url.appendingPathComponent("Fixtures/Goldens")
     }()
 
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/"]
 
     /// Fixtures whose browser render is held to a looser bound (font fallbacks); natively the
     /// fonts are real, but the bound is kept for parity with Tier B.
-    static let approximate: Set<String> = ["text/system-fonts", "button/styles", "progress/indeterminate"]
+    /// `splitview/*`: Apple's capture drops the sidebar's rows and selection and fills the 8 pt
+    /// bands beside the sidebar panel with a black-to-clear gradient (about 3.4 % of the window).
+    static let approximate: Set<String> = ["text/system-fonts", "button/styles", "progress/indeterminate", "splitview/basic", "splitview/widths",
+                                           "splitview/three", "splitview/columns", "splitview/sized", "splitview/selection", "splitview/visibility"]
     /// Probes allowed two points (symbol sizes the metrics table scales to), as in Tier A.
     static let approximateProbes: [String: Set<String>] = [
         "symbol/basic": ["size24", "size40", "baselineText40", "largeSize24", "light", "black", "blue30", "chevronSemibold", "approximateRow", "stack"],
     ]
     static let pixelTolerance = 0.03
     /// Probes Apple reports but nothing reproduces (a hidden tab's stale frame), as in Tier A.
-    static let ignoredProbes: [String: Set<String>] = ["tabview/basic/second": ["first"]]
+    static let ignoredProbes: [String: Set<String>] = [
+        "tabview/basic/second": ["first"],
+        "splitview/visibility": ["sidebar", "row1", "detail"],
+        "splitview/visibility/detailOnly": ["sidebar", "row1", "detail"],
+    ]
 
     static func frames(for name: String) throws -> NativeGoldenFrames? {
         let file = root.appendingPathComponent(name).appendingPathComponent("frames.json")

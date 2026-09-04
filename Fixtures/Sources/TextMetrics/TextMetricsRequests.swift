@@ -338,6 +338,7 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Beta", defaultFont))
         requests.append(TextMetricRequest("Header", defaultFont))
         requests.append(TextMetricRequest("Hi", defaultFont))
+        for word in ["Menu", "Select"] { requests.append(TextMetricRequest(word, defaultFont)) }
         requests.append(TextMetricRequest("Details", .style("body")))
         requests.append(TextMetricRequest("Outer", .style("body")))
         requests.append(TextMetricRequest("Inner", .style("body")))

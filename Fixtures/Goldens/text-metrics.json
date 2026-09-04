@@ -8838,6 +8838,12 @@
       "lastBaseline" : 13,
       "width" : 25.5
     },
+    "system:13:400:default||Menu" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 34
+    },
     "system:13:400:default||Message" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -9107,6 +9113,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 39.5
+    },
+    "system:13:400:default||Select" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 38.5
     },
     "system:13:400:default||Selected: none" : {
       "firstBaseline" : 13,
@@ -9978,6 +9990,12 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|Menu" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Message" : {
       "firstBaseline" : 13,
       "height" : 112,
@@ -10243,6 +10261,12 @@
       "width" : 0
     },
     "system:13:400:default|0.0|Secret" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Select" : {
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,

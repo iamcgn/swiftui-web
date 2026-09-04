@@ -1,0 +1,146 @@
+{
+  "fixture" : "splitview\/selection",
+  "frames" : {
+    "placeholder" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 294.75,
+      "y" : 142
+    },
+    "row1" : {
+      "height" : 18.5,
+      "width" : 35,
+      "x" : 24,
+      "y" : 24.75
+    },
+    "row2" : {
+      "height" : 18.5,
+      "width" : 45,
+      "x" : 24,
+      "y" : 56.75
+    },
+    "sidebar" : {
+      "height" : 284,
+      "width" : 140,
+      "x" : 8,
+      "y" : 8
+    },
+    "split" : {
+      "height" : 300,
+      "width" : 480,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 480
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "number1" : {
+          "height" : 16,
+          "width" : 58,
+          "x" : 285,
+          "y" : 142
+        },
+        "row1" : {
+          "height" : 18.5,
+          "width" : 35,
+          "x" : 24,
+          "y" : 24.75
+        },
+        "row2" : {
+          "height" : 18.5,
+          "width" : 45,
+          "x" : 24,
+          "y" : 56.75
+        },
+        "sidebar" : {
+          "height" : 284,
+          "width" : 140,
+          "x" : 8,
+          "y" : 8
+        },
+        "split" : {
+          "height" : 300,
+          "width" : 480,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "select1"
+    },
+    {
+      "frames" : {
+        "number2" : {
+          "height" : 16,
+          "width" : 60,
+          "x" : 284,
+          "y" : 142
+        },
+        "row1" : {
+          "height" : 18.5,
+          "width" : 35,
+          "x" : 24,
+          "y" : 24.75
+        },
+        "row2" : {
+          "height" : 18.5,
+          "width" : 45,
+          "x" : 24,
+          "y" : 56.75
+        },
+        "sidebar" : {
+          "height" : 284,
+          "width" : 140,
+          "x" : 8,
+          "y" : 8
+        },
+        "split" : {
+          "height" : 300,
+          "width" : 480,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "select2"
+    },
+    {
+      "frames" : {
+        "placeholder" : {
+          "height" : 16,
+          "width" : 38.5,
+          "x" : 294.75,
+          "y" : 142
+        },
+        "row1" : {
+          "height" : 18.5,
+          "width" : 35,
+          "x" : 24,
+          "y" : 24.75
+        },
+        "row2" : {
+          "height" : 18.5,
+          "width" : 45,
+          "x" : 24,
+          "y" : 56.75
+        },
+        "sidebar" : {
+          "height" : 284,
+          "width" : 140,
+          "x" : 8,
+          "y" : 8
+        },
+        "split" : {
+          "height" : 300,
+          "width" : 480,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "clear"
+    }
+  ]
+}

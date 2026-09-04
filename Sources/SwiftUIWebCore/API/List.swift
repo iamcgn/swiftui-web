@@ -29,9 +29,18 @@ public struct List<SelectionValue: Hashable, Content: View>: View {
     }
 
     @Environment(\.listStyle) private var style
+    @Environment(\._inSidebarColumn) private var inSidebarColumn
+
+    /// In a split view's sidebar column the automatic style is the sidebar style, and a sidebar
+    /// list is transparent over the panel.
+    private var profile: _ListProfile {
+        var profile = style is DefaultListStyle && inSidebarColumn ? SidebarListStyle()._profile : style._profile
+        if inSidebarColumn, profile.name == "sidebar" { profile.background = .clear }
+        return profile
+    }
 
     public var body: some View {
-        let profile = style._profile
+        let profile = profile
         let pinnedTitle = profile.name == "sidebar" ? nil : _firstSectionTitle(of: content)
         // Read the selection here, inside the body, so observation tracks the model it comes
         // from; painting reads it again but is not tracked.

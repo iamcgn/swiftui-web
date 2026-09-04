@@ -1,0 +1,51 @@
+{
+  "fixture" : "splitview\/widths",
+  "frames" : {
+    "box" : {
+      "height" : 20,
+      "width" : 40,
+      "x" : 299,
+      "y" : 152
+    },
+    "detailStack" : {
+      "height" : 44,
+      "width" : 40,
+      "x" : 299,
+      "y" : 128
+    },
+    "menu" : {
+      "height" : 16,
+      "width" : 34,
+      "x" : 66,
+      "y" : 128
+    },
+    "sidebar" : {
+      "height" : 44,
+      "width" : 40,
+      "x" : 63,
+      "y" : 128
+    },
+    "split" : {
+      "height" : 300,
+      "width" : 480,
+      "x" : 0,
+      "y" : 0
+    },
+    "swatch" : {
+      "height" : 20,
+      "width" : 40,
+      "x" : 63,
+      "y" : 152
+    },
+    "wide" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 303.5,
+      "y" : 128
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 480
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "fixture" : "splitview\/columns",
+  "frames" : {
+    "content" : {
+      "height" : 300,
+      "width" : 200,
+      "x" : 128,
+      "y" : 0
+    },
+    "contentRow" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 144,
+      "y" : 14
+    },
+    "detail" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 467,
+      "y" : 142
+    },
+    "row1" : {
+      "height" : 18.5,
+      "width" : 35,
+      "x" : 24,
+      "y" : 24.75
+    },
+    "sidebar" : {
+      "height" : 284,
+      "width" : 120,
+      "x" : 8,
+      "y" : 8
+    },
+    "split" : {
+      "height" : 300,
+      "width" : 640,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 640
+  }
+}
