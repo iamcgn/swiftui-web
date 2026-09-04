@@ -16,7 +16,7 @@ package final class ProgressBarNode: LeafNode<_ProgressBar> {
         let bounds = absoluteBounds(context)
         let height = PlatformMetrics.progressBarHeight
         let track = CGRect(x: bounds.minX, y: bounds.midY - height / 2, width: bounds.width, height: height)
-        list.append(.fillRRect(track, cornerRadius: height / 2, RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.progressTrackAlpha)))
+        list.append(.fillRRect(track, cornerRadius: height / 2, environment._ink(PlatformMetrics.progressTrackAlpha)))
         let fillWidth: CGFloat
         if let fraction = view.fraction {
             fillWidth = (track.width * CGFloat(fraction)).rounded()
@@ -25,7 +25,7 @@ package final class ProgressBarNode: LeafNode<_ProgressBar> {
         }
         guard fillWidth > 0 else { return }
         list.append(.fillRRect(CGRect(x: track.minX, y: track.minY, width: max(fillWidth, height), height: height), cornerRadius: height / 2,
-                               RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.progressFillAlpha)))
+                               environment._isDark ? PlatformMetrics.progressFillDark : environment._ink(PlatformMetrics.progressFillAlpha)))
     }
 }
 
@@ -41,7 +41,7 @@ package final class ProgressRingNode: LeafNode<_ProgressRing> {
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
-        let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        let ink = environment; let black = { (alpha: Double) in ink._ink(alpha) }
         if let fraction = view.fraction {
             let stroke = PlatformMetrics.progressRingStroke * view.diameter / PlatformMetrics.progressRingDiameter(.regular)
             let radius = view.diameter / 2 - stroke / 2

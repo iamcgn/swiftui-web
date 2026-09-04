@@ -179,6 +179,7 @@ final class Gallery {
         host!.mount(AnyView(
             instance.view
                 .frame(width: size.width, height: size.height)
+                .environment(\.colorScheme, fixture.colorScheme)
                 .coordinateSpace(name: fixtureRootSpace)
                 .onPreferenceChange(ProbeKey.self) { frames in
                     // Same probe path as the Apple harness; published for Playwright/tier-b.mjs.

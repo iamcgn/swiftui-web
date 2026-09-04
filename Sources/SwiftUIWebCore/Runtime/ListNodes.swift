@@ -208,7 +208,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         for (index, element) in elements.enumerated() where element.separator {
             if selected[index] || (index + 1 < elements.count && selected[index + 1]) { continue }
             let color = element.separatorTint?.resolve(in: environment)
-                ?? RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.listSeparatorAlpha)
+                ?? environment._ink(PlatformMetrics.listSeparatorAlpha)
             let x = element.contentFrame.minX
             let line = CGRect(x: x, y: element.frame.maxY - PlatformMetrics.listSeparatorThickness,
                               width: max(0, frame.width - profile.separatorTrailing - x), height: PlatformMetrics.listSeparatorThickness)
@@ -223,7 +223,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 // A focused list shows its selection in the accent colour.
                 let color = runtime.focusedIdentifier == identifier && runtime.focusVisible
                     ? Color.accentColor.opacity(PlatformMetrics.listFocusedSelectionAlpha).resolve(in: environment)
-                    : RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.listSelectionAlpha)
+                    : environment._ink(PlatformMetrics.listSelectionAlpha)
                 list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, color))
             }
             element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))

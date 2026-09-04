@@ -38,6 +38,9 @@ extension Runtime {
     public func render(scale: CGFloat = 2) -> DisplayList {
         var list = DisplayList()
         let context = PaintContext(origin: .zero, scale: scale)
+        if paintsWindowBackground {
+            list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: layoutSize)), rootEnvironment._windowBackground))
+        }
         for node in root.layoutChildren {
             node.paint(into: &list, context: context.child(at: node.presentedFrame))
         }

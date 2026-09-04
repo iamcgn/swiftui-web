@@ -73,7 +73,7 @@ package final class CheckboxNode: LeafNode<_CheckboxControl> {
         let fill = view.isOn
             ? (enabled ? PlatformMetrics.checkboxFillOn : PlatformMetrics.checkboxDisabledFillOn)
             : (enabled ? PlatformMetrics.checkboxFillOff : PlatformMetrics.checkboxDisabledFillOff)
-        list.append(.fillPath(Path(roundedRect: box, cornerRadius: PlatformMetrics.checkboxCornerRadius), RGBA(red: 0, green: 0, blue: 0, alpha: fill)))
+        list.append(.fillPath(Path(roundedRect: box, cornerRadius: PlatformMetrics.checkboxCornerRadius), environment._ink(fill)))
         guard view.isOn else { return }
         let s = box.width / PlatformMetrics.checkboxSize
         var mark = Path()
@@ -81,7 +81,7 @@ package final class CheckboxNode: LeafNode<_CheckboxControl> {
         mark.addLine(to: CGPoint(x: box.minX + 6.75 * s, y: box.minY + 11.5 * s))
         mark.addLine(to: CGPoint(x: box.minX + 11.75 * s, y: box.minY + 5 * s))
         let style = StrokeStyle(lineWidth: PlatformMetrics.checkMarkWidth * s, lineCap: .round, lineJoin: .round)
-        list.append(.strokePath(mark, style: style, RGBA(red: 0, green: 0, blue: 0, alpha: enabled ? PlatformMetrics.checkMarkAlpha : PlatformMetrics.checkMarkDisabledAlpha)))
+        list.append(.strokePath(mark, style: style, environment._ink(enabled ? PlatformMetrics.checkMarkAlpha : PlatformMetrics.checkMarkDisabledAlpha)))
     }
 }
 
@@ -97,11 +97,11 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
         let enabled = environment.isEnabled
         var fill = view.isOn ? PlatformMetrics.switchTrackOn : PlatformMetrics.switchTrackOff
         if !enabled { fill /= 2 }
-        list.append(.fillRRect(track, cornerRadius: track.height / 2, RGBA(red: 0, green: 0, blue: 0, alpha: fill)))
+        list.append(.fillRRect(track, cornerRadius: track.height / 2, environment._ink(fill)))
         let inset = context.round(view.small ? 1 : PlatformMetrics.switchKnobInset)
         let knobSize = view.small ? PlatformMetrics.formGroupedSwitchKnobSize : PlatformMetrics.switchKnobSize
         let knob = CGRect(x: view.isOn ? track.maxX - inset - knobSize.width : track.minX + inset,
                           y: track.minY + inset, width: knobSize.width, height: knobSize.height)
-        list.append(.fillRRect(knob, cornerRadius: knob.height / 2, RGBA(red: 1, green: 1, blue: 1, alpha: enabled ? 1 : 0.6)))
+        list.append(.fillRRect(knob, cornerRadius: knob.height / 2, environment._knob.multiplyingAlpha(by: enabled ? 1 : 0.6)))
     }
 }

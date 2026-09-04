@@ -99,10 +99,11 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         let enabled = environment.isEnabled
         if bezel != .plain {
             let outer = bounds.insetBy(dx: -PlatformMetrics.textFieldBorderWidth, dy: -PlatformMetrics.textFieldBorderWidth)
+            // Dark: a mid-grey ring at the same alpha over the opaque control background (dark/controls).
             list.append(.fillRRect(outer, cornerRadius: PlatformMetrics.textFieldCornerRadius + PlatformMetrics.textFieldBorderWidth,
-                                   RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.textFieldBorderAlpha)))
+                                   environment._isDark ? RGBA(r: 128, g: 128, b: 128, a: PlatformMetrics.textFieldBorderAlpha) : environment._ink(PlatformMetrics.textFieldBorderAlpha)))
             list.append(.fillRRect(bounds, cornerRadius: PlatformMetrics.textFieldCornerRadius,
-                                   RGBA(red: 1, green: 1, blue: 1, alpha: enabled ? 1 : PlatformMetrics.textFieldDisabledFillAlpha)))
+                                   environment._controlBackground.multiplyingAlpha(by: enabled || environment._isDark ? 1 : PlatformMetrics.textFieldDisabledFillAlpha)))
             if runtime.focusedTextFieldIdentifier == identifier {
                 let ring = bounds.insetBy(dx: -PlatformMetrics.focusRingWidth / 2, dy: -PlatformMetrics.focusRingWidth / 2)
                 list.append(.strokePath(Path(roundedRect: ring, cornerRadius: PlatformMetrics.textFieldCornerRadius + PlatformMetrics.focusRingWidth / 2, style: .circular),

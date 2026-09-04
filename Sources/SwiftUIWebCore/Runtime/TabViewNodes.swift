@@ -165,7 +165,7 @@ package final class TabViewNode: LayoutNode<_TabViewPrimitive>, _Interactive, _K
 
     // MARK: Painting
 
-    private func black(_ alpha: Double) -> RGBA { RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+    private func black(_ alpha: Double) -> RGBA { environment._ink(alpha) }
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)

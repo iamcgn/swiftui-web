@@ -30,6 +30,16 @@ public struct Fixture: Sendable {
     /// Names of the behaviour steps, in order; empty for layout-only fixtures.
     public let stepNames: [String]
     public let instantiate: @MainActor @Sendable () -> FixtureInstance
+    /// The appearance the fixture is rendered in (the harness sets the window's appearance and
+    /// the environment; the runtime sets its root environment).
+    public var colorScheme: ColorScheme = .light
+
+    /// The same fixture rendered in `scheme`.
+    public func colorScheme(_ scheme: ColorScheme) -> Fixture {
+        var copy = self
+        copy.colorScheme = scheme
+        return copy
+    }
 
     /// The root view of a fresh instance.
     public var content: @MainActor @Sendable () -> AnyView {

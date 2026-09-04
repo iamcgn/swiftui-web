@@ -196,7 +196,7 @@ public struct InsetListStyle: ListStyle {
     public var _profile: _ListProfile {
         _ListProfile(name: "inset", margin: PlatformMetrics.listInsetMargin, topInset: PlatformMetrics.listTopInset,
                      minimumRowHeight: PlatformMetrics.listRowMinimumHeight, rowFont: nil, rowForeground: nil,
-                     background: .white, borderColor: nil, showsSeparators: true,
+                     background: Color(storage: .system(.controlBackground)), borderColor: nil, showsSeparators: true,
                      separatorTrailing: PlatformMetrics.listInsetMargin, rowBackgroundExtendsToEdges: true)
     }
 }
@@ -207,7 +207,7 @@ public struct PlainListStyle: ListStyle {
     public var _profile: _ListProfile {
         _ListProfile(name: "plain", margin: PlatformMetrics.listPlainMargin, topInset: 0,
                      minimumRowHeight: PlatformMetrics.listRowMinimumHeight, rowFont: nil, rowForeground: nil,
-                     background: .white, borderColor: nil, showsSeparators: true, separatorTrailing: 0, rowBackgroundExtendsToEdges: true)
+                     background: Color(storage: .system(.controlBackground)), borderColor: nil, showsSeparators: true, separatorTrailing: 0, rowBackgroundExtendsToEdges: true)
     }
 }
 
@@ -217,7 +217,7 @@ public struct BorderedListStyle: ListStyle {
     public var _profile: _ListProfile {
         _ListProfile(name: "bordered", margin: PlatformMetrics.listBorderedMargin, topInset: PlatformMetrics.listBorderWidth,
                      minimumRowHeight: PlatformMetrics.listRowMinimumHeight, rowFont: nil, rowForeground: nil,
-                     background: .white, borderColor: PlatformMetrics.listBorderColor, showsSeparators: true,
+                     background: Color(storage: .system(.controlBackground)), borderColor: PlatformMetrics.listBorderColor, showsSeparators: true,
                      separatorTrailing: PlatformMetrics.listBorderedMargin, rowBackgroundExtendsToEdges: true)
     }
 }

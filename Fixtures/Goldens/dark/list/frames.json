@@ -1,0 +1,33 @@
+{
+  "fixture" : "dark\/list",
+  "frames" : {
+    "list" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 14
+    },
+    "row2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 38
+    },
+    "toggle" : {
+      "height" : 18.5,
+      "width" : 70,
+      "x" : 16,
+      "y" : 62
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

@@ -246,10 +246,10 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
         let pad = PlatformMetrics.formGroupedRowPadding
         for card in cards {
             list.append(.fillRRect(context.absoluteRect(card.frame), cornerRadius: PlatformMetrics.formGroupedCardCornerRadius,
-                                   RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.formGroupedCardFill)))
+                                   environment._ink(PlatformMetrics.formGroupedCardFill)))
             for cell in card.rowFrames.dropLast() {
                 let line = CGRect(x: cell.minX + pad, y: cell.maxY, width: cell.width - 2 * pad, height: PlatformMetrics.formGroupedSeparatorHeight)
-                list.append(.fillRect(context.absoluteRect(line), RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.formGroupedSeparatorAlpha)))
+                list.append(.fillRect(context.absoluteRect(line), environment._ink(PlatformMetrics.formGroupedSeparatorAlpha)))
             }
         }
         for child in paintedChildren { child.paint(into: &list, context: context.child(at: child.presentedFrame)) }

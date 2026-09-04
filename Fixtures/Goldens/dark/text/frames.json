@@ -1,0 +1,63 @@
+{
+  "fixture" : "dark\/text",
+  "frames" : {
+    "disabled" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 0,
+      "y" : 105
+    },
+    "divider" : {
+      "height" : 1,
+      "width" : 320,
+      "x" : 0,
+      "y" : 161
+    },
+    "link" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 0,
+      "y" : 133
+    },
+    "primary" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 0,
+      "y" : -7
+    },
+    "red" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 0,
+      "y" : 77
+    },
+    "secondary" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 0,
+      "y" : 21
+    },
+    "stack" : {
+      "height" : 214,
+      "width" : 320,
+      "x" : 0,
+      "y" : -7
+    },
+    "tertiary" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 0,
+      "y" : 49
+    },
+    "underlined" : {
+      "height" : 33,
+      "width" : 49,
+      "x" : 0,
+      "y" : 174
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

@@ -14,8 +14,8 @@ package enum PlatformMetrics {
     package static let buttonHorizontalPadding: CGFloat = 12
     package static let buttonLabelSize: CGFloat = 13              // label line is 16 pt: point-size metrics, not .body
     package static let buttonCornerRadius: CGFloat = 6
-    package static let buttonFill = Color(red: 0, green: 0, blue: 0, opacity: 19.0 / 255)
-    package static let buttonPressedFill = Color(red: 0, green: 0, blue: 0, opacity: 50.0 / 255)   // unverified
+    package static let buttonFill = Color(storage: .system(.controlInk), opacityMultiplier: 19.0 / 255)
+    package static let buttonPressedFill = Color(storage: .system(.controlInk), opacityMultiplier: 50.0 / 255)   // unverified
     /// A bordered button is its label plus 4 pt above and below (32 for a 24 pt Label, label/basic).
     package static let buttonVerticalPadding: CGFloat = 4
 
@@ -64,7 +64,7 @@ package enum PlatformMetrics {
     package static let listPlainMargin: CGFloat = 8
     package static let listBorderedMargin: CGFloat = 7
     package static let listBorderWidth: CGFloat = 1
-    package static let listBorderColor = Color(red: 0, green: 0, blue: 0, opacity: 63.0 / 255)
+    package static let listBorderColor = Color(storage: .system(.controlInk), opacityMultiplier: 63.0 / 255)
     package static let listTopInset: CGFloat = 10
     package static let listRowVerticalInset: CGFloat = 4
     package static let listRowMinimumHeight: CGFloat = 24
@@ -215,6 +215,7 @@ package enum PlatformMetrics {
     package static let progressBarIdealWidth: CGFloat = 100                  // unverified: no fixture proposes nothing
     package static let progressTrackAlpha = 15.0 / 255
     package static let progressFillAlpha = 85.0 / 255
+    package static let progressFillDark = RGBA(r: 170, g: 170, b: 170)                          // opaque in the dark appearance (dark/controls)
     package static let progressIndeterminateSegment: CGFloat = 8
     package static let progressRingStroke: CGFloat = 5
     package static let progressRingTrackAlpha = 13.0 / 255

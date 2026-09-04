@@ -203,7 +203,7 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
         let bezel = context.absoluteRect(self.bezel)
         let outer = bezel.insetBy(dx: -PlatformMetrics.textFieldBorderWidth, dy: -PlatformMetrics.textFieldBorderWidth)
         list.append(.fillRRect(outer, cornerRadius: PlatformMetrics.textFieldCornerRadius + PlatformMetrics.textFieldBorderWidth, black(PlatformMetrics.dateFieldBorderAlpha)))
-        list.append(.fillRRect(bezel, cornerRadius: PlatformMetrics.textFieldCornerRadius, RGBA(red: 1, green: 1, blue: 1, alpha: 1)))
+        list.append(.fillRRect(bezel, cornerRadius: PlatformMetrics.textFieldCornerRadius, environment._controlBackground))
         let focused = runtime.focusedIdentifier == identifier
         if focused {
             let ring = outer.insetBy(dx: -PlatformMetrics.focusRingWidth / 2, dy: -PlatformMetrics.focusRingWidth / 2)

@@ -24,6 +24,15 @@ public struct Color: Hashable, Sendable {
         case white, gray, black, clear, primary, secondary, accentColor
         /// The colour of links (`Link`): the fixed blue macOS uses, not the accent.
         case link
+        /// The ink controls are drawn with, at an alpha: black in the light appearance, white in
+        /// the dark one (button fills, tracks, separators; Docs/elements/DarkMode.md).
+        case controlInk
+        /// The window's background (`windowBackgroundColor`).
+        case windowBackground
+        /// The background of text fields, lists and tables (`controlBackgroundColor`).
+        case controlBackground
+        /// Switch and slider knobs.
+        case knob
     }
 
     package let storage: Storage

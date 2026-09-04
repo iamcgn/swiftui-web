@@ -36,13 +36,13 @@ final class FrameHost {
     private let hosting: NSHostingView<AnyView>
     private let window: NSWindow
 
-    init<V: View>(_ view: V, size: CGSize) {
+    init<V: View>(_ view: V, size: CGSize, colorScheme: ColorScheme = .light) {
         let collector = collector
         let root = view
             .coordinateSpace(name: fixtureRootSpace)
             .onPreferenceChange(ProbeKey.self) { collector.frames = $0 }
             .environment(\.locale, Locale(identifier: "en_US"))
-            .environment(\.colorScheme, .light)
+            .environment(\.colorScheme, colorScheme)
             .dynamicTypeSize(.large)
             .transaction { $0.animation = nil }
             // A CLI process never becomes active, so the offscreen window is never key; controls
@@ -52,6 +52,8 @@ final class FrameHost {
         hosting = NSHostingView(rootView: AnyView(root))
         hosting.frame = CGRect(origin: .zero, size: size)
         window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        // AppKit-backed controls follow the window's appearance, not the environment.
+        window.appearance = NSAppearance(named: colorScheme == .dark ? .darkAqua : .aqua)
         window.contentView = hosting
     }
 
@@ -273,8 +275,9 @@ func generate(_ fixture: Fixture, into root: URL) throws {
     try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
     // One hosted instance gives frames and pixels, before and after every behaviour step.
+    FixtureAssets.appearance = fixture.colorScheme == .dark ? "dark" : "light"
     let instance = fixture.instantiate()
-    let host = FrameHost(instance.view.frame(width: fixture.size.width, height: fixture.size.height), size: fixture.size)
+    let host = FrameHost(instance.view.frame(width: fixture.size.width, height: fixture.size.height), size: fixture.size, colorScheme: fixture.colorScheme)
     let initialFrames = host.frames()
     let image = try host.png(scale: 2)
     try image.data.write(to: dir.appendingPathComponent("image@2x.png"))

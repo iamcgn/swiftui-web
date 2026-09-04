@@ -9,7 +9,7 @@
 import AppKit
 import SwiftUI
 
-enum FixtureAssets {
+public enum FixtureAssets {
     struct ImageVariant {
         let url: URL
         let scale: CGFloat
@@ -104,9 +104,13 @@ enum FixtureAssets {
 
     /// The variant macOS would use in the light appearance at the given scale: mac idiom before
     /// universal, light or any appearance, the exact scale or else the largest one.
+    /// The appearance variants are selected for: GoldenGen sets it from the fixture's colour scheme.
+    public static var appearance = "light"
+
     private static func select<T>(_ variants: [T], idiom: (T) -> String, appearance: (T) -> String, scale: (T) -> CGFloat, wanted: CGFloat) -> T? {
         let byIdiom = variants.filter { idiom($0) == "mac" }.isEmpty ? variants.filter { idiom($0) == "universal" } : variants.filter { idiom($0) == "mac" }
-        let byAppearance = byIdiom.filter { appearance($0) == "light" }.isEmpty ? byIdiom.filter { appearance($0) == "any" } : byIdiom.filter { appearance($0) == "light" }
+        let wantedAppearance = Self.appearance
+        let byAppearance = byIdiom.filter { appearance($0) == wantedAppearance }.isEmpty ? byIdiom.filter { appearance($0) == "any" } : byIdiom.filter { appearance($0) == wantedAppearance }
         return byAppearance.first { scale($0) == wanted } ?? byAppearance.max { scale($0) < scale($1) }
     }
 

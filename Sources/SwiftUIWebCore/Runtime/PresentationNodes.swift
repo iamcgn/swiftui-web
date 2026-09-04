@@ -114,15 +114,16 @@ package final class PresentationNode: ViewNode {
     // MARK: Painting
 
     package func paintPresentation(into list: inout DisplayList, context: PaintContext) {
-        let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        // The dim is always black; the panel, its shadow and border follow the appearance (unverified in dark).
+        let black = { (alpha: Double) in self.environment._ink(alpha) }
         if isModal {
-            list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: runtime.layoutSize)), black(PlatformMetrics.presentationDimAlpha)))
+            list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: runtime.layoutSize)), RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.presentationDimAlpha)))
         }
         let rect = context.absoluteRect(panel)
         let radius = kind.isMenu ? PlatformMetrics.menuCornerRadius : PlatformMetrics.presentationCornerRadius
         // A soft shadow ring, then the panel and its border.
         list.append(.fillRRect(rect.insetBy(dx: -2, dy: -2), cornerRadius: radius + 2, black(PlatformMetrics.presentationShadowAlpha)))
-        list.append(.fillRRect(rect, cornerRadius: radius, RGBA(red: 1, green: 1, blue: 1, alpha: 1)))
+        list.append(.fillRRect(rect, cornerRadius: radius, environment._windowBackground))
         list.append(.strokePath(Path(roundedRect: rect.insetBy(dx: 0.5, dy: 0.5), cornerRadius: radius),
                                 style: StrokeStyle(lineWidth: 1), black(PlatformMetrics.presentationBorderAlpha)))
         if let arrow {
@@ -137,7 +138,7 @@ package final class PresentationNode: ViewNode {
             case .trailing: path.addLine(to: CGPoint(x: tip.x - h, y: tip.y - w)); path.addLine(to: CGPoint(x: tip.x - h, y: tip.y + w))
             }
             path.closeSubpath()
-            list.append(.fillPath(path, RGBA(red: 1, green: 1, blue: 1, alpha: 1)))
+            list.append(.fillPath(path, environment._windowBackground))
         }
         if let highlightedIndex, kind.isMenu {
             let rows = interactiveNodes

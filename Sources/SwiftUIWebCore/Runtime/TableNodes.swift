@@ -150,8 +150,8 @@ package final class TableNode: LayoutNode<_TableHost>, _Interactive, _KeyHandlin
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
-        let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
-        list.append(.fillRect(bounds, RGBA(red: 1, green: 1, blue: 1, alpha: 1)))
+        let ink = environment; let black = { (alpha: Double) in ink._ink(alpha) }
+        list.append(.fillRect(bounds, environment._controlBackground))
         // Row bands: every second slot to the bottom, and the selected rows.
         let bandInset = PlatformMetrics.tableBandInset
         var index = 0

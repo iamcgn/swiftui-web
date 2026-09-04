@@ -41,6 +41,22 @@ public final class Runtime {
     /// The last `navigationTitle` applied in the tree, for hosts (window or document title).
     public internal(set) var navigationTitle: String?
 
+    /// The system appearance, set by hosts; the root environment follows it unless the tree
+    /// prefers one (`preferredColorScheme`).
+    public var hostColorScheme: ColorScheme = .light {
+        didSet { if hostColorScheme != oldValue { requestLayout() } }
+    }
+    /// The `preferredColorScheme` in the tree, if any.
+    package var preferredColorScheme: ColorScheme? {
+        didSet { if preferredColorScheme != oldValue { requestLayout() } }
+    }
+    /// The scheme the window shows: the preferred one, else the host's. Hosts paint their
+    /// background with it (`paintsWindowBackground`).
+    public var effectiveColorScheme: ColorScheme { rootEnvironment.colorScheme }
+    /// Whether `render` starts with the window background (hosts: yes; fixtures and tests: no,
+    /// their goldens are transparent).
+    public var paintsWindowBackground = false
+
     // Animation (Runtime/AnimationNodes.swift)
     /// Seconds of animation time, advanced by hosts through `advanceAnimations(elapsed:)`.
     package var animationClock: Double = 0
@@ -77,7 +93,20 @@ public final class Runtime {
         var environment = environment
         environment[AssetStoreKey.self] = assetStore
         self.rootEnvironment = environment
+        hostColorScheme = environment.colorScheme
         self.root = RootNode(runtime: self, environment: environment)
+    }
+
+    /// Moves the root environment to the effective scheme when it changed, re-applying the
+    /// root view so every node resolves its colours again.
+    private func applyColorScheme() {
+        let effective = preferredColorScheme ?? hostColorScheme
+        guard effective != rootEnvironment.colorScheme else { return }
+        rootEnvironment.colorScheme = effective
+        root.environment = rootEnvironment
+        root.reapply?(rootEnvironment)
+        sizesInvalidated = true
+        layoutGeneration += 1
     }
 
     /// Asks the host for another frame without a state change (an image finished loading).
@@ -168,6 +197,7 @@ public final class Runtime {
         }
         scrolledNodes.removeAll()
         flush()
+        applyColorScheme()
         layoutRequested = false
         // The generation keys every node's size memo: a frame that only scrolled keeps it.
         if sizesInvalidated { layoutGeneration += 1 }
@@ -202,6 +232,8 @@ public final class Runtime {
 @MainActor
 package final class RootNode: ViewNode {
     package private(set) var child: ViewNode?
+    /// Re-applies the mounted view under a new root environment (a colour scheme change).
+    package private(set) var reapply: ((EnvironmentValues) -> Void)?
 
     package init(runtime: Runtime, environment: EnvironmentValues) {
         super.init(parent: nil, runtime: runtime, environment: environment)
@@ -210,11 +242,13 @@ package final class RootNode: ViewNode {
     fileprivate func mount<V: View>(_ view: V) -> TypedNode<V> {
         if let existing = child as? TypedNode<V> {
             existing.update(view: view, environment: environment)
+            reapply = { [weak existing] environment in existing?.update(view: view, environment: environment, force: true) }
             return existing
         }
         child?.unmount()
         let node = V._makeNode(_NodeContext(view: view, parent: self, environment: environment))
         child = node
+        reapply = { [weak node] environment in node?.update(view: view, environment: environment, force: true) }
         return node
     }
 

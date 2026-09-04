@@ -278,7 +278,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         }
     }
 
-    private func black(_ alpha: Double) -> RGBA { RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+    private func black(_ alpha: Double) -> RGBA { environment._ink(alpha) }
 
     private func paintPopUp(into list: inout DisplayList, context: PaintContext) {
         let control = context.absoluteRect(controlFrame)
@@ -439,7 +439,7 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
         let enabled = environment.isEnabled
         let trackY = bounds.minY + (bounds.height - PlatformMetrics.sliderTrackHeight) / 2
         let track = CGRect(x: bounds.minX, y: trackY, width: bounds.width, height: PlatformMetrics.sliderTrackHeight)
-        let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        let ink = environment; let black = { (alpha: Double) in ink._ink(alpha) }
         list.append(.fillRRect(track, cornerRadius: track.height / 2, black(PlatformMetrics.sliderTrackAlpha)))
         let knobX = bounds.minX + knobCenterX
         let filled = CGRect(x: track.minX, y: track.minY, width: max(0, knobX - track.minX), height: track.height)
@@ -462,7 +462,7 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
         if enabled {
             list.append(.fillRRect(knob.insetBy(dx: -1, dy: -1), cornerRadius: knob.height / 2 + 1, black(PlatformMetrics.sliderKnobShadowAlpha)))
         }
-        list.append(.fillRRect(knob, cornerRadius: knob.height / 2, RGBA(red: 1, green: 1, blue: 1, alpha: 1)))
+        list.append(.fillRRect(knob, cornerRadius: knob.height / 2, environment._knob))
     }
 
     // MARK: Interaction
@@ -543,7 +543,7 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
         let enabled = environment.isEnabled
-        let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        let ink = environment; let black = { (alpha: Double) in ink._ink(alpha) }
         list.append(.fillRRect(bounds, cornerRadius: PlatformMetrics.stepperCornerRadius,
                                black(enabled ? PlatformMetrics.stepperFill : PlatformMetrics.stepperDisabledFill)))
         let divider = CGRect(x: bounds.minX + PlatformMetrics.stepperDividerInset, y: context.round(bounds.midY),

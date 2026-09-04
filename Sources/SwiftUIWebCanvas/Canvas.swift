@@ -94,6 +94,20 @@ public final class CanvasHost {
         }
         closures.append(imageLoaded)
         _ = bridge.setImageLoadHandler!(imageLoaded)
+        // The window background and the system appearance, now and when it changes.
+        runtime.paintsWindowBackground = true
+        if let media = window.matchMedia?("(prefers-color-scheme: dark)").object {
+            runtime.hostColorScheme = (media.matches.boolean ?? false) ? .dark : .light
+            let listener = JSClosure { [weak self] arguments in
+                MainActor.assumeIsolated {
+                    self?.runtime.hostColorScheme = (arguments.first?.matches.boolean ?? false) ? .dark : .light
+                    self?.scheduleFrame()
+                }
+                return .undefined
+            }
+            _ = media.addEventListener?("change", listener)
+            closures.append(listener)
+        }
         installEventHandlers()
         resize()
         installDebugBridge()

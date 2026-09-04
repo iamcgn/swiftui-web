@@ -479,6 +479,6 @@ package final class DividerNode: LeafNode<Divider> {
         let bounds = absoluteBounds(context)
         let line = CGRect(x: bounds.minX + PlatformMetrics.menuSeparatorInset, y: context.round(bounds.midY - PlatformMetrics.dividerThickness / 2),
                           width: max(0, bounds.width - 2 * PlatformMetrics.menuSeparatorInset), height: PlatformMetrics.dividerThickness)
-        list.append(.fillRect(line, RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.menuSeparatorAlpha)))
+        list.append(.fillRect(line, environment._ink(PlatformMetrics.menuSeparatorAlpha)))
     }
 }

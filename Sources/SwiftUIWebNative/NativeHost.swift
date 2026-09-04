@@ -13,7 +13,11 @@ import SwiftUIWebHeadless
 /// an asset manifest (images relative to its directory), `SWIFTUIWEB_SIZE=WxH` sets the window.
 @MainActor
 public final class NativeHost: NSObject, NSApplicationDelegate {
-    public let runtime = Runtime()
+    public let runtime: Runtime = {
+        let runtime = Runtime()
+        runtime.paintsWindowBackground = true
+        return runtime
+    }()
     public let textEngine = CoreTextEngine()
     public let painter: CoreGraphicsPainter
     private let root: @MainActor () -> AnyView
@@ -166,8 +170,8 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
 
     override public func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
-        NSColor.white.setFill()
-        bounds.fill()
+        // The window follows the system appearance; the runtime paints the background.
+        host.runtime.hostColorScheme = effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .dark : .light
         host.paintFrame(into: ctx, size: bounds.size) { [weak self] title in self?.window?.title = title }
         drawCaret(in: ctx)
     }
