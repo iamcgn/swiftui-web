@@ -330,6 +330,12 @@
       "lastBaseline" : 14,
       "width" : 9
     },
+    "style:body||Accent" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 42.5
+    },
     "style:body||Account" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -762,6 +768,12 @@
       "lastBaseline" : 14,
       "width" : 30
     },
+    "style:body||Tint" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 23.5
+    },
     "style:body||Title" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -868,6 +880,12 @@
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
+      "width" : 0
+    },
+    "style:body|0.0|Accent" : {
+      "firstBaseline" : 14,
+      "height" : 113.5,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "style:body|0.0|Account" : {
@@ -1297,6 +1315,12 @@
       "width" : 0
     },
     "style:body|0.0|Time" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
+    "style:body|0.0|Tint" : {
       "firstBaseline" : 14,
       "height" : 75.5,
       "lastBaseline" : 71,
@@ -9216,6 +9240,12 @@
       "lastBaseline" : 13,
       "width" : 38.5
     },
+    "system:13:400:default||Accent" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 42.5
+    },
     "system:13:400:default||Account" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10266,6 +10296,12 @@
       "lastBaseline" : 13,
       "width" : 30
     },
+    "system:13:400:default||Tint" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 23.5
+    },
     "system:13:400:default||Tinted" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10672,6 +10708,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Accent" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|0.0|Account" : {
@@ -11719,6 +11761,12 @@
       "width" : 0
     },
     "system:13:400:default|0.0|Time" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Tint" : {
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,

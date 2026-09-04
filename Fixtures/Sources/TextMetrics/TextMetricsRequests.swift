@@ -375,6 +375,11 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(word, defaultFont(weight: "bold")))
         }
         requests.append(TextMetricRequest("Empty", defaultFont(weight: "bold")))
+        // ColorPicker fixtures: labels.
+        for word in ["Accent", "Tint"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+            requests.append(TextMetricRequest(word, .style("body")))
+        }
         for word in ["Red", "Yellow", "40"] { requests.append(TextMetricRequest(word, defaultFont)) }
         requests.append(TextMetricRequest("Details", .style("body")))
         requests.append(TextMetricRequest("Outer", .style("body")))

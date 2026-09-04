@@ -168,6 +168,8 @@ public struct _FormColumnsLayout: Layout {
 public enum _FormRowMode: Sendable {
     /// Label, 8 pt, control; both centred vertically and snapped to the pixel grid (Stepper).
     case centered
+    /// Label, 8 pt, control; both centred vertically at fractional points (ColorPicker).
+    case centeredFractional
     /// Label, 8 pt, control; the label's baseline on the control's first text baseline (TextField).
     case firstTextBaseline
     /// The macOS form slider row: a 16 pt label 7 pt down, the track 1 pt down, 23 pt tall.

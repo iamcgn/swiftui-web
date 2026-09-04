@@ -1,0 +1,39 @@
+{
+  "fixture" : "colorpicker\/steps",
+  "frames" : {
+    "picker" : {
+      "height" : 24,
+      "width" : 98.5,
+      "x" : 70.75,
+      "y" : 38
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 240
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "picker" : {
+          "height" : 24,
+          "width" : 98.5,
+          "x" : 70.75,
+          "y" : 38
+        }
+      },
+      "name" : "blue"
+    },
+    {
+      "frames" : {
+        "picker" : {
+          "height" : 24,
+          "width" : 98.5,
+          "x" : 70.75,
+          "y" : 38
+        }
+      },
+      "name" : "clear"
+    }
+  ]
+}

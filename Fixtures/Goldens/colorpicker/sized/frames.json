@@ -1,0 +1,33 @@
+{
+  "fixture" : "colorpicker\/sized",
+  "frames" : {
+    "leading" : {
+      "height" : 24,
+      "width" : 98.5,
+      "x" : 0,
+      "y" : 106
+    },
+    "spaced" : {
+      "height" : 24,
+      "width" : 320,
+      "x" : 0,
+      "y" : 106
+    },
+    "stack" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 70
+    },
+    "wide" : {
+      "height" : 24,
+      "width" : 240,
+      "x" : 0,
+      "y" : 70
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

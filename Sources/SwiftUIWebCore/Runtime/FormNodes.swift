@@ -55,7 +55,7 @@ package final class FormLabeledRowNode: LayoutNode<_FormLabeledRow> {
         let contentProposal = ProposedViewSize(width: proposal.width.map { max(0, $0 - labelWidth) }, height: nil)
         let contentSize = contentTarget?.sizeThatFits(contentProposal) ?? .zero
         switch view.mode {
-        case .centered:
+        case .centered, .centeredFractional:
             let height = max(labelSize.height, contentSize.height)
             return Plan(labelSize: labelSize, contentSize: contentSize, contentProposal: contentProposal,
                         labelOrigin: CGPoint(x: 0, y: (height - labelSize.height) / 2),

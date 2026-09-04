@@ -362,6 +362,18 @@ package enum PlatformMetrics {
     package static let tableChevronStroke: CGFloat = 1.5
     package static let tableIdealSize = CGSize(width: 300, height: 200)     // unverified
 
+    // ColorPicker (macOS 26.2: fixtures colorpicker/*, Docs/elements/ColorPicker.md)
+    package static let colorWellSize = CGSize(width: 48, height: 24)
+    package static let colorWellCornerRadius: CGFloat = 11
+    package static let colorWellAlpha = 25.0 / 255                          // the well's grey (230)
+    package static let colorWellSwatchInset: CGFloat = 3                    // 42 × 18, concentric corners
+    package static let colorWellStrokeAlpha = 0.1                           // the 0.5 pt inner stroke
+    package static let colorWellTopShadeAlpha = 0.15                        // the extra shade along the swatch's top
+    package static let colorWellDisabledOpacity = 0.5
+    package static let colorWellBaseline: CGFloat = 22.5                    // the label sits 1.5 pt above the well's bottom in a form
+    package static let colorPanelSwatchSize: CGFloat = 22                   // unverified: the popover cannot be captured
+    package static let colorPanelSwatchSpacing: CGFloat = 6
+
     // NavigationSplitView (macOS 26.2: fixtures splitview/*, Docs/elements/NavigationSplitView.md)
     package static let sidebarDefaultWidth: CGFloat = 140                // the panel; the column is 8 wider
     package static let splitContentDefaultWidth: CGFloat = 200

@@ -1,0 +1,45 @@
+{
+  "fixture" : "colorpicker\/basic",
+  "frames" : {
+    "disabled" : {
+      "height" : 24,
+      "width" : 98.5,
+      "x" : 110.75,
+      "y" : 170
+    },
+    "hidden" : {
+      "height" : 24,
+      "width" : 48,
+      "x" : 110.75,
+      "y" : 134
+    },
+    "opaque" : {
+      "height" : 24,
+      "width" : 79.5,
+      "x" : 110.75,
+      "y" : 62
+    },
+    "red" : {
+      "height" : 24,
+      "width" : 98.5,
+      "x" : 110.75,
+      "y" : 26
+    },
+    "stack" : {
+      "height" : 168,
+      "width" : 98.5,
+      "x" : 110.75,
+      "y" : 26
+    },
+    "translucent" : {
+      "height" : 24,
+      "width" : 98.5,
+      "x" : 110.75,
+      "y" : 98
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 320
+  }
+}
