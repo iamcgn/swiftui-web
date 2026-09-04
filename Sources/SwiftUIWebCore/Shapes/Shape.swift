@@ -282,6 +282,10 @@ extension _ShapeView: ShapeView, _ShapePainting {
     package func _shapeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { shape.sizeThatFits(proposal) }
 
     package func _paintShape(in bounds: CGRect, environment: EnvironmentValues, into list: inout DisplayList) {
+        if let gradient = style as? any _GradientStyle {
+            list.append(.fillGradient(_localPath(shape, in: bounds), gradient._resolveGradient(in: bounds, environment: environment)))
+            return
+        }
         let color = style.resolveColor(in: environment)
         guard color.alpha > 0 else { return }
         list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: FillStyle()))
@@ -311,6 +315,10 @@ extension FillShapeView: ShapeView, _ShapePainting {
 
     package func _paintShape(in bounds: CGRect, environment: EnvironmentValues, into list: inout DisplayList) {
         _paintBackground(background, in: bounds, environment: environment, into: &list)
+        if let gradient = style as? any _GradientStyle {
+            list.append(.fillGradient(_localPath(shape, in: bounds), gradient._resolveGradient(in: bounds, environment: environment), eoFill: fillStyle.isEOFilled))
+            return
+        }
         let color = style.resolveColor(in: environment)
         guard color.alpha > 0 else { return }
         list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: fillStyle))
@@ -342,8 +350,13 @@ extension StrokeShapeView: ShapeView, _ShapePainting {
 
     package func _paintShape(in bounds: CGRect, environment: EnvironmentValues, into list: inout DisplayList) {
         _paintBackground(background, in: bounds, environment: environment, into: &list)
+        guard strokeStyle.lineWidth > 0 else { return }
+        if let gradient = style as? any _GradientStyle {
+            list.append(.strokeGradient(_localPath(shape, in: bounds), style: strokeStyle, gradient._resolveGradient(in: bounds, environment: environment)))
+            return
+        }
         let color = style.resolveColor(in: environment)
-        guard color.alpha > 0, strokeStyle.lineWidth > 0 else { return }
+        guard color.alpha > 0 else { return }
         list.append(.strokePath(_localPath(shape, in: bounds), style: strokeStyle, color))
     }
 }
@@ -375,8 +388,13 @@ extension StrokeBorderShapeView: ShapeView, _ShapePainting {
 
     package func _paintShape(in bounds: CGRect, environment: EnvironmentValues, into list: inout DisplayList) {
         _paintBackground(background, in: bounds, environment: environment, into: &list)
+        guard strokeStyle.lineWidth > 0 else { return }
+        if let gradient = style as? any _GradientStyle {
+            list.append(.strokeGradient(_localPath(shape.inset(by: strokeStyle.lineWidth / 2), in: bounds), style: strokeStyle, gradient._resolveGradient(in: bounds, environment: environment)))
+            return
+        }
         let color = style.resolveColor(in: environment)
-        guard color.alpha > 0, strokeStyle.lineWidth > 0 else { return }
+        guard color.alpha > 0 else { return }
         list.append(.strokePath(_localPath(shape.inset(by: strokeStyle.lineWidth / 2), in: bounds), style: strokeStyle, color))
     }
 }

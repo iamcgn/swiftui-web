@@ -13,6 +13,9 @@ public enum DisplayOp: Double, Sendable {
     case drawImage = 13
     /// a, b, c, d, tx, ty
     case concat = 14
+    /// fillGradient: path, gradient, eoFill. strokeGradient: path, stroke style (as strokePath), gradient.
+    /// A gradient is: kind (0 linear x0,y0,x1,y1; 1 radial cx,cy,r0,r1; 2 angular cx,cy,angle), stop count, stops (location, colour).
+    case fillGradient = 15, strokeGradient = 16
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -54,8 +57,24 @@ public enum DisplayListEncoder {
                 }
             }
         }
+        func gradient(_ g: DisplayGradient) {
+            switch g.kind {
+            case .linear(let start, let end): out.ops += [0, start.x, start.y, end.x, end.y]
+            case .radial(let center, let r0, let r1): out.ops += [1, center.x, center.y, r0, r1]
+            case .angular(let center, let angle): out.ops += [2, center.x, center.y, angle]
+            }
+            out.ops.append(Double(g.stops.count))
+            for stop in g.stops { out.ops.append(stop.location); color(stop.color) }
+        }
+        func strokeStyle(_ style: StrokeStyle) {
+            out.ops += [style.lineWidth, Double(style.lineCap.rawValue), Double(style.lineJoin.rawValue), style.miterLimit, Double(style.dash.count)]
+            out.ops += style.dash.map { Double($0) }
+            out.ops.append(style.dashPhase)
+        }
         for command in list.commands {
             switch command {
+            case .fillGradient(let p, let g, let eo): out.ops.append(DisplayOp.fillGradient.rawValue); path(p); gradient(g); out.ops.append(eo ? 1 : 0)
+            case .strokeGradient(let p, let style, let g): out.ops.append(DisplayOp.strokeGradient.rawValue); path(p); strokeStyle(style); gradient(g)
             case .save: out.ops.append(DisplayOp.save.rawValue)
             case .restore: out.ops.append(DisplayOp.restore.rawValue)
             case .clipRect(let r): out.ops.append(DisplayOp.clipRect.rawValue); rect(r)
@@ -130,6 +149,14 @@ public enum DisplayListDecoder {
             return parts.joined(separator: " ")
         }
         func f(_ r: CGRect) -> String { "\(r.minX),\(r.minY),\(r.width),\(r.height)" }
+        func gradientText() -> String {
+            let kind = Int(next())
+            let params = kind == 2 ? 3 : 4
+            let numbers = (0..<params).map { _ in next() }
+            let count = Int(next())
+            let stops = (0..<count).map { _ in "\(next()):\(color())" }
+            return "\(["linear", "radial", "angular"][kind]) \(numbers) [\(stops.joined(separator: " "))]"
+        }
         while i < ops.count {
             switch DisplayOp(rawValue: next())! {
             case .save: out.append("save")
@@ -140,6 +167,13 @@ public enum DisplayListDecoder {
             case .beginGroup: out.append("beginGroup \(next())")
             case .endGroup: out.append("endGroup")
             case .concat: out.append("concat \(next()),\(next()),\(next()),\(next()),\(next()),\(next())")
+            case .fillGradient:
+                let p = path(); let g = gradientText(); out.append("fillGradient \(p) \(g)\(next() == 1 ? " eo" : "")")
+            case .strokeGradient:
+                let p = path()
+                let width = next(); _ = next(); _ = next(); _ = next()
+                let dashes = (0..<Int(next())).map { _ in next() }; _ = next(); _ = dashes
+                let g = gradientText(); out.append("strokeGradient \(p) w\(width) \(g)")
             case .fillRect: out.append("fillRect \(f(rect())) \(color())")
             case .fillRRect: let r = rect(); out.append("fillRRect \(f(r)) r\(next()) \(color())")
             case .fillPath: let p = path(); let c = color(); out.append("fillPath \(p) \(c)\(next() == 1 ? " eo" : "")")

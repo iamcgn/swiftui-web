@@ -84,6 +84,9 @@ public enum DisplayCommand: Equatable, Sendable {
     case fillRRect(CGRect, cornerRadius: CGFloat, RGBA)
     case fillPath(Path, RGBA, eoFill: Bool = false)
     case strokePath(Path, style: StrokeStyle, RGBA)
+    /// Fills and strokes with a gradient (absolute coordinates).
+    case fillGradient(Path, DisplayGradient, eoFill: Bool = false)
+    case strokeGradient(Path, style: StrokeStyle, DisplayGradient)
     /// Draws one line of text with its baseline at `origin.y`.
     case drawText(String, DisplayFont, origin: CGPoint, RGBA)
     case drawImage(ImageDraw)
@@ -131,6 +134,8 @@ extension DisplayCommand: CustomStringConvertible {
         case .fillRect(let rect, let color): return "fillRect\(r(rect)) \(c(color))"
         case .fillRRect(let rect, let radius, let color): return "fillRRect\(r(rect)) r=\(f(radius)) \(c(color))"
         case .fillPath(let path, let color, let eo): return "fillPath(\(path.elements.count) elements)\(eo ? " eo" : "") \(c(color))"
+        case .fillGradient(let path, let gradient, let eo): return "fillGradient(\(path.elements.count) elements)\(eo ? " eo" : "") \(gradient.summary)"
+        case .strokeGradient(let path, let style, let gradient): return "strokeGradient(\(path.elements.count) elements) w=\(f(style.lineWidth)) \(gradient.summary)"
         case .strokePath(let path, let style, let color):
             var text = "strokePath(\(path.elements.count) elements) w=\(f(style.lineWidth))"
             if style.lineCap != .butt { text += " cap=\(style.lineCap == .round ? "round" : "square")" }
@@ -154,5 +159,20 @@ extension DisplayCommand: CustomStringConvertible {
 extension String {
     fileprivate func leftPadded(_ width: Int) -> String {
         count >= width ? self : String(repeating: "0", count: width - count) + self
+    }
+}
+
+extension DisplayGradient {
+    /// A short description for logs and tests.
+    package var summary: String {
+        func p(_ point: CGPoint) -> String { "\(point.x),\(point.y)" }
+        let kindText: String
+        switch kind {
+        case .linear(let start, let end): kindText = "linear \(p(start))→\(p(end))"
+        case .radial(let center, let r0, let r1): kindText = "radial \(p(center)) r\(r0)→\(r1)"
+        case .angular(let center, let angle): kindText = "angular \(p(center)) a\(angle)"
+        }
+        let stopsText = stops.map { "\($0.location):\(String(format: "%02X%02X%02X", Int(($0.color.red * 255).rounded()), Int(($0.color.green * 255).rounded()), Int(($0.color.blue * 255).rounded())))" }.joined(separator: " ")
+        return "\(kindText) [\(stopsText)]"
     }
 }

@@ -112,8 +112,43 @@ package func _exp(_ x: Double) -> Double {
     while count < 0 { scale /= 2; count += 1 }
     return sum * scale
 }
+/// Natural logarithm by range reduction (x = m·2^k, m in [0.5, 1)) and the atanh series.
+package func _log(_ x: Double) -> Double {
+    if x <= 0 { return x == 0 ? -.infinity : .nan }
+    var m = x
+    var k = 0
+    while m >= 1 { m /= 2; k += 1 }
+    while m < 0.5 { m *= 2; k -= 1 }
+    let y = (m - 1) / (m + 1)
+    let y2 = y * y
+    var term = y, sum = 0.0
+    for n in stride(from: 1, through: 41, by: 2) {
+        sum += term / Double(n)
+        term *= y2
+    }
+    return 2 * sum + Double(k) * 0.6931471805599453
+}
+
+/// x to the power y for positive x.
+package func _pow(_ x: Double, _ y: Double) -> Double {
+    if x <= 0 { return x == 0 ? (y == 0 ? 1 : 0) : .nan }
+    return _exp(y * _log(x))
+}
+
+/// Cube root by Newton's method (signed).
+package func _cbrt(_ x: Double) -> Double {
+    if x == 0 { return 0 }
+    let sign: Double = x < 0 ? -1 : 1
+    let a = abs(x)
+    var r = _exp(_log(a) / 3)
+    for _ in 0..<3 { r = r - (r * r * r - a) / (3 * r * r) }
+    return sign * r
+}
 #else
 @inline(__always) package func _cos(_ x: Double) -> Double { cos(x) }
+@inline(__always) package func _log(_ x: Double) -> Double { log(x) }
+@inline(__always) package func _pow(_ x: Double, _ y: Double) -> Double { pow(x, y) }
+@inline(__always) package func _cbrt(_ x: Double) -> Double { cbrt(x) }
 @inline(__always) package func _sin(_ x: Double) -> Double { sin(x) }
 @inline(__always) package func _tan(_ x: Double) -> Double { tan(x) }
 @inline(__always) package func _atan2(_ y: Double, _ x: Double) -> Double { atan2(y, x) }

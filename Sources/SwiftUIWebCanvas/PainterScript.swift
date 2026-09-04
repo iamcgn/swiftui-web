@@ -103,6 +103,16 @@ enum PainterScript {
         }
         ctx.imageSmoothingEnabled = previous;
       }
+      function readGradient(ctx, buf, i) {
+        const kind = buf[i++];
+        let style;
+        if (kind === 0) style = ctx.createLinearGradient(buf[i++], buf[i++], buf[i++], buf[i++]);
+        else if (kind === 1) { const cx = buf[i++], cy = buf[i++], r0 = buf[i++], r1 = buf[i++]; style = ctx.createRadialGradient(cx, cy, r0, cx, cy, r1); }
+        else { const cx = buf[i++], cy = buf[i++], angle = buf[i++]; style = ctx.createConicGradient(angle, cx, cy); }
+        const count = buf[i++];
+        for (let k = 0; k < count; k++) { const loc = buf[i++]; style.addColorStop(Math.min(Math.max(loc, 0), 1), color(buf[i++], buf[i++], buf[i++], buf[i++])); }
+        return { style, i };
+      }
       function paint(rootCtx, buf, strings, dpr, w, h) {
         rootCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         rootCtx.clearRect(0, 0, w, h);
@@ -175,6 +185,29 @@ enum PainterScript {
               break;
             }
             case 14: { const a = buf[i++], b = buf[i++], c = buf[i++], d = buf[i++], e = buf[i++], f = buf[i++]; ctx.transform(a, b, c, d, e, f); break; }
+            case 15: {
+              i = readPath(ctx, buf, i);
+              const g = readGradient(ctx, buf, i); i = g.i;
+              ctx.fillStyle = g.style;
+              ctx.fill(buf[i++] === 1 ? 'evenodd' : 'nonzero');
+              break;
+            }
+            case 16: {
+              i = readPath(ctx, buf, i);
+              ctx.lineWidth = buf[i++];
+              ctx.lineCap = lineCaps[buf[i++]];
+              ctx.lineJoin = lineJoins[buf[i++]];
+              ctx.miterLimit = buf[i++];
+              const dashCount = buf[i++];
+              const dashes = [];
+              for (let k = 0; k < dashCount; k++) dashes.push(buf[i++]);
+              ctx.setLineDash(dashes);
+              ctx.lineDashOffset = buf[i++];
+              const g = readGradient(ctx, buf, i); i = g.i;
+              ctx.strokeStyle = g.style;
+              ctx.stroke();
+              break;
+            }
             default: throw new Error('SwiftUIWeb: unknown display op ' + op + ' at ' + (i - 1));
           }
         }

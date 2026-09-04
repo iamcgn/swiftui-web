@@ -8574,6 +8574,12 @@
       "lastBaseline" : 13,
       "width" : 18.5
     },
+    "system:13:400:default||Sky" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 22.5
+    },
     "system:13:400:default||Slow" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -9391,6 +9397,12 @@
       "width" : 0
     },
     "system:13:400:default|0.0|Six" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Sky" : {
       "firstBaseline" : 13,
       "height" : 48,
       "lastBaseline" : 45,

@@ -1,0 +1,63 @@
+{
+  "fixture" : "gradient\/basic",
+  "frames" : {
+    "angular" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 50.75,
+      "y" : 123
+    },
+    "background" : {
+      "height" : 40,
+      "width" : 46.5,
+      "x" : 126.75,
+      "y" : 133
+    },
+    "linear" : {
+      "height" : 50,
+      "width" : 80,
+      "x" : 39,
+      "y" : 57
+    },
+    "radial" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 231,
+      "y" : 57
+    },
+    "row1" : {
+      "height" : 50,
+      "width" : 242,
+      "x" : 39,
+      "y" : 57
+    },
+    "row2" : {
+      "height" : 60,
+      "width" : 218.5,
+      "x" : 50.75,
+      "y" : 123
+    },
+    "stack" : {
+      "height" : 126,
+      "width" : 242,
+      "x" : 39,
+      "y" : 57
+    },
+    "stops" : {
+      "height" : 50,
+      "width" : 80,
+      "x" : 135,
+      "y" : 57
+    },
+    "stroke" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 189.25,
+      "y" : 133
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}
