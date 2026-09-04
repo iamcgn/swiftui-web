@@ -17,6 +17,8 @@ jobs:
         run: . ~/.swiftly/env.sh && swift test
       - name: Harness builds (Apple toolchain, real SwiftUI)
         run: cd Harness && /usr/bin/swift build
+      - name: Host builds (Apple toolchain, WKWebView)
+        run: cd Tools/Host && /usr/bin/swift build
   linux:
     runs-on: ubuntu-24.04
     container: swift:6.3.3
