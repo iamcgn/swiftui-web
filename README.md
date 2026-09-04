@@ -73,10 +73,17 @@ swift test                                        # native: runtime, layout and 
 scripts/build-wasm.sh Examples/Counter --debug    # wasm bundle for the Counter app
 scripts/serve.sh Examples/Counter 8765            # then open http://localhost:8765/
 scripts/tier-b.sh --filter layout/                # browser fidelity: gallery + Playwright vs goldens
+(cd Tools/Host && /usr/bin/swift run swiftui-host ../../Examples/Counter)   # the bundle in a WKWebView window
 ```
 
 `Examples/Gallery` lists every fixture in a left pane and shows the selected one as code (the
 `Fixture(...)` declaration or its whole file, via `scripts/gen-fixture-sources.py`) next to its live
 preview, with buttons for its behaviour steps; `index.html?fixture=text/wrapped` opens one directly.
 `scripts/gen-goldens.sh` regenerates goldens with Apple's SwiftUI (macOS only).
+
+`Tools/Host` is the native host of Phase 4: `swiftui-host <package-dir>` serves the package's
+`index.html` and built bundle on 127.0.0.1 and opens it in a WKWebView window (macOS 14+, Apple
+toolchain). `--screenshot out.png` waits for the app's first frame, writes a snapshot and quits;
+`--timeout seconds` quits on its own (both for scripts and CI); `--port`, `--path`, `--width` and
+`--height` are optional.
 

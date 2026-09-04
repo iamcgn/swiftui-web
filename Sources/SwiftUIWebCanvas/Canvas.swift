@@ -260,7 +260,14 @@ public final class CanvasHost {
                 return .undefined
             }
         }
-        _ = window.requestAnimationFrame!(frameClosure!)
+        // A hidden document gets no animation frames (a WKWebView window the window server has
+        // not shown yet, a background tab): the first frames come from a timer instead so the
+        // page has content when it appears; after that only visible documents paint.
+        if frameCount == 0, document.hidden.boolean == true {
+            _ = window.setTimeout!(frameClosure!, 16)
+        } else {
+            _ = window.requestAnimationFrame!(frameClosure!)
+        }
     }
 
     private func tick() {
