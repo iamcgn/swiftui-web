@@ -324,6 +324,19 @@
           ]
         },
         {
+          "api": "Table(_:columns:) / selection (single, set) / sortOrder / TableColumn (key path, custom content) / width(_:) / width(min:ideal:max:) / KeyPathComparator",
+          "status": "partial",
+          "notes": "The macOS table: 28 pt header with dividers, sorted title bold with a chevron, 24 pt rows with alternating rounded bands and the selection band, cells 8 pt into their columns; NSTableView's column distribution measured (117 pt automatic pitch, grow/shrink/overflow regimes, fixed and flexible widths); selection by press and arrow keys (Shift extends), sorting by header presses; no row scrolling, column resizing, TableRow builders, table styles or hidden headers",
+          "fixtures": [
+            "table/basic",
+            "table/widths",
+            "table/sized",
+            "table/selection",
+            "table/sorting",
+            "table/regimes"
+          ]
+        },
+        {
           "api": "GroupBox (content, title, custom label) / GroupBoxStyle (automatic) / groupBoxStyle(_:)",
           "status": "partial",
           "notes": "macOS 26 card (radius 12, black 8/255, content padded 5) under a subheadline label; measured exactly; no dark appearance or Form insets",
