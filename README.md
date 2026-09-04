@@ -4,10 +4,9 @@ An open-source reimplementation of SwiftUI that runs **unmodified SwiftUI source
 browser (WebAssembly + Canvas) today and natively on macOS/Linux later, with 1:1 rendering
 and behaviour fidelity measured against the real SwiftUI.
 
-Landing page (itself written in SwiftUI and rendered by SwiftUIWeb): source in
-[`Examples/Landing`](Examples/Landing) and as a gist at
-[gist.github.com/iamcgn/f7e74fe1718809dd1efb3df1acfd37f3](https://gist.github.com/iamcgn/f7e74fe1718809dd1efb3df1acfd37f3); the current support matrix is
-[`Docs/support-matrix.md`](Docs/support-matrix.md).
+**Landing page: [iamcgn.github.io/swiftui-web](https://iamcgn.github.io/swiftui-web/)**, itself
+written in SwiftUI and rendered by SwiftUIWeb (source in [`Examples/Landing`](Examples/Landing)).
+The current support matrix is [`Docs/support-matrix.md`](Docs/support-matrix.md).
 
 ```swift
 import SwiftUI
@@ -108,8 +107,8 @@ scripts/tier-b.sh --filter layout/                # browser fidelity: gallery + 
 `Examples/Landing` is the project's landing page written in SwiftUI and rendered by SwiftUIWeb: a
 sales page with live controls and the support matrix (generated from `Docs/support.json` by
 `scripts/gen-landing-support.py`). `scripts/build-landing.sh` builds it into `Examples/Landing/dist`
-for GitHub Pages (`.github/workflows/landing.yml` deploys it); `scripts/landing-gist.sh` keeps its two
-source files in a gist. See `Examples/Landing/README.md`.
+and `scripts/deploy-landing.sh` publishes that to GitHub Pages (the `gh-pages` branch). See
+`Examples/Landing/README.md`.
 
 `Examples/Gallery` lists every fixture in a left pane and shows the selected one as code (the
 `Fixture(...)` declaration or its whole file, via `scripts/gen-fixture-sources.py`) next to its live

@@ -16,8 +16,8 @@ scripts/build-landing.sh                         # release bundle + Examples/Lan
 
 ## The gist
 
-The two source files depend on nothing but `import SwiftUI`, so they live in a GitHub gist as
-well: https://gist.github.com/iamcgn/f7e74fe1718809dd1efb3df1acfd37f3 (id `f7e74fe1718809dd1efb3df1acfd37f3`).
+The two source files depend on nothing but `import SwiftUI`, so they can also live in a gist
+(kept for sharing the source; the hosted page above is the primary link): https://gist.github.com/iamcgn/f7e74fe1718809dd1efb3df1acfd37f3 (id `f7e74fe1718809dd1efb3df1acfd37f3`).
 
 ```sh
 scripts/landing-gist.sh push f7e74fe1718809dd1efb3df1acfd37f3   # update the gist from Sources/Landing (needs gh)
@@ -27,7 +27,7 @@ scripts/landing-gist.sh push                                     # create a new 
 
 ## GitHub Pages
 
-`.github/workflows/landing.yml` builds `dist/` on every push to `main` and deploys it to Pages
-(enable Pages with the "GitHub Actions" source in the repository settings). The workflow
-installs the toolchain with `scripts/bootstrap.sh`; it has not run yet because the repository
-has no remote.
+The page is hosted at https://iamcgn.github.io/swiftui-web/. `scripts/deploy-landing.sh` builds
+the release bundle and pushes `dist/` as the `gh-pages` branch, which Pages serves from its root
+(repository settings: Pages source "Deploy from a branch", `gh-pages`, `/`). Rerun it after
+changing the page or the support matrix.
