@@ -31,8 +31,13 @@ extension PlatformProfile {
         (11, .init(lineHeight: 14, baseline: 11, spacingBelow: 6.70458984375, spacingAbove: 3.8203125, textToText: 0, linePitch: 14, unroundedLineHeight: 14, capHeight: 7.75048828125)),
         (12, .init(lineHeight: 15, baseline: 12, spacingBelow: 7.177734375, spacingAbove: 4.03125, textToText: 0, linePitch: 15, unroundedLineHeight: 15, capHeight: 8.455078125)),
         (13, .init(lineHeight: 16, baseline: 13, spacingBelow: 8.15087890625, spacingAbove: 4.7421875, textToText: 0, linePitch: 16, unroundedLineHeight: 16, capHeight: 9.15966796875)),
+        (15, .init(lineHeight: 19, baseline: 15, spacingBelow: 9.09716796875, spacingAbove: 5.1640625, textToText: 0, linePitch: 19, unroundedLineHeight: 19, capHeight: 10.56884765625)),
+        (17, .init(lineHeight: 20, baseline: 16, spacingBelow: 10.54345703125, spacingAbove: 6.0859375, textToText: 0, linePitch: 20, unroundedLineHeight: 20, capHeight: 11.97802734375)),
         (20, .init(lineHeight: 24, baseline: 19, spacingBelow: 11.962890625, spacingAbove: 6.71875, textToText: 0, linePitch: 24, unroundedLineHeight: 24, capHeight: 14.091796875)),
+        (22, .init(lineHeight: 26, baseline: 21, spacingBelow: 13.4091796875, spacingAbove: 7.640625, textToText: 0, linePitch: 26, unroundedLineHeight: 26, capHeight: 15.5009765625)),
         (24, .init(lineHeight: 28, baseline: 23, spacingBelow: 14.35546875, spacingAbove: 8.0625, textToText: 0, linePitch: 28, unroundedLineHeight: 28, capHeight: 16.91015625)),
+        (26, .init(lineHeight: 30, baseline: 25, spacingBelow: 15.8017578125, spacingAbove: 8.984375, textToText: 0, linePitch: 30, unroundedLineHeight: 30, capHeight: 18.3193359375)),
         (32, .init(lineHeight: 38, baseline: 31, spacingBelow: 19.140625, spacingAbove: 10.75, textToText: 0, linePitch: 38, unroundedLineHeight: 38, capHeight: 22.546875)),
+        (40, .init(lineHeight: 47, baseline: 39, spacingBelow: 23.92578125, spacingAbove: 13.4375, textToText: 0, linePitch: 47, unroundedLineHeight: 47, capHeight: 28.18359375)),
     ]
 }

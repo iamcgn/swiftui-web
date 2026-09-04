@@ -111,12 +111,13 @@ public struct Image: Equatable, Sendable {
     }
     #endif
 
-    /// Creates a system symbol image. Stub: SF Symbols are not available; lays out at 0 × 0.
+    /// Creates a system symbol image: its measured SF Symbol layout size, drawn with an open
+    /// icon standing in for the symbol (Docs/elements/Image.md).
     public init(systemName: String) {
         self.init(source: .system(systemName), label: systemName)
     }
 
-    /// Creates a system symbol image with a variable value. Stub, as `init(systemName:)`.
+    /// Creates a system symbol image with a variable value (the value has no effect here).
     public init(systemName: String, variableValue: Double?) {
         self.init(source: .system(systemName), label: systemName)
     }

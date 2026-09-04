@@ -66,7 +66,7 @@ import SwiftUIWebHeadless
         #expect(missing.frames["image"] == CGRect(x: 100, y: 50, width: 0, height: 0))
         #expect(missing.commands.isEmpty)
         let symbol = render(Image(systemName: "star")._probe("image"))
-        #expect(symbol.frames["image"]?.size == .zero)
+        #expect(symbol.frames["image"]?.size == CGSize(width: 16.5, height: 16))
     }
 
     @Test func templateTint() {

@@ -63,7 +63,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// stands in for the element); other containers are transparent.
     private func collect() -> [Element] {
         var result: [Element] = []
-        func walk(_ node: ViewNode, id: AnyHashable?, sectionStart: inout Bool, wrap: (ViewNode) -> ViewNode) {
+        func walk(_ node: ViewNode, id: AnyHashable?, sectionStart: inout Bool, wrap: @MainActor (ViewNode) -> ViewNode) {
             if let section = node as? any _SectionNodeProviding {
                 var start = true
                 for header in section._headerNode.layoutChildren {

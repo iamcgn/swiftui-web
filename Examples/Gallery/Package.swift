@@ -21,7 +21,10 @@ let package = Package(
                 .product(name: "FixtureKit", package: "SwiftUIWeb"),
                 .product(name: "JavaScriptKit", package: "JavaScriptKit"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit"),
-            ]
+            ],
+            // wasm-ld's default 64 KB shadow stack overflows on deep view trees (a 12-child
+            // stack smashed the heap in symbol/basic); give the app 4 MB.
+            linkerSettings: [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack-size=4194304"], .when(platforms: [.wasi]))]
         ),
     ]
 )

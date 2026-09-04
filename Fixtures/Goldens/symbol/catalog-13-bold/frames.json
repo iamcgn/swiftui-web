@@ -1,0 +1,1599 @@
+{
+  "fixture" : "symbol\/catalog-13-bold",
+  "frames" : {
+    "airplane" : {
+      "height" : 15.5,
+      "width" : 17,
+      "x" : 351,
+      "y" : 412
+    },
+    "ant" : {
+      "height" : 18,
+      "width" : 15,
+      "x" : 179.25,
+      "y" : 538
+    },
+    "antenna.radiowaves.left.and.right" : {
+      "height" : 14.5,
+      "width" : 17,
+      "x" : 236.5,
+      "y" : 561.5
+    },
+    "archivebox" : {
+      "height" : 14.5,
+      "width" : 16.5,
+      "x" : 348.75,
+      "y" : 607
+    },
+    "arrow.clockwise" : {
+      "height" : 16.5,
+      "width" : 14,
+      "x" : 256,
+      "y" : 433
+    },
+    "arrow.counterclockwise" : {
+      "height" : 16.5,
+      "width" : 14,
+      "x" : 278,
+      "y" : 433
+    },
+    "arrow.down" : {
+      "height" : 14.5,
+      "width" : 13.5,
+      "x" : 375.5,
+      "y" : 307.5
+    },
+    "arrow.down.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 182.5,
+      "y" : 454.5
+    },
+    "arrow.down.left" : {
+      "height" : 12.5,
+      "width" : 13.5,
+      "x" : 373.75,
+      "y" : 701
+    },
+    "arrow.down.to.line" : {
+      "height" : 16,
+      "width" : 13.5,
+      "x" : 206.5,
+      "y" : 517
+    },
+    "arrow.left" : {
+      "height" : 12.5,
+      "width" : 15.5,
+      "x" : 330.5,
+      "y" : 308.5
+    },
+    "arrow.left.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 253,
+      "y" : 454.5
+    },
+    "arrow.right" : {
+      "height" : 12.5,
+      "width" : 15.5,
+      "x" : 307,
+      "y" : 308.5
+    },
+    "arrow.right.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 229.5,
+      "y" : 454.5
+    },
+    "arrow.turn.up.left" : {
+      "height" : 12.5,
+      "width" : 15.5,
+      "x" : 395.25,
+      "y" : 701
+    },
+    "arrow.up" : {
+      "height" : 14.5,
+      "width" : 13.5,
+      "x" : 354,
+      "y" : 307.5
+    },
+    "arrow.up.and.down.and.arrow.left.and.right" : {
+      "height" : 17.5,
+      "width" : 17.5,
+      "x" : 297.5,
+      "y" : 675.5
+    },
+    "arrow.up.arrow.down" : {
+      "height" : 15,
+      "width" : 19,
+      "x" : 300,
+      "y" : 435
+    },
+    "arrow.up.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 206,
+      "y" : 454.5
+    },
+    "arrow.up.left.and.arrow.down.right" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 323,
+      "y" : 677
+    },
+    "arrow.up.right" : {
+      "height" : 12.5,
+      "width" : 13.5,
+      "x" : 352.25,
+      "y" : 701
+    },
+    "arrow.up.to.line" : {
+      "height" : 16,
+      "width" : 13.5,
+      "x" : 228,
+      "y" : 517
+    },
+    "arrow.uturn.left" : {
+      "height" : 15,
+      "width" : 15.5,
+      "x" : 327,
+      "y" : 434.5
+    },
+    "at" : {
+      "height" : 16,
+      "width" : 15.5,
+      "x" : 315.5,
+      "y" : 475
+    },
+    "backward.end.fill" : {
+      "height" : 13,
+      "width" : 16.5,
+      "x" : 354.5,
+      "y" : 721.5
+    },
+    "backward.fill" : {
+      "height" : 13,
+      "width" : 21,
+      "x" : 225,
+      "y" : 721.5
+    },
+    "battery.100" : {
+      "height" : 11.5,
+      "width" : 23,
+      "x" : 205.5,
+      "y" : 563
+    },
+    "bell" : {
+      "height" : 16,
+      "width" : 15,
+      "x" : 375.25,
+      "y" : 284
+    },
+    "bell.badge" : {
+      "height" : 16.5,
+      "width" : 15.5,
+      "x" : 303.75,
+      "y" : 698.5
+    },
+    "bell.fill" : {
+      "height" : 16,
+      "width" : 16,
+      "x" : 398.25,
+      "y" : 284.5
+    },
+    "bell.slash" : {
+      "height" : 17,
+      "width" : 15.5,
+      "x" : 182,
+      "y" : 560.5
+    },
+    "bicycle" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 299.75,
+      "y" : 583.5
+    },
+    "bold" : {
+      "height" : 11.5,
+      "width" : 11.5,
+      "x" : 184,
+      "y" : 497.5
+    },
+    "bolt" : {
+      "height" : 18,
+      "width" : 13,
+      "x" : 255.25,
+      "y" : 389
+    },
+    "book" : {
+      "height" : 14.5,
+      "width" : 18,
+      "x" : 243.75,
+      "y" : 630.5
+    },
+    "book.closed" : {
+      "height" : 16,
+      "width" : 14.5,
+      "x" : 269.75,
+      "y" : 630
+    },
+    "bookmark" : {
+      "height" : 16.5,
+      "width" : 14.5,
+      "x" : 395.5,
+      "y" : 327
+    },
+    "briefcase" : {
+      "height" : 15.5,
+      "width" : 19,
+      "x" : 189.75,
+      "y" : 583.5
+    },
+    "bubble.left" : {
+      "height" : 16,
+      "width" : 18,
+      "x" : 203,
+      "y" : 412
+    },
+    "building.2" : {
+      "height" : 17.5,
+      "width" : 17,
+      "x" : 216.75,
+      "y" : 582.5
+    },
+    "bus" : {
+      "height" : 18,
+      "width" : 18.5,
+      "x" : 332.75,
+      "y" : 582
+    },
+    "calendar" : {
+      "height" : 14.5,
+      "width" : 16.5,
+      "x" : 210.5,
+      "y" : 307.5
+    },
+    "camera" : {
+      "height" : 15,
+      "width" : 19,
+      "x" : 328.5,
+      "y" : 327.5
+    },
+    "car" : {
+      "height" : 15,
+      "width" : 19,
+      "x" : 324,
+      "y" : 412
+    },
+    "cart" : {
+      "height" : 15,
+      "width" : 18,
+      "x" : 271.25,
+      "y" : 349
+    },
+    "cat" : {
+      "height" : 18,
+      "width" : 21,
+      "x" : 269.75,
+      "y" : 652.5
+    },
+    "chart.bar" : {
+      "height" : 14.5,
+      "width" : 21,
+      "x" : 178.5,
+      "y" : 435
+    },
+    "chart.line.uptrend.xyaxis" : {
+      "height" : 15,
+      "width" : 17.5,
+      "x" : 346,
+      "y" : 561
+    },
+    "chart.pie" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 371.5,
+      "y" : 561
+    },
+    "checklist" : {
+      "height" : 15.5,
+      "width" : 18.5,
+      "x" : 366.5,
+      "y" : 495.5
+    },
+    "checkmark" : {
+      "height" : 13.5,
+      "width" : 15,
+      "x" : 288.75,
+      "y" : 244
+    },
+    "checkmark.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 206.5,
+      "y" : 369.5
+    },
+    "checkmark.circle.fill" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 230,
+      "y" : 369.5
+    },
+    "checkmark.square" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 300,
+      "y" : 455
+    },
+    "chevron.down" : {
+      "height" : 9,
+      "width" : 15,
+      "x" : 182.5,
+      "y" : 267.5
+    },
+    "chevron.left" : {
+      "height" : 14,
+      "width" : 10,
+      "x" : 395.75,
+      "y" : 243.5
+    },
+    "chevron.left.forwardslash.chevron.right" : {
+      "height" : 15,
+      "width" : 22.5,
+      "x" : 202.25,
+      "y" : 540
+    },
+    "chevron.right" : {
+      "height" : 14,
+      "width" : 10,
+      "x" : 377.75,
+      "y" : 243.5
+    },
+    "chevron.right.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 276.5,
+      "y" : 454.5
+    },
+    "chevron.up" : {
+      "height" : 9,
+      "width" : 15,
+      "x" : 205.5,
+      "y" : 267
+    },
+    "circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 208,
+      "y" : 327.5
+    },
+    "circle.fill" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 231.5,
+      "y" : 327.5
+    },
+    "clock" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 235,
+      "y" : 307
+    },
+    "cloud" : {
+      "height" : 13,
+      "width" : 18,
+      "x" : 229.25,
+      "y" : 391.5
+    },
+    "creditcard" : {
+      "height" : 13.5,
+      "width" : 18.5,
+      "x" : 400,
+      "y" : 413
+    },
+    "crop" : {
+      "height" : 16.5,
+      "width" : 17.5,
+      "x" : 346.5,
+      "y" : 676.5
+    },
+    "crown" : {
+      "height" : 15.5,
+      "width" : 20.5,
+      "x" : 407.75,
+      "y" : 583
+    },
+    "cursorarrow" : {
+      "height" : 16,
+      "width" : 11.5,
+      "x" : 278,
+      "y" : 676.5
+    },
+    "cylinder" : {
+      "height" : 16,
+      "width" : 14.5,
+      "x" : 259.25,
+      "y" : 539.5
+    },
+    "desktopcomputer" : {
+      "height" : 16,
+      "width" : 19,
+      "x" : 281.75,
+      "y" : 539.5
+    },
+    "doc" : {
+      "height" : 16,
+      "width" : 14.5,
+      "x" : 207.25,
+      "y" : 284.5
+    },
+    "doc.badge.plus" : {
+      "height" : 18.5,
+      "width" : 14.5,
+      "x" : 221.25,
+      "y" : 629.5
+    },
+    "doc.on.clipboard" : {
+      "height" : 18.5,
+      "width" : 17,
+      "x" : 274.5,
+      "y" : 515.5
+    },
+    "doc.on.doc" : {
+      "height" : 18.5,
+      "width" : 17,
+      "x" : 249.5,
+      "y" : 515.5
+    },
+    "doc.text" : {
+      "height" : 16,
+      "width" : 14.5,
+      "x" : 229.75,
+      "y" : 284.5
+    },
+    "dog" : {
+      "height" : 17.5,
+      "width" : 21.5,
+      "x" : 240.25,
+      "y" : 653
+    },
+    "dollarsign.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 363.5,
+      "y" : 475
+    },
+    "drop" : {
+      "height" : 15.5,
+      "width" : 11.5,
+      "x" : 261.5,
+      "y" : 561
+    },
+    "ellipsis" : {
+      "height" : 5,
+      "width" : 14.5,
+      "x" : 185.5,
+      "y" : 333
+    },
+    "ellipsis.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 401.5,
+      "y" : 434.5
+    },
+    "envelope" : {
+      "height" : 13.5,
+      "width" : 19,
+      "x" : 183.5,
+      "y" : 308
+    },
+    "eraser" : {
+      "height" : 16.5,
+      "width" : 17,
+      "x" : 203.25,
+      "y" : 741
+    },
+    "exclamationmark" : {
+      "height" : 14.5,
+      "width" : 6,
+      "x" : 278.5,
+      "y" : 475.5
+    },
+    "exclamationmark.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 189,
+      "y" : 475
+    },
+    "exclamationmark.circle.fill" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 212.5,
+      "y" : 475
+    },
+    "exclamationmark.triangle" : {
+      "height" : 14.5,
+      "width" : 17,
+      "x" : 282,
+      "y" : 307.5
+    },
+    "eye" : {
+      "height" : 13.5,
+      "width" : 21,
+      "x" : 370.75,
+      "y" : 349
+    },
+    "eye.slash" : {
+      "height" : 16.5,
+      "width" : 21,
+      "x" : 399.75,
+      "y" : 347.5
+    },
+    "eyedropper" : {
+      "height" : 17,
+      "width" : 17.5,
+      "x" : 253.25,
+      "y" : 740.5
+    },
+    "face.smiling" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 206,
+      "y" : 676.5
+    },
+    "flag" : {
+      "height" : 15,
+      "width" : 15,
+      "x" : 253.5,
+      "y" : 412.5
+    },
+    "flame" : {
+      "height" : 16.5,
+      "width" : 13.5,
+      "x" : 276.25,
+      "y" : 389.5
+    },
+    "folder" : {
+      "height" : 14.5,
+      "width" : 18,
+      "x" : 395,
+      "y" : 264.5
+    },
+    "folder.badge.plus" : {
+      "height" : 15.5,
+      "width" : 18,
+      "x" : 195.25,
+      "y" : 629.5
+    },
+    "folder.fill" : {
+      "height" : 14.5,
+      "width" : 18,
+      "x" : 181.25,
+      "y" : 285
+    },
+    "forward.end.fill" : {
+      "height" : 13,
+      "width" : 16.5,
+      "x" : 330,
+      "y" : 721.5
+    },
+    "forward.fill" : {
+      "height" : 13,
+      "width" : 21,
+      "x" : 254,
+      "y" : 721.5
+    },
+    "gamecontroller" : {
+      "height" : 14.5,
+      "width" : 22.5,
+      "x" : 402.25,
+      "y" : 630.5
+    },
+    "gear" : {
+      "height" : 17,
+      "width" : 17,
+      "x" : 228.5,
+      "y" : 263
+    },
+    "gearshape" : {
+      "height" : 16.5,
+      "width" : 16.5,
+      "x" : 253.5,
+      "y" : 263.5
+    },
+    "gearshape.fill" : {
+      "height" : 16,
+      "width" : 16,
+      "x" : 278,
+      "y" : 264
+    },
+    "gift" : {
+      "height" : 16,
+      "width" : 16,
+      "x" : 376,
+      "y" : 411.5
+    },
+    "globe" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 322.25,
+      "y" : 348
+    },
+    "graduationcap" : {
+      "height" : 18,
+      "width" : 21.5,
+      "x" : 318.75,
+      "y" : 630
+    },
+    "grid" : {
+      "height" : 516,
+      "width" : 315.5,
+      "x" : 122.25,
+      "y" : 242
+    },
+    "hammer" : {
+      "height" : 19,
+      "width" : 20.5,
+      "x" : 387.75,
+      "y" : 652
+    },
+    "hand.raised" : {
+      "height" : 17,
+      "width" : 16,
+      "x" : 229.5,
+      "y" : 675.5
+    },
+    "hand.thumbsdown" : {
+      "height" : 17,
+      "width" : 16.5,
+      "x" : 253.5,
+      "y" : 676
+    },
+    "hand.thumbsup" : {
+      "height" : 17,
+      "width" : 16.5,
+      "x" : 229,
+      "y" : 411.5
+    },
+    "headphones" : {
+      "height" : 16,
+      "width" : 17,
+      "x" : 330.25,
+      "y" : 539.5
+    },
+    "heart" : {
+      "height" : 14.5,
+      "width" : 16.5,
+      "x" : 239.75,
+      "y" : 243.5
+    },
+    "heart.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 378.25,
+      "y" : 741.5
+    },
+    "heart.fill" : {
+      "height" : 14.5,
+      "width" : 16.5,
+      "x" : 264.25,
+      "y" : 243.5
+    },
+    "hexagon" : {
+      "height" : 17.5,
+      "width" : 16.5,
+      "x" : 278.75,
+      "y" : 740.5
+    },
+    "highlighter" : {
+      "height" : 16.5,
+      "width" : 17,
+      "x" : 228.25,
+      "y" : 741
+    },
+    "house" : {
+      "height" : 16.5,
+      "width" : 19.5,
+      "x" : 320.25,
+      "y" : 284
+    },
+    "house.fill" : {
+      "height" : 16.5,
+      "width" : 19.5,
+      "x" : 347.75,
+      "y" : 284
+    },
+    "info.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 258.5,
+      "y" : 307
+    },
+    "info.circle.fill" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 236,
+      "y" : 475
+    },
+    "iphone" : {
+      "height" : 17,
+      "width" : 13.5,
+      "x" : 308.75,
+      "y" : 538.5
+    },
+    "italic" : {
+      "height" : 11.5,
+      "width" : 10.5,
+      "x" : 203.5,
+      "y" : 497.5
+    },
+    "key" : {
+      "height" : 18.5,
+      "width" : 12,
+      "x" : 377.5,
+      "y" : 515.5
+    },
+    "leaf" : {
+      "height" : 15,
+      "width" : 16,
+      "x" : 297.75,
+      "y" : 390.5
+    },
+    "lightbulb" : {
+      "height" : 18,
+      "width" : 12,
+      "x" : 305.25,
+      "y" : 605
+    },
+    "line.3.horizontal" : {
+      "height" : 10,
+      "width" : 16.5,
+      "x" : 371,
+      "y" : 372
+    },
+    "link" : {
+      "height" : 17,
+      "width" : 17,
+      "x" : 345.75,
+      "y" : 347.5
+    },
+    "link.badge.plus" : {
+      "height" : 17.5,
+      "width" : 17,
+      "x" : 178.25,
+      "y" : 740.5
+    },
+    "list.bullet" : {
+      "height" : 12.5,
+      "width" : 17,
+      "x" : 395.5,
+      "y" : 371
+    },
+    "list.number" : {
+      "height" : 13.5,
+      "width" : 17,
+      "x" : 341.5,
+      "y" : 496.5
+    },
+    "location" : {
+      "height" : 16,
+      "width" : 16,
+      "x" : 300,
+      "y" : 412
+    },
+    "lock" : {
+      "height" : 15,
+      "width" : 13.5,
+      "x" : 200.75,
+      "y" : 348
+    },
+    "lock.open" : {
+      "height" : 15.5,
+      "width" : 16.5,
+      "x" : 222.25,
+      "y" : 347.5
+    },
+    "magnifyingglass" : {
+      "height" : 15,
+      "width" : 16,
+      "x" : 302,
+      "y" : 264.5
+    },
+    "map" : {
+      "height" : 15,
+      "width" : 17,
+      "x" : 297.25,
+      "y" : 348.5
+    },
+    "message" : {
+      "height" : 15.5,
+      "width" : 18,
+      "x" : 177,
+      "y" : 411.5
+    },
+    "mic" : {
+      "height" : 17,
+      "width" : 15,
+      "x" : 375.25,
+      "y" : 389.5
+    },
+    "mic.slash" : {
+      "height" : 17.5,
+      "width" : 14.5,
+      "x" : 401.75,
+      "y" : 538
+    },
+    "minus" : {
+      "height" : 4,
+      "width" : 14,
+      "x" : 355.75,
+      "y" : 249
+    },
+    "minus.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 347.5,
+      "y" : 369.5
+    },
+    "minus.magnifyingglass" : {
+      "height" : 15,
+      "width" : 16,
+      "x" : 396,
+      "y" : 677
+    },
+    "minus.square" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 280.25,
+      "y" : 700
+    },
+    "moon" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 205.75,
+      "y" : 390.5
+    },
+    "mountain.2" : {
+      "height" : 14,
+      "width" : 26.5,
+      "x" : 326.75,
+      "y" : 655
+    },
+    "music.note" : {
+      "height" : 15.5,
+      "width" : 11.5,
+      "x" : 355.25,
+      "y" : 539.5
+    },
+    "newspaper" : {
+      "height" : 16,
+      "width" : 18.5,
+      "x" : 292.25,
+      "y" : 630
+    },
+    "number" : {
+      "height" : 15,
+      "width" : 15,
+      "x" : 292.5,
+      "y" : 475
+    },
+    "paintbrush" : {
+      "height" : 18.5,
+      "width" : 17,
+      "x" : 229.25,
+      "y" : 605
+    },
+    "paintpalette" : {
+      "height" : 16,
+      "width" : 18.5,
+      "x" : 202.75,
+      "y" : 606.5
+    },
+    "paperclip" : {
+      "height" : 17.5,
+      "width" : 16,
+      "x" : 353.5,
+      "y" : 516
+    },
+    "paperplane" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 246.75,
+      "y" : 348
+    },
+    "pause.fill" : {
+      "height" : 13.5,
+      "width" : 12,
+      "x" : 375.5,
+      "y" : 328.5
+    },
+    "pencil" : {
+      "height" : 13.5,
+      "width" : 15,
+      "x" : 372,
+      "y" : 265
+    },
+    "pentagon" : {
+      "height" : 16.5,
+      "width" : 18,
+      "x" : 303.25,
+      "y" : 741
+    },
+    "percent" : {
+      "height" : 14.5,
+      "width" : 16.5,
+      "x" : 339,
+      "y" : 475.5
+    },
+    "person" : {
+      "height" : 14.5,
+      "width" : 14.5,
+      "x" : 252.25,
+      "y" : 285
+    },
+    "person.2" : {
+      "height" : 15.5,
+      "width" : 21.5,
+      "x" : 416.25,
+      "y" : 654.5
+    },
+    "person.badge.plus" : {
+      "height" : 17.5,
+      "width" : 14.5,
+      "x" : 183.5,
+      "y" : 677
+    },
+    "person.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 296.75,
+      "y" : 284.5
+    },
+    "person.fill" : {
+      "height" : 14,
+      "width" : 14,
+      "x" : 274.75,
+      "y" : 285
+    },
+    "phone" : {
+      "height" : 15,
+      "width" : 16.5,
+      "x" : 398.25,
+      "y" : 391
+    },
+    "photo" : {
+      "height" : 14.5,
+      "width" : 18.5,
+      "x" : 302,
+      "y" : 328
+    },
+    "pills" : {
+      "height" : 16.5,
+      "width" : 19.5,
+      "x" : 212.75,
+      "y" : 653.5
+    },
+    "pin" : {
+      "height" : 18,
+      "width" : 15.5,
+      "x" : 276.5,
+      "y" : 411
+    },
+    "play.fill" : {
+      "height" : 14,
+      "width" : 12,
+      "x" : 355.5,
+      "y" : 328.5
+    },
+    "plus" : {
+      "height" : 13,
+      "width" : 14,
+      "x" : 333.75,
+      "y" : 244.5
+    },
+    "plus.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 300.5,
+      "y" : 369.5
+    },
+    "plus.circle.fill" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 324,
+      "y" : 369.5
+    },
+    "plus.magnifyingglass" : {
+      "height" : 15,
+      "width" : 16,
+      "x" : 372,
+      "y" : 677
+    },
+    "plus.square" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 256.75,
+      "y" : 700
+    },
+    "power" : {
+      "height" : 16,
+      "width" : 15.5,
+      "x" : 325.25,
+      "y" : 606
+    },
+    "printer" : {
+      "height" : 16.5,
+      "width" : 18,
+      "x" : 299.5,
+      "y" : 516.5
+    },
+    "puzzlepiece" : {
+      "height" : 15,
+      "width" : 22.5,
+      "x" : 157.75,
+      "y" : 654.5
+    },
+    "qrcode" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 184.75,
+      "y" : 700
+    },
+    "questionmark" : {
+      "height" : 14.5,
+      "width" : 11,
+      "x" : 259.5,
+      "y" : 475.5
+    },
+    "questionmark.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 183,
+      "y" : 369.5
+    },
+    "quote.opening" : {
+      "height" : 11.5,
+      "width" : 18.5,
+      "x" : 393,
+      "y" : 497.5
+    },
+    "radio" : {
+      "height" : 17.5,
+      "width" : 18.5,
+      "x" : 375.75,
+      "y" : 627.5
+    },
+    "rectangle" : {
+      "height" : 14.5,
+      "width" : 18.5,
+      "x" : 347,
+      "y" : 455
+    },
+    "rectangle.portrait" : {
+      "height" : 16,
+      "width" : 14.5,
+      "x" : 373.5,
+      "y" : 454.5
+    },
+    "rectangle.split.3x1" : {
+      "height" : 14.5,
+      "width" : 18.5,
+      "x" : 405.5,
+      "y" : 720.5
+    },
+    "repeat" : {
+      "height" : 15,
+      "width" : 18,
+      "x" : 171.5,
+      "y" : 720
+    },
+    "row0" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 154.25,
+      "y" : 242.5
+    },
+    "row10" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 147,
+      "y" : 263.5
+    },
+    "row20" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 145.75,
+      "y" : 284
+    },
+    "row30" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 148,
+      "y" : 306.5
+    },
+    "row40" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 150,
+      "y" : 327
+    },
+    "row50" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 139.25,
+      "y" : 347.5
+    },
+    "row60" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 147.5,
+      "y" : 369
+    },
+    "row70" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 145.25,
+      "y" : 390
+    },
+    "row80" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 141.5,
+      "y" : 411.5
+    },
+    "row90" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 143,
+      "y" : 434
+    },
+    "row100" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 147,
+      "y" : 454
+    },
+    "row110" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 153.5,
+      "y" : 474.5
+    },
+    "row120" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 148.5,
+      "y" : 495
+    },
+    "row130" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 148,
+      "y" : 516.5
+    },
+    "row140" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 143.75,
+      "y" : 539
+    },
+    "row150" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 146.5,
+      "y" : 560.5
+    },
+    "row160" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 131.75,
+      "y" : 583
+    },
+    "row170" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 143.75,
+      "y" : 606
+    },
+    "row180" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 135.25,
+      "y" : 629.5
+    },
+    "row190" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 122.25,
+      "y" : 653.5
+    },
+    "row200" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 148,
+      "y" : 676
+    },
+    "row210" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 149.25,
+      "y" : 699
+    },
+    "row220" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 136,
+      "y" : 719.5
+    },
+    "row230" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 142.75,
+      "y" : 741
+    },
+    "ruler" : {
+      "height" : 10,
+      "width" : 19.5,
+      "x" : 254.25,
+      "y" : 609
+    },
+    "safari" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 281.75,
+      "y" : 606.5
+    },
+    "scissors" : {
+      "height" : 15.5,
+      "width" : 20,
+      "x" : 325.5,
+      "y" : 517.5
+    },
+    "seal" : {
+      "height" : 17.5,
+      "width" : 17.5,
+      "x" : 329.25,
+      "y" : 740.5
+    },
+    "shield" : {
+      "height" : 15.5,
+      "width" : 14.5,
+      "x" : 397.5,
+      "y" : 517
+    },
+    "shippingbox" : {
+      "height" : 16.5,
+      "width" : 16.5,
+      "x" : 399.75,
+      "y" : 606
+    },
+    "shuffle" : {
+      "height" : 15,
+      "width" : 19.5,
+      "x" : 197.5,
+      "y" : 720.5
+    },
+    "sidebar.left" : {
+      "height" : 14.5,
+      "width" : 18.5,
+      "x" : 350.5,
+      "y" : 435
+    },
+    "sidebar.right" : {
+      "height" : 14.5,
+      "width" : 18.5,
+      "x" : 379,
+      "y" : 720.5
+    },
+    "slider.horizontal.3" : {
+      "height" : 14,
+      "width" : 17,
+      "x" : 231,
+      "y" : 435.5
+    },
+    "snowflake" : {
+      "height" : 15.5,
+      "width" : 14,
+      "x" : 305,
+      "y" : 561
+    },
+    "sparkles" : {
+      "height" : 17,
+      "width" : 15.5,
+      "x" : 179.25,
+      "y" : 605.5
+    },
+    "speaker.slash" : {
+      "height" : 17,
+      "width" : 14.5,
+      "x" : 283,
+      "y" : 719.5
+    },
+    "speaker.wave.1" : {
+      "height" : 14,
+      "width" : 16.5,
+      "x" : 305.5,
+      "y" : 720.5
+    },
+    "speaker.wave.2" : {
+      "height" : 14,
+      "width" : 20,
+      "x" : 347.25,
+      "y" : 391
+    },
+    "square" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 255,
+      "y" : 328
+    },
+    "square.3.layers.3d" : {
+      "height" : 17,
+      "width" : 16.5,
+      "x" : 170.75,
+      "y" : 629.5
+    },
+    "square.and.arrow.down" : {
+      "height" : 17.5,
+      "width" : 15,
+      "x" : 183.5,
+      "y" : 515.5
+    },
+    "square.and.arrow.up" : {
+      "height" : 18.5,
+      "width" : 15,
+      "x" : 397,
+      "y" : 304.5
+    },
+    "square.and.pencil" : {
+      "height" : 16.5,
+      "width" : 16.5,
+      "x" : 377,
+      "y" : 433
+    },
+    "square.dashed" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 323.5,
+      "y" : 455
+    },
+    "square.fill" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 278.5,
+      "y" : 328
+    },
+    "square.grid.2x2" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 207.5,
+      "y" : 435
+    },
+    "star" : {
+      "height" : 16.5,
+      "width" : 17,
+      "x" : 189.75,
+      "y" : 242
+    },
+    "star.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 354.75,
+      "y" : 741.5
+    },
+    "star.fill" : {
+      "height" : 16.5,
+      "width" : 17,
+      "x" : 214.75,
+      "y" : 242
+    },
+    "star.leadinghalf.filled" : {
+      "height" : 16.5,
+      "width" : 17,
+      "x" : 327.25,
+      "y" : 698.5
+    },
+    "storefront" : {
+      "height" : 17,
+      "width" : 18.5,
+      "x" : 241.75,
+      "y" : 583
+    },
+    "sun.max" : {
+      "height" : 17,
+      "width" : 17,
+      "x" : 180.75,
+      "y" : 390
+    },
+    "tablecells" : {
+      "height" : 14.5,
+      "width" : 18.5,
+      "x" : 395,
+      "y" : 561.5
+    },
+    "tag" : {
+      "height" : 17.5,
+      "width" : 18,
+      "x" : 174.75,
+      "y" : 347.5
+    },
+    "terminal" : {
+      "height" : 14.5,
+      "width" : 18.5,
+      "x" : 232.75,
+      "y" : 540
+    },
+    "text.aligncenter" : {
+      "height" : 13.5,
+      "width" : 17,
+      "x" : 266.5,
+      "y" : 496.5
+    },
+    "text.alignleft" : {
+      "height" : 13.5,
+      "width" : 17,
+      "x" : 241.5,
+      "y" : 496.5
+    },
+    "text.alignright" : {
+      "height" : 13.5,
+      "width" : 17,
+      "x" : 291.5,
+      "y" : 496.5
+    },
+    "text.justify" : {
+      "height" : 13.5,
+      "width" : 17,
+      "x" : 316.5,
+      "y" : 496.5
+    },
+    "textformat" : {
+      "height" : 12,
+      "width" : 19.5,
+      "x" : 387,
+      "y" : 477
+    },
+    "thermometer" : {
+      "height" : 17,
+      "width" : 11,
+      "x" : 327,
+      "y" : 560
+    },
+    "touchid" : {
+      "height" : 16.5,
+      "width" : 17,
+      "x" : 208.25,
+      "y" : 699
+    },
+    "tram" : {
+      "height" : 19.5,
+      "width" : 16,
+      "x" : 359.25,
+      "y" : 581.5
+    },
+    "trash" : {
+      "height" : 17,
+      "width" : 15,
+      "x" : 326,
+      "y" : 262.5
+    },
+    "trash.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 401.75,
+      "y" : 741.5
+    },
+    "trash.fill" : {
+      "height" : 17,
+      "width" : 15,
+      "x" : 349,
+      "y" : 262.5
+    },
+    "tray" : {
+      "height" : 14,
+      "width" : 18.5,
+      "x" : 373.25,
+      "y" : 607
+    },
+    "tree" : {
+      "height" : 19,
+      "width" : 20,
+      "x" : 298.75,
+      "y" : 652.5
+    },
+    "triangle" : {
+      "height" : 14.5,
+      "width" : 17,
+      "x" : 396,
+      "y" : 455
+    },
+    "trophy" : {
+      "height" : 16.5,
+      "width" : 16.5,
+      "x" : 383.25,
+      "y" : 583
+    },
+    "truck.box" : {
+      "height" : 17,
+      "width" : 23.5,
+      "x" : 268.25,
+      "y" : 583
+    },
+    "tv" : {
+      "height" : 16,
+      "width" : 19.5,
+      "x" : 348.25,
+      "y" : 629.5
+    },
+    "underline" : {
+      "height" : 14,
+      "width" : 11.5,
+      "x" : 222,
+      "y" : 497.5
+    },
+    "video" : {
+      "height" : 13,
+      "width" : 19,
+      "x" : 374.75,
+      "y" : 541
+    },
+    "wallet.pass" : {
+      "height" : 16,
+      "width" : 14.5,
+      "x" : 167.25,
+      "y" : 583.5
+    },
+    "waveform.path.ecg" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 188.25,
+      "y" : 654
+    },
+    "wifi" : {
+      "height" : 13,
+      "width" : 17.5,
+      "x" : 321.75,
+      "y" : 392
+    },
+    "wind" : {
+      "height" : 14,
+      "width" : 16,
+      "x" : 281,
+      "y" : 562
+    },
+    "wrench" : {
+      "height" : 19,
+      "width" : 18.5,
+      "x" : 361.25,
+      "y" : 652
+    },
+    "xmark" : {
+      "height" : 13,
+      "width" : 14,
+      "x" : 311.75,
+      "y" : 244.5
+    },
+    "xmark.circle" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 253.5,
+      "y" : 369.5
+    },
+    "xmark.circle.fill" : {
+      "height" : 15.5,
+      "width" : 15.5,
+      "x" : 277,
+      "y" : 369.5
+    },
+    "xmark.square" : {
+      "height" : 14.5,
+      "width" : 15.5,
+      "x" : 233.25,
+      "y" : 700
+    }
+  },
+  "size" : {
+    "height" : 1000,
+    "width" : 560
+  }
+}

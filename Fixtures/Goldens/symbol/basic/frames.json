@@ -1,0 +1,375 @@
+{
+  "fixture" : "symbol\/basic",
+  "frames" : {
+    "approximateRow" : {
+      "height" : 48,
+      "width" : 343,
+      "x" : 28.5,
+      "y" : 364.15966796875
+    },
+    "baselineBoldIcon" : {
+      "height" : 16.5,
+      "width" : 17,
+      "x" : 270.5,
+      "y" : 137.5
+    },
+    "baselineFlatIcon" : {
+      "height" : 4.5,
+      "width" : 14,
+      "x" : 313.5,
+      "y" : 144
+    },
+    "baselineIcon" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 133.5,
+      "y" : 76
+    },
+    "baselineIcon10" : {
+      "height" : 11.5,
+      "width" : 13,
+      "x" : 41.5,
+      "y" : 141.5
+    },
+    "baselineIcon17" : {
+      "height" : 20,
+      "width" : 22,
+      "x" : 86.5,
+      "y" : 134.5
+    },
+    "baselineIcon26" : {
+      "height" : 31.5,
+      "width" : 33.5,
+      "x" : 152,
+      "y" : 125
+    },
+    "baselineLargeIcon" : {
+      "height" : 20.5,
+      "width" : 21.5,
+      "x" : 243,
+      "y" : 135.5
+    },
+    "baselineRow" : {
+      "height" : 33,
+      "width" : 133,
+      "x" : 133.5,
+      "y" : 64
+    },
+    "baselineRow2" : {
+      "height" : 31.5,
+      "width" : 317,
+      "x" : 41.5,
+      "y" : 125
+    },
+    "baselineTallIcon" : {
+      "height" : 16,
+      "width" : 14,
+      "x" : 293.5,
+      "y" : 138
+    },
+    "baselineText" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 158,
+      "y" : 76
+    },
+    "baselineText2" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 333.5,
+      "y" : 138
+    },
+    "baselineText10" : {
+      "height" : 13,
+      "width" : 20,
+      "x" : 60.5,
+      "y" : 141
+    },
+    "baselineText17" : {
+      "height" : 20,
+      "width" : 31.5,
+      "x" : 114.5,
+      "y" : 135
+    },
+    "baselineText26" : {
+      "height" : 30,
+      "width" : 45.5,
+      "x" : 191.5,
+      "y" : 126
+    },
+    "baselineText40" : {
+      "height" : 47,
+      "width" : 69.5,
+      "x" : 127,
+      "y" : 364.15966796875
+    },
+    "baselineTitleIcon" : {
+      "height" : 26,
+      "width" : 28.5,
+      "x" : 191,
+      "y" : 67.5
+    },
+    "baselineTitleText" : {
+      "height" : 33,
+      "width" : 39,
+      "x" : 227.5,
+      "y" : 64
+    },
+    "black" : {
+      "height" : 17,
+      "width" : 17.5,
+      "x" : 276,
+      "y" : 389.15966796875
+    },
+    "blue30" : {
+      "height" : 35.5,
+      "width" : 39,
+      "x" : 301.5,
+      "y" : 373.65966796875
+    },
+    "body" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 116,
+      "y" : 7.75
+    },
+    "bold" : {
+      "height" : 16.5,
+      "width" : 17,
+      "x" : 216.75,
+      "y" : 39.5
+    },
+    "button" : {
+      "height" : 24.079833984375,
+      "width" : 117,
+      "x" : 141.5,
+      "y" : 278.079833984375
+    },
+    "caption" : {
+      "height" : 11.5,
+      "width" : 13,
+      "x" : 140.5,
+      "y" : 10
+    },
+    "centerIcon" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 175.25,
+      "y" : 103
+    },
+    "centerRow" : {
+      "height" : 16,
+      "width" : 49.5,
+      "x" : 175.25,
+      "y" : 103
+    },
+    "centerText" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 199.75,
+      "y" : 103
+    },
+    "chevron" : {
+      "height" : 13.5,
+      "width" : 10,
+      "x" : 238.25,
+      "y" : 326.40966796875
+    },
+    "chevronSemibold" : {
+      "height" : 31.5,
+      "width" : 23,
+      "x" : 348.5,
+      "y" : 376.65966796875
+    },
+    "fit" : {
+      "height" : 30,
+      "width" : 50,
+      "x" : 155.75,
+      "y" : 318.15966796875
+    },
+    "label" : {
+      "height" : 16.079833984375,
+      "width" : 82,
+      "x" : 159,
+      "y" : 162.5
+    },
+    "labelBody" : {
+      "height" : 18.5,
+      "width" : 82,
+      "x" : 159,
+      "y" : 223.579833984375
+    },
+    "labelBodyIcon" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 159,
+      "y" : 224.5
+    },
+    "labelBodyText" : {
+      "height" : 18.5,
+      "width" : 57.5,
+      "x" : 183.5,
+      "y" : 223.579833984375
+    },
+    "labelIcon" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 159,
+      "y" : 162.5
+    },
+    "labelImage" : {
+      "height" : 24,
+      "width" : 89.5,
+      "x" : 155.25,
+      "y" : 248.079833984375
+    },
+    "labelImageIcon" : {
+      "height" : 24,
+      "width" : 24,
+      "x" : 155.25,
+      "y" : 248.079833984375
+    },
+    "labelImageText" : {
+      "height" : 16,
+      "width" : 57.5,
+      "x" : 187.25,
+      "y" : 251.65966796875
+    },
+    "labelText" : {
+      "height" : 16,
+      "width" : 57.5,
+      "x" : 183.5,
+      "y" : 162.579833984375
+    },
+    "labelTitle" : {
+      "height" : 33,
+      "width" : 125.5,
+      "x" : 137.25,
+      "y" : 184.579833984375
+    },
+    "labelTitleIcon" : {
+      "height" : 26,
+      "width" : 28.5,
+      "x" : 137.25,
+      "y" : 188.079345703125
+    },
+    "labelTitleText" : {
+      "height" : 33,
+      "width" : 89,
+      "x" : 173.75,
+      "y" : 184.579833984375
+    },
+    "large" : {
+      "height" : 20.5,
+      "width" : 21.5,
+      "x" : 187.25,
+      "y" : 37.5
+    },
+    "largeSize24" : {
+      "height" : 37,
+      "width" : 39.5,
+      "x" : 204.5,
+      "y" : 375.15966796875
+    },
+    "largeTitle" : {
+      "height" : 31.5,
+      "width" : 33.5,
+      "x" : 198,
+      "y" : 0
+    },
+    "light" : {
+      "height" : 15.5,
+      "width" : 16,
+      "x" : 252,
+      "y" : 390.15966796875
+    },
+    "medium" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 162.75,
+      "y" : 39.75
+    },
+    "red" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 213.75,
+      "y" : 325.15966796875
+    },
+    "resizable" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 97.75,
+      "y" : 308.15966796875
+    },
+    "semibold" : {
+      "height" : 16,
+      "width" : 17,
+      "x" : 241.75,
+      "y" : 39.75
+    },
+    "size11" : {
+      "height" : 13.5,
+      "width" : 14.5,
+      "x" : 269.5,
+      "y" : 9
+    },
+    "size17" : {
+      "height" : 20,
+      "width" : 22,
+      "x" : 239.5,
+      "y" : 5.75
+    },
+    "size24" : {
+      "height" : 28.5,
+      "width" : 31,
+      "x" : 28.5,
+      "y" : 379.65966796875
+    },
+    "size40" : {
+      "height" : 47,
+      "width" : 51.5,
+      "x" : 67.5,
+      "y" : 364.15966796875
+    },
+    "small" : {
+      "height" : 13,
+      "width" : 13.5,
+      "x" : 141.25,
+      "y" : 41.25
+    },
+    "stack" : {
+      "height" : 420,
+      "width" : 343,
+      "x" : 28.5,
+      "y" : 0
+    },
+    "tall" : {
+      "height" : 16,
+      "width" : 14,
+      "x" : 288.25,
+      "y" : 325.15966796875
+    },
+    "title" : {
+      "height" : 26,
+      "width" : 28.5,
+      "x" : 161.5,
+      "y" : 2.75
+    },
+    "unknown" : {
+      "height" : 0,
+      "width" : 0,
+      "x" : 256.25,
+      "y" : 333.15966796875
+    },
+    "wide" : {
+      "height" : 8.5,
+      "width" : 16,
+      "x" : 264.25,
+      "y" : 328.90966796875
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 400
+  }
+}

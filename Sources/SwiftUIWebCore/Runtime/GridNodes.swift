@@ -79,7 +79,7 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
             return Cell(node: node, column: column, span: span, ideal: ideal, flexibleWidth: wide > ideal.width + 0.5,
                         sizedHorizontally: !unsized.contains(.horizontal), sizedVertically: !unsized.contains(.vertical))
         }
-        func walk(_ node: ViewNode, wrap: (ViewNode) -> ViewNode) {
+        func walk(_ node: ViewNode, wrap: @MainActor (ViewNode) -> ViewNode) {
             if let row = node as? any _GridRowProviding {
                 var cells: [Cell] = []
                 var column = 0
@@ -92,12 +92,17 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
                 return
             }
             // A modifier on a row applies to each of its cells through the modifier's proxies.
-            if let modifier = node as? any _UnaryLayoutModifier, modifier.modifiedContent.descendants(where: { $0 is any _GridRowProviding }).first != nil,
-               !(modifier.modifiedContent.layoutChildren.count == 1 && modifier.modifiedContent.layoutChildren.first === modifier.modifiedContent) {
-                var proxies: [ObjectIdentifier: ViewNode] = [:]
-                for (target, proxy) in zip(modifier.targets, node.layoutChildren) { proxies[ObjectIdentifier(target)] = proxy }
-                walk(modifier.modifiedContent) { wrap(proxies[ObjectIdentifier($0)] ?? $0) }
-                return
+            if let modifier = node as? any _UnaryLayoutModifier {
+                let content = modifier.modifiedContent
+                let hasRows = !content.descendants(where: { $0 is any _GridRowProviding }).isEmpty
+                let children = content.layoutChildren
+                let transparent = children.count == 1 ? children[0] === content : false
+                if hasRows, !transparent {
+                    var proxies: [ObjectIdentifier: ViewNode] = [:]
+                    for (target, proxy) in zip(modifier.targets, node.layoutChildren) { proxies[ObjectIdentifier(target)] = proxy }
+                    walk(content) { wrap(proxies[ObjectIdentifier($0)] ?? $0) }
+                    return
+                }
             }
             if node.isLayoutNode {
                 rows.append(Row(cells: [makeCell(wrap(node), column: 0, span: 0)], alignment: nil))   // span 0: every column

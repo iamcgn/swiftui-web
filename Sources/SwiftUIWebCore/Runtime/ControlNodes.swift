@@ -28,9 +28,9 @@ extension ViewSpacing {
 /// The layout leaves of a picker's content with their tags (`ForEach` ids stand in for missing
 /// tags); a unary modifier on a `ForEach` applies to each option through its proxies.
 @MainActor
-package func _collectOptions(_ node: ViewNode, wrap: (ViewNode) -> ViewNode = { $0 }) -> [(node: ViewNode, id: AnyHashable?)] {
+package func _collectOptions(_ node: ViewNode, wrap: @MainActor (ViewNode) -> ViewNode = { $0 }) -> [(node: ViewNode, id: AnyHashable?)] {
     var result: [(node: ViewNode, id: AnyHashable?)] = []
-    func walk(_ node: ViewNode, id: AnyHashable?, wrap: (ViewNode) -> ViewNode) {
+    func walk(_ node: ViewNode, id: AnyHashable?, wrap: @MainActor (ViewNode) -> ViewNode) {
         if let forEach = node as? any _ForEachNodeProviding {
             for (entryID, entryNode) in forEach._entries { walk(entryNode, id: entryID, wrap: wrap) }
             return

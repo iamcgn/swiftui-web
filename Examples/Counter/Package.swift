@@ -15,7 +15,9 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftUI", package: "SwiftUIWeb"),
                 .product(name: "SwiftUIWebCanvas", package: "SwiftUIWeb"),
-            ]
+            ],
+            // wasm-ld's default 64 KB shadow stack overflows on deep view trees; give the app 4 MB.
+            linkerSettings: [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack-size=4194304"], .when(platforms: [.wasi]))]
         ),
     ]
 )

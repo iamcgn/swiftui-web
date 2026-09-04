@@ -262,6 +262,10 @@ package final class TextNode: LeafNode<Text> {
             resolved.weight = weight; resolved.weightOverridden = true
         } else if modifiers.bold {
             resolved.weight = environment.platformProfile.boldTraitWeight(for: resolved.textStyle); resolved.weightOverridden = true
+        } else if let weight = environment._fontWeight {
+            resolved.weight = weight; resolved.weightOverridden = true
+        } else if environment._boldTrait {
+            resolved.weight = environment.platformProfile.boldTraitWeight(for: resolved.textStyle); resolved.weightOverridden = true
         }
         if modifiers.italic { resolved.italic = true }
         return resolved
@@ -325,5 +329,52 @@ package final class TextNode: LeafNode<Text> {
     override package var layoutSpacing: ViewSpacing {
         let metrics = runtime.textEngine.metrics(for: styledRuns.runs.first?.font ?? resolvedFont)
         return ViewSpacing.text(metrics)
+    }
+}
+
+// MARK: - View-level weight
+
+package struct FontWeightKey: EnvironmentKey {
+    package static let defaultValue: Font.Weight? = nil
+}
+
+package struct BoldTraitKey: EnvironmentKey {
+    package static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// A font weight applied to text and symbols in this environment (`View.fontWeight`).
+    package var _fontWeight: Font.Weight? {
+        get { self[FontWeightKey.self] }
+        set { self[FontWeightKey.self] = newValue }
+    }
+
+    /// Whether text and symbols in this environment take the bold trait (`View.bold`).
+    package var _boldTrait: Bool {
+        get { self[BoldTraitKey.self] }
+        set { self[BoldTraitKey.self] = newValue }
+    }
+
+    /// The environment's font with its weight overrides applied (text and symbol images).
+    package var _resolvedFont: ResolvedFont {
+        var resolved = (font ?? platformProfile.defaultFont).resolve(profile: platformProfile)
+        if let weight = _fontWeight {
+            resolved.weight = weight; resolved.weightOverridden = true
+        } else if _boldTrait {
+            resolved.weight = platformProfile.boldTraitWeight(for: resolved.textStyle); resolved.weightOverridden = true
+        }
+        return resolved
+    }
+}
+
+extension View {
+    /// Sets the font weight of the text and symbol images in this view.
+    nonisolated public func fontWeight(_ weight: Font.Weight?) -> some View {
+        environment(\._fontWeight, weight)
+    }
+
+    /// Applies a bold font weight to the text and symbol images in this view.
+    nonisolated public func bold(_ isActive: Bool = true) -> some View {
+        environment(\._boldTrait, isActive)
     }
 }

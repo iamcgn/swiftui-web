@@ -24,7 +24,10 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 const approximate = ['text/system-fonts', 'button/styles'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 const frameTolerance = (name, key, expected) => name.startsWith('text/') && (key === 'width' || key === 'x')
-  ? Math.max(0.5, Math.abs(expected) * 0.03) : 1e-6;
+  ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
+// Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
+// fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
+const framesOnly = (name) => name.startsWith('symbol/');
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {
@@ -100,8 +103,8 @@ async function check(name, label, goldenFrames, goldenPng, shotPath) {
   await settleImages();
   const frames = await page.evaluate(() => window.__galleryFrames || window.__swiftuiwebDebug.frames());
   const mismatches = compareFrames(name, frames, goldenFrames);
-  const pixelDiff = await comparePixels(shotPath, goldenPng);
-  const pixelOK = typeof pixelDiff === 'number' ? pixelDiff <= (approximate.includes(name) ? pixelTolerance * 3 : pixelTolerance) : false;
+  const pixelDiff = framesOnly(name) ? 'skipped' : await comparePixels(shotPath, goldenPng);
+  const pixelOK = framesOnly(name) || (typeof pixelDiff === 'number' ? pixelDiff <= (approximate.includes(name) ? pixelTolerance * 3 : pixelTolerance) : false);
   const ok = mismatches.length === 0 && pixelOK;
   if (!ok) failures++;
   report.push({ name: label, frames: ok ? 'exact' : mismatches, pixelDiff, pixelOK });

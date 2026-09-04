@@ -32,7 +32,7 @@ enum Goldens {
     }
 
     /// Fixture names whose goldens exist and whose feature area is implemented.
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/"]
 
     /// The fixtures' asset catalog as `scripts/assets.py` reads it (Fixtures/Assets.manifest.json).
     static func assets() throws -> AssetCatalog {
@@ -69,13 +69,21 @@ enum Goldens {
         #expect(engine.misses.isEmpty, "\(name): no recorded text metrics for \(engine.misses)")
     }
 
+    /// Probes allowed two points: symbol sizes the metrics table can only scale to
+    /// (Docs/elements/Image.md), and the frames that contain them.
+    static let approximateProbes: [String: Set<String>] = [
+        "symbol/basic": ["size24", "size40", "baselineText40", "largeSize24", "light", "black", "blue30", "chevronSemibold", "approximateRow", "stack"],
+    ]
+
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
+        let approximate = Self.approximateProbes[label] ?? []
         for (id, expected) in golden.sorted(by: { $0.key < $1.key }) {
             let actual = try #require(ours[id], "\(label): probe \(id) not recorded")
             let expectedRect = CGRect(x: expected.x, y: expected.y, width: expected.width, height: expected.height)
             // Exact up to floating-point summation order (Apple's frames carry 1-ulp noise).
-            let close = abs(actual.minX - expectedRect.minX) < 1e-9 && abs(actual.minY - expectedRect.minY) < 1e-9
-                && abs(actual.width - expectedRect.width) < 1e-9 && abs(actual.height - expectedRect.height) < 1e-9
+            let tolerance = approximate.contains(id) ? 2 + 1e-9 : 1e-9
+            let close = abs(actual.minX - expectedRect.minX) < tolerance && abs(actual.minY - expectedRect.minY) < tolerance
+                && abs(actual.width - expectedRect.width) < tolerance && abs(actual.height - expectedRect.height) < tolerance
             #expect(close, "\(label)/\(id): \(actual) != \(expectedRect)")
         }
         #expect(Set(ours.keys) == Set(golden.keys), "\(label): probe sets differ")

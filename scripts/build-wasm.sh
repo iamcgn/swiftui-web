@@ -9,6 +9,8 @@ SDK="swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm"
 . "$(dirname "$0")/env.sh"
 case "$PKG" in *Gallery|*Gallery/) python3 "$(dirname "$0")/gen-fixture-sources.py";; esac   # fixture code shown in the gallery
 cd "$PKG"
+# The 4 MB wasm stack (wasm-ld defaults to 64 KB) is set per package in Package.swift (linkerSettings).
+
 if [[ "${1:-}" == "--debug" ]]; then
   swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path .build/wasm js --use-cdn --debug-info-format dwarf
 else
