@@ -252,6 +252,14 @@
           ]
         },
         {
+          "api": "Menu / MenuStyle / menuIndicator / contextMenu",
+          "status": "partial",
+          "notes": "Pull-down and split buttons exact; menus, submenus and context menus through the presentation layer (rows, separators; no hover highlight, checked items, section headers or keyboard navigation)",
+          "fixtures": [
+            "menu/basic"
+          ]
+        },
+        {
           "api": "TimelineView / TimelineSchedule (periodic, everyMinute, explicit, animation, custom)",
           "status": "partial",
           "notes": "Wakes through main-actor Task.sleep (no Foundation timers on wasm); the animation schedule follows host frames; no lowFrequency distinction or Timer APIs",
