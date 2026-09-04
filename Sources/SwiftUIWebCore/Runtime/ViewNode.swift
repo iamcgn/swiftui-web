@@ -273,6 +273,15 @@ open class ViewNode {
     /// nodes are never culled by a scroll view's viewport.
     package var paintsOutsideFrame: Bool { false }
 
+    /// Whether this node reads its own geometry during layout (GeometryReader, probes): a scroll
+    /// view holding one lays its content out on every scroll frame instead of moving it.
+    package var readsGeometry: Bool { false }
+
+    /// Moves a placed node without laying it out again (a scroll frame whose content is unchanged).
+    package final func moveFrame(toOrigin origin: CGPoint) {
+        frame.origin = origin
+    }
+
     /// This node's own bounds (the presented size while animating), pixel aligned, in absolute
     /// coordinates.
     package func absoluteBounds(_ context: PaintContext) -> CGRect {

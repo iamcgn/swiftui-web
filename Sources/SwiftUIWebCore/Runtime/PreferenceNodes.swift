@@ -95,6 +95,7 @@ package final class CoordinateSpaceNode<Content: View, Name: Hashable>:
 /// Fills its proposal and builds its content from the resulting size during layout.
 @MainActor
 package final class GeometryReaderNode<Content: View>: LayoutNode<GeometryReader<Content>> {
+    override package var readsGeometry: Bool { true }
     package private(set) var child: TypedNode<Content>?
 
     package init(_ context: _NodeContext<GeometryReader<Content>>) {

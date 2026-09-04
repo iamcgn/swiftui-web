@@ -138,6 +138,14 @@ public final class Runtime {
     /// say so; a scroll only moves content, so the memoised sizes stay valid across its frames.
     private var sizesInvalidated = true
 
+    /// Scroll views whose offset changed since the last layout: when nothing else changed, the
+    /// next frame moves their content instead of laying the tree out.
+    private var scrolledNodes: [ViewNode & _Scrollable] = []
+
+    package func noteScrolled(_ node: ViewNode & _Scrollable) {
+        if !scrolledNodes.contains(where: { $0 === node }) { scrolledNodes.append(node) }
+    }
+
     package func requestLayout(invalidatingSizes: Bool = true) {
         if invalidatingSizes { sizesInvalidated = true }
         guard !layoutRequested else { return }
@@ -150,6 +158,15 @@ public final class Runtime {
     public func layout(in size: CGSize) {
         updateAnimation = pendingAnimation
         if scheduler.hasPendingWork || size != layoutSize || pendingAnimation != nil || isAnimating { sizesInvalidated = true }
+        // A frame that only scrolled moves the scrolled content and keeps every frame else.
+        if !sizesInvalidated, presentations.isEmpty, scrolledNodes.allSatisfy(\.canMoveContentOnly) {
+            for node in scrolledNodes { node.moveContent() }
+            scrolledNodes.removeAll()
+            layoutRequested = false
+            updateAnimation = nil
+            return
+        }
+        scrolledNodes.removeAll()
         flush()
         layoutRequested = false
         // The generation keys every node's size memo: a frame that only scrolled keeps it.

@@ -23,6 +23,7 @@ extension View {
 
 @MainActor
 package final class ProbeNode<Content: View>: UnaryLayoutModifierNode<Content, _ProbeModifier> {
+    override package var readsGeometry: Bool { true }
     override package func placeTarget(_ target: ViewNode, in bounds: CGRect, proposal: ProposedViewSize, by placer: ViewNode) {
         super.placeTarget(target, in: bounds, proposal: proposal, by: placer)
         runtime.probeFrames[modifier.id] = placer.frameInRoot

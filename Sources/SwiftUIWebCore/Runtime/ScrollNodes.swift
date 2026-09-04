@@ -29,6 +29,11 @@ package protocol _Scrollable: AnyObject {
     func beginMomentum(velocity: CGSize)
     /// Advances momentum and indicator fading by `elapsed` seconds; true while still animating.
     func advance(elapsed: Double) -> Bool
+    /// Whether a frame that only scrolled can move the content instead of laying out (nothing
+    /// inside reads its own geometry, no programmatic target pending).
+    var canMoveContentOnly: Bool { get }
+    /// Moves the content to the current offset without laying it out again.
+    func moveContent()
 }
 
 extension Axis.Set {
@@ -143,6 +148,22 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         child.place(at: CGPoint(x: -contentOffset.x, y: -contentOffset.y), anchor: .topLeading, proposal: proposal, by: self)
     }
 
+    private var geometryCheckGeneration: UInt64 = .max
+    private var contentReadsGeometry = false
+
+    package var canMoveContentOnly: Bool {
+        guard pendingTarget == nil, hasBeenPlaced else { return false }
+        if geometryCheckGeneration != runtime.layoutGeneration {
+            geometryCheckGeneration = runtime.layoutGeneration
+            contentReadsGeometry = !child.collectNodes(where: { $0.readsGeometry }).isEmpty
+        }
+        return !contentReadsGeometry
+    }
+
+    package func moveContent() {
+        child.moveFrame(toOrigin: CGPoint(x: -contentOffset.x, y: -contentOffset.y))
+    }
+
     /// The frame of the identified descendant in content coordinates, or `nil`.
     private func targetRect(id: AnyHashable) -> CGRect? {
         guard let node = identifiedNode(id) else { return nil }
@@ -199,6 +220,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         }
         if offset != contentOffset {
             contentOffset = offset
+            runtime.noteScrolled(self)
             runtime.requestLayout(invalidatingSizes: false)
         }
         return remaining
