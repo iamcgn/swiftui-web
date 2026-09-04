@@ -301,6 +301,18 @@
           ]
         },
         {
+          "api": "DatePicker (selection, displayedComponents, in: ranges, title/label forms) / DatePickerComponents / DatePickerStyle (automatic, compact, field, stepperField, graphical) / datePickerStyle / EnvironmentValues.timeZone, calendar",
+          "status": "partial",
+          "notes": "The macOS textual field: tabular two-digit slots in a text-field bezel with a 12.5 × 20 mini stepper (the field style without it, 21 tall); component selection by press, stepping by the stepper and arrow keys, ranges clamp; the graphical calendar (13 pt bold header, 10 pt bold weekdays, 11 pt days in 18.5 × 18 cells, paging and day selection) and the display-only clock; en_US Gregorian in the environment's time zone; no typing, popover or hand dragging",
+          "fixtures": [
+            "datepicker/basic",
+            "datepicker/styles",
+            "datepicker/graphical",
+            "datepicker/clock",
+            "datepicker/steps"
+          ]
+        },
+        {
           "api": "GroupBox (content, title, custom label) / GroupBoxStyle (automatic) / groupBoxStyle(_:)",
           "status": "partial",
           "notes": "macOS 26 card (radius 12, black 8/255, content padded 5) under a subheadline label; measured exactly; no dark appearance or Form insets",
