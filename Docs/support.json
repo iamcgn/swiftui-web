@@ -320,6 +320,31 @@
           ]
         },
         {
+          "api": "TabView (selection, own state) / tabItem / TabViewStyle (automatic)",
+          "status": "partial",
+          "notes": "The macOS tab view: a segmented bar of the tab item titles (title + 24, dividers) over a bordered box, the selected content centred beneath; press and arrow keys select; no images/badges in the bar, no iOS Tab API or page style",
+          "fixtures": [
+            "tabview/basic",
+            "tabview/sized"
+          ]
+        },
+        {
+          "api": "ContentUnavailableView (label/description/actions, title+image, .search)",
+          "status": "partial",
+          "notes": "Large bold secondary title (title only, as the macOS 26 golden shows), body description, actions; top-aligned in the space it fills",
+          "fixtures": [
+            "unavailable/basic"
+          ]
+        },
+        {
+          "api": "ShareLink (item(s), title, custom label) / ShareAction.systemHandler",
+          "status": "partial",
+          "notes": "A bordered button with the share symbol; the browser's Web Share and the native NSSharingServicePicker; no Transferable items or previews",
+          "fixtures": [
+            "sharelink/basic"
+          ]
+        },
+        {
           "api": "TimelineView / TimelineSchedule (periodic, everyMinute, explicit, animation, custom)",
           "status": "partial",
           "notes": "Wakes through main-actor Task.sleep (no Foundation timers on wasm); the animation schedule follows host frames; no lowFrequency distinction or Timer APIs",
