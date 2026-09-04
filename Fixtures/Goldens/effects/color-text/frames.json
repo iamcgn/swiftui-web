@@ -1,0 +1,81 @@
+{
+  "fixture" : "effects\/color-text",
+  "frames" : {
+    "background" : {
+      "height" : 180,
+      "width" : 340,
+      "x" : 10,
+      "y" : 10
+    },
+    "bright" : {
+      "height" : 33,
+      "width" : 57.5,
+      "x" : 81.75,
+      "y" : 57.5
+    },
+    "capsule" : {
+      "height" : 24,
+      "width" : 44.5,
+      "x" : 121,
+      "y" : 110.5
+    },
+    "gray" : {
+      "height" : 33,
+      "width" : 45,
+      "x" : 159.25,
+      "y" : 57.5
+    },
+    "invert" : {
+      "height" : 33,
+      "width" : 54,
+      "x" : 224.25,
+      "y" : 57.5
+    },
+    "lumCircle" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 61,
+      "y" : 102.5
+    },
+    "multiplied" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 239,
+      "y" : 102.5
+    },
+    "row1" : {
+      "height" : 33,
+      "width" : 196.5,
+      "x" : 81.75,
+      "y" : 57.5
+    },
+    "row2" : {
+      "height" : 40,
+      "width" : 238,
+      "x" : 61,
+      "y" : 102.5
+    },
+    "stack" : {
+      "height" : 85,
+      "width" : 238,
+      "x" : 61,
+      "y" : 57.5
+    },
+    "symbol" : {
+      "height" : 31.5,
+      "width" : 33.5,
+      "x" : 185.5,
+      "y" : 106.75
+    },
+    "zstack" : {
+      "height" : 180,
+      "width" : 340,
+      "x" : 10,
+      "y" : 10
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 360
+  }
+}

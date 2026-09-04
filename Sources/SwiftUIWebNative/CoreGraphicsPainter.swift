@@ -19,12 +19,67 @@ public final class CoreGraphicsPainter {
         self.assetBase = assetBase
     }
 
-    public func paint(_ list: DisplayList, into ctx: CGContext) {
+    /// An open group: a transparency layer, or a bitmap the parent composites after filtering.
+    private enum Group {
+        case layer
+        case bitmap(parent: CGContext, filter: DisplayFilter, device: CGRect, sigma: CGFloat)
+    }
+
+    public func paint(_ list: DisplayList, into root: CGContext) {
+        var ctx = root
+        var groups: [Group] = []
         ctx.saveGState()
         ctx.setAllowsAntialiasing(true)
         ctx.setShouldAntialias(true)
         for command in list.commands {
             switch command {
+            case .beginFilter(let filter, let bounds):
+                // The group paints into a bitmap covering the content's device-space box (a
+                // soft blur reaches three sigma further); `endGroup` filters it and draws it back.
+                let ctm = ctx.ctm
+                let scale = (ctm.a * ctm.a + ctm.b * ctm.b).squareRoot()
+                var sigma: CGFloat = 0, pad: CGFloat = 0
+                if case .blur(let radius, let opaque) = filter {
+                    sigma = radius * scale
+                    pad = opaque ? 0 : (sigma * 3).rounded(.up)
+                }
+                let device = bounds.applying(ctm).insetBy(dx: -pad, dy: -pad).integral
+                guard device.width >= 1, device.height >= 1,
+                      let bitmap = CGContext(data: nil, width: Int(device.width), height: Int(device.height), bitsPerComponent: 8, bytesPerRow: 0,
+                                             space: Self.colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+                else {
+                    ctx.saveGState()
+                    ctx.beginTransparencyLayer(auxiliaryInfo: nil)
+                    groups.append(.layer)
+                    continue
+                }
+                bitmap.setAllowsAntialiasing(true)
+                bitmap.setShouldAntialias(true)
+                bitmap.translateBy(x: -device.minX, y: -device.minY)
+                bitmap.concatenate(ctm)
+                groups.append(.bitmap(parent: ctx, filter: filter, device: device, sigma: sigma))
+                ctx = bitmap
+            case .beginBlend(let mode, _):
+                ctx.saveGState()
+                ctx.setBlendMode(Self.cgBlendMode(mode))
+                ctx.beginTransparencyLayer(auxiliaryInfo: nil)
+                groups.append(.layer)
+            case .endGroup:
+                switch groups.popLast() {
+                case .bitmap(let parent, let filter, let device, let sigma):
+                    Self.apply(filter, to: ctx, sigma: sigma)
+                    if let image = ctx.makeImage() {
+                        parent.saveGState()
+                        parent.concatenate(parent.ctm.inverted())
+                        parent.interpolationQuality = .none
+                        parent.draw(image, in: device)
+                        parent.restoreGState()
+                    }
+                    ctx = parent
+                default:
+                    ctx.endTransparencyLayer()
+                    ctx.restoreGState()
+                }
             case .save: ctx.saveGState()
             case .restore: ctx.restoreGState()
             case .clipRect(let rect): ctx.clip(to: rect)
@@ -38,6 +93,7 @@ public final class CoreGraphicsPainter {
                 ctx.saveGState()
                 ctx.setAlpha(CGFloat(opacity))
                 ctx.beginTransparencyLayer(auxiliaryInfo: nil)
+                groups.append(.layer)
             case .beginShadow(let color, let radius, let offset):
                 ctx.saveGState()
                 // CoreGraphics takes the offset and blur in base (device) space, y up; the blur
@@ -48,9 +104,7 @@ public final class CoreGraphicsPainter {
                 ctx.setShadow(offset: CGSize(width: offset.width * sx, height: (flipped ? -offset.height : offset.height) * sy),
                               blur: radius * 2 * max(sx, sy), color: Self.cgColor(color))
                 ctx.beginTransparencyLayer(auxiliaryInfo: nil)
-            case .endGroup:
-                ctx.endTransparencyLayer()
-                ctx.restoreGState()
+                groups.append(.layer)
             case .concat(let transform): ctx.concatenate(transform)
             case .fillRect(let rect, let color):
                 ctx.setFillColor(Self.cgColor(color))
@@ -91,6 +145,55 @@ public final class CoreGraphicsPainter {
             }
         }
         ctx.restoreGState()
+    }
+
+    // MARK: Filters and blending
+
+    /// Filters a bitmap context's premultiplied pixels in place.
+    private static func apply(_ filter: DisplayFilter, to bitmap: CGContext, sigma: CGFloat) {
+        guard let data = bitmap.data else { return }
+        let pixels = UnsafeMutableBufferPointer(start: data.assumingMemoryBound(to: UInt8.self), count: bitmap.bytesPerRow * bitmap.height)
+        switch filter {
+        case .colorMatrix(let matrix):
+            matrix.apply(toPremultiplied: pixels)
+        case .blur(_, let opaque):
+            // Rows may be padded: blur row by row into a packed copy when they are.
+            let width = bitmap.width, height = bitmap.height
+            if bitmap.bytesPerRow == width * 4 {
+                PixelFilters.gaussianBlur(pixels, width: width, height: height, sigma: Double(sigma), keepAlpha: opaque)
+            } else {
+                var packed = [UInt8](repeating: 0, count: width * height * 4)
+                for y in 0..<height { for i in 0..<(width * 4) { packed[y * width * 4 + i] = pixels[y * bitmap.bytesPerRow + i] } }
+                packed.withUnsafeMutableBufferPointer { PixelFilters.gaussianBlur($0, width: width, height: height, sigma: Double(sigma), keepAlpha: opaque) }
+                for y in 0..<height { for i in 0..<(width * 4) { pixels[y * bitmap.bytesPerRow + i] = packed[y * width * 4 + i] } }
+            }
+        }
+    }
+
+    static func cgBlendMode(_ mode: BlendMode) -> CGBlendMode {
+        switch mode {
+        case .normal: return .normal
+        case .multiply: return .multiply
+        case .screen: return .screen
+        case .overlay: return .overlay
+        case .darken: return .darken
+        case .lighten: return .lighten
+        case .colorDodge: return .colorDodge
+        case .colorBurn: return .colorBurn
+        case .softLight: return .softLight
+        case .hardLight: return .hardLight
+        case .difference: return .difference
+        case .exclusion: return .exclusion
+        case .hue: return .hue
+        case .saturation: return .saturation
+        case .color: return .color
+        case .luminosity: return .luminosity
+        case .sourceAtop: return .sourceAtop
+        case .destinationOver: return .destinationOver
+        case .destinationOut: return .destinationOut
+        case .plusDarker: return .plusDarker
+        case .plusLighter: return .plusLighter
+        }
     }
 
     // MARK: Geometry and colour

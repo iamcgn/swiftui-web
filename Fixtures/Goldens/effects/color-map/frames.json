@@ -1,0 +1,195 @@
+{
+  "fixture" : "effects\/color-map",
+  "frames" : {
+    "chain-0" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 215,
+      "y" : 15
+    },
+    "chain-1" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 215,
+      "y" : 55
+    },
+    "chain-2" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 215,
+      "y" : 95
+    },
+    "chain-3" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 215,
+      "y" : 135
+    },
+    "chain-4" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 215,
+      "y" : 175
+    },
+    "grid" : {
+      "height" : 190,
+      "width" : 230,
+      "x" : 15,
+      "y" : 15
+    },
+    "invert-0" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 55,
+      "y" : 15
+    },
+    "invert-1" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 55,
+      "y" : 55
+    },
+    "invert-2" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 55,
+      "y" : 95
+    },
+    "invert-3" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 55,
+      "y" : 135
+    },
+    "invert-4" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 55,
+      "y" : 175
+    },
+    "lumAlpha-0" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 175,
+      "y" : 15
+    },
+    "lumAlpha-1" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 175,
+      "y" : 55
+    },
+    "lumAlpha-2" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 175,
+      "y" : 95
+    },
+    "lumAlpha-3" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 175,
+      "y" : 135
+    },
+    "lumAlpha-4" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 175,
+      "y" : 175
+    },
+    "mulBlue-0" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 95,
+      "y" : 15
+    },
+    "mulBlue-1" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 95,
+      "y" : 55
+    },
+    "mulBlue-2" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 95,
+      "y" : 95
+    },
+    "mulBlue-3" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 95,
+      "y" : 135
+    },
+    "mulBlue-4" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 95,
+      "y" : 175
+    },
+    "mulHalf-0" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 135,
+      "y" : 15
+    },
+    "mulHalf-1" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 135,
+      "y" : 55
+    },
+    "mulHalf-2" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 135,
+      "y" : 95
+    },
+    "mulHalf-3" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 135,
+      "y" : 135
+    },
+    "mulHalf-4" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 135,
+      "y" : 175
+    },
+    "plain-0" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 15,
+      "y" : 15
+    },
+    "plain-1" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 15,
+      "y" : 55
+    },
+    "plain-2" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 15,
+      "y" : 95
+    },
+    "plain-3" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 15,
+      "y" : 135
+    },
+    "plain-4" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 15,
+      "y" : 175
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 260
+  }
+}

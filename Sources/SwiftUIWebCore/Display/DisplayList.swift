@@ -80,6 +80,11 @@ public enum DisplayCommand: Equatable, Sendable {
     /// Starts a group (ended by `endGroup`) whose composite casts a shadow: `radius` is
     /// SwiftUI's blur radius (the Gaussian sigma in points), `offset` in points.
     case beginShadow(RGBA, radius: CGFloat, offset: CGSize)
+    /// Starts a group (ended by `endGroup`) whose composite is filtered before it is drawn:
+    /// `bounds` is the absolute frame of the filtered content, the area the painters process.
+    case beginFilter(DisplayFilter, bounds: CGRect)
+    /// Starts a group (ended by `endGroup`) composited with a blend mode; `bounds` as above.
+    case beginBlend(BlendMode, bounds: CGRect)
     case endGroup
     /// Multiplies the current transform (inside save/restore) for Canvas drawing and effects.
     case concat(CGAffineTransform)
@@ -117,6 +122,9 @@ public struct DisplayList: Equatable, Sendable {
     public var isEmpty: Bool { commands.isEmpty }
 }
 
+/// Formats a number for display-list descriptions: integers without a fraction.
+package func _displayFormat(_ v: CGFloat) -> String { v == v.rounded() ? "\(Int(v))" : "\(v)" }
+
 extension DisplayCommand: CustomStringConvertible {
     public var description: String {
         func f(_ v: CGFloat) -> String { v == v.rounded() ? "\(Int(v))" : "\(v)" }
@@ -135,6 +143,8 @@ extension DisplayCommand: CustomStringConvertible {
         case .clipPath(let path, let eo): return "clipPath(\(path.elements.count) elements)\(eo ? " eo" : "")"
         case .beginGroup(let opacity): return "beginGroup(opacity: \(opacity))"
         case .beginShadow(let color, let radius, let offset): return "beginShadow(\(c(color)) r=\(f(radius)) dx=\(f(offset.width)) dy=\(f(offset.height)))"
+        case .beginFilter(let filter, let bounds): return "beginFilter(\(filter)\(r(bounds)))"
+        case .beginBlend(let mode, let bounds): return "beginBlend(\(mode)\(r(bounds)))"
         case .endGroup: return "endGroup"
         case .concat(let t): return "concat(\(f(t.a)), \(f(t.b)), \(f(t.c)), \(f(t.d)), \(f(t.tx)), \(f(t.ty)))"
         case .fillRect(let rect, let color): return "fillRect\(r(rect)) \(c(color))"
@@ -188,4 +198,128 @@ extension DisplayGradient {
         let stopsText = stops.map { "\($0.location):\(hex($0.color.red))\(hex($0.color.green))\(hex($0.color.blue))" }.joined(separator: " ")
         return "\(kindText) [\(stopsText)]"
     }
+}
+
+/// A filter a painter applies to a group's composite before drawing it.
+public enum DisplayFilter: Equatable, Sendable {
+    /// A 4 × 5 colour matrix over straight-alpha sRGB components in 0…1, row-major: each of
+    /// the red, green, blue and alpha rows holds the red, green, blue and alpha factors and an
+    /// offset (the SVG `feColorMatrix` convention). Results are clamped to 0…1.
+    case colorMatrix(ColorMatrix)
+    /// A Gaussian blur whose sigma is `radius` points. `opaque` keeps the content's own alpha
+    /// (hard edges) and blurs only the colours inside it.
+    case blur(radius: CGFloat, opaque: Bool)
+}
+
+extension DisplayFilter: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .colorMatrix(let matrix): return matrix.description
+        case .blur(let radius, let opaque): return "blur(\(_displayFormat(radius))\(opaque ? " opaque" : ""))"
+        }
+    }
+}
+
+/// A colour matrix (see `DisplayFilter.colorMatrix`): 20 values, rows red, green, blue, alpha.
+public struct ColorMatrix: Equatable, Sendable {
+    public var values: [Double]
+
+    public init(_ values: [Double]) {
+        precondition(values.count == 20, "a colour matrix has 4 rows of 5")
+        self.values = values
+    }
+
+    public static let identity = ColorMatrix([1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0])
+
+    /// The luminance weights SwiftUI's filters share (Rec. 709 primaries).
+    public static let luminance = (red: 0.2126, green: 0.7152, blue: 0.0722)
+
+    /// Adds `amount` to every colour component (`brightness`).
+    public static func brightness(_ amount: Double) -> ColorMatrix {
+        ColorMatrix([1, 0, 0, 0, amount, 0, 1, 0, 0, amount, 0, 0, 1, 0, amount, 0, 0, 0, 1, 0])
+    }
+
+    /// Scales the colour components about mid grey (`contrast`).
+    public static func contrast(_ amount: Double) -> ColorMatrix {
+        let offset = 0.5 - 0.5 * amount
+        return ColorMatrix([amount, 0, 0, 0, offset, 0, amount, 0, 0, offset, 0, 0, amount, 0, offset, 0, 0, 0, 1, 0])
+    }
+
+    /// Interpolates between luminance grey (0) and the colour itself (1), or beyond (`saturation`;
+    /// `grayscale(x)` is `saturation(1 - x)`).
+    public static func saturation(_ amount: Double) -> ColorMatrix {
+        let (r, g, b) = luminance
+        let s = amount
+        return ColorMatrix([
+            r + (1 - r) * s, g - g * s, b - b * s, 0, 0,
+            r - r * s, g + (1 - g) * s, b - b * s, 0, 0,
+            r - r * s, g - g * s, b + (1 - b) * s, 0, 0,
+            0, 0, 0, 1, 0,
+        ])
+    }
+
+    /// Rotates hues by `angle` (`hueRotation`), the SVG `hueRotate` matrix.
+    public static func hueRotation(_ angle: Angle) -> ColorMatrix {
+        let (r, g, b) = luminance
+        let c = _cos(angle.radians), s = _sin(angle.radians)
+        return ColorMatrix([
+            r + c * (1 - r) - s * r, g - c * g - s * g, b - c * b + s * (1 - b), 0, 0,
+            r - c * r + s * 0.143, g + c * (1 - g) + s * 0.140, b - c * b - s * 0.283, 0, 0,
+            r - c * r - s * (1 - r), g - c * g + s * g, b + c * (1 - b) + s * b, 0, 0,
+            0, 0, 0, 1, 0,
+        ])
+    }
+
+    /// Complements every colour component (`colorInvert`).
+    public static let invert = ColorMatrix([-1, 0, 0, 0, 1, 0, -1, 0, 0, 1, 0, 0, -1, 0, 1, 0, 0, 0, 1, 0])
+
+    /// Multiplies the components by a colour's, alpha included (`colorMultiply`).
+    public static func multiply(_ color: RGBA) -> ColorMatrix {
+        ColorMatrix([color.red, 0, 0, 0, 0, 0, color.green, 0, 0, 0, 0, 0, color.blue, 0, 0, 0, 0, 0, color.alpha, 0])
+    }
+
+    /// Black whose alpha is the colour's luminance (`luminanceToAlpha`): the content's own
+    /// alpha is replaced, as SwiftUI does.
+    public static let luminanceToAlpha = ColorMatrix([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, luminance.red, luminance.green, luminance.blue, 0, 0])
+
+    /// Applies the matrix to one straight-alpha colour, clamping to 0…1.
+    public func apply(_ color: RGBA) -> RGBA {
+        let input = [color.red, color.green, color.blue, color.alpha]
+        var out = [0.0, 0.0, 0.0, 0.0]
+        for row in 0..<4 {
+            var value = values[row * 5 + 4]
+            for column in 0..<4 { value += values[row * 5 + column] * input[column] }
+            out[row] = min(1, max(0, value))
+        }
+        return RGBA(red: out[0], green: out[1], blue: out[2], alpha: out[3])
+    }
+
+    /// Applies the matrix in place to premultiplied 8-bit RGBA pixels: each pixel is
+    /// un-premultiplied, transformed, clamped, rounded and premultiplied again.
+    public func apply(toPremultiplied pixels: UnsafeMutableBufferPointer<UInt8>) {
+        let m = values
+        var i = 0
+        while i + 3 < pixels.count {
+            let a8 = pixels[i + 3]
+            var r = 0.0, g = 0.0, b = 0.0, a = Double(a8) / 255
+            if a8 != 0 {
+                r = Double(pixels[i]) / 255 / a
+                g = Double(pixels[i + 1]) / 255 / a
+                b = Double(pixels[i + 2]) / 255 / a
+            }
+            let nr = min(1, max(0, m[0] * r + m[1] * g + m[2] * b + m[3] * a + m[4]))
+            let ng = min(1, max(0, m[5] * r + m[6] * g + m[7] * b + m[8] * a + m[9]))
+            let nb = min(1, max(0, m[10] * r + m[11] * g + m[12] * b + m[13] * a + m[14]))
+            let na = min(1, max(0, m[15] * r + m[16] * g + m[17] * b + m[18] * a + m[19]))
+            pixels[i] = UInt8((nr * na * 255).rounded())
+            pixels[i + 1] = UInt8((ng * na * 255).rounded())
+            pixels[i + 2] = UInt8((nb * na * 255).rounded())
+            pixels[i + 3] = UInt8((na * 255).rounded())
+            i += 4
+        }
+    }
+}
+
+extension ColorMatrix: CustomStringConvertible {
+    public var description: String { "colorMatrix(" + values.map { _displayFormat($0) }.joined(separator: " ") + ")" }
 }

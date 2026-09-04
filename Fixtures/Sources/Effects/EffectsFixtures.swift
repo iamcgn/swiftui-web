@@ -78,5 +78,150 @@ public enum EffectsFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden]
+
+    // MARK: Colour effects
+
+    /// Known sRGB inputs for measuring the colour filters (Docs/elements/Effects.md).
+    static let samples: [Color] = [
+        Color(red: 0.8, green: 0.4, blue: 0.2),
+        Color(red: 0.2, green: 0.6, blue: 0.9),
+        Color(red: 0.5, green: 0.5, blue: 0.5),
+        Color(red: 1, green: 0, blue: 0),
+        Color(red: 0.8, green: 0.4, blue: 0.2).opacity(0.5),
+    ]
+
+    static func swatchGrid<V: View>(_ name: String, columns: [String], @ViewBuilder cell: @escaping @Sendable (Color, Int) -> V) -> Fixture {
+        Fixture(name, size: CGSize(width: 40 * columns.count + 20, height: 40 * samples.count + 20), content: {
+            VStack(spacing: 10) {
+                ForEach(0..<samples.count, id: \.self) { row in
+                    HStack(spacing: 10) {
+                        ForEach(0..<columns.count, id: \.self) { column in
+                            cell(samples[row], column).frame(width: 30, height: 30).probe("\(columns[column])-\(row)")
+                        }
+                    }
+                }
+            }
+            .probe("grid")
+        }).rasterized()
+    }
+
+    public static let brightness = swatchGrid("effects/brightness", columns: ["plain", "b02", "b05", "bneg", "c05", "c15", "c2"]) { color, column in
+        switch column {
+        case 0: color
+        case 1: color.brightness(0.2)
+        case 2: color.brightness(0.5)
+        case 3: color.brightness(-0.3)
+        case 4: color.contrast(0.5)
+        case 5: color.contrast(1.5)
+        default: color.contrast(2)
+        }
+    }
+
+    public static let saturation = swatchGrid("effects/saturation", columns: ["plain", "s05", "s2", "s025", "g05", "g1", "h90", "h200"]) { color, column in
+        switch column {
+        case 0: color
+        case 1: color.saturation(0.5)
+        case 2: color.saturation(2)
+        case 3: color.saturation(0.25)
+        case 4: color.grayscale(0.5)
+        case 5: color.grayscale(1)
+        case 6: color.hueRotation(.degrees(90))
+        default: color.hueRotation(.degrees(200))
+        }
+    }
+
+    public static let colorMap = swatchGrid("effects/color-map", columns: ["plain", "invert", "mulBlue", "mulHalf", "lumAlpha", "chain"]) { color, column in
+        switch column {
+        case 0: color
+        case 1: color.colorInvert()
+        case 2: color.colorMultiply(Color(red: 0, green: 0.5, blue: 1))
+        case 3: color.colorMultiply(Color(red: 1, green: 1, blue: 1).opacity(0.5))
+        case 4: color.luminanceToAlpha()
+        default: color.saturation(0).brightness(0.2).colorInvert()
+        }
+    }
+
+    /// Effects over a coloured background and on text: the alpha-changing filters composite
+    /// with what is behind, and text keeps its layout.
+    public static let colorText = Fixture("effects/color-text", size: CGSize(width: 360, height: 200), content: {
+        ZStack {
+            Color(red: 0.1, green: 0.2, blue: 0.3).frame(width: 340, height: 180).probe("background")
+            VStack(spacing: 12) {
+                HStack(spacing: 20) {
+                    Text("Bright").font(.title).foregroundStyle(Color(red: 0.8, green: 0.4, blue: 0.2)).brightness(0.3).probe("bright")
+                    Text("Gray").font(.title).foregroundStyle(Color(red: 0.8, green: 0.4, blue: 0.2)).grayscale(1).probe("gray")
+                    Text("Invert").font(.title).foregroundStyle(Color(red: 0.8, green: 0.4, blue: 0.2)).colorInvert().probe("invert")
+                }
+                .probe("row1")
+                HStack(spacing: 20) {
+                    Circle().fill(Color(red: 0.8, green: 0.4, blue: 0.2)).frame(width: 40, height: 40).luminanceToAlpha().probe("lumCircle")
+                    Text("Hue").padding(.horizontal, 10).padding(.vertical, 4).background(Capsule().fill(Color(red: 0.9, green: 0.2, blue: 0.3))).hueRotation(.degrees(120)).probe("capsule")
+                    Image(systemName: "star.fill").font(.largeTitle).foregroundStyle(Color.yellow).saturation(0).probe("symbol")
+                    RoundedRectangle(cornerRadius: 8).fill(Color(red: 0.2, green: 0.6, blue: 0.9)).frame(width: 60, height: 40).colorMultiply(Color(red: 1, green: 0.5, blue: 0.5)).probe("multiplied")
+                }
+                .probe("row2")
+            }
+            .probe("stack")
+        }
+        .probe("zstack")
+    }).rasterized()
+
+    /// Gaussian blur: the edge profile of a square, `opaque`, text, and the frame it keeps.
+    public static let blur = Fixture("effects/blur", size: CGSize(width: 360, height: 200), content: {
+        VStack(spacing: 30) {
+            HStack(spacing: 50) {
+                Color.black.frame(width: 50, height: 50).blur(radius: 6).probe("blur6")
+                Color(red: 0.8, green: 0.4, blue: 0.2).frame(width: 50, height: 50).blur(radius: 3, opaque: true).probe("opaque3")
+                Color.blue.frame(width: 50, height: 50).blur(radius: 0).probe("blur0")
+            }
+            .probe("row1")
+            HStack(spacing: 30) {
+                Text("Blurred").font(.title).blur(radius: 2).probe("text")
+                HStack(spacing: 0) {
+                    Color.red.frame(width: 30, height: 40)
+                    Color.green.frame(width: 30, height: 40)
+                }
+                .blur(radius: 4)
+                .probe("pair")
+            }
+            .probe("row2")
+        }
+        .probe("stack")
+    }).rasterized()
+
+    /// Blend modes over a two-colour background.
+    static let blendModes: [(String, BlendMode)] = [
+        ("normal", .normal), ("multiply", .multiply), ("screen", .screen), ("overlay", .overlay), ("darken", .darken), ("lighten", .lighten),
+        ("colorDodge", .colorDodge), ("colorBurn", .colorBurn), ("softLight", .softLight), ("hardLight", .hardLight), ("difference", .difference),
+        ("exclusion", .exclusion), ("hue", .hue), ("saturation", .saturation), ("color", .color), ("luminosity", .luminosity),
+        ("sourceAtop", .sourceAtop), ("destinationOver", .destinationOver), ("destinationOut", .destinationOut), ("plusDarker", .plusDarker), ("plusLighter", .plusLighter),
+    ]
+
+    public static let blend = Fixture("effects/blend", size: CGSize(width: 380, height: 220), content: {
+        ZStack {
+            HStack(spacing: 0) {
+                Color(red: 0.2, green: 0.6, blue: 0.9).frame(width: 160)
+                Color(red: 0.9, green: 0.9, blue: 0.2).frame(width: 200)
+            }
+            .probe("background")
+            VStack(spacing: 6) {
+                ForEach(0..<3, id: \.self) { row in
+                    HStack(spacing: 6) {
+                        ForEach(0..<7, id: \.self) { column in
+                            let index = row * 7 + column
+                            Color(red: 0.8, green: 0.4, blue: 0.2).opacity(index == 20 ? 0.5 : 1)
+                                .frame(width: 44, height: 44)
+                                .blendMode(blendModes[index].1)
+                                .probe(blendModes[index].0)
+                        }
+                    }
+                }
+            }
+            .probe("grid")
+        }
+        .frame(width: 380, height: 220)
+        .probe("zstack")
+    }).rasterized()
+
+    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden, brightness, saturation, colorMap, colorText, blur, blend]
 }

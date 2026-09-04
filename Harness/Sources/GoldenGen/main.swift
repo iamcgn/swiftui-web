@@ -277,7 +277,8 @@ func generate(_ fixture: Fixture, into root: URL) throws {
     // One hosted instance gives frames and pixels, before and after every behaviour step.
     FixtureAssets.appearance = fixture.colorScheme == .dark ? "dark" : "light"
     let instance = fixture.instantiate()
-    let host = FrameHost(instance.view.frame(width: fixture.size.width, height: fixture.size.height), size: fixture.size, colorScheme: fixture.colorScheme)
+    let sized = instance.view.frame(width: fixture.size.width, height: fixture.size.height)
+    let host = FrameHost(fixture.rasterized ? AnyView(sized.drawingGroup()) : AnyView(sized), size: fixture.size, colorScheme: fixture.colorScheme)
     let initialFrames = host.frames()
     let image = try host.png(scale: 2)
     try image.data.write(to: dir.appendingPathComponent("image@2x.png"))

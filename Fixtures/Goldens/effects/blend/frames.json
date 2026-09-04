@@ -1,0 +1,153 @@
+{
+  "fixture" : "effects\/blend",
+  "frames" : {
+    "background" : {
+      "height" : 220,
+      "width" : 360,
+      "x" : 10,
+      "y" : 0
+    },
+    "color" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 18,
+      "y" : 138
+    },
+    "colorBurn" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 18,
+      "y" : 88
+    },
+    "colorDodge" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 318,
+      "y" : 38
+    },
+    "darken" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 218,
+      "y" : 38
+    },
+    "destinationOut" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 218,
+      "y" : 138
+    },
+    "destinationOver" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 168,
+      "y" : 138
+    },
+    "difference" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 168,
+      "y" : 88
+    },
+    "exclusion" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 218,
+      "y" : 88
+    },
+    "grid" : {
+      "height" : 144,
+      "width" : 344,
+      "x" : 18,
+      "y" : 38
+    },
+    "hardLight" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 118,
+      "y" : 88
+    },
+    "hue" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 268,
+      "y" : 88
+    },
+    "lighten" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 268,
+      "y" : 38
+    },
+    "luminosity" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 68,
+      "y" : 138
+    },
+    "multiply" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 68,
+      "y" : 38
+    },
+    "normal" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 18,
+      "y" : 38
+    },
+    "overlay" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 168,
+      "y" : 38
+    },
+    "plusDarker" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 268,
+      "y" : 138
+    },
+    "plusLighter" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 318,
+      "y" : 138
+    },
+    "saturation" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 318,
+      "y" : 88
+    },
+    "screen" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 118,
+      "y" : 38
+    },
+    "softLight" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 68,
+      "y" : 88
+    },
+    "sourceAtop" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 118,
+      "y" : 138
+    },
+    "zstack" : {
+      "height" : 220,
+      "width" : 380,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 380
+  }
+}

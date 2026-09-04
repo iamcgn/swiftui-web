@@ -20,6 +20,10 @@ public enum DisplayOp: Double, Sendable {
     case drawTextGradient = 17
     /// colour, radius, dx, dy; ended by endGroup
     case beginShadow = 18
+    /// bounds, kind (0 colour matrix: 20 values; 1 blur: radius, opaque); ended by endGroup
+    case beginFilter = 19
+    /// blend mode index, bounds; ended by endGroup
+    case beginBlend = 20
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -87,6 +91,14 @@ public enum DisplayListEncoder {
             case .beginGroup(let opacity): out.ops += [DisplayOp.beginGroup.rawValue, opacity]
             case .beginShadow(let c, let radius, let offset):
                 out.ops.append(DisplayOp.beginShadow.rawValue); color(c); out.ops += [radius, offset.width, offset.height]
+            case .beginFilter(let filter, let bounds):
+                out.ops.append(DisplayOp.beginFilter.rawValue); rect(bounds)
+                switch filter {
+                case .colorMatrix(let matrix): out.ops.append(0); out.ops += matrix.values
+                case .blur(let radius, let opaque): out.ops += [1, radius, opaque ? 1 : 0]
+                }
+            case .beginBlend(let mode, let bounds):
+                out.ops += [DisplayOp.beginBlend.rawValue, Double(mode._index)]; rect(bounds)
             case .endGroup: out.ops.append(DisplayOp.endGroup.rawValue)
             case .concat(let t): out.ops += [DisplayOp.concat.rawValue, t.a, t.b, t.c, t.d, t.tx, t.ty]
             case .fillRect(let r, let c): out.ops.append(DisplayOp.fillRect.rawValue); rect(r); color(c)
@@ -175,6 +187,15 @@ public enum DisplayListDecoder {
             case .clipPath: let p = path(); out.append("clipPath \(p)\(next() == 1 ? " eo" : "")")
             case .beginGroup: out.append("beginGroup \(next())")
             case .beginShadow: let c = color(); out.append("beginShadow \(c) r\(next()) \(next()),\(next())")
+            case .beginFilter:
+                let bounds = f(rect())
+                if next() == 0 {
+                    let values = (0..<20).map { _ in next() }
+                    out.append("beginFilter \(bounds) matrix \(values)")
+                } else {
+                    out.append("beginFilter \(bounds) blur \(next())\(next() == 1 ? " opaque" : "")")
+                }
+            case .beginBlend: let mode = Int(next()); out.append("beginBlend \(mode) \(f(rect()))")
             case .endGroup: out.append("endGroup")
             case .concat: out.append("concat \(next()),\(next()),\(next()),\(next()),\(next()),\(next())")
             case .fillGradient:

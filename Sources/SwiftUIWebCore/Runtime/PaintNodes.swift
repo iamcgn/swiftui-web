@@ -153,6 +153,53 @@ package final class ShadowNode<Content: View>: UnaryLayoutModifierNode<Content, 
     }
 }
 
+/// Colour effects: the target paints into a group the painters filter with the modifier's
+/// matrix over the target's frame before compositing it.
+@MainActor
+package final class ColorMatrixNode<Content: View>: UnaryLayoutModifierNode<Content, _ColorMatrixEffect> {
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        let matrix = modifier.matrix(in: environment)
+        guard matrix != .identity else {
+            super.paintTarget(target, in: node, into: &list, context: context)
+            return
+        }
+        list.append(.beginFilter(.colorMatrix(matrix), bounds: context.absoluteRect(target.presentedFrame)))
+        super.paintTarget(target, in: node, into: &list, context: context)
+        list.append(.endGroup)
+    }
+}
+
+/// `blur`: the target paints into a group the painters blur; a soft blur spreads outside the
+/// frame, an opaque one keeps the edges.
+@MainActor
+package final class BlurNode<Content: View>: UnaryLayoutModifierNode<Content, _BlurEffect> {
+    override package var paintsOutsideFrame: Bool { !modifier.isOpaque }
+
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        guard modifier.radius > 0 else {
+            super.paintTarget(target, in: node, into: &list, context: context)
+            return
+        }
+        list.append(.beginFilter(.blur(radius: modifier.radius, opaque: modifier.isOpaque), bounds: context.absoluteRect(target.presentedFrame)))
+        super.paintTarget(target, in: node, into: &list, context: context)
+        list.append(.endGroup)
+    }
+}
+
+/// `blendMode`: the target paints into a group composited with the mode.
+@MainActor
+package final class BlendModeNode<Content: View>: UnaryLayoutModifierNode<Content, _BlendModeEffect> {
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        guard modifier.blendMode != .normal else {
+            super.paintTarget(target, in: node, into: &list, context: context)
+            return
+        }
+        list.append(.beginBlend(modifier.blendMode, bounds: context.absoluteRect(target.presentedFrame)))
+        super.paintTarget(target, in: node, into: &list, context: context)
+        list.append(.endGroup)
+    }
+}
+
 /// `zIndex`: transparent to layout and painting; the value surfaces as the node's trait.
 @MainActor
 package final class ZIndexNode<Content: View>: UnaryLayoutModifierNode<Content, _ZIndexEffect> {

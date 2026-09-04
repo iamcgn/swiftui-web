@@ -1,0 +1,57 @@
+{
+  "fixture" : "effects\/blur",
+  "frames" : {
+    "blur0" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 255,
+      "y" : 40
+    },
+    "blur6" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 55,
+      "y" : 40
+    },
+    "opaque3" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 155,
+      "y" : 40
+    },
+    "pair" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 199.5,
+      "y" : 120
+    },
+    "row1" : {
+      "height" : 50,
+      "width" : 250,
+      "x" : 55,
+      "y" : 40
+    },
+    "row2" : {
+      "height" : 40,
+      "width" : 159,
+      "x" : 100.5,
+      "y" : 120
+    },
+    "stack" : {
+      "height" : 120,
+      "width" : 250,
+      "x" : 55,
+      "y" : 40
+    },
+    "text" : {
+      "height" : 33,
+      "width" : 69,
+      "x" : 100.5,
+      "y" : 123.5
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 360
+  }
+}

@@ -113,6 +113,130 @@ enum PainterScript {
         for (let k = 0; k < count; k++) { const loc = buf[i++]; style.addColorStop(Math.min(Math.max(loc, 0), 1), color(buf[i++], buf[i++], buf[i++], buf[i++])); }
         return { style, i };
       }
+      const blendOps = ['source-over', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'soft-light', 'hard-light',
+        'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity', 'source-atop', 'destination-over', 'destination-out', 'plus-darker', 'lighter'];
+      // Whether the 2D context supports CSS filters (the blur path); otherwise the JS blur runs.
+      let canvasFilters = null;
+      function hasCanvasFilters() {
+        if (canvasFilters === null) {
+          const probe = new OffscreenCanvas(1, 1).getContext('2d');
+          canvasFilters = ('filter' in probe) && (probe.filter = 'blur(1px)', probe.filter !== 'none' && probe.filter !== '');
+        }
+        return canvasFilters;
+      }
+      // The device-pixel box of a rectangle in the context's current space, padded and clamped.
+      function deviceBounds(ctx, x, y, w, h, pad, cw, ch) {
+        const t = ctx.getTransform();
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const [px, py] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) {
+          const dx = t.a * px + t.c * py + t.e, dy = t.b * px + t.d * py + t.f;
+          minX = Math.min(minX, dx); minY = Math.min(minY, dy); maxX = Math.max(maxX, dx); maxY = Math.max(maxY, dy);
+        }
+        minX = Math.max(0, Math.floor(minX - pad)); minY = Math.max(0, Math.floor(minY - pad));
+        maxX = Math.min(cw, Math.ceil(maxX + pad)); maxY = Math.min(ch, Math.ceil(maxY + pad));
+        return { x: minX, y: minY, w: Math.max(0, maxX - minX), h: Math.max(0, maxY - minY), scale: Math.hypot(t.a, t.b) };
+      }
+      function clamp255(v) { return v < 0 ? 0 : v > 255 ? 255 : Math.round(v); }
+      // Applies a 4 × 5 colour matrix (straight alpha, 0…1) to the pixels of `b` in `octx`.
+      function applyColorMatrix(octx, b, m) {
+        if (b.w <= 0 || b.h <= 0) return;
+        const img = octx.getImageData(b.x, b.y, b.w, b.h), d = img.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i] / 255, g = d[i + 1] / 255, bl = d[i + 2] / 255, a = d[i + 3] / 255;
+          d[i] = clamp255((m[0] * r + m[1] * g + m[2] * bl + m[3] * a + m[4]) * 255);
+          d[i + 1] = clamp255((m[5] * r + m[6] * g + m[7] * bl + m[8] * a + m[9]) * 255);
+          d[i + 2] = clamp255((m[10] * r + m[11] * g + m[12] * bl + m[13] * a + m[14]) * 255);
+          d[i + 3] = clamp255((m[15] * r + m[16] * g + m[17] * bl + m[18] * a + m[19]) * 255);
+        }
+        octx.putImageData(img, b.x, b.y);
+      }
+      // A separable Gaussian over premultiplied pixels (outside the box is transparent).
+      function gaussianBlurData(d, w, h, sigma, keepAlpha) {
+        const radius = Math.ceil(sigma * 3);
+        const kernel = [];
+        let sum = 0;
+        for (let k = -radius; k <= radius; k++) { const v = Math.exp(-(k * k) / (2 * sigma * sigma)); kernel.push(v); sum += v; }
+        for (let k = 0; k < kernel.length; k++) kernel[k] /= sum;
+        const n = w * h * 4;
+        const src = new Float32Array(n), pass = new Float32Array(n);
+        for (let i = 0; i < n; i += 4) { const a = d[i + 3] / 255; src[i] = d[i] * a; src[i + 1] = d[i + 1] * a; src[i + 2] = d[i + 2] * a; src[i + 3] = d[i + 3]; }
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            let r = 0, g = 0, b = 0, a = 0;
+            for (let k = 0; k < kernel.length; k++) {
+              const sx = x + k - radius;
+              if (sx < 0 || sx >= w) continue;
+              const o = (y * w + sx) * 4, wt = kernel[k];
+              r += src[o] * wt; g += src[o + 1] * wt; b += src[o + 2] * wt; a += src[o + 3] * wt;
+            }
+            const o = (y * w + x) * 4;
+            pass[o] = r; pass[o + 1] = g; pass[o + 2] = b; pass[o + 3] = a;
+          }
+        }
+        for (let x = 0; x < w; x++) {
+          for (let y = 0; y < h; y++) {
+            let r = 0, g = 0, b = 0, a = 0;
+            for (let k = 0; k < kernel.length; k++) {
+              const sy = y + k - radius;
+              if (sy < 0 || sy >= h) continue;
+              const o = (sy * w + x) * 4, wt = kernel[k];
+              r += pass[o] * wt; g += pass[o + 1] * wt; b += pass[o + 2] * wt; a += pass[o + 3] * wt;
+            }
+            const o = (y * w + x) * 4;
+            const alpha = keepAlpha ? d[o + 3] : a;
+            if (a > 0 && alpha > 0) { const f = 255 / a; d[o] = clamp255(r * f); d[o + 1] = clamp255(g * f); d[o + 2] = clamp255(b * f); }
+            d[o + 3] = clamp255(alpha);
+          }
+        }
+      }
+      // Blurs `off` within `b`: returns the canvas to composite (the browser's filter when it
+      // has one, else the JS blur in place). An opaque blur keeps the original alpha.
+      function blurred(off, b, sigma, opaque) {
+        if (b.w <= 0 || b.h <= 0 || sigma <= 0) return off;
+        const octx = off.getContext('2d');
+        if (!hasCanvasFilters()) {
+          const img = octx.getImageData(b.x, b.y, b.w, b.h);
+          gaussianBlurData(img.data, b.w, b.h, sigma, opaque);
+          octx.putImageData(img, b.x, b.y);
+          return off;
+        }
+        const out = new OffscreenCanvas(off.width, off.height);
+        const ctx = out.getContext('2d');
+        ctx.filter = 'blur(' + sigma + 'px)';
+        ctx.drawImage(off, 0, 0);
+        ctx.filter = 'none';
+        if (opaque) {
+          const original = octx.getImageData(b.x, b.y, b.w, b.h).data;
+          const img = ctx.getImageData(b.x, b.y, b.w, b.h), d = img.data;
+          for (let i = 0; i < d.length; i += 4) d[i + 3] = original[i + 3];
+          ctx.putImageData(img, b.x, b.y);
+        }
+        return out;
+      }
+      // plus-darker has no canvas operation: max(0, source + destination − 1), premultiplied.
+      function plusDarker(parent, off, b) {
+        if (b.w <= 0 || b.h <= 0) return;
+        const dst = parent.getImageData(b.x, b.y, b.w, b.h), d = dst.data;
+        const s = off.getContext('2d').getImageData(b.x, b.y, b.w, b.h).data;
+        for (let i = 0; i < d.length; i += 4) {
+          const sa = s[i + 3] / 255, da = d[i + 3] / 255;
+          const a = Math.max(0, sa + da - 1);
+          if (a <= 0) { d[i] = d[i + 1] = d[i + 2] = d[i + 3] = 0; continue; }
+          for (let c = 0; c < 3; c++) d[i + c] = clamp255(Math.max(0, s[i + c] * sa + d[i + c] * da - 255) / a);
+          d[i + 3] = clamp255(a * 255);
+        }
+        const patch = new OffscreenCanvas(b.w, b.h);
+        patch.getContext('2d').putImageData(dst, 0, 0);
+        parent.clearRect(b.x, b.y, b.w, b.h);
+        parent.drawImage(patch, b.x, b.y);
+      }
+      function beginOffscreen(ctx, dpr, w, h) {
+        const off = new OffscreenCanvas(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
+        const octx = off.getContext('2d');
+        octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        octx.textBaseline = 'alphabetic';
+        return { off: off, octx: octx };
+      }
       function paint(rootCtx, buf, strings, dpr, w, h) {
         rootCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         rootCtx.clearRect(0, 0, w, h);
@@ -142,9 +266,16 @@ enum PainterScript {
             case 7: {
               const g = groups.pop();
               const parent = g.ctx;
+              let source = g.off;
+              if (g.filter) {
+                if (g.filter.matrix) applyColorMatrix(g.off.getContext('2d'), g.bounds, g.filter.matrix);
+                else source = blurred(g.off, g.bounds, g.filter.sigma, g.filter.opaque);
+              }
               parent.save();
-              parent.globalAlpha = g.opacity;
               parent.setTransform(1, 0, 0, 1, 0, 0);
+              if (g.blend === 'plus-darker') { plusDarker(parent, source, g.bounds); parent.restore(); ctx = parent; break; }
+              if (g.blend) parent.globalCompositeOperation = g.blend;
+              parent.globalAlpha = g.opacity;
               if (g.shadow) {
                 // Canvas blur is twice the Gaussian sigma; everything is in device pixels here.
                 parent.shadowColor = g.shadow.color;
@@ -152,9 +283,38 @@ enum PainterScript {
                 parent.shadowOffsetX = g.shadow.dx * dpr;
                 parent.shadowOffsetY = g.shadow.dy * dpr;
               }
-              parent.drawImage(g.off, 0, 0);
+              parent.drawImage(source, 0, 0);
               parent.restore();
               ctx = parent;
+              break;
+            }
+            case 19: {
+              const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
+              const kind = buf[i++];
+              let filter, pad = 0;
+              if (kind === 0) {
+                const m = [];
+                for (let k = 0; k < 20; k++) m.push(buf[i++]);
+                filter = { matrix: m };
+              } else {
+                const radius = buf[i++], opaque = buf[i++] === 1;
+                filter = { radius: radius, opaque: opaque };
+              }
+              const o = beginOffscreen(ctx, dpr, w, h);
+              const probe = deviceBounds(ctx, x, y, rw, rh, 0, o.off.width, o.off.height);
+              if (filter.radius !== undefined) { filter.sigma = filter.radius * probe.scale; pad = filter.opaque ? 0 : Math.ceil(filter.sigma * 3); }
+              const bounds = pad > 0 ? deviceBounds(ctx, x, y, rw, rh, pad, o.off.width, o.off.height) : probe;
+              groups.push({ ctx: ctx, off: o.off, opacity: 1, filter: filter, bounds: bounds });
+              ctx = o.octx;
+              break;
+            }
+            case 20: {
+              const mode = buf[i++];
+              const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
+              const o = beginOffscreen(ctx, dpr, w, h);
+              const bounds = deviceBounds(ctx, x, y, rw, rh, 0, o.off.width, o.off.height);
+              groups.push({ ctx: ctx, off: o.off, opacity: 1, blend: blendOps[mode] || 'source-over', bounds: bounds });
+              ctx = o.octx;
               break;
             }
             case 18: {

@@ -68,9 +68,12 @@ struct Bitmap {
     let width: Int, height: Int
     var data: [UInt8]
 
+    /// Paints the list onto a transparent bitmap (as the harness captures a transparent window)
+    /// and composites the result over white afterwards, like `golden`: blend modes that read
+    /// the backdrop (`destinationOut`) then see the same transparency Apple's did.
     @MainActor static func render(_ list: DisplayList, size: CGSize, scale: CGFloat, painter: CoreGraphicsPainter) -> Bitmap {
         let width = Int((size.width * scale).rounded()), height = Int((size.height * scale).rounded())
-        var data = [UInt8](repeating: 255, count: width * height * 4)
+        var data = [UInt8](repeating: 0, count: width * height * 4)
         data.withUnsafeMutableBytes { bytes in
             let ctx = CGContext(data: bytes.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
                                 space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
@@ -78,6 +81,15 @@ struct Bitmap {
             ctx.translateBy(x: 0, y: CGFloat(height))
             ctx.scaleBy(x: scale, y: -scale)
             painter.paint(list, into: ctx)
+        }
+        var index = 0
+        while index < data.count {
+            let inverse = 255 - Int(data[index + 3])
+            data[index] = UInt8(min(255, Int(data[index]) + inverse))
+            data[index + 1] = UInt8(min(255, Int(data[index + 1]) + inverse))
+            data[index + 2] = UInt8(min(255, Int(data[index + 2]) + inverse))
+            data[index + 3] = 255
+            index += 4
         }
         return Bitmap(width: width, height: height, data: data)
     }

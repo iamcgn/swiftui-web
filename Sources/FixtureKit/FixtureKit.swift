@@ -41,6 +41,19 @@ public struct Fixture: Sendable {
         return copy
     }
 
+    /// Whether the harness rasterises the fixture through SwiftUI's own renderer (`drawingGroup`)
+    /// instead of the window's layer tree: layer filters (colour effects, blur, blend modes) are
+    /// applied by the render server on screen and skipped by an offscreen capture, while the
+    /// rasteriser draws them. AppKit-backed views do not draw in a rasterised fixture.
+    public var rasterized = false
+
+    /// The same fixture captured through SwiftUI's rasteriser.
+    public func rasterized(_ flag: Bool = true) -> Fixture {
+        var copy = self
+        copy.rasterized = flag
+        return copy
+    }
+
     /// The root view of a fresh instance.
     public var content: @MainActor @Sendable () -> AnyView {
         let instantiate = instantiate

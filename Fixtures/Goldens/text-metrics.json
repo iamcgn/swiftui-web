@@ -6630,6 +6630,18 @@
       "lastBaseline" : 124,
       "width" : 0
     },
+    "style:title||Blurred" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 69
+    },
+    "style:title||Bright" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 57.5
+    },
     "style:title||Count: 0" : {
       "firstBaseline" : 25,
       "height" : 33,
@@ -6654,11 +6666,23 @@
       "lastBaseline" : 25,
       "width" : 40.5
     },
+    "style:title||Gray" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 45
+    },
     "style:title||Hello" : {
       "firstBaseline" : 25,
       "height" : 33,
       "lastBaseline" : 25,
       "width" : 49
+    },
+    "style:title||Invert" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 54
     },
     "style:title||Large" : {
       "firstBaseline" : 25,
@@ -6708,6 +6732,18 @@
       "lastBaseline" : 25,
       "width" : 97.5
     },
+    "style:title|0.0|Blurred" : {
+      "firstBaseline" : 25,
+      "height" : 231,
+      "lastBaseline" : 223,
+      "width" : 0
+    },
+    "style:title|0.0|Bright" : {
+      "firstBaseline" : 25,
+      "height" : 198,
+      "lastBaseline" : 190,
+      "width" : 0
+    },
     "style:title|0.0|Count: 0" : {
       "firstBaseline" : 25,
       "height" : 231,
@@ -6732,10 +6768,22 @@
       "lastBaseline" : 91,
       "width" : 0
     },
+    "style:title|0.0|Gray" : {
+      "firstBaseline" : 25,
+      "height" : 132,
+      "lastBaseline" : 124,
+      "width" : 0
+    },
     "style:title|0.0|Hello" : {
       "firstBaseline" : 25,
       "height" : 165,
       "lastBaseline" : 157,
+      "width" : 0
+    },
+    "style:title|0.0|Invert" : {
+      "firstBaseline" : 25,
+      "height" : 198,
+      "lastBaseline" : 190,
       "width" : 0
     },
     "style:title|0.0|Large" : {
@@ -9900,6 +9948,12 @@
       "lastBaseline" : 13,
       "width" : 28.5
     },
+    "system:13:400:default||Hue" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 24.5
+    },
     "system:13:400:default||Increment" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -11488,6 +11542,12 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Hue" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
       "width" : 0
     },
     "system:13:400:default|0.0|Increment" : {

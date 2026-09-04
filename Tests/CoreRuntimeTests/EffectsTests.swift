@@ -1,5 +1,6 @@
-// Phase 6: shadow (a shadow group in the display list), zIndex (paint order and hit testing) and
-// hidden (layout kept, nothing painted, hit tested or exposed).
+// Phase 6: shadow (a shadow group in the display list), zIndex (paint order and hit testing),
+// hidden (layout kept, nothing painted, hit tested or exposed), colour effects, blur and blend
+// modes (filter and blend groups; the matrices against Apple's measured pixels).
 import Testing
 import SwiftUI
 import SwiftUIWebHeadless
@@ -68,6 +69,104 @@ import SwiftUIWebHeadless
         renderer.runtime.pointerDown(at: CGPoint(x: 100, y: 50))
         renderer.runtime.pointerUp(at: CGPoint(x: 100, y: 50))
         #expect(counter.taps == 10)
+    }
+
+    /// Apple's rasteriser on (204, 102, 51) (`effects/brightness`, `effects/saturation`,
+    /// `effects/color-map`, 2026-09-04).
+    @Test func colorMatricesMatchTheMeasuredPixels() {
+        let orange = RGBA(r: 204, g: 102, b: 51)
+        // Within one 8-bit step of the golden (Apple rounds exact halves down).
+        func matches(_ matrix: ColorMatrix, _ expected: [Int], _ color: RGBA = orange) -> Bool {
+            let out = matrix.apply(color)
+            let bytes = [out.red, out.green, out.blue, out.alpha].map { Int(($0 * 255).rounded()) }
+            return zip(bytes, expected).allSatisfy { abs($0 - $1) <= 1 }
+        }
+        #expect(matches(.brightness(0.2), [255, 153, 102, 255]))
+        #expect(matches(.brightness(-0.3), [127, 25, 0, 255]))
+        #expect(matches(.contrast(0.5), [166, 115, 89, 255]))
+        #expect(matches(.contrast(1.5), [242, 89, 13, 255]))
+        #expect(matches(.contrast(2), [255, 76, 0, 255]))
+        #expect(matches(.saturation(0), [120, 120, 120, 255]))
+        #expect(matches(.saturation(0.5), [162, 111, 85, 255]))
+        #expect(matches(.saturation(2), [255, 84, 0, 255]))
+        #expect(matches(.hueRotation(.degrees(90)), [51, 149, 36, 255]))
+        #expect(matches(.hueRotation(.degrees(200)), [65, 127, 213, 255]))
+        #expect(matches(.invert, [51, 153, 204, 255]))
+        #expect(matches(.multiply(RGBA(red: 0, green: 0.5, blue: 1)), [0, 51, 51, 255]))
+        #expect(matches(.multiply(RGBA(red: 1, green: 1, blue: 1, alpha: 0.5)), [204, 102, 51, 128]))
+        #expect(matches(.luminanceToAlpha, [0, 0, 0, 120]))
+        // luminanceToAlpha replaces the content's alpha rather than scaling it.
+        #expect(matches(.luminanceToAlpha, [0, 0, 0, 120], orange.multiplyingAlpha(by: 0.5)))
+        // Premultiplied pixels: un-premultiplied, transformed, premultiplied again.
+        var pixels: [UInt8] = [102, 51, 26, 128, 204, 102, 51, 255]
+        pixels.withUnsafeMutableBufferPointer { ColorMatrix.invert.apply(toPremultiplied: $0) }
+        #expect(pixels == [26, 77, 102, 128, 51, 153, 204, 255])
+    }
+
+    @Test func colorEffectsWrapTheContentInFilterGroups() {
+        let box = Color.red.frame(width: 20, height: 10)
+        #expect(render(box.colorInvert()) == ["beginFilter(colorMatrix(-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0)(90, 45, 20, 10))", "fillRect(90, 45, 20, 10) #FF383C", "endGroup"])
+        #expect(render(box.brightness(0.25)).first == "beginFilter(colorMatrix(1 0 0 0 0.25 0 1 0 0 0.25 0 0 1 0 0.25 0 0 0 1 0)(90, 45, 20, 10))")
+        // grayscale is the complementary saturation; identity matrices paint no group.
+        #expect(render(box.grayscale(0.5)) == render(box.saturation(0.5)))
+        #expect(render(box.saturation(1)) == ["fillRect(90, 45, 20, 10) #FF383C"])
+        #expect(render(box.brightness(0)) == ["fillRect(90, 45, 20, 10) #FF383C"])
+        // Chained effects nest, innermost first.
+        let chain = render(box.saturation(0).brightness(0.2))
+        #expect(chain.count == 5 && chain[0].hasPrefix("beginFilter(colorMatrix(1 0 0 0 0.2") && chain[1].hasPrefix("beginFilter(colorMatrix(0.2126"))
+        // Blur: a soft blur paints outside the frame, an opaque one keeps its edges; zero is plain.
+        #expect(render(box.blur(radius: 3)) == ["beginFilter(blur(3)(90, 45, 20, 10))", "fillRect(90, 45, 20, 10) #FF383C", "endGroup"])
+        #expect(render(box.blur(radius: 3, opaque: true)).first == "beginFilter(blur(3 opaque)(90, 45, 20, 10))")
+        #expect(render(box.blur(radius: 0)) == ["fillRect(90, 45, 20, 10) #FF383C"])
+        // Blend modes; normal paints plainly.
+        #expect(render(box.blendMode(.multiply)) == ["beginBlend(multiply(90, 45, 20, 10))", "fillRect(90, 45, 20, 10) #FF383C", "endGroup"])
+        #expect(render(box.blendMode(.normal)) == ["fillRect(90, 45, 20, 10) #FF383C"])
+        // Layout is untouched.
+        let runtime = Runtime()
+        runtime.mount(HStack(spacing: 0) { box.blur(radius: 10); box.colorInvert(); box.blendMode(.screen) })
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        #expect(runtime.render(scale: 2).commands.filter { $0.description.hasPrefix("fillRect") }.map(\.description) == ["fillRect(70, 45, 20, 10) #FF383C", "fillRect(90, 45, 20, 10) #FF383C", "fillRect(110, 45, 20, 10) #FF383C"])
+    }
+
+    @Test func filterAndBlendGroupsEncodeAndDecode() {
+        var list = DisplayList()
+        list.append(.beginFilter(.blur(radius: 2.5, opaque: true), bounds: CGRect(x: 1, y: 2, width: 3, height: 4)))
+        list.append(.endGroup)
+        list.append(.beginFilter(.colorMatrix(.invert), bounds: CGRect(x: 0, y: 0, width: 10, height: 10)))
+        list.append(.endGroup)
+        list.append(.beginBlend(.plusLighter, bounds: CGRect(x: 5, y: 6, width: 7, height: 8)))
+        list.append(.endGroup)
+        let decoded = DisplayListDecoder.decode(DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont))
+        #expect(decoded[0] == "beginFilter 1.0,2.0,3.0,4.0 blur 2.5 opaque")
+        #expect(decoded[2] == "beginFilter 0.0,0.0,10.0,10.0 matrix [-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]")
+        #expect(decoded[4] == "beginBlend 20 5.0,6.0,7.0,8.0")
+        #expect(BlendMode.allCases.map(\._index) == Array(0..<21))
+    }
+
+    @Test func gaussianBlurSpreadsSoftEdgesAndKeepsOpaqueOnes() {
+        // A 12 × 12 bitmap with an opaque black band in columns 4…7; the middle row has full
+        // vertical support, so it reads as a one-dimensional profile.
+        let width = 12, height = 12
+        var soft = [UInt8](repeating: 0, count: width * height * 4)
+        for y in 0..<height { for x in 4..<8 { soft[(y * width + x) * 4 + 3] = 255 } }
+        var opaque = soft
+        soft.withUnsafeMutableBufferPointer { PixelFilters.gaussianBlur($0, width: width, height: height, sigma: 1, keepAlpha: false) }
+        opaque.withUnsafeMutableBufferPointer { PixelFilters.gaussianBlur($0, width: width, height: height, sigma: 1, keepAlpha: true) }
+        let row = 6 * width
+        let softAlpha = (0..<width).map { Int(soft[(row + $0) * 4 + 3]) }
+        // Coverage falls across the edge symmetrically and is gone beyond three sigma.
+        #expect(softAlpha[0] == 0 && softAlpha[11] == 0)
+        #expect(softAlpha[3] > 30 && softAlpha[3] < 128 && softAlpha[4] > 128 && softAlpha[5] > softAlpha[4])
+        #expect(abs(softAlpha[3] - (255 - softAlpha[4])) <= 2)
+        #expect(softAlpha == softAlpha.reversed())
+        #expect((0..<width).map { Int(opaque[(row + $0) * 4 + 3]) } == (0..<width).map { $0 >= 4 && $0 < 8 ? 255 : 0 })
+        // An opaque blur of a uniform colour keeps it uniform right to the edge.
+        var colour = [UInt8](repeating: 0, count: width * height * 4)
+        for y in 0..<height { for x in 4..<8 { let o = (y * width + x) * 4; colour[o] = 200; colour[o + 1] = 100; colour[o + 3] = 255 } }
+        colour.withUnsafeMutableBufferPointer { PixelFilters.gaussianBlur($0, width: width, height: height, sigma: 2, keepAlpha: true) }
+        #expect((4..<8).allSatisfy { colour[(row + $0) * 4] == 200 && colour[(row + $0) * 4 + 1] == 100 && colour[(row + $0) * 4 + 3] == 255 })
+        #expect(PixelFilters.gaussianKernel(sigma: 0) == [1])
+        #expect(PixelFilters.gaussianKernel(sigma: 2).count == 13)
     }
 
     @Test func hiddenKeepsLayoutAndDrawsNothing() {
