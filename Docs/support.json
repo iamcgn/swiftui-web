@@ -68,6 +68,12 @@
           "api": "DynamicProperty (custom, nested)",
           "status": "partial",
           "notes": "update() and nested installation; Tier B (Chromium) within tolerance"
+        },
+        {
+          "api": "#Preview / PreviewTrait / PreviewProvider",
+          "status": "stub",
+          "notes": "The macro expands to nothing (SwiftUIWebMacros, prebuilt swift-syntax) so preview blocks compile; nothing renders previews",
+          "fixtures": []
         }
       ]
     },

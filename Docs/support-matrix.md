@@ -30,6 +30,7 @@ Generated from `Docs/support.json` by `scripts/support-matrix.py`. Anything not 
 | `ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent` | 🟢 partial | Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) exact frames, ≤ 0.3 % pixels incl. every identity step | foreach/* |
 | `Section (content/header/footer, title forms, deprecated argument orders)` | 🟢 partial | Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; inside List: styled header/footer, spacing, pinned first header (list/sections); no Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels | section/* |
 | `DynamicProperty (custom, nested)` | 🟢 partial | update() and nested installation; Tier B (Chromium) within tolerance |  |
+| `#Preview / PreviewTrait / PreviewProvider` | 🟠 stub | The macro expands to nothing (SwiftUIWebMacros, prebuilt swift-syntax) so preview blocks compile; nothing renders previews |  |
 
 ## Views
 
