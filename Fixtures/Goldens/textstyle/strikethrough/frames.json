@@ -1,0 +1,57 @@
+{
+  "fixture" : "textstyle\/strikethrough",
+  "frames" : {
+    "body" : {
+      "height" : 16,
+      "width" : 39.5,
+      "x" : 65,
+      "y" : 9
+    },
+    "bold" : {
+      "height" : 16,
+      "width" : 69.5,
+      "x" : 65,
+      "y" : 137
+    },
+    "caption" : {
+      "height" : 15,
+      "width" : 67.5,
+      "x" : 65,
+      "y" : 110
+    },
+    "colored" : {
+      "height" : 16,
+      "width" : 60.5,
+      "x" : 65,
+      "y" : 82
+    },
+    "large" : {
+      "height" : 38,
+      "width" : 130,
+      "x" : 65,
+      "y" : 193
+    },
+    "partial" : {
+      "height" : 16,
+      "width" : 61,
+      "x" : 65,
+      "y" : 165
+    },
+    "stack" : {
+      "height" : 222,
+      "width" : 130,
+      "x" : 65,
+      "y" : 9
+    },
+    "title" : {
+      "height" : 33,
+      "width" : 97.5,
+      "x" : 65,
+      "y" : 37
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 260
+  }
+}

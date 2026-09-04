@@ -1,0 +1,75 @@
+{
+  "fixture" : "textstyle\/underline",
+  "frames" : {
+    "body" : {
+      "height" : 16,
+      "width" : 66.5,
+      "x" : 90.5,
+      "y" : 26
+    },
+    "bold" : {
+      "height" : 16,
+      "width" : 72,
+      "x" : 90.5,
+      "y" : 154
+    },
+    "both" : {
+      "height" : 16,
+      "width" : 28.5,
+      "x" : 90.5,
+      "y" : 258
+    },
+    "caption" : {
+      "height" : 15,
+      "width" : 65.5,
+      "x" : 90.5,
+      "y" : 127
+    },
+    "colored" : {
+      "height" : 16,
+      "width" : 48,
+      "x" : 90.5,
+      "y" : 99
+    },
+    "first" : {
+      "height" : 16,
+      "width" : 27,
+      "x" : 90.5,
+      "y" : 210
+    },
+    "partial" : {
+      "height" : 16,
+      "width" : 70.5,
+      "x" : 90.5,
+      "y" : 182
+    },
+    "second" : {
+      "height" : 16,
+      "width" : 46,
+      "x" : 90.5,
+      "y" : 230
+    },
+    "stack" : {
+      "height" : 248,
+      "width" : 79,
+      "x" : 90.5,
+      "y" : 26
+    },
+    "title" : {
+      "height" : 33,
+      "width" : 79,
+      "x" : 90.5,
+      "y" : 54
+    },
+    "viewLevel" : {
+      "height" : 36,
+      "width" : 46,
+      "x" : 90.5,
+      "y" : 210
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 260
+  }
+}

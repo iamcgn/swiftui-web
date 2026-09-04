@@ -1,0 +1,57 @@
+{
+  "fixture" : "textstyle\/patterns",
+  "frames" : {
+    "dash" : {
+      "height" : 16,
+      "width" : 46.5,
+      "x" : 77.25,
+      "y" : 85.5
+    },
+    "dashDot" : {
+      "height" : 16,
+      "width" : 55,
+      "x" : 77.25,
+      "y" : 113.5
+    },
+    "dashDotDot" : {
+      "height" : 16,
+      "width" : 78.5,
+      "x" : 77.25,
+      "y" : 141.5
+    },
+    "dashStrike" : {
+      "height" : 16,
+      "width" : 68,
+      "x" : 77.25,
+      "y" : 169.5
+    },
+    "dot" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 77.25,
+      "y" : 57.5
+    },
+    "dotTitle" : {
+      "height" : 33,
+      "width" : 105.5,
+      "x" : 77.25,
+      "y" : 197.5
+    },
+    "solid" : {
+      "height" : 16,
+      "width" : 30.5,
+      "x" : 77.25,
+      "y" : 29.5
+    },
+    "stack" : {
+      "height" : 201,
+      "width" : 105.5,
+      "x" : 77.25,
+      "y" : 29.5
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 260
+  }
+}

@@ -204,6 +204,10 @@ func measureFontSpacing(_ font: FixtureFont) -> [String: Double] {
         "linePitch": linePitch,
         "unroundedLineHeight": unroundedLineHeight,
         "capHeight": Double(nsFont(font).capHeight),
+        // Decoration metrics (underline below the baseline is negative, as CoreText reports it).
+        "xHeight": Double(nsFont(font).xHeight),
+        "underlinePosition": Double(nsFont(font).underlinePosition),
+        "underlineThickness": Double(nsFont(font).underlineThickness),
     ]
 }
 

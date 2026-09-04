@@ -1,0 +1,45 @@
+{
+  "fixture" : "textstyle\/case",
+  "frames" : {
+    "group" : {
+      "height" : 16,
+      "width" : 78,
+      "x" : 91,
+      "y" : 104
+    },
+    "inherited" : {
+      "height" : 16,
+      "width" : 78,
+      "x" : 91,
+      "y" : 104
+    },
+    "lower" : {
+      "height" : 16,
+      "width" : 68.5,
+      "x" : 91,
+      "y" : 48
+    },
+    "none" : {
+      "height" : 16,
+      "width" : 70.5,
+      "x" : 91,
+      "y" : 76
+    },
+    "stack" : {
+      "height" : 100,
+      "width" : 78,
+      "x" : 91,
+      "y" : 20
+    },
+    "upper" : {
+      "height" : 16,
+      "width" : 78,
+      "x" : 91,
+      "y" : 20
+    }
+  },
+  "size" : {
+    "height" : 140,
+    "width" : 260
+  }
+}

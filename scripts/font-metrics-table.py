@@ -29,7 +29,7 @@ lines = [
 ]
 for s in styles:
     f = fonts[f"style:{s}"]
-    lines.append(f"        .{s}: .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(f'style:{s}'))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])}, linePitch: {fmt(f['linePitch'])}, unroundedLineHeight: {fmt(f['unroundedLineHeight'])}, capHeight: {fmt(f.get('capHeight', 0))}),")
+    lines.append(f"        .{s}: .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(f'style:{s}'))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])}, linePitch: {fmt(f['linePitch'])}, unroundedLineHeight: {fmt(f['unroundedLineHeight'])}, capHeight: {fmt(f.get('capHeight', 0))}, xHeight: {fmt(f.get('xHeight', 0))}, underlineOffset: {fmt(-f.get('underlinePosition', 0))}, underlineThickness: {fmt(f.get('underlineThickness', 0))}),")
 lines += ["    ]", "",
           "    /// (style, weight) faces whose line differs from the style's regular face.",
           "    package static let macOSTextStyleWeightOverrides: [Font.TextStyle: [Int: (lineHeight: CGFloat, baseline: CGFloat)]] = ["]
@@ -50,7 +50,7 @@ sizes = sorted({float(k.split(":")[1]) for k in fonts if k.startswith("system:")
 for size in sizes:
     key = f"system:{int(size) if size.is_integer() else size}:400:default"
     f = fonts[key]
-    lines.append(f"        ({fmt(size)}, .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(key))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])}, linePitch: {fmt(f['linePitch'])}, unroundedLineHeight: {fmt(f['unroundedLineHeight'])}, capHeight: {fmt(f.get('capHeight', 0))})),")
+    lines.append(f"        ({fmt(size)}, .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(key))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])}, linePitch: {fmt(f['linePitch'])}, unroundedLineHeight: {fmt(f['unroundedLineHeight'])}, capHeight: {fmt(f.get('capHeight', 0))}, xHeight: {fmt(f.get('xHeight', 0))}, underlineOffset: {fmt(-f.get('underlinePosition', 0))}, underlineThickness: {fmt(f.get('underlineThickness', 0))})),")
 lines += ["    ]", "}", ""]
 out = root / "Sources/SwiftUIWebCore/Text/SystemFontMetricsTable.swift"
 out.write_text("\n".join(lines))

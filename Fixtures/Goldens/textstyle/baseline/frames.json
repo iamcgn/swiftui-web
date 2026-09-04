@@ -1,0 +1,63 @@
+{
+  "fixture" : "textstyle\/baseline",
+  "frames" : {
+    "base" : {
+      "height" : 16,
+      "width" : 30,
+      "x" : 77,
+      "y" : 34
+    },
+    "centerBase" : {
+      "height" : 16,
+      "width" : 30,
+      "x" : 77,
+      "y" : 73
+    },
+    "centerRow" : {
+      "height" : 22,
+      "width" : 59.5,
+      "x" : 77,
+      "y" : 70
+    },
+    "centerUp" : {
+      "height" : 22,
+      "width" : 17.5,
+      "x" : 119,
+      "y" : 70
+    },
+    "down" : {
+      "height" : 20,
+      "width" : 34.5,
+      "x" : 148.5,
+      "y" : 34
+    },
+    "raised" : {
+      "height" : 24,
+      "width" : 41,
+      "x" : 77,
+      "y" : 108
+    },
+    "row" : {
+      "height" : 26,
+      "width" : 106,
+      "x" : 77,
+      "y" : 28
+    },
+    "stack" : {
+      "height" : 104,
+      "width" : 106,
+      "x" : 77,
+      "y" : 28
+    },
+    "up" : {
+      "height" : 22,
+      "width" : 17.5,
+      "x" : 119,
+      "y" : 28
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 260
+  }
+}

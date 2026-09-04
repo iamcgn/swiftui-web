@@ -38,6 +38,31 @@ public struct Text: Equatable, Sendable {
         case concatenated([Text])
     }
 
+    /// A style for drawing a line under or through text.
+    public struct LineStyle: Hashable, Sendable {
+        /// The pattern of the line: continuous, or repeated dots and dashes.
+        public enum Pattern: Hashable, Sendable {
+            case solid, dot, dash, dashDot, dashDotDot
+        }
+
+        public var pattern: Pattern
+        /// The colour of the line; `nil` draws it in the text's colour.
+        public var color: Color?
+
+        public init(pattern: Pattern = .solid, color: Color? = nil) {
+            self.pattern = pattern
+            self.color = color
+        }
+
+        /// A solid line in the text's colour.
+        public static let single = LineStyle()
+    }
+
+    /// A capitalisation applied to text.
+    public enum Case: Hashable, CaseIterable, Sendable {
+        case uppercase, lowercase
+    }
+
     /// Modifiers applied on the `Text` value itself (they win over the environment). In a
     /// concatenation, a part's own modifiers win over the modifiers of the whole.
     package struct Modifiers: Equatable, Sendable {
@@ -48,12 +73,20 @@ public struct Text: Equatable, Sendable {
         package var foregroundColor: Color?
         /// A gradient foreground style set on the text itself (`Text.foregroundStyle`).
         package var foregroundGradient: _GradientBox?
+        /// Decorations: unset (inherit), explicitly off (`.some(nil)`), or a line style.
+        package var underline: LineStyle?? = nil
+        package var strikethrough: LineStyle?? = nil
+        package var baselineOffset: CGFloat?
 
         /// `self` applied on top of the enclosing text's modifiers.
         package func inheriting(_ parent: Modifiers) -> Modifiers {
-            Modifiers(font: font ?? parent.font, weight: weight ?? parent.weight, bold: bold || parent.bold,
-                      italic: italic || parent.italic, foregroundColor: foregroundColor ?? parent.foregroundColor,
-                      foregroundGradient: foregroundColor != nil ? nil : (foregroundGradient ?? parent.foregroundGradient))
+            var result = Modifiers(font: font ?? parent.font, weight: weight ?? parent.weight, bold: bold || parent.bold,
+                                   italic: italic || parent.italic, foregroundColor: foregroundColor ?? parent.foregroundColor,
+                                   foregroundGradient: foregroundColor != nil ? nil : (foregroundGradient ?? parent.foregroundGradient))
+            result.underline = underline ?? parent.underline
+            result.strikethrough = strikethrough ?? parent.strikethrough
+            result.baselineOffset = baselineOffset ?? parent.baselineOffset
+            return result
         }
     }
 
@@ -137,6 +170,27 @@ public struct Text: Equatable, Sendable {
         return t
     }
 
+    /// Applies an underline to the text.
+    public func underline(_ isActive: Bool = true, pattern: LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
+        var t = self
+        t.modifiers.underline = .some(isActive ? LineStyle(pattern: pattern, color: color) : nil)
+        return t
+    }
+
+    /// Applies a strikethrough to the text.
+    public func strikethrough(_ isActive: Bool = true, pattern: LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
+        var t = self
+        t.modifiers.strikethrough = .some(isActive ? LineStyle(pattern: pattern, color: color) : nil)
+        return t
+    }
+
+    /// Sets the vertical offset for the text relative to its baseline (positive raises it).
+    public func baselineOffset(_ baselineOffset: CGFloat) -> Text {
+        var t = self
+        t.modifiers.baselineOffset = baselineOffset
+        return t
+    }
+
     /// Concatenates the text of two text views.
     public static func + (lhs: Text, rhs: Text) -> Text {
         Text(storage: .concatenated([lhs, rhs]))
@@ -164,6 +218,10 @@ package struct TruncationModeKey: EnvironmentKey { package static let defaultVal
 package struct LineSpacingKey: EnvironmentKey { package static let defaultValue: CGFloat = 0 }
 package struct AllowsTighteningKey: EnvironmentKey { package static let defaultValue = false }
 package struct MinimumScaleFactorKey: EnvironmentKey { package static let defaultValue: CGFloat = 1 }
+package struct TextCaseKey: EnvironmentKey { package static let defaultValue: Text.Case? = nil }
+package struct UnderlineStyleKey: EnvironmentKey { package static let defaultValue: Text.LineStyle? = nil }
+package struct StrikethroughStyleKey: EnvironmentKey { package static let defaultValue: Text.LineStyle? = nil }
+package struct BaselineOffsetKey: EnvironmentKey { package static let defaultValue: CGFloat = 0 }
 
 extension EnvironmentValues {
     /// The maximum number of lines that text can occupy in a view.
@@ -210,6 +268,30 @@ extension EnvironmentValues {
     public var minimumScaleFactor: CGFloat {
         get { self[MinimumScaleFactorKey.self] }
         set { self[MinimumScaleFactorKey.self] = newValue }
+    }
+
+    /// A stylistic override to transform the case of text in this environment (`View.textCase`).
+    public var textCase: Text.Case? {
+        get { self[TextCaseKey.self] }
+        set { self[TextCaseKey.self] = newValue }
+    }
+
+    /// The underline of text in this environment (`View.underline`).
+    package var _underlineStyle: Text.LineStyle? {
+        get { self[UnderlineStyleKey.self] }
+        set { self[UnderlineStyleKey.self] = newValue }
+    }
+
+    /// The strikethrough of text in this environment (`View.strikethrough`).
+    package var _strikethroughStyle: Text.LineStyle? {
+        get { self[StrikethroughStyleKey.self] }
+        set { self[StrikethroughStyleKey.self] = newValue }
+    }
+
+    /// The baseline offset of text in this environment (`View.baselineOffset`).
+    package var _baselineOffset: CGFloat {
+        get { self[BaselineOffsetKey.self] }
+        set { self[BaselineOffsetKey.self] = newValue }
     }
 
     package var textLayoutOptions: TextLayoutOptions {
@@ -271,6 +353,26 @@ extension View {
     nonisolated public func minimumScaleFactor(_ factor: CGFloat) -> some View {
         environment(\.minimumScaleFactor, factor)
     }
+
+    /// Sets a transform for the case of the text contained in this view.
+    nonisolated public func textCase(_ textCase: Text.Case?) -> some View {
+        environment(\.textCase, textCase)
+    }
+
+    /// Applies an underline to the text in this view.
+    nonisolated public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View {
+        environment(\._underlineStyle, isActive ? Text.LineStyle(pattern: pattern, color: color) : nil)
+    }
+
+    /// Applies a strikethrough to the text in this view.
+    nonisolated public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View {
+        environment(\._strikethroughStyle, isActive ? Text.LineStyle(pattern: pattern, color: color) : nil)
+    }
+
+    /// Sets the vertical offset for the text relative to its baseline in this view.
+    nonisolated public func baselineOffset(_ baselineOffset: CGFloat) -> some View {
+        environment(\._baselineOffset, baselineOffset)
+    }
 }
 
 // MARK: - Node
@@ -301,7 +403,16 @@ package final class TextNode: LeafNode<Text> {
     /// The text's leaves as the engine sees them, with each part's colour.
     package var styledRuns: (runs: [StyledRun], colors: [Color?]) {
         let parts = view.parts()
-        return (parts.map { StyledRun($0.string, font: resolveFont($0.modifiers)) }, parts.map(\.modifiers.foregroundColor))
+        return (parts.map { StyledRun(cased($0.string), font: resolveFont($0.modifiers)) }, parts.map(\.modifiers.foregroundColor))
+    }
+
+    /// `string` with the environment's `textCase` applied.
+    package func cased(_ string: String) -> String {
+        switch environment.textCase {
+        case nil: return string
+        case .uppercase: return string.uppercased()
+        case .lowercase: return string.lowercased()
+        }
     }
 
     /// Each part's own gradient, if it has one.
@@ -311,18 +422,35 @@ package final class TextNode: LeafNode<Text> {
         runtime.layoutText(styledRuns.runs, options: environment.textLayoutOptions, width: width)
     }
 
+    /// Each part's baseline offset (its own, else the environment's).
+    package var baselineOffsets: [CGFloat] {
+        view.parts().map { $0.modifiers.baselineOffset ?? environment._baselineOffset }
+    }
+
+    /// How far the text grows above and below for baseline offsets: the largest raise adds
+    /// space below the (unmoved) baseline guide, the largest drop adds space below the glyphs
+    /// (`textstyle/baseline`: a text 16 high with offset 6 is 22 high, with −4 it is 20).
+    package var baselineShift: (up: CGFloat, down: CGFloat) {
+        let offsets = baselineOffsets
+        return (max(0, offsets.max() ?? 0), max(0, -(offsets.min() ?? 0)))
+    }
+
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         // Text wraps at the proposed width; an unspecified or infinite width means one line.
         let width = proposal.width.flatMap { $0.isFinite ? $0 : nil }
-        return textLayout(width: width).size
+        var size = textLayout(width: width).size
+        let shift = baselineShift
+        size.height += shift.up + shift.down
+        return size
     }
 
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let width = proposal.width.flatMap { $0.isFinite ? $0 : nil }
         let layout = textLayout(width: width)
-        return ViewDimensions(size: layout.size, explicit: [
-            VerticalAlignment.firstTextBaseline.key: layout.firstBaseline,
-            VerticalAlignment.lastTextBaseline.key: layout.lastBaseline,
+        let shift = baselineShift
+        return ViewDimensions(size: CGSize(width: layout.size.width, height: layout.size.height + shift.up + shift.down), explicit: [
+            VerticalAlignment.firstTextBaseline.key: layout.firstBaseline + shift.up,
+            VerticalAlignment.lastTextBaseline.key: layout.lastBaseline + shift.up,
         ])
     }
 
@@ -343,20 +471,70 @@ package final class TextNode: LeafNode<Text> {
         case .center: alignment = 0.5
         case .trailing: alignment = 1
         }
+        let parts = view.parts()
+        let offsets = baselineOffsets
+        let shiftUp = baselineShift.up
         for line in layout.lines {
             let lineX = bounds.minX + (frame.width - line.inkWidth) * alignment
             for fragment in line.fragments where !fragment.text.isEmpty {
                 let run = min(max(fragment.run, 0), max(runs.count - 1, 0))
                 let font = fonts.indices.contains(run) ? fonts[run] : DisplayFont(resolvedFont)
-                let origin = CGPoint(x: lineX + fragment.x, y: bounds.minY + line.baseline)
+                let offset = offsets.indices.contains(run) ? offsets[run] : 0
+                let origin = CGPoint(x: lineX + fragment.x, y: bounds.minY + line.baseline + shiftUp - offset)
                 let own = runGradients.indices.contains(run) ? runGradients[run]?._resolveGradient(in: bounds, environment: environment) : nil
+                let color = resolvedColors.indices.contains(run) ? resolvedColors[run] : inherited.resolve(in: environment)
                 if let gradient = own ?? inheritedGradient, colors.indices.contains(run) ? colors[run] == nil : true {
                     list.append(.drawTextGradient(fragment.text, font, origin: origin, gradient))
                 } else {
-                    list.append(.drawText(fragment.text, font, origin: origin,
-                                          resolvedColors.indices.contains(run) ? resolvedColors[run] : inherited.resolve(in: environment)))
+                    list.append(.drawText(fragment.text, font, origin: origin, color))
+                }
+                if parts.indices.contains(run) {
+                    let modifiers = parts[run].modifiers
+                    let underline = modifiers.underline ?? environment._underlineStyle
+                    let strikethrough = modifiers.strikethrough ?? environment._strikethroughStyle
+                    if underline != nil || strikethrough != nil {
+                        let metrics = environment.platformProfile.textDecorationMetrics(for: runs[run].font)
+                        if let underline {
+                            paintDecoration(underline, centre: origin.y + metrics.underlineOffset, thickness: metrics.thickness,
+                                            from: origin.x, to: origin.x + fragment.width, textColor: color, context: context, into: &list)
+                        }
+                        if let strikethrough {
+                            paintDecoration(strikethrough, centre: origin.y - metrics.xHeight / 2, thickness: metrics.thickness,
+                                            from: origin.x, to: origin.x + fragment.width, textColor: color, context: context, into: &list)
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    /// Draws one underline or strikethrough: the line snaps to whole device pixels (its top
+    /// rounded, its thickness rounded up, its ends rounded inwards), and patterns repeat in
+    /// multiples of the snapped thickness (`Docs/elements/TextStyle.md`).
+    private func paintDecoration(_ style: Text.LineStyle, centre: CGFloat, thickness: CGFloat, from x0: CGFloat, to x1: CGFloat,
+                                 textColor: RGBA, context: PaintContext, into list: inout DisplayList) {
+        let scale = context.scale
+        let thicknessPixels = max(1, (thickness * scale).rounded(.up))
+        let snapped = thicknessPixels / scale
+        let top = (centre * scale - thicknessPixels / 2).rounded(.toNearestOrAwayFromZero) / scale
+        let start = (x0 * scale).rounded(.up) / scale, end = (x1 * scale).rounded(.down) / scale
+        guard end > start else { return }
+        let color = style.color?.resolve(in: environment) ?? textColor
+        let dashes: [CGFloat]
+        switch style.pattern {
+        case .solid: dashes = []
+        case .dot: dashes = [3, 3]
+        case .dash: dashes = [10, 5]
+        case .dashDot: dashes = [10, 3, 3, 3]
+        case .dashDotDot: dashes = [10, 3, 3, 3, 3, 3]
+        }
+        if dashes.isEmpty {
+            list.append(.fillRect(CGRect(x: start, y: top, width: end - start, height: snapped), color))
+        } else {
+            var path = Path()
+            path.move(to: CGPoint(x: start, y: top + snapped / 2))
+            path.addLine(to: CGPoint(x: end, y: top + snapped / 2))
+            list.append(.strokePath(path, style: StrokeStyle(lineWidth: snapped, dash: dashes.map { $0 * snapped }), color))
         }
     }
 

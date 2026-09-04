@@ -19,9 +19,17 @@ public struct SystemFontMetrics: Sendable, Equatable {
     /// Height of a capital letter above the baseline (`NSFont.capHeight`); icons and checkboxes
     /// centre on half of it (`Docs/elements/Label.md`). 0 when unmeasured.
     public var capHeight: CGFloat
+    /// Height of a lowercase letter above the baseline (`NSFont.xHeight`) of the regular face;
+    /// strikethroughs centre on half of it. 0 when unmeasured.
+    public var xHeight: CGFloat
+    /// The regular face's underline, as CoreText reports it: the centre of the line below the
+    /// baseline (positive) and its thickness (`Docs/elements/TextStyle.md`). 0 when unmeasured.
+    public var underlineOffset: CGFloat
+    public var underlineThickness: CGFloat
 
     public init(lineHeight: CGFloat, baseline: CGFloat, spacingBelow: CGFloat, spacingAbove: CGFloat, textToText: CGFloat,
-                linePitch: CGFloat? = nil, unroundedLineHeight: CGFloat? = nil, capHeight: CGFloat = 0) {
+                linePitch: CGFloat? = nil, unroundedLineHeight: CGFloat? = nil, capHeight: CGFloat = 0,
+                xHeight: CGFloat = 0, underlineOffset: CGFloat = 0, underlineThickness: CGFloat = 0) {
         self.lineHeight = lineHeight
         self.baseline = baseline
         self.spacingBelow = spacingBelow
@@ -30,6 +38,9 @@ public struct SystemFontMetrics: Sendable, Equatable {
         self.linePitch = linePitch ?? lineHeight.rounded(.up)
         self.unroundedLineHeight = unroundedLineHeight ?? lineHeight
         self.capHeight = capHeight
+        self.xHeight = xHeight
+        self.underlineOffset = underlineOffset
+        self.underlineThickness = underlineThickness
     }
 
     /// The baseline-to-baseline distance with `lineSpacing` applied.
@@ -42,7 +53,47 @@ public struct SystemFontMetrics: Sendable, Equatable {
     }
 }
 
+/// Where a font draws its underline and strikethrough (`Docs/elements/TextStyle.md`).
+public struct TextDecorationMetrics: Sendable, Equatable {
+    /// Centre of the underline below the baseline.
+    public var underlineOffset: CGFloat
+    /// Thickness of both lines before pixel snapping.
+    public var thickness: CGFloat
+    /// The strikethrough centres on half of this.
+    public var xHeight: CGFloat
+}
+
 extension PlatformProfile {
+    /// CoreText's underline thickness of each weight relative to the regular face, and the
+    /// underline offset and x-height likewise (measured on SF at 13 and 20 pt; 100/200
+    /// extrapolated).
+    private static let weightThicknessFactor: [Int: CGFloat] = [100: 0.355, 200: 0.57, 300: 0.785, 400: 1, 500: 1.214, 600: 1.369, 700: 1.583, 800: 1.894, 900: 2.167]
+    private static let weightOffsetFactor: [Int: CGFloat] = [100: 1.122, 200: 1.081, 300: 1.041, 400: 1, 500: 0.9645, 600: 0.9387, 700: 0.9032, 800: 0.8516, 900: 0.8065]
+    private static let weightXHeightFactor: [Int: CGFloat] = [100: 1, 200: 1, 300: 1, 400: 1, 500: 1.0074, 600: 1.0139, 700: 1.0213, 800: 1.0325, 900: 1.0468]
+
+    /// Decoration metrics of a resolved font: the regular face's from the table, scaled by
+    /// weight and design (serif, rounded and monospaced ratios measured at 20 pt).
+    public func textDecorationMetrics(for font: ResolvedFont) -> TextDecorationMetrics {
+        let base = systemFontMetrics(for: font)
+        let weight = font.weight.value
+        var offset = base.underlineOffset * (Self.weightOffsetFactor[weight] ?? 1)
+        var thickness = base.underlineThickness * (Self.weightThicknessFactor[weight] ?? 1)
+        var xHeight = base.xHeight * (Self.weightXHeightFactor[weight] ?? 1)
+        switch font.family {
+        case "system-serif": offset *= 0.7637; thickness *= 0.7407; xHeight *= 0.867
+        case "system-monospaced": offset *= 0.6452; thickness *= 0.8333; xHeight *= 1.0131
+        case "system-rounded": xHeight *= 0.973
+        default: break
+        }
+        if base.underlineThickness == 0 {
+            // Unmeasured: CoreText's SF ratios per point.
+            offset = 0.15137 * font.size * (Self.weightOffsetFactor[weight] ?? 1)
+            thickness = 0.05859 * font.size * (Self.weightThicknessFactor[weight] ?? 1)
+            xHeight = 0.52 * font.size
+        }
+        return TextDecorationMetrics(underlineOffset: offset, thickness: thickness, xHeight: xHeight)
+    }
+
     /// Metrics for a resolved font; interpolated for unmeasured point sizes.
     public func systemFontMetrics(for font: ResolvedFont) -> SystemFontMetrics {
         if let style = font.textStyle, var metrics = Self.macOSTextStyleMetrics[style] {
@@ -63,13 +114,15 @@ extension PlatformProfile {
             let m = nearest.metrics
             return SystemFontMetrics(lineHeight: (m.lineHeight * ratio).rounded(), baseline: (m.baseline * ratio).rounded(),
                                      spacingBelow: m.spacingBelow * ratio, spacingAbove: m.spacingAbove * ratio, textToText: 0,
-                                     capHeight: m.capHeight * ratio)
+                                     capHeight: m.capHeight * ratio, xHeight: m.xHeight * ratio,
+                                     underlineOffset: m.underlineOffset * ratio, underlineThickness: m.underlineThickness * ratio)
         }
         let t = (font.size - lower.size) / (upper.size - lower.size)
         func lerp(_ a: CGFloat, _ b: CGFloat) -> CGFloat { a + (b - a) * t }
         let a = lower.metrics, b = upper.metrics
         return SystemFontMetrics(lineHeight: lerp(a.lineHeight, b.lineHeight).rounded(), baseline: lerp(a.baseline, b.baseline).rounded(),
                                  spacingBelow: lerp(a.spacingBelow, b.spacingBelow), spacingAbove: lerp(a.spacingAbove, b.spacingAbove), textToText: 0,
-                                 capHeight: lerp(a.capHeight, b.capHeight))
+                                 capHeight: lerp(a.capHeight, b.capHeight), xHeight: lerp(a.xHeight, b.xHeight),
+                                 underlineOffset: lerp(a.underlineOffset, b.underlineOffset), underlineThickness: lerp(a.underlineThickness, b.underlineThickness))
     }
 }
