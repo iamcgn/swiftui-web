@@ -337,6 +337,18 @@
           ]
         },
         {
+          "api": "ColorPicker(_:selection:supportsOpacity:) / ColorPicker(selection:label:)",
+          "status": "partial",
+          "notes": "The macOS colour well: 48 × 24 grey rounded rect with the colour in a concentric swatch over a black/white diagonal (translucent and clear colours show it), inner stroke, half opacity disabled; body label centred in stacks, on the well's baseline in forms; a press opens a preset popover (16 swatches, opacity slider) standing in for the system colour panel; no native colour inputs, keyboard activation or CGColor bindings",
+          "fixtures": [
+            "colorpicker/basic",
+            "colorpicker/labels",
+            "colorpicker/form",
+            "colorpicker/sized",
+            "colorpicker/steps"
+          ]
+        },
+        {
           "api": "GroupBox (content, title, custom label) / GroupBoxStyle (automatic) / groupBoxStyle(_:)",
           "status": "partial",
           "notes": "macOS 26 card (radius 12, black 8/255, content padded 5) under a subheadline label; measured exactly; no dark appearance or Form insets",
