@@ -243,7 +243,7 @@ Semantics tree → ARIA DOM overlay; `@FocusState`, keyboard navigation, text se
 ### Phase 4 — Native executables
 
 1. `Tools/Host`: Swift executable embedding WKWebView (macOS) / WebKitGTK (Linux) that serves and loads a built wasm bundle: `swift run swiftui-host <bundle-dir>`. **macOS done 2026-09-04**: `Tools/Host` (its own package, Apple toolchain) serves the package directory over loopback (`NWListener`, GET/HEAD, wasm/js/json/image MIME types) and opens `index.html` in a `WKWebView` window; `--screenshot` waits for the app's first frame and snapshots it, `--timeout` quits. The canvas host paints its first frames by timer when the document is hidden (a WKWebView window the window server has not shown gets no animation frames). Open: WebKitGTK on Linux, menu bar and window commands, file dialogs, opening bundles by double click.
-2. `SwiftUIWebNative`: CoreGraphics painter (macOS) and Skia or Cairo painter (Linux) consuming the same display list; AppKit/GTK windowing and input. Layout and runtime unchanged.
+2. `SwiftUIWebNative`: CoreGraphics painter (macOS) and Skia or Cairo painter (Linux) consuming the same display list; AppKit/GTK windowing and input. Layout and runtime unchanged. **macOS done 2026-09-04** (decision 0012): `CoreTextEngine` (CoreText advances + the measured font table), `CoreGraphicsPainter` (every display command incl. groups, gradients, gradient text, nine-part/tiled/tinted images), `NativeHost` (flipped `NSView` frame loop, mouse/scroll/key input, `SWIFTUIWEB_SCREENSHOT`/`TIMEOUT`/`ASSETS`/`SIZE`); `App.main()` launches it on macOS so `swift run Counter` opens a window. **Tier C** (`Tests/NativeFidelityTests`, part of `swift test`): all 189 golden renders within 3 %, 140 pixel-identical, median 0 %, worst `image/tiling` 1.6 % (the AppKit quirk). Open: `NSAccessibility`, `NSTextInputClient` for text fields, multiple windows, Linux (Skia/Cairo + GTK).
 3. iOS platform profile + goldens once Xcode (or the Catalyst trick) is available; touch devices default to `.iOS`.
 
 ## Risk register
@@ -254,7 +254,7 @@ Semantics tree → ARIA DOM overlay; `@FocusState`, keyboard navigation, text se
 | `SwiftUI` module resolves to Apple's on macOS | Thin re-export hedge; tests can import `SwiftUIWebCore`; harness is a separate package regardless. |
 | wasm size (Foundation + reflection metadata + Observation) | Budget + CI gate; keep `Foundation` out of hot paths; `-Osize`, wasm-opt, brotli. |
 | JS bridging cost per draw call | Flat display list, one call per frame (spike 0.5). |
-| Text metrics: CoreText vs Canvas2D, non-Apple fonts | Tier A recorded metrics (exact) vs Tier B tolerance; Inter with metric overrides; own line breaker. |
+| Text metrics: CoreText vs Canvas2D, non-Apple fonts | Tier A recorded metrics (exact) vs Tier B tolerance vs Tier C native CoreText pixels; Inter with metric overrides; own line breaker. |
 | Undocumented constants (spacing, padding, control geometry, scroll physics, animation curves) | Every constant is a fixture-backed measurement recorded in `Docs/elements/*.md`; borrow reverse-engineered knowledge from OpenSwiftUI/Tokamak with attribution. |
 | Canvas accessibility gap | Always-on semantics overlay from Phase 1 (`Button`), full coverage in Phase 3; accessibility snapshot assertions per fixture. |
 | Line-breaking parity (DOM-assisted breaks vs CoreText) | Wrapped-paragraph fixtures early; exact line count, 0.5pt widths; Swift UAX #14 breaker for CanvasKit/native parity. |

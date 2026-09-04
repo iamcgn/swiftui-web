@@ -74,6 +74,7 @@ scripts/build-wasm.sh Examples/Counter --debug    # wasm bundle for the Counter 
 scripts/serve.sh Examples/Counter 8765            # then open http://localhost:8765/
 scripts/tier-b.sh --filter layout/                # browser fidelity: gallery + Playwright vs goldens
 (cd Tools/Host && /usr/bin/swift run swiftui-host ../../Examples/Counter)   # the bundle in a WKWebView window
+(cd Examples/Counter && swift run Counter)          # the same app natively: AppKit window, CoreGraphics painter
 ```
 
 `Examples/Gallery` lists every fixture in a left pane and shows the selected one as code (the
@@ -86,4 +87,11 @@ preview, with buttons for its behaviour steps; `index.html?fixture=text/wrapped`
 toolchain). `--screenshot out.png` waits for the app's first frame, writes a snapshot and quits;
 `--timeout seconds` quits on its own (both for scripts and CI); `--port`, `--path`, `--width` and
 `--height` are optional.
+
+`SwiftUIWebNative` (decision 0012) is the true native backend: on macOS `App.main()` opens an
+AppKit window whose flipped view paints the display list with CoreGraphics and measures text
+with CoreText, so an unmodified `@main` app runs with `swift run`. `SWIFTUIWEB_SCREENSHOT=out.png`
+and `SWIFTUIWEB_TIMEOUT=seconds` capture the first frame from a script. Tier C
+(`Tests/NativeFidelityTests`, part of `swift test` on macOS) paints every fixture natively and
+compares it with Apple's golden pixels.
 

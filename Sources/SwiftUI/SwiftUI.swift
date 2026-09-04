@@ -23,14 +23,19 @@ public struct SwiftUIWebMarker: Sendable {
 
 #if os(WASI)
 import SwiftUIWebCanvas
+#elseif canImport(AppKit)
+import SwiftUIWebNative
 #endif
 
 extension App {
     /// Launches the app: in the browser, mounts the first window's root view in a canvas host;
-    /// elsewhere (native tests, CLIs) lays it out headlessly once and returns.
+    /// on macOS in an AppKit window painted with CoreGraphics (`SwiftUIWebNative`); elsewhere
+    /// (CLIs) lays it out headlessly once and returns.
     public static func main() {
         #if os(WASI)
         CanvasHost.launch { Self._rootView() }
+        #elseif canImport(AppKit)
+        NativeHost.launch { Self._rootView() }
         #else
         MainActor.assumeIsolated {
             let runtime = Runtime()

@@ -18,6 +18,7 @@ let package = Package(
     products: [
         .library(name: "SwiftUI", targets: ["SwiftUI"]),
         .library(name: "SwiftUIWebCanvas", targets: ["SwiftUIWebCanvas"]),
+        .library(name: "SwiftUIWebNative", targets: ["SwiftUIWebNative"]),
         .library(name: "SwiftUIWebHeadless", targets: ["SwiftUIWebHeadless"]),
         .library(name: "FixtureKit", targets: ["FixtureKit"]),
         .library(name: "SwiftUIWebFixtures", targets: ["SwiftUIWebFixtures"]),
@@ -34,6 +35,7 @@ let package = Package(
                 "SwiftUIWebCore",
                 "SwiftUIWebMacros",
                 .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
+                .target(name: "SwiftUIWebNative", condition: .when(platforms: [.macOS])),
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
@@ -57,6 +59,13 @@ let package = Package(
         ),
         .target(
             name: "SwiftUIWebTestSupport",
+            dependencies: ["SwiftUIWebCore", "SwiftUIWebHeadless"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // The native macOS host: CoreText engine, CoreGraphics painter, AppKit window (Phase 4.2).
+        // Its sources are `#if canImport(AppKit)`, so the target is empty elsewhere.
+        .target(
+            name: "SwiftUIWebNative",
             dependencies: ["SwiftUIWebCore", "SwiftUIWebHeadless"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
@@ -90,6 +99,12 @@ let package = Package(
         .testTarget(
             name: "LayoutFidelityTests",
             dependencies: ["SwiftUI", "SwiftUIWebHeadless", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // Tier C: the native painter against Apple's goldens (macOS only; empty elsewhere).
+        .testTarget(
+            name: "NativeFidelityTests",
+            dependencies: ["SwiftUI", "SwiftUIWebNative", "SwiftUIWebHeadless", "FixtureKit", "SwiftUIWebFixtures"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .testTarget(
