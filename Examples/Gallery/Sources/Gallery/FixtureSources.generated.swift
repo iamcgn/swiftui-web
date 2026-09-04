@@ -1429,6 +1429,37 @@ public static let basic = Fixture(
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "progress/basic", file: "Fixtures/Sources/Progress/ProgressFixtures.swift", firstLine: 8, lastLine: 25, declaration: #"""
+public static let basic = Fixture("progress/basic", size: CGSize(width: 320, height: 400)) {
+    VStack(spacing: 14) {
+        ProgressView(value: 0.4).probe("bare")
+        ProgressView("Loading", value: 0.6).probe("labelled")
+        ProgressView(value: 0.3) { Text("Copying") } currentValueLabel: { Text("30%") }.probe("valueLabel")
+        ProgressView(value: 0.7).tint(.red).probe("tinted")
+        ProgressView(value: 0.5).frame(width: 120).probe("narrow")
+        HStack(spacing: 20) {
+            ProgressView(value: 0.4).progressViewStyle(.circular).probe("ring")
+            ProgressView("Ring", value: 0.75).progressViewStyle(.circular).probe("ringLabelled")
+            ProgressView(value: 1).progressViewStyle(.circular).probe("ringFull")
+        }
+        .probe("rings")
+        ProgressView(value: 25, total: 50).progressViewStyle(.linear).probe("total")
+    }
+    .padding(20)
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "progress/indeterminate", file: "Fixtures/Sources/Progress/ProgressFixtures.swift", firstLine: 27, lastLine: 35, declaration: #"""
+public static let indeterminate = Fixture("progress/indeterminate", size: CGSize(width: 240, height: 220)) {
+    VStack(spacing: 20) {
+        ProgressView().probe("spinner")
+        ProgressView("Working").probe("spinnerLabelled")
+        ProgressView().progressViewStyle(.linear).probe("bar")
+        ProgressView().controlSize(.small).probe("small")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "scroll/anchor-bottom", file: "Fixtures/Sources/ScrollView/ScrollViewFixtures.swift", firstLine: 139, lastLine: 146, declaration: #"""
 /// `defaultScrollAnchor(.bottom)` starts at the end of the content.
 public static let anchorBottom = Fixture("scroll/anchor-bottom", size: CGSize(width: 300, height: 200)) {
@@ -4489,6 +4520,46 @@ public enum PresentationFixtures {
     }
 
     public static let all: [Fixture] = [basic]
+}
+"""#,
+        "Fixtures/Sources/Progress/ProgressFixtures.swift": #"""
+// ProgressView fixtures: determinate linear bars (bare, labelled, with value labels, tinted,
+// sized), determinate circular rings, and the indeterminate spinner and bar (animated: their
+// pixels are approximate, their frames exact).
+import SwiftUI
+import FixtureKit
+
+public enum ProgressFixtures {
+    public static let basic = Fixture("progress/basic", size: CGSize(width: 320, height: 400)) {
+        VStack(spacing: 14) {
+            ProgressView(value: 0.4).probe("bare")
+            ProgressView("Loading", value: 0.6).probe("labelled")
+            ProgressView(value: 0.3) { Text("Copying") } currentValueLabel: { Text("30%") }.probe("valueLabel")
+            ProgressView(value: 0.7).tint(.red).probe("tinted")
+            ProgressView(value: 0.5).frame(width: 120).probe("narrow")
+            HStack(spacing: 20) {
+                ProgressView(value: 0.4).progressViewStyle(.circular).probe("ring")
+                ProgressView("Ring", value: 0.75).progressViewStyle(.circular).probe("ringLabelled")
+                ProgressView(value: 1).progressViewStyle(.circular).probe("ringFull")
+            }
+            .probe("rings")
+            ProgressView(value: 25, total: 50).progressViewStyle(.linear).probe("total")
+        }
+        .padding(20)
+        .probe("stack")
+    }
+
+    public static let indeterminate = Fixture("progress/indeterminate", size: CGSize(width: 240, height: 220)) {
+        VStack(spacing: 20) {
+            ProgressView().probe("spinner")
+            ProgressView("Working").probe("spinnerLabelled")
+            ProgressView().progressViewStyle(.linear).probe("bar")
+            ProgressView().controlSize(.small).probe("small")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic, indeterminate]
 }
 """#,
         "Fixtures/Sources/ScrollView/ScrollViewFixtures.swift": #"""
