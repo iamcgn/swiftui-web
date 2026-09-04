@@ -6,7 +6,35 @@ public final class Runtime {
     package private(set) var root: RootNode!
 
     /// Measures and breaks text. Hosts install their engine before the first layout.
-    public var textEngine: any TextEngine = ZeroTextEngine()
+    public var textEngine: any TextEngine = ZeroTextEngine() {
+        didSet { textLayouts.removeAll() }
+    }
+
+    /// Finished text layouts by their inputs, kept across frames: a scroll or an unrelated state
+    /// change lays the whole tree out again, and line breaking every text on a page each frame
+    /// dominated frame times (1.2 s on the landing page). Bounded by size, cleared when the
+    /// engine changes.
+    private var textLayouts: [TextLayoutKey: TextLayout] = [:]
+    private struct TextLayoutKey: Hashable {
+        let runs: [StyledRun]
+        let options: TextLayoutOptions
+        let width: CGFloat?
+    }
+
+    /// `textEngine.layout` through the cross-frame cache.
+    package func layoutText(_ runs: [StyledRun], options: TextLayoutOptions, width: CGFloat?) -> TextLayout {
+        let key = TextLayoutKey(runs: runs, options: options, width: width)
+        if let cached = textLayouts[key] { return cached }
+        if textLayouts.count >= 8192 { textLayouts.removeAll(keepingCapacity: true) }
+        let layout = textEngine.layout(runs, options: options, width: width)
+        textLayouts[key] = layout
+        return layout
+    }
+
+    /// A single string in one font through the cache.
+    package func layoutText(_ string: String, font: ResolvedFont, width: CGFloat?) -> TextLayout {
+        layoutText([StyledRun(string, font: font)], options: .default, width: width)
+    }
 
     /// Environment the root view is mounted in.
     package var rootEnvironment: EnvironmentValues

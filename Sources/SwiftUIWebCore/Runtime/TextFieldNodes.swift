@@ -59,7 +59,7 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
 
     private func textWidth(_ string: String) -> CGFloat {
         guard !string.isEmpty else { return 0 }
-        return runtime.textEngine.layout(string, font: resolvedFont, width: nil).size.width
+        return runtime.layoutText(string, font: resolvedFont, width: nil).size.width
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {

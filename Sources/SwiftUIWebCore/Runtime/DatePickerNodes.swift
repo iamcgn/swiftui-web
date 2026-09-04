@@ -67,7 +67,7 @@ extension ViewNode {
     }
 
     package func _textWidth(_ string: String, font: ResolvedFont) -> CGFloat {
-        string.isEmpty ? 0 : runtime.textEngine.layout(string, font: font, width: nil).size.width
+        string.isEmpty ? 0 : runtime.layoutText(string, font: font, width: nil).size.width
     }
 
     /// Draws `string` with its line box's top-left at `origin` (the baseline from the font table).

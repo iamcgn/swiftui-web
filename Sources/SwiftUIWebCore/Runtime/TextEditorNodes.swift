@@ -46,7 +46,7 @@ package final class TextEditorNode: LeafNode<_TextEditorHost>, _Interactive, _Te
 
     private var layout: TextLayout? {
         guard !view.value.isEmpty else { return nil }
-        return runtime.textEngine.layout([StyledRun(view.value, font: resolvedFont)], options: TextLayoutOptions(lineSpacing: environment.lineSpacing),
+        return runtime.layoutText([StyledRun(view.value, font: resolvedFont)], options: TextLayoutOptions(lineSpacing: environment.lineSpacing),
                                          width: textRect.width)
     }
 

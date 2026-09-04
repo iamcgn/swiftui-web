@@ -308,7 +308,7 @@ package final class TextNode: LeafNode<Text> {
     package var runGradients: [(any _GradientStyle)?] { view.parts().map { $0.modifiers.foregroundGradient?.style } }
 
     package func textLayout(width: CGFloat?) -> TextLayout {
-        runtime.textEngine.layout(styledRuns.runs, options: environment.textLayoutOptions, width: width)
+        runtime.layoutText(styledRuns.runs, options: environment.textLayoutOptions, width: width)
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
@@ -328,7 +328,7 @@ package final class TextNode: LeafNode<Text> {
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let (runs, colors) = styledRuns
-        let layout = runtime.textEngine.layout(runs, options: environment.textLayoutOptions, width: frame.width)
+        let layout = runtime.layoutText(runs, options: environment.textLayoutOptions, width: frame.width)
         let inherited = (environment.foregroundColor ?? .primary)
         let resolvedColors = colors.map { ($0 ?? inherited).resolve(in: environment) }
         let fonts = runs.map { DisplayFont($0.font) }

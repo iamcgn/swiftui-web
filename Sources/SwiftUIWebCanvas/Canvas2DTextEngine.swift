@@ -10,6 +10,7 @@ final class Canvas2DTextEngine: TextEngine {
     private let context: JSObject
     private let bridge: JSObject
     private var widthCache: [String: CGFloat] = [:]
+    private var cssFonts: [ResolvedFont: String] = [:]
     private let profile = PlatformProfile.macOS
 
     init(context: JSObject, bridge: JSObject) {
@@ -19,7 +20,13 @@ final class Canvas2DTextEngine: TextEngine {
 
     /// Unrounded advance of `text` in `font` (rounding to the half point happens per line).
     private func width(of text: String, font: ResolvedFont) -> CGFloat {
-        let css = DisplayListEncoder.cssFont(DisplayFont(font))
+        let css: String
+        if let known = cssFonts[font] {
+            css = known
+        } else {
+            css = DisplayListEncoder.cssFont(DisplayFont(font))
+            cssFonts[font] = css
+        }
         let key = css + "|" + text
         if let cached = widthCache[key] { return cached }
         let measured = bridge.measure!(context, css, text).number ?? 0
