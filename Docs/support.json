@@ -623,9 +623,12 @@
           ]
         },
         {
-          "api": "searchable(_:) / Searchable modifiers",
-          "status": "missing",
-          "notes": "Not implemented"
+          "api": "searchable(text:placement:prompt:) / isSearching / dismissSearch / searchSuggestions",
+          "status": "partial",
+          "notes": "A search field at the trailing end of the window toolbar when the host paints chrome (a magnifier and a plain text field in a 36 pt capsule, as macOS puts it in the toolbar); the query edits the binding, isSearching follows the query, suggestions accepted without effect; no scopes or tokens (Docs/elements/Toolbar.md)",
+          "fixtures": [
+            "toolbar/searchable"
+          ]
         },
         {
           "api": "Chart (Swift Charts) / Map / VideoPlayer / WebView",

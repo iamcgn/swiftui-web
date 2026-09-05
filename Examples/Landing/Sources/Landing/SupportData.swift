@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 90, .stub: 6, .full: 15, .approximate: 3, .missing: 12]
+    static let counts: [SupportStatus: Int] = [.partial: 91, .stub: 6, .full: 15, .approximate: 3, .missing: 11]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -145,7 +145,7 @@ partial	Color(_:bundle:) from asset catalog colour sets	sRGB components in float
 partial	ColorScheme / colorScheme environment / preferredColorScheme / dark appearance	Measured dark tables for system colours, labels, link and accent; controls draw with a scheme-aware ink and background; hosts follow the system appearance and preferredColorScheme takes the window. Sidebars, panels, colour picker and gauge chrome unverified in dark (Docs/elements/DarkMode.md)	4
 missing	AsyncImage / Image(nsImage:) / Image(cgImage:)	Only asset-catalog images and SF Symbol stand-ins are drawn	0
 partial	toolbar / ToolbarItem / ToolbarItemGroup / ToolbarItemPlacement / toolbar(_:for:)	Items collected on the runtime; hosts that paint window chrome draw a 52 pt bar (measured on a macOS window) with the title and 36 pt capsule platters, leading/principal/trailing by placement; toolbarBackground/toolbarRole accepted without effect; no customisation. Goldens hold the content alone since the bar is window chrome (Docs/elements/Toolbar.md)	1
-missing	searchable(_:) / Searchable modifiers	Not implemented	0
+partial	searchable(text:placement:prompt:) / isSearching / dismissSearch / searchSuggestions	A search field at the trailing end of the window toolbar when the host paints chrome (a magnifier and a plain text field in a 36 pt capsule, as macOS puts it in the toolbar); the query edits the binding, isSearching follows the query, suggestions accepted without effect; no scopes or tokens (Docs/elements/Toolbar.md)	1
 missing	Chart (Swift Charts) / Map / VideoPlayer / WebView	Separate frameworks, not part of the SwiftUI module yet	0
 missing	Sheet and window management: WindowGroup identifiers, openWindow, Settings scene, MenuBarExtra	Only the first WindowGroup's root is shown	0
 # State

@@ -3548,8 +3548,11 @@ public static let styles = Fixture("toggle/styles", size: CGSize(width: 320, hei
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "toolbar/basic", file: "Fixtures/Sources/Toolbar/ToolbarFixtures.swift", firstLine: 29, lastLine: 29, declaration: #"""
+        FixtureSource(name: "toolbar/basic", file: "Fixtures/Sources/Toolbar/ToolbarFixtures.swift", firstLine: 45, lastLine: 45, declaration: #"""
 public static let basic = Fixture("toolbar/basic", size: CGSize(width: 400, height: 200), content: { ToolbarDemo() })
+"""#),
+        FixtureSource(name: "toolbar/searchable", file: "Fixtures/Sources/Toolbar/ToolbarFixtures.swift", firstLine: 46, lastLine: 46, declaration: #"""
+public static let searchable = Fixture("toolbar/searchable", size: CGSize(width: 400, height: 200), content: { SearchableDemo() })
 """#),
         FixtureSource(name: "transform/basic", file: "Fixtures/Sources/Transform/TransformFixtures.swift", firstLine: 13, lastLine: 30, declaration: #"""
 public static let basic = Fixture("transform/basic", size: CGSize(width: 320, height: 260)) {
@@ -8222,9 +8225,26 @@ struct ToolbarDemo: View {
     }
 }
 
+/// `searchable`: the field is toolbar chrome; the list filters on the query.
+struct SearchableDemo: View {
+    @State private var query = ""
+    static let fruit = ["Apple", "Banana", "Cherry", "Date", "Elderberry"]
+    var shown: [String] { query.isEmpty ? Self.fruit : Self.fruit.filter { $0.lowercased().contains(query.lowercased()) } }
+
+    var body: some View {
+        NavigationStack {
+            List(shown, id: \.self) { name in Text(name).probe(name) }
+                .navigationTitle("Fruit")
+                .searchable(text: $query, prompt: "Find fruit")
+        }
+        .probe("stack")
+    }
+}
+
 public enum ToolbarFixtures {
     public static let basic = Fixture("toolbar/basic", size: CGSize(width: 400, height: 200), content: { ToolbarDemo() })
-    public static let all: [Fixture] = [basic]
+    public static let searchable = Fixture("toolbar/searchable", size: CGSize(width: 400, height: 200), content: { SearchableDemo() })
+    public static let all: [Fixture] = [basic, searchable]
 }
 """#,
         "Fixtures/Sources/Transform/TransformFixtures.swift": #"""

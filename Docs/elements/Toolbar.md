@@ -1,10 +1,11 @@
-# toolbar, ToolbarItem, ToolbarItemGroup
+# toolbar, ToolbarItem, ToolbarItemGroup, searchable
 
 Apple docs: [toolbar(content:)](https://developer.apple.com/documentation/swiftui/view/toolbar(content:)-5w0tj),
 [ToolbarItem](https://developer.apple.com/documentation/swiftui/toolbaritem),
 [ToolbarItemGroup](https://developer.apple.com/documentation/swiftui/toolbaritemgroup),
 [ToolbarItemPlacement](https://developer.apple.com/documentation/swiftui/toolbaritemplacement),
-[toolbar(_:for:)](https://developer.apple.com/documentation/swiftui/view/toolbar(_:for:)).
+[toolbar(_:for:)](https://developer.apple.com/documentation/swiftui/view/toolbar(_:for:)),
+[searchable(text:placement:prompt:)](https://developer.apple.com/documentation/swiftui/view/searchable(text:placement:prompt:)-18a8f).
 
 ## API surface
 
@@ -16,6 +17,10 @@ Apple docs: [toolbar(content:)](https://developer.apple.com/documentation/swiftu
 | `toolbar(_:for:)` with `Visibility` and `ToolbarPlacement` | implemented for the window toolbar |
 | `toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode`, `ToolbarRole`, `ToolbarTitleDisplayMode` | accepted without effect |
 | Custom `ToolbarContent` types with a `body` | implemented |
+| `searchable(text:placement:prompt:)` (`Text`, key and string prompts), `SearchFieldPlacement` | implemented: a search field at the trailing end of the bar; every placement lands there |
+| `isSearching`, `dismissSearch` environment | implemented inside the searchable view (`isSearching` is true while the query is non-empty, not while the field is focused) |
+| `searchSuggestions` | accepted without effect |
+| `searchScopes`, `searchable(text:tokens:…)`, `searchCompletion`, `searchPresentationToolbarBehavior` | missing |
 | Toolbar customisation, `ToolbarCommands`, search fields in toolbars, sheet toolbars | missing |
 
 ## Behaviour
@@ -39,6 +44,13 @@ platter (a 12 % grey standing in for the glass pill, 30 % while pressed). Groups
 their views, so each button in a group gets its own platter as on macOS. Hovering and keyboard
 focus reach the bar through `interactiveNodes`.
 
+`searchable` is `SearchableNode`, also transparent: it registers its binding and prompt
+(`Runtime.searchField`, the first mounted one) and hands its content `isSearching` and
+`dismissSearch`. The bar shows `_SearchFieldView` after the trailing items: a magnifier symbol
+and a plain-style `TextField` in a 36 pt capsule, 120–325 pt wide with layout priority over the
+spacers. Typing goes through the host's text input overlay as for any text field, into the
+binding, so the searchable view's body filters on it.
+
 ## Measured (macOS 26.2, a titled `NSWindow` with an `NSHostingView`, 2026-09-04)
 
 | Property | Value |
@@ -49,6 +61,8 @@ focus reach the bar through `interactiveNodes`.
 | Navigation placement | leading, after the window buttons (x 96 with the traffic lights; this bar has none, so 8) |
 | Title | after the leading items, bold, in the same row |
 | Groups | `ToolbarItemGroup { One; Two }` produces two separate platters |
+| Title font | 15 pt semibold (`_NSToolbarTitleField`) |
+| Search field | a 36 pt platter at the trailing end after a flexible space, 264 pt wide in a 600 pt window (36.5–325 allowed), 13 pt text, the magnifier 10 pt in |
 
 The measurement comes from an on-screen window (the window server composites the toolbar; a
 `cacheDisplay` capture holds only the content view), so no golden can include the bar:
@@ -56,15 +70,17 @@ The measurement comes from an on-screen window (the window server composites the
 
 ## Verification (2026-09-04)
 
-`toolbar/basic`: Tier A exact, Tier C 0.00 % and Tier B exact frames (the bar off, as in the
-capture). `Playwright/toolbar-probe.mjs` opens the fixture with `?chrome=1` and checks the bar's
-52 pt height, the 36 pt platters, the leading and trailing placement, the content below the bar,
-and that toolbar and group buttons run their actions. `ToolbarTests` cover item collection and
+`toolbar/basic` and `toolbar/searchable`: Tier A exact, Tier C 0.00 % and Tier B exact frames
+(the bar off, as in the capture). `Playwright/toolbar-probe.mjs` opens the fixtures with `?chrome=1`
+and checks the bar's 52 pt height, the 36 pt platters, the leading and trailing placement, the
+content below the bar, that toolbar and group buttons run their actions, and that typing in the
+search field filters the list. `ToolbarTests` cover item collection and
 placement, the bar's frame and painting, the content's remaining area, hit testing, chrome off,
-`toolbar(.hidden)`, and items disappearing with their view.
+`toolbar(.hidden)`, items disappearing with their view, and the search field's placement,
+binding and `isSearching`.
 
 ## Not yet covered
 
-Toolbar customisation and identifiers, `ToolbarCommands`, search in the toolbar, toolbars of
-sheets and popovers, `toolbarBackground` materials, the sidebar toggle item, and a real
-`NSToolbar` in the native host.
+Toolbar customisation and identifiers, `ToolbarCommands`, search scopes, tokens and suggestions,
+`isSearching` following focus, toolbars of sheets and popovers, `toolbarBackground` materials,
+the sidebar toggle item, and a real `NSToolbar` in the native host.
