@@ -1,0 +1,39 @@
+{
+  "fixture" : "shapebool\/fills",
+  "frames" : {
+    "intersection" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 120,
+      "y" : 20
+    },
+    "row" : {
+      "height" : 60,
+      "width" : 300,
+      "x" : 40,
+      "y" : 20
+    },
+    "subtracting" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 200,
+      "y" : 20
+    },
+    "symmetric" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 280,
+      "y" : 20
+    },
+    "union" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 40,
+      "y" : 20
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 380
+  }
+}
