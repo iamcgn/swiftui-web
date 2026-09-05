@@ -4428,7 +4428,7 @@ public final class DateModel {
 public enum DatePickerFixtures {
     /// 15 March 2025, 15:09 UTC.
     public static let fixed = Date(timeIntervalSinceReferenceDate: 763744140)
-    static let utc = TimeZone(identifier: "UTC")!
+    static let utc = TimeZone(secondsFromGMT: 0)!   // a fixed offset: "UTC" by name needs ICU, absent on wasm
 
     public static let basic = Fixture("datepicker/basic", size: CGSize(width: 360, height: 320)) {
         VStack(alignment: .leading, spacing: 12) {
