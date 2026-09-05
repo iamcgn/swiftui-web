@@ -65,8 +65,12 @@ public struct TextMetricOptions: Hashable, Sendable {
     /// `kerning` / `tracking` in points (0 = none).
     public var kerning: CGFloat = 0
     public var tracking: CGFloat = 0
+    /// `textScale(.secondary)`.
+    public var secondaryScale = false
 
-    public init(lineLimit: Int? = nil, minimumLines: Int = 0, lineSpacing: CGFloat = 0, truncation: String = "tail", kerning: CGFloat = 0, tracking: CGFloat = 0) {
+    public init(lineLimit: Int? = nil, minimumLines: Int = 0, lineSpacing: CGFloat = 0, truncation: String = "tail", kerning: CGFloat = 0, tracking: CGFloat = 0,
+                secondaryScale: Bool = false) {
+        self.secondaryScale = secondaryScale
         self.lineLimit = lineLimit
         self.minimumLines = minimumLines
         self.lineSpacing = lineSpacing
@@ -86,6 +90,7 @@ public struct TextMetricOptions: Hashable, Sendable {
         if truncation != "tail" { suffix += ";t\(truncation)" }
         if kerning != 0 { suffix += ";k\(kerning)" }
         if tracking != 0 { suffix += ";tr\(tracking)" }
+        if secondaryScale { suffix += ";sc2" }
         return suffix
     }
 }
@@ -521,6 +526,24 @@ public enum TextMetricsRequests {
         let shortText = "Short second text that wraps twice here"
         requests.append(TextMetricRequest(shortText, defaultFont, width: 150))
         requests.append(TextMetricRequest(shortText, defaultFont, width: 150, options: TextMetricOptions(lineLimit: 1)))
+        // textScale(.secondary): every style at both scales (textscale/styles, textscale/long), the paragraph wrapped (textscale/wrapped).
+        let secondary = TextMetricOptions(secondaryScale: true)
+        for name in ["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"] {
+            let font = FixtureFont.style(name)
+            requests.append(TextMetricRequest("Hello", font))
+            requests.append(TextMetricRequest("Hello", font, options: secondary))
+            requests.append(TextMetricRequest(paragraph, font))
+            requests.append(TextMetricRequest(paragraph, font, options: secondary))
+        }
+        for size: CGFloat in [13, 20, 40] {
+            let font = FixtureFont.system(size: size, weight: "regular", design: "default")
+            requests.append(TextMetricRequest("Hello", font))
+            requests.append(TextMetricRequest("Hello", font, options: secondary))
+            requests.append(TextMetricRequest(paragraph, font))
+            requests.append(TextMetricRequest(paragraph, font, options: secondary))
+        }
+        requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: secondary))
+        for word in ["Selectable text", "Plain text"] { requests.append(TextMetricRequest(word, defaultFont)) }
         requests.append(TextMetricRequest("Mask", .system(size: 40, weight: "bold", design: "default")))
         for word in ["Underlined", "Colored", "Hello World", "Second", "Both", "Struck", "Red strike", "Mixed line", "Solid", "Dotted", "Dashed",
                      "Dash dot", "Dash dot dot", "Dash strike", "MIXED CASE", "mixed case", "mixed Case", "Base", "Up", "Down", "Raised"] {

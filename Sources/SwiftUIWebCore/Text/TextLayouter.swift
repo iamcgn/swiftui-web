@@ -35,6 +35,19 @@ public struct TextLayouter {
     }
 
     public func layout(_ runs: [StyledRun], options: TextLayoutOptions, width maxWidth: CGFloat?) -> TextLayout {
+        // The secondary text scale measures the scaled font plus its tracking after every
+        // character; line metrics stay the base font's (`ResolvedFont.secondaryScaled`).
+        if options.textScale == .secondary {
+            let base = measure
+            var scaled = self
+            scaled.measure = { text, font in
+                guard let secondary = font.secondaryScaled else { return base(text, font) }
+                return base(text, secondary.font) + secondary.tracking * CGFloat(text.count)
+            }
+            var plain = options
+            plain.textScale = .default
+            return scaled.layout(runs, options: plain, width: maxWidth)
+        }
         // Kerning and tracking add their value after every character, spaces and the last one
         // included (measured 2026-09-04: "Hello" 31 → 41 at 2 pt; Docs/elements/TextStyle.md).
         let spacing = Self.letterSpacing(options)

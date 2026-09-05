@@ -300,7 +300,19 @@ extension EnvironmentValues {
 
     package var textLayoutOptions: TextLayoutOptions {
         TextLayoutOptions(lineLimit: lineLimit, truncationMode: truncationMode, lineSpacing: lineSpacing, minimumLines: minimumLines,
-                          kerning: _kerning, tracking: _tracking)
+                          kerning: _kerning, tracking: _tracking, textScale: _textScale)
+    }
+
+    /// The text scale of this environment (`View.textScale`).
+    package var _textScale: Text.Scale {
+        get { self[TextScaleKey.self] }
+        set { self[TextScaleKey.self] = newValue }
+    }
+
+    /// Whether text in this environment is selectable (`View.textSelection`).
+    package var _textSelectionEnabled: Bool {
+        get { self[TextSelectionKey.self] }
+        set { self[TextSelectionKey.self] = newValue }
     }
 
     /// Letter spacing of text in this environment (`View.kerning`, `View.tracking`).
@@ -317,6 +329,59 @@ extension EnvironmentValues {
 
 package struct KerningKey: EnvironmentKey {
     package static let defaultValue: CGFloat = 0
+}
+
+package struct TextScaleKey: EnvironmentKey {
+    package static let defaultValue: Text.Scale = .default
+}
+
+package struct TextSelectionKey: EnvironmentKey {
+    package static let defaultValue = false
+}
+
+extension Text {
+    /// The scale text is drawn at: the secondary scale is smaller than the default.
+    public struct Scale: Hashable, Sendable {
+        package let rawValue: Int
+        public static let `default` = Scale(rawValue: 0)
+        public static let secondary = Scale(rawValue: 1)
+    }
+}
+
+/// Whether people can select text (`textSelection`).
+public protocol TextSelectability {
+    static var allowsSelection: Bool { get }
+}
+
+public struct EnabledTextSelectability: TextSelectability {
+    public static let allowsSelection = true
+}
+
+public struct DisabledTextSelectability: TextSelectability {
+    public static let allowsSelection = false
+}
+
+extension TextSelectability where Self == EnabledTextSelectability {
+    public static var enabled: EnabledTextSelectability { EnabledTextSelectability() }
+}
+
+extension TextSelectability where Self == DisabledTextSelectability {
+    public static var disabled: DisabledTextSelectability { DisabledTextSelectability() }
+}
+
+extension View {
+    /// Applies a text scale to the text in this view. The secondary scale draws smaller glyphs
+    /// (0.8 of the size up to 17 pt, less for larger fonts, with a weight-dependent tracking) on
+    /// the font's own line height; serif and monospaced designs are not scaled.
+    nonisolated public func textScale(_ scale: Text.Scale, isEnabled: Bool = true) -> some View {
+        environment(\._textScale, isEnabled ? scale : .default)
+    }
+
+    /// Controls whether people can select text in this view. Layout and painting do not change;
+    /// the pointer shows an I-beam over selectable text.
+    nonisolated public func textSelection<S: TextSelectability>(_ selectability: S) -> some View {
+        environment(\._textSelectionEnabled, S.allowsSelection)
+    }
 }
 
 package struct TrackingKey: EnvironmentKey {
@@ -431,7 +496,10 @@ extension View {
 
 /// Lays out a text run with the runtime's text engine.
 @MainActor
-package final class TextNode: LeafNode<Text> {
+package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
+    package var pointerStyle: PointerStyle? { environment._textSelectionEnabled ? .horizontalText : nil }
+    package func hoverChanged(inside: Bool, at point: CGPoint) {}
+
     package func resolveFont(_ modifiers: Text.Modifiers) -> ResolvedFont {
         let font = modifiers.font ?? environment.font ?? environment.platformProfile.defaultFont
         var resolved = font.resolve(profile: environment.platformProfile)
@@ -591,7 +659,13 @@ package final class TextNode: LeafNode<Text> {
         let inherited = (environment.foregroundColor ?? .primary)
         let resolvedColors = colors.map { ($0 ?? inherited).resolve(in: environment) }
         let spacing = TextLayouter.letterSpacing(layoutOptions)
-        let fonts = runs.map { DisplayFont($0.font, letterSpacing: spacing) }
+        let secondary = layoutOptions.textScale == .secondary
+        let fonts = runs.map { run -> DisplayFont in
+            if secondary, let scaled = run.font.secondaryScaled {
+                return DisplayFont(scaled.font, letterSpacing: spacing + scaled.tracking)
+            }
+            return DisplayFont(run.font, letterSpacing: spacing)
+        }
         let bounds = absoluteBounds(context)
         // A gradient foreground style (the text's own or the environment's) fills the runs
         // without a colour of their own.

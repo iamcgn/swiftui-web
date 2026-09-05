@@ -270,6 +270,18 @@
       "lastBaseline" : 71,
       "width" : 0
     },
+    "style:body|;sc2|Hello" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 27.5
+    },
+    "style:body|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 390
+    },
     "style:body||+" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -821,6 +833,18 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 31
+    },
+    "style:body|0.0;sc2|Hello" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 987.5,
+      "lastBaseline" : 1002,
+      "width" : 0
     },
     "style:body|0.0|+" : {
       "firstBaseline" : 14,
@@ -2034,6 +2058,18 @@
       "lastBaseline" : 67,
       "width" : 0
     },
+    "style:callout|;sc2|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 26
+    },
+    "style:callout|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 364.5
+    },
     "style:callout||Account" : {
       "firstBaseline" : 13,
       "height" : 17.5,
@@ -2088,6 +2124,12 @@
       "lastBaseline" : 13,
       "width" : 29
     },
+    "style:callout||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 17.5,
+      "lastBaseline" : 13,
+      "width" : 411
+    },
     "style:callout||Max" : {
       "firstBaseline" : 13,
       "height" : 17.5,
@@ -2135,6 +2177,18 @@
       "height" : 17.5,
       "lastBaseline" : 13,
       "width" : 42
+    },
+    "style:callout|0.0;sc2|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 89.5,
+      "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 989.5,
+      "lastBaseline" : 1003,
+      "width" : 0
     },
     "style:callout|0.0|Account" : {
       "firstBaseline" : 13,
@@ -2188,6 +2242,12 @@
       "firstBaseline" : 13,
       "height" : 89.5,
       "lastBaseline" : 85,
+      "width" : 0
+    },
+    "style:callout|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 989.5,
+      "lastBaseline" : 1003,
       "width" : 0
     },
     "style:callout|0.0|Max" : {
@@ -2982,6 +3042,18 @@
       "lastBaseline" : 59,
       "width" : 0
     },
+    "style:caption|;sc2|Hello" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
+    },
+    "style:caption|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 313.5
+    },
     "style:caption||Account" : {
       "firstBaseline" : 11,
       "height" : 15,
@@ -3048,6 +3120,12 @@
       "lastBaseline" : 11,
       "width" : 25
     },
+    "style:caption||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 351
+    },
     "style:caption||Max" : {
       "firstBaseline" : 11,
       "height" : 15,
@@ -3095,6 +3173,18 @@
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 36
+    },
+    "style:caption|0.0;sc2|Hello" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 975,
+      "lastBaseline" : 971,
+      "width" : 0
     },
     "style:caption|0.0|Account" : {
       "firstBaseline" : 11,
@@ -3160,6 +3250,12 @@
       "firstBaseline" : 11,
       "height" : 79,
       "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 975,
+      "lastBaseline" : 971,
       "width" : 0
     },
     "style:caption|0.0|Max" : {
@@ -3618,6 +3714,18 @@
       "lastBaseline" : 59,
       "width" : 0
     },
+    "style:caption2|;sc2|Hello" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 23.5
+    },
+    "style:caption2|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 330
+    },
     "style:caption2||Apple" : {
       "firstBaseline" : 11,
       "height" : 15,
@@ -3642,11 +3750,23 @@
       "lastBaseline" : 11,
       "width" : 23
     },
+    "style:caption2||Hello" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 25.5
+    },
     "style:caption2||Hg" : {
       "firstBaseline" : 11,
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 14.5
+    },
+    "style:caption2||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 359.5
     },
     "style:caption2||Max" : {
       "firstBaseline" : 11,
@@ -3665,6 +3785,18 @@
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 100
+    },
+    "style:caption2|0.0;sc2|Hello" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:caption2|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 975,
+      "lastBaseline" : 971,
+      "width" : 0
     },
     "style:caption2|0.0|Apple" : {
       "firstBaseline" : 11,
@@ -3690,10 +3822,22 @@
       "lastBaseline" : 75,
       "width" : 0
     },
+    "style:caption2|0.0|Hello" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "style:caption2|0.0|Hg" : {
       "firstBaseline" : 11,
       "height" : 31,
       "lastBaseline" : 27,
+      "width" : 0
+    },
+    "style:caption2|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 975,
+      "lastBaseline" : 971,
       "width" : 0
     },
     "style:caption2|0.0|Max" : {
@@ -4458,6 +4602,18 @@
       "lastBaseline" : 59,
       "width" : 0
     },
+    "style:footnote|;sc2|Hello" : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 22.5
+    },
+    "style:footnote|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 313.5
+    },
     "style:footnote||Account" : {
       "firstBaseline" : 11,
       "height" : 15,
@@ -4512,6 +4668,12 @@
       "lastBaseline" : 11,
       "width" : 25
     },
+    "style:footnote||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 15,
+      "lastBaseline" : 11,
+      "width" : 351
+    },
     "style:footnote||Max" : {
       "firstBaseline" : 11,
       "height" : 15,
@@ -4559,6 +4721,18 @@
       "height" : 15,
       "lastBaseline" : 11,
       "width" : 36
+    },
+    "style:footnote|0.0;sc2|Hello" : {
+      "firstBaseline" : 11,
+      "height" : 79,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:footnote|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 975,
+      "lastBaseline" : 971,
+      "width" : 0
     },
     "style:footnote|0.0|Account" : {
       "firstBaseline" : 11,
@@ -4612,6 +4786,12 @@
       "firstBaseline" : 11,
       "height" : 79,
       "lastBaseline" : 75,
+      "width" : 0
+    },
+    "style:footnote|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 11,
+      "height" : 975,
+      "lastBaseline" : 971,
       "width" : 0
     },
     "style:footnote|0.0|Max" : {
@@ -5214,6 +5394,18 @@
       "lastBaseline" : 71,
       "width" : 0
     },
+    "style:headline|;sc2|Hello" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 30
+    },
+    "style:headline|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 418
+    },
     "style:headline||Account" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -5262,6 +5454,12 @@
       "lastBaseline" : 14,
       "width" : 33.5
     },
+    "style:headline||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 469.5
+    },
     "style:headline||Name" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -5303,6 +5501,18 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 48.5
+    },
+    "style:headline|0.0;sc2|Hello" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:headline|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 987.5,
+      "lastBaseline" : 1002,
+      "width" : 0
     },
     "style:headline|0.0|Account" : {
       "firstBaseline" : 14,
@@ -5350,6 +5560,12 @@
       "firstBaseline" : 14,
       "height" : 94.5,
       "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:headline|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 14,
+      "height" : 987.5,
+      "lastBaseline" : 1002,
       "width" : 0
     },
     "style:headline|0.0|Name" : {
@@ -5466,6 +5682,18 @@
       "lastBaseline" : 146,
       "width" : 0
     },
+    "style:largeTitle|;sc2|Hello" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 46
+    },
+    "style:largeTitle|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 649
+    },
     "style:largeTitle||Big" : {
       "firstBaseline" : 29,
       "height" : 38,
@@ -5490,6 +5718,12 @@
       "lastBaseline" : 29,
       "width" : 97
     },
+    "style:largeTitle||Hello" : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 58
+    },
     "style:largeTitle||Hg" : {
       "firstBaseline" : 29,
       "height" : 38,
@@ -5502,11 +5736,29 @@
       "lastBaseline" : 29,
       "width" : 130
     },
+    "style:largeTitle||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 29,
+      "height" : 38,
+      "lastBaseline" : 29,
+      "width" : 801.5
+    },
     "style:largeTitle||The quick brown fox" : {
       "firstBaseline" : 29,
       "height" : 38,
       "lastBaseline" : 29,
       "width" : 224
+    },
+    "style:largeTitle|0.0;sc2|Hello" : {
+      "firstBaseline" : 29,
+      "height" : 194,
+      "lastBaseline" : 185,
+      "width" : 0
+    },
+    "style:largeTitle|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 29,
+      "height" : 974,
+      "lastBaseline" : 1004,
+      "width" : 0
     },
     "style:largeTitle|0.0|Big" : {
       "firstBaseline" : 29,
@@ -5532,6 +5784,12 @@
       "lastBaseline" : 302,
       "width" : 0
     },
+    "style:largeTitle|0.0|Hello" : {
+      "firstBaseline" : 29,
+      "height" : 194,
+      "lastBaseline" : 185,
+      "width" : 0
+    },
     "style:largeTitle|0.0|Hg" : {
       "firstBaseline" : 29,
       "height" : 77,
@@ -5542,6 +5800,12 @@
       "firstBaseline" : 29,
       "height" : 428,
       "lastBaseline" : 419,
+      "width" : 0
+    },
+    "style:largeTitle|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 29,
+      "height" : 974,
+      "lastBaseline" : 1004,
       "width" : 0
     },
     "style:largeTitle|0.0|The quick brown fox" : {
@@ -6294,6 +6558,18 @@
       "lastBaseline" : 63,
       "width" : 0
     },
+    "style:subheadline|;sc2|Hello" : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 24
+    },
+    "style:subheadline|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 339
+    },
     "style:subheadline||Account" : {
       "firstBaseline" : 12,
       "height" : 16,
@@ -6359,6 +6635,12 @@
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 27
+    },
+    "style:subheadline||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 381.5
     },
     "style:subheadline||Max" : {
       "firstBaseline" : 12,
@@ -6426,6 +6708,18 @@
       "lastBaseline" : 12,
       "width" : 27
     },
+    "style:subheadline|0.0;sc2|Hello" : {
+      "firstBaseline" : 12,
+      "height" : 84,
+      "lastBaseline" : 80,
+      "width" : 0
+    },
+    "style:subheadline|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 12,
+      "height" : 985,
+      "lastBaseline" : 998,
+      "width" : 0
+    },
     "style:subheadline|0.0|Account" : {
       "firstBaseline" : 12,
       "height" : 118,
@@ -6490,6 +6784,12 @@
       "firstBaseline" : 12,
       "height" : 84,
       "lastBaseline" : 80,
+      "width" : 0
+    },
+    "style:subheadline|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 12,
+      "height" : 985,
+      "lastBaseline" : 998,
       "width" : 0
     },
     "style:subheadline|0.0|Max" : {
@@ -6702,6 +7002,18 @@
       "lastBaseline" : 25,
       "width" : 176.5
     },
+    "style:title|;sc2|Hello" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 41
+    },
+    "style:title|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 579
+    },
     "style:title|;tr-1.0|Hello" : {
       "firstBaseline" : 25,
       "height" : 33,
@@ -6840,6 +7152,12 @@
       "lastBaseline" : 25,
       "width" : 54
     },
+    "style:title||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 683.5
+    },
     "style:title||Shadow" : {
       "firstBaseline" : 25,
       "height" : 33,
@@ -6970,6 +7288,18 @@
       "firstBaseline" : 25,
       "height" : 363,
       "lastBaseline" : 355,
+      "width" : 0
+    },
+    "style:title|0.0;sc2|Hello" : {
+      "firstBaseline" : 25,
+      "height" : 165,
+      "lastBaseline" : 157,
+      "width" : 0
+    },
+    "style:title|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 25,
+      "height" : 990,
+      "lastBaseline" : 982,
       "width" : 0
     },
     "style:title|0.0;tr-1.0|Hello" : {
@@ -7110,6 +7440,12 @@
       "lastBaseline" : 157,
       "width" : 0
     },
+    "style:title|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 25,
+      "height" : 990,
+      "lastBaseline" : 982,
+      "width" : 0
+    },
     "style:title|0.0|Shadow" : {
       "firstBaseline" : 25,
       "height" : 198,
@@ -7224,11 +7560,59 @@
       "lastBaseline" : 100,
       "width" : 0
     },
+    "style:title2|;sc2|Hello" : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 34.5
+    },
+    "style:title2|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 486.5
+    },
+    "style:title2||Hello" : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 39
+    },
+    "style:title2||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 19,
+      "height" : 25.5,
+      "lastBaseline" : 19,
+      "width" : 551
+    },
     "style:title2||The quick brown fox" : {
       "firstBaseline" : 19,
       "height" : 25.5,
       "lastBaseline" : 19,
       "width" : 154
+    },
+    "style:title2|0.0;sc2|Hello" : {
+      "firstBaseline" : 19,
+      "height" : 133.5,
+      "lastBaseline" : 127,
+      "width" : 0
+    },
+    "style:title2|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 19,
+      "height" : 997.5,
+      "lastBaseline" : 991,
+      "width" : 0
+    },
+    "style:title2|0.0|Hello" : {
+      "firstBaseline" : 19,
+      "height" : 133.5,
+      "lastBaseline" : 127,
+      "width" : 0
+    },
+    "style:title2|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 19,
+      "height" : 997.5,
+      "lastBaseline" : 991,
+      "width" : 0
     },
     "style:title2|0.0|The quick brown fox" : {
       "firstBaseline" : 19,
@@ -7680,6 +8064,18 @@
       "lastBaseline" : 89,
       "width" : 0
     },
+    "style:title3|;sc2|Hello" : {
+      "firstBaseline" : 17,
+      "height" : 22,
+      "lastBaseline" : 17,
+      "width" : 31
+    },
+    "style:title3|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 17,
+      "height" : 22,
+      "lastBaseline" : 17,
+      "width" : 439
+    },
     "style:title3||Account" : {
       "firstBaseline" : 17,
       "height" : 22,
@@ -7715,6 +8111,12 @@
       "height" : 22,
       "lastBaseline" : 17,
       "width" : 35
+    },
+    "style:title3||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 17,
+      "height" : 22,
+      "lastBaseline" : 17,
+      "width" : 496.5
     },
     "style:title3||Name" : {
       "firstBaseline" : 17,
@@ -7752,6 +8154,18 @@
       "lastBaseline" : 17,
       "width" : 51
     },
+    "style:title3|0.0;sc2|Hello" : {
+      "firstBaseline" : 17,
+      "height" : 118,
+      "lastBaseline" : 113,
+      "width" : 0
+    },
+    "style:title3|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 17,
+      "height" : 982,
+      "lastBaseline" : 1001,
+      "width" : 0
+    },
     "style:title3|0.0|Account" : {
       "firstBaseline" : 17,
       "height" : 166,
@@ -7786,6 +8200,12 @@
       "firstBaseline" : 17,
       "height" : 118,
       "lastBaseline" : 113,
+      "width" : 0
+    },
+    "style:title3|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 17,
+      "height" : 982,
+      "lastBaseline" : 1001,
       "width" : 0
     },
     "style:title3|0.0|Name" : {
@@ -9510,6 +9930,18 @@
       "lastBaseline" : 13,
       "width" : 31
     },
+    "system:13:400:default|;sc2|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 27.5
+    },
+    "system:13:400:default|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 390
+    },
     "system:13:400:default|;thead|Hello" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10830,6 +11262,12 @@
       "lastBaseline" : 13,
       "width" : 79.5
     },
+    "system:13:400:default||Plain text" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 56
+    },
     "system:13:400:default||Plain text stays" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10991,6 +11429,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 38.5
+    },
+    "system:13:400:default||Selectable text" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 90.5
     },
     "system:13:400:default||Selected: none" : {
       "firstBaseline" : 13,
@@ -11422,6 +11866,18 @@
       "firstBaseline" : 13,
       "height" : 120,
       "lastBaseline" : 117,
+      "width" : 0
+    },
+    "system:13:400:default|0.0;sc2|Hello" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 976,
+      "lastBaseline" : 973,
       "width" : 0
     },
     "system:13:400:default|0.0;thead|Hello" : {
@@ -12744,6 +13200,12 @@
       "lastBaseline" : 189,
       "width" : 0
     },
+    "system:13:400:default|0.0|Plain text" : {
+      "firstBaseline" : 13,
+      "height" : 144,
+      "lastBaseline" : 141,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Plain text stays" : {
       "firstBaseline" : 13,
       "height" : 224,
@@ -12904,6 +13366,12 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Selectable text" : {
+      "firstBaseline" : 13,
+      "height" : 224,
+      "lastBaseline" : 221,
       "width" : 0
     },
     "system:13:400:default|0.0|Selected: none" : {
@@ -13385,6 +13853,12 @@
       "height" : 94,
       "lastBaseline" : 91,
       "width" : 137
+    },
+    "system:13:400:default|150.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 149.5
     },
     "system:13:400:default|150.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
@@ -13950,11 +14424,59 @@
       "lastBaseline" : 379,
       "width" : 0
     },
+    "system:20:400:default|;sc2|Hello" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 38.5
+    },
+    "system:20:400:default|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 545
+    },
+    "system:20:400:default||Hello" : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 45
+    },
+    "system:20:400:default||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 19,
+      "height" : 24,
+      "lastBaseline" : 19,
+      "width" : 631.5
+    },
     "system:20:400:default||The quick brown fox" : {
       "firstBaseline" : 19,
       "height" : 24,
       "lastBaseline" : 19,
       "width" : 176.5
+    },
+    "system:20:400:default|0.0;sc2|Hello" : {
+      "firstBaseline" : 19,
+      "height" : 120,
+      "lastBaseline" : 115,
+      "width" : 0
+    },
+    "system:20:400:default|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 19,
+      "height" : 984,
+      "lastBaseline" : 1003,
+      "width" : 0
+    },
+    "system:20:400:default|0.0|Hello" : {
+      "firstBaseline" : 19,
+      "height" : 120,
+      "lastBaseline" : 115,
+      "width" : 0
+    },
+    "system:20:400:default|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 19,
+      "height" : 984,
+      "lastBaseline" : 1003,
+      "width" : 0
     },
     "system:20:400:default|0.0|The quick brown fox" : {
       "firstBaseline" : 19,
@@ -14142,11 +14664,59 @@
       "lastBaseline" : 601,
       "width" : 0
     },
+    "system:40:400:default|;sc2|Hello" : {
+      "firstBaseline" : 39,
+      "height" : 47,
+      "lastBaseline" : 39,
+      "width" : 61
+    },
+    "system:40:400:default|;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 39,
+      "height" : 47,
+      "lastBaseline" : 39,
+      "width" : 845.5
+    },
+    "system:40:400:default||Hello" : {
+      "firstBaseline" : 39,
+      "height" : 47,
+      "lastBaseline" : 39,
+      "width" : 88
+    },
+    "system:40:400:default||Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 39,
+      "height" : 47,
+      "lastBaseline" : 39,
+      "width" : 1220
+    },
     "system:40:400:default||Star" : {
       "firstBaseline" : 39,
       "height" : 47,
       "lastBaseline" : 39,
       "width" : 69.5
+    },
+    "system:40:400:default|0.0;sc2|Hello" : {
+      "firstBaseline" : 39,
+      "height" : 235,
+      "lastBaseline" : 227,
+      "width" : 0
+    },
+    "system:40:400:default|0.0;sc2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 39,
+      "height" : 987,
+      "lastBaseline" : 979,
+      "width" : 0
+    },
+    "system:40:400:default|0.0|Hello" : {
+      "firstBaseline" : 39,
+      "height" : 235,
+      "lastBaseline" : 227,
+      "width" : 0
+    },
+    "system:40:400:default|0.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 39,
+      "height" : 987,
+      "lastBaseline" : 979,
+      "width" : 0
     },
     "system:40:400:default|0.0|Star" : {
       "firstBaseline" : 39,

@@ -1,0 +1,33 @@
+{
+  "fixture" : "textscale\/wrapped",
+  "frames" : {
+    "column" : {
+      "height" : 192,
+      "width" : 150,
+      "x" : 125,
+      "y" : 4
+    },
+    "default" : {
+      "height" : 64,
+      "width" : 150,
+      "x" : 125,
+      "y" : 4
+    },
+    "disabled" : {
+      "height" : 64,
+      "width" : 150,
+      "x" : 125,
+      "y" : 132
+    },
+    "secondary" : {
+      "height" : 48,
+      "width" : 150,
+      "x" : 125,
+      "y" : 76
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 400
+  }
+}

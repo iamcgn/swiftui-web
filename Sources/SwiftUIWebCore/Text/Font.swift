@@ -210,6 +210,35 @@ extension Font {
     }
 }
 
+// MARK: Text scale
+
+extension ResolvedFont {
+    /// The font `textScale(.secondary)` draws with, and the tracking it adds after every glyph
+    /// (measured with a `TextRenderer` on macOS 26, 2026-09-05). The scale factor and tracking
+    /// depend on the weight and fade with size: constant up to 17 pt, interpolated linearly to
+    /// their 70 pt values, constant beyond; the line height stays the base font's. Serif,
+    /// monospaced and custom families are not scaled.
+    package var secondaryScaled: (font: ResolvedFont, tracking: CGFloat)? {
+        guard family == "system" || family == "system-rounded" else { return nil }
+        // (factor at ≤ 17 pt, factor at ≥ 70 pt, tracking at ≤ 17 pt) per weight.
+        let table: [Int: (CGFloat, CGFloat, CGFloat)] = [
+            100: (0.8, 0.46, 0.16), 200: (0.8, 0.46, 0.15), 300: (0.8, 0.46, 0.1854), 400: (0.8, 0.46, 0.25),
+            500: (0.8, 0.48, 0.4147), 600: (0.84, 0.49, 0), 700: (0.85, 0.5, -0.05), 800: (0.85, 0.52, 0.2), 900: (0.87, 0.55, 0.35),
+        ]
+        let entry = table[weight.value] ?? table[400]!
+        let t = min(1, max(0, (size - 17) / 53))
+        let factor = entry.0 - (entry.0 - entry.1) * t
+        let tracking = (family == "system-rounded" ? 0.03 : entry.2) * (1 - t)
+        var scaled = self
+        scaled.size = size * factor
+        // SwiftUI's scaled face also raises the weight axis (about 510 for regular), so its
+        // glyphs run wider than the plain font at that size: 2.4 % (3.3 % in the display
+        // optical size, 1.7 % medium, 3.4 % bold and up), spread over the glyphs as spacing.
+        let gain: CGFloat = weight.value >= 700 ? 0.034 : weight.value >= 500 ? 0.017 : scaled.size >= 20 ? 0.033 : 0.024
+        return (scaled, tracking + 0.5 * gain * scaled.size)
+    }
+}
+
 // MARK: Environment
 
 package struct FontKey: EnvironmentKey {

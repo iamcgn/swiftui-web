@@ -53,7 +53,7 @@ public final class CoreTextEngine: TextEngine {
 
     /// Unrounded advance of `text` in `font` (rounding to the half point happens per line).
     private func width(of text: String, font: ResolvedFont) -> CGFloat {
-        let key = font.key + "|" + text
+        let key = font.key + ":" + String(describing: font.size) + "|" + text
         if let cached = widthCache[key] { return cached }
         let attributed = NSAttributedString(string: text, attributes: [.font: nsFont(font)])
         let line = CTLineCreateWithAttributedString(attributed)

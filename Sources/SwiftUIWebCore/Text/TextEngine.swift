@@ -22,6 +22,8 @@ public struct TextLayoutOptions: Hashable, Sendable {
     /// Extra space between characters (`kerning`) and `tracking`, in points.
     public var kerning: CGFloat
     public var tracking: CGFloat
+    /// `textScale`: the secondary scale draws smaller glyphs on the font's own line height.
+    public var textScale: Text.Scale
 
     /// The same options with the letter spacing taken out (the layouter measures it itself).
     public var withoutLetterSpacing: TextLayoutOptions {
@@ -32,13 +34,14 @@ public struct TextLayoutOptions: Hashable, Sendable {
     }
 
     public init(lineLimit: Int? = nil, truncationMode: Text.TruncationMode = .tail, lineSpacing: CGFloat = 0, minimumLines: Int = 0,
-                kerning: CGFloat = 0, tracking: CGFloat = 0) {
+                kerning: CGFloat = 0, tracking: CGFloat = 0, textScale: Text.Scale = .default) {
         self.lineLimit = lineLimit
         self.truncationMode = truncationMode
         self.lineSpacing = lineSpacing
         self.minimumLines = minimumLines
         self.kerning = kerning
         self.tracking = tracking
+        self.textScale = textScale
     }
 
     public static let `default` = TextLayoutOptions()
@@ -175,6 +178,7 @@ public enum TextMetricsKey {
         }
         if options.kerning != 0 { slot += ";k\(options.kerning)" }
         if options.tracking != 0 { slot += ";tr\(options.tracking)" }
+        if options.textScale == .secondary { slot += ";sc2" }
         return slot
     }
 

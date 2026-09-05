@@ -1,8 +1,7 @@
 // Text under height pressure: a paragraph proposed less height than its lines need keeps
-// floor(height / line pitch) lines, at least one, and truncates the last (measured 2026-09-04).
-// Recorded for later: applying the rule showed our stacks propose flexible children less height
-// than SwiftUI does, so the fixtures live under `pressure/`, outside the enabled prefixes, until
-// the stack distribution is measured (Docs/elements/Text.md).
+// floor(height / line pitch) lines, at least one, and truncates the last (measured 2026-09-04,
+// applied 2026-09-05). The stack fixtures measure how SwiftUI shares height with flexible texts
+// and Spacers (Docs/elements/Text.md, Layout.md).
 import SwiftUI
 import FixtureKit
 

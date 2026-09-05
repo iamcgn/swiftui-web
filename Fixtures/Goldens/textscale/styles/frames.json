@@ -1,0 +1,231 @@
+{
+  "fixture" : "textscale\/styles",
+  "frames" : {
+    "body-default" : {
+      "height" : 18.5,
+      "width" : 31,
+      "x" : 202,
+      "y" : 217
+    },
+    "body-row" : {
+      "height" : 18.5,
+      "width" : 70.5,
+      "x" : 202,
+      "y" : 217
+    },
+    "body-secondary" : {
+      "height" : 18.5,
+      "width" : 27.5,
+      "x" : 245,
+      "y" : 217
+    },
+    "callout-default" : {
+      "height" : 17.5,
+      "width" : 29,
+      "x" : 202,
+      "y" : 237.5
+    },
+    "callout-row" : {
+      "height" : 17.5,
+      "width" : 67,
+      "x" : 202,
+      "y" : 237.5
+    },
+    "callout-secondary" : {
+      "height" : 17.5,
+      "width" : 26,
+      "x" : 243,
+      "y" : 237.5
+    },
+    "caption-default" : {
+      "height" : 15,
+      "width" : 25,
+      "x" : 202,
+      "y" : 292
+    },
+    "caption-row" : {
+      "height" : 15,
+      "width" : 59.5,
+      "x" : 202,
+      "y" : 292
+    },
+    "caption-secondary" : {
+      "height" : 15,
+      "width" : 22.5,
+      "x" : 239,
+      "y" : 292
+    },
+    "caption2-default" : {
+      "height" : 15,
+      "width" : 25.5,
+      "x" : 202,
+      "y" : 309
+    },
+    "caption2-row" : {
+      "height" : 15,
+      "width" : 61,
+      "x" : 202,
+      "y" : 309
+    },
+    "caption2-secondary" : {
+      "height" : 15,
+      "width" : 23.5,
+      "x" : 239.5,
+      "y" : 309
+    },
+    "column" : {
+      "height" : 280,
+      "width" : 116,
+      "x" : 202,
+      "y" : 70
+    },
+    "footnote-default" : {
+      "height" : 15,
+      "width" : 25,
+      "x" : 202,
+      "y" : 275
+    },
+    "footnote-row" : {
+      "height" : 15,
+      "width" : 59.5,
+      "x" : 202,
+      "y" : 275
+    },
+    "footnote-secondary" : {
+      "height" : 15,
+      "width" : 22.5,
+      "x" : 239,
+      "y" : 275
+    },
+    "headline-default" : {
+      "height" : 18.5,
+      "width" : 33.5,
+      "x" : 202,
+      "y" : 196.5
+    },
+    "headline-row" : {
+      "height" : 18.5,
+      "width" : 75.5,
+      "x" : 202,
+      "y" : 196.5
+    },
+    "headline-secondary" : {
+      "height" : 18.5,
+      "width" : 30,
+      "x" : 247.5,
+      "y" : 196.5
+    },
+    "largeTitle-default" : {
+      "height" : 38,
+      "width" : 58,
+      "x" : 202,
+      "y" : 70
+    },
+    "largeTitle-row" : {
+      "height" : 38,
+      "width" : 116,
+      "x" : 202,
+      "y" : 70
+    },
+    "largeTitle-secondary" : {
+      "height" : 38,
+      "width" : 46,
+      "x" : 272,
+      "y" : 70
+    },
+    "s20-default" : {
+      "height" : 24,
+      "width" : 45,
+      "x" : 202,
+      "y" : 326
+    },
+    "s20-row" : {
+      "height" : 24,
+      "width" : 95.5,
+      "x" : 202,
+      "y" : 326
+    },
+    "s20-secondary" : {
+      "height" : 24,
+      "width" : 38.5,
+      "x" : 259,
+      "y" : 326
+    },
+    "subheadline-default" : {
+      "height" : 16,
+      "width" : 27,
+      "x" : 202,
+      "y" : 257
+    },
+    "subheadline-row" : {
+      "height" : 16,
+      "width" : 63,
+      "x" : 202,
+      "y" : 257
+    },
+    "subheadline-secondary" : {
+      "height" : 16,
+      "width" : 24,
+      "x" : 241,
+      "y" : 257
+    },
+    "title-default" : {
+      "height" : 33,
+      "width" : 49,
+      "x" : 202,
+      "y" : 110
+    },
+    "title-row" : {
+      "height" : 33,
+      "width" : 102,
+      "x" : 202,
+      "y" : 110
+    },
+    "title-secondary" : {
+      "height" : 33,
+      "width" : 41,
+      "x" : 263,
+      "y" : 110
+    },
+    "title2-default" : {
+      "height" : 25.5,
+      "width" : 39,
+      "x" : 202,
+      "y" : 145
+    },
+    "title2-row" : {
+      "height" : 25.5,
+      "width" : 85.5,
+      "x" : 202,
+      "y" : 145
+    },
+    "title2-secondary" : {
+      "height" : 25.5,
+      "width" : 34.5,
+      "x" : 253,
+      "y" : 145
+    },
+    "title3-default" : {
+      "height" : 22,
+      "width" : 35,
+      "x" : 202,
+      "y" : 172.5
+    },
+    "title3-row" : {
+      "height" : 22,
+      "width" : 78,
+      "x" : 202,
+      "y" : 172.5
+    },
+    "title3-secondary" : {
+      "height" : 22,
+      "width" : 31,
+      "x" : 249,
+      "y" : 172.5
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 520
+  }
+}
