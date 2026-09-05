@@ -58,7 +58,8 @@ jobs:
         run: |
           . ~/.swiftly/env.sh
           scripts/build-wasm.sh Examples/Counter
-          (python3 -m http.server 8765 --directory Examples/Counter >/dev/null 2>&1 &) ; sleep 1
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory Examples/Counter >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8765/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node counter.mjs http://127.0.0.1:8765/index.html --shot ../.build/counter.png)
           scripts/size-gate.sh Examples/Counter
       - uses: actions/upload-artifact@v4

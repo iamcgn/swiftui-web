@@ -16,8 +16,9 @@ while [[ $# -gt 0 ]]; do
 done
 if [[ $BUILD == 1 ]]; then "$ROOT/scripts/build-wasm.sh" Examples/Gallery --debug; fi
 [[ -d "$ROOT/Playwright/node_modules" ]] || (cd "$ROOT/Playwright" && npm install && npm run install-browsers)
-python3 -m http.server "$PORT" --directory "$ROOT/Examples/Gallery" >/dev/null 2>&1 &
+python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$ROOT/Examples/Gallery" >/dev/null 2>&1 &
 SERVER=$!
 trap 'kill $SERVER 2>/dev/null || true' EXIT
-sleep 1
+# Wait until the server answers (a CI runner can take longer than a second to listen).
+for _ in $(seq 1 60); do curl -sf "http://127.0.0.1:$PORT/index.html" >/dev/null && break; sleep 1; done
 cd "$ROOT/Playwright" && node tier-b.mjs "http://127.0.0.1:$PORT/index.html" --filter "$FILTER" --browser "$BROWSER" --out "$ROOT/.build/tier-b-$BROWSER"
