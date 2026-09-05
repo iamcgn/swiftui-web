@@ -37,10 +37,30 @@ public struct Stepper<Label: View>: View {
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\._formStyle) private var formStyle
 
+    @Environment(\.platformProfile) private var profile
+
     public var body: some View {
-        _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
-                        content: AnyView(_StepperControl(increment: increment, decrement: decrement, onEditingChanged: onEditingChanged)),
-                        mode: formStyle == .grouped ? .grouped : .centered)
+        let control = _StepperControl(increment: increment, decrement: decrement, onEditingChanged: onEditingChanged)
+        if profile.isIOS && formStyle != .grouped {
+            // iOS (ios/stepper/basic): the label leading, the control at the trailing edge of the
+            // proposed width, 32 pt tall, text baselines at the row's top.
+            if labelsHidden {
+                control
+            } else {
+                HStack(alignment: .center, spacing: profile.metrics.controlLabelSpacing) {
+                    _ControlLabel(label: label)
+                    Spacer(minLength: 0)
+                    control
+                }
+                .frame(maxWidth: .infinity)
+                .alignmentGuide(.firstTextBaseline) { _ in 0 }
+                .alignmentGuide(.lastTextBaseline) { _ in 0 }
+            }
+        } else {
+            _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
+                            content: AnyView(control),
+                            mode: formStyle == .grouped ? .grouped : .centered)
+        }
     }
 }
 

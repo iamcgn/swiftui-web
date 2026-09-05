@@ -167,7 +167,7 @@ public enum TextMetricsRequests {
     public static let richParagraphTail = "wrap this sentence onto several lines inside a narrow frame."
 
     public static let all: [TextMetricRequest] = {
-        var requests: [TextMetricRequest] = [
+        var requests: [TextMetricRequest] = iOSRequests + [
             TextMetricRequest("Hello", .style("body")),
             TextMetricRequest("One", .style("body")),
             TextMetricRequest("Two", .style("body")),
@@ -553,6 +553,37 @@ public enum TextMetricsRequests {
         for word in ["Caption small", "Caption strike"] { requests.append(TextMetricRequest(word, .style("caption"))) }
         for word in ["Bold Under", "Bold strike"] { requests.append(TextMetricRequest(word, defaultFont(weight: "bold"))) }
         requests.append(TextMetricRequest("Large strike", .style("largeTitle")))
+        return requests
+    }()
+}
+
+extension TextMetricsRequests {
+    /// The strings the `ios/…` fixtures show (IOSFixtures.swift): the default font is `.body`
+    /// there, and control labels come in the weights iOS styles use. Measured on every platform.
+    static let iOSRequests: [TextMetricRequest] = {
+        var requests: [TextMetricRequest] = []
+        let body = ["Hello", "One", "Two", "Hg", "Enabled", "OK", "Bordered", "Prominent", "Borderless", "Disabled", "Delete",
+                    "Quantity: 3", "Placeholder", "Password", "Name", "Fruit", "Apple", "Banana", "Cherry", "Size", "Small", "Medium", "Large",
+                    "Wi-Fi", "Bluetooth", "Volume", "Save", "Bold", "Body", "secret", "••••••"]
+        for string in body {
+            requests.append(TextMetricRequest(string, .style("body")))
+            requests.append(TextMetricRequest(string, .style("body", weight: "semibold")))
+            requests.append(TextMetricRequest(string, .style("body", weight: "bold")))
+        }
+        for string in ["Apple", "Banana", "Cherry", "Small", "Medium", "Large"] {
+            for weight in ["regular", "medium", "semibold"] {
+                requests.append(TextMetricRequest(string, .system(size: 13, weight: weight, design: "default")))
+                requests.append(TextMetricRequest(string, .style("footnote", weight: weight)))
+                requests.append(TextMetricRequest(string, .style("subheadline", weight: weight)))
+            }
+        }
+        for (string, style) in [("Large Title", "largeTitle"), ("Title", "title"), ("Title 2", "title2"), ("Title 3", "title3"), ("Headline", "headline"),
+                                ("Subheadline", "subheadline"), ("Callout", "callout"), ("Footnote", "footnote"), ("Caption", "caption"), ("Caption 2", "caption2"),
+                                ("Volume", "subheadline"), ("Settings", "largeTitle")] {
+            requests.append(TextMetricRequest(string, .style(style)))
+            requests.append(TextMetricRequest(string, .style(style, weight: "semibold")))
+            requests.append(TextMetricRequest(string, .style(style, weight: "bold")))
+        }
         return requests
     }()
 }

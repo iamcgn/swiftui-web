@@ -28,7 +28,7 @@ enum NativeGoldens {
         return url.appendingPathComponent("Fixtures/Goldens")
     }()
 
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/", "textstyle/", "dark/", "position/", "hover/", "toolbar/", "gesture/", "redacted/", "asyncimage/", "pressure/", "textscale/", "animator/", "matched/", "dragdrop/", "symboleffect/", "shapebool/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/", "textstyle/", "dark/", "position/", "hover/", "toolbar/", "gesture/", "redacted/", "asyncimage/", "pressure/", "textscale/", "animator/", "matched/", "dragdrop/", "symboleffect/", "shapebool/", "ios/"]
 
     /// Fixtures whose browser render is held to a looser bound (font fallbacks); natively the
     /// fonts are real, but the bound is kept for parity with Tier B.
@@ -148,7 +148,9 @@ struct Bitmap {
         let engine = CoreTextEngine()
         let painter = CoreGraphicsPainter(textEngine: engine, assetBase: NativeGoldens.assetBase)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
-        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset"
+        // ios/toggle and ios/slider paint the iOS switch and knob where the Catalyst goldens draw
+        // Mac-shaped ones (Docs/elements/iOS.md).
+        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name.hasPrefix("ios/toggle/") || name.hasPrefix("ios/slider/")
         compare(runner.layoutFrames(), to: golden.frames, label: name)
         try comparePixels(runner, fixture: fixture, png: "image@2x.png", label: name, framesOnly: framesOnly, painter: painter)
         for (index, step) in (golden.steps ?? []).enumerated() where index < fixture.stepNames.count {
@@ -173,7 +175,10 @@ struct Bitmap {
             guard let actual = ours[id] else { Issue.record("\(label): probe \(id) not recorded"); continue }
             let tolerance = approximate.contains(id) ? 2 + 1e-9 : 1e-9
             // Text fixtures: CoreText's truncated widths land within the half point (Tier B's rule).
-            let widthTolerance = label.hasPrefix("text/") ? max(tolerance, 0.5 + 1e-9, abs(expected.width) * 0.03) : tolerance
+            // ios/ goldens come from Mac Catalyst, whose scaled text measures a little wider than
+            // SF drawn at the size (Docs/elements/iOS.md): text widths get the text tolerance.
+            let widthTolerance = label.hasPrefix("ios/") ? max(tolerance, 2 + 1e-9, abs(expected.width) * 0.04)
+                : label.hasPrefix("text/") ? max(tolerance, 0.5 + 1e-9, abs(expected.width) * 0.03) : tolerance
             let close = abs(actual.minX - expected.x) < widthTolerance && abs(actual.minY - expected.y) < tolerance
                 && abs(actual.width - expected.width) < widthTolerance && abs(actual.height - expected.height) < tolerance
             #expect(close, "\(label)/\(id): \(actual) != (\(expected.x), \(expected.y), \(expected.width), \(expected.height))")
@@ -190,7 +195,7 @@ struct Bitmap {
             try ours.writePNG(to: URL(fileURLWithPath: dump).appendingPathComponent(label.replacingOccurrences(of: "/", with: "_") + ".png"))
         }
         let fraction = try #require(ours.differingFraction(from: golden), "\(label): size \(ours.width)x\(ours.height) vs \(golden.width)x\(golden.height)")
-        let tolerance = NativeGoldens.pixelTolerance * (NativeGoldens.approximate.contains(fixture.name) ? 3 : 1)
+        let tolerance = NativeGoldens.pixelTolerance * (NativeGoldens.approximate.contains(fixture.name) || fixture.name.hasPrefix("ios/") ? 3 : 1)
         if ProcessInfo.processInfo.environment["TIER_C_REPORT"] != nil { print("TierC \(label) pixels=\(String(format: "%.2f", fraction * 100))%") }
         #expect(fraction <= tolerance, "\(label): \(String(format: "%.2f", fraction * 100)) % of pixels differ (limit \(String(format: "%.0f", tolerance * 100)) %)")
     }

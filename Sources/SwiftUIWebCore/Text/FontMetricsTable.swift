@@ -94,10 +94,15 @@ extension PlatformProfile {
         return TextDecorationMetrics(underlineOffset: offset, thickness: thickness, xHeight: xHeight)
     }
 
-    /// Metrics for a resolved font; interpolated for unmeasured point sizes.
+    /// Metrics for a resolved font from the tables of the platform it was resolved for (the
+    /// font's profile, not this one's: a page can hold subtrees of another platform);
+    /// interpolated for unmeasured point sizes.
     public func systemFontMetrics(for font: ResolvedFont) -> SystemFontMetrics {
-        if let style = font.textStyle, var metrics = Self.macOSTextStyleMetrics[style] {
-            if font.weightOverridden, let face = Self.macOSTextStyleWeightOverrides[style]?[font.weight.value] {
+        let iOS = font.profile == "iOS"
+        let styleMetrics = iOS ? Self.iOSTextStyleMetrics : Self.macOSTextStyleMetrics
+        let weightOverrides = iOS ? Self.iOSTextStyleWeightOverrides : Self.macOSTextStyleWeightOverrides
+        if let style = font.textStyle, var metrics = styleMetrics[style] {
+            if font.weightOverridden, let face = weightOverrides[style]?[font.weight.value] {
                 metrics.lineHeight = face.lineHeight
                 metrics.baseline = face.baseline
                 metrics.linePitch = face.lineHeight.rounded(.up)
@@ -105,7 +110,7 @@ extension PlatformProfile {
             }
             return metrics
         }
-        let table = Self.macOSPointSizeMetrics
+        let table = iOS && !Self.iOSPointSizeMetrics.isEmpty ? Self.iOSPointSizeMetrics : Self.macOSPointSizeMetrics
         if let exact = table.first(where: { $0.size == font.size }) { return exact.metrics }
         guard let lower = table.last(where: { $0.size < font.size }), let upper = table.first(where: { $0.size > font.size }) else {
             // Outside the measured range: scale the nearest entry.

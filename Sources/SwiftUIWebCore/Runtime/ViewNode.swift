@@ -156,6 +156,10 @@ open class ViewNode {
             sizeCacheGeneration = generation
         }
         if let cached = sizeCache[proposal] { return cached }
+        // The platform metrics of this node's profile, for it and its subtree (restored for the
+        // caller: a macOS stack may hold an iOS subtree).
+        let previousMetrics = PlatformMetrics.select(environment.platformProfile)
+        defer { PlatformMetrics.current = previousMetrics }
         let size = computeSizeThatFits(proposal)
         sizeCache[proposal] = size
         return size
@@ -174,6 +178,8 @@ open class ViewNode {
     /// Positions this node: computes its size for `proposal`, records the frame relative to
     /// `placer`, then lays out its own contents.
     package final func place(at position: CGPoint, anchor: UnitPoint, proposal: ProposedViewSize, by placer: ViewNode) {
+        let previousMetrics = PlatformMetrics.select(environment.platformProfile)
+        defer { PlatformMetrics.current = previousMetrics }
         let size = sizeThatFits(proposal)
         let previous = hasBeenPlaced ? presentedFrame : nil
         let oldTarget = frame
@@ -233,6 +239,8 @@ open class ViewNode {
     /// Emits this node's drawing (self first, then children). Only layout nodes are painted; a
     /// placer paints the nodes it placed at their frames.
     package func paint(into list: inout DisplayList, context: PaintContext) {
+        let previousMetrics = PlatformMetrics.select(environment.platformProfile)
+        defer { PlatformMetrics.current = previousMetrics }
         let opacity = presentedTransitionOpacity
         guard opacity > 0 else { return }
         if opacity < 1 { list.append(.beginGroup(opacity: opacity)) }
@@ -456,6 +464,9 @@ package final class CompositeNode<V: View>: TypedNode<V> {
 package func _trackingObservation<Result>(for node: ViewNode, _ body: () -> Result) -> Result {
     node.beginObservationSession()
     let token = node.observationToken
+    // A body reads the platform metrics of its own profile (a page can hold an iOS subtree).
+    let previousMetrics = PlatformMetrics.select(node.environment.platformProfile)
+    defer { PlatformMetrics.current = previousMetrics }
     return withObservationTracking(body) { [weak node] in
         // Observation calls this from the property's `willSet`, on the mutating thread. State
         // mutation is main-actor only in SwiftUI and here, so hop synchronously. The node is held

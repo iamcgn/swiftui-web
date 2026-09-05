@@ -463,7 +463,7 @@ public static let basic = Fixture("datepicker/basic", size: CGSize(width: 360, h
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "datepicker/clock", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 60, lastLine: 65, declaration: #"""
+        FixtureSource(name: "datepicker/clock", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 62, lastLine: 67, declaration: #"""
 public static let clock = Fixture("datepicker/clock", size: CGSize(width: 360, height: 240)) {
     DatePicker("Clock", selection: .constant(fixed), displayedComponents: .hourAndMinute).datePickerStyle(.graphical)
         .padding(20)
@@ -471,7 +471,7 @@ public static let clock = Fixture("datepicker/clock", size: CGSize(width: 360, h
         .probe("clock")
 }
 """#),
-        FixtureSource(name: "datepicker/graphical", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 53, lastLine: 58, declaration: #"""
+        FixtureSource(name: "datepicker/graphical", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 55, lastLine: 60, declaration: #"""
 public static let graphical = Fixture("datepicker/graphical", size: CGSize(width: 360, height: 300)) {
     DatePicker("Calendar", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.graphical)
         .padding(20)
@@ -479,7 +479,7 @@ public static let graphical = Fixture("datepicker/graphical", size: CGSize(width
         .probe("calendar")
 }
 """#),
-        FixtureSource(name: "datepicker/steps", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 67, lastLine: 82, declaration: #"""
+        FixtureSource(name: "datepicker/steps", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 69, lastLine: 84, declaration: #"""
 public static let steps = Fixture(
     "datepicker/steps", size: CGSize(width: 360, height: 120),
     model: { DateModel() },
@@ -497,20 +497,22 @@ public static let steps = Fixture(
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "datepicker/styles", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 40, lastLine: 51, declaration: #"""
+        FixtureSource(name: "datepicker/styles", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 40, lastLine: 53, declaration: ##"""
 public static let styles = Fixture("datepicker/styles", size: CGSize(width: 360, height: 240)) {
     VStack(alignment: .leading, spacing: 12) {
         DatePicker("Compact", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.compact).probe("compact")
+        #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
         DatePicker("Field", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.field).probe("field")
         DatePicker("Stepper", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.stepperField).probe("stepper")
         DatePicker("Both", selection: .constant(fixed)).datePickerStyle(.field).probe("fieldBoth")
+        #endif
         DatePicker("Clock", selection: .constant(fixed), displayedComponents: .hourAndMinute).datePickerStyle(.compact).probe("compactTime")
     }
     .padding(20)
     .environment(\.timeZone, utc)
     .probe("stack")
 }
-"""#),
+"""##),
         FixtureSource(name: "disclosure/basic", file: "Fixtures/Sources/Disclosure/DisclosureFixtures.swift", firstLine: 13, lastLine: 40, declaration: #"""
 public static let basic = Fixture(
     "disclosure/basic", size: CGSize(width: 320, height: 300),
@@ -1185,7 +1187,7 @@ public static let basic = Fixture("groupbox/basic", size: CGSize(width: 320, hei
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "hover/basic", file: "Fixtures/Sources/Hover/HoverFixtures.swift", firstLine: 44, lastLine: 44, declaration: #"""
+        FixtureSource(name: "hover/basic", file: "Fixtures/Sources/Hover/HoverFixtures.swift", firstLine: 46, lastLine: 46, declaration: #"""
 public static let basic = Fixture("hover/basic", size: CGSize(width: 320, height: 240), content: { HoverDemo() })
 """#),
         FixtureSource(name: "image/aspect-ratio", file: "Fixtures/Sources/Image/ImageFixtures.swift", firstLine: 61, lastLine: 85, declaration: #"""
@@ -1349,7 +1351,175 @@ public static let tiling = Fixture("image/tiling", size: CGSize(width: 300, heig
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "keyboard/basic", file: "Fixtures/Sources/Keyboard/KeyboardFixtures.swift", firstLine: 34, lastLine: 70, declaration: #"""
+        FixtureSource(name: "ios/button/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 57, lastLine: 73, declaration: #"""
+/// Button styles: the plain default, bordered, prominent, borderless, disabled, destructive.
+public static let button = Fixture("ios/button/basic", size: CGSize(width: 320, height: 320)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Button("OK") {}.probe("plain")
+        Button("Bordered") {}.buttonStyle(.bordered).probe("bordered")
+        Button("Prominent") {}.buttonStyle(.borderedProminent).probe("prominent")
+        Button("Borderless") {}.buttonStyle(.borderless).probe("borderless")
+        Button("Disabled") {}.buttonStyle(.bordered).disabled(true).probe("disabled")
+        Button("Delete", role: .destructive) {}.probe("destructive")
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Button("OK") {}.probe("rowButton")
+            Text("Hg").probe("rowText")
+        }
+        .probe("row")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/controls/settings", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 146, lastLine: 165, declaration: #"""
+/// A settings screen: the controls the landing page demonstrates in the iOS look.
+public static let settings = Fixture("ios/controls/settings", size: CGSize(width: 320, height: 480)) {
+    VStack(alignment: .leading, spacing: 16) {
+        Text("Settings").font(.largeTitle).bold().probe("title")
+        Toggle("Wi-Fi", isOn: .constant(true)).probe("wifi")
+        Toggle("Bluetooth", isOn: .constant(false)).probe("bluetooth")
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Volume").font(.subheadline).probe("volumeLabel")
+            Slider(value: .constant(0.6)).probe("volume")
+        }
+        Stepper("Quantity: 3", value: .constant(3)).probe("quantity")
+        Picker("Size", selection: .constant(2)) { Text("Small").tag(1); Text("Medium").tag(2); Text("Large").tag(3) }
+            .pickerStyle(.segmented)
+            .probe("size")
+        TextField("Name", text: .constant("")).textFieldStyle(.roundedBorder).probe("name")
+        Button("Save") {}.buttonStyle(.borderedProminent).probe("save")
+    }
+    .padding()
+    .probe("screen")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/layout/basics", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 28, lastLine: 38, declaration: #"""
+/// Default padding, stack spacing between texts and to plain views, the divider.
+public static let layoutBasics = Fixture("ios/layout/basics", size: CGSize(width: 320, height: 300)) {
+    VStack(alignment: .leading, spacing: 0) {
+        Text("Hello").probe("paddedText").padding().probe("padded")
+        VStack { Text("One").probe("one"); Text("Two").probe("two") }.probe("textStack")
+        VStack { Text("Hello").probe("textAboveBox"); Color.blue.frame(width: 40, height: 10).probe("box") }.probe("mixedStack")
+        HStack { Text("One").probe("hOne"); Text("Two").probe("hTwo"); Color.red.frame(width: 10, height: 10).probe("hBox") }.probe("hStack")
+        Divider().probe("divider")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/picker/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 119, lastLine: 144, declaration: #"""
+/// Picker: the menu default, segmented, hidden label.
+public static let picker = Fixture("ios/picker/basic", size: CGSize(width: 320, height: 240)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Picker("Fruit", selection: .constant(1)) {
+            Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+        }
+        .probe("menu")
+        Picker("Fruit", selection: .constant(2)) {
+            Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+        }
+        .labelsHidden()
+        .probe("menuHidden")
+        Picker("Size", selection: .constant(2)) {
+            Text("Small").tag(1); Text("Medium").tag(2); Text("Large").tag(3)   // segment titles are not views on iOS: no probes
+        }
+        .pickerStyle(.segmented)
+        .probe("segmented")
+        Picker("Size", selection: .constant(1)) {
+            Text("Small").tag(1); Text("Medium").tag(2)
+        }
+        .pickerStyle(.segmented)
+        .frame(width: 160)
+        .probe("segmentedNarrow")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/slider/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 75, lastLine: 86, declaration: #"""
+/// Slider: plain, with a label, stepped, disabled.
+public static let slider = Fixture("ios/slider/basic", size: CGSize(width: 320, height: 220)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Slider(value: .constant(0.5)).probe("half")
+        Slider(value: .constant(0)).probe("zero")
+        Slider(value: .constant(0.5)) { Text("Volume") }.probe("labelled")
+        Slider(value: .constant(50), in: 0...100, step: 10).probe("stepped")
+        Slider(value: .constant(0.5)).disabled(true).probe("disabled")
+        Slider(value: .constant(0.5)).frame(width: 120).probe("narrow")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/stepper/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 88, lastLine: 101, declaration: #"""
+/// Stepper: labelled, hidden label, disabled, next to text.
+public static let stepper = Fixture("ios/stepper/basic", size: CGSize(width: 320, height: 200)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Stepper("Quantity: 3", value: .constant(3)).probe("labelled")
+        Stepper("Quantity: 3", value: .constant(3)).labelsHidden().probe("hidden")
+        Stepper("Quantity: 3", value: .constant(3)).disabled(true).probe("disabled")
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("Hg").probe("rowText")
+            Stepper("Hg", value: .constant(3)).probe("rowStepper")
+        }
+        .probe("row")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/text/styles", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 8, lastLine: 26, declaration: #"""
+/// Every text style, the default font and the bold trait.
+public static let textStyles = Fixture("ios/text/styles", size: CGSize(width: 400, height: 460)) {
+    VStack(alignment: .leading, spacing: 8) {
+        Text("Hello").probe("default")
+        Text("Large Title").font(.largeTitle).probe("largeTitle")
+        Text("Title").font(.title).probe("title")
+        Text("Title 2").font(.title2).probe("title2")
+        Text("Title 3").font(.title3).probe("title3")
+        Text("Headline").font(.headline).probe("headline")
+        Text("Subheadline").font(.subheadline).probe("subheadline")
+        Text("Body").font(.body).probe("body")
+        Text("Callout").font(.callout).probe("callout")
+        Text("Footnote").font(.footnote).probe("footnote")
+        Text("Caption").font(.caption).probe("caption")
+        Text("Caption 2").font(.caption2).probe("caption2")
+        Text("Bold").bold().probe("bold")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/textfield/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 103, lastLine: 117, declaration: #"""
+/// TextField: the plain default, rounded border, empty with placeholder, secure, in a row.
+public static let textField = Fixture("ios/textfield/basic", size: CGSize(width: 320, height: 240)) {
+    VStack(alignment: .leading, spacing: 12) {
+        TextField("Placeholder", text: .constant("Hello")).probe("plain")
+        TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rounded")
+        TextField("Placeholder", text: .constant("")).textFieldStyle(.roundedBorder).probe("roundedEmpty")
+        SecureField("Password", text: .constant("secret")).textFieldStyle(.roundedBorder).probe("secure")
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("Name").probe("rowLabel")
+            TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rowField")
+        }
+        .probe("row")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/toggle/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 40, lastLine: 55, declaration: #"""
+/// The switch: on, off, custom label, baseline next to plain text, hidden label, disabled.
+public static let toggle = Fixture("ios/toggle/basic", size: CGSize(width: 320, height: 300)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Toggle("Enabled", isOn: .constant(true)).probe("on")
+        Toggle("Enabled", isOn: .constant(false)).probe("off")
+        Toggle(isOn: .constant(true)) { Text("Hg").probe("customText") }.probe("custom")
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Toggle("Hg", isOn: .constant(true)).probe("baselineToggle")
+            Text("Hg").probe("baselineText")
+        }
+        .probe("baselineRow")
+        Toggle("Enabled", isOn: .constant(true)).labelsHidden().probe("hidden")
+        Toggle("Enabled", isOn: .constant(true)).disabled(true).probe("disabled")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "keyboard/basic", file: "Fixtures/Sources/Keyboard/KeyboardFixtures.swift", firstLine: 34, lastLine: 72, declaration: ##"""
 public static let basic = Fixture(
     "keyboard/basic", size: CGSize(width: 360, height: 320),
     model: { KeyboardModel() },
@@ -1365,7 +1535,9 @@ public static let basic = Fixture(
             .padding(6)
             .focusable()
             .onKeyPress(.upArrow) { model.log = "up"; return .handled }
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             .onMoveCommand { direction in model.log = "move \(direction)" }
+            #endif
             .probe("focusable")
         HStack(spacing: 12) {
             Button("Save") { model.log = "save" }.keyboardShortcut("s")
@@ -1387,7 +1559,7 @@ public static let basic = Fixture(
     }
     .probe("stack")
 }
-"""#),
+"""##),
         FixtureSource(name: "label/basic", file: "Fixtures/Sources/Label/LabelFixtures.swift", firstLine: 7, lastLine: 24, declaration: #"""
 public static let basic = Fixture("label/basic", size: CGSize(width: 320, height: 300)) {
     VStack(alignment: .leading, spacing: 12) {
@@ -1765,7 +1937,7 @@ public static let basic = Fixture("list/basic", size: CGSize(width: 320, height:
     .probe("list")
 }
 """#),
-        FixtureSource(name: "list/modifiers", file: "Fixtures/Sources/List/ListFixtures.swift", firstLine: 71, lastLine: 81, declaration: #"""
+        FixtureSource(name: "list/modifiers", file: "Fixtures/Sources/List/ListFixtures.swift", firstLine: 73, lastLine: 83, declaration: #"""
 /// Row modifiers: insets, background, hidden separator; a data-driven list.
 public static let modifiers = Fixture("list/modifiers", size: CGSize(width: 320, height: 260)) {
     List {
@@ -1803,7 +1975,7 @@ public static let sections = Fixture("list/sections", size: CGSize(width: 320, h
     .probe("list")
 }
 """#),
-        FixtureSource(name: "list/steps", file: "Fixtures/Sources/List/ListFixtures.swift", firstLine: 83, lastLine: 97, declaration: #"""
+        FixtureSource(name: "list/steps", file: "Fixtures/Sources/List/ListFixtures.swift", firstLine: 85, lastLine: 99, declaration: #"""
 /// Behaviour: selection follows the model; items can be removed.
 public static let steps = Fixture(
     "list/steps", size: CGSize(width: 320, height: 200),
@@ -1820,18 +1992,20 @@ public static let steps = Fixture(
     .probe("list")
 }
 """#),
-        FixtureSource(name: "list/styles", file: "Fixtures/Sources/List/ListFixtures.swift", firstLine: 60, lastLine: 69, declaration: #"""
+        FixtureSource(name: "list/styles", file: "Fixtures/Sources/List/ListFixtures.swift", firstLine: 60, lastLine: 71, declaration: ##"""
 /// The list styles, each in its own 70 pt tall frame.
 public static let styles = Fixture("list/styles", size: CGSize(width: 320, height: 320)) {
     VStack(spacing: 8) {
         List { Text("Apple").probe("insetRow1"); Text("Banana").probe("insetRow2") }.listStyle(.inset).frame(height: 70).probe("inset")
         List { Text("Apple").probe("plainRow1"); Text("Banana").probe("plainRow2") }.listStyle(.plain).frame(height: 70).probe("plain")
+        #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
         List { Text("Apple").probe("borderedRow1"); Text("Banana").probe("borderedRow2") }.listStyle(.bordered).frame(height: 70).probe("bordered")
+        #endif
         List { Text("Apple").probe("sidebarRow1"); Text("Banana").probe("sidebarRow2") }.listStyle(.sidebar).frame(height: 70).probe("sidebar")
     }
     .probe("stack")
 }
-"""#),
+"""##),
         FixtureSource(name: "matched/anchors", file: "Fixtures/Sources/MatchedGeometry/MatchedGeometryFixtures.swift", firstLine: 90, lastLine: 90, declaration: #"""
 public static let anchors = Fixture("matched/anchors", size: CGSize(width: 620, height: 820), content: { Grid() })
 """#),
@@ -2026,7 +2200,7 @@ public static let systemColors = Fixture("paint/system-colors", size: CGSize(wid
     }
 }
 """#),
-        FixtureSource(name: "picker/basic", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 15, lastLine: 43, declaration: #"""
+        FixtureSource(name: "picker/basic", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 15, lastLine: 45, declaration: ##"""
 public static let basic = Fixture("picker/basic", size: CGSize(width: 320, height: 320)) {
     VStack(alignment: .leading, spacing: 12) {
         Picker("Fruit", selection: .constant(1)) {
@@ -2043,11 +2217,13 @@ public static let basic = Fixture("picker/basic", size: CGSize(width: 320, heigh
         }
         .pickerStyle(.segmented)
         .probe("segmented")
+        #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
         Picker("Fruit", selection: .constant(1)) {
             Text("Apple").tag(1).probe("radioApple"); Text("Banana").tag(2).probe("radioBanana"); Text("Cherry").tag(3).probe("radioCherry")
         }
         .pickerStyle(.radioGroup)
         .probe("radio")
+        #endif
         Picker("Fruit", selection: .constant(1)) {
             Text("Apple").tag(1).probe("inlineApple"); Text("Banana").tag(2).probe("inlineBanana")
         }
@@ -2056,8 +2232,8 @@ public static let basic = Fixture("picker/basic", size: CGSize(width: 320, heigh
     }
     .probe("stack")
 }
-"""#),
-        FixtureSource(name: "picker/forms", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 45, lastLine: 75, declaration: #"""
+"""##),
+        FixtureSource(name: "picker/forms", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 47, lastLine: 77, declaration: #"""
 public static let forms = Fixture("picker/forms", size: CGSize(width: 320, height: 260)) {
     VStack(alignment: .leading, spacing: 12) {
         Picker("Fruit", selection: .constant(1)) {
@@ -2090,7 +2266,7 @@ public static let forms = Fixture("picker/forms", size: CGSize(width: 320, heigh
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "picker/steps", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 77, lastLine: 94, declaration: #"""
+        FixtureSource(name: "picker/steps", file: "Fixtures/Sources/Controls/PickerFixtures.swift", firstLine: 79, lastLine: 98, declaration: ##"""
 public static let steps = Fixture(
     "picker/steps", size: CGSize(width: 320, height: 160),
     model: { PickerModel() },
@@ -2104,12 +2280,14 @@ public static let steps = Fixture(
         Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }.probe("menu")
         Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
             .pickerStyle(.segmented).probe("segmented")
+        #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
         Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
             .pickerStyle(.radioGroup).probe("radio")
+        #endif
     }
     .probe("stack")
 }
-"""#),
+"""##),
         FixtureSource(name: "position/basic", file: "Fixtures/Sources/Position/PositionFixtures.swift", firstLine: 7, lastLine: 31, declaration: #"""
 public static let position = Fixture("position/basic", size: CGSize(width: 320, height: 240), content: {
     VStack(spacing: 10) {
@@ -3681,7 +3859,7 @@ public static let basic = Fixture("textfield/basic", size: CGSize(width: 320, he
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "textfield/steps", file: "Fixtures/Sources/TextField/TextFieldFixtures.swift", firstLine: 51, lastLine: 65, declaration: #"""
+        FixtureSource(name: "textfield/steps", file: "Fixtures/Sources/TextField/TextFieldFixtures.swift", firstLine: 53, lastLine: 67, declaration: #"""
 /// Behaviour: the field shows the model's text; a text next to it echoes it.
 public static let steps = Fixture(
     "textfield/steps", size: CGSize(width: 320, height: 120),
@@ -3698,13 +3876,15 @@ public static let steps = Fixture(
     .probe("row")
 }
 """#),
-        FixtureSource(name: "textfield/styles", file: "Fixtures/Sources/TextField/TextFieldFixtures.swift", firstLine: 29, lastLine: 49, declaration: #"""
+        FixtureSource(name: "textfield/styles", file: "Fixtures/Sources/TextField/TextFieldFixtures.swift", firstLine: 29, lastLine: 51, declaration: ##"""
 /// Styles and layout next to other controls.
 public static let styles = Fixture("textfield/styles", size: CGSize(width: 320, height: 260)) {
     VStack(alignment: .leading, spacing: 12) {
         TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rounded")
         TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.plain).probe("plain")
+        #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
         TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.squareBorder).probe("square")
+        #endif
         TextField("Placeholder", text: .constant("")).textFieldStyle(.plain).probe("plainEmpty")
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text("Name").probe("rowLabel")
@@ -3720,7 +3900,7 @@ public static let styles = Fixture("textfield/styles", size: CGSize(width: 320, 
     }
     .probe("stack")
 }
-"""#),
+"""##),
         FixtureSource(name: "textscale/selection", file: "Fixtures/Sources/TextScale/TextScaleFixtures.swift", firstLine: 36, lastLine: 43, declaration: #"""
 /// Selection does not change layout; the environment value is readable.
 public static let selection = Fixture("textscale/selection", size: CGSize(width: 300, height: 100), content: {
@@ -3894,7 +4074,7 @@ public static let basic = Fixture("toggle/basic", size: CGSize(width: 320, heigh
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "toggle/steps", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 52, lastLine: 66, declaration: #"""
+        FixtureSource(name: "toggle/steps", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 54, lastLine: 68, declaration: #"""
 /// Behaviour: the checkbox and a text follow the model.
 public static let steps = Fixture(
     "toggle/steps", size: CGSize(width: 240, height: 120),
@@ -3911,7 +4091,7 @@ public static let steps = Fixture(
     .probe("row")
 }
 """#),
-        FixtureSource(name: "toggle/styles", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 33, lastLine: 50, declaration: #"""
+        FixtureSource(name: "toggle/styles", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 33, lastLine: 52, declaration: ##"""
 /// Switch, button and explicit checkbox styles; a switch next to a bordered button.
 public static let styles = Fixture("toggle/styles", size: CGSize(width: 320, height: 300)) {
     VStack(alignment: .leading, spacing: 12) {
@@ -3920,7 +4100,9 @@ public static let styles = Fixture("toggle/styles", size: CGSize(width: 320, hei
         Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).labelsHidden().probe("switchHidden")
         Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button).probe("buttonOn")
         Toggle("Enabled", isOn: .constant(false)).toggleStyle(.button).probe("buttonOff")
+        #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
         Toggle("Enabled", isOn: .constant(true)).toggleStyle(.checkbox).probe("checkbox")
+        #endif
         HStack(spacing: 8) {
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).probe("rowSwitch")
             Button("OK") {}.probe("rowButton")
@@ -3930,7 +4112,7 @@ public static let styles = Fixture("toggle/styles", size: CGSize(width: 320, hei
     }
     .probe("stack")
 }
-"""#),
+"""##),
         FixtureSource(name: "toolbar/basic", file: "Fixtures/Sources/Toolbar/ToolbarFixtures.swift", firstLine: 45, lastLine: 45, declaration: #"""
 public static let basic = Fixture("toolbar/basic", size: CGSize(width: 400, height: 200), content: { ToolbarDemo() })
 """#),
@@ -4392,7 +4574,7 @@ public enum ColorPickerFixtures {
     public static let all: [Fixture] = [basic, labels, form, sized, steps]
 }
 """#,
-        "Fixtures/Sources/Controls/PickerFixtures.swift": #"""
+        "Fixtures/Sources/Controls/PickerFixtures.swift": ##"""
 // Picker fixtures: the macOS pop-up button (default), hidden labels, segmented, radio group and
 // inline styles, data-driven options, custom labels, disabled, and a behaviour fixture whose
 // selection follows the model.
@@ -4423,11 +4605,13 @@ public enum PickerFixtures {
             }
             .pickerStyle(.segmented)
             .probe("segmented")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             Picker("Fruit", selection: .constant(1)) {
                 Text("Apple").tag(1).probe("radioApple"); Text("Banana").tag(2).probe("radioBanana"); Text("Cherry").tag(3).probe("radioCherry")
             }
             .pickerStyle(.radioGroup)
             .probe("radio")
+            #endif
             Picker("Fruit", selection: .constant(1)) {
                 Text("Apple").tag(1).probe("inlineApple"); Text("Banana").tag(2).probe("inlineBanana")
             }
@@ -4482,15 +4666,17 @@ public enum PickerFixtures {
             Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }.probe("menu")
             Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
                 .pickerStyle(.segmented).probe("segmented")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
                 .pickerStyle(.radioGroup).probe("radio")
+            #endif
         }
         .probe("stack")
     }
 
     public static let all: [Fixture] = [basic, forms, steps]
 }
-"""#,
+"""##,
         "Fixtures/Sources/Controls/SliderFixtures.swift": #"""
 // Slider fixtures: values along the track, ranges and steps, labels, widths, disabled, and a
 // behaviour fixture whose knob follows the model.
@@ -4854,7 +5040,7 @@ public enum DarkFixtures {
     public static let all: [Fixture] = [systemColors, text, controls, list]
 }
 """#,
-        "Fixtures/Sources/DatePicker/DatePickerFixtures.swift": #"""
+        "Fixtures/Sources/DatePicker/DatePickerFixtures.swift": ##"""
 // DatePicker fixtures: the macOS field with a stepper (default), the displayed components,
 // hidden labels, a range, disabled, the compact/field/stepperField styles, the graphical
 // calendar and clock, and a behaviour fixture whose date follows the model. Every fixture pins
@@ -4897,9 +5083,11 @@ public enum DatePickerFixtures {
     public static let styles = Fixture("datepicker/styles", size: CGSize(width: 360, height: 240)) {
         VStack(alignment: .leading, spacing: 12) {
             DatePicker("Compact", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.compact).probe("compact")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             DatePicker("Field", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.field).probe("field")
             DatePicker("Stepper", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.stepperField).probe("stepper")
             DatePicker("Both", selection: .constant(fixed)).datePickerStyle(.field).probe("fieldBoth")
+            #endif
             DatePicker("Clock", selection: .constant(fixed), displayedComponents: .hourAndMinute).datePickerStyle(.compact).probe("compactTime")
         }
         .padding(20)
@@ -4940,7 +5128,7 @@ public enum DatePickerFixtures {
 
     public static let all: [Fixture] = [basic, styles, graphical, clock, steps]
 }
-"""#,
+"""##,
         "Fixtures/Sources/Disclosure/DisclosureFixtures.swift": #"""
 // DisclosureGroup fixtures: a collapsed group that expands in a step, an expanded group, a
 // custom label, and nested groups.
@@ -5894,7 +6082,7 @@ public enum GroupBoxFixtures {
     public static let all: [Fixture] = [basic]
 }
 """#,
-        "Fixtures/Sources/Hover/HoverFixtures.swift": #"""
+        "Fixtures/Sources/Hover/HoverFixtures.swift": ##"""
 // Hover: `onHover`, `onContinuousHover`, `help` tooltips and `pointerStyle`. The golden is the
 // resting state; the browser behaviour is checked by Playwright/hover-probe.mjs.
 import SwiftUI
@@ -5927,8 +6115,10 @@ struct HoverDemo: View {
                 .probe("continuous")
             HStack(spacing: 20) {
                 Text("Help me").padding(6).background(Color.orange.opacity(0.3)).help("A helpful tooltip").probe("help")
+                #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
                 Text("Link").padding(6).background(Color.purple.opacity(0.2)).pointerStyle(.link).probe("link")
                 Text("Text").padding(6).background(Color.yellow.opacity(0.3)).pointerStyle(.horizontalText).probe("ibeam")
+                #endif
             }
             .probe("row")
             Text("Entries: \(entries)").probe("entries")
@@ -5941,7 +6131,7 @@ public enum HoverFixtures {
     public static let basic = Fixture("hover/basic", size: CGSize(width: 320, height: 240), content: { HoverDemo() })
     public static let all: [Fixture] = [basic]
 }
-"""#,
+"""##,
         "Fixtures/Sources/Image/ImageFixtures.swift": #"""
 // Image fixtures: named images from Fixtures/Assets.xcassets (the asset catalog format Xcode
 // writes), intrinsic sizes, resizing, aspect ratio, template tinting, stack spacing, tiling and
@@ -6114,7 +6304,7 @@ public enum ImageFixtures {
     public static let all: [Fixture] = [intrinsic, resizable, aspectRatio, template, stackSpacing, tiling, swap]
 }
 """#,
-        "Fixtures/Sources/Keyboard/KeyboardFixtures.swift": #"""
+        "Fixtures/Sources/Keyboard/KeyboardFixtures.swift": ##"""
 // Keyboard fixture: a selectable list (arrow keys), a focusable view with onKeyPress and
 // onMoveCommand, buttons with keyboard shortcuts (⌘S, the default and cancel actions), a sheet
 // (Escape) and a menu (arrows and Return). The golden holds the base state only; keys cannot be
@@ -6163,7 +6353,9 @@ public enum KeyboardFixtures {
                 .padding(6)
                 .focusable()
                 .onKeyPress(.upArrow) { model.log = "up"; return .handled }
+                #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
                 .onMoveCommand { direction in model.log = "move \(direction)" }
+                #endif
                 .probe("focusable")
             HStack(spacing: 12) {
                 Button("Save") { model.log = "save" }.keyboardShortcut("s")
@@ -6188,7 +6380,7 @@ public enum KeyboardFixtures {
 
     public static let all: [Fixture] = [basic]
 }
-"""#,
+"""##,
         "Fixtures/Sources/Label/LabelFixtures.swift": #"""
 // Label fixtures: icon and title from a catalog image, the label styles, custom title and icon
 // views, a tall icon, baseline alignment, and a label inside a bordered button.
@@ -6604,7 +6796,7 @@ public enum LinkFixtures {
     public static let all: [Fixture] = [basic]
 }
 """#,
-        "Fixtures/Sources/List/ListFixtures.swift": #"""
+        "Fixtures/Sources/List/ListFixtures.swift": ##"""
 // List fixtures: the macOS inset list (default) with plain rows, taller rows, rows with
 // controls, sections with headers and footers, list styles, row modifiers, data-driven lists
 // and a behaviour fixture that changes the selection.
@@ -6669,7 +6861,9 @@ public enum ListFixtures {
         VStack(spacing: 8) {
             List { Text("Apple").probe("insetRow1"); Text("Banana").probe("insetRow2") }.listStyle(.inset).frame(height: 70).probe("inset")
             List { Text("Apple").probe("plainRow1"); Text("Banana").probe("plainRow2") }.listStyle(.plain).frame(height: 70).probe("plain")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             List { Text("Apple").probe("borderedRow1"); Text("Banana").probe("borderedRow2") }.listStyle(.bordered).frame(height: 70).probe("bordered")
+            #endif
             List { Text("Apple").probe("sidebarRow1"); Text("Banana").probe("sidebarRow2") }.listStyle(.sidebar).frame(height: 70).probe("sidebar")
         }
         .probe("stack")
@@ -6705,7 +6899,7 @@ public enum ListFixtures {
 
     public static let all: [Fixture] = [basic, sections, styles, modifiers, steps]
 }
-"""#,
+"""##,
         "Fixtures/Sources/MatchedGeometry/MatchedGeometryFixtures.swift": #"""
 // matchedGeometryEffect at rest: non-source views take their source's geometry (frame,
 // position or size); their own layout slots stay where the stack put them.
@@ -8749,7 +8943,7 @@ public enum TextEditorFixtures {
     public static let all: [Fixture] = [basic, sizing, styles, steps]
 }
 """#,
-        "Fixtures/Sources/TextField/TextFieldFixtures.swift": #"""
+        "Fixtures/Sources/TextField/TextFieldFixtures.swift": ##"""
 // TextField fixtures: the macOS rounded-border field (default), plain and square-border
 // styles, placeholder vs text, secure fields, labels, sizing in stacks, disabled, and a
 // behaviour fixture whose text follows the model.
@@ -8783,7 +8977,9 @@ public enum TextFieldFixtures {
         VStack(alignment: .leading, spacing: 12) {
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rounded")
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.plain).probe("plain")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.squareBorder).probe("square")
+            #endif
             TextField("Placeholder", text: .constant("")).textFieldStyle(.plain).probe("plainEmpty")
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("Name").probe("rowLabel")
@@ -8818,7 +9014,7 @@ public enum TextFieldFixtures {
 
     public static let all: [Fixture] = [basic, styles, steps]
 }
-"""#,
+"""##,
         "Fixtures/Sources/TextPressure/TextPressureFixtures.swift": #"""
 // Text under height pressure: a paragraph proposed less height than its lines need keeps
 // floor(height / line pitch) lines, at least one, and truncates the last (measured 2026-09-04,
@@ -9115,7 +9311,7 @@ public enum TimelineFixtures {
     public static let all: [Fixture] = [basic]
 }
 """#,
-        "Fixtures/Sources/Toggle/ToggleFixtures.swift": #"""
+        "Fixtures/Sources/Toggle/ToggleFixtures.swift": ##"""
 // Toggle fixtures: the macOS checkbox (default), switch and button styles, label alignment,
 // hidden labels, the disabled look, and a behaviour fixture driven by a model.
 import SwiftUI
@@ -9156,7 +9352,9 @@ public enum ToggleFixtures {
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).labelsHidden().probe("switchHidden")
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button).probe("buttonOn")
             Toggle("Enabled", isOn: .constant(false)).toggleStyle(.button).probe("buttonOff")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.checkbox).probe("checkbox")
+            #endif
             HStack(spacing: 8) {
                 Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).probe("rowSwitch")
                 Button("OK") {}.probe("rowButton")
@@ -9185,7 +9383,7 @@ public enum ToggleFixtures {
 
     public static let all: [Fixture] = [basic, styles, steps]
 }
-"""#,
+"""##,
         "Fixtures/Sources/Toolbar/ToolbarFixtures.swift": #"""
 // Toolbars: the items live in the window chrome on macOS (outside the harness capture), so the
 // golden shows the content alone; hosts that paint chrome draw the bar above the content
@@ -9300,6 +9498,176 @@ public enum UnavailableFixtures {
     }
 
     public static let all: [Fixture] = [basic]
+}
+"""#,
+        "Fixtures/Sources/iOS/IOSFixtures.swift": #"""
+// iOS fixtures (`ios/…`): rendered by Apple's SwiftUI in a UIKit window on Mac Catalyst
+// (scripts/gen-goldens-ios.sh, decision 0013) and reproduced by the runtime's iOS platform
+// profile. The iPad idiom shares its text styles and controls with iPhone.
+import SwiftUI
+import FixtureKit
+
+public enum IOSFixtures {
+    /// Every text style, the default font and the bold trait.
+    public static let textStyles = Fixture("ios/text/styles", size: CGSize(width: 400, height: 460)) {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Hello").probe("default")
+            Text("Large Title").font(.largeTitle).probe("largeTitle")
+            Text("Title").font(.title).probe("title")
+            Text("Title 2").font(.title2).probe("title2")
+            Text("Title 3").font(.title3).probe("title3")
+            Text("Headline").font(.headline).probe("headline")
+            Text("Subheadline").font(.subheadline).probe("subheadline")
+            Text("Body").font(.body).probe("body")
+            Text("Callout").font(.callout).probe("callout")
+            Text("Footnote").font(.footnote).probe("footnote")
+            Text("Caption").font(.caption).probe("caption")
+            Text("Caption 2").font(.caption2).probe("caption2")
+            Text("Bold").bold().probe("bold")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// Default padding, stack spacing between texts and to plain views, the divider.
+    public static let layoutBasics = Fixture("ios/layout/basics", size: CGSize(width: 320, height: 300)) {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Hello").probe("paddedText").padding().probe("padded")
+            VStack { Text("One").probe("one"); Text("Two").probe("two") }.probe("textStack")
+            VStack { Text("Hello").probe("textAboveBox"); Color.blue.frame(width: 40, height: 10).probe("box") }.probe("mixedStack")
+            HStack { Text("One").probe("hOne"); Text("Two").probe("hTwo"); Color.red.frame(width: 10, height: 10).probe("hBox") }.probe("hStack")
+            Divider().probe("divider")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// The switch: on, off, custom label, baseline next to plain text, hidden label, disabled.
+    public static let toggle = Fixture("ios/toggle/basic", size: CGSize(width: 320, height: 300)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle("Enabled", isOn: .constant(true)).probe("on")
+            Toggle("Enabled", isOn: .constant(false)).probe("off")
+            Toggle(isOn: .constant(true)) { Text("Hg").probe("customText") }.probe("custom")
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Toggle("Hg", isOn: .constant(true)).probe("baselineToggle")
+                Text("Hg").probe("baselineText")
+            }
+            .probe("baselineRow")
+            Toggle("Enabled", isOn: .constant(true)).labelsHidden().probe("hidden")
+            Toggle("Enabled", isOn: .constant(true)).disabled(true).probe("disabled")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// Button styles: the plain default, bordered, prominent, borderless, disabled, destructive.
+    public static let button = Fixture("ios/button/basic", size: CGSize(width: 320, height: 320)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Button("OK") {}.probe("plain")
+            Button("Bordered") {}.buttonStyle(.bordered).probe("bordered")
+            Button("Prominent") {}.buttonStyle(.borderedProminent).probe("prominent")
+            Button("Borderless") {}.buttonStyle(.borderless).probe("borderless")
+            Button("Disabled") {}.buttonStyle(.bordered).disabled(true).probe("disabled")
+            Button("Delete", role: .destructive) {}.probe("destructive")
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Button("OK") {}.probe("rowButton")
+                Text("Hg").probe("rowText")
+            }
+            .probe("row")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// Slider: plain, with a label, stepped, disabled.
+    public static let slider = Fixture("ios/slider/basic", size: CGSize(width: 320, height: 220)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Slider(value: .constant(0.5)).probe("half")
+            Slider(value: .constant(0)).probe("zero")
+            Slider(value: .constant(0.5)) { Text("Volume") }.probe("labelled")
+            Slider(value: .constant(50), in: 0...100, step: 10).probe("stepped")
+            Slider(value: .constant(0.5)).disabled(true).probe("disabled")
+            Slider(value: .constant(0.5)).frame(width: 120).probe("narrow")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// Stepper: labelled, hidden label, disabled, next to text.
+    public static let stepper = Fixture("ios/stepper/basic", size: CGSize(width: 320, height: 200)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Stepper("Quantity: 3", value: .constant(3)).probe("labelled")
+            Stepper("Quantity: 3", value: .constant(3)).labelsHidden().probe("hidden")
+            Stepper("Quantity: 3", value: .constant(3)).disabled(true).probe("disabled")
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("Hg").probe("rowText")
+                Stepper("Hg", value: .constant(3)).probe("rowStepper")
+            }
+            .probe("row")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// TextField: the plain default, rounded border, empty with placeholder, secure, in a row.
+    public static let textField = Fixture("ios/textfield/basic", size: CGSize(width: 320, height: 240)) {
+        VStack(alignment: .leading, spacing: 12) {
+            TextField("Placeholder", text: .constant("Hello")).probe("plain")
+            TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rounded")
+            TextField("Placeholder", text: .constant("")).textFieldStyle(.roundedBorder).probe("roundedEmpty")
+            SecureField("Password", text: .constant("secret")).textFieldStyle(.roundedBorder).probe("secure")
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("Name").probe("rowLabel")
+                TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rowField")
+            }
+            .probe("row")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// Picker: the menu default, segmented, hidden label.
+    public static let picker = Fixture("ios/picker/basic", size: CGSize(width: 320, height: 240)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker("Fruit", selection: .constant(1)) {
+                Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+            }
+            .probe("menu")
+            Picker("Fruit", selection: .constant(2)) {
+                Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3)
+            }
+            .labelsHidden()
+            .probe("menuHidden")
+            Picker("Size", selection: .constant(2)) {
+                Text("Small").tag(1); Text("Medium").tag(2); Text("Large").tag(3)   // segment titles are not views on iOS: no probes
+            }
+            .pickerStyle(.segmented)
+            .probe("segmented")
+            Picker("Size", selection: .constant(1)) {
+                Text("Small").tag(1); Text("Medium").tag(2)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 160)
+            .probe("segmentedNarrow")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// A settings screen: the controls the landing page demonstrates in the iOS look.
+    public static let settings = Fixture("ios/controls/settings", size: CGSize(width: 320, height: 480)) {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Settings").font(.largeTitle).bold().probe("title")
+            Toggle("Wi-Fi", isOn: .constant(true)).probe("wifi")
+            Toggle("Bluetooth", isOn: .constant(false)).probe("bluetooth")
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Volume").font(.subheadline).probe("volumeLabel")
+                Slider(value: .constant(0.6)).probe("volume")
+            }
+            Stepper("Quantity: 3", value: .constant(3)).probe("quantity")
+            Picker("Size", selection: .constant(2)) { Text("Small").tag(1); Text("Medium").tag(2); Text("Large").tag(3) }
+                .pickerStyle(.segmented)
+                .probe("size")
+            TextField("Name", text: .constant("")).textFieldStyle(.roundedBorder).probe("name")
+            Button("Save") {}.buttonStyle(.borderedProminent).probe("save")
+        }
+        .padding()
+        .probe("screen")
+    }.platform(.iOS)
+
+    public static let all: [Fixture] = [textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings]
 }
 """#,
     ]

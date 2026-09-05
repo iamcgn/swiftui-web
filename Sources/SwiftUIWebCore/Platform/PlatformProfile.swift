@@ -18,6 +18,8 @@ public struct PlatformProfile: Sendable {
     /// is the 13 pt system font (16 pt line, baseline 13), not `.body` (18.5 pt line): measured
     /// in a hosted window, decision 0010.
     package var defaultFont: Font
+    /// The platform's control geometry and colours (PlatformMetrics.swift, PlatformMetricsIOS.swift).
+    package var metrics: PlatformMetricsTable
 
     package func textStyle(_ style: Font.TextStyle) -> TextStyleMetrics {
         textStyles[style] ?? TextStyleMetrics(size: 13, weight: .regular, boldTraitWeight: .bold)
@@ -43,7 +45,28 @@ public struct PlatformProfile: Sendable {
         .footnote: .init(size: 10, weight: .regular, boldTraitWeight: .semibold),
         .caption: .init(size: 10, weight: .regular, boldTraitWeight: .medium),
         .caption2: .init(size: 10, weight: .medium, boldTraitWeight: .semibold),
-    ], defaultFont: .system(size: 13))
+    ], defaultFont: .system(size: 13), metrics: .macOS)
+
+    /// iOS text styles (Apple HIG typography, the large dynamic type size: body 17, the bold
+    /// trait resolves to the bold face) and the default font, which is `.body` in a UIKit-hosted
+    /// view (fixture ios/text/styles). The look is measured on Mac Catalyst goldens
+    /// (decision 0013), whose iPad idiom shares text styles and controls with iPhone.
+    public static let iOS = PlatformProfile(name: "iOS", textStyles: [
+        .largeTitle: .init(size: 34, weight: .regular, boldTraitWeight: .bold),
+        .title: .init(size: 28, weight: .regular, boldTraitWeight: .bold),
+        .title2: .init(size: 22, weight: .regular, boldTraitWeight: .bold),
+        .title3: .init(size: 20, weight: .regular, boldTraitWeight: .bold),
+        .headline: .init(size: 17, weight: .semibold, boldTraitWeight: .heavy),
+        .subheadline: .init(size: 15, weight: .regular, boldTraitWeight: .bold),
+        .body: .init(size: 17, weight: .regular, boldTraitWeight: .semibold),      // ios/text/styles `bold`: 37.5 wide = the w600 face
+        .callout: .init(size: 16, weight: .regular, boldTraitWeight: .bold),
+        .footnote: .init(size: 13, weight: .regular, boldTraitWeight: .bold),
+        .caption: .init(size: 12, weight: .regular, boldTraitWeight: .bold),
+        .caption2: .init(size: 11, weight: .regular, boldTraitWeight: .bold),
+    ], defaultFont: .body, metrics: .iOS)
+
+    /// Whether this is the iOS profile (control nodes branch on it).
+    package var isIOS: Bool { name == "iOS" }
 }
 
 package struct PlatformProfileKey: EnvironmentKey {

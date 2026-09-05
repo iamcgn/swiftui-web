@@ -150,6 +150,7 @@ public final class FixtureRunner {
         self.fixture = fixture
         var environment = EnvironmentValues()
         environment.colorScheme = fixture.colorScheme
+        environment.platformProfile = fixture.platform == .iOS ? .iOS : .macOS
         runtime = Runtime(environment: environment)
         if let textEngine { runtime.textEngine = textEngine }
         runtime.assetCatalog = assets

@@ -93,6 +93,8 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         return environment
     }
 
+    private var isIOS: Bool { environment.platformProfile.isIOS }
+
     private func optionEnvironment() -> EnvironmentValues {
         var environment = environment
         environment.font = style == .radioGroup ? .body : .system(size: PlatformMetrics.buttonLabelSize)
@@ -103,18 +105,31 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
     /// The text a pop-up or segment shows for an option, in the style's font and colour.
     private func titleView(_ title: String, selected: Bool) -> AnyView {
         let color: Color
+        var font = Font.system(size: PlatformMetrics.buttonLabelSize)
         switch style {
         case .segmented:
             let alpha = selected ? PlatformMetrics.segmentedSelectedTextAlpha : PlatformMetrics.segmentedTextAlpha
             color = Color.black.opacity(enabled ? alpha : alpha / 2)
+            if isIOS {
+                // iOS: 13 pt, medium; the selected segment semibold (ios/picker/basic).
+                font = .system(size: PlatformMetrics.segmentedFontSize,
+                               weight: Font.Weight(selected ? PlatformMetrics.segmentedSelectedFontWeight : PlatformMetrics.segmentedFontWeight))
+            }
         case .menu, .radioGroup:
-            color = enabled ? Color.primary : Color.black.opacity(PlatformMetrics.popUpDisabledTextAlpha)
+            if isIOS && style == .menu {
+                // iOS: the value in the accent colour, body font.
+                color = enabled ? Color.accentColor : Color.primary.opacity(PlatformMetrics.disabledLabelOpacity)
+                font = .body
+            } else {
+                color = enabled ? Color.primary : Color.black.opacity(PlatformMetrics.popUpDisabledTextAlpha)
+            }
         }
-        return AnyView(Text(title).font(.system(size: PlatformMetrics.buttonLabelSize)).foregroundColor(color))
+        return AnyView(Text(title).font(font).foregroundColor(color))
     }
 
     private func mountChildren(force: Bool) {
-        if let labelView = view.label {
+        // iOS shows a menu or segmented picker's label only inside a form: the control stands alone.
+        if let labelView = view.label, !(isIOS && style != .radioGroup) {
             if let label {
                 label.update(view: labelView, environment: labelEnvironment(), force: force)
             } else {
@@ -173,7 +188,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         var size: CGSize
     }
 
-    private func plan() -> Plan {
+    private func plan(proposal: ProposedViewSize) -> Plan {
         var options = collectOptions()
         let unspecified = ProposedViewSize(width: nil, height: nil)
         let labelSize = label?.layoutChildren.first?.sizeThatFits(unspecified) ?? .zero
@@ -182,8 +197,22 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         let sizes = options.map { $0.shown?.sizeThatFits(unspecified) ?? .zero }
         let widest = sizes.map(\.width).max() ?? 0
         switch style {
+        case .segmented where isIOS:
+            // iOS: the control fills the proposed width with equal segments (ios/picker/basic).
+            let ideal = (widest + PlatformMetrics.segmentPadding) * CGFloat(options.count)
+            let width = proposal.width.flatMap { $0.isFinite ? $0 : nil }.map { max(0, $0 - labelWidth) } ?? ideal
+            let segment = options.isEmpty ? width : width / CGFloat(options.count)
+            let height = max(PlatformMetrics.segmentedHeight, labelSize.height)
+            let control = CGRect(x: labelWidth, y: (height - PlatformMetrics.segmentedHeight) / 2, width: width, height: PlatformMetrics.segmentedHeight)
+            for index in options.indices {
+                options[index].frame = CGRect(x: control.minX + segment * CGFloat(index), y: control.minY, width: segment, height: control.height)
+            }
+            return Plan(options: options, label: CGRect(x: 0, y: (height - labelSize.height) / 2, width: labelSize.width, height: labelSize.height),
+                        control: control, size: CGSize(width: labelWidth + width, height: height))
         case .menu:
-            let width = PlatformMetrics.popUpTextInset + widest + PlatformMetrics.popUpChevronGap
+            // macOS sizes the pop-up to its widest option; iOS's menu button fits the selected value.
+            let selectedWidth = zip(options, sizes).first(where: { isSelected($0.0) })?.1.width ?? widest
+            let width = PlatformMetrics.popUpTextInset + (isIOS ? selectedWidth : widest) + PlatformMetrics.popUpChevronGap
                 + PlatformMetrics.popUpChevronWidth + PlatformMetrics.popUpChevronTrailing
             let height = max(PlatformMetrics.popUpHeight, labelSize.height)
             let control = CGRect(x: labelWidth, y: (height - PlatformMetrics.popUpHeight) / 2, width: width, height: PlatformMetrics.popUpHeight)
@@ -220,18 +249,18 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         }
     }
 
-    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { plan().size }
+    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { plan(proposal: proposal).size }
 
     /// In a columns form the control column starts where the control does.
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
-        let plan = plan()
+        let plan = plan(proposal: proposal)
         var dims = ViewDimensions(size: plan.size)
         dims.explicit[HorizontalAlignment._formControlColumn.key] = plan.control.minX
         return dims
     }
 
     override package func layoutContents(proposal: ProposedViewSize) {
-        let plan = plan()
+        let plan = plan(proposal: proposal)
         options = plan.options
         labelFrame = plan.label
         controlFrame = plan.control
@@ -244,7 +273,9 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
             let origin: CGPoint
             switch style {
             case .menu: origin = option.frame.origin
-            case .segmented: origin = CGPoint(x: option.frame.midX - size.width / 2, y: option.frame.midY - size.height / 2)
+            case .segmented:
+                let top = PlatformMetrics.segmentedTextTop > 0 ? option.frame.minY + PlatformMetrics.segmentedTextTop : option.frame.midY - size.height / 2
+                origin = CGPoint(x: option.frame.midX - size.width / 2, y: top)
             case .radioGroup:
                 origin = CGPoint(x: option.frame.minX + PlatformMetrics.radioSize + PlatformMetrics.radioLabelSpacing,
                                  y: option.frame.midY - size.height / 2)
@@ -282,6 +313,25 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
 
     private func paintPopUp(into list: inout DisplayList, context: PaintContext) {
         let control = context.absoluteRect(controlFrame)
+        if isIOS {
+            // iOS: no box; the value and a pair of chevrons in the accent colour.
+            if let shown = options.first(where: isSelected)?.shown {
+                shown.paint(into: &list, context: context.child(at: shown.presentedFrame))
+            }
+            let x1 = control.maxX - PlatformMetrics.popUpChevronTrailing
+            let x0 = x1 - PlatformMetrics.popUpChevronWidth
+            let midX = (x0 + x1) / 2, midY = control.midY, rise = PlatformMetrics.popUpChevronRise
+            var chevrons = Path()
+            chevrons.move(to: CGPoint(x: x0, y: midY - 1.25))
+            chevrons.addLine(to: CGPoint(x: midX, y: midY - 1.25 - rise))
+            chevrons.addLine(to: CGPoint(x: x1, y: midY - 1.25))
+            chevrons.move(to: CGPoint(x: x0, y: midY + 1.25))
+            chevrons.addLine(to: CGPoint(x: midX, y: midY + 1.25 + rise))
+            chevrons.addLine(to: CGPoint(x: x1, y: midY + 1.25))
+            let tint = enabled ? Color.accentColor.resolve(in: environment) : black(PlatformMetrics.disabledLabelOpacity)
+            list.append(.strokePath(chevrons, style: StrokeStyle(lineWidth: PlatformMetrics.popUpChevronStroke, lineCap: .round, lineJoin: .round), tint))
+            return
+        }
         list.append(.fillRRect(control, cornerRadius: PlatformMetrics.popUpCornerRadius,
                                black(enabled ? PlatformMetrics.popUpFill : PlatformMetrics.popUpDisabledFill)))
         if let shown = options.first(where: isSelected)?.shown {
@@ -308,12 +358,15 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
                                black(enabled ? PlatformMetrics.segmentedFill : PlatformMetrics.popUpDisabledFill)))
         let selectedIndex = options.firstIndex(where: isSelected)
         if let selectedIndex {
-            let cell = context.absoluteRect(options[selectedIndex].frame)
-            list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.segmentedCornerRadius,
-                                   black(enabled ? PlatformMetrics.segmentedSelectedFill : PlatformMetrics.segmentedSelectedFill / 2)))
+            let inset = PlatformMetrics.segmentedSelectedInset
+            let cell = context.absoluteRect(options[selectedIndex].frame).insetBy(dx: inset.width, dy: inset.height)
+            let fill = PlatformMetrics.segmentedSelectedIsWhite
+                ? RGBA(r: 255, g: 255, b: 255, a: enabled ? 1 : 0.6)
+                : black(enabled ? PlatformMetrics.segmentedSelectedFill : PlatformMetrics.segmentedSelectedFill / 2)
+            list.append(.fillRRect(cell, cornerRadius: min(PlatformMetrics.segmentedCornerRadius, cell.height / 2), fill))
         }
-        // Dividers between segments, except next to the selected one.
-        for index in options.indices.dropFirst() where index != selectedIndex && index - 1 != selectedIndex {
+        // Dividers between segments, except next to the selected one (none in the iOS goldens).
+        for index in options.indices.dropFirst() where index != selectedIndex && index - 1 != selectedIndex && !isIOS {
             let x = context.round(context.origin.x + options[index].frame.minX)
             let line = CGRect(x: x, y: control.minY + PlatformMetrics.segmentedDividerInset, width: 1,
                               height: control.height - 2 * PlatformMetrics.segmentedDividerInset)
@@ -443,6 +496,18 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
         list.append(.fillRRect(track, cornerRadius: track.height / 2, black(PlatformMetrics.sliderTrackAlpha)))
         let knobX = bounds.minX + knobCenterX
         let filled = CGRect(x: track.minX, y: track.minY, width: max(0, knobX - track.minX), height: track.height)
+        if PlatformMetrics.sliderFillsWithAccent {
+            // iOS: the accent fill, a white round knob with a soft shadow (ios/slider/basic; the
+            // Catalyst goldens draw a Mac-shaped knob there, Docs/elements/iOS.md).
+            let accent = Color.accentColor.resolve(in: environment)
+            list.append(.fillRRect(filled, cornerRadius: track.height / 2, accent.multiplyingAlpha(by: enabled ? 1 : PlatformMetrics.sliderDisabledAccentAlpha)))
+            let knobSize = PlatformMetrics.sliderKnobSize
+            let knob = CGRect(x: knobX - knobSize.width / 2, y: bounds.midY - knobSize.height / 2, width: knobSize.width, height: knobSize.height)
+            list.append(.fillRRect(knob.offsetBy(dx: 0, dy: 1.5).insetBy(dx: -1, dy: -1), cornerRadius: knob.height / 2 + 1,
+                                   RGBA(r: 0, g: 0, b: 0, a: PlatformMetrics.sliderKnobShadowAlpha)))
+            list.append(.fillRRect(knob, cornerRadius: knob.height / 2, enabled ? RGBA(r: 255, g: 255, b: 255) : RGBA(r: 128, g: 128, b: 128, a: 0.5)))
+            return
+        }
         list.append(.fillRRect(filled, cornerRadius: track.height / 2, black(enabled ? PlatformMetrics.sliderFilledAlpha : PlatformMetrics.sliderDisabledFilledAlpha)))
         if let step = view.step, step > 0 {
             let span = view.range.upperBound - view.range.lowerBound
@@ -546,6 +611,24 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive 
         let bounds = absoluteBounds(context)
         let enabled = environment.isEnabled
         let ink = environment; let black = { (alpha: Double) in ink._ink(alpha) }
+        if environment.platformProfile.isIOS {
+            // iOS (ios/stepper/basic): a capsule with a vertical divider, a − and a + of 2 pt strokes.
+            let pill = bounds.insetBy(dx: PlatformMetrics.stepperPillInset.width, dy: PlatformMetrics.stepperPillInset.height)
+            list.append(.fillRRect(pill, cornerRadius: PlatformMetrics.stepperCornerRadius,
+                                   black(enabled ? PlatformMetrics.stepperFill : PlatformMetrics.stepperDisabledFill)))
+            let divider = CGRect(x: context.round(bounds.midX) - 0.5, y: bounds.minY + PlatformMetrics.stepperDividerVerticalInset, width: 1,
+                                 height: bounds.height - 2 * PlatformMetrics.stepperDividerVerticalInset)
+            list.append(.fillRect(divider, black(PlatformMetrics.stepperDividerAlpha)))
+            let half = PlatformMetrics.stepperGlyphSize / 2, midY = bounds.midY
+            var glyphs = Path()
+            let minusX = bounds.minX + PlatformMetrics.stepperMinusCenterX, plusX = bounds.minX + PlatformMetrics.stepperPlusCenterX
+            glyphs.move(to: CGPoint(x: minusX - half, y: midY)); glyphs.addLine(to: CGPoint(x: minusX + half, y: midY))
+            glyphs.move(to: CGPoint(x: plusX - half, y: midY)); glyphs.addLine(to: CGPoint(x: plusX + half, y: midY))
+            glyphs.move(to: CGPoint(x: plusX, y: midY - half)); glyphs.addLine(to: CGPoint(x: plusX, y: midY + half))
+            list.append(.strokePath(glyphs, style: StrokeStyle(lineWidth: PlatformMetrics.stepperGlyphStroke, lineCap: .butt),
+                                    black(PlatformMetrics.stepperGlyphAlpha * (enabled ? 1 : 0.35))))
+            return
+        }
         list.append(.fillRRect(bounds, cornerRadius: PlatformMetrics.stepperCornerRadius,
                                black(enabled ? PlatformMetrics.stepperFill : PlatformMetrics.stepperDisabledFill)))
         let divider = CGRect(x: bounds.minX + PlatformMetrics.stepperDividerInset, y: context.round(bounds.midY),
@@ -569,7 +652,9 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive 
     package func pressEnded(inside: Bool, at point: CGPoint) {
         guard inside, environment.isEnabled else { return }
         view.onEditingChanged.run(true)
-        if point.y < frame.height / 2 { view.increment.run() } else { view.decrement.run() }
+        // macOS stacks the arrows (up increments); iOS puts − left and + right.
+        let increments = environment.platformProfile.isIOS ? point.x >= frame.width / 2 : point.y < frame.height / 2
+        if increments { view.increment.run() } else { view.decrement.run() }
         view.onEditingChanged.run(false)
         runtime.setNeedsDisplay()
     }

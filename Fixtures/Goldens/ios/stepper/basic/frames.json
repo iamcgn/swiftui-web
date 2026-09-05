@@ -1,0 +1,51 @@
+{
+  "fixture" : "ios\/stepper\/basic",
+  "frames" : {
+    "disabled" : {
+      "height" : 32,
+      "width" : 320,
+      "x" : 0,
+      "y" : 97
+    },
+    "hidden" : {
+      "height" : 32,
+      "width" : 94,
+      "x" : 0,
+      "y" : 53
+    },
+    "labelled" : {
+      "height" : 32,
+      "width" : 320,
+      "x" : 0,
+      "y" : 9
+    },
+    "row" : {
+      "height" : 50,
+      "width" : 320,
+      "x" : 0,
+      "y" : 141
+    },
+    "rowStepper" : {
+      "height" : 32,
+      "width" : 289,
+      "x" : 31,
+      "y" : 159
+    },
+    "rowText" : {
+      "height" : 24.5,
+      "width" : 23,
+      "x" : 0,
+      "y" : 141
+    },
+    "stack" : {
+      "height" : 182,
+      "width" : 320,
+      "x" : 0,
+      "y" : 9
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

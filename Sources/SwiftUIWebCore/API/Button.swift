@@ -109,7 +109,101 @@ public struct DefaultButtonStyle {
 
 extension DefaultButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        BorderedButtonStyle().makeBody(configuration: configuration)
+        _PlatformButtonBody(configuration: configuration, kind: .automatic)
+    }
+}
+
+/// Picks the platform's look for a style: macOS's bordered buttons, or iOS's (a body-font label
+/// in the accent colour, borderless by default, a capsule when bordered; ios/button/basic).
+struct _PlatformButtonBody: View {
+    enum Kind { case automatic, bordered, prominent, borderless }
+    let configuration: ButtonStyleConfiguration
+    let kind: Kind
+    @Environment(\.platformProfile) private var profile
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        if profile.isIOS {
+            switch kind {
+            case .automatic, .borderless: _IOSBorderlessButtonBody(configuration: configuration, metrics: profile.metrics)
+            case .bordered: _IOSBorderedButtonBody(configuration: configuration, metrics: profile.metrics, prominent: false)
+            case .prominent: _IOSBorderedButtonBody(configuration: configuration, metrics: profile.metrics, prominent: true)
+            }
+        } else {
+            switch kind {
+            case .automatic, .bordered: _MacBorderedButtonBody(configuration: configuration)
+            case .prominent: _MacProminentButtonBody(configuration: configuration)
+            case .borderless:
+                configuration.label
+                    .foregroundStyle(Color.accentColor.opacity(configuration.isPressed ? 0.6 : 1))
+            }
+        }
+    }
+}
+
+/// iOS: the label's tint, red for a destructive role, dimmed when disabled.
+func _iosButtonTint(_ role: ButtonRole?, enabled: Bool, metrics: PlatformMetricsTable) -> Color {
+    guard enabled else { return Color.primary.opacity(metrics.disabledLabelOpacity) }
+    let red = metrics.destructiveColor   // components already 0…1
+    return role == .destructive ? Color(red: red.red, green: red.green, blue: red.blue) : Color.accentColor
+}
+
+struct _IOSBorderlessButtonBody: View {
+    let configuration: ButtonStyleConfiguration
+    let metrics: PlatformMetricsTable
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        configuration.label
+            .font(.body)
+            .foregroundColor(_iosButtonTint(configuration.role, enabled: isEnabled, metrics: metrics).opacity(configuration.isPressed ? 0.5 : 1))
+    }
+}
+
+struct _IOSBorderedButtonBody: View {
+    let configuration: ButtonStyleConfiguration
+    let metrics: PlatformMetricsTable
+    let prominent: Bool
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        let tint = _iosButtonTint(configuration.role, enabled: isEnabled, metrics: metrics)
+        configuration.label
+            .font(.body)
+            .foregroundColor(prominent ? Color.white : tint)
+            .padding(.horizontal, metrics.buttonHorizontalPadding)
+            .padding(.vertical, metrics.buttonVerticalPadding)
+            .background(Capsule().fill(prominent ? (isEnabled ? tint : Color.primary.opacity(0.12)) : metrics.buttonFill)
+                            .opacity(configuration.isPressed ? 0.7 : 1))
+    }
+}
+
+struct _MacBorderedButtonBody: View {
+    let configuration: ButtonStyleConfiguration
+    var body: some View {
+        configuration.label
+            .font(.system(size: PlatformMetrics.buttonLabelSize))
+            .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
+            .padding(.vertical, PlatformMetrics.buttonVerticalPadding)
+            .frame(minHeight: PlatformMetrics.buttonHeight)
+            .background(
+                RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
+                    .fill(configuration.isPressed ? PlatformMetrics.buttonPressedFill : PlatformMetrics.buttonFill))
+    }
+}
+
+struct _MacProminentButtonBody: View {
+    let configuration: ButtonStyleConfiguration
+    var body: some View {
+        configuration.label
+            .font(.system(size: PlatformMetrics.buttonLabelSize))
+            .foregroundStyle(Color.white)
+            .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
+            .padding(.vertical, PlatformMetrics.buttonVerticalPadding)
+            .frame(minHeight: PlatformMetrics.buttonHeight)
+            .background(
+                RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
+                    .fill(Color.accentColor.opacity(configuration.isPressed ? 0.8 : 1)))
     }
 }
 
@@ -123,14 +217,7 @@ public struct BorderedButtonStyle {
 
 extension BorderedButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: PlatformMetrics.buttonLabelSize))
-            .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
-            .padding(.vertical, PlatformMetrics.buttonVerticalPadding)
-            .frame(minHeight: PlatformMetrics.buttonHeight)
-            .background(
-                RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
-                    .fill(configuration.isPressed ? PlatformMetrics.buttonPressedFill : PlatformMetrics.buttonFill))
+        _PlatformButtonBody(configuration: configuration, kind: .bordered)
     }
 }
 
@@ -141,15 +228,7 @@ public struct BorderedProminentButtonStyle {
 
 extension BorderedProminentButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: PlatformMetrics.buttonLabelSize))
-            .foregroundStyle(Color.white)
-            .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
-            .padding(.vertical, PlatformMetrics.buttonVerticalPadding)
-            .frame(minHeight: PlatformMetrics.buttonHeight)
-            .background(
-                RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
-                    .fill(Color.accentColor.opacity(configuration.isPressed ? 0.8 : 1)))
+        _PlatformButtonBody(configuration: configuration, kind: .prominent)
     }
 }
 
@@ -161,8 +240,7 @@ public struct BorderlessButtonStyle {
 
 extension BorderlessButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(Color.accentColor.opacity(configuration.isPressed ? 0.6 : 1))
+        _PlatformButtonBody(configuration: configuration, kind: .borderless)
     }
 }
 

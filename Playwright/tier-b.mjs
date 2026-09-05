@@ -28,11 +28,15 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 const approximate = ['text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
   'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
-const frameTolerance = (name, key, expected) => name.startsWith('text/') && (key === 'width' || key === 'x')
+// ios/ goldens come from Mac Catalyst, whose scaled text measures a little wider than SF drawn
+// at the size (Docs/elements/iOS.md): text widths get the text fixtures' tolerance, pixels the
+// approximate one.
+const frameTolerance = (name, key, expected) => name.startsWith('ios/') && (key === 'width' || key === 'x')
+  ? Math.max(2, Math.abs(expected) * 0.04) : name.startsWith('text/') && (key === 'width' || key === 'x')
   ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
 // fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
-const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset';
+const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name.startsWith('ios/toggle/') || name.startsWith('ios/slider/');
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {
@@ -121,7 +125,7 @@ async function check(name, label, goldenFrames, goldenPng, shotPath) {
   const frames = await page.evaluate(() => window.__galleryFrames || window.__swiftuiwebDebug.frames());
   const mismatches = compareFrames(label, frames, goldenFrames);
   const pixelDiff = framesOnly(name) ? 'skipped' : await comparePixels(shotPath, goldenPng);
-  const pixelOK = framesOnly(name) || (typeof pixelDiff === 'number' ? pixelDiff <= (approximate.includes(name) ? pixelTolerance * 3 : pixelTolerance) : false);
+  const pixelOK = framesOnly(name) || (typeof pixelDiff === 'number' ? pixelDiff <= (approximate.includes(name) || name.startsWith('ios/') ? pixelTolerance * 3 : pixelTolerance) : false);
   const ok = mismatches.length === 0 && pixelOK;
   if (!ok) failures++;
   report.push({ name: label, frames: ok ? 'exact' : mismatches, pixelDiff, pixelOK });

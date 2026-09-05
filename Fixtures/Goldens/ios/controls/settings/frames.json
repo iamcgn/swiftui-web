@@ -1,0 +1,69 @@
+{
+  "fixture" : "ios\/controls\/settings",
+  "frames" : {
+    "bluetooth" : {
+      "height" : 28,
+      "width" : 288,
+      "x" : 16,
+      "y" : 144.5
+    },
+    "name" : {
+      "height" : 34,
+      "width" : 288,
+      "x" : 16,
+      "y" : 355.5
+    },
+    "quantity" : {
+      "height" : 32,
+      "width" : 288,
+      "x" : 16,
+      "y" : 260.5
+    },
+    "save" : {
+      "height" : 38.5,
+      "width" : 62,
+      "x" : 16,
+      "y" : 405.5
+    },
+    "screen" : {
+      "height" : 440,
+      "width" : 320,
+      "x" : 0,
+      "y" : 20
+    },
+    "size" : {
+      "height" : 31,
+      "width" : 288,
+      "x" : 16,
+      "y" : 308.5
+    },
+    "title" : {
+      "height" : 48.5,
+      "width" : 133,
+      "x" : 16,
+      "y" : 36
+    },
+    "volume" : {
+      "height" : 31,
+      "width" : 288,
+      "x" : 16,
+      "y" : 213.5
+    },
+    "volumeLabel" : {
+      "height" : 21,
+      "width" : 53,
+      "x" : 16,
+      "y" : 188.5
+    },
+    "wifi" : {
+      "height" : 28,
+      "width" : 288,
+      "x" : 16,
+      "y" : 100.5
+    }
+  },
+  "size" : {
+    "height" : 480,
+    "width" : 320
+  }
+}

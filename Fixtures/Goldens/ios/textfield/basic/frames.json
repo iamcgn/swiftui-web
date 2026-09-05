@@ -1,0 +1,57 @@
+{
+  "fixture" : "ios\/textfield\/basic",
+  "frames" : {
+    "plain" : {
+      "height" : 26,
+      "width" : 320,
+      "x" : 0,
+      "y" : 15
+    },
+    "rounded" : {
+      "height" : 34,
+      "width" : 320,
+      "x" : 0,
+      "y" : 53
+    },
+    "roundedEmpty" : {
+      "height" : 34,
+      "width" : 320,
+      "x" : 0,
+      "y" : 99
+    },
+    "row" : {
+      "height" : 34,
+      "width" : 320,
+      "x" : 0,
+      "y" : 191
+    },
+    "rowField" : {
+      "height" : 34,
+      "width" : 265.5,
+      "x" : 54.5,
+      "y" : 191
+    },
+    "rowLabel" : {
+      "height" : 24.5,
+      "width" : 46.5,
+      "x" : 0,
+      "y" : 196.5
+    },
+    "secure" : {
+      "height" : 34,
+      "width" : 320,
+      "x" : 0,
+      "y" : 145
+    },
+    "stack" : {
+      "height" : 210,
+      "width" : 320,
+      "x" : 0,
+      "y" : 15
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

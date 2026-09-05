@@ -25,6 +25,7 @@ public struct Slider<Label: View, ValueLabel: View>: View {
 
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\._formStyle) private var formStyle
+    @Environment(\.platformProfile) private var profile
 
     public var body: some View {
         let current = value.get()   // read here so observation tracks it
@@ -35,8 +36,9 @@ public struct Slider<Label: View, ValueLabel: View>: View {
         }
         switch formStyle {
         case nil:
+            // iOS shows no label outside a form (ios/slider/basic `labelled` is the bare track).
             HStack(alignment: .center, spacing: PlatformMetrics.controlLabelSpacing) {
-                if !labelsHidden { _ControlLabel(label: label)._pixelAligned() }
+                if !labelsHidden && !profile.isIOS { _ControlLabel(label: label)._pixelAligned() }
                 track
             }
         case .columns:

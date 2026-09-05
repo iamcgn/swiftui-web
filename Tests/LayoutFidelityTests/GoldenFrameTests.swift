@@ -32,16 +32,18 @@ enum Goldens {
     }
 
     /// Fixture names whose goldens exist and whose feature area is implemented.
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/", "textstyle/", "dark/", "position/", "hover/", "toolbar/", "gesture/", "redacted/", "asyncimage/", "pressure/", "textscale/", "animator/", "matched/", "dragdrop/", "symboleffect/", "shapebool/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/", "textstyle/", "dark/", "position/", "hover/", "toolbar/", "gesture/", "redacted/", "asyncimage/", "pressure/", "textscale/", "animator/", "matched/", "dragdrop/", "symboleffect/", "shapebool/", "ios/"]
 
     /// The fixtures' asset catalog as `scripts/assets.py` reads it (Fixtures/Assets.manifest.json).
     static func assets() throws -> AssetCatalog {
         try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
     }
 
+    /// The platform's recorded text metrics: iOS fixtures use the Catalyst run's file.
     @MainActor
-    static func textEngine() throws -> RecordedTextEngine {
-        try RecordedTextEngine(contentsOf: root.appendingPathComponent("text-metrics.json"))
+    static func textEngine(for fixture: Fixture) throws -> RecordedTextEngine {
+        let file = fixture.platform == .iOS ? "ios/text-metrics.json" : "text-metrics.json"
+        return try RecordedTextEngine(contentsOf: root.appendingPathComponent(file))
     }
 }
 
@@ -54,7 +56,7 @@ enum Goldens {
     func framesMatchGolden(name: String) throws {
         let fixture = try #require(AllFixtures.all.first { $0.name == name })
         let golden = try #require(try Goldens.frames(for: fixture), "missing golden for \(name); run scripts/gen-goldens.sh")
-        let engine = try Goldens.textEngine()
+        let engine = try Goldens.textEngine(for: fixture)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try Goldens.assets())
         try compare(runner.layoutFrames(), to: golden.frames, label: name)
         #expect(engine.misses.isEmpty, "\(name): no recorded text metrics for \(engine.misses)")

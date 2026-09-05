@@ -130,15 +130,19 @@ public struct ResolvedFont: Hashable, Sendable {
     public var textStyle: Font.TextStyle?
     /// Whether `weight` overrides the text style's default weight.
     public var weightOverridden: Bool
+    /// The platform profile the font was resolved for (`PlatformProfile.name`): its line
+    /// metrics come from that platform's table, whichever engine measures the glyphs.
+    public var profile: String
 
     public init(family: String, size: CGFloat, weight: Font.Weight, italic: Bool,
-                textStyle: Font.TextStyle?, weightOverridden: Bool = false) {
+                textStyle: Font.TextStyle?, weightOverridden: Bool = false, profile: String = "macOS") {
         self.family = family
         self.size = size
         self.weight = weight
         self.italic = italic
         self.textStyle = textStyle
         self.weightOverridden = weightOverridden
+        self.profile = profile
     }
 
     package var designName: String {
@@ -206,7 +210,7 @@ extension Font {
         }
         if modifiers.monospaced { family = "system-monospaced" }
         return ResolvedFont(family: family, size: size, weight: weight, italic: modifiers.italic,
-                            textStyle: textStyle, weightOverridden: weightOverridden)
+                            textStyle: textStyle, weightOverridden: weightOverridden, profile: profile.name)
     }
 }
 

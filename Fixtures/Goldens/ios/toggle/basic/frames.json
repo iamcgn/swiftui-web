@@ -1,0 +1,69 @@
+{
+  "fixture" : "ios\/toggle\/basic",
+  "frames" : {
+    "baselineRow" : {
+      "height" : 46,
+      "width" : 320,
+      "x" : 0,
+      "y" : 147
+    },
+    "baselineText" : {
+      "height" : 24.5,
+      "width" : 23,
+      "x" : 297,
+      "y" : 147
+    },
+    "baselineToggle" : {
+      "height" : 28,
+      "width" : 289,
+      "x" : 0,
+      "y" : 165
+    },
+    "custom" : {
+      "height" : 28,
+      "width" : 320,
+      "x" : 0,
+      "y" : 107
+    },
+    "customText" : {
+      "height" : 24.5,
+      "width" : 23,
+      "x" : 0,
+      "y" : 108.75
+    },
+    "disabled" : {
+      "height" : 28,
+      "width" : 320,
+      "x" : 0,
+      "y" : 245
+    },
+    "hidden" : {
+      "height" : 28,
+      "width" : 61,
+      "x" : 0,
+      "y" : 205
+    },
+    "off" : {
+      "height" : 28,
+      "width" : 320,
+      "x" : 0,
+      "y" : 67
+    },
+    "on" : {
+      "height" : 28,
+      "width" : 320,
+      "x" : 0,
+      "y" : 27
+    },
+    "stack" : {
+      "height" : 246,
+      "width" : 320,
+      "x" : 0,
+      "y" : 27
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

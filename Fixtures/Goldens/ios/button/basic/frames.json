@@ -1,0 +1,69 @@
+{
+  "fixture" : "ios\/button\/basic",
+  "frames" : {
+    "bordered" : {
+      "height" : 38.5,
+      "width" : 97,
+      "x" : 107.5,
+      "y" : 53.75
+    },
+    "borderless" : {
+      "height" : 24.5,
+      "width" : 84.5,
+      "x" : 107.5,
+      "y" : 154.75
+    },
+    "destructive" : {
+      "height" : 24.5,
+      "width" : 51.5,
+      "x" : 107.5,
+      "y" : 241.75
+    },
+    "disabled" : {
+      "height" : 38.5,
+      "width" : 93,
+      "x" : 107.5,
+      "y" : 191.25
+    },
+    "plain" : {
+      "height" : 24.5,
+      "width" : 24.5,
+      "x" : 107.5,
+      "y" : 17.25
+    },
+    "prominent" : {
+      "height" : 38.5,
+      "width" : 105,
+      "x" : 107.5,
+      "y" : 104.25
+    },
+    "row" : {
+      "height" : 24.5,
+      "width" : 55.5,
+      "x" : 107.5,
+      "y" : 278.25
+    },
+    "rowButton" : {
+      "height" : 24.5,
+      "width" : 24.5,
+      "x" : 107.5,
+      "y" : 278.25
+    },
+    "rowText" : {
+      "height" : 24.5,
+      "width" : 23,
+      "x" : 140,
+      "y" : 278.25
+    },
+    "stack" : {
+      "height" : 285.5,
+      "width" : 105,
+      "x" : 107.5,
+      "y" : 17.25
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  }
+}

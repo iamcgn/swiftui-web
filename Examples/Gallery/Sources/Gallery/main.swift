@@ -185,6 +185,7 @@ final class Gallery {
             instance.view
                 .frame(width: size.width, height: size.height)
                 .environment(\.colorScheme, fixture.colorScheme)
+                .environment(\.platformProfile, fixture.platform == .iOS ? .iOS : .macOS)
                 .coordinateSpace(name: fixtureRootSpace)
                 .onPreferenceChange(ProbeKey.self) { frames in
                     // Same probe path as the Apple harness; published for Playwright/tier-b.mjs.

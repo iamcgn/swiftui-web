@@ -1,0 +1,93 @@
+{
+  "fixture" : "ios\/text\/styles",
+  "frames" : {
+    "body" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 123.75,
+      "y" : 285.25
+    },
+    "bold" : {
+      "height" : 24.5,
+      "width" : 37.5,
+      "x" : 123.75,
+      "y" : 425.75
+    },
+    "callout" : {
+      "height" : 24,
+      "width" : 53,
+      "x" : 123.75,
+      "y" : 317.75
+    },
+    "caption" : {
+      "height" : 17.5,
+      "width" : 46,
+      "x" : 123.75,
+      "y" : 376.25
+    },
+    "caption2" : {
+      "height" : 16,
+      "width" : 53,
+      "x" : 123.75,
+      "y" : 401.75
+    },
+    "default" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 123.75,
+      "y" : 9.75
+    },
+    "footnote" : {
+      "height" : 18.5,
+      "width" : 56.5,
+      "x" : 123.75,
+      "y" : 349.75
+    },
+    "headline" : {
+      "height" : 24.5,
+      "width" : 73,
+      "x" : 123.75,
+      "y" : 223.75
+    },
+    "largeTitle" : {
+      "height" : 48.5,
+      "width" : 152.5,
+      "x" : 123.75,
+      "y" : 42.25
+    },
+    "stack" : {
+      "height" : 440.5,
+      "width" : 152.5,
+      "x" : 123.75,
+      "y" : 9.75
+    },
+    "subheadline" : {
+      "height" : 21,
+      "width" : 88,
+      "x" : 123.75,
+      "y" : 256.25
+    },
+    "title" : {
+      "height" : 41,
+      "width" : 52,
+      "x" : 123.75,
+      "y" : 98.75
+    },
+    "title2" : {
+      "height" : 32,
+      "width" : 58.5,
+      "x" : 123.75,
+      "y" : 147.75
+    },
+    "title3" : {
+      "height" : 28,
+      "width" : 54.5,
+      "x" : 123.75,
+      "y" : 187.75
+    }
+  },
+  "size" : {
+    "height" : 460,
+    "width" : 400
+  }
+}

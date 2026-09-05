@@ -1,0 +1,39 @@
+{
+  "fixture" : "ios\/picker\/basic",
+  "frames" : {
+    "menu" : {
+      "height" : 40.5,
+      "width" : 86,
+      "x" : 0,
+      "y" : 30.5
+    },
+    "menuHidden" : {
+      "height" : 40.5,
+      "width" : 98.5,
+      "x" : 0,
+      "y" : 83
+    },
+    "segmented" : {
+      "height" : 31,
+      "width" : 320,
+      "x" : 0,
+      "y" : 135.5
+    },
+    "segmentedNarrow" : {
+      "height" : 31,
+      "width" : 160,
+      "x" : 0,
+      "y" : 178.5
+    },
+    "stack" : {
+      "height" : 179,
+      "width" : 320,
+      "x" : 0,
+      "y" : 30.5
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

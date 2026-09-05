@@ -44,7 +44,11 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         super.init(context)
     }
 
-    private var bezel: _TextFieldBezel { view.style._bezel }
+    /// The style's bezel; the automatic style is plain on iOS (ios/textfield/basic `plain`).
+    private var bezel: _TextFieldBezel {
+        if environment.platformProfile.isIOS, view.style is DefaultTextFieldStyle { return .plain }
+        return view.style._bezel
+    }
     private var resolvedFont: ResolvedFont {
         (environment.font ?? environment.platformProfile.defaultFont).resolve(profile: environment.platformProfile)
     }
@@ -62,6 +66,13 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         return runtime.layoutText(string, font: resolvedFont, width: nil).size.width
     }
 
+    /// The frame's height: the bezel's, or the line plus the plain style's extra (iOS: 26 for a
+    /// 24.5 pt body line, ios/textfield/basic).
+    private func height(lineHeight: CGFloat, insets: EdgeInsets) -> CGFloat {
+        bezel == .plain ? lineHeight + PlatformMetrics.textFieldPlainExtraHeight
+            : max(lineHeight + insets.top + insets.bottom, PlatformMetrics.textFieldHeight)
+    }
+
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         let insets = insets
         let lineHeight = metrics.lineHeight
@@ -69,17 +80,19 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         let ideal = max(textWidth(view.text.wrappedValue), textWidth(view.placeholder)) + insets.leading + insets.trailing
         if view.fitsText {
             let shown = view.text.wrappedValue.isEmpty ? view.placeholder : view.text.wrappedValue
-            return CGSize(width: textWidth(shown) + insets.leading + insets.trailing,
-                          height: max(lineHeight + insets.top + insets.bottom, bezel == .plain ? 0 : PlatformMetrics.textFieldHeight))
+            return CGSize(width: textWidth(shown) + insets.leading + insets.trailing, height: height(lineHeight: lineHeight, insets: insets))
         }
         let width = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? ideal
-        let height = max(lineHeight + insets.top + insets.bottom, bezel == .plain ? 0 : PlatformMetrics.textFieldHeight)
-        return CGSize(width: width, height: height)
+        return CGSize(width: width, height: height(lineHeight: lineHeight, insets: insets))
     }
+
+    /// Where the text line sits below the centred position (iOS: 0.75 down in a bezel, at the
+    /// top of the plain style's frame).
+    private var textOffset: CGFloat { bezel == .plain ? PlatformMetrics.textFieldPlainTextOffset : PlatformMetrics.textFieldTextOffset }
 
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let size = sizeThatFits(proposal)
-        let baseline = (size.height - metrics.lineHeight) / 2 + metrics.baseline
+        let baseline = (size.height - metrics.lineHeight) / 2 + textOffset + metrics.baseline
         return ViewDimensions(size: size, explicit: [
             VerticalAlignment.firstTextBaseline.key: baseline,
             VerticalAlignment.lastTextBaseline.key: baseline,
@@ -90,14 +103,20 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     package var textRect: CGRect {
         let insets = insets
         let lineHeight = metrics.lineHeight
-        return CGRect(x: insets.leading, y: (frame.height - lineHeight) / 2,
+        return CGRect(x: insets.leading, y: (frame.height - lineHeight) / 2 + textOffset,
                       width: max(0, frame.width - insets.leading - insets.trailing), height: lineHeight)
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
         let enabled = environment.isEnabled
-        if bezel != .plain {
+        if bezel != .plain && PlatformMetrics.textFieldBorderInside {
+            // iOS: a 0.5 pt border inside the frame (ios/textfield/basic).
+            let border = PlatformMetrics.textFieldBorderWidth, radius = PlatformMetrics.textFieldCornerRadius
+            list.append(.fillRRect(bounds, cornerRadius: radius, environment._ink(PlatformMetrics.textFieldBorderAlpha)))
+            list.append(.fillRRect(bounds.insetBy(dx: border, dy: border), cornerRadius: radius - border,
+                                   environment._controlBackground.multiplyingAlpha(by: enabled || environment._isDark ? 1 : PlatformMetrics.textFieldDisabledFillAlpha)))
+        } else if bezel != .plain {
             let outer = bounds.insetBy(dx: -PlatformMetrics.textFieldBorderWidth, dy: -PlatformMetrics.textFieldBorderWidth)
             // Dark: a mid-grey ring at the same alpha over the opaque control background (dark/controls).
             list.append(.fillRRect(outer, cornerRadius: PlatformMetrics.textFieldCornerRadius + PlatformMetrics.textFieldBorderWidth,
@@ -117,7 +136,7 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         let baseline = CGPoint(x: rect.minX, y: rect.minY + metrics.baseline)
         if text.isEmpty {
             guard !view.placeholder.isEmpty else { return }
-            list.append(.drawText(view.placeholder, DisplayFont(font), origin: baseline, Color.secondary.resolve(in: environment)))
+            list.append(.drawText(view.placeholder, DisplayFont(font), origin: baseline, PlatformMetrics.textFieldPlaceholder ?? Color.secondary.resolve(in: environment)))
         } else if view.isSecure {
             let color = (environment.foregroundColor ?? .primary).resolve(in: environment)
             let radius = PlatformMetrics.secureBulletDiameter / 2

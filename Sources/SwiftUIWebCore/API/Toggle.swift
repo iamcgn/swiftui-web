@@ -113,7 +113,39 @@ extension ToggleStyle {
 public struct DefaultToggleStyle: ToggleStyle {
     nonisolated public init() {}
     public func makeBody(configuration: Configuration) -> some View {
-        CheckboxToggleStyle().makeBody(configuration: configuration)
+        _PlatformToggleBody(configuration: configuration, switchStyle: false)
+    }
+}
+
+/// The platform's look: macOS's checkbox (or switch), iOS's switch row (ios/toggle/basic): the
+/// label leading, the switch at the trailing edge of the proposed width, 28 pt tall, and both
+/// text baselines at the row's top (an `HStack(alignment: .firstTextBaseline)` hangs the row
+/// 18 pt below a neighbouring body text).
+struct _PlatformToggleBody: View {
+    let configuration: ToggleStyleConfiguration
+    let switchStyle: Bool
+    @Environment(\.platformProfile) private var profile
+    @Environment(\.labelsHidden) private var labelsHidden
+
+    var body: some View {
+        if profile.isIOS {
+            if labelsHidden {
+                _SwitchControl(isOn: configuration.isOn)
+            } else {
+                HStack(alignment: .center, spacing: profile.metrics.switchLabelSpacing) {
+                    _ControlLabel(label: configuration.label)
+                    Spacer(minLength: 0)
+                    _SwitchControl(isOn: configuration.isOn)
+                }
+                .frame(maxWidth: .infinity)
+                .alignmentGuide(.firstTextBaseline) { _ in 0 }
+                .alignmentGuide(.lastTextBaseline) { _ in 0 }
+            }
+        } else if switchStyle {
+            _SwitchToggleBody(configuration: configuration)
+        } else {
+            _CheckboxToggleBody(configuration: configuration)
+        }
     }
 }
 
@@ -129,7 +161,7 @@ public struct CheckboxToggleStyle: ToggleStyle {
 public struct SwitchToggleStyle: ToggleStyle {
     nonisolated public init() {}
     public func makeBody(configuration: Configuration) -> some View {
-        _SwitchToggleBody(configuration: configuration)
+        _PlatformToggleBody(configuration: configuration, switchStyle: true)
     }
 }
 
