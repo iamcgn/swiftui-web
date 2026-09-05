@@ -1032,9 +1032,14 @@
           "notes": "floor(height / line pitch) lines, at least one, tail-truncated (pressure/heights, overflow, alone*); stacks set Spacers aside with their minimum reserved and share the rest in flexibility order (pressure/stack-*, spacer-*, two-texts, three-texts, row-tight); 15 fixtures exact in Tier A/C (Docs/elements/Text.md, Layout.md)"
         },
         {
-          "api": "matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator",
+          "api": "matchedGeometryEffect / contentTransition",
           "status": "missing",
           "notes": "Not implemented"
+        },
+        {
+          "api": "PhaseAnimator / phaseAnimator / KeyframeAnimator / keyframeAnimator / KeyframeTimeline / KeyframeTrack / Linear, Cubic, Spring, Move keyframes",
+          "status": "full",
+          "notes": "Phases step under each phase's animation on the runtime's animation clock (free-running or per trigger change, back to the first phase); keyframe tracks (linear with UnitCurve, cubic Hermite with Catmull-Rom velocities, spring curve, move) evaluate per frame and rebuild the content; unit-tested on the headless clock, animator/phase and animator/keyframe exact at rest in Tier A/B/C (Docs/elements/Animator.md)"
         },
         {
           "api": "dropDestination / draggable / onDrag / onDrop / pasteboard",

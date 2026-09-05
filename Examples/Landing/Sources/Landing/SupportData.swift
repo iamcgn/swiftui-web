@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-05"
-    static let counts: [SupportStatus: Int] = [.partial: 96, .stub: 6, .full: 17, .approximate: 3, .missing: 7]
+    static let counts: [SupportStatus: Int] = [.partial: 96, .stub: 6, .full: 18, .approximate: 3, .missing: 7]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -199,7 +199,8 @@ partial	underline / strikethrough (Text and View, Text.LineStyle patterns and co
 full	kerning / tracking (Text and View)	The spacing is added after every character including spaces and the last (measured), wrapping uses the spread widths; painted with canvas letterSpacing (Chromium), character by character where the context lacks it (WebKit, Firefox), and CoreText's kern attribute	1
 partial	textSelection / textScale	textScale(.secondary) measured with a TextRenderer: point size and tracking per weight (0.8 of the size up to 17 pt, fading to 0.46 at 70; regular tracking 0.25), line height unchanged, serif/monospaced unscaled; the recorded engine is exact (Tier A/C on textscale/*), browsers approximate the heavier scaled face with letter spacing; textSelection sets the environment and an I-beam pointer, no selection/copy (Docs/elements/TextScale.md)	0
 full	Text under height pressure (fewer lines and truncation)	floor(height / line pitch) lines, at least one, tail-truncated (pressure/heights, overflow, alone*); stacks set Spacers aside with their minimum reserved and share the rest in flexibility order (pressure/stack-*, spacer-*, two-texts, three-texts, row-tight); 15 fixtures exact in Tier A/C (Docs/elements/Text.md, Layout.md)	0
-missing	matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator	Not implemented	0
+missing	matchedGeometryEffect / contentTransition	Not implemented	0
+full	PhaseAnimator / phaseAnimator / KeyframeAnimator / keyframeAnimator / KeyframeTimeline / KeyframeTrack / Linear, Cubic, Spring, Move keyframes	Phases step under each phase's animation on the runtime's animation clock (free-running or per trigger change, back to the first phase); keyframe tracks (linear with UnitCurve, cubic Hermite with Catmull-Rom velocities, spring curve, move) evaluate per frame and rebuild the content; unit-tested on the headless clock, animator/phase and animator/keyframe exact at rest in Tier A/B/C (Docs/elements/Animator.md)	0
 missing	dropDestination / draggable / onDrag / onDrop / pasteboard	Not implemented	0
 partial	redacted(reason:) / RedactionReasons / privacySensitive / unredacted	Measured placeholders: text lays out one placeholder advance per character (spaces included, per-size advances, character wrapping) under cap-height bars on the baseline; symbols take the measured placeholder frame with a point-size square; privacy bars sit on the plain layout of privacySensitive content; invalidated draws as is. Catalog images are approximate (Docs/elements/Redaction.md)	3
 partial	symbolVariant / SymbolVariants / symbolRenderingMode / SymbolRenderingMode	Variants resolve to the named variant symbol with SwiftUI's frames (measured); rendering modes and multi-style foregrounds are accepted, the single-layer stand-ins keep the first colour (Docs/elements/Image.md)	1

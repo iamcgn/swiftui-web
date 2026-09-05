@@ -1,0 +1,56 @@
+# PhaseAnimator, KeyframeAnimator
+
+Apple docs: [PhaseAnimator](https://developer.apple.com/documentation/swiftui/phaseanimator),
+[phaseAnimator(_:content:animation:)](https://developer.apple.com/documentation/swiftui/view/phaseanimator(_:content:animation:)),
+[KeyframeAnimator](https://developer.apple.com/documentation/swiftui/keyframeanimator),
+[keyframeAnimator(initialValue:trigger:content:keyframes:)](https://developer.apple.com/documentation/swiftui/view/keyframeanimator(initialvalue:trigger:content:keyframes:)),
+[KeyframeTimeline](https://developer.apple.com/documentation/swiftui/keyframetimeline).
+
+## API surface
+
+| API | Notes |
+|---|---|
+| `PhaseAnimator(_:content:animation:)` (free-running), `PhaseAnimator(_:trigger:content:animation:)` | implemented |
+| `View.phaseAnimator(_:content:animation:)`, `View.phaseAnimator(_:trigger:content:animation:)`, `PlaceholderContentView` | implemented |
+| `KeyframeAnimator(initialValue:repeating:content:keyframes:)`, `KeyframeAnimator(initialValue:trigger:content:keyframes:)` | implemented |
+| `View.keyframeAnimator(initialValue:repeating:content:keyframes:)`, `View.keyframeAnimator(initialValue:trigger:content:keyframes:)` | implemented |
+| `Keyframes`, `KeyframesBuilder`, `KeyframeTrack(_:content:)` (key path, or the value itself), `KeyframeTrackContentBuilder` | implemented (if/else, optionals and loops in builders) |
+| `LinearKeyframe(_:duration:timingCurve:)`, `CubicKeyframe(_:duration:startVelocity:endVelocity:)`, `SpringKeyframe(_:duration:spring:startVelocity:)`, `MoveKeyframe(_:)` | implemented |
+| `KeyframeTimeline(initialValue:content:)`, `duration`, `value(time:)`, `value(progress:)` | implemented |
+| `Spring` (`smooth`, `snappy`, `bouncy`, `duration:bounce:`), `UnitCurve` (`linear`, ease curves, `bezier`) | the subsets the keyframes need |
+| `Animatable` for `Double`, `Float`, `CGFloat` (through `VectorArithmetic`) | added; `CGPoint`/`CGSize`/`CGRect` already conformed |
+
+## Behaviour
+
+Both animators run on the runtime's animation clock through frame subscriptions, like
+`TimelineView(.animation)`, so hosts drive them with the same `advanceAnimations(elapsed:)`
+and headless tests step them deterministically.
+
+- **PhaseAnimator** shows the first phase on appear. A free-running one steps to the next phase
+  on the first frame; each step rebuilds the content for the new phase inside a transaction
+  carrying `animation(phase)`, so whatever the content changes (frames, opacity, offsets,
+  colours) tweens through the existing animation system, and the next step starts when that
+  animation's total duration has elapsed (`repeatForever` animations therefore hold a phase).
+  A triggered one steps through the remaining phases and back to the first on every change of
+  `trigger`, then stops. Phases are compared as the sequence's elements; the trigger is any
+  `Equatable`.
+- **KeyframeAnimator** evaluates a `KeyframeTimeline` every frame and rebuilds its content with
+  the value (no implicit animation: the keyframes are the motion). Without a trigger it plays on
+  appear, once or, with `repeating`, wrapping at the timeline's duration; with a trigger it plays
+  from the initial value on every change. Tracks run in parallel; the timeline's duration is the
+  longest track's, and a track past its end holds its last keyframe.
+- **Keyframe evaluation** (per track, over `AnimatableData`): linear interpolates through the
+  `UnitCurve`; move jumps at the end of its (zero) duration; spring follows the spring's
+  animation curve over the keyframe's duration (the spring's settling time by default), with a
+  start velocity added as a decaying kick; cubic is a Hermite segment whose velocities come
+  from the neighbouring keyframes (Catmull-Rom) unless given.
+
+The goldens `animator/phase` and `animator/keyframe` capture the animators at rest (a trigger
+that never changes): first phase and initial value, exact in Tier A/B/C.
+
+## Open
+
+- SwiftUI's spring keyframes integrate a real spring from the running velocity; ours follow a
+  curve from the keyframe's start value, so back-to-back springs do not carry momentum.
+- `PhaseAnimator` starts its first step one frame after appearing rather than at appear time.
+- No `contentTransition` or `matchedGeometryEffect` yet (separate rows).
