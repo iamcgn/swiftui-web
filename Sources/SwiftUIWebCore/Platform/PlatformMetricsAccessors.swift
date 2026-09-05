@@ -399,4 +399,15 @@ extension PlatformMetrics {
     package static var navigationBarInlineHeight: CGFloat { current.navigationBarInlineHeight }
     package static var navigationLargeTitleTop: CGFloat { current.navigationLargeTitleTop }
     package static var navigationTitleInset: CGFloat { current.navigationTitleInset }
+    package static var navigationBackButtonInset: CGFloat { current.navigationBackButtonInset }
+    package static var navigationBackButtonDiameter: CGFloat { current.navigationBackButtonDiameter }
+    package static var navigationBackFill: RGBA { current.navigationBackFill }
+    package static var navigationBackFillDark: RGBA { current.navigationBackFillDark }
+    package static var navigationBackPressedAlpha: Double { current.navigationBackPressedAlpha }
+    package static var navigationBackChevronSize: CGSize { current.navigationBackChevronSize }
+    package static var navigationBackChevronOffset: CGPoint { current.navigationBackChevronOffset }
+    package static var navigationBackChevronStroke: CGFloat { current.navigationBackChevronStroke }
+    package static var navigationPushDuration: Double { current.navigationPushDuration }
+    package static var navigationPushParallax: CGFloat { current.navigationPushParallax }
+    package static var navigationPushDim: Double { current.navigationPushDim }
 }

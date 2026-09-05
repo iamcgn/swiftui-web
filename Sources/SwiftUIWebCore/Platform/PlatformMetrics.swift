@@ -491,6 +491,19 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var navigationBarInlineHeight: CGFloat = 64
     package var navigationLargeTitleTop: CGFloat = 65.5
     package var navigationTitleInset: CGFloat = 20
+    // The back button of a pushed screen (ios/nav/push, ios/nav/push-inline): a glass circle at the
+    // bar's leading edge with a chevron; the slide of a push or pop is not measurable from goldens.
+    package var navigationBackButtonInset: CGFloat = 10
+    package var navigationBackButtonDiameter: CGFloat = 44
+    package var navigationBackFill = RGBA(r: 246, g: 246, b: 246, a: 0.66)    // white → 249.5, the grey ground → 243
+    package var navigationBackFillDark = RGBA(r: 70, g: 70, b: 70, a: 0.66)   // unmeasured
+    package var navigationBackPressedAlpha = 0.1
+    package var navigationBackChevronSize = CGSize(width: 8, height: 16)      // tip to tip; 11 × 19 with the stroke
+    package var navigationBackChevronOffset = CGPoint(x: -1.5, y: 0.5)        // its centre from the circle's
+    package var navigationBackChevronStroke: CGFloat = 3
+    package var navigationPushDuration = 0.35
+    package var navigationPushParallax: CGFloat = 0.3                         // the lower screen's travel, as a fraction of the width
+    package var navigationPushDim = 0.1                                       // black over the lower screen at the end of a push
 }
 
 /// The metrics of the profile currently laying out or painting (see `PlatformMetricsTable`).

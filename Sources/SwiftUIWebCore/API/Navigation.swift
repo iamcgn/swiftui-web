@@ -320,8 +320,31 @@ extension View {
     nonisolated public func navigationSubtitle(_ subtitleKey: LocalizedStringKey) -> some View { self }
     nonisolated public func navigationSubtitle(_ subtitle: Text) -> some View { self }
 
-    /// Hides the navigation bar back button. Stored only (the back button is window chrome).
-    nonisolated public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View { self }
+    /// Hides the navigation bar back button (the iOS bar; macOS has no painted back button).
+    nonisolated public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View {
+        modifier(_NavigationBackButtonHiddenModifier(hidden: hidesBackButton))
+    }
+}
+
+public struct _NavigationBackButtonHiddenModifier {
+    package let hidden: Bool
+    package init(hidden: Bool) { self.hidden = hidden }
+}
+
+extension _NavigationBackButtonHiddenModifier: ViewModifier {
+    public typealias Body = Never
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        NavigationBackButtonHiddenNode(context)
+    }
+}
+
+/// The back button an iOS navigation bar shows over a pushed screen (Runtime/NavigationNodes.swift).
+public struct _NavigationBackButton: View {
+    package init() {}
+    public typealias Body = Never
+    public static func _makeNode(_ context: _NodeContext<_NavigationBackButton>) -> TypedNode<_NavigationBackButton> {
+        NavigationBackButtonNode(context)
+    }
 }
 
 // MARK: - Environment

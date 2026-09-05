@@ -38,6 +38,13 @@ public protocol GoldenHost: AnyObject {
     func frames() -> [String: CGRect]
     /// Transparent background, sRGB PNG at `scale`.
     func png(scale: Int) throws -> (data: Data, width: Int, height: Int)
+    /// Lets the animations a behaviour step started finish before the step is captured
+    /// (goldens hold end states). The default waits for nothing.
+    func settle()
+}
+
+extension GoldenHost {
+    public func settle() {}
 }
 
 extension GoldenHost {
@@ -258,6 +265,7 @@ public enum Generator {
         var steps: [[String: Any]] = []
         for (index, step) in instance.steps.enumerated() {
             step.run()
+            host.settle()
             let frames = host.frames()
             try host.png(scale: 2).data.write(to: dir.appendingPathComponent("step-\(index + 1)@2x.png"))
             steps.append(["name": step.name, "frames": framesDictionary(frames)])

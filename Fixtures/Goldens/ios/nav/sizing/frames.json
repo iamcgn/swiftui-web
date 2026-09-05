@@ -1,0 +1,33 @@
+{
+  "fixture" : "ios\/nav\/sizing",
+  "frames" : {
+    "below" : {
+      "height" : 24.5,
+      "width" : 33.5,
+      "x" : 143.25,
+      "y" : 275.5
+    },
+    "navText" : {
+      "height" : 267.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "small" : {
+      "height" : 24.5,
+      "width" : 43,
+      "x" : 138.5,
+      "y" : 121.5
+    },
+    "stack" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

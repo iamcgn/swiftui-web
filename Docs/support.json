@@ -163,13 +163,19 @@
         {
           "api": "NavigationStack (root, NavigationPath and collection path bindings) / NavigationPath / NavigationLink (destination, value forms)",
           "status": "partial",
-          "notes": "Content-sized stack (macOS hosted window), pushed views centred with earlier views laid out beneath, bordered-button links outside lists and plain row links inside, Runtime.navigateBack() for hosts; no back button/title chrome, animation, toolbars, navigationDestination(item:)",
+          "notes": "macOS: content-sized stack (hosted window), pushed views centred with earlier views laid out beneath, bordered-button links outside lists and plain row links inside, Runtime.navigateBack() for hosts; no back button/title chrome or animation. iOS profile: the stack fills its proposal; each screen lays out under its own bar (117 pt large title, 64 inline, none without a title or back button); a pushed screen's bar has the 44 pt glass back button with an accent chevron, hidden by navigationBarBackButtonHidden; pushes and pops slide (0.35 s, the lower screen travelling 30 % under a 10 % dimming; timing inferred, not measured). Open: toolbars, navigationDestination(item:), the swipe back, the title/back button crossfade",
           "fixtures": [
             "nav/basic",
             "nav/list",
             "nav/title",
             "nav/sizing",
-            "nav/steps"
+            "nav/steps",
+            "ios/nav/basic",
+            "ios/nav/inline",
+            "ios/nav/push",
+            "ios/nav/push-inline",
+            "ios/nav/push-noback",
+            "ios/nav/sizing"
           ]
         },
         {
@@ -851,9 +857,11 @@
         },
         {
           "api": "navigationSubtitle / navigationBarBackButtonHidden",
-          "status": "stub",
-          "notes": "Stored only",
-          "fixtures": []
+          "status": "partial",
+          "notes": "navigationBarBackButtonHidden hides the iOS bar's back button (a screen with neither title nor back button has no bar); navigationSubtitle stored only",
+          "fixtures": [
+            "ios/nav/push-noback"
+          ]
         },
         {
           "api": "onAppear / onDisappear / task(priority:) / task(id:priority:)",
@@ -1083,6 +1091,31 @@
           "api": "symbolEffect (pulse, scale, variableColor, bounce, wiggle, rotate, breathe; isActive and value forms) / SymbolEffectOptions / symbolEffectsRemoved",
           "status": "partial",
           "notes": "Whole-symbol motion on the animation clock: indefinite effects while active, discrete ones per value change with repeat and speed options; the stand-in glyphs have one layer, so by-layer and variable-colour layers are approximated; appear/disappear/replace accepted as plain transitions (Docs/elements/SymbolEffect.md)"
+        },
+        {
+          "api": "environment(\\.platformProfile, .iOS) / PlatformProfile / Runtime.hostPlatformProfile / navigationBarTitleDisplayMode",
+          "status": "partial",
+          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Open: sheets, date pickers, menus, progress views, tab bars, dark colours",
+          "fixtures": [
+            "ios/text/styles",
+            "ios/layout/basics",
+            "ios/toggle/basic",
+            "ios/button/basic",
+            "ios/slider/basic",
+            "ios/stepper/basic",
+            "ios/textfield/basic",
+            "ios/picker/basic",
+            "ios/controls/settings",
+            "ios/form/basic",
+            "ios/list/basic",
+            "ios/list/plain",
+            "ios/nav/basic",
+            "ios/nav/inline",
+            "ios/nav/push",
+            "ios/nav/push-inline",
+            "ios/nav/push-noback",
+            "ios/nav/sizing"
+          ]
         }
       ]
     }

@@ -1254,6 +1254,12 @@
       "lastBaseline" : 18,
       "width" : 11.5
     },
+    "style:body||Back" : {
+      "firstBaseline" : 18,
+      "height" : 24.5,
+      "lastBaseline" : 18,
+      "width" : 39
+    },
     "style:body||Banana" : {
       "firstBaseline" : 18,
       "height" : 24.5,
@@ -1716,6 +1722,12 @@
       "lastBaseline" : 18,
       "width" : 49.5
     },
+    "style:body||Settings" : {
+      "firstBaseline" : 18,
+      "height" : 24.5,
+      "lastBaseline" : 18,
+      "width" : 65.5
+    },
     "style:body||Size" : {
       "firstBaseline" : 18,
       "height" : 24.5,
@@ -1948,6 +1960,12 @@
       "firstBaseline" : 18,
       "height" : 24.5,
       "lastBaseline" : 18,
+      "width" : 0
+    },
+    "style:body|0.0|Back" : {
+      "firstBaseline" : 18,
+      "height" : 102.5,
+      "lastBaseline" : 96,
       "width" : 0
     },
     "style:body|0.0|Banana" : {
@@ -2410,6 +2428,12 @@
       "firstBaseline" : 18,
       "height" : 154.5,
       "lastBaseline" : 148,
+      "width" : 0
+    },
+    "style:body|0.0|Settings" : {
+      "firstBaseline" : 18,
+      "height" : 206.5,
+      "lastBaseline" : 200,
       "width" : 0
     },
     "style:body|0.0|Size" : {
@@ -6918,6 +6942,12 @@
       "lastBaseline" : 18,
       "width" : 50
     },
+    "style:headline||Detail" : {
+      "firstBaseline" : 18,
+      "height" : 24.5,
+      "lastBaseline" : 18,
+      "width" : 48
+    },
     "style:headline||Enabled" : {
       "firstBaseline" : 18,
       "height" : 24.5,
@@ -7036,6 +7066,12 @@
       "firstBaseline" : 18,
       "height" : 128.5,
       "lastBaseline" : 122,
+      "width" : 0
+    },
+    "style:headline|0.0|Detail" : {
+      "firstBaseline" : 18,
+      "height" : 154.5,
+      "lastBaseline" : 148,
       "width" : 0
     },
     "style:headline|0.0|Enabled" : {
@@ -7188,6 +7224,12 @@
       "lastBaseline" : 37,
       "width" : 71.5
     },
+    "style:largeTitle:w700||Detail" : {
+      "firstBaseline" : 37,
+      "height" : 48.5,
+      "lastBaseline" : 37,
+      "width" : 92
+    },
     "style:largeTitle:w700||Large Title" : {
       "firstBaseline" : 37,
       "height" : 48.5,
@@ -7216,6 +7258,12 @@
       "firstBaseline" : 37,
       "height" : 195.5,
       "lastBaseline" : 184,
+      "width" : 0
+    },
+    "style:largeTitle:w700|0.0|Detail" : {
+      "firstBaseline" : 37,
+      "height" : 293.5,
+      "lastBaseline" : 282,
       "width" : 0
     },
     "style:largeTitle:w700|0.0|Large Title" : {

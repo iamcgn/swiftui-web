@@ -585,6 +585,11 @@ extension TextMetricsRequests {
             requests.append(TextMetricRequest(string, .style("body", weight: "medium")))
         }
         requests.append(TextMetricRequest("Settings", .style("headline")))
+        // The navigation bar of a pushed screen (ios/nav/push*): its title and the back button's label.
+        requests.append(TextMetricRequest("Detail", .style("headline")))
+        requests.append(TextMetricRequest("Detail", .style("largeTitle", weight: "bold")))
+        requests.append(TextMetricRequest("Settings", .style("body")))
+        requests.append(TextMetricRequest("Back", .style("body")))
         for string in ["ACCOUNT", "PREFERENCES", "FRUIT", "Account", "Preferences", "Fruit"] {
             requests.append(TextMetricRequest(string, .style("footnote")))
             requests.append(TextMetricRequest(string, .style("subheadline")))

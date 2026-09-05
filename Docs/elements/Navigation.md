@@ -18,11 +18,13 @@ Apple docs: [NavigationStack](https://developer.apple.com/documentation/swiftui/
 | `navigationDestination(isPresented:destination:)` | implemented (the binding is read in a body, so observation pushes and pops) |
 | `navigationDestination(item:destination:)` | missing |
 | `navigationTitle(_:)` (`Text`, key, string) | recorded on `Runtime.navigationTitle` for hosts; not drawn (window chrome on macOS) |
-| `navigationSubtitle`, `navigationBarBackButtonHidden` | stored only |
+| `navigationSubtitle` | stored only |
+| `navigationBarBackButtonHidden` | implemented for the iOS bar (`Docs/elements/iOS.md`); nothing to hide on macOS |
 | `NavigationSplitView` | see `Docs/elements/NavigationSplitView.md` |
 | `toolbar`, `toolbarBackground` | see `Docs/elements/Toolbar.md` (the title joins the bar when a host paints window chrome) |
-| `navigationBarTitleDisplayMode`, `NavigationView` (deprecated), `navigationViewStyle` | missing |
-| Back navigation | `Runtime.navigateBack()` pops the innermost stack (hosts wire a button or key); no painted back button or slide animation |
+| `navigationBarTitleDisplayMode` | implemented for the iOS bar (`Docs/elements/iOS.md`); no effect on macOS |
+| `NavigationView` (deprecated), `navigationViewStyle` | missing |
+| Back navigation | `Runtime.navigateBack()` pops the innermost stack (hosts wire a button or key); macOS paints no back button and does not animate. iOS: the bar's back button and the push/pop slide, `Docs/elements/iOS.md` |
 
 ## Behaviour
 
@@ -60,7 +62,7 @@ wasm js tests pass.
 
 ## Not yet covered
 
-Back button and title in chrome (hosts), push/pop animation, `navigationDestination(item:)`,
-toolbars, `NavigationPath` codable representation, links
+Back button and title in macOS chrome (hosts) and the macOS push/pop animation (iOS has both,
+`Docs/elements/iOS.md`), `navigationDestination(item:)`, toolbars, `NavigationPath` codable representation, links
 that pop to the root or replace the path, a value pushed from a view that a later path change
 removes (the destination-link entry stays on top), keyboard shortcuts (⌘[ / Escape).

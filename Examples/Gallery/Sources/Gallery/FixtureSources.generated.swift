@@ -1480,6 +1480,89 @@ public static let navigationInline = Fixture("ios/nav/inline", size: CGSize(widt
     .probe("nav")
 }.platform(.iOS)
 """##),
+        FixtureSource(name: "ios/nav/push", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 237, lastLine: 258, declaration: #"""
+/// Behaviour: a push through the path binding shows the detail under its own bar with a
+/// back button carrying the previous title; a pop returns to the root.
+public static let navigationPush = Fixture(
+    "ios/nav/push", size: CGSize(width: 320, height: 480),
+    model: { IOSNavigationModel() },
+    steps: [FixtureStep("push") { $0.path = [1] }, FixtureStep("pop") { $0.path = [] }]
+) { model in
+    NavigationStack(path: Binding(get: { model.path }, set: { model.path = $0 })) {
+        List {
+            NavigationLink("Detail", value: 1).probe("link")
+            Text("Row").probe("row")
+        }
+        .navigationTitle("Settings")
+        .navigationDestination(for: Int.self) { _ in
+            List { Text("Pushed").probe("pushed") }
+                .navigationTitle("Detail")
+                .probe("detail")
+        }
+        .probe("list")
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/nav/push-inline", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 260, lastLine: 283, declaration: ##"""
+/// The pushed screen with an inline title over plain content.
+public static let navigationPushInline = Fixture(
+    "ios/nav/push-inline", size: CGSize(width: 320, height: 480),
+    model: { IOSNavigationModel() },
+    steps: [FixtureStep("push") { $0.path = [1] }, FixtureStep("pop") { $0.path = [] }]
+) { model in
+    NavigationStack(path: Binding(get: { model.path }, set: { model.path = $0 })) {
+        List {
+            NavigationLink("Detail", value: 1).probe("link")
+        }
+        .navigationTitle("Settings")
+        .navigationDestination(for: Int.self) { _ in
+            VStack { Text("Pushed").probe("pushed") }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationTitle("Detail")
+                #if canImport(SwiftUIWebCore) || targetEnvironment(macCatalyst)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .probe("detail")
+        }
+        .probe("list")
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""##),
+        FixtureSource(name: "ios/nav/push-noback", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 285, lastLine: 305, declaration: #"""
+/// The pushed screen hides its back button and has no title of its own.
+public static let navigationPushNoBack = Fixture(
+    "ios/nav/push-noback", size: CGSize(width: 320, height: 480),
+    model: { IOSNavigationModel() },
+    steps: [FixtureStep("push") { $0.path = [1] }, FixtureStep("pop") { $0.path = [] }]
+) { model in
+    NavigationStack(path: Binding(get: { model.path }, set: { model.path = $0 })) {
+        List {
+            NavigationLink("Detail", value: 1).probe("link")
+        }
+        .navigationTitle("Settings")
+        .navigationDestination(for: Int.self) { _ in
+            VStack { Text("Pushed").probe("pushed") }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationBarBackButtonHidden()
+                .probe("detail")
+        }
+        .probe("list")
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/nav/sizing", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 307, lastLine: 314, declaration: #"""
+/// Sizing: a stack with a small root and no title, next to plain text.
+public static let navigationSizing = Fixture("ios/nav/sizing", size: CGSize(width: 320, height: 300)) {
+    VStack(spacing: 8) {
+        NavigationStack { Text("Small").probe("small") }.probe("navText")
+        Text("Row").probe("below")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
         FixtureSource(name: "ios/picker/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 119, lastLine: 144, declaration: #"""
 /// Picker: the menu default, segmented, hidden label.
 public static let picker = Fixture("ios/picker/basic", size: CGSize(width: 320, height: 240)) {
@@ -9812,8 +9895,95 @@ public enum IOSFixtures {
         .probe("nav")
     }.platform(.iOS)
 
+    /// Behaviour: a push through the path binding shows the detail under its own bar with a
+    /// back button carrying the previous title; a pop returns to the root.
+    public static let navigationPush = Fixture(
+        "ios/nav/push", size: CGSize(width: 320, height: 480),
+        model: { IOSNavigationModel() },
+        steps: [FixtureStep("push") { $0.path = [1] }, FixtureStep("pop") { $0.path = [] }]
+    ) { model in
+        NavigationStack(path: Binding(get: { model.path }, set: { model.path = $0 })) {
+            List {
+                NavigationLink("Detail", value: 1).probe("link")
+                Text("Row").probe("row")
+            }
+            .navigationTitle("Settings")
+            .navigationDestination(for: Int.self) { _ in
+                List { Text("Pushed").probe("pushed") }
+                    .navigationTitle("Detail")
+                    .probe("detail")
+            }
+            .probe("list")
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// The pushed screen with an inline title over plain content.
+    public static let navigationPushInline = Fixture(
+        "ios/nav/push-inline", size: CGSize(width: 320, height: 480),
+        model: { IOSNavigationModel() },
+        steps: [FixtureStep("push") { $0.path = [1] }, FixtureStep("pop") { $0.path = [] }]
+    ) { model in
+        NavigationStack(path: Binding(get: { model.path }, set: { model.path = $0 })) {
+            List {
+                NavigationLink("Detail", value: 1).probe("link")
+            }
+            .navigationTitle("Settings")
+            .navigationDestination(for: Int.self) { _ in
+                VStack { Text("Pushed").probe("pushed") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .navigationTitle("Detail")
+                    #if canImport(SwiftUIWebCore) || targetEnvironment(macCatalyst)
+                    .navigationBarTitleDisplayMode(.inline)
+                    #endif
+                    .probe("detail")
+            }
+            .probe("list")
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// The pushed screen hides its back button and has no title of its own.
+    public static let navigationPushNoBack = Fixture(
+        "ios/nav/push-noback", size: CGSize(width: 320, height: 480),
+        model: { IOSNavigationModel() },
+        steps: [FixtureStep("push") { $0.path = [1] }, FixtureStep("pop") { $0.path = [] }]
+    ) { model in
+        NavigationStack(path: Binding(get: { model.path }, set: { model.path = $0 })) {
+            List {
+                NavigationLink("Detail", value: 1).probe("link")
+            }
+            .navigationTitle("Settings")
+            .navigationDestination(for: Int.self) { _ in
+                VStack { Text("Pushed").probe("pushed") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .navigationBarBackButtonHidden()
+                    .probe("detail")
+            }
+            .probe("list")
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// Sizing: a stack with a small root and no title, next to plain text.
+    public static let navigationSizing = Fixture("ios/nav/sizing", size: CGSize(width: 320, height: 300)) {
+        VStack(spacing: 8) {
+            NavigationStack { Text("Small").probe("small") }.probe("navText")
+            Text("Row").probe("below")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
     public static let all: [Fixture] = [textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
-                                        form, list, listPlain, navigation, navigationInline]
+                                        form, list, listPlain, navigation, navigationInline,
+                                        navigationPush, navigationPushInline, navigationPushNoBack, navigationSizing]
+}
+
+/// Drives the `ios/nav/push*` fixtures.
+@Observable
+public final class IOSNavigationModel {
+    public var path: [Int] = []
+    public init() {}
 }
 """##,
     ]

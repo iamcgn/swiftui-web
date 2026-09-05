@@ -45,6 +45,11 @@ final class UIKitHost: GoldenHost {
         return collector.frames
     }
 
+    /// A navigation push or pop animates for 0.35 s in UIKit; the capture waits it out.
+    func settle() {
+        RunLoop.main.run(until: Date().addingTimeInterval(1.0))
+    }
+
     func png(scale: Int) throws -> (data: Data, width: Int, height: Int) {
         let bounds = controller.view.bounds
         guard bounds.size == size else {

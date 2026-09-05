@@ -181,6 +181,10 @@ final class Gallery {
             // outside the capture; `?chrome=1` shows the runtime's bar (Playwright/toolbar-probe.mjs).
             host!.runtime.paintsWindowChrome = JSObject.global.location.search.string?.contains("chrome=1") == true
         }
+        // A fresh tree for every fixture: two fixtures of the same view types would otherwise
+        // update the previous one's nodes in place (ios/nav/push-inline then push-noback), keeping
+        // its state and, with identical probe frames, never publishing them again.
+        host!.mount(AnyView(EmptyView()))
         host!.mount(AnyView(
             instance.view
                 .frame(width: size.width, height: size.height)
