@@ -15,8 +15,12 @@ const page = await context.newPage();
 const problems = [];
 page.on('pageerror', e => problems.push('pageerror: ' + e.message));
 page.on('console', m => { if (m.type() === 'error') problems.push('console: ' + m.text()); });
-await page.goto(url);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 30000 });
+// Wait for the runtime's first frame rather than the load event: a CI runner takes well over
+// Playwright's 30 s default to fetch and compile the wasm through a single-threaded server.
+const started = Date.now();
+await page.goto(url, { waitUntil: 'commit', timeout: 180000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
+console.log(`first frame after ${((Date.now() - started) / 1000).toFixed(1)} s`);
 const texts = async () => (await page.evaluate(() => window.__swiftuiwebDebug.displayList()))
   .filter(c => c.startsWith('drawText')).map(c => c.match(/"([^"]*)"/)[1]);
 const initial = await texts();
