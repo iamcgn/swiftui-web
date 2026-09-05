@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 87, .stub: 6, .full: 14, .approximate: 3, .missing: 16]
+    static let counts: [SupportStatus: Int] = [.partial: 88, .stub: 6, .full: 15, .approximate: 3, .missing: 14]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -191,8 +191,8 @@ full	blendMode(_:) / BlendMode (all 21 modes)	Blend groups: canvas globalComposi
 full	zIndex / hidden	zIndex reorders painting and hit testing among a container's children (ties keep declaration order); hidden keeps the layout and removes the view from painting, hit testing and semantics	2
 full	mask(alignment:_:) / mask(_:)	The mask view's alpha clips the content (laid out like an overlay, drawn with an opaque black foreground as SwiftUI does); a mask group in the display list composited with destination-in in the browser and a CoreGraphics clip mask natively	1
 partial	compositingGroup / drawingGroup / per-element effects	opacity, shadow, colour effects, blur and blendMode apply to every element of a view as SwiftUI does; compositingGroup and drawingGroup collect them into one group first. drawingGroup's opaque/colorMode are accepted without effect and nothing is rasterised	1
-missing	position(x:y:) / position(_:)	Not implemented (Phase 6)	0
-missing	ignoresSafeArea / safeAreaInset / safeAreaPadding	Not implemented; the browser window has no safe areas	0
+full	position(x:y:) / position(_:)	The proposed size with the child centred at the point (Docs/elements/Position.md)	1
+partial	safeAreaInset / safeAreaPadding / ignoresSafeArea / edgesIgnoringSafeArea	The modifiers create a safe area: plain content is laid out inside it (inset length + 8 pt spacing), scroll views keep their frame and inset their content, ignoresSafeArea extends. The window itself has no safe area and GeometryProxy.safeAreaInsets stays zero	2
 missing	onHover / help / pointerStyle / onContinuousHover	Not implemented (Phase 6)	0
 missing	gesture / DragGesture / LongPressGesture / MagnifyGesture / RotateGesture / simultaneousGesture / highPriorityGesture	Only onTapGesture; drags exist for sliders and scrolling only (Phase 6)	0
 partial	underline / strikethrough (Text and View, Text.LineStyle patterns and colours) / textCase / baselineOffset	Lines at CoreText's underline offset and half x-height, snapped to device pixels, weight and design ratios; patterns in multiples of the thickness; textCase before measurement; baselineOffset grows the text and moves the baseline guide as Apple does. Some weights draw the line one pixel off (Docs/elements/TextStyle.md)	5

@@ -961,13 +961,20 @@
         },
         {
           "api": "position(x:y:) / position(_:)",
-          "status": "missing",
-          "notes": "Not implemented (Phase 6)"
+          "status": "full",
+          "notes": "The proposed size with the child centred at the point (Docs/elements/Position.md)",
+          "fixtures": [
+            "position/basic"
+          ]
         },
         {
-          "api": "ignoresSafeArea / safeAreaInset / safeAreaPadding",
-          "status": "missing",
-          "notes": "Not implemented; the browser window has no safe areas"
+          "api": "safeAreaInset / safeAreaPadding / ignoresSafeArea / edgesIgnoringSafeArea",
+          "status": "partial",
+          "notes": "The modifiers create a safe area: plain content is laid out inside it (inset length + 8 pt spacing), scroll views keep their frame and inset their content, ignoresSafeArea extends. The window itself has no safe area and GeometryProxy.safeAreaInsets stays zero",
+          "fixtures": [
+            "position/safe-area",
+            "position/safe-area-padding"
+          ]
         },
         {
           "api": "onHover / help / pointerStyle / onContinuousHover",
