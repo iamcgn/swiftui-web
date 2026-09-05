@@ -22,6 +22,8 @@ pixel grid (halves up) as the AppKit-backed control rows do. `SliderTrackNode` i
 16 pt leaf: it paints the track, the filled part up to the knob, the ticks and the knob from the
 live binding value, and on `pressBegan(at:)`/`pressMoved(to:)` (new on `_Interactive`, forwarded
 by `Runtime.pointerDown/pointerMoved`) sets the value for the pointer's x, snapped to the step.
+Inside a scroll view a touch that sets off sideways, or rests on the track first, stays with the
+slider instead of becoming a pan (`dragAxes`, see ScrollView.md, 2026-09-05).
 
 ## Measured (macOS 26.2, `slider/basic`, `slider/steps`, 2026-09-02)
 

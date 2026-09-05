@@ -432,4 +432,7 @@ package enum PlatformMetrics {
     package static let panSlop: CGFloat = 10                     // unverified
     /// A finger resting this long before lifting leaves no momentum (seconds).
     package static let panRestInterval = 0.1                     // unverified
+    /// A finger resting this long on a drag-tracking control (a slider) before moving keeps
+    /// the touch from the scroll view around it (UIScrollView's content-touch delay, seconds).
+    package static let touchHoldInterval = 0.15
 }

@@ -390,6 +390,7 @@ public enum PointerType: Sendable {
 package struct PanState {
     package let nodes: [ViewNode & _Scrollable]
     package let start: CGPoint
+    package let startTime: Double
     package var last: CGPoint
     package var lastTime: Double
     package var velocity: CGSize = .zero
@@ -462,7 +463,7 @@ extension Runtime {
     package func beginPan(at point: CGPoint, time: Double) {
         let nodes = scrollableNodes(at: point)
         guard !nodes.isEmpty else { return }
-        var state = PanState(nodes: nodes, start: point, last: point, lastTime: time)
+        var state = PanState(nodes: nodes, start: point, startTime: time, last: point, lastTime: time)
         // A finger landing on decelerating content stops it where it is and owns the touch:
         // the content follows it at once and lifting delivers no press (iOS behaviour).
         let decelerating = nodes.filter(\.isDecelerating)
@@ -476,11 +477,22 @@ extension Runtime {
 
     /// Feeds a touch move to the pan; once the finger has travelled `PlatformMetrics.panSlop`
     /// the pan is active, the pending press is cancelled and the content follows the finger.
+    /// A control that tracks drags (`dragAxes`) keeps the touch instead when the finger set off
+    /// along one of its axes, or rested on it first (UIScrollView's delayed content touches):
+    /// a slider in a vertical scroll view follows a sideways finger, and a finger that then
+    /// wanders up or down still drives the slider rather than the scroll.
     package func continuePan(to point: CGPoint, time: Double) {
         guard var state = pan else { return }
         if !state.active {
             let dx = point.x - state.start.x, dy = point.y - state.start.y
             guard dx * dx + dy * dy >= PlatformMetrics.panSlop * PlatformMetrics.panSlop else { return }
+            if let pressed = pressedNode, !pressed.dragAxes.isEmpty {
+                let dominant: Axis.Set = abs(dx) >= abs(dy) ? .horizontal : .vertical
+                if pressed.dragAxes.contains(dominant) || time - state.startTime >= PlatformMetrics.touchHoldInterval {
+                    pan = nil
+                    return
+                }
+            }
             state.active = true
             pressedNode?.pressEnded(inside: false)
             pressedNode = nil

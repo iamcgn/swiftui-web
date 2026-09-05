@@ -20,6 +20,9 @@ package protocol _Interactive: AnyObject {
     var semantics: SemanticsNode { get }
     /// Whether the element's descendants are exposed as their own elements (containers).
     var exposesChildren: Bool { get }
+    /// The axes along which a press that starts moving stays with this node instead of becoming
+    /// a pan of the scroll views around it (a slider keeps a sideways finger). Empty for most.
+    var dragAxes: Axis.Set { get }
 }
 
 extension _Interactive {
@@ -27,6 +30,7 @@ extension _Interactive {
     package func pressMoved(to point: CGPoint) {}
     package func pressEnded(inside: Bool, at point: CGPoint) { pressEnded(inside: inside) }
     package var exposesChildren: Bool { false }
+    package var dragAxes: Axis.Set { [] }
 }
 
 /// A node that is an accessibility element without being interactive (text, images).

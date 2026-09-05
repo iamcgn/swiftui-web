@@ -499,6 +499,8 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
         editing = false
         view.onEditingChanged.run(false)
     }
+    /// A finger that moves sideways on the track drives the knob; scroll views around it wait.
+    package var dragAxes: Axis.Set { .horizontal }
 
     package var semantics: SemanticsNode {
         var node = SemanticsNode(role: .slider, label: "", frame: frameInRoot, identifier: identifier)

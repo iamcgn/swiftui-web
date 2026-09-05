@@ -27,6 +27,11 @@ private struct Reader: View {
 }
 
 @Observable
+private final class ValueBox {
+    var value = 0.0
+}
+
+@Observable
 private final class Counter {
     var value = 0
 }
@@ -256,6 +261,63 @@ private struct Changing: View {
         runtime.pointerDown(at: CGPoint(x: 150, y: 96), type: .touch, time: 2)
         runtime.pointerUp(at: CGPoint(x: 150, y: 96), time: 2.05)
         #expect(counter.value == 1)
+    }
+
+    /// A slider inside a vertical scroll view: a finger that sets off sideways drives the knob
+    /// and keeps it even when it wanders vertically afterwards; one that sets off vertically
+    /// scrolls. A finger that rests on the knob first keeps it whichever way it then moves.
+    @Test func sliderInScrollViewKeepsSidewaysTouches() {
+        let box = ValueBox()
+        let runtime = Runtime()
+        runtime.mount(ScrollView {
+            VStack(spacing: 0) {
+                rows(3)
+                Slider(value: Binding(get: { box.value }, set: { box.value = $0 }), in: 0...100)
+                    .frame(width: 220)._probe("slider")
+                rows(50)
+            }
+            ._probe("content")
+        })
+        let size = CGSize(width: 300, height: 200)
+        runtime.layout(in: size)
+        let track = runtime.probeFrames["slider"]!
+        let y = track.midY
+        // Sideways past the slop: the value follows the finger, the content stays put...
+        runtime.pointerDown(at: CGPoint(x: track.minX + 20, y: y), type: .touch, time: 0)
+        let pressed = box.value
+        runtime.pointerMoved(to: CGPoint(x: track.minX + 40, y: y + 3), time: 0.02)
+        runtime.layout(in: size)
+        #expect(box.value > pressed)
+        #expect(runtime.probeFrames["content"]?.minY == 0)
+        // ...and a vertical wander afterwards still drives the slider, not the scroll view.
+        let sideways = box.value
+        runtime.pointerMoved(to: CGPoint(x: track.minX + 60, y: y + 60), time: 0.05)
+        runtime.layout(in: size)
+        #expect(box.value > sideways)
+        #expect(runtime.probeFrames["content"]?.minY == 0)
+        runtime.pointerUp(at: CGPoint(x: track.minX + 60, y: y + 60), time: 0.06)
+        // A finger that sets off vertically scrolls; the slider keeps the value it jumped to.
+        let before = box.value
+        runtime.pointerDown(at: CGPoint(x: track.minX + 60, y: y), type: .touch, time: 1)
+        let jumped = box.value
+        runtime.pointerMoved(to: CGPoint(x: track.minX + 63, y: y - 30), time: 1.02)
+        runtime.layout(in: size)
+        #expect(runtime.probeFrames["content"]?.minY == -30)
+        #expect(box.value == jumped)
+        #expect(before == jumped)
+        runtime.pointerUp(at: CGPoint(x: track.minX + 63, y: y - 30), time: 1.5)
+        _ = runtime.advanceScrollAnimations(elapsed: 0.016)
+        runtime.layout(in: size)
+        // A finger that rests on the knob (the content stays scrolled) keeps it even when it
+        // then moves vertically.
+        let scrolled = runtime.probeFrames["slider"]!
+        runtime.pointerDown(at: CGPoint(x: scrolled.minX + 60, y: scrolled.midY), type: .touch, time: 2)
+        let held = box.value
+        runtime.pointerMoved(to: CGPoint(x: scrolled.minX + 60, y: scrolled.midY + 2), time: 2.1)
+        runtime.pointerMoved(to: CGPoint(x: scrolled.minX + 80, y: scrolled.midY + 40), time: 2.3)
+        runtime.layout(in: size)
+        #expect(box.value > held)
+        #expect(runtime.probeFrames["content"]?.minY == -30)
     }
 
     @Test func mouseInputStillPressesButtons() {

@@ -45,6 +45,14 @@ the page does not scroll, and calls `advanceScrollAnimations` once per frame for
 the indicator fade. Every scroll runs a full layout pass; there is no offset-only fast path yet
 (see the frame-time measurement below).
 
+A control that tracks drags declares the axes it keeps (`_Interactive.dragAxes`; a slider's
+track claims `.horizontal`). When the finger crosses the slop on such a control, the movement's
+dominant axis decides: along a claimed axis the press keeps the touch and the pan is dropped
+(the slider follows the finger from then on, even when it wanders vertically); across it the
+pan takes over as for any other view. A finger that rested on the control for
+`touchHoldInterval` (0.15 s) before moving keeps the touch whichever way it goes, as
+UIScrollView's delayed content touches let a UISlider do (2026-09-05).
+
 Overlay scrollers are painted by the node while `indicatorOpacity > 0`: a knob on the trailing
 edge whose length is the viewport's share of the content, held 0.6 s after the last scroll and
 faded over 0.25 s. The goldens never show one (macOS renders overlay scrollers only while
