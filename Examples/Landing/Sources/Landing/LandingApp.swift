@@ -12,9 +12,14 @@ struct LandingApp: App {
     var body: some Scene {
         WindowGroup {
             // The reader sits outside the scroll view so scrolling never re-lays the page out.
+            // The page is typeset in the macOS profile on every device (the host would start a
+            // phone in the iOS look); the phone frame below opts its subtree into iOS.
             GeometryReader { proxy in
                 LandingPage().environment(\.isCompact, proxy.size.width < Site.compactWidth)
             }
+            #if canImport(SwiftUIWebCore)
+            .environment(\.platformProfile, .macOS)
+            #endif
         }
     }
 }

@@ -46,6 +46,13 @@ public final class Runtime {
     public var hostColorScheme: ColorScheme = .light {
         didSet { if hostColorScheme != oldValue { requestLayout() } }
     }
+    /// The platform whose look the tree reproduces, set by hosts (the canvas host picks iOS on a
+    /// touch device, macOS elsewhere; `Docs/elements/iOS.md`). A subtree can still select the
+    /// other one through the `platformProfile` environment value.
+    public var hostPlatformProfile: PlatformProfile {
+        get { rootEnvironment.platformProfile }
+        set { applyPlatformProfile(newValue) }
+    }
     /// The `preferredColorScheme` in the tree, if any.
     package var preferredColorScheme: ColorScheme? {
         didSet { if preferredColorScheme != oldValue { requestLayout() } }
@@ -132,6 +139,18 @@ public final class Runtime {
         root.reapply?(rootEnvironment)
         sizesInvalidated = true
         layoutGeneration += 1
+    }
+
+    /// Moves the root environment to another platform profile, re-applying the root view so
+    /// every node lays out and paints in the new look.
+    private func applyPlatformProfile(_ profile: PlatformProfile) {
+        guard profile.name != rootEnvironment.platformProfile.name else { return }
+        rootEnvironment.platformProfile = profile
+        root.environment = rootEnvironment
+        root.reapply?(rootEnvironment)
+        sizesInvalidated = true
+        layoutGeneration += 1
+        requestLayout()
     }
 
     /// Asks the host for another frame without a state change (an image finished loading).

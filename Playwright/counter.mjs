@@ -44,6 +44,26 @@ if (!afterKey.includes('Count: 0')) problems.push('after keyboard expected "Coun
 const buttons = await page.locator('#app button').allTextContents();
 if (buttons.join(',') !== '−,+') problems.push('overlay buttons: ' + JSON.stringify(buttons));
 if (shot) await page.screenshot({ path: shot });
+
+// The platform profile: a touch device starts in the iOS look (the title is 28 pt there, 22 on
+// macOS), and `?platform=` forces either on any device.
+const titleSize = async (ctx, target) => {
+  const p = await ctx.newPage();
+  await p.goto(target, { waitUntil: 'commit', timeout: 180000 });
+  await p.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
+  const list = await p.evaluate(() => window.__swiftuiwebDebug.displayList());
+  await p.close();
+  const title = list.find(c => c.startsWith('drawText("Count: 0"'));
+  return title ? Number(title.match(/system (\d+)/)[1]) : null;
+};
+const desktop = await titleSize(context, url);
+if (desktop !== 22) problems.push(`desktop title font: ${desktop}, expected 22`);
+const forced = await titleSize(context, url + (url.includes('?') ? '&' : '?') + 'platform=ios');
+if (forced !== 28) problems.push(`?platform=ios title font: ${forced}, expected 28`);
+const touch = await browser.newContext({ deviceScaleFactor: 2, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: engine !== firefox });
+const phone = await titleSize(touch, url);
+if (phone !== 28) problems.push(`touch device title font: ${phone}, expected 28`);
+await touch.close();
 console.log(problems.length ? problems.join('\n') : `counter OK: ${initial.join(' | ')} → ${afterClick.filter(t => t.startsWith('Count')).join('')} → ${afterKey.filter(t => t.startsWith('Count')).join('')}`);
 await browser.close();
 process.exit(problems.length ? 1 : 0);

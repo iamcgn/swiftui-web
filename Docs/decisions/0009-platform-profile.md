@@ -17,4 +17,6 @@ carries the profile so an iOS profile can be selected per app later without touc
 
 ## Consequences
 - Dark appearance, iOS and dynamic type sizes are new tables, not new code paths.
+- 2026-09-05: the iOS table exists (decision 0013); hosts choose the root's profile
+  (`Runtime.hostPlatformProfile`, iOS on touch devices in the browser) and subtrees can differ.
 - Goldens are regenerated only in deliberate PRs (`meta.json` records macOS/SwiftUI versions).

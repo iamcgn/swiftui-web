@@ -50,9 +50,20 @@ paints the iOS controls inside them: a 51 × 31 green (52, 199, 89) or black-9 %
 own (body 24.5 where an iPhone lays out 22); a simulator run can replace the goldens
 (`GoldenHost` in the harness) when Xcode is available.
 
+## The host's default
+
+`Runtime.hostPlatformProfile` is the profile the root starts in. The canvas host picks iOS on a
+touch device (the `(pointer: coarse)` media query: the primary pointer is a finger, an iPad
+with a trackpad included; `maxTouchPoints` stays 0 in emulated WebKit and Firefox) and macOS
+elsewhere; a page forces either with
+`data-platform="ios"` / `"macos"` on the `#app` container or `?platform=ios` in its URL
+(`Playwright/counter.mjs` checks all three). Changing it while mounted re-applies the tree. The
+native and headless hosts stay on macOS. A subtree keeps its own choice through the
+`platformProfile` environment value: the landing page pins its prose to macOS and opts the
+phone frame into iOS.
+
 ## Not yet covered
 
 Sheets, date pickers, the `Menu` button, progress views, tab bars, footers and list selection
 looks, the back button and push transition, dark mode colours, the bold trait of the other text
-styles, default control spacing in a `VStack`, and the touch-device default: hosts still start
-in the macOS profile.
+styles, default control spacing in a `VStack`.

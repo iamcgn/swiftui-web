@@ -116,9 +116,30 @@ public final class CanvasHost {
             _ = media.addEventListener?("change", listener)
             closures.append(listener)
         }
+        runtime.hostPlatformProfile = Self.defaultPlatformProfile(window: window, container: container)
         installEventHandlers()
         resize()
         installDebugBridge()
+    }
+
+    /// The look the page starts in: iOS when the primary pointer is coarse (a finger: phones and
+    /// tablets, an iPad with a trackpad included), macOS elsewhere. A page forces either with
+    /// `data-platform="ios"` / `"macos"` on the container or `?platform=` in its URL.
+    static func defaultPlatformProfile(window: JSObject, container: JSObject) -> PlatformProfile {
+        var forced = container.dataset.object?.platform.string
+        if forced == nil, let search = window.location.object?.search.string {
+            for pair in search.dropFirst().split(separator: "&") {
+                let parts = pair.split(separator: "=", maxSplits: 1)
+                if parts.count == 2, parts[0] == "platform" { forced = String(parts[1]) }
+            }
+        }
+        switch forced?.lowercased() {
+        case "ios": return .iOS
+        case "macos": return .macOS
+        default: break
+        }
+        let coarse = window.matchMedia?("(pointer: coarse)").object?.matches.boolean ?? false
+        return coarse ? .iOS : .macOS
     }
 
     /// The catalog `scripts/assets.py --js` published as `window.__swiftuiwebAssets`, or an empty
