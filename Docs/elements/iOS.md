@@ -13,8 +13,8 @@ and `SystemFontMetricsTableIOS.swift`.
 |---|---|---|
 | Default text font | 13 pt system font | `.body` (17 pt, 24.5 pt line, baseline 18) |
 | Text styles | HIG macOS table | HIG iOS table: largeTitle 34 (48.5 line), title 28 (41), title2 22 (32), title3 20 (28), headline 17 semibold, subheadline 15 (21), body 17, callout 16 (24), footnote 13 (18.5), caption 12 (17.5), caption2 11 (16) |
-| Bold trait on `.body` | semibold | semibold (`Bold` measures 37.5, the w600 face) |
-| Default padding, stack spacing | 16, 8 | 16, 8 (text-to-text 2 for body, 8 sideways) |
+| Bold trait | per style (`text/bold-trait`) | bold for largeTitle, title and title2; semibold for every other style, headline included (`ios/text/bold-trait`: the widths of the w600 faces) |
+| Default padding, stack spacing | 16, 8 | 16, 8 (text-to-text 2 for body, 8 sideways); controls keep the plain 8 and let a text's own distances win: 14.54 from a body text (or a borderless button) down to a control, 8.04 from a control up to a text; a toggle or stepper row spaces like a control, not like its label (`ios/layout/controls`) |
 | Button (automatic) | bordered | borderless: body label in the accent colour, red for a destructive role |
 | Bordered / prominent button | 24 pt rounded rect, 13 pt label | 38.5 pt capsule: body label, 12 pt sideways and 7 pt vertical padding; fill black 41/255 (prominent: the accent, white label) |
 | Toggle (automatic) | checkbox | a row filling the proposed width: label leading, switch in a 61 × 28 frame trailing, text baselines at the row's top; hidden label = the switch alone |
@@ -26,6 +26,9 @@ and `SystemFontMetricsTableIOS.swift`.
 | Disabled labels | 30 % | 24 % (52 over 215) |
 | Plain text field, empty | — | 25 pt while only the placeholder shows, 26 with text (`ios/dark/controls` `emptyField`) |
 | List (automatic) | inset rows on white | inset grouped: a (235, 236, 236) ground, each section a white card 16 in with 26 pt continuous corners; rows max(56, content + 30) with content 16 in and centred, 1 pt separators from the content's leading edge to the card's inner edge, none under a card's last row; 35 above a first card without a header; headers in body medium, secondary, 27.5 below the previous card (10 at the top) and 10 above their card; navigation link rows fill the row and end in a 7 × 12 chevron at 30 % |
+| Section footer | 12 pt text | footnote in the secondary colour, 8 below its card in a 21 pt slot (UIKit's label height around the 18.5 pt line, so the footer probes are ignored while the rows around them are checked), the next card 23.5 below the slot (`ios/list/footer`) |
+| ProgressView (linear) | a 20 pt row with an 8 pt pill | a 4 pt accent pill on a (120, 120, 125) 20 % track, no indeterminate segment; a label sits 4 above it in the primary colour (`ios/progress/basic`) |
+| ProgressView (circular) | a 32 pt ring or spinner | always the 20 pt spinner, a value included: eight spokes from 38 % to 12 % black, the darkest pointing left; a label below it in the secondary colour |
 | List (plain) | 8 pt margins | white, rows 56 with content 16 in, separators 16 in; headers 32 below the previous row, 10 above the next |
 | Form | columns | an inset grouped list; a menu picker row keeps its label and puts the value and chevron, in the secondary colour, at the trailing edge; sliders lose their label; text fields are plain |
 | NavigationStack | content-sized; no bar (the window's title) | fills its proposal (`ios/nav/sizing`: 320 × 267.5 above a text in a 300 pt column); each screen under its own bar: 117 pt with the large title (34 pt bold, 20 in, its line 65.5 down) or 64 pt inline (headline, centred), none for an untitled root or a pushed screen with neither title nor back button (`ios/nav/push-noback` fills the stack); a large title takes the list's 35 pt top inset, an inline one does not; `.automatic` on a pushed screen inherits the previous screen's large title (`ios/nav/push`: 117 over the detail) |
@@ -37,7 +40,8 @@ and `SystemFontMetricsTableIOS.swift`.
 Every row above comes from `Fixtures/Goldens/ios/<fixture>/frames.json` and pixels sampled from
 `image@2x.png`: `ios/text/styles`, `ios/layout/basics`, `ios/toggle/basic`, `ios/button/basic`,
 `ios/slider/basic`, `ios/stepper/basic`, `ios/textfield/basic`, `ios/picker/basic`,
-`ios/controls/settings` (the landing page's screen), and 2026-09-05 later `ios/form/basic`,
+`ios/controls/settings` (the landing page's screen), `ios/progress/basic`, `ios/text/bold-trait`,
+`ios/layout/controls`, `ios/list/footer`, and 2026-09-05 later `ios/form/basic`,
 `ios/list/basic`, `ios/list/plain`, `ios/nav/basic`, `ios/nav/inline`, `ios/nav/sizing` and the
 behaviour fixtures `ios/nav/push`, `ios/nav/push-inline`, `ios/nav/push-noback` (a push and a pop
 through the path binding; the Catalyst host waits a second after each step so the goldens hold
@@ -93,7 +97,6 @@ phone frame into iOS.
 
 ## Not yet covered
 
-Sheets, date pickers, the `Menu` button, progress views, tab bars, footers and list selection
-looks, the swipe back and the title/back button crossfade of a push, the large title collapsing
-as a list scrolls, the bold trait of the other text styles, default control spacing in a
-`VStack`.
+Sheets, date pickers, the `Menu` button, tab bars, list selection looks, a footer followed by
+a header, the swipe back and the title/back button crossfade of a push, the large title
+collapsing as a list scrolls.

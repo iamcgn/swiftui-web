@@ -140,6 +140,7 @@ struct _PlatformToggleBody: View {
                 .frame(maxWidth: .infinity)
                 .alignmentGuide(.firstTextBaseline) { _ in 0 }
                 .alignmentGuide(.lastTextBaseline) { _ in 0 }
+                .modifier(_PlainSpacingModifier())
             }
         } else if switchStyle {
             _SwitchToggleBody(configuration: configuration)

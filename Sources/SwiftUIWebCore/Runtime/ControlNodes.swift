@@ -303,7 +303,9 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
     override package var paintedChildren: [ViewNode] {
         (label?.layoutChildren ?? []) + options.compactMap { style == .menu && !isSelected($0) ? nil : $0.shown }
     }
-    override package var layoutSpacing: ViewSpacing { style == .segmented ? .plainControl : .textLikeControl }
+    override package var layoutSpacing: ViewSpacing {
+        PlatformMetrics.controlsUsePlainSpacing ? ViewSpacing() : style == .segmented ? .plainControl : .textLikeControl
+    }
     override package var structuralChildren: [ViewNode] { [label as ViewNode?, content].compactMap { $0 } + titles }
     override package var nodeDescription: String { "Picker" }
 
@@ -493,7 +495,7 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         CGSize(width: proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? PlatformMetrics.sliderIdealWidth, height: PlatformMetrics.sliderHeight)
     }
-    override package var layoutSpacing: ViewSpacing { .plainControl }
+    override package var layoutSpacing: ViewSpacing { PlatformMetrics.controlsUsePlainSpacing ? ViewSpacing() : .plainControl }
 
     /// Where the knob's centre sits for the current value, in local coordinates.
     private var knobCenterX: CGFloat {
@@ -621,7 +623,7 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive 
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { PlatformMetrics.stepperSize }
-    override package var layoutSpacing: ViewSpacing { .textLikeControl }
+    override package var layoutSpacing: ViewSpacing { PlatformMetrics.controlsUsePlainSpacing ? ViewSpacing() : .textLikeControl }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)

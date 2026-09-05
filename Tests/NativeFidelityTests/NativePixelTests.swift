@@ -44,6 +44,7 @@ enum NativeGoldens {
     static let pixelTolerance = 0.03
     /// Probes Apple reports but nothing reproduces (a hidden tab's stale frame), as in Tier A.
     static let ignoredProbes: [String: Set<String>] = [
+        "ios/list/footer": ["footer", "footer2"],
         "tabview/basic/second": ["first"],
         "splitview/visibility": ["sidebar", "row1", "detail"],
         "splitview/visibility/detailOnly": ["sidebar", "row1", "detail"],

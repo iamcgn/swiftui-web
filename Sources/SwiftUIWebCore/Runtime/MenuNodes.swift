@@ -77,7 +77,7 @@ package final class MenuButtonNode: LayoutNode<_MenuHost>, _Interactive {
         target?.place(at: plan.label.origin, anchor: .topLeading, proposal: ProposedViewSize(plan.label.size), by: self)
     }
 
-    override package var layoutSpacing: ViewSpacing { .textLikeControl }
+    override package var layoutSpacing: ViewSpacing { PlatformMetrics.controlsUsePlainSpacing ? ViewSpacing() : .textLikeControl }
     override package var paintedChildren: [ViewNode] { target.map { [$0] } ?? [] }
     override package var structuralChildren: [ViewNode] { [label] }
     override package var nodeDescription: String { "Menu" }

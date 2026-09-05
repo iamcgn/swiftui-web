@@ -55,14 +55,14 @@ public struct PlatformProfile: Sendable {
         .largeTitle: .init(size: 34, weight: .regular, boldTraitWeight: .bold),
         .title: .init(size: 28, weight: .regular, boldTraitWeight: .bold),
         .title2: .init(size: 22, weight: .regular, boldTraitWeight: .bold),
-        .title3: .init(size: 20, weight: .regular, boldTraitWeight: .bold),
-        .headline: .init(size: 17, weight: .semibold, boldTraitWeight: .heavy),
-        .subheadline: .init(size: 15, weight: .regular, boldTraitWeight: .bold),
+        .title3: .init(size: 20, weight: .regular, boldTraitWeight: .semibold),    // ios/text/bold-trait: 57.5 wide, the w600 face
+        .headline: .init(size: 17, weight: .semibold, boldTraitWeight: .semibold),   // ios/text/bold-trait: 73 wide, the w600 face
+        .subheadline: .init(size: 15, weight: .regular, boldTraitWeight: .semibold),
         .body: .init(size: 17, weight: .regular, boldTraitWeight: .semibold),      // ios/text/styles `bold`: 37.5 wide = the w600 face
-        .callout: .init(size: 16, weight: .regular, boldTraitWeight: .bold),
-        .footnote: .init(size: 13, weight: .regular, boldTraitWeight: .bold),
-        .caption: .init(size: 12, weight: .regular, boldTraitWeight: .bold),
-        .caption2: .init(size: 11, weight: .regular, boldTraitWeight: .bold),
+        .callout: .init(size: 16, weight: .regular, boldTraitWeight: .semibold),    // ios/text/bold-trait: the styles of 16 pt and below
+        .footnote: .init(size: 13, weight: .regular, boldTraitWeight: .semibold),   // resolve their bold trait to semibold
+        .caption: .init(size: 12, weight: .regular, boldTraitWeight: .semibold),
+        .caption2: .init(size: 11, weight: .regular, boldTraitWeight: .semibold),
     ], defaultFont: .body, metrics: .iOS)
 
     /// Whether this is the iOS profile (control nodes branch on it).

@@ -31,7 +31,8 @@ public struct TextInputInfo: Equatable, Sendable {
 @MainActor
 package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     override package var layoutSpacing: ViewSpacing {
-        .control(top: PlatformMetrics.textFieldSpacing, bottom: PlatformMetrics.textFieldSpacing,
+        if PlatformMetrics.controlsUsePlainSpacing { return ViewSpacing() }
+        return .control(top: PlatformMetrics.textFieldSpacing, bottom: PlatformMetrics.textFieldSpacing,
                  belowText: PlatformMetrics.textFieldSpacing, aboveText: PlatformMetrics.textFieldSpacing)
     }
 

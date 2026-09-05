@@ -37,6 +37,7 @@ package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive {
     /// (groupbox/basic `content`), which the text-to-text category expresses (the lower
     /// neighbour's value applies), unlike text fields, which keep the text's distance.
     override package var layoutSpacing: ViewSpacing {
+        if PlatformMetrics.controlsUsePlainSpacing { return ViewSpacing() }
         var spacing = ViewSpacing.control(top: PlatformMetrics.checkboxSpacing, bottom: PlatformMetrics.checkboxSpacing,
                                           belowText: PlatformMetrics.checkboxSpacing, aboveText: PlatformMetrics.checkboxSpacing)
         spacing[.edgeBelowText, .top] = nil

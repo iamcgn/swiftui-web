@@ -47,7 +47,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         var environment = environment
         if let font = profile.rowFont { environment.font = font }
         if let color = profile.rowForeground { environment.foregroundColor = color }
-        environment._sectionStyling = _SectionStyling(font: profile.headerFont ?? .subheadline.weight(.semibold), foreground: .secondary)
+        environment._sectionStyling = _SectionStyling(font: profile.headerFont ?? .subheadline.weight(.semibold), foreground: .secondary, footerFont: profile.footerFont)
         environment._labelIconLayout = _LabelIconLayout(iconWidth: PlatformMetrics.listLabelIconWidth,
                                                         spacing: PlatformMetrics.listLabelIconSpacing, tint: .accentColor)
         environment._inListRow = true
@@ -140,7 +140,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             if index > 0, element.isSectionStart, !iOSLayout { y += PlatformMetrics.listSectionSpacing }
             let contentWidth = width - 2 * profile.margin
             switch element.kind {
-            case .header where iOSLayout, .footer where iOSLayout:
+            case .header where iOSLayout:
                 // iOS: the header text sits `headerTop` below the previous card (`firstHeaderTop` at
                 // the top) and `headerBottom` above its card, inset like a row's content.
                 let top = index == 0 ? profile.firstHeaderTop : profile.headerTop
@@ -148,6 +148,15 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 element.contentFrame = CGRect(x: profile.margin + profile.contentInset, y: y + top,
                                               width: min(size.width, contentWidth - 2 * profile.contentInset), height: size.height)
                 element.frame = CGRect(x: 0, y: y, width: width, height: top + size.height + profile.headerBottom)
+                element.separator = false
+            case .footer where iOSLayout:
+                // iOS (ios/list/footer): the footnote text 8 below its card in a 21 pt slot (UIKit's
+                // label height for the 18.5 pt line), the next card 23.5 below the slot.
+                let size = element.node.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+                element.contentFrame = CGRect(x: profile.margin + profile.contentInset, y: y + PlatformMetrics.listGroupedFooterTop,
+                                              width: min(size.width, contentWidth - 2 * profile.contentInset), height: size.height)
+                element.frame = CGRect(x: 0, y: y, width: width,
+                                       height: PlatformMetrics.listGroupedFooterTop + max(size.height, PlatformMetrics.listFooterSlotHeight) + PlatformMetrics.listGroupedFooterBottom)
                 element.separator = false
             case .header, .footer:
                 let pad = PlatformMetrics.listSectionHeaderPadding
@@ -347,6 +356,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
 package struct _SectionStyling: Equatable {
     package var font: Font
     package var foreground: Color
+    package var footerFont: Font? = nil
 }
 
 package struct SectionStylingKey: EnvironmentKey {

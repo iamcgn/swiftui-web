@@ -1,0 +1,81 @@
+{
+  "fixture" : "ios\/text\/bold-trait",
+  "frames" : {
+    "body" : {
+      "height" : 24.5,
+      "width" : 42.5,
+      "x" : 77,
+      "y" : 287.25
+    },
+    "callout" : {
+      "height" : 24,
+      "width" : 56,
+      "x" : 77,
+      "y" : 311.75
+    },
+    "caption" : {
+      "height" : 17.5,
+      "width" : 48,
+      "x" : 77,
+      "y" : 354.25
+    },
+    "caption2" : {
+      "height" : 16,
+      "width" : 55,
+      "x" : 77,
+      "y" : 371.75
+    },
+    "footnote" : {
+      "height" : 18.5,
+      "width" : 59,
+      "x" : 77,
+      "y" : 335.75
+    },
+    "headline" : {
+      "height" : 24.5,
+      "width" : 73,
+      "x" : 77,
+      "y" : 241.75
+    },
+    "largeTitle" : {
+      "height" : 48.5,
+      "width" : 166,
+      "x" : 77,
+      "y" : 92.25
+    },
+    "stack" : {
+      "height" : 295.5,
+      "width" : 166,
+      "x" : 77,
+      "y" : 92.25
+    },
+    "subheadline" : {
+      "height" : 21,
+      "width" : 92,
+      "x" : 77,
+      "y" : 266.25
+    },
+    "title" : {
+      "height" : 41,
+      "width" : 57.5,
+      "x" : 77,
+      "y" : 140.75
+    },
+    "title2" : {
+      "height" : 32,
+      "width" : 63.5,
+      "x" : 77,
+      "y" : 181.75
+    },
+    "title3" : {
+      "height" : 28,
+      "width" : 57.5,
+      "x" : 77,
+      "y" : 213.75
+    }
+  },
+  "size" : {
+    "height" : 480,
+    "width" : 320
+  }
+}

@@ -86,6 +86,9 @@ enum Goldens {
         "splitview/visibility/detailOnly": ["sidebar", "row1", "detail"],
         // Apple's table re-creates the cells of rows a sort moves, and their probes never report.
         "table/sorting/byCount": ["name2", "name3", "count2", "count3"],
+        // UIKit's grouped footer label is 21 tall around an 18.5 pt footnote line (the slot is
+        // laid out at 21; the text inside keeps its line; Docs/elements/iOS.md).
+        "ios/list/footer": ["footer", "footer2"],
     ]
 
     /// Fixtures whose probes are allowed two points: Catalyst lays list rows out with UIKit

@@ -194,6 +194,8 @@ public struct _ListProfile: Equatable, Sendable {
     package var firstHeaderTop: CGFloat = 0
     package var headerBottom: CGFloat = 0
     package var headerFont: Font? = nil
+    /// The footers' font when it differs from the headers' (iOS: footnote).
+    package var footerFont: Font? = nil
     package var linkChevron = false
 
     /// The iOS look of a style: inset grouped cards for every style but plain.
@@ -205,14 +207,14 @@ public struct _ListProfile: Equatable, Sendable {
                                 separatorTrailing: 0, rowBackgroundExtendsToEdges: true, rowPadding: m.listGroupedRowPadding,
                                 contentInset: m.listPlainContentInset, cards: false, cardCornerRadius: 0, headerTop: m.listPlainHeaderTop,
                                 firstHeaderTop: m.listPlainHeaderTop, headerBottom: m.listGroupedHeaderBottom,
-                                headerFont: .body.weight(.medium), linkChevron: true)
+                                headerFont: .body.weight(.medium), footerFont: .footnote, linkChevron: true)
         }
         return _ListProfile(name: "insetGrouped", margin: m.listGroupedMargin, topInset: m.listGroupedTopInset, minimumRowHeight: m.listGroupedRowHeight,
                             rowFont: nil, rowForeground: nil, background: Color(storage: .system(.groupedBackground)), borderColor: nil,
                             showsSeparators: true, separatorTrailing: m.listGroupedMargin + m.listGroupedContentInset, rowBackgroundExtendsToEdges: false,
                             rowPadding: m.listGroupedRowPadding, contentInset: m.listGroupedContentInset, cards: true,
                             cardCornerRadius: m.listGroupedCornerRadius, headerTop: m.listGroupedHeaderTop, firstHeaderTop: m.listGroupedFirstHeaderTop,
-                            headerBottom: m.listGroupedHeaderBottom, headerFont: .body.weight(.medium), linkChevron: true)
+                            headerBottom: m.listGroupedHeaderBottom, headerFont: .body.weight(.medium), footerFont: .footnote, linkChevron: true)
     }
 }
 

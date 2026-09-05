@@ -1,0 +1,45 @@
+{
+  "fixture" : "ios\/list\/footer",
+  "frames" : {
+    "footer" : {
+      "height" : 21,
+      "width" : 45,
+      "x" : 32,
+      "y" : 108.5
+    },
+    "footer2" : {
+      "height" : 21,
+      "width" : 35,
+      "x" : 32,
+      "y" : 217
+    },
+    "header" : {
+      "height" : 24.5,
+      "width" : 37,
+      "x" : 32,
+      "y" : 10
+    },
+    "list" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 24.5,
+      "width" : 44.5,
+      "x" : 32,
+      "y" : 60.25
+    },
+    "row2" : {
+      "height" : 24.5,
+      "width" : 52,
+      "x" : 32,
+      "y" : 168.75
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

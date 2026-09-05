@@ -10,13 +10,13 @@ package final class ProgressBarNode: LeafNode<_ProgressBar> {
         return CGSize(width: width, height: PlatformMetrics.progressRowHeight)
     }
 
-    override package var layoutSpacing: ViewSpacing { .plainControl }
+    override package var layoutSpacing: ViewSpacing { PlatformMetrics.controlsUsePlainSpacing ? ViewSpacing() : .plainControl }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
         let height = PlatformMetrics.progressBarHeight
         let track = CGRect(x: bounds.minX, y: bounds.midY - height / 2, width: bounds.width, height: height)
-        list.append(.fillRRect(track, cornerRadius: height / 2, environment._ink(PlatformMetrics.progressTrackAlpha)))
+        list.append(.fillRRect(track, cornerRadius: height / 2, PlatformMetrics.progressTrackColor ?? environment._ink(PlatformMetrics.progressTrackAlpha)))
         let fillWidth: CGFloat
         if let fraction = view.fraction {
             fillWidth = (track.width * CGFloat(fraction)).rounded()
@@ -24,8 +24,9 @@ package final class ProgressBarNode: LeafNode<_ProgressBar> {
             fillWidth = PlatformMetrics.progressIndeterminateSegment
         }
         guard fillWidth > 0 else { return }
-        list.append(.fillRRect(CGRect(x: track.minX, y: track.minY, width: max(fillWidth, height), height: height), cornerRadius: height / 2,
-                               environment._isDark ? PlatformMetrics.progressFillDark : environment._ink(PlatformMetrics.progressFillAlpha)))
+        let fill = PlatformMetrics.progressFillsWithAccent ? Color.accentColor.resolve(in: environment)
+            : environment._isDark ? PlatformMetrics.progressFillDark : environment._ink(PlatformMetrics.progressFillAlpha)
+        list.append(.fillRRect(CGRect(x: track.minX, y: track.minY, width: max(fillWidth, height), height: height), cornerRadius: height / 2, fill))
     }
 }
 

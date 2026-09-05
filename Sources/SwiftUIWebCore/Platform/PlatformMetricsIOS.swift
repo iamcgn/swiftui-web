@@ -71,6 +71,20 @@ extension PlatformMetricsTable {
         t.segmentedTextTop = 7
         // Lists and forms: inset grouped cards on a grey ground, 56 pt rows (ios/list/basic, ios/form/basic).
         t.listRowMinimumHeight = 56
+        t.controlsUsePlainSpacing = true                                // ios/layout/controls
+        // ProgressView (ios/progress/basic): a 4 pt accent bar on a (120, 120, 125) 20 % track, no
+        // indeterminate segment, the label 4 above; the circular style is the 20 pt spinner even
+        // with a value, its label below in the secondary colour.
+        t.progressRowHeight = 4
+        t.progressBarHeight = 4
+        t.progressTrackColor = RGBA(r: 120, g: 120, b: 125, a: 51.0 / 255)
+        t.progressFillsWithAccent = true
+        t.progressIndeterminateSegment = 0
+        t.progressLabelSpacing = 4
+        t.progressCircularIsSpinner = true
+        t.progressRingRegularDiameter = 20
+        t.spinnerMaxAlpha = 98.0 / 255
+        t.spinnerMinAlpha = 30.0 / 255
         t.listSeparatorAlpha = 25.0 / 255
         return t
     }()

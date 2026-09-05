@@ -231,7 +231,7 @@ package struct _LinearProgress {
 
 extension _LinearProgress: View {
     package var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: PlatformMetrics.progressLabelSpacing) {
             if let label = configuration.label { label }
             _ProgressBar(fraction: configuration.fractionCompleted)
             if let value = configuration.currentValueLabel { value.foregroundColor(.secondary) }
@@ -249,7 +249,8 @@ package struct _CircularProgress {
 extension _CircularProgress: View {
     package var body: some View {
         VStack {
-            _ProgressRing(fraction: configuration.fractionCompleted, diameter: PlatformMetrics.progressRingDiameter(controlSize))
+            _ProgressRing(fraction: PlatformMetrics.progressCircularIsSpinner ? nil : configuration.fractionCompleted,
+                          diameter: PlatformMetrics.progressRingDiameter(controlSize))
             if let label = configuration.label { label.foregroundColor(.secondary) }
             if let value = configuration.currentValueLabel { value.foregroundColor(.secondary) }
         }

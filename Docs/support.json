@@ -291,10 +291,11 @@
         {
           "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:)",
           "status": "partial",
-          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals",
+          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic)",
           "fixtures": [
             "progress/basic",
-            "progress/indeterminate"
+            "progress/indeterminate",
+            "ios/progress/basic"
           ]
         },
         {
@@ -1095,7 +1096,7 @@
         {
           "api": "environment(\\.platformProfile, .iOS) / PlatformProfile / Runtime.hostPlatformProfile / navigationBarTitleDisplayMode",
           "status": "partial",
-          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Open: sheets, date pickers, menus, progress views, tab bars, the large title collapsing on scroll",
+          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Progress views, the bold trait per style, control spacing and list footers too. Open: sheets, date pickers, menus, tab bars, the large title collapsing on scroll",
           "fixtures": [
             "ios/text/styles",
             "ios/layout/basics",
@@ -1122,7 +1123,11 @@
             "ios/dark/list",
             "ios/dark/list-plain",
             "ios/dark/form",
-            "ios/dark/nav"
+            "ios/dark/nav",
+            "ios/progress/basic",
+            "ios/text/bold-trait",
+            "ios/layout/controls",
+            "ios/list/footer"
           ]
         }
       ]

@@ -85,7 +85,7 @@ package final class SectionNode<Parent: View, Content: View, Footer: View>:
                    environment: context.environment)
         header = Parent._makeNode(_NodeContext(view: context.view.header, parent: self, environment: Self.headerEnvironment(context.environment)))
         content = Content._makeNode(_NodeContext(view: context.view.content, parent: self, environment: context.environment))
-        footer = Footer._makeNode(_NodeContext(view: context.view.footer, parent: self, environment: Self.headerEnvironment(context.environment)))
+        footer = Footer._makeNode(_NodeContext(view: context.view.footer, parent: self, environment: Self.headerEnvironment(context.environment, footer: true)))
     }
 
     override package func update(view: Section<Parent, Content, Footer>, environment: EnvironmentValues, force: Bool) {
@@ -94,14 +94,14 @@ package final class SectionNode<Parent: View, Content: View, Footer: View>:
         clearNeedsUpdate()
         header.update(view: view.header, environment: Self.headerEnvironment(environment), force: force)
         content.update(view: view.content, environment: environment, force: force)
-        footer.update(view: view.footer, environment: Self.headerEnvironment(environment), force: force)
+        footer.update(view: view.footer, environment: Self.headerEnvironment(environment, footer: true), force: force)
     }
 
     /// Inside a `List` the header and footer take the container's styling (`_sectionStyling`).
-    private static func headerEnvironment(_ environment: EnvironmentValues) -> EnvironmentValues {
+    private static func headerEnvironment(_ environment: EnvironmentValues, footer: Bool = false) -> EnvironmentValues {
         guard let styling = environment._sectionStyling else { return environment }
         var styled = environment
-        styled.font = styling.font
+        styled.font = footer ? styling.footerFont ?? styling.font : styling.font
         styled.foregroundColor = styling.foreground
         styled._sectionStyling = nil
         return styled

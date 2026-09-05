@@ -292,7 +292,12 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
     }
     /// A button spaces like a plain view (8 to controls, the text's distance next to text:
     /// form/basic `button` sits 8.15 under a stepper and 4.74 over a text).
-    override package var layoutSpacing: ViewSpacing { ViewSpacing() }
+    /// macOS: a control's plain spacing. iOS: the label's, so a borderless button spaces like
+    /// its text (ios/layout/controls: 14.54 to the bordered button below it); a bordered one
+    /// declares plain spacing itself (`_PlainSpacingModifier`).
+    override package var layoutSpacing: ViewSpacing {
+        PlatformMetrics.controlsUsePlainSpacing ? (target?.layoutSpacing ?? ViewSpacing()) : ViewSpacing()
+    }
     override package var paintedChildren: [ViewNode] { target.map { [$0] } ?? [] }
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "Button" }
@@ -350,4 +355,10 @@ package final class TapGestureNode<Content: View>: UnaryLayoutModifierNode<Conte
         if modifier.count > 1 { recognizer.ended(event(point), inside: inside) } else if inside { modifier.action.run() }
     }
     package var semantics: SemanticsNode { SemanticsNode(role: .button, label: "", frame: frameInRoot, identifier: identifier) }
+}
+
+/// `_PlainSpacingModifier`: transparent for layout, plain spacing outward.
+@MainActor
+package final class PlainSpacingNode<Content: View>: UnaryLayoutModifierNode<Content, _PlainSpacingModifier> {
+    override package func spacing(of target: ViewNode) -> ViewSpacing { ViewSpacing() }
 }

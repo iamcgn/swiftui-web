@@ -174,6 +174,11 @@ extension PlatformMetrics {
     package static var menuSplitChevronTrailing: CGFloat { current.menuSplitChevronTrailing }
     package static var menuSplitChevronStroke: CGFloat { current.menuSplitChevronStroke }
     package static var progressRowHeight: CGFloat { current.progressRowHeight }
+    package static var progressTrackColor: RGBA? { current.progressTrackColor }
+    package static var progressFillsWithAccent: Bool { current.progressFillsWithAccent }
+    package static var progressLabelSpacing: CGFloat { current.progressLabelSpacing }
+    package static var progressCircularIsSpinner: Bool { current.progressCircularIsSpinner }
+    package static var progressRingRegularDiameter: CGFloat { current.progressRingRegularDiameter }
     package static var progressBarHeight: CGFloat { current.progressBarHeight }
     package static var progressBarIdealWidth: CGFloat { current.progressBarIdealWidth }
     package static var progressTrackAlpha: Double { current.progressTrackAlpha }
@@ -371,6 +376,7 @@ extension PlatformMetrics {
     package static var textFieldTextOffset: CGFloat { current.textFieldTextOffset }
     package static var textFieldPlainExtraHeight: CGFloat { current.textFieldPlainExtraHeight }
     package static var textFieldPlainEmptyExtraHeight: CGFloat { current.textFieldPlainEmptyExtraHeight }
+    package static var controlsUsePlainSpacing: Bool { current.controlsUsePlainSpacing }
     package static var textFieldPlainTextOffset: CGFloat { current.textFieldPlainTextOffset }
     package static var textFieldBorderInside: Bool { current.textFieldBorderInside }
     package static var textFieldPlaceholder: RGBA? { current.textFieldPlaceholder }
@@ -392,6 +398,9 @@ extension PlatformMetrics {
     package static var listGroupedTopInset: CGFloat { current.listGroupedTopInset }
     package static var listGroupedHeaderTop: CGFloat { current.listGroupedHeaderTop }
     package static var listGroupedFirstHeaderTop: CGFloat { current.listGroupedFirstHeaderTop }
+    package static var listGroupedFooterTop: CGFloat { current.listGroupedFooterTop }
+    package static var listGroupedFooterBottom: CGFloat { current.listGroupedFooterBottom }
+    package static var listFooterSlotHeight: CGFloat { current.listFooterSlotHeight }
     package static var listGroupedHeaderBottom: CGFloat { current.listGroupedHeaderBottom }
     package static var listPlainHeaderTop: CGFloat { current.listPlainHeaderTop }
     package static var listPlainContentInset: CGFloat { current.listPlainContentInset }

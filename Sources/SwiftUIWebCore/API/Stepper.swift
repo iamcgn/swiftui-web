@@ -55,6 +55,7 @@ public struct Stepper<Label: View>: View {
                 .frame(maxWidth: .infinity)
                 .alignmentGuide(.firstTextBaseline) { _ in 0 }
                 .alignmentGuide(.lastTextBaseline) { _ in 0 }
+                .modifier(_PlainSpacingModifier())   // the row spaces like a control, not its label (ios/layout/controls)
             }
         } else {
             _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),

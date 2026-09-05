@@ -218,6 +218,11 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     // ProgressView (macOS 26.2: fixtures progress/*, Docs/elements/ProgressView.md; the greys of
     // the inactive golden window)
     package var progressRowHeight: CGFloat = 20
+    package var progressTrackColor: RGBA? = nil                        // nil: the ink at progressTrackAlpha
+    package var progressFillsWithAccent = false
+    package var progressLabelSpacing: CGFloat = 0                      // the linear style's label to its bar
+    package var progressCircularIsSpinner = false                      // iOS: the circular style is always the spinner
+    package var progressRingRegularDiameter: CGFloat = 32
     package var progressBarHeight: CGFloat = 8
     package var progressBarIdealWidth: CGFloat = 100                  // unverified: no fixture proposes nothing
     package var progressTrackAlpha = 15.0 / 255
@@ -231,8 +236,8 @@ package final class PlatformMetricsTable: @unchecked Sendable {
         switch size {
         case .mini: return 12          // unverified
         case .small: return 16
-        case .regular: return 32
-        case .large, .extraLarge: return 32   // unverified
+        case .regular: return progressRingRegularDiameter
+        case .large, .extraLarge: return progressRingRegularDiameter   // unverified
         }
     }
     package var spinnerSpokes = 8
@@ -462,6 +467,9 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var textFieldTextOffset: CGFloat = 0
     package var textFieldPlainExtraHeight: CGFloat = 0
     package var textFieldPlainEmptyExtraHeight: CGFloat = 0
+    /// iOS: controls keep the plain 8 pt spacing to their neighbours and let a text's own
+    /// distances win (ios/layout/controls: 14.54 under a body text, 8.04 above one).
+    package var controlsUsePlainSpacing = false
     package var textFieldPlainTextOffset: CGFloat = 0
     package var textFieldBorderInside = false
     package var textFieldPlaceholder: RGBA? = nil
@@ -484,6 +492,9 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listGroupedTopInset: CGFloat = 35                      // above a first card without a header
     package var listGroupedHeaderTop: CGFloat = 27.5                   // card bottom to the next header's text
     package var listGroupedFirstHeaderTop: CGFloat = 10
+    package var listGroupedFooterTop: CGFloat = 8                      // card bottom to the footer text (ios/list/footer)
+    package var listGroupedFooterBottom: CGFloat = 23.5                // the footer slot to the next card
+    package var listFooterSlotHeight: CGFloat = 21                     // UIKit's footer label for an 18.5 pt footnote line
     package var listGroupedHeaderBottom: CGFloat = 10
     package var listPlainHeaderTop: CGFloat = 32
     package var listPlainContentInset: CGFloat = 16

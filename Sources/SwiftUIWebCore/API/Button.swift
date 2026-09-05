@@ -175,6 +175,17 @@ struct _IOSBorderedButtonBody: View {
             .padding(.vertical, metrics.buttonVerticalPadding)
             .background(Capsule().fill(prominent ? (isEnabled ? tint : Color.primary.opacity(0.12)) : metrics.buttonFill)
                             .opacity(configuration.isPressed ? 0.7 : 1))
+            .modifier(_PlainSpacingModifier())
+    }
+}
+
+/// Gives a view the plain 8 pt spacing to its neighbours whatever its content declares (an iOS
+/// bordered button around a text label).
+public struct _PlainSpacingModifier: ViewModifier {
+    package init() {}
+    public typealias Body = Never
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        PlainSpacingNode(context)
     }
 }
 
