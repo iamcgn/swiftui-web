@@ -3433,6 +3433,29 @@ public static let textCase = Fixture("textstyle/case", size: CGSize(width: 260, 
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "textstyle/kerning", file: "Fixtures/Sources/TextStyle/TextStyleFixtures.swift", firstLine: 81, lastLine: 101, declaration: #"""
+/// Kerning and tracking: letters spread or tightened, on the text and through the environment.
+public static let kerning = Fixture("textstyle/kerning", size: CGSize(width: 360, height: 320), content: {
+    VStack(alignment: .leading, spacing: 8) {
+        Text("Hello").probe("plain")
+        Text("Hello").kerning(2).probe("kern2")
+        Text("Hello").tracking(2).probe("track2")
+        Text("Hello").kerning(5).probe("kern5")
+        Text("Hello").kerning(-1).probe("kernNeg")
+        Text("Kerned text").font(.title).kerning(2).probe("titleKern2")
+        Text("Tracked text").font(.title).tracking(2).probe("titleTrack2")
+        HStack(spacing: 10) {
+            Text("Tight").probe("hstackPlain")
+            Text("Tight").kerning(2).probe("hstackKern2")
+            Text("Tight").tracking(2).probe("hstackTrack2")
+        }
+        .probe("row")
+        Text("Hello").kerning(2).probe("viewKerning").environment(\.font, nil)
+        Text("Wrapped kerned words fill the line").kerning(2).frame(width: 160, alignment: .leading).probe("wrapped")
+    }
+    .probe("stack")
+})
+"""#),
         FixtureSource(name: "textstyle/patterns", file: "Fixtures/Sources/TextStyle/TextStyleFixtures.swift", firstLine: 39, lastLine: 50, declaration: #"""
 public static let patterns = Fixture("textstyle/patterns", size: CGSize(width: 260, height: 260)) {
     VStack(alignment: .leading, spacing: 12) {
@@ -8140,7 +8163,30 @@ public enum TextStyleFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [underline, strikethrough, patterns, textCase, baseline]
+    
+    /// Kerning and tracking: letters spread or tightened, on the text and through the environment.
+    public static let kerning = Fixture("textstyle/kerning", size: CGSize(width: 360, height: 320), content: {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Hello").probe("plain")
+            Text("Hello").kerning(2).probe("kern2")
+            Text("Hello").tracking(2).probe("track2")
+            Text("Hello").kerning(5).probe("kern5")
+            Text("Hello").kerning(-1).probe("kernNeg")
+            Text("Kerned text").font(.title).kerning(2).probe("titleKern2")
+            Text("Tracked text").font(.title).tracking(2).probe("titleTrack2")
+            HStack(spacing: 10) {
+                Text("Tight").probe("hstackPlain")
+                Text("Tight").kerning(2).probe("hstackKern2")
+                Text("Tight").tracking(2).probe("hstackTrack2")
+            }
+            .probe("row")
+            Text("Hello").kerning(2).probe("viewKerning").environment(\.font, nil)
+            Text("Wrapped kerned words fill the line").kerning(2).frame(width: 160, alignment: .leading).probe("wrapped")
+        }
+        .probe("stack")
+    })
+
+    public static let all: [Fixture] = [underline, strikethrough, patterns, textCase, baseline, kerning]
 }
 """#,
         "Fixtures/Sources/Timeline/TimelineFixtures.swift": #"""

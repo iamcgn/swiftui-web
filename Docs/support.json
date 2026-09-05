@@ -1011,9 +1011,17 @@
           ]
         },
         {
-          "api": "kerning / tracking / textSelection / textScale",
+          "api": "kerning / tracking (Text and View)",
+          "status": "full",
+          "notes": "The spacing is added after every character including spaces and the last (measured), wrapping uses the spread widths; painted with canvas letterSpacing (Chromium), character by character where the context lacks it (WebKit, Firefox), and CoreText's kern attribute",
+          "fixtures": [
+            "textstyle/kerning"
+          ]
+        },
+        {
+          "api": "textSelection / textScale",
           "status": "missing",
-          "notes": "Not implemented (Phase 6)"
+          "notes": "Not implemented"
         },
         {
           "api": "matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator",
