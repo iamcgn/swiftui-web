@@ -14,7 +14,7 @@ extension Runtime {
     private var hoverTrackingNodes: [ViewNode & _HoverTracking] {
         if hoverNodesGeneration != layoutGeneration {
             hoverNodesGeneration = layoutGeneration
-            hoverNodes = root.layoutChildren.flatMap { $0.collectNodes(where: { $0 is _HoverTracking }) }.compactMap { $0 as? (ViewNode & _HoverTracking) }
+            hoverNodes = ((toolbar?.layoutChildren ?? []) + root.layoutChildren).flatMap { $0.collectNodes(where: { $0 is _HoverTracking }) }.compactMap { $0 as? (ViewNode & _HoverTracking) }
         }
         return hoverNodes
     }

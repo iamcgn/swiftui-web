@@ -129,6 +129,7 @@ extension Runtime {
     package func interactiveNode(at point: CGPoint) -> (ViewNode & _Interactive)? {
         let presented = presentationHit(at: point)
         if presented.handled { return presented.node }
+        if let toolbar, toolbar.frame.contains(point) { return toolbar.interactiveNode(at: point) }
         for node in root.layoutChildren.reversed() {
             let shift = node.hitTestOffset
             let local = CGPoint(x: point.x - node.frame.minX - shift.x, y: point.y - node.frame.minY - shift.y)
@@ -186,7 +187,8 @@ extension Runtime {
     }
 
     package var interactiveNodes: [ViewNode & _Interactive] {
-        root.layoutChildren.flatMap { $0.collectNodes(where: { $0 is _Interactive }) }.compactMap { $0 as? (ViewNode & _Interactive) }
+        (toolbar?.interactiveNodes ?? [])
+            + root.layoutChildren.flatMap { $0.collectNodes(where: { $0 is _Interactive }) }.compactMap { $0 as? (ViewNode & _Interactive) }
             + presentations.flatMap(\.interactiveNodes)
     }
 
@@ -195,6 +197,7 @@ extension Runtime {
     /// (Runtime/AccessibilityNodes.swift).
     public func semanticsTree() -> [SemanticsNode] {
         var result: [SemanticsNode] = []
+        for node in toolbar?.layoutChildren ?? [] { collectSemantics(node, attributes: nil, into: &result) }
         for node in root.layoutChildren { collectSemantics(node, attributes: nil, into: &result) }
         for presentation in presentations {
             for node in presentation.semanticsRoots { collectSemantics(node, attributes: nil, into: &result) }

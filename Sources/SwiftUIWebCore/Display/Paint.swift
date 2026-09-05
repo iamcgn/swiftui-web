@@ -85,6 +85,7 @@ extension Runtime {
         for node in root.layoutChildren {
             node.paint(into: &list, context: context.child(at: node.presentedFrame))
         }
+        toolbar?.paint(into: &list, context: context)
         paintPresentations(into: &list, context: context)
         paintFocusRing(into: &list, context: context)
         paintTooltip(into: &list, context: context)

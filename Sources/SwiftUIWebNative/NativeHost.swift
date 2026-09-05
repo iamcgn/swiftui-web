@@ -16,6 +16,9 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
     public let runtime: Runtime = {
         let runtime = Runtime()
         runtime.paintsWindowBackground = true
+        // The window has its own title bar: the toolbar items are painted, the title is not.
+        runtime.paintsWindowChrome = true
+        runtime.chromeShowsTitle = false
         return runtime
     }()
     public let textEngine = CoreTextEngine()

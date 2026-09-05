@@ -483,6 +483,7 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Hue", defaultFont))
         requests.append(TextMetricRequest("Masked text", defaultFont))
         for word in ["Outside", "Inside", "No pointer", "Help me", "Link", "Text", "Entries: 0"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        for word in ["Taps: 0", "Content below the toolbar"] { requests.append(TextMetricRequest(word, defaultFont)) }
         requests.append(TextMetricRequest("Mask", .system(size: 40, weight: "bold", design: "default")))
         for word in ["Underlined", "Colored", "Hello World", "Second", "Both", "Struck", "Red strike", "Mixed line", "Solid", "Dotted", "Dashed",
                      "Dash dot", "Dash dot dot", "Dash strike", "MIXED CASE", "mixed case", "mixed Case", "Base", "Up", "Down", "Raised"] {

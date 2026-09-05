@@ -57,6 +57,15 @@ public final class Runtime {
     /// their goldens are transparent).
     public var paintsWindowBackground = false
 
+    /// Whether the runtime draws window chrome a browser page lacks: the toolbar
+    /// (`Runtime/ToolbarNodes.swift`). Hosts with a real title bar leave it off or keep the title
+    /// out of the bar (`chromeShowsTitle`).
+    public var paintsWindowChrome = false
+    public var chromeShowsTitle = true
+    package var toolbarSources: [ToolbarSource] = []
+    package var toolbarVisibility: [ToolbarVisibilitySource] = []
+    package var toolbar: ToolbarChromeNode?
+
     // Animation (Runtime/AnimationNodes.swift)
     /// Seconds of animation time, advanced by hosts through `advanceAnimations(elapsed:)`.
     package var animationClock: Double = 0
@@ -222,9 +231,12 @@ public final class Runtime {
         layoutSize = size
         probeFrames.removeAll(keepingCapacity: true)
         root.frame = CGRect(origin: .zero, size: size)
+        layoutToolbar(in: size)
+        let top = toolbar?.frame.height ?? 0
+        let content = CGSize(width: size.width, height: max(0, size.height - top))
         for node in root.layoutChildren {
-            node.place(at: CGPoint(x: size.width / 2, y: size.height / 2), anchor: .center,
-                       proposal: ProposedViewSize(size), by: root)
+            node.place(at: CGPoint(x: content.width / 2, y: top + content.height / 2), anchor: .center,
+                       proposal: ProposedViewSize(content), by: root)
         }
         layoutPresentations(in: size)
         isLayingOut = false

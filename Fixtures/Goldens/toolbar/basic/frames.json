@@ -1,0 +1,27 @@
+{
+  "fixture" : "toolbar\/basic",
+  "frames" : {
+    "content" : {
+      "height" : 16,
+      "width" : 157.5,
+      "x" : 121.25,
+      "y" : 106
+    },
+    "stack" : {
+      "height" : 200,
+      "width" : 400,
+      "x" : 0,
+      "y" : 0
+    },
+    "taps" : {
+      "height" : 16,
+      "width" : 44,
+      "x" : 178,
+      "y" : 78
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 400
+  }
+}

@@ -9588,6 +9588,12 @@
       "lastBaseline" : 13,
       "width" : 48.5
     },
+    "system:13:400:default||Content below the toolbar" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 157.5
+    },
     "system:13:400:default||Copy" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10542,6 +10548,12 @@
       "lastBaseline" : 13,
       "width" : 112
     },
+    "system:13:400:default||Taps: 0" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 44
+    },
     "system:13:400:default||Text" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -11224,6 +11236,12 @@
       "firstBaseline" : 13,
       "height" : 112,
       "lastBaseline" : 109,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Content below the toolbar" : {
+      "firstBaseline" : 13,
+      "height" : 352,
+      "lastBaseline" : 349,
       "width" : 0
     },
     "system:13:400:default|0.0|Copy" : {
@@ -12178,6 +12196,12 @@
       "firstBaseline" : 13,
       "height" : 320,
       "lastBaseline" : 317,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Taps: 0" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|0.0|Text" : {
