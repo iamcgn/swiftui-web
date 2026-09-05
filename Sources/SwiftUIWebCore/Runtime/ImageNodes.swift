@@ -45,8 +45,14 @@ package final class ImageNode: LeafNode<Image> {
         }
     }
 
-    /// The image's size in points, or zero when the name did not resolve.
+    /// The image's size in points, or zero when the name did not resolve. A symbol under
+    /// `redacted(reason: .placeholder)` takes the placeholder's size, the same for every symbol:
+    /// 1.18 × the point size wide and 1.145 × tall, rounded (measured on `redacted/widths`).
     package var pointSize: CGSize {
+        if case .system = view.source, environment._usesPlaceholderLayout {
+            let size = environment._resolvedFont.size
+            return CGSize(width: (size * 1.18).rounded(), height: (size * 1.145).rounded())
+        }
         if let symbolSize { return CGSize(width: symbolSize.width, height: symbolSize.height) }
         return resource?.pointSize(scheme: environment.colorScheme, idiom: environment.assetIdiom) ?? .zero
     }
@@ -85,6 +91,20 @@ package final class ImageNode: LeafNode<Image> {
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
+        if environment._drawsPlaceholders {
+            // A flat square for a symbol (its glyph box, about 3 pt inside the frame), the whole
+            // frame for a catalog image; measured on `redacted/placeholder`.
+            let bounds = absoluteBounds(context)
+            guard bounds.width > 0, bounds.height > 0 else { return }
+            var rect = bounds
+            if case .system = view.source {
+                // The grey square is the point size, centred in the placeholder frame.
+                let side = min(environment._resolvedFont.size, min(bounds.width, bounds.height))
+                rect = CGRect(x: bounds.midX - side / 2, y: bounds.midY - side / 2, width: side, height: side)
+            }
+            list.append(.fillRect(context.absoluteRect(CGRect(x: rect.minX - context.origin.x, y: rect.minY - context.origin.y, width: rect.width, height: rect.height)), environment._placeholderColor))
+            return
+        }
         if case .system = view.source {
             paintSymbol(into: &list, context: context)
             return

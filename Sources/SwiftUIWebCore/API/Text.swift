@@ -479,7 +479,46 @@ package final class TextNode: LeafNode<Text> {
     }
 
     package func textLayout(width: CGFloat?) -> TextLayout {
-        runtime.layoutText(styledRuns.runs, options: layoutOptions, width: width)
+        if environment._usesPlaceholderLayout { return placeholderLayout(width: width) }
+        return runtime.layoutText(styledRuns.runs, options: layoutOptions, width: width)
+    }
+
+    /// The layout under `redacted(reason: .placeholder)`: the same words wrapped at the
+    /// placeholder advances (`_Placeholder`), so line counts and single-line widths match
+    /// SwiftUI's; letter spacing does not apply.
+    package func placeholderLayout(width: CGFloat?) -> TextLayout {
+        let profile = environment.platformProfile
+        let layouter = TextLayouter(measure: { text, font in _Placeholder.width(of: text, font: font) },
+                                    metrics: { profile.systemFontMetrics(for: $0) })
+        let runs = styledRuns.runs.map { StyledRun(String(repeating: _Placeholder.character, count: $0.string.count), font: $0.font) }
+        var layout = layouter.layout(runs, options: layoutOptions.withoutLetterSpacing, width: width)
+        // A wrapped placeholder spans its proposal: every bar but the last runs the full width.
+        if let width, layout.lines.count > 1 { layout.size.width = width }
+        return layout
+    }
+
+    /// Redaction: one bar per line over the line's ink, on the baseline (`_Placeholder`).
+    private func paintPlaceholders(_ layout: TextLayout, runs: [StyledRun], into list: inout DisplayList, context: PaintContext) {
+        let bounds = absoluteBounds(context)
+        let alignment: CGFloat
+        switch environment.multilineTextAlignment {
+        case .leading: alignment = 0
+        case .center: alignment = 0.5
+        case .trailing: alignment = 1
+        }
+        let color = environment._placeholderColor
+        let shiftUp = baselineShift.up
+        // A placeholder layout stretches every wrapped line's bar to the frame; the last line
+        // (and a privacy bar over a plain layout) keeps its own width.
+        let stretched = environment._usesPlaceholderLayout
+        for (index, line) in layout.lines.enumerated() where line.inkWidth > 0 {
+            let width = stretched && index < layout.lines.count - 1 ? frame.width : line.inkWidth
+            let lineX = bounds.minX + (frame.width - width) * alignment
+            let run = line.fragments.first.map { min(max($0.run, 0), max(runs.count - 1, 0)) } ?? 0
+            let font = runs.indices.contains(run) ? runs[run].font : resolvedFont
+            let bar = _Placeholder.bar(lineX: lineX, baseline: bounds.minY + line.baseline + shiftUp, width: width, font: font, profile: environment.platformProfile)
+            list.append(.fillRRect(bar.rect, cornerRadius: bar.radius, color))
+        }
     }
 
     /// Each part's baseline offset (its own, else the environment's).
@@ -516,7 +555,11 @@ package final class TextNode: LeafNode<Text> {
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let (runs, colors) = styledRuns
-        let layout = runtime.layoutText(runs, options: layoutOptions, width: frame.width)
+        let layout = textLayout(width: frame.width)
+        if environment._drawsPlaceholders {
+            paintPlaceholders(layout, runs: runs, into: &list, context: context)
+            return
+        }
         let inherited = (environment.foregroundColor ?? .primary)
         let resolvedColors = colors.map { ($0 ?? inherited).resolve(in: environment) }
         let spacing = TextLayouter.letterSpacing(layoutOptions)

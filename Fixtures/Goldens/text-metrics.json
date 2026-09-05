@@ -6870,6 +6870,12 @@
       "lastBaseline" : 25,
       "width" : 49
     },
+    "style:title||Title" : {
+      "firstBaseline" : 25,
+      "height" : 33,
+      "lastBaseline" : 25,
+      "width" : 41
+    },
     "style:title||Title " : {
       "firstBaseline" : 25,
       "height" : 33,
@@ -7129,6 +7135,12 @@
       "width" : 0
     },
     "style:title|0.0|Tight" : {
+      "firstBaseline" : 25,
+      "height" : 165,
+      "lastBaseline" : 157,
+      "width" : 0
+    },
+    "style:title|0.0|Title" : {
       "firstBaseline" : 25,
       "height" : 165,
       "lastBaseline" : 157,
@@ -9624,6 +9636,12 @@
       "lastBaseline" : 13,
       "width" : 8.5
     },
+    "system:13:400:default||$1,234" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 41.5
+    },
     "system:13:400:default||0" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -9900,6 +9918,12 @@
       "lastBaseline" : 13,
       "width" : 8.5
     },
+    "system:13:400:default||Balance:" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 52
+    },
     "system:13:400:default||Banana" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -9965,6 +9989,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 44.5
+    },
+    "system:13:400:default||Button" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 40.5
     },
     "system:13:400:default||Calendar" : {
       "firstBaseline" : 13,
@@ -10446,6 +10476,12 @@
       "lastBaseline" : 13,
       "width" : 43.5
     },
+    "system:13:400:default||Hidden secret" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 85
+    },
     "system:13:400:default||High" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10481,6 +10517,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 36.5
+    },
+    "system:13:400:default||Invalidated" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 66
     },
     "system:13:400:default||Kerned text" : {
       "firstBaseline" : 13,
@@ -10782,6 +10824,12 @@
       "lastBaseline" : 13,
       "width" : 79.5
     },
+    "system:13:400:default||Plain text stays" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 91.5
+    },
     "system:13:400:default||PM" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10847,6 +10895,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 60.5
+    },
+    "system:13:400:default||Redacted text" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 84.5
     },
     "system:13:400:default||Retry" : {
       "firstBaseline" : 13,
@@ -11160,11 +11214,23 @@
       "lastBaseline" : 13,
       "width" : 25
     },
+    "system:13:400:default||Two lines of redacted text that wrap around inside a narrow frame" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 397.5
+    },
     "system:13:400:default||Underlined" : {
       "firstBaseline" : 13,
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 66.5
+    },
+    "system:13:400:default||Unredacted inside" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 111
     },
     "system:13:400:default||Up" : {
       "firstBaseline" : 13,
@@ -11183,6 +11249,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 68
+    },
+    "system:13:400:default||Visible under privacy" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 126.5
     },
     "system:13:400:default||Visit" : {
       "firstBaseline" : 13,
@@ -11466,6 +11538,12 @@
       "lastBaseline" : 13,
       "width" : 0
     },
+    "system:13:400:default|0.0|$1,234" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
     "system:13:400:default|0.0|0" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -11742,6 +11820,12 @@
       "lastBaseline" : 13,
       "width" : 0
     },
+    "system:13:400:default|0.0|Balance:" : {
+      "firstBaseline" : 13,
+      "height" : 128,
+      "lastBaseline" : 125,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Banana" : {
       "firstBaseline" : 13,
       "height" : 96,
@@ -11803,6 +11887,12 @@
       "width" : 0
     },
     "system:13:400:default|0.0|Bottom" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Button" : {
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
@@ -12288,6 +12378,12 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:400:default|0.0|Hidden secret" : {
+      "firstBaseline" : 13,
+      "height" : 192,
+      "lastBaseline" : 189,
+      "width" : 0
+    },
     "system:13:400:default|0.0|High" : {
       "firstBaseline" : 13,
       "height" : 64,
@@ -12322,6 +12418,12 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Invalidated" : {
+      "firstBaseline" : 13,
+      "height" : 176,
+      "lastBaseline" : 173,
       "width" : 0
     },
     "system:13:400:default|0.0|Kerned text" : {
@@ -12624,6 +12726,12 @@
       "lastBaseline" : 189,
       "width" : 0
     },
+    "system:13:400:default|0.0|Plain text stays" : {
+      "firstBaseline" : 13,
+      "height" : 224,
+      "lastBaseline" : 221,
+      "width" : 0
+    },
     "system:13:400:default|0.0|PM" : {
       "firstBaseline" : 13,
       "height" : 32,
@@ -12688,6 +12796,12 @@
       "firstBaseline" : 13,
       "height" : 144,
       "lastBaseline" : 141,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Redacted text" : {
+      "firstBaseline" : 13,
+      "height" : 192,
+      "lastBaseline" : 189,
       "width" : 0
     },
     "system:13:400:default|0.0|Retry" : {
@@ -13002,10 +13116,22 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|Two lines of redacted text that wrap around inside a narrow frame" : {
+      "firstBaseline" : 13,
+      "height" : 864,
+      "lastBaseline" : 861,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Underlined" : {
       "firstBaseline" : 13,
       "height" : 160,
       "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Unredacted inside" : {
+      "firstBaseline" : 13,
+      "height" : 256,
+      "lastBaseline" : 253,
       "width" : 0
     },
     "system:13:400:default|0.0|Up" : {
@@ -13024,6 +13150,12 @@
       "firstBaseline" : 13,
       "height" : 160,
       "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Visible under privacy" : {
+      "firstBaseline" : 13,
+      "height" : 304,
+      "lastBaseline" : 301,
       "width" : 0
     },
     "system:13:400:default|0.0|Visit" : {
@@ -13247,6 +13379,12 @@
       "height" : 48,
       "lastBaseline" : 45,
       "width" : 196.5
+    },
+    "system:13:400:default|200.0|Two lines of redacted text that wrap around inside a narrow frame" : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 188
     },
     "system:13:400:default|220.0|First line.\nSecond paragraph wraps here as well." : {
       "firstBaseline" : 13,

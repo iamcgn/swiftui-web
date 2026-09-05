@@ -505,6 +505,13 @@ public enum TextMetricsRequests {
         }
         requests.append(TextMetricRequest("Wrapped kerned words fill the line", defaultFont, width: 160, options: TextMetricOptions(kerning: 2)))
         requests.append(TextMetricRequest("Wrapped kerned words fill the line", defaultFont, width: 160))
+        // Redaction: the fixture strings (layout is unchanged by redaction).
+        for word in ["Plain text stays", "Redacted text", "Button", "Toggle", "Unredacted inside", "Secret", "Visible under privacy", "Hidden secret", "Balance:", "$1,234", "Invalidated"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+        }
+        requests.append(TextMetricRequest("Title", .style("title")))
+        requests.append(TextMetricRequest("Two lines of redacted text that wrap around inside a narrow frame", defaultFont, width: 200))
+        requests.append(TextMetricRequest("Two lines of redacted text that wrap around inside a narrow frame", defaultFont))
         // Height pressure (Phase 6): the paragraph at the fixture widths with every line count.
         for width: CGFloat in [110, 150] {
             requests.append(TextMetricRequest(paragraph, defaultFont, width: width))

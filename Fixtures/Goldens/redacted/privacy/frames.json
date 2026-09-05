@@ -1,0 +1,45 @@
+{
+  "fixture" : "redacted\/privacy",
+  "frames" : {
+    "amount" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 178.75,
+      "y" : 86
+    },
+    "invalidated" : {
+      "height" : 16,
+      "width" : 66,
+      "x" : 116.75,
+      "y" : 114
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 103.5,
+      "x" : 116.75,
+      "y" : 86
+    },
+    "secret" : {
+      "height" : 16,
+      "width" : 85,
+      "x" : 116.75,
+      "y" : 58
+    },
+    "stack" : {
+      "height" : 100,
+      "width" : 126.5,
+      "x" : 116.75,
+      "y" : 30
+    },
+    "visible" : {
+      "height" : 16,
+      "width" : 126.5,
+      "x" : 116.75,
+      "y" : 30
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 360
+  }
+}
