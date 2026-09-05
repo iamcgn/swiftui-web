@@ -33,12 +33,13 @@ extension App {
     /// (CLIs) lays it out headlessly once and returns.
     public static func main() {
         #if os(WASI)
-        CanvasHost.launch { Self._rootView() }
+        CanvasHost.launch(windows: Self._windows()) { Self._rootView() }
         #elseif canImport(AppKit)
-        NativeHost.launch { Self._rootView() }
+        NativeHost.launch(windows: Self._windows()) { Self._rootView() }
         #else
         MainActor.assumeIsolated {
             let runtime = Runtime()
+            runtime.installWindows(Self._windows())
             runtime.mount(Self._rootView())
             runtime.layout(in: CGSize(width: 800, height: 600))
             print("SwiftUIWeb: no window host on this platform; laid out \(Self.self) headlessly.")

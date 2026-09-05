@@ -84,6 +84,10 @@ public final class Runtime {
 
     /// Sheets, popovers, alerts and menus over the window, bottom to top (Runtime/PresentationNodes.swift).
     package var presentations: [PresentationNode] = []
+    /// Window scenes and the secondary windows opened from them (Runtime/WindowNodes.swift).
+    package var windowDescriptors: [_WindowDescriptor] = []
+    package var openWindows: [OpenWindow] = []
+    package var nextWindowIdentity = 1
     /// Drag and drop (Runtime/DragDropNodes.swift): the drag in progress and the source a press may lift.
     package var dragSession: DragSession?
     package var pendingDrag: (source: ViewNode & _DragSource, start: CGPoint)?

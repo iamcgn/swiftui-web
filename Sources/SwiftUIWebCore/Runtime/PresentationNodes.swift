@@ -34,8 +34,16 @@ package final class PresentationNode: ViewNode {
     package var isModal: Bool {
         switch kind {
         case .sheet, .alert: return true
-        case .popover, .menu, .submenu: return false
+        case .popover, .menu, .submenu, .window: return false
         }
+    }
+
+    /// Secondary windows: the title bar above the content and the close button in it.
+    package static let windowTitleBarHeight: CGFloat = 28
+    package static let windowCornerRadius: CGFloat = 10
+    package static let windowCascade: CGFloat = 24
+    package var closeButtonFrame: CGRect {
+        CGRect(x: panel.minX + 13, y: panel.minY + (Self.windowTitleBarHeight - 12) / 2, width: 12, height: 12)
     }
 
     /// Removes the presentation and resets its binding.
@@ -96,6 +104,29 @@ package final class PresentationNode: ViewNode {
             if origin.y + size.height > window.height { origin.y = max(0, source.minY - PlatformMetrics.menuGap - size.height) }
             panel = CGRect(origin: origin, size: size)
             arrow = nil
+        case .window(_, let defaultSize):
+            // Content-sized (or the scene's default size), clamped to the window with a margin,
+            // centred and cascaded by the number of windows already open.
+            let margin = PlatformMetrics.sheetMargin
+            let bar = Self.windowTitleBarHeight
+            let available = CGSize(width: max(0, window.width - 2 * margin), height: max(0, window.height - 2 * margin - bar))
+            var size: CGSize
+            if let defaultSize {
+                size = CGSize(width: min(defaultSize.width, available.width), height: min(defaultSize.height, available.height))
+            } else {
+                let natural = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+                size = CGSize(width: min(natural.width + 2 * padding, available.width), height: min(natural.height + 2 * padding, available.height))
+            }
+            let index = runtime.presentations.filter { $0.kind.isWindow }.firstIndex { $0 === self } ?? 0
+            let cascade = CGFloat(index) * Self.windowCascade
+            var origin = CGPoint(x: ((window.width - size.width) / 2 + cascade).rounded(), y: ((window.height - size.height - bar) / 2 + cascade).rounded())
+            origin.x = min(max(margin, origin.x), max(margin, window.width - size.width - margin))
+            origin.y = min(max(margin, origin.y), max(margin, window.height - size.height - bar - margin))
+            panel = CGRect(x: origin.x, y: origin.y, width: size.width, height: size.height + bar)
+            arrow = nil
+            contentFrame = CGRect(x: panel.minX + padding, y: panel.minY + bar + padding, width: size.width - 2 * padding, height: size.height - 2 * padding)
+            target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(contentFrame.size), by: runtime.root)
+            return
         case .submenu:
             // Beside the parent row, its first item level with the row; flipped to the left
             // when it would overflow.
@@ -120,7 +151,7 @@ package final class PresentationNode: ViewNode {
             list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: runtime.layoutSize)), RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.presentationDimAlpha)))
         }
         let rect = context.absoluteRect(panel)
-        let radius = kind.isMenu ? PlatformMetrics.menuCornerRadius : PlatformMetrics.presentationCornerRadius
+        let radius = kind.isMenu ? PlatformMetrics.menuCornerRadius : kind.isWindow ? Self.windowCornerRadius : PlatformMetrics.presentationCornerRadius
         // A soft shadow ring, then the panel and its border.
         list.append(.fillRRect(rect.insetBy(dx: -2, dy: -2), cornerRadius: radius + 2, black(PlatformMetrics.presentationShadowAlpha)))
         list.append(.fillRRect(rect, cornerRadius: radius, environment._windowBackground))
@@ -139,6 +170,29 @@ package final class PresentationNode: ViewNode {
             }
             path.closeSubpath()
             list.append(.fillPath(path, environment._windowBackground))
+        }
+        if case .window(let title, _) = kind {
+            // The title bar: a hairline under it, the traffic lights, the title centred.
+            let bar = CGRect(x: panel.minX, y: panel.minY, width: panel.width, height: Self.windowTitleBarHeight)
+            let separator = context.absoluteRect(CGRect(x: bar.minX, y: bar.maxY - 0.5, width: bar.width, height: 0.5))
+            list.append(.fillRect(separator, black(0.1)))
+            let lights: [RGBA] = [RGBA(r: 255, g: 95, b: 87), RGBA(r: 254, g: 188, b: 46), RGBA(r: 40, g: 200, b: 64)]
+            for (i, color) in lights.enumerated() {
+                let dot = CGRect(x: closeButtonFrame.minX + CGFloat(i) * 20, y: closeButtonFrame.minY, width: 12, height: 12)
+                list.append(.fillPath(Path(ellipseIn: context.absoluteRect(dot)), color))
+            }
+            if let title, !title.isEmpty {
+                let font = Font.system(size: 13, weight: .semibold).resolve(profile: environment.platformProfile)
+                let layout = runtime.layoutText(title, font: font, width: nil)
+                let x = bar.midX - layout.size.width / 2
+                let y = bar.minY + (Self.windowTitleBarHeight - layout.size.height) / 2 + layout.firstBaseline
+                let color = environment._ink(0.85)
+                for line in layout.lines {
+                    for fragment in line.fragments where !fragment.text.isEmpty {
+                        list.append(.drawText(fragment.text, DisplayFont(font), origin: context.absoluteRect(CGRect(x: x + fragment.x, y: y, width: 0, height: 0)).origin, color))
+                    }
+                }
+            }
         }
         if let highlightedIndex, kind.isMenu {
             let rows = interactiveNodes
@@ -183,10 +237,14 @@ package final class PresentationNode: ViewNode {
     /// The interactive node under `point` (window coordinates), if inside the panel.
     package func interactiveNode(at point: CGPoint) -> (ViewNode & _Interactive)? {
         guard panel.contains(point), let target else { return nil }
+        if kind.isWindow, closeButtonFrame.insetBy(dx: -4, dy: -4).contains(point) { return closeButton }
         let local = CGPoint(x: point.x - target.frame.minX, y: point.y - target.frame.minY)
         guard target.contains(local) else { return nil }
         return target.hitTest(local, where: { $0 is _Interactive }) as? (ViewNode & _Interactive)
     }
+
+    /// The traffic-light close control of a secondary window.
+    private lazy var closeButton: WindowCloseButton = WindowCloseButton(presentation: self)
 
     package var interactiveNodes: [ViewNode & _Interactive] {
         (target?.collectNodes(where: { $0 is _Interactive }) ?? []).compactMap { $0 as? (ViewNode & _Interactive) }
@@ -249,9 +307,18 @@ extension Runtime {
     /// be searched.
     package func presentationHit(at point: CGPoint) -> (node: (ViewNode & _Interactive)?, handled: Bool) {
         for presentation in presentations.reversed() {
-            if let hit = presentation.interactiveNode(at: point) { return (hit, true) }
+            if let hit = presentation.interactiveNode(at: point) {
+                if presentation.kind.isWindow, presentations.last !== presentation {
+                    presentations.removeAll { $0 === presentation }
+                    presentations.append(presentation)
+                    setNeedsDisplay()
+                }
+                return (hit, true)
+            }
             if presentation.panel.contains(point) { return (nil, true) }
             if presentation.isModal { return (nil, true) }
+            // A press beside a window leaves it open and goes on to what is under it.
+            if presentation.kind.isWindow { continue }
             presentation.dismiss()
             // A press outside a submenu closes it and goes on to its parent menu.
             if presentation.kind == .submenu { continue }
@@ -299,4 +366,22 @@ package final class PresentationSyncNode<Content: View>: UnaryLayoutModifierNode
         presented = nil
         super.unmount()
     }
+}
+
+/// The close control in a secondary window's title bar.
+@MainActor
+package final class WindowCloseButton: ViewNode, _Interactive {
+    private weak var owner: PresentationNode?
+
+    package init(presentation: PresentationNode) {
+        self.owner = presentation
+        super.init(parent: presentation, runtime: presentation.runtime, environment: presentation.environment)
+    }
+
+    package func pressBegan() {}
+    package func pressEnded(inside: Bool) { if inside { owner?.dismiss() } }
+    package var semantics: SemanticsNode {
+        SemanticsNode(role: .button, label: "Close", frame: owner?.closeButtonFrame ?? .zero, identifier: ObjectIdentifier(self).hashValue)
+    }
+    override package var nodeDescription: String { "WindowClose" }
 }

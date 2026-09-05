@@ -40,7 +40,8 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
     }
 
     /// Runs the application with `root` as the window's content. Never returns.
-    public static func launch(size: CGSize = CGSize(width: 800, height: 600), _ root: @escaping @MainActor () -> AnyView) -> Never {
+    public static func launch(size: CGSize = CGSize(width: 800, height: 600), windows: [_WindowDescriptor] = [],
+                              _ root: @escaping @MainActor () -> AnyView) -> Never {
         let environment = ProcessInfo.processInfo.environment
         var windowSize = size
         if let text = environment["SWIFTUIWEB_SIZE"], let x = text.firstIndex(of: "x"),
@@ -50,6 +51,7 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
         let app = NSApplication.shared
         app.setActivationPolicy(.regular)
         let host = NativeHost(size: windowSize, root: root)
+        host.runtime.installWindows(windows)
         app.delegate = host
         app.run()
         exit(0)

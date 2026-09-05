@@ -39,8 +39,11 @@ public enum _PresentationKind: Sendable, Equatable {
     case menu
     /// A menu beside the row of a parent menu.
     case submenu
+    /// A secondary window (`openWindow`): a floating panel with a title bar, non-modal.
+    case window(title: String?, size: CGSize?)
 
     package var isMenu: Bool { self == .menu || self == .submenu }
+    package var isWindow: Bool { if case .window = self { return true } else { return false } }
 }
 
 /// Where a popover attaches to its source view.

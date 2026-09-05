@@ -28,9 +28,10 @@ public final class CanvasHost {
     private var frameClosure: JSClosure?
 
     /// Installs the JavaScript event loop, creates a host in `#app` (or `<body>`) and mounts.
-    public static func launch(_ root: @MainActor () -> AnyView) {
+    public static func launch(windows: [_WindowDescriptor] = [], _ root: @MainActor () -> AnyView) {
         JavaScriptEventLoop.installGlobalExecutor()
         let host = CanvasHost()
+        host.runtime.installWindows(windows)
         host.mount(root())
         retained = host
     }
