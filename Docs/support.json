@@ -585,7 +585,15 @@
           ]
         },
         {
-          "api": "Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:) / AsyncImage",
+          "api": "AsyncImage (url:scale:, content/placeholder, phases)",
+          "status": "partial",
+          "notes": "Loads through the host (browser Image elements, native Data(contentsOf:)); phases from the runtime's loader, re-evaluated when a load finishes; nil URLs stay empty as measured; no cancellation or phase animation (Docs/elements/AsyncImage.md)",
+          "fixtures": [
+            "asyncimage/phases"
+          ]
+        },
+        {
+          "api": "Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:)",
           "status": "missing",
           "notes": "No CGImage/NSImage on wasm"
         },
@@ -608,11 +616,6 @@
             "dark/controls",
             "dark/list"
           ]
-        },
-        {
-          "api": "AsyncImage / Image(nsImage:) / Image(cgImage:)",
-          "status": "missing",
-          "notes": "Only asset-catalog images and SF Symbol stand-ins are drawn"
         },
         {
           "api": "toolbar / ToolbarItem / ToolbarItemGroup / ToolbarItemPlacement / toolbar(_:for:)",

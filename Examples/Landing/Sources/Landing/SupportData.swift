@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 93, .stub: 6, .full: 16, .approximate: 3, .missing: 10]
+    static let counts: [SupportStatus: Int] = [.partial: 94, .stub: 6, .full: 16, .approximate: 3, .missing: 9]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -140,10 +140,10 @@ partial	ScrollView (axes, showsIndicators) / ScrollViewReader / ScrollViewProxy.
 partial	Image(_:bundle:) / Image(decorative:bundle:) / Image(_:bundle:label:) from asset catalogs	scripts/assets.py reads *.xcassets into a manifest (decision 0011): image sets with 1x/2x/3x, mac/universal idiom, light/dark appearance, folder namespaces, template intent; PNG/JPEG/GIF. Rigid at pixels ÷ scale; missing name is 0 × 0. Tier A exact; Tier B exact frames in Chromium, WebKit and Firefox. Open: PDF/SVG sets, slicing metadata, dark-appearance goldens, bundle: ignored (absent on wasm)	3
 partial	Image.resizable(capInsets:resizingMode:) / renderingMode / interpolation / antialiased	Stretch, nine-part stretch, tile and nine-part tile; template tint from the foreground style; interpolation(.none) is nearest neighbour, other levels smooth; antialiased stored only. Cap insets with .tile draw all nine parts where AppKit drops the bottom row (1.6 % pixels in image/tiling)	3
 partial	Image(systemName:) / Image.Scale / imageScale(_:) / View.fontWeight / View.bold	Measured SF Symbol layout (240 symbols at the text-style sizes, 13 pt weights and image scales; scaled elsewhere) with Lucide icons (ISC) standing in for the glyphs, 1551 names; no rendering modes, variants or effects	2
-missing	Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:) / AsyncImage	No CGImage/NSImage on wasm	0
+partial	AsyncImage (url:scale:, content/placeholder, phases)	Loads through the host (browser Image elements, native Data(contentsOf:)); phases from the runtime's loader, re-evaluated when a load finishes; nil URLs stay empty as measured; no cancellation or phase animation (Docs/elements/AsyncImage.md)	1
+missing	Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:)	No CGImage/NSImage on wasm	0
 partial	Color(_:bundle:) from asset catalog colour sets	sRGB components in float, hex and integer spellings; the light or dark variant per environment.colorScheme. Display P3 components are used as sRGB. A missing name is clear (assumed)	2
 partial	ColorScheme / colorScheme environment / preferredColorScheme / dark appearance	Measured dark tables for system colours, labels, link and accent; controls draw with a scheme-aware ink and background; hosts follow the system appearance and preferredColorScheme takes the window. Sidebars, panels, colour picker and gauge chrome unverified in dark (Docs/elements/DarkMode.md)	4
-missing	AsyncImage / Image(nsImage:) / Image(cgImage:)	Only asset-catalog images and SF Symbol stand-ins are drawn	0
 partial	toolbar / ToolbarItem / ToolbarItemGroup / ToolbarItemPlacement / toolbar(_:for:)	Items collected on the runtime; hosts that paint window chrome draw a 52 pt bar (measured on a macOS window) with the title and 36 pt capsule platters, leading/principal/trailing by placement; toolbarBackground/toolbarRole accepted without effect; no customisation. Goldens hold the content alone since the bar is window chrome (Docs/elements/Toolbar.md)	1
 partial	searchable(text:placement:prompt:) / isSearching / dismissSearch / searchSuggestions	A search field at the trailing end of the window toolbar when the host paints chrome (a magnifier and a plain text field in a 36 pt capsule, as macOS puts it in the toolbar); the query edits the binding, isSearching follows the query, suggestions accepted without effect; no scopes or tokens (Docs/elements/Toolbar.md)	1
 missing	Chart (Swift Charts) / Map / VideoPlayer / WebView	Separate frameworks, not part of the SwiftUI module yet	0
