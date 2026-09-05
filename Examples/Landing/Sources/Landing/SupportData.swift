@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-05"
-    static let counts: [SupportStatus: Int] = [.partial: 99, .stub: 6, .full: 18, .approximate: 3, .missing: 6]
+    static let counts: [SupportStatus: Int] = [.partial: 100, .stub: 6, .full: 18, .approximate: 3, .missing: 5]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -206,6 +206,6 @@ partial	draggable / dropDestination / Transferable (Proxy, Codable, Data represe
 missing	onDrag / onDrop (NSItemProvider) / DropDelegate / pasteboard (copyable, pasteDestination, PasteButton)	Not implemented	0
 partial	redacted(reason:) / RedactionReasons / privacySensitive / unredacted	Measured placeholders: text lays out one placeholder advance per character (spaces included, per-size advances, character wrapping) under cap-height bars on the baseline; symbols take the measured placeholder frame with a point-size square; privacy bars sit on the plain layout of privacySensitive content; invalidated draws as is. Catalog images are approximate (Docs/elements/Redaction.md)	3
 partial	symbolVariant / SymbolVariants / symbolRenderingMode / SymbolRenderingMode	Variants resolve to the named variant symbol with SwiftUI's frames (measured); rendering modes and multi-style foregrounds are accepted, the single-layer stand-ins keep the first colour (Docs/elements/Image.md)	1
-missing	symbolEffect	SF Symbols are Lucide stand-ins; symbol effects are not implemented	0
+partial	symbolEffect (pulse, scale, variableColor, bounce, wiggle, rotate, breathe; isActive and value forms) / SymbolEffectOptions / symbolEffectsRemoved	Whole-symbol motion on the animation clock: indefinite effects while active, discrete ones per value change with repeat and speed options; the stand-in glyphs have one layer, so by-layer and variable-colour layers are approximated; appear/disappear/replace accepted as plain transitions (Docs/elements/SymbolEffect.md)	0
 """
 }

@@ -1075,9 +1075,9 @@
           ]
         },
         {
-          "api": "symbolEffect",
-          "status": "missing",
-          "notes": "SF Symbols are Lucide stand-ins; symbol effects are not implemented"
+          "api": "symbolEffect (pulse, scale, variableColor, bounce, wiggle, rotate, breathe; isActive and value forms) / SymbolEffectOptions / symbolEffectsRemoved",
+          "status": "partial",
+          "notes": "Whole-symbol motion on the animation clock: indefinite effects while active, discrete ones per value change with repeat and speed options; the stand-in glyphs have one layer, so by-layer and variable-colour layers are approximated; appear/disappear/replace accepted as plain transitions (Docs/elements/SymbolEffect.md)"
         }
       ]
     }

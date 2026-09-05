@@ -3210,6 +3210,17 @@ public static let variants = Fixture("symbol/variants", size: CGSize(width: 400,
     .probe("stack")
 })
 """#),
+        FixtureSource(name: "symboleffect/basic", file: "Fixtures/Sources/SymbolEffect/SymbolEffectFixtures.swift", firstLine: 6, lastLine: 14, declaration: #"""
+public static let basic = Fixture("symboleffect/basic", size: CGSize(width: 240, height: 80), content: {
+    HStack(spacing: 24) {
+        Image(systemName: "star").symbolEffect(.pulse, isActive: false).probe("pulse")
+        Image(systemName: "star").symbolEffect(.bounce, value: 0).probe("bounce")
+        Image(systemName: "star").font(.title).symbolEffect(.scale, isActive: false).probe("scale")
+        Image(systemName: "star").symbolEffect(.variableColor.iterative, options: .repeating, isActive: false).probe("variable")
+    }
+    .probe("row")
+})
+"""#),
         FixtureSource(name: "table/basic", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 38, lastLine: 45, declaration: #"""
 public static let basic = Fixture("table/basic", size: CGSize(width: 360, height: 220)) {
     Table(fruits) {
@@ -8174,6 +8185,25 @@ public enum SymbolFixtures {
     })
 
     public static let all: [Fixture] = catalogs + [basic, variants]
+}
+"""#,
+        "Fixtures/Sources/SymbolEffect/SymbolEffectFixtures.swift": #"""
+// symbolEffect at rest: inactive and untriggered effects leave the symbol as it is.
+import SwiftUI
+import FixtureKit
+
+public enum SymbolEffectFixtures {
+    public static let basic = Fixture("symboleffect/basic", size: CGSize(width: 240, height: 80), content: {
+        HStack(spacing: 24) {
+            Image(systemName: "star").symbolEffect(.pulse, isActive: false).probe("pulse")
+            Image(systemName: "star").symbolEffect(.bounce, value: 0).probe("bounce")
+            Image(systemName: "star").font(.title).symbolEffect(.scale, isActive: false).probe("scale")
+            Image(systemName: "star").symbolEffect(.variableColor.iterative, options: .repeating, isActive: false).probe("variable")
+        }
+        .probe("row")
+    })
+
+    public static let all: [Fixture] = [basic]
 }
 """#,
         "Fixtures/Sources/TabView/TabViewFixtures.swift": #"""
