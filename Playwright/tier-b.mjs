@@ -125,11 +125,21 @@ async function check(name, label, goldenFrames, goldenPng, shotPath) {
   for (const m of mismatches) console.log('   ' + m);
 }
 
+// The gallery's syntax highlighter comes from a CDN the fixtures do not need: answer it with an
+// empty file so a slow or stalled CDN never holds a navigation (the WASI shim from jsdelivr is
+// needed and stays).
+await page.route('https://cdnjs.cloudflare.com/**', route => route.fulfill({ status: 200, contentType: route.request().url().endsWith('.css') ? 'text/css' : 'application/javascript', body: '' }));
+// The first navigation fetches and compiles the debug wasm (80+ MB) through a single-threaded
+// server, which took a CI runner more than Playwright's default 30 s: wait for the first frame,
+// not the load event, with a generous budget for the first fixture.
+let firstLoad = true;
 for (const name of names) {
   const goldenDir = join(root, 'Fixtures', 'Goldens', name);
   const golden = JSON.parse(readFileSync(join(goldenDir, 'frames.json'), 'utf8'));
-  await page.goto(`${url}?fixture=${encodeURIComponent(name)}`);
-  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 30000 });
+  const started = Date.now();
+  await page.goto(`${url}?fixture=${encodeURIComponent(name)}`, { waitUntil: 'commit', timeout: 180000 });
+  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: firstLoad ? 180000 : 60000 });
+  if (firstLoad) { console.log(`first fixture ready after ${((Date.now() - started) / 1000).toFixed(1)} s`); firstLoad = false; }
   await page.waitForTimeout(50);
   const base = join(out, name.replace(/\//g, '_'));
   await check(name, name, golden.frames, join(goldenDir, 'image@2x.png'), base + '.png');
