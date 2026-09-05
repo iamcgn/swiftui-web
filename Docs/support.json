@@ -163,7 +163,7 @@
         {
           "api": "NavigationStack (root, NavigationPath and collection path bindings) / NavigationPath / NavigationLink (destination, value forms)",
           "status": "partial",
-          "notes": "macOS: content-sized stack (hosted window), pushed views centred with earlier views laid out beneath, bordered-button links outside lists and plain row links inside, Runtime.navigateBack() for hosts; no back button/title chrome or animation. iOS profile: the stack fills its proposal; each screen lays out under its own bar (117 pt large title, 64 inline, none without a title or back button); a pushed screen's bar has the 44 pt glass back button with an accent chevron, hidden by navigationBarBackButtonHidden; pushes and pops slide (0.35 s, the lower screen travelling 30 % under a 10 % dimming; timing inferred, not measured). Open: toolbars, navigationDestination(item:), the swipe back, the title/back button crossfade",
+          "notes": "macOS: content-sized stack (hosted window), pushed views centred with earlier views laid out beneath, bordered-button links outside lists and plain row links inside, Runtime.navigateBack() for hosts; no back button/title chrome or animation. iOS profile: the stack fills its proposal; each screen lays out under its own bar (117 pt large title, 64 inline, none without a title or back button); a pushed screen's bar has the 44 pt glass back button with an accent chevron, hidden by navigationBarBackButtonHidden; pushes and pops slide (0.35 s, the lower screen travelling 30 % under a 10 % dimming; timing inferred, not measured). The large title scrolls away with the content and the bar collapses to the inline one (ios/nav/scroll). Open: toolbars, navigationDestination(item:), the swipe back, the title/back button crossfade",
           "fixtures": [
             "nav/basic",
             "nav/list",
@@ -175,7 +175,8 @@
             "ios/nav/push",
             "ios/nav/push-inline",
             "ios/nav/push-noback",
-            "ios/nav/sizing"
+            "ios/nav/sizing",
+            "ios/nav/scroll"
           ]
         },
         {
@@ -1096,7 +1097,7 @@
         {
           "api": "environment(\\.platformProfile, .iOS) / PlatformProfile / Runtime.hostPlatformProfile / navigationBarTitleDisplayMode",
           "status": "partial",
-          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Progress views, the bold trait per style, control spacing and list footers too. Open: sheets, date pickers, menus, tab bars, the large title collapsing on scroll",
+          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Progress views, the bold trait per style, control spacing and list footers too. The large title collapses on scroll. Open: sheets, date pickers, menus, tab bars",
           "fixtures": [
             "ios/text/styles",
             "ios/layout/basics",
@@ -1127,7 +1128,8 @@
             "ios/progress/basic",
             "ios/text/bold-trait",
             "ios/layout/controls",
-            "ios/list/footer"
+            "ios/list/footer",
+            "ios/nav/scroll"
           ]
         }
       ]

@@ -411,6 +411,7 @@ extension PlatformMetrics {
     package static var navigationBarInlineHeight: CGFloat { current.navigationBarInlineHeight }
     package static var navigationLargeTitleTop: CGFloat { current.navigationLargeTitleTop }
     package static var navigationTitleInset: CGFloat { current.navigationTitleInset }
+    package static var navigationLargeTitleCollapse: CGFloat { current.navigationLargeTitleCollapse }
     package static var navigationBackButtonInset: CGFloat { current.navigationBackButtonInset }
     package static var navigationBackButtonDiameter: CGFloat { current.navigationBackButtonDiameter }
     package static var navigationBackFill: RGBA { current.navigationBackFill }

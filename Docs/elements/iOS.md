@@ -32,6 +32,7 @@ and `SystemFontMetricsTableIOS.swift`.
 | List (plain) | 8 pt margins | white, rows 56 with content 16 in, separators 16 in; headers 32 below the previous row, 10 above the next |
 | Form | columns | an inset grouped list; a menu picker row keeps its label and puts the value and chevron, in the secondary colour, at the trailing edge; sliders lose their label; text fields are plain |
 | NavigationStack | content-sized; no bar (the window's title) | fills its proposal (`ios/nav/sizing`: 320 × 267.5 above a text in a 300 pt column); each screen under its own bar: 117 pt with the large title (34 pt bold, 20 in, its line 65.5 down) or 64 pt inline (headline, centred), none for an untitled root or a pushed screen with neither title nor back button (`ios/nav/push-noback` fills the stack); a large title takes the list's 35 pt top inset, an inline one does not; `.automatic` on a pushed screen inherits the previous screen's large title (`ios/nav/push`: 117 over the detail) |
+| Large title on scroll | — | the title scrolls up with the screen's content, clipped under the 64 pt inline zone; once the content has scrolled its full 53 pt the bar is the inline one, the content frame grows by 53 and its offset shrinks by 53 so what is on screen stays put (`ios/nav/scroll`: a 40 pt scroll leaves the bar large, a far one collapses it); back at the top it expands again (UIKit leaves a programmatic scroll to the top collapsed; a drag expands it) |
 | Back button | none | a pushed screen's bar (unless `navigationBarBackButtonHidden`): a 44 pt circle at (10, 10) filled (246, 246, 246) at 66 % (white behind it reads 249.5, the grey ground 243), a chevron 8 × 16 between its tips of a 3 pt round stroke, its centre 1.5 left and 0.5 below the circle's, in the accent colour; the large title keeps its place below it; pressing pops |
 | Push, pop | instant | a 0.35 s ease-in-out slide: the pushed screen arrives from the trailing edge over the old one, which travels 30 % of the width the other way under a black dimming that reaches 10 %; the bars cross-fade; a pop reverses it and keeps the popped screen mounted until it is out. Inferred from iOS, not measurable from goldens |
 
@@ -41,7 +42,9 @@ Every row above comes from `Fixtures/Goldens/ios/<fixture>/frames.json` and pixe
 `image@2x.png`: `ios/text/styles`, `ios/layout/basics`, `ios/toggle/basic`, `ios/button/basic`,
 `ios/slider/basic`, `ios/stepper/basic`, `ios/textfield/basic`, `ios/picker/basic`,
 `ios/controls/settings` (the landing page's screen), `ios/progress/basic`, `ios/text/bold-trait`,
-`ios/layout/controls`, `ios/list/footer`, and 2026-09-05 later `ios/form/basic`,
+`ios/layout/controls`, `ios/list/footer`, `ios/nav/scroll` (a `ScrollViewReader` step; UIKit's
+`List` ignores `scrollTo` on Catalyst, so the fixture scrolls a plain scroll view), and
+2026-09-05 later `ios/form/basic`,
 `ios/list/basic`, `ios/list/plain`, `ios/nav/basic`, `ios/nav/inline`, `ios/nav/sizing` and the
 behaviour fixtures `ios/nav/push`, `ios/nav/push-inline`, `ios/nav/push-noback` (a push and a pop
 through the path binding; the Catalyst host waits a second after each step so the goldens hold
@@ -98,5 +101,5 @@ phone frame into iOS.
 ## Not yet covered
 
 Sheets, date pickers, the `Menu` button, tab bars, list selection looks, a footer followed by
-a header, the swipe back and the title/back button crossfade of a push, the large title
-collapsing as a list scrolls.
+a header, the swipe back and the title/back button crossfade of a push, the large title's
+snap at the end of a short drag (it tracks the content continuously here).

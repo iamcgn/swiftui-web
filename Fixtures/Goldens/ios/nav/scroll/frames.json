@@ -1,0 +1,435 @@
+{
+  "fixture" : "ios\/nav\/scroll",
+  "frames" : {
+    "content" : {
+      "height" : 800,
+      "width" : 320,
+      "x" : 0,
+      "y" : 117
+    },
+    "nav" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row0" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 117
+    },
+    "row1" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 157
+    },
+    "row2" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 197
+    },
+    "row3" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 237
+    },
+    "row4" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 277
+    },
+    "row5" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 317
+    },
+    "row6" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 357
+    },
+    "row7" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 397
+    },
+    "row8" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 437
+    },
+    "row9" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 477
+    },
+    "row10" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 517
+    },
+    "row11" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 557
+    },
+    "row12" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 597
+    },
+    "row13" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 637
+    },
+    "row14" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 677
+    },
+    "row15" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 717
+    },
+    "row16" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 757
+    },
+    "row17" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 797
+    },
+    "row18" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 837
+    },
+    "row19" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 877
+    },
+    "scroll" : {
+      "height" : 283,
+      "width" : 320,
+      "x" : 0,
+      "y" : 117
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "content" : {
+          "height" : 800,
+          "width" : 320,
+          "x" : 0,
+          "y" : 77
+        },
+        "nav" : {
+          "height" : 400,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "row0" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 77
+        },
+        "row1" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 117
+        },
+        "row2" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 157
+        },
+        "row3" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 197
+        },
+        "row4" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 237
+        },
+        "row5" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 277
+        },
+        "row6" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 317
+        },
+        "row7" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 357
+        },
+        "row8" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 397
+        },
+        "row9" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 437
+        },
+        "row10" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 477
+        },
+        "row11" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 517
+        },
+        "row12" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 557
+        },
+        "row13" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 597
+        },
+        "row14" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 637
+        },
+        "row15" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 677
+        },
+        "row16" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 717
+        },
+        "row17" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 757
+        },
+        "row18" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 797
+        },
+        "row19" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 837
+        },
+        "scroll" : {
+          "height" : 283,
+          "width" : 320,
+          "x" : 0,
+          "y" : 117
+        }
+      },
+      "name" : "row1"
+    },
+    {
+      "frames" : {
+        "content" : {
+          "height" : 800,
+          "width" : 320,
+          "x" : 0,
+          "y" : -203
+        },
+        "nav" : {
+          "height" : 400,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "row0" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : -203
+        },
+        "row1" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : -163
+        },
+        "row2" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : -123
+        },
+        "row3" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : -83
+        },
+        "row4" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : -43
+        },
+        "row5" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : -3
+        },
+        "row6" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 37
+        },
+        "row7" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 77
+        },
+        "row8" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 117
+        },
+        "row9" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 157
+        },
+        "row10" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 197
+        },
+        "row11" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 237
+        },
+        "row12" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 277
+        },
+        "row13" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 317
+        },
+        "row14" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 357
+        },
+        "row15" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 397
+        },
+        "row16" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 437
+        },
+        "row17" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 477
+        },
+        "row18" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 517
+        },
+        "row19" : {
+          "height" : 40,
+          "width" : 320,
+          "x" : 0,
+          "y" : 557
+        },
+        "scroll" : {
+          "height" : 336,
+          "width" : 320,
+          "x" : 0,
+          "y" : 64
+        }
+      },
+      "name" : "row8"
+    }
+  ]
+}

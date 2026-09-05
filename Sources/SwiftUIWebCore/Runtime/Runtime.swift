@@ -262,6 +262,16 @@ public final class Runtime {
     /// in the tree is still right, so `layout` skips the pass. A layout request clears it.
     private var repaintOnly = false
 
+    /// Whether the next frame must lay the tree out even if only scroll views moved (a
+    /// navigation bar collapsed and its screen's frame changes).
+    private var layoutForced = false
+
+    /// Asks for a layout pass that keeps the memoised sizes but re-places everything.
+    package func requestFullLayout() {
+        layoutForced = true
+        requestLayout(invalidatingSizes: false)
+    }
+
     /// Asks for a frame that paints the tree as it is laid out (a navigation slide advanced).
     package func requestRepaint() {
         let alone = !layoutRequested
@@ -275,7 +285,7 @@ public final class Runtime {
         updateAnimation = pendingAnimation
         if scheduler.hasPendingWork || size != layoutSize || pendingAnimation != nil || !animatingNodes.isEmpty { sizesInvalidated = true }
         // A frame that only scrolled moves the scrolled content and keeps every frame else.
-        if !sizesInvalidated, presentations.isEmpty, scrolledNodes.allSatisfy(\.canMoveContentOnly) {
+        if !sizesInvalidated, !layoutForced, presentations.isEmpty, scrolledNodes.allSatisfy(\.canMoveContentOnly) {
             for node in scrolledNodes { node.moveContent() }
             scrolledNodes.removeAll()
             layoutRequested = false
@@ -290,6 +300,7 @@ public final class Runtime {
             return
         }
         repaintOnly = false
+        layoutForced = false
         scrolledNodes.removeAll()
         fullLayoutCount += 1
         flush()

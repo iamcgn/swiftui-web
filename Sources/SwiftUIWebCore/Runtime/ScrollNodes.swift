@@ -52,7 +52,10 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     package private(set) var child: TypedNode<VStack<Content>>!
 
     /// The current offset of the content within the viewport, clamped to the content at layout.
-    package private(set) var contentOffset: CGPoint = .zero
+    package private(set) var contentOffset: CGPoint = .zero {
+        // An iOS navigation bar collapses its large title as the screen's content scrolls.
+        didSet { if contentOffset.y != oldValue.y { environment._navigationContext?.stack?.scrollDidChange(self) } }
+    }
 
     /// The content's size for the most recent layout.
     package private(set) var contentSize: CGSize = .zero

@@ -19,6 +19,7 @@ import SwiftUIWebHeadless
         }
         entries[RecordedTextEngine.key(font: Self.headline, width: nil, string: "Detail")] = .init(width: 48, height: 24.5, firstBaseline: 18, lastBaseline: 18)
         entries[RecordedTextEngine.key(font: Self.largeTitle, width: nil, string: "Settings")] = .init(width: 131, height: 48.5, firstBaseline: 35.5, lastBaseline: 35.5)
+        entries[RecordedTextEngine.key(font: Self.headline, width: nil, string: "Settings")] = .init(width: 66, height: 24.5, firstBaseline: 18, lastBaseline: 18)
         return RecordedTextEngine(entries: entries)
     }
 
@@ -32,6 +33,14 @@ import SwiftUIWebHeadless
     }
 
     private func commands(_ r: Runtime) -> [String] { r.render(scale: 2).commands.map(\.description) }
+
+    /// The y of the first text drawn in `font`.
+    private func commandY(_ commands: [String], font: String) -> Double? {
+        guard let command = commands.first(where: { $0.hasPrefix("drawText(") && $0.contains(font) }),
+              let range = command.range(of: " at ") else { return nil }
+        let coordinates = command[range.upperBound...].split(separator: " ").first?.split(separator: ",") ?? []
+        return coordinates.count == 2 ? Double(coordinates[1]) : nil
+    }
 
     private func texts(_ r: Runtime) -> [String] {
         commands(r).compactMap { command in
@@ -157,6 +166,38 @@ import SwiftUIWebHeadless
         r.advanceAnimations(elapsed: 0.016)
         r.layout(in: CGSize(width: 320, height: 480))
         #expect(texts(r) == ["Pushed"])
+    }
+
+    @Test func scrollingCollapsesTheLargeTitle() {
+        // ios/nav/scroll: a scroll view of 40 pt rows under a large title.
+        let r = runtime(NavigationStack {
+            ScrollView {
+                VStack(spacing: 0) { ForEach(0..<20, id: \.self) { _ in Text("Root").frame(maxWidth: .infinity).frame(height: 40) } }
+            }
+            .navigationTitle("Settings")
+            ._probe("scroll")
+        }, size: CGSize(width: 320, height: 400))
+        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 117, width: 320, height: 283))
+        let titleY = commandY(commands(r), font: "system 34 w700")!
+        // 40 pt: the bar stays large and the title slides up under the inline zone.
+        r.scrollWheel(by: CGSize(width: 0, height: 40), at: CGPoint(x: 160, y: 200))
+        r.layout(in: CGSize(width: 320, height: 400))
+        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 117, width: 320, height: 283))
+        let sliding = commands(r)
+        #expect(sliding.contains { $0.hasPrefix("clipRect(0, 64, 320, 53)") })
+        #expect(commandY(sliding, font: "system 34 w700") == titleY - 40)
+        // Past the title: the inline bar, the content frame grows and its offset is reduced by
+        // the difference, so the rows on screen stay where they were.
+        r.scrollWheel(by: CGSize(width: 0, height: 100), at: CGPoint(x: 160, y: 200))
+        r.layout(in: CGSize(width: 320, height: 400))
+        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 64, width: 320, height: 336))
+        let collapsed = commands(r)
+        #expect(collapsed.contains { $0.hasPrefix("drawText(\"Settings\" system 17 w600") })
+        #expect(!collapsed.contains { $0.contains("system 34") })
+        // Back at the top it expands again.
+        r.scrollWheel(by: CGSize(width: 0, height: -200), at: CGPoint(x: 160, y: 200))
+        r.layout(in: CGSize(width: 320, height: 400))
+        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 117, width: 320, height: 283))
     }
 
     @Test func macOSPushesStayInstantWithoutABackButton() {

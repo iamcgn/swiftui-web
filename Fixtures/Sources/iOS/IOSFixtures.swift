@@ -313,9 +313,45 @@ public enum IOSFixtures {
         .probe("stack")
     }.platform(.iOS)
 
+    /// Behaviour: scrolling under a large title collapses the bar (a plain scroll view of rows).
+    public static let navigationScroll = Fixture(
+        "ios/nav/scroll", size: CGSize(width: 320, height: 400),
+        model: { IOSScrollModel() },
+        steps: [
+            FixtureStep("row1") { $0.target = 1 },       // 40 pt: the bar stays large, the content slides under it
+            FixtureStep("row8") { $0.target = 8 },       // far: the bar collapses to the inline one and the content grows
+        ]
+    ) { model in
+        NavigationStack {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(0..<20, id: \.self) { index in
+                            Text("Row").frame(maxWidth: .infinity, alignment: .leading).frame(height: 40).probe("row\(index)").id(index)
+                        }
+                    }
+                    .probe("content")
+                }
+                .navigationTitle("Settings")
+                .probe("scroll")
+                .onChange(of: model.target) { _, target in
+                    if let target { withAnimation { proxy.scrollTo(target, anchor: .top) } }
+                }
+            }
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
     public static let all: [Fixture] = [textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
                                         form, list, listPlain, navigation, navigationInline,
-                                        navigationPush, navigationPushInline, navigationPushNoBack, navigationSizing]
+                                        navigationPush, navigationPushInline, navigationPushNoBack, navigationSizing, navigationScroll]
+}
+
+/// Drives `ios/nav/scroll`.
+@Observable
+public final class IOSScrollModel {
+    public var target: Int? = nil
+    public init() {}
 }
 
 /// Drives the `ios/nav/push*` fixtures.

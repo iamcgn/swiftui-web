@@ -16,6 +16,8 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         package var node: ViewNode?
         /// Whether the screen sits under a large-title bar; assumed until its content is read.
         var largeBar = true
+        /// Whether its content has scrolled the large title away (the bar is the inline one).
+        var collapsed = false
         init(kind: Kind, view: AnyView?) { self.kind = kind; self.view = view }
     }
 
@@ -51,6 +53,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// Whether the root sits under a large-title bar (iOS lists drop their top inset there).
     /// Assumed until the content is mounted and its display mode read; corrected in a second pass.
     private var rootLarge = true
+    private var rootCollapsed = false
 
     private func settleBarModes(force: Bool) {
         guard environment.platformProfile.isIOS else { return }
@@ -88,15 +91,19 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// and a pushed screen gets a back button unless it hides it (ios/nav/push*).
     private struct Bar {
         var title: String?
+        /// A large-title bar (the screen's content lays out under it without its own top inset).
         var large: Bool
+        /// Whether the large title is scrolled away, leaving the inline bar (ios/nav/scroll).
+        var collapsed: Bool
         var back: Bool
         var height: CGFloat
+        var showsLargeTitle: Bool { large && !collapsed }
     }
 
     /// The bar over screen `index` whose nodes are `nodes`, or nil when nothing shows one: an
     /// untitled root, or a pushed screen with neither a title nor a back button (ios/nav/push-noback
     /// fills the whole stack). `.automatic` inherits the previous screen's large title.
-    private func bar(over nodes: [ViewNode], index: Int, previousLarge: Bool) -> Bar? {
+    private func bar(over nodes: [ViewNode], index: Int, previousLarge: Bool, collapsed: Bool = false) -> Bar? {
         guard environment.platformProfile.isIOS, let top = nodes.first else { return nil }
         let title = (top.descendants(where: { $0 is any _NavigationTitleProviding }).first as? any _NavigationTitleProviding)?._navigationTitle
         let mode = (top.descendants(where: { $0 is any _NavigationTitleDisplayModeProviding }).first as? any _NavigationTitleDisplayModeProviding)?._titleDisplayMode ?? .automatic
@@ -110,7 +117,9 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         default: large = index == 0 || previousLarge
         }
         if title == nil { large = false }
-        return Bar(title: title, large: large, back: back, height: large ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight)
+        let showsLarge = large && !collapsed
+        return Bar(title: title, large: large, collapsed: large && collapsed, back: back,
+                   height: showsLarge ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight)
     }
 
     /// The bars over `screens`, bottom to top.
@@ -118,11 +127,48 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         var result: [Bar?] = []
         var previousLarge = false
         for (index, screen) in screens.enumerated() {
-            let bar = bar(over: screen.nodes, index: index, previousLarge: previousLarge)
+            let bar = bar(over: screen.nodes, index: index, previousLarge: previousLarge, collapsed: screen.entry?.collapsed ?? rootCollapsed)
             previousLarge = bar?.large ?? false
             result.append(bar)
         }
         return result
+    }
+
+    // MARK: The large title collapsing as the screen scrolls (iOS)
+
+    /// The top screen's scroll view, whose offset drives its bar (found at layout).
+    private weak var topScrollView: ViewNode?
+    /// Set when a collapse state flipped during a layout pass: the screen is placed again.
+    private var collapseChanged = false
+
+    /// A scroll view inside the stack moved. Scrolled past the large title (ios/nav/scroll:
+    /// `row8`, the bar is 64 and the content frame grows, its offset reduced by the difference so
+    /// what is on screen stays put); back at the top it expands again. A little scrolling leaves
+    /// the bar large with the content sliding under it (`row1`).
+    package func scrollDidChange(_ node: ViewNode & _Scrollable) {
+        guard environment.platformProfile.isIOS, node === topScrollView, let screen = screens.last, let bar = bars.last ?? nil, bar.large else { return }
+        let collapsed = screen.entry?.collapsed ?? rootCollapsed
+        let offset = node.contentOffset.y
+        let collapse = PlatformMetrics.navigationLargeTitleCollapse
+        if !collapsed, offset >= collapse {
+            setCollapsed(true, on: screen)
+            _ = node.scroll(by: CGSize(width: 0, height: -collapse))
+        } else if collapsed, offset <= 0 {
+            setCollapsed(false, on: screen)
+        } else {
+            return
+        }
+        if runtime.isLayingOut { collapseChanged = true } else { runtime.requestFullLayout() }
+    }
+
+    private func setCollapsed(_ collapsed: Bool, on screen: Screen) {
+        if let entry = screen.entry { entry.collapsed = collapsed } else { rootCollapsed = collapsed }
+    }
+
+    /// How far the top screen's content has scrolled the large title up, 0 to its height.
+    private var largeTitleScroll: CGFloat {
+        guard let scroll = topScrollView as? (ViewNode & _Scrollable) else { return 0 }
+        return min(max(0, scroll.contentOffset.y), PlatformMetrics.navigationLargeTitleCollapse)
     }
 
     override package func update(view: _NavigationStackHost, environment: EnvironmentValues, force: Bool) {
@@ -355,15 +401,23 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     }
 
     override package func layoutContents(proposal: ProposedViewSize) {
-        let bars = self.bars
-        for (group, bar) in zip(groups, bars) {
-            let barHeight = bar?.height ?? 0
-            let inner = barHeight > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - barHeight) }) : proposal
-            for node in group {
-                let size = node.sizeThatFits(inner)
-                node.place(at: CGPoint(x: (frame.width - size.width) / 2, y: barHeight + (frame.height - barHeight - size.height) / 2),
-                           anchor: .topLeading, proposal: inner, by: self)
+        topScrollView = groups.last?.first?.descendants(where: { $0 is any _Scrollable }).first
+        var bars = self.bars
+        for pass in 0..<2 {
+            for (group, bar) in zip(groups, bars) {
+                let barHeight = bar?.height ?? 0
+                let inner = barHeight > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - barHeight) }) : proposal
+                for node in group {
+                    let size = node.sizeThatFits(inner)
+                    node.place(at: CGPoint(x: (frame.width - size.width) / 2, y: barHeight + (frame.height - barHeight - size.height) / 2),
+                               anchor: .topLeading, proposal: inner, by: self)
+                }
             }
+            // Placing the content may have scrolled it (a programmatic target) past the large
+            // title: the screen is placed again under the inline bar.
+            guard pass == 0, collapseChanged else { break }
+            collapseChanged = false
+            bars = self.bars
         }
         // The back button sits at the leading edge of the top screen's bar.
         backButton.isShown = (bars.last ?? nil)?.back ?? false
@@ -423,11 +477,20 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let profile = environment.platformProfile
         let color = (environment.foregroundColor ?? .primary).resolve(in: environment).multiplyingAlpha(by: opacity)
         if let title = bar.title {
-            if bar.large {
+            if bar.showsLargeTitle {
+                // The large title scrolls up with the content until it is under the inline zone
+                // (the bar collapses once it is gone).
                 let font = Font.largeTitle.bold().resolve(profile: profile)
                 let metrics = profile.systemFontMetrics(for: font)
-                let origin = CGPoint(x: bounds.minX + PlatformMetrics.navigationTitleInset, y: bounds.minY + PlatformMetrics.navigationLargeTitleTop + metrics.baseline)
+                let scroll = largeTitleScroll
+                let origin = CGPoint(x: bounds.minX + PlatformMetrics.navigationTitleInset, y: bounds.minY + PlatformMetrics.navigationLargeTitleTop + metrics.baseline - scroll)
+                if scroll > 0 {
+                    list.append(.save)
+                    list.append(.clipRect(CGRect(x: bounds.minX, y: bounds.minY + PlatformMetrics.navigationBarInlineHeight, width: bounds.width,
+                                                 height: PlatformMetrics.navigationBarLargeHeight - PlatformMetrics.navigationBarInlineHeight)))
+                }
                 list.append(.drawText(title, DisplayFont(font), origin: origin, color))
+                if scroll > 0 { list.append(.restore) }
             } else {
                 let font = Font.headline.resolve(profile: profile)
                 let metrics = profile.systemFontMetrics(for: font)
