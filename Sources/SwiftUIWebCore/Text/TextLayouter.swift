@@ -29,7 +29,21 @@ public struct TextLayouter {
 
     public static let ellipsis = "\u{2026}"
 
+    /// The letter spacing the options ask for: tracking when set, else kerning.
+    public static func letterSpacing(_ options: TextLayoutOptions) -> CGFloat {
+        options.tracking != 0 ? options.tracking : options.kerning
+    }
+
     public func layout(_ runs: [StyledRun], options: TextLayoutOptions, width maxWidth: CGFloat?) -> TextLayout {
+        // Kerning and tracking add their value after every character, spaces and the last one
+        // included (measured 2026-09-04: "Hello" 31 → 41 at 2 pt; Docs/elements/TextStyle.md).
+        let spacing = Self.letterSpacing(options)
+        if spacing != 0 {
+            let base = measure
+            var spread = self
+            spread.measure = { text, font in base(text, font) + spacing * CGFloat(text.count) }
+            return spread.layout(runs, options: options.withoutLetterSpacing, width: maxWidth)
+        }
         let string = runs.map(\.string).joined()
         let chars = Array(string)
         var runOf: [Int] = []

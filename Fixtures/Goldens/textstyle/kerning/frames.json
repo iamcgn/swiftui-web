@@ -1,0 +1,93 @@
+{
+  "fixture" : "textstyle\/kerning",
+  "frames" : {
+    "hstackKern2" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 141.5,
+      "y" : 221
+    },
+    "hstackPlain" : {
+      "height" : 16,
+      "width" : 31.5,
+      "x" : 100,
+      "y" : 221
+    },
+    "hstackTrack2" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 193,
+      "y" : 221
+    },
+    "kern2" : {
+      "height" : 16,
+      "width" : 41,
+      "x" : 100,
+      "y" : 43
+    },
+    "kern5" : {
+      "height" : 16,
+      "width" : 56,
+      "x" : 100,
+      "y" : 91
+    },
+    "kernNeg" : {
+      "height" : 16,
+      "width" : 26,
+      "x" : 100,
+      "y" : 115
+    },
+    "plain" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 100,
+      "y" : 19
+    },
+    "row" : {
+      "height" : 16,
+      "width" : 134.5,
+      "x" : 100,
+      "y" : 221
+    },
+    "stack" : {
+      "height" : 282,
+      "width" : 160,
+      "x" : 100,
+      "y" : 19
+    },
+    "titleKern2" : {
+      "height" : 33,
+      "width" : 131,
+      "x" : 100,
+      "y" : 139
+    },
+    "titleTrack2" : {
+      "height" : 33,
+      "width" : 140.5,
+      "x" : 100,
+      "y" : 180
+    },
+    "track2" : {
+      "height" : 16,
+      "width" : 41,
+      "x" : 100,
+      "y" : 67
+    },
+    "viewKerning" : {
+      "height" : 16,
+      "width" : 41,
+      "x" : 100,
+      "y" : 245
+    },
+    "wrapped" : {
+      "height" : 32,
+      "width" : 160,
+      "x" : 100,
+      "y" : 269
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 360
+  }
+}

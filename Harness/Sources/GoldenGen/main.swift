@@ -91,7 +91,7 @@ func requestText(_ request: TextMetricRequest) -> Text {
 @ViewBuilder
 func requestView(_ request: TextMetricRequest, id: String) -> some View {
     let options = request.options
-    let base = requestText(request).probe(id)
+    let base = requestText(request).kerning(options.kerning).tracking(options.tracking).probe(id)
         .lineSpacing(options.lineSpacing)
         .truncationMode(options.truncation == "head" ? .head : options.truncation == "middle" ? .middle : .tail)
     // The same mapping SwiftUIWeb's View.lineLimit overloads perform, inverted.

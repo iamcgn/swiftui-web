@@ -34,12 +34,15 @@ public struct DisplayFont: Hashable, Sendable {
     public var size: CGFloat
     public var weight: Int
     public var italic: Bool
+    /// Extra advance after every character, in points (`kerning`/`tracking`).
+    public var letterSpacing: CGFloat = 0
 
-    public init(_ font: ResolvedFont) {
+    public init(_ font: ResolvedFont, letterSpacing: CGFloat = 0) {
         family = font.family
         size = font.size
         weight = font.weight.value
         italic = font.italic
+        self.letterSpacing = letterSpacing
     }
 }
 

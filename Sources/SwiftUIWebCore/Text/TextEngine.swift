@@ -19,12 +19,26 @@ public struct TextLayoutOptions: Hashable, Sendable {
     /// Lines whose space is reserved even for shorter text: `lineLimit(n, reservesSpace: true)`
     /// reserves `n`, `lineLimit(a...b)` and `lineLimit(a...)` reserve `a`; 0 reserves nothing.
     public var minimumLines: Int
+    /// Extra space between characters (`kerning`) and `tracking`, in points.
+    public var kerning: CGFloat
+    public var tracking: CGFloat
 
-    public init(lineLimit: Int? = nil, truncationMode: Text.TruncationMode = .tail, lineSpacing: CGFloat = 0, minimumLines: Int = 0) {
+    /// The same options with the letter spacing taken out (the layouter measures it itself).
+    public var withoutLetterSpacing: TextLayoutOptions {
+        var copy = self
+        copy.kerning = 0
+        copy.tracking = 0
+        return copy
+    }
+
+    public init(lineLimit: Int? = nil, truncationMode: Text.TruncationMode = .tail, lineSpacing: CGFloat = 0, minimumLines: Int = 0,
+                kerning: CGFloat = 0, tracking: CGFloat = 0) {
         self.lineLimit = lineLimit
         self.truncationMode = truncationMode
         self.lineSpacing = lineSpacing
         self.minimumLines = minimumLines
+        self.kerning = kerning
+        self.tracking = tracking
     }
 
     public static let `default` = TextLayoutOptions()
@@ -159,6 +173,8 @@ public enum TextMetricsKey {
         case .head: slot += ";thead"
         case .middle: slot += ";tmiddle"
         }
+        if options.kerning != 0 { slot += ";k\(options.kerning)" }
+        if options.tracking != 0 { slot += ";tr\(options.tracking)" }
         return slot
     }
 

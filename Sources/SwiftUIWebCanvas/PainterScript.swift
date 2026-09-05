@@ -12,6 +12,25 @@ enum PainterScript {
         if (!s) { s = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; colorCache.set(k, s); }
         return s;
       }
+      // A font string may carry letter spacing (points) after a '|'. Returns the spacing the
+      // context could not apply itself (no letterSpacing: WebKit, Firefox), for fillSpacedText.
+      function setFont(ctx, font) {
+        const bar = font.indexOf('|');
+        if (bar < 0) { ctx.font = font; if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'; return 0; }
+        ctx.font = font.slice(0, bar);
+        const spacing = Number(font.slice(bar + 1));
+        if ('letterSpacing' in ctx) { ctx.letterSpacing = spacing + 'px'; return 0; }
+        return spacing;
+      }
+      // Draws text with `spacing` after every character when the context cannot space itself.
+      function fillSpacedText(ctx, text, x, y, spacing) {
+        if (!spacing) { ctx.fillText(text, x, y); return; }
+        let cursor = x;
+        for (const ch of Array.from(text)) {
+          ctx.fillText(ch, cursor, y);
+          cursor += ctx.measureText(ch).width + spacing;
+        }
+      }
       const lineCaps = ['butt', 'round', 'square'];
       const lineJoins = ['miter', 'round', 'bevel'];
       function readPath(ctx, buf, i) {
@@ -371,8 +390,7 @@ enum PainterScript {
             case 12: {
               const text = strings[buf[i++]], font = strings[buf[i++]], x = buf[i++], y = buf[i++];
               ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]);
-              ctx.font = font;
-              ctx.fillText(text, x, y);
+              fillSpacedText(ctx, text, x, y, setFont(ctx, font));
               break;
             }
             case 17: {
@@ -380,7 +398,7 @@ enum PainterScript {
               // gradient is filled through it (source-in) in the same absolute coordinates, and
               // the result is composited back.
               const text = strings[buf[i++]], font = strings[buf[i++]], x = buf[i++], y = buf[i++];
-              ctx.font = font;
+              setFont(ctx, font);
               const m = ctx.measureText(text);
               const ascent = (m.actualBoundingBoxAscent || 0) + 2, descent = (m.actualBoundingBoxDescent || 0) + 2;
               const left = (m.actualBoundingBoxLeft || 0) + 2, width = Math.ceil(m.width + left + (m.actualBoundingBoxRight || 0) + 4);
@@ -390,9 +408,9 @@ enum PainterScript {
               const octx = off.getContext('2d');
               octx.setTransform(dpr, 0, 0, dpr, -ox * dpr, -oy * dpr);
               octx.textBaseline = 'alphabetic';
-              octx.font = font;
+              const spacing = setFont(octx, font);
               octx.fillStyle = '#000';
-              octx.fillText(text, x, y);
+              fillSpacedText(octx, text, x, y, spacing);
               const g = readGradient(octx, buf, i); i = g.i;
               octx.globalCompositeOperation = 'source-in';
               octx.fillStyle = g.style;
@@ -441,7 +459,7 @@ enum PainterScript {
       function measure(ctx, font, text) {
         const k = font + ' ' + text;
         let w = measureCache.get(k);
-        if (w === undefined) { ctx.font = font; w = ctx.measureText(text).width; measureCache.set(k, w); }
+        if (w === undefined) { setFont(ctx, font); w = ctx.measureText(text).width; measureCache.set(k, w); }
         return w;
       }
       window.__swiftuiweb = {

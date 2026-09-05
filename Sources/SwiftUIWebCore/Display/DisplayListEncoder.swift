@@ -144,7 +144,9 @@ public enum DisplayListEncoder {
         default: family = "'\(font.family)', -apple-system, system-ui, sans-serif"
         }
         let size = font.size == font.size.rounded() ? "\(Int(font.size))" : "\(font.size)"
-        return "\(font.italic ? "italic " : "")\(font.weight) \(size)px \(family)"
+        let css = "\(font.italic ? "italic " : "")\(font.weight) \(size)px \(family)"
+        // Letter spacing rides behind the CSS font, split off by the painter (`setFont`).
+        return font.letterSpacing == 0 ? css : css + "|" + _displayFormat(font.letterSpacing)
     }
 }
 

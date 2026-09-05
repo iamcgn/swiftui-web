@@ -321,10 +321,12 @@ public final class CoreGraphicsPainter {
     // MARK: Text
 
     private func drawText(_ text: String, font: DisplayFont, at origin: CGPoint, color: RGBA, gradient: DisplayGradient?, in ctx: CGContext) {
-        let attributed = NSAttributedString(string: text, attributes: [
+        var attributes: [NSAttributedString.Key: Any] = [
             .font: textEngine.nsFont(font),
             kCTForegroundColorAttributeName as NSAttributedString.Key: Self.cgColor(color),
-        ])
+        ]
+        if font.letterSpacing != 0 { attributes[kCTKernAttributeName as NSAttributedString.Key] = font.letterSpacing }
+        let attributed = NSAttributedString(string: text, attributes: attributes)
         let line = CTLineCreateWithAttributedString(attributed)
         ctx.saveGState()
         // CoreText draws y-up: flip the glyphs about the baseline.

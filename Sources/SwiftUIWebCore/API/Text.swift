@@ -77,6 +77,8 @@ public struct Text: Equatable, Sendable {
         package var underline: LineStyle?? = nil
         package var strikethrough: LineStyle?? = nil
         package var baselineOffset: CGFloat?
+        package var kerning: CGFloat?
+        package var tracking: CGFloat?
 
         /// `self` applied on top of the enclosing text's modifiers.
         package func inheriting(_ parent: Modifiers) -> Modifiers {
@@ -86,6 +88,8 @@ public struct Text: Equatable, Sendable {
             result.underline = underline ?? parent.underline
             result.strikethrough = strikethrough ?? parent.strikethrough
             result.baselineOffset = baselineOffset ?? parent.baselineOffset
+            result.kerning = kerning ?? parent.kerning
+            result.tracking = tracking ?? parent.tracking
             return result
         }
     }
@@ -295,7 +299,55 @@ extension EnvironmentValues {
     }
 
     package var textLayoutOptions: TextLayoutOptions {
-        TextLayoutOptions(lineLimit: lineLimit, truncationMode: truncationMode, lineSpacing: lineSpacing, minimumLines: minimumLines)
+        TextLayoutOptions(lineLimit: lineLimit, truncationMode: truncationMode, lineSpacing: lineSpacing, minimumLines: minimumLines,
+                          kerning: _kerning, tracking: _tracking)
+    }
+
+    /// Letter spacing of text in this environment (`View.kerning`, `View.tracking`).
+    package var _kerning: CGFloat {
+        get { self[KerningKey.self] }
+        set { self[KerningKey.self] = newValue }
+    }
+
+    package var _tracking: CGFloat {
+        get { self[TrackingKey.self] }
+        set { self[TrackingKey.self] = newValue }
+    }
+}
+
+package struct KerningKey: EnvironmentKey {
+    package static let defaultValue: CGFloat = 0
+}
+
+package struct TrackingKey: EnvironmentKey {
+    package static let defaultValue: CGFloat = 0
+}
+
+extension Text {
+    /// Sets the spacing, or kerning, between characters.
+    public func kerning(_ kerning: CGFloat) -> Text {
+        var copy = self
+        copy.modifiers.kerning = kerning
+        return copy
+    }
+
+    /// Sets the tracking for the text.
+    public func tracking(_ tracking: CGFloat) -> Text {
+        var copy = self
+        copy.modifiers.tracking = tracking
+        return copy
+    }
+}
+
+extension View {
+    /// Sets the spacing, or kerning, between characters for the text in this view.
+    nonisolated public func kerning(_ kerning: CGFloat) -> some View {
+        environment(\._kerning, kerning)
+    }
+
+    /// Sets the tracking for the text in this view.
+    nonisolated public func tracking(_ tracking: CGFloat) -> some View {
+        environment(\._tracking, tracking)
     }
 }
 
@@ -418,8 +470,16 @@ package final class TextNode: LeafNode<Text> {
     /// Each part's own gradient, if it has one.
     package var runGradients: [(any _GradientStyle)?] { view.parts().map { $0.modifiers.foregroundGradient?.style } }
 
+    /// The environment's layout options with the text's own kerning and tracking.
+    package var layoutOptions: TextLayoutOptions {
+        var options = environment.textLayoutOptions
+        if let kerning = view.modifiers.kerning { options.kerning = kerning }
+        if let tracking = view.modifiers.tracking { options.tracking = tracking }
+        return options
+    }
+
     package func textLayout(width: CGFloat?) -> TextLayout {
-        runtime.layoutText(styledRuns.runs, options: environment.textLayoutOptions, width: width)
+        runtime.layoutText(styledRuns.runs, options: layoutOptions, width: width)
     }
 
     /// Each part's baseline offset (its own, else the environment's).
@@ -456,10 +516,11 @@ package final class TextNode: LeafNode<Text> {
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let (runs, colors) = styledRuns
-        let layout = runtime.layoutText(runs, options: environment.textLayoutOptions, width: frame.width)
+        let layout = runtime.layoutText(runs, options: layoutOptions, width: frame.width)
         let inherited = (environment.foregroundColor ?? .primary)
         let resolvedColors = colors.map { ($0 ?? inherited).resolve(in: environment) }
-        let fonts = runs.map { DisplayFont($0.font) }
+        let spacing = TextLayouter.letterSpacing(layoutOptions)
+        let fonts = runs.map { DisplayFont($0.font, letterSpacing: spacing) }
         let bounds = absoluteBounds(context)
         // A gradient foreground style (the text's own or the environment's) fills the runs
         // without a colour of their own.

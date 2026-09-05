@@ -62,12 +62,17 @@ public struct TextMetricOptions: Hashable, Sendable {
     public var minimumLines = 0
     public var lineSpacing: CGFloat = 0
     public var truncation = "tail"      // "head" | "middle" | "tail"
+    /// `kerning` / `tracking` in points (0 = none).
+    public var kerning: CGFloat = 0
+    public var tracking: CGFloat = 0
 
-    public init(lineLimit: Int? = nil, minimumLines: Int = 0, lineSpacing: CGFloat = 0, truncation: String = "tail") {
+    public init(lineLimit: Int? = nil, minimumLines: Int = 0, lineSpacing: CGFloat = 0, truncation: String = "tail", kerning: CGFloat = 0, tracking: CGFloat = 0) {
         self.lineLimit = lineLimit
         self.minimumLines = minimumLines
         self.lineSpacing = lineSpacing
         self.truncation = truncation
+        self.kerning = kerning
+        self.tracking = tracking
     }
 
     public static let `default` = TextMetricOptions()
@@ -79,6 +84,8 @@ public struct TextMetricOptions: Hashable, Sendable {
         if minimumLines > 0 { suffix += ";r\(minimumLines)" }
         if lineSpacing != 0 { suffix += ";s\(lineSpacing)" }
         if truncation != "tail" { suffix += ";t\(truncation)" }
+        if kerning != 0 { suffix += ";k\(kerning)" }
+        if tracking != 0 { suffix += ";tr\(tracking)" }
         return suffix
     }
 }
@@ -485,6 +492,19 @@ public enum TextMetricsRequests {
         for word in ["Outside", "Inside", "No pointer", "Help me", "Link", "Text", "Entries: 0"] { requests.append(TextMetricRequest(word, defaultFont)) }
         for word in ["Taps: 0", "Content below the toolbar", "Cherry", "Date", "Elderberry"] { requests.append(TextMetricRequest(word, defaultFont)) }
         for word in ["Drag the box", "Long presses: 0", "Double taps: 0", "Idle"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        // Kerning and tracking (Phase 6): widths of the same words with letters spread or tightened.
+        for word in ["Hello", "Kerned text", "Tracked text", "Tight"] {
+            requests.append(TextMetricRequest(word, defaultFont))
+            requests.append(TextMetricRequest(word, .style("title")))
+            for value: CGFloat in [2, 5, -1] {
+                requests.append(TextMetricRequest(word, defaultFont, options: TextMetricOptions(kerning: value)))
+                requests.append(TextMetricRequest(word, defaultFont, options: TextMetricOptions(tracking: value)))
+                requests.append(TextMetricRequest(word, .style("title"), options: TextMetricOptions(kerning: value)))
+                requests.append(TextMetricRequest(word, .style("title"), options: TextMetricOptions(tracking: value)))
+            }
+        }
+        requests.append(TextMetricRequest("Wrapped kerned words fill the line", defaultFont, width: 160, options: TextMetricOptions(kerning: 2)))
+        requests.append(TextMetricRequest("Wrapped kerned words fill the line", defaultFont, width: 160))
         requests.append(TextMetricRequest("Mask", .system(size: 40, weight: "bold", design: "default")))
         for word in ["Underlined", "Colored", "Hello World", "Second", "Both", "Struck", "Red strike", "Mixed line", "Solid", "Dotted", "Dashed",
                      "Dash dot", "Dash dot dot", "Dash strike", "MIXED CASE", "mixed case", "mixed Case", "Base", "Up", "Down", "Raised"] {
