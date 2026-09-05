@@ -23,6 +23,11 @@ Apple docs: [Layout](https://developer.apple.com/documentation/swiftui/layout),
 - Stack distribution: least flexible child first, equal share of the remainder, priority groups
   sized highest first with lower groups reserved their minimum (`layout/hstack-distribution`,
   `layout/hstack-priority`). Overflowing content is centred (`layout/spacer-min-length`).
+- Spacers in the distribution (measured 2026-09-05, `pressure/stack-spacer-*`,
+  `pressure/spacer-min0/min30/roomy`): a `Spacer` (also one under painting modifiers or a probe)
+  is set aside with its `minLength` reserved, the other children are sized against the rest, and
+  the spacers then share whatever is left; a text in a tight stack with a spacer keeps
+  `floor((available − minLength) / pitch)` lines (Docs/elements/Text.md, height pressure).
 - Flexible frame: with a proposal, the result is the clamped proposal when a `max` is given,
   otherwise the child size clamped by `min`; with no proposal, `ideal` wins (`layout/frame-flex`).
 - Modifiers applied to a `Group` apply to every element (`layout/group-modifier`).

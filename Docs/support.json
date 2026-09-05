@@ -83,7 +83,7 @@
         {
           "api": "Text (verbatim/localized/interpolation, concatenation with mixed styles)",
           "status": "partial",
-          "notes": "Layout exact with recorded metrics on 17 fixtures; default font is the 13 pt system font and bold() resolves per text style (decision 0010); concatenated parts keep font/weight/traits/colour; wrapping, character wrapping, hard newlines, lineLimit (Int, ranges, reservesSpace), truncationMode head/middle/tail, multilineTextAlignment, lineSpacing; no localization tables, kerning/tracking, attributed strings, height-pressure truncation; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting)",
+          "notes": "Layout exact with recorded metrics on 17 fixtures; default font is the 13 pt system font and bold() resolves per text style (decision 0010); concatenated parts keep font/weight/traits/colour; wrapping, character wrapping, hard newlines, lineLimit (Int, ranges, reservesSpace), truncationMode head/middle/tail, multilineTextAlignment, lineSpacing; no localization tables, attributed strings; height pressure keeps floor(height / pitch) lines; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting)",
           "fixtures": [
             "text/*"
           ]
@@ -91,7 +91,7 @@
         {
           "api": "lineLimit / multilineTextAlignment / truncationMode / lineSpacing (View + EnvironmentValues)",
           "status": "partial",
-          "notes": "All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure does not drop lines yet; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting)",
+          "notes": "All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure keeps floor(height / pitch) lines and truncates the last; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting)",
           "fixtures": [
             "text/line-limit",
             "text/truncation",
@@ -1028,8 +1028,8 @@
         },
         {
           "api": "Text under height pressure (fewer lines and truncation)",
-          "status": "missing",
-          "notes": "Measured (floor(height / line pitch) lines, at least one, tail-truncated; pressure/* goldens) but not applied: honouring height proposals exposes the stacks' distribution to flexible children, which needs measuring first (Docs/elements/Text.md)"
+          "status": "full",
+          "notes": "floor(height / line pitch) lines, at least one, tail-truncated (pressure/heights, overflow, alone*); stacks set Spacers aside with their minimum reserved and share the rest in flexibility order (pressure/stack-*, spacer-*, two-texts, three-texts, row-tight); 15 fixtures exact in Tier A/C (Docs/elements/Text.md, Layout.md)"
         },
         {
           "api": "matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator",

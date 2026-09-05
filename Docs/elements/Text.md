@@ -79,32 +79,26 @@ zero for `edgeBelowText` (top) / `edgeAboveText` (bottom); text declares `edgeBe
 horizontally. Distance = max over categories both neighbours declare, 0 if none. A concatenation
 uses its first part's font for spacing (unverified for mixed fonts).
 
-## Height pressure (measured 2026-09-04, not yet applied)
+## Height pressure (measured 2026-09-04, applied 2026-09-05)
 
 A `Text` proposed less height than its lines need keeps `floor(height / line pitch)` lines, at
 least one, and tail-truncates the last: the paragraph at 110 pt (five lines, 80 pt) keeps one
 line in an 8 or 20 pt frame, two at 32 and 40, three at 48, four at 70 (`pressure/heights`); a
 stack taller than its window squeezes its text the same way (`pressure/overflow`: the window's
-120 pt leave 24 for the text, one line). The goldens and the limited-line metrics are recorded
-(`pressure/*`, outside the enabled prefixes). Applying the rule in `TextNode.computeSizeThatFits`
-made Tier A's stack fixtures shrink texts SwiftUI leaves alone (`text/line-limit`'s column lost
-lines): a text that honours height proposals reveals how the stacks distribute height to
-flexible children, which the natural-height behaviour masked, and zero proposals (minimum-size
-probes) must stay exempt. Applying it needs the stack distribution measured first.
+120 pt leave 24 for the text, one line; `pressure/alone25` and `alone45` keep one and two lines).
+`TextNode.textLayout(width:height:)` applies the rule to `sizeThatFits`, `dimensions(in:)` and
+painting; a zero-height proposal (a stack's minimum-size probe) yields one line by trimming the
+natural layout arithmetically, so the recorded engine sees no extra keys, while positive proposals
+lay the kept lines out for real with the ellipsis (keys carry `;lN`).
+
+Honouring height proposals exposed how stacks share height with texts, measured on the
+`pressure/*` stack fixtures (Docs/elements/Layout.md): a `Spacer` stands aside with its minimum
+reserved while the other children take equal shares in flexibility order, then the spacers split
+what is left (`pressure/stack-spacer-*`, `spacer-min0/min30/roomy`); two texts of different
+flexibility give the less flexible one its share first (`two-texts`, `two-texts-swapped`); equal
+texts split evenly (`three-texts`: 32/32/32 in 100 pt); a row squeezes the same way
+(`row-tight`). 15 fixtures exact in Tier A and Tier C.
 
 ## Open
 
-- **Height pressure**: when a stack cannot give a text its full height, SwiftUI re-lays it out
-  with fewer lines and truncates the last one (seen while the `text/line-limit` column was taller
-  than its fixture: `lineLimit(10)` showed 3 lines, "lines inside a narrow fr…"). Our text always
-  takes its full height. Needs a height slot in the recorded keys and a fixture with a fixed-height
-  frame.
-- Middle truncation balances prefix and suffix by width in SwiftUI; ours alternates one character
-  at a time (same widths within the half-point for the fixture, may differ elsewhere).
-- The two-line balance rule is inferred from 17 probe strings; whether it also applies to the
-  line before a `lineLimit` truncation is unmeasured (we do not balance truncated paragraphs).
-- Unrounded line heights are measured to 1/24 pt (13-line probe, pixel-rounded frames).
-- Browser line breaking is space-only (no UAX #14: hyphens, CJK, emoji clusters); Firefox and
-  fallback fonts measure some words differently (decision 0008).
-- `kerning`/`tracking`, `allowsTightening`/`minimumScaleFactor` (stored only), custom fonts,
-  localization tables, attributed strings, `Text(Image)`, text selection (Phase 3).
+- **Height pressure with mixed fonts**: the kept-line count uses the first part's pitch; a concatenation mixing text styles under pressure is unverified.
