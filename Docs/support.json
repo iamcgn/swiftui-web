@@ -1032,9 +1032,9 @@
           "notes": "floor(height / line pitch) lines, at least one, tail-truncated (pressure/heights, overflow, alone*); stacks set Spacers aside with their minimum reserved and share the rest in flexibility order (pressure/stack-*, spacer-*, two-texts, three-texts, row-tight); 15 fixtures exact in Tier A/C (Docs/elements/Text.md, Layout.md)"
         },
         {
-          "api": "matchedGeometryEffect / @Namespace",
-          "status": "missing",
-          "notes": "Not implemented"
+          "api": "matchedGeometryEffect / @Namespace / MatchedGeometryProperties",
+          "status": "partial",
+          "notes": "A view arriving under an animation glides (frame and scale) from the last frame recorded for its id while a retiring view glides to it; followers lay their content out at the source's size and on the source's anchor point per properties and anchor, as measured on 30 source/follower cells (matched/anchors, matched/follower pixel-identical in Tier C) (Docs/elements/Animator.md)"
         },
         {
           "api": "contentTransition / ContentTransition (identity, opacity, interpolate, numericText, symbolEffect)",

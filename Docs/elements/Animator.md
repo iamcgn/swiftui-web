@@ -1,4 +1,4 @@
-# PhaseAnimator, KeyframeAnimator, contentTransition
+# PhaseAnimator, KeyframeAnimator, contentTransition, matchedGeometryEffect
 
 Apple docs: [PhaseAnimator](https://developer.apple.com/documentation/swiftui/phaseanimator),
 [phaseAnimator(_:content:animation:)](https://developer.apple.com/documentation/swiftui/view/phaseanimator(_:content:animation:)),
@@ -6,7 +6,9 @@ Apple docs: [PhaseAnimator](https://developer.apple.com/documentation/swiftui/ph
 [keyframeAnimator(initialValue:trigger:content:keyframes:)](https://developer.apple.com/documentation/swiftui/view/keyframeanimator(initialvalue:trigger:content:keyframes:)),
 [KeyframeTimeline](https://developer.apple.com/documentation/swiftui/keyframetimeline),
 [contentTransition(_:)](https://developer.apple.com/documentation/swiftui/view/contenttransition(_:)),
-[ContentTransition](https://developer.apple.com/documentation/swiftui/contenttransition).
+[ContentTransition](https://developer.apple.com/documentation/swiftui/contenttransition),
+[matchedGeometryEffect(id:in:properties:anchor:isSource:)](https://developer.apple.com/documentation/swiftui/view/matchedgeometryeffect(id:in:properties:anchor:issource:)),
+[Namespace](https://developer.apple.com/documentation/swiftui/namespace).
 
 ## API surface
 
@@ -21,6 +23,7 @@ Apple docs: [PhaseAnimator](https://developer.apple.com/documentation/swiftui/ph
 | `KeyframeTimeline(initialValue:content:)`, `duration`, `value(time:)`, `value(progress:)` | implemented |
 | `Spring` (`smooth`, `snappy`, `bouncy`, `duration:bounce:`), `UnitCurve` (`linear`, ease curves, `bezier`) | the subsets the keyframes need |
 | `Animatable` for `Double`, `Float`, `CGFloat` (through `VectorArithmetic`) | added; `CGPoint`/`CGSize`/`CGRect` already conformed |
+| `@Namespace`, `Namespace.ID`, `matchedGeometryEffect(id:in:properties:anchor:isSource:)`, `MatchedGeometryProperties` (`position`, `size`, `frame`) | implemented: a view arriving under an animation glides from the group's last frame while the retiring one glides to it; non-sources paint at the source's frame |
 | `contentTransition(_:)`, `ContentTransition` (`identity`, `opacity`, `interpolate`, `numericText(countsDown:)`, `symbolEffect`), `EnvironmentValues.contentTransition` | implemented for `Text`: opacity, interpolate and symbolEffect crossfade, numericText crossfades with a vertical roll; images and other views snap |
 
 ## Behaviour
@@ -57,6 +60,27 @@ and headless tests step them deterministically.
   numeric text rolls each digit separately; both are crossfades here. Changes without an
   animation, or under `.identity`, snap. Tested on the headless clock (`ContentTransitionTests`).
 
+- **matchedGeometryEffect** keeps a registry on the runtime keyed by namespace and id; a
+  source records its root frame and anchor after every layout. A follower (`isSource: false`)
+  keeps its own layout size, as its parent sees it, but lays its content out differently
+  (measured on `matched/anchors`, 30 cells of one source and one follower, 2026-09-05):
+  - `.size` (and `.frame`) propose the source's size to the content, so a flexible follower
+    becomes source-sized while a fixed frame keeps its size;
+  - `.position` (and `.frame`) put the content's anchor point on the source's anchor point:
+    `origin = sourceAnchorPoint − contentSize × anchor`;
+  - `.frame` shifts the content once more by `(sourceSize − contentSize) × anchor` (SwiftUI's
+    frame mode applies the anchor twice, so a fixed 80 × 20 follower of a 40 × 40 source with
+    `.center` sits with its bottom-trailing corner on the source's);
+  - `.size` alone leaves the content at the slot's origin.
+  Painting and hit testing follow the content's real frame. Sources laid out after their
+  followers are copied from the previous layout.
+- **Arrival and departure**: when a matched view is placed for the first time in an update that
+  carries an animation and the registry holds another view's frame, it starts a frame tween
+  from that frame (its content scaling with the tween), and if that other view is retiring (a
+  removal transition's ghost) the ghost's frame is set to the newcomer's and tweened from where
+  it was, so an `if`/`else` swap under `withAnimation` glides both ways with the usual crossfade.
+  `@Namespace` hands out one id per view instance and keeps it across body evaluations.
+
 The goldens `animator/phase` and `animator/keyframe` capture the animators at rest (a trigger
 that never changes): first phase and initial value, exact in Tier A/B/C.
 
@@ -66,4 +90,6 @@ that never changes): first phase and initial value, exact in Tier A/B/C.
   curve from the keyframe's start value, so back-to-back springs do not carry momentum.
 - `PhaseAnimator` starts its first step one frame after appearing rather than at appear time.
 - `contentTransition` for symbol images (`symbolEffect`), per-digit numeric rolls and a real
-  `interpolate`; `matchedGeometryEffect` (separate row).
+  `interpolate`.
+- Matched geometry: several sources with one id (SwiftUI warns and picks one; here the last
+  laid out wins); a source laid out after its follower is copied one layout late.
