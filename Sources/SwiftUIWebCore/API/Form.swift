@@ -13,9 +13,24 @@ public struct Form<Content: View>: View {
     }
 
     @Environment(\.formStyle) private var style
+    @Environment(\.platformProfile) private var platform
 
     public var body: some View {
-        switch style._kind {
+        if platform.isIOS {
+            // iOS: a form is an inset grouped list; its rows lay out as they would in any list.
+            List { content }.listStyle(.insetGrouped)
+        } else {
+            _MacForm(content: content, kind: style._kind)
+        }
+    }
+}
+
+struct _MacForm<Content: View>: View {
+    let content: Content
+    let kind: _FormStyleKind
+
+    var body: some View {
+        switch kind {
         case .columns:
             _FormColumnsLayout { content.environment(\._formStyle, .columns) }
         case .grouped:

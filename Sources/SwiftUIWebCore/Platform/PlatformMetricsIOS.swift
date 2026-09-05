@@ -67,6 +67,9 @@ extension PlatformMetricsTable {
         t.segmentedFontWeight = 500
         t.segmentedSelectedFontWeight = 600
         t.segmentedTextTop = 7
+        // Lists and forms: inset grouped cards on a grey ground, 56 pt rows (ios/list/basic, ios/form/basic).
+        t.listRowMinimumHeight = 56
+        t.listSeparatorAlpha = 25.0 / 255
         return t
     }()
 }

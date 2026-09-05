@@ -88,8 +88,13 @@ enum Goldens {
         "table/sorting/byCount": ["name2", "name3", "count2", "count3"],
     ]
 
+    /// Fixtures whose probes are allowed two points: Catalyst lays list rows out with UIKit
+    /// cells, whose text measures about 1.5 pt narrower than SwiftUI's (Docs/elements/iOS.md).
+    static let approximatePrefixes = ["ios/list/", "ios/form/", "ios/nav/"]
+
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
-        let approximate = Self.approximateProbes[label] ?? []
+        let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }
+        let approximate = approximateFixture ? Set(golden.keys) : (Self.approximateProbes[label] ?? [])
         let ignored = Self.ignoredProbes[label] ?? []
         for (id, expected) in golden.sorted(by: { $0.key < $1.key }) where !ignored.contains(id) {
             let actual = try #require(ours[id], "\(label): probe \(id) not recorded")

@@ -1,0 +1,51 @@
+{
+  "fixture" : "ios\/form\/basic",
+  "frames" : {
+    "button" : {
+      "height" : 24.5,
+      "width" : 37,
+      "x" : 32,
+      "y" : 429.75
+    },
+    "form" : {
+      "height" : 520,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "name" : {
+      "height" : 26,
+      "width" : 256,
+      "x" : 32,
+      "y" : 59.5
+    },
+    "picker" : {
+      "height" : 40.5,
+      "width" : 256,
+      "x" : 32,
+      "y" : 235.5
+    },
+    "slider" : {
+      "height" : 31,
+      "width" : 256,
+      "x" : 32,
+      "y" : 368
+    },
+    "stepper" : {
+      "height" : 32,
+      "width" : 256,
+      "x" : 32,
+      "y" : 306
+    },
+    "toggle" : {
+      "height" : 28,
+      "width" : 256,
+      "x" : 32,
+      "y" : 115.5
+    }
+  },
+  "size" : {
+    "height" : 520,
+    "width" : 320
+  }
+}

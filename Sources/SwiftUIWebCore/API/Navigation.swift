@@ -135,6 +135,7 @@ public struct NavigationLink<Label: View, Destination: View>: View {
 
     @Environment(\._navigationContext) private var context
     @Environment(\._inListRow) private var inListRow
+    @Environment(\.platformProfile) private var platform
 
     private var isEnabled: Bool { destination != nil || value != nil }
 
@@ -143,7 +144,10 @@ public struct NavigationLink<Label: View, Destination: View>: View {
             guard let stack = context?.stack else { return }
             if let value { stack.push(value: value) } else if let destination { stack.push(view: destination) }
         }
-        if inListRow {
+        if inListRow && platform.isIOS {
+            // iOS: the label fills the row, which shows a chevron at its trailing edge.
+            label.frame(maxWidth: .infinity, alignment: .leading).layoutValue(key: NavigationLinkActivationKey.self, value: action)
+        } else if inListRow {
             // A list row: the row itself is the press target (`ListContentNode`).
             label.layoutValue(key: NavigationLinkActivationKey.self, value: action)
         } else {
@@ -248,7 +252,44 @@ extension _NavigationTitleModifier: ViewModifier {
     }
 }
 
+package struct UnderNavigationBarKey: EnvironmentKey {
+    package static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Whether the view is the content of a navigation stack whose bar sits above it (iOS lists
+    /// drop their top inset there).
+    package var _underNavigationBar: Bool {
+        get { self[UnderNavigationBarKey.self] }
+        set { self[UnderNavigationBarKey.self] = newValue }
+    }
+}
+
+/// `navigationBarTitleDisplayMode`: how the iOS navigation bar shows the title.
+public enum NavigationBarItem {
+    public enum TitleDisplayMode: Sendable, Equatable {
+        case automatic, inline, large
+    }
+}
+
+public struct _NavigationTitleDisplayModeModifier {
+    package let mode: NavigationBarItem.TitleDisplayMode
+    package init(mode: NavigationBarItem.TitleDisplayMode) { self.mode = mode }
+}
+
+extension _NavigationTitleDisplayModeModifier: ViewModifier {
+    public typealias Body = Never
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        NavigationTitleDisplayModeNode(context)
+    }
+}
+
 extension View {
+    /// Configures the title display mode for this view (the iOS navigation bar; no effect on macOS).
+    nonisolated public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> some View {
+        modifier(_NavigationTitleDisplayModeModifier(mode: displayMode))
+    }
+
     /// Associates a destination view with a presented data type for use within a navigation stack.
     nonisolated public func navigationDestination<D: Hashable, C: View>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> C) -> some View {
         modifier(_NavigationDestinationModifier<D>(destination: destination))

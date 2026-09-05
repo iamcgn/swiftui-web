@@ -471,6 +471,26 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var segmentedTextTop: CGFloat = 0                        // 0: centred in the segment
     package var popUpChevronRise: CGFloat = 0                        // 0: the macOS chevron pair
     package var destructiveColor = RGBA(r: 255, g: 57, b: 59)
+    // iOS lists, forms and navigation bars (ios/list/*, ios/form/basic, ios/nav/*; Docs/elements/iOS.md).
+    package var listGroupedBackground = RGBA(r: 235, g: 236, b: 236)
+    package var listGroupedMargin: CGFloat = 16                        // the card's inset from the list's edges
+    package var listGroupedContentInset: CGFloat = 16                  // a row's content inside the card
+    package var listGroupedCornerRadius: CGFloat = 26
+    package var listGroupedRowHeight: CGFloat = 56                     // minimum; else content + 2 × padding
+    package var listGroupedRowPadding: CGFloat = 15
+    package var listGroupedTopInset: CGFloat = 35                      // above a first card without a header
+    package var listGroupedHeaderTop: CGFloat = 27.5                   // card bottom to the next header's text
+    package var listGroupedFirstHeaderTop: CGFloat = 10
+    package var listGroupedHeaderBottom: CGFloat = 10
+    package var listPlainHeaderTop: CGFloat = 32
+    package var listPlainContentInset: CGFloat = 16
+    package var listLinkChevronSize = CGSize(width: 7, height: 12)
+    package var listLinkChevronTrailing: CGFloat = 2
+    package var listLinkChevronAlpha = 0.3
+    package var navigationBarLargeHeight: CGFloat = 117
+    package var navigationBarInlineHeight: CGFloat = 64
+    package var navigationLargeTitleTop: CGFloat = 65.5
+    package var navigationTitleInset: CGFloat = 20
 }
 
 /// The metrics of the profile currently laying out or painting (see `PlatformMetricsTable`).

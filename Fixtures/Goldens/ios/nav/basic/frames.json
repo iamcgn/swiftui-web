@@ -1,0 +1,33 @@
+{
+  "fixture" : "ios\/nav\/basic",
+  "frames" : {
+    "link" : {
+      "height" : 24.5,
+      "width" : 256,
+      "x" : 32,
+      "y" : 132.75
+    },
+    "list" : {
+      "height" : 363,
+      "width" : 320,
+      "x" : 0,
+      "y" : 117
+    },
+    "nav" : {
+      "height" : 480,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row" : {
+      "height" : 24.5,
+      "width" : 32.5,
+      "x" : 32,
+      "y" : 188.75
+    }
+  },
+  "size" : {
+    "height" : 480,
+    "width" : 320
+  }
+}

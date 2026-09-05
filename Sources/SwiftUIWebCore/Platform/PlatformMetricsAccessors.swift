@@ -380,4 +380,23 @@ extension PlatformMetrics {
     package static var segmentedTextTop: CGFloat { current.segmentedTextTop }
     package static var popUpChevronRise: CGFloat { current.popUpChevronRise }
     package static var destructiveColor: RGBA { current.destructiveColor }
+    package static var listGroupedBackground: RGBA { current.listGroupedBackground }
+    package static var listGroupedMargin: CGFloat { current.listGroupedMargin }
+    package static var listGroupedContentInset: CGFloat { current.listGroupedContentInset }
+    package static var listGroupedCornerRadius: CGFloat { current.listGroupedCornerRadius }
+    package static var listGroupedRowHeight: CGFloat { current.listGroupedRowHeight }
+    package static var listGroupedRowPadding: CGFloat { current.listGroupedRowPadding }
+    package static var listGroupedTopInset: CGFloat { current.listGroupedTopInset }
+    package static var listGroupedHeaderTop: CGFloat { current.listGroupedHeaderTop }
+    package static var listGroupedFirstHeaderTop: CGFloat { current.listGroupedFirstHeaderTop }
+    package static var listGroupedHeaderBottom: CGFloat { current.listGroupedHeaderBottom }
+    package static var listPlainHeaderTop: CGFloat { current.listPlainHeaderTop }
+    package static var listPlainContentInset: CGFloat { current.listPlainContentInset }
+    package static var listLinkChevronSize: CGSize { current.listLinkChevronSize }
+    package static var listLinkChevronTrailing: CGFloat { current.listLinkChevronTrailing }
+    package static var listLinkChevronAlpha: Double { current.listLinkChevronAlpha }
+    package static var navigationBarLargeHeight: CGFloat { current.navigationBarLargeHeight }
+    package static var navigationBarInlineHeight: CGFloat { current.navigationBarInlineHeight }
+    package static var navigationLargeTitleTop: CGFloat { current.navigationLargeTitleTop }
+    package static var navigationTitleInset: CGFloat { current.navigationTitleInset }
 }

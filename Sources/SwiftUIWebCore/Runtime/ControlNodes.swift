@@ -94,6 +94,9 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
     }
 
     private var isIOS: Bool { environment.platformProfile.isIOS }
+    /// iOS menu pickers show their label only in a list or form row, where the value sits at
+    /// the trailing edge in the secondary colour (ios/form/basic).
+    private var iOSRow: Bool { isIOS && style == .menu && environment._inListRow }
 
     private func optionEnvironment() -> EnvironmentValues {
         var environment = environment
@@ -117,8 +120,8 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
             }
         case .menu, .radioGroup:
             if isIOS && style == .menu {
-                // iOS: the value in the accent colour, body font.
-                color = enabled ? Color.accentColor : Color.primary.opacity(PlatformMetrics.disabledLabelOpacity)
+                // iOS: the value in the accent colour (secondary inside a row), body font.
+                color = !enabled ? Color.primary.opacity(PlatformMetrics.disabledLabelOpacity) : iOSRow ? Color.secondary : Color.accentColor
                 font = .body
             } else {
                 color = enabled ? Color.primary : Color.black.opacity(PlatformMetrics.popUpDisabledTextAlpha)
@@ -128,8 +131,8 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
     }
 
     private func mountChildren(force: Bool) {
-        // iOS shows a menu or segmented picker's label only inside a form: the control stands alone.
-        if let labelView = view.label, !(isIOS && style != .radioGroup) {
+        // iOS shows a menu or segmented picker's label only inside a form or list row.
+        if let labelView = view.label, !(isIOS && style != .radioGroup && !iOSRow) {
             if let label {
                 label.update(view: labelView, environment: labelEnvironment(), force: force)
             } else {
@@ -209,6 +212,19 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
             }
             return Plan(options: options, label: CGRect(x: 0, y: (height - labelSize.height) / 2, width: labelSize.width, height: labelSize.height),
                         control: control, size: CGSize(width: labelWidth + width, height: height))
+        case .menu where iOSRow:
+            // The row fills the proposal: label leading, value and chevron ending at the trailing edge.
+            let selectedWidth = zip(options, sizes).first(where: { isSelected($0.0) })?.1.width ?? widest
+            let valueWidth = selectedWidth + PlatformMetrics.popUpChevronGap + PlatformMetrics.popUpChevronWidth
+            let width = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? (labelWidth + valueWidth)
+            let height = max(PlatformMetrics.popUpHeight, labelSize.height)
+            let control = CGRect(x: width - valueWidth, y: (height - PlatformMetrics.popUpHeight) / 2, width: valueWidth, height: PlatformMetrics.popUpHeight)
+            for index in options.indices {
+                options[index].frame = CGRect(x: control.minX, y: control.minY + (control.height - sizes[index].height) / 2,
+                                              width: sizes[index].width, height: sizes[index].height)
+            }
+            return Plan(options: options, label: CGRect(x: 0, y: (height - labelSize.height) / 2, width: labelSize.width, height: labelSize.height),
+                        control: control, size: CGSize(width: width, height: height))
         case .menu:
             // macOS sizes the pop-up to its widest option; iOS's menu button fits the selected value.
             let selectedWidth = zip(options, sizes).first(where: { isSelected($0.0) })?.1.width ?? widest
@@ -318,7 +334,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
             if let shown = options.first(where: isSelected)?.shown {
                 shown.paint(into: &list, context: context.child(at: shown.presentedFrame))
             }
-            let x1 = control.maxX - PlatformMetrics.popUpChevronTrailing
+            let x1 = control.maxX - (iOSRow ? 0 : PlatformMetrics.popUpChevronTrailing)
             let x0 = x1 - PlatformMetrics.popUpChevronWidth
             let midX = (x0 + x1) / 2, midY = control.midY, rise = PlatformMetrics.popUpChevronRise
             var chevrons = Path()
@@ -328,7 +344,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
             chevrons.move(to: CGPoint(x: x0, y: midY + 1.25))
             chevrons.addLine(to: CGPoint(x: midX, y: midY + 1.25 + rise))
             chevrons.addLine(to: CGPoint(x: x1, y: midY + 1.25))
-            let tint = enabled ? Color.accentColor.resolve(in: environment) : black(PlatformMetrics.disabledLabelOpacity)
+            let tint = !enabled ? black(PlatformMetrics.disabledLabelOpacity) : iOSRow ? Color.secondary.resolve(in: environment) : Color.accentColor.resolve(in: environment)
             list.append(.strokePath(chevrons, style: StrokeStyle(lineWidth: PlatformMetrics.popUpChevronStroke, lineCap: .round, lineJoin: .round), tint))
             return
         }

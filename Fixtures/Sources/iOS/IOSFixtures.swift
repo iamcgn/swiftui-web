@@ -164,5 +164,76 @@ public enum IOSFixtures {
         .probe("screen")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings]
+    /// A grouped form: sections with headers, the rows the settings screen uses.
+    public static let form = Fixture("ios/form/basic", size: CGSize(width: 320, height: 520)) {
+        Form {
+            Section("Account") {
+                TextField("Name", text: .constant("Ada")).probe("name")
+                Toggle("Notifications", isOn: .constant(true)).probe("toggle")
+            }
+            Section("Preferences") {
+                Picker("Flavour", selection: .constant("Vanilla")) {
+                    Text("Vanilla").tag("Vanilla"); Text("Chocolate").tag("Chocolate")
+                }
+                .probe("picker")
+                Stepper("Quantity: 3", value: .constant(3)).probe("stepper")
+                Slider(value: .constant(0.5)) { Text("Volume") }.probe("slider")
+                Button("Save") {}.probe("button")
+            }
+        }
+        .probe("form")
+    }.platform(.iOS)
+
+    /// A list: plain rows, a section with a header, a row with a detail on the right.
+    public static let list = Fixture("ios/list/basic", size: CGSize(width: 320, height: 400)) {
+        List {
+            Text("Apple").probe("row1")
+            Text("Banana").probe("row2")
+            Section("Fruit") {
+                Text("Cherry").probe("row3")
+                HStack { Text("Detail").probe("detailLabel"); Spacer(); Text("Value").foregroundStyle(.secondary).probe("detailValue") }.probe("detailRow")
+            }
+        }
+        .probe("list")
+    }.platform(.iOS)
+
+    /// The same rows in the plain list style.
+    public static let listPlain = Fixture("ios/list/plain", size: CGSize(width: 320, height: 300)) {
+        List {
+            Text("Apple").probe("row1")
+            Text("Banana").probe("row2")
+            Section("Fruit") { Text("Cherry").probe("row3") }
+        }
+        .listStyle(.plain)
+        .probe("list")
+    }.platform(.iOS)
+
+    /// A navigation stack with a large title over a list.
+    public static let navigation = Fixture("ios/nav/basic", size: CGSize(width: 320, height: 480)) {
+        NavigationStack {
+            List {
+                NavigationLink("Detail") { Text("Pushed") }.probe("link")
+                Text("Row").probe("row")
+            }
+            .navigationTitle("Settings")
+            .probe("list")
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// The same with an inline title.
+    public static let navigationInline = Fixture("ios/nav/inline", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            List { Text("Row").probe("row") }
+                .navigationTitle("Settings")
+                #if canImport(SwiftUIWebCore) || targetEnvironment(macCatalyst)   // iOS-only API: Apple's macOS SwiftUI lacks it
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .probe("list")
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    public static let all: [Fixture] = [textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
+                                        form, list, listPlain, navigation, navigationInline]
 }

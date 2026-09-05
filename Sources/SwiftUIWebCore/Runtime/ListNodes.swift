@@ -5,8 +5,15 @@
 @MainActor
 private var nextListIdentifier = 4_000_000
 
+/// A list whose ground colour a navigation stack extends under its bar (iOS grouped lists).
 @MainActor
-package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Content>>, _Interactive, _KeyHandling {
+package protocol _ListGroundProviding: AnyObject {
+    var _groundColor: Color? { get }
+}
+
+@MainActor
+package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Content>>, _Interactive, _KeyHandling, _ListGroundProviding {
+    package var _groundColor: Color? { profile.cards ? profile.background : nil }
     package private(set) var child: TypedNode<Content>!
     private let identifier: Int
 
@@ -40,7 +47,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         var environment = environment
         if let font = profile.rowFont { environment.font = font }
         if let color = profile.rowForeground { environment.foregroundColor = color }
-        environment._sectionStyling = _SectionStyling(font: .subheadline.weight(.semibold), foreground: .secondary)
+        environment._sectionStyling = _SectionStyling(font: profile.headerFont ?? .subheadline.weight(.semibold), foreground: .secondary)
         environment._labelIconLayout = _LabelIconLayout(iconWidth: PlatformMetrics.listLabelIconWidth,
                                                         spacing: PlatformMetrics.listLabelIconSpacing, tint: .accentColor)
         environment._inListRow = true
@@ -105,9 +112,15 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     }
 
     private func rowInsets(_ node: ViewNode) -> EdgeInsets {
-        node.layoutValue(for: ListRowInsetsKey.self)
-            ?? EdgeInsets(top: PlatformMetrics.listRowVerticalInset, leading: 0, bottom: PlatformMetrics.listRowVerticalInset, trailing: 0)
+        if let insets = node.layoutValue(for: ListRowInsetsKey.self) { return insets }
+        if profile.rowPadding > 0 {
+            return EdgeInsets(top: profile.rowPadding, leading: profile.contentInset, bottom: profile.rowPadding, trailing: profile.contentInset)
+        }
+        return EdgeInsets(top: PlatformMetrics.listRowVerticalInset, leading: 0, bottom: PlatformMetrics.listRowVerticalInset, trailing: 0)
     }
+
+    /// Whether the style lays out the iOS way (rows padded, headers with their own gaps).
+    private var iOSLayout: Bool { profile.rowPadding > 0 }
 
     // MARK: Layout
 
@@ -120,11 +133,22 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         var elements = collect()
         var y = profile.topInset
         let last = elements.indices.last
+        // iOS: a first section that opens with a header starts at its header's gap, not the top inset.
+        if iOSLayout, let first = elements.first, first.kind == .header { y = 0 }
         for index in elements.indices {
             var element = elements[index]
-            if index > 0, element.isSectionStart { y += PlatformMetrics.listSectionSpacing }
+            if index > 0, element.isSectionStart, !iOSLayout { y += PlatformMetrics.listSectionSpacing }
             let contentWidth = width - 2 * profile.margin
             switch element.kind {
+            case .header where iOSLayout, .footer where iOSLayout:
+                // iOS: the header text sits `headerTop` below the previous card (`firstHeaderTop` at
+                // the top) and `headerBottom` above its card, inset like a row's content.
+                let top = index == 0 ? profile.firstHeaderTop : profile.headerTop
+                let size = element.node.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+                element.contentFrame = CGRect(x: profile.margin + profile.contentInset, y: y + top,
+                                              width: min(size.width, contentWidth - 2 * profile.contentInset), height: size.height)
+                element.frame = CGRect(x: 0, y: y, width: width, height: top + size.height + profile.headerBottom)
+                element.separator = false
             case .header, .footer:
                 let pad = PlatformMetrics.listSectionHeaderPadding
                 let size = element.node.sizeThatFits(ProposedViewSize(width: contentWidth, height: nil))
@@ -140,7 +164,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 let contentY = y + (height - size.height) / 2
                 element.contentFrame = CGRect(x: profile.margin + insets.leading, y: contentY, width: available, height: size.height)
                 let (visibility, edges) = element.node.layoutValue(for: ListRowSeparatorKey.self)
-                element.separator = profile.showsSeparators && index != last && !(visibility == .hidden && edges.contains(.bottom))
+                // A card's last row has no separator: the next element is a header, footer or nothing.
+                let followedByRow = index + 1 < elements.count && elements[index + 1].kind == .row && !(iOSLayout && elements[index + 1].isSectionStart)
+                element.separator = profile.showsSeparators && index != last && !(visibility == .hidden && edges.contains(.bottom)) && (!iOSLayout || followedByRow)
                 let (tint, tintEdges) = element.node.layoutValue(for: ListRowSeparatorTintKey.self)
                 if tintEdges.contains(.bottom) { element.separatorTint = tint }
             }
@@ -200,8 +226,30 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         return selection.isSelected(id)
     }
 
+    /// iOS inset grouped: the runs of rows between headers and footers, each a white card.
+    private var cardFrames: [CGRect] {
+        var cards: [CGRect] = []
+        var current: CGRect?
+        for element in elements {
+            if element.kind == .row, !(element.isSectionStart && current != nil) {
+                current = current.map { $0.union(element.frame) } ?? element.frame
+            } else {
+                if let card = current { cards.append(card) }
+                current = element.kind == .row ? element.frame : nil
+            }
+        }
+        if let card = current { cards.append(card) }
+        return cards.map { $0.insetBy(dx: profile.margin, dy: 0) }
+    }
+
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         let selected = elements.map(isSelected)
+        if profile.cards {
+            for card in cardFrames {
+                list.append(.fillPath(Path(roundedRect: context.absoluteRect(card), cornerRadius: profile.cardCornerRadius, style: .continuous),
+                                      environment._controlBackground))
+            }
+        }
         // Separators first: below each element that has one, from its content's leading edge to
         // the style's trailing margin; none next to a selected row, and a row background covers
         // its own (list/modifiers).
@@ -227,6 +275,17 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, color))
             }
             element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))
+            // iOS: a navigation link row shows a chevron at its trailing edge.
+            if profile.linkChevron, element.kind == .row, element.node.layoutValue(for: NavigationLinkActivationKey.self) != nil {
+                let size = PlatformMetrics.listLinkChevronSize
+                let right = context.origin.x + element.contentFrame.maxX - PlatformMetrics.listLinkChevronTrailing
+                let midY = context.origin.y + element.frame.midY
+                var chevron = Path()
+                chevron.move(to: CGPoint(x: right - size.width, y: midY - size.height / 2))
+                chevron.addLine(to: CGPoint(x: right, y: midY))
+                chevron.addLine(to: CGPoint(x: right - size.width, y: midY + size.height / 2))
+                list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round), environment._ink(PlatformMetrics.listLinkChevronAlpha)))
+            }
         }
     }
 

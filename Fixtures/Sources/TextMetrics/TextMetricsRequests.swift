@@ -577,6 +577,20 @@ extension TextMetricsRequests {
                 requests.append(TextMetricRequest(string, .style("subheadline", weight: weight)))
             }
         }
+        for string in ["Ada", "Notifications", "Flavour", "Vanilla", "Chocolate", "Pushed", "Row", "Detail", "Value"] {
+            requests.append(TextMetricRequest(string, .style("body")))
+            requests.append(TextMetricRequest(string, .style("body", weight: "semibold")))
+        }
+        for string in ["Account", "Preferences", "Fruit"] {
+            requests.append(TextMetricRequest(string, .style("body", weight: "medium")))
+        }
+        requests.append(TextMetricRequest("Settings", .style("headline")))
+        for string in ["ACCOUNT", "PREFERENCES", "FRUIT", "Account", "Preferences", "Fruit"] {
+            requests.append(TextMetricRequest(string, .style("footnote")))
+            requests.append(TextMetricRequest(string, .style("subheadline")))
+            requests.append(TextMetricRequest(string, .style("caption")))
+            requests.append(TextMetricRequest(string, .style("body")))
+        }
         for (string, style) in [("Large Title", "largeTitle"), ("Title", "title"), ("Title 2", "title2"), ("Title 3", "title3"), ("Headline", "headline"),
                                 ("Subheadline", "subheadline"), ("Callout", "callout"), ("Footnote", "footnote"), ("Caption", "caption"), ("Caption 2", "caption2"),
                                 ("Volume", "subheadline"), ("Settings", "largeTitle")] {

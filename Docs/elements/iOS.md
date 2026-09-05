@@ -24,13 +24,20 @@ and `SystemFontMetricsTableIOS.swift`.
 | Picker (menu) | pop-up button with the label | the selected value in the accent colour with two chevrons, no box or label: 40.5 tall, 13.5 in each side, chevrons 9 wide 4 after the text |
 | Picker (segmented) | equal segments of the widest option + 21 | fills the proposed width, 31 tall, capsule black 31/255; the selected segment a white capsule inset 7 × 2; titles 13 pt medium (selected semibold), 7 pt down |
 | Disabled labels | 30 % | 24 % (52 over 215) |
+| List (automatic) | inset rows on white | inset grouped: a (235, 236, 236) ground, each section a white card 16 in with 26 pt continuous corners; rows max(56, content + 30) with content 16 in and centred, 1 pt separators from the content's leading edge to the card's inner edge, none under a card's last row; 35 above a first card without a header; headers in body medium, secondary, 27.5 below the previous card (10 at the top) and 10 above their card; navigation link rows fill the row and end in a 7 × 12 chevron at 30 % |
+| List (plain) | 8 pt margins | white, rows 56 with content 16 in, separators 16 in; headers 32 below the previous row, 10 above the next |
+| Form | columns | an inset grouped list; a menu picker row keeps its label and puts the value and chevron, in the secondary colour, at the trailing edge; sliders lose their label; text fields are plain |
+| NavigationStack | no bar (the window's title) | a bar over the content: 117 pt with the large title (34 pt bold, 20 in, its line 65.5 down) or 64 pt inline (headline, centred); a large title takes the list's 35 pt top inset, an inline one does not |
 
 ## Measured (Mac Catalyst on macOS 26.2, `ios/*` fixtures, 2026-09-05)
 
 Every row above comes from `Fixtures/Goldens/ios/<fixture>/frames.json` and pixels sampled from
 `image@2x.png`: `ios/text/styles`, `ios/layout/basics`, `ios/toggle/basic`, `ios/button/basic`,
 `ios/slider/basic`, `ios/stepper/basic`, `ios/textfield/basic`, `ios/picker/basic`,
-`ios/controls/settings` (the landing page's screen). All nine are exact in Tier A.
+`ios/controls/settings` (the landing page's screen), and 2026-09-05 later `ios/form/basic`,
+`ios/list/basic`, `ios/list/plain`, `ios/nav/basic`, `ios/nav/inline`. The first nine are exact
+in Tier A; the list-backed ones are within 2 pt: Catalyst lays list rows out with UIKit cells,
+whose text measures about 1.5 pt narrower than SwiftUI's `Text` of the same string.
 
 ## Catalyst deviations painted the iOS way
 
@@ -45,7 +52,7 @@ own (body 24.5 where an iPhone lays out 22); a simulator run can replace the gol
 
 ## Not yet covered
 
-Everything the nine fixtures do not show: `Form`/`List` inset-grouped looks, navigation bars,
-sheets, pickers inside forms, date pickers, the `Menu` button, progress views, tab bars, dark
-mode colours, the bold trait of the other text styles, default control spacing in a `VStack`,
-and the touch-device default: hosts still start in the macOS profile.
+Sheets, date pickers, the `Menu` button, progress views, tab bars, footers and list selection
+looks, the back button and push transition, dark mode colours, the bold trait of the other text
+styles, default control spacing in a `VStack`, and the touch-device default: hosts still start
+in the macOS profile.

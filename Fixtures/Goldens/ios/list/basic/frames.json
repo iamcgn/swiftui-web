@@ -1,0 +1,51 @@
+{
+  "fixture" : "ios\/list\/basic",
+  "frames" : {
+    "detailLabel" : {
+      "height" : 24.5,
+      "width" : 44,
+      "x" : 32,
+      "y" : 280.75
+    },
+    "detailRow" : {
+      "height" : 24.5,
+      "width" : 256,
+      "x" : 32,
+      "y" : 280.75
+    },
+    "detailValue" : {
+      "height" : 24.5,
+      "width" : 42,
+      "x" : 246,
+      "y" : 280.75
+    },
+    "list" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 24.5,
+      "width" : 44.5,
+      "x" : 32,
+      "y" : 50.75
+    },
+    "row2" : {
+      "height" : 24.5,
+      "width" : 57,
+      "x" : 32,
+      "y" : 106.75
+    },
+    "row3" : {
+      "height" : 24.5,
+      "width" : 52,
+      "x" : 32,
+      "y" : 224.75
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

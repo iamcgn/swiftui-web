@@ -26,13 +26,47 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
         root = AnyView._makeNode(_NodeContext(view: context.view.root, parent: self, environment: contentEnvironment))
         lastValues = context.view.values
         reconcile(with: context.view.values)
+        settleBarMode(force: false)
     }
 
     private var contentEnvironment: EnvironmentValues {
         var environment = environment
         environment._navigationContext = context
         environment.dismiss = DismissAction { [weak self] in self?.pop() }
+        environment._underNavigationBar = environment.platformProfile.isIOS && largeBar
         return environment
+    }
+
+    /// Whether the content sits under a large-title bar (iOS lists drop their top inset there).
+    /// Assumed until the content is mounted and its display mode read; corrected in a second pass.
+    private var largeBar = true
+
+    private func settleBarMode(force: Bool) {
+        guard environment.platformProfile.isIOS else { return }
+        let actual = bar?.large ?? false
+        if actual != largeBar {
+            largeBar = actual
+            root.update(view: view.root, environment: contentEnvironment, force: force)
+            for entry in entries { refresh(entry, force: force) }
+        }
+    }
+
+    // MARK: The iOS navigation bar
+
+    /// The bar over the top view: its title and display mode come from the modifiers in the
+    /// top view's subtree (ios/nav/basic: a 117 pt bar with the large title; ios/nav/inline: 64).
+    private struct Bar {
+        var title: String
+        var large: Bool
+        var height: CGFloat
+    }
+
+    private var bar: Bar? {
+        guard environment.platformProfile.isIOS, let top = groups.last?.first else { return nil }
+        guard let titled = top.descendants(where: { $0 is any _NavigationTitleProviding }).first as? any _NavigationTitleProviding else { return nil }
+        let mode = (top.descendants(where: { $0 is any _NavigationTitleDisplayModeProviding }).first as? any _NavigationTitleDisplayModeProviding)?._titleDisplayMode ?? .automatic
+        let large = mode != .inline
+        return Bar(title: titled._navigationTitle, large: large, height: large ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight)
     }
 
     override package func update(view: _NavigationStackHost, environment: EnvironmentValues, force: Bool) {
@@ -45,6 +79,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
             reconcile(with: view.values)
         }
         for entry in entries { refresh(entry, force: force) }
+        settleBarMode(force: force)
     }
 
     /// Makes the value entries match the path (reusing nodes for the unchanged prefix); views
@@ -162,16 +197,47 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        size(of: groups.last ?? [], proposal)
+        if let bar {
+            let inner = ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - bar.height) })
+            let content = size(of: groups.last ?? [], inner)
+            return CGSize(width: content.width, height: content.height + bar.height)
+        }
+        return size(of: groups.last ?? [], proposal)
     }
 
     override package func layoutContents(proposal: ProposedViewSize) {
+        let barHeight = bar?.height ?? 0
+        let inner = barHeight > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - barHeight) }) : proposal
         for group in groups {
             for node in group {
-                let size = node.sizeThatFits(proposal)
-                node.place(at: CGPoint(x: (frame.width - size.width) / 2, y: (frame.height - size.height) / 2),
-                           anchor: .topLeading, proposal: proposal, by: self)
+                let size = node.sizeThatFits(inner)
+                node.place(at: CGPoint(x: (frame.width - size.width) / 2, y: barHeight + (frame.height - barHeight - size.height) / 2),
+                           anchor: .topLeading, proposal: inner, by: self)
             }
+        }
+    }
+
+    override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
+        guard let bar else { return }
+        let bounds = absoluteBounds(context)
+        let profile = environment.platformProfile
+        // A grouped list's ground continues under the bar, as on iOS (ios/nav/basic is grey throughout).
+        if let top = groups.last?.first,
+           let ground = (top.descendants(where: { $0 is any _ListGroundProviding }).first as? any _ListGroundProviding)?._groundColor {
+            list.append(.fillRect(bounds, ground.resolve(in: environment)))
+        }
+        let color = (environment.foregroundColor ?? .primary).resolve(in: environment)
+        if bar.large {
+            let font = Font.largeTitle.bold().resolve(profile: profile)
+            let metrics = profile.systemFontMetrics(for: font)
+            let origin = CGPoint(x: bounds.minX + PlatformMetrics.navigationTitleInset, y: bounds.minY + PlatformMetrics.navigationLargeTitleTop + metrics.baseline)
+            list.append(.drawText(bar.title, DisplayFont(font), origin: origin, color))
+        } else {
+            let font = Font.headline.resolve(profile: profile)
+            let metrics = profile.systemFontMetrics(for: font)
+            let width = runtime.layoutText(bar.title, font: font, width: nil).size.width
+            let origin = CGPoint(x: bounds.midX - width / 2, y: bounds.minY + (bar.height - metrics.lineHeight) / 2 + metrics.baseline)
+            list.append(.drawText(bar.title, DisplayFont(font), origin: origin, color))
         }
     }
 
@@ -230,9 +296,28 @@ package final class NavigationPresentedDestinationNode<Content: View>: UnaryLayo
     }
 }
 
+/// The title and display mode a navigation stack finds in its top view's subtree (iOS bar).
+@MainActor
+package protocol _NavigationTitleProviding: AnyObject {
+    var _navigationTitle: String { get }
+}
+
+@MainActor
+package protocol _NavigationTitleDisplayModeProviding: AnyObject {
+    var _titleDisplayMode: NavigationBarItem.TitleDisplayMode { get }
+}
+
+/// Records a `navigationBarTitleDisplayMode`; transparent for layout.
+@MainActor
+package final class NavigationTitleDisplayModeNode<Content: View>: UnaryLayoutModifierNode<Content, _NavigationTitleDisplayModeModifier>, _NavigationTitleDisplayModeProviding {
+    package var _titleDisplayMode: NavigationBarItem.TitleDisplayMode { modifier.mode }
+}
+
 /// Records the navigation title on the runtime; transparent for layout.
 @MainActor
-package final class NavigationTitleNode<Content: View>: UnaryLayoutModifierNode<Content, _NavigationTitleModifier> {
+package final class NavigationTitleNode<Content: View>: UnaryLayoutModifierNode<Content, _NavigationTitleModifier>, _NavigationTitleProviding {
+    package var _navigationTitle: String { modifier.title }
+
     override package init(_ context: _NodeContext<ModifiedContent<Content, _NavigationTitleModifier>>) {
         super.init(context)
         runtime.navigationTitle = modifier.title

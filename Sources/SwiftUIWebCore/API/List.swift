@@ -30,10 +30,17 @@ public struct List<SelectionValue: Hashable, Content: View>: View {
 
     @Environment(\.listStyle) private var style
     @Environment(\._inSidebarColumn) private var inSidebarColumn
+    @Environment(\.platformProfile) private var platform
+    @Environment(\._underNavigationBar) private var underNavigationBar
 
     /// In a split view's sidebar column the automatic style is the sidebar style, and a sidebar
-    /// list is transparent over the panel.
+    /// list is transparent over the panel. On iOS every style but plain is inset grouped.
     private var profile: _ListProfile {
+        if platform.isIOS {
+            var profile = _ListProfile.iOS(style._profile.name)
+            if underNavigationBar { profile.topInset = 0 }   // the bar's large title carries the gap (ios/nav/basic)
+            return profile
+        }
         var profile = style is DefaultListStyle && inSidebarColumn ? SidebarListStyle()._profile : style._profile
         if inSidebarColumn, profile.name == "sidebar" { profile.background = .clear }
         return profile
@@ -41,7 +48,7 @@ public struct List<SelectionValue: Hashable, Content: View>: View {
 
     public var body: some View {
         let profile = profile
-        let pinnedTitle = profile.name == "sidebar" ? nil : _firstSectionTitle(of: content)
+        let pinnedTitle = profile.name == "sidebar" || platform.isIOS ? nil : _firstSectionTitle(of: content)
         // Read the selection here, inside the body, so observation tracks the model it comes
         // from; painting reads it again but is not tracked.
         let _: Void = selection?.read() ?? ()
@@ -177,6 +184,37 @@ public struct _ListProfile: Equatable, Sendable {
     /// Separators run from the row content's leading edge to `width - separatorTrailing`.
     package var separatorTrailing: CGFloat
     package var rowBackgroundExtendsToEdges: Bool
+    // iOS (Docs/elements/iOS.md): rows are their content plus padding above and below, with a
+    // leading and trailing content inset; sections sit in cards; headers keep their own gaps.
+    package var rowPadding: CGFloat = 0
+    package var contentInset: CGFloat = 0
+    package var cards = false
+    package var cardCornerRadius: CGFloat = 0
+    package var headerTop: CGFloat = 0
+    package var firstHeaderTop: CGFloat = 0
+    package var headerBottom: CGFloat = 0
+    package var headerFont: Font? = nil
+    package var linkChevron = false
+
+    /// The iOS look of a style: inset grouped cards for every style but plain.
+    @MainActor package static func iOS(_ name: String) -> _ListProfile {
+        let m = PlatformMetricsTable.iOS
+        if name == "plain" {
+            return _ListProfile(name: "plain", margin: 0, topInset: 0, minimumRowHeight: m.listGroupedRowHeight, rowFont: nil, rowForeground: nil,
+                                background: Color(storage: .system(.controlBackground)), borderColor: nil, showsSeparators: true,
+                                separatorTrailing: 0, rowBackgroundExtendsToEdges: true, rowPadding: m.listGroupedRowPadding,
+                                contentInset: m.listPlainContentInset, cards: false, cardCornerRadius: 0, headerTop: m.listPlainHeaderTop,
+                                firstHeaderTop: m.listPlainHeaderTop, headerBottom: m.listGroupedHeaderBottom,
+                                headerFont: .body.weight(.medium), linkChevron: true)
+        }
+        let bg = m.listGroupedBackground
+        return _ListProfile(name: "insetGrouped", margin: m.listGroupedMargin, topInset: m.listGroupedTopInset, minimumRowHeight: m.listGroupedRowHeight,
+                            rowFont: nil, rowForeground: nil, background: Color(red: bg.red, green: bg.green, blue: bg.blue), borderColor: nil,
+                            showsSeparators: true, separatorTrailing: m.listGroupedMargin + m.listGroupedContentInset, rowBackgroundExtendsToEdges: false,
+                            rowPadding: m.listGroupedRowPadding, contentInset: m.listGroupedContentInset, cards: true,
+                            cardCornerRadius: m.listGroupedCornerRadius, headerTop: m.listGroupedHeaderTop, firstHeaderTop: m.listGroupedFirstHeaderTop,
+                            headerBottom: m.listGroupedHeaderBottom, headerFont: .body.weight(.medium), linkChevron: true)
+    }
 }
 
 /// A protocol that describes the behavior and appearance of a list.
@@ -233,8 +271,27 @@ public struct SidebarListStyle: ListStyle {
     }
 }
 
+/// The list style that describes the behavior and appearance of a grouped list (inset on macOS).
+public struct GroupedListStyle: ListStyle {
+    public init() {}
+    public var _profile: _ListProfile { var p = InsetListStyle()._profile; p.name = "grouped"; return p }
+}
+
+/// The list style that describes the behavior and appearance of an inset grouped list: on iOS
+/// each section is a card on a grey background (Docs/elements/iOS.md); inset on macOS.
+public struct InsetGroupedListStyle: ListStyle {
+    public init() {}
+    public var _profile: _ListProfile { var p = InsetListStyle()._profile; p.name = "insetGrouped"; return p }
+}
+
 extension ListStyle where Self == DefaultListStyle {
     public static var automatic: DefaultListStyle { DefaultListStyle() }
+}
+extension ListStyle where Self == GroupedListStyle {
+    public static var grouped: GroupedListStyle { GroupedListStyle() }
+}
+extension ListStyle where Self == InsetGroupedListStyle {
+    public static var insetGrouped: InsetGroupedListStyle { InsetGroupedListStyle() }
 }
 extension ListStyle where Self == InsetListStyle {
     public static var inset: InsetListStyle { InsetListStyle() }
