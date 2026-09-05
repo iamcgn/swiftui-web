@@ -1039,9 +1039,14 @@
           "notes": "Not implemented"
         },
         {
-          "api": "redacted / privacySensitive / unredacted",
-          "status": "missing",
-          "notes": "Not implemented"
+          "api": "redacted(reason:) / RedactionReasons / privacySensitive / unredacted",
+          "status": "partial",
+          "notes": "Measured placeholders: text lays out one placeholder advance per character (spaces included, per-size advances, character wrapping) under cap-height bars on the baseline; symbols take the measured placeholder frame with a point-size square; privacy bars sit on the plain layout of privacySensitive content; invalidated draws as is. Catalog images are approximate (Docs/elements/Redaction.md)",
+          "fixtures": [
+            "redacted/placeholder",
+            "redacted/widths",
+            "redacted/privacy"
+          ]
         },
         {
           "api": "symbolEffect / symbolRenderingMode / symbolVariant",

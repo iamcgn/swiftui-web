@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 92, .stub: 6, .full: 16, .approximate: 3, .missing: 11]
+    static let counts: [SupportStatus: Int] = [.partial: 93, .stub: 6, .full: 16, .approximate: 3, .missing: 10]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -201,7 +201,7 @@ missing	textSelection / textScale	Not implemented	0
 missing	Text under height pressure (fewer lines and truncation)	Measured (floor(height / line pitch) lines, at least one, tail-truncated; pressure/* goldens) but not applied: honouring height proposals exposes the stacks' distribution to flexible children, which needs measuring first (Docs/elements/Text.md)	0
 missing	matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator	Not implemented	0
 missing	dropDestination / draggable / onDrag / onDrop / pasteboard	Not implemented	0
-missing	redacted / privacySensitive / unredacted	Not implemented	0
+partial	redacted(reason:) / RedactionReasons / privacySensitive / unredacted	Measured placeholders: text lays out one placeholder advance per character (spaces included, per-size advances, character wrapping) under cap-height bars on the baseline; symbols take the measured placeholder frame with a point-size square; privacy bars sit on the plain layout of privacySensitive content; invalidated draws as is. Catalog images are approximate (Docs/elements/Redaction.md)	3
 missing	symbolEffect / symbolRenderingMode / symbolVariant	SF Symbols are Lucide stand-ins; symbol effects are not implemented	0
 """
 }
