@@ -527,8 +527,8 @@
         },
         {
           "api": "Shape boolean operations (union / intersection / subtracting / symmetricDifference / lineIntersection / lineSubtraction)",
-          "status": "missing",
-          "notes": "",
+          "status": "full",
+          "notes": "Combined paths from flattened geometry (edges cut at crossings, fragments classified by winding or even-odd, chained into loops with holes oriented); a circle against a square in every operation, filled and stroked, is pixel-identical to SwiftUI in Tier B/C; curves are 16-segment polygons (Docs/elements/Shape.md)",
           "fixtures": []
         },
         {

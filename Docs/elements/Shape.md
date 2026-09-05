@@ -35,7 +35,7 @@ lists 74 paths that `scripts/gen-goldens.sh shape/` records from real SwiftUI in
 | `StrokeStyle` (`lineWidth`, `lineCap`, `lineJoin`, `miterLimit`, `dash`, `dashPhase`), `FillStyle` (`eoFill`, `antialiased`) | implemented; `CGLineCap`/`CGLineJoin` declared on wasm |
 | `InsettableShape`, `inset(by:)` on every built-in, `strokeBorder(_:style:antialiased:)`, `strokeBorder(_:lineWidth:antialiased:)`, `strokeBorder(style:)`, `strokeBorder(lineWidth:)` → `StrokeBorderShapeView` | implemented |
 | `Shape.trim(from:to:)`, `offset(_:)`/`offset(x:y:)` → `OffsetShape`, `scale(_:anchor:)`/`scale(x:y:anchor:)` → `ScaledShape`, `rotation(_:anchor:)` → `RotatedShape`, `transform(_:)` → `TransformedShape`, `size(_:)`/`size(width:height:)` | implemented; `OffsetShape`/`ScaledShape`/`RotatedShape`/`TransformedShape` are `InsettableShape` when their content is |
-| `Shape.union`, `intersection`, `subtracting`, `symmetricDifference`, `lineIntersection`, `lineSubtraction` (iOS 17 boolean operations) | missing |
+| `Shape.union`, `intersection`, `subtracting`, `symmetricDifference`, `lineIntersection`, `lineSubtraction` (iOS 17 boolean operations) | implemented (flattened geometry, pixel-identical on `shapebool/*`) |
 | `View.border(_:width:)` | implemented: an inset rectangle stroke overlaid on the content |
 | `Angle` (`radians`, `degrees`, `.zero`, `Comparable`, `Animatable`) | implemented |
 | `Shape.role`, `.separator` / `.stroke` roles affecting styles | stub (no effect) |
@@ -109,9 +109,30 @@ for element, 6 stroked outlines by bounds). Tier B, all frames exact: Chromium �
 corners and strokes are pixel-identical to CoreGraphics), Firefox ≤ 1.2 %. The wasm build
 carries its own `sin`/`cos`/`tan`/`atan2`/`acos` (`Geometry/Math.swift`): wasi-libc's trap.
 
+## Boolean operations (2026-09-05)
+
+`union`, `intersection`, `subtracting`, `symmetricDifference` (fills) and `lineIntersection`,
+`lineSubtraction` (outlines) combine two shapes into one whose `path(in:)` is the combined
+geometry, so fills, strokes, clips and hit tests all see it (`Shapes/PathBoolean.swift`). Both
+paths are flattened (16 segments per curve), every edge is cut at the crossings with the other
+path, each fragment is classified by whether its middle lies inside the other path (winding, or
+even-odd with `eoFill`), the operation keeps the fragments it needs (a subtracted or
+symmetric-difference inside fragment reversed), and the kept fragments chain into loops with
+holes oriented against their containers for a non-zero fill. Input loops are oriented by
+nesting depth first, so shapes drawn either way combine. The line operations cut the first
+shape's outline at the crossings and keep the pieces inside (or outside) the other.
+
+A circle against an offset square, filled and stroked, in all six operations
+(`shapebool/fills`, `shapebool/strokes`) is pixel-identical to SwiftUI's in Tier B and C, and
+`PathBooleanTests` checks rectangles exactly, holes, nested and disjoint shapes, curves within
+1 % of the analytic areas, and the outline lengths of the line operations.
+
+Limits: curved boundaries are polygons at 1/16 of a curve; coincident edges are kept once from
+the first shape; two pieces that touch at a corner may chain into one loop.
+
 ## Not yet covered
 
-Shape boolean operations, `strokedPath` as a true offset outline, `addArc(tangent1End:…)`
+`strokedPath` as a true offset outline, `addArc(tangent1End:…)`
 verification, `ContainerRelativeShape` inside container shapes, `layoutDirectionBehavior`,
 gradients and materials as shape styles, `contentShape`/hit testing on shapes, animated shape
 data (`Animatable` is declared, nothing interpolates yet), `Path(cgPath:)`.

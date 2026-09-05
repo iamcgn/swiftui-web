@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-05"
-    static let counts: [SupportStatus: Int] = [.partial: 100, .stub: 6, .full: 18, .approximate: 3, .missing: 5]
+    static let counts: [SupportStatus: Int] = [.partial: 100, .stub: 6, .full: 19, .approximate: 3, .missing: 4]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -133,7 +133,7 @@ full	Shape.fill / stroke, StrokeStyle (caps, joins, miter limit, dash, phase), F
 full	InsettableShape / inset(by:) / strokeBorder	Rounded rectangles shrink their radii by the inset like Apple; an inset shape lays out like a plain shape (measured)	2
 full	Shape modifiers: trim / offset / scale / rotation / transform / size / stroke(style:) as a Shape, AnyShape	Only trim and stroke keep the base shape's layout (a trimmed circle stays square); the others take the proposal (measured)	2
 approximate	ContainerRelativeShape	A rectangle; container shapes are not modelled	0
-missing	Shape boolean operations (union / intersection / subtracting / symmetricDifference / lineIntersection / lineSubtraction)		0
+full	Shape boolean operations (union / intersection / subtracting / symmetricDifference / lineIntersection / lineSubtraction)	Combined paths from flattened geometry (edges cut at crossings, fragments classified by winding or even-odd, chained into loops with holes oriented); a circle against a square in every operation, filled and stroked, is pixel-identical to SwiftUI in Tier B/C; curves are 16-segment polygons (Docs/elements/Shape.md)	0
 full	Angle	radians/degrees, Comparable, Animatable	1
 partial	GeometryReader / GeometryProxy (size, frame(in:), bounds(of:))	No safe area or anchors; Tier B (Chromium) within tolerance	1
 partial	ScrollView (axes, showsIndicators) / ScrollViewReader / ScrollViewProxy.scrollTo	Fills the proposal along its axes and is exactly content-sized across them, implicit VStack content, clipping, defaultScrollAnchor, scrollTo with/without anchor resolved at layout; wheel scrolling with chaining, touch pan + momentum (0.998/ms), overlay indicators while scrolling (approximate geometry); no bounce, keyboard scrolling, scrollPosition/scrollTargetBehavior, contentMargins or lazy stacks; Tier B exact frames in Chromium, WebKit and Firefox (17/17 renders each)	1
