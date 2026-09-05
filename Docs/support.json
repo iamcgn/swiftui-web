@@ -1047,7 +1047,12 @@
           "notes": "Phases step under each phase's animation on the runtime's animation clock (free-running or per trigger change, back to the first phase); keyframe tracks (linear with UnitCurve, cubic Hermite with Catmull-Rom velocities, spring curve, move) evaluate per frame and rebuild the content; unit-tested on the headless clock, animator/phase and animator/keyframe exact at rest in Tier A/B/C (Docs/elements/Animator.md)"
         },
         {
-          "api": "dropDestination / draggable / onDrag / onDrop / pasteboard",
+          "api": "draggable / dropDestination / Transferable (Proxy, Codable, Data representations)",
+          "status": "partial",
+          "notes": "In-app drags: a press that moves 4 pt lifts the payload (view or preview painted under the pointer), destinations under the pointer are targeted, release delivers the values and drop point; String/Data/URL transferable, proxy and data conversions between types; no onDrag/onDrop item providers, pasteboard or cross-app drags (Docs/elements/DragDrop.md)"
+        },
+        {
+          "api": "onDrag / onDrop (NSItemProvider) / DropDelegate / pasteboard (copyable, pasteDestination, PasteButton)",
           "status": "missing",
           "notes": "Not implemented"
         },

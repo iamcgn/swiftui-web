@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-05"
-    static let counts: [SupportStatus: Int] = [.partial: 98, .stub: 6, .full: 18, .approximate: 3, .missing: 6]
+    static let counts: [SupportStatus: Int] = [.partial: 99, .stub: 6, .full: 18, .approximate: 3, .missing: 6]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -202,7 +202,8 @@ full	Text under height pressure (fewer lines and truncation)	floor(height / line
 partial	matchedGeometryEffect / @Namespace / MatchedGeometryProperties	A view arriving under an animation glides (frame and scale) from the last frame recorded for its id while a retiring view glides to it; followers lay their content out at the source's size and on the source's anchor point per properties and anchor, as measured on 30 source/follower cells (matched/anchors, matched/follower pixel-identical in Tier C) (Docs/elements/Animator.md)	0
 partial	contentTransition / ContentTransition (identity, opacity, interpolate, numericText, symbolEffect)	Text crossfades from its old content to the new one over the update's animation; numericText rolls the texts vertically (whole text, not per digit); interpolate and symbolEffect are crossfades; images snap (Docs/elements/Animator.md)	0
 full	PhaseAnimator / phaseAnimator / KeyframeAnimator / keyframeAnimator / KeyframeTimeline / KeyframeTrack / Linear, Cubic, Spring, Move keyframes	Phases step under each phase's animation on the runtime's animation clock (free-running or per trigger change, back to the first phase); keyframe tracks (linear with UnitCurve, cubic Hermite with Catmull-Rom velocities, spring curve, move) evaluate per frame and rebuild the content; unit-tested on the headless clock, animator/phase and animator/keyframe exact at rest in Tier A/B/C (Docs/elements/Animator.md)	0
-missing	dropDestination / draggable / onDrag / onDrop / pasteboard	Not implemented	0
+partial	draggable / dropDestination / Transferable (Proxy, Codable, Data representations)	In-app drags: a press that moves 4 pt lifts the payload (view or preview painted under the pointer), destinations under the pointer are targeted, release delivers the values and drop point; String/Data/URL transferable, proxy and data conversions between types; no onDrag/onDrop item providers, pasteboard or cross-app drags (Docs/elements/DragDrop.md)	0
+missing	onDrag / onDrop (NSItemProvider) / DropDelegate / pasteboard (copyable, pasteDestination, PasteButton)	Not implemented	0
 partial	redacted(reason:) / RedactionReasons / privacySensitive / unredacted	Measured placeholders: text lays out one placeholder advance per character (spaces included, per-size advances, character wrapping) under cap-height bars on the baseline; symbols take the measured placeholder frame with a point-size square; privacy bars sit on the plain layout of privacySensitive content; invalidated draws as is. Catalog images are approximate (Docs/elements/Redaction.md)	3
 partial	symbolVariant / SymbolVariants / symbolRenderingMode / SymbolRenderingMode	Variants resolve to the named variant symbol with SwiftUI's frames (measured); rendering modes and multi-style foregrounds are accepted, the single-layer stand-ins keep the first colour (Docs/elements/Image.md)	1
 missing	symbolEffect	SF Symbols are Lucide stand-ins; symbol effects are not implemented	0

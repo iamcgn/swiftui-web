@@ -541,6 +541,17 @@ public static let basic = Fixture(
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "dragdrop/basic", file: "Fixtures/Sources/DragDrop/DragDropFixtures.swift", firstLine: 6, lastLine: 14, declaration: #"""
+public static let basic = Fixture("dragdrop/basic", size: CGSize(width: 300, height: 140), content: {
+    HStack(spacing: 30) {
+        Text("Drag me").padding(8).background(Color.yellow).draggable("Drag me").probe("source")
+        RoundedRectangle(cornerRadius: 8).fill(Color.blue.opacity(0.3)).frame(width: 120, height: 80)
+            .dropDestination(for: String.self, action: { _, _ in true })
+            .probe("target")
+    }
+    .probe("row")
+})
+"""#),
         FixtureSource(name: "effects/blend", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 200, lastLine: 224, declaration: #"""
 public static let blend = Fixture("effects/blend", size: CGSize(width: 380, height: 220), content: {
     ZStack {
@@ -4938,6 +4949,25 @@ public enum DisclosureFixtures {
         .padding(20)
         .probe("stack")
     }
+
+    public static let all: [Fixture] = [basic]
+}
+"""#,
+        "Fixtures/Sources/DragDrop/DragDropFixtures.swift": #"""
+// draggable / dropDestination at rest: the modifiers do not change layout.
+import SwiftUI
+import FixtureKit
+
+public enum DragDropFixtures {
+    public static let basic = Fixture("dragdrop/basic", size: CGSize(width: 300, height: 140), content: {
+        HStack(spacing: 30) {
+            Text("Drag me").padding(8).background(Color.yellow).draggable("Drag me").probe("source")
+            RoundedRectangle(cornerRadius: 8).fill(Color.blue.opacity(0.3)).frame(width: 120, height: 80)
+                .dropDestination(for: String.self, action: { _, _ in true })
+                .probe("target")
+        }
+        .probe("row")
+    })
 
     public static let all: [Fixture] = [basic]
 }
