@@ -3,17 +3,35 @@
 /// A named image resolved against the runtime's catalog. Rigid at its point size unless
 /// resizable; paints one `drawImage` with the variant for the paint scale.
 @MainActor
-package final class ImageNode: LeafNode<Image> {
+package final class ImageNode: LeafNode<Image>, _FrameSubscriber {
     package private(set) var resource: ImageResource?
 
     override package init(_ context: _NodeContext<Image>) {
         super.init(context)
         resolve()
+        updateSymbolEffects()
     }
+
+    // MARK: Symbol effects (Runtime/SymbolEffects.swift)
+
+    /// Effects running on this symbol: the request, when it started, and whether it plays once.
+    package struct RunningEffect {
+        package var request: _SymbolEffectRequest
+        package var start: Double
+        package var discrete: Bool
+    }
+    package var runningEffects: [RunningEffect] = []
+    package var seenGenerations: [_SymbolEffectKind: Int] = [:]
 
     override package func update(view: Image, environment: EnvironmentValues, force: Bool) {
         super.update(view: view, environment: environment, force: force)
         resolve()
+        updateSymbolEffects()
+    }
+
+    override package func unmount() {
+        runtime.unsubscribeFrames(self)
+        super.unmount()
     }
 
     /// A system symbol's glyph (an open icon standing in for the SF Symbol) and its measured
@@ -150,6 +168,16 @@ extension ImageNode {
         guard let symbol else { return }
         let bounds = absoluteBounds(context)
         guard bounds.width > 0, bounds.height > 0 else { return }
+        let effects = symbolEffectPresentation()
+        if effects.opacity < 1 { list.append(.beginGroup(opacity: effects.opacity)) }
+        defer { if effects.opacity < 1 { list.append(.endGroup) } }
+        if effects.transform != .identity {
+            let centre = CGPoint(x: context.absoluteRect(CGRect(x: bounds.midX - context.origin.x, y: bounds.midY - context.origin.y, width: 0, height: 0)).minX,
+                                 y: context.absoluteRect(CGRect(x: bounds.midX - context.origin.x, y: bounds.midY - context.origin.y, width: 0, height: 0)).minY)
+            list.append(.save)
+            list.append(.concat(CGAffineTransform(translationX: centre.x, y: centre.y).concatenating(effects.transform).concatenating(CGAffineTransform(translationX: -centre.x, y: -centre.y))))
+        }
+        defer { if effects.transform != .identity { list.append(.restore) } }
         let (x0, y0, x1, y1) = symbol.outline.bounds
         let outlineWidth = CGFloat(x1 - x0), outlineHeight = CGFloat(y1 - y0)
         guard outlineWidth > 0, outlineHeight > 0 else { return }

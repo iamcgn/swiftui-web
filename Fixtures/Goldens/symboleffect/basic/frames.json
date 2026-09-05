@@ -1,0 +1,39 @@
+{
+  "fixture" : "symboleffect\/basic",
+  "frames" : {
+    "bounce" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 85.5,
+      "y" : 32
+    },
+    "pulse" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 45,
+      "y" : 32
+    },
+    "row" : {
+      "height" : 26,
+      "width" : 150,
+      "x" : 45,
+      "y" : 27
+    },
+    "scale" : {
+      "height" : 26,
+      "width" : 28.5,
+      "x" : 126,
+      "y" : 27
+    },
+    "variable" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 178.5,
+      "y" : 32
+    }
+  },
+  "size" : {
+    "height" : 80,
+    "width" : 240
+  }
+}
