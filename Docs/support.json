@@ -615,9 +615,12 @@
           "notes": "Only asset-catalog images and SF Symbol stand-ins are drawn"
         },
         {
-          "api": "Toolbar / ToolbarItem / toolbar(_:) / navigationBar customisation",
-          "status": "missing",
-          "notes": "Not implemented; NavigationStack shows its title only"
+          "api": "toolbar / ToolbarItem / ToolbarItemGroup / ToolbarItemPlacement / toolbar(_:for:)",
+          "status": "partial",
+          "notes": "Items collected on the runtime; hosts that paint window chrome draw a 52 pt bar (measured on a macOS window) with the title and 36 pt capsule platters, leading/principal/trailing by placement; toolbarBackground/toolbarRole accepted without effect; no customisation. Goldens hold the content alone since the bar is window chrome (Docs/elements/Toolbar.md)",
+          "fixtures": [
+            "toolbar/basic"
+          ]
         },
         {
           "api": "searchable(_:) / Searchable modifiers",

@@ -175,7 +175,12 @@ final class Gallery {
         renderCode()
 
         // The host is created once `#app` has its first fixture size; later fixtures resize it.
-        if host == nil { host = CanvasHost() }
+        if host == nil {
+            host = CanvasHost()
+            // Fixture pages compare against goldens whose toolbar lives in the window chrome,
+            // outside the capture; `?chrome=1` shows the runtime's bar (Playwright/toolbar-probe.mjs).
+            host!.runtime.paintsWindowChrome = JSObject.global.location.search.string?.contains("chrome=1") == true
+        }
         host!.mount(AnyView(
             instance.view
                 .frame(width: size.width, height: size.height)

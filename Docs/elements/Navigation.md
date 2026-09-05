@@ -20,7 +20,8 @@ Apple docs: [NavigationStack](https://developer.apple.com/documentation/swiftui/
 | `navigationTitle(_:)` (`Text`, key, string) | recorded on `Runtime.navigationTitle` for hosts; not drawn (window chrome on macOS) |
 | `navigationSubtitle`, `navigationBarBackButtonHidden` | stored only |
 | `NavigationSplitView` | see `Docs/elements/NavigationSplitView.md` |
-| `navigationBarTitleDisplayMode`, `toolbar`, `toolbarBackground`, `NavigationView` (deprecated), `navigationViewStyle` | missing |
+| `toolbar`, `toolbarBackground` | see `Docs/elements/Toolbar.md` (the title joins the bar when a host paints window chrome) |
+| `navigationBarTitleDisplayMode`, `NavigationView` (deprecated), `navigationViewStyle` | missing |
 | Back navigation | `Runtime.navigateBack()` pops the innermost stack (hosts wire a button or key); no painted back button or slide animation |
 
 ## Behaviour
