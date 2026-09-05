@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "Harness",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS("15.0")],
     targets: [
         .target(name: "FixtureKit"),                                     // real-SwiftUI implementation of the fixture API
         .target(name: "Fixtures", dependencies: ["FixtureKit"]),         // symlink -> ../../Fixtures/Sources

@@ -150,6 +150,20 @@ public final class Runtime {
     public internal(set) var focusVisible = false
     package var pointerPosition: CGPoint = .zero
 
+    /// Hover state (Runtime/HoverNodes.swift): the nodes the pointer is over, the memoised
+    /// tracking nodes, a pending or shown tooltip and the pointer style hosts apply.
+    package var hovered: [ViewNode & _HoverTracking] = []
+    package var hoverNodes: [ViewNode & _HoverTracking] = []
+    package var hoverNodesGeneration: UInt64 = .max
+    package var tooltip: TooltipState?
+    /// The pointer style of the deepest hovered `pointerStyle` view, for the host's cursor.
+    public private(set) var pointerStyle: PointerStyle?
+    package func setPointerStyle(_ style: PointerStyle?) { pointerStyle = style }
+
+    package func forgetHover(_ node: ViewNode) {
+        hovered.removeAll { $0 === node }
+    }
+
     /// A touch pan of scroll views in progress.
     package var pan: PanState?
 
@@ -161,7 +175,7 @@ public final class Runtime {
     public private(set) var layoutRequested = false
 
     /// Whether the host should produce another frame.
-    public var needsFrame: Bool { scheduler.hasPendingWork || layoutRequested }
+    public var needsFrame: Bool { scheduler.hasPendingWork || layoutRequested || tooltipPending }
 
     /// Whether the next layout may find different sizes: state updates, image loads and resizes
     /// say so; a scroll only moves content, so the memoised sizes stay valid across its frames.

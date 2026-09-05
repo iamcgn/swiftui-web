@@ -213,6 +213,49 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
         if host.runtime.needsFrame { needsDisplay = true }
     }
 
+    // Hovering: a tracking area delivers moves between presses and the exit.
+    private var trackingArea: NSTrackingArea?
+
+    override public func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let trackingArea { removeTrackingArea(trackingArea) }
+        let area = NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect], owner: self, userInfo: nil)
+        addTrackingArea(area)
+        trackingArea = area
+    }
+
+    override public func mouseMoved(with event: NSEvent) {
+        host.runtime.pointerMoved(to: point(event), time: event.timestamp)
+        applyPointerStyle()
+        if host.runtime.needsFrame { needsDisplay = true }
+    }
+
+    override public func mouseExited(with event: NSEvent) {
+        host.runtime.pointerLeft()
+        applyPointerStyle()
+        if host.runtime.needsFrame { needsDisplay = true }
+    }
+
+    private func applyPointerStyle() {
+        let cursor: NSCursor
+        switch host.runtime.pointerStyle?.css {
+        case "pointer": cursor = .pointingHand
+        case "text": cursor = .iBeam
+        case "vertical-text": cursor = .iBeamCursorForVerticalLayout
+        case "grab": cursor = .openHand
+        case "grabbing": cursor = .closedHand
+        case "crosshair": cursor = .crosshair
+        case "col-resize", "ew-resize": cursor = .resizeLeftRight
+        case "row-resize", "ns-resize": cursor = .resizeUpDown
+        case "w-resize": cursor = .resizeLeft
+        case "e-resize": cursor = .resizeRight
+        case "n-resize": cursor = .resizeUp
+        case "s-resize": cursor = .resizeDown
+        default: cursor = .arrow
+        }
+        if NSCursor.current != cursor { cursor.set() }
+    }
+
     override public func mouseUp(with event: NSEvent) {
         host.runtime.pointerUp(at: point(event), time: event.timestamp)
         needsDisplay = true

@@ -186,6 +186,13 @@ public final class CanvasHost {
         on(canvas, "pointermove") { [weak self] e in
             guard let self else { return }
             self.runtime.pointerMoved(to: self.point(of: e), time: self.seconds(of: e))
+            self.applyPointerStyle()
+            if self.runtime.needsFrame { self.scheduleFrame() }
+        }
+        on(canvas, "pointerleave") { [weak self] e in
+            guard let self else { return }
+            self.runtime.pointerLeft()
+            self.applyPointerStyle()
             if self.runtime.needsFrame { self.scheduleFrame() }
         }
         on(canvas, "pointerup") { [weak self] e in
@@ -281,6 +288,15 @@ public final class CanvasHost {
     }
 
     /// Requests one animation frame; several invalidations coalesce into it.
+    /// The cursor over the canvas follows the hovered `pointerStyle`.
+    private var appliedCursor = ""
+    private func applyPointerStyle() {
+        let cursor = runtime.pointerStyle?.css ?? ""
+        guard cursor != appliedCursor else { return }
+        appliedCursor = cursor
+        canvas.style.cursor = .string(cursor)
+    }
+
     public func scheduleFrame() {
         guard !frameScheduled else { return }
         frameScheduled = true

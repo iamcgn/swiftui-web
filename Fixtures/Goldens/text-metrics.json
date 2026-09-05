@@ -9762,6 +9762,12 @@
       "lastBaseline" : 13,
       "width" : 49
     },
+    "system:13:400:default||Entries: 0" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 57.5
+    },
     "system:13:400:default||Env" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -9924,6 +9930,12 @@
       "lastBaseline" : 13,
       "width" : 70.5
     },
+    "system:13:400:default||Help me" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 50.5
+    },
     "system:13:400:default||Hg" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10019,6 +10031,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 31.5
+    },
+    "system:13:400:default||Link" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 25
     },
     "system:13:400:default||Live" : {
       "firstBaseline" : 13,
@@ -10134,6 +10152,12 @@
       "lastBaseline" : 13,
       "width" : 45.5
     },
+    "system:13:400:default||No pointer" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 64
+    },
     "system:13:400:default||No Results" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -10205,6 +10229,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 34.5
+    },
+    "system:13:400:default||Outside" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 47.5
     },
     "system:13:400:default||Padded" : {
       "firstBaseline" : 13,
@@ -10511,6 +10541,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 112
+    },
+    "system:13:400:default||Text" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 25.5
     },
     "system:13:400:default||the site" : {
       "firstBaseline" : 13,
@@ -11364,6 +11400,12 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "system:13:400:default|0.0|Entries: 0" : {
+      "firstBaseline" : 13,
+      "height" : 144,
+      "lastBaseline" : 141,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Env" : {
       "firstBaseline" : 13,
       "height" : 48,
@@ -11526,6 +11568,12 @@
       "lastBaseline" : 157,
       "width" : 0
     },
+    "system:13:400:default|0.0|Help me" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Hg" : {
       "firstBaseline" : 13,
       "height" : 32,
@@ -11620,6 +11668,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Link" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|Live" : {
@@ -11736,6 +11790,12 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:400:default|0.0|No pointer" : {
+      "firstBaseline" : 13,
+      "height" : 144,
+      "lastBaseline" : 141,
+      "width" : 0
+    },
     "system:13:400:default|0.0|No Results" : {
       "firstBaseline" : 13,
       "height" : 144,
@@ -11806,6 +11866,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Outside" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "system:13:400:default|0.0|Padded" : {
@@ -12112,6 +12178,12 @@
       "firstBaseline" : 13,
       "height" : 320,
       "lastBaseline" : 317,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Text" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|the site" : {

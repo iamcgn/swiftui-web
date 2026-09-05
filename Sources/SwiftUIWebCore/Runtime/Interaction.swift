@@ -149,11 +149,18 @@ extension Runtime {
         node.pressBegan(at: local(point, in: node))
     }
 
-    /// Pointer moved while down.
+    /// Pointer moved (pressed or not): drives presses, pans and hovering.
     public func pointerMoved(to point: CGPoint, time: Double = 0) {
         pointerPosition = point
         continuePan(to: point, time: time)
         if let node = pressedNode { node.pressMoved(to: local(point, in: node)) }
+        updateHover(at: point)
+    }
+
+    /// The pointer left the window: every hover ends.
+    public func pointerLeft() {
+        pointerPosition = CGPoint(x: -1, y: -1)
+        updateHover(at: nil)
     }
 
     private func local(_ point: CGPoint, in node: ViewNode) -> CGPoint {

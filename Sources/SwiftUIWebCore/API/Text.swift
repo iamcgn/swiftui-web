@@ -592,3 +592,8 @@ extension View {
         environment(\._boldTrait, isActive)
     }
 }
+
+extension Text {
+    /// The text's characters without styling (tooltips, accessibility).
+    package var _plainString: String { parts().map(\.string).joined() }
+}

@@ -1,0 +1,57 @@
+{
+  "fixture" : "hover\/basic",
+  "frames" : {
+    "continuous" : {
+      "height" : 40,
+      "width" : 160,
+      "x" : 80,
+      "y" : 88
+    },
+    "entries" : {
+      "height" : 16,
+      "width" : 57.5,
+      "x" : 131.25,
+      "y" : 188
+    },
+    "help" : {
+      "height" : 28,
+      "width" : 62.5,
+      "x" : 71.5,
+      "y" : 144
+    },
+    "hoverBox" : {
+      "height" : 36,
+      "width" : 67.5,
+      "x" : 126.25,
+      "y" : 36
+    },
+    "ibeam" : {
+      "height" : 28,
+      "width" : 37.5,
+      "x" : 211,
+      "y" : 144
+    },
+    "link" : {
+      "height" : 28,
+      "width" : 37,
+      "x" : 154,
+      "y" : 144
+    },
+    "row" : {
+      "height" : 28,
+      "width" : 177,
+      "x" : 71.5,
+      "y" : 144
+    },
+    "stack" : {
+      "height" : 168,
+      "width" : 177,
+      "x" : 71.5,
+      "y" : 36
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

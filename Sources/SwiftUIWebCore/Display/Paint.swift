@@ -87,6 +87,7 @@ extension Runtime {
         }
         paintPresentations(into: &list, context: context)
         paintFocusRing(into: &list, context: context)
+        paintTooltip(into: &list, context: context)
         return list
     }
 }

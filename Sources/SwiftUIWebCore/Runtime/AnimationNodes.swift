@@ -84,7 +84,8 @@ extension Runtime {
         // shows the settled state rather than the last interpolated one.
         if hadAnimations { setNeedsDisplay() }
         let subscribers = advanceFrameSubscribers()
-        return !remaining.isEmpty || subscribers
+        let tooltip = advanceTooltip()
+        return !remaining.isEmpty || subscribers || tooltip
     }
 
     package func register(animating node: ViewNode) {
