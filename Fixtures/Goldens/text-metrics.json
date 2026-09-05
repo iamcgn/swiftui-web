@@ -11094,6 +11094,12 @@
       "lastBaseline" : 13,
       "width" : 57.5
     },
+    "system:13:400:default||Starred" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 45
+    },
     "system:13:400:default||Stepper" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -13000,6 +13006,12 @@
       "firstBaseline" : 13,
       "height" : 144,
       "lastBaseline" : 141,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Starred" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "system:13:400:default|0.0|Stepper" : {

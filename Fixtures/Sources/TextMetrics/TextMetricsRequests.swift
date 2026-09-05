@@ -512,7 +512,7 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Title", .style("title")))
         requests.append(TextMetricRequest("Two lines of redacted text that wrap around inside a narrow frame", defaultFont, width: 200))
         requests.append(TextMetricRequest("Two lines of redacted text that wrap around inside a narrow frame", defaultFont))
-        for word in ["Failed", "Loading", "Below"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        for word in ["Failed", "Loading", "Below", "Starred"] { requests.append(TextMetricRequest(word, defaultFont)) }
         // Height pressure (Phase 6): the paragraph at the fixture widths with every line count.
         for width: CGFloat in [110, 150] {
             requests.append(TextMetricRequest(paragraph, defaultFont, width: width))

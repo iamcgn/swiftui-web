@@ -32,11 +32,19 @@ package final class ImageNode: LeafNode<Image> {
             resource = ImageResource(name: url, variants: [ImageVariant(file: url, scale: scale, pixelWidth: Int(pixelSize.width), pixelHeight: Int(pixelSize.height))])
             symbol = nil
             symbolSize = nil
-        case .system(let name):
+        case .system(let base):
             resource = nil
-            symbol = SystemSymbolGlyphs.glyph(named: name)
+            // The environment's variants pick the named variant symbol: the first candidate with a
+            // glyph and a measured size, else the first with a glyph (sized like the star).
             let font = environment._resolvedFont
-            let measured = SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale)
+            let candidates = environment.symbolVariants.names(for: base)
+            func measure(_ name: String) -> SystemSymbolMetrics.Size? {
+                SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale)
+            }
+            let name = candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil && measure($0) != nil }
+                ?? candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil } ?? base
+            symbol = SystemSymbolGlyphs.glyph(named: name)
+            let measured = measure(name)
             if let measured {
                 symbolSize = measured
             } else if symbol != nil {
