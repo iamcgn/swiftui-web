@@ -33,6 +33,10 @@ public final class NativeHost: NSObject, NSApplicationDelegate {
         self.size = size
         painter = CoreGraphicsPainter(textEngine: textEngine)
         super.init()
+        runtime.imageLoader = NativeImageLoader(painter: painter) { [weak self] in
+            self?.runtime.imageLoadDidFinish()
+            self?.scheduleFrame()
+        }
     }
 
     /// Runs the application with `root` as the window's content. Never returns.
@@ -498,3 +502,37 @@ public final class RuntimeAccessibilityElement: NSAccessibilityElement {
     }
 }
 #endif
+
+/// Loads `AsyncImage` URLs off the main thread and hands the decoded images to the painter.
+@MainActor
+final class NativeImageLoader: _ImageLoading {
+    private let painter: CoreGraphicsPainter
+    private let didFinish: @MainActor () -> Void
+    private var states: [String: _ImageLoadState] = [:]
+
+    init(painter: CoreGraphicsPainter, didFinish: @escaping @MainActor () -> Void) {
+        self.painter = painter
+        self.didFinish = didFinish
+    }
+
+    func state(for url: String) -> _ImageLoadState {
+        if let known = states[url] { return known }
+        states[url] = .loading
+        guard let parsed = URL(string: url) else { states[url] = .failed; return .failed }
+        Task.detached { [weak self] in
+            let data = try? Data(contentsOf: parsed)
+            let image = data.flatMap { CGImageSourceCreateWithData($0 as CFData, nil) }.flatMap { CGImageSourceCreateImageAtIndex($0, 0, nil) }
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                if let image {
+                    self.painter.register(image, for: url)
+                    self.states[url] = .loaded(pixelSize: CGSize(width: image.width, height: image.height))
+                } else {
+                    self.states[url] = .failed
+                }
+                self.didFinish()
+            }
+        }
+        return .loading
+    }
+}

@@ -27,6 +27,11 @@ package final class ImageNode: LeafNode<Image> {
             resource = environment.assetCatalog.image(named: name)
             symbol = nil
             symbolSize = nil
+        case .url(let url, let pixelSize, let scale):
+            // A loaded URL is a one-variant resource the painters fetch by its URL.
+            resource = ImageResource(name: url, variants: [ImageVariant(file: url, scale: scale, pixelWidth: Int(pixelSize.width), pixelHeight: Int(pixelSize.height))])
+            symbol = nil
+            symbolSize = nil
         case .system(let name):
             resource = nil
             symbol = SystemSymbolGlyphs.glyph(named: name)

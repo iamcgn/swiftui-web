@@ -13,6 +13,8 @@ public struct Image: Equatable, Sendable {
     package enum Source: Equatable, Sendable {
         case named(String)
         case system(String)
+        /// An image the runtime's loader fetched (`AsyncImage`): its URL string and pixel size.
+        case url(String, pixelSize: CGSize, scale: CGFloat)
     }
 
     /// How a resizable image fills its frame.
@@ -57,6 +59,7 @@ public struct Image: Equatable, Sendable {
         switch source {
         case .named(let name): return name
         case .system(let name): return name
+        case .url: return ""
         }
     }
     package var resizing: Resizing?

@@ -53,19 +53,30 @@ enum PainterScript {
       const images = new Map();
       let pending = 0;
       let onImageLoad = null;
-      function image(file) {
+      // `background` loads (AsyncImage URLs) are not counted as pending: the page is complete
+      // without them, and they may never resolve.
+      function image(file, background) {
         let entry = images.get(file);
         if (entry) return entry.ready ? entry.img : null;
         const img = new Image();
         entry = { img: img, ready: false };
         images.set(file, entry);
-        pending++;
-        const done = () => { pending--; if (onImageLoad) onImageLoad(file, entry.ready); };
+        if (!background) pending++;
+        const done = () => { if (!background) pending--; if (onImageLoad) onImageLoad(file, entry.ready); };
         img.onload = () => { entry.ready = true; done(); };
-        img.onerror = () => { console.error('SwiftUIWeb: could not load image ' + file); done(); };
+        img.onerror = () => { entry.failed = true; console.error('SwiftUIWeb: could not load image ' + file); done(); };
         const base = (window.__swiftuiwebAssets && window.__swiftuiwebAssets.base) || '';
-        img.src = base + file;
+        // Absolute URLs (AsyncImage) load as they are; catalog files sit under the asset base.
+        img.src = /^([a-z]+:)?\/\//i.test(file) || file.startsWith('data:') || file.startsWith('/') ? file : base + file;
         return null;
+      }
+      // AsyncImage: starts loading `url` if needed; 'loading', 'failed', or [width, height].
+      function imageState(url) {
+        const entry = images.get(url);
+        if (!entry) { image(url, true); return 'loading'; }
+        if (entry.failed) return 'failed';
+        if (!entry.ready) return 'loading';
+        return [entry.img.naturalWidth, entry.img.naturalHeight];
       }
       // Draws `img` (or one part of it) tinted: the image's alpha filled with `tint`.
       function tinted(img, sx, sy, sw, sh, dw, dh, dpr, tint, smoothing) {
@@ -463,7 +474,7 @@ enum PainterScript {
         return w;
       }
       window.__swiftuiweb = {
-        paint: paint, measure: measure, version: 3,
+        paint: paint, measure: measure, imageState: imageState, version: 3,
         setImageLoadHandler: function (handler) { onImageLoad = handler; },
         pendingImages: function () { return pending; },
       };

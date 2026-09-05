@@ -1,0 +1,57 @@
+{
+  "fixture" : "asyncimage\/phases",
+  "frames" : {
+    "below" : {
+      "height" : 16,
+      "width" : 36.5,
+      "x" : 93.75,
+      "y" : 128
+    },
+    "loading" : {
+      "height" : 16,
+      "width" : 48.5,
+      "x" : 165.75,
+      "y" : 88
+    },
+    "nilPhase" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 226.25,
+      "y" : 76
+    },
+    "phases" : {
+      "height" : 16,
+      "width" : 48.5,
+      "x" : 165.75,
+      "y" : 88
+    },
+    "placeholder" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 93.75,
+      "y" : 76
+    },
+    "row" : {
+      "height" : 40,
+      "width" : 172.5,
+      "x" : 93.75,
+      "y" : 76
+    },
+    "stack" : {
+      "height" : 68,
+      "width" : 172.5,
+      "x" : 93.75,
+      "y" : 76
+    },
+    "withPlaceholder" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 93.75,
+      "y" : 76
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 360
+  }
+}

@@ -84,14 +84,16 @@ public final class CanvasHost {
             if let subject { data.title = .string(subject) }
             _ = navigator.share!(data)
         }
-        // An image the painter had to fetch has arrived: paint the frame again.
+        // An image the painter had to fetch has arrived: paint the frame again (and let
+        // AsyncImages move to their loaded or failed phase).
         let imageLoaded = JSClosure { [weak self] _ in
             MainActor.assumeIsolated {
-                self?.runtime.setNeedsDisplay()
+                self?.runtime.imageLoadDidFinish()
                 self?.scheduleFrame()
             }
             return .undefined
         }
+        runtime.imageLoader = CanvasImageLoader(bridge: bridge)
         closures.append(imageLoaded)
         _ = bridge.setImageLoadHandler!(imageLoaded)
         // The window background and the system appearance, now and when it changes.
@@ -620,6 +622,21 @@ public final class CanvasHost {
         JSObject.global.__swiftuiwebDebug = .object(debug)
     }
 }
+
+/// The browser's image loader: `Image` elements kept by the painter script, asked by URL.
+@MainActor
+final class CanvasImageLoader: _ImageLoading {
+    private let bridge: JSObject
+    init(bridge: JSObject) { self.bridge = bridge }
+
+    func state(for url: String) -> _ImageLoadState {
+        let state = bridge.imageState!(url)
+        if let text = state.string { return text == "failed" ? .failed : .loading }
+        guard let array = state.object, let width = array[0].number, let height = array[1].number else { return .loading }
+        return .loaded(pixelSize: CGSize(width: width, height: height))
+    }
+}
+
 #else
 /// The canvas host exists only on wasm; this keeps the module importable elsewhere.
 public enum SwiftUIWebCanvas {}

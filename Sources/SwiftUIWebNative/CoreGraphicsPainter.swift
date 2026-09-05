@@ -348,6 +348,11 @@ public final class CoreGraphicsPainter {
 
     // MARK: Images
 
+    /// Keeps a decoded image for a URL (`AsyncImage` loads).
+    public func register(_ image: CGImage, for url: String) {
+        images[url] = image
+    }
+
     private func image(for file: String) -> CGImage? {
         if let cached = images[file] { return cached }
         guard let base = assetBase else { return nil }
