@@ -132,14 +132,26 @@ await page.route('https://cdnjs.cloudflare.com/**', route => route.fulfill({ sta
 // The first navigation fetches and compiles the debug wasm (80+ MB) through a single-threaded
 // server, which took a CI runner more than Playwright's default 30 s: wait for the first frame,
 // not the load event, with a generous budget for the first fixture.
+// Later fixtures are selected in place, as a click on the gallery's list would (the URL is pushed
+// and the popstate handler mounts the fixture on the same host), so the wasm loads once.
 let firstLoad = true;
 for (const name of names) {
   const goldenDir = join(root, 'Fixtures', 'Goldens', name);
   const golden = JSON.parse(readFileSync(join(goldenDir, 'frames.json'), 'utf8'));
   const started = Date.now();
-  await page.goto(`${url}?fixture=${encodeURIComponent(name)}`, { waitUntil: 'commit', timeout: 180000 });
-  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: firstLoad ? 180000 : 60000 });
-  if (firstLoad) { console.log(`first fixture ready after ${((Date.now() - started) / 1000).toFixed(1)} s`); firstLoad = false; }
+  if (firstLoad) {
+    await page.goto(`${url}?fixture=${encodeURIComponent(name)}`, { waitUntil: 'commit', timeout: 180000 });
+    await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
+    console.log(`first fixture ready after ${((Date.now() - started) / 1000).toFixed(1)} s`);
+    firstLoad = false;
+  } else {
+    const before = await frameCount();
+    await page.evaluate(n => {
+      history.pushState(null, '', '?fixture=' + encodeURIComponent(n));
+      dispatchEvent(new PopStateEvent('popstate'));
+    }, name);
+    await page.waitForFunction(b => window.__swiftuiwebDebug.frameCount() > b, before, { timeout: 60000 });
+  }
   await page.waitForTimeout(50);
   const base = join(out, name.replace(/\//g, '_'));
   await check(name, name, golden.frames, join(goldenDir, 'image@2x.png'), base + '.png');
