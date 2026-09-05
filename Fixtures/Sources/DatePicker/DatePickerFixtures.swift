@@ -40,9 +40,11 @@ public enum DatePickerFixtures {
     public static let styles = Fixture("datepicker/styles", size: CGSize(width: 360, height: 240)) {
         VStack(alignment: .leading, spacing: 12) {
             DatePicker("Compact", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.compact).probe("compact")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             DatePicker("Field", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.field).probe("field")
             DatePicker("Stepper", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.stepperField).probe("stepper")
             DatePicker("Both", selection: .constant(fixed)).datePickerStyle(.field).probe("fieldBoth")
+            #endif
             DatePicker("Clock", selection: .constant(fixed), displayedComponents: .hourAndMinute).datePickerStyle(.compact).probe("compactTime")
         }
         .padding(20)

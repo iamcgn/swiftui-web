@@ -6,7 +6,11 @@
 // resolve the name from the catalog on disk the way the runtime does: the mac idiom over
 // universal, the light appearance, the 2× scale the goldens are rendered at, template intent
 // from the set's properties.
+#if targetEnvironment(macCatalyst)
+import UIKit
+#else
 import AppKit
+#endif
 import SwiftUI
 
 public enum FixtureAssets {
@@ -123,7 +127,11 @@ public enum FixtureAssets {
               let cgImage = withAlpha(decoded)
         else {
             FileHandle.standardError.write("FixtureKit: no image named \(name) in Fixtures/Assets.xcassets\n".data(using: .utf8)!)
+            #if targetEnvironment(macCatalyst)
+            return Image(uiImage: UIImage())
+            #else
             return Image(nsImage: NSImage())   // SwiftUI lays a missing named image out at 0 × 0
+            #endif
         }
         let image = Image(decorative: cgImage, scale: variant.scale)
         return set.template ? image.renderingMode(.template) : image

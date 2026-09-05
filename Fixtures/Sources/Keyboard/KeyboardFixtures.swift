@@ -46,7 +46,9 @@ public enum KeyboardFixtures {
                 .padding(6)
                 .focusable()
                 .onKeyPress(.upArrow) { model.log = "up"; return .handled }
+                #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
                 .onMoveCommand { direction in model.log = "move \(direction)" }
+                #endif
                 .probe("focusable")
             HStack(spacing: 12) {
                 Button("Save") { model.log = "save" }.keyboardShortcut("s")

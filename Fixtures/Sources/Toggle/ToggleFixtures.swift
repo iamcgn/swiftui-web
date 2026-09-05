@@ -38,7 +38,9 @@ public enum ToggleFixtures {
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).labelsHidden().probe("switchHidden")
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button).probe("buttonOn")
             Toggle("Enabled", isOn: .constant(false)).toggleStyle(.button).probe("buttonOff")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.checkbox).probe("checkbox")
+            #endif
             HStack(spacing: 8) {
                 Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).probe("rowSwitch")
                 Button("OK") {}.probe("rowButton")

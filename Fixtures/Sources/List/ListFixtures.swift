@@ -62,7 +62,9 @@ public enum ListFixtures {
         VStack(spacing: 8) {
             List { Text("Apple").probe("insetRow1"); Text("Banana").probe("insetRow2") }.listStyle(.inset).frame(height: 70).probe("inset")
             List { Text("Apple").probe("plainRow1"); Text("Banana").probe("plainRow2") }.listStyle(.plain).frame(height: 70).probe("plain")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             List { Text("Apple").probe("borderedRow1"); Text("Banana").probe("borderedRow2") }.listStyle(.bordered).frame(height: 70).probe("bordered")
+            #endif
             List { Text("Apple").probe("sidebarRow1"); Text("Banana").probe("sidebarRow2") }.listStyle(.sidebar).frame(height: 70).probe("sidebar")
         }
         .probe("stack")

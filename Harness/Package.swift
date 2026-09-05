@@ -5,10 +5,12 @@ import PackageDescription
 
 let package = Package(
     name: "Harness",
-    platforms: [.macOS("15.0")],
+    platforms: [.macOS("15.0"), .macCatalyst("18.0")],
     targets: [
         .target(name: "FixtureKit"),                                     // real-SwiftUI implementation of the fixture API
         .target(name: "Fixtures", dependencies: ["FixtureKit"]),         // symlink -> ../../Fixtures/Sources
-        .executableTarget(name: "GoldenGen", dependencies: ["FixtureKit", "Fixtures"]),
+        .target(name: "GoldenKit", dependencies: ["FixtureKit", "Fixtures"]),   // generation shared by the hosts below
+        .executableTarget(name: "GoldenGen", dependencies: ["GoldenKit", "FixtureKit", "Fixtures"]),          // AppKit window: macOS goldens
+        .executableTarget(name: "GoldenGenCatalyst", dependencies: ["GoldenKit", "FixtureKit", "Fixtures"]), // UIKit window on Mac Catalyst: iOS goldens (scripts/gen-goldens-ios.sh)
     ]
 )

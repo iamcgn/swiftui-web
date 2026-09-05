@@ -31,7 +31,9 @@ public enum TextFieldFixtures {
         VStack(alignment: .leading, spacing: 12) {
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rounded")
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.plain).probe("plain")
+            #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.squareBorder).probe("square")
+            #endif
             TextField("Placeholder", text: .constant("")).textFieldStyle(.plain).probe("plainEmpty")
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("Name").probe("rowLabel")

@@ -24,6 +24,11 @@ public struct FixtureInstance {
     public let steps: [BoundStep]
 }
 
+/// The platform a fixture's goldens come from (and the profile the runtime reproduces).
+public enum FixturePlatform: String, Sendable {
+    case macOS, iOS
+}
+
 public struct Fixture: Sendable {
     public let name: String            // e.g. "text/hello"; becomes Fixtures/Goldens/text/hello/
     public let size: CGSize
@@ -38,6 +43,18 @@ public struct Fixture: Sendable {
     public func colorScheme(_ scheme: ColorScheme) -> Fixture {
         var copy = self
         copy.colorScheme = scheme
+        return copy
+    }
+
+    /// The platform whose look the fixture is rendered in: macOS goldens come from an AppKit
+    /// window, iOS ones from a UIKit window on Mac Catalyst (`scripts/gen-goldens-ios.sh`); the
+    /// runtime sets its platform profile to match. iOS fixtures are named `ios/…`.
+    public var platform: FixturePlatform = .macOS
+
+    /// The same fixture rendered for `platform`.
+    public func platform(_ platform: FixturePlatform) -> Fixture {
+        var copy = self
+        copy.platform = platform
         return copy
     }
 

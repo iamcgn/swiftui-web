@@ -30,8 +30,10 @@ struct HoverDemo: View {
                 .probe("continuous")
             HStack(spacing: 20) {
                 Text("Help me").padding(6).background(Color.orange.opacity(0.3)).help("A helpful tooltip").probe("help")
+                #if !targetEnvironment(macCatalyst)   // macOS-only API; the Catalyst build renders only ios/ fixtures
                 Text("Link").padding(6).background(Color.purple.opacity(0.2)).pointerStyle(.link).probe("link")
                 Text("Text").padding(6).background(Color.yellow.opacity(0.3)).pointerStyle(.horizontalText).probe("ibeam")
+                #endif
             }
             .probe("row")
             Text("Entries: \(entries)").probe("entries")
