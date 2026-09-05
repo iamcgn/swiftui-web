@@ -977,9 +977,12 @@
           ]
         },
         {
-          "api": "onHover / help / pointerStyle / onContinuousHover",
-          "status": "missing",
-          "notes": "Not implemented (Phase 6)"
+          "api": "onHover / onContinuousHover / help / pointerStyle",
+          "status": "partial",
+          "notes": "Hover tracking from every pointer move (browser pointermove/pointerleave, native tracking area); help paints an approximated tooltip after a 1 s rest; pointerStyle sets the host cursor. Tooltips are not in the accessibility tree; no control hover looks (Docs/elements/Hover.md)",
+          "fixtures": [
+            "hover/basic"
+          ]
         },
         {
           "api": "gesture / DragGesture / LongPressGesture / MagnifyGesture / RotateGesture / simultaneousGesture / highPriorityGesture",
