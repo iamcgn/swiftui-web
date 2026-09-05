@@ -690,8 +690,8 @@ struct SettingsScreen: View {
         NavigationStack {
             Form {
                 Section("Network") {
-                    Toggle("Wi-Fi", isOn: $model.wifi)
-                    Toggle("Bluetooth", isOn: $model.bluetooth)
+                    Toggle(isOn: $model.wifi) { Label("Wi-Fi", systemImage: "wifi") }
+                    Toggle(isOn: $model.bluetooth) { Label("Bluetooth", systemImage: "antenna.radiowaves.left.and.right") }
                 }
                 Section("Sound") {
                     Slider(value: $model.volume) { Text("Volume") }
