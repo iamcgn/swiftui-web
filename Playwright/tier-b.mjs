@@ -55,8 +55,10 @@ const browser = await engine.launch();
 const context = await browser.newContext({ deviceScaleFactor: 2, viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();
 const errors = [];
-page.on('pageerror', e => errors.push('pageerror: ' + e.message));
-page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+// Every console message of the current fixture, printed when the fixture never paints.
+let transcript = [];
+page.on('pageerror', e => { errors.push('pageerror: ' + e.message); transcript.push('pageerror: ' + e.message); });
+page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); transcript.push(m.type() + ': ' + m.text()); });
 
 let failures = 0;
 const report = [];
@@ -134,26 +136,49 @@ await page.route('https://cdnjs.cloudflare.com/**', route => route.fulfill({ sta
 // not the load event, with a generous budget for the first fixture.
 // Later fixtures are selected in place, as a click on the gallery's list would (the URL is pushed
 // and the popstate handler mounts the fixture on the same host), so the wasm loads once.
+// Loads the page fresh on `name`; the first load fetches and compiles the wasm.
+async function load(name, budget) {
+  await page.goto(`${url}?fixture=${encodeURIComponent(name)}`, { waitUntil: 'commit', timeout: budget });
+  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: budget });
+}
+// Selects `name` in place and waits for the gallery to publish its frames (a hung mount leaves
+// them undefined even when a stale frame still paints).
+async function select(name) {
+  await page.evaluate(n => {
+    history.pushState(null, '', '?fixture=' + encodeURIComponent(n));
+    dispatchEvent(new PopStateEvent('popstate'));
+  }, name);
+  await page.waitForFunction(() => window.__galleryFrames !== undefined, null, { timeout: 60000 });
+}
 let firstLoad = true;
 for (const name of names) {
   const goldenDir = join(root, 'Fixtures', 'Goldens', name);
   const golden = JSON.parse(readFileSync(join(goldenDir, 'frames.json'), 'utf8'));
   const started = Date.now();
-  if (firstLoad) {
-    await page.goto(`${url}?fixture=${encodeURIComponent(name)}`, { waitUntil: 'commit', timeout: 180000 });
-    await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
-    console.log(`first fixture ready after ${((Date.now() - started) / 1000).toFixed(1)} s`);
-    firstLoad = false;
-  } else {
-    const before = await frameCount();
-    await page.evaluate(n => {
-      history.pushState(null, '', '?fixture=' + encodeURIComponent(n));
-      dispatchEvent(new PopStateEvent('popstate'));
-    }, name);
-    await page.waitForFunction(b => window.__swiftuiwebDebug.frameCount() > b, before, { timeout: 60000 });
+  const base = join(out, name.replace(/\//g, '_'));
+  transcript = [];
+  try {
+    if (firstLoad) {
+      await load(name, 180000);
+      console.log(`first fixture ready after ${((Date.now() - started) / 1000).toFixed(1)} s`);
+      firstLoad = false;
+    } else {
+      await select(name);
+    }
+  } catch (e) {
+    // The fixture never painted: report what the page said, keep its screenshot, and reload the
+    // gallery so the following fixtures run on a fresh runtime.
+    failures++;
+    report.push({ name, frames: 'hung', pixels: null });
+    console.log(`FAIL ${name}: no frame within ${((Date.now() - started) / 1000).toFixed(0)} s (${e.message.split('\n')[0]})`);
+    const state = await page.evaluate(() => ({ frames: window.__swiftuiwebDebug ? window.__swiftuiwebDebug.frameCount() : 'no runtime', published: window.__galleryFrames !== undefined })).catch(err => ({ error: err.message }));
+    console.log('   state: ' + JSON.stringify(state));
+    for (const line of transcript.slice(-25)) console.log('   ' + line.split('\n')[0].slice(0, 300));
+    await page.screenshot({ path: base + '.hung.png' }).catch(() => {});
+    try { await load(names[0], 180000); } catch (err) { console.log('   reload failed: ' + err.message.split('\n')[0]); }
+    continue;
   }
   await page.waitForTimeout(50);
-  const base = join(out, name.replace(/\//g, '_'));
   await check(name, name, golden.frames, join(goldenDir, 'image@2x.png'), base + '.png');
 
   // Behaviour steps: apply each through the gallery hook, wait for the repaint, compare again.
