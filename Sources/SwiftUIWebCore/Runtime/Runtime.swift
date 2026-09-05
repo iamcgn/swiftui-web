@@ -159,6 +159,8 @@ public final class Runtime {
     public internal(set) var focusedIdentifier: Int?
     public internal(set) var focusVisible = false
     package var pointerPosition: CGPoint = .zero
+    /// The host's time (seconds) of the last pointer event, for gesture timing.
+    package var lastPointerTime: Double = 0
 
     /// Hover state (Runtime/HoverNodes.swift): the nodes the pointer is over, the memoised
     /// tracking nodes, a pending or shown tooltip and the pointer style hosts apply.

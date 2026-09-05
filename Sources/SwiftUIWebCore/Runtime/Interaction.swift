@@ -98,6 +98,7 @@ extension ViewNode {
     /// The deepest node containing `point` (in this node's space) that satisfies `predicate`,
     /// searching later-painted children first.
     package func hitTest(_ point: CGPoint, where predicate: (ViewNode) -> Bool) -> ViewNode? {
+        if capturesHitTesting, predicate(self), contains(point) { return self }
         for child in paintOrderedChildren.reversed() {
             let shift = child.hitTestOffset
             let local = CGPoint(x: point.x - child.frame.minX - shift.x, y: point.y - child.frame.minY - shift.y)
@@ -142,6 +143,7 @@ extension Runtime {
     /// Pointer went down at `point` (points, window coordinates). A touch also starts tracking a
     /// pan of the scroll views under it; `time` is in seconds (any monotonic clock).
     public func pointerDown(at point: CGPoint, type: PointerType = .mouse, time: Double = 0) {
+        lastPointerTime = time
         if type == .touch { beginPan(at: point, time: time) }
         // A touch that stopped a decelerating scroll view belongs to it, not to a control.
         if pan?.active == true { return }
@@ -152,6 +154,7 @@ extension Runtime {
 
     /// Pointer moved (pressed or not): drives presses, pans and hovering.
     public func pointerMoved(to point: CGPoint, time: Double = 0) {
+        lastPointerTime = time
         pointerPosition = point
         continuePan(to: point, time: time)
         if let node = pressedNode { node.pressMoved(to: local(point, in: node)) }
@@ -172,6 +175,7 @@ extension Runtime {
     /// Pointer released at `point`. Activates the pressed node if the pointer is still over it
     /// and no pan took the touch.
     public func pointerUp(at point: CGPoint, time: Double = 0) {
+        lastPointerTime = time
         let panned = endPan(time: time)
         guard let node = pressedNode else { return }
         pressedNode = nil
@@ -277,9 +281,21 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
 @MainActor
 private var nextTapIdentifier = 1_000_000
 
+/// A fresh semantics identifier for a gesture node (tap and other gestures share the range).
+@MainActor package func _nextGestureIdentifier() -> Int {
+    nextTapIdentifier += 1
+    return nextTapIdentifier
+}
+
 @MainActor
 package final class TapGestureNode<Content: View>: UnaryLayoutModifierNode<Content, _TapGestureModifier>, _Interactive {
     private let identifier: Int
+    /// Counts taps for `count` > 1 (Runtime/GestureNodes.swift).
+    private lazy var recognizer: TapRecognizer = {
+        let recognizer = TapRecognizer(count: modifier.count)
+        recognizer.endedHandlers.append { [weak self] in self?.modifier.action.run() }
+        return recognizer
+    }()
 
     override package init(_ context: _NodeContext<ModifiedContent<Content, _TapGestureModifier>>) {
         nextTapIdentifier += 1
@@ -287,7 +303,15 @@ package final class TapGestureNode<Content: View>: UnaryLayoutModifierNode<Conte
         super.init(context)
     }
 
+    private func event(_ point: CGPoint) -> GestureEvent {
+        GestureEvent(location: point, time: runtime.lastPointerTime, clock: runtime.animationClock, windowOrigin: frameInRoot.origin)
+    }
+
     package func pressBegan() {}
-    package func pressEnded(inside: Bool) { if inside { modifier.action.run() } }
+    package func pressBegan(at point: CGPoint) { if modifier.count > 1 { recognizer.began(event(point)) } }
+    package func pressEnded(inside: Bool) {}
+    package func pressEnded(inside: Bool, at point: CGPoint) {
+        if modifier.count > 1 { recognizer.ended(event(point), inside: inside) } else if inside { modifier.action.run() }
+    }
     package var semantics: SemanticsNode { SemanticsNode(role: .button, label: "", frame: frameInRoot, identifier: identifier) }
 }

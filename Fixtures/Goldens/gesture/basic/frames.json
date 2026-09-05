@@ -1,0 +1,63 @@
+{
+  "fixture" : "gesture\/basic",
+  "frames" : {
+    "dragBox" : {
+      "height" : 50,
+      "width" : 80,
+      "x" : 120,
+      "y" : 34
+    },
+    "dragLabel" : {
+      "height" : 16,
+      "width" : 78,
+      "x" : 121,
+      "y" : 4
+    },
+    "heldBox" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 120,
+      "y" : 296
+    },
+    "heldLabel" : {
+      "height" : 16,
+      "width" : 22,
+      "x" : 149,
+      "y" : 266
+    },
+    "pressBox" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 120,
+      "y" : 128
+    },
+    "pressLabel" : {
+      "height" : 16,
+      "width" : 96.5,
+      "x" : 111.75,
+      "y" : 98
+    },
+    "stack" : {
+      "height" : 332,
+      "width" : 96.5,
+      "x" : 111.75,
+      "y" : 4
+    },
+    "tapBox" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 120,
+      "y" : 212
+    },
+    "tapLabel" : {
+      "height" : 16,
+      "width" : 88.5,
+      "x" : 115.75,
+      "y" : 182
+    }
+  },
+  "size" : {
+    "height" : 340,
+    "width" : 320
+  }
+}

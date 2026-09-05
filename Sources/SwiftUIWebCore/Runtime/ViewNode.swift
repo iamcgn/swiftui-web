@@ -290,6 +290,9 @@ open class ViewNode {
     /// nodes are never culled by a scroll view's viewport.
     package var paintsOutsideFrame: Bool { false }
 
+    /// Whether this node takes hits before its children (`highPriorityGesture`).
+    package var capturesHitTesting: Bool { false }
+
     // MARK: Safe area
 
     /// Whether this node keeps the full bounds under a safe-area modifier and insets its own
