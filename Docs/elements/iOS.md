@@ -24,6 +24,7 @@ and `SystemFontMetricsTableIOS.swift`.
 | Picker (menu) | pop-up button with the label | the selected value in the accent colour with two chevrons, no box or label: 40.5 tall, 13.5 in each side, chevrons 9 wide 4 after the text |
 | Picker (segmented) | equal segments of the widest option + 21 | fills the proposed width, 31 tall, capsule black 31/255; the selected segment a white capsule inset 7 × 2; titles 13 pt medium (selected semibold), 7 pt down |
 | Disabled labels | 30 % | 24 % (52 over 215) |
+| Plain text field, empty | — | 25 pt while only the placeholder shows, 26 with text (`ios/dark/controls` `emptyField`) |
 | List (automatic) | inset rows on white | inset grouped: a (235, 236, 236) ground, each section a white card 16 in with 26 pt continuous corners; rows max(56, content + 30) with content 16 in and centred, 1 pt separators from the content's leading edge to the card's inner edge, none under a card's last row; 35 above a first card without a header; headers in body medium, secondary, 27.5 below the previous card (10 at the top) and 10 above their card; navigation link rows fill the row and end in a 7 × 12 chevron at 30 % |
 | List (plain) | 8 pt margins | white, rows 56 with content 16 in, separators 16 in; headers 32 below the previous row, 10 above the next |
 | Form | columns | an inset grouped list; a menu picker row keeps its label and puts the value and chevron, in the secondary colour, at the trailing edge; sliders lose their label; text fields are plain |
@@ -43,6 +44,27 @@ through the path binding; the Catalyst host waits a second after each step so th
 the settled screen). The first nine are exact in Tier A; the list-backed ones are within 2 pt:
 Catalyst lays list rows out with UIKit cells, whose text measures about 1.5 pt narrower than
 SwiftUI's `Text` of the same string.
+
+## Colours and the dark appearance
+
+`ios/color/system` and `ios/dark/system-colors` read macOS 26's palette through the Catalyst
+pipeline (every value within ±6 of the macOS goldens: blue (6, 136, 255) for (0, 136, 255)), so
+the iOS profile shares both palettes with macOS (`PlatformProfile.iOSLightColors`,
+`iOSDarkColors` in `Display/ColorTable.swift`); labels keep the alphas those goldens show
+(216/255 black or white). The backgrounds are iOS's own: a white window with the (235, 236, 236)
+grouped ground and white cards in the light appearance; in the dark one a black window, black
+text fields and plain lists (`ios/dark/controls` `roundedField`: black inside a white 20 %
+border), and the documented grouped values, a black ground with (28, 28, 30) cards. Measured
+in `ios/dark/controls`: the bordered button (118, 121, 128) at 32 % (the light one is black at
+16 %), the slider's unfilled track and the stepper's pill at the light alphas in white, the
+placeholder white at 25 % (painted as the documented (235, 235, 245) at 30 %), the selected
+segment (191, 191, 204) at 47 % over a (117, 117, 130) 24 % fill. Unmeasured: the switch's off
+track (white at 22 %, for iOS's (57, 57, 60)) and the back button's dark fill.
+
+Catalyst renders its dark appearance in a Mac window: a translucent (53, 53, 53) backing behind
+plain content, a (29, 30, 30) ground with (50, 50, 50) cards and (70, 70, 70) separators in
+grouped lists, and premultiplied PNGs. The runtime paints iOS's blacks instead, so `ios/dark/*`
+and `ios/color/*` are frames-only in Tier B and C (`Playwright/tier-b.mjs`, `NativePixelTests`).
 
 ## Catalyst deviations painted the iOS way
 
@@ -72,5 +94,6 @@ phone frame into iOS.
 ## Not yet covered
 
 Sheets, date pickers, the `Menu` button, progress views, tab bars, footers and list selection
-looks, the swipe back and the title/back button crossfade of a push, dark mode colours, the
-bold trait of the other text styles, default control spacing in a `VStack`.
+looks, the swipe back and the title/back button crossfade of a push, the large title collapsing
+as a list scrolls, the bold trait of the other text styles, default control spacing in a
+`VStack`.

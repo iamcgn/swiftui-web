@@ -150,7 +150,10 @@ struct Bitmap {
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
         // ios/toggle and ios/slider paint the iOS switch and knob where the Catalyst goldens draw
         // Mac-shaped ones (Docs/elements/iOS.md).
+        // ios/dark: Catalyst draws its dark appearance with a Mac window's greys where iOS is black;
+        // ios/color: its pipeline shifts the palette by up to 6 per channel over whole rectangles.
         let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name.hasPrefix("ios/toggle/") || name.hasPrefix("ios/slider/")
+            || name.hasPrefix("ios/dark/") || name.hasPrefix("ios/color/")
         compare(runner.layoutFrames(), to: golden.frames, label: name)
         try comparePixels(runner, fixture: fixture, png: "image@2x.png", label: name, framesOnly: framesOnly, painter: painter)
         for (index, step) in (golden.steps ?? []).enumerated() where index < fixture.stepNames.count {

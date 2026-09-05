@@ -377,7 +377,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
             let inset = PlatformMetrics.segmentedSelectedInset
             let cell = context.absoluteRect(options[selectedIndex].frame).insetBy(dx: inset.width, dy: inset.height)
             let fill = PlatformMetrics.segmentedSelectedIsWhite
-                ? RGBA(r: 255, g: 255, b: 255, a: enabled ? 1 : 0.6)
+                ? (environment._isDark ? PlatformMetrics.segmentedSelectedDark : RGBA(r: 255, g: 255, b: 255)).multiplyingAlpha(by: enabled ? 1 : 0.6)
                 : black(enabled ? PlatformMetrics.segmentedSelectedFill : PlatformMetrics.segmentedSelectedFill / 2)
             list.append(.fillRRect(cell, cornerRadius: min(PlatformMetrics.segmentedCornerRadius, cell.height / 2), fill))
         }

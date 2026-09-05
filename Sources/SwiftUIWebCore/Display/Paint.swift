@@ -77,6 +77,10 @@ public enum PendingEffect: Equatable, Sendable {
 extension Runtime {
     /// Paints the laid-out tree into a display list at `scale` pixels per point.
     public func render(scale: CGFloat = 2) -> DisplayList {
+        // The root's profile is current from the first node on: a node whose paint override
+        // skips the base selection (pickers) otherwise reads whatever table was last used.
+        let previousMetrics = PlatformMetrics.select(rootEnvironment.platformProfile)
+        defer { PlatformMetrics.current = previousMetrics }
         var list = DisplayList()
         let context = PaintContext(origin: .zero, scale: scale)
         if paintsWindowBackground {

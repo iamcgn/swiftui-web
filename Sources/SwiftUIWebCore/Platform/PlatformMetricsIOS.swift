@@ -43,8 +43,10 @@ extension PlatformMetricsTable {
         t.textFieldBorderInside = true
         t.textFieldTextOffset = 0.75                                    // the row label's baseline: 23.5 down, not 22.75
         t.textFieldPlainExtraHeight = 1.5
+        t.textFieldPlainEmptyExtraHeight = 0.5                          // ios/dark/controls `emptyField`: 25 with only the placeholder
         t.textFieldPlainTextOffset = -0.75
         t.textFieldPlaceholder = RGBA(r: 189, g: 189, b: 190)
+        t.textFieldPlaceholderDark = RGBA(r: 235, g: 235, b: 245, a: 0.3)   // placeholderText; ios/dark/controls reads white at 25 %
         t.secureBulletDiameter = 7
         t.secureBulletPitch = 10.5
         t.secureBulletInset = 1.5

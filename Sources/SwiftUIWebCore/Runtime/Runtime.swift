@@ -88,6 +88,9 @@ public final class Runtime {
     package var isLayingOut = false
     package var activeAnimationScopes = 0
     package var animatingNodes: [WeakNode] = []
+    /// Paint-only animations in flight (a navigation stack's slide): frames keep coming through
+    /// the frame subscribers, sizes stay valid.
+    package var paintAnimations = 0
 
     /// Sheets, popovers, alerts and menus over the window, bottom to top (Runtime/PresentationNodes.swift).
     package var presentations: [PresentationNode] = []
@@ -248,17 +251,29 @@ public final class Runtime {
     }
 
     package func requestLayout(invalidatingSizes: Bool = true) {
+        repaintOnly = false
         if invalidatingSizes { sizesInvalidated = true }
         guard !layoutRequested else { return }
         layoutRequested = true
         if !scheduler.hasPendingWork { scheduler.onNeedsFlush?() }
     }
 
+    /// Whether the pending frame only repaints (a paint-only animation advanced): every frame
+    /// in the tree is still right, so `layout` skips the pass. A layout request clears it.
+    private var repaintOnly = false
+
+    /// Asks for a frame that paints the tree as it is laid out (a navigation slide advanced).
+    package func requestRepaint() {
+        let alone = !layoutRequested
+        requestLayout(invalidatingSizes: false)
+        if alone { repaintOnly = true }
+    }
+
     /// Applies pending updates, then lays the tree out in a window of `size`. As in SwiftUI,
     /// the root view is proposed the full size and centred.
     public func layout(in size: CGSize) {
         updateAnimation = pendingAnimation
-        if scheduler.hasPendingWork || size != layoutSize || pendingAnimation != nil || isAnimating { sizesInvalidated = true }
+        if scheduler.hasPendingWork || size != layoutSize || pendingAnimation != nil || !animatingNodes.isEmpty { sizesInvalidated = true }
         // A frame that only scrolled moves the scrolled content and keeps every frame else.
         if !sizesInvalidated, presentations.isEmpty, scrolledNodes.allSatisfy(\.canMoveContentOnly) {
             for node in scrolledNodes { node.moveContent() }
@@ -267,6 +282,14 @@ public final class Runtime {
             updateAnimation = nil
             return
         }
+        // A frame that only repaints keeps every frame and size.
+        if repaintOnly, !sizesInvalidated, !scheduler.hasPendingWork, presentations.isEmpty, scrolledNodes.isEmpty {
+            repaintOnly = false
+            layoutRequested = false
+            updateAnimation = nil
+            return
+        }
+        repaintOnly = false
         scrolledNodes.removeAll()
         fullLayoutCount += 1
         flush()

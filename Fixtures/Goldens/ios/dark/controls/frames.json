@@ -1,0 +1,99 @@
+{
+  "fixture" : "ios\/dark\/controls",
+  "frames" : {
+    "bordered" : {
+      "height" : 38.5,
+      "width" : 97,
+      "x" : 36.5,
+      "y" : 39.75
+    },
+    "buttons" : {
+      "height" : 38.5,
+      "width" : 250.5,
+      "x" : 0,
+      "y" : 39.75
+    },
+    "disabledButton" : {
+      "height" : 38.5,
+      "width" : 93,
+      "x" : 0,
+      "y" : 90.25
+    },
+    "disabledField" : {
+      "height" : 34,
+      "width" : 320,
+      "x" : 0,
+      "y" : 303.75
+    },
+    "emptyField" : {
+      "height" : 25,
+      "width" : 320,
+      "x" : 0,
+      "y" : 220.75
+    },
+    "menuPicker" : {
+      "height" : 40.5,
+      "width" : 86,
+      "x" : 0,
+      "y" : 436.75
+    },
+    "plain" : {
+      "height" : 24.5,
+      "width" : 24.5,
+      "x" : 0,
+      "y" : 46.75
+    },
+    "prominent" : {
+      "height" : 38.5,
+      "width" : 105,
+      "x" : 145.5,
+      "y" : 39.75
+    },
+    "roundedField" : {
+      "height" : 34,
+      "width" : 320,
+      "x" : 0,
+      "y" : 257.75
+    },
+    "segmented" : {
+      "height" : 31,
+      "width" : 320,
+      "x" : 0,
+      "y" : 489.25
+    },
+    "slider" : {
+      "height" : 31,
+      "width" : 320,
+      "x" : 0,
+      "y" : 349.75
+    },
+    "stack" : {
+      "height" : 480.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 39.75
+    },
+    "stepper" : {
+      "height" : 32,
+      "width" : 320,
+      "x" : 0,
+      "y" : 392.75
+    },
+    "switchOff" : {
+      "height" : 28,
+      "width" : 320,
+      "x" : 0,
+      "y" : 180.75
+    },
+    "switchOn" : {
+      "height" : 28,
+      "width" : 320,
+      "x" : 0,
+      "y" : 140.75
+    }
+  },
+  "size" : {
+    "height" : 560,
+    "width" : 320
+  }
+}

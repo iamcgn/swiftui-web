@@ -27,6 +27,9 @@ public struct Color: Hashable, Sendable {
         /// The ink controls are drawn with, at an alpha: black in the light appearance, white in
         /// the dark one (button fills, tracks, separators; Docs/elements/DarkMode.md).
         case controlInk
+        /// The ground of an inset grouped list and its cards (iOS: grey / white in the light
+        /// appearance, black / (28, 28, 30) in the dark one; macOS lists use `controlBackground`).
+        case groupedBackground, groupedCard
         /// The window's background (`windowBackgroundColor`).
         case windowBackground
         /// The background of text fields, lists and tables (`controlBackgroundColor`).

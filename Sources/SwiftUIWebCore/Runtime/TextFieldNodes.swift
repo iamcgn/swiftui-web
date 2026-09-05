@@ -67,10 +67,12 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     }
 
     /// The frame's height: the bezel's, or the line plus the plain style's extra (iOS: 26 for a
-    /// 24.5 pt body line, ios/textfield/basic).
+    /// 24.5 pt body line, ios/textfield/basic; 25 while only the placeholder shows,
+    /// ios/dark/controls `emptyField`).
     private func height(lineHeight: CGFloat, insets: EdgeInsets) -> CGFloat {
-        bezel == .plain ? lineHeight + PlatformMetrics.textFieldPlainExtraHeight
-            : max(lineHeight + insets.top + insets.bottom, PlatformMetrics.textFieldHeight)
+        guard bezel == .plain else { return max(lineHeight + insets.top + insets.bottom, PlatformMetrics.textFieldHeight) }
+        let extra = view.text.wrappedValue.isEmpty ? PlatformMetrics.textFieldPlainEmptyExtraHeight : PlatformMetrics.textFieldPlainExtraHeight
+        return lineHeight + extra
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
@@ -136,7 +138,7 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         let baseline = CGPoint(x: rect.minX, y: rect.minY + metrics.baseline)
         if text.isEmpty {
             guard !view.placeholder.isEmpty else { return }
-            list.append(.drawText(view.placeholder, DisplayFont(font), origin: baseline, PlatformMetrics.textFieldPlaceholder ?? Color.secondary.resolve(in: environment)))
+            list.append(.drawText(view.placeholder, DisplayFont(font), origin: baseline, (environment._isDark ? PlatformMetrics.textFieldPlaceholderDark : PlatformMetrics.textFieldPlaceholder) ?? Color.secondary.resolve(in: environment)))
         } else if view.isSecure {
             let color = (environment.foregroundColor ?? .primary).resolve(in: environment)
             let radius = PlatformMetrics.secureBulletDiameter / 2

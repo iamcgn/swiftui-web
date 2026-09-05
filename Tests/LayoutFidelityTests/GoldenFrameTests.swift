@@ -90,7 +90,7 @@ enum Goldens {
 
     /// Fixtures whose probes are allowed two points: Catalyst lays list rows out with UIKit
     /// cells, whose text measures about 1.5 pt narrower than SwiftUI's (Docs/elements/iOS.md).
-    static let approximatePrefixes = ["ios/list/", "ios/form/", "ios/nav/"]
+    static let approximatePrefixes = ["ios/list/", "ios/form/", "ios/nav/", "ios/dark/list", "ios/dark/form", "ios/dark/nav"]
 
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
         let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }

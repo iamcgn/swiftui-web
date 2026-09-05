@@ -448,6 +448,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var switchFrameSize = CGSize(width: 54, height: 24)     // the switch's layout frame; the painted capsule is switchSize
     package var switchOnColor = RGBA(r: 52, g: 199, b: 89)          // iOS systemGreen
     package var switchOffAlpha = 0.09
+    package var switchOffAlphaDark = 0.22                            // iOS dark: (57, 57, 60) on black, not measured (Catalyst's switch is Mac-shaped)
     package var switchKnobShadowAlpha = 0.15
     package var sliderFillsWithAccent = false
     package var sliderDisabledAccentAlpha = 0.5
@@ -460,9 +461,11 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var stepperPlusCenterX: CGFloat = 70
     package var textFieldTextOffset: CGFloat = 0
     package var textFieldPlainExtraHeight: CGFloat = 0
+    package var textFieldPlainEmptyExtraHeight: CGFloat = 0
     package var textFieldPlainTextOffset: CGFloat = 0
     package var textFieldBorderInside = false
     package var textFieldPlaceholder: RGBA? = nil
+    package var textFieldPlaceholderDark: RGBA? = nil
     package var segmentedSelectedInset = CGSize(width: 0, height: 0)
     package var segmentedSelectedIsWhite = false
     package var segmentedFontSize: CGFloat = 13
@@ -472,7 +475,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var popUpChevronRise: CGFloat = 0                        // 0: the macOS chevron pair
     package var destructiveColor = RGBA(r: 255, g: 57, b: 59)
     // iOS lists, forms and navigation bars (ios/list/*, ios/form/basic, ios/nav/*; Docs/elements/iOS.md).
-    package var listGroupedBackground = RGBA(r: 235, g: 236, b: 236)
+    package var segmentedSelectedDark = RGBA(r: 191, g: 191, b: 204, a: 120.0 / 255)   // ios/dark/controls: the selected segment over the fill
     package var listGroupedMargin: CGFloat = 16                        // the card's inset from the list's edges
     package var listGroupedContentInset: CGFloat = 16                  // a row's content inside the card
     package var listGroupedCornerRadius: CGFloat = 26

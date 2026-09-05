@@ -357,6 +357,7 @@ extension PlatformMetrics {
     package static var switchFrameSize: CGSize { current.switchFrameSize }
     package static var switchOnColor: RGBA { current.switchOnColor }
     package static var switchOffAlpha: Double { current.switchOffAlpha }
+    package static var switchOffAlphaDark: Double { current.switchOffAlphaDark }
     package static var switchKnobShadowAlpha: Double { current.switchKnobShadowAlpha }
     package static var sliderFillsWithAccent: Bool { current.sliderFillsWithAccent }
     package static var sliderDisabledAccentAlpha: Double { current.sliderDisabledAccentAlpha }
@@ -369,9 +370,11 @@ extension PlatformMetrics {
     package static var stepperPlusCenterX: CGFloat { current.stepperPlusCenterX }
     package static var textFieldTextOffset: CGFloat { current.textFieldTextOffset }
     package static var textFieldPlainExtraHeight: CGFloat { current.textFieldPlainExtraHeight }
+    package static var textFieldPlainEmptyExtraHeight: CGFloat { current.textFieldPlainEmptyExtraHeight }
     package static var textFieldPlainTextOffset: CGFloat { current.textFieldPlainTextOffset }
     package static var textFieldBorderInside: Bool { current.textFieldBorderInside }
     package static var textFieldPlaceholder: RGBA? { current.textFieldPlaceholder }
+    package static var textFieldPlaceholderDark: RGBA? { current.textFieldPlaceholderDark }
     package static var segmentedSelectedInset: CGSize { current.segmentedSelectedInset }
     package static var segmentedSelectedIsWhite: Bool { current.segmentedSelectedIsWhite }
     package static var segmentedFontSize: CGFloat { current.segmentedFontSize }
@@ -380,7 +383,7 @@ extension PlatformMetrics {
     package static var segmentedTextTop: CGFloat { current.segmentedTextTop }
     package static var popUpChevronRise: CGFloat { current.popUpChevronRise }
     package static var destructiveColor: RGBA { current.destructiveColor }
-    package static var listGroupedBackground: RGBA { current.listGroupedBackground }
+    package static var segmentedSelectedDark: RGBA { current.segmentedSelectedDark }
     package static var listGroupedMargin: CGFloat { current.listGroupedMargin }
     package static var listGroupedContentInset: CGFloat { current.listGroupedContentInset }
     package static var listGroupedCornerRadius: CGFloat { current.listGroupedCornerRadius }

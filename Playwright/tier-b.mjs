@@ -36,7 +36,11 @@ const frameTolerance = (name, key, expected) => name.startsWith('ios/') && (key 
   ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
 // fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
-const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name.startsWith('ios/toggle/') || name.startsWith('ios/slider/');
+// ios/dark/: Catalyst draws its dark appearance with a Mac window's greys (a translucent backing,
+// (29, 30, 30) grounds, (50, 50, 50) cards) where iOS is black with (28, 28, 30) cards; the frames
+// still hold (Docs/elements/iOS.md).
+// ios/color/: the same pipeline shifts the palette by up to 6 per channel over whole rectangles.
+const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name.startsWith('ios/toggle/') || name.startsWith('ios/slider/') || name.startsWith('ios/dark/') || name.startsWith('ios/color/');
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {

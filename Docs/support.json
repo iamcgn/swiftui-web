@@ -1095,7 +1095,7 @@
         {
           "api": "environment(\\.platformProfile, .iOS) / PlatformProfile / Runtime.hostPlatformProfile / navigationBarTitleDisplayMode",
           "status": "partial",
-          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Open: sheets, date pickers, menus, progress views, tab bars, dark colours",
+          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Open: sheets, date pickers, menus, progress views, tab bars, the large title collapsing on scroll",
           "fixtures": [
             "ios/text/styles",
             "ios/layout/basics",
@@ -1114,7 +1114,15 @@
             "ios/nav/push",
             "ios/nav/push-inline",
             "ios/nav/push-noback",
-            "ios/nav/sizing"
+            "ios/nav/sizing",
+            "ios/color/system",
+            "ios/dark/system-colors",
+            "ios/dark/text",
+            "ios/dark/controls",
+            "ios/dark/list",
+            "ios/dark/list-plain",
+            "ios/dark/form",
+            "ios/dark/nav"
           ]
         }
       ]

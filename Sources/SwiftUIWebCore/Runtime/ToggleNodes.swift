@@ -116,7 +116,8 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
         let track = CGRect(x: frame.midX - size.width / 2, y: frame.midY - size.height / 2, width: size.width, height: size.height)
         let enabled = environment.isEnabled
         let dim = enabled ? 1.0 : 0.4
-        let fill = view.isOn ? PlatformMetrics.switchOnColor.multiplyingAlpha(by: dim) : environment._ink(PlatformMetrics.switchOffAlpha * dim)
+        let offAlpha = environment._isDark ? PlatformMetrics.switchOffAlphaDark : PlatformMetrics.switchOffAlpha
+        let fill = view.isOn ? PlatformMetrics.switchOnColor.multiplyingAlpha(by: dim) : environment._ink(offAlpha * dim)
         list.append(.fillRRect(track, cornerRadius: track.height / 2, fill))
         let inset = PlatformMetrics.switchKnobInset
         let knobSize = PlatformMetrics.switchKnobSize

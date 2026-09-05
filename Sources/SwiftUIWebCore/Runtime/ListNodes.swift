@@ -247,7 +247,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         if profile.cards {
             for card in cardFrames {
                 list.append(.fillPath(Path(roundedRect: context.absoluteRect(card), cornerRadius: profile.cardCornerRadius, style: .continuous),
-                                      environment._controlBackground))
+                                      environment._groupedCard))
             }
         }
         // Separators first: below each element that has one, from its content's leading edge to

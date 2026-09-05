@@ -25,6 +25,8 @@ extension PlatformProfile {
         .controlInk: .black,
         .windowBackground: .white,                      // NSColor.windowBackgroundColor (macOS 26.2)
         .controlBackground: .white,
+        .groupedBackground: .white,
+        .groupedCard: .white,
         .knob: .white,
     ]
 
@@ -54,11 +56,34 @@ extension PlatformProfile {
         .controlInk: .white,
         .windowBackground: RGBA(r: 30, g: 30, b: 30),
         .controlBackground: RGBA(r: 30, g: 30, b: 30),               // text field and list fills
+        .groupedBackground: RGBA(r: 30, g: 30, b: 30),
+        .groupedCard: RGBA(r: 30, g: 30, b: 30),
         .knob: RGBA(r: 255, g: 255, b: 255, a: 222.0 / 255),
     ]
 
+    /// iOS system colours (Docs/elements/iOS.md). The palette is macOS 26's: `ios/color/system`
+    /// and `ios/dark/system-colors` read the same values through the Catalyst pipeline (within
+    /// ±6). Labels keep the alphas those goldens show (216/255). The backgrounds are iOS's own:
+    /// the grouped ground (235, 236, 236) with white cards in the light appearance; black
+    /// windows, text fields and plain lists in the dark one (`ios/dark/controls`), with the
+    /// documented grouped values (black ground, (28, 28, 30) cards) where Catalyst draws a Mac
+    /// window's greys instead.
+    package static let iOSLightColors: [Color.SystemColor: RGBA] = macOSLightColors.merging([
+        .groupedBackground: RGBA(r: 235, g: 236, b: 236),
+        .groupedCard: .white,
+    ]) { $1 }
+
+    package static let iOSDarkColors: [Color.SystemColor: RGBA] = macOSDarkColors.merging([
+        .windowBackground: .black,
+        .controlBackground: .black,
+        .groupedBackground: .black,
+        .groupedCard: RGBA(r: 28, g: 28, b: 30),
+    ]) { $1 }
+
     package func resolve(_ system: Color.SystemColor, scheme: ColorScheme = .light) -> RGBA {
-        (scheme == .dark ? Self.macOSDarkColors[system] : Self.macOSLightColors[system]) ?? .black
+        let table = isIOS ? (scheme == .dark ? Self.iOSDarkColors : Self.iOSLightColors)
+                          : (scheme == .dark ? Self.macOSDarkColors : Self.macOSLightColors)
+        return table[system] ?? .black
     }
 }
 
@@ -70,6 +95,8 @@ extension EnvironmentValues {
 
     /// The fill of text fields, lists and tables.
     package var _controlBackground: RGBA { platformProfile.resolve(.controlBackground, scheme: colorScheme) }
+    /// The cards of an inset grouped list (iOS).
+    package var _groupedCard: RGBA { platformProfile.resolve(.groupedCard, scheme: colorScheme) }
     package var _windowBackground: RGBA { platformProfile.resolve(.windowBackground, scheme: colorScheme) }
     package var _knob: RGBA { platformProfile.resolve(.knob, scheme: colorScheme) }
     package var _isDark: Bool { colorScheme == .dark }

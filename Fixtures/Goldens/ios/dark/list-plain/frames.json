@@ -1,0 +1,27 @@
+{
+  "fixture" : "ios\/dark\/list-plain",
+  "frames" : {
+    "list" : {
+      "height" : 240,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 24.5,
+      "width" : 44.5,
+      "x" : 16,
+      "y" : 15.75
+    },
+    "row2" : {
+      "height" : 24.5,
+      "width" : 57,
+      "x" : 16,
+      "y" : 71.75
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

@@ -704,6 +704,18 @@ struct SettingsScreen: View {
                     TextField("Name", text: $model.name)
                     Button("Save") {}
                 }
+                Section("About") {
+                    // A push: on iOS the detail slides in under its bar with a back button.
+                    NavigationLink("Acknowledgements") {
+                        Form {
+                            Section("Open source") {
+                                HStack { Text("Lucide icons"); Spacer(); Text("ISC").foregroundStyle(.secondary) }
+                                HStack { Text("swift-syntax"); Spacer(); Text("Apache 2.0").foregroundStyle(.secondary) }
+                            }
+                        }
+                        .navigationTitle("Acknowledgements")
+                    }
+                }
             }
             .navigationTitle("Settings")
         }

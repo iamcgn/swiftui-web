@@ -4,7 +4,7 @@
 // button (Docs/elements/iOS.md).
 
 @MainActor
-package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
+package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _FrameSubscriber {
     package private(set) var root: TypedNode<AnyView>!
     package private(set) var context: _NavigationContext!
 
@@ -25,8 +25,10 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
     package var destinations: [ObjectIdentifier: _NavigationDestinationBuilder] = [:]
     /// The back button in the bar over a pushed screen (iOS): hit-tested as a child, painted with the bar.
     private var backButton: NavigationBackButtonNode!
-    /// A push or pop sliding between two screens (iOS).
+    /// A push or pop sliding between two screens (iOS), and its progress: a paint-only
+    /// animation driven by the frame subscribers, so the page is not laid out again each frame.
     private var slide: Slide?
+    private var slideTween: Tween?
 
     package init(_ context: _NodeContext<_NavigationStackHost>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime, environment: context.environment)
@@ -295,27 +297,36 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
         }
         let upperBar = push ? nil : bar(over: upper, index: groups.count, previousLarge: bars.last??.large ?? false)
         slide = Slide(push: push, lower: lower, upper: upper, upperBar: upperBar, leaving: leaving)
-        let presentation = self.presentation ?? NodePresentation()
-        presentation.effect = Tween(from: [0], to: [1], animation: .easeInOut(duration: PlatformMetrics.navigationPushDuration), start: runtime.animationClock)
-        self.presentation = presentation
-        runtime.register(animating: self)
+        slideTween = Tween(from: [0], to: [1], animation: .easeInOut(duration: PlatformMetrics.navigationPushDuration), start: runtime.animationClock)
+        runtime.paintAnimations += 1
+        runtime.subscribeFrames(self)
     }
 
     private func finishSlide() {
         guard let slide else { return }
         self.slide = nil
-        presentation?.effect = nil
+        slideTween = nil
+        runtime.paintAnimations -= 1
+        runtime.unsubscribeFrames(self)
         for entry in slide.leaving { entry.node?.unmount() }
+        runtime.requestRepaint()
+    }
+
+    /// Each frame of a slide repaints (without laying the page out again); the last one
+    /// settles the screens.
+    package func frameDidAdvance() {
+        if let slideTween, slideTween.isFinished(at: runtime.animationClock) { finishSlide() }
+        runtime.requestRepaint()
     }
 
     /// The slide in flight with its progress, or nil once its tween ended (finishing it then).
     private var activeSlide: (Slide, Double)? {
-        guard let slide else { return nil }
-        guard let progress = presentation?.effect?.value(at: runtime.animationClock).first else {
+        guard let slide, let slideTween else { return nil }
+        guard !slideTween.isFinished(at: runtime.animationClock) else {
             finishSlide()
             return nil
         }
-        return (slide, progress)
+        return (slide, slideTween.value(at: runtime.animationClock).first ?? 1)
     }
 
     // MARK: Layout
@@ -385,8 +396,10 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
         list.append(.restore)
     }
 
-    /// One screen: its ground (a grouped list's continues under the bar, as on iOS: ios/nav/basic
-    /// is grey throughout), its nodes shifted sideways by `shift`, then its bar at `barOpacity`.
+    /// One screen shifted sideways by `shift`: its ground (a grouped list's continues under the
+    /// bar, as on iOS: ios/nav/basic is grey throughout), its nodes, then its bar, which travels
+    /// with the screen and fades to `barOpacity` (iOS cross-fades the bars' contents while they
+    /// slide part of the way; the whole way keeps the two titles apart).
     private func paintScreen(_ nodes: [ViewNode], bar: Bar?, shift: CGFloat, barOpacity: Double,
                              into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
@@ -399,18 +412,16 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
             list.append(.fillRect(bounds, ground.resolve(in: environment)))
         }
         for node in nodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
+        if let bar, barOpacity > 0 { paintBar(bar, opacity: barOpacity, into: &list, context: context) }
         if shift != 0 { list.append(.restore) }
-        guard let bar else { return }
-        if barOpacity <= 0 { return }
-        if barOpacity < 1 { list.append(.beginGroup(opacity: barOpacity)) }
-        paintBar(bar, into: &list, context: context)
-        if barOpacity < 1 { list.append(.endGroup) }
     }
 
-    private func paintBar(_ bar: Bar, into list: inout DisplayList, context: PaintContext) {
+    /// The bar's title and back button at `opacity` (multiplied into the colours: an opacity
+    /// group would composite the whole canvas offscreen twice per frame of a slide).
+    private func paintBar(_ bar: Bar, opacity: Double, into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
         let profile = environment.platformProfile
-        let color = (environment.foregroundColor ?? .primary).resolve(in: environment)
+        let color = (environment.foregroundColor ?? .primary).resolve(in: environment).multiplyingAlpha(by: opacity)
         if let title = bar.title {
             if bar.large {
                 let font = Font.largeTitle.bold().resolve(profile: profile)
@@ -425,7 +436,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost> {
                 list.append(.drawText(title, DisplayFont(font), origin: origin, color))
             }
         }
-        if bar.back { backButton.paintLook(into: &list, at: bounds.origin, context: context) }
+        if bar.back { backButton.paintLook(into: &list, at: bounds.origin, opacity: opacity, context: context) }
     }
 
     override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) }
@@ -479,20 +490,20 @@ package final class NavigationBackButtonNode: LeafNode<_NavigationBackButton>, _
 
     /// The circle and chevron at the bar whose origin is `barOrigin` (absolute). The chevron is
     /// the accent colour, as on iOS: Catalyst's inactive window draws it grey (Docs/elements/iOS.md).
-    package func paintLook(into list: inout DisplayList, at barOrigin: CGPoint, context: PaintContext) {
+    package func paintLook(into list: inout DisplayList, at barOrigin: CGPoint, opacity: Double = 1, context: PaintContext) {
         let inset = PlatformMetrics.navigationBackButtonInset
         let diameter = PlatformMetrics.navigationBackButtonDiameter
         let circle = context.absoluteRect(CGRect(x: barOrigin.x - context.origin.x + inset, y: barOrigin.y - context.origin.y + inset, width: diameter, height: diameter))
         let fill = environment.colorScheme == .dark ? PlatformMetrics.navigationBackFillDark : PlatformMetrics.navigationBackFill
-        list.append(.fillRRect(circle, cornerRadius: diameter / 2, fill))
-        if isPressed { list.append(.fillRRect(circle, cornerRadius: diameter / 2, environment._ink(PlatformMetrics.navigationBackPressedAlpha))) }
+        list.append(.fillRRect(circle, cornerRadius: diameter / 2, fill.multiplyingAlpha(by: opacity)))
+        if isPressed { list.append(.fillRRect(circle, cornerRadius: diameter / 2, environment._ink(PlatformMetrics.navigationBackPressedAlpha * opacity))) }
         let size = PlatformMetrics.navigationBackChevronSize
         let centre = CGPoint(x: circle.midX + PlatformMetrics.navigationBackChevronOffset.x, y: circle.midY + PlatformMetrics.navigationBackChevronOffset.y)
         var chevron = Path()
         chevron.move(to: CGPoint(x: centre.x + size.width / 2, y: centre.y - size.height / 2))
         chevron.addLine(to: CGPoint(x: centre.x - size.width / 2, y: centre.y))
         chevron.addLine(to: CGPoint(x: centre.x + size.width / 2, y: centre.y + size.height / 2))
-        let tint = environment.isEnabled ? Color.accentColor.resolve(in: environment) : environment._ink(PlatformMetrics.disabledLabelOpacity)
+        let tint = (environment.isEnabled ? Color.accentColor.resolve(in: environment) : environment._ink(PlatformMetrics.disabledLabelOpacity)).multiplyingAlpha(by: opacity)
         list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: PlatformMetrics.navigationBackChevronStroke, lineCap: .round, lineJoin: .round), tint))
     }
 }

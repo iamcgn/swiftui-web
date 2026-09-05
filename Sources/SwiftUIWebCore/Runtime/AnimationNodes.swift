@@ -54,8 +54,9 @@ package struct WeakNode {
 }
 
 extension Runtime {
-    /// Whether any animation is in flight.
-    public var isAnimating: Bool { !animatingNodes.isEmpty }
+    /// Whether any animation is in flight: a node's tween or transition, or a paint-only
+    /// animation (a navigation slide) that repaints without laying out again.
+    public var isAnimating: Bool { !animatingNodes.isEmpty || paintAnimations > 0 }
 
     /// Advances the animation clock by `elapsed` seconds, drops finished animations and asks
     /// for a repaint while any remains. Returns whether animations are still in flight.

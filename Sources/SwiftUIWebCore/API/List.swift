@@ -207,9 +207,8 @@ public struct _ListProfile: Equatable, Sendable {
                                 firstHeaderTop: m.listPlainHeaderTop, headerBottom: m.listGroupedHeaderBottom,
                                 headerFont: .body.weight(.medium), linkChevron: true)
         }
-        let bg = m.listGroupedBackground
         return _ListProfile(name: "insetGrouped", margin: m.listGroupedMargin, topInset: m.listGroupedTopInset, minimumRowHeight: m.listGroupedRowHeight,
-                            rowFont: nil, rowForeground: nil, background: Color(red: bg.red, green: bg.green, blue: bg.blue), borderColor: nil,
+                            rowFont: nil, rowForeground: nil, background: Color(storage: .system(.groupedBackground)), borderColor: nil,
                             showsSeparators: true, separatorTrailing: m.listGroupedMargin + m.listGroupedContentInset, rowBackgroundExtendsToEdges: false,
                             rowPadding: m.listGroupedRowPadding, contentInset: m.listGroupedContentInset, cards: true,
                             cardCornerRadius: m.listGroupedCornerRadius, headerTop: m.listGroupedHeaderTop, firstHeaderTop: m.listGroupedFirstHeaderTop,

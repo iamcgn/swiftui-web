@@ -1,0 +1,147 @@
+{
+  "fixture" : "ios\/color\/system",
+  "frames" : {
+    "accentColor" : {
+      "height" : 80,
+      "width" : 66.666666666666657,
+      "x" : 133.33333333333337,
+      "y" : 160
+    },
+    "black" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 300,
+      "y" : 80
+    },
+    "blue" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 350,
+      "y" : 0
+    },
+    "brown" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 150,
+      "y" : 80
+    },
+    "clear" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 350,
+      "y" : 80
+    },
+    "cyan" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 300,
+      "y" : 0
+    },
+    "gray" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 250,
+      "y" : 80
+    },
+    "green" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 150,
+      "y" : 0
+    },
+    "indigo" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 0,
+      "y" : 80
+    },
+    "mint" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 200,
+      "y" : 0
+    },
+    "orange" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 50,
+      "y" : 0
+    },
+    "pink" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 100,
+      "y" : 80
+    },
+    "primary" : {
+      "height" : 80,
+      "width" : 66.666666666666671,
+      "x" : 5.6843418860808015e-14,
+      "y" : 160
+    },
+    "purple" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 50,
+      "y" : 80
+    },
+    "quaternary" : {
+      "height" : 80,
+      "width" : 66.666666666666686,
+      "x" : 266.66666666666669,
+      "y" : 160
+    },
+    "red" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 0,
+      "y" : 0
+    },
+    "secondary" : {
+      "height" : 80,
+      "width" : 66.666666666666643,
+      "x" : 66.666666666666728,
+      "y" : 160
+    },
+    "shapeDefault" : {
+      "height" : 80,
+      "width" : 66.666666666666629,
+      "x" : 333.33333333333337,
+      "y" : 160
+    },
+    "stack" : {
+      "height" : 240,
+      "width" : 400,
+      "x" : 0,
+      "y" : 0
+    },
+    "teal" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 250,
+      "y" : 0
+    },
+    "tertiary" : {
+      "height" : 80,
+      "width" : 66.666666666666686,
+      "x" : 200.00000000000006,
+      "y" : 160
+    },
+    "white" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 200,
+      "y" : 80
+    },
+    "yellow" : {
+      "height" : 80,
+      "width" : 50,
+      "x" : 100,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 400
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "fixture" : "ios\/dark\/text",
+  "frames" : {
+    "disabled" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 0,
+      "y" : 137.75
+    },
+    "divider" : {
+      "height" : 1,
+      "width" : 320,
+      "x" : 0,
+      "y" : 210.75
+    },
+    "link" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 0,
+      "y" : 174.25
+    },
+    "primary" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 0,
+      "y" : -8.25
+    },
+    "red" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 0,
+      "y" : 101.25
+    },
+    "secondary" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 0,
+      "y" : 28.25
+    },
+    "stack" : {
+      "height" : 256.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : -8.25
+    },
+    "tertiary" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 0,
+      "y" : 64.75
+    },
+    "underlined" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 0,
+      "y" : 223.75
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}
