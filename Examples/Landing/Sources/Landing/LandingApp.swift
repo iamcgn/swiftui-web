@@ -650,13 +650,13 @@ struct IOSDemo: View {
                 Card {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("macOS profile").font(.caption).fontWeight(.semibold).foregroundColor(.secondary)
-                        SettingsScreen(model: model)
+                        SettingsScreen(model: model).frame(height: 400)
                     }
                 }
             } second: {
                 PhoneFrame {
                     SettingsScreen(model: model)
-                        .padding(.top, 44)   // below the island
+                        .padding(.top, 36)   // below the island
                         #if canImport(SwiftUIWebCore)
                         .environment(\.platformProfile, .iOS)
                         #endif
@@ -682,23 +682,26 @@ struct SettingsScreen: View {
     @Bindable var model: SettingsModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Settings").font(.largeTitle).bold()
-            Toggle("Wi-Fi", isOn: $model.wifi)
-            Toggle("Bluetooth", isOn: $model.bluetooth)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Volume").font(.subheadline)
-                Slider(value: $model.volume)
+        NavigationStack {
+            Form {
+                Section("Network") {
+                    Toggle("Wi-Fi", isOn: $model.wifi)
+                    Toggle("Bluetooth", isOn: $model.bluetooth)
+                }
+                Section("Sound") {
+                    Slider(value: $model.volume) { Text("Volume") }
+                    Stepper("Quantity: \(model.quantity)", value: $model.quantity, in: 0...12)
+                }
+                Section("Profile") {
+                    Picker("Size", selection: $model.size) {
+                        Text("Small").tag(1); Text("Medium").tag(2); Text("Large").tag(3)
+                    }
+                    TextField("Name", text: $model.name)
+                    Button("Save") {}
+                }
             }
-            Stepper("Quantity: \(model.quantity)", value: $model.quantity, in: 0...12)
-            Picker("Size", selection: $model.size) {
-                Text("Small").tag(1); Text("Medium").tag(2); Text("Large").tag(3)
-            }
-            .pickerStyle(.segmented)
-            TextField("Name", text: $model.name).textFieldStyle(.roundedBorder)
-            Button("Save") {}.buttonStyle(.borderedProminent)
+            .navigationTitle("Settings")
         }
-        .padding()
     }
 }
 
@@ -710,7 +713,7 @@ struct PhoneFrame<Content: View>: View {
     var body: some View {
         content
             .frame(width: 320, height: 520, alignment: .top)
-            .background(Color.white)
+            .background(Color(red: 235 / 255, green: 236 / 255, blue: 236 / 255))   // the grouped list's ground
             .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
             .padding(10)
             .background(RoundedRectangle(cornerRadius: 46, style: .continuous).fill(Site.ink))
