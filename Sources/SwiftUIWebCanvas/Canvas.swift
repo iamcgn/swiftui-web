@@ -97,6 +97,10 @@ public final class CanvasHost {
         runtime.imageLoader = CanvasImageLoader(bridge: bridge)
         closures.append(imageLoaded)
         _ = bridge.setImageLoadHandler!(imageLoaded)
+        // Copies reach the system clipboard when the page may write it.
+        if let navigator = JSObject.global.navigator.object, let clipboard = navigator.clipboard.object, clipboard.writeText.function != nil {
+            runtime.clipboardWriter = { text in _ = clipboard.writeText!(text) }
+        }
         // The window background and the system appearance, now and when it changes.
         runtime.paintsWindowBackground = true
         runtime.paintsWindowChrome = true

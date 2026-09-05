@@ -173,6 +173,8 @@ extension Runtime {
                 current = node.parent
             }
         }
+        // ⌘C / ⌘X / ⌘V for copyable, cuttable and paste destinations around the focused node.
+        if handlePasteboardKey(press) { setNeedsDisplay(); return true }
         // An open menu takes the keys next; then Tab moves focus and Space or Return activates the
         // focused control (a consumed press keeps a browser overlay button from clicking as well).
         if let top = presentations.last, top.kind.isMenu, top.handleKey(press) { return true }

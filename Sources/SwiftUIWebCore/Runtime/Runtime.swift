@@ -84,6 +84,9 @@ public final class Runtime {
 
     /// Sheets, popovers, alerts and menus over the window, bottom to top (Runtime/PresentationNodes.swift).
     package var presentations: [PresentationNode] = []
+    /// The app's pasteboard (Runtime/PasteboardNodes.swift) and the host's clipboard writer for text.
+    package var pasteboard: [_TransferItem] = []
+    public var clipboardWriter: ((String) -> Void)?
     /// Window scenes and the secondary windows opened from them (Runtime/WindowNodes.swift).
     package var windowDescriptors: [_WindowDescriptor] = []
     package var openWindows: [OpenWindow] = []
@@ -116,6 +119,7 @@ public final class Runtime {
         self.rootEnvironment = environment
         hostColorScheme = environment.colorScheme
         self.root = RootNode(runtime: self, environment: environment)
+        installPasteboard()
     }
 
     /// Moves the root environment to the effective scheme when it changed, re-applying the
