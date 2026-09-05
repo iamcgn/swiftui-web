@@ -1,0 +1,27 @@
+{
+  "fixture" : "pressure\/row-tight",
+  "frames" : {
+    "left" : {
+      "height" : 50,
+      "width" : 40,
+      "x" : 55,
+      "y" : 0
+    },
+    "row" : {
+      "height" : 50,
+      "width" : 190,
+      "x" : 55,
+      "y" : 0
+    },
+    "text" : {
+      "height" : 48,
+      "width" : 150,
+      "x" : 95,
+      "y" : 1
+    }
+  },
+  "size" : {
+    "height" : 50,
+    "width" : 300
+  }
+}

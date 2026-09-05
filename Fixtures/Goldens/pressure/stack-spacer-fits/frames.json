@@ -1,0 +1,39 @@
+{
+  "fixture" : "pressure\/stack-spacer-fits",
+  "frames" : {
+    "bottom" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 0,
+      "y" : 160
+    },
+    "spacer" : {
+      "height" : 56,
+      "width" : 0,
+      "x" : 100,
+      "y" : 104
+    },
+    "stack" : {
+      "height" : 200,
+      "width" : 200,
+      "x" : 0,
+      "y" : 0
+    },
+    "text" : {
+      "height" : 64,
+      "width" : 150,
+      "x" : 25,
+      "y" : 40
+    },
+    "top" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 200
+  }
+}

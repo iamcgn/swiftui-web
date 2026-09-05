@@ -293,6 +293,10 @@ open class ViewNode {
     /// Whether this node takes hits before its children (`highPriorityGesture`).
     package var capturesHitTesting: Bool { false }
 
+    /// Whether this node is a `Spacer`: stacks size it after every other child, from the leftover
+    /// (Layout/StackLayout.swift).
+    package var isSpacer: Bool { false }
+
     // MARK: Safe area
 
     /// Whether this node keeps the full bounds under a safe-area modifier and insets its own

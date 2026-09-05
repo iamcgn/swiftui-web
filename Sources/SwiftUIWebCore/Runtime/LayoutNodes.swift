@@ -245,6 +245,11 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
     /// Painting modifiers pass the safe area through; sizing ones (`changesChildSize`) do not.
     package var changesChildSize: Bool { false }
     override package var forwardsSafeArea: Bool { !changesChildSize }
+    /// A probed or painted Spacer is still a Spacer to its stack.
+    override package var isSpacer: Bool {
+        let targets = targets
+        return !changesChildSize && targets.count == 1 && targets[0].isSpacer
+    }
     override package var extendsIntoSafeArea: Bool {
         let targets = targets
         return !changesChildSize && targets.count == 1 && targets[0].extendsIntoSafeArea
@@ -456,6 +461,7 @@ package final class ColorNode: LeafNode<Color> {
 @MainActor
 package final class SpacerNode: LeafNode<Spacer> {
     package var minLength: CGFloat { view.minLength ?? PlatformMetrics.defaultSpacing }
+    override package var isSpacer: Bool { true }
 
     /// A spacer declares no spacing categories, so its distance to any neighbour is 0
     /// (fixture layout/spacer).

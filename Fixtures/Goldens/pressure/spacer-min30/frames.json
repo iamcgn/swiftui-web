@@ -1,0 +1,39 @@
+{
+  "fixture" : "pressure\/spacer-min30",
+  "frames" : {
+    "bottom" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 0,
+      "y" : 90
+    },
+    "spacer" : {
+      "height" : 34,
+      "width" : 0,
+      "x" : 100,
+      "y" : 56
+    },
+    "stack" : {
+      "height" : 130,
+      "width" : 200,
+      "x" : 0,
+      "y" : 0
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 150,
+      "x" : 25,
+      "y" : 40
+    },
+    "top" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 130,
+    "width" : 200
+  }
+}

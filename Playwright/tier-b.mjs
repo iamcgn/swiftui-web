@@ -48,7 +48,7 @@ function goldens(dir, prefix = '') {
 }
 
 // Goldens recorded ahead of their implementation (Docs/elements/Text.md: height pressure) are skipped.
-const pending = ['pressure/'];
+const pending = [];
 const names = goldens(join(root, 'Fixtures', 'Goldens')).filter(n => n.startsWith(filter) && !pending.some(p => n.startsWith(p))).sort();
 const engine = { chromium, webkit, firefox }[opt('--browser', 'chromium')];
 const browser = await engine.launch();

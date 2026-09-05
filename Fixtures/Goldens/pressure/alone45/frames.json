@@ -1,0 +1,21 @@
+{
+  "fixture" : "pressure\/alone45",
+  "frames" : {
+    "stack" : {
+      "height" : 32,
+      "width" : 150,
+      "x" : 75,
+      "y" : 6.5
+    },
+    "text" : {
+      "height" : 32,
+      "width" : 150,
+      "x" : 75,
+      "y" : 6.5
+    }
+  },
+  "size" : {
+    "height" : 45,
+    "width" : 300
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "fixture" : "pressure\/two-texts-swapped",
+  "frames" : {
+    "first" : {
+      "height" : 48,
+      "width" : 150,
+      "x" : 75,
+      "y" : 37
+    },
+    "second" : {
+      "height" : 32,
+      "width" : 150,
+      "x" : 75,
+      "y" : 5
+    },
+    "stack" : {
+      "height" : 80,
+      "width" : 150,
+      "x" : 75,
+      "y" : 5
+    }
+  },
+  "size" : {
+    "height" : 90,
+    "width" : 300
+  }
+}

@@ -518,6 +518,9 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(paragraph, defaultFont, width: width))
             for limit in 1...5 { requests.append(TextMetricRequest(paragraph, defaultFont, width: width, options: TextMetricOptions(lineLimit: limit))) }
         }
+        let shortText = "Short second text that wraps twice here"
+        requests.append(TextMetricRequest(shortText, defaultFont, width: 150))
+        requests.append(TextMetricRequest(shortText, defaultFont, width: 150, options: TextMetricOptions(lineLimit: 1)))
         requests.append(TextMetricRequest("Mask", .system(size: 40, weight: "bold", design: "default")))
         for word in ["Underlined", "Colored", "Hello World", "Second", "Both", "Struck", "Red strike", "Mixed line", "Solid", "Dotted", "Dashed",
                      "Dash dot", "Dash dot dot", "Dash strike", "MIXED CASE", "mixed case", "mixed Case", "Base", "Up", "Down", "Raised"] {

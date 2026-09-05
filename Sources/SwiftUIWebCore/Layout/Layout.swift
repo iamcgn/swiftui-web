@@ -98,6 +98,8 @@ public struct LayoutSubview: Equatable {
 
     /// The layout priority of the subview.
     @MainActor public var priority: Double { node.layoutPriority }
+    /// Whether the subview is a `Spacer` (stacks size spacers from the leftover).
+    @MainActor package var isSpacer: Bool { node.isSpacer }
 
     /// The view's preferred spacing values.
     @MainActor public var spacing: ViewSpacing { node.layoutSpacing }

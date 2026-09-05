@@ -483,6 +483,34 @@ package final class TextNode: LeafNode<Text> {
         return runtime.layoutText(styledRuns.runs, options: layoutOptions, width: width)
     }
 
+    /// The layout under a height proposal: a text proposed less height than its lines need keeps
+    /// `floor(height / line pitch)` lines, at least one, and truncates the last (measured on
+    /// `pressure/heights` and `pressure/alone*`, 2026-09-05). A zero proposal is a stack's
+    /// minimum-size probe and yields one line; that probe only needs the height, so it trims the
+    /// natural layout arithmetically rather than asking the text engine for another layout.
+    package func textLayout(width: CGFloat?, height: CGFloat?) -> TextLayout {
+        let natural = textLayout(width: width)
+        guard let height, height.isFinite, height >= 0, width.map({ $0 > 0 }) ?? true,
+              natural.size.height > height + 0.001, let font = styledRuns.runs.first?.font else { return natural }
+        let pitch = environment.platformProfile.systemFontMetrics(for: font).fontMetrics.lineHeight + layoutOptions.lineSpacing
+        guard pitch > 0 else { return natural }
+        let lines = Int((natural.size.height / pitch).rounded())
+        let kept = max(1, Int(((height + 0.001) / pitch).rounded(.down)))
+        guard lines > 1, kept < lines else { return natural }
+        if height == 0 || environment._usesPlaceholderLayout {
+            var trimmed = natural
+            if natural.lines.count >= kept {
+                trimmed.lines = Array(natural.lines.prefix(kept))
+                trimmed.lastBaseline = trimmed.lines.last?.baseline ?? natural.firstBaseline
+            }
+            trimmed.size.height = natural.size.height - CGFloat(lines - kept) * pitch
+            return trimmed
+        }
+        var options = layoutOptions
+        options.lineLimit = min(options.lineLimit ?? kept, kept)
+        return runtime.layoutText(styledRuns.runs, options: options, width: width)
+    }
+
     /// The layout under `redacted(reason: .placeholder)`: the same words wrapped at the
     /// placeholder advances (`_Placeholder`), so line counts and single-line widths match
     /// SwiftUI's; letter spacing does not apply.
@@ -537,7 +565,7 @@ package final class TextNode: LeafNode<Text> {
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         // Text wraps at the proposed width; an unspecified or infinite width means one line.
         let width = proposal.width.flatMap { $0.isFinite ? $0 : nil }
-        var size = textLayout(width: width).size
+        var size = textLayout(width: width, height: proposal.height).size
         let shift = baselineShift
         size.height += shift.up + shift.down
         return size
@@ -545,7 +573,7 @@ package final class TextNode: LeafNode<Text> {
 
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let width = proposal.width.flatMap { $0.isFinite ? $0 : nil }
-        let layout = textLayout(width: width)
+        let layout = textLayout(width: width, height: proposal.height)
         let shift = baselineShift
         return ViewDimensions(size: CGSize(width: layout.size.width, height: layout.size.height + shift.up + shift.down), explicit: [
             VerticalAlignment.firstTextBaseline.key: layout.firstBaseline + shift.up,
@@ -555,7 +583,7 @@ package final class TextNode: LeafNode<Text> {
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let (runs, colors) = styledRuns
-        let layout = textLayout(width: frame.width)
+        let layout = textLayout(width: frame.width, height: frame.height)
         if environment._drawsPlaceholders {
             paintPlaceholders(layout, runs: runs, into: &list, context: context)
             return

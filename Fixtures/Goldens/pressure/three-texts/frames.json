@@ -1,0 +1,33 @@
+{
+  "fixture" : "pressure\/three-texts",
+  "frames" : {
+    "a" : {
+      "height" : 32,
+      "width" : 150,
+      "x" : 75,
+      "y" : 2
+    },
+    "b" : {
+      "height" : 32,
+      "width" : 150,
+      "x" : 75,
+      "y" : 34
+    },
+    "c" : {
+      "height" : 32,
+      "width" : 150,
+      "x" : 75,
+      "y" : 66
+    },
+    "stack" : {
+      "height" : 96,
+      "width" : 150,
+      "x" : 75,
+      "y" : 2
+    }
+  },
+  "size" : {
+    "height" : 100,
+    "width" : 300
+  }
+}

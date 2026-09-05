@@ -1,0 +1,33 @@
+{
+  "fixture" : "pressure\/stack-fits",
+  "frames" : {
+    "bottom" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 0,
+      "y" : 132
+    },
+    "stack" : {
+      "height" : 144,
+      "width" : 200,
+      "x" : 0,
+      "y" : 28
+    },
+    "text" : {
+      "height" : 64,
+      "width" : 150,
+      "x" : 25,
+      "y" : 68
+    },
+    "top" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 0,
+      "y" : 28
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 200
+  }
+}

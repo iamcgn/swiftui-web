@@ -2,6 +2,9 @@
 // stack axis, children are sized from least to most flexible (flexibility = size at an infinite
 // proposal minus size at a zero proposal), each proposed an equal share of the remaining space;
 // higher `layoutPriority` groups are sized first, with lower groups guaranteed their minimum.
+// Spacers stand aside: their minimum lengths are reserved while the other children are sized,
+// and they share what is left (`pressure/spacer-*`, 2026-09-05: a text next to a default Spacer
+// in a 130 pt column is proposed 50 − 8, next to `Spacer(minLength: 30)` 50 − 30).
 // Across the axis, children align on the requested guide and the stack spans their union.
 
 package struct StackChildMeasurement {
@@ -25,21 +28,29 @@ package enum StackLayoutEngine {
     package static func distribute(_ subviews: LayoutSubviews, axis: Axis, available: CGFloat,
                                    crossProposal: CGFloat?) -> [CGSize] {
         var sizes = Array(repeating: CGSize.zero, count: subviews.count)
-        let measurements = subviews.map { subview -> StackChildMeasurement in
-            var zero = ProposedViewSize.unspecified, infinite = ProposedViewSize.unspecified
-            zero[axis] = 0
-            infinite[axis] = .infinity
-            zero[axis.perpendicular] = crossProposal
-            infinite[axis.perpendicular] = crossProposal
-            return StackChildMeasurement(
-                index: subview.index,
-                minimum: subview.sizeThatFits(zero)[axis],
-                maximum: subview.sizeThatFits(infinite)[axis],
-                priority: subview.priority)
+        var zero = ProposedViewSize.unspecified, infinite = ProposedViewSize.unspecified
+        zero[axis] = 0
+        infinite[axis] = .infinity
+        zero[axis.perpendicular] = crossProposal
+        infinite[axis.perpendicular] = crossProposal
+        // Spacers stand aside: their minimums are reserved while the others are sized.
+        var spacers: [(position: Int, minimum: CGFloat)] = []
+        var measurements: [StackChildMeasurement] = []
+        for (position, subview) in subviews.enumerated() {
+            if subview.isSpacer {
+                spacers.append((position, subview.sizeThatFits(zero)[axis]))
+            } else {
+                measurements.append(StackChildMeasurement(
+                    index: position,
+                    minimum: subview.sizeThatFits(zero)[axis],
+                    maximum: subview.sizeThatFits(infinite)[axis],
+                    priority: subview.priority))
+            }
         }
+        let reserved = spacers.reduce(0) { $0 + $1.minimum }
         // Priority groups, highest first.
         let priorities = Set(measurements.map(\.priority)).sorted(by: >)
-        var remaining = available
+        var remaining = max(0, available - reserved)
         for (groupIndex, priority) in priorities.enumerated() {
             let group = measurements.filter { $0.priority == priority }
             let lowerMinimum = priorities[(groupIndex + 1)...].reduce(CGFloat(0)) { sum, p in
@@ -58,6 +69,19 @@ package enum StackLayoutEngine {
                 groupAvailable = max(0, groupAvailable - size[axis])
             }
             remaining = groupAvailable + lowerMinimum
+        }
+        // The spacers share what the others left.
+        if !spacers.isEmpty {
+            let used = measurements.reduce(CGFloat(0)) { $0 + sizes[$1.index][axis] }
+            var leftover = max(0, available - used)
+            for (k, spacer) in spacers.enumerated() {
+                var proposal = ProposedViewSize.unspecified
+                proposal[axis] = leftover / CGFloat(spacers.count - k)
+                proposal[axis.perpendicular] = crossProposal
+                let size = subviews[spacer.position].sizeThatFits(proposal)
+                sizes[spacer.position] = size
+                leftover = max(0, leftover - size[axis])
+            }
         }
         return sizes
     }
