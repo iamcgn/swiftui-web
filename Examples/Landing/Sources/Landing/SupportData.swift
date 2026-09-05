@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-05"
-    static let counts: [SupportStatus: Int] = [.partial: 100, .stub: 6, .full: 19, .approximate: 3, .missing: 4]
+    static let counts: [SupportStatus: Int] = [.partial: 101, .stub: 6, .full: 19, .approximate: 3, .missing: 3]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -147,7 +147,7 @@ partial	ColorScheme / colorScheme environment / preferredColorScheme / dark appe
 partial	toolbar / ToolbarItem / ToolbarItemGroup / ToolbarItemPlacement / toolbar(_:for:)	Items collected on the runtime; hosts that paint window chrome draw a 52 pt bar (measured on a macOS window) with the title and 36 pt capsule platters, leading/principal/trailing by placement; toolbarBackground/toolbarRole accepted without effect; no customisation. Goldens hold the content alone since the bar is window chrome (Docs/elements/Toolbar.md)	1
 partial	searchable(text:placement:prompt:) / isSearching / dismissSearch / searchSuggestions	A search field at the trailing end of the window toolbar when the host paints chrome (a magnifier and a plain text field in a 36 pt capsule, as macOS puts it in the toolbar); the query edits the binding, isSearching follows the query, suggestions accepted without effect; no scopes or tokens (Docs/elements/Toolbar.md)	1
 missing	Chart (Swift Charts) / Map / VideoPlayer / WebView	Separate frameworks, not part of the SwiftUI module yet	0
-missing	Sheet and window management: WindowGroup identifiers, openWindow, Settings scene, MenuBarExtra	Only the first WindowGroup's root is shown	0
+partial	Window management: WindowGroup (id, title, for: value), Window, Settings, MenuBarExtra, openWindow, dismissWindow, openSettings, defaultSize	Scenes register as window descriptors; secondary windows open as floating, non-modal windows inside the host (title bar with traffic lights, cascaded, content-sized or defaultSize), one per id or distinct value, brought forward when reopened; MenuBarExtra is recorded, not shown; no separate browser windows, moving, resizing or DocumentGroup (Docs/elements/Windows.md)	0
 # State
 partial	@State	Box per node; writes coalesce; no animation transactions yet; Tier B (Chromium) within tolerance	0
 partial	@Binding	get/set, constant, dynamic member lookup, optional and collection projections; Tier B (Chromium) within tolerance	0

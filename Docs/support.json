@@ -639,9 +639,9 @@
           "notes": "Separate frameworks, not part of the SwiftUI module yet"
         },
         {
-          "api": "Sheet and window management: WindowGroup identifiers, openWindow, Settings scene, MenuBarExtra",
-          "status": "missing",
-          "notes": "Only the first WindowGroup's root is shown"
+          "api": "Window management: WindowGroup (id, title, for: value), Window, Settings, MenuBarExtra, openWindow, dismissWindow, openSettings, defaultSize",
+          "status": "partial",
+          "notes": "Scenes register as window descriptors; secondary windows open as floating, non-modal windows inside the host (title bar with traffic lights, cascaded, content-sized or defaultSize), one per id or distinct value, brought forward when reopened; MenuBarExtra is recorded, not shown; no separate browser windows, moving, resizing or DocumentGroup (Docs/elements/Windows.md)"
         }
       ]
     },
