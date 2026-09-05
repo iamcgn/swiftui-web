@@ -500,6 +500,38 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
     package var pointerStyle: PointerStyle? { environment._textSelectionEnabled ? .horizontalText : nil }
     package func hoverChanged(inside: Bool, at point: CGPoint) {}
 
+    /// The previous text while a content transition runs: painted fading out (and rolling,
+    /// for numeric text) as the new one fades in. The node's presentation opacity tween holds
+    /// the progress so the runtime keeps animating it.
+    package struct OutgoingText {
+        package var view: Text
+        package var environment: EnvironmentValues
+        package var transition: ContentTransition
+    }
+    package private(set) var outgoing: OutgoingText?
+
+    override package func update(view: Text, environment: EnvironmentValues, force: Bool) {
+        let previousView = self.view, previousEnvironment = self.environment
+        let previousRuns = styledRuns.runs
+        super.update(view: view, environment: environment, force: force)
+        let transition = environment.contentTransition
+        guard transition.fades, styledRuns.runs != previousRuns,
+              let animation = runtime.effectiveUpdateAnimation(for: self) else { return }
+        outgoing = OutgoingText(view: previousView, environment: previousEnvironment, transition: transition)
+        let presentation = self.presentation ?? NodePresentation()
+        presentation.opacity = Tween(from: [0], to: [1], animation: animation, start: runtime.animationClock)
+        self.presentation = presentation
+        runtime.register(animating: self)
+    }
+
+    /// Progress of the running content transition (1 when none).
+    package var contentTransitionProgress: Double {
+        guard outgoing != nil, let tween = presentation?.opacity else { outgoing = nil; return 1 }
+        let value = tween.value(at: runtime.animationClock)[0]
+        if tween.isFinished(at: runtime.animationClock) { outgoing = nil; return 1 }
+        return value
+    }
+
     package func resolveFont(_ modifiers: Text.Modifiers) -> ResolvedFont {
         let font = modifiers.font ?? environment.font ?? environment.platformProfile.defaultFont
         var resolved = font.resolve(profile: environment.platformProfile)
@@ -650,6 +682,25 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
+        let progress = contentTransitionProgress
+        guard let outgoing, progress < 1 else {
+            paintText(alpha: 1, dy: 0, into: &list, context: context)
+            return
+        }
+        // The old text fades out (rolling away for numeric text) while the new fades in.
+        let roll = outgoing.transition.roll * frame.height
+        let current = (view, environment)
+        view = outgoing.view; environment = outgoing.environment
+        paintText(alpha: 1 - progress, dy: -roll * CGFloat(progress), into: &list, context: context)
+        view = current.0; environment = current.1
+        paintText(alpha: progress, dy: roll * CGFloat(1 - progress), into: &list, context: context)
+    }
+
+    /// Paints the text at `alpha`, shifted down by `dy`.
+    private func paintText(alpha: Double, dy: CGFloat, into list: inout DisplayList, context: PaintContext) {
+        guard alpha > 0 else { return }
+        if alpha < 1 { list.append(.beginGroup(opacity: alpha)) }
+        defer { if alpha < 1 { list.append(.endGroup) } }
         let (runs, colors) = styledRuns
         let layout = textLayout(width: frame.width, height: frame.height)
         if environment._drawsPlaceholders {
@@ -686,7 +737,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
                 let run = min(max(fragment.run, 0), max(runs.count - 1, 0))
                 let font = fonts.indices.contains(run) ? fonts[run] : DisplayFont(resolvedFont)
                 let offset = offsets.indices.contains(run) ? offsets[run] : 0
-                let origin = CGPoint(x: lineX + fragment.x, y: bounds.minY + line.baseline + shiftUp - offset)
+                let origin = CGPoint(x: lineX + fragment.x, y: bounds.minY + line.baseline + shiftUp - offset + dy)
                 let own = runGradients.indices.contains(run) ? runGradients[run]?._resolveGradient(in: bounds, environment: environment) : nil
                 let color = resolvedColors.indices.contains(run) ? resolvedColors[run] : inherited.resolve(in: environment)
                 if let gradient = own ?? inheritedGradient, colors.indices.contains(run) ? colors[run] == nil : true {
