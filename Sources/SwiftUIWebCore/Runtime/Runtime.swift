@@ -84,6 +84,9 @@ public final class Runtime {
 
     /// Sheets, popovers, alerts and menus over the window, bottom to top (Runtime/PresentationNodes.swift).
     package var presentations: [PresentationNode] = []
+    /// Drag and drop (Runtime/DragDropNodes.swift): the drag in progress and the source a press may lift.
+    package var dragSession: DragSession?
+    package var pendingDrag: (source: ViewNode & _DragSource, start: CGPoint)?
     /// Frames recorded by `matchedGeometryEffect` sources (Runtime/MatchedGeometryNodes.swift).
     package var matchedGeometry: [MatchedGeometryKey: MatchedGeometryRecord] = [:]
     /// Timeline views re-rendering every frame (Runtime/TimelineNodes.swift).

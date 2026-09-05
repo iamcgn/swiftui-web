@@ -10674,6 +10674,12 @@
       "lastBaseline" : 13,
       "width" : 34.5
     },
+    "system:13:400:default||Drag me" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 51.5
+    },
     "system:13:400:default||Drag the box" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -12616,6 +12622,12 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Drag me" : {
+      "firstBaseline" : 13,
+      "height" : 96,
+      "lastBaseline" : 93,
       "width" : 0
     },
     "system:13:400:default|0.0|Drag the box" : {

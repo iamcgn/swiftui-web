@@ -147,6 +147,7 @@ extension Runtime {
         if type == .touch { beginPan(at: point, time: time) }
         // A touch that stopped a decelerating scroll view belongs to it, not to a control.
         if pan?.active == true { return }
+        pendingDrag = dragSource(at: point).map { ($0, point) }
         guard let node = interactiveNode(at: point) else { return }
         pressedNode = node
         node.pressBegan(at: local(point, in: node))
@@ -157,6 +158,16 @@ extension Runtime {
         lastPointerTime = time
         pointerPosition = point
         continuePan(to: point, time: time)
+        if dragSession != nil {
+            updateDrag(to: point)
+            return
+        }
+        // A press on a drag source that travels 4 pt lifts the payload.
+        if let pending = pendingDrag, abs(point.x - pending.start.x) + abs(point.y - pending.start.y) >= 4 {
+            pendingDrag = nil
+            beginDrag(from: pending.source, pressedAt: pending.start, at: point)
+            return
+        }
         if let node = pressedNode { node.pressMoved(to: local(point, in: node)) }
         updateHover(at: point)
     }
@@ -176,6 +187,11 @@ extension Runtime {
     /// and no pan took the touch.
     public func pointerUp(at point: CGPoint, time: Double = 0) {
         lastPointerTime = time
+        pendingDrag = nil
+        if dragSession != nil {
+            endDrag(at: point)
+            return
+        }
         let panned = endPan(time: time)
         guard let node = pressedNode else { return }
         pressedNode = nil

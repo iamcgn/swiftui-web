@@ -1,0 +1,27 @@
+{
+  "fixture" : "dragdrop\/basic",
+  "frames" : {
+    "row" : {
+      "height" : 80,
+      "width" : 217.5,
+      "x" : 41.25,
+      "y" : 30
+    },
+    "source" : {
+      "height" : 32,
+      "width" : 67.5,
+      "x" : 41.25,
+      "y" : 54
+    },
+    "target" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 138.75,
+      "y" : 30
+    }
+  },
+  "size" : {
+    "height" : 140,
+    "width" : 300
+  }
+}
