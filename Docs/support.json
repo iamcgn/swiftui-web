@@ -143,9 +143,11 @@
         {
           "api": "Label (title:icon:, image, systemImage) / LabelStyle (automatic, titleAndIcon, titleOnly, iconOnly) / labelStyle",
           "status": "partial",
-          "notes": "Icon centred on half the cap height above the title's baseline, 8 pt spacing (measured); systemImage is the stub symbol; the automatic style is not context sensitive",
+          "notes": "Icon centred on half the cap height above the title's baseline, 8 pt spacing (measured); systemImage is the stub symbol; the automatic style is not context sensitive; iOS profile: list rows draw the icon at the large scale in a 24 pt slot, 16 to the title (ios/label/list)",
           "fixtures": [
-            "label/basic"
+            "label/basic",
+            "ios/label/basic",
+            "ios/label/list"
           ]
         },
         {
@@ -1098,7 +1100,7 @@
         {
           "api": "environment(\\.platformProfile, .iOS) / PlatformProfile / Runtime.hostPlatformProfile / navigationBarTitleDisplayMode",
           "status": "partial",
-          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Progress views, the bold trait per style, control spacing and list footers too. The large title collapses on scroll; menu buttons are plain accent labels. Open: sheets, date pickers and tab bars (Catalyst's iPad idiom draws them differently from iPhone)",
+          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Progress views, the bold trait per style, control spacing and list footers too. The large title collapses on scroll; menu buttons are plain accent labels; symbols and labels, list rows taking the large icon scale. Open: sheets, date pickers and tab bars (Catalyst's iPad idiom draws them differently from iPhone)",
           "fixtures": [
             "ios/text/styles",
             "ios/layout/basics",
@@ -1132,7 +1134,10 @@
             "ios/list/footer",
             "ios/nav/scroll",
             "ios/menu/basic",
-            "ios/list/footer-header"
+            "ios/list/footer-header",
+            "ios/symbol/basic",
+            "ios/label/basic",
+            "ios/label/list"
           ]
         }
       ]

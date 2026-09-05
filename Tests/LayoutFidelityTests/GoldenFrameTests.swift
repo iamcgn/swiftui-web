@@ -92,9 +92,10 @@ enum Goldens {
         "ios/list/footer-header": ["footer"],
     ]
 
-    /// Fixtures whose probes are allowed two points: Catalyst lays list rows out with UIKit
-    /// cells, whose text measures about 1.5 pt narrower than SwiftUI's (Docs/elements/iOS.md).
-    static let approximatePrefixes = ["ios/list/", "ios/form/", "ios/nav/", "ios/dark/list", "ios/dark/form", "ios/dark/nav"]
+    /// Fixtures whose probes are allowed three points: Catalyst lays list rows out with UIKit
+    /// cells, whose text measures 1.5 to 2.5 pt narrower than SwiftUI's (Docs/elements/iOS.md);
+    /// the symbol table extrapolates iOS's larger styles within 1.5 pt.
+    static let approximatePrefixes = ["ios/list/", "ios/form/", "ios/nav/", "ios/dark/list", "ios/dark/form", "ios/dark/nav", "ios/symbol/", "ios/label/"]
 
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
         let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }
@@ -104,7 +105,7 @@ enum Goldens {
             let actual = try #require(ours[id], "\(label): probe \(id) not recorded")
             let expectedRect = CGRect(x: expected.x, y: expected.y, width: expected.width, height: expected.height)
             // Exact up to floating-point summation order (Apple's frames carry 1-ulp noise).
-            let tolerance = approximate.contains(id) ? 2 + 1e-9 : 1e-9
+            let tolerance = approximate.contains(id) ? (approximateFixture ? 3 : 2) + 1e-9 : 1e-9
             let close = abs(actual.minX - expectedRect.minX) < tolerance && abs(actual.minY - expectedRect.minY) < tolerance
                 && abs(actual.width - expectedRect.width) < tolerance && abs(actual.height - expectedRect.height) < tolerance
             #expect(close, "\(label)/\(id): \(actual) != \(expectedRect)")

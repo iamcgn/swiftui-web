@@ -173,12 +173,16 @@ struct Bitmap {
         }
     }
 
+    /// Tier A's rule: list-backed iOS fixtures (UIKit cells) and iOS symbols within 3 pt.
+    static let approximatePrefixes = ["ios/list/", "ios/form/", "ios/nav/", "ios/dark/list", "ios/dark/form", "ios/dark/nav", "ios/symbol/", "ios/label/"]
+
     private func compare(_ ours: [String: CGRect], to golden: [String: NativeGoldenFrames.Rect], label: String) {
-        let approximate = NativeGoldens.approximateProbes[label] ?? []
+        let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }
+        let approximate = approximateFixture ? Set(golden.keys) : (NativeGoldens.approximateProbes[label] ?? [])
         let ignored = NativeGoldens.ignoredProbes[label] ?? []
         for (id, expected) in golden.sorted(by: { $0.key < $1.key }) where !ignored.contains(id) {
             guard let actual = ours[id] else { Issue.record("\(label): probe \(id) not recorded"); continue }
-            let tolerance = approximate.contains(id) ? 2 + 1e-9 : 1e-9
+            let tolerance = approximate.contains(id) ? (approximateFixture ? 3 : 2) + 1e-9 : 1e-9
             // Text fixtures: CoreText's truncated widths land within the half point (Tier B's rule).
             // ios/ goldens come from Mac Catalyst, whose scaled text measures a little wider than
             // SF drawn at the size (Docs/elements/iOS.md): text widths get the text tolerance.

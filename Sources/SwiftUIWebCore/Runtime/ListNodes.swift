@@ -48,8 +48,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         if let font = profile.rowFont { environment.font = font }
         if let color = profile.rowForeground { environment.foregroundColor = color }
         environment._sectionStyling = _SectionStyling(font: profile.headerFont ?? .subheadline.weight(.semibold), foreground: .secondary, footerFont: profile.footerFont)
-        environment._labelIconLayout = _LabelIconLayout(iconWidth: PlatformMetrics.listLabelIconWidth,
-                                                        spacing: PlatformMetrics.listLabelIconSpacing, tint: .accentColor)
+        let metrics = environment.platformProfile.metrics   // read explicitly: updates run outside a profile selection
+        environment._labelIconLayout = _LabelIconLayout(iconWidth: metrics.listLabelIconWidth, spacing: metrics.listLabelIconSpacing,
+                                                        tint: .accentColor, scale: metrics.listLabelIconScale)
         environment._inListRow = true
         return environment
     }

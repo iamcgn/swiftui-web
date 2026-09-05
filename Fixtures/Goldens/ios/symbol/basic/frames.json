@@ -1,0 +1,105 @@
+{
+  "fixture" : "ios\/symbol\/basic",
+  "frames" : {
+    "baseline" : {
+      "height" : 24.5,
+      "width" : 70.5,
+      "x" : 62.75,
+      "y" : 182.25
+    },
+    "baselineStar" : {
+      "height" : 20,
+      "width" : 22,
+      "x" : 62.75,
+      "y" : 183.75
+    },
+    "baselineText" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 92.75,
+      "y" : 182.25
+    },
+    "chevron" : {
+      "height" : 16.5,
+      "width" : 12.5,
+      "x" : 164.75,
+      "y" : 97.25
+    },
+    "gear" : {
+      "height" : 20.5,
+      "width" : 21.5,
+      "x" : 96.75,
+      "y" : 95.25
+    },
+    "row" : {
+      "height" : 24.5,
+      "width" : 167,
+      "x" : 62.75,
+      "y" : 93.25
+    },
+    "sizes" : {
+      "height" : 40.5,
+      "width" : 194.5,
+      "x" : 62.75,
+      "y" : 129.75
+    },
+    "stack" : {
+      "height" : 113.5,
+      "width" : 194.5,
+      "x" : 62.75,
+      "y" : 93.25
+    },
+    "star" : {
+      "height" : 20,
+      "width" : 22,
+      "x" : 62.75,
+      "y" : 95.5
+    },
+    "starBold" : {
+      "height" : 21.5,
+      "width" : 22.5,
+      "x" : 234.75,
+      "y" : 139.25
+    },
+    "starFootnote" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 166.25,
+      "y" : 142
+    },
+    "starLarge" : {
+      "height" : 40.5,
+      "width" : 43.5,
+      "x" : 110.75,
+      "y" : 129.75
+    },
+    "starLargeScale" : {
+      "height" : 27,
+      "width" : 28,
+      "x" : 194.75,
+      "y" : 136.5
+    },
+    "starTitle" : {
+      "height" : 33.5,
+      "width" : 36,
+      "x" : 62.75,
+      "y" : 133.25
+    },
+    "text" : {
+      "height" : 24.5,
+      "width" : 40.5,
+      "x" : 189.25,
+      "y" : 93.25
+    },
+    "wifi" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 130.25,
+      "y" : 97.5
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

@@ -70,6 +70,7 @@ extension PlatformMetrics {
     package static var listPinnedHeaderLineAlpha: Double { current.listPinnedHeaderLineAlpha }
     package static var listLabelIconWidth: CGFloat { current.listLabelIconWidth }
     package static var listLabelIconSpacing: CGFloat { current.listLabelIconSpacing }
+    package static var listLabelIconScale: Image.Scale? { current.listLabelIconScale }
     package static var listIdealWidth: CGFloat { current.listIdealWidth }
     package static var controlLabelSpacing: CGFloat { current.controlLabelSpacing }
     package static var popUpHeight: CGFloat { current.popUpHeight }

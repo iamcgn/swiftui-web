@@ -26,6 +26,8 @@ and `SystemFontMetricsTableIOS.swift`.
 | Disabled labels | 30 % | 24 % (52 over 215) |
 | Plain text field, empty | — | 25 pt while only the placeholder shows, 26 with text (`ios/dark/controls` `emptyField`) |
 | List (automatic) | inset rows on white | inset grouped: a (235, 236, 236) ground, each section a white card 16 in with 26 pt continuous corners; rows max(56, content + 30) with content 16 in and centred, 1 pt separators from the content's leading edge to the card's inner edge, none under a card's last row; 35 above a first card without a header; headers in body medium, secondary, 27.5 below the previous card (10 at the top) and 10 above their card; navigation link rows fill the row and end in a 7 × 12 chevron at 30 % |
+| SF Symbols | the metrics table's sizes | the same table by point size, weight and scale (`ios/symbol/basic`: star 22 × 20 at body, 36 × 34 at title); iOS's 28 and 34 pt styles are extrapolated from the macOS sizes, within 1.5 pt, so `ios/symbol/` and `ios/label/` are checked within 3 pt |
+| Label | icon + 8 + title; in a list a 16 pt slot, 6 to the title | icon + 8 + title outside lists (`ios/label/basic`); in a list row the icon at the large image scale (star 28 × 27), centred in a 24 pt slot it may overflow, 16 to the title, the accent tint (`ios/label/list`; the row grows to the icon's 27) |
 | Menu button | a pull-down button | its label in the body font and the accent colour, nothing else: no fill, no chevron (`menuIndicator` has nothing to hide); black at 67/255 when disabled; it lines up with text on the baseline (`ios/menu/basic`); the menu itself opens as the runtime's presentation |
 | Section footer | 12 pt text | footnote in the secondary colour, 8 below its card in a 21 pt slot (UIKit's label height around the 18.5 pt line, so the footer probes are ignored while the rows around them are checked), the next card 23.5 below the slot (`ios/list/footer`); a header that follows a footer sits 16 below the slot (`ios/list/footer-header`) |
 | ProgressView (linear) | a 20 pt row with an 8 pt pill | a 4 pt accent pill on a (120, 120, 125) 20 % track, no indeterminate segment; a label sits 4 above it in the primary colour (`ios/progress/basic`) |
@@ -43,14 +45,15 @@ Every row above comes from `Fixtures/Goldens/ios/<fixture>/frames.json` and pixe
 `image@2x.png`: `ios/text/styles`, `ios/layout/basics`, `ios/toggle/basic`, `ios/button/basic`,
 `ios/slider/basic`, `ios/stepper/basic`, `ios/textfield/basic`, `ios/picker/basic`,
 `ios/controls/settings` (the landing page's screen), `ios/progress/basic`, `ios/text/bold-trait`,
-`ios/layout/controls`, `ios/list/footer`, `ios/list/footer-header`, `ios/menu/basic`, `ios/nav/scroll` (a `ScrollViewReader` step; UIKit's
+`ios/layout/controls`, `ios/list/footer`, `ios/list/footer-header`, `ios/menu/basic`, `ios/nav/scroll`,
+`ios/symbol/basic`, `ios/label/basic`, `ios/label/list` (a `ScrollViewReader` step; UIKit's
 `List` ignores `scrollTo` on Catalyst, so the fixture scrolls a plain scroll view), and
 2026-09-05 later `ios/form/basic`,
 `ios/list/basic`, `ios/list/plain`, `ios/nav/basic`, `ios/nav/inline`, `ios/nav/sizing` and the
 behaviour fixtures `ios/nav/push`, `ios/nav/push-inline`, `ios/nav/push-noback` (a push and a pop
 through the path binding; the Catalyst host waits a second after each step so the goldens hold
-the settled screen). The first nine are exact in Tier A; the list-backed ones are within 2 pt:
-Catalyst lays list rows out with UIKit cells, whose text measures about 1.5 pt narrower than
+the settled screen). The first nine are exact in Tier A; the list-backed ones are within 3 pt:
+Catalyst lays list rows out with UIKit cells, whose text measures 1.5 to 2.5 pt narrower than
 SwiftUI's `Text` of the same string.
 
 ## Colours and the dark appearance

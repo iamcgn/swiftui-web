@@ -91,6 +91,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listPinnedHeaderLineAlpha = 48.0 / 255
     package var listLabelIconWidth: CGFloat = 16                        // 13 pt font; list/basic `label`
     package var listLabelIconSpacing: CGFloat = 6
+    package var listLabelIconScale: Image.Scale? = nil                  // iOS: .large (ios/label/list)
     package var listIdealWidth: CGFloat = 200                           // unverified
 
     // Controls with labels (Picker, Slider, Stepper; macOS 26.2, Docs/elements/{Picker,Slider,Stepper}.md)

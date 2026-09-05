@@ -192,12 +192,6 @@
       "lastBaseline" : 18,
       "width" : 48.5
     },
-    "style:body:w600||3:09 PM" : {
-      "firstBaseline" : 18,
-      "height" : 24.5,
-      "lastBaseline" : 18,
-      "width" : 69.5
-    },
     "style:body:w600||Ada" : {
       "firstBaseline" : 18,
       "height" : 24.5,
@@ -270,12 +264,6 @@
       "lastBaseline" : 18,
       "width" : 29.5
     },
-    "style:body:w600||Date" : {
-      "firstBaseline" : 18,
-      "height" : 24.5,
-      "lastBaseline" : 18,
-      "width" : 38.5
-    },
     "style:body:w600||Delete" : {
       "firstBaseline" : 18,
       "height" : 24.5,
@@ -347,12 +335,6 @@
       "height" : 24.5,
       "lastBaseline" : 18,
       "width" : 47
-    },
-    "style:body:w600||Mar 15, 2025" : {
-      "firstBaseline" : 18,
-      "height" : 24.5,
-      "lastBaseline" : 18,
-      "width" : 108
     },
     "style:body:w600||Medium" : {
       "firstBaseline" : 18,
@@ -462,12 +444,6 @@
       "lastBaseline" : 18,
       "width" : 45.5
     },
-    "style:body:w600||Time" : {
-      "firstBaseline" : 18,
-      "height" : 24.5,
-      "lastBaseline" : 18,
-      "width" : 41
-    },
     "style:body:w600||Two" : {
       "firstBaseline" : 18,
       "height" : 24.5,
@@ -504,12 +480,6 @@
       "lastBaseline" : 18,
       "width" : 58
     },
-    "style:body:w600||When" : {
-      "firstBaseline" : 18,
-      "height" : 24.5,
-      "lastBaseline" : 18,
-      "width" : 47.5
-    },
     "style:body:w600||Wi-Fi" : {
       "firstBaseline" : 18,
       "height" : 24.5,
@@ -517,12 +487,6 @@
       "width" : 44
     },
     "style:body:w600|0.0|••••••" : {
-      "firstBaseline" : 18,
-      "height" : 154.5,
-      "lastBaseline" : 148,
-      "width" : 0
-    },
-    "style:body:w600|0.0|3:09 PM" : {
       "firstBaseline" : 18,
       "height" : 154.5,
       "lastBaseline" : 148,
@@ -600,12 +564,6 @@
       "lastBaseline" : 70,
       "width" : 0
     },
-    "style:body:w600|0.0|Date" : {
-      "firstBaseline" : 18,
-      "height" : 102.5,
-      "lastBaseline" : 96,
-      "width" : 0
-    },
     "style:body:w600|0.0|Delete" : {
       "firstBaseline" : 18,
       "height" : 154.5,
@@ -676,12 +634,6 @@
       "firstBaseline" : 18,
       "height" : 128.5,
       "lastBaseline" : 122,
-      "width" : 0
-    },
-    "style:body:w600|0.0|Mar 15, 2025" : {
-      "firstBaseline" : 18,
-      "height" : 258.5,
-      "lastBaseline" : 252,
       "width" : 0
     },
     "style:body:w600|0.0|Medium" : {
@@ -792,12 +744,6 @@
       "lastBaseline" : 122,
       "width" : 0
     },
-    "style:body:w600|0.0|Time" : {
-      "firstBaseline" : 18,
-      "height" : 102.5,
-      "lastBaseline" : 96,
-      "width" : 0
-    },
     "style:body:w600|0.0|Two" : {
       "firstBaseline" : 18,
       "height" : 76.5,
@@ -832,12 +778,6 @@
       "firstBaseline" : 18,
       "height" : 154.5,
       "lastBaseline" : 148,
-      "width" : 0
-    },
-    "style:body:w600|0.0|When" : {
-      "firstBaseline" : 18,
-      "height" : 102.5,
-      "lastBaseline" : 96,
       "width" : 0
     },
     "style:body:w600|0.0|Wi-Fi" : {
@@ -1314,12 +1254,6 @@
       "lastBaseline" : 18,
       "width" : 10.5
     },
-    "style:body||3:09 PM" : {
-      "firstBaseline" : 18,
-      "height" : 24.5,
-      "lastBaseline" : 18,
-      "width" : 67
-    },
     "style:body||25" : {
       "firstBaseline" : 18,
       "height" : 24.5,
@@ -1667,12 +1601,6 @@
       "height" : 24.5,
       "lastBaseline" : 18,
       "width" : 31
-    },
-    "style:body||Mar 15, 2025" : {
-      "firstBaseline" : 18,
-      "height" : 24.5,
-      "lastBaseline" : 18,
-      "width" : 103.5
     },
     "style:body||Max" : {
       "firstBaseline" : 18,
@@ -2046,12 +1974,6 @@
       "lastBaseline" : 18,
       "width" : 0
     },
-    "style:body|0.0|3:09 PM" : {
-      "firstBaseline" : 18,
-      "height" : 154.5,
-      "lastBaseline" : 148,
-      "width" : 0
-    },
     "style:body|0.0|25" : {
       "firstBaseline" : 18,
       "height" : 50.5,
@@ -2398,12 +2320,6 @@
       "firstBaseline" : 18,
       "height" : 102.5,
       "lastBaseline" : 96,
-      "width" : 0
-    },
-    "style:body|0.0|Mar 15, 2025" : {
-      "firstBaseline" : 18,
-      "height" : 258.5,
-      "lastBaseline" : 252,
       "width" : 0
     },
     "style:body|0.0|Max" : {
@@ -9126,6 +9042,12 @@
       "lastBaseline" : 32,
       "width" : 206.5
     },
+    "style:title||Bluetooth" : {
+      "firstBaseline" : 32,
+      "height" : 41,
+      "lastBaseline" : 32,
+      "width" : 116.5
+    },
     "style:title||Blurred" : {
       "firstBaseline" : 32,
       "height" : 41,
@@ -9412,6 +9334,12 @@
       "firstBaseline" : 32,
       "height" : 461,
       "lastBaseline" : 452,
+      "width" : 0
+    },
+    "style:title|0.0|Bluetooth" : {
+      "firstBaseline" : 32,
+      "height" : 377,
+      "lastBaseline" : 368,
       "width" : 0
     },
     "style:title|0.0|Blurred" : {

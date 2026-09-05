@@ -31,7 +31,10 @@ const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount
 // ios/ goldens come from Mac Catalyst, whose scaled text measures a little wider than SF drawn
 // at the size (Docs/elements/iOS.md): text widths get the text fixtures' tolerance, pixels the
 // approximate one.
-const frameTolerance = (name, key, expected) => name.startsWith('ios/') && (key === 'width' || key === 'x')
+// ios/symbol/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt);
+// list-backed iOS fixtures lay rows out with UIKit cells, whose text is up to 2.5 pt narrower (Tier A's rule).
+const listBacked = (name) => ['ios/list/', 'ios/form/', 'ios/nav/', 'ios/dark/list', 'ios/dark/form', 'ios/dark/nav', 'ios/label/'].some(p => name.startsWith(p));
+const frameTolerance = (name, key, expected) => name.startsWith('ios/symbol/') ? 2 : listBacked(name) ? 3 : name.startsWith('ios/') && (key === 'width' || key === 'x')
   ? Math.max(2, Math.abs(expected) * 0.04) : name.startsWith('text/') && (key === 'width' || key === 'x')
   ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic

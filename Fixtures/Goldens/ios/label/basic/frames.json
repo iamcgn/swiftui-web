@@ -1,0 +1,63 @@
+{
+  "fixture" : "ios\/label\/basic",
+  "frames" : {
+    "icon" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 80,
+      "y" : 83.010986328125
+    },
+    "iconOnly" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 80,
+      "y" : 168.5
+    },
+    "iconT" : {
+      "height" : 34,
+      "width" : 35.5,
+      "x" : 80,
+      "y" : 120.3857421875
+    },
+    "label" : {
+      "height" : 24.5,
+      "width" : 72.5,
+      "x" : 80,
+      "y" : 79
+    },
+    "labelTitle" : {
+      "height" : 41,
+      "width" : 160,
+      "x" : 80,
+      "y" : 115.5
+    },
+    "stack" : {
+      "height" : 142,
+      "width" : 160,
+      "x" : 80,
+      "y" : 79
+    },
+    "title" : {
+      "height" : 24.5,
+      "width" : 42,
+      "x" : 110.5,
+      "y" : 79
+    },
+    "titleOnly" : {
+      "height" : 24.5,
+      "width" : 42,
+      "x" : 80,
+      "y" : 196.5
+    },
+    "titleT" : {
+      "height" : 41,
+      "width" : 116.5,
+      "x" : 123.5,
+      "y" : 115.5
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

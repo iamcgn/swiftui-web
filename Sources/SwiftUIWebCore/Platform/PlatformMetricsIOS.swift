@@ -71,6 +71,11 @@ extension PlatformMetricsTable {
         t.segmentedTextTop = 7
         // Lists and forms: inset grouped cards on a grey ground, 56 pt rows (ios/list/basic, ios/form/basic).
         t.listRowMinimumHeight = 56
+        // Label rows (ios/label/list): the icon at the large image scale, centred in a 24 pt slot
+        // (overflowing it), 16 to the title.
+        t.listLabelIconWidth = 24
+        t.listLabelIconSpacing = 16
+        t.listLabelIconScale = .large
         t.controlsUsePlainSpacing = true                                // ios/layout/controls
         t.menuIsPlainLabel = true                                       // ios/menu/basic: "Options" is 62 wide, its body label
         t.menuDisabledLabelAlpha = 67.0 / 255

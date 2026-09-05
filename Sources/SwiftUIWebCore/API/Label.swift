@@ -104,11 +104,14 @@ package struct _LabelIconLayout: Equatable {
     package var iconWidth: CGFloat
     package var spacing: CGFloat
     package var tint: Color
+    /// The image scale the icon takes (iOS list rows: large), or the environment's.
+    package var scale: Image.Scale?
 
-    package init(iconWidth: CGFloat, spacing: CGFloat, tint: Color) {
+    package init(iconWidth: CGFloat, spacing: CGFloat, tint: Color, scale: Image.Scale? = nil) {
         self.iconWidth = iconWidth
         self.spacing = spacing
         self.tint = tint
+        self.scale = scale
     }
 }
 
@@ -133,7 +136,11 @@ package struct _TitleAndIconLabel: View {
     package var body: some View {
         if let iconLayout {
             HStack(alignment: ._iconCenter, spacing: iconLayout.spacing) {
-                configuration.icon.foregroundStyle(iconLayout.tint).frame(width: iconLayout.iconWidth)
+                if let scale = iconLayout.scale {
+                    configuration.icon.imageScale(scale).foregroundStyle(iconLayout.tint).frame(width: iconLayout.iconWidth)
+                } else {
+                    configuration.icon.foregroundStyle(iconLayout.tint).frame(width: iconLayout.iconWidth)
+                }
                 _IconAlignedTitle(content: configuration.title)
             }
         } else {

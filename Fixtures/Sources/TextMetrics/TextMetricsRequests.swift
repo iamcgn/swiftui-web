@@ -590,6 +590,7 @@ extension TextMetricsRequests {
         requests.append(TextMetricRequest("Detail", .style("largeTitle", weight: "bold")))
         requests.append(TextMetricRequest("Settings", .style("body")))
         requests.append(TextMetricRequest("Back", .style("body")))
+        requests.append(TextMetricRequest("Bluetooth", .style("title")))    // ios/label/basic
         // The menu buttons (ios/menu/basic).
         for string in ["Off", "Options", "Plain", "Hidden", "Cut", "Copy"] {
             requests.append(TextMetricRequest(string, .style("body")))
