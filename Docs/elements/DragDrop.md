@@ -1,4 +1,4 @@
-# draggable, dropDestination, Transferable
+# draggable, dropDestination, Transferable, pasteboard
 
 Apple docs: [draggable(_:)](https://developer.apple.com/documentation/swiftui/view/draggable(_:)),
 [dropDestination(for:action:isTargeted:)](https://developer.apple.com/documentation/swiftui/view/dropdestination(for:action:istargeted:)),
@@ -13,8 +13,11 @@ Apple docs: [draggable(_:)](https://developer.apple.com/documentation/swiftui/vi
 | `Transferable`, `TransferRepresentationBuilder`, `ProxyRepresentation`, `CodableRepresentation`, `DataRepresentation` | implemented for in-app transfer: a destination of another type reads the payload through a proxy export, or a data export the destination's type can import |
 | `String`, `Data`, `URL` as `Transferable` | implemented |
 | `UTType` (the identifiers the representations name) | a minimal `UTType` in the SwiftUI module; no `UniformTypeIdentifiers` module |
-| `onDrag` / `onDrop` (`NSItemProvider`), `DropDelegate`, `DropInfo`, `DropProposal` | missing |
-| `copyable`, `cuttable`, `pasteDestination`, `PasteButton`, `exportableToServices`, `importsItemProviders` | missing |
+| `copyable(_:)`, `cuttable(for:action:)`, `pasteDestination(for:action:validator:)` | implemented: ⌘C / ⌘X / ⌘V around the focused view, through the app's pasteboard |
+| `PasteButton(payloadType:onPaste:)` | implemented: a bordered Paste button, enabled while the pasteboard holds a matching value |
+| System clipboard | copies hand their text to the host clipboard when the page may write it; reads are not attempted (permission prompts) |
+| `onDrag` / `onDrop` (`NSItemProvider`), `DropDelegate`, `DropInfo`, `DropProposal` | not portable: `NSItemProvider` and `NSString` do not exist on wasm, so these forms cannot compile there |
+| `exportableToServices`, `importsItemProviders`, `PasteButton(supportedContentTypes:payloadAction:)` | missing |
 | Drags to and from other apps or the browser page, `FileRepresentation`, `dropDestination` on `List` rows with insertion indices | missing |
 
 ## Behaviour
@@ -34,6 +37,17 @@ Apple docs: [draggable(_:)](https://developer.apple.com/documentation/swiftui/vi
   destination's type imports (`DataRepresentation`, `CodableRepresentation`).
 
 Layout is untouched (`dragdrop/basic` exact in Tier A/B/C).
+
+## Pasteboard
+
+The runtime keeps the app's pasteboard as transfer items. With a view focused (`focusable`, a
+text field, any focusable control), ⌘C looks for a `copyable` view among the focused view, its
+ancestors and its descendants and puts its values on the pasteboard; ⌘X does the same with a
+`cuttable` view's action; ⌘V hands the pasteboard's values to the nearest `pasteDestination`
+that can read them (through the same type conversions as drops), after its validator. Copies
+also write their text to the host's clipboard where the page is allowed to (`navigator.clipboard`
+in the browser). `PasteButton` re-evaluates on every copy or cut and is disabled while nothing
+of its type is on the pasteboard. Covered by `PasteboardTests`.
 
 ## Open
 

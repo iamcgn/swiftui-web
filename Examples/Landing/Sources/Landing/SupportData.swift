@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-05"
-    static let counts: [SupportStatus: Int] = [.partial: 101, .stub: 6, .full: 19, .approximate: 3, .missing: 3]
+    static let counts: [SupportStatus: Int] = [.partial: 102, .stub: 6, .full: 19, .approximate: 3, .missing: 3]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -203,7 +203,8 @@ partial	matchedGeometryEffect / @Namespace / MatchedGeometryProperties	A view ar
 partial	contentTransition / ContentTransition (identity, opacity, interpolate, numericText, symbolEffect)	Text crossfades from its old content to the new one over the update's animation; numericText rolls the texts vertically (whole text, not per digit); interpolate and symbolEffect are crossfades; images snap (Docs/elements/Animator.md)	0
 full	PhaseAnimator / phaseAnimator / KeyframeAnimator / keyframeAnimator / KeyframeTimeline / KeyframeTrack / Linear, Cubic, Spring, Move keyframes	Phases step under each phase's animation on the runtime's animation clock (free-running or per trigger change, back to the first phase); keyframe tracks (linear with UnitCurve, cubic Hermite with Catmull-Rom velocities, spring curve, move) evaluate per frame and rebuild the content; unit-tested on the headless clock, animator/phase and animator/keyframe exact at rest in Tier A/B/C (Docs/elements/Animator.md)	0
 partial	draggable / dropDestination / Transferable (Proxy, Codable, Data representations)	In-app drags: a press that moves 4 pt lifts the payload (view or preview painted under the pointer), destinations under the pointer are targeted, release delivers the values and drop point; String/Data/URL transferable, proxy and data conversions between types; no onDrag/onDrop item providers, pasteboard or cross-app drags (Docs/elements/DragDrop.md)	0
-missing	onDrag / onDrop (NSItemProvider) / DropDelegate / pasteboard (copyable, pasteDestination, PasteButton)	Not implemented	0
+partial	copyable / cuttable / pasteDestination / PasteButton	⌘C, ⌘X and ⌘V around the focused view through the app's pasteboard (Transferable values, the same conversions as drops); copies write their text to the host clipboard; the system clipboard is not read (Docs/elements/DragDrop.md)	0
+missing	onDrag / onDrop (NSItemProvider) / DropDelegate	Not portable: NSItemProvider and NSString do not exist on wasm; use draggable/dropDestination	0
 partial	redacted(reason:) / RedactionReasons / privacySensitive / unredacted	Measured placeholders: text lays out one placeholder advance per character (spaces included, per-size advances, character wrapping) under cap-height bars on the baseline; symbols take the measured placeholder frame with a point-size square; privacy bars sit on the plain layout of privacySensitive content; invalidated draws as is. Catalog images are approximate (Docs/elements/Redaction.md)	3
 partial	symbolVariant / SymbolVariants / symbolRenderingMode / SymbolRenderingMode	Variants resolve to the named variant symbol with SwiftUI's frames (measured); rendering modes and multi-style foregrounds are accepted, the single-layer stand-ins keep the first colour (Docs/elements/Image.md)	1
 partial	symbolEffect (pulse, scale, variableColor, bounce, wiggle, rotate, breathe; isActive and value forms) / SymbolEffectOptions / symbolEffectsRemoved	Whole-symbol motion on the animation clock: indefinite effects while active, discrete ones per value change with repeat and speed options; the stand-in glyphs have one layer, so by-layer and variable-colour layers are approximated; appear/disappear/replace accepted as plain transitions (Docs/elements/SymbolEffect.md)	0

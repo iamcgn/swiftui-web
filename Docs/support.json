@@ -1052,9 +1052,14 @@
           "notes": "In-app drags: a press that moves 4 pt lifts the payload (view or preview painted under the pointer), destinations under the pointer are targeted, release delivers the values and drop point; String/Data/URL transferable, proxy and data conversions between types; no onDrag/onDrop item providers, pasteboard or cross-app drags (Docs/elements/DragDrop.md)"
         },
         {
-          "api": "onDrag / onDrop (NSItemProvider) / DropDelegate / pasteboard (copyable, pasteDestination, PasteButton)",
+          "api": "copyable / cuttable / pasteDestination / PasteButton",
+          "status": "partial",
+          "notes": "⌘C, ⌘X and ⌘V around the focused view through the app's pasteboard (Transferable values, the same conversions as drops); copies write their text to the host clipboard; the system clipboard is not read (Docs/elements/DragDrop.md)"
+        },
+        {
+          "api": "onDrag / onDrop (NSItemProvider) / DropDelegate",
           "status": "missing",
-          "notes": "Not implemented"
+          "notes": "Not portable: NSItemProvider and NSString do not exist on wasm; use draggable/dropDestination"
         },
         {
           "api": "redacted(reason:) / RedactionReasons / privacySensitive / unredacted",
