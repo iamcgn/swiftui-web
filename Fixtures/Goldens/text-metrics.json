@@ -11304,6 +11304,12 @@
       "lastBaseline" : 13,
       "width" : 62
     },
+    "system:13:400:default||Pulse" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 33
+    },
     "system:13:400:default||Push" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -13240,6 +13246,12 @@
       "firstBaseline" : 13,
       "height" : 144,
       "lastBaseline" : 141,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Pulse" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
       "width" : 0
     },
     "system:13:400:default|0.0|Push" : {

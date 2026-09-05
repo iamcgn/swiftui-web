@@ -105,3 +105,9 @@ extension Animatable where Self: VectorArithmetic {
         set { self = newValue }
     }
 }
+
+extension Double: Animatable {}
+extension Float: Animatable {}
+#if !os(WASI)   // CGFloat is Double on wasm (the CoreGraphics shim)
+extension CGFloat: Animatable {}
+#endif

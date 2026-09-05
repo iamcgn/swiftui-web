@@ -1,0 +1,27 @@
+{
+  "fixture" : "animator\/phase",
+  "frames" : {
+    "box" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 156.5,
+      "y" : 40
+    },
+    "row" : {
+      "height" : 40,
+      "width" : 93,
+      "x" : 103.5,
+      "y" : 40
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 33,
+      "x" : 103.5,
+      "y" : 52
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 300
+  }
+}

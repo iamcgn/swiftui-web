@@ -1,0 +1,15 @@
+{
+  "fixture" : "animator\/keyframe",
+  "frames" : {
+    "box" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 120,
+      "y" : 40
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 300
+  }
+}
