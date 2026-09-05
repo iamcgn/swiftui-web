@@ -13104,6 +13104,42 @@
       "lastBaseline" : 93,
       "width" : 95.5
     },
+    "system:13:400:default|110.0;l1|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 103.5
+    },
+    "system:13:400:default|110.0;l2|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 110
+    },
+    "system:13:400:default|110.0;l3|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 48,
+      "lastBaseline" : 45,
+      "width" : 110
+    },
+    "system:13:400:default|110.0;l4|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 110
+    },
+    "system:13:400:default|110.0;l5|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 110
+    },
+    "system:13:400:default|110.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
+      "width" : 110
+    },
     "system:13:400:default|120.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
       "height" : 64,
@@ -13157,6 +13193,18 @@
       "height" : 48,
       "lastBaseline" : 45,
       "width" : 147
+    },
+    "system:13:400:default|150.0;l4|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 137
+    },
+    "system:13:400:default|150.0;l5|Layout must wrap this sentence onto several lines inside a narrow frame." : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 137
     },
     "system:13:400:default|150.0;l10|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,

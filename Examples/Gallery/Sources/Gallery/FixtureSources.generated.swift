@@ -2124,6 +2124,27 @@ public static let basic = Fixture(
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "pressure/heights", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 12, lastLine: 19, declaration: #"""
+public static let heights = Fixture("pressure/heights", size: CGSize(width: 760, height: 200), content: {
+    HStack(alignment: .top, spacing: 10) {
+        ForEach([8, 20, 32, 40, 48, 70], id: \.self) { height in
+            Text(paragraph).probe("t\(height)").frame(width: 110, height: CGFloat(height), alignment: .topLeading).probe("h\(height)")
+        }
+    }
+    .probe("row")
+})
+"""#),
+        FixtureSource(name: "pressure/overflow", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 21, lastLine: 29, declaration: #"""
+/// A stack taller than its window: the flexible text gives up lines.
+public static let overflow = Fixture("pressure/overflow", size: CGSize(width: 200, height: 120), content: {
+    VStack(spacing: 8) {
+        Color.red.frame(height: 40).probe("top")
+        Text(paragraph).frame(width: 150, alignment: .leading).probe("text")
+        Color.blue.frame(height: 40).probe("bottom")
+    }
+    .probe("stack")
+})
+"""#),
         FixtureSource(name: "progress/basic", file: "Fixtures/Sources/Progress/ProgressFixtures.swift", firstLine: 8, lastLine: 25, declaration: #"""
 public static let basic = Fixture("progress/basic", size: CGSize(width: 320, height: 400)) {
     VStack(spacing: 14) {
@@ -8081,6 +8102,40 @@ public enum TextFieldFixtures {
     }
 
     public static let all: [Fixture] = [basic, styles, steps]
+}
+"""#,
+        "Fixtures/Sources/TextPressure/TextPressureFixtures.swift": #"""
+// Text under height pressure: a paragraph proposed less height than its lines need keeps
+// floor(height / line pitch) lines, at least one, and truncates the last (measured 2026-09-04).
+// Recorded for later: applying the rule showed our stacks propose flexible children less height
+// than SwiftUI does, so the fixtures live under `pressure/`, outside the enabled prefixes, until
+// the stack distribution is measured (Docs/elements/Text.md).
+import SwiftUI
+import FixtureKit
+
+public enum TextPressureFixtures {
+    static let paragraph = "Layout must wrap this sentence onto several lines inside a narrow frame."
+
+    public static let heights = Fixture("pressure/heights", size: CGSize(width: 760, height: 200), content: {
+        HStack(alignment: .top, spacing: 10) {
+            ForEach([8, 20, 32, 40, 48, 70], id: \.self) { height in
+                Text(paragraph).probe("t\(height)").frame(width: 110, height: CGFloat(height), alignment: .topLeading).probe("h\(height)")
+            }
+        }
+        .probe("row")
+    })
+
+    /// A stack taller than its window: the flexible text gives up lines.
+    public static let overflow = Fixture("pressure/overflow", size: CGSize(width: 200, height: 120), content: {
+        VStack(spacing: 8) {
+            Color.red.frame(height: 40).probe("top")
+            Text(paragraph).frame(width: 150, alignment: .leading).probe("text")
+            Color.blue.frame(height: 40).probe("bottom")
+        }
+        .probe("stack")
+    })
+
+    public static let all: [Fixture] = [heights, overflow]
 }
 """#,
         "Fixtures/Sources/TextStyle/TextStyleFixtures.swift": #"""

@@ -79,6 +79,19 @@ zero for `edgeBelowText` (top) / `edgeAboveText` (bottom); text declares `edgeBe
 horizontally. Distance = max over categories both neighbours declare, 0 if none. A concatenation
 uses its first part's font for spacing (unverified for mixed fonts).
 
+## Height pressure (measured 2026-09-04, not yet applied)
+
+A `Text` proposed less height than its lines need keeps `floor(height / line pitch)` lines, at
+least one, and tail-truncates the last: the paragraph at 110 pt (five lines, 80 pt) keeps one
+line in an 8 or 20 pt frame, two at 32 and 40, three at 48, four at 70 (`pressure/heights`); a
+stack taller than its window squeezes its text the same way (`pressure/overflow`: the window's
+120 pt leave 24 for the text, one line). The goldens and the limited-line metrics are recorded
+(`pressure/*`, outside the enabled prefixes). Applying the rule in `TextNode.computeSizeThatFits`
+made Tier A's stack fixtures shrink texts SwiftUI leaves alone (`text/line-limit`'s column lost
+lines): a text that honours height proposals reveals how the stacks distribute height to
+flexible children, which the natural-height behaviour masked, and zero proposals (minimum-size
+probes) must stay exempt. Applying it needs the stack distribution measured first.
+
 ## Open
 
 - **Height pressure**: when a stack cannot give a text its full height, SwiftUI re-lays it out

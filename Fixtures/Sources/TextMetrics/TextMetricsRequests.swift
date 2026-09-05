@@ -505,6 +505,11 @@ public enum TextMetricsRequests {
         }
         requests.append(TextMetricRequest("Wrapped kerned words fill the line", defaultFont, width: 160, options: TextMetricOptions(kerning: 2)))
         requests.append(TextMetricRequest("Wrapped kerned words fill the line", defaultFont, width: 160))
+        // Height pressure (Phase 6): the paragraph at the fixture widths with every line count.
+        for width: CGFloat in [110, 150] {
+            requests.append(TextMetricRequest(paragraph, defaultFont, width: width))
+            for limit in 1...5 { requests.append(TextMetricRequest(paragraph, defaultFont, width: width, options: TextMetricOptions(lineLimit: limit))) }
+        }
         requests.append(TextMetricRequest("Mask", .system(size: 40, weight: "bold", design: "default")))
         for word in ["Underlined", "Colored", "Hello World", "Second", "Both", "Struck", "Red strike", "Mixed line", "Solid", "Dotted", "Dashed",
                      "Dash dot", "Dash dot dot", "Dash strike", "MIXED CASE", "mixed case", "mixed Case", "Base", "Up", "Down", "Raised"] {

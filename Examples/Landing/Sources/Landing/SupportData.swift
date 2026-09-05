@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-04"
-    static let counts: [SupportStatus: Int] = [.partial: 92, .stub: 6, .full: 16, .approximate: 3, .missing: 10]
+    static let counts: [SupportStatus: Int] = [.partial: 92, .stub: 6, .full: 16, .approximate: 3, .missing: 11]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -198,6 +198,7 @@ partial	gesture / highPriorityGesture / simultaneousGesture / DragGesture / Long
 partial	underline / strikethrough (Text and View, Text.LineStyle patterns and colours) / textCase / baselineOffset	Lines at CoreText's underline offset and half x-height, snapped to device pixels, weight and design ratios; patterns in multiples of the thickness; textCase before measurement; baselineOffset grows the text and moves the baseline guide as Apple does. Some weights draw the line one pixel off (Docs/elements/TextStyle.md)	5
 full	kerning / tracking (Text and View)	The spacing is added after every character including spaces and the last (measured), wrapping uses the spread widths; painted with canvas letterSpacing (Chromium), character by character where the context lacks it (WebKit, Firefox), and CoreText's kern attribute	1
 missing	textSelection / textScale	Not implemented	0
+missing	Text under height pressure (fewer lines and truncation)	Measured (floor(height / line pitch) lines, at least one, tail-truncated; pressure/* goldens) but not applied: honouring height proposals exposes the stacks' distribution to flexible children, which needs measuring first (Docs/elements/Text.md)	0
 missing	matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator	Not implemented	0
 missing	dropDestination / draggable / onDrag / onDrop / pasteboard	Not implemented	0
 missing	redacted / privacySensitive / unredacted	Not implemented	0

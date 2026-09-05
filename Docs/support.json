@@ -1024,6 +1024,11 @@
           "notes": "Not implemented"
         },
         {
+          "api": "Text under height pressure (fewer lines and truncation)",
+          "status": "missing",
+          "notes": "Measured (floor(height / line pitch) lines, at least one, tail-truncated; pressure/* goldens) but not applied: honouring height proposals exposes the stacks' distribution to flexible children, which needs measuring first (Docs/elements/Text.md)"
+        },
+        {
           "api": "matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator",
           "status": "missing",
           "notes": "Not implemented"
