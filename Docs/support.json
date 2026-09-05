@@ -1052,7 +1052,15 @@
           ]
         },
         {
-          "api": "symbolEffect / symbolRenderingMode / symbolVariant",
+          "api": "symbolVariant / SymbolVariants / symbolRenderingMode / SymbolRenderingMode",
+          "status": "partial",
+          "notes": "Variants resolve to the named variant symbol with SwiftUI's frames (measured); rendering modes and multi-style foregrounds are accepted, the single-layer stand-ins keep the first colour (Docs/elements/Image.md)",
+          "fixtures": [
+            "symbol/variants"
+          ]
+        },
+        {
+          "api": "symbolEffect",
           "status": "missing",
           "notes": "SF Symbols are Lucide stand-ins; symbol effects are not implemented"
         }

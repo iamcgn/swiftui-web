@@ -28,7 +28,9 @@ the painter loads it. Fixtures draw from `Fixtures/Assets.xcassets` (generated b
 | `interpolation(_:)`, `Image.Interpolation`; `antialiased(_:)` | implemented as a smoothing on/off flag (`none` vs the rest); `antialiased` stored, no effect |
 | `Image.Scale`, `View.imageScale(_:)`, `EnvironmentValues.imageScale` | implemented for symbols (measured at 13 pt, scaled elsewhere) |
 | `View.fontWeight(_:)`, `View.bold(_:)` | implemented: weigh text and symbols in the environment |
-| `symbolRenderingMode`, `symbolVariant`, `symbolEffect` | missing |
+| `symbolVariant(_:)`, `SymbolVariants` (`none`, `circle`, `square`, `rectangle`, `fill`, `slash`, combinable), `symbolVariants` environment | implemented: variants accumulate through ancestors (`.none` resets) and resolve to the named variant symbol, most specific first (`bell.slash.circle.fill`, then without the fill, the shape, the slash), preferring a candidate with a glyph and a measured size, else the base name |
+| `symbolRenderingMode(_:)` on views and images, `SymbolRenderingMode`, `foregroundStyle(_:_:)` and `(_:_:_:)` | accepted: the single-layer stand-ins draw with the first foreground colour under every mode |
+| `symbolEffect` | missing |
 | `View.aspectRatio(_ ratio: CGFloat?, contentMode:)`, `aspectRatio(_ size: CGSize, contentMode:)`, `scaledToFit()`, `scaledToFill()`, `ContentMode` | implemented |
 | `Color(_ name: String, bundle: Bundle? = nil)` | implemented from colour sets (sRGB and extended sRGB; Display P3 components are used as sRGB and flagged approximate) |
 | `ColorScheme`, `EnvironmentValues.colorScheme` | added (default `.light`); selects dark image and colour variants, nothing else reads it yet |
@@ -104,7 +106,21 @@ SF Symbols are never shipped (`Docs/ROADMAP.md`). A symbol image has two parts:
 | `resizable()` symbols take the frame (50 × 50; `scaledToFit` in 50 × 30) | `resizable`, `fit` |
 | Unknown name: 0 × 0 | `unknown` |
 
-## Verification (2026-09-02, symbols 2026-09-04)
+### Variants (macOS 26.2, `symbol/variants`, 2026-09-05)
+
+`symbolVariant` changes only which symbol is drawn: `star` + `.fill` takes `star.fill`'s frame
+(16.5 × 16 at 13 pt, the same as `star`), `.circle` and `.circle.fill` take 15 × 15,
+`bell.slash` and `bell.slash.fill` 15 × 16.5, `person.circle` at the title size 26 × 25,
+`checkmark.square.fill` 15 × 14; a variant without a symbol of its own (`square` + `.rectangle`)
+keeps the base. Rendering modes change no frame. The stand-in table lacks a measurement for
+some variant names that have a glyph (`bell.slash.fill`, `checkmark.square.fill`): they resolve to
+the next candidate with both, which is what SwiftUI's frames show.
+
+## Verification (2026-09-02, symbols 2026-09-04, variants 2026-09-05)
+
+`symbol/variants`: Tier A exact, Tier C 0.00 %, Tier B exact frames in Chromium, WebKit and
+Firefox. `SymbolVariantTests` cover the candidate order, resolution to measured symbols,
+accumulation and reset, unknown variants, and rendering modes with multi-style foregrounds.
 
 Tier A: all 8 image fixtures exact (`image/swap` steps included); the 12 symbol catalogs and
 `symbol/basic` exact except the scaled-size row (within 2 pt). Tier B for symbols checks frames
@@ -118,6 +134,6 @@ ignores an undeclared `.xcassets` and copies a declared one verbatim, so either 
 ## Not yet covered
 
 SF Symbol glyphs themselves (stand-ins only), symbols beyond the 240 measured (sizes fall back to
-the star's), `symbolRenderingMode`/variants/effects, multicolour and hierarchical symbols, PDF/SVG sets, slicing
+the star's), `symbolEffect`, true multicolour and hierarchical layers (the stand-ins have one), PDF/SVG sets, slicing
 metadata in the catalog, dark-appearance goldens, `AsyncImage`, `Image` from `CGImage`/`NSImage`,
 `Color("name")` for a missing name (assumed clear), `luminanceToAlpha`, `colorMultiply`.

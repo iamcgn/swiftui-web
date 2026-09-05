@@ -3054,6 +3054,39 @@ public static let basic = Fixture("symbol/basic", size: CGSize(width: 400, heigh
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "symbol/variants", file: "Fixtures/Sources/Symbol/SymbolFixtures.swift", firstLine: 143, lastLine: 173, declaration: #"""
+/// `symbolVariant` and `symbolRenderingMode`: variants resolve to the named symbols; rendering
+/// modes on single-layer stand-ins keep the first colour.
+public static let variants = Fixture("symbol/variants", size: CGSize(width: 400, height: 200), content: {
+    VStack(spacing: 14) {
+        HStack(spacing: 14) {
+            Image(systemName: "star").probe("plain")
+            Image(systemName: "star").symbolVariant(.fill).probe("fill")
+            Image(systemName: "star").symbolVariant(.circle).probe("circle")
+            Image(systemName: "star").symbolVariant(.circle.fill).probe("circleFill")
+            Image(systemName: "bell").symbolVariant(.slash).probe("slash")
+            Image(systemName: "bell").symbolVariant(.slash.fill).probe("slashFill")
+            Image(systemName: "star.fill").symbolVariant(.none).probe("noneKeeps")
+        }
+        .probe("row1")
+        HStack(spacing: 14) {
+            Image(systemName: "star.fill").foregroundStyle(Color.orange).symbolRenderingMode(.monochrome).probe("mono")
+            Image(systemName: "star.fill").foregroundStyle(Color.orange).symbolRenderingMode(.hierarchical).probe("hier")
+            Image(systemName: "star.fill").foregroundStyle(Color.orange, Color.blue).symbolRenderingMode(.palette).probe("palette")
+            Image(systemName: "star.fill").symbolRenderingMode(.multicolor).probe("multi")
+            Label("Starred", systemImage: "star").symbolVariant(.fill).probe("label")
+        }
+        .probe("row2")
+        HStack(spacing: 14) {
+            Image(systemName: "square").symbolVariant(.rectangle).probe("rect")
+            Image(systemName: "person").symbolVariant(.circle).font(.title).probe("personCircle")
+            Image(systemName: "checkmark").symbolVariant(.square.fill).probe("checkSquare")
+        }
+        .probe("row3")
+    }
+    .probe("stack")
+})
+"""#),
         FixtureSource(name: "table/basic", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 38, lastLine: 45, declaration: #"""
 public static let basic = Fixture("table/basic", size: CGSize(width: 360, height: 220)) {
     Table(fruits) {
@@ -7780,7 +7813,39 @@ public enum SymbolFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = catalogs + [basic]
+    /// `symbolVariant` and `symbolRenderingMode`: variants resolve to the named symbols; rendering
+    /// modes on single-layer stand-ins keep the first colour.
+    public static let variants = Fixture("symbol/variants", size: CGSize(width: 400, height: 200), content: {
+        VStack(spacing: 14) {
+            HStack(spacing: 14) {
+                Image(systemName: "star").probe("plain")
+                Image(systemName: "star").symbolVariant(.fill).probe("fill")
+                Image(systemName: "star").symbolVariant(.circle).probe("circle")
+                Image(systemName: "star").symbolVariant(.circle.fill).probe("circleFill")
+                Image(systemName: "bell").symbolVariant(.slash).probe("slash")
+                Image(systemName: "bell").symbolVariant(.slash.fill).probe("slashFill")
+                Image(systemName: "star.fill").symbolVariant(.none).probe("noneKeeps")
+            }
+            .probe("row1")
+            HStack(spacing: 14) {
+                Image(systemName: "star.fill").foregroundStyle(Color.orange).symbolRenderingMode(.monochrome).probe("mono")
+                Image(systemName: "star.fill").foregroundStyle(Color.orange).symbolRenderingMode(.hierarchical).probe("hier")
+                Image(systemName: "star.fill").foregroundStyle(Color.orange, Color.blue).symbolRenderingMode(.palette).probe("palette")
+                Image(systemName: "star.fill").symbolRenderingMode(.multicolor).probe("multi")
+                Label("Starred", systemImage: "star").symbolVariant(.fill).probe("label")
+            }
+            .probe("row2")
+            HStack(spacing: 14) {
+                Image(systemName: "square").symbolVariant(.rectangle).probe("rect")
+                Image(systemName: "person").symbolVariant(.circle).font(.title).probe("personCircle")
+                Image(systemName: "checkmark").symbolVariant(.square.fill).probe("checkSquare")
+            }
+            .probe("row3")
+        }
+        .probe("stack")
+    })
+
+    public static let all: [Fixture] = catalogs + [basic, variants]
 }
 """#,
         "Fixtures/Sources/TabView/TabViewFixtures.swift": #"""
