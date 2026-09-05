@@ -43,6 +43,14 @@ import SwiftUIWebHeadless
         #expect(!ring.contains { $0.hasPrefix("strokePath(") && $0.contains("w=5") })
     }
 
+    @Test func aMenuButtonIsItsLabelInTheAccentColour() {
+        let menu = commands(Menu("Hi") { Button("Hi") {} }._probe("menu"))
+        #expect(menu.filter { $0.hasPrefix("fillRRect") || $0.hasPrefix("strokePath") }.isEmpty)
+        #expect(menu.contains { $0.hasPrefix("drawText(\"Hi\" system 17 w400") && $0.contains("#0088FF") }, "\(menu)")
+        let disabled = commands(Menu("Hi") { Button("Hi") {} }.disabled(true))
+        #expect(disabled.contains { $0.hasPrefix("drawText(\"Hi\"") && $0.contains("#000000@0.26") })
+    }
+
     @Test func controlsSpaceLikePlainViewsUnderText() {
         var environment = EnvironmentValues()
         environment.platformProfile = .iOS

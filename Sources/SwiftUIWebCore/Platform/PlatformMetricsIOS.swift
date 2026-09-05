@@ -72,6 +72,8 @@ extension PlatformMetricsTable {
         // Lists and forms: inset grouped cards on a grey ground, 56 pt rows (ios/list/basic, ios/form/basic).
         t.listRowMinimumHeight = 56
         t.controlsUsePlainSpacing = true                                // ios/layout/controls
+        t.menuIsPlainLabel = true                                       // ios/menu/basic: "Options" is 62 wide, its body label
+        t.menuDisabledLabelAlpha = 67.0 / 255
         // ProgressView (ios/progress/basic): a 4 pt accent bar on a (120, 120, 125) 20 % track, no
         // indeterminate segment, the label 4 above; the circular style is the 20 pt spinner even
         // with a value, its label below in the secondary colour.

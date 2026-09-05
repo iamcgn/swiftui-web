@@ -399,6 +399,9 @@ extension PlatformMetrics {
     package static var listGroupedHeaderTop: CGFloat { current.listGroupedHeaderTop }
     package static var listGroupedFirstHeaderTop: CGFloat { current.listGroupedFirstHeaderTop }
     package static var listGroupedFooterTop: CGFloat { current.listGroupedFooterTop }
+    package static var listGroupedFooterToHeader: CGFloat { current.listGroupedFooterToHeader }
+    package static var menuIsPlainLabel: Bool { current.menuIsPlainLabel }
+    package static var menuDisabledLabelAlpha: Double { current.menuDisabledLabelAlpha }
     package static var listGroupedFooterBottom: CGFloat { current.listGroupedFooterBottom }
     package static var listFooterSlotHeight: CGFloat { current.listFooterSlotHeight }
     package static var listGroupedHeaderBottom: CGFloat { current.listGroupedHeaderBottom }

@@ -26,7 +26,8 @@ and `SystemFontMetricsTableIOS.swift`.
 | Disabled labels | 30 % | 24 % (52 over 215) |
 | Plain text field, empty | — | 25 pt while only the placeholder shows, 26 with text (`ios/dark/controls` `emptyField`) |
 | List (automatic) | inset rows on white | inset grouped: a (235, 236, 236) ground, each section a white card 16 in with 26 pt continuous corners; rows max(56, content + 30) with content 16 in and centred, 1 pt separators from the content's leading edge to the card's inner edge, none under a card's last row; 35 above a first card without a header; headers in body medium, secondary, 27.5 below the previous card (10 at the top) and 10 above their card; navigation link rows fill the row and end in a 7 × 12 chevron at 30 % |
-| Section footer | 12 pt text | footnote in the secondary colour, 8 below its card in a 21 pt slot (UIKit's label height around the 18.5 pt line, so the footer probes are ignored while the rows around them are checked), the next card 23.5 below the slot (`ios/list/footer`) |
+| Menu button | a pull-down button | its label in the body font and the accent colour, nothing else: no fill, no chevron (`menuIndicator` has nothing to hide); black at 67/255 when disabled; it lines up with text on the baseline (`ios/menu/basic`); the menu itself opens as the runtime's presentation |
+| Section footer | 12 pt text | footnote in the secondary colour, 8 below its card in a 21 pt slot (UIKit's label height around the 18.5 pt line, so the footer probes are ignored while the rows around them are checked), the next card 23.5 below the slot (`ios/list/footer`); a header that follows a footer sits 16 below the slot (`ios/list/footer-header`) |
 | ProgressView (linear) | a 20 pt row with an 8 pt pill | a 4 pt accent pill on a (120, 120, 125) 20 % track, no indeterminate segment; a label sits 4 above it in the primary colour (`ios/progress/basic`) |
 | ProgressView (circular) | a 32 pt ring or spinner | always the 20 pt spinner, a value included: eight spokes from 38 % to 12 % black, the darkest pointing left; a label below it in the secondary colour |
 | List (plain) | 8 pt margins | white, rows 56 with content 16 in, separators 16 in; headers 32 below the previous row, 10 above the next |
@@ -42,7 +43,7 @@ Every row above comes from `Fixtures/Goldens/ios/<fixture>/frames.json` and pixe
 `image@2x.png`: `ios/text/styles`, `ios/layout/basics`, `ios/toggle/basic`, `ios/button/basic`,
 `ios/slider/basic`, `ios/stepper/basic`, `ios/textfield/basic`, `ios/picker/basic`,
 `ios/controls/settings` (the landing page's screen), `ios/progress/basic`, `ios/text/bold-trait`,
-`ios/layout/controls`, `ios/list/footer`, `ios/nav/scroll` (a `ScrollViewReader` step; UIKit's
+`ios/layout/controls`, `ios/list/footer`, `ios/list/footer-header`, `ios/menu/basic`, `ios/nav/scroll` (a `ScrollViewReader` step; UIKit's
 `List` ignores `scrollTo` on Catalyst, so the fixture scrolls a plain scroll view), and
 2026-09-05 later `ios/form/basic`,
 `ios/list/basic`, `ios/list/plain`, `ios/nav/basic`, `ios/nav/inline`, `ios/nav/sizing` and the
@@ -73,6 +74,12 @@ plain content, a (29, 30, 30) ground with (50, 50, 50) cards and (70, 70, 70) se
 grouped lists, and premultiplied PNGs. The runtime paints iOS's blacks instead, so `ios/dark/*`
 and `ios/color/*` are frames-only in Tier B and C (`Playwright/tier-b.mjs`, `NativePixelTests`).
 
+## Not measurable on Catalyst
+
+The compact `DatePicker` is Catalyst's Mac field (a right-aligned "3/15/2025" in the label's
+row, no pills), not iOS's tinted pills; tab bars sit at the top in the iPad idiom; sheets are
+centred form sheets. Their iOS looks wait for a simulator host.
+
 ## Catalyst deviations painted the iOS way
 
 Catalyst draws two AppKit-backed controls in a Mac shape: the switch (a 61 × 24 grey capsule
@@ -100,6 +107,6 @@ phone frame into iOS.
 
 ## Not yet covered
 
-Sheets, date pickers, the `Menu` button, tab bars, list selection looks, a footer followed by
-a header, the swipe back and the title/back button crossfade of a push, the large title's
+Sheets, date pickers and tab bars (not measurable on Catalyst, above), list selection looks,
+the swipe back and the title/back button crossfade of a push, the large title's
 snap at the end of a short drag (it tracks the content continuously here).

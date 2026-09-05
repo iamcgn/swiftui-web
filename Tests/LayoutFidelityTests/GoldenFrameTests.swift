@@ -89,6 +89,7 @@ enum Goldens {
         // UIKit's grouped footer label is 21 tall around an 18.5 pt footnote line (the slot is
         // laid out at 21; the text inside keeps its line; Docs/elements/iOS.md).
         "ios/list/footer": ["footer", "footer2"],
+        "ios/list/footer-header": ["footer"],
     ]
 
     /// Fixtures whose probes are allowed two points: Catalyst lays list rows out with UIKit

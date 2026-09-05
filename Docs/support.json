@@ -276,9 +276,10 @@
         {
           "api": "Menu / MenuStyle / menuIndicator / contextMenu",
           "status": "partial",
-          "notes": "Pull-down and split buttons exact; menus, submenus and context menus through the presentation layer (rows, separators; no hover highlight, checked items, section headers or keyboard navigation)",
+          "notes": "Pull-down and split buttons exact; menus, submenus and context menus through the presentation layer (rows, separators; no hover highlight, checked items, section headers or keyboard navigation); iOS profile: the label alone in the accent colour (ios/menu/basic)",
           "fixtures": [
-            "menu/basic"
+            "menu/basic",
+            "ios/menu/basic"
           ]
         },
         {
@@ -1097,7 +1098,7 @@
         {
           "api": "environment(\\.platformProfile, .iOS) / PlatformProfile / Runtime.hostPlatformProfile / navigationBarTitleDisplayMode",
           "status": "partial",
-          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Progress views, the bold trait per style, control spacing and list footers too. The large title collapses on scroll. Open: sheets, date pickers, menus, tab bars",
+          "notes": "The iOS look per subtree (Docs/elements/iOS.md): text styles, controls, inset grouped lists and forms, navigation bars, back button and slide, both appearances (macOS 26's palette, iOS's black dark backgrounds), measured on Mac Catalyst goldens; the canvas host starts touch devices in it (`?platform=` forces either). Progress views, the bold trait per style, control spacing and list footers too. The large title collapses on scroll; menu buttons are plain accent labels. Open: sheets, date pickers and tab bars (Catalyst's iPad idiom draws them differently from iPhone)",
           "fixtures": [
             "ios/text/styles",
             "ios/layout/basics",
@@ -1129,7 +1130,9 @@
             "ios/text/bold-trait",
             "ios/layout/controls",
             "ios/list/footer",
-            "ios/nav/scroll"
+            "ios/nav/scroll",
+            "ios/menu/basic",
+            "ios/list/footer-header"
           ]
         }
       ]

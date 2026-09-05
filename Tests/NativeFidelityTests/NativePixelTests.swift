@@ -45,6 +45,7 @@ enum NativeGoldens {
     /// Probes Apple reports but nothing reproduces (a hidden tab's stale frame), as in Tier A.
     static let ignoredProbes: [String: Set<String>] = [
         "ios/list/footer": ["footer", "footer2"],
+        "ios/list/footer-header": ["footer"],
         "tabview/basic/second": ["first"],
         "splitview/visibility": ["sidebar", "row1", "detail"],
         "splitview/visibility/detailOnly": ["sidebar", "row1", "detail"],

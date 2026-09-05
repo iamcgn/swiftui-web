@@ -25,8 +25,16 @@ package final class MenuButtonNode: LayoutNode<_MenuHost>, _Interactive {
 
     private var enabled: Bool { environment.isEnabled }
 
+    private var plainLabel: Bool { environment.platformProfile.metrics.menuIsPlainLabel }
+
     private func labelEnvironment() -> EnvironmentValues {
         var environment = environment
+        if plainLabel {
+            // iOS: the label in the body font and the accent colour, nothing around it.
+            environment.font = .body
+            environment.foregroundColor = enabled ? Color.accentColor : Color.primary.opacity(environment.platformProfile.metrics.menuDisabledLabelAlpha / (216.0 / 255))
+            return environment
+        }
         environment.font = .system(size: PlatformMetrics.buttonLabelSize)
         if !enabled { environment.foregroundColor = Color.black.opacity(PlatformMetrics.popUpDisabledTextAlpha) }
         return environment
@@ -51,6 +59,7 @@ package final class MenuButtonNode: LayoutNode<_MenuHost>, _Interactive {
 
     private func plan() -> Plan {
         let labelSize = target?.sizeThatFits(.unspecified) ?? .zero
+        if plainLabel { return Plan(size: labelSize, label: CGRect(origin: .zero, size: labelSize), dividerX: nil) }
         let trailing: CGFloat
         var dividerX: CGFloat?
         if view.primaryAction != nil {
@@ -69,6 +78,13 @@ package final class MenuButtonNode: LayoutNode<_MenuHost>, _Interactive {
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { plan().size }
+
+    /// iOS: the label's own dimensions, so a baseline-aligned row lines the menu up with text
+    /// (ios/menu/basic `row`).
+    override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
+        if plainLabel, let target { return target.dimensions(in: proposal) }
+        return super.dimensions(in: proposal)
+    }
 
     override package func layoutContents(proposal: ProposedViewSize) {
         let plan = plan()
@@ -93,6 +109,10 @@ package final class MenuButtonNode: LayoutNode<_MenuHost>, _Interactive {
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
+        if plainLabel {
+            if let target { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
+            return
+        }
         if view.bordered {
             list.append(.fillRRect(bounds, cornerRadius: PlatformMetrics.popUpCornerRadius,
                                    black(enabled ? PlatformMetrics.popUpFill : PlatformMetrics.popUpDisabledFill)))

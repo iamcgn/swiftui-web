@@ -493,6 +493,9 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listGroupedHeaderTop: CGFloat = 27.5                   // card bottom to the next header's text
     package var listGroupedFirstHeaderTop: CGFloat = 10
     package var listGroupedFooterTop: CGFloat = 8                      // card bottom to the footer text (ios/list/footer)
+    package var listGroupedFooterToHeader: CGFloat = 16                // a footer's slot to the next header's text (ios/list/footer-header)
+    package var menuIsPlainLabel = false                               // iOS: a menu button is its label in the accent colour (ios/menu/basic)
+    package var menuDisabledLabelAlpha = 0.0                           // iOS: black at 67/255 when disabled
     package var listGroupedFooterBottom: CGFloat = 23.5                // the footer slot to the next card
     package var listFooterSlotHeight: CGFloat = 21                     // UIKit's footer label for an 18.5 pt footnote line
     package var listGroupedHeaderBottom: CGFloat = 10
