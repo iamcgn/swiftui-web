@@ -1,0 +1,45 @@
+{
+  "fixture" : "toolbar\/searchable",
+  "frames" : {
+    "Apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 14
+    },
+    "Banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 38
+    },
+    "Cherry" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 62
+    },
+    "Date" : {
+      "height" : 16,
+      "width" : 28.5,
+      "x" : 16,
+      "y" : 86
+    },
+    "Elderberry" : {
+      "height" : 16,
+      "width" : 63.5,
+      "x" : 16,
+      "y" : 110
+    },
+    "stack" : {
+      "height" : 200,
+      "width" : 400,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 400
+  }
+}

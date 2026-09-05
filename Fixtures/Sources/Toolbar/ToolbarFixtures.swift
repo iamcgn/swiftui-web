@@ -25,7 +25,24 @@ struct ToolbarDemo: View {
     }
 }
 
+/// `searchable`: the field is toolbar chrome; the list filters on the query.
+struct SearchableDemo: View {
+    @State private var query = ""
+    static let fruit = ["Apple", "Banana", "Cherry", "Date", "Elderberry"]
+    var shown: [String] { query.isEmpty ? Self.fruit : Self.fruit.filter { $0.lowercased().contains(query.lowercased()) } }
+
+    var body: some View {
+        NavigationStack {
+            List(shown, id: \.self) { name in Text(name).probe(name) }
+                .navigationTitle("Fruit")
+                .searchable(text: $query, prompt: "Find fruit")
+        }
+        .probe("stack")
+    }
+}
+
 public enum ToolbarFixtures {
     public static let basic = Fixture("toolbar/basic", size: CGSize(width: 400, height: 200), content: { ToolbarDemo() })
-    public static let all: [Fixture] = [basic]
+    public static let searchable = Fixture("toolbar/searchable", size: CGSize(width: 400, height: 200), content: { SearchableDemo() })
+    public static let all: [Fixture] = [basic, searchable]
 }

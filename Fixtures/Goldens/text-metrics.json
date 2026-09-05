@@ -9750,6 +9750,12 @@
       "lastBaseline" : 13,
       "width" : 30.5
     },
+    "system:13:400:default||Elderberry" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 63.5
+    },
     "system:13:400:default||Email" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -11398,6 +11404,12 @@
       "firstBaseline" : 13,
       "height" : 64,
       "lastBaseline" : 61,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Elderberry" : {
+      "firstBaseline" : 13,
+      "height" : 160,
+      "lastBaseline" : 157,
       "width" : 0
     },
     "system:13:400:default|0.0|Email" : {

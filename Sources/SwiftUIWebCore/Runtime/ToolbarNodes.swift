@@ -45,6 +45,7 @@ package final class ToolbarVisibilityNode<Content: View>: UnaryLayoutModifierNod
 struct _ToolbarBarView: View {
     let items: [_ToolbarItemData]
     let title: String?
+    let search: SearchSource?
 
     private func platters(_ group: ToolbarItemPlacement.Group) -> some View {
         ForEach(Array(items.enumerated()).filter { $0.element.placement.group == group }, id: \.offset) { entry in
@@ -56,12 +57,15 @@ struct _ToolbarBarView: View {
         HStack(spacing: 8) {
             platters(.leading)
             if let title {
-                Text(title).font(.system(size: 15, weight: .bold)).lineLimit(1).padding(.leading, 8)
+                Text(title).font(.system(size: 15, weight: .semibold)).lineLimit(1).padding(.leading, 8)
             }
             Spacer(minLength: 8)
             platters(.principal)
             Spacer(minLength: 8)
             platters(.trailing)
+            if let search {
+                _SearchFieldView(text: search.text, prompt: search.prompt ?? "Search")
+            }
         }
         .padding(.horizontal, 8)
         .frame(height: Runtime.toolbarHeight)
@@ -165,7 +169,7 @@ extension Runtime {
 
     /// Whether the host should show a toolbar: chrome painting on, items present, not hidden.
     package var showsToolbar: Bool {
-        paintsWindowChrome && !toolbarItems.isEmpty && !toolbarVisibility.contains { $0.node?.isMounted == true && $0.visibility == .hidden }
+        paintsWindowChrome && (!toolbarItems.isEmpty || searchField != nil) && !toolbarVisibility.contains { $0.node?.isMounted == true && $0.visibility == .hidden }
     }
 
     /// The bar's frame while it shows; the content is laid out below it.
@@ -180,7 +184,7 @@ extension Runtime {
         }
         var environment = rootEnvironment
         environment.colorScheme = root.environment.colorScheme
-        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil))
+        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil, search: searchField))
         if let toolbar {
             toolbar.update(view: view, environment: environment)
         } else {
@@ -199,4 +203,75 @@ package struct ToolbarSource {
 package struct ToolbarVisibilitySource {
     weak var node: ViewNode?
     var visibility: Visibility
+}
+
+/// `searchable`: transparent to layout; registers the field, and gives its content `isSearching`
+/// and `dismissSearch`.
+@MainActor
+package final class SearchableNode<Content: View>: UnaryLayoutModifierNode<Content, _SearchableModifier> {
+    override package init(_ context: _NodeContext<ModifiedContent<Content, _SearchableModifier>>) {
+        super.init(context)
+        runtime.registerSearch(self, field: SearchSource(node: self, text: modifier.text, prompt: modifier.prompt))
+        update(view: view, environment: environment, force: true)
+    }
+
+    override package func update(view: ModifiedContent<Content, _SearchableModifier>, environment: EnvironmentValues, force: Bool) {
+        var inner = environment
+        inner.isSearching = !view.modifier.text.wrappedValue.isEmpty
+        let text = view.modifier.text
+        inner.dismissSearch = DismissSearchAction { text.wrappedValue = "" }
+        super.update(view: view, environment: inner, force: force)
+        runtime.registerSearch(self, field: SearchSource(node: self, text: view.modifier.text, prompt: view.modifier.prompt))
+    }
+
+    override package func unmount() {
+        runtime.unregisterSearch(self)
+        super.unmount()
+    }
+}
+
+/// The toolbar's search field: a magnifier and a plain text field in a 36 pt capsule.
+struct _SearchFieldView: View {
+    let text: Binding<String>
+    let prompt: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass").font(.system(size: 13, weight: .medium)).foregroundStyle(.secondary)
+            TextField(prompt, text: text).textFieldStyle(.plain).font(.system(size: 13))
+        }
+        .padding(.horizontal, 10)
+        .frame(minWidth: 120, maxWidth: 325, minHeight: 36, maxHeight: 36)
+        .background(Capsule().fill(Color(.sRGB, white: 0.5, opacity: 0.12)))
+        .layoutPriority(1)
+    }
+}
+
+/// One `searchable` modifier's field.
+package struct SearchSource {
+    weak var node: ViewNode?
+    var text: Binding<String>
+    var prompt: String?
+}
+
+extension Runtime {
+    package func registerSearch(_ node: ViewNode, field: SearchSource) {
+        if let index = searchSources.firstIndex(where: { $0.node === node }) {
+            searchSources[index] = field
+        } else {
+            searchSources.append(field)
+        }
+        requestLayout()
+    }
+
+    package func unregisterSearch(_ node: ViewNode) {
+        searchSources.removeAll { $0.node === node || $0.node == nil }
+        requestLayout()
+    }
+
+    /// The first mounted `searchable`'s field.
+    package var searchField: SearchSource? { searchSources.first { $0.node?.isMounted == true } }
+
+    /// Whether a `searchable` view is mounted.
+    public var hasSearchField: Bool { searchField != nil }
 }

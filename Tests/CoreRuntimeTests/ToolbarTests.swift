@@ -9,7 +9,7 @@ import SwiftUIWebHeadless
 
 @Suite @MainActor struct ToolbarTests {
     private static let bold13 = ResolvedFont(family: "system", size: 13, weight: .semibold, italic: false, textStyle: nil)
-    private static let bold15 = ResolvedFont(family: "system", size: 15, weight: .bold, italic: false, textStyle: nil)
+    private static let bold15 = ResolvedFont(family: "system", size: 15, weight: .semibold, italic: false, textStyle: nil)
 
     private func runtime<V: View>(_ view: V, chrome: Bool = true) -> Runtime {
         var entries: [String: RecordedTextEngine.Entry] = [:]
@@ -17,6 +17,10 @@ import SwiftUIWebHeadless
             entries[RecordedTextEngine.key(font: Self.bold13, width: nil, string: word)] = .init(width: width, height: 16, firstBaseline: 13, lastBaseline: 13)
         }
         entries[RecordedTextEngine.key(font: Self.bold15, width: nil, string: "Title")] = .init(width: 40, height: 18, firstBaseline: 15, lastBaseline: 15)
+        let regular13 = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
+        for (word, width) in [("Find", 28.0), ("Idle", 26.0), ("Searching", 60.0), ("ap", 14.0)] {
+            entries[RecordedTextEngine.key(font: regular13, width: nil, string: word)] = .init(width: width, height: 16, firstBaseline: 13, lastBaseline: 13)
+        }
         let runtime = Runtime()
         runtime.textEngine = RecordedTextEngine(entries: entries)
         runtime.paintsWindowChrome = chrome
@@ -52,6 +56,39 @@ import SwiftUIWebHeadless
         runtime.pointerUp(at: actionCentre)
         #expect(counter.taps == 1)
         #expect(runtime.interactiveNode(at: CGPoint(x: 200, y: 100)) == nil)
+    }
+
+    @Test func searchableShowsAFieldInTheBarAndFiltersThroughItsBinding() {
+        @MainActor final class Model: ObservableObject { @Published var query = "" }
+        // `isSearching` is read inside the searchable view, as in SwiftUI.
+        struct Status: View {
+            @Environment(\.isSearching) private var searching
+            var body: some View { Text(searching ? "Searching" : "Idle") }
+        }
+        struct Root: View {
+            @ObservedObject var model: Model
+            var body: some View {
+                VStack { Status() }.searchable(text: $model.query, prompt: "Find")
+            }
+        }
+        let model = Model()
+        let runtime = runtime(Root(model: model))
+        #expect(runtime.hasSearchField && runtime.toolbarFrame != nil)
+        // The field's text line sits at the trailing end of the bar (10 pt inside its capsule),
+        // centred on the bar, with the prompt as its placeholder.
+        let field = runtime.semanticsTree().first { $0.role == .textField }
+        #expect(field?.label == "Find" && field.map { $0.frame.maxX == 382 && $0.frame.midY == 26 } == true)
+        // Typing through the host's hook edits the binding; the content reads isSearching.
+        var commands = runtime.render(scale: 2).commands.map(\.description)
+        #expect(commands.contains { $0.hasPrefix("drawText(\"Idle\"") })
+        runtime.textField(field!.identifier, didChange: "ap")
+        runtime.layout(in: CGSize(width: 400, height: 200))
+        #expect(model.query == "ap")
+        commands = runtime.render(scale: 2).commands.map(\.description)
+        #expect(commands.contains { $0.hasPrefix("drawText(\"Searching\"") })
+        // Without chrome the field is not shown but the modifier still registers.
+        let plain = self.runtime(Root(model: model), chrome: false)
+        #expect(plain.hasSearchField && plain.toolbarFrame == nil && !plain.semanticsTree().contains { $0.role == .textField })
     }
 
     @Test func noChromeNoBar() {

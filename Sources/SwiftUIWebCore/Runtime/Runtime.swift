@@ -65,6 +65,7 @@ public final class Runtime {
     package var toolbarSources: [ToolbarSource] = []
     package var toolbarVisibility: [ToolbarVisibilitySource] = []
     package var toolbar: ToolbarChromeNode?
+    package var searchSources: [SearchSource] = []
 
     // Animation (Runtime/AnimationNodes.swift)
     /// Seconds of animation time, advanced by hosts through `advanceAnimations(elapsed:)`.

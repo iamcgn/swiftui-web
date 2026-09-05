@@ -28,6 +28,21 @@ check('toolbar button action runs', (await labels()).includes('Taps: 1'));
 await page.mouse.click(two.x + two.width / 2, two.y + two.height / 2);
 await page.waitForTimeout(100);
 check('group button action runs', (await labels()).includes('Taps: 1001'));
+
+// searchable: the field in the bar filters the list through its binding.
+await page.goto(`${url}?fixture=${encodeURIComponent('toolbar/searchable')}&chrome=1`);
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+const field = page.locator('input[aria-label="Find fruit"]');
+check('search field in the bar', await field.count() === 1);
+const fieldBox = await field.boundingBox();
+const canvas2 = await page.locator('canvas').first().boundingBox();
+check('search field trails in the bar', fieldBox.y < canvas2.y + 52 && fieldBox.x + fieldBox.width > canvas2.x + canvas2.width - 60);
+check('all rows before searching', (await labels()).includes('Elderberry'));
+await field.click();
+await page.keyboard.type('an');
+await page.waitForTimeout(150);
+const filtered = await labels();
+check('typing filters the list', filtered.includes('Banana') && !filtered.includes('Cherry'));
 await browser.close();
 console.log(failures === 0 ? 'toolbar probe: all passed' : `toolbar probe: ${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);
