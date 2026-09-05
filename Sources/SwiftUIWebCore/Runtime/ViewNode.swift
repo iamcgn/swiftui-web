@@ -16,6 +16,8 @@ open class ViewNode {
     /// Structural children removed under an animation that still paint their removal transition.
     package var exitingChildren: [ViewNode] = []
     package var hasBeenPlaced = false
+    /// Set while the node lingers as a ghost through its removal transition.
+    package var isExiting = false
 
     /// The structural parent, `nil` for the root.
     package private(set) weak var parent: ViewNode?

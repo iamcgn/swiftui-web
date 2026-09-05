@@ -240,6 +240,7 @@ extension ViewNode {
         exitingChildren.append(child)
         var pending = layoutNodes.count
         for node in layoutNodes {
+            node.markExiting()
             node.beginTransition(insertion: false, animation: animation) { [weak self, weak child] in
                 pending -= 1
                 guard pending == 0, let self, let child, let index = self.exitingChildren.firstIndex(where: { $0 === child }) else { return }
@@ -267,6 +268,12 @@ extension ViewNode {
         result += exitingChildren.flatMap { $0.layoutChildren }
         walk(self)
         return result
+    }
+
+    /// Flags this node and its descendants as ghosts of a removal transition.
+    package func markExiting() {
+        isExiting = true
+        for child in structuralChildren { child.markExiting() }
     }
 
     /// Starts a frame tween from `from` to the current frame.

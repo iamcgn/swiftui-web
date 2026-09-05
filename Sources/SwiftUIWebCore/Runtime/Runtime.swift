@@ -84,6 +84,8 @@ public final class Runtime {
 
     /// Sheets, popovers, alerts and menus over the window, bottom to top (Runtime/PresentationNodes.swift).
     package var presentations: [PresentationNode] = []
+    /// Frames recorded by `matchedGeometryEffect` sources (Runtime/MatchedGeometryNodes.swift).
+    package var matchedGeometry: [MatchedGeometryKey: MatchedGeometryRecord] = [:]
     /// Timeline views re-rendering every frame (Runtime/TimelineNodes.swift).
     package var frameSubscribers: [WeakFrameSubscriber] = []
     /// Focus states told when the focused text field changes (Runtime/FocusNodes.swift).

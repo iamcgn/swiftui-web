@@ -1,0 +1,195 @@
+{
+  "fixture" : "matched\/anchors",
+  "frames" : {
+    "cell-frame-br-small" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 410,
+      "y" : 330
+    },
+    "cell-frame-br-tall" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 210,
+      "y" : 330
+    },
+    "cell-frame-br-wide" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 10,
+      "y" : 330
+    },
+    "cell-frame-c-flex" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 210,
+      "y" : 650
+    },
+    "cell-frame-c-small" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 410,
+      "y" : 170
+    },
+    "cell-frame-c-tall" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 210,
+      "y" : 170
+    },
+    "cell-frame-c-wide" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 10,
+      "y" : 170
+    },
+    "cell-frame-tl-flex" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 410,
+      "y" : 650
+    },
+    "cell-frame-tl-small" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 410,
+      "y" : 10
+    },
+    "cell-frame-tl-tall" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 210,
+      "y" : 10
+    },
+    "cell-frame-tl-wide" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 10,
+      "y" : 10
+    },
+    "cell-position-br-tall" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 210,
+      "y" : 490
+    },
+    "cell-position-tl-wide" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 10,
+      "y" : 490
+    },
+    "cell-size-c-flex" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 10,
+      "y" : 650
+    },
+    "cell-size-c-wide" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 410,
+      "y" : 490
+    },
+    "frame-br-small" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 410,
+      "y" : 330
+    },
+    "frame-br-tall" : {
+      "height" : 60,
+      "width" : 20,
+      "x" : 210,
+      "y" : 330
+    },
+    "frame-br-wide" : {
+      "height" : 20,
+      "width" : 80,
+      "x" : 10,
+      "y" : 330
+    },
+    "frame-c-flex" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 210,
+      "y" : 650
+    },
+    "frame-c-small" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 410,
+      "y" : 170
+    },
+    "frame-c-tall" : {
+      "height" : 60,
+      "width" : 20,
+      "x" : 210,
+      "y" : 170
+    },
+    "frame-c-wide" : {
+      "height" : 20,
+      "width" : 80,
+      "x" : 10,
+      "y" : 170
+    },
+    "frame-tl-flex" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 410,
+      "y" : 650
+    },
+    "frame-tl-small" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 410,
+      "y" : 10
+    },
+    "frame-tl-tall" : {
+      "height" : 60,
+      "width" : 20,
+      "x" : 210,
+      "y" : 10
+    },
+    "frame-tl-wide" : {
+      "height" : 20,
+      "width" : 80,
+      "x" : 10,
+      "y" : 10
+    },
+    "grid" : {
+      "height" : 800,
+      "width" : 600,
+      "x" : 10,
+      "y" : 10
+    },
+    "position-br-tall" : {
+      "height" : 60,
+      "width" : 20,
+      "x" : 210,
+      "y" : 490
+    },
+    "position-tl-wide" : {
+      "height" : 20,
+      "width" : 80,
+      "x" : 10,
+      "y" : 490
+    },
+    "size-c-flex" : {
+      "height" : 160,
+      "width" : 200,
+      "x" : 10,
+      "y" : 650
+    },
+    "size-c-wide" : {
+      "height" : 20,
+      "width" : 80,
+      "x" : 410,
+      "y" : 490
+    }
+  },
+  "size" : {
+    "height" : 820,
+    "width" : 620
+  }
+}
