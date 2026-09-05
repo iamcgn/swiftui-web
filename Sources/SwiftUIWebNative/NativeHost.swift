@@ -501,7 +501,6 @@ public final class RuntimeAccessibilityElement: NSAccessibilityElement {
         return true
     }
 }
-#endif
 
 /// Loads `AsyncImage` URLs off the main thread and hands the decoded images to the painter.
 @MainActor
@@ -536,3 +535,4 @@ final class NativeImageLoader: _ImageLoading {
         return .loading
     }
 }
+#endif
