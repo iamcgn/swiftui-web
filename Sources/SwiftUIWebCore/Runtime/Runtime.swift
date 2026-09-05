@@ -155,6 +155,18 @@ public final class Runtime {
     /// Incremented at the start of every layout pass; size caches are keyed by it.
     package private(set) var layoutGeneration: UInt64 = 0
 
+    /// Counts the layout passes that walked the tree (not the ones that only moved scrolled
+    /// content); the semantics tree is cached against it (`semanticsTree()`).
+    package private(set) var fullLayoutCount: UInt64 = 0
+    package var semanticsCache: [SemanticsEntry] = []
+    package var semanticsCacheLayout: UInt64 = .max
+    /// Whether the cached semantics tree still describes the nodes: no full layout since it was
+    /// walked, and no state update or invalidation waiting for the next one (a typed character
+    /// or a slider press changes a binding before any layout runs).
+    package var semanticsCacheIsValid: Bool {
+        semanticsCacheLayout == fullLayoutCount && !scheduler.hasPendingWork && !sizesInvalidated
+    }
+
     /// The size most recently laid out into.
     package private(set) var layoutSize: CGSize = .zero
 
@@ -237,6 +249,7 @@ public final class Runtime {
             return
         }
         scrolledNodes.removeAll()
+        fullLayoutCount += 1
         flush()
         applyColorScheme()
         layoutRequested = false

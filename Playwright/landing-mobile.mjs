@@ -24,6 +24,8 @@ for (let i = 0; i < 12; i++) { y -= 40; await cdp.send('Input.dispatchTouchEvent
 await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 await page.waitForTimeout(1200);
 console.log(`drag: ${Date.now() - t0} ms, frameMs during drag: ${times.join(' ')}`);
+const phases = await page.evaluate(() => window.__swiftuiwebDebug.framePhases ? window.__swiftuiwebDebug.framePhases() : null);
+if (phases) console.log('last drag frame phases (layout/render/paint/semantics/overlay ms):', [phases.layout, phases.render, phases.paint, phases.semantics, phases.overlay].map(v => v.toFixed(1)).join('/'));
 console.log('after momentum:', JSON.stringify(await stats()), 'errors:', errors.slice(0, 3));
 await page.screenshot({ path: `${out}/mobile-scrolled.png` });
 await browser.close();

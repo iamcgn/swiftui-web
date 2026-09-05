@@ -33,7 +33,7 @@ extension AccessibilityNode: _AccessibilityAttributing {}
 
 extension Runtime {
     /// Walks `node` (a layout node) and its subtree for elements.
-    package func collectSemantics(_ node: ViewNode, attributes: AccessibilityAttributes?, into result: inout [SemanticsNode]) {
+    package func collectSemantics(_ node: ViewNode, attributes: AccessibilityAttributes?, into result: inout [SemanticsEntry]) {
         // Accessibility modifiers above this layout node, outermost first.
         var chain: [AccessibilityAttributes] = []
         var current: ViewNode? = node.parent
@@ -47,29 +47,29 @@ extension Runtime {
         if merged.hidden { return }
         if let behavior = merged.children, behavior.kind != .contain {
             // One element for the whole subtree, with the labels of its parts.
-            var parts: [SemanticsNode] = []
+            var parts: [SemanticsEntry] = []
             collectElements(node, into: &parts)
-            var element = SemanticsNode(role: .group, label: merged.label ?? parts.map(\.label).filter { !$0.isEmpty }.joined(separator: ", "),
+            var element = SemanticsNode(role: .group, label: merged.label ?? parts.map(\.element.label).filter { !$0.isEmpty }.joined(separator: ", "),
                                         frame: node.frameInRoot, identifier: node.semanticsIdentifier)
-            if let first = parts.first, parts.count == 1 { element.role = first.role; element.isOn = first.isOn; element.range = first.range }
+            if let first = parts.first?.element, parts.count == 1 { element.role = first.role; element.isOn = first.isOn; element.range = first.range }
             apply(merged, to: &element)
-            result.append(element)
+            result.append(SemanticsEntry(node: node, element: element))
             return
         }
-        var elements: [SemanticsNode] = []
+        var elements: [SemanticsEntry] = []
         collectElements(node, into: &elements)
-        for var element in elements {
-            if !merged.isEmpty { apply(merged, to: &element) }
-            result.append(element)
+        for var entry in elements {
+            if !merged.isEmpty { apply(merged, to: &entry.element) }
+            result.append(entry)
         }
     }
 
     /// The elements of a layout node's subtree with modifiers inside it applied.
-    private func collectElements(_ node: ViewNode, into result: inout [SemanticsNode]) {
+    private func collectElements(_ node: ViewNode, into result: inout [SemanticsEntry]) {
         if let interactive = node as? any _Interactive {
             var element = interactive.semantics
             element.frame = node.frameInRoot
-            result.append(element)
+            result.append(SemanticsEntry(node: node, element: element))
             if interactive.exposesChildren {
                 for child in node.paintedChildren { collectSemantics(child, attributes: nil, into: &result) }
             }
@@ -77,7 +77,7 @@ extension Runtime {
         }
         if let provider = node as? any _SemanticsProviding, var element = provider.staticSemantics {
             element.frame = node.frameInRoot
-            result.append(element)
+            result.append(SemanticsEntry(node: node, element: element))
         }
         for child in node.paintedChildren { collectSemantics(child, attributes: nil, into: &result) }
     }
@@ -92,6 +92,13 @@ extension Runtime {
         if attributes.addedTraits.contains(.isLink) { element.role = .link }
         if attributes.addedTraits.contains(.isImage) { element.role = .image }
     }
+}
+
+/// One element of the semantics tree with the node whose root frame it took: a frame that only
+/// moved scrolled content refreshes the frames from the nodes instead of walking the tree again.
+package struct SemanticsEntry {
+    package let node: ViewNode
+    package var element: SemanticsNode
 }
 
 extension ViewNode {

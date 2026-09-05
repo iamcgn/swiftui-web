@@ -19,17 +19,22 @@ await cdp.send('Profiler.enable');
 await cdp.send('Profiler.start');
 const frames0 = await page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 const t0 = Date.now();
-const times = [];
-for (let i = 0; i < 8; i++) {
+const times = [], phases = [];
+for (let i = 0; i < 24; i++) {
   await page.mouse.move(640, 450);
-  await page.mouse.wheel(0, 120);
+  await page.mouse.wheel(0, i < 12 ? 120 : -120);
   await page.waitForTimeout(50);
   times.push(await page.evaluate(() => window.__swiftuiwebDebug.frameMillis()));
+  phases.push(await page.evaluate(() => window.__swiftuiwebDebug.framePhases ? window.__swiftuiwebDebug.framePhases() : null));
 }
 const wall = Date.now() - t0;
 const frames1 = await page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 const { profile } = await cdp.send('Profiler.stop');
 console.log(`scroll burst: ${frames1 - frames0} frames in ${wall} ms; frameMillis samples (layout+paint per frame):`, times.map(t => t.toFixed(0)).join(' '));
+if (phases[0]) {
+  const mean = (key) => (phases.reduce((sum, p) => sum + p[key], 0) / phases.length).toFixed(2);
+  console.log(`mean per frame: total ${(times.reduce((a, b) => a + b, 0) / times.length).toFixed(2)} ms; layout ${mean('layout')}, render ${mean('render')}, paint ${mean('paint')}, semantics ${mean('semantics')}, overlay ${mean('overlay')}`);
+}
 // Self time per function from the profile.
 const self = new Map();
 const byId = new Map(profile.nodes.map(n => [n.id, n]));

@@ -218,15 +218,31 @@ extension Runtime {
 
     /// The accessibility tree after the last layout, in window coordinates: interactive nodes,
     /// static text and images, in paint order, with accessibility modifiers applied
-    /// (Runtime/AccessibilityNodes.swift).
+    /// (Runtime/AccessibilityNodes.swift). After a frame that only moved scrolled content the
+    /// tree is the last full walk with its frames refreshed: nothing else can have changed
+    /// without a state update, which forces a full layout (`semanticsCacheIsValid`).
     public func semanticsTree() -> [SemanticsNode] {
-        var result: [SemanticsNode] = []
-        for node in toolbar?.layoutChildren ?? [] { collectSemantics(node, attributes: nil, into: &result) }
-        for node in root.layoutChildren { collectSemantics(node, attributes: nil, into: &result) }
-        for presentation in presentations {
-            for node in presentation.semanticsRoots { collectSemantics(node, attributes: nil, into: &result) }
+        if semanticsCacheIsValid {
+            return semanticsCache.map { entry in
+                var element = entry.element
+                let frame = entry.node.frameInRoot
+                if var input = element.textInput {
+                    input.textRect = input.textRect.offsetBy(dx: frame.minX - element.frame.minX, dy: frame.minY - element.frame.minY)
+                    element.textInput = input
+                }
+                element.frame = frame
+                return element
+            }
         }
-        return result
+        var entries: [SemanticsEntry] = []
+        for node in toolbar?.layoutChildren ?? [] { collectSemantics(node, attributes: nil, into: &entries) }
+        for node in root.layoutChildren { collectSemantics(node, attributes: nil, into: &entries) }
+        for presentation in presentations {
+            for node in presentation.semanticsRoots { collectSemantics(node, attributes: nil, into: &entries) }
+        }
+        semanticsCache = entries
+        semanticsCacheLayout = fullLayoutCount
+        return entries.map(\.element)
     }
 
     /// Increments or decrements an adjustable element (arrow keys on a stepper or slider).

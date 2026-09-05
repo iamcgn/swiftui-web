@@ -339,12 +339,24 @@ public final class CanvasHost {
         }
         needsLayout = false
         runtime.layout(in: CGSize(width: width, height: height))
+        let laidOut = now
         let list = runtime.render(scale: dpr)
+        let rendered = now
         paint(list)
+        let painted = now
+        overlayStart = painted
         updateOverlay()
         lastDisplayList = list
         frameCount += 1
         frameMillis = (now - time) * 1000
+        framePhases = [(laidOut - time) * 1000, (rendered - laidOut) * 1000, (painted - rendered) * 1000, semanticsMillis, (now - painted) * 1000 - semanticsMillis]
+        // The first frame is on screen: a loading screen in the page can go (`index.html`
+        // listens for `swiftuiwebready` on the container; it bubbles to the document).
+        if frameCount == 1, let event = window.CustomEvent.function {
+            let options = JSObject.global.Object.function!.new()
+            options.bubbles = .boolean(true)
+            _ = container.dispatchEvent?(event.new("swiftuiwebready", options))
+        }
         // A preference action, observation, scroll animation or an animation the layout just
         // started may need another frame.
         if animating || runtime.isAnimating || runtime.needsFrame { scheduleFrame() } else { lastFrameTime = nil }
@@ -353,8 +365,12 @@ public final class CanvasHost {
     /// Time of the previous frame while frames run back to back (scroll animations).
     private var lastFrameTime: Double?
 
-    /// Layout + paint time of the most recent frame in milliseconds (debug bridge).
+    /// Layout + paint time of the most recent frame in milliseconds (debug bridge), and its
+    /// split into layout, display list, paint, semantics walk and overlay DOM milliseconds.
     public private(set) var frameMillis: Double = 0
+    public private(set) var framePhases: [Double] = [0, 0, 0, 0, 0]
+    private var overlayStart: Double = 0
+    private var semanticsMillis: Double = 0
 
     /// The most recently painted display list and the number of frames painted (debug bridge).
     public private(set) var lastDisplayList = DisplayList()
@@ -370,10 +386,15 @@ public final class CanvasHost {
 
     private func updateOverlay() {
         var seen = Set<Int>()
-        for node in runtime.semanticsTree() {
+        let tree = runtime.semanticsTree()
+        semanticsMillis = (now - overlayStart) * 1000
+        // Elements that moved or resized, positioned with one bridge call at the end:
+        // identifier, x, y, then width and height or -1 when the size is unchanged.
+        var moved: [Double] = []
+        for node in tree {
             seen.insert(node.identifier)
             if let input = node.textInput {
-                updateInputElement(node, input)
+                updateInputElement(node, input, moved: &moved)
                 continue
             }
             let element: JSObject
@@ -420,16 +441,12 @@ public final class CanvasHost {
                 }
                 _ = overlay.appendChild!(element)
                 overlayButtons[node.identifier] = element
+                _ = bridge.overlayAdd!(node.identifier, element)
             }
             let previous = overlayState[node.identifier]
             if previous?.frame != node.frame {
-                let style = element.style.object!
-                style.left = .string("\(node.frame.minX)px")
-                style.top = .string("\(node.frame.minY)px")
-                if previous?.frame.size != node.frame.size {
-                    style.width = .string("\(node.frame.width)px")
-                    style.height = .string("\(node.frame.height)px")
-                }
+                let resized = previous?.frame.size != node.frame.size
+                moved += [Double(node.identifier), node.frame.minX, node.frame.minY, resized ? node.frame.width : -1, resized ? node.frame.height : -1]
             }
             var unmoved = node
             unmoved.frame = previous?.frame ?? .zero
@@ -444,9 +461,11 @@ public final class CanvasHost {
         }
         for (id, element) in overlayButtons where !seen.contains(id) {
             _ = element.remove!()
+            _ = bridge.overlayRemove!(id)
             overlayButtons[id] = nil
             overlayState[id] = nil
         }
+        if !moved.isEmpty { _ = bridge.overlayFrames!(JSTypedArray<Double>(moved)) }
     }
 
     /// The overlay element for a semantics role: real controls where the browser has them
@@ -505,7 +524,7 @@ public final class CanvasHost {
     /// A text field's editor: a real `<input>` over the text line with transparent text (the
     /// canvas paints it), so typing, IME composition, caret, selection and copy/paste are the
     /// browser's. Its value flows into the binding on every `input` event.
-    private func updateInputElement(_ node: SemanticsNode, _ info: TextInputInfo) {
+    private func updateInputElement(_ node: SemanticsNode, _ info: TextInputInfo, moved: inout [Double]) {
         let element: JSObject
         if let existing = overlayButtons[node.identifier] {
             element = existing
@@ -554,24 +573,30 @@ public final class CanvasHost {
             }
             _ = overlay.appendChild!(element)
             overlayButtons[node.identifier] = element
+            _ = bridge.overlayAdd!(node.identifier, element)
         }
-        let style = element.style.object!
-        style.left = .string("\(info.textRect.minX)px")
-        style.top = .string("\(info.textRect.minY)px")
-        style.width = .string("\(info.textRect.width)px")
-        style.height = .string("\(info.textRect.height)px")
-        style.font = .string(DisplayListEncoder.cssFont(info.font))
-        if info.isMultiline {
-            // The textarea's first baseline lands where the canvas paints it: pad the top by the
-            // difference between the runtime's first baseline and the line box's own.
-            style.lineHeight = .string("\(info.lineHeight)px")
-            style.paddingTop = .string("\(max(0, info.firstBaseline - info.lineHeight * 0.8))px")
-        } else {
-            style.lineHeight = .string("\(info.textRect.height)px")
-            element.type = .string(info.isSecure ? "password" : "text")
+        let previous = overlayState[node.identifier]?.textInput
+        if previous?.textRect != info.textRect {
+            moved += [Double(node.identifier), info.textRect.minX, info.textRect.minY, info.textRect.width, info.textRect.height]
         }
-        element.disabled = .boolean(!info.isEnabled)
-        _ = element.setAttribute!("aria-label", node.label)
+        if previous == nil || previous?.font != info.font || previous?.lineHeight != info.lineHeight
+            || previous?.firstBaseline != info.firstBaseline || previous?.textRect.height != info.textRect.height
+            || previous?.isSecure != info.isSecure || previous?.isEnabled != info.isEnabled {
+            let style = element.style.object!
+            style.font = .string(DisplayListEncoder.cssFont(info.font))
+            if info.isMultiline {
+                // The textarea's first baseline lands where the canvas paints it: pad the top by
+                // the difference between the runtime's first baseline and the line box's own.
+                style.lineHeight = .string("\(info.lineHeight)px")
+                style.paddingTop = .string("\(max(0, info.firstBaseline - info.lineHeight * 0.8))px")
+            } else {
+                style.lineHeight = .string("\(info.textRect.height)px")
+                element.type = .string(info.isSecure ? "password" : "text")
+            }
+            element.disabled = .boolean(!info.isEnabled)
+        }
+        if overlayState[node.identifier]?.label != node.label { _ = element.setAttribute!("aria-label", node.label) }
+        overlayState[node.identifier] = node
         if element.value.string != info.text { element.value = .string(info.text) }
         // A field the runtime focused (a canvas press) takes the browser focus too.
         if runtime.focusedTextFieldIdentifier == node.identifier, document.activeElement.object != element {
@@ -601,6 +626,13 @@ public final class CanvasHost {
         }
         let frameCount = JSClosure { [weak self] _ in .number(Double(self?.frameCount ?? 0)) }
         let frameMillis = JSClosure { [weak self] _ in .number(self?.frameMillis ?? 0) }
+        let framePhases = JSClosure { [weak self] _ in
+            let object = JSObject.global.Object.function!.new()
+            let phases = self?.framePhases ?? [0, 0, 0, 0, 0]
+            object.layout = .number(phases[0]); object.render = .number(phases[1]); object.paint = .number(phases[2])
+            object.semantics = .number(phases[3]); object.overlay = .number(phases[4])
+            return .object(object)
+        }
         let pendingImages = JSClosure { [weak self] _ in self?.bridge.pendingImages!() ?? .number(0) }
         let animating = JSClosure { [weak self] _ in .boolean(self?.runtime.isAnimating ?? false) }
         let semantics = JSClosure { [weak self] _ in
@@ -616,7 +648,8 @@ public final class CanvasHost {
             }
             return .object(array)
         }
-        closures += [frames, displayList, frameCount, frameMillis, pendingImages, animating, semantics]
+        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics]
+        debug.framePhases = .object(framePhases)
         debug.animating = .object(animating)
         debug.semantics = .object(semantics)
         debug.pendingImages = .object(pendingImages)

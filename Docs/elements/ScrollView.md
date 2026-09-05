@@ -93,6 +93,27 @@ caching (open below). The probe also checks that a real wheel event is consumed 
 after the last tick. Note that headless Chromium delivers `mouse.wheel(0, 40)` as `deltaY: 20`
 at device scale factor 2.
 
+### Landing page frame budget (Chromium, `Playwright/landing-perf.mjs` and `landing-mobile.mjs`, 2026-09-05)
+
+`__swiftuiwebDebug.framePhases()` splits a frame into layout, display list (`render`), paint
+(encode + Canvas2D), the semantics walk and the overlay DOM writes. The landing page (94 ops,
+307 overlay elements at 1280 × 900; 57 ops in the iPhone 14 emulation) scrolled by wheel or
+touch, release build, mean per frame:
+
+| Step | Before | After |
+|---|---|---|
+| Overlay DOM writes (307 elements) | ~3 ms: `style.left`/`top` per element through the bridge | 1.4 ms: one `overlayFrames` typed-array call for the elements that moved; text-input styles only when they change |
+| Semantics walk | ~3 ms every frame | 0.5 ms: a frame that only moved scrolled content reuses the last walk with the frames refreshed (`Runtime.semanticsTree`, valid while no state update is pending) |
+| Whole frame, desktop | 9–13 ms | 8.0 ms (layout 0, render 2.5, paint 3.7) |
+| Whole frame, iPhone 14 emulation, finger drag | 6–7 ms | 4 ms |
+
+The painter also keeps its group offscreen canvases between frames (`reset()` instead of a new
+`OffscreenCanvas` per shadow or opacity group). What remains is the display list walk and the
+Canvas2D text (`fillText`), so the next steps are per-node display-list fragments and a text
+glyph cache. iPhone Safari runs `requestAnimationFrame` at 60 Hz on ProMotion phones unless the
+visitor turns off "Prefer Page Rendering Updates near 60fps" in Safari's feature flags (iOS 18+);
+the page cannot ask for 120 Hz, it can only keep a frame under 8 ms so it is smooth when allowed.
+
 ## Fidelity
 
 Tier A: all 14 fixtures exact, including the 4 `scroll/scroll-to` steps. Tier B: Chromium 17/17

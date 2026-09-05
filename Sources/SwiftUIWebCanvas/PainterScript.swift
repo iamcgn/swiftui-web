@@ -230,7 +230,7 @@ enum PainterScript {
           octx.putImageData(img, b.x, b.y);
           return off;
         }
-        const out = new OffscreenCanvas(off.width, off.height);
+        const out = takeOffscreen(off.width, off.height);
         const ctx = out.getContext('2d');
         ctx.filter = 'blur(' + sigma + 'px)';
         ctx.drawImage(off, 0, 0);
@@ -260,16 +260,34 @@ enum PainterScript {
         parent.clearRect(b.x, b.y, b.w, b.h);
         parent.drawImage(patch, b.x, b.y);
       }
+      // Offscreen canvases are kept between frames: a full-window canvas costs milliseconds to
+      // allocate on a phone, and a frame with shadows or opacity groups needs a few. Each frame
+      // takes them in order and `reset()` wipes pixels, state and clip; browsers without
+      // `reset` get a fresh canvas every time.
+      const pool = [];
+      let poolUsed = 0;
+      function takeOffscreen(pw, ph) {
+        let off = pool[poolUsed];
+        if (off && off.width === pw && off.height === ph && typeof off.getContext('2d').reset === 'function') {
+          off.getContext('2d').reset();
+        } else {
+          off = new OffscreenCanvas(pw, ph);
+          pool[poolUsed] = off;
+        }
+        poolUsed++;
+        return off;
+      }
       // A canvas-sized offscreen for a group, drawing in the parent's current space (groups can
       // begin inside a transform); it is composited back in device space.
       function beginOffscreen(ctx, dpr, w, h) {
-        const off = new OffscreenCanvas(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
+        const off = takeOffscreen(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
         const octx = off.getContext('2d');
         octx.setTransform(ctx.getTransform());
         octx.textBaseline = 'alphabetic';
         return { off: off, octx: octx };
       }
       function paint(rootCtx, buf, strings, dpr, w, h) {
+        poolUsed = 0;
         rootCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         rootCtx.clearRect(0, 0, w, h);
         rootCtx.textBaseline = 'alphabetic';
@@ -466,6 +484,18 @@ enum PainterScript {
           }
         }
       }
+      // The accessibility overlay's elements by semantics identifier: the host positions the
+      // ones that moved with one call per frame (each property write crosses the bridge).
+      const overlay = new Map();
+      function overlayFrames(buf) {
+        for (let i = 0; i < buf.length; i += 5) {
+          const style = overlay.get(buf[i]);
+          if (!style) continue;
+          style.left = buf[i + 1] + 'px';
+          style.top = buf[i + 2] + 'px';
+          if (buf[i + 3] >= 0) { style.width = buf[i + 3] + 'px'; style.height = buf[i + 4] + 'px'; }
+        }
+      }
       const measureCache = new Map();
       function measure(ctx, font, text) {
         const k = font + ' ' + text;
@@ -474,8 +504,11 @@ enum PainterScript {
         return w;
       }
       window.__swiftuiweb = {
-        paint: paint, measure: measure, imageState: imageState, version: 3,
+        paint: paint, measure: measure, imageState: imageState, version: 4,
         setImageLoadHandler: function (handler) { onImageLoad = handler; },
+        overlayAdd: function (id, element) { overlay.set(id, element.style); },
+        overlayRemove: function (id) { overlay.delete(id); },
+        overlayFrames: overlayFrames,
         pendingImages: function () { return pending; },
       };
     })();
