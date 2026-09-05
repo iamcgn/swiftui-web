@@ -1,10 +1,12 @@
-# PhaseAnimator, KeyframeAnimator
+# PhaseAnimator, KeyframeAnimator, contentTransition
 
 Apple docs: [PhaseAnimator](https://developer.apple.com/documentation/swiftui/phaseanimator),
 [phaseAnimator(_:content:animation:)](https://developer.apple.com/documentation/swiftui/view/phaseanimator(_:content:animation:)),
 [KeyframeAnimator](https://developer.apple.com/documentation/swiftui/keyframeanimator),
 [keyframeAnimator(initialValue:trigger:content:keyframes:)](https://developer.apple.com/documentation/swiftui/view/keyframeanimator(initialvalue:trigger:content:keyframes:)),
-[KeyframeTimeline](https://developer.apple.com/documentation/swiftui/keyframetimeline).
+[KeyframeTimeline](https://developer.apple.com/documentation/swiftui/keyframetimeline),
+[contentTransition(_:)](https://developer.apple.com/documentation/swiftui/view/contenttransition(_:)),
+[ContentTransition](https://developer.apple.com/documentation/swiftui/contenttransition).
 
 ## API surface
 
@@ -19,6 +21,7 @@ Apple docs: [PhaseAnimator](https://developer.apple.com/documentation/swiftui/ph
 | `KeyframeTimeline(initialValue:content:)`, `duration`, `value(time:)`, `value(progress:)` | implemented |
 | `Spring` (`smooth`, `snappy`, `bouncy`, `duration:bounce:`), `UnitCurve` (`linear`, ease curves, `bezier`) | the subsets the keyframes need |
 | `Animatable` for `Double`, `Float`, `CGFloat` (through `VectorArithmetic`) | added; `CGPoint`/`CGSize`/`CGRect` already conformed |
+| `contentTransition(_:)`, `ContentTransition` (`identity`, `opacity`, `interpolate`, `numericText(countsDown:)`, `symbolEffect`), `EnvironmentValues.contentTransition` | implemented for `Text`: opacity, interpolate and symbolEffect crossfade, numericText crossfades with a vertical roll; images and other views snap |
 
 ## Behaviour
 
@@ -45,6 +48,15 @@ and headless tests step them deterministically.
   start velocity added as a decaying kick; cubic is a Hermite segment whose velocities come
   from the neighbouring keyframes (Catmull-Rom) unless given.
 
+- **contentTransition** applies to `Text`. When a text's runs (strings or fonts) change during
+  an update that carries an animation (`withAnimation`, an `animation(_:value:)` scope) and the
+  environment's transition is not identity, the node keeps the previous text and paints it
+  fading out at the same frame while the new text fades in, over the update's animation. Numeric
+  text also rolls: the old text moves up by half the height and the new one arrives from below
+  (reversed for `countsDown`). SwiftUI's `interpolate` morphs glyph weights and sizes and its
+  numeric text rolls each digit separately; both are crossfades here. Changes without an
+  animation, or under `.identity`, snap. Tested on the headless clock (`ContentTransitionTests`).
+
 The goldens `animator/phase` and `animator/keyframe` capture the animators at rest (a trigger
 that never changes): first phase and initial value, exact in Tier A/B/C.
 
@@ -53,4 +65,5 @@ that never changes): first phase and initial value, exact in Tier A/B/C.
 - SwiftUI's spring keyframes integrate a real spring from the running velocity; ours follow a
   curve from the keyframe's start value, so back-to-back springs do not carry momentum.
 - `PhaseAnimator` starts its first step one frame after appearing rather than at appear time.
-- No `contentTransition` or `matchedGeometryEffect` yet (separate rows).
+- `contentTransition` for symbol images (`symbolEffect`), per-digit numeric rolls and a real
+  `interpolate`; `matchedGeometryEffect` (separate row).

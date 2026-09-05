@@ -1032,9 +1032,14 @@
           "notes": "floor(height / line pitch) lines, at least one, tail-truncated (pressure/heights, overflow, alone*); stacks set Spacers aside with their minimum reserved and share the rest in flexibility order (pressure/stack-*, spacer-*, two-texts, three-texts, row-tight); 15 fixtures exact in Tier A/C (Docs/elements/Text.md, Layout.md)"
         },
         {
-          "api": "matchedGeometryEffect / contentTransition",
+          "api": "matchedGeometryEffect / @Namespace",
           "status": "missing",
           "notes": "Not implemented"
+        },
+        {
+          "api": "contentTransition / ContentTransition (identity, opacity, interpolate, numericText, symbolEffect)",
+          "status": "partial",
+          "notes": "Text crossfades from its old content to the new one over the update's animation; numericText rolls the texts vertically (whole text, not per digit); interpolate and symbolEffect are crossfades; images snap (Docs/elements/Animator.md)"
         },
         {
           "api": "PhaseAnimator / phaseAnimator / KeyframeAnimator / keyframeAnimator / KeyframeTimeline / KeyframeTrack / Linear, Cubic, Spring, Move keyframes",
