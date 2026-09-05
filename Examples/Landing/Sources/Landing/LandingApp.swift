@@ -137,6 +137,7 @@ struct LandingPage: View {
                 Hero()
                 Highlights()
                 Demos()
+                IOSDemo()
                 HowItWorks()
                 SupportMatrix()
                 Footer()
@@ -628,6 +629,94 @@ struct StateDemo: View {
         guard !text.isEmpty else { return }
         model.todos.append(text)
         model.newTodo = ""
+    }
+}
+
+// MARK: - iOS look
+
+/// The same settings screen twice: under the macOS platform profile and, in a phone frame,
+/// under the iOS one (`platformProfile` is SwiftUIWeb's environment value; its iOS metrics are
+/// measured on Mac Catalyst goldens, decision 0013).
+struct IOSDemo: View {
+    @State private var model = SettingsModel()
+    @Environment(\.isCompact) private var compact
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            SectionHeader(kicker: "iOS too", title: "One source, each platform's look")
+            Text("A SwiftUI app looks like the platform it runs on. SwiftUIWeb carries a platform profile: text styles, control geometry and colours measured from Apple's own rendering. The settings screen below is one view, shown with the macOS profile and with the iOS profile. Both are live.")
+                .foregroundColor(.secondary)
+            Columns(secondWidth: 340) {
+                Card {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("macOS profile").font(.caption).fontWeight(.semibold).foregroundColor(.secondary)
+                        SettingsScreen(model: model)
+                    }
+                }
+            } second: {
+                PhoneFrame {
+                    SettingsScreen(model: model)
+                        .padding(.top, 44)   // below the island
+                        #if canImport(SwiftUIWebCore)
+                        .environment(\.platformProfile, .iOS)
+                        #endif
+                }
+            }
+        }
+        .padding(.vertical, 40)
+    }
+}
+
+@Observable
+final class SettingsModel {
+    var wifi = true
+    var bluetooth = false
+    var volume = 0.6
+    var quantity = 3
+    var size = 2
+    var name = ""
+}
+
+/// A settings screen written once; the platform profile decides how its controls look.
+struct SettingsScreen: View {
+    @Bindable var model: SettingsModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Settings").font(.largeTitle).bold()
+            Toggle("Wi-Fi", isOn: $model.wifi)
+            Toggle("Bluetooth", isOn: $model.bluetooth)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Volume").font(.subheadline)
+                Slider(value: $model.volume)
+            }
+            Stepper("Quantity: \(model.quantity)", value: $model.quantity, in: 0...12)
+            Picker("Size", selection: $model.size) {
+                Text("Small").tag(1); Text("Medium").tag(2); Text("Large").tag(3)
+            }
+            .pickerStyle(.segmented)
+            TextField("Name", text: $model.name).textFieldStyle(.roundedBorder)
+            Button("Save") {}.buttonStyle(.borderedProminent)
+        }
+        .padding()
+    }
+}
+
+/// A phone-shaped bezel around a white screen.
+struct PhoneFrame<Content: View>: View {
+    @ViewBuilder let content: Content
+    @Environment(\.palette) private var palette
+
+    var body: some View {
+        content
+            .frame(width: 320, height: 520, alignment: .top)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+            .padding(10)
+            .background(RoundedRectangle(cornerRadius: 46, style: .continuous).fill(Site.ink))
+            .overlay(alignment: .top) {
+                Capsule().fill(Color.black).frame(width: 100, height: 26).padding(.top, 20)
+            }
     }
 }
 

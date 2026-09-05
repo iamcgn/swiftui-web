@@ -14,6 +14,15 @@ scripts/serve.sh Examples/Landing 8768           # http://localhost:8768/
 scripts/build-landing.sh                         # release bundle + Examples/Landing/dist for GitHub Pages
 ```
 
+## The iOS section
+
+"One source, each platform's look" renders `SettingsScreen` twice: under the macOS platform
+profile and, in a phone frame, under `.environment(\.platformProfile, .iOS)`. The environment
+value is SwiftUIWeb's own (its iOS metrics come from Mac Catalyst goldens, decision 0013,
+`Docs/elements/iOS.md`), so the modifier sits behind `#if canImport(SwiftUIWebCore)` and the
+gist's copy of the source still compiles against Apple's SwiftUI, where both screens simply
+take the platform's look.
+
 ## Loading screen
 
 `index.html` shows a wordmark, a progress bar and a status line until the app has painted its
