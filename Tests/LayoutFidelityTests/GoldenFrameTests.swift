@@ -32,7 +32,7 @@ enum Goldens {
     }
 
     /// Fixture names whose goldens exist and whose feature area is implemented.
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/", "textstyle/", "dark/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/", "textstyle/", "dark/", "position/"]
 
     /// The fixtures' asset catalog as `scripts/assets.py` reads it (Fixtures/Assets.manifest.json).
     static func assets() throws -> AssetCatalog {

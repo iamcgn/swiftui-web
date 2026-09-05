@@ -166,6 +166,7 @@ extension ImageNode {
 
 @MainActor
 package final class AspectRatioNode<Content: View>: UnaryLayoutModifierNode<Content, _AspectRatioLayout> {
+    override package var changesChildSize: Bool { true }
     /// The proposal the content receives: the rectangle of the ratio that fits (or fills) the
     /// proposal; a single proposed dimension derives the other; none leaves the content its ideal.
     private func proposal(for target: ViewNode, _ proposal: ProposedViewSize) -> ProposedViewSize {

@@ -1,0 +1,81 @@
+{
+  "fixture" : "position\/basic",
+  "frames" : {
+    "above" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 140.75,
+      "y" : 160
+    },
+    "below" : {
+      "height" : 16,
+      "width" : 36.5,
+      "x" : 141.75,
+      "y" : 224
+    },
+    "hstack" : {
+      "height" : 50,
+      "width" : 320,
+      "x" : 0,
+      "y" : 100
+    },
+    "inHStack" : {
+      "height" : 50,
+      "width" : 244,
+      "x" : 34,
+      "y" : 100
+    },
+    "inVStack" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 180
+    },
+    "inZStack" : {
+      "height" : 90,
+      "width" : 200,
+      "x" : 60,
+      "y" : 0
+    },
+    "left" : {
+      "height" : 16,
+      "width" : 24,
+      "x" : 0,
+      "y" : 117
+    },
+    "point" : {
+      "height" : 90,
+      "width" : 200,
+      "x" : 60,
+      "y" : 0
+    },
+    "right" : {
+      "height" : 16,
+      "width" : 32,
+      "x" : 288,
+      "y" : 117
+    },
+    "stack" : {
+      "height" : 240,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "vstack" : {
+      "height" : 80,
+      "width" : 320,
+      "x" : 0,
+      "y" : 160
+    },
+    "zstack" : {
+      "height" : 90,
+      "width" : 200,
+      "x" : 60,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

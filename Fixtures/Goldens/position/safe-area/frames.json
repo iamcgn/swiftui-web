@@ -1,0 +1,117 @@
+{
+  "fixture" : "position\/safe-area",
+  "frames" : {
+    "ignoring" : {
+      "height" : 200,
+      "width" : 100,
+      "x" : 270,
+      "y" : 30
+    },
+    "ignoringBar" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 270,
+      "y" : 30
+    },
+    "ignoringContent" : {
+      "height" : 200,
+      "width" : 100,
+      "x" : 270,
+      "y" : 30
+    },
+    "plain" : {
+      "height" : 200,
+      "width" : 100,
+      "x" : 30,
+      "y" : 30
+    },
+    "plainBar" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 30,
+      "y" : 200
+    },
+    "plainContent" : {
+      "height" : 162,
+      "width" : 100,
+      "x" : 30,
+      "y" : 30
+    },
+    "row" : {
+      "height" : 200,
+      "width" : 340,
+      "x" : 30,
+      "y" : 30
+    },
+    "row0" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 30
+    },
+    "row1" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 60
+    },
+    "row2" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 90
+    },
+    "row3" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 120
+    },
+    "row4" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 150
+    },
+    "row5" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 180
+    },
+    "row6" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 210
+    },
+    "row7" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 240
+    },
+    "scroll" : {
+      "height" : 200,
+      "width" : 100,
+      "x" : 150,
+      "y" : 30
+    },
+    "scrollBar" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 150,
+      "y" : 200
+    },
+    "scrollContent" : {
+      "height" : 240,
+      "width" : 100,
+      "x" : 150,
+      "y" : 30
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 400
+  }
+}

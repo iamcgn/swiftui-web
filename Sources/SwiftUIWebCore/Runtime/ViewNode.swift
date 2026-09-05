@@ -290,6 +290,29 @@ open class ViewNode {
     /// nodes are never culled by a scroll view's viewport.
     package var paintsOutsideFrame: Bool { false }
 
+    // MARK: Safe area
+
+    /// Whether this node keeps the full bounds under a safe-area modifier and insets its own
+    /// content instead (scroll views, `ignoresSafeArea`). Wrapper nodes forward their child's.
+    package var extendsIntoSafeArea: Bool { false }
+
+    /// Whether a safe area passes through this node to its child: true for nodes that do not
+    /// change their child's size (non-layout wrappers, painting modifiers); false for layout
+    /// modifiers such as frames and padding, whose child gets a fresh safe area.
+    package var forwardsSafeArea: Bool { !isLayoutNode }
+
+    /// The safe-area insets the nearest providing ancestor gives this node (through forwarding
+    /// wrappers), or none.
+    package var inheritedSafeAreaInsets: EdgeInsets {
+        var node: ViewNode = self
+        while let parent = node.parent {
+            if let provider = parent as? _SafeAreaProvider { return provider.safeAreaInsets(for: node) }
+            guard parent.forwardsSafeArea else { break }
+            node = parent
+        }
+        return EdgeInsets()
+    }
+
     /// Whether this node reads its own geometry during layout (GeometryReader, probes): a scroll
     /// view holding one lays its content out on every scroll frame instead of moving it.
     package var readsGeometry: Bool { false }
@@ -505,4 +528,11 @@ package func _shortTypeName(_ type: Any.Type) -> String {
     }
     flushToken()
     return out
+}
+
+/// A node that defines the safe area of its child (`safeAreaInset`, `safeAreaPadding`,
+/// `ignoresSafeArea`).
+@MainActor
+package protocol _SafeAreaProvider: AnyObject {
+    func safeAreaInsets(for child: ViewNode) -> EdgeInsets
 }

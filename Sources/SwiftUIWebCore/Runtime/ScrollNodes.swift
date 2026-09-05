@@ -83,6 +83,11 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     package var axes: Axis.Set { view.axes }
     package var isScrollEnabled: Bool { environment.isScrollEnabled }
+    override package var extendsIntoSafeArea: Bool { true }
+
+    /// Safe-area insets from an enclosing `safeAreaInset`/`safeAreaPadding`: the scroll view
+    /// keeps its frame and insets the content (read at layout, kept for scrolling).
+    package private(set) var contentInsets = EdgeInsets()
 
     /// Whether an indicator may show along each axis.
     package var showsIndicators: (horizontal: Bool, vertical: Bool) {
@@ -104,17 +109,29 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     /// none); across it, exactly the content's size (fixtures `scroll/narrow-content`,
     /// `scroll/wide-content`).
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        var size = child.sizeThatFits(contentProposal(proposal))
+        let insets = inheritedSafeAreaInsets
+        var size = child.sizeThatFits(contentProposal(proposal, insets: insets))
+        size.width += insets.leading + insets.trailing
+        size.height += insets.top + insets.bottom
         for axis in Axis.allCases where axes.contains(Axis.Set(axis)) {
             if let length = proposal[axis] { size[axis] = length }
         }
         return size
     }
 
+    /// The content proposal with the safe-area insets taken off across the scroll axes.
+    private func contentProposal(_ proposal: ProposedViewSize, insets: EdgeInsets) -> ProposedViewSize {
+        var result = contentProposal(proposal)
+        if let width = result.width { result.width = max(0, width - insets.leading - insets.trailing) }
+        if let height = result.height { result.height = max(0, height - insets.top - insets.bottom) }
+        return result
+    }
+
     /// The largest offset along each scroll axis for the current content and viewport.
     package var maximumOffset: CGPoint {
-        CGPoint(x: axes.contains(.horizontal) ? max(0, contentSize.width - frame.width) : 0,
-                y: axes.contains(.vertical) ? max(0, contentSize.height - frame.height) : 0)
+        let insets = contentInsets
+        return CGPoint(x: axes.contains(.horizontal) ? max(0, contentSize.width + insets.leading + insets.trailing - frame.width) : 0,
+                       y: axes.contains(.vertical) ? max(0, contentSize.height + insets.top + insets.bottom - frame.height) : 0)
     }
 
     private func clamped(_ offset: CGPoint) -> CGPoint {
@@ -123,7 +140,8 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     override package func layoutContents(proposal: ProposedViewSize) {
-        let contentProposal = contentProposal(proposal)
+        contentInsets = inheritedSafeAreaInsets
+        let contentProposal = contentProposal(proposal, insets: contentInsets)
         contentSize = child.sizeThatFits(contentProposal)
         if !appliedDefaultAnchor {
             appliedDefaultAnchor = true
@@ -149,7 +167,12 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     private func placeContent(proposal: ProposedViewSize) {
-        child.place(at: CGPoint(x: -contentOffset.x, y: -contentOffset.y), anchor: .topLeading, proposal: proposal, by: self)
+        child.place(at: contentOrigin, anchor: .topLeading, proposal: proposal, by: self)
+    }
+
+    /// Where the content's top-left sits: the safe-area inset, scrolled by the offset.
+    private var contentOrigin: CGPoint {
+        CGPoint(x: contentInsets.leading - contentOffset.x, y: contentInsets.top - contentOffset.y)
     }
 
     private var geometryCheckGeneration: UInt64 = .max
@@ -165,7 +188,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     package func moveContent() {
-        child.moveFrame(toOrigin: CGPoint(x: -contentOffset.x, y: -contentOffset.y))
+        child.moveFrame(toOrigin: contentOrigin)
     }
 
     /// The frame of the identified descendant in content coordinates, or `nil`.

@@ -242,6 +242,14 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
     override package var layoutSpacing: ViewSpacing { targets.first.map(spacing(of:)) ?? ViewSpacing() }
     override package var zIndex: Double { targets.first.map(zIndex(of:)) ?? 0 }
 
+    /// Painting modifiers pass the safe area through; sizing ones (`changesChildSize`) do not.
+    package var changesChildSize: Bool { false }
+    override package var forwardsSafeArea: Bool { !changesChildSize }
+    override package var extendsIntoSafeArea: Bool {
+        let targets = targets
+        return !changesChildSize && targets.count == 1 && targets[0].extendsIntoSafeArea
+    }
+
     override package var paintedChildren: [ViewNode] {
         let targets = targets
         return targets.count == 1 && !hidesTargets ? targets : []
@@ -290,6 +298,8 @@ package final class LayoutModifierProxy: ViewNode {
     override package var layoutPriority: Double { owner.priority(of: target) }
     override package var layoutSpacing: ViewSpacing { owner.spacing(of: target) }
     override package var zIndex: Double { owner.zIndex(of: target) }
+    override package var forwardsSafeArea: Bool { (owner as? ViewNode)?.forwardsSafeArea ?? false }
+    override package var extendsIntoSafeArea: Bool { forwardsSafeArea && target.extendsIntoSafeArea }
     override package var paintedChildren: [ViewNode] { owner.hidesTargets ? [] : [target] }
     override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
         owner.paintTarget(target, in: self, into: &list, context: context)
@@ -301,6 +311,7 @@ package final class LayoutModifierProxy: ViewNode {
 
 @MainActor
 package final class FrameNode<Content: View>: UnaryLayoutModifierNode<Content, _FrameLayout> {
+    override package var changesChildSize: Bool { true }
     override package func childProposal(_ proposal: ProposedViewSize) -> ProposedViewSize {
         ProposedViewSize(width: modifier.width ?? proposal.width, height: modifier.height ?? proposal.height)
     }
@@ -314,6 +325,7 @@ package final class FrameNode<Content: View>: UnaryLayoutModifierNode<Content, _
 
 @MainActor
 package final class FlexFrameNode<Content: View>: UnaryLayoutModifierNode<Content, _FlexFrameLayout> {
+    override package var changesChildSize: Bool { true }
     private func clampedProposal(_ length: CGFloat?, min: CGFloat?, ideal: CGFloat?, max: CGFloat?) -> CGFloat? {
         (length ?? ideal)?.clamped(min, max)
     }
@@ -357,6 +369,7 @@ package func _alignedOrigin(_ child: ViewDimensions, in size: CGSize, alignment:
 
 @MainActor
 package final class PaddingNode<Content: View>: UnaryLayoutModifierNode<Content, _PaddingLayout> {
+    override package var changesChildSize: Bool { true }
     package var insets: EdgeInsets {
         modifier.insets ?? EdgeInsets(modifier.edges, PlatformMetrics.defaultPadding)
     }
@@ -376,6 +389,7 @@ package final class PaddingNode<Content: View>: UnaryLayoutModifierNode<Content,
 
 @MainActor
 package final class FixedSizeNode<Content: View>: UnaryLayoutModifierNode<Content, _FixedSizeLayout> {
+    override package var changesChildSize: Bool { true }
     override package func childProposal(_ proposal: ProposedViewSize) -> ProposedViewSize {
         ProposedViewSize(width: modifier.horizontal ? nil : proposal.width,
                          height: modifier.vertical ? nil : proposal.height)
