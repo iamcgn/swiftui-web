@@ -991,9 +991,12 @@
           ]
         },
         {
-          "api": "gesture / DragGesture / LongPressGesture / MagnifyGesture / RotateGesture / simultaneousGesture / highPriorityGesture",
-          "status": "missing",
-          "notes": "Only onTapGesture; drags exist for sliders and scrolling only (Phase 6)"
+          "api": "gesture / highPriorityGesture / simultaneousGesture / DragGesture / LongPressGesture / TapGesture / onLongPressGesture / sequenced / simultaneously / exclusively / GestureState / updating / map",
+          "status": "partial",
+          "notes": "Recognisers fed by the press events of the deepest interactive node (highPriorityGesture takes the press first); drags report local or global values with velocity, long presses tick on the animation clock, taps count within 0.35 s; MagnifyGesture/RotateGesture are API only (no pinch reaches the canvas); simultaneousGesture behaves as gesture (Docs/elements/Gestures.md)",
+          "fixtures": [
+            "gesture/basic"
+          ]
         },
         {
           "api": "underline / strikethrough (Text and View, Text.LineStyle patterns and colours) / textCase / baselineOffset",
