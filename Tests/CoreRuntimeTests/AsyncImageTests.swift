@@ -3,9 +3,9 @@
 import Testing
 import SwiftUI
 import SwiftUIWebHeadless
-import Foundation
 
 #if !os(WASI)
+import Foundation
 @MainActor private final class FakeLoader: _ImageLoading {
     var states: [String: _ImageLoadState] = [:]
     var asked: [String] = []
