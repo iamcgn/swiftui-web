@@ -11,6 +11,11 @@ rm -rf "$DIST" && mkdir -p "$DIST"
 # index.js and wasm (Pages sends max-age=600; Safari keeps modules longer) fetch the new ones.
 BUNDLE="bundle-$(git -C "$ROOT" rev-parse --short HEAD)-$(date +%Y%m%d%H%M)"
 cp -R "$ROOT/Examples/Landing/.build/wasm/plugins/PackageToJS/outputs/Package" "$DIST/$BUNDLE"
-sed "s|./.build/wasm/plugins/PackageToJS/outputs/Package/index.js|./$BUNDLE/index.js|" "$ROOT/Examples/Landing/index.html" > "$DIST/index.html"
+# The page's loading bar measures the download against the wasm size (Pages serves it gzip
+# compressed, so the response's Content-Length is not the byte count the stream delivers).
+WASM="$DIST/$BUNDLE/Landing.wasm"
+BYTES=$(stat -f%z "$WASM" 2>/dev/null || stat -c%s "$WASM")
+sed -e "s|./.build/wasm/plugins/PackageToJS/outputs/Package/|./$BUNDLE/|" -e "s|data-wasm-bytes=\"\"|data-wasm-bytes=\"$BYTES\"|" \
+  "$ROOT/Examples/Landing/index.html" > "$DIST/index.html"
 touch "$DIST/.nojekyll"
 echo "Site: $DIST ($(du -sh "$DIST" | cut -f1)); serve with: python3 -m http.server --directory $DIST"

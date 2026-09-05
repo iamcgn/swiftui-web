@@ -10,6 +10,11 @@ Serve a built bundle first (`scripts/build-wasm.sh <pkg>` then `scripts/serve.sh
 - `tier-b.mjs`: Tier B fidelity (probe frames via the debug bridge, screenshots against the
   goldens, behaviour steps); run through `scripts/tier-b.sh [--browser chromium|webkit|firefox]`.
 - `counter.mjs`: the Counter example end to end.
+- `landing-perf.mjs`, `landing-mobile.mjs`, `landing-load.mjs`: the landing page's frame phases
+  under wheel scrolling (with a CPU profile), an iPhone-sized touch drag, and the loading screen
+  across browsers. Serve the release build first (`scripts/build-wasm.sh Examples/Landing`, then
+  `python3 -m http.server 8771 --directory Examples/Landing`; pick a port nothing else holds —
+  a forgotten server keeps serving an old bundle).
 - `scroll-probe.mjs`: interactive scrolling in the gallery (`--fixture scroll/long`): a real wheel
   event, 60 in-page wheel ticks with the host's layout + paint time per frame
   (`__swiftuiwebDebug.frameMillis()`), clamping at the top and the indicator fade. Measurements

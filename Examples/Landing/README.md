@@ -14,6 +14,17 @@ scripts/serve.sh Examples/Landing 8768           # http://localhost:8768/
 scripts/build-landing.sh                         # release bundle + Examples/Landing/dist for GitHub Pages
 ```
 
+## Loading screen
+
+`index.html` shows a wordmark, a progress bar and a status line until the app has painted its
+first frame: it fetches the wasm itself and pipes the bytes through a `TransformStream` that
+counts them (against `data-wasm-bytes`, which `build-landing.sh` fills in, because Pages serves
+the file gzip-compressed and the response's `Content-Length` is the compressed size), hands the
+stream to `init({ module })` so compilation still streams, and listens for `swiftuiwebready`,
+which `CanvasHost` dispatches on `#app` after its first frame. A load error shows in the status
+line. `Playwright/landing-load.mjs <url>` checks the sequence in Chromium (throttled), WebKit
+and Firefox.
+
 ## The gist
 
 The two source files depend on nothing but `import SwiftUI`, so they can also live in a gist
