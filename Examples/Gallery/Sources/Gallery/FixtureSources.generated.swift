@@ -2154,18 +2154,18 @@ public static let basic = Fixture(
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "pressure/alone25", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 99, lastLine: 102, declaration: #"""
+        FixtureSource(name: "pressure/alone25", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 98, lastLine: 101, declaration: #"""
 /// The text alone under a squeeze: what it answers to a stack's proposal of exactly 25 and 45.
 public static let alone25 = Fixture("pressure/alone25", size: CGSize(width: 300, height: 25), content: {
     VStack(spacing: 0) { Text(paragraph).frame(width: 150, alignment: .leading).probe("text") }.probe("stack")
 })
 """#),
-        FixtureSource(name: "pressure/alone45", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 103, lastLine: 105, declaration: #"""
+        FixtureSource(name: "pressure/alone45", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 102, lastLine: 104, declaration: #"""
 public static let alone45 = Fixture("pressure/alone45", size: CGSize(width: 300, height: 45), content: {
     VStack(spacing: 0) { Text(paragraph).frame(width: 150, alignment: .leading).probe("text") }.probe("stack")
 })
 """#),
-        FixtureSource(name: "pressure/heights", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 12, lastLine: 19, declaration: #"""
+        FixtureSource(name: "pressure/heights", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 11, lastLine: 18, declaration: #"""
 public static let heights = Fixture("pressure/heights", size: CGSize(width: 760, height: 200), content: {
     HStack(alignment: .top, spacing: 10) {
         ForEach([8, 20, 32, 40, 48, 70], id: \.self) { height in
@@ -2175,7 +2175,7 @@ public static let heights = Fixture("pressure/heights", size: CGSize(width: 760,
     .probe("row")
 })
 """#),
-        FixtureSource(name: "pressure/overflow", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 21, lastLine: 29, declaration: #"""
+        FixtureSource(name: "pressure/overflow", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 20, lastLine: 28, declaration: #"""
 /// A stack taller than its window: the flexible text gives up lines.
 public static let overflow = Fixture("pressure/overflow", size: CGSize(width: 200, height: 120), content: {
     VStack(spacing: 8) {
@@ -2186,7 +2186,7 @@ public static let overflow = Fixture("pressure/overflow", size: CGSize(width: 20
     .probe("stack")
 })
 """#),
-        FixtureSource(name: "pressure/row-tight", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 57, lastLine: 64, declaration: #"""
+        FixtureSource(name: "pressure/row-tight", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 56, lastLine: 63, declaration: #"""
 /// A text in a row: the HStack proposes the window height.
 public static let rowTight = Fixture("pressure/row-tight", size: CGSize(width: 300, height: 50), content: {
     HStack(spacing: 0) {
@@ -2196,28 +2196,28 @@ public static let rowTight = Fixture("pressure/row-tight", size: CGSize(width: 3
     .probe("row")
 })
 """#),
-        FixtureSource(name: "pressure/spacer-min0", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 95, lastLine: 95, declaration: #"""
+        FixtureSource(name: "pressure/spacer-min0", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 94, lastLine: 94, declaration: #"""
 public static let spacerMin0 = Fixture("pressure/spacer-min0", size: CGSize(width: 200, height: 130), content: { spacerColumn(minLength: 0) })
 """#),
-        FixtureSource(name: "pressure/spacer-min30", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 96, lastLine: 96, declaration: #"""
+        FixtureSource(name: "pressure/spacer-min30", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 95, lastLine: 95, declaration: #"""
 public static let spacerMin30 = Fixture("pressure/spacer-min30", size: CGSize(width: 200, height: 130), content: { spacerColumn(minLength: 30) })
 """#),
-        FixtureSource(name: "pressure/spacer-roomy", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 97, lastLine: 97, declaration: #"""
+        FixtureSource(name: "pressure/spacer-roomy", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 96, lastLine: 96, declaration: #"""
 public static let spacerRoomy = Fixture("pressure/spacer-roomy", size: CGSize(width: 200, height: 150), content: { spacerColumn(minLength: nil) })
 """#),
-        FixtureSource(name: "pressure/stack-fits", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 43, lastLine: 43, declaration: #"""
+        FixtureSource(name: "pressure/stack-fits", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 42, lastLine: 42, declaration: #"""
 public static let stackFits = Fixture("pressure/stack-fits", size: CGSize(width: 200, height: 200), content: { column(spacer: false) })
 """#),
-        FixtureSource(name: "pressure/stack-spacer-fits", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 45, lastLine: 45, declaration: #"""
+        FixtureSource(name: "pressure/stack-spacer-fits", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 44, lastLine: 44, declaration: #"""
 public static let stackSpacerFits = Fixture("pressure/stack-spacer-fits", size: CGSize(width: 200, height: 200), content: { column(spacer: true) })
 """#),
-        FixtureSource(name: "pressure/stack-spacer-tight", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 46, lastLine: 46, declaration: #"""
+        FixtureSource(name: "pressure/stack-spacer-tight", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 45, lastLine: 45, declaration: #"""
 public static let stackSpacerTight = Fixture("pressure/stack-spacer-tight", size: CGSize(width: 200, height: 130), content: { column(spacer: true) })
 """#),
-        FixtureSource(name: "pressure/stack-tight", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 44, lastLine: 44, declaration: #"""
+        FixtureSource(name: "pressure/stack-tight", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 43, lastLine: 43, declaration: #"""
 public static let stackTight = Fixture("pressure/stack-tight", size: CGSize(width: 200, height: 130), content: { column(spacer: false) })
 """#),
-        FixtureSource(name: "pressure/three-texts", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 76, lastLine: 83, declaration: #"""
+        FixtureSource(name: "pressure/three-texts", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 75, lastLine: 82, declaration: #"""
 public static let threeTexts = Fixture("pressure/three-texts", size: CGSize(width: 300, height: 100), content: {
     VStack(spacing: 0) {
         Text(paragraph).frame(width: 150, alignment: .leading).probe("a")
@@ -2227,7 +2227,7 @@ public static let threeTexts = Fixture("pressure/three-texts", size: CGSize(widt
     .probe("stack")
 })
 """#),
-        FixtureSource(name: "pressure/two-texts", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 48, lastLine: 55, declaration: #"""
+        FixtureSource(name: "pressure/two-texts", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 47, lastLine: 54, declaration: #"""
 /// Two wrapped texts sharing a short window: which one gives up lines.
 public static let twoTexts = Fixture("pressure/two-texts", size: CGSize(width: 300, height: 90), content: {
     VStack(spacing: 0) {
@@ -2237,7 +2237,7 @@ public static let twoTexts = Fixture("pressure/two-texts", size: CGSize(width: 3
     .probe("stack")
 })
 """#),
-        FixtureSource(name: "pressure/two-texts-swapped", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 68, lastLine: 74, declaration: #"""
+        FixtureSource(name: "pressure/two-texts-swapped", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 67, lastLine: 73, declaration: #"""
 public static let twoTextsSwapped = Fixture("pressure/two-texts-swapped", size: CGSize(width: 300, height: 90), content: {
     VStack(spacing: 0) {
         Text(shortText).frame(width: 150, alignment: .leading).probe("second")
@@ -3635,6 +3635,45 @@ public static let styles = Fixture("textfield/styles", size: CGSize(width: 320, 
     }
     .probe("stack")
 }
+"""#),
+        FixtureSource(name: "textscale/selection", file: "Fixtures/Sources/TextScale/TextScaleFixtures.swift", firstLine: 36, lastLine: 43, declaration: #"""
+/// Selection does not change layout; the environment value is readable.
+public static let selection = Fixture("textscale/selection", size: CGSize(width: 300, height: 100), content: {
+    VStack(spacing: 8) {
+        Text("Selectable text").textSelection(.enabled).probe("enabled")
+        Text("Plain text").textSelection(.disabled).probe("disabled")
+    }
+    .probe("column")
+})
+"""#),
+        FixtureSource(name: "textscale/styles", file: "Fixtures/Sources/TextScale/TextScaleFixtures.swift", firstLine: 9, lastLine: 24, declaration: #"""
+/// Every text style at the default and the secondary scale, side by side.
+public static let styles = Fixture("textscale/styles", size: CGSize(width: 520, height: 420), content: {
+    let styles: [(String, Font)] = [("largeTitle", .largeTitle), ("title", .title), ("title2", .title2), ("title3", .title3),
+                                    ("headline", .headline), ("body", .body), ("callout", .callout), ("subheadline", .subheadline),
+                                    ("footnote", .footnote), ("caption", .caption), ("caption2", .caption2), ("s20", .system(size: 20))]
+    VStack(alignment: .leading, spacing: 2) {
+        ForEach(styles, id: \.0) { name, font in
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text("Hello").font(font).probe("\(name)-default")
+                Text("Hello").font(font).textScale(.secondary).probe("\(name)-secondary")
+            }
+            .probe("\(name)-row")
+        }
+    }
+    .probe("column")
+})
+"""#),
+        FixtureSource(name: "textscale/wrapped", file: "Fixtures/Sources/TextScale/TextScaleFixtures.swift", firstLine: 26, lastLine: 34, declaration: #"""
+/// A wrapped paragraph at the secondary scale: line pitch and wrap width follow the scaled font.
+public static let wrapped = Fixture("textscale/wrapped", size: CGSize(width: 400, height: 200), content: {
+    VStack(alignment: .leading, spacing: 8) {
+        Text(paragraph).frame(width: 150, alignment: .leading).probe("default")
+        Text(paragraph).textScale(.secondary).frame(width: 150, alignment: .leading).probe("secondary")
+        Text(paragraph).textScale(.secondary, isEnabled: false).frame(width: 150, alignment: .leading).probe("disabled")
+    }
+    .probe("column")
+})
 """#),
         FixtureSource(name: "textstyle/baseline", file: "Fixtures/Sources/TextStyle/TextStyleFixtures.swift", firstLine: 62, lastLine: 78, declaration: #"""
 public static let baseline = Fixture("textstyle/baseline", size: CGSize(width: 260, height: 160)) {
@@ -8480,10 +8519,9 @@ public enum TextFieldFixtures {
 """#,
         "Fixtures/Sources/TextPressure/TextPressureFixtures.swift": #"""
 // Text under height pressure: a paragraph proposed less height than its lines need keeps
-// floor(height / line pitch) lines, at least one, and truncates the last (measured 2026-09-04).
-// Recorded for later: applying the rule showed our stacks propose flexible children less height
-// than SwiftUI does, so the fixtures live under `pressure/`, outside the enabled prefixes, until
-// the stack distribution is measured (Docs/elements/Text.md).
+// floor(height / line pitch) lines, at least one, and truncates the last (measured 2026-09-04,
+// applied 2026-09-05). The stack fixtures measure how SwiftUI shares height with flexible texts
+// and Spacers (Docs/elements/Text.md, Layout.md).
 import SwiftUI
 import FixtureKit
 
@@ -8587,6 +8625,55 @@ public enum TextPressureFixtures {
 
     public static let all: [Fixture] = [heights, overflow, stackFits, stackTight, stackSpacerFits, stackSpacerTight, twoTexts, rowTight,
                                         twoTextsSwapped, threeTexts, spacerMin0, spacerMin30, spacerRoomy, alone25, alone45]
+}
+"""#,
+        "Fixtures/Sources/TextScale/TextScaleFixtures.swift": #"""
+// textScale(.secondary) and textSelection: the secondary scale shrinks text by a fixed factor
+// per text style (measured 2026-09-05); selectable text lays out and paints unchanged.
+import SwiftUI
+import FixtureKit
+
+public enum TextScaleFixtures {
+    static let paragraph = "Layout must wrap this sentence onto several lines inside a narrow frame."
+
+    /// Every text style at the default and the secondary scale, side by side.
+    public static let styles = Fixture("textscale/styles", size: CGSize(width: 520, height: 420), content: {
+        let styles: [(String, Font)] = [("largeTitle", .largeTitle), ("title", .title), ("title2", .title2), ("title3", .title3),
+                                        ("headline", .headline), ("body", .body), ("callout", .callout), ("subheadline", .subheadline),
+                                        ("footnote", .footnote), ("caption", .caption), ("caption2", .caption2), ("s20", .system(size: 20))]
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(styles, id: \.0) { name, font in
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text("Hello").font(font).probe("\(name)-default")
+                    Text("Hello").font(font).textScale(.secondary).probe("\(name)-secondary")
+                }
+                .probe("\(name)-row")
+            }
+        }
+        .probe("column")
+    })
+
+    /// A wrapped paragraph at the secondary scale: line pitch and wrap width follow the scaled font.
+    public static let wrapped = Fixture("textscale/wrapped", size: CGSize(width: 400, height: 200), content: {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(paragraph).frame(width: 150, alignment: .leading).probe("default")
+            Text(paragraph).textScale(.secondary).frame(width: 150, alignment: .leading).probe("secondary")
+            Text(paragraph).textScale(.secondary, isEnabled: false).frame(width: 150, alignment: .leading).probe("disabled")
+        }
+        .probe("column")
+    })
+
+    /// Selection does not change layout; the environment value is readable.
+    public static let selection = Fixture("textscale/selection", size: CGSize(width: 300, height: 100), content: {
+        VStack(spacing: 8) {
+            Text("Selectable text").textSelection(.enabled).probe("enabled")
+            Text("Plain text").textSelection(.disabled).probe("disabled")
+        }
+        .probe("column")
+    })
+
+
+    public static let all: [Fixture] = [styles, wrapped, selection]
 }
 """#,
         "Fixtures/Sources/TextStyle/TextStyleFixtures.swift": #"""

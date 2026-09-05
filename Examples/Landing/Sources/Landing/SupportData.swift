@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-05"
-    static let counts: [SupportStatus: Int] = [.partial: 95, .stub: 6, .full: 17, .approximate: 3, .missing: 8]
+    static let counts: [SupportStatus: Int] = [.partial: 96, .stub: 6, .full: 17, .approximate: 3, .missing: 7]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -197,7 +197,7 @@ partial	onHover / onContinuousHover / help / pointerStyle	Hover tracking from ev
 partial	gesture / highPriorityGesture / simultaneousGesture / DragGesture / LongPressGesture / TapGesture / onLongPressGesture / sequenced / simultaneously / exclusively / GestureState / updating / map	Recognisers fed by the press events of the deepest interactive node (highPriorityGesture takes the press first); drags report local or global values with velocity, long presses tick on the animation clock, taps count within 0.35 s; MagnifyGesture/RotateGesture are API only (no pinch reaches the canvas); simultaneousGesture behaves as gesture (Docs/elements/Gestures.md)	1
 partial	underline / strikethrough (Text and View, Text.LineStyle patterns and colours) / textCase / baselineOffset	Lines at CoreText's underline offset and half x-height, snapped to device pixels, weight and design ratios; patterns in multiples of the thickness; textCase before measurement; baselineOffset grows the text and moves the baseline guide as Apple does. Some weights draw the line one pixel off (Docs/elements/TextStyle.md)	5
 full	kerning / tracking (Text and View)	The spacing is added after every character including spaces and the last (measured), wrapping uses the spread widths; painted with canvas letterSpacing (Chromium), character by character where the context lacks it (WebKit, Firefox), and CoreText's kern attribute	1
-missing	textSelection / textScale	Not implemented	0
+partial	textSelection / textScale	textScale(.secondary) measured with a TextRenderer: point size and tracking per weight (0.8 of the size up to 17 pt, fading to 0.46 at 70; regular tracking 0.25), line height unchanged, serif/monospaced unscaled; the recorded engine is exact (Tier A/C on textscale/*), browsers approximate the heavier scaled face with letter spacing; textSelection sets the environment and an I-beam pointer, no selection/copy (Docs/elements/TextScale.md)	0
 full	Text under height pressure (fewer lines and truncation)	floor(height / line pitch) lines, at least one, tail-truncated (pressure/heights, overflow, alone*); stacks set Spacers aside with their minimum reserved and share the rest in flexibility order (pressure/stack-*, spacer-*, two-texts, three-texts, row-tight); 15 fixtures exact in Tier A/C (Docs/elements/Text.md, Layout.md)	0
 missing	matchedGeometryEffect / contentTransition / keyframeAnimator / phaseAnimator / PhaseAnimator / KeyframeAnimator	Not implemented	0
 missing	dropDestination / draggable / onDrag / onDrop / pasteboard	Not implemented	0

@@ -1023,8 +1023,8 @@
         },
         {
           "api": "textSelection / textScale",
-          "status": "missing",
-          "notes": "Not implemented"
+          "status": "partial",
+          "notes": "textScale(.secondary) measured with a TextRenderer: point size and tracking per weight (0.8 of the size up to 17 pt, fading to 0.46 at 70; regular tracking 0.25), line height unchanged, serif/monospaced unscaled; the recorded engine is exact (Tier A/C on textscale/*), browsers approximate the heavier scaled face with letter spacing; textSelection sets the environment and an I-beam pointer, no selection/copy (Docs/elements/TextScale.md)"
         },
         {
           "api": "Text under height pressure (fewer lines and truncation)",

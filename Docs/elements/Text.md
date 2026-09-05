@@ -101,4 +101,5 @@ texts split evenly (`three-texts`: 32/32/32 in 100 pt); a row squeezes the same 
 
 ## Open
 
+- **`textScale`**: see `Docs/elements/TextScale.md`.
 - **Height pressure with mixed fonts**: the kept-line count uses the first part's pitch; a concatenation mixing text styles under pressure is unverified.
