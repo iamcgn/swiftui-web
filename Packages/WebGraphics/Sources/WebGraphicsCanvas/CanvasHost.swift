@@ -33,6 +33,9 @@ public final class CanvasSceneHost {
     /// Whether the primary pointer is coarse (a finger: phones and tablets, an iPad with a
     /// trackpad included), the cue for a touch-first look.
     public let hasCoarsePointer: Bool
+    /// The container's size in points and the device pixel ratio, as of the last resize.
+    public var viewportSize: CGSize { CGSize(width: width, height: height) }
+    public var pixelScale: CGFloat { dpr }
 
     /// Creates a host for `scene` in `#app` (or `<body>`): installs the text engine, assets,
     /// image loader, clipboard and appearance, and schedules the first frame.

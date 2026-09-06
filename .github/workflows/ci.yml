@@ -15,6 +15,8 @@ jobs:
           swiftly install $SWIFT_VERSION --use --assume-yes
       - name: Native tests
         run: . ~/.swiftly/env.sh && swift test
+      - name: UIKitWeb tests
+        run: . ~/.swiftly/env.sh && cd Packages/UIKitWeb && swift test
       - name: Harness builds (Apple toolchain, real SwiftUI)
         run: cd Harness && /usr/bin/swift build
       - name: Host builds (Apple toolchain, WKWebView)
@@ -62,6 +64,14 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8765/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node counter.mjs http://127.0.0.1:8765/index.html --shot ../.build/counter.png)
           scripts/size-gate.sh Examples/Counter
+      - name: UIKit counter smoke test and size gate
+        run: |
+          . ~/.swiftly/env.sh
+          scripts/build-wasm.sh Examples/UIKitCounter
+          python3 -m http.server 8767 --bind 127.0.0.1 --directory Examples/UIKitCounter >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8767/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node uikit-counter.mjs http://127.0.0.1:8767/index.html --shot ../.build/uikit-counter.png)
+          scripts/size-gate.sh Examples/UIKitCounter
       - uses: actions/upload-artifact@v4
         with: { name: tier-b, path: .build/tier-b }
 

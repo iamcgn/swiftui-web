@@ -1,0 +1,287 @@
+// CALayer (Docs/elements/UIKit/CALayer.md): the retained visual tree. Every view owns a layer;
+// the scene paints the layer tree into the display list. Geometry is CoreAnimation's: `bounds`,
+// `position` and `anchorPoint` define `frame`; the transform applies about the anchor.
+
+/// A 3D transform, kept to its affine part (the painter is 2D).
+public struct CATransform3D: Equatable, Sendable {
+    public var m11: CGFloat = 1, m12: CGFloat = 0, m13: CGFloat = 0, m14: CGFloat = 0
+    public var m21: CGFloat = 0, m22: CGFloat = 1, m23: CGFloat = 0, m24: CGFloat = 0
+    public var m31: CGFloat = 0, m32: CGFloat = 0, m33: CGFloat = 1, m34: CGFloat = 0
+    public var m41: CGFloat = 0, m42: CGFloat = 0, m43: CGFloat = 0, m44: CGFloat = 1
+
+    public init() {}
+
+    public init(affine: CGAffineTransform) {
+        m11 = affine.a; m12 = affine.b; m21 = affine.c; m22 = affine.d; m41 = affine.tx; m42 = affine.ty
+    }
+
+    /// The affine part.
+    public var affine: CGAffineTransform { CGAffineTransform(a: m11, b: m12, c: m21, d: m22, tx: m41, ty: m42) }
+    public var isIdentity: Bool { self == CATransform3D() }
+}
+
+public let CATransform3DIdentity = CATransform3D()
+public func CATransform3DMakeAffineTransform(_ m: CGAffineTransform) -> CATransform3D { CATransform3D(affine: m) }
+public func CATransform3DGetAffineTransform(_ t: CATransform3D) -> CGAffineTransform { t.affine }
+public func CATransform3DIsIdentity(_ t: CATransform3D) -> Bool { t.isIdentity }
+public func CATransform3DMakeTranslation(_ tx: CGFloat, _ ty: CGFloat, _ tz: CGFloat) -> CATransform3D { CATransform3D(affine: CGAffineTransform(translationX: tx, y: ty)) }
+public func CATransform3DMakeScale(_ sx: CGFloat, _ sy: CGFloat, _ sz: CGFloat) -> CATransform3D { CATransform3D(affine: CGAffineTransform(scaleX: sx, y: sy)) }
+public func CATransform3DMakeRotation(_ angle: CGFloat, _ x: CGFloat, _ y: CGFloat, _ z: CGFloat) -> CATransform3D { CATransform3D(affine: CGAffineTransform(rotationAngle: z >= 0 ? angle : -angle)) }
+
+/// Which corners a layer's `cornerRadius` rounds.
+public struct CACornerMask: OptionSet, Sendable {
+    public let rawValue: UInt
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+    public static let layerMinXMinYCorner = CACornerMask(rawValue: 1)
+    public static let layerMaxXMinYCorner = CACornerMask(rawValue: 2)
+    public static let layerMinXMaxYCorner = CACornerMask(rawValue: 4)
+    public static let layerMaxXMaxYCorner = CACornerMask(rawValue: 8)
+    public static let all: CACornerMask = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+}
+
+/// The corner curve of a rounded layer.
+public struct CALayerCornerCurve: Hashable, Sendable, RawRepresentable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let circular = CALayerCornerCurve(rawValue: "circular")
+    public static let continuous = CALayerCornerCurve(rawValue: "continuous")
+}
+
+/// An object that manages image-based content and allows you to perform animations on that
+/// content.
+@MainActor
+open class CALayer {
+    // MARK: Geometry
+
+    /// The layer's own coordinate rectangle: its size, and the origin its content is scrolled to.
+    open var bounds = CGRect.zero {
+        didSet { if bounds != oldValue { boundsDidChange(from: oldValue) } }
+    }
+    /// Where the anchor point sits in the superlayer's coordinates.
+    open var position = CGPoint.zero {
+        didSet { if position != oldValue { setNeedsDisplay() } }
+    }
+    /// The point of `bounds`, in unit coordinates, that `position` places and transforms pivot on.
+    open var anchorPoint = CGPoint(x: 0.5, y: 0.5) {
+        didSet { if anchorPoint != oldValue { setNeedsDisplay() } }
+    }
+    open var zPosition: CGFloat = 0
+    open var transform = CATransform3DIdentity {
+        didSet { if transform != oldValue { setNeedsDisplay() } }
+    }
+
+    /// The layer's frame in its superlayer's coordinates, from the bounds, position and anchor
+    /// (with the transform applied, as CoreAnimation does).
+    open var frame: CGRect {
+        get {
+            let untransformed = CGRect(x: position.x - bounds.width * anchorPoint.x, y: position.y - bounds.height * anchorPoint.y,
+                                       width: bounds.width, height: bounds.height)
+            if transform.isIdentity { return untransformed }
+            return untransformed.applying(transformAboutAnchor)
+        }
+        set {
+            // Setting the frame with a transform in place is undefined in CoreAnimation; the
+            // untransformed frame is set.
+            bounds.size = newValue.size
+            position = CGPoint(x: newValue.minX + newValue.width * anchorPoint.x, y: newValue.minY + newValue.height * anchorPoint.y)
+        }
+    }
+
+    /// The affine transform applied about the anchor, in superlayer coordinates.
+    var transformAboutAnchor: CGAffineTransform {
+        let anchor = CGPoint(x: position.x, y: position.y)
+        return CGAffineTransform(translationX: -anchor.x, y: -anchor.y)
+            .concatenating(transform.affine)
+            .concatenating(CGAffineTransform(translationX: anchor.x, y: anchor.y))
+    }
+
+    public func affineTransform() -> CGAffineTransform { transform.affine }
+    public func setAffineTransform(_ m: CGAffineTransform) { transform = CATransform3D(affine: m) }
+
+    func boundsDidChange(from old: CGRect) {
+        setNeedsDisplay()
+        if old.size != bounds.size { setNeedsLayout() }
+    }
+
+    // MARK: Appearance
+
+    open var backgroundColor: CGColor? { didSet { setNeedsDisplay() } }
+    open var cornerRadius: CGFloat = 0 { didSet { setNeedsDisplay() } }
+    open var maskedCorners: CACornerMask = .all { didSet { setNeedsDisplay() } }
+    open var cornerCurve: CALayerCornerCurve = .circular { didSet { setNeedsDisplay() } }
+    open var borderWidth: CGFloat = 0 { didSet { setNeedsDisplay() } }
+    open var borderColor: CGColor? = CGColor(red: 0, green: 0, blue: 0, alpha: 1) { didSet { setNeedsDisplay() } }
+    open var opacity: Float = 1 { didSet { setNeedsDisplay() } }
+    open var isHidden = false { didSet { setNeedsDisplay() } }
+    open var masksToBounds = false { didSet { setNeedsDisplay() } }
+    open var shadowColor: CGColor? = CGColor(red: 0, green: 0, blue: 0, alpha: 1) { didSet { setNeedsDisplay() } }
+    open var shadowOpacity: Float = 0 { didSet { setNeedsDisplay() } }
+    open var shadowOffset = CGSize(width: 0, height: -3) { didSet { setNeedsDisplay() } }
+    open var shadowRadius: CGFloat = 3 { didSet { setNeedsDisplay() } }
+    open var contentsScale: CGFloat = 2
+    open var name: String?
+    /// A mask layer: its alpha clips this layer's content (its own fill and shape, if any).
+    open var mask: CALayer?
+
+    // MARK: Tree
+
+    public private(set) var sublayers: [CALayer]?
+    public private(set) weak var superlayer: CALayer?
+    /// The view this layer draws for, if it is a view's layer.
+    weak var view: UIView?
+
+    public required init() {}
+
+    /// A copy of a layer's properties (`init(layer:)` in CoreAnimation).
+    public init(layer: Any) {
+        if let other = layer as? CALayer {
+            bounds = other.bounds; position = other.position; anchorPoint = other.anchorPoint; transform = other.transform
+            backgroundColor = other.backgroundColor; cornerRadius = other.cornerRadius; opacity = other.opacity
+        }
+    }
+
+    open func addSublayer(_ layer: CALayer) {
+        layer.removeFromSuperlayer()
+        layer.superlayer = self
+        sublayers = (sublayers ?? []) + [layer]
+        setNeedsDisplay()
+    }
+
+    open func insertSublayer(_ layer: CALayer, at index: UInt32) {
+        layer.removeFromSuperlayer()
+        layer.superlayer = self
+        var list = sublayers ?? []
+        list.insert(layer, at: min(Int(index), list.count))
+        sublayers = list
+        setNeedsDisplay()
+    }
+
+    open func insertSublayer(_ layer: CALayer, below sibling: CALayer?) {
+        guard let sibling, let index = sublayers?.firstIndex(where: { $0 === sibling }) else { return addSublayer(layer) }
+        insertSublayer(layer, at: UInt32(index))
+    }
+
+    open func insertSublayer(_ layer: CALayer, above sibling: CALayer?) {
+        guard let sibling, let index = sublayers?.firstIndex(where: { $0 === sibling }) else { return addSublayer(layer) }
+        insertSublayer(layer, at: UInt32(index + 1))
+    }
+
+    open func removeFromSuperlayer() {
+        guard let superlayer else { return }
+        superlayer.sublayers?.removeAll { $0 === self }
+        if superlayer.sublayers?.isEmpty == true { superlayer.sublayers = nil }
+        superlayer.setNeedsDisplay()
+        self.superlayer = nil
+    }
+
+    /// Moves `layer` in the sublayer order (views reorder their subviews through it).
+    func move(_ layer: CALayer, to index: Int) {
+        guard var list = sublayers, let current = list.firstIndex(where: { $0 === layer }) else { return }
+        list.remove(at: current)
+        list.insert(layer, at: min(index, list.count))
+        sublayers = list
+        setNeedsDisplay()
+    }
+
+    // MARK: Invalidation
+
+    /// Marks the layer's content as needing to be drawn again (the next frame repaints the tree).
+    open func setNeedsDisplay() {
+        UIKitScene.shared.setNeedsFrame()
+    }
+
+    open func setNeedsDisplay(_ rect: CGRect) { setNeedsDisplay() }
+
+    open func setNeedsLayout() {
+        view?.setNeedsLayout()
+        UIKitScene.shared.setNeedsFrame()
+    }
+
+    open func layoutIfNeeded() { view?.layoutIfNeeded() }
+    open func layoutSublayers() {}
+    open func display() {}
+
+    // MARK: Geometry queries
+
+    /// Converts a point from `layer`'s coordinate space (nil: the root) to this layer's.
+    open func convert(_ point: CGPoint, from layer: CALayer?) -> CGPoint {
+        let absolute = layer.map { $0.convertToRoot(point) } ?? point
+        return convertFromRoot(absolute)
+    }
+
+    open func convert(_ point: CGPoint, to layer: CALayer?) -> CGPoint {
+        let absolute = convertToRoot(point)
+        return layer.map { $0.convertFromRoot(absolute) } ?? absolute
+    }
+
+    open func convert(_ rect: CGRect, from layer: CALayer?) -> CGRect {
+        let origin = convert(rect.origin, from: layer)
+        return CGRect(origin: origin, size: rect.size)
+    }
+
+    open func convert(_ rect: CGRect, to layer: CALayer?) -> CGRect {
+        let origin = convert(rect.origin, to: layer)
+        return CGRect(origin: origin, size: rect.size)
+    }
+
+    /// The transform from this layer's coordinates to its superlayer's.
+    var transformToSuperlayer: CGAffineTransform {
+        let origin = CGPoint(x: position.x - bounds.width * anchorPoint.x - bounds.minX, y: position.y - bounds.height * anchorPoint.y - bounds.minY)
+        let translate = CGAffineTransform(translationX: origin.x, y: origin.y)
+        return transform.isIdentity ? translate : translate.concatenating(transformAboutAnchor)
+    }
+
+    /// The transform from this layer's coordinates to the root layer's.
+    var transformToRoot: CGAffineTransform {
+        var t = transformToSuperlayer
+        var ancestor = superlayer
+        while let layer = ancestor {
+            t = t.concatenating(layer.transformToSuperlayer)
+            ancestor = layer.superlayer
+        }
+        return t
+    }
+
+    func convertToRoot(_ point: CGPoint) -> CGPoint { point.applying(transformToRoot) }
+    func convertFromRoot(_ point: CGPoint) -> CGPoint { point.applying(transformToRoot.inverted()) }
+
+    open func contains(_ point: CGPoint) -> Bool { bounds.contains(point) }
+
+    /// The deepest sublayer (or this layer) containing `point`, given in the superlayer's space.
+    open func hitTest(_ point: CGPoint) -> CALayer? {
+        let local = point.applying(transformToSuperlayer.inverted())
+        guard !isHidden, opacity > 0, bounds.contains(local) || !masksToBounds else { return nil }
+        for layer in (sublayers ?? []).reversed() {
+            if let hit = layer.hitTest(local) { return hit }
+        }
+        return bounds.contains(local) ? self : nil
+    }
+}
+
+/// A layer that draws a path.
+@MainActor
+open class CAShapeLayer: CALayer {
+    /// The path in the layer's coordinates (a WebGraphics `Path`; `UIBezierPath.cgPath` gives one).
+    open var path: Path? { didSet { setNeedsDisplay() } }
+    open var fillColor: CGColor? = CGColor(red: 0, green: 0, blue: 0, alpha: 1) { didSet { setNeedsDisplay() } }
+    open var strokeColor: CGColor? { didSet { setNeedsDisplay() } }
+    open var lineWidth: CGFloat = 1 { didSet { setNeedsDisplay() } }
+    open var lineCap: CGLineCap = .butt { didSet { setNeedsDisplay() } }
+    open var lineJoin: CGLineJoin = .miter { didSet { setNeedsDisplay() } }
+    open var lineDashPattern: [CGFloat]? { didSet { setNeedsDisplay() } }
+    open var lineDashPhase: CGFloat = 0 { didSet { setNeedsDisplay() } }
+    open var miterLimit: CGFloat = 10 { didSet { setNeedsDisplay() } }
+    open var strokeStart: CGFloat = 0 { didSet { setNeedsDisplay() } }
+    open var strokeEnd: CGFloat = 1 { didSet { setNeedsDisplay() } }
+    open var fillRule: CAShapeLayerFillRule = .nonZero { didSet { setNeedsDisplay() } }
+
+    public required init() { super.init() }
+    public override init(layer: Any) { super.init(layer: layer) }
+}
+
+public struct CAShapeLayerFillRule: Hashable, Sendable, RawRepresentable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let nonZero = CAShapeLayerFillRule(rawValue: "non-zero")
+    public static let evenOdd = CAShapeLayerFillRule(rawValue: "even-odd")
+}

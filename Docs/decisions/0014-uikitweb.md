@@ -102,3 +102,15 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   modules, so both the root `.build` and every example's `.build/wasm` needed a clean before
   the link succeeded (stale objects referenced `SwiftUIWebCore.CGSize`).
 
+## Phase 1 log
+
+- Step 1 (2026-09-06): the package skeleton and the counter (`Docs/ROADMAP.md`, Phase 7 status
+  1.1). Two things UIKit source cannot keep without an Objective-C runtime: `#selector` (the
+  target-action and gesture APIs take closures and `UIAction`s instead), and the app delegate's
+  instantiation: `main()` creates it with `init()`, which a non-final class can only promise
+  with `required init()`, so a delegate is `final` or declares `required override init()`.
+  `UIResponder.init()` is deliberately not `required`: that would force `required init()` onto
+  every view and view controller subclass with its own initializer, which is far more common
+  than an app delegate. The bundle is 2.24 MB brotli for a three-view app because the
+  substrate's symbol and font tables come along; trimming them is a Phase 3 item.
+

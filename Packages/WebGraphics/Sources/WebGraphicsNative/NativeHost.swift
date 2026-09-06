@@ -21,6 +21,9 @@ public final class NativeSceneHost: NSObject, NSApplicationDelegate {
     public var prepare: (@MainActor () -> Void)?
     private let size: CGSize
     private var window: NSWindow?
+    /// The view's size in points and the window's pixel scale (2 before a window exists).
+    public var viewportSize: CGSize { view?.bounds.size ?? size }
+    public var pixelScale: CGFloat { window?.backingScaleFactor ?? 2 }
     public private(set) var view: RuntimeView!
 
     public init(size: CGSize, scene: any HostedScene) {

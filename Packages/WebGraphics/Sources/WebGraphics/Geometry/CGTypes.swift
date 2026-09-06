@@ -183,6 +183,24 @@ public struct CGAffineTransform: Equatable, Hashable, Sendable {
 }
 
 /// How the ends of an open path are drawn when stroked.
+/// A colour as CoreAnimation and UIKit name it (`layer.backgroundColor`, `UIColor.cgColor`):
+/// straight-alpha sRGB components. On Apple platforms this is CoreGraphics's class.
+public final class CGColor: @unchecked Sendable {
+    /// Red, green, blue and alpha in 0…1.
+    public let components: [CGFloat]?
+
+    public init(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+        components = [red, green, blue, alpha]
+    }
+
+    public init(gray: CGFloat, alpha: CGFloat) {
+        components = [gray, gray, gray, alpha]
+    }
+
+    public var alpha: CGFloat { components?.last ?? 1 }
+    public var numberOfComponents: Int { components?.count ?? 0 }
+}
+
 public enum CGLineCap: Int32, Sendable {
     case butt = 0
     case round = 1

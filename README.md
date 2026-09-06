@@ -74,7 +74,8 @@ swift test                      # native runtime + layout tests (fast)
 | Path | Purpose |
 |---|---|
 | `Sources/SwiftUI` | Thin `import SwiftUI` module re-exporting the implementation |
-| `Packages/WebGraphics` | the graphics substrate shared with UIKitWeb: geometry, paths, display list, text measuring (decision 0014) |
+| `Packages/WebGraphics` | the graphics substrate shared with UIKitWeb: geometry, paths, display list, text measuring, the hosts (decision 0014) |
+| `Packages/UIKitWeb` | `import UIKit` on the same substrate: views, layers, controls, view controllers; `Examples/UIKitCounter` |
 | `Sources/SwiftUIWebCore` | API, runtime, layout engine, font resolution |
 | `Sources/SwiftUIWebCanvas` | wasm Canvas2D painter, semantics overlay, text input host |
 | `Sources/SwiftUIWebHeadless` | Display-list recorder for native tests |
