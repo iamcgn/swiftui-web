@@ -1,7 +1,7 @@
 #if canImport(AppKit)
 import AppKit
 import CoreText
-import SwiftUIWebCore
+import WebGraphics
 
 /// Paints a `DisplayList` into a CoreGraphics context whose coordinate system is the display
 /// list's: points, origin at the top left, y down (a flipped `NSView`, or a bitmap context the

@@ -34,10 +34,15 @@ App source ── import SwiftUI ──▶ SwiftUI (thin re-export) ──▶ Sw
   `Text/` (`Font` and its resolution), `Shapes/` (the `Shape` protocol and the built-in shapes),
   `Display/` (the render pass), `Platform/` (`PlatformProfile`: metrics and system colours per
   platform). Re-exports `WebGraphics`. Internal boundaries use `package` access.
-- `SwiftUIWebCanvas` (wasm only): Canvas2D painter decoding the display list in one JS call per
-  frame, DPR handling, rAF loop, root input listeners, DOM semantics overlay, hidden input for IME.
-- `SwiftUIWebHeadless`: records display lists and replays recorded text metrics; powers the fast
-  native fidelity tests.
+- `WebGraphicsCanvas`, `WebGraphicsNative`, `WebGraphicsHeadless` (in `Packages/WebGraphics`):
+  the hosts, written against `HostedScene` (what a host drives: install the text engine and
+  assets, ask for frames, forward pointer and key input, mirror the semantics tree). The canvas
+  host paints the display list in one JS call per frame with DPR handling and a rAF loop, keeps
+  a DOM semantics overlay and real inputs for IME; the native host does the same in a flipped
+  `NSView` with CoreText and CoreGraphics; the headless module replays recorded text metrics.
+- `SwiftUIWebCanvas`, `SwiftUIWebNative`, `SwiftUIWebHeadless`: the `Runtime` (a `HostedScene`)
+  in each host, plus what is SwiftUI's to decide: the window background and chrome, the platform
+  look from the page's pointer, links and share sheets, and `App.main()`'s launch.
 - `Harness/` (separate package, macOS): renders `Fixtures/Sources` with **Apple's** SwiftUI and
   writes `Fixtures/Goldens`.
 

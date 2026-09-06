@@ -1,4 +1,6 @@
 import SwiftUIWebCore
+// The recorded text engine and the asset manifest reader live in the substrate (decision 0014).
+@_exported import WebGraphicsHeadless
 
 /// Drives a `Runtime` without a host: mount, lay out at a size, and record the display list.
 /// Tests use it directly; the browser Tier B job compares its output with the canvas painter's.

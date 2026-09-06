@@ -8,6 +8,7 @@ on:
     paths:
       - Examples/Landing/**
       - Sources/**
+      - Packages/**
       - Package.swift
       - Package.resolved
       - Docs/support.json

@@ -1,6 +1,6 @@
 # 0014 — UIKitWeb: a shared graphics substrate, a UIKit reimplementation, and the representables
 
-Status: accepted (2026-09-06); Phase 0 in progress
+Status: accepted (2026-09-06); Phase 0 done
 
 ## Context
 
@@ -78,3 +78,18 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   `SystemFontMetricsTables` (the generators in `scripts/` write there); `PlatformProfile`
   forwards. `SwiftUIWebCore` re-exports the substrate. 338 native tests pass unchanged; the
   wasm canvas target builds.
+- Step 2 (2026-09-06): `HostedScene` (`WebGraphics/Input/HostedScene.swift`) is the list of
+  calls the hosts made on `Runtime`: install text engine, assets, image loader, appearance and
+  clipboard; `needsFrame`, `advanceFrame(elapsed:)`, `layout(in:)`, `render(scale:)`; pointer,
+  wheel and key input plus the cursor; the semantics tree with activate, adjust, set value,
+  focus and blur; the text-field callbacks. `Runtime` conforms in
+  `SwiftUIWebCore/Runtime/HostedScene.swift`. The hosts moved: `CanvasSceneHost`
+  (`WebGraphicsCanvas`, with `PainterScript` and `Canvas2DTextEngine`), `NativeSceneHost`
+  (`WebGraphicsNative`, with `CoreTextEngine`, `CoreGraphicsPainter`, `RuntimeView` and the
+  accessibility elements), `RecordedTextEngine` and the manifest reader (`WebGraphicsHeadless`).
+  What stayed in SwiftUIWeb is SwiftUI's to decide and lives in thin wrappers named as before
+  (`CanvasHost`, `NativeHost`, `HeadlessRenderer`): the window background and chrome flags, the
+  platform look from the page's pointer (`requestedPlatform`, `hasCoarsePointer`), the
+  `OpenURLAction` and `ShareAction` handlers over the hosts' `openURL` and `share`, and mounting
+  the root. The page-facing names (`window.__swiftuiweb`, `__swiftuiwebAssets`,
+  `__swiftuiwebDebug`, the `swiftuiwebready` event) are unchanged, so the Playwright scripts are too.

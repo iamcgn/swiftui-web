@@ -1,0 +1,696 @@
+import WebGraphics
+#if os(WASI)
+import JavaScriptKit
+
+/// Hosts a `HostedScene` in a `<canvas>`: sizing at device pixel ratio, a requestAnimationFrame
+/// loop that advances the scene, lays out, paints through the injected JS decoder, forwards
+/// pointer events in points, and maintains a DOM overlay of focusable elements and real inputs
+/// for accessibility and text entry (decisions 0007 and 0014).
+@MainActor
+public final class CanvasSceneHost {
+    public let scene: any HostedScene
+    private let document: JSObject
+    private let window: JSObject
+    private let container: JSObject
+    private let canvas: JSObject
+    private let context: JSObject
+    private let overlay: JSObject
+    private let bridge: JSObject
+    private var width: Double = 0
+    private var height: Double = 0
+    private var dpr: Double = 1
+    private var frameScheduled = false
+    private var needsLayout = true
+    private var overlayButtons: [Int: JSObject] = [:]
+    /// The semantics each overlay element was last written from (writes cross the JS bridge).
+    private var overlayState: [Int: SemanticsNode] = [:]
+    private var closures: [JSClosure] = []
+    private var frameClosure: JSClosure?
+
+    /// The platform look the page asks for (`data-platform="ios"` / `"macos"` on the container
+    /// or `?platform=` in the URL, lowercased), if any.
+    public let requestedPlatform: String?
+    /// Whether the primary pointer is coarse (a finger: phones and tablets, an iPad with a
+    /// trackpad included), the cue for a touch-first look.
+    public let hasCoarsePointer: Bool
+
+    /// Creates a host for `scene` in `#app` (or `<body>`): installs the text engine, assets,
+    /// image loader, clipboard and appearance, and schedules the first frame.
+    public init(scene: any HostedScene) {
+        self.scene = scene
+        window = JSObject.global
+        document = window.document.object!
+        if window.__swiftuiweb.isUndefined {
+            let script = document.createElement!("script").object!
+            script.textContent = .string(PainterScript.source)
+            _ = document.head.object!.appendChild!(script)
+        }
+        bridge = window.__swiftuiweb.object!
+        container = document.getElementById!("app").object ?? document.body.object!
+        let containerStyle = container.style.object!
+        if (containerStyle.position.string ?? "").isEmpty {
+            containerStyle.position = .string("relative")
+        }
+        // Overlay elements sit wherever their views are, including outside the window on a
+        // scrolled page: clipped, or mobile browsers widen the layout viewport to fit them.
+        containerStyle.overflow = .string("hidden")
+        canvas = document.createElement!("canvas").object!
+        canvas.style.object!.display = .string("block")
+        canvas.style.object!.touchAction = .string("none")
+        _ = container.appendChild!(canvas)
+        context = canvas.getContext!("2d").object!
+        overlay = document.createElement!("div").object!
+        let overlayStyle = overlay.style.object!
+        overlayStyle.position = .string("absolute")
+        overlayStyle.left = .string("0")
+        overlayStyle.top = .string("0")
+        overlayStyle.width = .string("100%")
+        overlayStyle.height = .string("100%")
+        overlayStyle.pointerEvents = .string("none")
+        overlayStyle.overflow = .string("hidden")
+        _ = overlay.setAttribute!("aria-label", "SwiftUI content")
+        _ = container.appendChild!(overlay)
+
+        requestedPlatform = Self.requestedPlatform(window: window, container: container)
+        hasCoarsePointer = window.matchMedia?("(pointer: coarse)").object?.matches.boolean ?? false
+        scene.textEngine = Canvas2DTextEngine(context: context, bridge: bridge)
+        scene.assetCatalog = Self.assetCatalog(from: window.__swiftuiwebAssets)
+        scene.onNeedsFrame = { [weak self] in self?.scheduleFrame() }
+        // An image the painter had to fetch has arrived: paint the frame again (and let the
+        // scene's image views move to their loaded or failed phase).
+        let imageLoaded = JSClosure { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.scene.imageLoadDidFinish()
+                self?.scheduleFrame()
+            }
+            return .undefined
+        }
+        scene.imageLoader = CanvasImageLoader(bridge: bridge)
+        closures.append(imageLoaded)
+        _ = bridge.setImageLoadHandler!(imageLoaded)
+        // Copies reach the system clipboard when the page may write it.
+        if let navigator = JSObject.global.navigator.object, let clipboard = navigator.clipboard.object, clipboard.writeText.function != nil {
+            scene.clipboardWriter = { text in _ = clipboard.writeText!(text) }
+        }
+        // The system appearance, now and when it changes.
+        if let media = window.matchMedia?("(prefers-color-scheme: dark)").object {
+            scene.hostColorScheme = (media.matches.boolean ?? false) ? .dark : .light
+            let listener = JSClosure { [weak self] arguments in
+                MainActor.assumeIsolated {
+                    self?.scene.hostColorScheme = (arguments.first?.matches.boolean ?? false) ? .dark : .light
+                    self?.scheduleFrame()
+                }
+                return .undefined
+            }
+            _ = media.addEventListener?("change", listener)
+            closures.append(listener)
+        }
+        installEventHandlers()
+        resize()
+        installDebugBridge()
+    }
+
+    /// Opens `url` in a new tab.
+    public func openURL(_ url: String) {
+        _ = window.window.object?.open?(url, "_blank", "noopener")
+    }
+
+    /// Shares `items` through Web Share where the browser offers it (a user gesture must be in
+    /// flight): a single URL as a link, anything else as text.
+    public func share(items: [String], subject: String?) {
+        guard let navigator = JSObject.global.navigator.object, navigator.share.function != nil else { return }
+        let data = JSObject.global.Object.function!.new()
+        if let first = items.first, first.hasPrefix("http") { data.url = .string(first) } else { data.text = .string(items.joined(separator: "\n")) }
+        if let subject { data.title = .string(subject) }
+        _ = navigator.share!(data)
+    }
+
+    /// The platform a page forces with `data-platform` on the container or `?platform=` in its URL.
+    static func requestedPlatform(window: JSObject, container: JSObject) -> String? {
+        var forced = container.dataset.object?.platform.string
+        if forced == nil, let search = window.location.object?.search.string {
+            for pair in search.dropFirst().split(separator: "&") {
+                let parts = pair.split(separator: "=", maxSplits: 1)
+                if parts.count == 2, parts[0] == "platform" { forced = String(parts[1]) }
+            }
+        }
+        return forced?.lowercased()
+    }
+
+    /// The catalog `scripts/assets.py --js` published as `window.__swiftuiwebAssets`, or an empty
+    /// one when the page has no manifest script.
+    static func assetCatalog(from manifest: JSValue) -> AssetCatalog {
+        guard let manifest = manifest.object else { return .empty }
+        var images: [String: ImageResource] = [:]
+        if let sets = manifest.images.object, let names = JSObject.global.Object.function!.keys!(sets).object {
+            for index in 0..<Int(names.length.number ?? 0) {
+                guard let name = names[index].string, let set = sets[dynamicMember: name].object,
+                      let variants = set.variants.object else { continue }
+                var resource = ImageResource(name: name, isTemplate: set.template.boolean ?? false, variants: [])
+                for v in 0..<Int(variants.length.number ?? 0) {
+                    guard let variant = variants[v].object, let file = variant.file.string else { continue }
+                    resource.variants.append(ImageVariant(
+                        file: file, scale: CGFloat(variant.scale.number ?? 1),
+                        pixelWidth: Int(variant.width.number ?? 0), pixelHeight: Int(variant.height.number ?? 0),
+                        idiom: variant.idiom.string ?? "universal", appearance: variant.appearance.string ?? "any"))
+                }
+                images[name] = resource
+            }
+        }
+        var colors: [String: [ColorVariant]] = [:]
+        if let sets = manifest.colors.object, let names = JSObject.global.Object.function!.keys!(sets).object {
+            for index in 0..<Int(names.length.number ?? 0) {
+                guard let name = names[index].string, let set = sets[dynamicMember: name].object,
+                      let variants = set.variants.object else { continue }
+                var entries: [ColorVariant] = []
+                for v in 0..<Int(variants.length.number ?? 0) {
+                    guard let variant = variants[v].object else { continue }
+                    entries.append(ColorVariant(
+                        idiom: variant.idiom.string ?? "universal", appearance: variant.appearance.string ?? "any",
+                        colorSpace: variant.colorSpace.string ?? "srgb",
+                        red: variant.red.number ?? 0, green: variant.green.number ?? 0, blue: variant.blue.number ?? 0,
+                        alpha: variant.alpha.number ?? 1))
+                }
+                colors[name] = entries
+            }
+        }
+        return AssetCatalog(images: images, colors: colors)
+    }
+
+    /// The scene's content changed outside its own invalidation (a new root was mounted):
+    /// lays out again on the next frame.
+    public func invalidate() {
+        needsLayout = true
+        scheduleFrame()
+    }
+
+    private func on(_ target: JSObject, _ event: String, _ handler: @escaping @MainActor (JSObject) -> Void) {
+        let closure = JSClosure { args in
+            MainActor.assumeIsolated { if let e = args.first?.object { handler(e) } }
+            return .undefined
+        }
+        closures.append(closure)
+        _ = target.addEventListener!(event, closure)
+    }
+
+    private func installEventHandlers() {
+        on(canvas, "pointerdown") { [weak self] e in
+            guard let self else { return }
+            if (e.button.number ?? 0) == 2 {
+                self.scene.secondaryPointerDown(at: self.point(of: e))
+                self.scheduleFrame()
+                return
+            }
+            _ = self.canvas.setPointerCapture?(e.pointerId)
+            self.scene.pointerDown(at: self.point(of: e), type: self.pointerType(of: e), time: self.seconds(of: e))
+            self.scheduleFrame()
+        }
+        // Context menus are the scene's; the browser's stays closed.
+        on(canvas, "contextmenu") { e in _ = e.preventDefault!() }
+        on(canvas, "pointermove") { [weak self] e in
+            guard let self else { return }
+            self.scene.pointerMoved(to: self.point(of: e), time: self.seconds(of: e))
+            self.applyPointerStyle()
+            if self.scene.needsFrame { self.scheduleFrame() }
+        }
+        on(canvas, "pointerleave") { [weak self] e in
+            guard let self else { return }
+            self.scene.pointerLeft()
+            self.applyPointerStyle()
+            if self.scene.needsFrame { self.scheduleFrame() }
+        }
+        on(canvas, "pointerup") { [weak self] e in
+            guard let self, (e.button.number ?? 0) != 2 else { return }
+            self.scene.pointerUp(at: self.point(of: e), time: self.seconds(of: e))
+            self.scheduleFrame()
+        }
+        on(canvas, "pointercancel") { [weak self] e in
+            guard let self else { return }
+            self.scene.pointerUp(at: CGPoint(x: -1, y: -1), time: self.seconds(of: e))
+            self.scheduleFrame()
+        }
+        // Wheel deltas are consumed here (non-passive, so the page does not scroll too): pixel
+        // deltas map to points, lines to 16 pt, pages to the viewport.
+        let wheel = JSClosure { [weak self] args in
+            MainActor.assumeIsolated {
+                guard let self, let e = args.first?.object else { return }
+                _ = e.preventDefault!()
+                let mode = e.deltaMode.number ?? 0
+                let factor = mode == 1 ? 16.0 : mode == 2 ? self.height : 1.0
+                let delta = CGSize(width: (e.deltaX.number ?? 0) * factor, height: (e.deltaY.number ?? 0) * factor)
+                self.scene.scrollWheel(by: delta, at: self.point(of: e))
+                if self.scene.needsFrame { self.scheduleFrame() }
+            }
+            return .undefined
+        }
+        closures.append(wheel)
+        let wheelOptions = JSObject.global.Object.function!.new()
+        wheelOptions.passive = .boolean(false)
+        _ = canvas.addEventListener!("wheel", wheel, wheelOptions)
+        on(window, "resize") { [weak self] _ in self?.resize() }
+        // Keys go to the scene: the focused element's handlers,
+        // the open menu, keyboard shortcuts, Escape. A text field's input keeps its own keys
+        // except Escape.
+        on(window, "keydown") { [weak self] e in
+            guard let self, let domKey = e.key.string, let key = KeyEquivalent(domKey: domKey) else { return }
+            if let target = e.target.object, target.tagName.string == "INPUT", target.type.string != "range", key != .escape { return }
+            var modifiers: EventModifiers = []
+            if e.shiftKey.boolean == true { modifiers.insert(.shift) }
+            if e.ctrlKey.boolean == true { modifiers.insert(.control) }
+            if e.altKey.boolean == true { modifiers.insert(.option) }
+            if e.metaKey.boolean == true { modifiers.insert(.command) }
+            let event = KeyEvent(key: key, characters: domKey.count == 1 ? domKey : "", modifiers: modifiers, isRepeat: e["repeat"].boolean == true)
+            if self.scene.keyDown(event) {
+                _ = e.preventDefault?()
+                self.scheduleFrame()
+            }
+        }
+        if let resizeObserver = window.ResizeObserver.function {
+            let closure = JSClosure { [weak self] _ in
+                MainActor.assumeIsolated { self?.resize() }
+                return .undefined
+            }
+            closures.append(closure)
+            let observer = resizeObserver.new(closure)
+            _ = observer.observe!(container)
+        }
+    }
+
+    private func point(of event: JSObject) -> CGPoint {
+        CGPoint(x: event.offsetX.number ?? 0, y: event.offsetY.number ?? 0)
+    }
+
+    private func pointerType(of event: JSObject) -> PointerType {
+        switch event.pointerType.string {
+        case "touch": return .touch
+        case "pen": return .pen
+        default: return .mouse
+        }
+    }
+
+    /// The event's timestamp in seconds (same clock as `performance.now()`).
+    private func seconds(of event: JSObject) -> Double {
+        (event.timeStamp.number ?? 0) / 1000
+    }
+
+    private var now: Double { (window.performance.object?.now?().number ?? 0) / 1000 }
+
+    private func resize() {
+        let newWidth = container.clientWidth.number ?? 0
+        let newHeight = container.clientHeight.number ?? 0
+        let newDPR = window.devicePixelRatio.number ?? 1
+        guard newWidth != width || newHeight != height || newDPR != dpr else { return }
+        width = newWidth
+        height = newHeight
+        dpr = newDPR
+        canvas.width = .number((width * dpr).rounded())
+        canvas.height = .number((height * dpr).rounded())
+        canvas.style.object!.width = .string("\(width)px")
+        canvas.style.object!.height = .string("\(height)px")
+        needsLayout = true
+        scheduleFrame()
+    }
+
+    /// Requests one animation frame; several invalidations coalesce into it.
+    /// The cursor over the canvas follows the hovered `pointerStyle`.
+    private var appliedCursor = ""
+    private func applyPointerStyle() {
+        let cursor = scene.pointerCursor ?? ""
+        guard cursor != appliedCursor else { return }
+        appliedCursor = cursor
+        canvas.style.cursor = .string(cursor)
+    }
+
+    public func scheduleFrame() {
+        guard !frameScheduled else { return }
+        frameScheduled = true
+        if frameClosure == nil {
+            frameClosure = JSClosure { [weak self] _ in
+                MainActor.assumeIsolated { self?.tick() }
+                return .undefined
+            }
+        }
+        // A hidden document gets no animation frames (a WKWebView window the window server has
+        // not shown yet, a background tab): the first frames come from a timer instead so the
+        // page has content when it appears; after that only visible documents paint.
+        if frameCount == 0, document.hidden.boolean == true {
+            _ = window.setTimeout!(frameClosure!, 16)
+        } else {
+            _ = window.requestAnimationFrame!(frameClosure!)
+        }
+    }
+
+    private func tick() {
+        frameScheduled = false
+        let time = now
+        let elapsed = lastFrameTime.map { min(0.1, time - $0) } ?? 0
+        let animating = scene.advanceFrame(elapsed: elapsed)
+        lastFrameTime = time
+        guard needsLayout || scene.needsFrame else {
+            // An animation in a phase that changes nothing on screen (the indicator hold) still
+            // needs the clock to advance.
+            if animating { scheduleFrame() } else { lastFrameTime = nil }
+            return
+        }
+        needsLayout = false
+        scene.layout(in: CGSize(width: width, height: height))
+        let laidOut = now
+        let list = scene.render(scale: dpr)
+        let rendered = now
+        paint(list)
+        let painted = now
+        overlayStart = painted
+        updateOverlay()
+        lastDisplayList = list
+        frameCount += 1
+        frameMillis = (now - time) * 1000
+        framePhases = [(laidOut - time) * 1000, (rendered - laidOut) * 1000, (painted - rendered) * 1000, semanticsMillis, (now - painted) * 1000 - semanticsMillis]
+        // The first frame is on screen: a loading screen in the page can go (`index.html`
+        // listens for `swiftuiwebready` on the container; it bubbles to the document).
+        if frameCount == 1, let event = window.CustomEvent.function {
+            let options = JSObject.global.Object.function!.new()
+            options.bubbles = .boolean(true)
+            _ = container.dispatchEvent?(event.new("swiftuiwebready", options))
+        }
+        // A preference action, observation, scroll animation or an animation the layout just
+        // started may need another frame.
+        if animating || scene.isAnimating || scene.needsFrame { scheduleFrame() } else { lastFrameTime = nil }
+    }
+
+    /// Time of the previous frame while frames run back to back (scroll animations).
+    private var lastFrameTime: Double?
+
+    /// Layout + paint time of the most recent frame in milliseconds (debug bridge), and its
+    /// split into layout, display list, paint, semantics walk and overlay DOM milliseconds.
+    public private(set) var frameMillis: Double = 0
+    public private(set) var framePhases: [Double] = [0, 0, 0, 0, 0]
+    private var overlayStart: Double = 0
+    private var semanticsMillis: Double = 0
+
+    /// The most recently painted display list and the number of frames painted (debug bridge).
+    public private(set) var lastDisplayList = DisplayList()
+    public private(set) var frameCount = 0
+
+    private func paint(_ list: DisplayList) {
+        let encoded = DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)
+        let buffer = JSTypedArray<Double>(encoded.ops)
+        let strings = JSObject.global.Array.function!.new()
+        for s in encoded.strings { _ = strings.push!(s) }
+        _ = bridge.paint!(context, buffer, strings, dpr, width, height)
+    }
+
+    private func updateOverlay() {
+        var seen = Set<Int>()
+        let tree = scene.semanticsTree()
+        semanticsMillis = (now - overlayStart) * 1000
+        // Elements that moved or resized, positioned with one bridge call at the end:
+        // identifier, x, y, then width and height or -1 when the size is unchanged.
+        var moved: [Double] = []
+        for node in tree {
+            seen.insert(node.identifier)
+            if let input = node.textInput {
+                updateInputElement(node, input, moved: &moved)
+                continue
+            }
+            let element: JSObject
+            if let existing = overlayButtons[node.identifier] {
+                element = existing
+            } else {
+                element = document.createElement!(Self.overlayTag(for: node)).object!
+                let style = element.style.object!
+                style.position = .string("absolute")
+                style.opacity = .string("0")
+                style.pointerEvents = .string("none")
+                style.margin = .string("0")
+                style.padding = .string("0")
+                style.border = .string("0")
+                let id = node.identifier
+                switch node.role {
+                case .slider:
+                    on(element, "input") { [weak self] e in
+                        guard let self, let target = e.target.object, let value = Double(target.value.string ?? "") else { return }
+                        self.scene.setValue(semanticsIdentifier: id, value: value)
+                        self.scheduleFrame()
+                    }
+                case .text, .heading, .image, .group, .list:
+                    break
+                default:
+                    on(element, "click") { [weak self] _ in
+                        self?.scene.activate(semanticsIdentifier: id)
+                        self?.scheduleFrame()
+                    }
+                }
+                // Keyboard focus is mirrored into the scene: the ring shows for keyboard focus
+                // (`:focus-visible`), not for a click.
+                if node.isFocusable || ![.text, .heading, .image, .group].contains(node.role) {
+                    on(element, "focus") { [weak self] e in
+                        guard let self else { return }
+                        let visible = e.target.object?.matches?(":focus-visible").boolean ?? true
+                        self.scene.focus(semanticsIdentifier: id, keyboard: visible)
+                        self.scheduleFrame()
+                    }
+                    on(element, "blur") { [weak self] _ in
+                        self?.scene.blur(semanticsIdentifier: id)
+                        self?.scheduleFrame()
+                    }
+                }
+                _ = overlay.appendChild!(element)
+                overlayButtons[node.identifier] = element
+                _ = bridge.overlayAdd!(node.identifier, element)
+            }
+            let previous = overlayState[node.identifier]
+            if previous?.frame != node.frame {
+                let resized = previous?.frame.size != node.frame.size
+                moved += [Double(node.identifier), node.frame.minX, node.frame.minY, resized ? node.frame.width : -1, resized ? node.frame.height : -1]
+            }
+            var unmoved = node
+            unmoved.frame = previous?.frame ?? .zero
+            if previous == nil || previous != unmoved {
+                Self.applyAttributes(of: node, to: element)
+            }
+            overlayState[node.identifier] = node
+            // Programmatic focus (`FocusState`, a click on a focusable view) moves the host's focus.
+            if scene.focusedIdentifier == node.identifier, !(document.activeElement.object === element) {
+                _ = element.focus?()
+            }
+        }
+        for (id, element) in overlayButtons where !seen.contains(id) {
+            _ = element.remove!()
+            _ = bridge.overlayRemove!(id)
+            overlayButtons[id] = nil
+            overlayState[id] = nil
+        }
+        if !moved.isEmpty { _ = bridge.overlayFrames!(JSTypedArray<Double>(moved)) }
+    }
+
+    /// The overlay element for a semantics role: real controls where the browser has them
+    /// (buttons, range inputs), headings and plain elements for static content.
+    private static func overlayTag(for node: SemanticsNode) -> String {
+        switch node.role {
+        case .slider: return "input"
+        case .heading: return "h2"
+        case .text, .image, .group, .list: return "div"
+        default: return "button"
+        }
+    }
+
+    /// ARIA attributes and text for an element from its semantics.
+    private static func applyAttributes(of node: SemanticsNode, to element: JSObject) {
+        element.textContent = .string(node.label)
+        _ = element.setAttribute!("aria-label", node.label)
+        switch node.role {
+        case .checkbox:
+            _ = element.setAttribute!("role", "checkbox")
+            _ = element.setAttribute!("aria-checked", node.isOn == true ? "true" : "false")
+        case .switch:
+            _ = element.setAttribute!("role", "switch")
+            _ = element.setAttribute!("aria-checked", node.isOn == true ? "true" : "false")
+        case .slider:
+            element.type = .string("range")
+            if let range = node.range {
+                _ = element.setAttribute!("min", "\(range.minimum)")
+                _ = element.setAttribute!("max", "\(range.maximum)")
+                _ = element.setAttribute!("step", range.step.map { "\($0)" } ?? "any")
+                if element.value.string != "\(range.value)" { element.value = .string("\(range.value)") }
+            }
+        case .stepper:
+            _ = element.setAttribute!("role", "spinbutton")
+        case .popUpButton:
+            _ = element.setAttribute!("aria-haspopup", "listbox")
+        case .segmented, .radioGroup:
+            _ = element.setAttribute!("role", "radiogroup")
+        case .image:
+            _ = element.setAttribute!("role", "img")
+        case .group:
+            _ = element.setAttribute!("role", "group")
+        case .list:
+            _ = element.setAttribute!("role", "listbox")
+        case .link:
+            _ = element.setAttribute!("role", "link")
+        case .text, .heading, .button, .textField:
+            break
+        }
+        if node.isFocusable { _ = element.setAttribute!("tabindex", "0") }
+        if let value = node.value { _ = element.setAttribute!("aria-valuetext", value) }
+        if let hint = node.hint { _ = element.setAttribute!("aria-description", hint) }
+        if let identifier = node.accessibilityIdentifier { _ = element.setAttribute!("data-testid", identifier) }
+    }
+
+    /// A text field's editor: a real `<input>` over the text line with transparent text (the
+    /// canvas paints it), so typing, IME composition, caret, selection and copy/paste are the
+    /// browser's. Its value flows into the binding on every `input` event.
+    private func updateInputElement(_ node: SemanticsNode, _ info: TextInputInfo, moved: inout [Double]) {
+        let element: JSObject
+        if let existing = overlayButtons[node.identifier] {
+            element = existing
+        } else {
+            element = document.createElement!(info.isMultiline ? "textarea" : "input").object!
+            let style = element.style.object!
+            style.position = .string("absolute")
+            style.margin = .string("0")
+            style.padding = .string("0")
+            style.border = .string("0")
+            style.outline = .string("none")
+            style.background = .string("transparent")
+            style.color = .string("transparent")
+            style.caretColor = .string("black")
+            style.pointerEvents = .string("auto")
+            style.boxSizing = .string("border-box")
+            if info.isMultiline {
+                style.resize = .string("none")
+                style.overflow = .string("hidden")
+                style.whiteSpace = .string("pre-wrap")
+                style.wordBreak = .string("break-word")
+            }
+            _ = element.setAttribute!("autocomplete", "off")
+            _ = element.setAttribute!("autocapitalize", "off")
+            _ = element.setAttribute!("spellcheck", "false")
+            let id = node.identifier
+            on(element, "input") { [weak self] e in
+                guard let self, let target = e.target.object else { return }
+                self.scene.textField(id, didChange: target.value.string ?? "")
+                self.scheduleFrame()
+            }
+            if !info.isMultiline {
+                on(element, "keydown") { [weak self] e in
+                    guard let self, e.key.string == "Enter" else { return }
+                    self.scene.textFieldDidSubmit(id)
+                    self.scheduleFrame()
+                }
+            }
+            on(element, "focus") { [weak self] _ in
+                self?.scene.textField(id, focused: true)
+                self?.scheduleFrame()
+            }
+            on(element, "blur") { [weak self] _ in
+                self?.scene.textField(id, focused: false)
+                self?.scheduleFrame()
+            }
+            _ = overlay.appendChild!(element)
+            overlayButtons[node.identifier] = element
+            _ = bridge.overlayAdd!(node.identifier, element)
+        }
+        let previous = overlayState[node.identifier]?.textInput
+        if previous?.textRect != info.textRect {
+            moved += [Double(node.identifier), info.textRect.minX, info.textRect.minY, info.textRect.width, info.textRect.height]
+        }
+        if previous == nil || previous?.font != info.font || previous?.lineHeight != info.lineHeight
+            || previous?.firstBaseline != info.firstBaseline || previous?.textRect.height != info.textRect.height
+            || previous?.isSecure != info.isSecure || previous?.isEnabled != info.isEnabled {
+            let style = element.style.object!
+            style.font = .string(DisplayListEncoder.cssFont(info.font))
+            if info.isMultiline {
+                // The textarea's first baseline lands where the canvas paints it: pad the top by
+                // the difference between the scene's first baseline and the line box's own.
+                style.lineHeight = .string("\(info.lineHeight)px")
+                style.paddingTop = .string("\(max(0, info.firstBaseline - info.lineHeight * 0.8))px")
+            } else {
+                style.lineHeight = .string("\(info.textRect.height)px")
+                element.type = .string(info.isSecure ? "password" : "text")
+            }
+            element.disabled = .boolean(!info.isEnabled)
+        }
+        if overlayState[node.identifier]?.label != node.label { _ = element.setAttribute!("aria-label", node.label) }
+        overlayState[node.identifier] = node
+        if element.value.string != info.text { element.value = .string(info.text) }
+        // A field the scene focused (a canvas press) takes the browser focus too.
+        if scene.focusedTextFieldIdentifier == node.identifier, document.activeElement.object != element {
+            _ = element.focus?()
+        }
+    }
+
+    /// `window.__swiftuiwebDebug`: probe frames, display list and frame count for Tier B tests.
+    private func installDebugBridge() {
+        let debug = JSObject.global.Object.function!.new()
+        let frames = JSClosure { [weak self] _ in
+            guard let self else { return .undefined }
+            let object = JSObject.global.Object.function!.new()
+            for (id, frame) in self.scene.probeFrames {
+                let rect = JSObject.global.Object.function!.new()
+                rect.x = .number(frame.minX); rect.y = .number(frame.minY)
+                rect.width = .number(frame.width); rect.height = .number(frame.height)
+                object[dynamicMember: id] = .object(rect)
+            }
+            return .object(object)
+        }
+        let displayList = JSClosure { [weak self] _ in
+            guard let self else { return .undefined }
+            let array = JSObject.global.Array.function!.new()
+            for command in self.lastDisplayList.commands { _ = array.push!(command.description) }
+            return .object(array)
+        }
+        let frameCount = JSClosure { [weak self] _ in .number(Double(self?.frameCount ?? 0)) }
+        let frameMillis = JSClosure { [weak self] _ in .number(self?.frameMillis ?? 0) }
+        let framePhases = JSClosure { [weak self] _ in
+            let object = JSObject.global.Object.function!.new()
+            let phases = self?.framePhases ?? [0, 0, 0, 0, 0]
+            object.layout = .number(phases[0]); object.render = .number(phases[1]); object.paint = .number(phases[2])
+            object.semantics = .number(phases[3]); object.overlay = .number(phases[4])
+            return .object(object)
+        }
+        let pendingImages = JSClosure { [weak self] _ in self?.bridge.pendingImages!() ?? .number(0) }
+        let animating = JSClosure { [weak self] _ in .boolean(self?.scene.isAnimating ?? false) }
+        let semantics = JSClosure { [weak self] _ in
+            guard let self else { return .undefined }
+            let array = JSObject.global.Array.function!.new()
+            for node in self.scene.semanticsTree() {
+                let object = JSObject.global.Object.function!.new()
+                object.role = .string(node.role.rawValue)
+                object.label = .string(node.label)
+                if let value = node.value { object.value = .string(value) }
+                if let identifier = node.accessibilityIdentifier { object.identifier = .string(identifier) }
+                _ = array.push!(object)
+            }
+            return .object(array)
+        }
+        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics]
+        debug.framePhases = .object(framePhases)
+        debug.animating = .object(animating)
+        debug.semantics = .object(semantics)
+        debug.pendingImages = .object(pendingImages)
+        debug.frames = .object(frames)
+        debug.displayList = .object(displayList)
+        debug.frameCount = .object(frameCount)
+        debug.frameMillis = .object(frameMillis)
+        JSObject.global.__swiftuiwebDebug = .object(debug)
+    }
+}
+
+/// The browser's image loader: `Image` elements kept by the painter script, asked by URL.
+@MainActor
+final class CanvasImageLoader: _ImageLoading {
+    private let bridge: JSObject
+    init(bridge: JSObject) { self.bridge = bridge }
+
+    func state(for url: String) -> _ImageLoadState {
+        let state = bridge.imageState!(url)
+        if let text = state.string { return text == "failed" ? .failed : .loading }
+        guard let array = state.object, let width = array[0].number, let height = array[1].number else { return .loading }
+        return .loaded(pixelSize: CGSize(width: width, height: height))
+    }
+}
+
+#else
+/// The canvas host exists only on wasm; this keeps the module importable elsewhere.
+public enum WebGraphicsCanvas {}
+#endif

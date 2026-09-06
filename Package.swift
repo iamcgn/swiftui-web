@@ -8,9 +8,11 @@ import CompilerPluginSupport
 // Module layout (see Docs/ARCHITECTURE.md):
 //   SwiftUI              thin re-export so apps can `import SwiftUI` unchanged
 //   SwiftUIWebCore       API + runtime + layout + text + display list
-//   SwiftUIWebHeadless   display-list recorder + recorded text metrics for native tests
-//   SwiftUIWebCanvas     wasm-only Canvas2D painter, semantics overlay, text input host
+//   SwiftUIWebHeadless   headless renderer over the substrate's recorded text metrics
+//   SwiftUIWebCanvas     the runtime in the substrate's wasm canvas host
+//   SwiftUIWebNative     the runtime in the substrate's AppKit host
 //   SwiftUIWebTestSupport fixture registry, golden codecs, comparators
+//   Packages/WebGraphics the graphics substrate shared with UIKitWeb (decision 0014)
 
 let package = Package(
     name: "SwiftUIWeb",
@@ -57,7 +59,7 @@ let package = Package(
         ),
         .target(
             name: "SwiftUIWebHeadless",
-            dependencies: ["SwiftUIWebCore"],
+            dependencies: ["SwiftUIWebCore", .product(name: "WebGraphicsHeadless", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
@@ -65,18 +67,19 @@ let package = Package(
             dependencies: ["SwiftUIWebCore", "SwiftUIWebHeadless"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
-        // The native macOS host: CoreText engine, CoreGraphics painter, AppKit window (Phase 4.2).
+        // The native macOS host: the runtime in the substrate's AppKit host (decisions 0012, 0014).
         // Its sources are `#if canImport(AppKit)`, so the target is empty elsewhere.
         .target(
             name: "SwiftUIWebNative",
-            dependencies: ["SwiftUIWebCore", "SwiftUIWebHeadless"],
+            dependencies: ["SwiftUIWebCore", .product(name: "WebGraphicsNative", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // The browser host: the runtime in the substrate's canvas host (decisions 0007, 0014).
         .target(
             name: "SwiftUIWebCanvas",
             dependencies: [
                 "SwiftUIWebCore",
-                .product(name: "JavaScriptKit", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
+                .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]

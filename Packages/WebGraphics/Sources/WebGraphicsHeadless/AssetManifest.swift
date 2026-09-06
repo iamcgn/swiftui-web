@@ -1,4 +1,4 @@
-import SwiftUIWebCore
+import WebGraphics
 #if !os(WASI)
 #if os(WASI)
 import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)

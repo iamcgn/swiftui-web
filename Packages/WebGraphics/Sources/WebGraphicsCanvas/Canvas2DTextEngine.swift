@@ -1,19 +1,18 @@
 #if os(WASI)
 import JavaScriptKit
-import SwiftUIWebCore
+import WebGraphics
 
 /// Text engine backed by Canvas2D `measureText` for advances and the measured macOS font table
 /// for line heights, baselines and spacing (`SystemFontMetrics`). Line breaking, truncation and
 /// line spacing follow SwiftUI's measured rules in `TextLayouter`.
 @MainActor
-final class Canvas2DTextEngine: TextEngine {
+public final class Canvas2DTextEngine: TextEngine {
     private let context: JSObject
     private let bridge: JSObject
     private var widthCache: [String: CGFloat] = [:]
     private var cssFonts: [ResolvedFont: String] = [:]
-    private let profile = PlatformProfile.macOS
 
-    init(context: JSObject, bridge: JSObject) {
+    public init(context: JSObject, bridge: JSObject) {
         self.context = context
         self.bridge = bridge
     }
@@ -34,14 +33,14 @@ final class Canvas2DTextEngine: TextEngine {
         return measured
     }
 
-    func layout(_ runs: [StyledRun], options: TextLayoutOptions, width maxWidth: CGFloat?) -> TextLayout {
+    public func layout(_ runs: [StyledRun], options: TextLayoutOptions, width maxWidth: CGFloat?) -> TextLayout {
         let layouter = TextLayouter(measure: { [unowned self] text, font in self.width(of: text, font: font) },
-                                    metrics: { [profile] font in profile.systemFontMetrics(for: font) })
+                                    metrics: { font in SystemFontMetricsTables.systemFontMetrics(for: font) })
         return layouter.layout(runs, options: options, width: maxWidth)
     }
 
-    func metrics(for font: ResolvedFont) -> FontMetrics {
-        profile.systemFontMetrics(for: font).fontMetrics
+    public func metrics(for font: ResolvedFont) -> FontMetrics {
+        SystemFontMetricsTables.systemFontMetrics(for: font).fontMetrics
     }
 }
 #endif

@@ -329,7 +329,7 @@ Layout, `draw(_:)`, animation and `UIHostingController`.
 | Step | Status |
 |---|---|
 | 0.1 WebGraphics module | done 2026-09-06: `Packages/WebGraphics` holds geometry, `Path`, the display list and encoder, `PaintContext`, `AssetCatalog`, text engine and layouter, the measured tables and the host value types; SwiftUI's nested names are typealiases; `SwiftUIWebCore` re-exports it. 338 native tests unchanged, wasm canvas target builds. |
-| 0.2 HostedScene and the hosts | not started |
+| 0.2 HostedScene and the hosts | done 2026-09-06: `HostedScene` in WebGraphics (what a host drives: services, frames, input, semantics, text input); `Runtime` conforms; `CanvasSceneHost`, `NativeSceneHost`, `RecordedTextEngine` moved into `WebGraphicsCanvas` / `WebGraphicsNative` / `WebGraphicsHeadless`; `CanvasHost`, `NativeHost` and `HeadlessRenderer` stay as the SwiftUI wrappers (chrome flags, platform look, link and share handlers, mounting). 338 native tests unchanged; Tier B 367/367 renders within tolerance; the Counter smoke test green in Chromium, WebKit and Firefox; release Counter 2.75 MB brotli (budget 3 MB). |
 | 0.3 Verification and docs | not started |
 
 ## Risk register
