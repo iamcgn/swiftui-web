@@ -26,12 +26,8 @@ public enum TextAlignment: Hashable, CaseIterable, Sendable {
 
 /// A view that displays one or more lines of read-only text.
 public struct Text: Equatable, Sendable {
-    /// The type of truncation to apply to a line of text when it's too long to fit in the
-    /// available space.
-    public enum TruncationMode: Hashable, Sendable {
-        case head, tail, middle
-    }
-
+    public typealias TruncationMode = TextTruncationMode
+    public typealias Scale = TextScale
     package enum Storage: Equatable, Sendable {
         case verbatim(String)
         case localized(LocalizedStringKey)
@@ -337,15 +333,6 @@ package struct TextScaleKey: EnvironmentKey {
 
 package struct TextSelectionKey: EnvironmentKey {
     package static let defaultValue = false
-}
-
-extension Text {
-    /// The scale text is drawn at: the secondary scale is smaller than the default.
-    public struct Scale: Hashable, Sendable {
-        package let rawValue: Int
-        public static let `default` = Scale(rawValue: 0)
-        public static let secondary = Scale(rawValue: 1)
-    }
 }
 
 /// Whether people can select text (`textSelection`).

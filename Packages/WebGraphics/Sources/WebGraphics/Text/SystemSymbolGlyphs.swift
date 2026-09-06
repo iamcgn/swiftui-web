@@ -16,29 +16,29 @@
 // on first use (array literals this large compile into code, not data).
 
 /// A symbol name's glyph: the icon it draws and how (`mode`).
-package struct SymbolGlyph: Sendable {
-    package let icon: String
-    package let mode: Int
+public struct SymbolGlyph: Sendable {
+    public let icon: String
+    public let mode: Int
 }
 
 /// An icon's outline on the 24 × 24 grid.
-package struct SymbolGlyphOutline: Sendable {
-    package let firstElement: Int
-    package let bounds: (Double, Double, Double, Double)
-    package let ops: [Double]
+public struct SymbolGlyphOutline: Sendable {
+    public let firstElement: Int
+    public let bounds: (Double, Double, Double, Double)
+    public let ops: [Double]
 }
 
 @MainActor
-package enum SystemSymbolGlyphs {
-    package static let count = 1551
+public enum SystemSymbolGlyphs {
+    public static let count = 1551
 
-    package static func glyph(named name: String) -> (SymbolGlyph, SymbolGlyphOutline)? {
+    public static func glyph(named name: String) -> (SymbolGlyph, SymbolGlyphOutline)? {
         guard let glyph = table[name], let outline = outline(for: glyph.icon) else { return nil }
         return (glyph, outline)
     }
 
     /// name|icon|mode per line.
-    package static let table: [String: SymbolGlyph] = {
+    public static let table: [String: SymbolGlyph] = {
         var table: [String: SymbolGlyph] = [:]
         for line in namesBlob.split(separator: "\n") {
             let parts = line.split(separator: "|")
@@ -58,7 +58,7 @@ package enum SystemSymbolGlyphs {
     }()
     private static var outlines: [String: SymbolGlyphOutline] = [:]
 
-    package static func outline(for icon: String) -> SymbolGlyphOutline? {
+    public static func outline(for icon: String) -> SymbolGlyphOutline? {
         if let cached = outlines[icon] { return cached }
         guard let line = outlineLines[icon] else { return nil }
         let parts = line.split(separator: "|")

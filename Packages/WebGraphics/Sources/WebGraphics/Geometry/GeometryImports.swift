@@ -7,15 +7,15 @@
 #endif
 
 extension CGSize {
-    package static let unspecifiedIdeal = CGSize(width: 10, height: 10)
+    public static let unspecifiedIdeal = CGSize(width: 10, height: 10)
 
-    @inline(__always) package func clamped(min lower: CGSize = .zero) -> CGSize {
+    @inline(__always) public func clamped(min lower: CGSize = .zero) -> CGSize {
         CGSize(width: Swift.max(width, lower.width), height: Swift.max(height, lower.height))
     }
 }
 
 extension CGFloat {
-    @inline(__always) package func clamped(_ lower: CGFloat?, _ upper: CGFloat?) -> CGFloat {
+    @inline(__always) public func clamped(_ lower: CGFloat?, _ upper: CGFloat?) -> CGFloat {
         var value = self
         if let lower { value = Swift.max(value, lower) }
         if let upper { value = Swift.min(value, upper) }

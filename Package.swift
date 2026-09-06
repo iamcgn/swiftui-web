@@ -24,6 +24,8 @@ let package = Package(
         .library(name: "SwiftUIWebFixtures", targets: ["SwiftUIWebFixtures"]),
     ],
     dependencies: [
+        // The graphics substrate shared with UIKitWeb (decision 0014).
+        .package(path: "Packages/WebGraphics"),
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),
         // Only for the `#Preview` macro plugin (expands to nothing); SwiftPM uses prebuilt libraries.
         .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
@@ -50,6 +52,7 @@ let package = Package(
         ),
         .target(
             name: "SwiftUIWebCore",
+            dependencies: [.product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

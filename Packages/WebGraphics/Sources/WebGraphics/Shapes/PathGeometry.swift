@@ -4,9 +4,9 @@
 // hit testing (`Docs/elements/Shape.md`).
 
 /// A flattened subpath.
-package struct _Polyline {
-    package var points: [CGPoint]
-    package var closed: Bool
+public struct _Polyline {
+    public var points: [CGPoint]
+    public var closed: Bool
 }
 
 extension CGPoint {
@@ -97,7 +97,7 @@ struct _Cubic {
 
 extension Path {
     /// The subpaths as polylines (curves flattened). Trailing moves are dropped.
-    package func _flattened() -> [_Polyline] {
+    public func _flattened() -> [_Polyline] {
         var result: [_Polyline] = []
         var points: [CGPoint] = []
         var closed = false

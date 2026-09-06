@@ -314,6 +314,24 @@ effects → `mask`/`compositingGroup` → `position`/safe areas → `onHover`/`h
 | kerning, tracking | done 2026-09-04: `TextLayoutOptions.kerning`/`tracking` (in the recorded-metrics key), `Text.kerning`/`tracking` and the environment forms; the layouter adds the spacing after every character (measured: "Hello" 31 → 41 at 2 pt, tracking identical), `DisplayFont.letterSpacing` painted with canvas `letterSpacing` / CoreText kern. `textstyle/kerning` exact in Tier A, Tier C 0.00 % (`Docs/elements/TextStyle.md`). The Phase 6 sweep's listed modifiers are all done; open follow-ups live in the element docs and `Docs/support.json`. |
 | underline, strikethrough, textCase, baselineOffset | done 2026-09-04: `Text.LineStyle`, text- and view-level modifiers, CoreText decoration metrics in the font table with weight/design ratios, pixel-snapped lines and dash patterns, cased measurement, baseline-offset growth. 5 fixtures exact in Tier A, Tier C ≤ 0.10 % (`Docs/elements/TextStyle.md`). |
 
+### Phase 7 — UIKitWeb and the representables (decision 0014)
+
+A UIKit reimplementation built the way SwiftUIWeb was, in its own package, painting through the
+same display list, with goldens from real UIKit on Mac Catalyst; then `UIViewRepresentable` and
+`UIViewControllerRepresentable` on top of it. Three packages: `Packages/WebGraphics` (the
+substrate both share), `Packages/UIKitWeb`, and the root, which depends on UIKitWeb as Apple's
+SwiftUI depends on UIKit. Phase 0 extracts the substrate with no behaviour change; Phase 1 makes
+UIKitWeb run alone (`Examples/UIKitCounter`); Phase 2 adds the representables; Phase 3 Auto
+Layout, `draw(_:)`, animation and `UIHostingController`.
+
+### Phase 7 status
+
+| Step | Status |
+|---|---|
+| 0.1 WebGraphics module | done 2026-09-06: `Packages/WebGraphics` holds geometry, `Path`, the display list and encoder, `PaintContext`, `AssetCatalog`, text engine and layouter, the measured tables and the host value types; SwiftUI's nested names are typealiases; `SwiftUIWebCore` re-exports it. 338 native tests unchanged, wasm canvas target builds. |
+| 0.2 HostedScene and the hosts | not started |
+| 0.3 Verification and docs | not started |
+
 ## Risk register
 
 | Risk | Mitigation |

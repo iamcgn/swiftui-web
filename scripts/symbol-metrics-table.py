@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Sources/SwiftUIWebCore/Text/SystemSymbolMetricsTable.swift from the symbol catalog
+"""Generate Packages/WebGraphics/Sources/WebGraphics/Text/SystemSymbolMetricsTable.swift from the symbol catalog
 goldens (Fixtures/Goldens/symbol/catalog-*/frames.json, fixture symbol/catalog-* in
 Fixtures/Sources/Symbol/SymbolFixtures.swift): the layout size of each SF Symbol at the macOS
 text-style point sizes (regular weight), at 13 pt semibold and bold, and at 13 pt with the small
@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 GOLDENS = ROOT / "Fixtures/Goldens/symbol"
-OUT = ROOT / "Sources/SwiftUIWebCore/Text/SystemSymbolMetricsTable.swift"
+OUT = ROOT / "Packages/WebGraphics/Sources/WebGraphics/Text/SystemSymbolMetricsTable.swift"
 
 POINT_SIZES = [10, 11, 12, 13, 15, 17, 22, 26]
 VARIANTS = [str(s) for s in POINT_SIZES] + ["13-semibold", "13-bold", "13-small", "13-large"]
@@ -55,12 +55,12 @@ def main():
 // the point sizes {POINT_SIZES} (regular weight, medium image scale), then at 13 pt semibold,
 // 13 pt bold, 13 pt with the small image scale and 13 pt with the large image scale.
 
-package enum SystemSymbolMetricsTable {{
-    package static let pointSizes: [Double] = [{", ".join(str(s) for s in POINT_SIZES)}]
-    package static let count = {len(names)}
+public enum SystemSymbolMetricsTable {{
+    public static let pointSizes: [Double] = [{", ".join(str(s) for s in POINT_SIZES)}]
+    public static let count = {len(names)}
 
     /// Parsed from `blob` on first use (a literal this large would compile into code).
-    package static let sizes: [String: [Double]] = {{
+    public static let sizes: [String: [Double]] = {{
         var sizes: [String: [Double]] = [:]
         for line in blob.split(separator: "\\n") {{
             let parts = line.split(separator: " ")

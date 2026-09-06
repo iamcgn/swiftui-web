@@ -10,11 +10,11 @@ a layout engine implementing the documented SwiftUI semantics, and painter backe
 consume a display list.
 
 ```
-App source ── import SwiftUI ──▶ SwiftUI (thin re-export) ──▶ SwiftUIWebCore
+App source ── import SwiftUI ──▶ SwiftUI (thin re-export) ──▶ SwiftUIWebCore ──▶ WebGraphics (Packages/WebGraphics)
                                                                 │  Painter / TextEngine / SemanticsHost / TextInputHost
                         ┌───────────────────────────────────────┼─────────────────────────────┐
-              SwiftUIWebCanvas (wasm)                 SwiftUIWebHeadless (any OS)        SwiftUIWebNative (later)
-              Canvas2D painter, overlay, IME          recorder for tests                 CoreGraphics / Skia
+              SwiftUIWebCanvas (wasm)                 SwiftUIWebHeadless (any OS)        SwiftUIWebNative (macOS)
+              Canvas2D painter, overlay, IME          recorder for tests                 CoreGraphics, AppKit window
 ```
 
 ## Modules
@@ -22,12 +22,18 @@ App source ── import SwiftUI ──▶ SwiftUI (thin re-export) ──▶ Sw
 - `SwiftUI`: `@_exported import SwiftUIWebCore`, `Foundation`, `Observation`. Exists so tests can
   fall back to importing `SwiftUIWebCore` directly if `SwiftUI` ever resolves to Apple's framework
   on macOS (decision 0001).
+- `WebGraphics` (`Packages/WebGraphics`, decision 0014): the graphics substrate SwiftUIWeb and
+  UIKitWeb share. `Geometry/` (`CGRect` and friends on wasm, `Angle`, `EdgeInsets`, trigonometry),
+  `Shapes/` (`Path`, its geometry and boolean algebra, `StrokeStyle`), `Display/` (`DisplayList`
+  and its flat encoding, `PaintContext`, gradients, filters, `AssetCatalog`, `ColorScheme`),
+  `Text/` (`TextEngine`, `TextLayouter`, `ResolvedFont`, the measured font and symbol tables),
+  `Input/` (`SemanticsNode`, `TextInputInfo`, keys and pointer types hosts deliver). No runtime.
 - `SwiftUIWebCore`: `API/` (public surface mirroring Apple's docs), `Runtime/` (type-structured
   `ViewNode` tree, `DynamicProperty` installation by key path, `withObservationTracking` per body,
   depth-ordered coalesced flush), `Layout/` (`ProposedViewSize`, `Layout` protocol, stacks),
-  `Text/` (`TextEngine`, `TextLayout`), `Display/` (display list + `Painter`), `Platform/`
-  (`PlatformProfile`: metrics and system colours per platform), `Semantics/`, `Input/`.
-  Internal boundaries use `package` access.
+  `Text/` (`Font` and its resolution), `Shapes/` (the `Shape` protocol and the built-in shapes),
+  `Display/` (the render pass), `Platform/` (`PlatformProfile`: metrics and system colours per
+  platform). Re-exports `WebGraphics`. Internal boundaries use `package` access.
 - `SwiftUIWebCanvas` (wasm only): Canvas2D painter decoding the display list in one JS call per
   frame, DPR handling, rAF loop, root input listeners, DOM semantics overlay, hidden input for IME.
 - `SwiftUIWebHeadless`: records display lists and replays recorded text metrics; powers the fast

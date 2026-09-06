@@ -384,11 +384,6 @@ extension IDNode: _IdentifiedNode {
 
 // MARK: - Runtime: user scrolling
 
-/// The kind of device behind a pointer event. Touch pointers pan scroll views; mice press.
-public enum PointerType: Sendable {
-    case mouse, touch, pen
-}
-
 /// A touch pan in progress: the scroll views under the finger, innermost first.
 package struct PanState {
     package let nodes: [ViewNode & _Scrollable]

@@ -5,13 +5,13 @@
 // fill paints the result. Curves are flattened to 16 segments, so curved boundaries are
 // polygonal at sub-pixel scale.
 
-package enum PathBooleanOperation {
+public enum PathBooleanOperation {
     case union, intersection, subtraction, symmetricDifference
 }
 
 extension Path {
     /// The closed polygons of the path (curves flattened, open subpaths closed).
-    package func flattenedPolygons(segments: Int = 16) -> [[CGPoint]] {
+    public func flattenedPolygons(segments: Int = 16) -> [[CGPoint]] {
         var polygons: [[CGPoint]] = []
         var current: [CGPoint] = []
         var start = CGPoint.zero
@@ -57,7 +57,7 @@ extension Path {
     }
 
     /// The open polylines of the path (curves flattened), for the line operations.
-    package func flattenedPolylines(segments: Int = 16) -> [[CGPoint]] {
+    public func flattenedPolylines(segments: Int = 16) -> [[CGPoint]] {
         var lines: [[CGPoint]] = []
         var current: [CGPoint] = []
         var start = CGPoint.zero
@@ -98,7 +98,7 @@ extension Path {
     }
 
     /// Combines this path with `other`.
-    package func combined(_ operation: PathBooleanOperation, with other: Path, eoFill: Bool = false, otherEOFill: Bool = false) -> Path {
+    public func combined(_ operation: PathBooleanOperation, with other: Path, eoFill: Bool = false, otherEOFill: Bool = false) -> Path {
         let a = PathBoolean.normalised(flattenedPolygons()), b = PathBoolean.normalised(other.flattenedPolygons())
         let fragmentsA = PathBoolean.fragments(of: a, cutBy: b)
         let fragmentsB = PathBoolean.fragments(of: b, cutBy: a)
@@ -128,7 +128,7 @@ extension Path {
     }
 
     /// The parts of this path's outline inside (or outside) `other`, as open lines.
-    package func lineClipped(by other: Path, keepInside: Bool, otherEOFill: Bool = false) -> Path {
+    public func lineClipped(by other: Path, keepInside: Bool, otherEOFill: Bool = false) -> Path {
         let b = other.flattenedPolygons()
         var result = Path()
         for line in flattenedPolylines() {
@@ -160,8 +160,8 @@ extension Path {
     }
 }
 
-package enum PathBoolean {
-    package struct Fragment {
+public enum PathBoolean {
+    public struct Fragment {
         var start: CGPoint
         var end: CGPoint
         var midpoint: CGPoint { CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2) }
@@ -216,7 +216,7 @@ package enum PathBoolean {
     }
 
     /// Whether `point` lies inside `polygons` by the winding (or even-odd) rule.
-    package static func contains(_ polygons: [[CGPoint]], _ point: CGPoint, evenOdd: Bool) -> Bool {
+    public static func contains(_ polygons: [[CGPoint]], _ point: CGPoint, evenOdd: Bool) -> Bool {
         var winding = 0
         var crossings = 0
         for polygon in polygons {
@@ -293,7 +293,7 @@ package enum PathBoolean {
         return path
     }
 
-    package static func signedArea(_ polygon: [CGPoint]) -> CGFloat {
+    public static func signedArea(_ polygon: [CGPoint]) -> CGFloat {
         var area: CGFloat = 0
         for i in 0..<polygon.count {
             let a = polygon[i], b = polygon[(i + 1) % polygon.count]
@@ -303,103 +303,8 @@ package enum PathBoolean {
     }
 }
 
-// MARK: - Shape operations
-
-/// A shape made from two shapes by a boolean operation.
-public struct _BooleanShape<A: Shape, B: Shape> {
-    public var a: A
-    public var b: B
-    package var operation: PathBooleanOperation
-    package var eoFill: Bool
-    package var otherEOFill: Bool
-
-    package init(a: A, b: B, operation: PathBooleanOperation, eoFill: Bool, otherEOFill: Bool) {
-        self.a = a
-        self.b = b
-        self.operation = operation
-        self.eoFill = eoFill
-        self.otherEOFill = otherEOFill
-    }
-}
-
-extension _BooleanShape: Shape {
-    nonisolated public func path(in rect: CGRect) -> Path {
-        a.path(in: rect).combined(operation, with: b.path(in: rect), eoFill: eoFill, otherEOFill: otherEOFill)
-    }
-
-    nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { a.sizeThatFits(proposal) }
-
-    public typealias AnimatableData = AnimatablePair<A.AnimatableData, B.AnimatableData>
-    public var animatableData: AnimatableData {
-        get { .init(a.animatableData, b.animatableData) }
-        set { a.animatableData = newValue.first; b.animatableData = newValue.second }
-    }
-}
-
-/// The parts of a shape's outline inside or outside another shape.
-public struct _LineClippedShape<A: Shape, B: Shape> {
-    public var a: A
-    public var b: B
-    package var keepInside: Bool
-    package var otherEOFill: Bool
-
-    package init(a: A, b: B, keepInside: Bool, otherEOFill: Bool) {
-        self.a = a
-        self.b = b
-        self.keepInside = keepInside
-        self.otherEOFill = otherEOFill
-    }
-}
-
-extension _LineClippedShape: Shape {
-    nonisolated public func path(in rect: CGRect) -> Path {
-        a.path(in: rect).lineClipped(by: b.path(in: rect), keepInside: keepInside, otherEOFill: otherEOFill)
-    }
-
-    nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { a.sizeThatFits(proposal) }
-    public static var role: ShapeRole { .stroke }
-
-    public typealias AnimatableData = AnimatablePair<A.AnimatableData, B.AnimatableData>
-    public var animatableData: AnimatableData {
-        get { .init(a.animatableData, b.animatableData) }
-        set { a.animatableData = newValue.first; b.animatableData = newValue.second }
-    }
-}
-
-extension Shape {
-    /// The area covered by this shape or `other`.
-    nonisolated public func union<T: Shape>(_ other: T, eoFill: Bool = false) -> some Shape {
-        _BooleanShape(a: self, b: other, operation: .union, eoFill: eoFill, otherEOFill: eoFill)
-    }
-
-    /// The area covered by both this shape and `other`.
-    nonisolated public func intersection<T: Shape>(_ other: T, eoFill: Bool = false) -> some Shape {
-        _BooleanShape(a: self, b: other, operation: .intersection, eoFill: eoFill, otherEOFill: eoFill)
-    }
-
-    /// This shape's area with `other`'s removed.
-    nonisolated public func subtracting<T: Shape>(_ other: T, eoFill: Bool = false) -> some Shape {
-        _BooleanShape(a: self, b: other, operation: .subtraction, eoFill: eoFill, otherEOFill: eoFill)
-    }
-
-    /// The area covered by exactly one of this shape and `other`.
-    nonisolated public func symmetricDifference<T: Shape>(_ other: T, eoFill: Bool = false) -> some Shape {
-        _BooleanShape(a: self, b: other, operation: .symmetricDifference, eoFill: eoFill, otherEOFill: eoFill)
-    }
-
-    /// The parts of this shape's outline inside `other`.
-    nonisolated public func lineIntersection<T: Shape>(_ other: T, eoFill: Bool = false) -> some Shape {
-        _LineClippedShape(a: self, b: other, keepInside: true, otherEOFill: eoFill)
-    }
-
-    /// The parts of this shape's outline outside `other`.
-    nonisolated public func lineSubtraction<T: Shape>(_ other: T, eoFill: Bool = false) -> some Shape {
-        _LineClippedShape(a: self, b: other, keepInside: false, otherEOFill: eoFill)
-    }
-}
-
 extension CGPoint {
-    package func _distance(to other: CGPoint) -> CGFloat {
+    public func _distance(to other: CGPoint) -> CGFloat {
         ((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y)).squareRoot()
     }
 }

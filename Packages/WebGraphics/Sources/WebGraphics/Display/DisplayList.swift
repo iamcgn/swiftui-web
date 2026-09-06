@@ -130,7 +130,7 @@ public struct DisplayList: Equatable, Sendable {
 }
 
 /// Formats a number for display-list descriptions: integers without a fraction.
-package func _displayFormat(_ v: CGFloat) -> String { v == v.rounded() ? "\(Int(v))" : "\(v)" }
+public func _displayFormat(_ v: CGFloat) -> String { v == v.rounded() ? "\(Int(v))" : "\(v)" }
 
 extension DisplayCommand: CustomStringConvertible {
     public var description: String {
@@ -191,7 +191,7 @@ extension String {
 
 extension DisplayGradient {
     /// A short description for logs and tests.
-    package var summary: String {
+    public var summary: String {
         func p(_ point: CGPoint) -> String { "\(point.x),\(point.y)" }
         let kindText: String
         switch kind {

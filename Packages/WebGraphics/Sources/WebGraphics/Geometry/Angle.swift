@@ -22,15 +22,6 @@ extension Angle: Comparable {
     @inlinable public static func < (lhs: Angle, rhs: Angle) -> Bool { lhs.radians < rhs.radians }
 }
 
-extension Angle: Animatable {
-    public typealias AnimatableData = Double
-
-    public var animatableData: Double {
-        get { radians }
-        set { radians = newValue }
-    }
-}
-
 extension Angle: CustomStringConvertible {
     public var description: String { "Angle(radians: \(radians))" }
 }

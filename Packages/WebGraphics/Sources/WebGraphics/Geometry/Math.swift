@@ -39,7 +39,7 @@ private func _reduce(_ x: Double) -> Double {
     return r
 }
 
-package func _sin(_ x: Double) -> Double {
+public func _sin(_ x: Double) -> Double {
     guard x.isFinite else { return .nan }
     let r = _reduce(x)
     if r > _halfPi { return _sinReduced(.pi - r) }
@@ -47,7 +47,7 @@ package func _sin(_ x: Double) -> Double {
     return _sinReduced(r)
 }
 
-package func _cos(_ x: Double) -> Double {
+public func _cos(_ x: Double) -> Double {
     guard x.isFinite else { return .nan }
     let r = _reduce(x)
     if r > _halfPi { return -_cosReduced(.pi - r) }
@@ -55,7 +55,7 @@ package func _cos(_ x: Double) -> Double {
     return _cosReduced(r)
 }
 
-package func _tan(_ x: Double) -> Double { _sin(x) / _cos(x) }
+public func _tan(_ x: Double) -> Double { _sin(x) / _cos(x) }
 
 /// atan on [0, ∞) : halve the argument twice (atan x = 2 atan(x / (1 + √(1 + x²)))), then a series.
 private func _atanPositive(_ x: Double) -> Double {
@@ -77,7 +77,7 @@ private func _atanPositive(_ x: Double) -> Double {
     return sum * scale
 }
 
-package func _atan2(_ y: Double, _ x: Double) -> Double {
+public func _atan2(_ y: Double, _ x: Double) -> Double {
     if x.isNaN || y.isNaN { return .nan }
     if x == 0 {
         if y > 0 { return _halfPi }
@@ -89,13 +89,13 @@ package func _atan2(_ y: Double, _ x: Double) -> Double {
     return y < 0 ? a - .pi : .pi - a
 }
 
-package func _acos(_ x: Double) -> Double {
+public func _acos(_ x: Double) -> Double {
     guard x >= -1, x <= 1 else { return .nan }
     return _halfPi - _atan2(x, (1 - x * x).squareRoot())
 }
 
 /// exp by range reduction (x = k·ln2 + r, |r| ≤ ln2/2) and a 14-term Taylor series.
-package func _exp(_ x: Double) -> Double {
+public func _exp(_ x: Double) -> Double {
     if x > 700 { return .infinity }
     if x < -700 { return 0 }
     let ln2 = 0.6931471805599453
@@ -113,7 +113,7 @@ package func _exp(_ x: Double) -> Double {
     return sum * scale
 }
 /// Natural logarithm by range reduction (x = m·2^k, m in [0.5, 1)) and the atanh series.
-package func _log(_ x: Double) -> Double {
+public func _log(_ x: Double) -> Double {
     if x <= 0 { return x == 0 ? -.infinity : .nan }
     var m = x
     var k = 0
@@ -130,13 +130,13 @@ package func _log(_ x: Double) -> Double {
 }
 
 /// x to the power y for positive x.
-package func _pow(_ x: Double, _ y: Double) -> Double {
+public func _pow(_ x: Double, _ y: Double) -> Double {
     if x <= 0 { return x == 0 ? (y == 0 ? 1 : 0) : .nan }
     return _exp(y * _log(x))
 }
 
 /// Cube root by Newton's method (signed).
-package func _cbrt(_ x: Double) -> Double {
+public func _cbrt(_ x: Double) -> Double {
     if x == 0 { return 0 }
     let sign: Double = x < 0 ? -1 : 1
     let a = abs(x)
@@ -145,15 +145,15 @@ package func _cbrt(_ x: Double) -> Double {
     return sign * r
 }
 #else
-@inline(__always) package func _cos(_ x: Double) -> Double { cos(x) }
-@inline(__always) package func _log(_ x: Double) -> Double { log(x) }
-@inline(__always) package func _pow(_ x: Double, _ y: Double) -> Double { pow(x, y) }
-@inline(__always) package func _cbrt(_ x: Double) -> Double { cbrt(x) }
-@inline(__always) package func _sin(_ x: Double) -> Double { sin(x) }
-@inline(__always) package func _tan(_ x: Double) -> Double { tan(x) }
-@inline(__always) package func _atan2(_ y: Double, _ x: Double) -> Double { atan2(y, x) }
-@inline(__always) package func _acos(_ x: Double) -> Double { acos(x) }
-@inline(__always) package func _exp(_ x: Double) -> Double { exp(x) }
+@inline(__always) public func _cos(_ x: Double) -> Double { cos(x) }
+@inline(__always) public func _log(_ x: Double) -> Double { log(x) }
+@inline(__always) public func _pow(_ x: Double, _ y: Double) -> Double { pow(x, y) }
+@inline(__always) public func _cbrt(_ x: Double) -> Double { cbrt(x) }
+@inline(__always) public func _sin(_ x: Double) -> Double { sin(x) }
+@inline(__always) public func _tan(_ x: Double) -> Double { tan(x) }
+@inline(__always) public func _atan2(_ y: Double, _ x: Double) -> Double { atan2(y, x) }
+@inline(__always) public func _acos(_ x: Double) -> Double { acos(x) }
+@inline(__always) public func _exp(_ x: Double) -> Double { exp(x) }
 #endif
 
-@inline(__always) package func _hypot(_ x: Double, _ y: Double) -> Double { (x * x + y * y).squareRoot() }
+@inline(__always) public func _hypot(_ x: Double, _ y: Double) -> Double { (x * x + y * y).squareRoot() }

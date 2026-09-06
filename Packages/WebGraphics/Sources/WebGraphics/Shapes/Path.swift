@@ -290,7 +290,7 @@ public struct Path: Equatable, Sendable {
     }
 
     /// Whether the rectangle path is an axis-aligned rectangle (lets painters use `fillRect`).
-    package var asRect: CGRect? {
+    public var asRect: CGRect? {
         guard elements.count == 5,
               case .move(let a) = elements[0], case .line(let b) = elements[1],
               case .line(let c) = elements[2], case .line(let d) = elements[3],
@@ -325,19 +325,6 @@ public struct RectangleCornerRadii: Equatable, Hashable, Sendable {
     }
 }
 
-extension RectangleCornerRadii: Animatable {
-    public typealias AnimatableData = AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<CGFloat, CGFloat>>
-    public var animatableData: AnimatableData {
-        get { .init(.init(topLeading, bottomLeading), .init(bottomTrailing, topTrailing)) }
-        set {
-            topLeading = newValue.first.first
-            bottomLeading = newValue.first.second
-            bottomTrailing = newValue.second.first
-            topTrailing = newValue.second.second
-        }
-    }
-}
-
 extension Path: LosslessStringConvertible {
     /// The elements in Apple's format: coordinates then a postfix operator (`m l q c h`),
     /// six significant digits.
@@ -358,14 +345,9 @@ extension Path: LosslessStringConvertible {
     }
 }
 
-extension Path: Shape {
-    nonisolated public func path(in rect: CGRect) -> Path { self }
-    public typealias AnimatableData = EmptyAnimatableData
-}
-
 /// C's `%g`: six significant digits, trailing zeros removed, exponent form outside 1e-5…1e6.
 /// Rounds the shortest round-trip decimal digits (ties to even), like printf on the exact value.
-package func _formatG(_ value: Double) -> String {
+public func _formatG(_ value: Double) -> String {
     if value.isNaN { return "nan" }
     if value.isInfinite { return value < 0 ? "-inf" : "inf" }
     if value == 0 { return "0" }

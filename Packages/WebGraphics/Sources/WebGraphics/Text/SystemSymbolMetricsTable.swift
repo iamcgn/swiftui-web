@@ -6,12 +6,12 @@
 // the point sizes [10, 11, 12, 13, 15, 17, 22, 26] (regular weight, medium image scale), then at 13 pt semibold,
 // 13 pt bold, 13 pt with the small image scale and 13 pt with the large image scale.
 
-package enum SystemSymbolMetricsTable {
-    package static let pointSizes: [Double] = [10, 11, 12, 13, 15, 17, 22, 26]
-    package static let count = 240
+public enum SystemSymbolMetricsTable {
+    public static let pointSizes: [Double] = [10, 11, 12, 13, 15, 17, 22, 26]
+    public static let count = 240
 
     /// Parsed from `blob` on first use (a literal this large would compile into code).
-    package static let sizes: [String: [Double]] = {
+    public static let sizes: [String: [Double]] = {
         var sizes: [String: [Double]] = [:]
         for line in blob.split(separator: "\n") {
             let parts = line.split(separator: " ")

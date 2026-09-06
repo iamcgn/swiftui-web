@@ -44,27 +44,7 @@ public enum Edge: Int8, CaseIterable, Sendable, Hashable {
     }
 }
 
-/// The inset distances for the sides of a rectangle.
-@frozen
-public struct EdgeInsets: Equatable, Hashable, Sendable {
-    public var top: CGFloat
-    public var leading: CGFloat
-    public var bottom: CGFloat
-    public var trailing: CGFloat
-
-    @inlinable
-    public init(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat) {
-        self.top = top
-        self.leading = leading
-        self.bottom = bottom
-        self.trailing = trailing
-    }
-
-    @inlinable
-    public init() {
-        self.init(top: 0, leading: 0, bottom: 0, trailing: 0)
-    }
-
+extension EdgeInsets {
     package init(_ edges: Edge.Set, _ length: CGFloat) {
         self.init(
             top: edges.contains(.top) ? length : 0,
@@ -72,9 +52,6 @@ public struct EdgeInsets: Equatable, Hashable, Sendable {
             bottom: edges.contains(.bottom) ? length : 0,
             trailing: edges.contains(.trailing) ? length : 0)
     }
-
-    package var horizontal: CGFloat { leading + trailing }
-    package var vertical: CGFloat { top + bottom }
 }
 
 extension EdgeInsets: Animatable {

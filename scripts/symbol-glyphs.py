@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Sources/SwiftUIWebCore/Text/SystemSymbolGlyphs.swift: the glyphs `Image(systemName:)`
+"""Generate Packages/WebGraphics/Sources/WebGraphics/Text/SystemSymbolGlyphs.swift: the glyphs `Image(systemName:)`
 draws, taken from the Lucide icon set (ISC licence, https://lucide.dev) and mapped by SF Symbol
 name. SF Symbols themselves are never shipped (Docs/ROADMAP.md); the glyphs are approximate.
 
@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "Sources/SwiftUIWebCore/Text/SystemSymbolGlyphs.swift"
+OUT = ROOT / "Packages/WebGraphics/Sources/WebGraphics/Text/SystemSymbolGlyphs.swift"
 
 # SF Symbol name -> (Lucide icon, fill mode). Fill mode 1 fills the whole glyph, 2 fills its
 # first element and knocks the rest out (the marks inside filled circles), 0 strokes only.
@@ -736,29 +736,29 @@ def main():
 // on first use (array literals this large compile into code, not data).
 
 /// A symbol name's glyph: the icon it draws and how (`mode`).
-package struct SymbolGlyph: Sendable {{
-    package let icon: String
-    package let mode: Int
+public struct SymbolGlyph: Sendable {{
+    public let icon: String
+    public let mode: Int
 }}
 
 /// An icon's outline on the 24 × 24 grid.
-package struct SymbolGlyphOutline: Sendable {{
-    package let firstElement: Int
-    package let bounds: (Double, Double, Double, Double)
-    package let ops: [Double]
+public struct SymbolGlyphOutline: Sendable {{
+    public let firstElement: Int
+    public let bounds: (Double, Double, Double, Double)
+    public let ops: [Double]
 }}
 
 @MainActor
-package enum SystemSymbolGlyphs {{
-    package static let count = {len(names)}
+public enum SystemSymbolGlyphs {{
+    public static let count = {len(names)}
 
-    package static func glyph(named name: String) -> (SymbolGlyph, SymbolGlyphOutline)? {{
+    public static func glyph(named name: String) -> (SymbolGlyph, SymbolGlyphOutline)? {{
         guard let glyph = table[name], let outline = outline(for: glyph.icon) else {{ return nil }}
         return (glyph, outline)
     }}
 
     /// name|icon|mode per line.
-    package static let table: [String: SymbolGlyph] = {{
+    public static let table: [String: SymbolGlyph] = {{
         var table: [String: SymbolGlyph] = [:]
         for line in namesBlob.split(separator: "\\n") {{
             let parts = line.split(separator: "|")
@@ -778,7 +778,7 @@ package enum SystemSymbolGlyphs {{
     }}()
     private static var outlines: [String: SymbolGlyphOutline] = [:]
 
-    package static func outline(for icon: String) -> SymbolGlyphOutline? {{
+    public static func outline(for icon: String) -> SymbolGlyphOutline? {{
         if let cached = outlines[icon] {{ return cached }}
         guard let line = outlineLines[icon] else {{ return nil }}
         let parts = line.split(separator: "|")

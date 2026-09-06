@@ -63,7 +63,8 @@ public struct TextDecorationMetrics: Sendable, Equatable {
     public var xHeight: CGFloat
 }
 
-extension PlatformProfile {
+/// The measured system-font tables and the lookups over them, per platform profile name.
+public enum SystemFontMetricsTables {
     /// CoreText's underline thickness of each weight relative to the regular face, and the
     /// underline offset and x-height likewise (measured on SF at 13 and 20 pt; 100/200
     /// extrapolated).
@@ -73,7 +74,7 @@ extension PlatformProfile {
 
     /// Decoration metrics of a resolved font: the regular face's from the table, scaled by
     /// weight and design (serif, rounded and monospaced ratios measured at 20 pt).
-    public func textDecorationMetrics(for font: ResolvedFont) -> TextDecorationMetrics {
+    public static func textDecorationMetrics(for font: ResolvedFont) -> TextDecorationMetrics {
         let base = systemFontMetrics(for: font)
         let weight = font.weight.value
         var offset = base.underlineOffset * (Self.weightOffsetFactor[weight] ?? 1)
@@ -97,7 +98,7 @@ extension PlatformProfile {
     /// Metrics for a resolved font from the tables of the platform it was resolved for (the
     /// font's profile, not this one's: a page can hold subtrees of another platform);
     /// interpolated for unmeasured point sizes.
-    public func systemFontMetrics(for font: ResolvedFont) -> SystemFontMetrics {
+    public static func systemFontMetrics(for font: ResolvedFont) -> SystemFontMetrics {
         let iOS = font.profile == "iOS"
         let styleMetrics = iOS ? Self.iOSTextStyleMetrics : Self.macOSTextStyleMetrics
         let weightOverrides = iOS ? Self.iOSTextStyleWeightOverrides : Self.macOSTextStyleWeightOverrides

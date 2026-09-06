@@ -14,7 +14,7 @@ public struct StyledRun: Hashable, Sendable {
 /// `lineSpacing`). Alignment is not here: it moves lines but does not change the layout.
 public struct TextLayoutOptions: Hashable, Sendable {
     public var lineLimit: Int?
-    public var truncationMode: Text.TruncationMode
+    public var truncationMode: TextTruncationMode
     public var lineSpacing: CGFloat
     /// Lines whose space is reserved even for shorter text: `lineLimit(n, reservesSpace: true)`
     /// reserves `n`, `lineLimit(a...b)` and `lineLimit(a...)` reserve `a`; 0 reserves nothing.
@@ -23,7 +23,7 @@ public struct TextLayoutOptions: Hashable, Sendable {
     public var kerning: CGFloat
     public var tracking: CGFloat
     /// `textScale`: the secondary scale draws smaller glyphs on the font's own line height.
-    public var textScale: Text.Scale
+    public var textScale: TextScale
 
     /// The same options with the letter spacing taken out (the layouter measures it itself).
     public var withoutLetterSpacing: TextLayoutOptions {
@@ -33,8 +33,8 @@ public struct TextLayoutOptions: Hashable, Sendable {
         return copy
     }
 
-    public init(lineLimit: Int? = nil, truncationMode: Text.TruncationMode = .tail, lineSpacing: CGFloat = 0, minimumLines: Int = 0,
-                kerning: CGFloat = 0, tracking: CGFloat = 0, textScale: Text.Scale = .default) {
+    public init(lineLimit: Int? = nil, truncationMode: TextTruncationMode = .tail, lineSpacing: CGFloat = 0, minimumLines: Int = 0,
+                kerning: CGFloat = 0, tracking: CGFloat = 0, textScale: TextScale = .default) {
         self.lineLimit = lineLimit
         self.truncationMode = truncationMode
         self.lineSpacing = lineSpacing
@@ -199,10 +199,10 @@ public enum TextMetricsKey {
 /// Engine used until a host installs a real one: everything measures as zero, so layout tests
 /// that do not involve text keep working and text tests fail loudly on size.
 @MainActor
-package final class ZeroTextEngine: TextEngine {
-    package init() {}
-    package func layout(_ runs: [StyledRun], options: TextLayoutOptions, width: CGFloat?) -> TextLayout {
+public final class ZeroTextEngine: TextEngine {
+    public init() {}
+    public func layout(_ runs: [StyledRun], options: TextLayoutOptions, width: CGFloat?) -> TextLayout {
         TextLayout(size: .zero, firstBaseline: 0, lastBaseline: 0, lines: [])
     }
-    package func metrics(for font: ResolvedFont) -> FontMetrics { .plain }
+    public func metrics(for font: ResolvedFont) -> FontMetrics { .plain }
 }
