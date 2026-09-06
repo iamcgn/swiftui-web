@@ -93,3 +93,12 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   `OpenURLAction` and `ShareAction` handlers over the hosts' `openURL` and `share`, and mounting
   the root. The page-facing names (`window.__swiftuiweb`, `__swiftuiwebAssets`,
   `__swiftuiwebDebug`, the `swiftuiwebready` event) are unchanged, so the Playwright scripts are too.
+- Step 3 (2026-09-06): verification of the whole extraction. 338 native tests (Tier A and C)
+  unchanged; Tier B 367/367 renders within tolerance in Chromium; the Counter smoke test green
+  in Chromium, WebKit and Firefox. Release Counter bundle 10,747,042 bytes raw and 2,751,777
+  brotli against 10,782,020 and 2,762,661 at the commit before the extraction (`0d87724`,
+  built the same way): the package split cost nothing. One gotcha for anyone repeating this:
+  SwiftPM does not recompile unchanged files in *other* targets when a type they use moves
+  modules, so both the root `.build` and every example's `.build/wasm` needed a clean before
+  the link succeeded (stale objects referenced `SwiftUIWebCore.CGSize`).
+
