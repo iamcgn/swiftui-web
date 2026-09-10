@@ -9,6 +9,7 @@ import PackageDescription
 //   UIKit          thin re-export so apps can `import UIKit` unchanged; `UIApplicationDelegate.main()`
 //   UIKitWebCore   the view and layer trees, responders and touches, controls, view controllers,
 //                  the window, screen and application, and the scene the substrate hosts drive
+//   UIKitFixtureKit, UIKitFixtures   the fidelity loop's fixture API and fixtures (tests only)
 let package = Package(
     name: "UIKitWeb",
     platforms: [.macOS(.v14)],
@@ -36,9 +37,23 @@ let package = Package(
             dependencies: [.product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // The fidelity loop (decision 0014): the UIKit fixture API, the fixtures themselves (a symlink
+        // to Fixtures/UIKit at the repository root, shared with the Catalyst harness), and the tests
+        // that hold UIKitWeb's layout to the goldens Apple's UIKit produced.
+        .target(
+            name: "UIKitFixtureKit",
+            dependencies: ["UIKit"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "UIKitFixtures",
+            dependencies: ["UIKit", "UIKitFixtureKit"],
+            path: "Fixtures",
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
         .testTarget(
             name: "UIKitWebTests",
-            dependencies: ["UIKit", .product(name: "WebGraphicsHeadless", package: "WebGraphics")],
+            dependencies: ["UIKit", "UIKitFixtureKit", "UIKitFixtures", .product(name: "WebGraphicsHeadless", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
     ],

@@ -171,7 +171,10 @@ open class UIStackView: UIView {
             case .trailing: cross = min(naturalCross, crossAvailable); offset = crossAvailable - cross
             default: cross = min(naturalCross, crossAvailable); offset = (crossAvailable - cross) / 2
             }
-            let crossOrigin = (horizontal ? content.minY : content.minX) + offset
+            // Auto Layout rounds the placement to the pixel grid in the stack's own coordinates
+            // (a 30.75 centring offset becomes 31; Docs/elements/UIKit/UIStackView.md).
+            let scale = UIScreen.main.scale
+            let crossOrigin = (horizontal ? content.minY : content.minX) + (offset * scale).rounded() / scale
             view.frame = horizontal
                 ? CGRect(x: cursor, y: crossOrigin, width: main, height: cross)
                 : CGRect(x: crossOrigin, y: cursor, width: cross, height: main)

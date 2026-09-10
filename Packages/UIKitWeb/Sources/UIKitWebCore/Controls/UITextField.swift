@@ -103,12 +103,13 @@ open class UITextField: UIControl {
     // MARK: Geometry (Docs/elements/iOS.md: the 34 pt rounded field)
 
     private var bordered: Bool { borderStyle != .none }
-    private var horizontalInset: CGFloat { bordered ? 7.5 : 0 }
+    private var horizontalInset: CGFloat { bordered ? 7 : 0 }
     private var resolvedFont: UIFont { font ?? .systemFont(ofSize: 17) }
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
         let f = resolvedFont
-        let height: CGFloat = bordered ? 34 : (f.lineHeight + 1).roundedUp(to: UIScreen.main.scale)
+        // A plain field is its ascender-plus-descender on the pixel grid, plus one (21.5 at 17 pt; measured once).
+        let height: CGFloat = bordered ? 34 : (f.ascender - f.descender).roundedUp(to: UIScreen.main.scale) + 1
         let content = text?.isEmpty == false ? text! : (placeholder ?? "")
         let layout = UIKitScene.shared.textEngine.layout([StyledRun(content, font: f.resolved)], options: .default, width: nil)
         return CGSize(width: layout.size.width.roundedUp(to: UIScreen.main.scale) + 2 * horizontalInset, height: height)

@@ -214,14 +214,15 @@ open class CALayer {
         return layer.map { $0.convertFromRoot(absolute) } ?? absolute
     }
 
+    /// A rect through a rotation or skew comes back as its bounding box, as Core Animation's does.
     open func convert(_ rect: CGRect, from layer: CALayer?) -> CGRect {
-        let origin = convert(rect.origin, from: layer)
-        return CGRect(origin: origin, size: rect.size)
+        let toRoot = layer?.transformToRoot ?? .identity
+        return rect.applying(toRoot.concatenating(transformToRoot.inverted()))
     }
 
     open func convert(_ rect: CGRect, to layer: CALayer?) -> CGRect {
-        let origin = convert(rect.origin, to: layer)
-        return CGRect(origin: origin, size: rect.size)
+        let fromRoot = layer?.transformToRoot.inverted() ?? .identity
+        return rect.applying(transformToRoot.concatenating(fromRoot))
     }
 
     /// The transform from this layer's coordinates to its superlayer's.

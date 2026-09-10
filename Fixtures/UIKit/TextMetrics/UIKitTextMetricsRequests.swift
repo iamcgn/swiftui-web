@@ -1,0 +1,57 @@
+// Every (string, font, width, lines) the UIKit fixtures show. The Catalyst harness measures each
+// with a real UILabel and writes Fixtures/Goldens/uikit/text-metrics.json; UIKitWeb's headless
+// text engine replays those numbers so Tier A layout stays exact, and the same file records each
+// font's UIKit metrics (ascender, descender, line height, cap and x heights), which
+// UIFontMetricsTests holds UIFont to.
+#if canImport(UIKit)
+import UIKit
+
+public enum UIKitTextMetricsRequests {
+    public static let all: [UIKitTextRequest] = [
+        // uikit/label/basic
+        UIKitTextRequest("Hello, UIKit", .system(size: 17)),
+        UIKitTextRequest("Title", .style("title")),
+        UIKitTextRequest("Headline", .style("headline")),
+        UIKitTextRequest("Body", .style("body")),
+        UIKitTextRequest("Footnote", .style("footnote")),
+        UIKitTextRequest("Bold 13", .system(size: 13, weight: "bold")),
+        UIKitTextRequest("Semibold 20", .system(size: 20, weight: "semibold")),
+        UIKitTextRequest("Centred", .system(size: 17)),
+        // uikit/label/wrapping
+        UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17)),
+        UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), width: 200, lines: 0),
+        UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), width: 200, lines: 2),
+        UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), width: 120, lines: 1),
+        // uikit/button/basic: a system button's title is 15 pt; a configured button's is the body
+        // style in a label without a line limit (Docs/elements/UIKit/UIButton.md)
+        UIKitTextRequest("Tap", .system(size: 15)),
+        UIKitTextRequest("Disabled", .system(size: 15)),
+        UIKitTextRequest("Plain", .style("body"), lines: 0),
+        UIKitTextRequest("Gray", .style("body"), lines: 0),
+        UIKitTextRequest("Tinted", .style("body"), lines: 0),
+        UIKitTextRequest("Filled", .style("body"), lines: 0),
+        UIKitTextRequest("Plain", .system(size: 17), lines: 0),
+        // uikit/stack/basic
+        UIKitTextRequest("First", .system(size: 17)),
+        UIKitTextRequest("Second line", .system(size: 17)),
+        UIKitTextRequest("Third", .system(size: 17)),
+        UIKitTextRequest("−", .system(size: 15)),
+        UIKitTextRequest("+", .system(size: 15)),
+        UIKitTextRequest("Count: 0", .system(size: 17)),
+        UIKitTextRequest("A longer caption", .system(size: 17)),
+        // uikit/controls/basic (text fields measure their text without a line limit)
+        UIKitTextRequest("Hello", .system(size: 17), lines: 0),
+        UIKitTextRequest("Placeholder", .system(size: 17), lines: 0),
+        UIKitTextRequest("Plain field", .system(size: 17), lines: 0),
+        UIKitTextRequest("secret", .system(size: 17), lines: 0),
+        UIKitTextRequest("••••••", .system(size: 17), lines: 0),
+    ]
+
+    /// The fonts whose metrics the harness records (every font a request uses).
+    public static var fonts: [UIKitFixtureFont] {
+        var seen: [UIKitFixtureFont] = []
+        for request in all where !seen.contains(request.font) { seen.append(request.font) }
+        return seen
+    }
+}
+#endif

@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/label\/wrapping",
+  "frames" : {
+    "truncated" : {
+      "height" : 21,
+      "width" : 120,
+      "x" : 16,
+      "y" : 160
+    },
+    "twoLines" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 16,
+      "y" : 100
+    },
+    "wrapped" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

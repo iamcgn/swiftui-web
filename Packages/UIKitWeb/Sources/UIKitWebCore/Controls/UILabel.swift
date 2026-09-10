@@ -1,5 +1,6 @@
-// UILabel (Docs/elements/UIKit/UILabel.md): text laid out by the scene's text engine at the
-// font's UIKit line pitch, centred vertically in the bounds as UIKit does.
+// UILabel (Docs/elements/UIKit/UILabel.md): text laid out by the scene's text engine; a line
+// takes the font's measured label height and further lines its pitch (UIFont.labelLineHeight,
+// linePitch), the block centred vertically in the bounds as UIKit does.
 
 /// A view that displays one or more lines of informational text.
 @MainActor
@@ -60,13 +61,16 @@ open class UILabel: UIView {
         return engine.layout([StyledRun(text, font: font.resolved)], options: options, width: wrap)
     }
 
-    /// The text's size: the layout's width (rounded up to the pixel) and lines × the font's line
-    /// height, as UILabel reports it.
+    /// The text's size: the layout's width (rounded up to the pixel) and the font's label height
+    /// plus a pitch per further line, as UILabel reports it. The recorded engine answers a wrapped
+    /// request as one line of the recorded height, so a single-line answer's line count comes
+    /// from that height in the font's pitch.
     func textSize(fitting width: CGFloat?) -> CGSize {
-        guard let layout = layout(width: width) else { return CGSize(width: 0, height: font.lineHeight.roundedUp(to: UIScreen.main.scale)) }
-        let lines = max(1, layout.lines.count)
-        let height = (font.lineHeight * CGFloat(lines)).roundedUp(to: UIScreen.main.scale)
-        return CGSize(width: layout.size.width.roundedUp(to: UIScreen.main.scale), height: height)
+        let scale = UIScreen.main.scale
+        guard let layout = layout(width: width) else { return CGSize(width: 0, height: font.labelLineHeight.roundedUp(to: scale)) }
+        let lines = layout.lines.count > 1 ? layout.lines.count : max(1, Int((layout.size.height / font.linePitch).rounded()))
+        let height = (font.labelLineHeight + font.linePitch * CGFloat(lines - 1)).roundedUp(to: scale)
+        return CGSize(width: layout.size.width.roundedUp(to: scale), height: height)
     }
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
@@ -92,15 +96,15 @@ open class UILabel: UIView {
         guard let layout = layout(width: bounds.width) else { return }
         let lines = layout.lines
         guard !lines.isEmpty else { return }
-        let lineHeight = font.lineHeight
-        let textHeight = lineHeight * CGFloat(lines.count)
+        let pitch = font.linePitch
+        let textHeight = font.labelLineHeight + pitch * CGFloat(lines.count - 1)
         // The block is centred vertically; each line's baseline sits at the ascender.
         let top = (bounds.height - textHeight) / 2
         let color = (isEnabled ? textColor : .tertiaryLabel).rgba(for: style)
         let displayFont = DisplayFont(font.resolved)
         let alignment = textAlignment
         for (index, line) in lines.enumerated() {
-            let baseline = context.origin.y + top + lineHeight * CGFloat(index) + font.ascender
+            let baseline = context.origin.y + top + pitch * CGFloat(index) + font.ascender
             let inset: CGFloat
             switch alignment {
             case .center: inset = (bounds.width - line.inkWidth) / 2

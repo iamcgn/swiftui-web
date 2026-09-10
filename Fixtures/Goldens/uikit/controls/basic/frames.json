@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/controls\/basic",
+  "frames" : {
+    "disabledSwitch" : {
+      "height" : 28,
+      "width" : 63,
+      "x" : 176,
+      "y" : 16
+    },
+    "off" : {
+      "height" : 28,
+      "width" : 63,
+      "x" : 16,
+      "y" : 16
+    },
+    "on" : {
+      "height" : 28,
+      "width" : 63,
+      "x" : 96,
+      "y" : 16
+    },
+    "placeholder" : {
+      "height" : 34,
+      "width" : 250,
+      "x" : 16,
+      "y" : 120
+    },
+    "plain" : {
+      "height" : 21.5,
+      "width" : 77,
+      "x" : 16,
+      "y" : 168
+    },
+    "rounded" : {
+      "height" : 34,
+      "width" : 250,
+      "x" : 16,
+      "y" : 72
+    },
+    "secure" : {
+      "height" : 34,
+      "width" : 250,
+      "x" : 16,
+      "y" : 208
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

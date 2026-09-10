@@ -1,0 +1,33 @@
+{
+  "fixture" : "uikit\/view\/autoresizing",
+  "frames" : {
+    "centred" : {
+      "height" : 20,
+      "width" : 40,
+      "x" : 140,
+      "y" : 86
+    },
+    "container" : {
+      "height" : 160,
+      "width" : 288,
+      "x" : 16,
+      "y" : 16
+    },
+    "flexibleWidth" : {
+      "height" : 30,
+      "width" : 268,
+      "x" : 26,
+      "y" : 26
+    },
+    "pinnedBottomRight" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 254,
+      "y" : 136
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

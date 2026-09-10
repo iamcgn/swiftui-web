@@ -30,6 +30,15 @@ public final class UIKitScene: HostedScene {
         setNeedsFrame()
     }
 
+    /// Drops every window (tests mount one fixture after another in the shared scene).
+    public func removeAllWindows() {
+        for window in windows { window.rootViewController?.viewIfLoaded?.removeFromSuperview() }
+        windows.removeAll()
+        delegateWindow = nil
+        firstResponder = nil
+        setNeedsFrame()
+    }
+
     /// Modal presentation (Phase 3): the presented controller's view covers the window.
     func present(_ controller: UIViewController, from presenter: UIViewController) {
         guard let window = presenter.viewIfLoaded?.window ?? windows.first else { return }
@@ -116,12 +125,16 @@ public final class UIKitScene: HostedScene {
         for window in windows { window.layoutIfNeeded() }
     }
 
-    public func render(scale: CGFloat) -> DisplayList {
+    public func render(scale: CGFloat) -> DisplayList { render(scale: scale, background: true) }
+
+    /// The frame's display list; `background` paints the black screen behind the windows (off
+    /// for goldens, which are transparent outside the views).
+    public func render(scale: CGFloat, background: Bool) -> DisplayList {
         var list = DisplayList()
         let context = PaintContext(origin: .zero, scale: scale)
         let style = UIScreen.main.traitCollection.userInterfaceStyle
         // The screen behind the windows is black, as on a device.
-        list.append(.fillRect(context.absoluteRect(UIScreen.main.bounds), .black))
+        if background { list.append(.fillRect(context.absoluteRect(UIScreen.main.bounds), .black)) }
         for window in windows where !window.isHidden {
             window.layer.paint(into: &list, context: context, style: style)
         }

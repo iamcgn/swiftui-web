@@ -1,0 +1,292 @@
+{
+  "entries" : {
+    "style:body|;l1|Body" : {
+      "firstBaseline" : 18.479968470437186,
+      "height" : 24.5,
+      "lastBaseline" : 18.479968470437186,
+      "width" : 40.5
+    },
+    "style:body||Filled" : {
+      "firstBaseline" : 18.479968470437186,
+      "height" : 24.5,
+      "lastBaseline" : 18.479968470437186,
+      "width" : 42
+    },
+    "style:body||Gray" : {
+      "firstBaseline" : 18.479968470437186,
+      "height" : 24.5,
+      "lastBaseline" : 18.479968470437186,
+      "width" : 37
+    },
+    "style:body||Plain" : {
+      "firstBaseline" : 18.479968470437186,
+      "height" : 24.5,
+      "lastBaseline" : 18.479968470437186,
+      "width" : 38
+    },
+    "style:body||Tinted" : {
+      "firstBaseline" : 18.479968470437186,
+      "height" : 24.5,
+      "lastBaseline" : 18.479968470437186,
+      "width" : 50.5
+    },
+    "style:footnote|;l1|Footnote" : {
+      "firstBaseline" : 14.086487064830362,
+      "height" : 18.5,
+      "lastBaseline" : 14.086487064830362,
+      "width" : 56.5
+    },
+    "style:headline|;l1|Headline" : {
+      "firstBaseline" : 18.461477106874081,
+      "height" : 24.5,
+      "lastBaseline" : 18.461477106874081,
+      "width" : 73
+    },
+    "style:title|;l1|Title" : {
+      "firstBaseline" : 31.523679852815039,
+      "height" : 41,
+      "lastBaseline" : 31.523679852815039,
+      "width" : 52
+    },
+    "system:13:700:default|;l1|Bold 13" : {
+      "firstBaseline" : 12.568359375,
+      "height" : 16,
+      "lastBaseline" : 12.568359375,
+      "width" : 49.5
+    },
+    "system:15:400:default|;l1|+" : {
+      "firstBaseline" : 14.501953125,
+      "height" : 19,
+      "lastBaseline" : 14.501953125,
+      "width" : 9.5
+    },
+    "system:15:400:default|;l1|−" : {
+      "firstBaseline" : 14.501953125,
+      "height" : 19,
+      "lastBaseline" : 14.501953125,
+      "width" : 9.5
+    },
+    "system:15:400:default|;l1|Disabled" : {
+      "firstBaseline" : 14.501953125,
+      "height" : 19,
+      "lastBaseline" : 14.501953125,
+      "width" : 62
+    },
+    "system:15:400:default|;l1|Tap" : {
+      "firstBaseline" : 14.501953125,
+      "height" : 19,
+      "lastBaseline" : 14.501953125,
+      "width" : 26
+    },
+    "system:17:400:default|;l1|A longer caption" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 129.5
+    },
+    "system:17:400:default|;l1|Centred" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 63.5
+    },
+    "system:17:400:default|;l1|Count: 0" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 68
+    },
+    "system:17:400:default|;l1|First" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 35
+    },
+    "system:17:400:default|;l1|Hello, UIKit" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 88
+    },
+    "system:17:400:default|;l1|Second line" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 92.5
+    },
+    "system:17:400:default|;l1|The quick brown fox jumps over the lazy dog" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 352.5
+    },
+    "system:17:400:default|;l1|Third" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 41.5
+    },
+    "system:17:400:default||••••••" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 47.5
+    },
+    "system:17:400:default||Hello" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 40.5
+    },
+    "system:17:400:default||Placeholder" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 93.5
+    },
+    "system:17:400:default||Plain" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 38
+    },
+    "system:17:400:default||Plain field" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 77
+    },
+    "system:17:400:default||secret" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 49.5
+    },
+    "system:17:400:default|120.0;l1|The quick brown fox jumps over the lazy dog" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 20,
+      "lastBaseline" : 16.435546875,
+      "width" : 352.5
+    },
+    "system:17:400:default|200.0;l2|The quick brown fox jumps over the lazy dog" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 40,
+      "lastBaseline" : 36.435546875,
+      "width" : 188.5
+    },
+    "system:17:400:default|200.0|The quick brown fox jumps over the lazy dog" : {
+      "firstBaseline" : 16.435546875,
+      "height" : 40,
+      "lastBaseline" : 36.435546875,
+      "width" : 188.5
+    },
+    "system:20:600:default|;l1|Semibold 20" : {
+      "firstBaseline" : 19.3359375,
+      "height" : 24,
+      "lastBaseline" : 19.3359375,
+      "width" : 116
+    }
+  },
+  "fonts" : {
+    "style:body" : {
+      "ascender" : 18.479968470437186,
+      "capHeight" : 11.97802734375,
+      "descender" : -5.5415159045628126,
+      "leading" : 1.9785156250000011,
+      "lineHeight" : 24.021484375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 8.9482421875
+    },
+    "style:footnote" : {
+      "ascender" : 14.086487064830362,
+      "capHeight" : 9.15966796875,
+      "descender" : -4.2240598101696367,
+      "leading" : 2.6894531249999996,
+      "lineHeight" : 18.310546875,
+      "pointSize" : 13,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 6.8427734375
+    },
+    "style:headline" : {
+      "ascender" : 18.461477106874081,
+      "capHeight" : 11.97802734375,
+      "descender" : -5.5600072681259167,
+      "leading" : 1.9785156250000011,
+      "lineHeight" : 24.021484375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 9.07275390625
+    },
+    "style:title" : {
+      "ascender" : 31.523679852815039,
+      "capHeight" : 19.728515625,
+      "descender" : -9.4528826471849605,
+      "leading" : 1.0234374999999973,
+      "lineHeight" : 40.9765625,
+      "pointSize" : 28,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 14.21875
+    },
+    "system:13:700:default" : {
+      "ascender" : 12.568359375,
+      "capHeight" : 9.15966796875,
+      "descender" : -2.7421875,
+      "leading" : 0,
+      "lineHeight" : 16,
+      "pointSize" : 13,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 6.98876953125
+    },
+    "system:15:400:default" : {
+      "ascender" : 14.501953125,
+      "capHeight" : 10.56884765625,
+      "descender" : -3.1640625,
+      "leading" : 0,
+      "lineHeight" : 18,
+      "pointSize" : 15,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 7.8955078125
+    },
+    "system:17:400:default" : {
+      "ascender" : 16.435546875,
+      "capHeight" : 11.97802734375,
+      "descender" : -3.5859375,
+      "leading" : 0,
+      "lineHeight" : 20,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 8.9482421875
+    },
+    "system:20:600:default" : {
+      "ascender" : 19.3359375,
+      "capHeight" : 14.091796875,
+      "descender" : -4.21875,
+      "leading" : 0,
+      "lineHeight" : 23,
+      "pointSize" : 20,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 10.595703125
+    }
+  },
+  "host" : "macCatalyst-UIKit",
+  "macOS" : "26.2.0",
+  "platformProfile" : "iOS",
+  "scale" : 2
+}

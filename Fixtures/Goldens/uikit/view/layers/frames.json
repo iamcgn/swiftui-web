@@ -1,0 +1,69 @@
+{
+  "fixture" : "uikit\/view\/layers",
+  "frames" : {
+    "bordered" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 208,
+      "y" : 16
+    },
+    "clipping" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 208,
+      "y" : 92
+    },
+    "continuous" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 112,
+      "y" : 180
+    },
+    "corners" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 208,
+      "y" : 180
+    },
+    "faded" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 16,
+      "y" : 92
+    },
+    "overflow" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 248,
+      "y" : 122
+    },
+    "plain" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 16,
+      "y" : 16
+    },
+    "rotated" : {
+      "height" : 86.04744653988439,
+      "width" : 96.871368542808327,
+      "x" : 103.56431572859584,
+      "y" : 78.976276730057805
+    },
+    "rounded" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 112,
+      "y" : 16
+    },
+    "shadowed" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 16,
+      "y" : 180
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

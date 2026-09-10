@@ -113,4 +113,21 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   every view and view controller subclass with its own initializer, which is far more common
   than an app delegate. The bundle is 2.24 MB brotli for a three-view app because the
   substrate's symbol and font tables come along; trimming them is a Phase 3 item.
+- Step 2 (2026-09-10): the fidelity loop (`Docs/ROADMAP.md`, Phase 7 status 1.2). UIKit
+  fixtures are plain UIKit code building a view tree (`Fixtures/UIKit`), so the fixture API
+  (`UIKitFixtureKit`) is implemented twice, once over Apple's UIKit in the Harness and once over
+  UIKitWeb, and the fixture sources are symlinked into both packages; `#if canImport(UIKit)`
+  keeps them empty in the Harness's plain macOS build. Goldens come from `UIKitGoldenGen` in a
+  Catalyst window (`scripts/gen-goldens-uikit.sh`), like the iOS SwiftUI goldens. Two recorders
+  feed the runtime: the fixture strings measured by a real `UILabel` (replayed by the shared
+  `RecordedTextEngine`, keyed exactly as UIKitWeb's label asks, line limit included) and a sweep
+  of `UIFont` at every weight and integer size plus the text styles, with the label heights UIKit
+  gives each. The sweep showed what the hhea ratios of step 1 got wrong: UIKit's ascender and
+  descender are 1980/2048 and 432/2048 of the size, `lineHeight` is their rounded sum (20 at
+  17 pt, not 20.29), a one-line label is one point taller at nine sizes with no derivable rule
+  (so it is a table), and a text style carries its own ascender, descender and leading (body:
+  24.02 line, 26 pitch). The generator's `--dump` mode prints UIKit's internal view trees, which
+  is how the buttons' 15 pt system title, the configured button's 26.5 pt body label and the
+  stack's rounded placement were found. Catalyst's Mac switch is the one artefact so far: the
+  test compares its origin only.
 

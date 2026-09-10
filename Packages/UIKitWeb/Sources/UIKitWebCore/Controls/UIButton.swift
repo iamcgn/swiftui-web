@@ -1,5 +1,6 @@
-// UIButton (Docs/elements/UIKit/UIButton.md): the system button (a tinted title, 17 pt)
-// with the plain, gray, tinted and filled configurations of iOS 15.
+// UIButton (Docs/elements/UIKit/UIButton.md): the system button (a tinted 15 pt title with
+// 6 pt above and below, at least 30 wide) and the plain, gray, tinted and filled configurations
+// of iOS 15 (a body title in 7 × 12 insets).
 
 /// A control that executes your custom code in response to user interactions.
 @MainActor
@@ -27,7 +28,8 @@ open class UIButton: UIControl {
         super.init(frame: .zero)
         isAccessibilityElement = true
         accessibilityTraits = .button
-        titleLabel?.font = .systemFont(ofSize: 17)
+        // A system button's title is 15 pt (measured; a custom button's is not yet).
+        titleLabel?.font = .systemFont(ofSize: type == .system ? 15 : 17)
         titleLabel?.textAlignment = .center
         titleLabel?.isUserInteractionEnabled = false
         titleLabel?.isAccessibilityElement = false
@@ -117,7 +119,9 @@ open class UIButton: UIControl {
         guard let configuration else { return }
         if let title = configuration.title { titles[.normal] = title }
         if let image = configuration.image { images[.normal] = image }
-        if let font = configuration.titleFont { titleLabel?.font = font }
+        // A configured title is the body style in a label without a line limit.
+        titleLabel?.font = configuration.titleFont ?? .preferredFont(forTextStyle: .body)
+        titleLabel?.numberOfLines = 0
         contentEdgeInsets = UIEdgeInsets(top: configuration.contentInsets.top, left: configuration.contentInsets.leading,
                                          bottom: configuration.contentInsets.bottom, right: configuration.contentInsets.trailing)
         updateContent()
@@ -146,20 +150,30 @@ open class UIButton: UIControl {
 
     private var imageTitleSpacing: CGFloat { configuration?.imagePadding ?? 0 }
 
+    /// The title's size: the label's, and for a configured button its line plus the font's
+    /// leading (a body title takes 26.5 in a 40.5 pt button; measured).
     private func measuredTitleSize(within width: CGFloat) -> CGSize {
         guard let titleLabel, let text = titleLabel.text, !text.isEmpty else { return .zero }
-        return titleLabel.sizeThatFits(CGSize(width: width, height: CGFloat.greatestFiniteMagnitude))
+        var size = titleLabel.sizeThatFits(CGSize(width: width, height: CGFloat.greatestFiniteMagnitude))
+        if configuration != nil { size.height = (titleLabel.font.labelLineHeight + titleLabel.font.leading).roundedUp(to: UIScreen.main.scale) }
+        return size
     }
+
+    /// A system button's padding above and below its title, and its minimum width (measured).
+    private static let systemVerticalPadding: CGFloat = 6
+    private static let systemMinimumWidth: CGFloat = 30
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
         let titleSize = measuredTitleSize(within: CGFloat.greatestFiniteMagnitude)
         let imageSize = currentImage?.size ?? .zero
         let spacing = titleSize.width > 0 && imageSize.width > 0 ? imageTitleSpacing : 0
-        let width = titleSize.width + imageSize.width + spacing + insets.left + insets.right
-        let height = max(titleSize.height, imageSize.height) + insets.top + insets.bottom
-        // A system button's minimum height is its label plus the 6 pt UIKit gives (34 for 17 pt).
-        let minimum: CGFloat = configuration != nil ? 34 : max(height, titleSize.height > 0 ? titleSize.height + 6 : 0)
-        return CGSize(width: width, height: configuration != nil ? max(height, minimum) : minimum)
+        var width = titleSize.width + imageSize.width + spacing + insets.left + insets.right
+        var height = max(titleSize.height, imageSize.height) + insets.top + insets.bottom
+        if configuration == nil, buttonType == .system {
+            width = max(width, Self.systemMinimumWidth)
+            height += 2 * Self.systemVerticalPadding
+        }
+        return CGSize(width: width, height: height)
     }
 
     override open var intrinsicContentSize: CGSize { sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)) }
