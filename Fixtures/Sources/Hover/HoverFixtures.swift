@@ -30,7 +30,7 @@ struct HoverDemo: View {
                 .probe("continuous")
             HStack(spacing: 20) {
                 Text("Help me").padding(6).background(Color.orange.opacity(0.3)).help("A helpful tooltip").probe("help")
-                #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+                #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
                 Text("Link").padding(6).background(Color.purple.opacity(0.2)).pointerStyle(.link).probe("link")
                 Text("Text").padding(6).background(Color.yellow.opacity(0.3)).pointerStyle(.horizontalText).probe("ibeam")
                 #endif

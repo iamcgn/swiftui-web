@@ -46,7 +46,7 @@ public enum KeyboardFixtures {
                 .padding(6)
                 .focusable()
                 .onKeyPress(.upArrow) { model.log = "up"; return .handled }
-                #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+                #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
                 .onMoveCommand { direction in model.log = "move \(direction)" }
                 #endif
                 .probe("focusable")

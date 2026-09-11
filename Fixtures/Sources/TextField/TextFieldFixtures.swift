@@ -31,7 +31,7 @@ public enum TextFieldFixtures {
         VStack(alignment: .leading, spacing: 12) {
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rounded")
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.plain).probe("plain")
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.squareBorder).probe("square")
             #endif
             TextField("Placeholder", text: .constant("")).textFieldStyle(.plain).probe("plainEmpty")

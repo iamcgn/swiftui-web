@@ -501,7 +501,7 @@ public static let steps = Fixture(
 public static let styles = Fixture("datepicker/styles", size: CGSize(width: 360, height: 240)) {
     VStack(alignment: .leading, spacing: 12) {
         DatePicker("Compact", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.compact).probe("compact")
-        #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+        #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
         DatePicker("Field", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.field).probe("field")
         DatePicker("Stepper", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.stepperField).probe("stepper")
         DatePicker("Both", selection: .constant(fixed)).datePickerStyle(.field).probe("fieldBoth")
@@ -2002,7 +2002,7 @@ public static let basic = Fixture(
             .padding(6)
             .focusable()
             .onKeyPress(.upArrow) { model.log = "up"; return .handled }
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             .onMoveCommand { direction in model.log = "move \(direction)" }
             #endif
             .probe("focusable")
@@ -2465,7 +2465,7 @@ public static let styles = Fixture("list/styles", size: CGSize(width: 320, heigh
     VStack(spacing: 8) {
         List { Text("Apple").probe("insetRow1"); Text("Banana").probe("insetRow2") }.listStyle(.inset).frame(height: 70).probe("inset")
         List { Text("Apple").probe("plainRow1"); Text("Banana").probe("plainRow2") }.listStyle(.plain).frame(height: 70).probe("plain")
-        #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+        #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
         List { Text("Apple").probe("borderedRow1"); Text("Banana").probe("borderedRow2") }.listStyle(.bordered).frame(height: 70).probe("bordered")
         #endif
         List { Text("Apple").probe("sidebarRow1"); Text("Banana").probe("sidebarRow2") }.listStyle(.sidebar).frame(height: 70).probe("sidebar")
@@ -2684,7 +2684,7 @@ public static let basic = Fixture("picker/basic", size: CGSize(width: 320, heigh
         }
         .pickerStyle(.segmented)
         .probe("segmented")
-        #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+        #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
         Picker("Fruit", selection: .constant(1)) {
             Text("Apple").tag(1).probe("radioApple"); Text("Banana").tag(2).probe("radioBanana"); Text("Cherry").tag(3).probe("radioCherry")
         }
@@ -2747,7 +2747,7 @@ public static let steps = Fixture(
         Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }.probe("menu")
         Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
             .pickerStyle(.segmented).probe("segmented")
-        #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+        #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
         Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
             .pickerStyle(.radioGroup).probe("radio")
         #endif
@@ -4349,7 +4349,7 @@ public static let styles = Fixture("textfield/styles", size: CGSize(width: 320, 
     VStack(alignment: .leading, spacing: 12) {
         TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rounded")
         TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.plain).probe("plain")
-        #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+        #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
         TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.squareBorder).probe("square")
         #endif
         TextField("Placeholder", text: .constant("")).textFieldStyle(.plain).probe("plainEmpty")
@@ -4567,7 +4567,7 @@ public static let styles = Fixture("toggle/styles", size: CGSize(width: 320, hei
         Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).labelsHidden().probe("switchHidden")
         Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button).probe("buttonOn")
         Toggle("Enabled", isOn: .constant(false)).toggleStyle(.button).probe("buttonOff")
-        #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+        #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
         Toggle("Enabled", isOn: .constant(true)).toggleStyle(.checkbox).probe("checkbox")
         #endif
         HStack(spacing: 8) {
@@ -5072,7 +5072,7 @@ public enum PickerFixtures {
             }
             .pickerStyle(.segmented)
             .probe("segmented")
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             Picker("Fruit", selection: .constant(1)) {
                 Text("Apple").tag(1).probe("radioApple"); Text("Banana").tag(2).probe("radioBanana"); Text("Cherry").tag(3).probe("radioCherry")
             }
@@ -5133,7 +5133,7 @@ public enum PickerFixtures {
             Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }.probe("menu")
             Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
                 .pickerStyle(.segmented).probe("segmented")
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             Picker("Fruit", selection: selection) { Text("Apple").tag(1); Text("Banana").tag(2); Text("Cherry").tag(3) }
                 .pickerStyle(.radioGroup).probe("radio")
             #endif
@@ -5550,7 +5550,7 @@ public enum DatePickerFixtures {
     public static let styles = Fixture("datepicker/styles", size: CGSize(width: 360, height: 240)) {
         VStack(alignment: .leading, spacing: 12) {
             DatePicker("Compact", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.compact).probe("compact")
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             DatePicker("Field", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.field).probe("field")
             DatePicker("Stepper", selection: .constant(fixed), displayedComponents: .date).datePickerStyle(.stepperField).probe("stepper")
             DatePicker("Both", selection: .constant(fixed)).datePickerStyle(.field).probe("fieldBoth")
@@ -6582,7 +6582,7 @@ struct HoverDemo: View {
                 .probe("continuous")
             HStack(spacing: 20) {
                 Text("Help me").padding(6).background(Color.orange.opacity(0.3)).help("A helpful tooltip").probe("help")
-                #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+                #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
                 Text("Link").padding(6).background(Color.purple.opacity(0.2)).pointerStyle(.link).probe("link")
                 Text("Text").padding(6).background(Color.yellow.opacity(0.3)).pointerStyle(.horizontalText).probe("ibeam")
                 #endif
@@ -6820,7 +6820,7 @@ public enum KeyboardFixtures {
                 .padding(6)
                 .focusable()
                 .onKeyPress(.upArrow) { model.log = "up"; return .handled }
-                #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+                #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
                 .onMoveCommand { direction in model.log = "move \(direction)" }
                 #endif
                 .probe("focusable")
@@ -7328,7 +7328,7 @@ public enum ListFixtures {
         VStack(spacing: 8) {
             List { Text("Apple").probe("insetRow1"); Text("Banana").probe("insetRow2") }.listStyle(.inset).frame(height: 70).probe("inset")
             List { Text("Apple").probe("plainRow1"); Text("Banana").probe("plainRow2") }.listStyle(.plain).frame(height: 70).probe("plain")
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             List { Text("Apple").probe("borderedRow1"); Text("Banana").probe("borderedRow2") }.listStyle(.bordered).frame(height: 70).probe("bordered")
             #endif
             List { Text("Apple").probe("sidebarRow1"); Text("Banana").probe("sidebarRow2") }.listStyle(.sidebar).frame(height: 70).probe("sidebar")
@@ -9444,7 +9444,7 @@ public enum TextFieldFixtures {
         VStack(alignment: .leading, spacing: 12) {
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.roundedBorder).probe("rounded")
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.plain).probe("plain")
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             TextField("Placeholder", text: .constant("Hello")).textFieldStyle(.squareBorder).probe("square")
             #endif
             TextField("Placeholder", text: .constant("")).textFieldStyle(.plain).probe("plainEmpty")
@@ -9819,7 +9819,7 @@ public enum ToggleFixtures {
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).labelsHidden().probe("switchHidden")
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button).probe("buttonOn")
             Toggle("Enabled", isOn: .constant(false)).toggleStyle(.button).probe("buttonOff")
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.checkbox).probe("checkbox")
             #endif
             HStack(spacing: 8) {

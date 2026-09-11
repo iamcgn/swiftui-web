@@ -38,7 +38,7 @@ public enum ToggleFixtures {
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch).labelsHidden().probe("switchHidden")
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button).probe("buttonOn")
             Toggle("Enabled", isOn: .constant(false)).toggleStyle(.button).probe("buttonOff")
-            #if os(macOS)   // macOS-only API; the iOS builds (Catalyst, simulator) render only ios/ fixtures
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             Toggle("Enabled", isOn: .constant(true)).toggleStyle(.checkbox).probe("checkbox")
             #endif
             HStack(spacing: 8) {
