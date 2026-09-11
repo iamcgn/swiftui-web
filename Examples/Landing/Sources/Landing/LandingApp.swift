@@ -143,6 +143,7 @@ struct LandingPage: View {
                 Highlights()
                 Demos()
                 IOSDemo()
+                UIKitDemo()
                 HowItWorks()
                 SupportMatrix()
                 Footer()
@@ -671,6 +672,100 @@ struct IOSDemo: View {
         .padding(.vertical, 40)
     }
 }
+
+// MARK: - UIKit inside SwiftUI
+
+/// UIKit views embedded in the SwiftUI page through `UIViewRepresentable` (decision 0014):
+/// UIKitWeb reimplements UIKit on the same substrate, so a `UISlider` and a `UISegmentedControl`
+/// paint into the same canvas and drive the same model as the SwiftUI controls next to them.
+struct UIKitDemo: View {
+    @State private var model = SettingsModel()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            SectionHeader(kicker: "UIKit too", title: "UIViewRepresentable, with a UIKit to represent")
+            Text("An iOS app is rarely all SwiftUI. UIKitWeb runs unmodified UIKit source on the same display list: views, layers, Auto Layout, navigation and tab bar controllers, tables and the controls, with goldens from real UIKit on an iPhone simulator. UIViewRepresentable and UIHostingController connect the two. Below, a UISlider and a UISegmentedControl share a model with SwiftUI controls.")
+                .foregroundColor(.secondary)
+            #if canImport(UIKit)
+            Card {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("UIKit").font(.caption).fontWeight(.semibold).foregroundColor(.secondary)
+                    UIKitSlider(value: $model.volume).frame(height: 34)
+                    UIKitSegments(selection: $model.size, titles: ["Small", "Medium", "Large"]).frame(height: 32)
+                    Divider()
+                    Text("SwiftUI").font(.caption).fontWeight(.semibold).foregroundColor(.secondary)
+                    Slider(value: $model.volume) { Text("Volume") }
+                    Picker("Size", selection: $model.size) {
+                        Text("Small").tag(0)
+                        Text("Medium").tag(1)
+                        Text("Large").tag(2)
+                    }
+                    .pickerStyle(.segmented)
+                    Text("Volume \(Int((model.volume * 100).rounded())) %, size \(["small", "medium", "large"][min(2, max(0, model.size))])")
+                        .foregroundColor(.secondary)
+                }
+                .environment(\.platformProfile, .iOS)
+            }
+            #endif
+        }
+        .padding(.vertical, 40)
+    }
+}
+
+#if canImport(UIKit)
+/// A UISlider bound to a SwiftUI value through its coordinator.
+struct UIKitSlider: UIViewRepresentable {
+    @Binding var value: Double
+
+    final class Coordinator {
+        var value: Binding<Double>
+        init(_ value: Binding<Double>) { self.value = value }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator($value) }
+
+    func makeUIView(context: Context) -> UISlider {
+        let slider = UISlider()
+        let coordinator = context.coordinator
+        slider.addAction(UIAction { action in
+            if let slider = action.sender as? UISlider { coordinator.value.wrappedValue = Double(slider.value) }
+        }, for: .valueChanged)
+        return slider
+    }
+
+    func updateUIView(_ uiView: UISlider, context: Context) {
+        context.coordinator.value = $value
+        if abs(Double(uiView.value) - value) > 0.001 { uiView.value = Float(value) }
+    }
+}
+
+/// A UISegmentedControl bound to a SwiftUI selection.
+struct UIKitSegments: UIViewRepresentable {
+    @Binding var selection: Int
+    let titles: [String]
+
+    final class Coordinator {
+        var selection: Binding<Int>
+        init(_ selection: Binding<Int>) { self.selection = selection }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator($selection) }
+
+    func makeUIView(context: Context) -> UISegmentedControl {
+        let control = UISegmentedControl(items: titles)
+        let coordinator = context.coordinator
+        control.addAction(UIAction { action in
+            if let control = action.sender as? UISegmentedControl { coordinator.selection.wrappedValue = control.selectedSegmentIndex }
+        }, for: .valueChanged)
+        return control
+    }
+
+    func updateUIView(_ uiView: UISegmentedControl, context: Context) {
+        context.coordinator.selection = $selection
+        if uiView.selectedSegmentIndex != selection { uiView.selectedSegmentIndex = selection }
+    }
+}
+#endif
 
 @Observable
 final class SettingsModel {
