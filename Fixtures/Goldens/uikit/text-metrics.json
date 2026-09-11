@@ -48,6 +48,30 @@
       "lastBaseline" : 31.303175487802068,
       "width" : 52
     },
+    "system:10:500:default|;l1|Home" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 29
+    },
+    "system:10:500:default|;l1|Search" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 34.5
+    },
+    "system:10:600:default|;l1|Home" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 29.5
+    },
+    "system:10:600:default|;l1|Search" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 35
+    },
     "system:11:400:default|;l1|Hg" : {
       "firstBaseline" : 10.4736328125,
       "height" : 13.5,
@@ -108,11 +132,23 @@
       "lastBaseline" : 16.1865234375,
       "width" : 61.5
     },
+    "system:17:400:default|;l1|Content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 61
+    },
     "system:17:400:default|;l1|Count: 0" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 65.5
+    },
+    "system:17:400:default|;l1|Detail content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 106.5
     },
     "system:17:400:default|;l1|First" : {
       "firstBaseline" : 16.1865234375,
@@ -144,6 +180,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 22.5
     },
+    "system:17:400:default|;l1|Home content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 108.5
+    },
     "system:17:400:default|;l1|Inside" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -155,6 +197,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 93
+    },
+    "system:17:400:default|;l1|Search content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 116
     },
     "system:17:400:default|;l1|Second line" : {
       "firstBaseline" : 16.1865234375,
@@ -270,6 +318,30 @@
       "lastBaseline" : 36.4736328125,
       "width" : 181
     },
+    "system:17:500:default|;l1|Edit" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 30.5
+    },
+    "system:17:600:default|;l1|Detail" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 46
+    },
+    "system:17:600:default|;l1|Inbox" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 44
+    },
+    "system:17:600:default|;l1|Settings" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 66.5
+    },
     "system:20:400:default|;l1|Hg" : {
       "firstBaseline" : 19.04296875,
       "height" : 24,
@@ -293,6 +365,12 @@
       "height" : 41,
       "lastBaseline" : 32.373046875,
       "width" : 43.5
+    },
+    "system:34:700:default|;l1|Settings" : {
+      "firstBaseline" : 32.373046875,
+      "height" : 41,
+      "lastBaseline" : 32.373046875,
+      "width" : 133
     }
   },
   "fonts" : {
@@ -343,6 +421,30 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 14.21875
+    },
+    "system:10:500:default" : {
+      "ascender" : 9.521484375,
+      "capHeight" : 7.0458984375,
+      "descender" : -2.412109375,
+      "leading" : 0,
+      "lineHeight" : 11.93359375,
+      "pointSize" : 10,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 5.302734375
+    },
+    "system:10:600:default" : {
+      "ascender" : 9.521484375,
+      "capHeight" : 7.0458984375,
+      "descender" : -2.412109375,
+      "leading" : 0,
+      "lineHeight" : 11.93359375,
+      "pointSize" : 10,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 5.3369140625
     },
     "system:11:400:default" : {
       "ascender" : 10.4736328125,
@@ -404,6 +506,30 @@
       "textToText" : 0,
       "xHeight" : 8.9482421875
     },
+    "system:17:500:default" : {
+      "ascender" : 16.1865234375,
+      "capHeight" : 11.97802734375,
+      "descender" : -4.1005859375,
+      "leading" : 0,
+      "lineHeight" : 20.287109375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 9.0146484375
+    },
+    "system:17:600:default" : {
+      "ascender" : 16.1865234375,
+      "capHeight" : 11.97802734375,
+      "descender" : -4.1005859375,
+      "leading" : 0,
+      "lineHeight" : 20.287109375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 9.07275390625
+    },
     "system:20:400:default" : {
       "ascender" : 19.04296875,
       "capHeight" : 14.091796875,
@@ -451,6 +577,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 17.265625
+    },
+    "system:34:700:default" : {
+      "ascender" : 32.373046875,
+      "capHeight" : 23.9560546875,
+      "descender" : -8.201171875,
+      "leading" : 0,
+      "lineHeight" : 40.57421875,
+      "pointSize" : 34,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 17.796875
     }
   },
   "host" : "iPhoneSimulator 26.0 SwiftUIWeb SE",

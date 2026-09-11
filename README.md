@@ -75,7 +75,7 @@ swift test                      # native runtime + layout tests (fast)
 |---|---|
 | `Sources/SwiftUI` | Thin `import SwiftUI` module re-exporting the implementation |
 | `Packages/WebGraphics` | the graphics substrate shared with UIKitWeb: geometry, paths, display list, text measuring, the hosts (decision 0014) |
-| `Packages/UIKitWeb` | `import UIKit` on the same substrate: views, layers, controls, view controllers, Auto Layout (a Cassowary solver), `draw(_:)` with UIBezierPath, `UIView.animate`; `Examples/UIKitCounter`; goldens from real UIKit on an iPhone simulator (`scripts/gen-goldens-sim.sh uikit`, `Fixtures/UIKit`) |
+| `Packages/UIKitWeb` | `import UIKit` on the same substrate: views, layers, controls, view controllers, Auto Layout (a Cassowary solver), `draw(_:)` with UIBezierPath, `UIView.animate`, navigation and tab bar controllers; `Examples/UIKitCounter`; goldens from real UIKit on an iPhone simulator (`scripts/gen-goldens-sim.sh uikit`, `Fixtures/UIKit`) |
 | `Sources/SwiftUIWebUIKit` | `UIViewRepresentable`, `UIViewControllerRepresentable` and `UIHostingController` over UIKitWeb; `import SwiftUI` re-exports `UIKit` as on iOS (`Docs/elements/Representable.md`) |
 | `Sources/SwiftUIWebCore` | API, runtime, layout engine, font resolution |
 | `Sources/SwiftUIWebCanvas` | wasm Canvas2D painter, semantics overlay, text input host |

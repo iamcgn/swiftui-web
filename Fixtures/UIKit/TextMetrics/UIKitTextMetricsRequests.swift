@@ -65,6 +65,20 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Hg", .system(size: 20)),
         UIKitTextRequest("Hg", .system(size: 28)),
         UIKitTextRequest("Hg", .system(size: 34)),
+        // uikit/nav/*, uikit/tabs/basic (bar titles are 17 pt semibold, large titles 34 pt bold, tab titles 10 pt medium)
+        UIKitTextRequest("Settings", .system(size: 17, weight: "semibold")),
+        UIKitTextRequest("Detail", .system(size: 17, weight: "semibold")),
+        UIKitTextRequest("Inbox", .system(size: 17, weight: "semibold")),
+        UIKitTextRequest("Settings", .system(size: 34, weight: "bold")),
+        UIKitTextRequest("Content", .system(size: 17)),
+        UIKitTextRequest("Detail content", .system(size: 17)),
+        UIKitTextRequest("Home content", .system(size: 17)),
+        UIKitTextRequest("Search content", .system(size: 17)),
+        UIKitTextRequest("Edit", .system(size: 17, weight: "medium")),
+        UIKitTextRequest("Home", .system(size: 10, weight: "semibold")),
+        UIKitTextRequest("Home", .system(size: 10, weight: "medium")),
+        UIKitTextRequest("Search", .system(size: 10, weight: "semibold")),
+        UIKitTextRequest("Search", .system(size: 10, weight: "medium")),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

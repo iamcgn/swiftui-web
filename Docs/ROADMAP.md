@@ -322,7 +322,9 @@ same display list, with goldens from real UIKit on Mac Catalyst; then `UIViewRep
 substrate both share), `Packages/UIKitWeb`, and the root, which depends on UIKitWeb as Apple's
 SwiftUI depends on UIKit. Phase 0 extracts the substrate with no behaviour change; Phase 1 makes
 UIKitWeb run alone (`Examples/UIKitCounter`); Phase 2 adds the representables; Phase 3 Auto
-Layout (done 2026-09-10), `draw(_:)`, `UIView.animate` and `UIHostingController` (done 2026-09-11).
+Layout (done 2026-09-10), `draw(_:)`, `UIView.animate` and `UIHostingController` (done 2026-09-11). Phase 4 (the larger
+UIKit classes): navigation and tab bar controllers (done 2026-09-11), then table and collection
+views, alerts and sheets.
 
 ### Phase 7 status
 
@@ -337,6 +339,7 @@ Layout (done 2026-09-10), `draw(_:)`, `UIView.animate` and `UIHostingController`
 | 3.2 draw(_:) | done 2026-09-11: `UIView.draw(_:)` runs every frame with a recording graphics context as the current one (`UIGraphicsGetCurrentContext()`; `CGContext` on wasm), `UIBezierPath` over the substrate's `Path`, `UIColor.setFill/setStroke`, `UIRectFill` and friends; the recorder keeps CoreGraphics's state stack and emits display list commands through the current transform, clips and shadows included. `uikit/draw/basic` within 0.16 % of the simulator's pixels (`Docs/elements/UIKit/Drawing.md`). Open: text and image drawing, gradients, image contexts, `CGPath` on Apple platforms. |
 | 3.3 UIView.animate | done 2026-09-11: animation blocks record the layer property changes made inside them (position, bounds, opacity, colours, transform, corner radius, border, shadow opacity); the model changes at once, painting interpolates at the eased progress, the scene advances the groups on the hosts' frame clock (a hosted tree's too) and runs completions; ease in-out/in/out/linear as cubic beziers, a damped-spring block, `performWithoutAnimation`, `setAnimationsEnabled`, `transition` (applies at once, completion after the duration). `Docs/elements/UIKit/Animation.md`. Open: repeat/autoreverse, property animators, CATransaction and CAAnimation. |
 | 3.4 UIHostingController | done 2026-09-11: `Sources/SwiftUIWebUIKit/UIHostingController.swift`, a SwiftUI runtime in a UIKit view through UIKitWeb's hosting SPI (`UIView._hosted*`: paint, semantics, identifier routing, focus and text input, frame clock, wheel) that the scene registers and drives; `sizeThatFits(in:)` and the intrinsic size are the content's ideal size. Tests: `UIHostingControllerTests` (layout, painting, sizing, touches, semantics, model updates). Open: `UIHostingConfiguration`, hosting views inside a hosted tree (SwiftUI in UIKit in SwiftUI), safe areas. |
+| 4.1 Navigation and tab bar controllers | done 2026-09-11: `UINavigationController` with `UINavigationBar`, `UINavigationItem`, `UIBarButtonItem` (glass platters, the back chevron, inline and large titles), `UITabBarController` with `UITabBar` and `UITabBarItem` (the floating platter with a lens under the selection), `navigationController` / `tabBarController` / `navigationItem` / `tabBarItem` on view controllers, container safe areas. Five `uikit/nav/*`, `uikit/tabs/*` fixtures exact and within 1.6 % of the simulator's pixels (`Docs/elements/UIKit/Navigation.md`). Open: the push slide, toolbars, large-title collapse, badges. |
 | 0.3 Verification and docs | done 2026-09-06: Counter 2,751,777 bytes brotli after the split against 2,762,661 before (decision 0014 has the log); `Docs/ARCHITECTURE.md` and the README describe the three-package layout. |
 
 ## Risk register

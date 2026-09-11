@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/nav\/basic",
+  "frames" : {
+    "bar" : {
+      "height" : 54,
+      "width" : 320,
+      "x" : 0,
+      "y" : 10
+    },
+    "content" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "label" : {
+      "height" : 20.5,
+      "width" : 61,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

@@ -64,6 +64,21 @@ public struct UIKitFixture: Sendable {
                                         steps: steps.map { step in .init(name: step.name, run: { @MainActor in step.run(model) }) })
         }
     }
+
+    /// A behaviour fixture around a view controller (a navigation or tab bar controller).
+    public init<Model: AnyObject>(_ name: String, size: CGSize = CGSize(width: 320, height: 300),
+                                  model: @escaping @MainActor @Sendable () -> Model,
+                                  steps: [UIKitFixtureStep<Model>],
+                                  controller: @escaping @MainActor @Sendable (Model) -> UIViewController) {
+        self.name = name
+        self.size = size
+        self.stepNames = steps.map(\.name)
+        self.instantiate = {
+            let model = model()
+            return UIKitFixtureInstance(controller: controller(model),
+                                        steps: steps.map { step in .init(name: step.name, run: { @MainActor in step.run(model) }) })
+        }
+    }
 }
 
 /// The controller a view fixture is hosted in: the fixture view is its view.

@@ -1,6 +1,6 @@
 # 0014 — UIKitWeb: a shared graphics substrate, a UIKit reimplementation, and the representables
 
-Status: accepted (2026-09-06); Phases 0 to 3 done
+Status: accepted (2026-09-06); Phases 0 to 3 done; Phase 4 (the larger UIKit classes) in progress
 
 ## Context
 
@@ -199,3 +199,13 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   wheel) and a registry on the scene; the SwiftUI side overrides them in `_UIHostingView`. With
   this the plan's four Phase 3 items are in: Auto Layout, `draw(_:)`, `UIView.animate`,
   `UIHostingController`.
+
+## Phase 4 log
+
+- Step 1 (2026-09-11): `UINavigationController` and `UITabBarController`
+  (`Docs/ROADMAP.md`, Phase 7 status 4.1; `Docs/elements/UIKit/Navigation.md`). The
+  generator's `--dump` mode paid for itself: UIKit's iOS 26 bars are stacks of private views
+  (platters, lenses, transition containers) whose frames the dump lists, so the geometry was
+  read off rather than inferred from pixels. The bars are drawn as measured: translucent, with
+  glass platters for items; the transitions apply at once for now. Containers hand their
+  children a safe area through a `containerSafeAreaInsets` on the child's view.

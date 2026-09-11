@@ -114,15 +114,19 @@ open class UIView: UIResponder, UITraitEnvironment {
         get { NSDirectionalEdgeInsets(top: layoutMargins.top, leading: layoutMargins.left, bottom: layoutMargins.bottom, trailing: layoutMargins.right) }
         set { layoutMargins = UIEdgeInsets(top: newValue.top, left: newValue.leading, bottom: newValue.bottom, right: newValue.trailing) }
     }
-    /// The safe area: the window's insets shrink through the tree (a browser page has none).
+    /// The safe area: the window's insets shrink through the tree (a browser page has none),
+    /// plus what a container controller's bars cover of this view (`containerSafeAreaInsets`).
     open var safeAreaInsets: UIEdgeInsets {
-        guard let superview else { return .zero }
+        guard let superview else { return containerSafeAreaInsets }
         let outer = superview.safeAreaInsets
         let f = frame
         let s = superview.bounds
-        return UIEdgeInsets(top: max(0, outer.top - f.minY), left: max(0, outer.left - f.minX),
-                            bottom: max(0, outer.bottom - (s.maxY - f.maxY)), right: max(0, outer.right - (s.maxX - f.maxX)))
+        let own = containerSafeAreaInsets
+        return UIEdgeInsets(top: max(own.top, outer.top - f.minY), left: max(own.left, outer.left - f.minX),
+                            bottom: max(own.bottom, outer.bottom - (s.maxY - f.maxY)), right: max(own.right, outer.right - (s.maxX - f.maxX)))
     }
+    /// The insets a navigation or tab bar controller's bars cover of this (a child's) view.
+    var containerSafeAreaInsets = UIEdgeInsets.zero { didSet { if containerSafeAreaInsets != oldValue { setNeedsLayout() } } }
     open func safeAreaInsetsDidChange() {}
 
     // MARK: Tree

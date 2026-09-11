@@ -76,6 +76,10 @@ open class UIViewController: UIResponder, UITraitEnvironment {
 
     /// The window the controller's view is in (set by the window for its root).
     weak var window: UIWindow?
+    /// The bar items (Containers/BarItems.swift).
+    var storedNavigationItem: UINavigationItem?
+    var storedTabBarItem: UITabBarItem?
+    open var hidesBottomBarWhenPushed = false
 
     override open var next: UIResponder? { _view?.superview ?? parent ?? window }
 
