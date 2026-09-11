@@ -220,3 +220,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   `UIProgressView`, `UIActivityIndicatorView`, `UIPageControl`, one fixture, frames exact and
   0.6 % of pixels off. The capture is transparent where UIKit draws a material (the page
   control's backdrop), so the colours sampled from it are the controls' own, not the composite.
+- Step 4 (2026-09-11): `UICollectionView` with the flow layout (`Docs/ROADMAP.md`, Phase 7
+  status 4.7; `Docs/elements/UIKit/CollectionView.md`). The flow layout's two justification
+  rules came straight from the goldens: a full line spreads its items over the free space, and
+  items of one size always sit on the grid a full line would make, so a short last line keeps
+  the same gap. Cells exist for the items in view only, which the golden for the horizontal
+  fixture demands (its fourth item has no probe: UIKit never made the cell).

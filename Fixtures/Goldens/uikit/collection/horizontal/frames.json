@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/collection\/horizontal",
+  "frames" : {
+    "collection" : {
+      "height" : 120,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "item0" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 20,
+      "y" : 20
+    },
+    "item1" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 152,
+      "y" : 20
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

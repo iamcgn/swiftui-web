@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/collection\/grid",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "item0" : {
+      "height" : 60,
+      "width" : 90,
+      "x" : 16,
+      "y" : 16
+    },
+    "item2" : {
+      "height" : 60,
+      "width" : 90,
+      "x" : 214,
+      "y" : 16
+    },
+    "item3" : {
+      "height" : 60,
+      "width" : 90,
+      "x" : 16,
+      "y" : 84
+    },
+    "item6" : {
+      "height" : 60,
+      "width" : 90,
+      "x" : 16,
+      "y" : 152
+    },
+    "second0" : {
+      "height" : 60,
+      "width" : 90,
+      "x" : 16,
+      "y" : 244
+    },
+    "second1" : {
+      "height" : 60,
+      "width" : 90,
+      "x" : 115,
+      "y" : 244
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

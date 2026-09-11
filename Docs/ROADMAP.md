@@ -323,8 +323,8 @@ substrate both share), `Packages/UIKitWeb`, and the root, which depends on UIKit
 SwiftUI depends on UIKit. Phase 0 extracts the substrate with no behaviour change; Phase 1 makes
 UIKitWeb run alone (`Examples/UIKitCounter`); Phase 2 adds the representables; Phase 3 Auto
 Layout (done 2026-09-10), `draw(_:)`, `UIView.animate` and `UIHostingController` (done 2026-09-11). Phase 4 (the larger
-UIKit classes): navigation and tab bar controllers and `UITableView` (done 2026-09-11), then collection
-views, alerts and sheets.
+UIKit classes): navigation and tab bar controllers, `UITableView` and `UICollectionView` (done 2026-09-11),
+then alerts and sheets.
 
 ### Phase 7 status
 
@@ -345,6 +345,7 @@ views, alerts and sheets.
 | 4.4 A UIKit app in the browser | done 2026-09-11: `Examples/UIKitSettings` (a tab bar controller over navigation controllers, an inset grouped table with a switch and a slider in rows, screens pushed by rows with a segmented control and a stepper laid out by constraints) runs unmodified in Chromium; `Playwright/uikit-settings.mjs` taps rows, the back platter and a tab through the accessibility overlay (CI). |
 | 4.5 The landing page | done 2026-09-11: a "UIKit too" section on `Examples/Landing` hosts a `UISlider` and a `UISegmentedControl` through `UIViewRepresentable` next to the SwiftUI controls they share a model with; the support matrix gained the UIKit interop section. |
 | 4.6 Scroll momentum | done 2026-09-11: a pan that ends with velocity carries a `UIScrollView` (and so a table) on the scene's clock at UIKit's deceleration rate, stopping at an edge or under 4 pt/s; a touch stops it; the delegate hears. Open: rubber banding, paging, scroll indicators. |
+| 4.7 UICollectionView | done 2026-09-11: `UICollectionView` over the scroll view with a layout object, `UICollectionViewFlowLayout` (vertical and horizontal, section insets, line and interitem spacing, delegate-sized items; full lines justified, one-size items on a full line's grid), `UICollectionViewCell`, layout attributes, reuse, selection by tap; cells for the items in view only. Three `uikit/collection/*` fixtures exact and within 0.2 % of the simulator's pixels (`Docs/elements/UIKit/CollectionView.md`). Open: supplementary views, compositional layouts, self-sizing. |
 | 0.3 Verification and docs | done 2026-09-06: Counter 2,751,777 bytes brotli after the split against 2,762,661 before (decision 0014 has the log); `Docs/ARCHITECTURE.md` and the README describe the three-package layout. |
 
 ## Risk register

@@ -34,7 +34,10 @@ import Foundation
 extension IndexPath {
     /// A table row's position (UIKit's additions to Foundation's index path).
     public init(row: Int, section: Int) { self.init(indexes: [section, row]) }
+    /// A collection item's position.
+    public init(item: Int, section: Int) { self.init(indexes: [section, item]) }
     public var row: Int { get { self[1] } set { self[1] = newValue } }
+    public var item: Int { get { self[1] } set { self[1] = newValue } }
     public var section: Int { get { self[0] } set { self[0] = newValue } }
 }
 

@@ -6,7 +6,7 @@ import UIKitFixtureKit
 public enum AllUIKitFixtures {
     public static let all: [UIKitFixture] = [
         LabelFixtures.all, ButtonFixtures.all, StackFixtures.all, ViewFixtures.all, ControlFixtures.all,
-        AutoLayoutFixtures.all, DrawFixtures.all, NavigationFixtures.all, TableFixtures.all, MoreControlFixtures.all,
+        AutoLayoutFixtures.all, DrawFixtures.all, NavigationFixtures.all, TableFixtures.all, MoreControlFixtures.all, CollectionFixtures.all,
     ].flatMap { $0 }
 }
 #endif
