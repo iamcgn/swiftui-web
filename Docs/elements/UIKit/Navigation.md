@@ -14,7 +14,10 @@ on iOS 26 (`scripts/gen-goldens-sim.sh uikit --dump uikit/nav/` shows UIKit's ba
   `setViewControllers(_:animated:)`, `pushViewController`, `popViewController`,
   `popToRootViewController`, `popToViewController`, `topViewController`,
   `visibleViewController`, `navigationBar`, `isNavigationBarHidden` / `setNavigationBarHidden`,
-  `delegate` (`willShow`, `didShow`). Transitions apply at once (no slide yet).
+  `delegate` (`willShow`, `didShow`). An animated push slides the new screen in from the
+  trailing edge over 0.35 s (ease in-out) while the old one moves a third of the width behind
+  a 10 % veil; a pop reverses it; the leaving screen stays in the hierarchy until the slide
+  ends (`NavigationTests`). The timing is SwiftUI's measured slide, not UIKit's own.
 - `UINavigationBar`: `items`, `topItem`, `backItem`, `prefersLargeTitles`, `isTranslucent`,
   `barTintColor`, `titleTextAttributes`, the appearance objects (accepted; the iOS 26 look is
   drawn as measured).
@@ -52,6 +55,6 @@ on iOS 26 (`scripts/gen-goldens-sim.sh uikit --dump uikit/nav/` shows UIKit's ba
   with 10 pt medium titles. The selected child's view fills the container; its safe area's
   bottom is the band.
 
-Open: the push and pop slide, the interactive pop gesture, `titleView` sizing, toolbars
+Open: the interactive pop gesture, `titleView` sizing, toolbars
 (`UIToolbar`, `setToolbarHidden`), large-title collapse on scroll, `hidesBottomBarWhenPushed`,
 tab bar badges and the More tab, appearance objects, `UISearchController` in the bar.

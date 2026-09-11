@@ -68,11 +68,16 @@ open class UINavigationController: UIViewController {
         return popped
     }
 
-    /// Replaces the stack: the old top disappears, the new one appears, the bar follows.
+    /// Replaces the stack: the old top disappears, the new one appears, the bar follows. An
+    /// animated push or pop slides the screens over 0.35 s (the pushed one in from the trailing
+    /// edge, the one below moving a third of the width behind a dimming veil, as iOS does).
     open func setViewControllers(_ controllers: [UIViewController], animated: Bool) {
         let oldTop = topViewController
+        let isPush = controllers.count > viewControllers.count
+        let slides = animated && isViewLoaded && hasAppeared && oldTop != nil && controllers.last !== oldTop && UIView.areAnimationsEnabled
         for controller in viewControllers where !controllers.contains(where: { $0 === controller }) {
-            controller.viewIfLoaded?.removeFromSuperview()
+            // The old top stays in the hierarchy through its slide out.
+            if !(slides && controller === oldTop) { controller.viewIfLoaded?.removeFromSuperview() }
             controller.removeFromParent()
         }
         viewControllers = controllers
@@ -83,28 +88,63 @@ open class UINavigationController: UIViewController {
         if let newTop = topViewController, newTop !== oldTop {
             delegate?.navigationController(self, willShow: newTop, animated: animated)
         }
-        if isViewLoaded { showTop(previous: oldTop) }
+        if isViewLoaded { showTop(previous: oldTop, sliding: slides ? (push: isPush, leaving: oldTop) : nil) }
         if let newTop = topViewController, newTop !== oldTop {
             delegate?.navigationController(self, didShow: newTop, animated: animated)
         }
     }
 
+    /// The slide's duration.
+    static let slideDuration = 0.35
+
     /// Puts the top controller's view in the container under the bar and hands the bar its items.
-    private func showTop(previous: UIViewController? = nil) {
+    private func showTop(previous: UIViewController? = nil, sliding: (push: Bool, leaving: UIViewController?)? = nil) {
         guard let view = viewIfLoaded else { return }
+        let width = view.bounds.width
+        var leavingView: UIView?
         if let previous, previous !== topViewController, let old = previous.viewIfLoaded, old.superview === view {
-            if hasAppeared { previous.beginAppearanceTransition(false, animated: false) }
-            old.removeFromSuperview()
-            if hasAppeared { previous.endAppearanceTransition() }
+            if hasAppeared { previous.beginAppearanceTransition(false, animated: sliding != nil) }
+            if sliding == nil {
+                old.removeFromSuperview()
+                if hasAppeared { previous.endAppearanceTransition() }
+            } else {
+                leavingView = old
+            }
         }
         if let top = topViewController {
             let content = top.view!
             if content.superview !== view {
                 content.frame = view.bounds
                 content.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                if hasAppeared { top.beginAppearanceTransition(true, animated: false) }
-                view.insertSubview(content, belowSubview: navigationBar)
-                if hasAppeared { top.endAppearanceTransition() }
+                if hasAppeared { top.beginAppearanceTransition(true, animated: sliding != nil) }
+                if let sliding, let leavingView {
+                    // The slide: the pushed screen starts off the trailing edge (a popped one a third
+                    // to the leading side, behind) and both move together.
+                    let startX: CGFloat = sliding.push ? width : -width / 3
+                    content.frame.origin.x = startX
+                    if sliding.push { view.insertSubview(content, belowSubview: navigationBar) } else { view.insertSubview(content, belowSubview: leavingView) }
+                    let veil = UIView(frame: view.bounds)
+                    veil.backgroundColor = UIColor(white: 0, alpha: sliding.push ? 0 : 0.1)
+                    veil.isUserInteractionEnabled = false
+                    view.insertSubview(veil, aboveSubview: sliding.push ? leavingView : content)
+                    let previousController = previous
+                    UIView.animate(withDuration: Self.slideDuration, delay: 0, options: .curveEaseInOut, animations: {
+                        content.frame.origin.x = 0
+                        leavingView.frame.origin.x = sliding.push ? -width / 3 : width
+                        veil.backgroundColor = UIColor(white: 0, alpha: sliding.push ? 0.1 : 0)
+                    }, completion: { [weak self] _ in
+                        veil.removeFromSuperview()
+                        leavingView.removeFromSuperview()
+                        leavingView.frame.origin.x = 0
+                        if self?.hasAppeared == true {
+                            previousController?.endAppearanceTransition()
+                            top.endAppearanceTransition()
+                        }
+                    })
+                } else {
+                    view.insertSubview(content, belowSubview: navigationBar)
+                    if hasAppeared { top.endAppearanceTransition() }
+                }
             }
             top.navigationItem.onChange = { [weak self] in self?.navigationBar.setNeedsLayout() }
         }
@@ -119,7 +159,9 @@ open class UINavigationController: UIViewController {
         let height = navigationBar.isHidden ? 0 : navigationBar.preferredHeight
         navigationBar.frame = CGRect(x: 0, y: top + UINavigationBar.topOffset, width: view.bounds.width, height: height)
         if let content = topViewController?.viewIfLoaded {
-            content.frame = view.bounds
+            // A screen mid-slide keeps its x (the animation owns it); its size follows the container.
+            if content.frame.size != view.bounds.size { content.frame.size = view.bounds.size }
+            if content.layer.animatingGroups.isEmpty, content.frame.origin != .zero { content.frame.origin = .zero }
             content.containerSafeAreaInsets = UIEdgeInsets(top: navigationBar.isHidden ? 0 : navigationBar.frame.maxY, left: 0, bottom: 0, right: 0)
         }
     }

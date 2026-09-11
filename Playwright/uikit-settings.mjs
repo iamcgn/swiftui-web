@@ -27,7 +27,8 @@ const tap = async (label) => {
   const box = await page.locator(`[aria-label="${label}"]`).first().boundingBox();
   if (!box) { problems.push(`no overlay element labelled "${label}"`); return; }
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await page.waitForTimeout(150);
+  // A push or pop slides for 0.35 s.
+  await page.waitForTimeout(600);
 };
 
 const initial = await texts();

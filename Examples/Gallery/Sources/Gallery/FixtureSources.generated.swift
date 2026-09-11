@@ -5113,6 +5113,61 @@ public static let intrinsic = UIKitFixture("uikit/controls/intrinsic", size: CGS
     return root
 }
 """#),
+        FixtureSource(name: "uikit/controls/more", file: "Fixtures/UIKit/Controls/MoreControlFixtures.swift", firstLine: 11, lastLine: 63, declaration: #"""
+public static let controls = UIKitFixture("uikit/controls/more", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    let slider = UISlider()
+    slider.value = 0.3
+    slider.sizeToFit()
+    slider.frame = CGRect(x: 16, y: 16, width: 288, height: slider.frame.height)
+    root.addSubview(slider.probe("slider"))
+
+    let segmented = UISegmentedControl(items: ["One", "Two", "Three"])
+    segmented.selectedSegmentIndex = 1
+    segmented.sizeToFit()
+    segmented.frame.origin = CGPoint(x: 16, y: 72)
+    root.addSubview(segmented.probe("segmented"))
+
+    let stepper = UIStepper()
+    stepper.value = 2
+    stepper.sizeToFit()
+    stepper.frame.origin = CGPoint(x: 16, y: 128)
+    root.addSubview(stepper.probe("stepper"))
+
+    let progress = UIProgressView(progressViewStyle: .default)
+    progress.progress = 0.6
+    progress.sizeToFit()
+    progress.frame = CGRect(x: 16, y: 184, width: 288, height: progress.frame.height)
+    root.addSubview(progress.probe("progress"))
+
+    let spinner = UIActivityIndicatorView(style: .medium)
+    spinner.sizeToFit()
+    spinner.frame.origin = CGPoint(x: 16, y: 216)
+    spinner.hidesWhenStopped = false
+    root.addSubview(spinner.probe("spinner"))
+
+    let large = UIActivityIndicatorView(style: .large)
+    large.sizeToFit()
+    large.frame.origin = CGPoint(x: 72, y: 216)
+    large.hidesWhenStopped = false
+    root.addSubview(large.probe("spinnerLarge"))
+
+    let pages = UIPageControl()
+    pages.numberOfPages = 4
+    pages.currentPage = 1
+    pages.sizeToFit()
+    pages.frame.origin = CGPoint(x: 16, y: 288)
+    root.addSubview(pages.probe("pages"))
+
+    let disabledSlider = UISlider()
+    disabledSlider.value = 0.7
+    disabledSlider.isEnabled = false
+    disabledSlider.sizeToFit()
+    disabledSlider.frame = CGRect(x: 16, y: 336, width: 200, height: disabledSlider.frame.height)
+    root.addSubview(disabledSlider.probe("disabledSlider"))
+    return root
+}
+"""#),
         FixtureSource(name: "uikit/draw/basic", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 86, lastLine: 95, declaration: #"""
 public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 320, height: 420)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 420))
@@ -5176,6 +5231,58 @@ public static let wrapping = UIKitFixture("uikit/label/wrapping", size: CGSize(w
     return root
 }
 """#),
+        FixtureSource(name: "uikit/nav/basic", file: "Fixtures/UIKit/Navigation/NavigationFixtures.swift", firstLine: 41, lastLine: 48, declaration: #"""
+/// An inline title bar over a screen.
+public static let basic = UIKitFixture("uikit/nav/basic", size: CGSize(width: 320, height: 400)) {
+    let root = ScreenController.make(title: "Settings", text: "Content", probe: "label")
+    let navigation = UINavigationController(rootViewController: root)
+    navigation.navigationBar.probe("bar")
+    root.view.probe("content")
+    return navigation
+}
+"""#),
+        FixtureSource(name: "uikit/nav/items", file: "Fixtures/UIKit/Navigation/NavigationFixtures.swift", firstLine: 78, lastLine: 87, declaration: #"""
+/// Bar button items: a titled right item, a system left item.
+public static let items = UIKitFixture("uikit/nav/items", size: CGSize(width: 320, height: 400)) {
+    let root = ScreenController.make(title: "Inbox", text: "Content", probe: "label")
+    root.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: nil, action: nil)
+    root.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
+    let navigation = UINavigationController(rootViewController: root)
+    navigation.navigationBar.probe("bar")
+    root.view.probe("content")
+    return navigation
+}
+"""#),
+        FixtureSource(name: "uikit/nav/large", file: "Fixtures/UIKit/Navigation/NavigationFixtures.swift", firstLine: 50, lastLine: 58, declaration: #"""
+/// A large title bar.
+public static let large = UIKitFixture("uikit/nav/large", size: CGSize(width: 320, height: 400)) {
+    let root = ScreenController.make(title: "Settings", text: "Content", probe: "label")
+    let navigation = UINavigationController(rootViewController: root)
+    navigation.navigationBar.prefersLargeTitles = true
+    navigation.navigationBar.probe("bar")
+    root.view.probe("content")
+    return navigation
+}
+"""#),
+        FixtureSource(name: "uikit/nav/push", file: "Fixtures/UIKit/Navigation/NavigationFixtures.swift", firstLine: 60, lastLine: 76, declaration: #"""
+/// A push shows the pushed screen under a bar with a back button; a pop returns.
+public static let push = UIKitFixture("uikit/nav/push", size: CGSize(width: 320, height: 400),
+                                      model: { NavigationModel() },
+                                      steps: [UIKitFixtureStep("push") { model in
+                                                  let detail = ScreenController.make(title: "Detail", text: "Detail content", probe: "detailLabel")
+                                                  model.navigation?.pushViewController(detail, animated: false)
+                                                  detail.view.probe("detail")
+                                              },
+                                              UIKitFixtureStep("pop") { model in _ = model.navigation?.popViewController(animated: false) }],
+                                      controller: { model in
+    let root = ScreenController.make(title: "Settings", text: "Content", probe: "label")
+    let navigation = UINavigationController(rootViewController: root)
+    navigation.navigationBar.probe("bar")
+    root.view.probe("content")
+    model.navigation = navigation
+    return navigation
+})
+"""#),
         FixtureSource(name: "uikit/stack/basic", file: "Fixtures/UIKit/Stack/StackFixtures.swift", firstLine: 10, lastLine: 45, declaration: #"""
 public static let basic = UIKitFixture("uikit/stack/basic", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
@@ -5212,6 +5319,56 @@ public static let basic = UIKitFixture("uikit/stack/basic", size: CGSize(width: 
     centred.frame = CGRect(x: (320 - centredSize.width) / 2, y: 180, width: centredSize.width, height: centredSize.height)
     root.addSubview(centred.probe("centred"))
     return root
+}
+"""#),
+        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 79, lastLine: 85, declaration: #"""
+/// The inset grouped style: two sections with headers and a footer, value1 cells.
+public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(width: 320, height: 400)) {
+    make(style: .insetGrouped, cellStyle: .value1, sections: [
+        .init(header: "General", footer: "A footer note.", rows: [("Name", "iPhone", .disclosureIndicator), ("Software", "26.0", .none)]),
+        .init(header: "Display", footer: nil, rows: [("Brightness", nil, .none)]),
+    ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 0, section: 1): "row2"])
+}
+"""#),
+        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 65, lastLine: 70, declaration: #"""
+/// A plain table: one section without a header, default cells with and without accessories.
+public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 320, height: 400)) {
+    make(style: .plain, cellStyle: .default, sections: [
+        .init(header: nil, footer: nil, rows: [("First row", nil, .none), ("Second row", nil, .disclosureIndicator), ("Third row", nil, .checkmark), ("Fourth row", nil, .none)]),
+    ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 3, section: 0): "row3"])
+}
+"""#),
+        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 87, lastLine: 95, declaration: #"""
+/// Selecting a row highlights it; deselecting clears it.
+public static let selection = UIKitFixture("uikit/table/selection", size: CGSize(width: 320, height: 400),
+                                           model: { TableModel() },
+                                           steps: [UIKitFixtureStep("select") { $0.table?.selectRow(at: IndexPath(row: 1, section: 0), animated: false, scrollPosition: .none) },
+                                                   UIKitFixtureStep("deselect") { $0.table?.deselectRow(at: IndexPath(row: 1, section: 0), animated: false) }]) { model in
+    make(style: .plain, cellStyle: .default, sections: [
+        .init(header: nil, footer: nil, rows: [("First row", nil, .none), ("Second row", nil, .none), ("Third row", nil, .none)]),
+    ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
+}
+"""#),
+        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 72, lastLine: 77, declaration: #"""
+/// Subtitle cells with a header, under the plain style.
+public static let subtitle = UIKitFixture("uikit/table/subtitle", size: CGSize(width: 320, height: 400)) {
+    make(style: .plain, cellStyle: .subtitle, sections: [
+        .init(header: "Header", footer: nil, rows: [("Title", "Detail text", .none), ("Another title", "More detail", .disclosureIndicator)]),
+    ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1"])
+}
+"""#),
+        FixtureSource(name: "uikit/tabs/basic", file: "Fixtures/UIKit/Navigation/NavigationFixtures.swift", firstLine: 89, lastLine: 100, declaration: #"""
+/// Two tabs; the first is selected.
+public static let tabs = UIKitFixture("uikit/tabs/basic", size: CGSize(width: 320, height: 400)) {
+    let home = ScreenController.make(title: "Home", text: "Home content", probe: "label")
+    home.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), tag: 0)
+    let search = ScreenController.make(title: "Search", text: "Search content", probe: "searchLabel")
+    search.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), tag: 1)
+    let tabs = UITabBarController()
+    tabs.viewControllers = [home, search]
+    tabs.tabBar.probe("tabBar")
+    home.view.probe("content")
+    return tabs
 }
 """#),
         FixtureSource(name: "uikit/view/autoresizing", file: "Fixtures/UIKit/View/ViewFixtures.swift", firstLine: 59, lastLine: 79, declaration: #"""
@@ -11989,6 +12146,73 @@ public enum ControlFixtures {
 }
 #endif
 """##,
+        "Fixtures/UIKit/Controls/MoreControlFixtures.swift": ##"""
+// The remaining UIKit controls (Docs/elements/UIKit/Controls.md): a slider, a segmented control,
+// a stepper, a progress view, an activity indicator and a page control, each sized to fit and
+// placed by frame, measured against UIKit on the simulator.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+public enum MoreControlFixtures {
+    public static let all = [controls]
+
+    public static let controls = UIKitFixture("uikit/controls/more", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let slider = UISlider()
+        slider.value = 0.3
+        slider.sizeToFit()
+        slider.frame = CGRect(x: 16, y: 16, width: 288, height: slider.frame.height)
+        root.addSubview(slider.probe("slider"))
+
+        let segmented = UISegmentedControl(items: ["One", "Two", "Three"])
+        segmented.selectedSegmentIndex = 1
+        segmented.sizeToFit()
+        segmented.frame.origin = CGPoint(x: 16, y: 72)
+        root.addSubview(segmented.probe("segmented"))
+
+        let stepper = UIStepper()
+        stepper.value = 2
+        stepper.sizeToFit()
+        stepper.frame.origin = CGPoint(x: 16, y: 128)
+        root.addSubview(stepper.probe("stepper"))
+
+        let progress = UIProgressView(progressViewStyle: .default)
+        progress.progress = 0.6
+        progress.sizeToFit()
+        progress.frame = CGRect(x: 16, y: 184, width: 288, height: progress.frame.height)
+        root.addSubview(progress.probe("progress"))
+
+        let spinner = UIActivityIndicatorView(style: .medium)
+        spinner.sizeToFit()
+        spinner.frame.origin = CGPoint(x: 16, y: 216)
+        spinner.hidesWhenStopped = false
+        root.addSubview(spinner.probe("spinner"))
+
+        let large = UIActivityIndicatorView(style: .large)
+        large.sizeToFit()
+        large.frame.origin = CGPoint(x: 72, y: 216)
+        large.hidesWhenStopped = false
+        root.addSubview(large.probe("spinnerLarge"))
+
+        let pages = UIPageControl()
+        pages.numberOfPages = 4
+        pages.currentPage = 1
+        pages.sizeToFit()
+        pages.frame.origin = CGPoint(x: 16, y: 288)
+        root.addSubview(pages.probe("pages"))
+
+        let disabledSlider = UISlider()
+        disabledSlider.value = 0.7
+        disabledSlider.isEnabled = false
+        disabledSlider.sizeToFit()
+        disabledSlider.frame = CGRect(x: 16, y: 336, width: 200, height: disabledSlider.frame.height)
+        root.addSubview(disabledSlider.probe("disabledSlider"))
+        return root
+    }
+}
+#endif
+"""##,
         "Fixtures/UIKit/Draw/DrawFixtures.swift": ##"""
 // Custom drawing (Docs/elements/UIKit/Drawing.md): a view's `draw(_:)` through UIBezierPath, the
 // current fill and stroke colours, and the current graphics context's transforms, clipping and
@@ -12149,6 +12373,110 @@ public enum LabelFixtures {
 }
 #endif
 """##,
+        "Fixtures/UIKit/Navigation/NavigationFixtures.swift": ##"""
+// UINavigationController and UITabBarController (Docs/elements/UIKit/Navigation.md): the
+// navigation bar with an inline and a large title, a push and a pop, bar button items, and a
+// tab bar with two tabs, measured against UIKit on the simulator.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+/// A screen with a title and one label at (16, 16) of its view.
+final class ScreenController: UIViewController {
+    var text = ""
+    var probeName = ""
+
+    static func make(title: String, text: String, probe: String) -> ScreenController {
+        let controller = ScreenController()
+        controller.title = title
+        controller.text = text
+        controller.probeName = probe
+        return controller
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        let label = UILabel()
+        label.text = text
+        label.font = .systemFont(ofSize: 17)
+        label.sizeToFit()
+        label.frame.origin = CGPoint(x: 16, y: 16)
+        view.addSubview(label.probe(probeName))
+    }
+}
+
+@MainActor public final class NavigationModel {
+    var navigation: UINavigationController?
+    public init() {}
+}
+
+public enum NavigationFixtures {
+    public static let all = [basic, large, push, items, tabs]
+
+    /// An inline title bar over a screen.
+    public static let basic = UIKitFixture("uikit/nav/basic", size: CGSize(width: 320, height: 400)) {
+        let root = ScreenController.make(title: "Settings", text: "Content", probe: "label")
+        let navigation = UINavigationController(rootViewController: root)
+        navigation.navigationBar.probe("bar")
+        root.view.probe("content")
+        return navigation
+    }
+
+    /// A large title bar.
+    public static let large = UIKitFixture("uikit/nav/large", size: CGSize(width: 320, height: 400)) {
+        let root = ScreenController.make(title: "Settings", text: "Content", probe: "label")
+        let navigation = UINavigationController(rootViewController: root)
+        navigation.navigationBar.prefersLargeTitles = true
+        navigation.navigationBar.probe("bar")
+        root.view.probe("content")
+        return navigation
+    }
+
+    /// A push shows the pushed screen under a bar with a back button; a pop returns.
+    public static let push = UIKitFixture("uikit/nav/push", size: CGSize(width: 320, height: 400),
+                                          model: { NavigationModel() },
+                                          steps: [UIKitFixtureStep("push") { model in
+                                                      let detail = ScreenController.make(title: "Detail", text: "Detail content", probe: "detailLabel")
+                                                      model.navigation?.pushViewController(detail, animated: false)
+                                                      detail.view.probe("detail")
+                                                  },
+                                                  UIKitFixtureStep("pop") { model in _ = model.navigation?.popViewController(animated: false) }],
+                                          controller: { model in
+        let root = ScreenController.make(title: "Settings", text: "Content", probe: "label")
+        let navigation = UINavigationController(rootViewController: root)
+        navigation.navigationBar.probe("bar")
+        root.view.probe("content")
+        model.navigation = navigation
+        return navigation
+    })
+
+    /// Bar button items: a titled right item, a system left item.
+    public static let items = UIKitFixture("uikit/nav/items", size: CGSize(width: 320, height: 400)) {
+        let root = ScreenController.make(title: "Inbox", text: "Content", probe: "label")
+        root.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: nil, action: nil)
+        root.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
+        let navigation = UINavigationController(rootViewController: root)
+        navigation.navigationBar.probe("bar")
+        root.view.probe("content")
+        return navigation
+    }
+
+    /// Two tabs; the first is selected.
+    public static let tabs = UIKitFixture("uikit/tabs/basic", size: CGSize(width: 320, height: 400)) {
+        let home = ScreenController.make(title: "Home", text: "Home content", probe: "label")
+        home.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), tag: 0)
+        let search = ScreenController.make(title: "Search", text: "Search content", probe: "searchLabel")
+        search.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), tag: 1)
+        let tabs = UITabBarController()
+        tabs.viewControllers = [home, search]
+        tabs.tabBar.probe("tabBar")
+        home.view.probe("content")
+        return tabs
+    }
+}
+#endif
+"""##,
         "Fixtures/UIKit/Stack/StackFixtures.swift": ##"""
 // UIStackView (Docs/elements/UIKit/UIStackView.md): vertical and horizontal stacks of labels
 // and buttons, the fill and fill-equally distributions, alignments.
@@ -12194,6 +12522,105 @@ public enum StackFixtures {
         centred.frame = CGRect(x: (320 - centredSize.width) / 2, y: 180, width: centredSize.width, height: centredSize.height)
         root.addSubview(centred.probe("centred"))
         return root
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/Table/TableFixtures.swift": ##"""
+// UITableView (Docs/elements/UIKit/TableView.md): the plain and inset grouped styles with the
+// default, subtitle and value1 cell styles, accessories, section headers and footers, and a
+// selected row, measured against UIKit on the simulator.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+/// A table whose rows come from a fixed list of (title, detail) pairs per section.
+final class TableSource: NSObject, UITableViewDataSource, UITableViewDelegate {
+    struct Section {
+        var header: String?
+        var footer: String?
+        var rows: [(title: String, detail: String?, accessory: UITableViewCell.AccessoryType)]
+    }
+    var sections: [Section] = []
+    var cellStyle: UITableViewCell.CellStyle = .default
+    var probes: [IndexPath: String] = [:]
+
+    func numberOfSections(in tableView: UITableView) -> Int { sections.count }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { sections[section].rows.count }
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { sections[section].header }
+    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? { sections[section].footer }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: cellStyle, reuseIdentifier: "cell")
+        let row = sections[indexPath.section].rows[indexPath.row]
+        cell.textLabel?.text = row.title
+        cell.detailTextLabel?.text = row.detail
+        cell.accessoryType = row.accessory
+        if let probe = probes[indexPath] { cell.probe(probe) }
+        return cell
+    }
+}
+
+@MainActor public final class TableModel {
+    var table: UITableView?
+    var source: TableSource?
+    public init() {}
+}
+
+public enum TableFixtures {
+    public static let all = [plain, subtitle, grouped, selection]
+
+    @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
+                                model: TableModel? = nil) -> UIView {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let source = TableSource()
+        source.sections = sections
+        source.cellStyle = cellStyle
+        source.probes = probes
+        let table = UITableView(frame: root.bounds, style: style)
+        table.dataSource = source
+        table.delegate = source
+        root.addSubview(table.probe("table"))
+        model?.table = table
+        model?.source = source
+        // The source must outlive the closure: the table keeps it weakly, as UIKit does.
+        root.layer.name = "\(ObjectIdentifier(source).hashValue)"
+        TableFixtures.sources.append(source)
+        return root
+    }
+
+    @MainActor static var sources: [TableSource] = []
+
+    /// A plain table: one section without a header, default cells with and without accessories.
+    public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 320, height: 400)) {
+        make(style: .plain, cellStyle: .default, sections: [
+            .init(header: nil, footer: nil, rows: [("First row", nil, .none), ("Second row", nil, .disclosureIndicator), ("Third row", nil, .checkmark), ("Fourth row", nil, .none)]),
+        ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 3, section: 0): "row3"])
+    }
+
+    /// Subtitle cells with a header, under the plain style.
+    public static let subtitle = UIKitFixture("uikit/table/subtitle", size: CGSize(width: 320, height: 400)) {
+        make(style: .plain, cellStyle: .subtitle, sections: [
+            .init(header: "Header", footer: nil, rows: [("Title", "Detail text", .none), ("Another title", "More detail", .disclosureIndicator)]),
+        ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1"])
+    }
+
+    /// The inset grouped style: two sections with headers and a footer, value1 cells.
+    public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(width: 320, height: 400)) {
+        make(style: .insetGrouped, cellStyle: .value1, sections: [
+            .init(header: "General", footer: "A footer note.", rows: [("Name", "iPhone", .disclosureIndicator), ("Software", "26.0", .none)]),
+            .init(header: "Display", footer: nil, rows: [("Brightness", nil, .none)]),
+        ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 0, section: 1): "row2"])
+    }
+
+    /// Selecting a row highlights it; deselecting clears it.
+    public static let selection = UIKitFixture("uikit/table/selection", size: CGSize(width: 320, height: 400),
+                                               model: { TableModel() },
+                                               steps: [UIKitFixtureStep("select") { $0.table?.selectRow(at: IndexPath(row: 1, section: 0), animated: false, scrollPosition: .none) },
+                                                       UIKitFixtureStep("deselect") { $0.table?.deselectRow(at: IndexPath(row: 1, section: 0), animated: false) }]) { model in
+        make(style: .plain, cellStyle: .default, sections: [
+            .init(header: nil, footer: nil, rows: [("First row", nil, .none), ("Second row", nil, .none), ("Third row", nil, .none)]),
+        ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
     }
 }
 #endif
