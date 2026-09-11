@@ -109,26 +109,29 @@ let package = Package(
             path: "Fixtures/Sources",
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // The wasm SDK's Testing module declares a `_Testing_UIKit` cross-import overlay that does not
+        // exist for wasm; with `import SwiftUI` re-exporting UIKitWeb's `UIKit`, the tests would try
+        // to load it. The overlay search is off for the wasm test builds.
         .testTarget(
             name: "CoreRuntimeTests",
             dependencies: ["SwiftUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"],
-            swiftSettings: [.treatAllWarnings(as: .error)]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi]))]
         ),
         .testTarget(
             name: "LayoutFidelityTests",
             dependencies: ["SwiftUI", "SwiftUIWebHeadless", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"],
-            swiftSettings: [.treatAllWarnings(as: .error)]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi]))]
         ),
         // Tier C: the native painter against Apple's goldens (macOS only; empty elsewhere).
         .testTarget(
             name: "NativeFidelityTests",
             dependencies: ["SwiftUI", "SwiftUIWebNative", "SwiftUIWebHeadless", "FixtureKit", "SwiftUIWebFixtures"],
-            swiftSettings: [.treatAllWarnings(as: .error)]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi]))]
         ),
         .testTarget(
             name: "BrowserTests",
             dependencies: ["SwiftUI", "SwiftUIWebCanvas", "SwiftUIWebTestSupport"],
-            swiftSettings: [.treatAllWarnings(as: .error)]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi]))]
         ),
     ],
     swiftLanguageModes: [.v6]
