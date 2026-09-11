@@ -36,8 +36,11 @@ import UIKit
         // A tap on Cancel runs the handler, dismisses, and the next frames render.
         scene.pointerDown(at: CGPoint(x: cancel.frame.midX, y: cancel.frame.midY), type: .touch, time: 1)
         scene.pointerUp(at: CGPoint(x: cancel.frame.midX, y: cancel.frame.midY), time: 1.1)
-        #expect(chosen == "cancel")
         #expect(root.presentedViewController == nil)
+        // The dismissal animates for 0.25 s; the handler runs when it ends.
+        #expect(chosen == nil)
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(chosen == "cancel")
         scene.layout(in: CGSize(width: 320, height: 500))
         _ = scene.render(scale: 2, background: false)
         #expect(!scene.semanticsTree().contains { $0.label == "Cancel" })
@@ -66,8 +69,44 @@ import UIKit
         scene.textField(node.identifier, didChange: "Notes")
         guard let save = scene.semanticsTree().first(where: { $0.label == "Save" }) else { Issue.record("no Save"); return }
         scene.activate(semanticsIdentifier: save.identifier)
+        _ = scene.advanceFrame(elapsed: 0.5)
         #expect(saved == "Notes")
         #expect(root.presentedViewController == nil)
+    }
+
+    /// An animated presentation scales an alert in over 0.4 s (a sheet slides up) with the
+    /// dimming fading in; the completion runs when it ends.
+    @Test func animatedPresentationsSettle() {
+        let (window, root) = window()
+        let scene = UIKitScene.shared
+        var presented = false
+        let alert = UIAlertController(title: "Hi", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        root.present(alert, animated: true) { presented = true }
+        scene.layout(in: CGSize(width: 320, height: 500))
+        #expect(!presented)
+        #expect(scene.isAnimating)
+        _ = scene.advanceFrame(elapsed: 0.6)
+        #expect(presented)
+        #expect(!scene.isAnimating)
+        #expect(alert.view.transform == .identity)
+        #expect(alert.view.alpha == 1)
+        var dismissed = false
+        alert.dismiss(animated: true) { dismissed = true }
+        #expect(root.presentedViewController == nil)
+        #expect(window.subviews.count == 2)
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(dismissed)
+        #expect(window.subviews.count == 1)
+
+        let sheet = UIViewController()
+        root.present(sheet, animated: true)
+        scene.layout(in: CGSize(width: 320, height: 500))
+        #expect(scene.isAnimating)   // the slide up (the model is already in place; painting interpolates)
+        _ = scene.advanceFrame(elapsed: 0.6)
+        #expect(!scene.isAnimating)
+        #expect(sheet.view.transform == .identity)
+        #expect(sheet.view.frame.minY > 29 && sheet.view.frame.minY < 31)
     }
 
     /// A second presentation from a controller already presenting is refused, as UIKit refuses
@@ -132,6 +171,7 @@ import UIKit
         scene.pointerUp(at: CGPoint(x: cancel.frame.midX, y: cancel.frame.midY), time: 1.1)
         scene.blur(semanticsIdentifier: cancel.identifier)
         #expect(root.presentedViewController == nil)
+        _ = scene.advanceFrame(elapsed: 0.5)
         scene.layout(in: CGSize(width: 320, height: 500))
         _ = scene.render(scale: 2, background: false)
         _ = scene.semanticsTree()

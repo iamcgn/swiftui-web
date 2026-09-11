@@ -66,27 +66,75 @@ public final class UIKitScene: HostedScene {
 
     /// Modal presentation: a container over the window holds the dimming and the presented
     /// controller's view as the card its style calls for (Containers/UIAlertController.swift).
-    func present(_ controller: UIViewController, from presenter: UIViewController) {
-        guard let window = presenter.viewIfLoaded?.window ?? windows.first else { return }
+    /// Presented with `animated`, an alert scales in from 1.15 with a spring over 0.4 s as its
+    /// dimming fades in; a sheet slides up from the bottom, eased out over 0.45 s (followed,
+    /// not measured: the goldens hold the end states). `completion` runs when the animation ends.
+    func present(_ controller: UIViewController, from presenter: UIViewController, animated: Bool = false, completion: (() -> Void)? = nil) {
+        guard let window = presenter.viewIfLoaded?.window ?? windows.first else { completion?(); return }
         controller.window = window
         let container = PresentationContainerView(controller: controller, frame: window.bounds)
         controller.presentationContainer = container
         let view = controller.view!
         view.autoresizingMask = []
-        controller.beginAppearanceTransition(true, animated: false)
+        controller.beginAppearanceTransition(true, animated: animated)
         container.addSubview(view)
         window.addSubview(container)
         controller.pendingAppearance = true
         setNeedsFrame()
+        guard animated, UIView.areAnimationsEnabled else { completion?(); return }
+        container.layoutIfNeeded()
+        container.dimming.alpha = 0
+        let isAlert = controller is UIAlertController
+        if isAlert {
+            view.alpha = 0
+            view.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
+        } else {
+            view.transform = CGAffineTransform(translationX: 0, y: window.bounds.height - view.frame.minY)
+        }
+        let animations = {
+            container.dimming.alpha = 1
+            view.alpha = 1
+            view.transform = .identity
+        }
+        if isAlert {
+            UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, animations: animations, completion: { _ in completion?() })
+        } else {
+            UIView.animate(withDuration: 0.45, delay: 0, options: .curveEaseOut, animations: animations, completion: { _ in completion?() })
+        }
     }
 
-    func dismiss(_ controller: UIViewController) {
-        controller.beginAppearanceTransition(false, animated: false)
-        controller.viewIfLoaded?.removeFromSuperview()
-        controller.presentationContainer?.removeFromSuperview()
-        controller.presentationContainer = nil
-        controller.endAppearanceTransition()
-        controller.window = nil
+    /// Dismissal reverses the presentation; the container leaves the window when it ends.
+    func dismiss(_ controller: UIViewController, animated: Bool = false, completion: (() -> Void)? = nil) {
+        controller.beginAppearanceTransition(false, animated: animated)
+        let finish = { [weak self] in
+            controller.viewIfLoaded?.removeFromSuperview()
+            controller.presentationContainer?.removeFromSuperview()
+            controller.presentationContainer = nil
+            controller.endAppearanceTransition()
+            controller.window = nil
+            self?.setNeedsFrame()
+            completion?()
+        }
+        guard animated, UIView.areAnimationsEnabled, let container = controller.presentationContainer as? PresentationContainerView, let view = controller.viewIfLoaded, view.window != nil else {
+            finish()
+            return
+        }
+        controller.presentationContainer = nil   // no second dismissal reaches the container
+        let isAlert = controller is UIAlertController
+        UIView.animate(withDuration: isAlert ? 0.25 : 0.4, delay: 0, options: isAlert ? .curveEaseIn : .curveEaseIn, animations: {
+            container.dimming.alpha = 0
+            if isAlert {
+                view.alpha = 0
+                view.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            } else {
+                view.transform = CGAffineTransform(translationX: 0, y: container.bounds.height - view.frame.minY)
+            }
+        }, completion: { _ in
+            container.removeFromSuperview()
+            view.transform = .identity
+            view.alpha = 1
+            finish()
+        })
         setNeedsFrame()
     }
 

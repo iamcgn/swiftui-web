@@ -264,14 +264,6 @@ final class AlertActionButton: UIControl {
         label.frame = CGRect(x: ((bounds.width - width) / 2 * 2).rounded() / 2, y: 11, width: width, height: 26.5)
     }
 
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let wasTracking = isTracking
-        super.touchesEnded(touches, with: event)
-        if wasTracking, isEnabled, let touch = touches.first, point(inside: touch.location(in: self), with: event) {
-            sendActions(for: .primaryActionTriggered)
-        }
-    }
-
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let fill = action.style == .cancel ? tintColor.rgba(for: style) : UIColor.tertiarySystemFill.rgba(for: style)

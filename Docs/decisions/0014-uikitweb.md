@@ -268,3 +268,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
 - Step 11 (2026-09-11): `UIPickerView` (`Docs/ROADMAP.md`, Phase 7 status 4.14). The drum
   painter left the date picker for both to share; the picker's fixture pins its frame only,
   as the wheels date picker's does.
+- Step 12 (2026-09-11): presentation animations (`Docs/ROADMAP.md`, Phase 7 status 4.15),
+  followed rather than measured like the navigation slide: the scene animates the container's
+  dimming and the presented view's transform and opacity through `UIView.animate`, and the
+  completion chain moved from the controller to the scene so handlers run when the animation
+  ends. Found on the way: the alert action button re-sent `primaryActionTriggered` after
+  `UIControl` had, the same double dispatch the bar buttons had.

@@ -170,15 +170,17 @@ open class UIViewController: UIResponder, UITraitEnvironment {
         }
         presentedViewController = viewControllerToPresent
         viewControllerToPresent.presentingViewController = self
-        UIKitScene.shared.present(viewControllerToPresent, from: self)
-        completion?()
+        UIKitScene.shared.present(viewControllerToPresent, from: self, animated: flag, completion: completion)
     }
 
+    /// `presentedViewController` clears at once; `completion` (and an alert action's handler)
+    /// runs when the dismissal animation ends.
     open func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
         if let presented = presentedViewController {
-            UIKitScene.shared.dismiss(presented)
             presented.presentingViewController = nil
             presentedViewController = nil
+            UIKitScene.shared.dismiss(presented, animated: flag, completion: completion)
+            return
         } else if let presenter = presentingViewController {
             presenter.dismiss(animated: flag, completion: completion)
             return
