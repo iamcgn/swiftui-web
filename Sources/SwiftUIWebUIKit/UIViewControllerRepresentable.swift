@@ -64,8 +64,11 @@ extension UIViewControllerRepresentable {
         let makeContext = { (environment: EnvironmentValues) in
             Context(coordinator: coordinator, transaction: Transaction._current ?? Transaction(), environment: environment)
         }
-        let controller = context.view.makeUIViewController(context: makeContext(context.environment))
+        // The scene measures with the runtime's engine from the start: a controller that sizes
+        // labels in viewDidLoad would otherwise measure them with the placeholder engine.
         let tree = RepresentableTree()
+        tree.prepare(textEngine: context.runtime.textEngine, assetCatalog: context.runtime.assetCatalog)
+        let controller = context.view.makeUIViewController(context: makeContext(context.environment))
         tree.hosted.setRootViewController(controller)
         tree.dismantleContent = { Self.dismantleUIViewController(controller, coordinator: coordinator) }
         return _PlatformViewHostNode(

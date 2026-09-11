@@ -71,8 +71,9 @@ extension UIViewRepresentable {
         let makeContext = { (environment: EnvironmentValues) in
             Context(coordinator: coordinator, transaction: Transaction._current ?? Transaction(), environment: environment)
         }
-        let view = context.view.makeUIView(context: makeContext(context.environment))
         let tree = RepresentableTree()
+        tree.prepare(textEngine: context.runtime.textEngine, assetCatalog: context.runtime.assetCatalog)
+        let view = context.view.makeUIView(context: makeContext(context.environment))
         tree.hosted.setRootView(view)
         tree.dismantleContent = { Self.dismantleUIView(view, coordinator: coordinator) }
         return _PlatformViewHostNode(

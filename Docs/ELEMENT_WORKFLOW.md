@@ -3,7 +3,7 @@
 UIKit elements (decision 0014) follow the same loop with their own pieces: fixtures in
 `Fixtures/UIKit/<Element>/` against the `UIKitFixtureKit` API, strings in
 `Fixtures/UIKit/TextMetrics/UIKitTextMetricsRequests.swift` with the label's line limit,
-goldens from `scripts/gen-goldens-sim.sh uikit` on an iPhone simulator (`--dump` shows UIKit's internal geometry; decision 0015), the
+goldens from `scripts/gen-goldens-sim.sh uikit` on an iPhone simulator (`--dump` shows UIKit's internal geometry, after each behaviour step too; a fixture that presents alerts or sheets is `.capturesWindow()`, so the golden and its probes cover the window; decision 0015), the
 metrics table from `scripts/uikit-font-metrics-table.py`, Tier A in
 `Packages/UIKitWeb/Tests/UIKitWebTests/UIKitGoldenFrameTests.swift`, the pixel tier in
 `UIKitPixelTests.swift` (the CoreGraphics painter against the simulator's PNGs, 3 %;
