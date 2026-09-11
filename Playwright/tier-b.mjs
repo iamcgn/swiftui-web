@@ -42,7 +42,7 @@ const frameTolerance = (name, key, expected, id) => (approximateProbes[name] || 
   : (name.startsWith('ios/') || name.startsWith('uikit/')) && (key === 'width' || key === 'x') ? 0.5 : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
 // fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
-const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name === 'uikit/datepicker/wheels';
+const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name === 'uikit/datepicker/wheels' || name === 'uikit/picker/basic';
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {

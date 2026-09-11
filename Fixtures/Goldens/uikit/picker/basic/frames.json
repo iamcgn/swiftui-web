@@ -1,0 +1,15 @@
+{
+  "fixture" : "uikit\/picker\/basic",
+  "frames" : {
+    "picker" : {
+      "height" : 216,
+      "width" : 320,
+      "x" : 0,
+      "y" : 12
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

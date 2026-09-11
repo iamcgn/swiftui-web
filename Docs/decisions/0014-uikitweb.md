@@ -265,3 +265,6 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   cell 32 tall and the second row half a point higher than a plain stack would put it; the
   card grew the block and the actions moved under it. The fields are ordinary `UITextField`s,
   so the host's text input and the action handlers reading `textFields` work unchanged.
+- Step 11 (2026-09-11): `UIPickerView` (`Docs/ROADMAP.md`, Phase 7 status 4.14). The drum
+  painter left the date picker for both to share; the picker's fixture pins its frame only,
+  as the wheels date picker's does.

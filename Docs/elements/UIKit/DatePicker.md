@@ -1,4 +1,4 @@
-# UIDatePicker
+# UIDatePicker and UIPickerView
 
 `Packages/UIKitWeb/Sources/UIKitWebCore/Controls/UIDatePicker.swift`. Fixtures
 `uikit/datepicker/compact` (date, time, date-and-time and a disabled picker at 11 September 2026,
@@ -31,8 +31,18 @@ en_US).
   approximately (rows shrinking and fading away from the centre), so the pixel tiers skip it.
 - Pixels: `uikit/datepicker/compact` 1.7 % off the simulator.
 
+## UIPickerView
+
+`Controls/UIPickerView.swift`, fixture `uikit/picker/basic` (two components, a row selected in
+each). `dataSource` (`numberOfComponents(in:)`, `numberOfRowsInComponent`), `delegate`
+(`titleForRow`, `didSelectRow`, `rowHeightForComponent`, `widthForComponent`), `selectRow`,
+`selectedRow(inComponent:)`, `reloadAllComponents`. A picker sized to fit is 320 × 216; the
+components share the width unless the delegate sizes them, and the drum is the date picker's
+(approximate, so the fixture is frames-only). The semantics node is adjustable and steps the
+first component.
+
 ## Open
 
 Tapping a compact picker (UIKit presents a calendar or time popover), the inline calendar,
 the count-down timer, other locales and calendars, `minimumDate` / `maximumDate` enforcement,
-`valueChanged` from the wheels.
+`valueChanged` from the wheels, spinning a picker by touch, custom row views.

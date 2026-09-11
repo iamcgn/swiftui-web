@@ -156,27 +156,53 @@ open class UIDatePicker: UIControl {
     /// (approximate: the frame is pinned, the pixels are not).
     private func drawWheels(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let bounds = context.absoluteRect(CGRect(origin: .zero, size: self.bounds.size))
-        let band = CGRect(x: bounds.minX + 13, y: bounds.midY - 16, width: bounds.width - 26, height: 32)
-        list.append(.fillRRect(band, cornerRadius: 8, UIColor.tertiarySystemFill.rgba(for: style)))
         let c = components
         let month = max(1, min(12, c.month ?? 1))
         let day = c.day ?? 1
         let year = c.year ?? 2000
-        let columns: [(centre: CGFloat, alignment: NSTextAlignment, texts: (Int) -> String?)] = [
-            (bounds.minX + 96, .center, { offset in let m = month + offset; return (1...12).contains(m) ? Self.monthNames[m - 1] : nil }),
-            (bounds.minX + 200, .center, { offset in let d = day + offset; return (1...31).contains(d) ? "\(d)" : nil }),
-            (bounds.minX + 272, .center, { offset in "\(year + offset)" }),
+        let columns: [WheelPainter.Column] = [
+            WheelPainter.Column(centre: bounds.minX + 96, rows: { offset in let m = month + offset; return (1...12).contains(m) ? Self.monthNames[m - 1] : nil }),
+            WheelPainter.Column(centre: bounds.minX + 200, rows: { offset in let d = day + offset; return (1...31).contains(d) ? "\(d)" : nil }),
+            WheelPainter.Column(centre: bounds.minX + 272, rows: { offset in "\(year + offset)" }),
         ]
+        WheelPainter.paint(columns: columns, in: bounds, style: style, into: &list)
+    }
+
+    // MARK: Semantics
+
+    override func decorateSemantics(_ node: inout SemanticsNode) {
+        node.role = .button
+        let parts = [showsDate ? dateText : nil, showsTime ? timeText : nil].compactMap { $0 }
+        if node.label.isEmpty { node.label = parts.joined(separator: " ") }
+    }
+}
+
+/// The drum a wheels picker draws: a selection band across the middle and, per column, the rows
+/// around the selected one on a 32 pt pitch, shrinking and fading with the angle
+/// (approximate: UIKit renders a real cylinder).
+@MainActor
+enum WheelPainter {
+    struct Column {
+        let centre: CGFloat
+        /// The text `offset` rows from the selected one (nil past the ends).
+        let rows: (Int) -> String?
+    }
+
+    static let rowPitch: CGFloat = 32
+    static let fontSize: CGFloat = 21
+
+    static func paint(columns: [Column], in bounds: CGRect, style: UIUserInterfaceStyle, into list: inout DisplayList) {
+        let band = CGRect(x: bounds.minX + 13, y: bounds.midY - rowPitch / 2, width: bounds.width - 26, height: rowPitch)
+        list.append(.fillRRect(band, cornerRadius: 8, UIColor.tertiarySystemFill.rgba(for: style)))
         list.withSavedState { list in
             list.append(.clipRect(bounds))
             for column in columns {
                 for offset in -3...3 {
-                    guard let text = column.texts(offset) else { continue }
+                    guard let text = column.rows(offset) else { continue }
                     let angle = Double(offset) * 0.32
                     let scale = CGFloat(_cos(angle))
-                    let y = bounds.midY + CGFloat(_sin(angle)) * 108
-                    let size = 21 * scale
-                    let font = UIFont.systemFont(ofSize: size)
+                    let y = bounds.midY + CGFloat(_sin(angle)) * bounds.height / 2
+                    let font = UIFont.systemFont(ofSize: fontSize * scale)
                     let layout = UIKitScene.shared.textEngine.layout([StyledRun(text, font: font.resolved)], options: TextLayoutOptions(lineLimit: 1), width: nil)
                     guard let line = layout.lines.first else { continue }
                     let alpha = offset == 0 ? 1 : max(0.25, 0.75 - 0.15 * Double(abs(offset)))
@@ -189,13 +215,5 @@ open class UIDatePicker: UIControl {
                 }
             }
         }
-    }
-
-    // MARK: Semantics
-
-    override func decorateSemantics(_ node: inout SemanticsNode) {
-        node.role = .button
-        let parts = [showsDate ? dateText : nil, showsTime ? timeText : nil].compactMap { $0 }
-        if node.label.isEmpty { node.label = parts.joined(separator: " ") }
     }
 }
