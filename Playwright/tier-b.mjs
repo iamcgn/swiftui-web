@@ -64,6 +64,12 @@ const engine = { chromium, webkit, firefox }[opt('--browser', 'chromium')];
 const browser = await engine.launch();
 const context = await browser.newContext({ deviceScaleFactor: 2, viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();
+// `--throttle 4` slows the CPU as a CI runner would (Chromium only), to reproduce timing faults.
+const throttle = Number(opt('--throttle', '0'));
+if (throttle > 1 && browserName === 'chromium') {
+  const session = await context.newCDPSession(page);
+  await session.send('Emulation.setCPUThrottlingRate', { rate: throttle });
+}
 const errors = [];
 // Every console message of the current fixture, printed when the fixture never paints.
 let transcript = [];
@@ -132,6 +138,7 @@ async function check(name, label, goldenFrames, goldenPng, shotPath) {
   await settleImages();
   const frames = await page.evaluate(() => window.__galleryFrames || window.__swiftuiwebDebug.frames());
   const mismatches = compareFrames(label, frames, goldenFrames);
+  if (mismatches.length && process.env.TIER_B_VERBOSE) { console.log('   frames: ' + JSON.stringify(frames).slice(0, 400)); for (const line of transcript.slice(-12)) console.log('   ' + line.split('\n')[0].slice(0, 200)); }
   const pixelDiff = framesOnly(name) ? 'skipped' : await comparePixels(name, shotPath, goldenPng);
   const pixelOK = framesOnly(name) || (typeof pixelDiff === 'number' ? pixelDiff <= (approximate.includes(name) ? pixelTolerance * 3 : pixelTolerance) : false);
   const ok = mismatches.length === 0 && pixelOK;

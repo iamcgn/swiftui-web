@@ -234,6 +234,7 @@ final class Gallery {
         // update the previous one's nodes in place (ios/nav/push-inline then push-noback), keeping
         // its state and, with identical probe frames, never publishing them again.
         host!.mount(AnyView(EmptyView()))
+        hostedFixtureName = uikitFixtureNames.contains(fixture.name) ? fixture.name : nil
         host!.mount(AnyView(
             instance.view
                 .frame(width: size.width, height: size.height)
@@ -242,8 +243,11 @@ final class Gallery {
                 .environment(\.colorScheme, fixture.colorScheme)
                 .environment(\.platformProfile, fixture.platform == .iOS ? .iOS : .macOS)
                 .coordinateSpace(name: fixtureRootSpace)
-                .onPreferenceChange(ProbeKey.self) { frames in
+                .onPreferenceChange(ProbeKey.self) { [weak self] frames in
                     // Same probe path as the Apple harness; published for Playwright/tier-b.mjs.
+                    // A hosted UIKit fixture has no SwiftUI probes: its frames come from
+                    // `publishUIKitProbes`, and an empty set published here would race it.
+                    guard let self, self.hostedFixtureName == nil else { return }
                     let object = JSObject.global.Object.function!.new()
                     for (id, frame) in frames {
                         let rect = JSObject.global.Object.function!.new()
@@ -254,7 +258,6 @@ final class Gallery {
                     JSObject.global.__galleryFrames = .object(object)
                 }))
         JSObject.global.__galleryStepCount = .number(Double(instance.steps.count))
-        hostedFixtureName = uikitFixtureNames.contains(fixture.name) ? fixture.name : nil
         publishUIKitProbes()
         _ = JSObject.global.console.object!.log!("[gallery] mounted \(fixture.name)")
     }
