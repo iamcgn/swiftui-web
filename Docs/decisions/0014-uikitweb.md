@@ -215,3 +215,8 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   `IndexPath.row`/`section` are UIKit's additions to Foundation's type, so UIKitWebCore adds
   them, and data sources written for UIKit subclass `NSObject`, which FoundationEssentials on
   wasm does not have, so UIKitWebCore declares an empty one there.
+- Step 3 (2026-09-11): the remaining controls (`Docs/ROADMAP.md`, Phase 7 status 4.3;
+  `Docs/elements/UIKit/Controls.md`): `UISlider`, `UISegmentedControl`, `UIStepper`,
+  `UIProgressView`, `UIActivityIndicatorView`, `UIPageControl`, one fixture, frames exact and
+  0.6 % of pixels off. The capture is transparent where UIKit draws a material (the page
+  control's backdrop), so the colours sampled from it are the controls' own, not the composite.

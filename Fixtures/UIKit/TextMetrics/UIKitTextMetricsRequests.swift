@@ -99,6 +99,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Display", .system(size: 17, weight: "semibold"), lines: 0),
         UIKitTextRequest("A footer note.", .system(size: 13), lines: 0),
         UIKitTextRequest("A footer note.", .system(size: 13), width: 256, lines: 0),
+        // uikit/controls/more (segment titles are 13 pt, the selected one medium)
+        UIKitTextRequest("One", .system(size: 13)),
+        UIKitTextRequest("Two", .system(size: 13)),
+        UIKitTextRequest("Three", .system(size: 13)),
+        UIKitTextRequest("One", .system(size: 13, weight: "medium")),
+        UIKitTextRequest("Two", .system(size: 13, weight: "medium")),
+        UIKitTextRequest("Three", .system(size: 13, weight: "medium")),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

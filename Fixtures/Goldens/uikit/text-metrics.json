@@ -84,6 +84,24 @@
       "lastBaseline" : 12.3779296875,
       "width" : 17.5
     },
+    "system:13:400:default|;l1|One" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 25
+    },
+    "system:13:400:default|;l1|Three" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 35.5
+    },
+    "system:13:400:default|;l1|Two" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 25
+    },
     "system:13:400:default||A footer note." : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -95,6 +113,24 @@
       "height" : 16,
       "lastBaseline" : 12.3779296875,
       "width" : 83
+    },
+    "system:13:500:default|;l1|One" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 25.5
+    },
+    "system:13:500:default|;l1|Three" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 36.5
+    },
+    "system:13:500:default|;l1|Two" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 25.5
     },
     "system:13:600:default|;l1|Bold 13" : {
       "firstBaseline" : 12.3779296875,
@@ -571,6 +607,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 6.8427734375
+    },
+    "system:13:500:default" : {
+      "ascender" : 12.3779296875,
+      "capHeight" : 9.15966796875,
+      "descender" : -3.1357421875,
+      "leading" : 0,
+      "lineHeight" : 15.513671875,
+      "pointSize" : 13,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 6.8935546875
     },
     "system:13:600:default" : {
       "ascender" : 12.3779296875,

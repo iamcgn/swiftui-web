@@ -1,0 +1,57 @@
+{
+  "fixture" : "uikit\/controls\/more",
+  "frames" : {
+    "disabledSlider" : {
+      "height" : 34,
+      "width" : 200,
+      "x" : 16,
+      "y" : 336
+    },
+    "pages" : {
+      "height" : 26,
+      "width" : 92,
+      "x" : 16,
+      "y" : 288
+    },
+    "progress" : {
+      "height" : 4,
+      "width" : 288,
+      "x" : 16,
+      "y" : 184
+    },
+    "segmented" : {
+      "height" : 32,
+      "width" : 165,
+      "x" : 16,
+      "y" : 72
+    },
+    "slider" : {
+      "height" : 34,
+      "width" : 288,
+      "x" : 16,
+      "y" : 16
+    },
+    "spinner" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 16,
+      "y" : 216
+    },
+    "spinnerLarge" : {
+      "height" : 37,
+      "width" : 37,
+      "x" : 72,
+      "y" : 216
+    },
+    "stepper" : {
+      "height" : 32,
+      "width" : 94,
+      "x" : 16,
+      "y" : 128
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}
