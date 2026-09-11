@@ -55,19 +55,36 @@ open class CALayer {
 
     /// The layer's own coordinate rectangle: its size, and the origin its content is scrolled to.
     open var bounds = CGRect.zero {
-        didSet { if bounds != oldValue { boundsDidChange(from: oldValue) } }
+        didSet {
+            if bounds != oldValue {
+                UIViewAnimationContext.record(self, .bounds, from: .rect(oldValue), to: .rect(bounds))
+                boundsDidChange(from: oldValue)
+            }
+        }
     }
     /// Where the anchor point sits in the superlayer's coordinates.
     open var position = CGPoint.zero {
-        didSet { if position != oldValue { setNeedsDisplay() } }
+        didSet {
+            if position != oldValue {
+                UIViewAnimationContext.record(self, .position, from: .point(oldValue), to: .point(position))
+                setNeedsDisplay()
+            }
+        }
     }
+    /// The animation groups with a running animation of one of this layer's properties.
+    var animatingGroups: [UIViewAnimationGroup] = []
     /// The point of `bounds`, in unit coordinates, that `position` places and transforms pivot on.
     open var anchorPoint = CGPoint(x: 0.5, y: 0.5) {
         didSet { if anchorPoint != oldValue { setNeedsDisplay() } }
     }
     open var zPosition: CGFloat = 0
     open var transform = CATransform3DIdentity {
-        didSet { if transform != oldValue { setNeedsDisplay() } }
+        didSet {
+            if transform != oldValue {
+                UIViewAnimationContext.record(self, .transform, from: .transform(oldValue.affine), to: .transform(transform.affine))
+                setNeedsDisplay()
+            }
+        }
     }
 
     /// The layer's frame in its superlayer's coordinates, from the bounds, position and anchor
@@ -105,17 +122,47 @@ open class CALayer {
 
     // MARK: Appearance
 
-    open var backgroundColor: CGColor? { didSet { setNeedsDisplay() } }
-    open var cornerRadius: CGFloat = 0 { didSet { setNeedsDisplay() } }
+    open var backgroundColor: CGColor? {
+        didSet {
+            UIViewAnimationContext.record(self, .backgroundColor, from: .color(oldValue.flatMap { RGBA(cgColor: $0) }), to: .color(backgroundColor.flatMap { RGBA(cgColor: $0) }))
+            setNeedsDisplay()
+        }
+    }
+    open var cornerRadius: CGFloat = 0 {
+        didSet {
+            if cornerRadius != oldValue { UIViewAnimationContext.record(self, .cornerRadius, from: .scalar(Double(oldValue)), to: .scalar(Double(cornerRadius))) }
+            setNeedsDisplay()
+        }
+    }
     open var maskedCorners: CACornerMask = .all { didSet { setNeedsDisplay() } }
     open var cornerCurve: CALayerCornerCurve = .circular { didSet { setNeedsDisplay() } }
-    open var borderWidth: CGFloat = 0 { didSet { setNeedsDisplay() } }
-    open var borderColor: CGColor? = CGColor(red: 0, green: 0, blue: 0, alpha: 1) { didSet { setNeedsDisplay() } }
-    open var opacity: Float = 1 { didSet { setNeedsDisplay() } }
+    open var borderWidth: CGFloat = 0 {
+        didSet {
+            if borderWidth != oldValue { UIViewAnimationContext.record(self, .borderWidth, from: .scalar(Double(oldValue)), to: .scalar(Double(borderWidth))) }
+            setNeedsDisplay()
+        }
+    }
+    open var borderColor: CGColor? = CGColor(red: 0, green: 0, blue: 0, alpha: 1) {
+        didSet {
+            UIViewAnimationContext.record(self, .borderColor, from: .color(oldValue.flatMap { RGBA(cgColor: $0) }), to: .color(borderColor.flatMap { RGBA(cgColor: $0) }))
+            setNeedsDisplay()
+        }
+    }
+    open var opacity: Float = 1 {
+        didSet {
+            if opacity != oldValue { UIViewAnimationContext.record(self, .opacity, from: .scalar(Double(oldValue)), to: .scalar(Double(opacity))) }
+            setNeedsDisplay()
+        }
+    }
     open var isHidden = false { didSet { setNeedsDisplay() } }
     open var masksToBounds = false { didSet { setNeedsDisplay() } }
     open var shadowColor: CGColor? = CGColor(red: 0, green: 0, blue: 0, alpha: 1) { didSet { setNeedsDisplay() } }
-    open var shadowOpacity: Float = 0 { didSet { setNeedsDisplay() } }
+    open var shadowOpacity: Float = 0 {
+        didSet {
+            if shadowOpacity != oldValue { UIViewAnimationContext.record(self, .shadowOpacity, from: .scalar(Double(oldValue)), to: .scalar(Double(shadowOpacity))) }
+            setNeedsDisplay()
+        }
+    }
     open var shadowOffset = CGSize(width: 0, height: -3) { didSet { setNeedsDisplay() } }
     open var shadowRadius: CGFloat = 3 { didSet { setNeedsDisplay() } }
     open var contentsScale: CGFloat = 2

@@ -186,3 +186,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   ambiguous for any file that also sees AppKit (the root's native tests), so there the class is
   `UIGraphicsRecordingContext` and type inference carries most drawing code. The pixel tier
   showed the first attempt right at 0.16 %.
+- Step 3 (2026-09-11): `UIView.animate` (`Docs/ROADMAP.md`, Phase 7 status 3.3;
+  `Docs/elements/UIKit/Animation.md`). The mechanism is the one SwiftUIWeb's transactions use
+  (record the property changes a block makes, present the interpolation while the clock runs)
+  placed on the layer setters, which are the funnel for every animatable view property. No
+  goldens: the harness cannot capture animations in flight, so the curves are UIKit's documented
+  cubic beziers and a damped spring, held by unit tests.

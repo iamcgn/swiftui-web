@@ -7,17 +7,28 @@ extension CALayer {
     /// Paints this layer and its sublayers. `context.origin` is the absolute position of the
     /// superlayer's bounds origin; the layer's own transform, if any, is concatenated.
     func paint(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
+        // The presented geometry and looks: the running animations' values, else the model's.
+        let animating = !animatingGroups.isEmpty
+        let position = animating ? presented(.position, model: .point(self.position)).point : self.position
+        let bounds = animating ? presented(.bounds, model: .rect(self.bounds)).rect : self.bounds
+        let opacity = animating ? Float(presented(.opacity, model: .scalar(Double(self.opacity))).scalar) : self.opacity
+        let affine = animating ? presented(.transform, model: .transform(self.transform.affine)).transform : self.transform.affine
+        let cornerRadius = animating ? CGFloat(presented(.cornerRadius, model: .scalar(Double(self.cornerRadius))).scalar) : self.cornerRadius
+        let borderWidth = animating ? CGFloat(presented(.borderWidth, model: .scalar(Double(self.borderWidth))).scalar) : self.borderWidth
+        let shadowOpacity = animating ? Float(presented(.shadowOpacity, model: .scalar(Double(self.shadowOpacity))).scalar) : self.shadowOpacity
+        let background: RGBA? = animating ? presented(.backgroundColor, model: .color(backgroundColor.flatMap { RGBA(cgColor: $0) })).color : backgroundColor.flatMap { RGBA(cgColor: $0) }
+        let border: RGBA? = animating ? presented(.borderColor, model: .color(borderColor.flatMap { RGBA(cgColor: $0) })).color : borderColor.flatMap { RGBA(cgColor: $0) }
         guard !isHidden, opacity > 0 else { return }
         let effective = view?.effectiveStyle(style) ?? style
         // The layer's origin in the superlayer's space, without the transform.
         let origin = CGPoint(x: position.x - bounds.width * anchorPoint.x, y: position.y - bounds.height * anchorPoint.y)
         var child = context.child(at: CGRect(origin: origin, size: bounds.size))
-        let transformed = !transform.isIdentity
+        let transformed = !affine.isIdentity
         if transformed {
             list.append(.save)
             let anchor = CGPoint(x: context.origin.x + position.x, y: context.origin.y + position.y)
             let t = CGAffineTransform(translationX: -anchor.x, y: -anchor.y)
-                .concatenating(transform.affine)
+                .concatenating(affine)
                 .concatenating(CGAffineTransform(translationX: anchor.x, y: anchor.y))
             list.append(.concat(t))
         }
@@ -32,7 +43,7 @@ extension CALayer {
             groups += 1
         }
         let radius = cornerRadius > 0 && maskedCorners == .all ? min(cornerRadius, min(rect.width, rect.height) / 2) : 0
-        if let backgroundColor, let color = RGBA(cgColor: backgroundColor), color.alpha > 0 {
+        if let color = background, color.alpha > 0 {
             if cornerRadius > 0, maskedCorners != .all {
                 list.append(.fillPath(Self.cornerPath(rect, radius: cornerRadius, corners: maskedCorners, curve: cornerCurve), color))
             } else if radius > 0 {
@@ -65,7 +76,7 @@ extension CALayer {
             layer.paint(into: &list, context: child, style: effective)
         }
         if masksToBounds { list.append(.restore) }
-        if borderWidth > 0, let borderColor, let color = RGBA(cgColor: borderColor), color.alpha > 0 {
+        if borderWidth > 0, let color = border, color.alpha > 0 {
             // The border is drawn inside the bounds, centred on a line half the width in.
             let inset = rect.insetBy(dx: borderWidth / 2, dy: borderWidth / 2)
             let path: Path

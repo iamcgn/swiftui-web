@@ -546,29 +546,78 @@ open class UIView: UIResponder, UITraitEnvironment {
         public static let transitionCrossDissolve = AnimationOptions(rawValue: 5 << 20)
     }
 
-    // MARK: Animation (applied at once until Phase 3 puts them on the animation clock)
+    // MARK: Animation (Layers/LayerAnimation.swift)
 
+    /// Whether animation blocks animate (`setAnimationsEnabled`).
+    public private(set) static var areAnimationsEnabled = true
+    public class func setAnimationsEnabled(_ enabled: Bool) { areAnimationsEnabled = enabled }
+
+    /// Runs `animations` recording the layer changes it makes as an animation of `duration`
+    /// seconds after `delay`, with the curve `options` name (ease in-out by default); the model
+    /// takes the new values at once and painting interpolates. `completion` runs when the
+    /// animation ends (at once when nothing animated).
     open class func animate(withDuration duration: Double, delay: Double = 0, options: AnimationOptions = [], animations: @escaping () -> Void, completion: ((Bool) -> Void)? = nil) {
-        animations()
-        completion?(true)
+        run(duration: duration, delay: delay, curve: options.curve, animations: animations, completion: completion)
     }
 
     open class func animate(withDuration duration: Double, animations: @escaping () -> Void) {
-        animations()
+        run(duration: duration, delay: 0, curve: .easeInOut, animations: animations, completion: nil)
     }
 
     open class func animate(withDuration duration: Double, delay: Double, usingSpringWithDamping damping: CGFloat, initialSpringVelocity velocity: CGFloat,
                             options: AnimationOptions = [], animations: @escaping () -> Void, completion: ((Bool) -> Void)? = nil) {
-        animations()
-        completion?(true)
+        run(duration: duration, delay: delay, curve: .spring(damping: Double(damping), velocity: Double(velocity)), animations: animations, completion: completion)
     }
 
+    /// A transition (cross dissolve, flips): the changes apply at once; `completion` runs when
+    /// the duration has passed.
     open class func transition(with view: UIView, duration: Double, options: AnimationOptions = [], animations: (() -> Void)?, completion: ((Bool) -> Void)? = nil) {
         animations?()
-        completion?(true)
+        if let completion {
+            if duration > 0 { UIKitScene.shared.schedule(after: duration) { completion(true) } } else { completion(true) }
+        }
     }
 
-    open class func performWithoutAnimation(_ actions: () -> Void) { actions() }
+    /// Runs `actions` with animation recording off, inside an animation block or not.
+    open class func performWithoutAnimation(_ actions: () -> Void) {
+        let previous = UIViewAnimationContext.disabled
+        UIViewAnimationContext.disabled = true
+        actions()
+        UIViewAnimationContext.disabled = previous
+    }
+
+    private class func run(duration: Double, delay: Double, curve: AnimationCurve, animations: () -> Void, completion: ((Bool) -> Void)?) {
+        guard areAnimationsEnabled, !UIViewAnimationContext.disabled, duration + delay > 0 else {
+            animations()
+            completion?(true)
+            return
+        }
+        let group = UIViewAnimationGroup(duration: duration, delay: delay, curve: curve)
+        group.completion = completion
+        let outer = UIViewAnimationContext.current
+        UIViewAnimationContext.current = group
+        animations()
+        UIViewAnimationContext.current = outer
+        if group.entries.isEmpty {
+            // Nothing animated: the completion still waits the duration out, as UIKit's does.
+            UIKitScene.shared.schedule(after: duration + delay) { completion?(true) }
+            return
+        }
+        UIKitScene.shared.add(group)
+    }
+}
+
+extension UIView.AnimationOptions {
+    /// The timing curve the options name.
+    var curve: AnimationCurve {
+        let bits = rawValue & (3 << 16)
+        switch bits {
+        case UIView.AnimationOptions.curveEaseIn.rawValue: return .easeIn
+        case UIView.AnimationOptions.curveEaseOut.rawValue: return .easeOut
+        case UIView.AnimationOptions.curveLinear.rawValue: return .linear
+        default: return .easeInOut
+        }
+    }
 }
 
 /// The reading direction a view lays out for.

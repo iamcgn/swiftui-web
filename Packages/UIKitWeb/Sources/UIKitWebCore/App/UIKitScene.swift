@@ -49,12 +49,15 @@ public final class UIKitScene: HostedScene {
         setNeedsFrame()
     }
 
-    /// Drops every window (tests mount one fixture after another in the shared scene).
+    /// Drops every window, and the timers and animations they had running (tests mount one
+    /// fixture after another in the shared scene).
     public func removeAllWindows() {
         for window in windows { window.rootViewController?.viewIfLoaded?.removeFromSuperview() }
         windows.removeAll()
         delegateWindow = nil
         firstResponder = nil
+        timers.removeAll()
+        animationGroups.removeAll()
         setNeedsFrame()
     }
 
@@ -112,7 +115,9 @@ public final class UIKitScene: HostedScene {
     // MARK: Frames
 
     public private(set) var needsFrame = false
-    public var isAnimating: Bool { false }
+    public var isAnimating: Bool { !animationGroups.isEmpty }
+    /// The running `UIView.animate` groups (Layers/LayerAnimation.swift).
+    var animationGroups: [UIViewAnimationGroup] = []
     public var windowTitle: String? { nil }
     public var probeFrames: [String: CGRect] { probes }
     /// Frames published under a name for tests (`UIView.publishFrame(as:)`).
@@ -128,14 +133,15 @@ public final class UIKitScene: HostedScene {
 
     public func advanceFrame(elapsed: Double) -> Bool {
         runTimers(elapsed: elapsed)
-        return false
+        return advanceAnimations(elapsed: elapsed)
     }
 
-    /// Advances the timers for a host whose frame loop drives a hosted tree (the scene's own
-    /// host goes through `advanceFrame`); returns whether timers are still pending.
+    /// Advances the timers and animations for a host whose frame loop drives a hosted tree (the
+    /// scene's own host goes through `advanceFrame`); returns whether either still runs.
     func advanceTimers(elapsed: Double) -> Bool {
         runTimers(elapsed: elapsed)
-        return !timers.isEmpty
+        let animating = advanceAnimations(elapsed: elapsed)
+        return animating || !timers.isEmpty
     }
 
     public func layout(in size: CGSize) {
