@@ -1853,7 +1853,7 @@ public static let progress = Fixture("ios/progress/basic", size: CGSize(width: 3
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/controller", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 228, lastLine: 236, declaration: #"""
+        FixtureSource(name: "ios/representable/controller", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 273, lastLine: 281, declaration: #"""
 /// A view controller: in a 200 × 60 container and at its ideal size (its view has no
 /// intrinsic size; `preferredContentSize` is 80 × 40).
 public static let controller = Fixture("ios/representable/controller", size: CGSize(width: 320, height: 200)) {
@@ -1864,7 +1864,7 @@ public static let controller = Fixture("ios/representable/controller", size: CGS
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 169, lastLine: 180, declaration: #"""
+        FixtureSource(name: "ios/representable/controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 214, lastLine: 225, declaration: #"""
 /// Controls: a switch and a system button (intrinsic sizes on both axes) in a large
 /// container and at their ideal sizes, a text field (an intrinsic height only).
 public static let controls = Fixture("ios/representable/controls", size: CGSize(width: 320, height: 320)) {
@@ -1878,7 +1878,14 @@ public static let controls = Fixture("ios/representable/controls", size: CGSize(
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/label", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 136, lastLine: 147, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingcells", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 296, lastLine: 300, declaration: #"""
+/// A table whose rows host SwiftUI through `UIHostingConfiguration`: default margins, custom
+/// margins with a background, and a minimum height.
+public static let hostingCells = Fixture("ios/representable/hostingcells", size: CGSize(width: 320, height: 300)) {
+    HostingCellsTable().probe("table")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/label", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 181, lastLine: 192, declaration: #"""
 /// A label (an intrinsic size on both axes, UILabel's default priorities 251 / 750) under a
 /// proposal larger than it, one smaller, at its ideal size, and a wrapping label in a
 /// narrow container.
@@ -1892,7 +1899,7 @@ public static let label = Fixture("ios/representable/label", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/plain", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 125, lastLine: 134, declaration: #"""
+        FixtureSource(name: "ios/representable/plain", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 170, lastLine: 179, declaration: #"""
 /// A view without an intrinsic size: in a 200 × 60 container, at its ideal size, and in a
 /// row next to a text.
 public static let plain = Fixture("ios/representable/plain", size: CGSize(width: 320, height: 200)) {
@@ -1904,7 +1911,7 @@ public static let plain = Fixture("ios/representable/plain", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/priorities", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 149, lastLine: 167, declaration: #"""
+        FixtureSource(name: "ios/representable/priorities", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 194, lastLine: 212, declaration: #"""
 /// The priorities that decide between the intrinsic size and the proposal: content hugging
 /// from 252 to 1000 under a larger proposal, compression resistance from 250 to 1000 under
 /// a smaller one.
@@ -1925,7 +1932,7 @@ public static let priorities = Fixture("ios/representable/priorities", size: CGS
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/sizing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 182, lastLine: 206, declaration: #"""
+        FixtureSource(name: "ios/representable/sizing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 227, lastLine: 251, declaration: #"""
 /// The representable's own `sizeThatFits`: a fixed size, the proposal's width, the ideal
 /// size when nothing is proposed, and how a representable aligns to a text baseline.
 public static let sizing = Fixture("ios/representable/sizing", size: CGSize(width: 320, height: 340)) {
@@ -1952,7 +1959,7 @@ public static let sizing = Fixture("ios/representable/sizing", size: CGSize(widt
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/spacing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 208, lastLine: 226, declaration: #"""
+        FixtureSource(name: "ios/representable/spacing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 253, lastLine: 271, declaration: #"""
 /// Stack spacing around representables: a label between texts in a column, a switch between
 /// texts in a row.
 public static let spacing = Fixture("ios/representable/spacing", size: CGSize(width: 320, height: 200)) {
@@ -1973,7 +1980,7 @@ public static let spacing = Fixture("ios/representable/spacing", size: CGSize(wi
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/update", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 238, lastLine: 247, declaration: #"""
+        FixtureSource(name: "ios/representable/update", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 283, lastLine: 292, declaration: #"""
 /// Updates reach the UIKit views: a longer text widens the label, the switch turns off.
 public static let update = Fixture("ios/representable/update", size: CGSize(width: 320, height: 200),
                                    model: { RepresentableModel() },
@@ -9214,6 +9221,51 @@ import FixtureKit
 #if canImport(UIKit)
 import UIKit
 
+/// A plain table whose three rows are `UIHostingConfiguration`s.
+struct HostingCellsTable: UIViewRepresentable {
+    final class Source: NSObject, UITableViewDataSource {
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 3 }
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            switch indexPath.row {
+            case 0:
+                cell.contentConfiguration = UIHostingConfiguration {
+                    HStack {
+                        Text("Row 1")
+                        Spacer()
+                        Text("Detail").foregroundStyle(.secondary)
+                    }
+                }
+            case 1:
+                cell.contentConfiguration = UIHostingConfiguration {
+                    HStack {
+                        Text("Row 2")
+                        Spacer()
+                        Text("Detail").foregroundStyle(.secondary)
+                    }
+                }
+                .margins(.horizontal, 40)
+                .background(Color.yellow)
+            default:
+                cell.contentConfiguration = UIHostingConfiguration {
+                    Text("Row 3")
+                }
+                .minSize(height: 80)
+            }
+            return cell
+        }
+    }
+
+    func makeCoordinator() -> Source { Source() }
+    func makeUIView(context: Context) -> UITableView {
+        let table = UITableView(frame: .zero, style: .plain)
+        table.dataSource = context.coordinator
+        table.isScrollEnabled = false
+        return table
+    }
+    func updateUIView(_ uiView: UITableView, context: Context) {}
+}
+
 /// A UIKit view with no intrinsic size.
 struct PlainBox: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
@@ -9451,7 +9503,13 @@ public enum RepresentableFixtures {
         .probe("stack")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [plain, label, priorities, controls, sizing, spacing, controller, update]
+    public static let all: [Fixture] = [plain, label, priorities, controls, sizing, spacing, controller, update, hostingCells]
+
+    /// A table whose rows host SwiftUI through `UIHostingConfiguration`: default margins, custom
+    /// margins with a background, and a minimum height.
+    public static let hostingCells = Fixture("ios/representable/hostingcells", size: CGSize(width: 320, height: 300)) {
+        HostingCellsTable().probe("table")
+    }.platform(.iOS)
 }
 #else
 /// The representable fixtures need UIKit: none on a plain macOS build of the harness.

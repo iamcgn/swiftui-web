@@ -9,6 +9,51 @@ import FixtureKit
 #if canImport(UIKit)
 import UIKit
 
+/// A plain table whose three rows are `UIHostingConfiguration`s.
+struct HostingCellsTable: UIViewRepresentable {
+    final class Source: NSObject, UITableViewDataSource {
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 3 }
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            switch indexPath.row {
+            case 0:
+                cell.contentConfiguration = UIHostingConfiguration {
+                    HStack {
+                        Text("Row 1")
+                        Spacer()
+                        Text("Detail").foregroundStyle(.secondary)
+                    }
+                }
+            case 1:
+                cell.contentConfiguration = UIHostingConfiguration {
+                    HStack {
+                        Text("Row 2")
+                        Spacer()
+                        Text("Detail").foregroundStyle(.secondary)
+                    }
+                }
+                .margins(.horizontal, 40)
+                .background(Color.yellow)
+            default:
+                cell.contentConfiguration = UIHostingConfiguration {
+                    Text("Row 3")
+                }
+                .minSize(height: 80)
+            }
+            return cell
+        }
+    }
+
+    func makeCoordinator() -> Source { Source() }
+    func makeUIView(context: Context) -> UITableView {
+        let table = UITableView(frame: .zero, style: .plain)
+        table.dataSource = context.coordinator
+        table.isScrollEnabled = false
+        return table
+    }
+    func updateUIView(_ uiView: UITableView, context: Context) {}
+}
+
 /// A UIKit view with no intrinsic size.
 struct PlainBox: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
@@ -246,7 +291,13 @@ public enum RepresentableFixtures {
         .probe("stack")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [plain, label, priorities, controls, sizing, spacing, controller, update]
+    public static let all: [Fixture] = [plain, label, priorities, controls, sizing, spacing, controller, update, hostingCells]
+
+    /// A table whose rows host SwiftUI through `UIHostingConfiguration`: default margins, custom
+    /// margins with a background, and a minimum height.
+    public static let hostingCells = Fixture("ios/representable/hostingcells", size: CGSize(width: 320, height: 300)) {
+        HostingCellsTable().probe("table")
+    }.platform(.iOS)
 }
 #else
 /// The representable fixtures need UIKit: none on a plain macOS build of the harness.

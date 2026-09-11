@@ -42,7 +42,7 @@ struct SupportSection: Identifiable {
 
 enum SupportData {
     static let generated = "2026-09-11"
-    static let counts: [SupportStatus: Int] = [.partial: 108, .stub: 5, .full: 19, .approximate: 3, .missing: 3]
+    static let counts: [SupportStatus: Int] = [.partial: 109, .stub: 5, .full: 19, .approximate: 3, .missing: 3]
     static var total: Int { counts.values.reduce(0, +) }
 
     static let sections: [SupportSection] = {
@@ -213,6 +213,7 @@ partial	environment(\\.platformProfile, .iOS) / PlatformProfile / Runtime.hostPl
 partial	UIViewRepresentable / UIViewRepresentableContext	makeUIView, updateUIView (under observation tracking), dismantleUIView, makeCoordinator, sizeThatFits; the UIKit view (UIKitWeb) paints into the same display list, presses become touches, its accessibility elements join the semantics tree, text fields type through the host input; sizing from intrinsicContentSize less alignmentRectInsets with the 750 hugging / resistance rule, baselines top and bottom (a label: its line); Tier A exact on 8 fixtures, Tier B (Chromium) and Tier C within tolerance; no layoutOptions, no hover	1
 partial	UIViewControllerRepresentable	makeUIViewController, updateUIViewController, dismantle, coordinator, sizeThatFits; viewDidLoad / willAppear / didAppear / willDisappear as a window's root controller; the view without an intrinsic size falls back to preferredContentSize	1
 partial	Color(uiColor:) / Image(uiImage:) / Font(_ uiFont:)	A UIColor resolves per appearance; a UIImage names its catalog image or symbol (template rendering kept); a UIFont maps to the text style or size and weight	0
-partial	UIHostingController	init(rootView:), rootView, sizeThatFits(in:), sizingOptions.preferredContentSize; the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI; no UIHostingConfiguration, no safe-area bars	0
+partial	UIHostingController	init(rootView:), rootView, sizeThatFits(in:), sizingOptions.preferredContentSize; the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI; no safe-area bars	0
+partial	UIHostingConfiguration	SwiftUI content as a table or collection cell's contentConfiguration with margins (16 sideways measured), background(_:) and minSize; hosted rows size to their content, at least 56; no configuration state	1
 """
 }

@@ -1169,7 +1169,15 @@
         {
           "api": "UIHostingController",
           "status": "partial",
-          "notes": "init(rootView:), rootView, sizeThatFits(in:), sizingOptions.preferredContentSize; the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI; no UIHostingConfiguration, no safe-area bars"
+          "notes": "init(rootView:), rootView, sizeThatFits(in:), sizingOptions.preferredContentSize; the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI; no safe-area bars"
+        },
+        {
+          "api": "UIHostingConfiguration",
+          "status": "partial",
+          "notes": "SwiftUI content as a table or collection cell's contentConfiguration with margins (16 sideways measured), background(_:) and minSize; hosted rows size to their content, at least 56; no configuration state",
+          "fixtures": [
+            "ios/representable/hostingcells"
+          ]
         }
       ]
     }

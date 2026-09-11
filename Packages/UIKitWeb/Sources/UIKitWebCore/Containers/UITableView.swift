@@ -548,7 +548,46 @@ open class UITableViewCell: UIView {
 
     /// The row height UIKit gives the cell's content: 56 for a text row (the default and
     /// value1 styles), 73 for a subtitle row.
-    var preferredHeight: CGFloat { style == .subtitle ? 73 : 56 }
+    /// The row's automatic height: the content configuration's fit for the width, at least the
+    /// 56 pt default row (ios/representable/hostingcells: a one-line hosted row is 56, a row with
+    /// an 80 pt minimum size 80); else the style's.
+    var preferredHeight: CGFloat {
+        if let content = configuredContent?.view as UIView? {
+            let fitted = content.sizeThatFits(CGSize(width: bounds.width > 0 ? bounds.width : UIScreen.main.bounds.width, height: .greatestFiniteMagnitude)).height
+            return max(56, fitted)
+        }
+        return style == .subtitle ? 73 : 56
+    }
+
+    /// A content configuration makes the content view that fills the cell's content view and
+    /// sizes the row (Containers/ContentConfiguration.swift).
+    open var contentConfiguration: (any UIContentConfiguration)? {
+        didSet { installConfiguredContent() }
+    }
+    open var backgroundConfiguration: UIBackgroundConfiguration? {
+        didSet { if let color = backgroundConfiguration?.backgroundColor { backgroundColor = color } }
+    }
+    var configuredContent: ConfiguredContent?
+
+    open func defaultContentConfiguration() -> UIListContentConfiguration {
+        switch style {
+        case .subtitle: return .subtitleCell()
+        case .value1, .value2: return .valueCell()
+        default: return .cell()
+        }
+    }
+
+    private func installConfiguredContent() {
+        configuredContent?.view.removeFromSuperview()
+        configuredContent = nil
+        guard let contentConfiguration else { setNeedsLayout(); return }
+        let view = contentConfiguration.makeContentView()
+        view.frame = contentView.bounds
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        contentView.addSubview(view)
+        configuredContent = ConfiguredContent(view: view)
+        setNeedsLayout()
+    }
 
     /// The accessory's size: the disclosure chevron 10.5 × 14, the checkmark 19 × 18.
     private var accessorySize: CGSize {

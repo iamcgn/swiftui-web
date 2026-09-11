@@ -294,3 +294,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
 - Step 17 (2026-09-11): `UIViewPropertyAnimator` (`Docs/ROADMAP.md`, Phase 7 status 4.20). The
   animation group learned to be scrubbed, reversed and written back into the models, which is
   all the animator needs; nothing new in painting.
+- Step 18 (2026-09-11): content configurations and `UIHostingConfiguration` (`Docs/ROADMAP.md`,
+  Phase 7 status 4.21). The cells gained the configuration seam UIKit has had since iOS 14,
+  and the hosting configuration composes its background, margins and content into one SwiftUI
+  view for the hosting view `UIHostingController` already uses. The golden showed the default
+  margins at 16 sideways and hosted rows on the 56 pt default row height; the iOS generator
+  skips a fixture that does not declare `.platform(.iOS)`, silently.

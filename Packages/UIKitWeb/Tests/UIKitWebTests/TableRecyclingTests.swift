@@ -103,3 +103,47 @@ import UIKit
         #expect(collection.supplementaryView(forElementKind: UICollectionView.elementKindSectionFooter, at: IndexPath(item: 0, section: 2))?.frame.maxY == 474)
     }
 }
+
+/// Content configurations (Containers/ContentConfiguration.swift): a list content configuration
+/// fills the cell's content view and sizes the row; a background configuration colours the cell.
+@Suite @MainActor struct ContentConfigurationTests {
+    final class Source: NSObject, UITableViewDataSource {
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 2 }
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            var content = indexPath.row == 0 ? UIListContentConfiguration.cell() : UIListContentConfiguration.subtitleCell()
+            content.text = "Title"
+            if indexPath.row == 1 { content.secondaryText = "Subtitle" }
+            cell.contentConfiguration = content
+            var background = UIBackgroundConfiguration.listPlainCell()
+            background.backgroundColor = .systemYellow
+            cell.backgroundConfiguration = background
+            return cell
+        }
+    }
+
+    @Test func listContentFillsTheCellAndSizesTheRow() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.textEngine = try! Goldens.textEngine()
+        scene.configureScreen(size: CGSize(width: 320, height: 300), scale: 2)
+        let table = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 300), style: .plain)
+        let source = Source()
+        table.dataSource = source
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        window.addSubview(table)
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 320, height: 300))
+        guard let first = table.cellForRow(at: IndexPath(row: 0, section: 0)), let second = table.cellForRow(at: IndexPath(row: 1, section: 0)) else { Issue.record("no cells"); return }
+        #expect(first.frame.height == 56)
+        #expect(second.frame.height > 56)
+        let content = first.contentView.subviews.compactMap { $0 as? UIListContentView }.first
+        #expect(content != nil)
+        #expect(content?.frame.size == first.contentView.bounds.size)
+        #expect(content?.textLabel.text == "Title")
+        #expect(content?.textLabel.frame.minX == 20)
+        #expect(first.backgroundColor == .systemYellow)
+        first.contentConfiguration = nil
+        #expect(first.contentView.subviews.compactMap { $0 as? UIListContentView }.isEmpty)
+    }
+}

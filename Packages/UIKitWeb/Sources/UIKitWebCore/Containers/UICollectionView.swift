@@ -264,6 +264,25 @@ open class UICollectionViewCell: UICollectionReusableView {
     open var isSelected = false { didSet { setNeedsDisplay() } }
     open var isHighlighted = false { didSet { setNeedsDisplay() } }
 
+    /// A content configuration makes the content view that fills the cell's content view
+    /// (Containers/ContentConfiguration.swift).
+    open var contentConfiguration: (any UIContentConfiguration)? {
+        didSet {
+            configuredContent?.view.removeFromSuperview()
+            configuredContent = nil
+            guard let contentConfiguration else { return }
+            let view = contentConfiguration.makeContentView()
+            view.frame = contentView.bounds
+            view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            contentView.addSubview(view)
+            configuredContent = ConfiguredContent(view: view)
+        }
+    }
+    open var backgroundConfiguration: UIBackgroundConfiguration? {
+        didSet { if let color = backgroundConfiguration?.backgroundColor { backgroundColor = color } }
+    }
+    var configuredContent: ConfiguredContent?
+
     public required init(frame: CGRect) {
         super.init(frame: frame)
         contentView.frame = bounds

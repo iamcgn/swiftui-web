@@ -101,3 +101,15 @@ Not verified: `sizeThatFits` returning nil on one axis only (impossible: it retu
 `uikit/controls/intrinsic`), the label baseline at other sizes, `layoutOptions`
 (`_PlatformViewRepresentableLayoutOptions`), `UIHostingController` (Phase 3), wheel scrolling of
 a `UIScrollView` inside a representable (routed, not measured), hover.
+
+## UIHostingConfiguration (2026-09-11, `ios/representable/hostingcells`)
+
+`Sources/SwiftUIWebUIKit/UIHostingConfiguration.swift`. `UIHostingConfiguration { content }` as a
+table or collection cell's `contentConfiguration`: the SwiftUI content is hosted by the runtime
+`UIHostingController` uses, over `background(_:)` (a view or a shape style, spanning the whole
+cell), inside `margins(_:_:)` / `margins(_:)` (16 sideways by default, measured; 11 above and
+below), with `minSize(width:height:)`. A hosted row is as tall as its content and margins, at
+least the 56 pt default row (a row with `minSize(height: 80)` is 80); the content sits centred.
+The table's automatic row heights ask the content view for its fit. Open: the vertical margins
+above one-line content (the 56 pt floor hides them), `UIHostingConfiguration` in collection
+cells' self-sizing, the cell's configuration state.

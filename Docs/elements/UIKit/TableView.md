@@ -64,3 +64,16 @@ an estimate is taken as the height, not corrected when the cell appears.
 Open: row animations, editing (swipe to
 delete, reordering), `UIListContentConfiguration` / `contentConfiguration`, section index titles,
 `UICollectionView`, the grouped (non-inset) style's exact geometry, dark appearance.
+
+## Content configurations (2026-09-11)
+
+`Containers/ContentConfiguration.swift`. `UITableViewCell.contentConfiguration` and
+`UICollectionViewCell.contentConfiguration` (`UIContentConfiguration`, `UIContentView`,
+`UIViewConfigurationState`, `UICellConfigurationState`) make a content view that fills the cell's
+content view and sizes automatic rows; `backgroundConfiguration` applies its colour.
+`UIListContentConfiguration` (`cell()`, `subtitleCell()`, `valueCell()`, the header and footer
+variants; `text`, `secondaryText`, `image`, `textProperties`, `secondaryTextProperties`,
+`directionalLayoutMargins`, `imageToTextPadding`) draws a `UIListContentView` laid out like the
+cell styles (approximate: no golden yet; the margins are UIKit's documented 11 / 20).
+`UIHostingConfiguration` (SwiftUIWebUIKit) hosts SwiftUI the same way
+(`Docs/elements/Representable.md`).
