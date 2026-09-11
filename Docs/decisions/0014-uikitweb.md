@@ -291,3 +291,6 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   maps to, and a transaction is a group standalone layers' property setters record into when
   no animation block is open. The groups gained repeats, autoreverse and a retained final
   value for the forwards fill mode.
+- Step 17 (2026-09-11): `UIViewPropertyAnimator` (`Docs/ROADMAP.md`, Phase 7 status 4.20). The
+  animation group learned to be scrubbed, reversed and written back into the models, which is
+  all the animator needs; nothing new in painting.

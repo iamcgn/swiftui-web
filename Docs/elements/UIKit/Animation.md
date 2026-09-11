@@ -55,3 +55,18 @@ changes animate implicitly over the transaction's duration (0.25 s by default); 
 backing layer animates only inside `UIView.animate`, as in UIKit. Changes made outside any
 transaction join an implicit one the scene commits at its next frame. Open: `CAAnimationGroup`
 playback, keyframe interpolation through every value, additive animations, `CADisplayLink`.
+
+## UIViewPropertyAnimator (2026-09-11)
+
+`Layers/PropertyAnimator.swift`. `init(duration:curve:animations:)`, `init(duration:controlPoint1:controlPoint2:)`,
+`init(duration:dampingRatio:)`, `init(duration:timingParameters:)` (`UICubicTimingParameters`,
+`UISpringTimingParameters`), `runningPropertyAnimator(withDuration:delay:options:animations:completion:)`,
+`addAnimations`, `addCompletion`, `startAnimation` / `startAnimation(afterDelay:)`,
+`pauseAnimation`, `fractionComplete` (scrubbing), `isReversed`, `stopAnimation(_:)`,
+`finishAnimation(at:)`, `state`, `isRunning`, `pausesOnCompletion`. The blocks run inside an
+animation group as `UIView.animate`'s do (the models take the end values; painting interpolates);
+pausing takes the group off the clock and keeps the presented values, reversing swaps the
+group's ends and mirrors its clock, stopping writes the presented values into the models
+(`withoutFinishing` leaves the animator stopped for `finishAnimation(at:)`, which puts the views
+at the start, the end or where they are), and completions get the position the run ended at.
+Open: `delayFactor`, `scrubsLinearly`, interactive spring velocity.

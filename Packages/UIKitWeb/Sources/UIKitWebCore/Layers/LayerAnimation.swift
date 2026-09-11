@@ -96,6 +96,8 @@ final class UIViewAnimationGroup {
     /// A Core Animation that keeps its final value (`fillMode` forwards without removal):
     /// finished, it stays on its layers at progress 1 until removed.
     var retainsFinalValue = false
+    /// A property animator's group runs backwards after `isReversed` (the entries swap ends).
+    private(set) var isReversed = false
     struct Entry {
         weak var layer: CALayer?
         let property: AnimatableProperty
@@ -152,6 +154,37 @@ final class UIViewAnimationGroup {
 
     func removeFromLayers() {
         for entry in entries { entry.layer?.animatingGroups.removeAll { $0 === self } }
+    }
+
+    /// Scrubbing (`UIViewPropertyAnimator.fractionComplete`): the clock set to a fraction of the run.
+    func setFraction(_ fraction: Double) {
+        elapsed = delay + min(1, max(0, fraction)) * totalDuration
+    }
+
+    /// The linear fraction of the run played so far (before easing).
+    var fraction: Double {
+        guard totalDuration > 0, totalDuration.isFinite else { return isFinished ? 1 : 0 }
+        return min(1, max(0, (elapsed - delay) / totalDuration))
+    }
+
+    /// Reverses the direction: the ends swap and the clock mirrors, so the presented value
+    /// continues from where it is.
+    func reverse() {
+        isReversed.toggle()
+        let played = fraction
+        for index in entries.indices { let from = entries[index].from; entries[index].from = entries[index].to; entries[index].to = from }
+        setFraction(1 - played)
+    }
+
+    /// Writes the presented values into the layers' models (a stopped animator holds where it is).
+    func applyPresentedToModels() {
+        let previous = UIViewAnimationContext.disabled
+        UIViewAnimationContext.disabled = true
+        defer { UIViewAnimationContext.disabled = previous }
+        for entry in entries {
+            guard let layer = entry.layer, let value = presented(layer, entry.property) else { continue }
+            layer.apply(entry.property, value)
+        }
     }
 
     /// The presented value of a layer's property, if this group animates it.

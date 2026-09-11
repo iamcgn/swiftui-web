@@ -193,3 +193,74 @@ import UIKit
         #expect(!scene.isAnimating)
     }
 }
+
+/// UIViewPropertyAnimator (Layers/PropertyAnimator.swift): starting, pausing, scrubbing,
+/// reversing, stopping and finishing over the animation groups.
+@Suite @MainActor struct PropertyAnimatorTests {
+    private func setUp() -> (UIKitScene, UIView) {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.configureScreen(size: CGSize(width: 200, height: 200), scale: 2)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 200, height: 200))
+        let box = UIView(frame: CGRect(x: 0, y: 20, width: 40, height: 40))
+        window.addSubview(box)
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 200, height: 200))
+        return (scene, box)
+    }
+
+    private func presentedX(_ box: UIView) -> CGFloat {
+        box.layer.presented(.position, model: .point(box.layer.position)).point.x
+    }
+
+    @Test func startPauseScrubAndFinish() {
+        let (scene, box) = setUp()
+        var ended: UIViewAnimatingPosition?
+        let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) { box.frame.origin.x = 100 }
+        animator.addCompletion { ended = $0 }
+        #expect(animator.state == .inactive)
+        animator.startAnimation()
+        #expect(animator.state == .active && animator.isRunning)
+        #expect(box.frame.origin.x == 100)   // the model moved at once; painting interpolates
+        _ = scene.advanceFrame(elapsed: 0.25)
+        #expect(abs(presentedX(box) - 45) < 0.5)   // centre from 20 to 120, a quarter of the way
+        animator.pauseAnimation()
+        #expect(!animator.isRunning)
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(abs(presentedX(box) - 45) < 0.5)   // paused: still there
+        animator.fractionComplete = 0.75
+        #expect(abs(presentedX(box) - 95) < 0.5)
+        animator.startAnimation()
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(ended == .end)
+        #expect(animator.state == .inactive)
+        #expect(presentedX(box) == 120)
+    }
+
+    @Test func reversingPlaysBackAndStoppingHolds() {
+        let (scene, box) = setUp()
+        var ended: UIViewAnimatingPosition?
+        let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) { box.frame.origin.x = 100 }
+        animator.addCompletion { ended = $0 }
+        animator.startAnimation()
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(abs(presentedX(box) - 70) < 0.5)
+        animator.isReversed = true
+        _ = scene.advanceFrame(elapsed: 0.25)
+        #expect(abs(presentedX(box) - 45) < 0.5)   // heading back to 20
+        animator.stopAnimation(true)
+        #expect(animator.state == .stopped)
+        #expect(abs(box.layer.position.x - 45) < 0.5)   // the model holds the presented value
+        animator.finishAnimation(at: .current)
+        #expect(ended == .current)
+        #expect(animator.state == .inactive)
+
+        let second = UIViewPropertyAnimator(duration: 0.5, curve: .easeInOut) { box.frame.origin.x = 0 }
+        var secondEnd: UIViewAnimatingPosition?
+        second.addCompletion { secondEnd = $0 }
+        second.startAnimation()
+        second.stopAnimation(false)
+        #expect(secondEnd == .current)
+        #expect(second.state == .inactive)
+    }
+}

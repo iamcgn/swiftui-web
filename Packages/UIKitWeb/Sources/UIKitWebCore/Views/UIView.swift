@@ -617,7 +617,7 @@ open class UIView: UIResponder, UITraitEnvironment {
         UIViewAnimationContext.disabled = previous
     }
 
-    private class func run(duration: Double, delay: Double, curve: AnimationCurve, animations: () -> Void, completion: ((Bool) -> Void)?) {
+    private class func run(duration: Double, delay: Double, curve: UIKitWebCore.AnimationCurve, animations: () -> Void, completion: ((Bool) -> Void)?) {
         guard areAnimationsEnabled, !UIViewAnimationContext.disabled, duration + delay > 0 else {
             animations()
             completion?(true)
@@ -638,9 +638,14 @@ open class UIView: UIResponder, UITraitEnvironment {
     }
 }
 
+extension UIView {
+    /// The named timing curves (`UIViewPropertyAnimator(duration:curve:)`).
+    public enum AnimationCurve: Int, Sendable { case easeInOut = 0, easeIn, easeOut, linear }
+}
+
 extension UIView.AnimationOptions {
     /// The timing curve the options name.
-    var curve: AnimationCurve {
+    var curve: UIKitWebCore.AnimationCurve {
         let bits = rawValue & (3 << 16)
         switch bits {
         case UIView.AnimationOptions.curveEaseIn.rawValue: return .easeIn
