@@ -366,14 +366,6 @@ final class BarPlatterButton: UIControl {
         }
     }
 
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let wasTracking = isTracking
-        super.touchesEnded(touches, with: event)
-        if wasTracking, isEnabled, let touch = touches.first, point(inside: touch.location(in: self), with: event) {
-            sendActions(for: .primaryActionTriggered)
-        }
-    }
-
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)

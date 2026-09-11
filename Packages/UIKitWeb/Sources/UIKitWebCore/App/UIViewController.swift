@@ -159,6 +159,12 @@ open class UIViewController: UIResponder, UITraitEnvironment {
     public private(set) weak var presentingViewController: UIViewController?
 
     open func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) {
+        // UIKit refuses a second presentation from the same controller ("Attempt to present ...
+        // which is already presenting ...") and leaves the first in place.
+        if let presented = presentedViewController {
+            print("UIKitWeb: attempt to present \(type(of: viewControllerToPresent)) on \(type(of: self)) which is already presenting \(type(of: presented)).")
+            return
+        }
         presentedViewController = viewControllerToPresent
         viewControllerToPresent.presentingViewController = self
         UIKitScene.shared.present(viewControllerToPresent, from: self)

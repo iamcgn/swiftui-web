@@ -14,8 +14,8 @@ const browser = await engine.launch();
 const context = await browser.newContext({ deviceScaleFactor: 2, viewport: { width: 390, height: 700 } });
 const page = await context.newPage();
 const problems = [];
-page.on('pageerror', e => problems.push('pageerror: ' + e.message));
-page.on('console', m => { if (m.type() === 'error') problems.push('console: ' + m.text()); });
+page.on('pageerror', e => problems.push('pageerror: ' + e.message + (process.env.SHOW_STACK ? '\n' + (e.stack || '') : '')));
+page.on('console', m => { if (m.type() === 'error' || (process.env.SHOW_STACK && m.type() === 'warning')) problems.push('console: ' + m.text()); });
 const started = Date.now();
 await page.goto(url, { waitUntil: 'commit', timeout: 180000 });
 await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
@@ -44,6 +44,13 @@ if (pushed.includes('Notifications')) problems.push('after the push the settings
 await tap('Back');
 const popped = await texts();
 if (!popped.includes('Notifications')) problems.push('after the pop expected the settings rows: ' + JSON.stringify(popped));
+// The Reset bar button presents an alert; Cancel dismisses it.
+await tap('Reset');
+const alerted = await texts();
+if (!alerted.includes('Reset settings?') || !alerted.includes('Cancel')) problems.push('after Reset expected the alert: ' + JSON.stringify(alerted));
+await tap('Cancel');
+const cancelled = await texts();
+if (cancelled.includes('Reset settings?')) problems.push('after Cancel the alert is still drawn');
 // The About tab switches the screen.
 await tap('About');
 const about = await texts();
@@ -51,4 +58,4 @@ if (!about.some(t => t.startsWith('UIKitWeb runs'))) problems.push('after the ta
 if (shot) await page.screenshot({ path: shot });
 await browser.close();
 if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
-console.log('uikit settings OK: push, pop and tab switch');
+console.log('uikit settings OK: push, pop, alert and tab switch');

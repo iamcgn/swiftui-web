@@ -18,7 +18,11 @@ root controller's view), from the iPhone SE simulator on iOS 26.
 - `UIViewController.present` / `dismiss` for any controller: `modalPresentationStyle`
   `pageSheet`, `formSheet` and `automatic` show the page sheet card; `fullScreen`,
   `overFullScreen` and the context styles fill the window; a tap outside a sheet dismisses it
-  unless `isModalInPresentation`. Appearance callbacks run for presented controllers.
+  unless `isModalInPresentation`. Appearance callbacks run for presented controllers. A
+  controller that is already presenting refuses a second `present` (UIKit logs "Attempt to
+  present ... which is already presenting ..." and does the same); the first stays. The
+  presentation container holds its controller weakly and leaves the window if the controller
+  is released while presented.
 
 ## Measured (iOS 26, iPhone SE simulator, 320 × 500 window)
 

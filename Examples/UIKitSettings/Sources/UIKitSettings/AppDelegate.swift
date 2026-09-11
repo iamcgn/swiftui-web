@@ -39,11 +39,27 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         super.viewDidLoad()
         title = "Settings"
         navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Reset", primaryAction: UIAction { [weak self] _ in self?.confirmReset() })
         table = UITableView(frame: view.bounds, style: .insetGrouped)
         table.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         table.dataSource = self
         table.delegate = self
         view.addSubview(table)
+    }
+
+    /// An alert before the preferences go back to their defaults.
+    private func confirmReset() {
+        let alert = UIAlertController(title: "Reset settings?", message: "Every preference returns to its default.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Reset", style: .destructive) { [weak self] _ in
+            guard let self else { return }
+            preferences.notifications = true
+            preferences.brightness = 0.6
+            preferences.appearance = 0
+            preferences.fontSize = 3
+            table.reloadData()
+        })
+        present(alert, animated: true)
     }
 
     func numberOfSections(in tableView: UITableView) -> Int { 2 }

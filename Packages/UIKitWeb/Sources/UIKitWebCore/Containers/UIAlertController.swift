@@ -244,7 +244,9 @@ final class AlertActionButton: UIControl {
 /// controller's view as the card its style calls for.
 @MainActor
 final class PresentationContainerView: UIView {
-    unowned let controller: UIViewController
+    /// Weak: the presenter owns the presented controller, and a container whose controller has
+    /// gone (a presenter released while presenting) leaves the window at the next layout.
+    private(set) weak var controller: UIViewController?
     let dimming = UIView()
 
     init(controller: UIViewController, frame: CGRect) {
@@ -259,7 +261,7 @@ final class PresentationContainerView: UIView {
     /// A tap on the dimming outside a sheet dismisses it (alerts stay).
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-        guard let touch = touches.first, let content = controller.viewIfLoaded else { return }
+        guard let touch = touches.first, let controller, let content = controller.viewIfLoaded else { return }
         let location = touch.location(in: self)
         if !content.frame.contains(location), !(controller is UIAlertController), !controller.isModalInPresentation {
             controller.dismiss(animated: true)
@@ -268,6 +270,7 @@ final class PresentationContainerView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        guard let controller else { removeFromSuperview(); return }
         guard let content = controller.viewIfLoaded else { return }
         let size = bounds.size
         if let alert = controller as? UIAlertController {
