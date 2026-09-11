@@ -189,8 +189,10 @@ open class UINavigationItem {
     open var rightBarButtonItems: [UIBarButtonItem]? { didSet { onChange?() } }
     open var leftItemsSupplementBackButton = false
     open var backBarButtonItem: UIBarButtonItem?
-    open var searchController: AnyObject?
+    open var searchController: UISearchController? { didSet { onChange?() } }
     open var hidesSearchBarWhenScrolling = true
+    open var preferredSearchBarPlacement: UINavigationItem.SearchBarPlacement = .automatic { didSet { onChange?() } }
+    public enum SearchBarPlacement: Int, Sendable { case automatic = 0, inline, stacked, integrated, integratedCentered, integratedButton }
 
     open var leftBarButtonItem: UIBarButtonItem? {
         get { leftBarButtonItems?.first }

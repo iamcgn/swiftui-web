@@ -72,6 +72,10 @@ open class UISearchBar: UIView {
     /// The text field the bar edits (public since iOS 13).
     public let searchTextField = UISearchTextField()
     private let cancelButton = SearchCancelButton()
+    /// A navigation controller hosts the field in its floating bar (uikit/nav/search): the bar
+    /// itself stays a 60 pt empty band under the navigation bar.
+    var hostsFieldExternally = false { didSet { setNeedsLayout(); setNeedsDisplay() } }
+    static let navigationHeight: CGFloat = 60
 
     public override init(frame: CGRect) {
         super.init(frame: CGRect(origin: frame.origin, size: CGSize(width: frame.width, height: frame.height > 0 ? frame.height : Self.height)))
@@ -100,6 +104,8 @@ open class UISearchBar: UIView {
 
     override open func layoutSubviews() {
         super.layoutSubviews()
+        guard !hostsFieldExternally else { return }
+        if searchTextField.superview !== self { addSubview(searchTextField) }
         let cancelWidth = showsCancelButton ? Self.fieldHeight + Self.cancelGap : 0
         searchTextField.frame = CGRect(x: Self.fieldInset, y: Self.fieldTop, width: bounds.width - 2 * Self.fieldInset - cancelWidth, height: Self.fieldHeight)
         cancelButton.frame = CGRect(x: bounds.width - Self.fieldInset - Self.fieldHeight, y: Self.fieldTop, width: Self.fieldHeight, height: Self.fieldHeight)
@@ -107,7 +113,7 @@ open class UISearchBar: UIView {
 
     /// The default style's band: a faint fill with 0.5 pt hairlines top and bottom.
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
-        guard searchBarStyle != .minimal else { return }
+        guard searchBarStyle != .minimal, !hostsFieldExternally else { return }
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let band: RGBA = style == .dark ? RGBA(r: 28, g: 28, b: 30) : RGBA(r: 252, g: 252, b: 252)
         list.append(.fillRect(rect, barTintColor?.rgba(for: style) ?? band))
@@ -121,8 +127,13 @@ open class UISearchBar: UIView {
 @MainActor
 open class UISearchTextField: UITextField {
     weak var searchBar: UISearchBar?
+    weak var searchController: UISearchController?
     var showsCapsule = true { didSet { setNeedsDisplay() } }
     static let textInset: CGFloat = 39.5
+    /// In a navigation controller's floating bar the field is 38 tall in a 48 pt glass capsule:
+    /// the magnifier sits at (13, 8.5) and the text starts 41.5 in (uikit/nav/search).
+    var isInline = false { didSet { setNeedsDisplay() } }
+    private var textInset: CGFloat { isInline ? 41.5 : Self.textInset }
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -139,8 +150,8 @@ open class UISearchTextField: UITextField {
     /// The text starts 39.5 in (after the magnifier) and ends 8 before the capsule's edge.
     override open func textRect(forBounds bounds: CGRect) -> CGRect {
         let line = (font ?? .systemFont(ofSize: 17)).lineHeight
-        return CGRect(x: bounds.minX + Self.textInset, y: bounds.minY + ((bounds.height - line) / 2).rounded(),
-                      width: max(0, bounds.width - Self.textInset - 8), height: line.roundedUp(to: UIScreen.main.scale))
+        return CGRect(x: bounds.minX + textInset, y: bounds.minY + ((bounds.height - line) / 2).rounded(),
+                      width: max(0, bounds.width - textInset - 8), height: line.roundedUp(to: UIScreen.main.scale))
     }
 
     override open func becomeFirstResponder() -> Bool {
@@ -148,6 +159,7 @@ open class UISearchTextField: UITextField {
         guard searchBar.map({ $0.delegate?.searchBarShouldBeginEditing($0) ?? true }) ?? true else { return false }
         guard super.becomeFirstResponder() else { return false }
         if let searchBar { searchBar.delegate?.searchBarTextDidBeginEditing(searchBar) }
+        searchController?.searchDidChange()
         return true
     }
 
@@ -156,12 +168,14 @@ open class UISearchTextField: UITextField {
         guard searchBar.map({ $0.delegate?.searchBarShouldEndEditing($0) ?? true }) ?? true else { return false }
         guard super.resignFirstResponder() else { return false }
         if let searchBar { searchBar.delegate?.searchBarTextDidEndEditing(searchBar) }
+        searchController?.searchDidEnd()
         return true
     }
 
     override func hostDidChange(_ newText: String) {
         super.hostDidChange(newText)
         if let searchBar { searchBar.delegate?.searchBar(searchBar, textDidChange: newText) }
+        searchController?.searchDidChange()
     }
 
     override func hostDidSubmit() {
@@ -178,7 +192,8 @@ open class UISearchTextField: UITextField {
             list.append(.endGroup)
         }
         let ink = UIColor.secondaryLabel.rgba(for: style)
-        SymbolPainter.paint(name: "magnifyingglass", in: context.absoluteRect(CGRect(x: 12, y: 11.5, width: 20.5, height: 20)), color: ink, weight: 500, into: &list)
+        let magnifier = isInline ? CGRect(x: 13, y: 8.5, width: 20.5, height: 20) : CGRect(x: 12, y: 11.5, width: 20.5, height: 20)
+        SymbolPainter.paint(name: "magnifyingglass", in: context.absoluteRect(magnifier), color: ink, weight: 500, into: &list)
         super.drawContent(into: &list, context: context, style: style)
     }
 }
@@ -201,5 +216,71 @@ final class SearchCancelButton: UIControl {
         list.append(.endGroup)
         let ink: RGBA = style == .dark ? RGBA(r: 110, g: 110, b: 115) : RGBA(r: 184, g: 184, b: 184)
         SymbolPainter.paint(name: "xmark", in: context.absoluteRect(CGRect(x: 10.5, y: 11, width: 22.5, height: 21.5)), color: ink, weight: 400, into: &list)
+    }
+}
+
+/// The methods a search results updater implements.
+@MainActor
+public protocol UISearchResultsUpdating: AnyObject {
+    func updateSearchResults(for searchController: UISearchController)
+}
+
+/// A view controller that manages the display of search results based on interactions with a
+/// search bar; in a navigation item the bar shows under the title (Containers/UINavigationController.swift).
+@MainActor
+open class UISearchController: UIViewController {
+    public let searchBar = UISearchBar()
+    public let searchResultsController: UIViewController?
+    open weak var searchResultsUpdater: (any UISearchResultsUpdating)?
+    open var obscuresBackgroundDuringPresentation = true
+    open var hidesNavigationBarDuringPresentation = true
+    open var automaticallyShowsCancelButton = true
+    open var showsSearchResultsController = false
+    open private(set) var isActive = false
+
+    public init(searchResultsController: UIViewController? = nil) {
+        self.searchResultsController = searchResultsController
+        super.init(nibName: nil, bundle: nil)
+        searchBar.searchBarStyle = .minimal
+        searchBar.searchTextField.searchController = self
+    }
+
+    /// Typing (or focus) activates the controller and asks the updater for results.
+    func searchDidChange() {
+        if !isActive, searchBar.isFirstResponder { isActive = true }
+        searchResultsUpdater?.updateSearchResults(for: self)
+    }
+
+    func searchDidEnd() {
+        isActive = false
+        searchResultsUpdater?.updateSearchResults(for: self)
+    }
+}
+
+/// The glass capsule a navigation controller's floating bar shows a search field in: 48 tall,
+/// the field 38 tall 5 in (uikit/nav/search).
+@MainActor
+final class FloatingSearchPlatter: UIView {
+    let field: UISearchTextField
+
+    init(field: UISearchTextField) {
+        self.field = field
+        super.init(frame: .zero)
+        field.isInline = true
+        field.showsCapsule = false
+        addSubview(field)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        field.frame = bounds.insetBy(dx: 5, dy: 5)
+    }
+
+    override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
+        let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
+        let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)
+        list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.08), radius: 10, offset: CGSize(width: 0, height: 4)))
+        list.append(.fillRRect(rect, cornerRadius: rect.height / 2, fill))
+        list.append(.endGroup)
     }
 }

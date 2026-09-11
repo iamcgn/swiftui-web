@@ -247,3 +247,10 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   12 pt spacing that a fixed space adds its width to; the platter button gained a height and
   a prominent (done) look. The search bar's field is a real text field (`searchTextField`), so
   the host's text input and the representables' routing work unchanged.
+- Step 8 (2026-09-11): toolbars and search in navigation controllers (`Docs/ROADMAP.md`, Phase
+  7 status 4.11; `Docs/elements/UIKit/Bars.md`). iOS 26 hosts both in a SwiftUI floating bar
+  over the bottom of the screen: the toolbar's items grouped by their flexible spaces rather than
+  spread by them, and a navigation item's search field in a 264 pt capsule with an empty 60 pt
+  `UISearchBar` left under the navigation bar. Neither `navigation.toolbar` nor the
+  `searchTextField` joins UIKit's hierarchy, so those probes came out of the fixtures and the
+  pixels pin the geometry.

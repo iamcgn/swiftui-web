@@ -42,8 +42,27 @@ the iPhone SE simulator (iOS 26).
   UIKit lays out at the field's end is not drawn in the capture and not drawn here.
 - Pixels: `uikit/toolbar/basic` 0.7 % and `uikit/search/basic` 0.6 % off the simulator.
 
+## In a navigation controller (`uikit/nav/toolbar`, `uikit/nav/search`)
+
+- A navigation controller's `toolbar` shows the top controller's `toolbarItems` when
+  `isToolbarHidden` is false: a bar floating over the bottom, 76 tall (the platters in its top
+  48, 28 below), its content 28 in from the sides. The flexible spaces split the items into
+  groups: one group leads, two lead and trail, three put the middle one centred (Edit at 28,
+  plus centred at 136, share at 244 in 320); more spread evenly. iOS 26 never puts the
+  `UIToolbar` itself in the view hierarchy, so the golden pins the platters by pixels. The
+  content's safe area gains the 76 pt below.
+- A navigation item's `searchController` (`UISearchController`: `searchBar`,
+  `searchResultsUpdater`, `isActive`, `obscuresBackgroundDuringPresentation`) puts an empty
+  60 pt `UISearchBar` band under the navigation bar (y 116.5 under a large title, so the content
+  starts at 176.5) and floats the field over the bottom in a 48 pt glass capsule 28 in
+  (264 wide in 320): the `searchTextField` is 38 tall 5 in, its magnifier at (13, 8.5) and its
+  17 pt medium placeholder 41.5 in. The toolbar hides while a search field floats there. Typing
+  activates the controller and asks the updater for results; resigning deactivates it.
+- Pixels: `uikit/nav/toolbar` 0.6 % and `uikit/nav/search` 1.2 % off the simulator.
+
 ## Open
 
-Toolbars inside navigation controllers (`toolbarItems`, `isToolbarHidden`), the search bar's
-scope bar and prompt, `UISearchController`, the clear button, the bookmark button, dark mode
-samples (the dark colours are the platter's).
+The search bar's scope bar and prompt, `hidesSearchBarWhenScrolling`, search results
+presentation (`searchResultsController` is stored, not shown), the clear and bookmark buttons,
+toolbar items next to a floating search field, dark mode samples (the dark colours are the
+platter's).

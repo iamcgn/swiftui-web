@@ -82,6 +82,9 @@ open class UIViewController: UIResponder, UITraitEnvironment {
     var storedNavigationItem: UINavigationItem?
     var storedTabBarItem: UITabBarItem?
     open var hidesBottomBarWhenPushed = false
+    /// The items a navigation controller's toolbar shows for this controller.
+    open var toolbarItems: [UIBarButtonItem]? { didSet { (parent as? UINavigationController)?.toolbarItemsDidChange(for: self) } }
+    open func setToolbarItems(_ items: [UIBarButtonItem]?, animated: Bool) { toolbarItems = items }
 
     override open var next: UIResponder? { _view?.superview ?? parent ?? window }
 

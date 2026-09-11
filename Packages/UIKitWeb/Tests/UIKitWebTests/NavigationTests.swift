@@ -78,4 +78,49 @@ import UIKit
         #expect(root.view.superview == nil)
         #expect(!scene.isAnimating)
     }
+
+    /// The top controller's toolbar items float over the bottom (leading, centred, trailing
+    /// groups) and a search controller's field floats there in a capsule.
+    @Test func toolbarItemsAndSearchFloatOverTheBottom() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.textEngine = try! Goldens.textEngine()
+        scene.configureScreen(size: CGSize(width: 320, height: 400), scale: 2)
+        let root = UIViewController()
+        root.title = "Files"
+        root.toolbarItems = [
+            UIBarButtonItem(title: "Edit", style: .plain, target: nil, action: nil),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace),
+            UIBarButtonItem(barButtonSystemItem: .add),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace),
+            UIBarButtonItem(barButtonSystemItem: .action),
+        ]
+        let navigation = UINavigationController(rootViewController: root)
+        navigation.isToolbarHidden = false
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        window.rootViewController = navigation
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 320, height: 400))
+        #expect(navigation.toolbar.frame == CGRect(x: 0, y: 324, width: 320, height: 76))
+        let platters = scene.semanticsTree().filter { $0.role == .button && $0.frame.minY == 324 }.sorted { $0.frame.minX < $1.frame.minX }
+        #expect(platters.map(\.frame.minX) == [28, 136, 244])
+        #expect(root.view.safeAreaInsets.bottom == 76)
+
+        let searching = UIViewController()
+        searching.title = "Items"
+        let controller = UISearchController(searchResultsController: nil)
+        controller.searchBar.placeholder = "Search items"
+        searching.navigationItem.searchController = controller
+        navigation.pushViewController(searching, animated: false)
+        scene.layout(in: CGSize(width: 320, height: 400))
+        #expect(navigation.toolbar.isHidden)
+        #expect(controller.searchBar.frame == CGRect(x: 0, y: 64, width: 320, height: 60))
+        #expect(controller.searchBar.searchTextField.convert(controller.searchBar.searchTextField.bounds, to: nil) == CGRect(x: 33, y: 329, width: 254, height: 38))
+        guard let field = scene.semanticsTree().first(where: { $0.textInput != nil }) else { Issue.record("no field"); return }
+        #expect(field.textInput?.placeholder == "Search items")
+        scene.textField(field.identifier, focused: true)
+        scene.textField(field.identifier, didChange: "Sw")
+        #expect(controller.isActive)
+        #expect(controller.searchBar.text == "Sw")
+    }
 }

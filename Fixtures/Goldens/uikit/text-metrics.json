@@ -588,6 +588,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 55
     },
+    "system:17:500:default|;l1|Search items" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 102
+    },
     "system:17:500:default|;l1|Swift" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -612,11 +618,23 @@
       "lastBaseline" : 16.1865234375,
       "width" : 42
     },
+    "system:17:600:default|;l1|Files" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 37
+    },
     "system:17:600:default|;l1|Inbox" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 44
+    },
+    "system:17:600:default|;l1|Items" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 44.5
     },
     "system:17:600:default|;l1|Settings" : {
       "firstBaseline" : 16.1865234375,
@@ -707,6 +725,12 @@
       "height" : 41,
       "lastBaseline" : 32.373046875,
       "width" : 43.5
+    },
+    "system:34:700:default|;l1|Items" : {
+      "firstBaseline" : 32.373046875,
+      "height" : 41,
+      "lastBaseline" : 32.373046875,
+      "width" : 88.5
     },
     "system:34:700:default|;l1|Settings" : {
       "firstBaseline" : 32.373046875,

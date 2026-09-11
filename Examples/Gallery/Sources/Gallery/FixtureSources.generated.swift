@@ -5366,6 +5366,44 @@ public static let push = UIKitFixture("uikit/nav/push", size: CGSize(width: 320,
     return navigation
 })
 """#),
+        FixtureSource(name: "uikit/nav/search", file: "Fixtures/UIKit/Navigation/NavigationFixtures.swift", firstLine: 120, lastLine: 135, declaration: #"""
+/// A search controller in the navigation item under a large title.
+public static let search = UIKitFixture("uikit/nav/search", size: CGSize(width: 320, height: 400)) {
+    let root = ScreenController.make(title: "Items", text: "Content", probe: "label")
+    let searchController = UISearchController(searchResultsController: nil)
+    searchController.searchBar.placeholder = "Search items"
+    root.navigationItem.searchController = searchController
+    root.navigationItem.hidesSearchBarWhenScrolling = false
+    let navigation = UINavigationController(rootViewController: root)
+    navigation.navigationBar.prefersLargeTitles = true
+    navigation.navigationBar.probe("bar")
+    searchController.searchBar.probe("search")
+    // The field UIKit shows floats at the bottom in a hosted bar, not as `searchTextField`
+    // (which never joins the hierarchy): the pixels pin it.
+    root.view.probe("content")
+    return navigation
+}
+"""#),
+        FixtureSource(name: "uikit/nav/toolbar", file: "Fixtures/UIKit/Navigation/NavigationFixtures.swift", firstLine: 101, lastLine: 118, declaration: #"""
+/// A navigation controller's toolbar under the screen (`toolbarItems`, `isToolbarHidden`).
+public static let toolbar = UIKitFixture("uikit/nav/toolbar", size: CGSize(width: 320, height: 400)) {
+    let root = ScreenController.make(title: "Files", text: "Content", probe: "label")
+    root.toolbarItems = [
+        UIBarButtonItem(title: "Edit", style: .plain, target: nil, action: nil),
+        UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+        UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil),
+        UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+        UIBarButtonItem(barButtonSystemItem: .action, target: nil, action: nil),
+    ]
+    let navigation = UINavigationController(rootViewController: root)
+    navigation.isToolbarHidden = false
+    navigation.navigationBar.probe("bar")
+    // iOS 26 never puts `navigation.toolbar` in the hierarchy (the items float in a SwiftUI
+    // hosted bar), so the golden has no toolbar probe; the pixels pin the platters.
+    root.view.probe("content")
+    return navigation
+}
+"""#),
         FixtureSource(name: "uikit/search/basic", file: "Fixtures/UIKit/Bars/BarFixtures.swift", firstLine: 49, lastLine: 76, declaration: #"""
 public static let search = UIKitFixture("uikit/search/basic", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
@@ -12827,7 +12865,7 @@ final class ScreenController: UIViewController {
 }
 
 public enum NavigationFixtures {
-    public static let all = [basic, large, push, items, tabs]
+    public static let all = [basic, large, push, items, tabs, toolbar, search]
 
     /// An inline title bar over a screen.
     public static let basic = UIKitFixture("uikit/nav/basic", size: CGSize(width: 320, height: 400)) {
@@ -12888,6 +12926,41 @@ public enum NavigationFixtures {
         tabs.tabBar.probe("tabBar")
         home.view.probe("content")
         return tabs
+    }
+    /// A navigation controller's toolbar under the screen (`toolbarItems`, `isToolbarHidden`).
+    public static let toolbar = UIKitFixture("uikit/nav/toolbar", size: CGSize(width: 320, height: 400)) {
+        let root = ScreenController.make(title: "Files", text: "Content", probe: "label")
+        root.toolbarItems = [
+            UIBarButtonItem(title: "Edit", style: .plain, target: nil, action: nil),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(barButtonSystemItem: .action, target: nil, action: nil),
+        ]
+        let navigation = UINavigationController(rootViewController: root)
+        navigation.isToolbarHidden = false
+        navigation.navigationBar.probe("bar")
+        // iOS 26 never puts `navigation.toolbar` in the hierarchy (the items float in a SwiftUI
+        // hosted bar), so the golden has no toolbar probe; the pixels pin the platters.
+        root.view.probe("content")
+        return navigation
+    }
+
+    /// A search controller in the navigation item under a large title.
+    public static let search = UIKitFixture("uikit/nav/search", size: CGSize(width: 320, height: 400)) {
+        let root = ScreenController.make(title: "Items", text: "Content", probe: "label")
+        let searchController = UISearchController(searchResultsController: nil)
+        searchController.searchBar.placeholder = "Search items"
+        root.navigationItem.searchController = searchController
+        root.navigationItem.hidesSearchBarWhenScrolling = false
+        let navigation = UINavigationController(rootViewController: root)
+        navigation.navigationBar.prefersLargeTitles = true
+        navigation.navigationBar.probe("bar")
+        searchController.searchBar.probe("search")
+        // The field UIKit shows floats at the bottom in a hosted bar, not as `searchTextField`
+        // (which never joins the hierarchy): the pixels pin it.
+        root.view.probe("content")
+        return navigation
     }
 }
 #endif

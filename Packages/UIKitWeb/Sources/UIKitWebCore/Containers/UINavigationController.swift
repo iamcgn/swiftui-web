@@ -11,6 +11,14 @@ open class UINavigationController: UIViewController {
     public let navigationBar = UINavigationBar()
     open weak var delegate: (any UINavigationControllerDelegate)?
     open var isNavigationBarHidden = false { didSet { navigationBar.isHidden = isNavigationBarHidden; viewIfLoaded?.setNeedsLayout() } }
+    /// The toolbar floating over the bottom of the screen with the top controller's
+    /// `toolbarItems` (hidden by default, as in UIKit).
+    public let toolbar = UIToolbar()
+    open var isToolbarHidden = true { didSet { toolbar.isHidden = isToolbarHidden; viewIfLoaded?.setNeedsLayout() } }
+    open func setToolbarHidden(_ hidden: Bool, animated: Bool) { isToolbarHidden = hidden }
+    /// The floating platter holding the top item's search field.
+    private var searchPlatter: FloatingSearchPlatter?
+    private weak var hostedSearchBar: UISearchBar?
     open var hidesBarsOnSwipe = false
     open var hidesBarsWhenKeyboardAppears = false
     open var interactivePopGestureRecognizer: UIGestureRecognizer? { nil }
@@ -35,6 +43,9 @@ open class UINavigationController: UIViewController {
         view.backgroundColor = .systemBackground
         self.view = view
         view.addSubview(navigationBar)
+        toolbar.isFloating = true
+        toolbar.isHidden = isToolbarHidden
+        view.addSubview(toolbar)
         showTop()
     }
 
@@ -149,7 +160,34 @@ open class UINavigationController: UIViewController {
             top.navigationItem.onChange = { [weak self] in self?.navigationBar.setNeedsLayout() }
         }
         navigationBar.items = viewControllers.map(\.navigationItem)
+        toolbar.items = topViewController?.toolbarItems
+        hostSearchBar(of: topViewController)
         view.setNeedsLayout()
+    }
+
+    func toolbarItemsDidChange(for controller: UIViewController) {
+        guard controller === topViewController else { return }
+        toolbar.items = controller.toolbarItems
+    }
+
+    /// The top item's search controller: its bar sits under the navigation bar as an empty
+    /// 60 pt band and its field lives in a glass capsule floating over the bottom.
+    private func hostSearchBar(of controller: UIViewController?) {
+        let searchBar = controller?.navigationItem.searchController?.searchBar
+        guard searchBar !== hostedSearchBar else { return }
+        if let old = hostedSearchBar {
+            old.hostsFieldExternally = false
+            old.removeFromSuperview()
+        }
+        searchPlatter?.removeFromSuperview()
+        searchPlatter = nil
+        hostedSearchBar = searchBar
+        guard let searchBar, let view = viewIfLoaded else { return }
+        searchBar.hostsFieldExternally = true
+        view.insertSubview(searchBar, belowSubview: navigationBar)
+        let platter = FloatingSearchPlatter(field: searchBar.searchTextField)
+        view.addSubview(platter)
+        searchPlatter = platter
     }
 
     open override func viewWillLayoutSubviews() {
@@ -158,11 +196,26 @@ open class UINavigationController: UIViewController {
         let top = view.safeAreaInsets.top
         let height = navigationBar.isHidden ? 0 : navigationBar.preferredHeight
         navigationBar.frame = CGRect(x: 0, y: top + UINavigationBar.topOffset, width: view.bounds.width, height: height)
+        var contentTop = navigationBar.isHidden ? 0 : navigationBar.frame.maxY
+        if let searchBar = hostedSearchBar {
+            searchBar.frame = CGRect(x: 0, y: contentTop, width: view.bounds.width, height: UISearchBar.navigationHeight)
+            contentTop = searchBar.frame.maxY
+        }
+        // The floating bar: 76 tall over the bottom safe area, the platters in its top 48.
+        let floatingY = view.bounds.height - view.safeAreaInsets.bottom - UIToolbar.floatingHeight
+        toolbar.frame = CGRect(x: 0, y: floatingY, width: view.bounds.width, height: UIToolbar.floatingHeight)
+        toolbar.isHidden = isToolbarHidden || (toolbar.items ?? []).isEmpty || searchPlatter != nil
+        if let platter = searchPlatter {
+            platter.frame = CGRect(x: UIToolbar.floatingInset, y: floatingY, width: view.bounds.width - 2 * UIToolbar.floatingInset, height: UIToolbar.height)
+            view.bringSubviewToFront(platter)
+        }
+        var contentBottom: CGFloat = 0
+        if !toolbar.isHidden || searchPlatter != nil { contentBottom = view.bounds.height - floatingY }
         if let content = topViewController?.viewIfLoaded {
             // A screen mid-slide keeps its x (the animation owns it); its size follows the container.
             if content.frame.size != view.bounds.size { content.frame.size = view.bounds.size }
             if content.layer.animatingGroups.isEmpty, content.frame.origin != .zero { content.frame.origin = .zero }
-            content.containerSafeAreaInsets = UIEdgeInsets(top: navigationBar.isHidden ? 0 : navigationBar.frame.maxY, left: 0, bottom: 0, right: 0)
+            content.containerSafeAreaInsets = UIEdgeInsets(top: contentTop, left: 0, bottom: contentBottom, right: 0)
         }
     }
 }
