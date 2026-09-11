@@ -59,3 +59,14 @@ spans the cross axis before its section's inset and a footer follows the inset, 
 reference size's extent along the scroll direction (none when zero); views for the ones in
 view are made and pooled like cells. `UICollectionReusableView` has no `init?(coder:)` (wasm
 has no `NSCoder`), so fixture subclasses add their subviews on first layout.
+
+## Self-sizing cells (2026-09-11, `uikit/collection/selfsizing`)
+
+With `estimatedItemSize` set (`UICollectionViewFlowLayout.automaticSize` or an estimate) the flow
+layout asks each item's cell for `preferredLayoutAttributesFitting(_:)`: by default the
+`contentView`'s compressed fitting size from its constraints (a 15 pt label 12 in and 8 down
+gives 59 × 34 for "Swift"), and the cell returns to the reuse pool. The delegate's
+`sizeForItemAt` still wins. The sized items then follow the flow rules: full lines spread
+their free space (49.5 and 49 pt gaps in the fixture's first line), a short last line keeps the
+minimum spacing. Cells built for measurement add their subviews on first configure, as
+`TagCell` does, so both UIKits see the same constraints.

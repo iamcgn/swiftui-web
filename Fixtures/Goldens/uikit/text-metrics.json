@@ -216,6 +216,18 @@
       "lastBaseline" : 14.2822265625,
       "width" : 9.5
     },
+    "system:15:400:default|;l1|Auto Layout" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 82
+    },
+    "system:15:400:default|;l1|Compositional" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 98.5
+    },
     "system:15:400:default|;l1|Detail text" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -234,11 +246,35 @@
       "lastBaseline" : 14.2822265625,
       "width" : 77
     },
+    "system:15:400:default|;l1|Swift" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 35
+    },
+    "system:15:400:default|;l1|SwiftUI" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 49.5
+    },
     "system:15:400:default|;l1|Tap" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 25
+    },
+    "system:15:400:default|;l1|UIKit" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 33
+    },
+    "system:15:400:default|;l1|Web" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 31
     },
     "system:15:400:default|126.0|Padded" : {
       "firstBaseline" : 14.2822265625,

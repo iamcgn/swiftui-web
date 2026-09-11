@@ -60,8 +60,41 @@ final class HeaderSource: GridSource {
     }
 }
 
+/// A cell whose size comes from its label's constraints (12 sideways, 8 above and below).
+final class TagCell: UICollectionViewCell {
+    let label = UILabel()   // constrained on first layout: no initializer to mirror on both UIKits
+    private var constrained = false
+    func configure(_ text: String) {
+        label.text = text
+        label.font = .systemFont(ofSize: 15)
+        guard !constrained else { return }
+        constrained = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
+            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+        ])
+        contentView.backgroundColor = .systemGray5
+        contentView.layer.cornerRadius = 8
+    }
+}
+
+/// A source of tag cells sized by their content.
+final class TagSource: NSObject, UICollectionViewDataSource {
+    let tags = ["Swift", "SwiftUI", "UIKit", "Auto Layout", "Compositional", "Web"]
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { tags.count }
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "tag", for: indexPath) as! TagCell
+        cell.configure(tags[indexPath.item])
+        return cell.probe("item\(indexPath.item)")
+    }
+}
+
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers]
+    public static let all = [grid, horizontal, sized, headers, selfSizing]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -102,6 +135,26 @@ public enum CollectionFixtures {
         source.counts = [4]
         source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 3, section: 0): "item3"]
         return make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 120))
+    }
+
+    /// Self-sizing cells: the flow layout's automatic estimated size lets each cell take its
+    /// constraints' fitting size (a 15 pt label 12 in and 8 down), wrapping into lines.
+    @MainActor static var tagSources: [TagSource] = []
+    public static let selfSizing = UIKitFixture("uikit/collection/selfsizing", size: CGSize(width: 320, height: 200)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+        let layout = UICollectionViewFlowLayout()
+        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        layout.minimumInteritemSpacing = 8
+        layout.minimumLineSpacing = 8
+        layout.sectionInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+        let collection = UICollectionView(frame: CGRect(x: 0, y: 0, width: 320, height: 200), collectionViewLayout: layout)
+        collection.register(TagCell.self, forCellWithReuseIdentifier: "tag")
+        let source = TagSource()
+        tagSources.append(source)
+        collection.dataSource = source
+        collection.backgroundColor = .systemBackground
+        root.addSubview(collection.probe("collection"))
+        return root
     }
 
     /// Section headers (44 tall) and footers (30 tall) from the flow layout's reference sizes.

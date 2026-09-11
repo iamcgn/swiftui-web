@@ -300,3 +300,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   view for the hosting view `UIHostingController` already uses. The golden showed the default
   margins at 16 sideways and hosted rows on the 56 pt default row height; the iOS generator
   skips a fixture that does not declare `.platform(.iOS)`, silently.
+- Step 19 (2026-09-11): self-sizing collection cells (`Docs/ROADMAP.md`, Phase 7 status 4.22).
+  The flow layout measures through the cell's `preferredLayoutAttributesFitting`, which reads
+  the content view's constraints with the solver already in place; the golden confirmed the
+  fitted sizes and that the justification rules apply to them unchanged.

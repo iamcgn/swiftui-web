@@ -139,7 +139,14 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
             let lineSpacing = flowDelegate?.collectionView(collection, layout: self, minimumLineSpacingForSectionAt: section) ?? minimumLineSpacing
             let itemSpacing = flowDelegate?.collectionView(collection, layout: self, minimumInteritemSpacingForSectionAt: section) ?? minimumInteritemSpacing
             let count = dataSource.collectionView(collection, numberOfItemsInSection: section)
-            let sizes = (0..<count).map { item in flowDelegate?.collectionView(collection, layout: self, sizeForItemAt: IndexPath(item: item, section: section)) ?? itemSize }
+            // Self-sizing: with an estimated size each cell answers its fitting size (its
+            // constraints' compressed fit, uikit/collection/selfsizing); the delegate's size wins.
+            let sizes = (0..<count).map { item -> CGSize in
+                let path = IndexPath(item: item, section: section)
+                if let delegated = flowDelegate?.collectionView(collection, layout: self, sizeForItemAt: path) { return delegated }
+                if estimatedItemSize != .zero { return collection.selfSizedItem(at: path, estimated: estimatedItemSize == Self.automaticSize ? itemSize : estimatedItemSize) }
+                return itemSize
+            }
             // A header spans the cross axis before the section's inset; a footer follows the inset
             // (the reference size's extent along the scroll direction; zero means none).
             let headerSize = flowDelegate?.collectionView(collection, layout: self, referenceSizeForHeaderInSection: section) ?? headerReferenceSize
@@ -190,11 +197,15 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
                 }
                 var position = horizontal ? inset.top : inset.left
                 let lineExtent = line.map { along(sizes[$0]) }.max() ?? 0
+                let scale = UIScreen.main.scale
                 for item in line {
                     let size = sizes[item]
+                    // The origin lands on the pixel grid; the running position stays unrounded
+                    // (uikit/collection/selfsizing: 124.25 places at 124.5, the next item at 247).
+                    let placed = (position * scale).rounded() / scale
                     let frame = horizontal
-                        ? CGRect(x: cursor, y: position, width: size.width, height: size.height)
-                        : CGRect(x: position, y: cursor, width: size.width, height: size.height)
+                        ? CGRect(x: cursor, y: placed, width: size.width, height: size.height)
+                        : CGRect(x: placed, y: cursor, width: size.width, height: size.height)
                     let path = IndexPath(item: item, section: section)
                     let attribute = UICollectionViewLayoutAttributes(forCellWith: path)
                     attribute.frame = frame
@@ -251,6 +262,16 @@ open class UICollectionReusableView: UIView {
         alpha = layoutAttributes.alpha
         isHidden = layoutAttributes.isHidden
         transform = layoutAttributes.transform
+    }
+
+    /// The attributes a self-sizing cell prefers: its content's fitting size (a cell's
+    /// `contentView` constraints, compressed), else the layout's estimate.
+    open func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
+        let fitting = (self as? UICollectionViewCell)?.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize) ?? systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        guard fitting.width > 0, fitting.height > 0 else { return layoutAttributes }
+        let attributes = UICollectionViewLayoutAttributes(forCellWith: layoutAttributes.indexPath)
+        attributes.frame = CGRect(origin: layoutAttributes.frame.origin, size: fitting)
+        return attributes
     }
     public required override init(frame: CGRect) { super.init(frame: frame) }
 }
@@ -414,6 +435,23 @@ open class UICollectionView: UIScrollView {
         view.reuseIdentifier = identifier
         view.supplementaryKey = key
         return view
+    }
+
+    /// A self-sizing item's size: the data source's cell for it, asked for its preferred
+    /// attributes, then returned to the pool.
+    func selfSizedItem(at indexPath: IndexPath, estimated: CGSize) -> CGSize {
+        guard let dataSource else { return estimated }
+        if let visible = visibleCellsByPath[indexPath] {
+            let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+            attributes.frame = CGRect(origin: .zero, size: estimated)
+            return visible.preferredLayoutAttributesFitting(attributes).frame.size
+        }
+        let cell = dataSource.collectionView(self, cellForItemAt: indexPath)
+        let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+        attributes.frame = CGRect(origin: .zero, size: estimated)
+        let size = cell.preferredLayoutAttributesFitting(attributes).frame.size
+        if let identifier = cell.reuseIdentifier, cell.superview == nil { reusePool[identifier, default: []].append(cell) }
+        return size
     }
 
     open func supplementaryView(forElementKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView? {

@@ -139,6 +139,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Padded", .system(size: 15), width: 126, lines: 0),
         UIKitTextRequest("Centred", .system(size: 17), width: 190, lines: 0),
         UIKitTextRequest("Read-only footnote text that wraps onto a second line in this width.", .system(size: 13), width: 278, lines: 0),
+        // uikit/collection/selfsizing (15 pt tags)
+        UIKitTextRequest("Swift", .system(size: 15)),
+        UIKitTextRequest("SwiftUI", .system(size: 15)),
+        UIKitTextRequest("UIKit", .system(size: 15)),
+        UIKitTextRequest("Auto Layout", .system(size: 15)),
+        UIKitTextRequest("Compositional", .system(size: 15)),
+        UIKitTextRequest("Web", .system(size: 15)),
         // uikit/collection/headers
         UIKitTextRequest("Section 1", .system(size: 17, weight: "semibold")),
         UIKitTextRequest("Section 2", .system(size: 17, weight: "semibold")),

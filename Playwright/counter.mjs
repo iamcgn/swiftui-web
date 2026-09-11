@@ -30,15 +30,20 @@ const plus = page.locator('button[aria-label="+"]');
 const box = await plus.boundingBox();
 await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 await page.waitForFunction(f => window.__swiftuiwebDebug.frameCount() > f, await page.evaluate(() => window.__swiftuiwebDebug.frameCount()) - 1, { timeout: 5000 });
-await page.waitForTimeout(50);
-const afterClick = await texts();
+// A slow runner may take a few frames to repaint: poll for the expected text.
+const settled = async (expected, budget = 4000) => {
+  const deadline = Date.now() + budget;
+  let seen = await texts();
+  while (!seen.includes(expected) && Date.now() < deadline) { await page.waitForTimeout(50); seen = await texts(); }
+  return seen;
+};
+const afterClick = await settled('Count: 1');
 if (!afterClick.includes('Count: 1')) problems.push('after click expected "Count: 1": ' + JSON.stringify(afterClick));
 
 // Keyboard: focus the "−" overlay button and press Enter.
 await page.locator('button[aria-label="−"]').focus();
 await page.keyboard.press('Enter');
-await page.waitForTimeout(100);
-const afterKey = await texts();
+const afterKey = await settled('Count: 0');
 if (!afterKey.includes('Count: 0')) problems.push('after keyboard expected "Count: 0": ' + JSON.stringify(afterKey));
 
 const buttons = await page.locator('#app button').allTextContents();

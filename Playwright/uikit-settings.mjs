@@ -27,8 +27,15 @@ const tap = async (label) => {
   const box = await page.locator(`[aria-label="${label}"]`).first().boundingBox();
   if (!box) { problems.push(`no overlay element labelled "${label}"`); return; }
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  // A push or pop slides for 0.35 s.
+  // A push or pop slides for 0.35 s, an alert for 0.4 s.
   await page.waitForTimeout(600);
+};
+// A slow runner may still be animating or repainting: poll until the texts satisfy `check`.
+const settled = async (check, budget = 5000) => {
+  const deadline = Date.now() + budget;
+  let seen = await texts();
+  while (!check(seen) && Date.now() < deadline) { await page.waitForTimeout(100); seen = await texts(); }
+  return seen;
 };
 
 const initial = await texts();
@@ -37,19 +44,19 @@ for (const expected of ['Settings', 'General', 'Notifications', 'Appearance', 'B
 }
 // The Appearance row pushes its screen: the title changes and the segmented control appears.
 await tap('Appearance');
-const pushed = await texts();
+const pushed = await settled(t => t.includes('Automatic') && t.includes('Light') && !t.includes('Notifications'));
 if (!pushed.includes('Automatic') || !pushed.includes('Light')) problems.push('after the push expected the segmented control: ' + JSON.stringify(pushed));
 if (pushed.includes('Notifications')) problems.push('after the push the settings rows are still drawn');
 // The back platter pops.
 await tap('Back');
-const popped = await texts();
+const popped = await settled(t => t.includes('Notifications'));
 if (!popped.includes('Notifications')) problems.push('after the pop expected the settings rows: ' + JSON.stringify(popped));
 // The Reset bar button presents an alert; Cancel dismisses it.
 await tap('Reset');
-const alerted = await texts();
+const alerted = await settled(t => t.includes('Reset settings?') && t.includes('Cancel'));
 if (!alerted.includes('Reset settings?') || !alerted.includes('Cancel')) problems.push('after Reset expected the alert: ' + JSON.stringify(alerted));
 await tap('Cancel');
-const cancelled = await texts();
+const cancelled = await settled(t => !t.includes('Reset settings?'));
 if (cancelled.includes('Reset settings?')) problems.push('after Cancel the alert is still drawn');
 // The About tab switches the screen.
 await tap('About');

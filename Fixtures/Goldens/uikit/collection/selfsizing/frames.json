@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/collection\/selfsizing",
+  "frames" : {
+    "collection" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "item0" : {
+      "height" : 34,
+      "width" : 59,
+      "x" : 16,
+      "y" : 16
+    },
+    "item1" : {
+      "height" : 34,
+      "width" : 73.5,
+      "x" : 124.5,
+      "y" : 16
+    },
+    "item2" : {
+      "height" : 34,
+      "width" : 57,
+      "x" : 247,
+      "y" : 16
+    },
+    "item3" : {
+      "height" : 34,
+      "width" : 106,
+      "x" : 16,
+      "y" : 58
+    },
+    "item4" : {
+      "height" : 34,
+      "width" : 122.5,
+      "x" : 181.5,
+      "y" : 58
+    },
+    "item5" : {
+      "height" : 34,
+      "width" : 55,
+      "x" : 16,
+      "y" : 100
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}
