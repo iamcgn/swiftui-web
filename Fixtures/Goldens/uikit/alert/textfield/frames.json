@@ -1,0 +1,40 @@
+{
+  "fixture" : "uikit\/alert\/textfield",
+  "frames" : {
+    "behind" : {
+      "height" : 20.5,
+      "width" : 53,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 500,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "alert" : {
+          "height" : 206,
+          "width" : 300,
+          "x" : 10,
+          "y" : 147
+        },
+        "behind" : {
+          "height" : 20.5,
+          "width" : 53,
+          "x" : 16,
+          "y" : 16
+        },
+        "field" : {
+          "height" : 20.5,
+          "width" : 255,
+          "x" : 32.5,
+          "y" : 238
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

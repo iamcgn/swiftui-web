@@ -44,6 +44,32 @@ import UIKit
         #expect(window.subviews.count == 1)
     }
 
+    /// An alert's text fields sit in the card and type through the host; the handler reads them.
+    @Test func alertTextFieldsTypeThroughTheHost() {
+        let (_, root) = window()
+        let scene = UIKitScene.shared
+        scene.textEngine = try! Goldens.textEngine()
+        var saved: String?
+        let alert = UIAlertController(title: "Rename", message: "Enter a new name for the file.", preferredStyle: .alert)
+        alert.addTextField { field in field.placeholder = "Name" }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Save", style: .default) { [weak alert] _ in saved = alert?.textFields?.first?.text })
+        root.present(alert, animated: false)
+        scene.layout(in: CGSize(width: 320, height: 500))
+        #expect(alert.view.frame == CGRect(x: 10, y: 147, width: 300, height: 206))
+        guard let field = alert.textFields?.first else { Issue.record("no field"); return }
+        #expect(field.convert(field.bounds, to: nil) == CGRect(x: 32.5, y: 238, width: 255, height: 20.5))
+        guard let node = scene.semanticsTree().first(where: { $0.textInput != nil }) else { Issue.record("no input"); return }
+        #expect(node.textInput?.placeholder == "Name")
+        scene.textField(node.identifier, focused: true)
+        #expect(field.isFirstResponder)
+        scene.textField(node.identifier, didChange: "Notes")
+        guard let save = scene.semanticsTree().first(where: { $0.label == "Save" }) else { Issue.record("no Save"); return }
+        scene.activate(semanticsIdentifier: save.identifier)
+        #expect(saved == "Notes")
+        #expect(root.presentedViewController == nil)
+    }
+
     /// A second presentation from a controller already presenting is refused, as UIKit refuses
     /// it, so the first alert keeps its presenter and its container (the settings example's
     /// Reset button once fired twice and the orphaned first alert was freed under its container).

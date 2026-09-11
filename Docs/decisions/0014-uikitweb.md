@@ -260,3 +260,8 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   (FoundationEssentials has `Calendar`, not `DateFormatter`), and UIKit's time uses a narrow
   no-break space before the period, which the text-metrics request had to carry too. The
   wheels drum is drawn approximately and its fixture is frames-only in both pixel tiers.
+- Step 10 (2026-09-11): alert text fields (`Docs/ROADMAP.md`, Phase 7 status 4.13). The dump
+  showed the fields in a collection view of 34 pt cells under the header, a secure field's
+  cell 32 tall and the second row half a point higher than a plain stack would put it; the
+  card grew the block and the actions moved under it. The fields are ordinary `UITextField`s,
+  so the host's text input and the action handlers reading `textFields` work unchanged.

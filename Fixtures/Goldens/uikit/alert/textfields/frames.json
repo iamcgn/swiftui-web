@@ -1,0 +1,46 @@
+{
+  "fixture" : "uikit\/alert\/textfields",
+  "frames" : {
+    "behind" : {
+      "height" : 20.5,
+      "width" : 53,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 500,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "alert" : {
+          "height" : 332,
+          "width" : 300,
+          "x" : 10,
+          "y" : 84
+        },
+        "behind" : {
+          "height" : 20.5,
+          "width" : 53,
+          "x" : 16,
+          "y" : 16
+        },
+        "password" : {
+          "height" : 19,
+          "width" : 255,
+          "x" : 32.5,
+          "y" : 188.5
+        },
+        "username" : {
+          "height" : 20.5,
+          "width" : 255,
+          "x" : 32.5,
+          "y" : 155
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

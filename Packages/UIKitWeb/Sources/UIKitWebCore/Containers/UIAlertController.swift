@@ -50,11 +50,24 @@ open class UIAlertController: UIViewController {
         viewIfLoaded?.setNeedsLayout()
     }
 
+    /// A text field in the card: 13 pt in a white 7 pt-cornered box 15 in, 34 tall
+    /// (uikit/alert/textfield); the handler configures it before it is added.
     open func addTextField(configurationHandler: ((UITextField) -> Void)? = nil) {
         let field = UITextField()
-        field.borderStyle = .roundedRect
+        field.borderStyle = .none
+        field.font = .systemFont(ofSize: 13)
         configurationHandler?(field)
         textFields = (textFields ?? []) + [field]
+        viewIfLoaded?.setNeedsLayout()
+    }
+
+    static let fieldRowHeight: CGFloat = 34
+    static let fieldsBottomGap: CGFloat = 12
+
+    /// The text fields' block under the header: 34 per field and 12 below (46, 80).
+    var fieldsHeight: CGFloat {
+        let count = textFields?.count ?? 0
+        return count == 0 ? 0 : Self.fieldRowHeight * CGFloat(count) + Self.fieldsBottomGap
     }
 
     open override func loadView() {
@@ -69,7 +82,7 @@ open class UIAlertController: UIViewController {
         let actionsHeight = actionsAreSideBySide
             ? Self.actionHeight + 2 * Self.actionInset
             : (actions.isEmpty ? 0 : Self.actionInset * 2 + Self.actionHeight * CGFloat(actions.count) + Self.actionGap * CGFloat(actions.count - 1))
-        return CGSize(width: width, height: header + actionsHeight)
+        return CGSize(width: width, height: header + fieldsHeight + actionsHeight)
     }
 
     /// Two actions of an alert share one row; an action sheet's and three or more stack.
@@ -130,7 +143,19 @@ final class AlertCardView: UIView {
         var height: CGFloat = 21.5
         if hasTitle { height += max(24.5, lines(titleLabel, width: width) * 24.5) }
         if hasMessage { height += (hasTitle ? 4.5 : 0) + max(23, lines(messageLabel, width: width) * 23) }
-        return height + 10.5
+        // Text fields under a title alone sit 18 below it (uikit/alert/textfields: 64), 10.5 otherwise.
+        return height + (hasTitle && !hasMessage && !(controller.textFields ?? []).isEmpty ? 18 : 10.5)
+    }
+
+    /// The text fields' boxes (in the card): 270 wide 15 in, 34 tall from the header, each
+    /// row 34 lower less half a point after the first (uikit/alert/textfields), a secure
+    /// field's box 32 tall.
+    var fieldBoxes: [CGRect] {
+        let top = headerHeight
+        return (controller.textFields ?? []).enumerated().map { index, field in
+            let y = top + UIAlertController.fieldRowHeight * CGFloat(index) - (index > 0 ? 0.5 : 0)
+            return CGRect(x: 15, y: y, width: bounds.width - 30, height: field.isSecureTextEntry ? 32 : 34)
+        }
     }
 
     private func lines(_ label: UILabel, width: CGFloat) -> CGFloat {
@@ -163,7 +188,13 @@ final class AlertCardView: UIView {
         } else {
             messageLabel.isHidden = true
         }
-        // The action buttons under the header.
+        // The text fields in their boxes: 7 in, 7 down, the text line tall (20.5; 19 secure).
+        for (field, box) in zip(controller.textFields ?? [], fieldBoxes) {
+            if field.superview !== self { addSubview(field) }
+            let height: CGFloat = field.isSecureTextEntry ? 19 : 20.5
+            field.frame = CGRect(x: box.minX + 7.5, y: box.minY + 7, width: box.width - 15, height: height)
+        }
+        // The action buttons under the header and the fields.
         let ordered = controller.orderedActions
         if buttons.count != ordered.count || zip(buttons, ordered).contains(where: { $0.action !== $1 }) {
             for button in buttons { button.removeFromSuperview() }
@@ -174,7 +205,7 @@ final class AlertCardView: UIView {
                 return button
             }
         }
-        let top = headerHeight + UIAlertController.actionInset
+        let top = headerHeight + controller.fieldsHeight + UIAlertController.actionInset
         let inner = bounds.width - 2 * UIAlertController.actionInset
         if controller.actionsAreSideBySide {
             let each = (inner - UIAlertController.actionGap) / 2
@@ -195,6 +226,14 @@ final class AlertCardView: UIView {
         // white, uikit/alert/basic).
         let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46, a: 0.9) : RGBA(r: 255, g: 255, b: 255, a: 0.67)
         list.append(.fillPath(Path(roundedRect: rect, cornerRadius: UIAlertController.cornerRadius, style: .continuous), fill))
+        // Each text field's box: a white 7 pt-cornered ring 0.5 wide around the system background.
+        let ring: RGBA = style == .dark ? RGBA(r: 255, g: 255, b: 255, a: 0.15) : RGBA(r: 255, g: 255, b: 255, a: 1)
+        let inside = UIColor.systemBackground.rgba(for: style)
+        for box in fieldBoxes {
+            let absolute = context.absoluteRect(box)
+            list.append(.fillRRect(absolute, cornerRadius: 7, ring))
+            list.append(.fillRRect(absolute.insetBy(dx: 0.5, dy: 0.5), cornerRadius: 7, inside))
+        }
     }
 }
 

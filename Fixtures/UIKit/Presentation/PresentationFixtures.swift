@@ -25,7 +25,7 @@ final class PresentingController: UIViewController {
 }
 
 public enum PresentationFixtures {
-    public static let all = [alert, actionSheet, pageSheet]
+    public static let all = [alert, actionSheet, pageSheet, alertField, alertFields]
 
     /// An alert with a title, a message, a cancel action and a destructive one.
     public static let alert = UIKitFixture("uikit/alert/basic", size: CGSize(width: 320, height: 500),
@@ -40,6 +40,47 @@ public enum PresentationFixtures {
                                                    },
                                                    UIKitFixtureStep("dismiss") { model in model.presented?.dismiss(animated: false) }],
                                            controller: { model in
+        let controller = PresentingController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
+
+    /// An alert with one text field (a rename prompt).
+    public static let alertField = UIKitFixture("uikit/alert/textfield", size: CGSize(width: 320, height: 500),
+                                                model: { PresentationModel() },
+                                                steps: [UIKitFixtureStep("present") { model in
+                                                            let alert = UIAlertController(title: "Rename", message: "Enter a new name for the file.", preferredStyle: .alert)
+                                                            alert.addTextField { field in field.placeholder = "Name" }
+                                                            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                                            alert.addAction(UIAlertAction(title: "Save", style: .default))
+                                                            model.presenter?.present(alert, animated: false)
+                                                            model.presented = alert
+                                                            alert.view.probe("alert")
+                                                            alert.textFields?.first?.probe("field")
+                                                        }],
+                                                controller: { model in
+        let controller = PresentingController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
+
+    /// An alert with two text fields (a sign-in prompt), the second secure with text.
+    public static let alertFields = UIKitFixture("uikit/alert/textfields", size: CGSize(width: 320, height: 500),
+                                                 model: { PresentationModel() },
+                                                 steps: [UIKitFixtureStep("present") { model in
+                                                             let alert = UIAlertController(title: "Sign In", message: nil, preferredStyle: .alert)
+                                                             alert.addTextField { field in field.placeholder = "Username"; field.text = "corey" }
+                                                             alert.addTextField { field in field.placeholder = "Password"; field.isSecureTextEntry = true }
+                                                             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                                             alert.addAction(UIAlertAction(title: "Sign In", style: .default))
+                                                             alert.addAction(UIAlertAction(title: "Forgot Password", style: .default))
+                                                             model.presenter?.present(alert, animated: false)
+                                                             model.presented = alert
+                                                             alert.view.probe("alert")
+                                                             alert.textFields?[0].probe("username")
+                                                             alert.textFields?[1].probe("password")
+                                                         }],
+                                                 controller: { model in
         let controller = PresentingController()
         model.presenter = controller
         return controller
