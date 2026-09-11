@@ -51,6 +51,16 @@ iOS 26 (`scripts/gen-goldens-sim.sh uikit --dump uikit/table/` lists UIKit's cel
   21 tall for one line (30 in all).
 - Selection fills the row with `systemGray4` (209, 209, 214).
 
-Open: recycling of off-screen rows (every row is built), row animations, editing (swipe to
+## Recycling
+
+Rows whose height is known without their cell (the delegate's `heightForRowAt`, `rowHeight`,
+or `estimatedRowHeight`) are laid out as frames alone; cells exist for the rows in view plus
+half a viewport above and below, are returned to the reuse pool as they scroll out
+(`dequeueReusableCell` hands them back), and `cellForRowAt` runs as rows appear
+(`TableRecyclingTests`: a thousand 44 pt rows in a 400 pt table cost fewer than 30 cells).
+Rows with automatic heights and no estimate still build every cell (their height needs it);
+an estimate is taken as the height, not corrected when the cell appears.
+
+Open: row animations, editing (swipe to
 delete, reordering), `UIListContentConfiguration` / `contentConfiguration`, section index titles,
 `UICollectionView`, the grouped (non-inset) style's exact geometry, dark appearance.

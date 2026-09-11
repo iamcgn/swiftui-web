@@ -254,7 +254,7 @@ open class UITableView: UIScrollView {
 
     open override func layoutSubviews() {
         super.layoutSubviews()
-        if needsReload { reload() }
+        if needsReload { reload() } else { updateVisibleCells() }
     }
 
     /// Builds every row (the tables here are short; no recycling of off-screen rows yet).
@@ -270,6 +270,7 @@ open class UITableView: UIScrollView {
         headerViews.removeAll()
         footerViews.removeAll()
         rowFrames.removeAll()
+        rowCounts.removeAll()
         guard let dataSource else { contentSize = .zero; return }
 
         var y: CGFloat = 0
@@ -319,19 +320,23 @@ open class UITableView: UIScrollView {
             let rows = dataSource.tableView(self, numberOfRowsInSection: section)
             for row in 0..<rows {
                 let path = IndexPath(row: row, section: section)
-                let cell = dataSource.tableView(self, cellForRowAt: path)
-                cell.tableStyle = style
-                cell.isFirstInSection = row == 0
-                cell.isLastInSection = row == rows - 1
-                var height = tableDelegate?.tableView(self, heightForRowAt: path) ?? rowHeight
-                if height == Self.automaticDimension { height = rowHeight == Self.automaticDimension ? cell.preferredHeight : rowHeight }
-                cell.frame = CGRect(x: cardInset, y: y, width: rowWidth, height: height)
-                cell.setSelected(selected.contains(path), animated: false)
-                tableDelegate?.tableView(self, willDisplay: cell, forRowAt: path)
-                addSubview(cell)
-                visibleCellsByPath[path] = cell
-                rowFrames[path] = cell.frame
-                y += height
+                // A known height (the delegate's, `rowHeight`, or an estimate) lays the row out
+                // without its cell, which appears when the row scrolls into view; an automatic
+                // height without an estimate needs the cell now.
+                var height = knownHeight(for: path)
+                var cell: UITableViewCell?
+                if height == nil {
+                    let made = cellForRow(path, rows: rows)
+                    height = made.preferredHeight
+                    cell = made
+                }
+                let frame = CGRect(x: cardInset, y: y, width: rowWidth, height: height!)
+                rowFrames[path] = frame
+                rowCounts[section] = rows
+                if let cell {
+                    place(cell, at: path, frame: frame)
+                }
+                y += height!
             }
             if let footerTitle, isGrouped {
                 let view = UITableViewHeaderFooterView(reuseIdentifier: nil)
@@ -362,6 +367,56 @@ open class UITableView: UIScrollView {
             y += footer.frame.height
         }
         contentSize = CGSize(width: width, height: y)
+        updateVisibleCells()
+    }
+
+    /// The rows per section, from the last reload.
+    private var rowCounts: [Int: Int] = [:]
+
+    /// The row's height when it can be known without its cell.
+    private func knownHeight(for path: IndexPath) -> CGFloat? {
+        if let delegateHeight = tableDelegate?.tableView(self, heightForRowAt: path), delegateHeight != Self.automaticDimension { return delegateHeight }
+        if rowHeight != Self.automaticDimension { return rowHeight }
+        if estimatedRowHeight > 0 { return estimatedRowHeight }
+        return nil
+    }
+
+    /// Asks the data source for the cell and marks its place in the section.
+    private func cellForRow(_ path: IndexPath, rows: Int) -> UITableViewCell {
+        guard let dataSource else { return UITableViewCell(style: .default, reuseIdentifier: nil) }
+        let cell = dataSource.tableView(self, cellForRowAt: path)
+        cell.tableStyle = style
+        cell.isFirstInSection = path.row == 0
+        cell.isLastInSection = path.row == rows - 1
+        return cell
+    }
+
+    private func place(_ cell: UITableViewCell, at path: IndexPath, frame: CGRect) {
+        cell.frame = frame
+        cell.setSelected(selected.contains(path), animated: false)
+        tableDelegate?.tableView(self, willDisplay: cell, forRowAt: path)
+        if cell.superview !== self { addSubview(cell) }
+        visibleCellsByPath[path] = cell
+    }
+
+    /// Makes the rows in view have cells and returns the cells of rows out of view to the pool
+    /// (a page of rows above and below stays).
+    private func updateVisibleCells() {
+        let visible = bounds.insetBy(dx: 0, dy: -bounds.height / 2)
+        for (path, cell) in visibleCellsByPath where !(rowFrames[path]?.intersects(visible) ?? false) {
+            cell.removeFromSuperview()
+            visibleCellsByPath.removeValue(forKey: path)
+            if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+        }
+        for (path, frame) in rowFrames where frame.intersects(visible) && visibleCellsByPath[path] == nil {
+            let cell = cellForRow(path, rows: rowCounts[path.section] ?? path.row + 1)
+            place(cell, at: path, frame: frame)
+        }
+    }
+
+    /// Scrolling brings other rows into view.
+    open override var contentOffset: CGPoint {
+        didSet { if contentOffset != oldValue, !needsReload { setNeedsLayout() } }
     }
 }
 
