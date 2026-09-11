@@ -31,5 +31,8 @@ appearance overrides, hit testing, gesture recognizers, accessibility properties
   (at 238, 120 for 40 × 30 with 10 pt margins); all four margins flexible keep the view centred
   (124, 70 for 40 × 20).
 
+Constraints: `translatesAutoresizingMaskIntoConstraints`, anchors, `constraints`, `updateConstraints`,
+the layout guides and `systemLayoutSizeFitting` over the solver are in `Docs/elements/UIKit/AutoLayout.md`.
+
 Open: pixel comparison of the painted corners, borders, shadows and the continuous corner
 against these goldens; `draw(_:)`; animations (Phase 3).

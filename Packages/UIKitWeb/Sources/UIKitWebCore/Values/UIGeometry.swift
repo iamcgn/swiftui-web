@@ -106,14 +106,6 @@ public enum NSLineBreakMode: Int, Sendable {
     case byWordWrapping = 0, byCharWrapping, byClipping, byTruncatingHead, byTruncatingTail, byTruncatingMiddle
 }
 
-/// The Auto Layout constraint object arrives in Phase 3; its nested `Axis` is used by stack
-/// views today.
-public final class NSLayoutConstraint {
-    public enum Axis: Int, Sendable {
-        case horizontal = 0, vertical = 1
-    }
-}
-
 /// The layout size fitting values `systemLayoutSizeFitting` accepts.
 public enum UILayoutFittingSize {
     public static let compressed = CGSize.zero

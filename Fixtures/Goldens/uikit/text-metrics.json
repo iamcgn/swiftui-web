@@ -48,6 +48,18 @@
       "lastBaseline" : 31.303175487802068,
       "width" : 52
     },
+    "system:11:400:default|;l1|Hg" : {
+      "firstBaseline" : 10.4736328125,
+      "height" : 13.5,
+      "lastBaseline" : 10.4736328125,
+      "width" : 15
+    },
+    "system:13:400:default|;l1|Hg" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 17.5
+    },
     "system:13:600:default|;l1|Bold 13" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -77,6 +89,12 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 25
+    },
+    "system:17:400:default|;l1|A long label that needs room" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 218
     },
     "system:17:400:default|;l1|A longer caption" : {
       "firstBaseline" : 16.1865234375,
@@ -120,17 +138,47 @@
       "lastBaseline" : 16.1865234375,
       "width" : 90
     },
+    "system:17:400:default|;l1|Hg" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 22.5
+    },
     "system:17:400:default|;l1|Inside" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 45.5
     },
+    "system:17:400:default|;l1|Pinned label" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 93
+    },
     "system:17:400:default|;l1|Second line" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 89
+    },
+    "system:17:400:default|;l1|Short" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 42
+    },
+    "system:17:400:default|;l1|Stretched" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 75
+    },
+    "system:17:400:default|;l1|Subtitle text" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 91.5
     },
     "system:17:400:default|;l1|The quick brown fox jumps over the lazy dog" : {
       "firstBaseline" : 16.1865234375,
@@ -143,6 +191,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 39.5
+    },
+    "system:17:400:default|;l1|Title" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 33
     },
     "system:17:400:default||••••••" : {
       "firstBaseline" : 16.1865234375,
@@ -216,11 +270,29 @@
       "lastBaseline" : 36.4736328125,
       "width" : 181
     },
+    "system:20:400:default|;l1|Hg" : {
+      "firstBaseline" : 19.04296875,
+      "height" : 24,
+      "lastBaseline" : 19.04296875,
+      "width" : 26
+    },
     "system:20:600:default|;l1|Semibold 20" : {
       "firstBaseline" : 19.04296875,
       "height" : 24,
       "lastBaseline" : 19.04296875,
       "width" : 116
+    },
+    "system:28:400:default|;l1|Hg" : {
+      "firstBaseline" : 26.66015625,
+      "height" : 33.5,
+      "lastBaseline" : 26.66015625,
+      "width" : 36
+    },
+    "system:34:400:default|;l1|Hg" : {
+      "firstBaseline" : 32.373046875,
+      "height" : 41,
+      "lastBaseline" : 32.373046875,
+      "width" : 43.5
     }
   },
   "fonts" : {
@@ -272,6 +344,30 @@
       "textToText" : 0,
       "xHeight" : 14.21875
     },
+    "system:11:400:default" : {
+      "ascender" : 10.4736328125,
+      "capHeight" : 7.75048828125,
+      "descender" : -2.6533203125,
+      "leading" : 0,
+      "lineHeight" : 13.126953125,
+      "pointSize" : 11,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 5.7900390625
+    },
+    "system:13:400:default" : {
+      "ascender" : 12.3779296875,
+      "capHeight" : 9.15966796875,
+      "descender" : -3.1357421875,
+      "leading" : 0,
+      "lineHeight" : 15.513671875,
+      "pointSize" : 13,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 6.8427734375
+    },
     "system:13:600:default" : {
       "ascender" : 12.3779296875,
       "capHeight" : 9.15966796875,
@@ -308,6 +404,18 @@
       "textToText" : 0,
       "xHeight" : 8.9482421875
     },
+    "system:20:400:default" : {
+      "ascender" : 19.04296875,
+      "capHeight" : 14.091796875,
+      "descender" : -4.82421875,
+      "leading" : 0,
+      "lineHeight" : 23.8671875,
+      "pointSize" : 20,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 10.439453125
+    },
     "system:20:600:default" : {
       "ascender" : 19.04296875,
       "capHeight" : 14.091796875,
@@ -319,6 +427,30 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 10.595703125
+    },
+    "system:28:400:default" : {
+      "ascender" : 26.66015625,
+      "capHeight" : 19.728515625,
+      "descender" : -6.75390625,
+      "leading" : 0,
+      "lineHeight" : 33.4140625,
+      "pointSize" : 28,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 14.21875
+    },
+    "system:34:400:default" : {
+      "ascender" : 32.373046875,
+      "capHeight" : 23.9560546875,
+      "descender" : -8.201171875,
+      "leading" : 0,
+      "lineHeight" : 40.57421875,
+      "pointSize" : 34,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 17.265625
     }
   },
   "host" : "iPhoneSimulator 26.0 SwiftUIWeb SE",

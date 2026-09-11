@@ -96,14 +96,16 @@ open class UILabel: UIView {
     }
 
     /// The baselines of the text block in `size`: the text rect's top (rounded, as
-    /// `textRect(forBounds:)` places it) plus the ascender rounded to the point, per line
-    /// (`ios/representable/sizing` `labelBox`: 16 for the 17 pt system font's 16.43).
+    /// `textRect(forBounds:)` places it) plus the ascender rounded to the pixel, per line
+    /// (`uikit/autolayout/baseline`: 10.5, 12.5, 16, 19, 26.5 and 32.5 for the 11, 13, 17, 20,
+    /// 28 and 34 pt system fonts' ascenders 10.47, 12.38, 16.19, 19.04, 26.66 and 32.37).
     override func textBaselines(in size: CGSize) -> (first: CGFloat, last: CGFloat) {
         guard let layout = layout(width: numberOfLines == 1 ? nil : size.width), !layout.lines.isEmpty else { return (0, size.height) }
         let pitch = font.lineHeight + font.leading
         let lines = CGFloat(layout.lines.count)
         let top = textRect(forBounds: CGRect(origin: .zero, size: size), limitedToNumberOfLines: numberOfLines).minY
-        let first = top + font.ascender.rounded()
+        let scale = UIScreen.main.scale
+        let first = top + (font.ascender * scale).rounded() / scale
         return (first, first + pitch * (lines - 1))
     }
 

@@ -62,6 +62,10 @@ open class UIViewController: UIResponder, UITraitEnvironment {
     open var title: String?
     open var preferredContentSize = CGSize.zero
     open var additionalSafeAreaInsets = UIEdgeInsets.zero
+    /// The minimum margins of the root view (16 sideways on an iPhone, the safe area vertically)
+    /// that its `layoutMarginsGuide` respects unless `viewRespectsSystemMinimumLayoutMargins` is off.
+    open var systemMinimumLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+    open var viewRespectsSystemMinimumLayoutMargins = true { didSet { viewIfLoaded?.setNeedsLayout() } }
     open var edgesForExtendedLayout: UIRectEdge = .all
     open var modalPresentationStyle: UIModalPresentationStyle = .automatic
     open var modalTransitionStyle: UIModalTransitionStyle = .coverVertical

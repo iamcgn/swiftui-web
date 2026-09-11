@@ -1,0 +1,39 @@
+{
+  "fixture" : "uikit\/autolayout\/update",
+  "frames" : {
+    "mover" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "mover" : {
+          "height" : 40,
+          "width" : 60,
+          "x" : 100,
+          "y" : 16
+        }
+      },
+      "name" : "move"
+    },
+    {
+      "frames" : {
+        "mover" : {
+          "height" : 40,
+          "width" : 200,
+          "x" : 100,
+          "y" : 16
+        }
+      },
+      "name" : "widen"
+    }
+  ]
+}

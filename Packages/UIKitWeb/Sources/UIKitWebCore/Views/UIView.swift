@@ -62,7 +62,7 @@ open class UIView: UIResponder, UITraitEnvironment {
     /// Autoresizing to the subviews, then a layout pass.
     private func sizeDidChange(from old: CGSize) {
         if autoresizesSubviews {
-            for subview in subviews where !subview.autoresizingMask.isEmpty {
+            for subview in subviews where !subview.autoresizingMask.isEmpty && subview.translatesAutoresizingMaskIntoConstraints {
                 subview.applyAutoresizing(from: old, to: bounds.size)
             }
         }
@@ -106,7 +106,10 @@ open class UIView: UIResponder, UITraitEnvironment {
     open var semanticContentAttribute: UISemanticContentAttribute = .unspecified
     open var preservesSuperviewLayoutMargins = false
     open var insetsLayoutMarginsFromSafeArea = true
-    open var layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8) { didSet { setNeedsLayout() } }
+    open var layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8) { didSet { hasExplicitLayoutMargins = true; setNeedsLayout() } }
+    /// Whether the app set `layoutMargins` (a controller's root view otherwise takes the system
+    /// minimum margins: 16 sideways, the safe area vertically; Layout/NSLayoutConstraint.swift).
+    var hasExplicitLayoutMargins = false
     open var directionalLayoutMargins: NSDirectionalEdgeInsets {
         get { NSDirectionalEdgeInsets(top: layoutMargins.top, leading: layoutMargins.left, bottom: layoutMargins.bottom, trailing: layoutMargins.right) }
         set { layoutMargins = UIEdgeInsets(top: newValue.top, left: newValue.leading, bottom: newValue.bottom, right: newValue.trailing) }
@@ -289,27 +292,50 @@ open class UIView: UIResponder, UITraitEnvironment {
 
     open var autoresizingMask: AutoresizingMask = []
     open var autoresizesSubviews = true
-    open var translatesAutoresizingMaskIntoConstraints = true
+    /// Off for a view placed by constraints (Layout/LayoutEngine.swift).
+    open var translatesAutoresizingMaskIntoConstraints = true { didSet { superview?.setNeedsLayout() } }
     private(set) var needsLayout = true
+    /// Constraints, guides and the update-constraints flag (Layout/NSLayoutConstraint.swift).
+    let layoutState = ViewLayoutState()
 
     open func setNeedsLayout() {
         needsLayout = true
         UIKitScene.shared.setNeedsFrame()
     }
 
-    /// Lays out the subtree now if anything in it needs it.
+    /// Lays out the subtree now if anything in it needs it. Constraints are solved first for
+    /// the whole tree from its root, as UIKit's window engine does, then `layoutSubviews` runs
+    /// top-down.
     open func layoutIfNeeded() {
+        if superview == nil {
+            solveConstraintsIfNeeded()
+        } else if needsLayout || subtreeNeedsLayout {
+            var root: UIView = self
+            while let parent = root.superview { root = parent }
+            root.solveConstraintsIfNeeded()
+        }
+        layoutSubtreeIfNeeded()
+    }
+
+    private var subtreeNeedsLayout: Bool { needsLayout || subviews.contains { $0.subtreeNeedsLayout } }
+
+    private func layoutSubtreeIfNeeded() {
         if needsLayout {
             needsLayout = false
             owningViewController?.viewWillLayoutSubviews()
             layoutSubviews()
             owningViewController?.viewDidLayoutSubviews()
         }
-        for subview in subviews { subview.layoutIfNeeded() }
+        for subview in subviews { subview.layoutSubtreeIfNeeded() }
     }
 
-    /// Positions the subviews. The default does nothing (autoresizing already ran).
+    /// Positions the subviews. The default does nothing (autoresizing already ran; the
+    /// constraint engine placed the constrained subviews before this).
     open func layoutSubviews() {}
+
+    /// Updates the constraints for the view. Override to add or change constraints; call super
+    /// last (Layout/NSLayoutConstraint.swift).
+    open func updateConstraints() {}
 
     open func setNeedsDisplay() { layer.setNeedsDisplay() }
     open func setNeedsDisplay(_ rect: CGRect) { setNeedsDisplay() }
@@ -349,13 +375,15 @@ open class UIView: UIResponder, UITraitEnvironment {
     open func contentCompressionResistancePriority(for axis: NSLayoutConstraint.Axis) -> UILayoutPriority { compression[axis] ?? .defaultHigh }
     open func setContentCompressionResistancePriority(_ priority: UILayoutPriority, for axis: NSLayoutConstraint.Axis) { compression[axis] = priority; superview?.setNeedsLayout() }
 
-    /// The smallest size that satisfies the view's constraints (without Auto Layout: the
-    /// intrinsic size where it has one, else what fits the target).
+    /// The smallest size that satisfies the view's constraints: a solve of the subtree with the
+    /// target proposed at the fitting priorities; without constraints, the intrinsic size where
+    /// it has one, else what fits the target.
     open func systemLayoutSizeFitting(_ targetSize: CGSize) -> CGSize {
         systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .fittingSizeLevel, verticalFittingPriority: .fittingSizeLevel)
     }
 
     open func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontal: UILayoutPriority, verticalFittingPriority vertical: UILayoutPriority) -> CGSize {
+        if let constrained = constrainedSizeFitting(targetSize, horizontal: horizontal, vertical: vertical) { return constrained }
         let intrinsic = intrinsicContentSize
         let fitted = sizeThatFits(targetSize)
         let width = horizontal == .required ? targetSize.width : (intrinsic.width >= 0 ? intrinsic.width : fitted.width)

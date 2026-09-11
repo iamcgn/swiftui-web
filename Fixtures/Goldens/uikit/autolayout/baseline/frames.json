@@ -1,0 +1,57 @@
+{
+  "fixture" : "uikit\/autolayout\/baseline",
+  "frames" : {
+    "box" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 16,
+      "y" : 160
+    },
+    "hung" : {
+      "height" : 24,
+      "width" : 26,
+      "x" : 54,
+      "y" : 171
+    },
+    "size11" : {
+      "height" : 13.5,
+      "width" : 15,
+      "x" : 46.5,
+      "y" : 65.5
+    },
+    "size13" : {
+      "height" : 16,
+      "width" : 17.5,
+      "x" : 69.5,
+      "y" : 63.5
+    },
+    "size20" : {
+      "height" : 24,
+      "width" : 26,
+      "x" : 95,
+      "y" : 57
+    },
+    "size28" : {
+      "height" : 33.5,
+      "width" : 36,
+      "x" : 129,
+      "y" : 49.5
+    },
+    "size34" : {
+      "height" : 41,
+      "width" : 43.5,
+      "x" : 173,
+      "y" : 43.5
+    },
+    "small" : {
+      "height" : 20.5,
+      "width" : 22.5,
+      "x" : 16,
+      "y" : 60
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

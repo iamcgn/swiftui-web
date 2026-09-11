@@ -1,0 +1,33 @@
+{
+  "fixture" : "uikit\/autolayout\/guides",
+  "frames" : {
+    "container" : {
+      "height" : 100,
+      "width" : 200,
+      "x" : 40,
+      "y" : 150
+    },
+    "inner" : {
+      "height" : 84,
+      "width" : 184,
+      "x" : 48,
+      "y" : 158
+    },
+    "margins" : {
+      "height" : 300,
+      "width" : 288,
+      "x" : 16,
+      "y" : 0
+    },
+    "safe" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

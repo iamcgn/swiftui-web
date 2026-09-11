@@ -52,6 +52,19 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), width: 120, lines: 0),
         UIKitTextRequest("Field", .system(size: 17), lines: 0),
         UIKitTextRequest("Inside", .system(size: 17)),
+        // uikit/autolayout/*
+        UIKitTextRequest("Pinned label", .system(size: 17)),
+        UIKitTextRequest("Stretched", .system(size: 17)),
+        UIKitTextRequest("A long label that needs room", .system(size: 17)),
+        UIKitTextRequest("Short", .system(size: 17)),
+        UIKitTextRequest("Title", .system(size: 17)),
+        UIKitTextRequest("Subtitle text", .system(size: 17)),
+        UIKitTextRequest("Hg", .system(size: 17)),
+        UIKitTextRequest("Hg", .system(size: 11)),
+        UIKitTextRequest("Hg", .system(size: 13)),
+        UIKitTextRequest("Hg", .system(size: 20)),
+        UIKitTextRequest("Hg", .system(size: 28)),
+        UIKitTextRequest("Hg", .system(size: 34)),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

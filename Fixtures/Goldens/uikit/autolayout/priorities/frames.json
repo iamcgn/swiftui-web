@@ -1,0 +1,45 @@
+{
+  "fixture" : "uikit\/autolayout\/priorities",
+  "frames" : {
+    "atLeast" : {
+      "height" : 30,
+      "width" : 50,
+      "x" : 16,
+      "y" : 92
+    },
+    "atLeast2" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 74,
+      "y" : 92
+    },
+    "left" : {
+      "height" : 20.5,
+      "width" : 218,
+      "x" : 16,
+      "y" : 138
+    },
+    "pick" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 16,
+      "y" : 54
+    },
+    "right" : {
+      "height" : 20.5,
+      "width" : 62,
+      "x" : 242,
+      "y" : 138
+    },
+    "wide" : {
+      "height" : 30,
+      "width" : 288,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

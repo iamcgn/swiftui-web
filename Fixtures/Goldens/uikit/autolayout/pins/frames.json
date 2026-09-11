@@ -1,0 +1,57 @@
+{
+  "fixture" : "uikit\/autolayout\/pins",
+  "frames" : {
+    "aspect" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 16,
+      "y" : 72
+    },
+    "banner" : {
+      "height" : 40,
+      "width" : 288,
+      "x" : 16,
+      "y" : 16
+    },
+    "centered" : {
+      "height" : 51,
+      "width" : 101,
+      "x" : 109.5,
+      "y" : 124.5
+    },
+    "container" : {
+      "height" : 51,
+      "width" : 99,
+      "x" : 205,
+      "y" : 120
+    },
+    "corner" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 264,
+      "y" : 244
+    },
+    "label" : {
+      "height" : 20.5,
+      "width" : 93,
+      "x" : 16,
+      "y" : 120
+    },
+    "quarter" : {
+      "height" : 20.5,
+      "width" : 34.5,
+      "x" : 237.5,
+      "y" : 135.5
+    },
+    "stretched" : {
+      "height" : 20.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 160
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

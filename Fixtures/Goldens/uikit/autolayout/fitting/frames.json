@@ -1,0 +1,45 @@
+{
+  "fixture" : "uikit\/autolayout\/fitting",
+  "frames" : {
+    "card" : {
+      "height" : 61,
+      "width" : 107.5,
+      "x" : 16,
+      "y" : 16
+    },
+    "subtitle" : {
+      "height" : 20.5,
+      "width" : 91.5,
+      "x" : 24,
+      "y" : 48.5
+    },
+    "title" : {
+      "height" : 20.5,
+      "width" : 33,
+      "x" : 24,
+      "y" : 24
+    },
+    "wide" : {
+      "height" : 61,
+      "width" : 288,
+      "x" : 16,
+      "y" : 120
+    },
+    "wideSubtitle" : {
+      "height" : 20.5,
+      "width" : 272,
+      "x" : 24,
+      "y" : 152.5
+    },
+    "wideTitle" : {
+      "height" : 20.5,
+      "width" : 33,
+      "x" : 24,
+      "y" : 128
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

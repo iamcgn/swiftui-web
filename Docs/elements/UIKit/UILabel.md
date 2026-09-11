@@ -1,5 +1,7 @@
 # UILabel
 
+Baseline anchors (Auto Layout, SwiftUI alignment): the ascender rounded to the pixel below the text rect's rounded top (`uikit/autolayout/baseline`; `Docs/elements/UIKit/AutoLayout.md`).
+
 `Packages/UIKitWeb/Sources/UIKitWebCore/Controls/UILabel.swift`. Fixtures `uikit/label/basic`
 (sized to fit at the system and text-style fonts, weights, a centred label in a fixed frame) and
 `uikit/label/wrapping` (wrapped at 200 without a limit and at two lines, truncated in a

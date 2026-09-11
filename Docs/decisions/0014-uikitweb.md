@@ -1,6 +1,6 @@
 # 0014 — UIKitWeb: a shared graphics substrate, a UIKit reimplementation, and the representables
 
-Status: accepted (2026-09-06); Phases 0, 1 and 2 done
+Status: accepted (2026-09-06); Phases 0, 1 and 2 done; Phase 3 in progress
 
 ## Context
 
@@ -157,3 +157,21 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   that a rounded `UITextField` has a real intrinsic width (text + 28). The size gate: Counter
   2,835,785 bytes brotli against 2,751,777 before UIKitWeb was linked (budget 3,145,728), so the
   re-export stays unconditional.
+
+## Phase 3 log
+
+- Step 1 (2026-09-10): Auto Layout (`Docs/ROADMAP.md`, Phase 7 status 3.1;
+  `Docs/elements/UIKit/AutoLayout.md`). The solver is Cassowary in Kiwi's incremental simplex
+  form, written for the one way it is used here: a fresh tableau per layout pass, constraints
+  added once, no removal. UIKit priorities map to weights of 10^(priority / 100) so that a
+  higher priority outweighs any realistic number of lower ones, with 1000 required. The engine
+  gives every view in a root's subtree four variables in its superview's coordinates and pins
+  the views that translate their autoresizing mask to their frames, which makes a frame-laid
+  container an anchor for the constrained views inside it, as UIKit's engine does. Two
+  findings from the goldens: a view controller's root view has system minimum margins of 16
+  sideways and 0 vertically (with no status bar) that replace the 8 pt default rather than
+  raise it, and a label's baseline anchor is its ascender rounded to the pixel below the text
+  rect's rounded top (the representable step had rounded to the point from one measurement).
+  One Swift gotcha for the solver: iterating a dictionary's `keys` while mutating the
+  dictionary is an exclusivity violation ("Fatal access conflict"), as is optimising an
+  `inout` row that the pivot's substitution also writes through `self`.
