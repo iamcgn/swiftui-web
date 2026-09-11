@@ -39,7 +39,7 @@ final class TableSource: NSObject, UITableViewDataSource, UITableViewDelegate {
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection]
+    public static let all = [plain, subtitle, grouped, selection, pinned]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -82,6 +82,28 @@ public enum TableFixtures {
             .init(header: "General", footer: "A footer note.", rows: [("Name", "iPhone", .disclosureIndicator), ("Software", "26.0", .none)]),
             .init(header: "Display", footer: nil, rows: [("Brightness", nil, .none)]),
         ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 0, section: 1): "row2"])
+    }
+
+    /// Plain-style section headers pin to the top while their section scrolls under them and
+    /// are pushed away by the next header.
+    public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width: 320, height: 300),
+                                            model: { TableModel() },
+                                            steps: [UIKitFixtureStep("scroll") { model in
+                                                        model.table?.contentOffset = CGPoint(x: 0, y: 100)
+                                                        model.table?.layoutIfNeeded()
+                                                        model.table?.headerView(forSection: 0)?.probe("header0")
+                                                        model.table?.headerView(forSection: 1)?.probe("header1")
+                                                    },
+                                                    UIKitFixtureStep("push") { model in
+                                                        model.table?.contentOffset = CGPoint(x: 0, y: 260)
+                                                        model.table?.layoutIfNeeded()
+                                                        model.table?.headerView(forSection: 0)?.probe("header0")
+                                                        model.table?.headerView(forSection: 1)?.probe("header1")
+                                                    }]) { model in
+        make(style: .plain, cellStyle: .default, sections: [
+            .init(header: "Alpha", footer: nil, rows: [("One", nil, .none), ("Two", nil, .none), ("Three", nil, .none), ("Four", nil, .none)]),
+            .init(header: "Beta", footer: nil, rows: [("Five", nil, .none), ("Six", nil, .none), ("Seven", nil, .none), ("Eight", nil, .none)]),
+        ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 0, section: 1): "row4"], model: model)
     }
 
     /// Selecting a row highlights it; deselecting clears it.

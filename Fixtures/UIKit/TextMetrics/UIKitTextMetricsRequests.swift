@@ -139,6 +139,17 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Padded", .system(size: 15), width: 126, lines: 0),
         UIKitTextRequest("Centred", .system(size: 17), width: 190, lines: 0),
         UIKitTextRequest("Read-only footnote text that wraps onto a second line in this width.", .system(size: 13), width: 278, lines: 0),
+        // uikit/table/pinned (plain headers: 13 pt? the recorder measures 17 semibold titles and 17 pt rows)
+        UIKitTextRequest("Alpha", .system(size: 17, weight: "semibold"), width: 288, lines: 0),
+        UIKitTextRequest("Beta", .system(size: 17, weight: "semibold"), width: 288, lines: 0),
+        UIKitTextRequest("One", .system(size: 17)),
+        UIKitTextRequest("Two", .system(size: 17)),
+        UIKitTextRequest("Three", .system(size: 17)),
+        UIKitTextRequest("Four", .system(size: 17)),
+        UIKitTextRequest("Five", .system(size: 17)),
+        UIKitTextRequest("Six", .system(size: 17)),
+        UIKitTextRequest("Seven", .system(size: 17)),
+        UIKitTextRequest("Eight", .system(size: 17)),
         // uikit/collection/selfsizing (15 pt tags)
         UIKitTextRequest("Swift", .system(size: 15)),
         UIKitTextRequest("SwiftUI", .system(size: 15)),

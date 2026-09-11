@@ -128,6 +128,9 @@ open class UITableView: UIScrollView {
     private var reusePool: [String: [UITableViewCell]] = [:]
     private var visibleCellsByPath: [IndexPath: UITableViewCell] = [:]
     private var headerViews: [Int: UIView] = [:]
+    /// Each plain-style header's place in the content and the end of its section, for pinning.
+    private var headerNaturalFrames: [Int: CGRect] = [:]
+    private var sectionEnds: [Int: CGFloat] = [:]
     private var footerViews: [Int: UIView] = [:]
     private var needsReload = true
     private var rowFrames: [IndexPath: CGRect] = [:]
@@ -272,6 +275,8 @@ open class UITableView: UIScrollView {
         for view in footerViews.values { view.removeFromSuperview() }
         headerViews.removeAll()
         footerViews.removeAll()
+        headerNaturalFrames.removeAll()
+        sectionEnds.removeAll()
         rowFrames.removeAll()
         rowCounts.removeAll()
         guard let dataSource else { contentSize = .zero; return }
@@ -310,7 +315,9 @@ open class UITableView: UIScrollView {
                 headerViews[section] = view
                 y += height
             } else if let headerTitle {
-                if section == 0 { y += sectionHeaderTopPadding == Self.automaticDimension ? 22 : sectionHeaderTopPadding }
+                // Every titled plain header sits 22 below what precedes it (uikit/table/pinned:
+                // the second section's header at 296 after rows ending at 274).
+                y += sectionHeaderTopPadding == Self.automaticDimension ? 22 : sectionHeaderTopPadding
                 let view = UITableViewHeaderFooterView(reuseIdentifier: nil)
                 view.textLabel?.text = headerTitle
                 view.isHeader = true
@@ -320,6 +327,7 @@ open class UITableView: UIScrollView {
                 headerViews[section] = view
                 y += 28
             }
+            if let header = headerViews[section] { headerNaturalFrames[section] = header.frame }
             let rows = dataSource.tableView(self, numberOfRowsInSection: section)
             for row in 0..<rows {
                 let path = IndexPath(row: row, section: section)
@@ -364,6 +372,7 @@ open class UITableView: UIScrollView {
                 footerViews[section] = view
                 y += 28
             }
+            sectionEnds[section] = y
         }
         if let footer = tableFooterView {
             footer.frame = CGRect(x: 0, y: y, width: width, height: footer.frame.height)
@@ -371,6 +380,25 @@ open class UITableView: UIScrollView {
         }
         contentSize = CGSize(width: width, height: y)
         updateVisibleCells()
+    }
+
+    /// The header view of a section on show (a plain header pins while its section scrolls).
+    open func headerView(forSection section: Int) -> UITableViewHeaderFooterView? { headerViews[section] as? UITableViewHeaderFooterView }
+    open func footerView(forSection section: Int) -> UITableViewHeaderFooterView? { footerViews[section] as? UITableViewHeaderFooterView }
+
+    /// Plain-style headers stick to the top of the visible bounds while their section is
+    /// under them, and the next section's header pushes them up (uikit/table/pinned).
+    private func pinHeaders() {
+        guard !isGrouped else { return }
+        for (section, header) in headerViews {
+            guard let natural = headerNaturalFrames[section] else { continue }
+            var y = max(natural.minY, contentOffset.y + contentInset.top)
+            if let end = sectionEnds[section] { y = min(y, end - natural.height) }
+            y = max(y, natural.minY)
+            if header.frame.minY != y { header.frame = CGRect(x: natural.minX, y: y, width: natural.width, height: natural.height) }
+            (header as? UITableViewHeaderFooterView)?.isPinned = y > natural.minY
+            bringSubviewToFront(header)
+        }
     }
 
     /// The rows per section, from the last reload.
@@ -415,6 +443,7 @@ open class UITableView: UIScrollView {
             let cell = cellForRow(path, rows: rowCounts[path.section] ?? path.row + 1)
             place(cell, at: path, frame: frame)
         }
+        pinHeaders()
     }
 
     /// Scrolling brings other rows into view.
@@ -441,6 +470,9 @@ open class UITableViewHeaderFooterView: UIView {
     }
     var style: UITableView.Style = .plain
     var inset: CGFloat = 0
+    /// A plain header held at the visible top by scrolling (uikit/table/pinned): it draws a
+    /// scrim, black at 15 % fading over 60 pt from its top, over the rows passing under it.
+    var isPinned = false { didSet { if isPinned != oldValue { setNeedsDisplay() } } }
 
     public init(reuseIdentifier: String?) {
         self.reuseIdentifier = reuseIdentifier
@@ -474,6 +506,19 @@ open class UITableViewHeaderFooterView: UIView {
             label.frame = CGRect(x: 16, y: 4.5, width: size.width, height: size.height)
         }
     }
+
+    override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
+        if isPinned, isHeader, style == .plain {
+            // The scrim: 0.15 at the header's top easing to nothing 60 pt down ((1 - t)^1.2,
+            // sampled from the golden: 217, 230, 238, 247, 254 grey at 0, 20, 30, 45, 60 pt).
+            let top = context.absoluteRect(CGRect(x: 0, y: 0, width: bounds.width, height: 60))
+            let ink: RGBA = userStyle == .dark ? RGBA(r: 255, g: 255, b: 255) : RGBA(r: 0, g: 0, b: 0)
+            let stops = [(0.0, 0.15), (0.25, 0.106), (0.5, 0.065), (0.75, 0.028), (1.0, 0.0)].map { DisplayGradient.Stop(location: $0.0, color: ink.multiplyingAlpha(by: $0.1)) }
+            let gradient = DisplayGradient(kind: .linear(start: CGPoint(x: top.minX, y: top.minY), end: CGPoint(x: top.minX, y: top.maxY)), stops: stops)
+            list.append(.fillGradient(Path(top), gradient))
+        }
+    }
+
 }
 
 /// The visual representation of a single row in a table view.

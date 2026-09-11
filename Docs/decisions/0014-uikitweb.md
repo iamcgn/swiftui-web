@@ -304,3 +304,6 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   The flow layout measures through the cell's `preferredLayoutAttributesFitting`, which reads
   the content view's constraints with the solver already in place; the golden confirmed the
   fitted sizes and that the justification rules apply to them unchanged.
+- Step 20 (2026-09-11): pinned table headers (`Docs/ROADMAP.md`, Phase 7 status 4.23), the
+  clamp UIKit applies to a plain header's frame between its natural place, the visible top and
+  its section's end; the fixture's steps probe `headerView(forSection:)` after each scroll.

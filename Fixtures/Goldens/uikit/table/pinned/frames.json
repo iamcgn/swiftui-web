@@ -1,0 +1,99 @@
+{
+  "fixture" : "uikit\/table\/pinned",
+  "frames" : {
+    "row0" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 50
+    },
+    "row4" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 324
+    },
+    "table" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "header0" : {
+          "height" : 28,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "header1" : {
+          "height" : 28,
+          "width" : 320,
+          "x" : 0,
+          "y" : 196
+        },
+        "row0" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : -50
+        },
+        "row4" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : 224
+        },
+        "table" : {
+          "height" : 400,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "scroll"
+    },
+    {
+      "frames" : {
+        "header0" : {
+          "height" : 28,
+          "width" : 320,
+          "x" : 0,
+          "y" : -14
+        },
+        "header1" : {
+          "height" : 28,
+          "width" : 320,
+          "x" : 0,
+          "y" : 36
+        },
+        "row0" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : -210
+        },
+        "row4" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : 64
+        },
+        "table" : {
+          "height" : 400,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "push"
+    }
+  ]
+}

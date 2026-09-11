@@ -77,3 +77,16 @@ variants; `text`, `secondaryText`, `image`, `textProperties`, `secondaryTextProp
 cell styles (approximate: no golden yet; the margins are UIKit's documented 11 / 20).
 `UIHostingConfiguration` (SwiftUIWebUIKit) hosts SwiftUI the same way
 (`Docs/elements/Representable.md`).
+
+## Pinned headers (2026-09-11, `uikit/table/pinned`)
+
+A plain-style section header sticks to the top of the visible bounds while its section scrolls
+under it and is pushed up as its section's last row leaves (its bottom never passes the
+section's end: at offset 260 the first header sits at -14 with its rows ending at 14, the
+second header at 36); `headerView(forSection:)` / `footerView(forSection:)` return the views on
+show. Grouped styles do not pin. Every titled plain header, not only the first, sits 22 below
+what precedes it (the second section's header at 296 after rows ending at 274). A pinned header
+draws a scrim over the rows passing under it: black at 15 % at its top easing to nothing 60 pt
+down (the golden's grey 217, 230, 238, 247, 254 at 0, 20, 30, 45 and 60 pt; `(1 - t)^1.2`),
+and the scrim rides with a header being pushed away. Pixels: 0.8 % at rest, 1.2 % scrolled,
+1.0 % pushed.
