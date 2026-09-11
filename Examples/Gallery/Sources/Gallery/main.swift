@@ -264,7 +264,7 @@ final class Gallery {
         var closure: JSClosure!
         closure = JSClosure { [weak self] _ in
             attempts += 1
-            guard let self, self.hostedFixtureName == name, let root = currentHostedInstance?.controller.viewIfLoaded else { return .undefined }
+            guard let self, self.hostedFixtureName == name, let root = currentHostedInstance?.controller.view else { return .undefined }
             let frames = UIKitProbes.frames(in: root)
             // A table's cells (and their probes) appear on its first layout, which a slow CI
             // runner reaches late: wait up to ten seconds before publishing an empty set.
