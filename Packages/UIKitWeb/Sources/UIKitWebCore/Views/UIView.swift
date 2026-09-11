@@ -435,6 +435,7 @@ open class UIView: UIResponder, UITraitEnvironment {
     /// views override this in place of `draw(_:)`. The default runs `draw(_:)`.
     func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         drawCustomContent(into: &list, context: context)
+        _hostedPaint(into: &list, context: context)
     }
 
     // MARK: Coordinate conversion
@@ -508,6 +509,32 @@ open class UIView: UIResponder, UITraitEnvironment {
     func accessibilityIncrement() {}
     func accessibilityDecrement() {}
     func accessibilitySetValue(_ value: Double) {}
+
+
+    // MARK: Hosting SPI (App/HostingViewSPI.swift)
+
+    /// Paints a hosted scene at the view's origin (SwiftUIWeb's `UIHostingController`); the
+    /// default paints nothing. `drawContent` calls this after `draw(_:)`.
+    open func _hostedPaint(into list: inout DisplayList, context: PaintContext) {}
+    /// The hosted scene's accessibility elements, frames in the view's coordinates, or nil for a
+    /// view that hosts nothing (its subviews are walked instead).
+    open func _hostedSemantics() -> [SemanticsNode]? { nil }
+    /// Whether the hosted scene owns the element with this identifier.
+    open func _hostedHandles(semanticsIdentifier: Int) -> Bool { false }
+    open func _hostedActivate(semanticsIdentifier: Int) {}
+    open func _hostedAdjust(semanticsIdentifier: Int, increment: Bool) {}
+    open func _hostedSetValue(semanticsIdentifier: Int, value: Double) {}
+    open func _hostedFocus(semanticsIdentifier: Int?, keyboard: Bool) {}
+    open func _hostedBlur(semanticsIdentifier: Int) {}
+    open func _hostedTextField(_ semanticsIdentifier: Int, didChange text: String) {}
+    open func _hostedTextFieldDidSubmit(_ semanticsIdentifier: Int) {}
+    open func _hostedTextField(_ semanticsIdentifier: Int, focused: Bool) {}
+    /// The hosted scene's text field with keyboard focus.
+    open var _hostedFocusedTextFieldIdentifier: Int? { nil }
+    /// Advances the hosted scene's clocks; true while it needs another frame.
+    open func _hostedAdvanceFrame(elapsed: Double) -> Bool { false }
+    /// A wheel scroll at `point` (the view's coordinates); true when the hosted scene took it.
+    open func _hostedScrollWheel(by delta: CGSize, at point: CGPoint) -> Bool { false }
 
     // MARK: Nested types
 

@@ -26,6 +26,8 @@ public final class UIKitScene: HostedScene {
 
     private struct WeakTree { weak var tree: UIKitHostedTree? }
     private var hostedTrees: [WeakTree] = []
+    /// Views hosting another framework's scene (App/HostingViewSPI.swift).
+    var hostingViews: [WeakView] = []
 
     func register(_ tree: UIKitHostedTree) {
         hostedTrees.removeAll { $0.tree == nil }
@@ -133,7 +135,8 @@ public final class UIKitScene: HostedScene {
 
     public func advanceFrame(elapsed: Double) -> Bool {
         runTimers(elapsed: elapsed)
-        return advanceAnimations(elapsed: elapsed)
+        let animating = advanceAnimations(elapsed: elapsed)
+        return advanceHostingViews(elapsed: elapsed) || animating
     }
 
     /// Advances the timers and animations for a host whose frame loop drives a hosted tree (the
@@ -141,7 +144,8 @@ public final class UIKitScene: HostedScene {
     func advanceTimers(elapsed: Double) -> Bool {
         runTimers(elapsed: elapsed)
         let animating = advanceAnimations(elapsed: elapsed)
-        return animating || !timers.isEmpty
+        let hosting = advanceHostingViews(elapsed: elapsed)
+        return animating || hosting || !timers.isEmpty
     }
 
     public func layout(in size: CGSize) {
@@ -233,6 +237,7 @@ public final class UIKitScene: HostedScene {
         guard let window = windows.last(where: { !$0.isHidden }) else { return }
         var view = window.hitTest(point, with: nil)
         while let v = view {
+            if v._hostedScrollWheel(by: delta, at: v.convert(point, from: nil)) { setNeedsFrame(); return }
             if let scroll = v as? UIScrollView, scroll.isScrollEnabled {
                 if scroll.scroll(by: delta) { setNeedsFrame(); return }
             }
@@ -270,47 +275,62 @@ public final class UIKitScene: HostedScene {
     }
 
     public func activate(semanticsIdentifier: Int) {
+        if let host = hostingView(handling: semanticsIdentifier) { host._hostedActivate(semanticsIdentifier: semanticsIdentifier); setNeedsFrame(); return }
         guard let view = view(withSemanticsIdentifier: semanticsIdentifier) else { return }
         view.accessibilityActivate()
         setNeedsFrame()
     }
 
     public func adjust(semanticsIdentifier: Int, increment: Bool) {
+        if let host = hostingView(handling: semanticsIdentifier) { host._hostedAdjust(semanticsIdentifier: semanticsIdentifier, increment: increment); setNeedsFrame(); return }
         guard let view = view(withSemanticsIdentifier: semanticsIdentifier) else { return }
         if increment { view.accessibilityIncrement() } else { view.accessibilityDecrement() }
         setNeedsFrame()
     }
 
     public func setValue(semanticsIdentifier: Int, value: Double) {
+        if let host = hostingView(handling: semanticsIdentifier) { host._hostedSetValue(semanticsIdentifier: semanticsIdentifier, value: value); setNeedsFrame(); return }
         guard let view = view(withSemanticsIdentifier: semanticsIdentifier) else { return }
         view.accessibilitySetValue(value)
         setNeedsFrame()
     }
 
     public func focus(semanticsIdentifier: Int?, keyboard: Bool) {
-        guard let semanticsIdentifier, let view = view(withSemanticsIdentifier: semanticsIdentifier) else { return }
+        if let semanticsIdentifier, let host = hostingView(handling: semanticsIdentifier) {
+            host._hostedFocus(semanticsIdentifier: semanticsIdentifier, keyboard: keyboard)
+            return
+        }
+        guard let semanticsIdentifier, let view = view(withSemanticsIdentifier: semanticsIdentifier) else {
+            // Focus left every element: the hosting views hear about it.
+            for entry in hostingViews { entry.view?._hostedFocus(semanticsIdentifier: nil, keyboard: keyboard) }
+            return
+        }
         if view.canBecomeFirstResponder { _ = view.becomeFirstResponder() }
     }
 
     public func blur(semanticsIdentifier: Int) {
+        if let host = hostingView(handling: semanticsIdentifier) { host._hostedBlur(semanticsIdentifier: semanticsIdentifier); return }
         guard let view = view(withSemanticsIdentifier: semanticsIdentifier), view.isFirstResponder else { return }
         _ = view.resignFirstResponder()
     }
 
-    public var focusedIdentifier: Int? { (firstResponder as? UIView)?.semanticsIdentifier }
-    public var focusedTextFieldIdentifier: Int? { (firstResponder as? UITextField)?.semanticsIdentifier }
+    public var focusedIdentifier: Int? { (firstResponder as? UIView)?.semanticsIdentifier ?? hostedFocusedTextFieldIdentifier }
+    public var focusedTextFieldIdentifier: Int? { (firstResponder as? UITextField)?.semanticsIdentifier ?? hostedFocusedTextFieldIdentifier }
 
     public func textField(_ semanticsIdentifier: Int, didChange text: String) {
+        if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextField(semanticsIdentifier, didChange: text); setNeedsFrame(); return }
         (view(withSemanticsIdentifier: semanticsIdentifier) as? UITextField)?.hostDidChange(text)
         setNeedsFrame()
     }
 
     public func textFieldDidSubmit(_ semanticsIdentifier: Int) {
+        if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextFieldDidSubmit(semanticsIdentifier); setNeedsFrame(); return }
         (view(withSemanticsIdentifier: semanticsIdentifier) as? UITextField)?.hostDidSubmit()
         setNeedsFrame()
     }
 
     public func textField(_ semanticsIdentifier: Int, focused: Bool) {
+        if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextField(semanticsIdentifier, focused: focused); setNeedsFrame(); return }
         guard let field = view(withSemanticsIdentifier: semanticsIdentifier) as? UITextField else { return }
         if focused { _ = field.becomeFirstResponder() } else if field.isFirstResponder { _ = field.resignFirstResponder() }
         setNeedsFrame()

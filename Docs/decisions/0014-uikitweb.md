@@ -1,6 +1,6 @@
 # 0014 — UIKitWeb: a shared graphics substrate, a UIKit reimplementation, and the representables
 
-Status: accepted (2026-09-06); Phases 0, 1 and 2 done; Phase 3 in progress
+Status: accepted (2026-09-06); Phases 0 to 3 done
 
 ## Context
 
@@ -192,3 +192,10 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   placed on the layer setters, which are the funnel for every animatable view property. No
   goldens: the harness cannot capture animations in flight, so the curves are UIKit's documented
   cubic beziers and a damped spring, held by unit tests.
+- Step 4 (2026-09-11): `UIHostingController` (`Docs/ROADMAP.md`, Phase 7 status 3.4). The
+  reverse embedding: a `Runtime` inside a UIView. It has to live in the root package (UIKitWeb
+  cannot depend on SwiftUIWeb), so UIKitWebCore grew a small hosting SPI on `UIView`
+  (`_hostedPaint`, `_hostedSemantics`, `_hostedHandles` and the routing calls, the frame clock,
+  wheel) and a registry on the scene; the SwiftUI side overrides them in `_UIHostingView`. With
+  this the plan's four Phase 3 items are in: Auto Layout, `draw(_:)`, `UIView.animate`,
+  `UIHostingController`.

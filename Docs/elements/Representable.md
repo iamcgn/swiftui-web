@@ -1,4 +1,4 @@
-# UIViewRepresentable and UIViewControllerRepresentable
+# UIViewRepresentable, UIViewControllerRepresentable and UIHostingController
 
 `Sources/SwiftUIWebUIKit` (decision 0014, Phase 2), over `Packages/UIKitWeb`. Fixtures
 `ios/representable/*` (`Fixtures/Sources/Representable`), rendered by Apple's SwiftUI hosting
@@ -17,6 +17,20 @@ the UIKit labels' strings are measured by a real `UILabel` into `uikit/text-metr
 - `import SwiftUI` re-exports `UIKit` (UIKitWeb's) on every platform, as Apple's does on iOS, so
   a file that names `UIColor` or declares a representable compiles unchanged. The `SwiftUI`
   module depends on `SwiftUIWebUIKit`, which depends on `SwiftUIWebCore` and `UIKitWebCore`.
+
+## UIHostingController
+
+`Sources/SwiftUIWebUIKit/UIHostingController.swift`: `init(rootView:)`, `rootView` (setting it
+re-mounts), `sizeThatFits(in:)`, `sizingOptions` (`preferredContentSize` sets the controller's
+preferred size from the ideal size), `safeAreaRegions` (accepted). The controller's view is a
+`_UIHostingView` running its own `Runtime` in the iOS profile on a `systemBackground` ground:
+`layoutSubviews` lays the runtime out in the bounds, `sizeThatFits` proposes the size (a fitting
+size or nothing counts as unspecified, so the intrinsic size is the content's ideal size),
+painting appends the runtime's display list at the view's origin, UIKit touches become the
+runtime's pointer, and the runtime's semantics tree joins the scene's through UIKitWeb's
+hosting SPI (`UIView._hosted*`: paint, semantics, routing by identifier, focus, text input,
+the frame clock, wheel scrolling). The scene registers hosting views so it can advance their
+clocks and route the identifiers they own. Tests: `UIHostingControllerTests`.
 
 ## How it works
 

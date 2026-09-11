@@ -1167,9 +1167,9 @@
           "notes": "A UIColor resolves per appearance; a UIImage names its catalog image or symbol (template rendering kept); a UIFont maps to the text style or size and weight"
         },
         {
-          "api": "UIHostingController / UIHostingConfiguration",
-          "status": "missing",
-          "notes": "Phase 3 of decision 0014"
+          "api": "UIHostingController",
+          "status": "partial",
+          "notes": "init(rootView:), rootView, sizeThatFits(in:), sizingOptions.preferredContentSize; the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI; no UIHostingConfiguration, no safe-area bars"
         }
       ]
     }

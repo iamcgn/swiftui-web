@@ -97,6 +97,19 @@ extension UIView {
     /// element contributes itself and (unless it is a control) its descendants' elements.
     func collectSemantics(into nodes: inout [SemanticsNode]) {
         guard !isHidden, alpha > 0.01, !accessibilityElementsHidden else { return }
+        if let hosted = _hostedSemantics() {
+            // A hosting view's elements come in its coordinates: move them to the window's.
+            let origin = convert(CGPoint.zero, to: nil)
+            for var element in hosted {
+                element.frame = element.frame.offsetBy(dx: origin.x, dy: origin.y)
+                if var input = element.textInput {
+                    input.textRect = input.textRect.offsetBy(dx: origin.x, dy: origin.y)
+                    element.textInput = input
+                }
+                nodes.append(element)
+            }
+            return
+        }
         if let node = semanticsNode() {
             nodes.append(node)
             if !(self is UIControl) { for subview in subviews { subview.collectSemantics(into: &nodes) } }
