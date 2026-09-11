@@ -1,10 +1,11 @@
-// GoldenGenCatalyst: renders the iOS fixtures (`ios/…`) with Apple's SwiftUI in a UIKit window
-// on Mac Catalyst and writes their goldens under Fixtures/Goldens/ios. The Command Line Tools'
-// SDK carries the Catalyst UIKit and SwiftUI (System/iOSSupport), so no Xcode or simulator is
-// needed; the idiom is iPad (regular size class), which shares its controls and text styles with
-// iPhone. UIKit only runs inside an app bundle with a bundle identifier, through
-// UIApplicationMain: scripts/gen-goldens-ios.sh builds the bundle and runs it.
-#if targetEnvironment(macCatalyst)
+// GoldenGenIOS: renders the iOS fixtures (`ios/…`) with Apple's SwiftUI in a UIKit window and
+// writes their goldens under Fixtures/Goldens/ios. Two hosts run it: an iPhone simulator
+// (scripts/gen-goldens-sim.sh ios, decision 0015: the real iPhone idiom and looks) and Mac
+// Catalyst (scripts/gen-goldens-ios.sh, decision 0013: the Command Line Tools' SDK carries the
+// Catalyst UIKit and SwiftUI under System/iOSSupport; the idiom is iPad). UIKit only runs inside
+// an app bundle with a bundle identifier, through UIApplicationMain: the scripts build the bundle
+// and run it; meta.json's `host` says which produced a golden.
+#if os(iOS)
 import UIKit
 import SwiftUI
 import FixtureKit
@@ -53,7 +54,7 @@ final class UIKitHost: GoldenHost {
     func png(scale: Int) throws -> (data: Data, width: Int, height: Int) {
         let bounds = controller.view.bounds
         guard bounds.size == size else {
-            throw NSError(domain: "GoldenGenCatalyst", code: 1, userInfo: [NSLocalizedDescriptionKey: "hosting view is \(bounds.size), fixture is \(size)"])
+            throw NSError(domain: "GoldenGenIOS", code: 1, userInfo: [NSLocalizedDescriptionKey: "hosting view is \(bounds.size), fixture is \(size)"])
         }
         let format = UIGraphicsImageRendererFormat()
         format.scale = CGFloat(scale)
@@ -61,7 +62,7 @@ final class UIKitHost: GoldenHost {
         let renderer = UIGraphicsImageRenderer(size: bounds.size, format: format)
         var drawn = false
         let image = renderer.image { _ in drawn = controller.view.drawHierarchy(in: bounds, afterScreenUpdates: true) }
-        guard drawn, let png = image.pngData() else { throw NSError(domain: "GoldenGenCatalyst", code: 2, userInfo: [NSLocalizedDescriptionKey: "drawHierarchy failed"]) }
+        guard drawn, let png = image.pngData() else { throw NSError(domain: "GoldenGenIOS", code: 2, userInfo: [NSLocalizedDescriptionKey: "drawHierarchy failed"]) }
         return (png, Int(bounds.width) * scale, Int(bounds.height) * scale)
     }
 }
@@ -93,7 +94,12 @@ func uiFont(_ font: FixtureFont) -> UIFont {
 
 final class Delegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        let platform = GoldenPlatform(profile: "iOS", host: "macCatalyst", subdirectory: "ios", fixturePlatform: .iOS,
+        #if targetEnvironment(macCatalyst)
+        let host = "macCatalyst"
+        #else
+        let host = "iPhoneSimulator \(UIDevice.current.systemVersion) \(UIDevice.current.name)"
+        #endif
+        let platform = GoldenPlatform(profile: "iOS", host: host, subdirectory: "ios", fixturePlatform: .iOS,
                                       makeHost: { UIKitHost($0, size: $1, colorScheme: $2) },
                                       fontMetrics: { fixtureFont in
                                           let font = uiFont(fixtureFont)
@@ -111,5 +117,5 @@ final class Delegate: NSObject, UIApplicationDelegate {
 
 _ = UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, nil, NSStringFromClass(Delegate.self))
 #else
-print("GoldenGenCatalyst renders the iOS goldens on Mac Catalyst: run scripts/gen-goldens-ios.sh")
+print("GoldenGenIOS renders the iOS goldens on Mac Catalyst: run scripts/gen-goldens-ios.sh")
 #endif

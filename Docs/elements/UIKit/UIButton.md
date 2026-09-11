@@ -18,13 +18,12 @@ apps use `UIAction`.
 
 | Button | Size | Inside |
 |---|---|---|
-| `UIButton(type: .system)`, "Tap" | 30 × 31 | a 15 pt title label (26 × 19) centred; 6 above and below the label; 30 is the minimum width ("Disabled" is 62 × 31, its label's width) |
-| plain / gray / tinted / filled configuration, "Plain" | 62 × 40.5 | content insets 7 top and bottom, 12 leading and trailing; the title in the body style in a label without a line limit, 26.5 tall (the 24.5 body line plus its 2 pt leading); background corner radius 17 (`cornerStyle` dynamic) |
-| in a 34 pt row | — | the label centred (7.5 down) |
+| `UIButton(type: .system)`, "Tap" | 30 × 30 | a 15 pt title label (25 × 18) centred; 6 above and below the label; 30 is the minimum width ("Disabled" is 60 × 30, its label's width) |
+| plain / gray / tinted / filled configuration, "Plain" | 60.5 × 40.5 | content insets 7 top and bottom, 12 leading and trailing; the title in the body style in a label without a line limit, 26.5 tall (the 24.5 body label plus its 1.7 pt leading, rounded up); the background's corner radius is drawn by `_UISystemBackgroundView`, not set on the layer, so it waits for the pixel pass (Catalyst put 17 on the layer) |
+| in a 34 pt row | — | the label centred (8 down) |
 
-The gray fill is `secondarySystemFill` (120, 120, 128 at 16 %). Catalyst tints the filled button
-and the system title with its grey accent, so the goldens' colours are not the iPhone's; only the
-frames are compared.
+The gray fill is `secondarySystemFill` (120, 120, 128 at 16 %). The same geometry held on Mac
+Catalyst with its own text widths and a 31 pt system button (its 15 pt label is 19 tall there).
 
 Open: custom-type buttons (their title font is unmeasured; 17 pt is assumed), images and
 `imagePlacement`, subtitles, `buttonSize`, the pressed look, pointer interactions, menus.

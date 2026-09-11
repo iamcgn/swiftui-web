@@ -3,13 +3,13 @@
   "frames" : {
     "body" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39.5,
       "x" : 16,
       "y" : 124
     },
     "bold13" : {
       "height" : 16,
-      "width" : 49.5,
+      "width" : 47,
       "x" : 16,
       "y" : 176
     },
@@ -20,14 +20,14 @@
       "y" : 240
     },
     "footnote" : {
-      "height" : 18.5,
-      "width" : 56.5,
+      "height" : 19,
+      "width" : 54.5,
       "x" : 16,
       "y" : 152
     },
     "headline" : {
       "height" : 24.5,
-      "width" : 73,
+      "width" : 70.5,
       "x" : 16,
       "y" : 96
     },
@@ -38,13 +38,13 @@
       "y" : 200
     },
     "system17" : {
-      "height" : 20,
-      "width" : 88,
+      "height" : 20.5,
+      "width" : 84.5,
       "x" : 16,
       "y" : 16
     },
     "title1" : {
-      "height" : 41,
+      "height" : 41.5,
       "width" : 52,
       "x" : 16,
       "y" : 48

@@ -14,7 +14,7 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Headline", .style("headline")),
         UIKitTextRequest("Body", .style("body")),
         UIKitTextRequest("Footnote", .style("footnote")),
-        UIKitTextRequest("Bold 13", .system(size: 13, weight: "bold")),
+        UIKitTextRequest("Bold 13", .system(size: 13, weight: "semibold")),   // boldSystemFont is SF Semibold on iOS
         UIKitTextRequest("Semibold 20", .system(size: 20, weight: "semibold")),
         UIKitTextRequest("Centred", .system(size: 17)),
         // uikit/label/wrapping

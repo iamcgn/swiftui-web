@@ -5,7 +5,7 @@
 // string measured by a real UILabel plus each font's UIKit metrics, which UIKitWeb's headless
 // text engine replays (decision 0014). Like GoldenGenCatalyst it runs inside an app bundle
 // through UIApplicationMain: scripts/gen-goldens-uikit.sh builds the bundle and runs it.
-#if targetEnvironment(macCatalyst)
+#if os(iOS)
 import UIKit
 import UIKitFixtureKit
 import UIKitFixtures
@@ -116,6 +116,14 @@ enum Generator {
                 "spacingBelow": 0, "spacingAbove": 0, "textToText": 0]
     }
 
+    static var hostName: String {
+        #if targetEnvironment(macCatalyst)
+        return "macCatalyst-UIKit"
+        #else
+        return "iPhoneSimulator \(UIDevice.current.systemVersion) \(UIDevice.current.name)"
+        #endif
+    }
+
     static func generateTextMetrics(into root: URL) throws {
         var entries: [String: [String: Double]] = [:]
         var fonts: [String: [String: Double]] = [:]
@@ -123,7 +131,7 @@ enum Generator {
         for font in UIKitTextMetricsRequests.fonts { fonts[font.key] = fontMetrics(font) }
         let doc: [String: Any] = [
             "platformProfile": "iOS",
-            "host": "macCatalyst-UIKit",
+            "host": hostName,
             "macOS": osVersion,
             "scale": Double(UIScreen.main.scale),
             "entries": entries,
@@ -166,6 +174,24 @@ enum Generator {
         describe(host.root)
     }
 
+    /// The faces the recorder's fonts and the convenience constructors resolve to.
+    static func dumpFonts() {
+        print("== fonts")
+        for font in UIKitTextMetricsRequests.fonts {
+            let f = font.uiFont
+            print("  \(font.key): \(f.fontName) \(f.pointSize) traits=\(f.fontDescriptor.symbolicTraits.rawValue) \(f.fontDescriptor.fontAttributes[.face] ?? "")")
+        }
+        for (name, f) in [("boldSystemFont(13)", UIFont.boldSystemFont(ofSize: 13)), ("systemFont(13, .bold)", UIFont.systemFont(ofSize: 13, weight: .bold)),
+                          ("boldSystemFont(17)", UIFont.boldSystemFont(ofSize: 17)), ("systemFont(17, .bold)", UIFont.systemFont(ofSize: 17, weight: .bold)),
+                          ("systemFont(13, .semibold)", UIFont.systemFont(ofSize: 13, weight: .semibold))] {
+            let label = UILabel()
+            label.font = f
+            label.text = "Bold 13"
+            let width = label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)).width
+            print("  \(name): \(f.fontName) traits=\(f.fontDescriptor.symbolicTraits.rawValue) \(f.fontDescriptor.fontAttributes[.face] ?? "") width(Bold 13)=\(width)")
+        }
+    }
+
     /// UIKit's metrics for the system font at every weight and size, and for every text style,
     /// with the height a one-line and a two-line UILabel takes in each (uikit/font-metrics.json;
     /// scripts/uikit-font-metrics-table.py turns it into UIFontMetricsTable.swift).
@@ -192,7 +218,7 @@ enum Generator {
         var textStyles: [String: [String: Double]] = [:]
         for (name, style) in UIKitFixtureFont.styles { textStyles[name] = entry(UIFont.preferredFont(forTextStyle: style)) }
         let doc: [String: Any] = [
-            "host": "macCatalyst-UIKit",
+            "host": hostName,
             "macOS": osVersion,
             "scale": Double(UIScreen.main.scale),
             "systemFonts": systemFonts,
@@ -237,7 +263,7 @@ enum Generator {
             "scale": 2,
             "generated": ISO8601DateFormatter().string(from: Date()),
             "platformProfile": "iOS",
-            "host": "macCatalyst-UIKit",
+            "host": hostName,
         ]
         try JSONSerialization.data(withJSONObject: meta, options: [.prettyPrinted, .sortedKeys])
             .write(to: dir.appendingPathComponent("meta.json"))
@@ -249,6 +275,7 @@ enum Generator {
     static func run(_ options: Options) -> Int {
         var failures = 0
         if options.dump {
+            dumpFonts()
             for fixture in AllUIKitFixtures.all where options.filter.map({ fixture.name.hasPrefix($0) }) ?? true { dump(fixture) }
             return 0
         }

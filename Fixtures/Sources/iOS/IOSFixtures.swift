@@ -226,7 +226,7 @@ public enum IOSFixtures {
         NavigationStack {
             List { Text("Row").probe("row") }
                 .navigationTitle("Settings")
-                #if canImport(SwiftUIWebCore) || targetEnvironment(macCatalyst)   // iOS-only API: Apple's macOS SwiftUI lacks it
+                #if canImport(SwiftUIWebCore) || os(iOS)   // iOS-only API: Apple's macOS SwiftUI lacks it
                 .navigationBarTitleDisplayMode(.inline)
                 #endif
                 .probe("list")
@@ -272,7 +272,7 @@ public enum IOSFixtures {
                 VStack { Text("Pushed").probe("pushed") }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .navigationTitle("Detail")
-                    #if canImport(SwiftUIWebCore) || targetEnvironment(macCatalyst)
+                    #if canImport(SwiftUIWebCore) || os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
                     .probe("detail")

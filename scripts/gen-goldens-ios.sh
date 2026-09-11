@@ -12,22 +12,22 @@ IOS="$SDK/System/iOSSupport"
 [[ -d "$IOS/System/Library/Frameworks/UIKit.framework" ]] || { echo "no Catalyst UIKit under $IOS"; exit 1; }
 TRIPLE="$(uname -m)-apple-ios18.0-macabi"
 cd "$ROOT/Harness"
-/usr/bin/swift build -c release --product GoldenGenCatalyst --triple "$TRIPLE" --scratch-path .build/catalyst \
+/usr/bin/swift build -c release --product GoldenGenIOS --triple "$TRIPLE" --scratch-path .build/catalyst \
   -Xswiftc -Fsystem -Xswiftc "$IOS/System/Library/Frameworks" -Xswiftc -I -Xswiftc "$IOS/usr/lib/swift" \
   -Xcc -F"$IOS/System/Library/Frameworks" -Xcc -I"$IOS/usr/include" \
   -Xlinker -L -Xlinker "$IOS/usr/lib" -Xlinker -L -Xlinker "$IOS/usr/lib/swift" -Xlinker -F -Xlinker "$IOS/System/Library/Frameworks"
-BIN="$(find .build/catalyst -type f -perm +111 -name GoldenGenCatalyst | head -1)"
-[[ -n "$BIN" ]] || { echo "GoldenGenCatalyst not built"; exit 1; }
-APP=".build/catalyst/GoldenGenCatalyst.app"
+BIN="$(find .build/catalyst -type f -perm +111 -name GoldenGenIOS | head -1)"
+[[ -n "$BIN" ]] || { echo "GoldenGenIOS not built"; exit 1; }
+APP=".build/catalyst/GoldenGenIOS.app"
 mkdir -p "$APP/Contents/MacOS"
-cp "$BIN" "$APP/Contents/MacOS/GoldenGenCatalyst"
+cp "$BIN" "$APP/Contents/MacOS/GoldenGenIOS"
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>CFBundleIdentifier</key><string>dev.swiftuiweb.GoldenGenCatalyst</string>
-<key>CFBundleExecutable</key><string>GoldenGenCatalyst</string>
-<key>CFBundleName</key><string>GoldenGenCatalyst</string>
+<key>CFBundleIdentifier</key><string>dev.swiftuiweb.GoldenGenIOS</string>
+<key>CFBundleExecutable</key><string>GoldenGenIOS</string>
+<key>CFBundleName</key><string>GoldenGenIOS</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleVersion</key><string>1</string>
 <key>CFBundleShortVersionString</key><string>1.0</string>
@@ -37,4 +37,4 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict></plist>
 PLIST
 codesign -s - --force "$APP" >/dev/null 2>&1
-"$APP/Contents/MacOS/GoldenGenCatalyst" --output "$ROOT/Fixtures/Goldens" ${1:+--filter "$1"}
+"$APP/Contents/MacOS/GoldenGenIOS" --output "$ROOT/Fixtures/Goldens" ${1:+--filter "$1"}

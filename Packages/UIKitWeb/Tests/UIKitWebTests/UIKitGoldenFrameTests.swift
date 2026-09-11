@@ -1,6 +1,6 @@
 // Tier A for UIKitWeb: our layout must reproduce the probe frames Apple's UIKit produced for
 // every UIKit fixture (Fixtures/Goldens/uikit/<name>/frames.json, from
-// scripts/gen-goldens-uikit.sh on Mac Catalyst). Exact comparison, no tolerance; the text engine
+// scripts/gen-goldens-sim.sh uikit on an iPhone simulator). Exact comparison, no tolerance; the text engine
 // replays the UILabel measurements recorded next to the goldens (uikit/text-metrics.json).
 #if !os(WASI)   // reads golden files from disk; the wasm test runner has no package directory
 import Testing
@@ -47,7 +47,7 @@ enum Goldens {
     @Test(arguments: fixtureNames)
     func framesMatchGolden(name: String) throws {
         let fixture = try #require(AllUIKitFixtures.all.first { $0.name == name })
-        let golden = try #require(try Goldens.frames(for: fixture), "missing golden for \(name); run scripts/gen-goldens-uikit.sh")
+        let golden = try #require(try Goldens.frames(for: fixture), "missing golden for \(name); run scripts/gen-goldens-sim.sh uikit")
         let engine = try Goldens.textEngine()
         let runner = UIKitFixtureRunner(fixture, textEngine: engine)
         try compare(runner.layoutFrames(), to: golden.frames, label: name)
@@ -62,22 +62,14 @@ enum Goldens {
         #expect(engine.misses.isEmpty, "\(name): no recorded text metrics for \(engine.misses)")
     }
 
-    /// Probes whose size is a Catalyst artefact and only the origin is compared: Catalyst draws the
-    /// Mac switch (63 × 28), UIKitWeb the iPhone's 51 × 31 (Docs/elements/UIKit/UISwitch.md).
-    static let originOnlyProbes: [String: Set<String>] = [
-        "uikit/controls/basic": ["off", "on", "disabledSwitch"],
-    ]
-
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
-        let originOnly = Self.originOnlyProbes[label] ?? []
         for (id, expected) in golden.sorted(by: { $0.key < $1.key }) {
             let actual = try #require(ours[id], "\(label): probe \(id) not recorded")
             let expectedRect = CGRect(x: expected.x, y: expected.y, width: expected.width, height: expected.height)
             // Exact up to floating-point summation order (Apple's frames carry 1-ulp noise).
             let tolerance = 1e-9
-            let sizeClose = originOnly.contains(id)
-                || (abs(actual.width - expectedRect.width) < tolerance && abs(actual.height - expectedRect.height) < tolerance)
-            let close = abs(actual.minX - expectedRect.minX) < tolerance && abs(actual.minY - expectedRect.minY) < tolerance && sizeClose
+            let close = abs(actual.minX - expectedRect.minX) < tolerance && abs(actual.minY - expectedRect.minY) < tolerance
+                && abs(actual.width - expectedRect.width) < tolerance && abs(actual.height - expectedRect.height) < tolerance
             #expect(close, "\(label)/\(id): \(actual) != \(expectedRect)")
         }
         #expect(Set(ours.keys) == Set(golden.keys), "\(label): probe sets differ")

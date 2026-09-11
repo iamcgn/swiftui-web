@@ -108,11 +108,12 @@ open class UITextField: UIControl {
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
         let f = resolvedFont
-        // A plain field is its ascender-plus-descender on the pixel grid, plus one (21.5 at 17 pt; measured once).
-        let height: CGFloat = bordered ? 34 : (f.ascender - f.descender).roundedUp(to: UIScreen.main.scale) + 1
+        // A plain field is its line height plus 1.5 on the pixel grid (22 at 17 pt on an iPhone,
+        // 21.5 on Catalyst); its width is the text's rounded up to the point (74 for 73.5).
+        let height: CGFloat = bordered ? 34 : (f.lineHeight + 1.5).roundedUp(to: UIScreen.main.scale)
         let content = text?.isEmpty == false ? text! : (placeholder ?? "")
         let layout = UIKitScene.shared.textEngine.layout([StyledRun(content, font: f.resolved)], options: .default, width: nil)
-        return CGSize(width: layout.size.width.roundedUp(to: UIScreen.main.scale) + 2 * horizontalInset, height: height)
+        return CGSize(width: layout.size.width.rounded(.up) + 2 * horizontalInset, height: height)
     }
 
     override open var intrinsicContentSize: CGSize {

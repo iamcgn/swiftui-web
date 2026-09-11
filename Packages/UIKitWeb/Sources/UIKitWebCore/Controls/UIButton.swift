@@ -150,12 +150,12 @@ open class UIButton: UIControl {
 
     private var imageTitleSpacing: CGFloat { configuration?.imagePadding ?? 0 }
 
-    /// The title's size: the label's, and for a configured button its line plus the font's
-    /// leading (a body title takes 26.5 in a 40.5 pt button; measured).
+    /// The title's size: the label's, and for a configured button its label height plus the
+    /// font's leading, on the pixel grid (a body title takes 26.5 in a 40.5 pt button; measured).
     private func measuredTitleSize(within width: CGFloat) -> CGSize {
         guard let titleLabel, let text = titleLabel.text, !text.isEmpty else { return .zero }
         var size = titleLabel.sizeThatFits(CGSize(width: width, height: CGFloat.greatestFiniteMagnitude))
-        if configuration != nil { size.height = (titleLabel.font.labelLineHeight + titleLabel.font.leading).roundedUp(to: UIScreen.main.scale) }
+        if configuration != nil { size.height = (size.height + titleLabel.font.leading).roundedUp(to: UIScreen.main.scale) }
         return size
     }
 

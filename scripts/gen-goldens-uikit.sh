@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Regenerates the UIKit goldens (fixtures named uikit/…, Fixtures/Goldens/uikit) with Apple's UIKit
-# in a window on Mac Catalyst (decision 0014). Needs only the Command Line Tools: their SDK carries the
+# The Mac Catalyst fallback for the UIKit goldens (fixtures named uikit/…, Fixtures/Goldens/uikit):
+# the committed goldens come from an iPhone simulator (scripts/gen-goldens-sim.sh uikit, decision
+# 0015); Catalyst's UIKit measures text wider, reports other font metrics and draws the Mac switch,
+# so use this only to compare, never to commit. Needs only the Command Line Tools: their SDK carries the
 # Catalyst UIKit and SwiftUI under System/iOSSupport (decision 0013). UIKit runs only inside an
 # app bundle with a bundle identifier, so the executable is wrapped in one and launched directly.
 # Usage: scripts/gen-goldens-uikit.sh [filter]          (filter: a fixture-name prefix such as uikit/label/, text-metrics or font-metrics)

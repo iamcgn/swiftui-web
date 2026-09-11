@@ -124,7 +124,7 @@ public enum IOSDarkFixtures {
                 VStack { Text("Pushed").probe("pushed") }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .navigationTitle("Detail")
-                    #if canImport(SwiftUIWebCore) || targetEnvironment(macCatalyst)
+                    #if canImport(SwiftUIWebCore) || os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
                     .probe("detail")

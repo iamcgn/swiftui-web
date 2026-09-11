@@ -75,7 +75,7 @@ swift test                      # native runtime + layout tests (fast)
 |---|---|
 | `Sources/SwiftUI` | Thin `import SwiftUI` module re-exporting the implementation |
 | `Packages/WebGraphics` | the graphics substrate shared with UIKitWeb: geometry, paths, display list, text measuring, the hosts (decision 0014) |
-| `Packages/UIKitWeb` | `import UIKit` on the same substrate: views, layers, controls, view controllers; `Examples/UIKitCounter`; goldens from real UIKit on Mac Catalyst (`scripts/gen-goldens-uikit.sh`, `Fixtures/UIKit`) |
+| `Packages/UIKitWeb` | `import UIKit` on the same substrate: views, layers, controls, view controllers; `Examples/UIKitCounter`; goldens from real UIKit on an iPhone simulator (`scripts/gen-goldens-sim.sh uikit`, `Fixtures/UIKit`) |
 | `Sources/SwiftUIWebCore` | API, runtime, layout engine, font resolution |
 | `Sources/SwiftUIWebCanvas` | wasm Canvas2D painter, semantics overlay, text input host |
 | `Sources/SwiftUIWebHeadless` | Display-list recorder for native tests |

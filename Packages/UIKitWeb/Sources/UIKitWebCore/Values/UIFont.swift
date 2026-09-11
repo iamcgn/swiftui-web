@@ -1,6 +1,6 @@
 // UIFont (Docs/elements/UIKit/UIFont.md): the system font by size and weight, the text styles
 // at the default content size, and the vertical metrics UILabel lays out with, as UIKit reports
-// them on Mac Catalyst (UIFontMetricsTable, generated from Fixtures/Goldens/uikit/font-metrics.json).
+// them on an iPhone (UIFontMetricsTable, generated from Fixtures/Goldens/uikit/font-metrics.json).
 
 /// A font as UIKit describes it: a resolved font for the text engine plus UIKit's metrics.
 public final class UIFont: Hashable, @unchecked Sendable {
@@ -107,7 +107,8 @@ public final class UIFont: Hashable, @unchecked Sendable {
         UIFont(resolved: ResolvedFont(family: "system", size: size, weight: FontWeight(weight.css), italic: false, textStyle: nil, profile: "iOS"), weight: weight)
     }
 
-    public static func boldSystemFont(ofSize size: CGFloat) -> UIFont { systemFont(ofSize: size, weight: .bold) }
+    /// SF Semibold, as iOS resolves the bold system font (`systemFont(ofSize:weight: .bold)` is Bold).
+    public static func boldSystemFont(ofSize size: CGFloat) -> UIFont { systemFont(ofSize: size, weight: .semibold) }
 
     public static func italicSystemFont(ofSize size: CGFloat) -> UIFont {
         UIFont(resolved: ResolvedFont(family: "system", size: size, weight: .regular, italic: true, textStyle: nil, profile: "iOS"), weight: .regular)
@@ -151,7 +152,7 @@ public final class UIFont: Hashable, @unchecked Sendable {
         textStyle.flatMap { UIFontMetricsTable.textStyles[$0.tableName] }
     }
 
-    /// Fixed ratios of the point size for a sized font; a text style's own values.
+    /// SF's hhea ratios of the point size for a sized font; a text style's own values.
     public var ascender: CGFloat { styleMetrics?.ascender ?? pointSize * UIFontMetricsTable.ascender }
     /// Negative, as UIKit reports it.
     public var descender: CGFloat { styleMetrics?.descender ?? -pointSize * UIFontMetricsTable.descender }
@@ -163,27 +164,14 @@ public final class UIFont: Hashable, @unchecked Sendable {
         let index = min(max(Int(pointSize.rounded()) - 6, 0), table.count - 1)
         return pointSize * CGFloat(table[index]) / 2048
     }
-    /// Zero for a sized font; a text style's leading spaces its lines.
+    /// Zero for a sized font; a text style's leading spaces its lines (caption2's is negative).
     public var leading: CGFloat { styleMetrics?.leading ?? 0 }
-    /// A sized font's line height is its rounded ascender plus its rounded descender; a text
-    /// style's is the unrounded sum.
-    public var lineHeight: CGFloat {
-        if let styleMetrics { return styleMetrics.ascender - styleMetrics.descender }
-        return ascender.rounded() - descender.rounded()
-    }
+    /// Ascender minus descender, unrounded, for every font.
+    public var lineHeight: CGFloat { ascender - descender }
 
-    /// The height of a one-line UILabel: the line height, one point more at a few sizes
-    /// (measured; `UIFontMetricsTable.tallerLabelSizes`), a text style's measured value.
-    var labelLineHeight: CGFloat {
-        if let styleMetrics { return styleMetrics.labelHeight }
-        let integral = pointSize == pointSize.rounded()
-        return lineHeight + (integral && UIFontMetricsTable.tallerLabelSizes.contains(Int(pointSize)) ? 1 : 0)
-    }
-
-    /// The distance between the lines of a multi-line label: the label line height, plus the
-    /// leading for a text style.
-    var linePitch: CGFloat {
-        if let styleMetrics { return (lineHeight + styleMetrics.leading).rounded() }
-        return labelLineHeight
+    /// The height a UILabel takes for `lines` lines: the line heights plus the leadings between
+    /// them, rounded up to the pixel (20.5 for one 17 pt line, 41 for two; body 24.5 and 50.5).
+    func labelHeight(lines: Int, scale: CGFloat) -> CGFloat {
+        (lineHeight * CGFloat(lines) + leading * CGFloat(lines - 1)).roundedUp(to: scale)
     }
 }

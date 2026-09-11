@@ -24,7 +24,7 @@ appearance overrides, hit testing, gesture recognizers, accessibility properties
   borders and shadows do not change the frame.
 - A rotated view's `frame` (and any rect converted through a rotation) is the bounding box of
   the transformed bounds: 80 × 60 turned by π/8 about its centre reports 96.87 × 86.05 at
-  (103.56, 78.98).
+  (103.56, 78.98). The layer fixtures are identical on the iPhone and on Catalyst.
 - A clipped subview keeps its own frame (the pink overflow view at (40, 30) inside the teal one).
 - Autoresizing against a container that grows from 200 × 100 to 288 × 160: flexible width keeps
   the 10 pt margins (268 wide); flexible left and top margins pin a view to the bottom right
