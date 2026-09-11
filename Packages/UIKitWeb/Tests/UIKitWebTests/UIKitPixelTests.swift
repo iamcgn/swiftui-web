@@ -19,7 +19,8 @@ import WebGraphicsNative
     /// 4.6 % with identical text and breaks).
     static let approximate: Set<String> = ["uikit/label/wrapping"]
     /// Fixtures compared by frames only (their look is not painted yet).
-    static let framesOnly: Set<String> = []
+    /// The wheels date picker: a drum drawn approximately (Docs/elements/UIKit/DatePicker.md).
+    static let framesOnly: Set<String> = ["uikit/datepicker/wheels"]
 
     nonisolated static var fixtureNames: [String] {
         let filter = ProcessInfo.processInfo.environment["TIER_C_FILTER"] ?? ""

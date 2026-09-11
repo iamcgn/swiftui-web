@@ -234,6 +234,18 @@
       "lastBaseline" : 15.234375,
       "width" : 69.5
     },
+    "system:17:400:default|;l1|0:00 PM" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 62.5
+    },
+    "system:17:400:default|;l1|2:30 PM" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 62
+    },
     "system:17:400:default|;l1|26.0" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -413,6 +425,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 90.5
+    },
+    "system:17:400:default|;l1|Sep 11, 2026" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 98
     },
     "system:17:400:default|;l1|Short" : {
       "firstBaseline" : 16.1865234375,

@@ -266,15 +266,26 @@ final class Gallery {
     /// next frames rather than published by a preference.
     private var hostedFixtureName: String?
 
+    /// How many frames the host has painted (what `__swiftuiwebDebug.frameCount()` reports;
+    /// read natively: calling that JS closure from Swift re-enters wasm and traps).
+    private func frameCount() -> Int { host?.host.frameCount ?? 0 }
+
     /// Publishes the UIKit probe frames of the hosted fixture once UIKit has laid it out, and
     /// again after a step ran.
     func publishUIKitProbes() {
         guard let name = hostedFixtureName else { return }
         var attempts = 0
+        // The probes are read only after a frame painted since the mount: the representable
+        // lays the UIKit tree out during that frame (before it, every probe is at zero).
+        let mountedAt = frameCount()
         var closure: JSClosure!
         closure = JSClosure { [weak self] _ in
             attempts += 1
             guard let self, self.hostedFixtureName == name else { return .undefined }
+            if frameCount() <= mountedAt, attempts <= 200 {
+                _ = JSObject.global.setTimeout!(closure, 50)
+                return .undefined
+            }
             // The representable makes the fixture's instance on a later frame: until then the
             // instance on show is the previous fixture's, whose probes must not be published.
             let view = currentHostedFixtureName == name ? currentHostedInstance?.controller.view : nil

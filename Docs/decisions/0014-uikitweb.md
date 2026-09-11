@@ -254,3 +254,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   `UISearchBar` left under the navigation bar. Neither `navigation.toolbar` nor the
   `searchTextField` joins UIKit's hierarchy, so those probes came out of the fixtures and the
   pixels pin the geometry.
+- Step 9 (2026-09-11): `UIDatePicker` (`Docs/ROADMAP.md`, Phase 7 status 4.12;
+  `Docs/elements/UIKit/DatePicker.md`). The compact style is two capsules whose geometry the
+  dump gave outright; the strings are formatted in Swift for en_US because wasm has no ICU
+  (FoundationEssentials has `Calendar`, not `DateFormatter`), and UIKit's time uses a narrow
+  no-break space before the period, which the text-metrics request had to carry too. The
+  wheels drum is drawn approximately and its fixture is frames-only in both pixel tiers.

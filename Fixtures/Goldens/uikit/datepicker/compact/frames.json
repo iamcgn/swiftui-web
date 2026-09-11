@@ -1,0 +1,33 @@
+{
+  "fixture" : "uikit\/datepicker\/compact",
+  "frames" : {
+    "date" : {
+      "height" : 38.5,
+      "width" : 212.5,
+      "x" : 16,
+      "y" : 16
+    },
+    "dateAndTime" : {
+      "height" : 40,
+      "width" : 212.5,
+      "x" : 16,
+      "y" : 112
+    },
+    "disabled" : {
+      "height" : 38.5,
+      "width" : 212.5,
+      "x" : 16,
+      "y" : 160
+    },
+    "time" : {
+      "height" : 40,
+      "width" : 212.5,
+      "x" : 16,
+      "y" : 64
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}
