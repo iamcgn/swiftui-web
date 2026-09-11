@@ -2,9 +2,51 @@ import SwiftUI
 import SwiftUIWebCanvas
 import SwiftUIWebFixtures
 import FixtureKit
+import UIKitFixtureKit
+import UIKitFixtures
 #if os(WASI)
 import JavaScriptKit
 import JavaScriptEventLoop
+
+/// The UIKit fixture instance a hosted fixture made, for its steps and probes.
+@MainActor final class UIKitFixtureBox {
+    var instance: UIKitFixtureInstance?
+}
+
+/// The UIKit fixture instance on show (its controller's view is the probes' root).
+var currentHostedInstance: UIKitFixtureInstance?
+
+/// A UIKit fixture's controller as a SwiftUI view (decision 0014: the gallery shows the UIKit
+/// fixtures through a representable, at the fixture's size).
+struct UIKitFixtureHost: UIViewControllerRepresentable {
+    let fixture: UIKitFixture
+    let box: UIKitFixtureBox
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        UIKitProbes.reset()
+        let instance = fixture.instantiate()
+        box.instance = instance
+        currentHostedInstance = instance
+        return instance.controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+/// A UIKit fixture as a gallery fixture: hosted, with its steps as steps.
+@MainActor func hostedFixture(_ uikit: UIKitFixture) -> Fixture {
+    let steps = uikit.stepNames.enumerated().map { index, name in
+        FixtureStep<UIKitFixtureBox>(name) { box in box.instance?.steps[index].run() }
+    }
+    return Fixture(uikit.name, size: uikit.size, model: { UIKitFixtureBox() }, steps: steps) { box in
+        UIKitFixtureHost(fixture: uikit, box: box)
+    }.platform(.iOS).colorScheme(uikit.style == .dark ? .dark : .light)
+}
+
+/// Every fixture the gallery shows: SwiftUI's, then UIKit's hosted.
+let allFixtures: [Fixture] = AllFixtures.all + AllUIKitFixtures.all.map(hostedFixture)
+/// The names of the hosted UIKit fixtures, whose probes come from `UIKitProbes`.
+let uikitFixtureNames = Set(AllUIKitFixtures.all.map(\.name))
 
 /// Minimal percent-decoding (no Foundation on wasm).
 func percentDecoded(_ s: String) -> String {
@@ -114,7 +156,7 @@ final class Gallery {
     private func renderList() {
         var html = ""
         var group = ""
-        for fixture in AllFixtures.all {
+        for fixture in allFixtures {
             let parts = fixture.name.split(separator: "/", maxSplits: 1).map(String.init)
             let prefix = parts.count > 1 ? parts[0] : ""
             if prefix != group || html.isEmpty {
@@ -143,7 +185,7 @@ final class Gallery {
 
     /// Mounts `name` in the right pane, or the placeholder when `nil`/unknown.
     func select(_ name: String?) {
-        let fixture = name.flatMap { n in AllFixtures.all.first { $0.name == n } }
+        let fixture = name.flatMap { n in allFixtures.first { $0.name == n } }
         highlight(fixture?.name)
         guard let fixture else {
             title.textContent = .string(name.map { "No fixture named \($0)" } ?? "Select a fixture")
@@ -205,8 +247,44 @@ final class Gallery {
                     JSObject.global.__galleryFrames = .object(object)
                 }))
         JSObject.global.__galleryStepCount = .number(Double(instance.steps.count))
+        hostedFixtureName = uikitFixtureNames.contains(fixture.name) ? fixture.name : nil
+        publishUIKitProbes()
         _ = JSObject.global.console.object!.log!("[gallery] mounted \(fixture.name)")
     }
+
+    /// The hosted UIKit fixture on show, whose probe frames (`UIKitProbes`) are read after the
+    /// next frames rather than published by a preference.
+    private var hostedFixtureName: String?
+
+    /// Publishes the UIKit probe frames of the hosted fixture once UIKit has laid it out, and
+    /// again after a step ran.
+    func publishUIKitProbes() {
+        guard let name = hostedFixtureName else { return }
+        var attempts = 0
+        var closure: JSClosure!
+        closure = JSClosure { [weak self] _ in
+            attempts += 1
+            guard let self, self.hostedFixtureName == name, let root = currentHostedInstance?.controller.viewIfLoaded else { return .undefined }
+            let frames = UIKitProbes.frames(in: root)
+            if !frames.isEmpty || attempts > 20 {
+                let object = JSObject.global.Object.function!.new()
+                for (id, frame) in frames {
+                    let rect = JSObject.global.Object.function!.new()
+                    rect.x = .number(frame.minX); rect.y = .number(frame.minY)
+                    rect.width = .number(frame.width); rect.height = .number(frame.height)
+                    object[dynamicMember: id] = .object(rect)
+                }
+                JSObject.global.__galleryFrames = .object(object)
+                self.closures.removeAll { $0 === closure }
+            } else {
+                _ = JSObject.global.setTimeout!(closure, 50)
+            }
+            return .undefined
+        }
+        closures.append(closure)
+        _ = JSObject.global.setTimeout!(closure, 50)
+    }
+
 
     /// Fills the code pane: the fixture's declaration, or its whole file with the declaration
     /// marked and scrolled into view. Line numbers are the file's.
@@ -268,6 +346,11 @@ final class Gallery {
     private func runStep(_ index: Int) {
         guard let instance, index >= 0, index < instance.steps.count else { return }
         instance.steps[index].run()
+        // A hosted UIKit fixture's probes are read again once UIKit has laid the step out.
+        if hostedFixtureName != nil {
+            JSObject.global.__galleryFrames = .undefined
+            publishUIKitProbes()
+        }
     }
 
     private func highlight(_ name: String?) {

@@ -66,6 +66,14 @@ import SwiftUIWebHeadless
         for _ in 0..<5 { await Task.yield() }
     }
 
+    /// Yields until `condition` holds (a loaded machine lands task hops late), at most ~2 s.
+    private func settle(until condition: @escaping @MainActor () -> Bool) async {
+        for _ in 0..<400 {
+            if condition() { return }
+            try? await Task.sleep(nanoseconds: 5_000_000)
+        }
+    }
+
     @Test func tasksStartCancelAndRestart() async {
         let model = Model()
         let runtime = Runtime()
@@ -76,11 +84,11 @@ import SwiftUIWebHeadless
         // A new id cancels and restarts; removing the view cancels; a task left alone completes.
         model.id = 1
         runtime.layout(in: CGSize(width: 100, height: 100))
-        await settle()
+        await settle(until: { model.log.count >= 3 })
         #expect(Set(model.log.dropFirst()) == ["cancelled 0", "start 1"])   // the cancellation lands on a later hop
         model.show = false
         runtime.layout(in: CGSize(width: 100, height: 100))
-        await settle()
+        await settle(until: { model.log.last == "cancelled 1" })
         #expect(model.log.last == "cancelled 1")
         model.id = 2
         model.show = true

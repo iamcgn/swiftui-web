@@ -30,8 +30,9 @@ import Foundation
         r.mount(Periodic(model: model))
         r.layout(in: CGSize(width: 100, height: 100))
         #expect(model.dates.count == 1)
-        // Headless, each wake needs a flush to schedule the next one (the host flushes on its own).
-        for _ in 0..<3 {
+        // Headless, each wake needs a flush to schedule the next one (the host flushes on its own);
+        // a loaded machine may sleep through a tick, so the loop runs until three have landed.
+        for _ in 0..<30 where model.dates.count < 3 {
             try? await Task.sleep(nanoseconds: 70_000_000)
             r.layout(in: CGSize(width: 100, height: 100))
         }

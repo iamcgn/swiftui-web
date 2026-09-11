@@ -7,7 +7,9 @@ goldens from `scripts/gen-goldens-sim.sh uikit` on an iPhone simulator (`--dump`
 metrics table from `scripts/uikit-font-metrics-table.py`, Tier A in
 `Packages/UIKitWeb/Tests/UIKitWebTests/UIKitGoldenFrameTests.swift`, the pixel tier in
 `UIKitPixelTests.swift` (the CoreGraphics painter against the simulator's PNGs, 3 %;
-`TIER_C_REPORT=1`, `TIER_C_DUMP=<dir>`), docs in `Docs/elements/UIKit/<Element>.md`.
+`TIER_C_REPORT=1`, `TIER_C_DUMP=<dir>`), Tier B through the gallery (which hosts every UIKit
+fixture in a representable: `scripts/tier-b.sh --filter uikit/`), docs in
+`Docs/elements/UIKit/<Element>.md`.
 
 1. **Document** `Docs/elements/<Element>.md`: API surface from Apple's documentation (signatures,
    overloads, availability), documented behaviours, platform defaults that must be inferred, open

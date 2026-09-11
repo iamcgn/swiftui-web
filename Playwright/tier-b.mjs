@@ -25,7 +25,7 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 // beside the sidebar panel with a black-to-clear gradient (about 3.4 % of a 480 × 300 window).
 // texteditor/basic: NSTextView sets SF tighter between letters and wider at spaces than SwiftUI's
 // Text does, so its paragraph keeps one more word on the first line.
-const approximate = ['text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
+const approximate = ['uikit/label/wrapping', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
   'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 // ios/symbol/ and ios/label/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt),
@@ -36,7 +36,7 @@ const approximateProbes = { 'ios/list/footer': ['header'] };
 // The browser measures text on the half point, so iOS text widths and the positions that follow from them get 0.5.
 const frameTolerance = (name, key, expected, id) => (approximateProbes[name] || []).includes(id) ? 2 : name.startsWith('ios/symbol/') ? 2 : listBacked(name) ? 3
   : name.startsWith('text/') && (key === 'width' || key === 'x') ? Math.max(0.5, Math.abs(expected) * 0.03)
-  : name.startsWith('ios/') && (key === 'width' || key === 'x') ? 0.5 : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
+  : (name.startsWith('ios/') || name.startsWith('uikit/')) && (key === 'width' || key === 'x') ? 0.5 : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
 // fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
 const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset';

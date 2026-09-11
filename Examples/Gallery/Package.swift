@@ -8,6 +8,8 @@ let package = Package(
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "../.."),
+        // The UIKit fixtures, shown through a representable (decision 0014).
+        .package(name: "UIKitWeb", path: "../../Packages/UIKitWeb"),
         // Direct dependency so the PackageToJS command plugin (`swift package js`) is available here.
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),
     ],
@@ -19,6 +21,8 @@ let package = Package(
                 .product(name: "SwiftUIWebCanvas", package: "SwiftUIWeb"),
                 .product(name: "SwiftUIWebFixtures", package: "SwiftUIWeb"),
                 .product(name: "FixtureKit", package: "SwiftUIWeb"),
+                .product(name: "UIKitFixtureKit", package: "UIKitWeb"),
+                .product(name: "UIKitFixtures", package: "UIKitWeb"),
                 .product(name: "JavaScriptKit", package: "JavaScriptKit"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit"),
             ],

@@ -16,6 +16,9 @@ let package = Package(
     products: [
         .library(name: "UIKit", targets: ["UIKit"]),
         .library(name: "UIKitWebCore", targets: ["UIKitWebCore"]),
+        // The fidelity loop's pieces, for the fixture gallery (Examples/Gallery).
+        .library(name: "UIKitFixtureKit", targets: ["UIKitFixtureKit"]),
+        .library(name: "UIKitFixtures", targets: ["UIKitFixtures"]),
     ],
     dependencies: [
         .package(path: "../WebGraphics"),

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Generates Examples/Gallery/Sources/Gallery/FixtureSources.generated.swift: for every
-`Fixture("name", ...)` declaration under Fixtures/Sources, the declaration's source (with its
+`Fixture("name", ...)` or `UIKitFixture("name", ...)` declaration under Fixtures/Sources and Fixtures/UIKit, the declaration's source (with its
 doc comment), its file and line range, and the whole file, so the gallery can show the code that
 produced the view. Run by scripts/build-wasm.sh for the Gallery; commit the result."""
 import re, sys
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
-sources = root / "Fixtures" / "Sources"
+sources = [root / "Fixtures" / "Sources", root / "Fixtures" / "UIKit"]
 out = root / "Examples" / "Gallery" / "Sources" / "Gallery" / "FixtureSources.generated.swift"
-DECL = re.compile(r'^(\s*)(?:public\s+)?static\s+let\s+\w+\s*=\s*Fixture\(')
+DECL = re.compile(r'^(\s*)(?:public\s+)?static\s+let\s+\w+\s*=\s*(?:UIKit)?Fixture\(')
 NAME = re.compile(r'"([^"]+)"')
 
 
@@ -36,7 +36,7 @@ def swift_string(text):
 
 
 fixtures, files = [], {}
-for path in sorted(sources.rglob("*.swift")):
+for path in sorted(p for source in sources for p in source.rglob("*.swift")):
     lines = path.read_text().split("\n")
     rel = path.relative_to(root).as_posix()
     for index, line in enumerate(lines):

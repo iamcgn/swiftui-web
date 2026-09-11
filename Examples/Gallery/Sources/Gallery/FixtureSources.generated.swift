@@ -4752,6 +4752,541 @@ public static let steps = Fixture(
     .probe("row")
 }
 """#),
+        FixtureSource(name: "uikit/autolayout/baseline", file: "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift", firstLine: 206, lastLine: 240, declaration: #"""
+/// Baselines: labels of 11, 13, 20, 28 and 34 pt with their first baselines on a 17 pt
+/// label's, a box on the 17 pt label's last baseline.
+public static let baseline = UIKitFixture("uikit/autolayout/baseline", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let small = label("Hg", "small")
+    let square = box(.systemBlue, "box")
+    root.addSubview(small)
+    root.addSubview(square)
+    NSLayoutConstraint.activate([
+        small.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        small.topAnchor.constraint(equalTo: root.topAnchor, constant: 60),
+        square.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        square.topAnchor.constraint(equalTo: root.topAnchor, constant: 160),
+        square.widthAnchor.constraint(equalToConstant: 30),
+        square.heightAnchor.constraint(equalTo: square.widthAnchor),
+    ])
+    var previous: UIView = small
+    for size in [11, 13, 20, 28, 34] as [CGFloat] {
+        let other = label("Hg", "size\(Int(size))", size: size)
+        root.addSubview(other)
+        NSLayoutConstraint.activate([
+            other.leadingAnchor.constraint(equalTo: previous.trailingAnchor, constant: 8),
+            other.firstBaselineAnchor.constraint(equalTo: small.firstBaselineAnchor),
+        ])
+        previous = other
+    }
+    // A box hung from a label's last baseline, and a label whose last baseline sits on a box's bottom.
+    let hung = label("Hg", "hung", size: 20)
+    root.addSubview(hung)
+    NSLayoutConstraint.activate([
+        hung.leadingAnchor.constraint(equalTo: square.trailingAnchor, constant: 8),
+        hung.lastBaselineAnchor.constraint(equalTo: square.bottomAnchor),
+    ])
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/autolayout/fitting", file: "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift", firstLine: 164, lastLine: 204, declaration: #"""
+/// A card sized by `systemLayoutSizeFitting` from the labels it constrains inside it.
+public static let fitting = UIKitFixture("uikit/autolayout/fitting", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let card = UIView()
+    card.backgroundColor = .systemGray5
+    let title = label("Title", "title")
+    let subtitle = label("Subtitle text", "subtitle")
+    card.addSubview(title)
+    card.addSubview(subtitle)
+    NSLayoutConstraint.activate([
+        title.topAnchor.constraint(equalTo: card.topAnchor, constant: 8),
+        title.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 8),
+        title.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -8),
+        subtitle.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 4),
+        subtitle.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 8),
+        subtitle.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -8),
+        subtitle.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -8),
+    ])
+    let size = card.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+    card.frame = CGRect(origin: CGPoint(x: 16, y: 16), size: size)
+    root.addSubview(card.probe("card"))
+    // The same card fitted to a required width.
+    let wide = UIView()
+    wide.backgroundColor = .systemGray5
+    let wideTitle = label("Title", "wideTitle")
+    let wideSubtitle = label("Subtitle text", "wideSubtitle")
+    wide.addSubview(wideTitle)
+    wide.addSubview(wideSubtitle)
+    NSLayoutConstraint.activate([
+        wideTitle.topAnchor.constraint(equalTo: wide.topAnchor, constant: 8),
+        wideTitle.leadingAnchor.constraint(equalTo: wide.leadingAnchor, constant: 8),
+        wideSubtitle.topAnchor.constraint(equalTo: wideTitle.bottomAnchor, constant: 4),
+        wideSubtitle.leadingAnchor.constraint(equalTo: wide.leadingAnchor, constant: 8),
+        wideSubtitle.trailingAnchor.constraint(equalTo: wide.trailingAnchor, constant: -8),
+        wideSubtitle.bottomAnchor.constraint(equalTo: wide.bottomAnchor, constant: -8),
+    ])
+    let wideSize = wide.systemLayoutSizeFitting(CGSize(width: 288, height: 0), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+    wide.frame = CGRect(origin: CGPoint(x: 16, y: 120), size: wideSize)
+    root.addSubview(wide.probe("wide"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/autolayout/guides", file: "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift", firstLine: 133, lastLine: 162, declaration: #"""
+/// The layout guides: a view filling the root's margins (a controller's view keeps the
+/// system minimum), one at the safe area's top leading corner, one filling a plain
+/// container's margins.
+public static let guides = UIKitFixture("uikit/autolayout/guides", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let margins = box(.systemGray4, "margins")
+    let safe = box(.systemBlue, "safe")
+    let container = UIView(frame: CGRect(x: 40, y: 150, width: 200, height: 100))
+    container.backgroundColor = .systemGray5
+    let inner = box(.systemGreen, "inner")
+    root.addSubview(margins)
+    root.addSubview(safe)
+    root.addSubview(container.probe("container"))
+    container.addSubview(inner)
+    NSLayoutConstraint.activate([
+        margins.leadingAnchor.constraint(equalTo: root.layoutMarginsGuide.leadingAnchor),
+        margins.trailingAnchor.constraint(equalTo: root.layoutMarginsGuide.trailingAnchor),
+        margins.topAnchor.constraint(equalTo: root.layoutMarginsGuide.topAnchor),
+        margins.bottomAnchor.constraint(equalTo: root.layoutMarginsGuide.bottomAnchor),
+        safe.leadingAnchor.constraint(equalTo: root.safeAreaLayoutGuide.leadingAnchor),
+        safe.topAnchor.constraint(equalTo: root.safeAreaLayoutGuide.topAnchor),
+        safe.widthAnchor.constraint(equalToConstant: 50),
+        safe.heightAnchor.constraint(equalToConstant: 50),
+        inner.leadingAnchor.constraint(equalTo: container.layoutMarginsGuide.leadingAnchor),
+        inner.trailingAnchor.constraint(equalTo: container.layoutMarginsGuide.trailingAnchor),
+        inner.topAnchor.constraint(equalTo: container.layoutMarginsGuide.topAnchor),
+        inner.bottomAnchor.constraint(equalTo: container.layoutMarginsGuide.bottomAnchor),
+    ])
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/autolayout/pins", file: "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift", firstLine: 27, lastLine: 72, declaration: #"""
+/// Edges pinned with constants, centring (on and off the pixel grid), an aspect ratio, labels
+/// at their intrinsic size and stretched between the edges, a view at the bottom right.
+public static let pins = UIKitFixture("uikit/autolayout/pins", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let banner = box(.systemBlue, "banner")
+    let centered = box(.systemGreen, "centered")
+    let container = UIView(frame: CGRect(x: 205, y: 120, width: 99, height: 51))
+    container.backgroundColor = .systemGray5
+    let quarter = box(.systemOrange, "quarter")
+    let aspect = box(.systemPink, "aspect")
+    let pinned = label("Pinned label", "label")
+    let stretched = label("Stretched", "stretched")
+    stretched.backgroundColor = .systemYellow
+    let corner = box(.systemPurple, "corner")
+    for view in [banner, centered, aspect, pinned, stretched, corner] { root.addSubview(view) }
+    root.addSubview(container.probe("container"))
+    container.addSubview(quarter)
+    NSLayoutConstraint.activate([
+        banner.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        banner.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+        banner.topAnchor.constraint(equalTo: root.topAnchor, constant: 16),
+        banner.heightAnchor.constraint(equalToConstant: 40),
+        centered.widthAnchor.constraint(equalToConstant: 101),
+        centered.heightAnchor.constraint(equalToConstant: 51),
+        centered.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+        centered.centerYAnchor.constraint(equalTo: root.centerYAnchor),
+        quarter.widthAnchor.constraint(equalToConstant: 34.5),
+        quarter.heightAnchor.constraint(equalToConstant: 20.5),
+        quarter.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+        quarter.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+        aspect.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        aspect.topAnchor.constraint(equalTo: root.topAnchor, constant: 72),
+        aspect.heightAnchor.constraint(equalToConstant: 30),
+        aspect.widthAnchor.constraint(equalTo: aspect.heightAnchor, multiplier: 2),
+        pinned.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        pinned.topAnchor.constraint(equalTo: root.topAnchor, constant: 120),
+        stretched.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        stretched.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+        stretched.topAnchor.constraint(equalTo: root.topAnchor, constant: 160),
+        corner.widthAnchor.constraint(equalToConstant: 40),
+        corner.heightAnchor.constraint(equalToConstant: 40),
+        corner.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+        corner.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -16),
+    ])
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/autolayout/priorities", file: "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift", firstLine: 74, lastLine: 131, declaration: #"""
+/// Priorities: an optional width clamped by a required inequality, two widths at different
+/// priorities, inequalities against equalities, and two labels sharing a row with one that
+/// resists compression less.
+public static let priorities = UIKitFixture("uikit/autolayout/priorities", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let wide = box(.systemBlue, "wide")
+    let pick = box(.systemGreen, "pick")
+    let atLeast = box(.systemOrange, "atLeast")
+    let atLeast2 = box(.systemPink, "atLeast2")
+    let left = label("A long label that needs room", "left")
+    left.backgroundColor = .systemYellow
+    left.setContentCompressionResistancePriority(UILayoutPriority(749), for: .horizontal)
+    // The row has room to spare: the label that hugs less (the right one, at UILabel's 251)
+    // takes it; equal priorities would leave the layout ambiguous.
+    left.setContentHuggingPriority(UILayoutPriority(252), for: .horizontal)
+    let right = label("Short", "right")
+    right.backgroundColor = .systemTeal
+    for view in [wide, pick, atLeast, atLeast2, left, right] { root.addSubview(view) }
+    let wideWidth = wide.widthAnchor.constraint(equalToConstant: 500)
+    wideWidth.priority = UILayoutPriority(999)
+    let pick200 = pick.widthAnchor.constraint(equalToConstant: 200)
+    pick200.priority = UILayoutPriority(250)
+    let pick100 = pick.widthAnchor.constraint(equalToConstant: 100)
+    pick100.priority = UILayoutPriority(750)
+    let atLeast100 = atLeast.widthAnchor.constraint(greaterThanOrEqualToConstant: 100)
+    atLeast100.priority = UILayoutPriority(750)
+    let atLeast50 = atLeast.widthAnchor.constraint(equalToConstant: 50)
+    atLeast50.priority = UILayoutPriority(999)
+    let atLeast2Min = atLeast2.widthAnchor.constraint(greaterThanOrEqualToConstant: 100)
+    atLeast2Min.priority = UILayoutPriority(999)
+    let atLeast2Eq = atLeast2.widthAnchor.constraint(equalToConstant: 50)
+    atLeast2Eq.priority = UILayoutPriority(750)
+    NSLayoutConstraint.activate([
+        wide.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        wide.trailingAnchor.constraint(lessThanOrEqualTo: root.trailingAnchor, constant: -16),
+        wide.topAnchor.constraint(equalTo: root.topAnchor, constant: 16),
+        wide.heightAnchor.constraint(equalToConstant: 30),
+        wideWidth,
+        pick.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        pick.topAnchor.constraint(equalTo: wide.bottomAnchor, constant: 8),
+        pick.heightAnchor.constraint(equalToConstant: 30),
+        pick200, pick100,
+        atLeast.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        atLeast.topAnchor.constraint(equalTo: pick.bottomAnchor, constant: 8),
+        atLeast.heightAnchor.constraint(equalToConstant: 30),
+        atLeast100, atLeast50,
+        atLeast2.leadingAnchor.constraint(equalTo: atLeast.trailingAnchor, constant: 8),
+        atLeast2.topAnchor.constraint(equalTo: atLeast.topAnchor),
+        atLeast2.heightAnchor.constraint(equalTo: atLeast.heightAnchor),
+        atLeast2Min, atLeast2Eq,
+        left.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+        left.topAnchor.constraint(equalTo: atLeast.bottomAnchor, constant: 16),
+        right.leadingAnchor.constraint(equalTo: left.trailingAnchor, constant: 8),
+        right.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+        right.firstBaselineAnchor.constraint(equalTo: left.firstBaselineAnchor),
+    ])
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/autolayout/update", file: "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift", firstLine: 249, lastLine: 270, declaration: #"""
+/// Constraints changed after the first layout: a constant moves a view, swapping the active
+/// width constraint resizes it.
+public static let update = UIKitFixture("uikit/autolayout/update", size: CGSize(width: 320, height: 300),
+                                        model: { UpdateModel() },
+                                        steps: [UIKitFixtureStep("move") { $0.leading?.constant = 100 },
+                                                UIKitFixtureStep("widen") { $0.narrow?.isActive = false; $0.wide?.isActive = true }]) { model in
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let mover = box(.systemBlue, "mover")
+    root.addSubview(mover)
+    let leading = mover.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16)
+    let narrow = mover.widthAnchor.constraint(equalToConstant: 60)
+    let wide = mover.widthAnchor.constraint(equalToConstant: 200)
+    model.leading = leading
+    model.narrow = narrow
+    model.wide = wide
+    NSLayoutConstraint.activate([
+        leading, narrow,
+        mover.topAnchor.constraint(equalTo: root.topAnchor, constant: 16),
+        mover.heightAnchor.constraint(equalToConstant: 40),
+    ])
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/button/basic", file: "Fixtures/UIKit/Button/ButtonFixtures.swift", firstLine: 10, lastLine: 37, declaration: #"""
+public static let basic = UIKitFixture("uikit/button/basic", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    @MainActor func place(_ button: UIButton, y: CGFloat, id: String) {
+        button.sizeToFit()
+        button.frame.origin = CGPoint(x: 16, y: y)
+        root.addSubview(button.probe(id))
+    }
+    let system = UIButton(type: .system)
+    system.setTitle("Tap", for: .normal)
+    place(system, y: 16, id: "system")
+    let disabled = UIButton(type: .system)
+    disabled.setTitle("Disabled", for: .normal)
+    disabled.isEnabled = false
+    place(disabled, y: 56, id: "disabled")
+    var plain = UIButton.Configuration.plain()
+    plain.title = "Plain"
+    place(UIButton(configuration: plain), y: 96, id: "plain")
+    var gray = UIButton.Configuration.gray()
+    gray.title = "Gray"
+    place(UIButton(configuration: gray), y: 140, id: "gray")
+    var tinted = UIButton.Configuration.tinted()
+    tinted.title = "Tinted"
+    place(UIButton(configuration: tinted), y: 184, id: "tinted")
+    var filled = UIButton.Configuration.filled()
+    filled.title = "Filled"
+    place(UIButton(configuration: filled), y: 228, id: "filled")
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/controls/basic", file: "Fixtures/UIKit/Controls/ControlFixtures.swift", firstLine: 10, lastLine: 52, declaration: #"""
+public static let basic = UIKitFixture("uikit/controls/basic", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let off = UISwitch()
+    off.sizeToFit()
+    off.frame.origin = CGPoint(x: 16, y: 16)
+    root.addSubview(off.probe("off"))
+    let on = UISwitch()
+    on.isOn = true
+    on.sizeToFit()
+    on.frame.origin = CGPoint(x: 96, y: 16)
+    root.addSubview(on.probe("on"))
+    let disabled = UISwitch()
+    disabled.isOn = true
+    disabled.isEnabled = false
+    disabled.sizeToFit()
+    disabled.frame.origin = CGPoint(x: 176, y: 16)
+    root.addSubview(disabled.probe("disabledSwitch"))
+    let rounded = UITextField()
+    rounded.borderStyle = .roundedRect
+    rounded.text = "Hello"
+    rounded.sizeToFit()
+    rounded.frame = CGRect(x: 16, y: 72, width: 250, height: rounded.frame.height)
+    root.addSubview(rounded.probe("rounded"))
+    let placeholder = UITextField()
+    placeholder.borderStyle = .roundedRect
+    placeholder.placeholder = "Placeholder"
+    placeholder.sizeToFit()
+    placeholder.frame = CGRect(x: 16, y: 120, width: 250, height: placeholder.frame.height)
+    root.addSubview(placeholder.probe("placeholder"))
+    let plain = UITextField()
+    plain.text = "Plain field"
+    plain.sizeToFit()
+    plain.frame.origin = CGPoint(x: 16, y: 168)
+    root.addSubview(plain.probe("plain"))
+    let secure = UITextField()
+    secure.borderStyle = .roundedRect
+    secure.text = "secret"
+    secure.isSecureTextEntry = true
+    secure.sizeToFit()
+    secure.frame = CGRect(x: 16, y: 208, width: 250, height: secure.frame.height)
+    root.addSubview(secure.probe("secure"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/controls/intrinsic", file: "Fixtures/UIKit/Controls/ControlFixtures.swift", firstLine: 54, lastLine: 93, declaration: #"""
+/// Each control's `intrinsicContentSize` and compressed `systemLayoutSizeFitting`, as frames
+/// (a metric the view does not have, `noIntrinsicMetric`, is shown as 1): what SwiftUI's
+/// representables size from (Docs/elements/Representable.md).
+public static let intrinsic = UIKitFixture("uikit/controls/intrinsic", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    func shown(_ size: CGSize) -> CGSize { CGSize(width: size.width < 0 ? 1 : size.width, height: size.height < 0 ? 1 : size.height) }
+    var y: CGFloat = 8
+    @MainActor func add(_ view: UIView, _ name: String) {
+        view.frame = CGRect(origin: CGPoint(x: 8, y: y), size: shown(view.intrinsicContentSize))
+        root.addSubview(view.probe(name))
+        let fitting = UIView()
+        fitting.backgroundColor = .systemTeal
+        fitting.frame = CGRect(origin: CGPoint(x: 160, y: y), size: shown(view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)))
+        root.addSubview(fitting.probe(name + "Fitting"))
+        // The alignment rect insets, as a frame: (left, top) origin, (right, bottom) size.
+        let insets = view.alignmentRectInsets
+        let shownInsets = UIView()
+        shownInsets.frame = CGRect(x: 240 + insets.left, y: y + insets.top, width: insets.right, height: insets.bottom)
+        root.addSubview(shownInsets.probe(name + "Insets"))
+        y += max(view.frame.height, fitting.frame.height) + 8
+    }
+    let toggle = UISwitch()
+    toggle.isOn = true
+    add(toggle, "switch")
+    let label = UILabel()
+    label.text = "Hello"
+    label.font = .systemFont(ofSize: 17)
+    add(label, "label")
+    let field = UITextField()
+    field.borderStyle = .roundedRect
+    field.text = "Hello"
+    add(field, "field")
+    let button = UIButton(type: .system)
+    button.setTitle("Tap", for: .normal)
+    add(button, "button")
+    let plain = UIView()
+    plain.backgroundColor = .systemBlue
+    add(plain, "plain")
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/draw/basic", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 86, lastLine: 95, declaration: #"""
+public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 320, height: 420)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 420))
+    let shapes = ShapesView(frame: CGRect(x: 20, y: 10, width: 280, height: 190))
+    shapes.backgroundColor = .clear
+    root.addSubview(shapes.probe("shapes"))
+    let context = ContextView(frame: CGRect(x: 20, y: 210, width: 280, height: 190))
+    context.backgroundColor = .clear
+    root.addSubview(context.probe("context"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/label/basic", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 10, lastLine: 36, declaration: #"""
+/// Labels sized to fit: the default 17 pt system font, text styles, weights.
+public static let basic = UIKitFixture("uikit/label/basic", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    @MainActor @discardableResult func label(_ text: String, _ font: UIFont, y: CGFloat, id: String) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.font = font
+        label.sizeToFit()
+        label.frame.origin = CGPoint(x: 16, y: y)
+        root.addSubview(label.probe(id))
+        return label
+    }
+    label("Hello, UIKit", .systemFont(ofSize: 17), y: 16, id: "system17")
+    label("Title", .preferredFont(forTextStyle: .title1), y: 48, id: "title1")
+    label("Headline", .preferredFont(forTextStyle: .headline), y: 96, id: "headline")
+    label("Body", .preferredFont(forTextStyle: .body), y: 124, id: "body")
+    label("Footnote", .preferredFont(forTextStyle: .footnote), y: 152, id: "footnote")
+    label("Bold 13", .boldSystemFont(ofSize: 13), y: 176, id: "bold13")
+    label("Semibold 20", .systemFont(ofSize: 20, weight: .semibold), y: 200, id: "semibold20")
+    // A centred label in a fixed frame.
+    let centred = UILabel(frame: CGRect(x: 16, y: 240, width: 288, height: 30))
+    centred.text = "Centred"
+    centred.textAlignment = .center
+    centred.backgroundColor = UIColor.systemGray5
+    root.addSubview(centred.probe("centred"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/label/wrapping", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 38, lastLine: 57, declaration: #"""
+/// Wrapping at a width, and truncation in a narrow one-line frame.
+public static let wrapping = UIKitFixture("uikit/label/wrapping", size: CGSize(width: 320, height: 200)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+    let wrapped = UILabel()
+    wrapped.text = "The quick brown fox jumps over the lazy dog"
+    wrapped.numberOfLines = 0
+    let size = wrapped.sizeThatFits(CGSize(width: 200, height: CGFloat.greatestFiniteMagnitude))
+    wrapped.frame = CGRect(x: 16, y: 16, width: 200, height: size.height)
+    root.addSubview(wrapped.probe("wrapped"))
+    let twoLines = UILabel()
+    twoLines.text = "The quick brown fox jumps over the lazy dog"
+    twoLines.numberOfLines = 2
+    let two = twoLines.sizeThatFits(CGSize(width: 200, height: CGFloat.greatestFiniteMagnitude))
+    twoLines.frame = CGRect(x: 16, y: 100, width: 200, height: two.height)
+    root.addSubview(twoLines.probe("twoLines"))
+    let truncated = UILabel(frame: CGRect(x: 16, y: 160, width: 120, height: 21))
+    truncated.text = "The quick brown fox jumps over the lazy dog"
+    root.addSubview(truncated.probe("truncated"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/stack/basic", file: "Fixtures/UIKit/Stack/StackFixtures.swift", firstLine: 10, lastLine: 45, declaration: #"""
+public static let basic = UIKitFixture("uikit/stack/basic", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    @MainActor func label(_ text: String, _ id: String) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        return label.probe(id)
+    }
+    // A vertical stack sized to its content, leading-aligned.
+    let column = UIStackView(arrangedSubviews: [label("First", "first"), label("Second line", "second"), label("Third", "third")])
+    column.axis = .vertical
+    column.spacing = 8
+    column.alignment = .leading
+    let columnSize = column.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+    column.frame = CGRect(x: 16, y: 16, width: columnSize.width, height: columnSize.height)
+    root.addSubview(column.probe("column"))
+    // A horizontal stack filling the width with equal columns.
+    let minus = UIButton(type: .system)
+    minus.setTitle("−", for: .normal)
+    let plus = UIButton(type: .system)
+    plus.setTitle("+", for: .normal)
+    let row = UIStackView(arrangedSubviews: [minus.probe("minus"), plus.probe("plus")])
+    row.axis = .horizontal
+    row.distribution = .fillEqually
+    row.spacing = 8
+    row.frame = CGRect(x: 16, y: 120, width: 288, height: 34)
+    root.addSubview(row.probe("row"))
+    // A centred column whose width is the widest label's.
+    let centred = UIStackView(arrangedSubviews: [label("Count: 0", "count"), label("A longer caption", "caption")])
+    centred.axis = .vertical
+    centred.spacing = 12
+    centred.alignment = .center
+    let centredSize = centred.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+    centred.frame = CGRect(x: (320 - centredSize.width) / 2, y: 180, width: centredSize.width, height: centredSize.height)
+    root.addSubview(centred.probe("centred"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/view/autoresizing", file: "Fixtures/UIKit/View/ViewFixtures.swift", firstLine: 59, lastLine: 79, declaration: #"""
+/// Autoresizing masks against a container that is resized after the subviews are placed.
+public static let autoresizing = UIKitFixture("uikit/view/autoresizing", size: CGSize(width: 320, height: 200)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+    let container = UIView(frame: CGRect(x: 0, y: 0, width: 200, height: 100))
+    container.backgroundColor = .systemGray5
+    let flexible = UIView(frame: CGRect(x: 10, y: 10, width: 180, height: 30))
+    flexible.backgroundColor = .systemBlue
+    flexible.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+    container.addSubview(flexible.probe("flexibleWidth"))
+    let pinned = UIView(frame: CGRect(x: 150, y: 60, width: 40, height: 30))
+    pinned.backgroundColor = .systemRed
+    pinned.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin]
+    container.addSubview(pinned.probe("pinnedBottomRight"))
+    let centred = UIView(frame: CGRect(x: 80, y: 40, width: 40, height: 20))
+    centred.backgroundColor = .systemGreen
+    centred.autoresizingMask = [.flexibleLeftMargin, .flexibleRightMargin, .flexibleTopMargin, .flexibleBottomMargin]
+    container.addSubview(centred.probe("centred"))
+    root.addSubview(container.probe("container"))
+    container.frame = CGRect(x: 16, y: 16, width: 288, height: 160)
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/view/layers", file: "Fixtures/UIKit/View/ViewFixtures.swift", firstLine: 10, lastLine: 57, declaration: #"""
+public static let layers = UIKitFixture("uikit/view/layers", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let plain = UIView(frame: CGRect(x: 16, y: 16, width: 80, height: 60))
+    plain.backgroundColor = .systemBlue
+    root.addSubview(plain.probe("plain"))
+    let rounded = UIView(frame: CGRect(x: 112, y: 16, width: 80, height: 60))
+    rounded.backgroundColor = .systemGreen
+    rounded.layer.cornerRadius = 12
+    root.addSubview(rounded.probe("rounded"))
+    let bordered = UIView(frame: CGRect(x: 208, y: 16, width: 80, height: 60))
+    bordered.backgroundColor = .systemGray6
+    bordered.layer.borderWidth = 2
+    bordered.layer.borderColor = UIColor.systemRed.cgColor
+    bordered.layer.cornerRadius = 8
+    root.addSubview(bordered.probe("bordered"))
+    let faded = UIView(frame: CGRect(x: 16, y: 92, width: 80, height: 60))
+    faded.backgroundColor = .systemIndigo
+    faded.alpha = 0.5
+    root.addSubview(faded.probe("faded"))
+    let rotated = UIView(frame: CGRect(x: 112, y: 92, width: 80, height: 60))
+    rotated.backgroundColor = .systemOrange
+    rotated.transform = CGAffineTransform(rotationAngle: .pi / 8)
+    root.addSubview(rotated.probe("rotated"))
+    let clipping = UIView(frame: CGRect(x: 208, y: 92, width: 80, height: 60))
+    clipping.backgroundColor = .systemTeal
+    clipping.clipsToBounds = true
+    let overflow = UIView(frame: CGRect(x: 40, y: 30, width: 80, height: 60))
+    overflow.backgroundColor = .systemPink
+    clipping.addSubview(overflow.probe("overflow"))
+    root.addSubview(clipping.probe("clipping"))
+    let shadowed = UIView(frame: CGRect(x: 16, y: 180, width: 80, height: 60))
+    shadowed.backgroundColor = .white
+    shadowed.layer.shadowOpacity = 0.3
+    shadowed.layer.shadowRadius = 6
+    shadowed.layer.shadowOffset = CGSize(width: 0, height: 4)
+    root.addSubview(shadowed.probe("shadowed"))
+    let continuous = UIView(frame: CGRect(x: 112, y: 180, width: 80, height: 60))
+    continuous.backgroundColor = .systemPurple
+    continuous.layer.cornerRadius = 20
+    continuous.layer.cornerCurve = .continuous
+    root.addSubview(continuous.probe("continuous"))
+    let corners = UIView(frame: CGRect(x: 208, y: 180, width: 80, height: 60))
+    corners.backgroundColor = .systemBrown
+    corners.layer.cornerRadius = 16
+    corners.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMaxYCorner]
+    root.addSubview(corners.probe("corners"))
+    return root
+}
+"""#),
         FixtureSource(name: "unavailable/basic", file: "Fixtures/Sources/Unavailable/UnavailableFixtures.swift", firstLine: 6, lastLine: 13, declaration: #"""
 public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, height: 400)) {
     VStack(spacing: 8) {
@@ -11042,5 +11577,709 @@ public enum IOSSymbolFixtures {
     public static let all: [Fixture] = [symbols, labels, labelRows]
 }
 """#,
+        "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift": ##"""
+// Auto Layout (Docs/elements/UIKit/AutoLayout.md): constraints from anchors, activated on the
+// fixture's root view, solved by UIKit's engine on the simulator and by UIKitWeb's Cassowary
+// solver: pins and centring, aspect ratios, intrinsic sizes, priorities and inequalities, the
+// margins and safe-area guides, fitting sizes, baselines, and constraints changed after layout.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+public enum AutoLayoutFixtures {
+    public static let all = [pins, priorities, guides, fitting, baseline, update]
+
+    @MainActor static func box(_ color: UIColor, _ id: String) -> UIView {
+        let view = UIView()
+        view.backgroundColor = color
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view.probe(id)
+    }
+
+    @MainActor static func label(_ text: String, _ id: String, size: CGFloat = 17) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.font = .systemFont(ofSize: size)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label.probe(id)
+    }
+
+    /// Edges pinned with constants, centring (on and off the pixel grid), an aspect ratio, labels
+    /// at their intrinsic size and stretched between the edges, a view at the bottom right.
+    public static let pins = UIKitFixture("uikit/autolayout/pins", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let banner = box(.systemBlue, "banner")
+        let centered = box(.systemGreen, "centered")
+        let container = UIView(frame: CGRect(x: 205, y: 120, width: 99, height: 51))
+        container.backgroundColor = .systemGray5
+        let quarter = box(.systemOrange, "quarter")
+        let aspect = box(.systemPink, "aspect")
+        let pinned = label("Pinned label", "label")
+        let stretched = label("Stretched", "stretched")
+        stretched.backgroundColor = .systemYellow
+        let corner = box(.systemPurple, "corner")
+        for view in [banner, centered, aspect, pinned, stretched, corner] { root.addSubview(view) }
+        root.addSubview(container.probe("container"))
+        container.addSubview(quarter)
+        NSLayoutConstraint.activate([
+            banner.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            banner.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+            banner.topAnchor.constraint(equalTo: root.topAnchor, constant: 16),
+            banner.heightAnchor.constraint(equalToConstant: 40),
+            centered.widthAnchor.constraint(equalToConstant: 101),
+            centered.heightAnchor.constraint(equalToConstant: 51),
+            centered.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+            centered.centerYAnchor.constraint(equalTo: root.centerYAnchor),
+            quarter.widthAnchor.constraint(equalToConstant: 34.5),
+            quarter.heightAnchor.constraint(equalToConstant: 20.5),
+            quarter.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            quarter.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            aspect.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            aspect.topAnchor.constraint(equalTo: root.topAnchor, constant: 72),
+            aspect.heightAnchor.constraint(equalToConstant: 30),
+            aspect.widthAnchor.constraint(equalTo: aspect.heightAnchor, multiplier: 2),
+            pinned.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            pinned.topAnchor.constraint(equalTo: root.topAnchor, constant: 120),
+            stretched.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            stretched.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+            stretched.topAnchor.constraint(equalTo: root.topAnchor, constant: 160),
+            corner.widthAnchor.constraint(equalToConstant: 40),
+            corner.heightAnchor.constraint(equalToConstant: 40),
+            corner.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+            corner.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -16),
+        ])
+        return root
+    }
+
+    /// Priorities: an optional width clamped by a required inequality, two widths at different
+    /// priorities, inequalities against equalities, and two labels sharing a row with one that
+    /// resists compression less.
+    public static let priorities = UIKitFixture("uikit/autolayout/priorities", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let wide = box(.systemBlue, "wide")
+        let pick = box(.systemGreen, "pick")
+        let atLeast = box(.systemOrange, "atLeast")
+        let atLeast2 = box(.systemPink, "atLeast2")
+        let left = label("A long label that needs room", "left")
+        left.backgroundColor = .systemYellow
+        left.setContentCompressionResistancePriority(UILayoutPriority(749), for: .horizontal)
+        // The row has room to spare: the label that hugs less (the right one, at UILabel's 251)
+        // takes it; equal priorities would leave the layout ambiguous.
+        left.setContentHuggingPriority(UILayoutPriority(252), for: .horizontal)
+        let right = label("Short", "right")
+        right.backgroundColor = .systemTeal
+        for view in [wide, pick, atLeast, atLeast2, left, right] { root.addSubview(view) }
+        let wideWidth = wide.widthAnchor.constraint(equalToConstant: 500)
+        wideWidth.priority = UILayoutPriority(999)
+        let pick200 = pick.widthAnchor.constraint(equalToConstant: 200)
+        pick200.priority = UILayoutPriority(250)
+        let pick100 = pick.widthAnchor.constraint(equalToConstant: 100)
+        pick100.priority = UILayoutPriority(750)
+        let atLeast100 = atLeast.widthAnchor.constraint(greaterThanOrEqualToConstant: 100)
+        atLeast100.priority = UILayoutPriority(750)
+        let atLeast50 = atLeast.widthAnchor.constraint(equalToConstant: 50)
+        atLeast50.priority = UILayoutPriority(999)
+        let atLeast2Min = atLeast2.widthAnchor.constraint(greaterThanOrEqualToConstant: 100)
+        atLeast2Min.priority = UILayoutPriority(999)
+        let atLeast2Eq = atLeast2.widthAnchor.constraint(equalToConstant: 50)
+        atLeast2Eq.priority = UILayoutPriority(750)
+        NSLayoutConstraint.activate([
+            wide.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            wide.trailingAnchor.constraint(lessThanOrEqualTo: root.trailingAnchor, constant: -16),
+            wide.topAnchor.constraint(equalTo: root.topAnchor, constant: 16),
+            wide.heightAnchor.constraint(equalToConstant: 30),
+            wideWidth,
+            pick.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            pick.topAnchor.constraint(equalTo: wide.bottomAnchor, constant: 8),
+            pick.heightAnchor.constraint(equalToConstant: 30),
+            pick200, pick100,
+            atLeast.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            atLeast.topAnchor.constraint(equalTo: pick.bottomAnchor, constant: 8),
+            atLeast.heightAnchor.constraint(equalToConstant: 30),
+            atLeast100, atLeast50,
+            atLeast2.leadingAnchor.constraint(equalTo: atLeast.trailingAnchor, constant: 8),
+            atLeast2.topAnchor.constraint(equalTo: atLeast.topAnchor),
+            atLeast2.heightAnchor.constraint(equalTo: atLeast.heightAnchor),
+            atLeast2Min, atLeast2Eq,
+            left.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            left.topAnchor.constraint(equalTo: atLeast.bottomAnchor, constant: 16),
+            right.leadingAnchor.constraint(equalTo: left.trailingAnchor, constant: 8),
+            right.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+            right.firstBaselineAnchor.constraint(equalTo: left.firstBaselineAnchor),
+        ])
+        return root
+    }
+
+    /// The layout guides: a view filling the root's margins (a controller's view keeps the
+    /// system minimum), one at the safe area's top leading corner, one filling a plain
+    /// container's margins.
+    public static let guides = UIKitFixture("uikit/autolayout/guides", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let margins = box(.systemGray4, "margins")
+        let safe = box(.systemBlue, "safe")
+        let container = UIView(frame: CGRect(x: 40, y: 150, width: 200, height: 100))
+        container.backgroundColor = .systemGray5
+        let inner = box(.systemGreen, "inner")
+        root.addSubview(margins)
+        root.addSubview(safe)
+        root.addSubview(container.probe("container"))
+        container.addSubview(inner)
+        NSLayoutConstraint.activate([
+            margins.leadingAnchor.constraint(equalTo: root.layoutMarginsGuide.leadingAnchor),
+            margins.trailingAnchor.constraint(equalTo: root.layoutMarginsGuide.trailingAnchor),
+            margins.topAnchor.constraint(equalTo: root.layoutMarginsGuide.topAnchor),
+            margins.bottomAnchor.constraint(equalTo: root.layoutMarginsGuide.bottomAnchor),
+            safe.leadingAnchor.constraint(equalTo: root.safeAreaLayoutGuide.leadingAnchor),
+            safe.topAnchor.constraint(equalTo: root.safeAreaLayoutGuide.topAnchor),
+            safe.widthAnchor.constraint(equalToConstant: 50),
+            safe.heightAnchor.constraint(equalToConstant: 50),
+            inner.leadingAnchor.constraint(equalTo: container.layoutMarginsGuide.leadingAnchor),
+            inner.trailingAnchor.constraint(equalTo: container.layoutMarginsGuide.trailingAnchor),
+            inner.topAnchor.constraint(equalTo: container.layoutMarginsGuide.topAnchor),
+            inner.bottomAnchor.constraint(equalTo: container.layoutMarginsGuide.bottomAnchor),
+        ])
+        return root
+    }
+
+    /// A card sized by `systemLayoutSizeFitting` from the labels it constrains inside it.
+    public static let fitting = UIKitFixture("uikit/autolayout/fitting", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let card = UIView()
+        card.backgroundColor = .systemGray5
+        let title = label("Title", "title")
+        let subtitle = label("Subtitle text", "subtitle")
+        card.addSubview(title)
+        card.addSubview(subtitle)
+        NSLayoutConstraint.activate([
+            title.topAnchor.constraint(equalTo: card.topAnchor, constant: 8),
+            title.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 8),
+            title.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -8),
+            subtitle.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 4),
+            subtitle.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 8),
+            subtitle.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -8),
+            subtitle.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -8),
+        ])
+        let size = card.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        card.frame = CGRect(origin: CGPoint(x: 16, y: 16), size: size)
+        root.addSubview(card.probe("card"))
+        // The same card fitted to a required width.
+        let wide = UIView()
+        wide.backgroundColor = .systemGray5
+        let wideTitle = label("Title", "wideTitle")
+        let wideSubtitle = label("Subtitle text", "wideSubtitle")
+        wide.addSubview(wideTitle)
+        wide.addSubview(wideSubtitle)
+        NSLayoutConstraint.activate([
+            wideTitle.topAnchor.constraint(equalTo: wide.topAnchor, constant: 8),
+            wideTitle.leadingAnchor.constraint(equalTo: wide.leadingAnchor, constant: 8),
+            wideSubtitle.topAnchor.constraint(equalTo: wideTitle.bottomAnchor, constant: 4),
+            wideSubtitle.leadingAnchor.constraint(equalTo: wide.leadingAnchor, constant: 8),
+            wideSubtitle.trailingAnchor.constraint(equalTo: wide.trailingAnchor, constant: -8),
+            wideSubtitle.bottomAnchor.constraint(equalTo: wide.bottomAnchor, constant: -8),
+        ])
+        let wideSize = wide.systemLayoutSizeFitting(CGSize(width: 288, height: 0), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+        wide.frame = CGRect(origin: CGPoint(x: 16, y: 120), size: wideSize)
+        root.addSubview(wide.probe("wide"))
+        return root
+    }
+
+    /// Baselines: labels of 11, 13, 20, 28 and 34 pt with their first baselines on a 17 pt
+    /// label's, a box on the 17 pt label's last baseline.
+    public static let baseline = UIKitFixture("uikit/autolayout/baseline", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let small = label("Hg", "small")
+        let square = box(.systemBlue, "box")
+        root.addSubview(small)
+        root.addSubview(square)
+        NSLayoutConstraint.activate([
+            small.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            small.topAnchor.constraint(equalTo: root.topAnchor, constant: 60),
+            square.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            square.topAnchor.constraint(equalTo: root.topAnchor, constant: 160),
+            square.widthAnchor.constraint(equalToConstant: 30),
+            square.heightAnchor.constraint(equalTo: square.widthAnchor),
+        ])
+        var previous: UIView = small
+        for size in [11, 13, 20, 28, 34] as [CGFloat] {
+            let other = label("Hg", "size\(Int(size))", size: size)
+            root.addSubview(other)
+            NSLayoutConstraint.activate([
+                other.leadingAnchor.constraint(equalTo: previous.trailingAnchor, constant: 8),
+                other.firstBaselineAnchor.constraint(equalTo: small.firstBaselineAnchor),
+            ])
+            previous = other
+        }
+        // A box hung from a label's last baseline, and a label whose last baseline sits on a box's bottom.
+        let hung = label("Hg", "hung", size: 20)
+        root.addSubview(hung)
+        NSLayoutConstraint.activate([
+            hung.leadingAnchor.constraint(equalTo: square.trailingAnchor, constant: 8),
+            hung.lastBaselineAnchor.constraint(equalTo: square.bottomAnchor),
+        ])
+        return root
+    }
+
+    @MainActor public final class UpdateModel {
+        var leading: NSLayoutConstraint?
+        var narrow: NSLayoutConstraint?
+        var wide: NSLayoutConstraint?
+        public init() {}
+    }
+
+    /// Constraints changed after the first layout: a constant moves a view, swapping the active
+    /// width constraint resizes it.
+    public static let update = UIKitFixture("uikit/autolayout/update", size: CGSize(width: 320, height: 300),
+                                            model: { UpdateModel() },
+                                            steps: [UIKitFixtureStep("move") { $0.leading?.constant = 100 },
+                                                    UIKitFixtureStep("widen") { $0.narrow?.isActive = false; $0.wide?.isActive = true }]) { model in
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let mover = box(.systemBlue, "mover")
+        root.addSubview(mover)
+        let leading = mover.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16)
+        let narrow = mover.widthAnchor.constraint(equalToConstant: 60)
+        let wide = mover.widthAnchor.constraint(equalToConstant: 200)
+        model.leading = leading
+        model.narrow = narrow
+        model.wide = wide
+        NSLayoutConstraint.activate([
+            leading, narrow,
+            mover.topAnchor.constraint(equalTo: root.topAnchor, constant: 16),
+            mover.heightAnchor.constraint(equalToConstant: 40),
+        ])
+        return root
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/Button/ButtonFixtures.swift": ##"""
+// UIButton (Docs/elements/UIKit/UIButton.md): system buttons sized to fit, the iOS 15
+// configurations, a disabled button.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+public enum ButtonFixtures {
+    public static let all = [basic]
+
+    public static let basic = UIKitFixture("uikit/button/basic", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        @MainActor func place(_ button: UIButton, y: CGFloat, id: String) {
+            button.sizeToFit()
+            button.frame.origin = CGPoint(x: 16, y: y)
+            root.addSubview(button.probe(id))
+        }
+        let system = UIButton(type: .system)
+        system.setTitle("Tap", for: .normal)
+        place(system, y: 16, id: "system")
+        let disabled = UIButton(type: .system)
+        disabled.setTitle("Disabled", for: .normal)
+        disabled.isEnabled = false
+        place(disabled, y: 56, id: "disabled")
+        var plain = UIButton.Configuration.plain()
+        plain.title = "Plain"
+        place(UIButton(configuration: plain), y: 96, id: "plain")
+        var gray = UIButton.Configuration.gray()
+        gray.title = "Gray"
+        place(UIButton(configuration: gray), y: 140, id: "gray")
+        var tinted = UIButton.Configuration.tinted()
+        tinted.title = "Tinted"
+        place(UIButton(configuration: tinted), y: 184, id: "tinted")
+        var filled = UIButton.Configuration.filled()
+        filled.title = "Filled"
+        place(UIButton(configuration: filled), y: 228, id: "filled")
+        return root
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/Controls/ControlFixtures.swift": ##"""
+// UISwitch and UITextField (Docs/elements/UIKit/UISwitch.md, UITextField.md): sized to fit,
+// on and off, rounded and plain fields with text and placeholders.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+public enum ControlFixtures {
+    public static let all = [basic, intrinsic]
+
+    public static let basic = UIKitFixture("uikit/controls/basic", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let off = UISwitch()
+        off.sizeToFit()
+        off.frame.origin = CGPoint(x: 16, y: 16)
+        root.addSubview(off.probe("off"))
+        let on = UISwitch()
+        on.isOn = true
+        on.sizeToFit()
+        on.frame.origin = CGPoint(x: 96, y: 16)
+        root.addSubview(on.probe("on"))
+        let disabled = UISwitch()
+        disabled.isOn = true
+        disabled.isEnabled = false
+        disabled.sizeToFit()
+        disabled.frame.origin = CGPoint(x: 176, y: 16)
+        root.addSubview(disabled.probe("disabledSwitch"))
+        let rounded = UITextField()
+        rounded.borderStyle = .roundedRect
+        rounded.text = "Hello"
+        rounded.sizeToFit()
+        rounded.frame = CGRect(x: 16, y: 72, width: 250, height: rounded.frame.height)
+        root.addSubview(rounded.probe("rounded"))
+        let placeholder = UITextField()
+        placeholder.borderStyle = .roundedRect
+        placeholder.placeholder = "Placeholder"
+        placeholder.sizeToFit()
+        placeholder.frame = CGRect(x: 16, y: 120, width: 250, height: placeholder.frame.height)
+        root.addSubview(placeholder.probe("placeholder"))
+        let plain = UITextField()
+        plain.text = "Plain field"
+        plain.sizeToFit()
+        plain.frame.origin = CGPoint(x: 16, y: 168)
+        root.addSubview(plain.probe("plain"))
+        let secure = UITextField()
+        secure.borderStyle = .roundedRect
+        secure.text = "secret"
+        secure.isSecureTextEntry = true
+        secure.sizeToFit()
+        secure.frame = CGRect(x: 16, y: 208, width: 250, height: secure.frame.height)
+        root.addSubview(secure.probe("secure"))
+        return root
+    }
+
+    /// Each control's `intrinsicContentSize` and compressed `systemLayoutSizeFitting`, as frames
+    /// (a metric the view does not have, `noIntrinsicMetric`, is shown as 1): what SwiftUI's
+    /// representables size from (Docs/elements/Representable.md).
+    public static let intrinsic = UIKitFixture("uikit/controls/intrinsic", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        func shown(_ size: CGSize) -> CGSize { CGSize(width: size.width < 0 ? 1 : size.width, height: size.height < 0 ? 1 : size.height) }
+        var y: CGFloat = 8
+        @MainActor func add(_ view: UIView, _ name: String) {
+            view.frame = CGRect(origin: CGPoint(x: 8, y: y), size: shown(view.intrinsicContentSize))
+            root.addSubview(view.probe(name))
+            let fitting = UIView()
+            fitting.backgroundColor = .systemTeal
+            fitting.frame = CGRect(origin: CGPoint(x: 160, y: y), size: shown(view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)))
+            root.addSubview(fitting.probe(name + "Fitting"))
+            // The alignment rect insets, as a frame: (left, top) origin, (right, bottom) size.
+            let insets = view.alignmentRectInsets
+            let shownInsets = UIView()
+            shownInsets.frame = CGRect(x: 240 + insets.left, y: y + insets.top, width: insets.right, height: insets.bottom)
+            root.addSubview(shownInsets.probe(name + "Insets"))
+            y += max(view.frame.height, fitting.frame.height) + 8
+        }
+        let toggle = UISwitch()
+        toggle.isOn = true
+        add(toggle, "switch")
+        let label = UILabel()
+        label.text = "Hello"
+        label.font = .systemFont(ofSize: 17)
+        add(label, "label")
+        let field = UITextField()
+        field.borderStyle = .roundedRect
+        field.text = "Hello"
+        add(field, "field")
+        let button = UIButton(type: .system)
+        button.setTitle("Tap", for: .normal)
+        add(button, "button")
+        let plain = UIView()
+        plain.backgroundColor = .systemBlue
+        add(plain, "plain")
+        return root
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/Draw/DrawFixtures.swift": ##"""
+// Custom drawing (Docs/elements/UIKit/Drawing.md): a view's `draw(_:)` through UIBezierPath, the
+// current fill and stroke colours, and the current graphics context's transforms, clipping and
+// shadows. Compared by pixels (the frames are the views' own).
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+/// Shapes through UIBezierPath and UIColor: a rounded rectangle, a stroked circle, a triangle,
+/// a dashed line, an even-odd ring.
+final class ShapesView: UIView {
+    override func draw(_ rect: CGRect) {
+        UIColor.systemBlue.setFill()
+        UIBezierPath(roundedRect: CGRect(x: 10, y: 10, width: 100, height: 60), cornerRadius: 12).fill()
+
+        UIColor.systemGreen.setStroke()
+        let circle = UIBezierPath(ovalIn: CGRect(x: 130, y: 10, width: 60, height: 60))
+        circle.lineWidth = 4
+        circle.stroke()
+
+        UIColor.systemOrange.setFill()
+        let triangle = UIBezierPath()
+        triangle.move(to: CGPoint(x: 210, y: 70))
+        triangle.addLine(to: CGPoint(x: 240, y: 10))
+        triangle.addLine(to: CGPoint(x: 270, y: 70))
+        triangle.close()
+        triangle.fill()
+
+        UIColor.systemRed.setStroke()
+        let dashed = UIBezierPath()
+        dashed.move(to: CGPoint(x: 10, y: 100))
+        dashed.addLine(to: CGPoint(x: 270, y: 100))
+        dashed.lineWidth = 2
+        dashed.setLineDash([8, 4], count: 2, phase: 0)
+        dashed.stroke()
+
+        UIColor.systemPurple.setFill()
+        let ring = UIBezierPath(ovalIn: CGRect(x: 10, y: 120, width: 60, height: 60))
+        ring.append(UIBezierPath(ovalIn: CGRect(x: 25, y: 135, width: 30, height: 30)))
+        ring.usesEvenOddFillRule = true
+        ring.fill()
+    }
+}
+
+/// The graphics context: a translated and rotated square, a clipped fill, a shadowed rectangle,
+/// a stroked rect through `stroke(_:width:)`.
+final class ContextView: UIView {
+    override func draw(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        context.saveGState()
+        context.translateBy(x: 60, y: 50)
+        context.rotate(by: .pi / 8)
+        context.setFillColor(UIColor.systemTeal.cgColor)
+        context.fill(CGRect(x: -25, y: -25, width: 50, height: 50))
+        context.restoreGState()
+
+        context.saveGState()
+        context.addEllipse(in: CGRect(x: 120, y: 10, width: 80, height: 80))
+        context.clip()
+        context.setFillColor(UIColor.systemIndigo.cgColor)
+        context.fill(CGRect(x: 120, y: 10, width: 40, height: 80))
+        context.setFillColor(UIColor.systemYellow.cgColor)
+        context.fill(CGRect(x: 160, y: 10, width: 40, height: 80))
+        context.restoreGState()
+
+        context.saveGState()
+        context.setShadow(offset: CGSize(width: 0, height: 4), blur: 6, color: UIColor.black.withAlphaComponent(0.4).cgColor)
+        context.setFillColor(UIColor.white.cgColor)
+        context.fill(CGRect(x: 220, y: 20, width: 60, height: 60))
+        context.restoreGState()
+
+        context.setStrokeColor(UIColor.systemPink.cgColor)
+        context.stroke(CGRect(x: 20, y: 110, width: 260, height: 40), width: 3)
+
+        context.setStrokeColor(UIColor.systemGray.cgColor)
+        context.setLineWidth(6)
+        context.setLineCap(.round)
+        context.move(to: CGPoint(x: 30, y: 170))
+        context.addLine(to: CGPoint(x: 120, y: 170))
+        context.strokePath()
+    }
+}
+
+public enum DrawFixtures {
+    public static let all = [basic]
+
+    public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 320, height: 420)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 420))
+        let shapes = ShapesView(frame: CGRect(x: 20, y: 10, width: 280, height: 190))
+        shapes.backgroundColor = .clear
+        root.addSubview(shapes.probe("shapes"))
+        let context = ContextView(frame: CGRect(x: 20, y: 210, width: 280, height: 190))
+        context.backgroundColor = .clear
+        root.addSubview(context.probe("context"))
+        return root
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/Label/LabelFixtures.swift": ##"""
+// UILabel (Docs/elements/UIKit/UILabel.md): sizes to fit at the system and text-style fonts,
+// alignment inside a fixed frame, wrapping and truncation.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+public enum LabelFixtures {
+    public static let all = [basic, wrapping]
+
+    /// Labels sized to fit: the default 17 pt system font, text styles, weights.
+    public static let basic = UIKitFixture("uikit/label/basic", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        @MainActor @discardableResult func label(_ text: String, _ font: UIFont, y: CGFloat, id: String) -> UILabel {
+            let label = UILabel()
+            label.text = text
+            label.font = font
+            label.sizeToFit()
+            label.frame.origin = CGPoint(x: 16, y: y)
+            root.addSubview(label.probe(id))
+            return label
+        }
+        label("Hello, UIKit", .systemFont(ofSize: 17), y: 16, id: "system17")
+        label("Title", .preferredFont(forTextStyle: .title1), y: 48, id: "title1")
+        label("Headline", .preferredFont(forTextStyle: .headline), y: 96, id: "headline")
+        label("Body", .preferredFont(forTextStyle: .body), y: 124, id: "body")
+        label("Footnote", .preferredFont(forTextStyle: .footnote), y: 152, id: "footnote")
+        label("Bold 13", .boldSystemFont(ofSize: 13), y: 176, id: "bold13")
+        label("Semibold 20", .systemFont(ofSize: 20, weight: .semibold), y: 200, id: "semibold20")
+        // A centred label in a fixed frame.
+        let centred = UILabel(frame: CGRect(x: 16, y: 240, width: 288, height: 30))
+        centred.text = "Centred"
+        centred.textAlignment = .center
+        centred.backgroundColor = UIColor.systemGray5
+        root.addSubview(centred.probe("centred"))
+        return root
+    }
+
+    /// Wrapping at a width, and truncation in a narrow one-line frame.
+    public static let wrapping = UIKitFixture("uikit/label/wrapping", size: CGSize(width: 320, height: 200)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+        let wrapped = UILabel()
+        wrapped.text = "The quick brown fox jumps over the lazy dog"
+        wrapped.numberOfLines = 0
+        let size = wrapped.sizeThatFits(CGSize(width: 200, height: CGFloat.greatestFiniteMagnitude))
+        wrapped.frame = CGRect(x: 16, y: 16, width: 200, height: size.height)
+        root.addSubview(wrapped.probe("wrapped"))
+        let twoLines = UILabel()
+        twoLines.text = "The quick brown fox jumps over the lazy dog"
+        twoLines.numberOfLines = 2
+        let two = twoLines.sizeThatFits(CGSize(width: 200, height: CGFloat.greatestFiniteMagnitude))
+        twoLines.frame = CGRect(x: 16, y: 100, width: 200, height: two.height)
+        root.addSubview(twoLines.probe("twoLines"))
+        let truncated = UILabel(frame: CGRect(x: 16, y: 160, width: 120, height: 21))
+        truncated.text = "The quick brown fox jumps over the lazy dog"
+        root.addSubview(truncated.probe("truncated"))
+        return root
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/Stack/StackFixtures.swift": ##"""
+// UIStackView (Docs/elements/UIKit/UIStackView.md): vertical and horizontal stacks of labels
+// and buttons, the fill and fill-equally distributions, alignments.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+public enum StackFixtures {
+    public static let all = [basic]
+
+    public static let basic = UIKitFixture("uikit/stack/basic", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        @MainActor func label(_ text: String, _ id: String) -> UILabel {
+            let label = UILabel()
+            label.text = text
+            return label.probe(id)
+        }
+        // A vertical stack sized to its content, leading-aligned.
+        let column = UIStackView(arrangedSubviews: [label("First", "first"), label("Second line", "second"), label("Third", "third")])
+        column.axis = .vertical
+        column.spacing = 8
+        column.alignment = .leading
+        let columnSize = column.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        column.frame = CGRect(x: 16, y: 16, width: columnSize.width, height: columnSize.height)
+        root.addSubview(column.probe("column"))
+        // A horizontal stack filling the width with equal columns.
+        let minus = UIButton(type: .system)
+        minus.setTitle("−", for: .normal)
+        let plus = UIButton(type: .system)
+        plus.setTitle("+", for: .normal)
+        let row = UIStackView(arrangedSubviews: [minus.probe("minus"), plus.probe("plus")])
+        row.axis = .horizontal
+        row.distribution = .fillEqually
+        row.spacing = 8
+        row.frame = CGRect(x: 16, y: 120, width: 288, height: 34)
+        root.addSubview(row.probe("row"))
+        // A centred column whose width is the widest label's.
+        let centred = UIStackView(arrangedSubviews: [label("Count: 0", "count"), label("A longer caption", "caption")])
+        centred.axis = .vertical
+        centred.spacing = 12
+        centred.alignment = .center
+        let centredSize = centred.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        centred.frame = CGRect(x: (320 - centredSize.width) / 2, y: 180, width: centredSize.width, height: centredSize.height)
+        root.addSubview(centred.probe("centred"))
+        return root
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/View/ViewFixtures.swift": ##"""
+// UIView and CALayer (Docs/elements/UIKit/UIView.md): backgrounds, corner radii, borders,
+// alpha, a transform, clipping, a shadow, autoresizing.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+public enum ViewFixtures {
+    public static let all = [layers, autoresizing]
+
+    public static let layers = UIKitFixture("uikit/view/layers", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let plain = UIView(frame: CGRect(x: 16, y: 16, width: 80, height: 60))
+        plain.backgroundColor = .systemBlue
+        root.addSubview(plain.probe("plain"))
+        let rounded = UIView(frame: CGRect(x: 112, y: 16, width: 80, height: 60))
+        rounded.backgroundColor = .systemGreen
+        rounded.layer.cornerRadius = 12
+        root.addSubview(rounded.probe("rounded"))
+        let bordered = UIView(frame: CGRect(x: 208, y: 16, width: 80, height: 60))
+        bordered.backgroundColor = .systemGray6
+        bordered.layer.borderWidth = 2
+        bordered.layer.borderColor = UIColor.systemRed.cgColor
+        bordered.layer.cornerRadius = 8
+        root.addSubview(bordered.probe("bordered"))
+        let faded = UIView(frame: CGRect(x: 16, y: 92, width: 80, height: 60))
+        faded.backgroundColor = .systemIndigo
+        faded.alpha = 0.5
+        root.addSubview(faded.probe("faded"))
+        let rotated = UIView(frame: CGRect(x: 112, y: 92, width: 80, height: 60))
+        rotated.backgroundColor = .systemOrange
+        rotated.transform = CGAffineTransform(rotationAngle: .pi / 8)
+        root.addSubview(rotated.probe("rotated"))
+        let clipping = UIView(frame: CGRect(x: 208, y: 92, width: 80, height: 60))
+        clipping.backgroundColor = .systemTeal
+        clipping.clipsToBounds = true
+        let overflow = UIView(frame: CGRect(x: 40, y: 30, width: 80, height: 60))
+        overflow.backgroundColor = .systemPink
+        clipping.addSubview(overflow.probe("overflow"))
+        root.addSubview(clipping.probe("clipping"))
+        let shadowed = UIView(frame: CGRect(x: 16, y: 180, width: 80, height: 60))
+        shadowed.backgroundColor = .white
+        shadowed.layer.shadowOpacity = 0.3
+        shadowed.layer.shadowRadius = 6
+        shadowed.layer.shadowOffset = CGSize(width: 0, height: 4)
+        root.addSubview(shadowed.probe("shadowed"))
+        let continuous = UIView(frame: CGRect(x: 112, y: 180, width: 80, height: 60))
+        continuous.backgroundColor = .systemPurple
+        continuous.layer.cornerRadius = 20
+        continuous.layer.cornerCurve = .continuous
+        root.addSubview(continuous.probe("continuous"))
+        let corners = UIView(frame: CGRect(x: 208, y: 180, width: 80, height: 60))
+        corners.backgroundColor = .systemBrown
+        corners.layer.cornerRadius = 16
+        corners.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMaxYCorner]
+        root.addSubview(corners.probe("corners"))
+        return root
+    }
+
+    /// Autoresizing masks against a container that is resized after the subviews are placed.
+    public static let autoresizing = UIKitFixture("uikit/view/autoresizing", size: CGSize(width: 320, height: 200)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: 200, height: 100))
+        container.backgroundColor = .systemGray5
+        let flexible = UIView(frame: CGRect(x: 10, y: 10, width: 180, height: 30))
+        flexible.backgroundColor = .systemBlue
+        flexible.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        container.addSubview(flexible.probe("flexibleWidth"))
+        let pinned = UIView(frame: CGRect(x: 150, y: 60, width: 40, height: 30))
+        pinned.backgroundColor = .systemRed
+        pinned.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin]
+        container.addSubview(pinned.probe("pinnedBottomRight"))
+        let centred = UIView(frame: CGRect(x: 80, y: 40, width: 40, height: 20))
+        centred.backgroundColor = .systemGreen
+        centred.autoresizingMask = [.flexibleLeftMargin, .flexibleRightMargin, .flexibleTopMargin, .flexibleBottomMargin]
+        container.addSubview(centred.probe("centred"))
+        root.addSubview(container.probe("container"))
+        container.frame = CGRect(x: 16, y: 16, width: 288, height: 160)
+        return root
+    }
+}
+#endif
+"""##,
     ]
 }
