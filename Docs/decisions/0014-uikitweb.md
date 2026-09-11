@@ -274,3 +274,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   completion chain moved from the controller to the scene so handlers run when the animation
   ends. Found on the way: the alert action button re-sent `primaryActionTriggered` after
   `UIControl` had, the same double dispatch the bar buttons had.
+- Step 13 (2026-09-11): scroll polish (`Docs/ROADMAP.md`, Phase 7 status 4.16): rubber banding
+  from UIKit's published curve, paging, and indicators whose geometry the text view dump had
+  already recorded (3 pt bars 3 in, black at 35 %). They are hidden at rest, so no golden
+  changes; the tests drive them through the scene's pointer and frame clock.

@@ -66,4 +66,58 @@ import UIKit
         #expect(log.events.last == "endDecelerate")
         scene.pointerUp(at: CGPoint(x: 100, y: 150), time: 0.25)
     }
+
+    /// A drag past the top rubber-bands (UIKit's 0.55 curve) and springs back on release; the
+    /// indicator shows while the content moves and fades after it stops.
+    @Test func draggingPastAnEdgeRubberBandsAndSpringsBack() {
+        let (scroll, _) = scrollView()
+        let scene = UIKitScene.shared
+        #expect(scroll.verticalIndicator.alpha == 0)
+        scene.pointerDown(at: CGPoint(x: 100, y: 100), type: .touch, time: 0)
+        scene.pointerMoved(to: CGPoint(x: 100, y: 150), time: 0.05)
+        scene.pointerMoved(to: CGPoint(x: 100, y: 200), time: 0.1)
+        // 100 pt past the top in a 300 pt view: (1 - 1 / (100 * 0.55 / 300 + 1)) * 300 = 46.48.
+        let expected: CGFloat = -46.48
+        #expect(abs(scroll.contentOffset.y - expected) < 0.05)
+        #expect(scroll.verticalIndicator.alpha == 1)
+        #expect(!scroll.verticalIndicator.isHidden)
+        #expect(scroll.verticalIndicator.frame.width == 3)
+        #expect(scroll.verticalIndicator.frame.minX == scroll.contentOffset.x + 200 - 6)
+        scene.pointerUp(at: CGPoint(x: 100, y: 200), time: 0.2)
+        #expect(scene.isAnimating)
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(scroll.contentOffset.y == 0)
+        #expect(!scroll.isDecelerating)
+        _ = scene.advanceFrame(elapsed: 0.7)
+        #expect(scroll.verticalIndicator.alpha == 0)
+    }
+
+    /// The indicator's bar is the visible fraction of the content along a track 3 in from the
+    /// ends, placed by the offset.
+    @Test func indicatorTracksTheOffset() {
+        let (scroll, _) = scrollView()
+        scroll.contentOffset = CGPoint(x: 0, y: 400)
+        scroll.showIndicators()
+        // 300 visible of 2000: the track is 294, the bar 44, 400 / 1700 of the way along what is left.
+        let bar = scroll.verticalIndicator.frame
+        let expectedTop: CGFloat = 400 + 3 + 59
+        #expect(bar.height == 44)
+        #expect(bar.minY == expectedTop)
+        #expect(scroll.horizontalIndicator.isHidden)
+    }
+
+    /// Paging snaps to the nearest page on release, without momentum.
+    @Test func pagingSnapsToAPage() {
+        let (scroll, _) = scrollView()
+        let scene = UIKitScene.shared
+        scroll.isPagingEnabled = true
+        // A drag of 180 with velocity: past the half page, so the snap is to the second page.
+        scene.pointerDown(at: CGPoint(x: 100, y: 250), type: .touch, time: 0)
+        scene.pointerMoved(to: CGPoint(x: 100, y: 150), time: 0.05)
+        scene.pointerMoved(to: CGPoint(x: 100, y: 70), time: 0.1)
+        scene.pointerUp(at: CGPoint(x: 100, y: 70), time: 0.15)
+        #expect(!scroll.isDecelerating)
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(scroll.contentOffset.y == 300)
+    }
 }
