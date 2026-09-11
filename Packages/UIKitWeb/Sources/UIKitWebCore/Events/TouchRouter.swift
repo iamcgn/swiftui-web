@@ -52,6 +52,7 @@ final class TouchRouter {
         touch.previousWindowLocation = touch.windowLocation
         touch.windowLocation = point
         touch.timestamp = time
+        event.timestamp = time
         touch.phase = .moved
         let wasRecognized = touch.gestureRecognizers?.contains { $0.hasRecognized && $0.cancelsTouchesInView } ?? false
         for recognizer in touch.gestureRecognizers ?? [] { recognizer.touchesMoved([touch], with: event) }
@@ -73,6 +74,7 @@ final class TouchRouter {
         touch.previousWindowLocation = touch.windowLocation
         touch.windowLocation = point
         touch.timestamp = time
+        event.timestamp = time
         let recognized = touch.gestureRecognizers?.contains { $0.hasRecognized && $0.cancelsTouchesInView } ?? false
         touch.phase = cancelled ? .cancelled : .ended
         if touch.phase == .cancelled {

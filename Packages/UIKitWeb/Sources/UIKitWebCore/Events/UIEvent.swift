@@ -9,7 +9,7 @@ open class UIEvent {
     }
 
     public let type: EventType
-    public let timestamp: Double
+    public internal(set) var timestamp: Double
     var touches: Set<UITouch> = []
 
     init(type: EventType, timestamp: Double) {

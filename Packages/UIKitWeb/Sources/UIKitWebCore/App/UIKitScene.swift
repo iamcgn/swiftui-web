@@ -60,6 +60,7 @@ public final class UIKitScene: HostedScene {
         firstResponder = nil
         timers.removeAll()
         animationGroups.removeAll()
+        decelerating.removeAll()
         setNeedsFrame()
     }
 
@@ -117,9 +118,11 @@ public final class UIKitScene: HostedScene {
     // MARK: Frames
 
     public private(set) var needsFrame = false
-    public var isAnimating: Bool { !animationGroups.isEmpty }
+    public var isAnimating: Bool { !animationGroups.isEmpty || !decelerating.isEmpty }
     /// The running `UIView.animate` groups (Layers/LayerAnimation.swift).
     var animationGroups: [UIViewAnimationGroup] = []
+    /// Scroll views carried by momentum (Controls/UIScrollView.swift).
+    var decelerating: [UIScrollView] = []
     public var windowTitle: String? { nil }
     public var probeFrames: [String: CGRect] { probes }
     /// Frames published under a name for tests (`UIView.publishFrame(as:)`).
@@ -136,7 +139,8 @@ public final class UIKitScene: HostedScene {
     public func advanceFrame(elapsed: Double) -> Bool {
         runTimers(elapsed: elapsed)
         let animating = advanceAnimations(elapsed: elapsed)
-        return advanceHostingViews(elapsed: elapsed) || animating
+        let scrolling = advanceScrolling(elapsed: elapsed)
+        return advanceHostingViews(elapsed: elapsed) || animating || scrolling
     }
 
     /// Advances the timers and animations for a host whose frame loop drives a hosted tree (the
@@ -144,8 +148,9 @@ public final class UIKitScene: HostedScene {
     func advanceTimers(elapsed: Double) -> Bool {
         runTimers(elapsed: elapsed)
         let animating = advanceAnimations(elapsed: elapsed)
+        let scrolling = advanceScrolling(elapsed: elapsed)
         let hosting = advanceHostingViews(elapsed: elapsed)
-        return animating || hosting || !timers.isEmpty
+        return animating || scrolling || hosting || !timers.isEmpty
     }
 
     public func layout(in size: CGSize) {

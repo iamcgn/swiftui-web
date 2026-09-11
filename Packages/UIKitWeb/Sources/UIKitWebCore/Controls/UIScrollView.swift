@@ -1,6 +1,7 @@
 // UIScrollView (Docs/elements/UIKit/UIScrollView.md): content scrolled by the bounds origin,
-// wheel scrolling from the host and finger panning through a pan recognizer. Momentum and
-// bounce arrive with the animation clock (Phase 3).
+// wheel scrolling from the host, finger panning through a pan recognizer, and momentum after a
+// pan on the scene's frame clock (UIKit's deceleration rate: the velocity keeps 0.998 of itself
+// per millisecond).
 
 /// The methods a scroll view's delegate implements.
 @MainActor
@@ -49,7 +50,19 @@ open class UIScrollView: UIView {
     open var zoomScale: CGFloat = 1
     open weak var delegate: (any UIScrollViewDelegate)?
     public private(set) var isDragging = false
-    open var isDecelerating: Bool { false }
+    open var isDecelerating: Bool { momentum != nil }
+    /// The velocity's factor per millisecond while decelerating.
+    open var decelerationRate: DecelerationRate = .normal
+
+    public struct DecelerationRate: Hashable, Sendable, RawRepresentable {
+        public let rawValue: CGFloat
+        public init(rawValue: CGFloat) { self.rawValue = rawValue }
+        public static let normal = DecelerationRate(rawValue: 0.998)
+        public static let fast = DecelerationRate(rawValue: 0.99)
+    }
+
+    /// The velocity (points per second) carrying the content after a pan.
+    private var momentum: CGPoint?
 
     /// The pan that scrolls the content.
     public private(set) var panGestureRecognizer: UIPanGestureRecognizer!
@@ -122,8 +135,58 @@ open class UIScrollView: UIView {
             contentOffset = clamped(CGPoint(x: panStartOffset.x - translation.x, y: panStartOffset.y - translation.y))
         case .ended, .cancelled, .failed:
             isDragging = false
-            delegate?.scrollViewDidEndDragging(self, willDecelerate: false)
+            let velocity = pan.velocity(in: self)
+            let carries = pan.state == .ended && (abs(velocity.x) > 50 || abs(velocity.y) > 50)
+            delegate?.scrollViewDidEndDragging(self, willDecelerate: carries)
+            if carries {
+                momentum = CGPoint(x: -velocity.x, y: -velocity.y)
+                UIKitScene.shared.beginDecelerating(self)
+            }
         default: break
         }
+    }
+
+    /// Stops the momentum where the content is (a finger landing on the content).
+    func stopMomentum() {
+        guard momentum != nil else { return }
+        momentum = nil
+        delegate?.scrollViewDidEndDecelerating(self)
+    }
+
+    /// Carries the content by `elapsed` seconds of momentum; false when it has stopped.
+    func advanceMomentum(elapsed: Double) -> Bool {
+        guard var velocity = momentum else { return false }
+        let target = clamped(CGPoint(x: contentOffset.x + velocity.x * elapsed, y: contentOffset.y + velocity.y * elapsed))
+        let hitEdge = target.x != contentOffset.x + velocity.x * elapsed || target.y != contentOffset.y + velocity.y * elapsed
+        if target != contentOffset { contentOffset = target }
+        let factor = _pow(Double(decelerationRate.rawValue), elapsed * 1000)
+        velocity = CGPoint(x: velocity.x * factor, y: velocity.y * factor)
+        if hitEdge || (abs(velocity.x) < 4 && abs(velocity.y) < 4) {
+            momentum = nil
+            delegate?.scrollViewDidEndDecelerating(self)
+            return false
+        }
+        momentum = velocity
+        return true
+    }
+
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        stopMomentum()
+        super.touchesBegan(touches, with: event)
+    }
+}
+
+extension UIKitScene {
+    /// Registers a scroll view whose momentum needs frames.
+    func beginDecelerating(_ scrollView: UIScrollView) {
+        if !decelerating.contains(where: { $0 === scrollView }) { decelerating.append(scrollView) }
+        setNeedsFrame()
+    }
+
+    /// Advances every decelerating scroll view; true while any still moves.
+    func advanceScrolling(elapsed: Double) -> Bool {
+        guard !decelerating.isEmpty else { return false }
+        decelerating = decelerating.filter { $0.advanceMomentum(elapsed: elapsed) }
+        return !decelerating.isEmpty
     }
 }
