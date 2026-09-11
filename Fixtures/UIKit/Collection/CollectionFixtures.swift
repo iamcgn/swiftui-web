@@ -94,11 +94,11 @@ final class TagSource: NSObject, UICollectionViewDataSource {
 }
 
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional]
 
     @MainActor static var sources: [GridSource] = []
 
-    @MainActor static func make(layout: UICollectionViewFlowLayout, source: GridSource, frame: CGRect = CGRect(x: 0, y: 0, width: 320, height: 400)) -> UIView {
+    @MainActor static func make(layout: UICollectionViewLayout, source: GridSource, frame: CGRect = CGRect(x: 0, y: 0, width: 320, height: 400)) -> UIView {
         let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
         let collection = UICollectionView(frame: frame, collectionViewLayout: layout)
         collection.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
@@ -154,6 +154,37 @@ public enum CollectionFixtures {
         collection.dataSource = source
         collection.backgroundColor = .systemBackground
         root.addSubview(collection.probe("collection"))
+        return root
+    }
+
+    /// A compositional layout: a section of full-width 44 pt rows 8 apart with a 30 pt header,
+    /// then a three-column grid of 60 pt cells 8 apart inside 16 pt content insets.
+    public static let compositional = UIKitFixture("uikit/collection/compositional", size: CGSize(width: 320, height: 400)) {
+        let layout = UICollectionViewCompositionalLayout { section, _ in
+            if section == 0 {
+                let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)))
+                let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)), subitems: [item])
+                let section = NSCollectionLayoutSection(group: group)
+                section.interGroupSpacing = 8
+                let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(30)), elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
+                section.boundarySupplementaryItems = [header]
+                return section
+            }
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0 / 3.0), heightDimension: .absolute(60)))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(60)), subitems: [item])
+            group.interItemSpacing = .fixed(8)
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = 8
+            section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+            return section
+        }
+        let source = HeaderSource()
+        source.counts = [2, 5]
+        source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 0, section: 1): "item2", IndexPath(item: 2, section: 1): "item4", IndexPath(item: 3, section: 1): "item5"]
+        source.headerProbes = [0: "header0"]
+        let root = make(layout: layout, source: source)
+        let collection = root.subviews.first { $0 is UICollectionView } as! UICollectionView
+        collection.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
         return root
     }
 

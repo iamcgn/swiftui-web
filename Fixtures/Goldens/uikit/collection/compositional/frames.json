@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/collection\/compositional",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "header0" : {
+      "height" : 30,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "item0" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 30
+    },
+    "item1" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 82
+    },
+    "item2" : {
+      "height" : 60,
+      "width" : 90.5,
+      "x" : 16,
+      "y" : 142
+    },
+    "item4" : {
+      "height" : 60,
+      "width" : 90.5,
+      "x" : 213,
+      "y" : 142
+    },
+    "item5" : {
+      "height" : 60,
+      "width" : 90.5,
+      "x" : 16,
+      "y" : 210
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

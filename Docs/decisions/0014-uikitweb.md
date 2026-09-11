@@ -311,3 +311,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   status 4.24): the snapshot is a value with ordered sections and items, the data sources
   keep the applied one and answer the plain protocols from it, and registrations map to the
   reuse identifiers already in place. Animated differences stay open.
+- Step 22 (2026-09-11): compositional layouts (`Docs/ROADMAP.md`, Phase 7 status 4.25). The
+  solver walks sections, groups and items with the dimensions resolved against their
+  container; the golden settled the one rule that is not documented, that a group fills its
+  slots by the items' own sizes and then takes a fixed spacing out of the fractional ones.

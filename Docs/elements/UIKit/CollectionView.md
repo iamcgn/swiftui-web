@@ -83,3 +83,22 @@ same over a table, `defaultRowAnimation` stored, `titleForHeaderInSection` overr
 `dequeueConfiguredReusableCell(using:for:item:)` / `dequeueConfiguredReusableSupplementary(using:for:)`.
 Applying a snapshot reloads the view to match; the differences are not animated (open), and the
 completion runs on the next frame.
+
+## Compositional layouts (2026-09-11, `uikit/collection/compositional`)
+
+`Containers/CompositionalLayout.swift`. `UICollectionViewCompositionalLayout(section:)` /
+`(sectionProvider:)` with `UICollectionViewCompositionalLayoutConfiguration` (`scrollDirection`,
+`interSectionSpacing`), `NSCollectionLayoutSection` (`contentInsets`, `interGroupSpacing`,
+`boundarySupplementaryItems`; `orthogonalScrollingBehavior` stored), `NSCollectionLayoutGroup`
+(`horizontal` / `vertical` with `subitems` repeating to fill the group, or `repeatingSubitem:count:`,
+nested groups, `interItemSpacing`, `contentInsets`), `NSCollectionLayoutItem` (`contentInsets`),
+`NSCollectionLayoutSize` and `NSCollectionLayoutDimension` (`fractionalWidth`, `fractionalHeight`,
+`absolute`, `estimated` taken as given), `NSCollectionLayoutSpacing` (`fixed`, `flexible`),
+`NSCollectionLayoutBoundarySupplementaryItem` (top and bottom alignments), the environment's
+`container.contentSize`. Measured: a group's subitems fill its axis by their own sizes, then a
+fixed inter-item spacing comes out of the fractional items' share, on the pixel grid (three
+1/3-width items 8 apart in 288 are 90.5 wide at 16, 114.5 and 213); rows follow one another
+`interGroupSpacing` apart; a section's top boundary item spans its container above the
+content insets. Pixels 0.4 % off the simulator. Open: orthogonal scrolling, pinned boundary
+items, estimated (self-sizing) dimensions, item supplementary items, `list(using:)` and
+`UICollectionViewListCell`.
