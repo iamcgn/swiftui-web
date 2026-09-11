@@ -427,12 +427,15 @@ open class UIView: UIResponder, UITraitEnvironment {
 
     // MARK: Drawing
 
-    /// Custom drawing arrives in Phase 3 (a recording graphics context); the default is empty.
+    /// Draws the view's content with the current graphics context (`UIGraphicsGetCurrentContext()`,
+    /// `UIBezierPath`, `UIColor.setFill`); the default draws nothing (Drawing/GraphicsContext.swift).
     open func draw(_ rect: CGRect) {}
 
-    /// Paints the view's own content (labels, images) at the layer's coordinates; subclasses
-    /// override this in place of `draw(_:)`.
-    func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {}
+    /// Paints the view's own content (labels, images) at the layer's coordinates; the built-in
+    /// views override this in place of `draw(_:)`. The default runs `draw(_:)`.
+    func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
+        drawCustomContent(into: &list, context: context)
+    }
 
     // MARK: Coordinate conversion
 

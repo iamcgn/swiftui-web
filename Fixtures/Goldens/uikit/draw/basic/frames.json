@@ -1,0 +1,21 @@
+{
+  "fixture" : "uikit\/draw\/basic",
+  "frames" : {
+    "context" : {
+      "height" : 190,
+      "width" : 280,
+      "x" : 20,
+      "y" : 210
+    },
+    "shapes" : {
+      "height" : 190,
+      "width" : 280,
+      "x" : 20,
+      "y" : 10
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 320
+  }
+}

@@ -175,3 +175,14 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   One Swift gotcha for the solver: iterating a dictionary's `keys` while mutating the
   dictionary is an exclusivity violation ("Fatal access conflict"), as is optimising an
   `inout` row that the pivot's substitution also writes through `self`.
+- Step 2 (2026-09-11): `draw(_:)` (`Docs/ROADMAP.md`, Phase 7 status 3.2;
+  `Docs/elements/UIKit/Drawing.md`). Without an Objective-C runtime there is no way to ask
+  whether a class overrides `draw(_:)`, so every view that is not one of the built-in painters
+  gets `draw(bounds)` called each frame with a recording context; the default draws nothing and
+  the recorder is cheap. The context is a state machine over the display list (CoreGraphics's
+  save/restore semantics, transforms applied when a path is painted). Naming: on wasm the
+  recorder is `CGContext`, so `UIGraphicsGetCurrentContext()` code compiles as on iOS; on Apple
+  platforms CoreGraphics owns the name and a typealias in the `UIKit` shim would make it
+  ambiguous for any file that also sees AppKit (the root's native tests), so there the class is
+  `UIGraphicsRecordingContext` and type inference carries most drawing code. The pixel tier
+  showed the first attempt right at 0.16 %.

@@ -20,6 +20,13 @@ import WebGraphicsCanvas
 import WebGraphicsNative
 #endif
 
+#if os(WASI)
+/// On wasm there is no CoreGraphics: the recording context is what `CGContext` names, so
+/// `UIGraphicsGetCurrentContext()` and `draw(_:)` code type-checks as on iOS. On Apple platforms
+/// CoreGraphics keeps the name and the recording context is `UIGraphicsRecordingContext`.
+public typealias CGContext = UIGraphicsRecordingContext
+#endif
+
 /// Marker used by the module-shadowing check (decision 0014).
 public struct UIKitWebMarker: Sendable {
     public init() {}
