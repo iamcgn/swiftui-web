@@ -159,8 +159,9 @@ public struct Text: Equatable, Sendable {
             t.modifiers.foregroundGradient = nil
         } else if let level = style as? HierarchicalShapeStyle {
             if level.level > 0 {
-                t.modifiers.foregroundColor = t.modifiers.foregroundColor.map { $0.opacity(level.opacity) }
-                    ?? (level.level == 1 ? Color.secondary : Color.primary.opacity(level.opacity))
+                // Resolved for macOS here (a Text carries no environment); an iPhone's tertiary
+                // and quaternary differ only as fills and environment styles.
+                t.modifiers.foregroundColor = level.color(foreground: t.modifiers.foregroundColor, isIOS: false)
                 t.modifiers.foregroundGradient = nil
             }
         } else if let gradient = MainActor.assumeIsolated({ style as? any _GradientStyle }) {

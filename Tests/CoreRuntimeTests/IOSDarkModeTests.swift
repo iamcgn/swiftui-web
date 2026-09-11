@@ -35,7 +35,9 @@ import SwiftUIWebHeadless
         #expect(light._windowBackground == .white && dark._windowBackground == .black)
         #expect(dark._controlBackground == .black)
         #expect(light._groupedCard == .white && dark._groupedCard == RGBA(r: 28, g: 28, b: 30))
-        #expect(PlatformProfile.iOS.resolve(.groupedBackground, scheme: .light) == RGBA(r: 235, g: 236, b: 236))
+        #expect(PlatformProfile.iOS.resolve(.groupedBackground, scheme: .light) == RGBA(r: 242, g: 242, b: 247))
+        #expect(PlatformProfile.iOS.resolve(.primary, scheme: .light) == .black)
+        #expect(PlatformProfile.iOS.resolve(.secondary, scheme: .dark) == RGBA(r: 235, g: 235, b: 245, a: 0.6))
         #expect(PlatformProfile.iOS.resolve(.groupedBackground, scheme: .dark) == .black)
         // macOS keeps its own greys.
         #expect(EnvironmentValues().platformProfile.resolve(.windowBackground, scheme: .dark) == RGBA(r: 30, g: 30, b: 30))
@@ -46,7 +48,8 @@ import SwiftUIWebHeadless
         #expect(list.contains { $0.hasPrefix("fillRect(0, 0, 320, 300) #000000") })
         #expect(list.contains { $0.hasPrefix("fillPath") && $0.hasSuffix("#1C1C1E") })
         let plain = commands(List { Text("Hi") }.listStyle(.plain))
-        #expect(plain.contains { $0.hasPrefix("fillRect(0, 0, 320, 300) #000000") })
+        // A plain list paints black behind its rows only (ios/dark/list-plain).
+        #expect(plain.contains { $0.hasPrefix("fillRect(0, 0, 320, 56) #000000") })
     }
 
     @Test func controlsTakeTheirDarkLooks() {
@@ -62,8 +65,8 @@ import SwiftUIWebHeadless
         #expect(field.contains { $0.hasPrefix("fillRRect") && $0.hasSuffix("#000000") })
     }
 
-    @Test func anEmptyPlainFieldIsHalfAPointShorter() {
-        #expect(runtime(TextField("Hi", text: .constant(""))._probe("f")).probeFrames["f"]?.height == 25)
+    @Test func aPlainFieldIs26TallEmptyOrNot() {
+        #expect(runtime(TextField("Hi", text: .constant(""))._probe("f")).probeFrames["f"]?.height == 26)
         #expect(runtime(TextField("Hi", text: .constant("Hi"))._probe("f")).probeFrames["f"]?.height == 26)
     }
 }

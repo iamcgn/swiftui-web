@@ -1,6 +1,6 @@
 # 0015 — iOS goldens from an iPhone simulator
 
-Status: accepted (2026-09-10); UIKit goldens moved, SwiftUI iOS goldens next
+Status: accepted (2026-09-10); UIKit and SwiftUI iOS goldens both moved
 
 ## Context
 
@@ -35,8 +35,11 @@ is installed now.
   (`SDKROOT` in `scripts/env.sh`): with Xcode selected, `xcrun` would hand it Xcode 27's SDK,
   whose interfaces a Swift 6.3 compiler cannot read (`unknown argument: '-target-arch-variant'`).
   The simulator scripts use Xcode's `/usr/bin/swift`.
-- Fixtures wider than the SE's 375 × 667 screen (three `ios/` fixtures at 400) must shrink or
-  be measured for blank off-screen pixels before the SwiftUI iOS goldens move.
+- Fixtures wider than the SE's 375 × 667 screen (three `ios/` fixtures at 400) snapshot
+  completely: `drawHierarchy` renders the window's whole extent, on screen or not.
+- The window pins the regular vertical size class (`traitOverrides`): a window under 415 pt
+  tall would otherwise be a landscape phone, with no large titles and shorter bars. The status
+  bar is hidden (`UIStatusBarHidden`) so navigation bars sit at the window's top, as in a browser.
 
 ## Log
 
@@ -49,3 +52,14 @@ is installed now.
   is 30 tall; a plain text field is line height plus 1.5 rounded up, its width rounded up to the
   point; the switch is 51 × 31, so the test's origin-only carve-out is gone. Tier A exact, no
   tolerances.
+- 2026-09-10, SwiftUI: all 36 `ios/` fixtures and `ios/text-metrics.json` regenerated on the
+  simulator, `SystemFontMetricsTableIOS.swift` from it. The runtime followed (`Docs/elements/iOS.md`
+  has the numbers): the 66 × 30 iOS 26 switch, list rows whose controls are their label's line,
+  the plain button's spacing, the 0.5 pt divider, bars of 116.5 and 64 with a 52.5 collapse and
+  the title 16 in, the scrolled title fading under the bar's glass with the content showing
+  through (`_navigationBarOverhang`), opaque screens, the iPhone palette (opaque labels, the
+  (60, 60, 67) secondary, tertiary and quaternary as fractions of it, dark grey, indigo and
+  accent), a plain list black behind its rows only, undimmed toggle and stepper labels. The
+  Catalyst allowances are gone from Tier A (`approximatePrefixes` keeps only the symbol
+  extrapolation), Tier B and Tier C (no `ios/` width or pixel multipliers, no frames-only
+  fixtures; dark fixtures composite over the black window, which the gallery paints too).

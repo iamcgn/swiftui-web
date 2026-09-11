@@ -245,11 +245,16 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
     }
     /// A button spaces like a plain view (8 to controls, the text's distance next to text:
     /// form/basic `button` sits 8.15 under a stepper and 4.74 over a text).
-    /// macOS: a control's plain spacing. iOS: the label's, so a borderless button spaces like
-    /// its text (ios/layout/controls: 14.54 to the bordered button below it); a bordered one
-    /// declares plain spacing itself (`_PlainSpacingModifier`).
+    /// macOS: a control's plain spacing. iOS: the label's above (a borderless button sits 8.43
+    /// under a toggle, its text's distance from a control) and the plain 8 below (8 to the
+    /// bordered button under it; ios/layout/controls); a bordered one declares plain spacing
+    /// itself (`_PlainSpacingModifier`).
     override package var layoutSpacing: ViewSpacing {
-        PlatformMetrics.controlsUsePlainSpacing ? (target?.layoutSpacing ?? ViewSpacing()) : ViewSpacing()
+        guard PlatformMetrics.controlsUsePlainSpacing, var spacing = target?.layoutSpacing else { return ViewSpacing() }
+        for category in [ViewSpacing.Category.textToText, .textBaseline, .edgeBelowText, .edgeAboveText] { spacing[category, .bottom] = nil }
+        spacing[nil, .bottom] = ViewSpacing.defaultDistance
+        spacing[.edgeAboveText, .bottom] = 0
+        return spacing
     }
     override package var paintedChildren: [ViewNode] { target.map { [$0] } ?? [] }
     override package var structuralChildren: [ViewNode] { [child] }

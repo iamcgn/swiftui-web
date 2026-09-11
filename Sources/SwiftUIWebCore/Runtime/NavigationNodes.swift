@@ -47,6 +47,8 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         environment._navigationContext = context
         environment.dismiss = DismissAction { [weak self] in self?.pop() }
         environment._underNavigationBar = environment.platformProfile.isIOS && large
+        environment._navigationBarOverhang = environment.platformProfile.isIOS
+            ? (large ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight) : 0
         return environment
     }
 
@@ -464,6 +466,10 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if bar != nil, let top = nodes.first,
            let ground = (top.descendants(where: { $0 is any _ListGroundProviding }).first as? any _ListGroundProviding)?._groundColor {
             list.append(.fillRect(bounds, ground.resolve(in: environment)))
+        } else if environment.platformProfile.isIOS {
+            // An iOS screen is opaque: the window's colour (white; black in the dark appearance)
+            // behind content without a ground of its own (ios/dark/nav `push`).
+            list.append(.fillRect(bounds, environment.platformProfile.resolve(.windowBackground, scheme: environment.colorScheme)))
         }
         for node in nodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
         if let bar, barOpacity > 0 { paintBar(bar, opacity: barOpacity, into: &list, context: context) }
@@ -472,10 +478,27 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
 
     /// The bar's title and back button at `opacity` (multiplied into the colours: an opacity
     /// group would composite the whole canvas offscreen twice per frame of a slide).
+    /// The bar's glass on iOS 26, over content that has scrolled under it (a large title fading,
+    /// or the collapsed bar): a tint of the ink at 37/255 at the window's top easing out over
+    /// 80 pt (ios/nav/scroll `row1`, `row8`: 218 at the top, 231 at 40 pt, 246 at 60, 253 at
+    /// 80 over white), full once the content has moved a quarter of the collapse. At rest there
+    /// is none.
+    private func paintGlass(strength: Double, into list: inout DisplayList, bounds: CGRect) {
+        guard strength > 0 else { return }
+        let zone = CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: PlatformMetrics.navigationGlassHeight)
+        let ink = environment._isDark ? RGBA(r: 255, g: 255, b: 255) : RGBA(r: 0, g: 0, b: 0)
+        let stops = [(0.0, 37.0), (0.25, 34.0), (0.5, 24.0), (0.75, 9.0), (1.0, 1.0)].map {
+            DisplayGradient.Stop(location: $0.0, color: ink.multiplyingAlpha(by: $0.1 / 255 * strength))
+        }
+        let gradient = DisplayGradient(kind: .linear(start: zone.origin, end: CGPoint(x: zone.minX, y: zone.maxY)), stops: stops)
+        list.append(.fillGradient(Path(zone), gradient))
+    }
+
     private func paintBar(_ bar: Bar, opacity: Double, into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
         let profile = environment.platformProfile
         let color = (environment.foregroundColor ?? .primary).resolve(in: environment).multiplyingAlpha(by: opacity)
+        if profile.isIOS, bar.large, bar.collapsed { paintGlass(strength: 1, into: &list, bounds: bounds) }
         if let title = bar.title {
             if bar.showsLargeTitle {
                 // The large title scrolls up with the content until it is under the inline zone
@@ -484,13 +507,22 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
                 let metrics = profile.systemFontMetrics(for: font)
                 let scroll = largeTitleScroll
                 let origin = CGPoint(x: bounds.minX + PlatformMetrics.navigationTitleInset, y: bounds.minY + PlatformMetrics.navigationLargeTitleTop + metrics.baseline - scroll)
-                if scroll > 0 {
-                    list.append(.save)
-                    list.append(.clipRect(CGRect(x: bounds.minX, y: bounds.minY + PlatformMetrics.navigationBarInlineHeight, width: bounds.width,
-                                                 height: PlatformMetrics.navigationBarLargeHeight - PlatformMetrics.navigationBarInlineHeight)))
+                if scroll > 0, profile.isIOS {
+                    // iOS 26 (ios/nav/scroll `row1`): the title fades as it travels under the bar's
+                    // glass, the window colour thinning to nothing over the inline zone; it is
+                    // not clipped.
+                    let progress = min(1, scroll / PlatformMetrics.navigationLargeTitleCollapse)
+                    list.append(.drawText(title, DisplayFont(font), origin: origin, color.multiplyingAlpha(by: 1 - progress)))
+                    paintGlass(strength: min(1, progress * 4), into: &list, bounds: bounds)
+                } else {
+                    if scroll > 0 {
+                        list.append(.save)
+                        list.append(.clipRect(CGRect(x: bounds.minX, y: bounds.minY + PlatformMetrics.navigationBarInlineHeight, width: bounds.width,
+                                                     height: PlatformMetrics.navigationBarLargeHeight - PlatformMetrics.navigationBarInlineHeight)))
+                    }
+                    list.append(.drawText(title, DisplayFont(font), origin: origin, color))
+                    if scroll > 0 { list.append(.restore) }
                 }
-                list.append(.drawText(title, DisplayFont(font), origin: origin, color))
-                if scroll > 0 { list.append(.restore) }
             } else {
                 let font = Font.headline.resolve(profile: profile)
                 let metrics = profile.systemFontMetrics(for: font)

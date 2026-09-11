@@ -75,6 +75,8 @@ enum Goldens {
     /// (Docs/elements/Image.md), and the frames that contain them.
     static let approximateProbes: [String: Set<String>] = [
         "symbol/basic": ["size24", "size40", "baselineText40", "largeSize24", "light", "black", "blue30", "chevronSemibold", "approximateRow", "stack"],
+        // UIKit's header label measures "Header" a point wider than SwiftUI's Text (37 for 36).
+        "ios/list/footer": ["header"],
     ]
 
     /// Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame
@@ -86,16 +88,15 @@ enum Goldens {
         "splitview/visibility/detailOnly": ["sidebar", "row1", "detail"],
         // Apple's table re-creates the cells of rows a sort moves, and their probes never report.
         "table/sorting/byCount": ["name2", "name3", "count2", "count3"],
-        // UIKit's grouped footer label is 21 tall around an 18.5 pt footnote line (the slot is
+        // UIKit's grouped footer label is 21 tall around a 19 pt footnote line (the slot is
         // laid out at 21; the text inside keeps its line; Docs/elements/iOS.md).
         "ios/list/footer": ["footer", "footer2"],
         "ios/list/footer-header": ["footer"],
     ]
 
-    /// Fixtures whose probes are allowed three points: Catalyst lays list rows out with UIKit
-    /// cells, whose text measures 1.5 to 2.5 pt narrower than SwiftUI's (Docs/elements/iOS.md);
-    /// the symbol table extrapolates iOS's larger styles within 1.5 pt.
-    static let approximatePrefixes = ["ios/list/", "ios/form/", "ios/nav/", "ios/dark/list", "ios/dark/form", "ios/dark/nav", "ios/symbol/", "ios/label/"]
+    /// Fixtures whose probes are allowed three points: the symbol table extrapolates iOS's
+    /// larger styles within 1.5 pt (Docs/elements/iOS.md), and a label row grows to its icon.
+    static let approximatePrefixes = ["ios/symbol/", "ios/label/"]
 
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
         let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }

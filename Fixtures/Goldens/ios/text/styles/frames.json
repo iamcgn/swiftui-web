@@ -3,78 +3,78 @@
   "frames" : {
     "body" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39.5,
       "x" : 123.75,
-      "y" : 285.25
+      "y" : 285.75
     },
     "bold" : {
       "height" : 24.5,
-      "width" : 37.5,
+      "width" : 36,
       "x" : 123.75,
-      "y" : 425.75
+      "y" : 426.75
     },
     "callout" : {
-      "height" : 24,
-      "width" : 53,
+      "height" : 23.5,
+      "width" : 51,
       "x" : 123.75,
-      "y" : 317.75
+      "y" : 318.25
     },
     "caption" : {
       "height" : 17.5,
-      "width" : 46,
+      "width" : 44,
       "x" : 123.75,
-      "y" : 376.25
+      "y" : 376.75
     },
     "caption2" : {
-      "height" : 16,
-      "width" : 53,
+      "height" : 16.5,
+      "width" : 51,
       "x" : 123.75,
-      "y" : 401.75
+      "y" : 402.25
     },
     "default" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39,
       "x" : 123.75,
-      "y" : 9.75
+      "y" : 8.75
     },
     "footnote" : {
-      "height" : 18.5,
-      "width" : 56.5,
+      "height" : 19,
+      "width" : 54.5,
       "x" : 123.75,
       "y" : 349.75
     },
     "headline" : {
       "height" : 24.5,
-      "width" : 73,
+      "width" : 70.5,
       "x" : 123.75,
-      "y" : 223.75
+      "y" : 224.25
     },
     "largeTitle" : {
-      "height" : 48.5,
+      "height" : 49,
       "width" : 152.5,
       "x" : 123.75,
-      "y" : 42.25
+      "y" : 41.25
     },
     "stack" : {
-      "height" : 440.5,
+      "height" : 442.5,
       "width" : 152.5,
       "x" : 123.75,
-      "y" : 9.75
+      "y" : 8.75
     },
     "subheadline" : {
       "height" : 21,
-      "width" : 88,
+      "width" : 85,
       "x" : 123.75,
-      "y" : 256.25
+      "y" : 256.75
     },
     "title" : {
-      "height" : 41,
+      "height" : 41.5,
       "width" : 52,
       "x" : 123.75,
-      "y" : 98.75
+      "y" : 98.25
     },
     "title2" : {
-      "height" : 32,
+      "height" : 32.5,
       "width" : 58.5,
       "x" : 123.75,
       "y" : 147.75
@@ -83,7 +83,7 @@
       "height" : 28,
       "width" : 54.5,
       "x" : 123.75,
-      "y" : 187.75
+      "y" : 188.25
     }
   },
   "size" : {

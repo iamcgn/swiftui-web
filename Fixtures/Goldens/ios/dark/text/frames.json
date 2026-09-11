@@ -3,57 +3,57 @@
   "frames" : {
     "disabled" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39,
       "x" : 0,
-      "y" : 137.75
+      "y" : 138
     },
     "divider" : {
-      "height" : 1,
+      "height" : 0.5,
       "width" : 320,
       "x" : 0,
-      "y" : 210.75
+      "y" : 211
     },
     "link" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39,
       "x" : 0,
-      "y" : 174.25
+      "y" : 174.5
     },
     "primary" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39,
       "x" : 0,
-      "y" : -8.25
+      "y" : -8
     },
     "red" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39,
       "x" : 0,
-      "y" : 101.25
+      "y" : 101.5
     },
     "secondary" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39,
       "x" : 0,
-      "y" : 28.25
+      "y" : 28.5
     },
     "stack" : {
-      "height" : 256.5,
+      "height" : 256,
       "width" : 320,
       "x" : 0,
-      "y" : -8.25
+      "y" : -8
     },
     "tertiary" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39,
       "x" : 0,
-      "y" : 64.75
+      "y" : 65
     },
     "underlined" : {
       "height" : 24.5,
-      "width" : 40.5,
+      "width" : 39,
       "x" : 0,
-      "y" : 223.75
+      "y" : 223.5
     }
   },
   "size" : {

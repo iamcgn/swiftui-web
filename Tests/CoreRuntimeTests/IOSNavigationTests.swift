@@ -70,8 +70,8 @@ import SwiftUIWebHeadless
         box.path = [1]
         r.layout(in: CGSize(width: 320, height: 480))
         r.advanceAnimations(elapsed: 1)
-        // The detail inherits the large title: its content sits under a 117 pt bar, centred.
-        #expect(r.probeFrames["pushed"] == CGRect(x: 131.25, y: 286.25, width: 57.5, height: 24.5))
+        // The detail inherits the large title: its content sits under a 116.5 pt bar, centred.
+        #expect(r.probeFrames["pushed"] == CGRect(x: 131.25, y: 286, width: 57.5, height: 24.5))
         #expect(texts(r) == ["Pushed", "Detail"])
         let back = r.semanticsTree().first { $0.label == "Back" }
         #expect(back?.role == .button && back?.frame == CGRect(x: 10, y: 10, width: 44, height: 44))
@@ -129,7 +129,7 @@ import SwiftUIWebHeadless
         // An inline bar is 64 pt: the content centres below it (ios/nav/push-inline).
         #expect(r.probeFrames["pushed"] == CGRect(x: 131.25, y: 259.75, width: 57.5, height: 24.5))
         // The root keeps its large bar beneath.
-        #expect(abs((r.probeFrames["root"]?.minY ?? 0) - (117 + (363 - 24.5 - 12 - 24.5) / 2)) < 1e-9)
+        #expect(abs((r.probeFrames["root"]?.minY ?? 0) - (116.5 + (363.5 - 24.5 - 12 - 24.5) / 2)) < 1e-9)
     }
 
     @Test func hidingTheBackButtonOnAnUntitledScreenRemovesTheBar() {
@@ -177,14 +177,16 @@ import SwiftUIWebHeadless
             .navigationTitle("Settings")
             ._probe("scroll")
         }, size: CGSize(width: 320, height: 400))
-        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 117, width: 320, height: 283))
+        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 116.5, width: 320, height: 283.5))
         let titleY = commandY(commands(r), font: "system 34 w700")!
-        // 40 pt: the bar stays large and the title slides up under the inline zone.
+        // 40 pt: the bar stays large; the title slides up, fading, under the bar's glass (a
+        // gradient over the inline zone), and the content shows through it.
         r.scrollWheel(by: CGSize(width: 0, height: 40), at: CGPoint(x: 160, y: 200))
         r.layout(in: CGSize(width: 320, height: 400))
-        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 117, width: 320, height: 283))
+        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 116.5, width: 320, height: 283.5))
         let sliding = commands(r)
-        #expect(sliding.contains { $0.hasPrefix("clipRect(0, 64, 320, 53)") })
+        #expect(sliding.contains { $0.hasPrefix("fillGradient") })
+        #expect(sliding.contains { $0.hasPrefix("drawText(\"Settings\" system 34 w700") && $0.contains("@0.2") })
         #expect(commandY(sliding, font: "system 34 w700") == titleY - 40)
         // Past the title: the inline bar, the content frame grows and its offset is reduced by
         // the difference, so the rows on screen stay where they were.
@@ -197,7 +199,7 @@ import SwiftUIWebHeadless
         // Back at the top it expands again.
         r.scrollWheel(by: CGSize(width: 0, height: -200), at: CGPoint(x: 160, y: 200))
         r.layout(in: CGSize(width: 320, height: 400))
-        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 117, width: 320, height: 283))
+        #expect(r.probeFrames["scroll"] == CGRect(x: 0, y: 116.5, width: 320, height: 283.5))
     }
 
     @Test func macOSPushesStayInstantWithoutABackButton() {

@@ -17,5 +17,5 @@ what UIKitWeb draws: a 27 pt white knob 2 pt in, the track green (`systemGreen`)
 
 Mac Catalyst draws the Mac switch instead, 63 × 28 with a 37 × 24 knob (the macOS 26 look), and
 the first goldens came from there with the switch probes carved out; the simulator goldens
-(decision 0015) compare them exactly. The iOS SwiftUI profile still carries Catalyst's 61 × 28
-toggle (`Docs/elements/iOS.md`) until its goldens are regenerated on the simulator.
+(decision 0015) compare them exactly. SwiftUI's `Toggle` on iOS 26 is a different control: a
+66 × 30 switch with a 38 × 25 pill knob (`Docs/elements/iOS.md`), which the iOS profile draws.

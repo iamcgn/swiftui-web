@@ -510,6 +510,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var navigationLargeTitleTop: CGFloat = 65.5
     package var navigationTitleInset: CGFloat = 20
     package var navigationLargeTitleCollapse: CGFloat = 53             // the large title's own height: scrolled past it, the bar is the inline one (ios/nav/scroll)
+    package var navigationGlassHeight: CGFloat = 80                    // iOS 26: the bar's tint over scrolled content eases out this far down (ios/nav/scroll)
     // The back button of a pushed screen (ios/nav/push, ios/nav/push-inline): a glass circle at the
     // bar's leading edge with a chevron; the slide of a push or pop is not measurable from goldens.
     package var navigationBackButtonInset: CGFloat = 10

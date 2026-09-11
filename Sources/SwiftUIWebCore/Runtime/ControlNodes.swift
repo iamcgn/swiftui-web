@@ -6,6 +6,15 @@
 @MainActor
 private var nextControlIdentifier = 5_000_000
 
+
+extension EnvironmentValues {
+    /// The line height of the environment's font (the body line, 24.5, on iOS): the height a
+    /// control takes in an iOS list row, where the cell draws the control beside the label.
+    package var _lineHeight: CGFloat {
+        platformProfile.systemFontMetrics(for: (font ?? platformProfile.defaultFont).resolve(profile: platformProfile)).lineHeight
+    }
+}
+
 extension ViewSpacing {
     /// The default-stack spacing a macOS control declares: `top`/`bottom` towards plain
     /// neighbours, `belowText` under a text, `aboveText` over one (form/basic row gaps).
@@ -217,7 +226,8 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
             let selectedWidth = zip(options, sizes).first(where: { isSelected($0.0) })?.1.width ?? widest
             let valueWidth = selectedWidth + PlatformMetrics.popUpChevronGap + PlatformMetrics.popUpChevronWidth
             let width = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? (labelWidth + valueWidth)
-            let height = max(PlatformMetrics.popUpHeight, labelSize.height)
+            // The row is its label's line (24.5 in ios/form/basic); the 40.5 pt control overflows it, centred.
+            let height = labelSize.height
             let control = CGRect(x: width - valueWidth, y: (height - PlatformMetrics.popUpHeight) / 2, width: valueWidth, height: PlatformMetrics.popUpHeight)
             for index in options.indices {
                 options[index].frame = CGRect(x: control.minX, y: control.minY + (control.height - sizes[index].height) / 2,
@@ -622,7 +632,11 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive 
         super.init(context)
     }
 
-    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { PlatformMetrics.stepperSize }
+    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        // iOS list rows: the stepper is its label's line (ios/form/basic: 24.5); the pill overflows it.
+        if environment.platformProfile.isIOS && environment._inListRow { return CGSize(width: PlatformMetrics.stepperSize.width, height: environment._lineHeight) }
+        return PlatformMetrics.stepperSize
+    }
     override package var layoutSpacing: ViewSpacing { PlatformMetrics.controlsUsePlainSpacing ? ViewSpacing() : .textLikeControl }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {

@@ -28,22 +28,18 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 const approximate = ['text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
   'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
-// ios/ goldens come from Mac Catalyst, whose scaled text measures a little wider than SF drawn
-// at the size (Docs/elements/iOS.md): text widths get the text fixtures' tolerance, pixels the
-// approximate one.
-// ios/symbol/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt);
-// list-backed iOS fixtures lay rows out with UIKit cells, whose text is up to 2.5 pt narrower (Tier A's rule).
-const listBacked = (name) => ['ios/list/', 'ios/form/', 'ios/nav/', 'ios/dark/list', 'ios/dark/form', 'ios/dark/nav', 'ios/label/'].some(p => name.startsWith(p));
-const frameTolerance = (name, key, expected) => name.startsWith('ios/symbol/') ? 2 : listBacked(name) ? 3 : name.startsWith('ios/') && (key === 'width' || key === 'x')
-  ? Math.max(2, Math.abs(expected) * 0.04) : name.startsWith('text/') && (key === 'width' || key === 'x')
-  ? Math.max(0.5, Math.abs(expected) * 0.03) : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
+// ios/symbol/ and ios/label/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt),
+// and a label row grows to its icon (Tier A's rule).
+const listBacked = (name) => name.startsWith('ios/label/');
+// ios/list/footer `header`: UIKit's header label measures "Header" a point wider than SwiftUI's Text (Tier A's rule).
+const approximateProbes = { 'ios/list/footer': ['header'] };
+// The browser measures text on the half point, so iOS text widths and the positions that follow from them get 0.5.
+const frameTolerance = (name, key, expected, id) => (approximateProbes[name] || []).includes(id) ? 2 : name.startsWith('ios/symbol/') ? 2 : listBacked(name) ? 3
+  : name.startsWith('text/') && (key === 'width' || key === 'x') ? Math.max(0.5, Math.abs(expected) * 0.03)
+  : name.startsWith('ios/') && (key === 'width' || key === 'x') ? 0.5 : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
 // fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
-// ios/dark/: Catalyst draws its dark appearance with a Mac window's greys (a translucent backing,
-// (29, 30, 30) grounds, (50, 50, 50) cards) where iOS is black with (28, 28, 30) cards; the frames
-// still hold (Docs/elements/iOS.md).
-// ios/color/: the same pipeline shifts the palette by up to 6 per channel over whole rectangles.
-const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name.startsWith('ios/toggle/') || name.startsWith('ios/slider/') || name.startsWith('ios/dark/') || name.startsWith('ios/color/');
+const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset';
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {
@@ -88,14 +84,14 @@ function compareFrames(name, frames, goldenFrames) {
     const actual = frames[id];
     if (!actual) { mismatches.push(`${id}: missing`); continue; }
     for (const key of ['x', 'y', 'width', 'height']) {
-      if (Math.abs(actual[key] - expected[key]) > frameTolerance(name, key, expected[key])) { mismatches.push(`${id}.${key}: ${actual[key]} != ${expected[key]}`); }
+      if (Math.abs(actual[key] - expected[key]) > frameTolerance(name, key, expected[key], id)) { mismatches.push(`${id}.${key}: ${actual[key]} != ${expected[key]}`); }
     }
   }
   return mismatches;
 }
 
 // Screenshots the canvas at DPR 2 and returns the fraction of differing pixels vs the golden.
-async function comparePixels(shotPath, goldenPng) {
+async function comparePixels(name, shotPath, goldenPng) {
   const canvas = page.locator('#app canvas');
   try { await canvas.screenshot({ path: shotPath, omitBackground: true }); }
   catch { await canvas.screenshot({ path: shotPath }); }   // Firefox: element screenshots cannot omit the background
@@ -105,8 +101,10 @@ async function comparePixels(shotPath, goldenPng) {
   if (a.width !== b.width || a.height !== b.height) return `size ${a.width}x${a.height} vs ${b.width}x${b.height}`;
   let differing = 0;
   const diff = new PNG({ width: a.width, height: a.height });
-  // Compare composited onto white: the goldens have a transparent background, the canvas is opaque.
-  const over = (data, i, c) => { const alpha = data[i + 3] / 255; return Math.round(data[i + c] * alpha + 255 * (1 - alpha)); };
+  // Compare composited onto the window's colour: the goldens have a transparent background, and
+  // an iPhone draws a black window behind a dark fixture (ios/dark/).
+  const ground = name.startsWith('ios/dark/') ? 0 : 255;
+  const over = (data, i, c) => { const alpha = data[i + 3] / 255; return Math.round(data[i + c] * alpha + ground * (1 - alpha)); };
   for (let i = 0; i < a.data.length; i += 4) {
     const d = Math.max(Math.abs(over(a.data, i, 0) - over(b.data, i, 0)), Math.abs(over(a.data, i, 1) - over(b.data, i, 1)),
                        Math.abs(over(a.data, i, 2) - over(b.data, i, 2)));
@@ -131,8 +129,8 @@ async function check(name, label, goldenFrames, goldenPng, shotPath) {
   await settleImages();
   const frames = await page.evaluate(() => window.__galleryFrames || window.__swiftuiwebDebug.frames());
   const mismatches = compareFrames(label, frames, goldenFrames);
-  const pixelDiff = framesOnly(name) ? 'skipped' : await comparePixels(shotPath, goldenPng);
-  const pixelOK = framesOnly(name) || (typeof pixelDiff === 'number' ? pixelDiff <= (approximate.includes(name) || name.startsWith('ios/') ? pixelTolerance * 3 : pixelTolerance) : false);
+  const pixelDiff = framesOnly(name) ? 'skipped' : await comparePixels(name, shotPath, goldenPng);
+  const pixelOK = framesOnly(name) || (typeof pixelDiff === 'number' ? pixelDiff <= (approximate.includes(name) ? pixelTolerance * 3 : pixelTolerance) : false);
   const ok = mismatches.length === 0 && pixelOK;
   if (!ok) failures++;
   report.push({ name: label, frames: ok ? 'exact' : mismatches, pixelDiff, pixelOK });

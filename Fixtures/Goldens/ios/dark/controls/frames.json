@@ -3,93 +3,93 @@
   "frames" : {
     "bordered" : {
       "height" : 38.5,
-      "width" : 97,
-      "x" : 36.5,
-      "y" : 39.75
+      "width" : 95,
+      "x" : 35.5,
+      "y" : 37.25
     },
     "buttons" : {
       "height" : 38.5,
-      "width" : 250.5,
+      "width" : 244.5,
       "x" : 0,
-      "y" : 39.75
+      "y" : 37.25
     },
     "disabledButton" : {
       "height" : 38.5,
-      "width" : 93,
+      "width" : 90.5,
       "x" : 0,
-      "y" : 90.25
+      "y" : 87.75
     },
     "disabledField" : {
       "height" : 34,
       "width" : 320,
       "x" : 0,
-      "y" : 303.75
+      "y" : 306.25
     },
     "emptyField" : {
-      "height" : 25,
+      "height" : 26,
       "width" : 320,
       "x" : 0,
-      "y" : 220.75
+      "y" : 222.25
     },
     "menuPicker" : {
       "height" : 40.5,
-      "width" : 86,
+      "width" : 84.5,
       "x" : 0,
-      "y" : 436.75
+      "y" : 439.25
     },
     "plain" : {
       "height" : 24.5,
-      "width" : 24.5,
+      "width" : 23.5,
       "x" : 0,
-      "y" : 46.75
+      "y" : 44.25
     },
     "prominent" : {
       "height" : 38.5,
-      "width" : 105,
-      "x" : 145.5,
-      "y" : 39.75
+      "width" : 102,
+      "x" : 142.5,
+      "y" : 37.25
     },
     "roundedField" : {
       "height" : 34,
       "width" : 320,
       "x" : 0,
-      "y" : 257.75
+      "y" : 260.25
     },
     "segmented" : {
       "height" : 31,
       "width" : 320,
       "x" : 0,
-      "y" : 489.25
+      "y" : 491.75
     },
     "slider" : {
       "height" : 31,
       "width" : 320,
       "x" : 0,
-      "y" : 349.75
+      "y" : 352.25
     },
     "stack" : {
-      "height" : 480.5,
+      "height" : 485.5,
       "width" : 320,
       "x" : 0,
-      "y" : 39.75
+      "y" : 37.25
     },
     "stepper" : {
       "height" : 32,
       "width" : 320,
       "x" : 0,
-      "y" : 392.75
+      "y" : 395.25
     },
     "switchOff" : {
-      "height" : 28,
+      "height" : 30,
       "width" : 320,
       "x" : 0,
-      "y" : 180.75
+      "y" : 180.25
     },
     "switchOn" : {
-      "height" : 28,
+      "height" : 30,
       "width" : 320,
       "x" : 0,
-      "y" : 140.75
+      "y" : 138.25
     }
   },
   "size" : {

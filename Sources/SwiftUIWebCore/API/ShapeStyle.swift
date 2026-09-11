@@ -39,6 +39,17 @@ public struct HierarchicalShapeStyle: ShapeStyle, Hashable, Sendable {
     public static let quinary = HierarchicalShapeStyle(level: 4)
 
     package var opacity: Double { [1, 0.5, 0.35, 0.25, 0.18][min(level, 4)] }
+
+    /// The colour a level below the first resolves to when no foreground colour is set: the
+    /// secondary label, then on macOS the primary faded by the level; on an iPhone the tertiary
+    /// and quaternary labels are the secondary at half and 0.3 (ios/color/system: (60, 60, 67)
+    /// at 60 %, 30 % and 18 %).
+    package func color(foreground: Color?, isIOS: Bool) -> Color {
+        if let foreground { return foreground.opacity(opacity) }
+        if level == 1 { return Color.secondary }
+        if isIOS { return Color.secondary.opacity(level == 2 ? 0.5 : 0.3) }
+        return Color.primary.opacity(opacity)
+    }
 }
 
 extension ShapeStyle where Self == HierarchicalShapeStyle {
@@ -61,7 +72,7 @@ extension View {
             } else if let level = style as? HierarchicalShapeStyle {
                 if level.level > 0 {
                     // Fading a gradient is not supported: the level applies to the colour.
-                    environment.foregroundColor = environment.foregroundColor.map { $0.opacity(level.opacity) } ?? (level.level == 1 ? Color.secondary : Color.primary.opacity(level.opacity))
+                    environment.foregroundColor = level.color(foreground: environment.foregroundColor, isIOS: environment.platformProfile.isIOS)
                     environment.foregroundGradient = nil
                 }
             } else {

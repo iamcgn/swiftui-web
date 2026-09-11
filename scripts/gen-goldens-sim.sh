@@ -5,7 +5,8 @@
 # with a 2× screen, so frames land on the same half-point grid as the runtime and the macOS goldens.
 # The harness is built with SwiftPM against the iPhoneSimulator SDK, wrapped in an app bundle,
 # installed and launched with its console attached; the app writes straight into the repository
-# (simulator processes run as the user, unsandboxed on the host file system).
+# (simulator processes run as the user, unsandboxed on the host file system). The status bar is
+# hidden so navigation bars sit at the window's top as they do in the browser.
 # Usage: scripts/gen-goldens-sim.sh ios   [filter]     (filter: a fixture-name prefix such as ios/toggle/, or text-metrics)
 #        scripts/gen-goldens-sim.sh uikit [filter]     (uikit/label/, text-metrics, font-metrics; --dump [filter] prints view trees)
 # GOLDENS_OUT=<dir> writes somewhere other than Fixtures/Goldens (to compare a run without touching the tree).
@@ -64,6 +65,8 @@ cat > "$APP/Info.plist" <<PLIST
 <key>UIDeviceFamily</key><array><integer>1</integer></array>
 <key>UILaunchScreen</key><dict/>
 <key>UIRequiresFullScreen</key><true/>
+<key>UIStatusBarHidden</key><true/>
+<key>UIViewControllerBasedStatusBarAppearance</key><false/>
 </dict></plist>
 PLIST
 codesign -s - --force "$APP" >/dev/null 2>&1

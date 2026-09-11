@@ -44,6 +44,7 @@ final class Host {
         instance = fixture.instantiate()
         window = UIWindow(frame: CGRect(origin: .zero, size: size))
         window.overrideUserInterfaceStyle = fixture.style
+        window.traitOverrides.verticalSizeClass = .regular   // portrait screens whatever the fixture height
         window.backgroundColor = .clear
         window.rootViewController = instance.controller
         window.makeKeyAndVisible()

@@ -61,19 +61,24 @@ extension PlatformProfile {
         .knob: RGBA(r: 255, g: 255, b: 255, a: 222.0 / 255),
     ]
 
-    /// iOS system colours (Docs/elements/iOS.md). The palette is macOS 26's: `ios/color/system`
-    /// and `ios/dark/system-colors` read the same values through the Catalyst pipeline (within
-    /// ±6). Labels keep the alphas those goldens show (216/255). The backgrounds are iOS's own:
-    /// the grouped ground (235, 236, 236) with white cards in the light appearance; black
-    /// windows, text fields and plain lists in the dark one (`ios/dark/controls`), with the
-    /// documented grouped values (black ground, (28, 28, 30) cards) where Catalyst draws a Mac
-    /// window's greys instead.
+    /// iOS system colours (Docs/elements/iOS.md), from `ios/color/system` and
+    /// `ios/dark/system-colors` on an iPhone: the tints match macOS 26's except the dark grey,
+    /// indigo and accent; labels are opaque black or white with (60, 60, 67) / (235, 235, 245)
+    /// secondaries at 60 %; the grounds are the grouped grey with white cards in the light
+    /// appearance and black windows, fields and lists with (28, 28, 30) cards in the dark one.
     package static let iOSLightColors: [Color.SystemColor: RGBA] = macOSLightColors.merging([
-        .groupedBackground: RGBA(r: 235, g: 236, b: 236),
+        .primary: .black,                                     // label: opaque black (ios/color/system, ios/toggle/basic)
+        .secondary: RGBA(r: 60, g: 60, b: 67, a: 0.6),        // secondaryLabel
+        .groupedBackground: RGBA(r: 242, g: 242, b: 247),     // systemGroupedBackground (ios/nav/basic)
         .groupedCard: .white,
     ]) { $1 }
 
     package static let iOSDarkColors: [Color.SystemColor: RGBA] = macOSDarkColors.merging([
+        .primary: .white,
+        .secondary: RGBA(r: 235, g: 235, b: 245, a: 0.6),
+        .gray: RGBA(r: 142, g: 142, b: 147),                  // ios/dark/system-colors
+        .indigo: RGBA(r: 107, g: 93, b: 255),
+        .accentColor: RGBA(r: 0, g: 145, b: 255),
         .windowBackground: .black,
         .controlBackground: .black,
         .groupedBackground: .black,
@@ -154,6 +159,9 @@ extension ShapeStyle {
     package func resolveColor(in environment: EnvironmentValues) -> RGBA {
         if let color = self as? Color {
             return color.resolve(in: environment)
+        }
+        if let level = self as? HierarchicalShapeStyle, level.level > 0 {
+            return level.color(foreground: environment.foregroundColor, isIOS: environment.platformProfile.isIOS).resolve(in: environment)
         }
         return (environment.foregroundColor ?? .primary).resolve(in: environment)
     }

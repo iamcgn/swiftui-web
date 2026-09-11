@@ -3,13 +3,13 @@
   "frames" : {
     "menu" : {
       "height" : 40.5,
-      "width" : 86,
+      "width" : 84.5,
       "x" : 0,
       "y" : 30.5
     },
     "menuHidden" : {
       "height" : 40.5,
-      "width" : 98.5,
+      "width" : 97,
       "x" : 0,
       "y" : 83
     },

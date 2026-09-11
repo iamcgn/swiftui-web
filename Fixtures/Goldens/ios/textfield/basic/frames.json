@@ -27,15 +27,15 @@
     },
     "rowField" : {
       "height" : 34,
-      "width" : 265.5,
-      "x" : 54.5,
+      "width" : 267,
+      "x" : 53,
       "y" : 191
     },
     "rowLabel" : {
       "height" : 24.5,
-      "width" : 46.5,
+      "width" : 45,
       "x" : 0,
-      "y" : 196.5
+      "y" : 196
     },
     "secure" : {
       "height" : 34,

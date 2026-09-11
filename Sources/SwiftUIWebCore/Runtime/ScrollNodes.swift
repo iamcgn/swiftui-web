@@ -311,7 +311,11 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         let clips = !environment.isScrollClipDisabled
         var context = context
         if clips {
-            let bounds = absoluteBounds(context)
+            var bounds = absoluteBounds(context)
+            // Under an iOS navigation bar the content shows through the bar's glass: the clip
+            // reaches up to the window's top (ios/nav/scroll `row1`).
+            let overhang = environment._navigationBarOverhang
+            if overhang > 0 { bounds = CGRect(x: bounds.minX, y: bounds.minY - overhang, width: bounds.width, height: bounds.height + overhang) }
             list.append(.save)
             list.append(.clipRect(bounds))
             // Subtrees entirely outside the viewport (by more than the margin) are not painted.

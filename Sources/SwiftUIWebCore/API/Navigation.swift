@@ -256,12 +256,24 @@ package struct UnderNavigationBarKey: EnvironmentKey {
     package static let defaultValue = false
 }
 
+package struct NavigationBarOverhangKey: EnvironmentKey {
+    package static let defaultValue: CGFloat = 0
+}
+
 extension EnvironmentValues {
     /// Whether the view is the content of a navigation stack whose bar sits above it (iOS lists
     /// drop their top inset there).
     package var _underNavigationBar: Bool {
         get { self[UnderNavigationBarKey.self] }
         set { self[UnderNavigationBarKey.self] = newValue }
+    }
+
+    /// The height of the iOS navigation bar above the screen's content: a scroll view under it
+    /// keeps painting that far above its frame, as the content slides under the bar's glass
+    /// (ios/nav/scroll `row1`: the first row shows through the bar).
+    package var _navigationBarOverhang: CGFloat {
+        get { self[NavigationBarOverhangKey.self] }
+        set { self[NavigationBarOverhangKey.self] = newValue }
     }
 }
 

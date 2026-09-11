@@ -2,64 +2,64 @@
   "fixture" : "ios\/controls\/settings",
   "frames" : {
     "bluetooth" : {
-      "height" : 28,
+      "height" : 30,
       "width" : 288,
       "x" : 16,
-      "y" : 144.5
+      "y" : 144.75
     },
     "name" : {
       "height" : 34,
       "width" : 288,
       "x" : 16,
-      "y" : 355.5
+      "y" : 357.75
     },
     "quantity" : {
       "height" : 32,
       "width" : 288,
       "x" : 16,
-      "y" : 260.5
+      "y" : 262.75
     },
     "save" : {
       "height" : 38.5,
-      "width" : 62,
+      "width" : 61,
       "x" : 16,
-      "y" : 405.5
+      "y" : 407.75
     },
     "screen" : {
-      "height" : 440,
+      "height" : 444.5,
       "width" : 320,
       "x" : 0,
-      "y" : 20
+      "y" : 17.75
     },
     "size" : {
       "height" : 31,
       "width" : 288,
       "x" : 16,
-      "y" : 308.5
+      "y" : 310.75
     },
     "title" : {
-      "height" : 48.5,
+      "height" : 49,
       "width" : 133,
       "x" : 16,
-      "y" : 36
+      "y" : 33.75
     },
     "volume" : {
       "height" : 31,
       "width" : 288,
       "x" : 16,
-      "y" : 213.5
+      "y" : 215.75
     },
     "volumeLabel" : {
       "height" : 21,
-      "width" : 53,
+      "width" : 51,
       "x" : 16,
-      "y" : 188.5
+      "y" : 190.75
     },
     "wifi" : {
-      "height" : 28,
+      "height" : 30,
       "width" : 288,
       "x" : 16,
-      "y" : 100.5
+      "y" : 98.75
     }
   },
   "size" : {

@@ -73,7 +73,21 @@ struct Bitmap {
     /// Paints the list onto a transparent bitmap (as the harness captures a transparent window)
     /// and composites the result over white afterwards, like `golden`: blend modes that read
     /// the backdrop (`destinationOut`) then see the same transparency Apple's did.
-    @MainActor static func render(_ list: DisplayList, size: CGSize, scale: CGFloat, painter: CoreGraphicsPainter) -> Bitmap {
+    /// Composites the premultiplied pixels over `ground` (white, or black for a dark fixture: the
+    /// window an iPhone draws behind its content).
+    private static func composite(_ data: inout [UInt8], over ground: UInt8) {
+        var index = 0
+        while index < data.count {
+            let inverse = Int(255 - data[index + 3]) * Int(ground) / 255
+            data[index] = UInt8(min(255, Int(data[index]) + inverse))
+            data[index + 1] = UInt8(min(255, Int(data[index + 1]) + inverse))
+            data[index + 2] = UInt8(min(255, Int(data[index + 2]) + inverse))
+            data[index + 3] = 255
+            index += 4
+        }
+    }
+
+    @MainActor static func render(_ list: DisplayList, size: CGSize, scale: CGFloat, painter: CoreGraphicsPainter, ground: UInt8 = 255) -> Bitmap {
         let width = Int((size.width * scale).rounded()), height = Int((size.height * scale).rounded())
         var data = [UInt8](repeating: 0, count: width * height * 4)
         data.withUnsafeMutableBytes { bytes in
@@ -84,28 +98,21 @@ struct Bitmap {
             ctx.scaleBy(x: scale, y: -scale)
             painter.paint(list, into: ctx)
         }
-        var index = 0
-        while index < data.count {
-            let inverse = 255 - Int(data[index + 3])
-            data[index] = UInt8(min(255, Int(data[index]) + inverse))
-            data[index + 1] = UInt8(min(255, Int(data[index + 1]) + inverse))
-            data[index + 2] = UInt8(min(255, Int(data[index + 2]) + inverse))
-            data[index + 3] = 255
-            index += 4
-        }
+        composite(&data, over: ground)
         return Bitmap(width: width, height: height, data: data)
     }
 
-    /// The golden PNG composited over white.
-    static func golden(_ url: URL) -> Bitmap? {
+    /// The golden PNG composited over `ground` (white, or black for a dark fixture).
+    static func golden(_ url: URL, ground: UInt8 = 255) -> Bitmap? {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil), let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
         let width = image.width, height = image.height
-        var data = [UInt8](repeating: 255, count: width * height * 4)
+        var data = [UInt8](repeating: 0, count: width * height * 4)
         data.withUnsafeMutableBytes { bytes in
             let ctx = CGContext(data: bytes.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
                                 space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
             ctx.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
         }
+        composite(&data, over: ground)
         return Bitmap(width: width, height: height, data: data)
     }
 
@@ -150,12 +157,7 @@ struct Bitmap {
         let engine = CoreTextEngine()
         let painter = CoreGraphicsPainter(textEngine: engine, assetBase: NativeGoldens.assetBase)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
-        // ios/toggle and ios/slider paint the iOS switch and knob where the Catalyst goldens draw
-        // Mac-shaped ones (Docs/elements/iOS.md).
-        // ios/dark: Catalyst draws its dark appearance with a Mac window's greys where iOS is black;
-        // ios/color: its pipeline shifts the palette by up to 6 per channel over whole rectangles.
-        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name.hasPrefix("ios/toggle/") || name.hasPrefix("ios/slider/")
-            || name.hasPrefix("ios/dark/") || name.hasPrefix("ios/color/")
+        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset"
         compare(runner.layoutFrames(), to: golden.frames, label: name)
         try comparePixels(runner, fixture: fixture, png: "image@2x.png", label: name, framesOnly: framesOnly, painter: painter)
         for (index, step) in (golden.steps ?? []).enumerated() where index < fixture.stepNames.count {
@@ -184,10 +186,7 @@ struct Bitmap {
             guard let actual = ours[id] else { Issue.record("\(label): probe \(id) not recorded"); continue }
             let tolerance = approximate.contains(id) ? (approximateFixture ? 3 : 2) + 1e-9 : 1e-9
             // Text fixtures: CoreText's truncated widths land within the half point (Tier B's rule).
-            // ios/ goldens come from Mac Catalyst, whose scaled text measures a little wider than
-            // SF drawn at the size (Docs/elements/iOS.md): text widths get the text tolerance.
-            let widthTolerance = label.hasPrefix("ios/") ? max(tolerance, 2 + 1e-9, abs(expected.width) * 0.04)
-                : label.hasPrefix("text/") ? max(tolerance, 0.5 + 1e-9, abs(expected.width) * 0.03) : tolerance
+            let widthTolerance = label.hasPrefix("text/") ? max(tolerance, 0.5 + 1e-9, abs(expected.width) * 0.03) : tolerance
             let close = abs(actual.minX - expected.x) < widthTolerance && abs(actual.minY - expected.y) < tolerance
                 && abs(actual.width - expected.width) < widthTolerance && abs(actual.height - expected.height) < tolerance
             #expect(close, "\(label)/\(id): \(actual) != (\(expected.x), \(expected.y), \(expected.width), \(expected.height))")
@@ -198,13 +197,16 @@ struct Bitmap {
         guard !framesOnly else { return }
         let file = NativeGoldens.root.appendingPathComponent(fixture.name).appendingPathComponent(png)
         guard FileManager.default.fileExists(atPath: file.path) else { return }
-        let golden = try #require(Bitmap.golden(file), "\(label): unreadable golden \(png)")
-        let ours = Bitmap.render(runner.runtime.render(scale: 2), size: fixture.size, scale: 2, painter: painter)
+        // An iPhone draws a black window behind a dark fixture's content; macOS goldens carry their
+        // window's greys themselves.
+        let ground: UInt8 = fixture.platform == .iOS && fixture.colorScheme == .dark ? 0 : 255
+        let golden = try #require(Bitmap.golden(file, ground: ground), "\(label): unreadable golden \(png)")
+        let ours = Bitmap.render(runner.runtime.render(scale: 2), size: fixture.size, scale: 2, painter: painter, ground: ground)
         if let dump = ProcessInfo.processInfo.environment["TIER_C_DUMP"] {
             try ours.writePNG(to: URL(fileURLWithPath: dump).appendingPathComponent(label.replacingOccurrences(of: "/", with: "_") + ".png"))
         }
         let fraction = try #require(ours.differingFraction(from: golden), "\(label): size \(ours.width)x\(ours.height) vs \(golden.width)x\(golden.height)")
-        let tolerance = NativeGoldens.pixelTolerance * (NativeGoldens.approximate.contains(fixture.name) || fixture.name.hasPrefix("ios/") ? 3 : 1)
+        let tolerance = NativeGoldens.pixelTolerance * (NativeGoldens.approximate.contains(fixture.name) ? 3 : 1)
         if ProcessInfo.processInfo.environment["TIER_C_REPORT"] != nil { print("TierC \(label) pixels=\(String(format: "%.2f", fraction * 100))%") }
         #expect(fraction <= tolerance, "\(label): \(String(format: "%.2f", fraction * 100)) % of pixels differ (limit \(String(format: "%.0f", tolerance * 100)) %)")
     }

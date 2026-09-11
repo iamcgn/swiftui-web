@@ -212,14 +212,17 @@ package struct _ControlLabel<Content: View>: View {
     package let label: Content
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.platformProfile) private var profile
 
     package init(label: Content) { self.label = label }
 
     package var body: some View {
         if !labelsHidden {
+            // macOS dims a disabled control's label; an iPhone keeps a toggle's or stepper's
+            // label black (ios/toggle/basic, ios/stepper/basic `disabled`).
             _IconAlignedTitle(content: label)
                 .font(.body)
-                .foregroundColor(isEnabled ? nil : Color.primary.opacity(PlatformMetrics.disabledLabelOpacity))
+                .foregroundColor(isEnabled || profile.isIOS ? nil : Color.primary.opacity(PlatformMetrics.disabledLabelOpacity))
         }
     }
 }

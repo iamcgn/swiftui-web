@@ -52,10 +52,14 @@ public struct List<SelectionValue: Hashable, Content: View>: View {
         // Read the selection here, inside the body, so observation tracks the model it comes
         // from; painting reads it again but is not tracked.
         let _: Void = selection?.read() ?? ()
+        // An iPhone's plain list paints its rows opaque and nothing below them (ios/dark/list-plain:
+        // black behind the rows, the window below); a grouped list and macOS fill the whole frame.
+        let rowsOnly = platform.isIOS && !profile.cards
         ScrollView(.vertical) {
             _ListContent(content: content, selection: selection, profile: profile, pinsFirstHeader: pinnedTitle != nil)
+                .background(rowsOnly ? profile.background : Color.clear)
         }
-        .background(profile.background)
+        .background(rowsOnly ? Color.clear : profile.background)
         .overlay(alignment: .top) { _ListPinnedHeader(title: pinnedTitle, profile: profile) }
         .border(profile.borderColor ?? Color.clear, width: profile.borderColor == nil ? 0 : PlatformMetrics.listBorderWidth)
     }

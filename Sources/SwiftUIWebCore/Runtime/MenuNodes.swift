@@ -32,7 +32,7 @@ package final class MenuButtonNode: LayoutNode<_MenuHost>, _Interactive {
         if plainLabel {
             // iOS: the label in the body font and the accent colour, nothing around it.
             environment.font = .body
-            environment.foregroundColor = enabled ? Color.accentColor : Color.primary.opacity(environment.platformProfile.metrics.menuDisabledLabelAlpha / (216.0 / 255))
+            environment.foregroundColor = enabled ? Color.accentColor : Color.primary.opacity(environment.platformProfile.metrics.menuDisabledLabelAlpha)
             return environment
         }
         environment.font = .system(size: PlatformMetrics.buttonLabelSize)

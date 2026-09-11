@@ -1,7 +1,6 @@
-/// iOS overrides of the platform metrics, measured on the `ios/…` goldens (Mac Catalyst,
-/// decision 0013; `Docs/elements/iOS.md`). Everything not set here keeps macOS's value until an
-/// iOS fixture measures it. Two controls deliberately differ from the Catalyst pixels, whose
-/// switch and slider knob are Mac-shaped: their frames follow the goldens, their paint iOS.
+/// iOS overrides of the platform metrics, measured on the `ios/…` goldens (an iPhone SE
+/// simulator on iOS 26, decision 0015; `Docs/elements/iOS.md`). Everything not set here keeps
+/// macOS's value until an iOS fixture measures it.
 extension PlatformMetricsTable {
     package static let iOS: PlatformMetricsTable = {
         let t = PlatformMetricsTable()
@@ -12,11 +11,13 @@ extension PlatformMetricsTable {
         t.buttonHeight = 38.5
         t.buttonFill = Color(storage: .system(.controlInk), opacityMultiplier: 41.0 / 255)
         t.destructiveColor = RGBA(r: 255, g: 57, b: 59)
-        // Toggle (ios/toggle/basic): a 61 × 28 frame at the row's trailing edge; painted as the iOS switch.
-        t.switchFrameSize = CGSize(width: 61, height: 28)
-        t.switchSize = CGSize(width: 51, height: 31)
-        t.switchKnobSize = CGSize(width: 27, height: 27)
-        t.switchKnobInset = 2
+        t.dividerThickness = 0.5                                        // ios/layout/basics `divider`: a hairline
+        // Toggle (ios/toggle/basic): iOS 26's switch fills its 66 × 30 frame at the row's trailing
+        // edge, a 38 × 25 white pill knob 2.5 in (0.5 from the on end), green (52, 199, 89) when on.
+        t.switchFrameSize = CGSize(width: 66, height: 30)
+        t.switchSize = CGSize(width: 66, height: 30)
+        t.switchKnobSize = CGSize(width: 38, height: 25)
+        t.switchKnobInset = 2.5
         t.switchLabelSpacing = 8
         // Slider (ios/slider/basic): 31 pt rows, the accent fill; painted with the iOS round knob.
         t.sliderHeight = 31
@@ -41,9 +42,9 @@ extension PlatformMetricsTable {
         t.textFieldBorderWidth = 0.5
         t.textFieldBorderAlpha = 0.2
         t.textFieldBorderInside = true
-        t.textFieldTextOffset = 0.75                                    // the row label's baseline: 23.5 down, not 22.75
+        t.textFieldTextOffset = 0.25                                    // the row label's baseline: 23.5 down, not 23.25
         t.textFieldPlainExtraHeight = 1.5
-        t.textFieldPlainEmptyExtraHeight = 0.5                          // ios/dark/controls `emptyField`: 25 with only the placeholder
+        t.textFieldPlainEmptyExtraHeight = 1.5                          // ios/dark/controls `emptyField`: 26 with only the placeholder, like with text
         t.textFieldPlainTextOffset = -0.75
         t.textFieldPlaceholder = RGBA(r: 189, g: 189, b: 190)
         t.textFieldPlaceholderDark = RGBA(r: 235, g: 235, b: 245, a: 0.3)   // placeholderText; ios/dark/controls reads white at 25 %
@@ -93,6 +94,11 @@ extension PlatformMetricsTable {
         t.spinnerMaxAlpha = 98.0 / 255
         t.spinnerMinAlpha = 30.0 / 255
         t.listSeparatorAlpha = 25.0 / 255
+        // Navigation bars (ios/nav/basic, ios/nav/inline): 116.5 with the large title, 64 inline.
+        t.navigationBarLargeHeight = 116.5
+        t.navigationBarInlineHeight = 64
+        t.navigationLargeTitleCollapse = 52.5                           // ios/nav/scroll: the bars' difference
+        t.navigationTitleInset = 16                                     // the large title starts 16 in (ios/nav/basic pixels)
         return t
     }()
 }

@@ -5,43 +5,43 @@
       "height" : 32,
       "width" : 320,
       "x" : 0,
-      "y" : 97
+      "y" : 96.75
     },
     "hidden" : {
       "height" : 32,
       "width" : 94,
       "x" : 0,
-      "y" : 53
+      "y" : 52.75
     },
     "labelled" : {
       "height" : 32,
       "width" : 320,
       "x" : 0,
-      "y" : 9
+      "y" : 8.75
     },
     "row" : {
-      "height" : 50,
+      "height" : 50.5,
       "width" : 320,
       "x" : 0,
-      "y" : 141
+      "y" : 140.75
     },
     "rowStepper" : {
       "height" : 32,
-      "width" : 289,
-      "x" : 31,
-      "y" : 159
+      "width" : 289.5,
+      "x" : 30.5,
+      "y" : 159.25
     },
     "rowText" : {
       "height" : 24.5,
-      "width" : 23,
+      "width" : 22.5,
       "x" : 0,
-      "y" : 141
+      "y" : 140.75
     },
     "stack" : {
-      "height" : 182,
+      "height" : 182.5,
       "width" : 320,
       "x" : 0,
-      "y" : 9
+      "y" : 8.75
     }
   },
   "size" : {

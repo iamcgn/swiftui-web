@@ -188,6 +188,8 @@ final class Gallery {
         host!.mount(AnyView(
             instance.view
                 .frame(width: size.width, height: size.height)
+                // An iPhone draws a black window behind a dark fixture; the page stays light.
+                .background(fixture.platform == .iOS && fixture.colorScheme == .dark ? Color.black : Color.clear)
                 .environment(\.colorScheme, fixture.colorScheme)
                 .environment(\.platformProfile, fixture.platform == .iOS ? .iOS : .macOS)
                 .coordinateSpace(name: fixtureRootSpace)

@@ -90,7 +90,12 @@ package final class CheckboxNode: LeafNode<_CheckboxControl> {
 @MainActor
 package final class SwitchNode: LeafNode<_SwitchControl> {
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        if environment.platformProfile.isIOS { return PlatformMetrics.switchFrameSize }
+        if environment.platformProfile.isIOS {
+            // In a list row the toggle is its label's line (ios/form/basic: 24.5) and the switch
+            // overflows it, centred; elsewhere the 66 × 30 frame.
+            if environment._inListRow { return CGSize(width: PlatformMetrics.switchFrameSize.width, height: environment._lineHeight) }
+            return PlatformMetrics.switchFrameSize
+        }
         return view.small ? PlatformMetrics.formGroupedSwitchSize : PlatformMetrics.switchSize
     }
 
@@ -108,24 +113,25 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
         list.append(.fillRRect(knob, cornerRadius: knob.height / 2, environment._knob.multiplyingAlpha(by: enabled ? 1 : 0.6)))
     }
 
-    /// The iOS switch: a green (on) or grey (off) capsule with a white round knob and its
-    /// shadow, centred in the frame the goldens give the control (the Catalyst goldens draw a
-    /// Mac-shaped switch there; Docs/elements/iOS.md).
+    /// The iOS 26 switch (ios/toggle/basic): a green (on) or grey (off) capsule filling its frame
+    /// with a white pill knob and its shadow; disabled, the track at half strength and the knob
+    /// as it is (Docs/elements/iOS.md).
     private func paintIOS(into list: inout DisplayList, context: PaintContext) {
         let frame = absoluteBounds(context)
         let size = PlatformMetrics.switchSize
         let track = CGRect(x: frame.midX - size.width / 2, y: frame.midY - size.height / 2, width: size.width, height: size.height)
         let enabled = environment.isEnabled
-        let dim = enabled ? 1.0 : 0.4
+        let dim = enabled ? 1.0 : 0.5
         let offAlpha = environment._isDark ? PlatformMetrics.switchOffAlphaDark : PlatformMetrics.switchOffAlpha
         let fill = view.isOn ? PlatformMetrics.switchOnColor.multiplyingAlpha(by: dim) : environment._ink(offAlpha * dim)
         list.append(.fillRRect(track, cornerRadius: track.height / 2, fill))
         let inset = PlatformMetrics.switchKnobInset
         let knobSize = PlatformMetrics.switchKnobSize
-        let knob = CGRect(x: view.isOn ? track.maxX - inset - knobSize.width : track.minX + inset,
+        // The knob sits 2 pt nearer the on end than the off one (measured 0.5 and 2.5 in).
+        let knob = CGRect(x: view.isOn ? track.maxX - max(0.5, inset - 2) - knobSize.width : track.minX + inset,
                           y: track.midY - knobSize.height / 2, width: knobSize.width, height: knobSize.height)
         list.append(.fillRRect(knob.offsetBy(dx: 0, dy: 1).insetBy(dx: -0.5, dy: -0.5), cornerRadius: knob.height / 2 + 0.5,
                                RGBA(r: 0, g: 0, b: 0, a: PlatformMetrics.switchKnobShadowAlpha * dim)))
-        list.append(.fillRRect(knob, cornerRadius: knob.height / 2, RGBA(r: 255, g: 255, b: 255, a: dim)))
+        list.append(.fillRRect(knob, cornerRadius: knob.height / 2, RGBA(r: 255, g: 255, b: 255, a: 1)))
     }
 }

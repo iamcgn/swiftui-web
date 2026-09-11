@@ -28,6 +28,9 @@ final class UIKitHost: GoldenHost {
         controller.view.backgroundColor = .clear
         window = UIWindow(frame: CGRect(origin: .zero, size: size))
         window.overrideUserInterfaceStyle = colorScheme == .dark ? .dark : .light
+        // A window under 415 pt tall would get the compact vertical size class (a landscape
+        // phone), which drops large titles and shortens bars; fixtures are portrait screens.
+        window.traitOverrides.verticalSizeClass = .regular
         window.backgroundColor = .clear
         window.rootViewController = controller
         window.makeKeyAndVisible()
