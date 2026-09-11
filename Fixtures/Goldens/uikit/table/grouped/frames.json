@@ -1,0 +1,33 @@
+{
+  "fixture" : "uikit\/table\/grouped",
+  "frames" : {
+    "row0" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 55.5
+    },
+    "row1" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 111.5
+    },
+    "row2" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 235.5
+    },
+    "table" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

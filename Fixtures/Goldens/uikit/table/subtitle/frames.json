@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/table\/subtitle",
+  "frames" : {
+    "row0" : {
+      "height" : 73,
+      "width" : 320,
+      "x" : 0,
+      "y" : 50
+    },
+    "row1" : {
+      "height" : 73,
+      "width" : 320,
+      "x" : 0,
+      "y" : 123
+    },
+    "table" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

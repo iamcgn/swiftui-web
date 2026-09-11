@@ -79,6 +79,26 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Home", .system(size: 10, weight: "medium")),
         UIKitTextRequest("Search", .system(size: 10, weight: "semibold")),
         UIKitTextRequest("Search", .system(size: 10, weight: "medium")),
+        // uikit/table/* (cell titles 17 pt, subtitle details 15 pt, value1 details 17 pt secondary, headers 13 pt / grouped 13 pt, footers 13 pt)
+        UIKitTextRequest("First row", .system(size: 17)),
+        UIKitTextRequest("Second row", .system(size: 17)),
+        UIKitTextRequest("Third row", .system(size: 17)),
+        UIKitTextRequest("Fourth row", .system(size: 17)),
+        UIKitTextRequest("Title", .system(size: 17)),
+        UIKitTextRequest("Another title", .system(size: 17)),
+        UIKitTextRequest("Detail text", .system(size: 15)),
+        UIKitTextRequest("More detail", .system(size: 15)),
+        UIKitTextRequest("Name", .system(size: 17)),
+        UIKitTextRequest("Software", .system(size: 17)),
+        UIKitTextRequest("Brightness", .system(size: 17)),
+        UIKitTextRequest("iPhone", .system(size: 17)),
+        UIKitTextRequest("26.0", .system(size: 17)),
+        // Section headers are 17 pt semibold labels without a line limit; footers 13 pt in the card's width less 32.
+        UIKitTextRequest("Header", .system(size: 17, weight: "semibold"), lines: 0),
+        UIKitTextRequest("General", .system(size: 17, weight: "semibold"), lines: 0),
+        UIKitTextRequest("Display", .system(size: 17, weight: "semibold"), lines: 0),
+        UIKitTextRequest("A footer note.", .system(size: 13), lines: 0),
+        UIKitTextRequest("A footer note.", .system(size: 13), width: 256, lines: 0),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).
