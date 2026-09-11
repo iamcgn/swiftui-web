@@ -1,0 +1,39 @@
+{
+  "fixture" : "ios\/representable\/label",
+  "frames" : {
+    "ideal" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 60,
+      "y" : 106.75
+    },
+    "large" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 60,
+      "y" : 28.75
+    },
+    "small" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 55.5,
+      "y" : 87.5
+    },
+    "stack" : {
+      "height" : 202.5,
+      "width" : 200,
+      "x" : 60,
+      "y" : 28.75
+    },
+    "wrap" : {
+      "height" : 100,
+      "width" : 339,
+      "x" : -49.5,
+      "y" : 131.25
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

@@ -12,7 +12,9 @@ import CompilerPluginSupport
 //   SwiftUIWebCanvas     the runtime in the substrate's wasm canvas host
 //   SwiftUIWebNative     the runtime in the substrate's AppKit host
 //   SwiftUIWebTestSupport fixture registry, golden codecs, comparators
+//   SwiftUIWebUIKit      UIViewRepresentable / UIViewControllerRepresentable over UIKitWeb (decision 0014)
 //   Packages/WebGraphics the graphics substrate shared with UIKitWeb (decision 0014)
+//   Packages/UIKitWeb    the UIKit reimplementation SwiftUI depends on, as Apple's does on iOS
 
 let package = Package(
     name: "SwiftUIWeb",
@@ -26,8 +28,10 @@ let package = Package(
         .library(name: "SwiftUIWebFixtures", targets: ["SwiftUIWebFixtures"]),
     ],
     dependencies: [
-        // The graphics substrate shared with UIKitWeb (decision 0014).
+        // The graphics substrate shared with UIKitWeb (decision 0014), and UIKitWeb itself: the
+        // `SwiftUI` module re-exports `UIKit` the way Apple's does on iOS.
         .package(path: "Packages/WebGraphics"),
+        .package(path: "Packages/UIKitWeb"),
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),
         // Only for the `#Preview` macro plugin (expands to nothing); SwiftPM uses prebuilt libraries.
         .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
@@ -38,9 +42,17 @@ let package = Package(
             dependencies: [
                 "SwiftUIWebCore",
                 "SwiftUIWebMacros",
+                "SwiftUIWebUIKit",
+                .product(name: "UIKit", package: "UIKitWeb"),
                 .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
                 .target(name: "SwiftUIWebNative", condition: .when(platforms: [.macOS])),
             ],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // The representables (decision 0014, Phase 2): UIKit views hosted as SwiftUI leaves.
+        .target(
+            name: "SwiftUIWebUIKit",
+            dependencies: ["SwiftUIWebCore", .product(name: "UIKitWebCore", package: "UIKitWeb")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // Compiler plugin: `#Preview` expands to nothing, so preview blocks in app sources compile.

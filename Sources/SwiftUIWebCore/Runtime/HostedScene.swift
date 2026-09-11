@@ -12,6 +12,7 @@ extension Runtime: HostedScene {
     public func advanceFrame(elapsed: Double) -> Bool {
         var animating = advanceScrollAnimations(elapsed: elapsed)
         if advanceAnimations(elapsed: elapsed) { animating = true }
+        if !platformHosts.isEmpty, advancePlatformHosts(elapsed: elapsed) { animating = true }
         return animating
     }
 

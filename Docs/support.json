@@ -1141,6 +1141,37 @@
           ]
         }
       ]
+    },
+    {
+      "title": "UIKit interop (decision 0014)",
+      "entries": [
+        {
+          "api": "UIViewRepresentable / UIViewRepresentableContext",
+          "status": "partial",
+          "notes": "makeUIView, updateUIView (under observation tracking), dismantleUIView, makeCoordinator, sizeThatFits; the UIKit view (UIKitWeb) paints into the same display list, presses become touches, its accessibility elements join the semantics tree, text fields type through the host input; sizing from intrinsicContentSize less alignmentRectInsets with the 750 hugging / resistance rule, baselines top and bottom (a label: its line); Tier A exact on 8 fixtures, Tier B (Chromium) and Tier C within tolerance; no layoutOptions, no hover",
+          "fixtures": [
+            "ios/representable/*"
+          ]
+        },
+        {
+          "api": "UIViewControllerRepresentable",
+          "status": "partial",
+          "notes": "makeUIViewController, updateUIViewController, dismantle, coordinator, sizeThatFits; viewDidLoad / willAppear / didAppear / willDisappear as a window's root controller; the view without an intrinsic size falls back to preferredContentSize",
+          "fixtures": [
+            "ios/representable/controller"
+          ]
+        },
+        {
+          "api": "Color(uiColor:) / Image(uiImage:) / Font(_ uiFont:)",
+          "status": "partial",
+          "notes": "A UIColor resolves per appearance; a UIImage names its catalog image or symbol (template rendering kept); a UIFont maps to the text style or size and weight"
+        },
+        {
+          "api": "UIHostingController / UIHostingConfiguration",
+          "status": "missing",
+          "notes": "Phase 3 of decision 0014"
+        }
+      ]
     }
   ]
 }

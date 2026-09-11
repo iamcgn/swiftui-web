@@ -2,6 +2,10 @@
 // Foundation and Observation are re-exported because real SwiftUI does the same
 // (CGFloat/CGRect, @Observable) and unmodified app sources depend on it.
 @_exported import SwiftUIWebCore
+@_exported import SwiftUIWebUIKit
+// SwiftUI re-exports UIKit on iOS (an `import SwiftUI` file can name `UIColor` or write a
+// `UIViewRepresentable`); here it re-exports UIKitWeb's `UIKit` everywhere (decision 0014).
+@_exported import UIKit
 @_exported import Observation
 #if canImport(CoreGraphics)
 // Apple platforms: CGRect.init(x:y:width:height:) etc. live in the CoreGraphics overlay, which

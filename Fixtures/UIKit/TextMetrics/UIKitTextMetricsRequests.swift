@@ -45,6 +45,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Plain field", .system(size: 17), lines: 0),
         UIKitTextRequest("secret", .system(size: 17), lines: 0),
         UIKitTextRequest("••••••", .system(size: 17), lines: 0),
+        // ios/representable/* (SwiftUI fixtures hosting UIKit views; Fixtures/Sources/Representable)
+        UIKitTextRequest("Hello", .system(size: 17)),
+        UIKitTextRequest("Hello, world", .system(size: 17)),
+        UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), lines: 0),
+        UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), width: 120, lines: 0),
+        UIKitTextRequest("Field", .system(size: 17), lines: 0),
+        UIKitTextRequest("Inside", .system(size: 17)),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

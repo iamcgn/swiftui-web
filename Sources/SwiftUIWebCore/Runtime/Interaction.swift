@@ -16,6 +16,9 @@ package protocol _Interactive: AnyObject {
     /// Like `pressEnded(inside:)`, with the release point in the node's coordinate space (lists
     /// pick the row from it). The default forwards to `pressEnded(inside:)`.
     func pressEnded(inside: Bool, at point: CGPoint)
+    /// A pan of the scroll views around the node took the press. The default ends the press
+    /// outside.
+    func pressCancelled(at point: CGPoint)
     /// Accessibility role and label for the semantics overlay.
     var semantics: SemanticsNode { get }
     /// Whether the element's descendants are exposed as their own elements (containers).
@@ -29,6 +32,7 @@ extension _Interactive {
     package func pressBegan(at point: CGPoint) { pressBegan() }
     package func pressMoved(to point: CGPoint) {}
     package func pressEnded(inside: Bool, at point: CGPoint) { pressEnded(inside: inside) }
+    package func pressCancelled(at point: CGPoint) { pressEnded(inside: false, at: point) }
     package var exposesChildren: Bool { false }
     package var dragAxes: Axis.Set { [] }
 }
@@ -101,6 +105,7 @@ extension Runtime {
     /// pan of the scroll views under it; `time` is in seconds (any monotonic clock).
     public func pointerDown(at point: CGPoint, type: PointerType = .mouse, time: Double = 0) {
         lastPointerTime = time
+        lastPointerType = type
         if type == .touch { beginPan(at: point, time: time) }
         // A touch that stopped a decelerating scroll view belongs to it, not to a control.
         if pan?.active == true { return }
@@ -152,13 +157,19 @@ extension Runtime {
         let panned = endPan(time: time)
         guard let node = pressedNode else { return }
         pressedNode = nil
-        let inside = !panned && interactiveNode(at: point) === node
-        node.pressEnded(inside: inside, at: local(point, in: node))
+        if panned {
+            node.pressCancelled(at: local(point, in: node))
+            return
+        }
+        node.pressEnded(inside: interactiveNode(at: point) === node, at: local(point, in: node))
     }
 
     /// A click delivered by the accessibility overlay, by semantics identifier.
     public func activate(semanticsIdentifier: Int) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) else { return }
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) else {
+            platformTree(handling: semanticsIdentifier)?.activate(semanticsIdentifier: semanticsIdentifier)
+            return
+        }
         node.pressBegan()
         node.pressEnded(inside: true)
     }
@@ -178,7 +189,8 @@ extension Runtime {
         if semanticsCacheIsValid {
             return semanticsCache.map { entry in
                 var element = entry.element
-                let frame = entry.node.frameInRoot
+                var frame = entry.node.frameInRoot
+                if let relative = entry.relativeFrame { frame = relative.offsetBy(dx: frame.minX, dy: frame.minY) }
                 if var input = element.textInput {
                     input.textRect = input.textRect.offsetBy(dx: frame.minX - element.frame.minX, dy: frame.minY - element.frame.minY)
                     element.textInput = input
@@ -200,13 +212,19 @@ extension Runtime {
 
     /// Increments or decrements an adjustable element (arrow keys on a stepper or slider).
     public func adjust(semanticsIdentifier: Int, increment: Bool) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _Adjustable else { return }
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _Adjustable else {
+            platformTree(handling: semanticsIdentifier)?.adjust(semanticsIdentifier: semanticsIdentifier, increment: increment)
+            return
+        }
         node.adjust(increment: increment)
     }
 
     /// Sets a slider's value from its range input.
     public func setValue(semanticsIdentifier: Int, value: Double) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _Adjustable else { return }
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _Adjustable else {
+            platformTree(handling: semanticsIdentifier)?.setValue(semanticsIdentifier: semanticsIdentifier, value: value)
+            return
+        }
         node.setValue(value)
     }
 }

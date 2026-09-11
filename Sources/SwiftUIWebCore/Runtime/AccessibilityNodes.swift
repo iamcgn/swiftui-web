@@ -66,6 +66,11 @@ extension Runtime {
 
     /// The elements of a layout node's subtree with modifiers inside it applied.
     private func collectElements(_ node: ViewNode, into result: inout [SemanticsEntry]) {
+        // A hosted tree lists its own elements (Runtime/PlatformViewNodes.swift).
+        if let host = node as? _PlatformViewSemanticsProviding {
+            result += host.semanticsEntries
+            return
+        }
         if let interactive = node as? any _Interactive {
             var element = interactive.semantics
             element.frame = node.frameInRoot
@@ -99,7 +104,24 @@ extension Runtime {
 package struct SemanticsEntry {
     package let node: ViewNode
     package var element: SemanticsNode
+    /// For an element inside a hosted tree: its frame relative to the node's, so a frame that
+    /// only scrolled can move it with the node.
+    package var relativeFrame: CGRect?
+
+    package init(node: ViewNode, element: SemanticsNode, relativeFrame: CGRect? = nil) {
+        self.node = node
+        self.element = element
+        self.relativeFrame = relativeFrame
+    }
 }
+
+/// A node whose semantics are a list of elements of its own (a hosted tree).
+@MainActor
+package protocol _PlatformViewSemanticsProviding: AnyObject {
+    var semanticsEntries: [SemanticsEntry] { get }
+}
+
+extension _PlatformViewHostNode: _PlatformViewSemanticsProviding {}
 
 extension ViewNode {
     /// A stable identifier for elements that are not interactive nodes, from the node's identity.

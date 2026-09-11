@@ -17,6 +17,8 @@ public struct Color: Hashable, Sendable {
         case system(SystemColor)
         /// A colour set of the app's asset catalogs (decision 0011).
         case named(String)
+        /// A colour resolved for each appearance already (`Color(uiColor:)`).
+        case dynamic(light: RGBA, dark: RGBA)
     }
 
     package enum SystemColor: String, Hashable, Sendable, CaseIterable {

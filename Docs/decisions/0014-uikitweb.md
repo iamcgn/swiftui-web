@@ -1,6 +1,6 @@
 # 0014 — UIKitWeb: a shared graphics substrate, a UIKit reimplementation, and the representables
 
-Status: accepted (2026-09-06); Phase 0 done
+Status: accepted (2026-09-06); Phases 0, 1 and 2 done
 
 ## Context
 
@@ -131,3 +131,29 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   stack's rounded placement were found. Catalyst's Mac switch is the one artefact so far: the
   test compares its origin only.
 
+
+## Phase 2 log
+
+- Step 1 (2026-09-10): the representables (`Docs/ROADMAP.md`, Phase 7 status 2.1;
+  `Docs/elements/Representable.md`). The root package depends on `Packages/UIKitWeb`; the
+  `SwiftUI` module re-exports `UIKit` on every platform (Apple's SwiftUI does on iOS), so a file
+  that only imports SwiftUI can name `UIColor` and declare a `UIViewRepresentable`. The seam is
+  two protocols: `_PlatformViewTree` in `SwiftUIWebCore` (what a hosted tree provides: layout in a
+  size, paint at an origin, pointer events, wheel, semantics with routing by identifier, focus,
+  text input, baselines, dismantle) with `_PlatformViewHostNode` as the leaf that owns the
+  SwiftUI side, and `UIKitHostedTree` in `UIKitWebCore` (a window the scene never shows, the
+  scene's `TouchRouter`, the semantics walk, first-responder tracking). `SwiftUIWebUIKit` in the
+  root package joins them; being in the same package as the core it uses `package` members, so
+  nothing new became public in the core. Two runtime changes were needed for hosted trees:
+  routing by semantics identifier falls through to the tree that contains an identifier (UIKit's
+  start at 20 000 000, clear of every SwiftUIWeb range), and the semantics cache keeps a hosted
+  element's frame relative to its node so a scroll-only frame moves it correctly. The scene's
+  `setNeedsFrame` fans out to hosted trees, which suppress it while laying out or painting for
+  the host; `updateUIView` runs under observation tracking, as a body would. Sizing was
+  measured, not assumed: SwiftUI takes the alignment rect (intrinsic size less
+  `alignmentRectInsets`) and lets a proposal win unless the relevant priority is at least 750,
+  which also exposed that the iOS 26 `UISwitch` is 68 × 30 with a 2 pt right inset (a run
+  earlier the same day had measured 51 × 31 for `sizeToFit`; the fixture now says 68 × 30) and
+  that a rounded `UITextField` has a real intrinsic width (text + 28). The size gate: Counter
+  2,835,785 bytes brotli against 2,751,777 before UIKitWeb was linked (budget 3,145,728), so the
+  re-export stays unconditional.

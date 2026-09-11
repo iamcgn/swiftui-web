@@ -107,6 +107,12 @@ extension Runtime {
             focusTextField(semanticsIdentifier)
             return
         }
+        // An element inside a hosted tree: the tree makes it the first responder, and a text
+        // field there reports back through `focusTextField`.
+        if let semanticsIdentifier, let tree = platformTree(handling: semanticsIdentifier) {
+            tree.focus(semanticsIdentifier: semanticsIdentifier)
+            if tree.focusedTextFieldIdentifier == semanticsIdentifier { return }
+        }
         guard focusedIdentifier != semanticsIdentifier || focusVisible != keyboard || focusedTextFieldIdentifier != nil else { return }
         focusedTextFieldIdentifier = nil
         focusedIdentifier = semanticsIdentifier
@@ -117,6 +123,7 @@ extension Runtime {
 
     /// The element lost the host's focus.
     public func blur(semanticsIdentifier: Int) {
+        platformTree(handling: semanticsIdentifier)?.blur(semanticsIdentifier: semanticsIdentifier)
         if focusedIdentifier == semanticsIdentifier { focus(semanticsIdentifier: nil) }
     }
 

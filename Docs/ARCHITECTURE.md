@@ -11,7 +11,9 @@ consume a display list.
 
 ```
 App source ── import SwiftUI ──▶ SwiftUI (thin re-export) ──▶ SwiftUIWebCore ──▶ WebGraphics (Packages/WebGraphics)
-                                                                │  Painter / TextEngine / SemanticsHost / TextInputHost
+                                        │                       │  Painter / TextEngine / SemanticsHost / TextInputHost
+                                        ├──▶ SwiftUIWebUIKit ──▶ UIKit (Packages/UIKitWeb) ──▶ WebGraphics
+                                        │    UIViewRepresentable, UIViewControllerRepresentable
                         ┌───────────────────────────────────────┼─────────────────────────────┐
               SwiftUIWebCanvas (wasm)                 SwiftUIWebHeadless (any OS)        SwiftUIWebNative (macOS)
               Canvas2D painter, overlay, IME          recorder for tests                 CoreGraphics, AppKit window
@@ -19,9 +21,15 @@ App source ── import SwiftUI ──▶ SwiftUI (thin re-export) ──▶ Sw
 
 ## Modules
 
-- `SwiftUI`: `@_exported import SwiftUIWebCore`, `Foundation`, `Observation`. Exists so tests can
+- `SwiftUI`: `@_exported import SwiftUIWebCore`, `SwiftUIWebUIKit`, `UIKit` (UIKitWeb's, as
+  Apple's SwiftUI re-exports UIKit on iOS), `Foundation`, `Observation`. Exists so tests can
   fall back to importing `SwiftUIWebCore` directly if `SwiftUI` ever resolves to Apple's framework
   on macOS (decision 0001).
+- `SwiftUIWebUIKit` (decision 0014, Phase 2): `UIViewRepresentable`, `UIViewControllerRepresentable`
+  and the UIKit value bridges (`Color(uiColor:)`, `Image(uiImage:)`, `Font(_:)`). A representable
+  is a `_PlatformViewHostNode` in `SwiftUIWebCore` over a `UIKitHostedTree` in `UIKitWebCore`: UIKit
+  views paint into the same display list and join the same semantics tree
+  (`Docs/elements/Representable.md`).
 - `WebGraphics` (`Packages/WebGraphics`, decision 0014): the graphics substrate SwiftUIWeb and
   UIKitWeb share. `Geometry/` (`CGRect` and friends on wasm, `Angle`, `EdgeInsets`, trigonometry),
   `Shapes/` (`Path`, its geometry and boolean algebra, `StrokeStyle`), `Display/` (`DisplayList`

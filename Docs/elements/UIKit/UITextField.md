@@ -23,6 +23,9 @@ field sized to fit.
   other sizes are unverified.
 - A field measures its text without a line limit (`font||text` in the recordings), the
   placeholder when the text is empty.
+- A rounded field's intrinsic size is its text plus 14 each side by 34 (`uikit/controls/intrinsic`:
+  67 × 34 for the 39 pt "Hello"), twice the inset the text is drawn at; the intrinsic width is
+  real (not `noIntrinsicMetric`), and the priorities are UIKit's defaults (hugging 250).
 - The simulator's snapshot of a secure field is blank: iOS redacts secure text in
   `drawHierarchy` captures, so `uikit/controls/basic` pins the secure field's frame only.
 

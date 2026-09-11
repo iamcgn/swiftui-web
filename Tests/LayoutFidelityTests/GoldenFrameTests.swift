@@ -39,11 +39,16 @@ enum Goldens {
         try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
     }
 
-    /// The platform's recorded text metrics: iOS fixtures use the Catalyst run's file.
+    /// The platform's recorded text metrics: iOS fixtures use the simulator run's file. The
+    /// representable fixtures also show strings in UIKit labels, which measure differently from
+    /// SwiftUI's Text: those come from the UIKit fixtures' recording (uikit/text-metrics.json).
     @MainActor
     static func textEngine(for fixture: Fixture) throws -> RecordedTextEngine {
         let file = fixture.platform == .iOS ? "ios/text-metrics.json" : "text-metrics.json"
-        return try RecordedTextEngine(contentsOf: root.appendingPathComponent(file))
+        let engine = try RecordedTextEngine(contentsOf: root.appendingPathComponent(file))
+        guard fixture.name.hasPrefix("ios/representable/") else { return engine }
+        let uikit = try RecordedTextEngine(contentsOf: root.appendingPathComponent("uikit/text-metrics.json"))
+        return RecordedTextEngine(entries: engine.entries.merging(uikit.entries) { _, label in label }, fonts: engine.fonts)
     }
 }
 

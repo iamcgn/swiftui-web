@@ -324,6 +324,22 @@ open class UIView: UIResponder, UITraitEnvironment {
 
     /// The natural size of the view's content, `noIntrinsicMetric` on an axis without one.
     open var intrinsicContentSize: CGSize { CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) }
+
+    /// The insets from the view's frame to the rectangle layout aligns (Auto Layout and SwiftUI's
+    /// representables position and size this rectangle, not the frame). Zero by default.
+    open var alignmentRectInsets: UIEdgeInsets { .zero }
+
+    open func alignmentRect(forFrame frame: CGRect) -> CGRect {
+        let insets = alignmentRectInsets
+        return CGRect(x: frame.minX + insets.left, y: frame.minY + insets.top,
+                      width: frame.width - insets.left - insets.right, height: frame.height - insets.top - insets.bottom)
+    }
+
+    open func frame(forAlignmentRect alignmentRect: CGRect) -> CGRect {
+        let insets = alignmentRectInsets
+        return CGRect(x: alignmentRect.minX - insets.left, y: alignmentRect.minY - insets.top,
+                      width: alignmentRect.width + insets.left + insets.right, height: alignmentRect.height + insets.top + insets.bottom)
+    }
     open func invalidateIntrinsicContentSize() { superview?.setNeedsLayout() }
 
     private var hugging: [NSLayoutConstraint.Axis: UILayoutPriority] = [:]
@@ -375,6 +391,11 @@ open class UIView: UIResponder, UITraitEnvironment {
                flexibleLeading: mask.contains(.flexibleTopMargin), flexibleSize: mask.contains(.flexibleHeight), flexibleTrailing: mask.contains(.flexibleBottomMargin))
         frame = f
     }
+
+    /// The first and last text baselines of this view's content laid out in `size`, from the
+    /// top: a plain view's are its top and bottom edges, as its baseline anchors are (labels
+    /// override this with their lines').
+    func textBaselines(in size: CGSize) -> (first: CGFloat, last: CGFloat) { (0, size.height) }
 
     // MARK: Drawing
 

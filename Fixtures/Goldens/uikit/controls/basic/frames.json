@@ -2,20 +2,20 @@
   "fixture" : "uikit\/controls\/basic",
   "frames" : {
     "disabledSwitch" : {
-      "height" : 31,
-      "width" : 51,
+      "height" : 30,
+      "width" : 68,
       "x" : 176,
       "y" : 16
     },
     "off" : {
-      "height" : 31,
-      "width" : 51,
+      "height" : 30,
+      "width" : 68,
       "x" : 16,
       "y" : 16
     },
     "on" : {
-      "height" : 31,
-      "width" : 51,
+      "height" : 30,
+      "width" : 68,
       "x" : 96,
       "y" : 16
     },

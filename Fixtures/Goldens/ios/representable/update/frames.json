@@ -1,0 +1,75 @@
+{
+  "fixture" : "ios\/representable\/update",
+  "frames" : {
+    "label" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 127,
+      "y" : 70.75
+    },
+    "stack" : {
+      "height" : 58.5,
+      "width" : 66,
+      "x" : 127,
+      "y" : 70.75
+    },
+    "switch" : {
+      "height" : 30,
+      "width" : 66,
+      "x" : 127,
+      "y" : 99.25
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "label" : {
+          "height" : 20.5,
+          "width" : 90,
+          "x" : 115,
+          "y" : 70.75
+        },
+        "stack" : {
+          "height" : 58.5,
+          "width" : 90,
+          "x" : 115,
+          "y" : 70.75
+        },
+        "switch" : {
+          "height" : 30,
+          "width" : 66,
+          "x" : 115,
+          "y" : 99.25
+        }
+      },
+      "name" : "longer"
+    },
+    {
+      "frames" : {
+        "label" : {
+          "height" : 20.5,
+          "width" : 90,
+          "x" : 115,
+          "y" : 70.75
+        },
+        "stack" : {
+          "height" : 58.5,
+          "width" : 90,
+          "x" : 115,
+          "y" : 70.75
+        },
+        "switch" : {
+          "height" : 30,
+          "width" : 66,
+          "x" : 115,
+          "y" : 99.25
+        }
+      },
+      "name" : "off"
+    }
+  ]
+}

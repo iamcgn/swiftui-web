@@ -1,0 +1,27 @@
+{
+  "fixture" : "ios\/representable\/controller",
+  "frames" : {
+    "controller" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 60,
+      "y" : 46
+    },
+    "controllerIdeal" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 60,
+      "y" : 114
+    },
+    "stack" : {
+      "height" : 108,
+      "width" : 200,
+      "x" : 60,
+      "y" : 46
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

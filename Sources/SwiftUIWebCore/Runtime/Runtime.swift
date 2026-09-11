@@ -210,6 +210,10 @@ public final class Runtime {
     package var pointerPosition: CGPoint = .zero
     /// The host's time (seconds) of the last pointer event, for gesture timing.
     package var lastPointerTime: Double = 0
+    /// The kind of pointer the last press came from (a hosted UIKit tree makes touches of it).
+    package var lastPointerType: PointerType = .mouse
+    /// The nodes hosting another framework's view trees (Runtime/PlatformViewNodes.swift).
+    package var platformHosts: [WeakPlatformHost] = []
 
     /// Hover state (Runtime/HoverNodes.swift): the nodes the pointer is over, the memoised
     /// tracking nodes, a pending or shown tooltip and the pointer style hosts apply.

@@ -15,7 +15,26 @@ public final class UIKitScene: HostedScene {
     /// The window the app delegate keeps (`UIApplicationDelegate.window`).
     var delegateWindow: UIWindow?
     /// The responder taking key input (a text field).
-    var firstResponder: UIResponder?
+    var firstResponder: UIResponder? {
+        didSet {
+            guard firstResponder !== oldValue else { return }
+            for entry in hostedTrees { entry.tree?.firstResponderDidChange(from: oldValue, to: firstResponder) }
+        }
+    }
+
+    // MARK: Trees hosted in other scenes (decision 0014: SwiftUIWeb's representables)
+
+    private struct WeakTree { weak var tree: UIKitHostedTree? }
+    private var hostedTrees: [WeakTree] = []
+
+    func register(_ tree: UIKitHostedTree) {
+        hostedTrees.removeAll { $0.tree == nil }
+        hostedTrees.append(WeakTree(tree: tree))
+    }
+
+    func unregister(_ tree: UIKitHostedTree) {
+        hostedTrees.removeAll { $0.tree == nil || $0.tree === tree }
+    }
 
     func add(_ window: UIWindow) {
         guard !windows.contains(where: { $0 === window }) else { return }
@@ -99,8 +118,9 @@ public final class UIKitScene: HostedScene {
     /// Frames published under a name for tests (`UIView.publishFrame(as:)`).
     var probes: [String: CGRect] = [:]
 
-    /// Asks the host for a frame.
+    /// Asks the host for a frame (and every host of a tree hosted elsewhere).
     public func setNeedsFrame() {
+        for entry in hostedTrees { entry.tree?.sceneNeedsFrame() }
         guard !needsFrame else { return }
         needsFrame = true
         onNeedsFrame?()
@@ -109,6 +129,13 @@ public final class UIKitScene: HostedScene {
     public func advanceFrame(elapsed: Double) -> Bool {
         runTimers(elapsed: elapsed)
         return false
+    }
+
+    /// Advances the timers for a host whose frame loop drives a hosted tree (the scene's own
+    /// host goes through `advanceFrame`); returns whether timers are still pending.
+    func advanceTimers(elapsed: Double) -> Bool {
+        runTimers(elapsed: elapsed)
+        return !timers.isEmpty
     }
 
     public func layout(in size: CGSize) {
@@ -177,83 +204,21 @@ public final class UIKitScene: HostedScene {
 
     // MARK: Touches
 
-    private var activeTouch: UITouch?
-    private var activeEvent: UIEvent?
-    private var lastTapTime: Double = 0
-    private var lastTapLocation = CGPoint.zero
+    private let touches = TouchRouter()
 
     public func pointerDown(at point: CGPoint, type: PointerType, time: Double) {
         guard let window = windows.last(where: { !$0.isHidden }) else { return }
-        let hit = window.hitTest(window.convert(point, from: nil), with: nil)
-        let touch = UITouch(at: point, in: window, view: hit, type: type == .touch ? .direct : .indirectPointer, timestamp: time)
-        if time - lastTapTime < 0.35, abs(point.x - lastTapLocation.x) < 20, abs(point.y - lastTapLocation.y) < 20 { touch.tapCount = 2 }
-        lastTapTime = time
-        lastTapLocation = point
-        let event = UIEvent(type: .touches, timestamp: time)
-        event.touches = [touch]
-        activeTouch = touch
-        activeEvent = event
-        // Gesture recognizers on the hit view and its ancestors see the touch first.
-        var recognizers: [UIGestureRecognizer] = []
-        var view: UIView? = hit
-        while let v = view {
-            recognizers += (v.gestureRecognizers ?? []).filter { $0.isEnabled && ($0.delegate?.gestureRecognizer($0, shouldReceive: touch) ?? true) }
-            view = v.superview
-        }
-        touch.gestureRecognizers = recognizers
-        for recognizer in recognizers { recognizer.touchesBegan([touch], with: event) }
-        if !recognizers.contains(where: { $0.hasRecognized && $0.cancelsTouchesInView }) {
-            hit?.touchesBegan([touch], with: event)
-        }
-        // A press outside the first responder ends its editing.
-        if let responder = firstResponder as? UIView, hit !== responder, !(hit?.isDescendant(of: responder) ?? false) {
-            _ = responder.resignFirstResponder()
-        }
-        setNeedsFrame()
+        touches.pointerDown(at: point, in: window, type: type, time: time)
     }
 
     public func pointerMoved(to point: CGPoint, time: Double) {
-        guard let touch = activeTouch, let event = activeEvent else { return }
-        touch.previousWindowLocation = touch.windowLocation
-        touch.windowLocation = point
-        touch.timestamp = time
-        touch.phase = .moved
-        let wasRecognized = touch.gestureRecognizers?.contains { $0.hasRecognized && $0.cancelsTouchesInView } ?? false
-        for recognizer in touch.gestureRecognizers ?? [] { recognizer.touchesMoved([touch], with: event) }
-        let recognized = touch.gestureRecognizers?.contains { $0.hasRecognized && $0.cancelsTouchesInView } ?? false
-        if recognized, !wasRecognized {
-            touch.phase = .cancelled
-            touch.view?.touchesCancelled([touch], with: event)
-            touch.phase = .moved
-        } else if !recognized {
-            touch.view?.touchesMoved([touch], with: event)
-        }
-        setNeedsFrame()
+        touches.pointerMoved(to: point, time: time)
     }
 
     public func pointerLeft() {}
 
     public func pointerUp(at point: CGPoint, time: Double) {
-        guard let touch = activeTouch, let event = activeEvent else { return }
-        touch.previousWindowLocation = touch.windowLocation
-        touch.windowLocation = point
-        touch.timestamp = time
-        let recognized = touch.gestureRecognizers?.contains { $0.hasRecognized && $0.cancelsTouchesInView } ?? false
-        touch.phase = point.x < 0 && point.y < 0 ? .cancelled : .ended
-        if touch.phase == .cancelled {
-            for recognizer in touch.gestureRecognizers ?? [] { recognizer.touchesCancelled([touch], with: event) }
-            if !recognized { touch.view?.touchesCancelled([touch], with: event) }
-        } else {
-            for recognizer in touch.gestureRecognizers ?? [] { recognizer.touchesEnded([touch], with: event) }
-            let nowRecognized = touch.gestureRecognizers?.contains { $0.cancelsTouchesInView && $0.hasRecognizedThisFrame } ?? false
-            if !recognized {
-                if nowRecognized { touch.view?.touchesCancelled([touch], with: event) } else { touch.view?.touchesEnded([touch], with: event) }
-            }
-        }
-        for recognizer in touch.gestureRecognizers ?? [] { recognizer.hasRecognizedThisFrame = false }
-        activeTouch = nil
-        activeEvent = nil
-        setNeedsFrame()
+        touches.pointerUp(at: point, time: time, cancelled: point.x < 0 && point.y < 0)
     }
 
     public func secondaryPointerDown(at point: CGPoint) {}
@@ -274,7 +239,9 @@ public final class UIKitScene: HostedScene {
 
     // MARK: Semantics
 
-    nonisolated(unsafe) private static var identifierCounter = 0
+    /// Above every range SwiftUIWeb's own elements use (its static elements sit at
+    /// 10_000_000 plus 23 bits), so a hosted tree's identifiers never collide with the host's.
+    nonisolated(unsafe) private static var identifierCounter = 20_000_000
 
     static func nextSemanticsIdentifier() -> Int {
         identifierCounter += 1
@@ -284,32 +251,14 @@ public final class UIKitScene: HostedScene {
     public func semanticsTree() -> [SemanticsNode] {
         var nodes: [SemanticsNode] = []
         for window in windows where !window.isHidden {
-            collectSemantics(of: window, into: &nodes)
+            window.collectSemantics(into: &nodes)
         }
         return nodes
     }
 
-    private func collectSemantics(of view: UIView, into nodes: inout [SemanticsNode]) {
-        guard !view.isHidden, view.alpha > 0.01, !view.accessibilityElementsHidden else { return }
-        if let node = view.semanticsNode() {
-            nodes.append(node)
-            if !(view is UIControl) { for subview in view.subviews { collectSemantics(of: subview, into: &nodes) } }
-            return
-        }
-        for subview in view.subviews { collectSemantics(of: subview, into: &nodes) }
-    }
-
     private func view(withSemanticsIdentifier identifier: Int) -> UIView? {
         for window in windows {
-            if let found = find(in: window, identifier: identifier) { return found }
-        }
-        return nil
-    }
-
-    private func find(in view: UIView, identifier: Int) -> UIView? {
-        if view.semanticsIdentifier == identifier { return view }
-        for subview in view.subviews {
-            if let found = find(in: subview, identifier: identifier) { return found }
+            if let found = window.descendant(withSemanticsIdentifier: identifier) { return found }
         }
         return nil
     }

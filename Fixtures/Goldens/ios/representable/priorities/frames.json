@@ -1,0 +1,81 @@
+{
+  "fixture" : "ios\/representable\/priorities",
+  "frames" : {
+    "hug252" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 60,
+      "y" : 35
+    },
+    "hug500" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 60,
+      "y" : 99
+    },
+    "hug749" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 60,
+      "y" : 163
+    },
+    "hug750" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 140.5,
+      "y" : 246.75
+    },
+    "hug751" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 140.5,
+      "y" : 310.75
+    },
+    "hug1000" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 140.5,
+      "y" : 374.75
+    },
+    "squeeze250" : {
+      "height" : 10,
+      "width" : 30,
+      "x" : 60,
+      "y" : 419
+    },
+    "squeeze500" : {
+      "height" : 10,
+      "width" : 30,
+      "x" : 60,
+      "y" : 433
+    },
+    "squeeze749" : {
+      "height" : 10,
+      "width" : 30,
+      "x" : 60,
+      "y" : 447
+    },
+    "squeeze751" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 55.5,
+      "y" : 455.75
+    },
+    "squeeze1000" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 55.5,
+      "y" : 469.75
+    },
+    "stack" : {
+      "height" : 450,
+      "width" : 200,
+      "x" : 60,
+      "y" : 35
+    }
+  },
+  "size" : {
+    "height" : 520,
+    "width" : 320
+  }
+}

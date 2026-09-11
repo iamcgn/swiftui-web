@@ -102,11 +102,29 @@
       "lastBaseline" : 16.1865234375,
       "width" : 33.5
     },
+    "system:17:400:default|;l1|Hello" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 39
+    },
     "system:17:400:default|;l1|Hello, UIKit" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 84.5
+    },
+    "system:17:400:default|;l1|Hello, world" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 90
+    },
+    "system:17:400:default|;l1|Inside" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 45.5
     },
     "system:17:400:default|;l1|Second line" : {
       "firstBaseline" : 16.1865234375,
@@ -131,6 +149,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 46
+    },
+    "system:17:400:default||Field" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 36.5
     },
     "system:17:400:default||Hello" : {
       "firstBaseline" : 16.1865234375,
@@ -162,11 +186,23 @@
       "lastBaseline" : 16.1865234375,
       "width" : 48
     },
+    "system:17:400:default||The quick brown fox jumps over the lazy dog" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 339
+    },
     "system:17:400:default|120.0;l1|The quick brown fox jumps over the lazy dog" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 339
+    },
+    "system:17:400:default|120.0|The quick brown fox jumps over the lazy dog" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 81.5,
+      "lastBaseline" : 77.0478515625,
+      "width" : 117
     },
     "system:17:400:default|200.0;l2|The quick brown fox jumps over the lazy dog" : {
       "firstBaseline" : 16.1865234375,

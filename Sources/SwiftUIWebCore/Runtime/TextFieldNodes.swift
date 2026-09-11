@@ -172,18 +172,28 @@ extension TextFieldNode: _TextInputNode {}
 extension Runtime {
     /// Text typed into the field with this semantics identifier (from the host's input element).
     public func textField(_ semanticsIdentifier: Int, didChange text: String) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode else { return }
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode else {
+            platformTree(handling: semanticsIdentifier)?.textField(semanticsIdentifier, didChange: text)
+            return
+        }
         node.setText(text)
     }
 
     /// Return pressed in the field with this identifier (an editor inserts a newline).
     public func textFieldDidSubmit(_ semanticsIdentifier: Int) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode else { return }
+        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode else {
+            platformTree(handling: semanticsIdentifier)?.textFieldDidSubmit(semanticsIdentifier)
+            return
+        }
         node.submit()
     }
 
     /// The host's input gained or lost focus.
     public func textField(_ semanticsIdentifier: Int, focused: Bool) {
+        if let tree = platformTree(handling: semanticsIdentifier) {
+            tree.textField(semanticsIdentifier, focused: focused)
+            return
+        }
         if focused {
             focusTextField(semanticsIdentifier)
         } else if focusedTextFieldIdentifier == semanticsIdentifier {

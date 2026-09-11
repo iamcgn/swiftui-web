@@ -442,6 +442,11 @@ extension Runtime {
     /// A wheel event at `point`; deltas are in points (the host has already normalised line and
     /// page modes). Desktop wheel deltas carry the OS's own momentum, so none is added.
     public func scrollWheel(by delta: CGSize, at point: CGPoint) {
+        // A scroll view inside a hosted tree under the pointer takes the wheel first.
+        if let host = interactiveNode(at: point) as? any _PlatformViewHosting, let node = host as? ViewNode {
+            let origin = node.frameInRoot.origin
+            if host.tree.scrollWheel(by: delta, at: CGPoint(x: point.x - origin.x, y: point.y - origin.y)) { return }
+        }
         scroll(by: delta, at: point)
     }
 

@@ -1,0 +1,51 @@
+{
+  "fixture" : "ios\/representable\/plain",
+  "frames" : {
+    "fill" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 0,
+      "y" : 47
+    },
+    "fillBox" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 0,
+      "y" : 47
+    },
+    "hBox" : {
+      "height" : 30,
+      "width" : 289.5,
+      "x" : 30.5,
+      "y" : 123
+    },
+    "hRow" : {
+      "height" : 30,
+      "width" : 320,
+      "x" : 0,
+      "y" : 123
+    },
+    "hText" : {
+      "height" : 24.5,
+      "width" : 22.5,
+      "x" : 0,
+      "y" : 125.75
+    },
+    "ideal" : {
+      "height" : 0,
+      "width" : 0,
+      "x" : 0,
+      "y" : 115
+    },
+    "stack" : {
+      "height" : 106,
+      "width" : 320,
+      "x" : 0,
+      "y" : 47
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

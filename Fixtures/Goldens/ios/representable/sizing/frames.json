@@ -1,0 +1,87 @@
+{
+  "fixture" : "ios\/representable\/sizing",
+  "frames" : {
+    "baselineBox" : {
+      "height" : 22,
+      "width" : 44,
+      "x" : 90.5,
+      "y" : 216
+    },
+    "baselineRow" : {
+      "height" : 40.5,
+      "width" : 74.5,
+      "x" : 60,
+      "y" : 197.5
+    },
+    "baselineText" : {
+      "height" : 24.5,
+      "width" : 22.5,
+      "x" : 60,
+      "y" : 197.5
+    },
+    "fixed" : {
+      "height" : 22,
+      "width" : 44,
+      "x" : 138,
+      "y" : 52.5
+    },
+    "labelBox" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 90.5,
+      "y" : 284.5
+    },
+    "labelRow" : {
+      "height" : 24.5,
+      "width" : 69.5,
+      "x" : 60,
+      "y" : 282
+    },
+    "labelText" : {
+      "height" : 24.5,
+      "width" : 22.5,
+      "x" : 60,
+      "y" : 282
+    },
+    "lastBox" : {
+      "height" : 22,
+      "width" : 44,
+      "x" : 90.5,
+      "y" : 246
+    },
+    "lastRow" : {
+      "height" : 28,
+      "width" : 74.5,
+      "x" : 60,
+      "y" : 246
+    },
+    "lastText" : {
+      "height" : 24.5,
+      "width" : 22.5,
+      "x" : 60,
+      "y" : 249.5
+    },
+    "proposal" : {
+      "height" : 20,
+      "width" : 200,
+      "x" : 60,
+      "y" : 121.5
+    },
+    "proposalIdeal" : {
+      "height" : 20,
+      "width" : 100,
+      "x" : 60,
+      "y" : 169.5
+    },
+    "stack" : {
+      "height" : 273,
+      "width" : 200,
+      "x" : 60,
+      "y" : 33.5
+    }
+  },
+  "size" : {
+    "height" : 340,
+    "width" : 320
+  }
+}

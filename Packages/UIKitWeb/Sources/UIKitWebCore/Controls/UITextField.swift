@@ -104,6 +104,9 @@ open class UITextField: UIControl {
 
     private var bordered: Bool { borderStyle != .none }
     private var horizontalInset: CGFloat { bordered ? 7 : 0 }
+    /// A bordered field sizes to its text plus 14 each side (uikit/controls/intrinsic: 67 for
+    /// the 39 pt "Hello"), twice the inset the text is drawn at.
+    private var sizingInset: CGFloat { bordered ? 14 : 0 }
     private var resolvedFont: UIFont { font ?? .systemFont(ofSize: 17) }
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
@@ -113,12 +116,12 @@ open class UITextField: UIControl {
         let height: CGFloat = bordered ? 34 : (f.lineHeight + 1.5).roundedUp(to: UIScreen.main.scale)
         let content = text?.isEmpty == false ? text! : (placeholder ?? "")
         let layout = UIKitScene.shared.textEngine.layout([StyledRun(content, font: f.resolved)], options: .default, width: nil)
-        return CGSize(width: layout.size.width.rounded(.up) + 2 * horizontalInset, height: height)
+        return CGSize(width: layout.size.width.rounded(.up) + 2 * sizingInset, height: height)
     }
 
+    /// A field's intrinsic size is what fits its text (uikit/controls/intrinsic).
     override open var intrinsicContentSize: CGSize {
-        let fitted = sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
-        return CGSize(width: UIView.noIntrinsicMetric, height: fitted.height)
+        sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
     }
 
     open func textRect(forBounds bounds: CGRect) -> CGRect {

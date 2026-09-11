@@ -1,0 +1,99 @@
+{
+  "fixture" : "uikit\/controls\/intrinsic",
+  "frames" : {
+    "button" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 8,
+      "y" : 116.5
+    },
+    "buttonFitting" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 160,
+      "y" : 116.5
+    },
+    "buttonInsets" : {
+      "height" : 0,
+      "width" : 0,
+      "x" : 240,
+      "y" : 116.5
+    },
+    "field" : {
+      "height" : 34,
+      "width" : 67,
+      "x" : 8,
+      "y" : 74.5
+    },
+    "fieldFitting" : {
+      "height" : 34,
+      "width" : 67,
+      "x" : 160,
+      "y" : 74.5
+    },
+    "fieldInsets" : {
+      "height" : 0,
+      "width" : 0,
+      "x" : 240,
+      "y" : 74.5
+    },
+    "label" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 8,
+      "y" : 46
+    },
+    "labelFitting" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 160,
+      "y" : 46
+    },
+    "labelInsets" : {
+      "height" : 0,
+      "width" : 0,
+      "x" : 240,
+      "y" : 46
+    },
+    "plain" : {
+      "height" : 1,
+      "width" : 1,
+      "x" : 8,
+      "y" : 154.5
+    },
+    "plainFitting" : {
+      "height" : 1,
+      "width" : 1,
+      "x" : 160,
+      "y" : 154.5
+    },
+    "plainInsets" : {
+      "height" : 0,
+      "width" : 0,
+      "x" : 240,
+      "y" : 154.5
+    },
+    "switch" : {
+      "height" : 30,
+      "width" : 68,
+      "x" : 8,
+      "y" : 8
+    },
+    "switchFitting" : {
+      "height" : 30,
+      "width" : 68,
+      "x" : 160,
+      "y" : 8
+    },
+    "switchInsets" : {
+      "height" : 0,
+      "width" : 2,
+      "x" : 240,
+      "y" : 8
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

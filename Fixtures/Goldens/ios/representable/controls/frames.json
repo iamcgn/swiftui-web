@@ -1,0 +1,45 @@
+{
+  "fixture" : "ios\/representable\/controls",
+  "frames" : {
+    "button" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 60,
+      "y" : 198
+    },
+    "buttonIdeal" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 60,
+      "y" : 266
+    },
+    "field" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 60,
+      "y" : 130
+    },
+    "stack" : {
+      "height" : 272,
+      "width" : 200,
+      "x" : 60,
+      "y" : 24
+    },
+    "switchIdeal" : {
+      "height" : 30,
+      "width" : 66,
+      "x" : 60,
+      "y" : 92
+    },
+    "switchLarge" : {
+      "height" : 30,
+      "width" : 66,
+      "x" : 127,
+      "y" : 39
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  }
+}

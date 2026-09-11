@@ -119,6 +119,8 @@ extension Color {
         case .named(let name):
             // A missing colour set draws nothing (an assumption, see Docs/elements/Image.md).
             base = environment.assetCatalog.color(named: name, scheme: environment.colorScheme, idiom: environment.assetIdiom) ?? .clear
+        case .dynamic(let light, let dark):
+            base = environment.colorScheme == .dark ? dark : light
         }
         return base.multiplyingAlpha(by: opacityMultiplier)
     }

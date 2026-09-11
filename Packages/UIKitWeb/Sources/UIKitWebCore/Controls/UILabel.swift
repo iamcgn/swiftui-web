@@ -31,6 +31,9 @@ open class UILabel: UIView {
         isAccessibilityElement = true
         accessibilityTraits = .staticText
         backgroundColor = nil
+        // UIKit's label priorities: hugging 251 on both axes (a hair above the default 250).
+        setContentHuggingPriority(UILayoutPriority(251), for: .horizontal)
+        setContentHuggingPriority(UILayoutPriority(251), for: .vertical)
     }
 
     private func textDidChange() {
@@ -85,9 +88,23 @@ open class UILabel: UIView {
         textSize(fitting: preferredMaxLayoutWidth > 0 ? preferredMaxLayoutWidth : nil)
     }
 
+    /// The text's rectangle in `bounds`: one line measures unbounded (it truncates rather than
+    /// wraps), the block is centred vertically on the point grid.
     open func textRect(forBounds bounds: CGRect, limitedToNumberOfLines numberOfLines: Int) -> CGRect {
-        let size = textSize(fitting: bounds.width)
+        let size = textSize(fitting: numberOfLines == 1 ? nil : bounds.width)
         return CGRect(x: bounds.minX, y: bounds.minY + ((bounds.height - size.height) / 2).rounded(), width: min(size.width, bounds.width), height: size.height)
+    }
+
+    /// The baselines of the text block in `size`: the text rect's top (rounded, as
+    /// `textRect(forBounds:)` places it) plus the ascender rounded to the point, per line
+    /// (`ios/representable/sizing` `labelBox`: 16 for the 17 pt system font's 16.43).
+    override func textBaselines(in size: CGSize) -> (first: CGFloat, last: CGFloat) {
+        guard let layout = layout(width: numberOfLines == 1 ? nil : size.width), !layout.lines.isEmpty else { return (0, size.height) }
+        let pitch = font.lineHeight + font.leading
+        let lines = CGFloat(layout.lines.count)
+        let top = textRect(forBounds: CGRect(origin: .zero, size: size), limitedToNumberOfLines: numberOfLines).minY
+        let first = top + font.ascender.rounded()
+        return (first, first + pitch * (lines - 1))
     }
 
     // MARK: Painting
