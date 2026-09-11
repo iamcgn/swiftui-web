@@ -1,0 +1,45 @@
+{
+  "fixture" : "uikit\/search\/basic",
+  "frames" : {
+    "minimal" : {
+      "height" : 64,
+      "width" : 320,
+      "x" : 0,
+      "y" : 176
+    },
+    "minimalField" : {
+      "height" : 44,
+      "width" : 304,
+      "x" : 8,
+      "y" : 186
+    },
+    "plain" : {
+      "height" : 64,
+      "width" : 320,
+      "x" : 0,
+      "y" : 16
+    },
+    "plainField" : {
+      "height" : 44,
+      "width" : 304,
+      "x" : 8,
+      "y" : 26
+    },
+    "typed" : {
+      "height" : 64,
+      "width" : 320,
+      "x" : 0,
+      "y" : 96
+    },
+    "typedField" : {
+      "height" : 44,
+      "width" : 249,
+      "x" : 8,
+      "y" : 106
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

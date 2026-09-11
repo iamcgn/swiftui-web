@@ -317,9 +317,15 @@ final class BarPlatterButton: UIControl {
     let kind: Kind
     weak var item: UIBarButtonItem?
     private let label = UILabel()
+    /// The capsule's height: 44 in a navigation bar, 48 in a toolbar (uikit/toolbar/basic).
+    var platterHeight: CGFloat = 44
+    /// A `done` item: the capsule filled with the tint, a white semibold title (uikit/toolbar/basic).
+    private(set) var isProminent = false
 
-    init(item: UIBarButtonItem) {
+    init(item: UIBarButtonItem, platterHeight: CGFloat = 44) {
         self.item = item
+        self.platterHeight = platterHeight
+        isProminent = item.style == .done
         if let name = item.image?.name, item.image?.isSystemSymbol == true {
             kind = .image(name)
         } else if let name = item.systemImageName {
@@ -345,9 +351,19 @@ final class BarPlatterButton: UIControl {
         accessibilityTraits = .button
         if case .title(let text) = kind {
             label.text = text
-            label.font = .systemFont(ofSize: 17, weight: .medium)
-            label.textColor = .label
+            label.font = .systemFont(ofSize: 17, weight: isProminent ? .semibold : .medium)
+            label.textColor = isProminent ? .white : .label
             addSubview(label)
+        }
+    }
+
+    /// The image a system item draws, at its own size (a 17 pt medium symbol: 23 × 22 for plus,
+    /// 24 × 28 for trash, 24.5 × 30 for the share arrow), centred in the capsule.
+    static func imageSize(for name: String) -> CGSize {
+        switch name {
+        case "trash": return CGSize(width: 24, height: 28)
+        case "square.and.arrow.up": return CGSize(width: 24.5, height: 30)
+        default: return CGSize(width: 23, height: 22)
         }
     }
 
@@ -355,27 +371,32 @@ final class BarPlatterButton: UIControl {
     var platterWidth: CGFloat {
         switch kind {
         case .title: return label.intrinsicContentSize.width + 24
-        case .image, .chevron: return 44
+        case .image, .chevron: return platterHeight
         }
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
         if case .title = kind {
-            label.frame = CGRect(x: 12, y: 9.5, width: bounds.width - 24, height: 24.5)
+            // The 24.5 pt label sits 9.5 down in a 44 pt platter, 12 down in a 48 pt one.
+            let y = platterHeight == 44 ? 9.5 : ((platterHeight - 24.5) / 2 * 2).rounded() / 2
+            label.frame = CGRect(x: 12, y: y, width: bounds.width - 24, height: 24.5)
         }
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
-        let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)
+        let glass: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)
+        let fill = isProminent ? (tintColor ?? .systemBlue).rgba(for: style) : glass
         list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.08), radius: 10, offset: CGSize(width: 0, height: 4)))
         list.append(.fillRRect(rect, cornerRadius: rect.height / 2, fill))
         list.append(.endGroup)
-        let ink = (isEnabled ? UIColor.label : UIColor.tertiaryLabel).rgba(for: style)
+        let ink = isProminent ? UIColor.white.rgba(for: style) : (isEnabled ? UIColor.label : UIColor.tertiaryLabel).rgba(for: style)
         switch kind {
         case .image(let name):
-            SymbolPainter.paint(name: name, in: context.absoluteRect(CGRect(x: 10.5, y: 11, width: 23, height: 22)), color: ink, weight: 500, into: &list)
+            let size = Self.imageSize(for: name)
+            let image = CGRect(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2, width: size.width, height: size.height)
+            SymbolPainter.paint(name: name, in: context.absoluteRect(image), color: ink, weight: 500, into: &list)
         case .chevron:
             var chevron = Path()
             let centre = CGPoint(x: rect.midX - 1, y: rect.midY)

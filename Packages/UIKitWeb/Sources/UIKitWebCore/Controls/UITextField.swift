@@ -53,6 +53,8 @@ open class UITextField: UIControl {
     open var rightView: UIView?
     open var leftViewMode: ViewMode = .never
     open var rightViewMode: ViewMode = .never
+    /// The placeholder's colour (a search field draws it as the secondary label).
+    var placeholderColor: UIColor = .placeholderText
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -152,7 +154,7 @@ open class UITextField: UIControl {
         guard !string.isEmpty else { return }
         let layout = UIKitScene.shared.textEngine.layout([StyledRun(string, font: f.resolved)], options: TextLayoutOptions(lineLimit: 1), width: textRect.width)
         guard let line = layout.lines.first else { return }
-        let color = (showsPlaceholder ? UIColor.placeholderText : (isEnabled ? (textColor ?? .label) : .tertiaryLabel)).rgba(for: style)
+        let color = (showsPlaceholder ? placeholderColor : (isEnabled ? (textColor ?? .label) : .tertiaryLabel)).rgba(for: style)
         let inset: CGFloat
         switch textAlignment {
         case .center: inset = (textRect.width - line.inkWidth) / 2

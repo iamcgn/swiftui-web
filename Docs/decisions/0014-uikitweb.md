@@ -241,3 +241,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   default is Helvetica 12, which the web cannot measure. Found on the way: the nav and tab bar
   buttons fired their actions twice (UIControl already sends `primaryActionTriggered` on the
   touch up), which orphaned an alert under its container in the settings example.
+- Step 7 (2026-09-11): `UIToolbar` and `UISearchBar` (`Docs/ROADMAP.md`, Phase 7 status
+  4.10; `Docs/elements/UIKit/Bars.md`). The dump showed iOS 26 building a toolbar from the same
+  glass platters as the navigation bar, 48 tall instead of 44, in a SwiftUI-hosted row with a
+  12 pt spacing that a fixed space adds its width to; the platter button gained a height and
+  a prominent (done) look. The search bar's field is a real text field (`searchTextField`), so
+  the host's text input and the representables' routing work unchanged.

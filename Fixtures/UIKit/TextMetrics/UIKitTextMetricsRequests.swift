@@ -128,6 +128,12 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Padded", .system(size: 15), width: 126, lines: 0),
         UIKitTextRequest("Centred", .system(size: 17), width: 190, lines: 0),
         UIKitTextRequest("Read-only footnote text that wraps onto a second line in this width.", .system(size: 13), width: 278, lines: 0),
+        // uikit/toolbar/basic (17 pt medium titles, semibold for a done item), uikit/search/basic
+        UIKitTextRequest("Cancel", .system(size: 17, weight: "medium")),
+        UIKitTextRequest("Done", .system(size: 17, weight: "semibold")),
+        UIKitTextRequest("Search", .system(size: 17, weight: "medium")),
+        UIKitTextRequest("Swift", .system(size: 17, weight: "medium")),
+        UIKitTextRequest("Minimal", .system(size: 17, weight: "medium")),
         // uikit/textview/heights
         UIKitTextRequest("Height 11", .system(size: 11), width: 190, lines: 0),
         UIKitTextRequest("Height 12", .system(size: 12), width: 190, lines: 0),
