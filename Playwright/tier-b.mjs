@@ -34,7 +34,10 @@ const listBacked = (name) => name.startsWith('ios/label/');
 // ios/list/footer `header`: UIKit's header label measures "Header" a point wider than SwiftUI's Text (Tier A's rule).
 const approximateProbes = { 'ios/list/footer': ['header'] };
 // The browser measures text on the half point, so iOS text widths and the positions that follow from them get 0.5.
+// uikit/autolayout/baseline chains six labels sideways: Canvas2D's widths of "Hg" at six sizes differ from
+// UILabel's by up to a point each on the CI runner and the errors add up along the row.
 const frameTolerance = (name, key, expected, id) => (approximateProbes[name] || []).includes(id) ? 2 : name.startsWith('ios/symbol/') ? 2 : listBacked(name) ? 3
+  : name === 'uikit/autolayout/baseline' ? 2
   : name.startsWith('text/') && (key === 'width' || key === 'x') ? Math.max(0.5, Math.abs(expected) * 0.03)
   : (name.startsWith('ios/') || name.startsWith('uikit/')) && (key === 'width' || key === 'x') ? 0.5 : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
