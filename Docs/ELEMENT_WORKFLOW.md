@@ -5,8 +5,9 @@ UIKit elements (decision 0014) follow the same loop with their own pieces: fixtu
 `Fixtures/UIKit/TextMetrics/UIKitTextMetricsRequests.swift` with the label's line limit,
 goldens from `scripts/gen-goldens-sim.sh uikit` on an iPhone simulator (`--dump` shows UIKit's internal geometry; decision 0015), the
 metrics table from `scripts/uikit-font-metrics-table.py`, Tier A in
-`Packages/UIKitWeb/Tests/UIKitWebTests/UIKitGoldenFrameTests.swift`, docs in
-`Docs/elements/UIKit/<Element>.md`.
+`Packages/UIKitWeb/Tests/UIKitWebTests/UIKitGoldenFrameTests.swift`, the pixel tier in
+`UIKitPixelTests.swift` (the CoreGraphics painter against the simulator's PNGs, 3 %;
+`TIER_C_REPORT=1`, `TIER_C_DUMP=<dir>`), docs in `Docs/elements/UIKit/<Element>.md`.
 
 1. **Document** `Docs/elements/<Element>.md`: API surface from Apple's documentation (signatures,
    overloads, availability), documented behaviours, platform defaults that must be inferred, open

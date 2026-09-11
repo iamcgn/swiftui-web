@@ -53,7 +53,9 @@ let package = Package(
         ),
         .testTarget(
             name: "UIKitWebTests",
-            dependencies: ["UIKit", "UIKitFixtureKit", "UIKitFixtures", .product(name: "WebGraphicsHeadless", package: "WebGraphics")],
+            dependencies: ["UIKit", "UIKitFixtureKit", "UIKitFixtures",
+                           .product(name: "WebGraphicsHeadless", package: "WebGraphics"),
+                           .product(name: "WebGraphicsNative", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
     ],
