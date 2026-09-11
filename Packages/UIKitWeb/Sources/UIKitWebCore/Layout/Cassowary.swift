@@ -51,9 +51,14 @@ struct LinearExpression {
         return result
     }
 
+    static func - (lhs: LinearExpression, rhs: Double) -> LinearExpression { lhs + (-rhs) }
+
+    // Where CGFloat is its own type (Apple platforms); on wasm and Linux it is Double.
+    #if canImport(CoreGraphics)
     static func + (lhs: LinearExpression, rhs: CGFloat) -> LinearExpression { lhs + Double(rhs) }
     static func - (lhs: LinearExpression, rhs: CGFloat) -> LinearExpression { lhs + Double(-rhs) }
     static func * (lhs: LinearExpression, rhs: CGFloat) -> LinearExpression { lhs * Double(rhs) }
+    #endif
 }
 
 /// How a constraint relates its expression to zero.
