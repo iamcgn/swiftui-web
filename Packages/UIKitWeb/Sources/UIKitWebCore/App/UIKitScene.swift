@@ -325,23 +325,23 @@ public final class UIKitScene: HostedScene {
     }
 
     public var focusedIdentifier: Int? { (firstResponder as? UIView)?.semanticsIdentifier ?? hostedFocusedTextFieldIdentifier }
-    public var focusedTextFieldIdentifier: Int? { (firstResponder as? UITextField)?.semanticsIdentifier ?? hostedFocusedTextFieldIdentifier }
+    public var focusedTextFieldIdentifier: Int? { (firstResponder as? any HostTextInput)?.semanticsIdentifier ?? hostedFocusedTextFieldIdentifier }
 
     public func textField(_ semanticsIdentifier: Int, didChange text: String) {
         if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextField(semanticsIdentifier, didChange: text); setNeedsFrame(); return }
-        (view(withSemanticsIdentifier: semanticsIdentifier) as? UITextField)?.hostDidChange(text)
+        (view(withSemanticsIdentifier: semanticsIdentifier) as? any HostTextInput)?.hostDidChange(text)
         setNeedsFrame()
     }
 
     public func textFieldDidSubmit(_ semanticsIdentifier: Int) {
         if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextFieldDidSubmit(semanticsIdentifier); setNeedsFrame(); return }
-        (view(withSemanticsIdentifier: semanticsIdentifier) as? UITextField)?.hostDidSubmit()
+        (view(withSemanticsIdentifier: semanticsIdentifier) as? any HostTextInput)?.hostDidSubmit()
         setNeedsFrame()
     }
 
     public func textField(_ semanticsIdentifier: Int, focused: Bool) {
         if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextField(semanticsIdentifier, focused: focused); setNeedsFrame(); return }
-        guard let field = view(withSemanticsIdentifier: semanticsIdentifier) as? UITextField else { return }
+        guard let field = view(withSemanticsIdentifier: semanticsIdentifier) as? any HostTextInput else { return }
         if focused { _ = field.becomeFirstResponder() } else if field.isFirstResponder { _ = field.resignFirstResponder() }
         setNeedsFrame()
     }

@@ -1,0 +1,39 @@
+{
+  "fixture" : "uikit\/textview\/basic",
+  "frames" : {
+    "body" : {
+      "height" : 96,
+      "width" : 288,
+      "x" : 16,
+      "y" : 16
+    },
+    "centred" : {
+      "height" : 36.5,
+      "width" : 200,
+      "x" : 16,
+      "y" : 264
+    },
+    "fitted" : {
+      "height" : 57,
+      "width" : 90.5,
+      "x" : 16,
+      "y" : 128
+    },
+    "padded" : {
+      "height" : 42,
+      "width" : 160,
+      "x" : 16,
+      "y" : 200
+    },
+    "readOnly" : {
+      "height" : 60,
+      "width" : 288,
+      "x" : 16,
+      "y" : 320
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

@@ -4752,6 +4752,44 @@ public static let steps = Fixture(
     .probe("row")
 }
 """#),
+        FixtureSource(name: "uikit/alert/basic", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 30, lastLine: 46, declaration: #"""
+/// An alert with a title, a message, a cancel action and a destructive one.
+public static let alert = UIKitFixture("uikit/alert/basic", size: CGSize(width: 320, height: 500),
+                                       model: { PresentationModel() },
+                                       steps: [UIKitFixtureStep("present") { model in
+                                                   let alert = UIAlertController(title: "Delete file?", message: "This cannot be undone.", preferredStyle: .alert)
+                                                   alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                                   alert.addAction(UIAlertAction(title: "Delete", style: .destructive))
+                                                   model.presenter?.present(alert, animated: false)
+                                                   model.presented = alert
+                                                   alert.view.probe("alert")
+                                               },
+                                               UIKitFixtureStep("dismiss") { model in model.presented?.dismiss(animated: false) }],
+                                       controller: { model in
+    let controller = PresentingController()
+    model.presenter = controller
+    return controller
+}).capturesWindow()
+"""#),
+        FixtureSource(name: "uikit/alert/sheet", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 48, lastLine: 64, declaration: #"""
+/// An action sheet with two actions and cancel.
+public static let actionSheet = UIKitFixture("uikit/alert/sheet", size: CGSize(width: 320, height: 500),
+                                             model: { PresentationModel() },
+                                             steps: [UIKitFixtureStep("present") { model in
+                                                         let sheet = UIAlertController(title: "Share", message: nil, preferredStyle: .actionSheet)
+                                                         sheet.addAction(UIAlertAction(title: "Copy Link", style: .default))
+                                                         sheet.addAction(UIAlertAction(title: "Save Image", style: .default))
+                                                         sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                                         model.presenter?.present(sheet, animated: false)
+                                                         model.presented = sheet
+                                                         sheet.view.probe("sheet")
+                                                     }],
+                                             controller: { model in
+    let controller = PresentingController()
+    model.presenter = controller
+    return controller
+}).capturesWindow()
+"""#),
         FixtureSource(name: "uikit/autolayout/baseline", file: "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift", firstLine: 206, lastLine: 240, declaration: #"""
 /// Baselines: labels of 11, 13, 20, 28 and 34 pt with their first baselines on a 17 pt
 /// label's, a box on the 17 pt label's last baseline.
@@ -5026,6 +5064,51 @@ public static let basic = UIKitFixture("uikit/button/basic", size: CGSize(width:
     return root
 }
 """#),
+        FixtureSource(name: "uikit/collection/grid", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 47, lastLine: 59, declaration: #"""
+/// 90 × 60 items in 16 pt insets with 8 pt spacing: three per row in 320, wrapping.
+public static let grid = UIKitFixture("uikit/collection/grid", size: CGSize(width: 320, height: 400)) {
+    let layout = UICollectionViewFlowLayout()
+    layout.itemSize = CGSize(width: 90, height: 60)
+    layout.minimumInteritemSpacing = 8
+    layout.minimumLineSpacing = 8
+    layout.sectionInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+    let source = GridSource()
+    source.counts = [7, 2]
+    source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 2, section: 0): "item2", IndexPath(item: 3, section: 0): "item3",
+                     IndexPath(item: 6, section: 0): "item6", IndexPath(item: 0, section: 1): "second0", IndexPath(item: 1, section: 1): "second1"]
+    return make(layout: layout, source: source)
+}
+"""#),
+        FixtureSource(name: "uikit/collection/horizontal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 61, lastLine: 72, declaration: #"""
+/// A horizontal flow: 120 × 80 items in one line, 12 apart, 20 pt insets.
+public static let horizontal = UIKitFixture("uikit/collection/horizontal", size: CGSize(width: 320, height: 400)) {
+    let layout = UICollectionViewFlowLayout()
+    layout.scrollDirection = .horizontal
+    layout.itemSize = CGSize(width: 120, height: 80)
+    layout.minimumLineSpacing = 12
+    layout.sectionInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+    let source = GridSource()
+    source.counts = [4]
+    source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 3, section: 0): "item3"]
+    return make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 120))
+}
+"""#),
+        FixtureSource(name: "uikit/collection/sized", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 74, lastLine: 87, declaration: #"""
+/// Items sized by the delegate: widths 60, 100, 140, 60, 60; a row breaks where the next
+/// item does not fit.
+public static let sized = UIKitFixture("uikit/collection/sized", size: CGSize(width: 320, height: 400)) {
+    let layout = UICollectionViewFlowLayout()
+    layout.minimumInteritemSpacing = 10
+    layout.minimumLineSpacing = 10
+    layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+    let source = GridSource()
+    source.counts = [5]
+    source.sizes = { path in CGSize(width: [60, 100, 140, 60, 60][path.item], height: 40) }
+    source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 2, section: 0): "item2",
+                     IndexPath(item: 3, section: 0): "item3", IndexPath(item: 4, section: 0): "item4"]
+    return make(layout: layout, source: source)
+}
+"""#),
         FixtureSource(name: "uikit/controls/basic", file: "Fixtures/UIKit/Controls/ControlFixtures.swift", firstLine: 10, lastLine: 52, declaration: #"""
 public static let basic = UIKitFixture("uikit/controls/basic", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
@@ -5283,6 +5366,29 @@ public static let push = UIKitFixture("uikit/nav/push", size: CGSize(width: 320,
     return navigation
 })
 """#),
+        FixtureSource(name: "uikit/sheet/page", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 66, lastLine: 86, declaration: #"""
+/// A view controller presented as a page sheet (the iPhone default).
+public static let pageSheet = UIKitFixture("uikit/sheet/page", size: CGSize(width: 320, height: 500),
+                                           model: { PresentationModel() },
+                                           steps: [UIKitFixtureStep("present") { model in
+                                                       let presented = UIViewController()
+                                                       presented.view.backgroundColor = .systemGroupedBackground
+                                                       let label = UILabel()
+                                                       label.text = "Presented"
+                                                       label.font = .systemFont(ofSize: 17)
+                                                       label.sizeToFit()
+                                                       label.frame.origin = CGPoint(x: 16, y: 16)
+                                                       presented.view.addSubview(label.probe("presentedLabel"))
+                                                       model.presenter?.present(presented, animated: false)
+                                                       model.presented = presented
+                                                       presented.view.probe("presented")
+                                                   }],
+                                           controller: { model in
+    let controller = PresentingController()
+    model.presenter = controller
+    return controller
+}).capturesWindow()
+"""#),
         FixtureSource(name: "uikit/stack/basic", file: "Fixtures/UIKit/Stack/StackFixtures.swift", firstLine: 10, lastLine: 45, declaration: #"""
 public static let basic = UIKitFixture("uikit/stack/basic", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
@@ -5369,6 +5475,76 @@ public static let tabs = UIKitFixture("uikit/tabs/basic", size: CGSize(width: 32
     tabs.tabBar.probe("tabBar")
     home.view.probe("content")
     return tabs
+}
+"""#),
+        FixtureSource(name: "uikit/textview/basic", file: "Fixtures/UIKit/TextView/TextViewFixtures.swift", firstLine: 11, lastLine: 59, declaration: #"""
+public static let basic = UIKitFixture("uikit/textview/basic", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    root.backgroundColor = .white
+
+    let body = UITextView(frame: CGRect(x: 16, y: 16, width: 288, height: 96))
+    body.font = .systemFont(ofSize: 17)
+    body.text = "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs."
+    body.backgroundColor = .systemGray6
+    root.addSubview(body.probe("body"))
+
+    // `sizeToFit` on a text view: the width is the text's used width plus the insets (no
+    // line fragment padding), the height is the text's at the width it had before, so the
+    // text re-wraps narrower and is clipped: a UIKit quirk the golden pins.
+    let fitted = UITextView(frame: CGRect(x: 16, y: 128, width: 200, height: 10))
+    fitted.isScrollEnabled = false
+    fitted.font = .systemFont(ofSize: 17)
+    fitted.text = "Two lines of\ntext"
+    fitted.backgroundColor = .systemGray6
+    fitted.sizeToFit()
+    root.addSubview(fitted.probe("fitted"))
+
+    // Growing text views: a fixed width, the height `sizeThatFits` gives for it.
+    let padded = UITextView(frame: CGRect(x: 16, y: 200, width: 160, height: 10))
+    padded.isScrollEnabled = false
+    padded.font = .systemFont(ofSize: 15)
+    padded.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+    padded.text = "Padded"
+    padded.backgroundColor = .systemGray6
+    padded.frame.size.height = padded.sizeThatFits(CGSize(width: 160, height: CGFloat.greatestFiniteMagnitude)).height
+    root.addSubview(padded.probe("padded"))
+
+    let centred = UITextView(frame: CGRect(x: 16, y: 264, width: 200, height: 10))
+    centred.isScrollEnabled = false
+    centred.font = .systemFont(ofSize: 17)
+    centred.textAlignment = .center
+    centred.text = "Centred"
+    centred.backgroundColor = .systemGray6
+    centred.frame.size.height = centred.sizeThatFits(CGSize(width: 200, height: CGFloat.greatestFiniteMagnitude)).height
+    root.addSubview(centred.probe("centred"))
+
+    let readOnly = UITextView(frame: CGRect(x: 16, y: 320, width: 288, height: 60))
+    readOnly.isEditable = false
+    readOnly.font = .systemFont(ofSize: 13)
+    readOnly.textColor = .secondaryLabel
+    readOnly.text = "Read-only footnote text that wraps onto a second line in this width."
+    readOnly.backgroundColor = .clear
+    root.addSubview(readOnly.probe("readOnly"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/textview/heights", file: "Fixtures/UIKit/TextView/TextViewFixtures.swift", firstLine: 61, lastLine: 77, declaration: #"""
+/// One-line text views at the sizes an app uses, each as tall as `sizeThatFits` says.
+public static let heights = UIKitFixture("uikit/textview/heights", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    root.backgroundColor = .white
+    var y: CGFloat = 8
+    for size in [11, 12, 13, 14, 15, 16, 17, 20, 24, 28] as [CGFloat] {
+        let view = UITextView(frame: CGRect(x: 16, y: y, width: 200, height: 10))
+        view.isScrollEnabled = false
+        view.font = .systemFont(ofSize: size)
+        view.text = "Height \(Int(size))"
+        view.backgroundColor = .systemGray6
+        view.frame.size.height = view.sizeThatFits(CGSize(width: 200, height: CGFloat.greatestFiniteMagnitude)).height
+        root.addSubview(view.probe("h\(Int(size))"))
+        y += view.frame.height + 4
+    }
+    return root
 }
 """#),
         FixtureSource(name: "uikit/view/autoresizing", file: "Fixtures/UIKit/View/ViewFixtures.swift", firstLine: 59, lastLine: 79, declaration: #"""
@@ -12049,6 +12225,97 @@ public enum ButtonFixtures {
 }
 #endif
 """##,
+        "Fixtures/UIKit/Collection/CollectionFixtures.swift": ##"""
+// UICollectionView with a flow layout (Docs/elements/UIKit/CollectionView.md): a grid of fixed
+// items with section insets and spacing, a horizontal row, and items sized by the delegate,
+// measured against UIKit on the simulator.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+final class GridSource: NSObject, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    var counts: [Int] = [7]
+    var probes: [IndexPath: String] = [:]
+    var sizes: ((IndexPath) -> CGSize)?
+    var colors: [UIColor] = [.systemBlue, .systemGreen, .systemOrange, .systemPink, .systemPurple, .systemTeal, .systemIndigo]
+
+    func numberOfSections(in collectionView: UICollectionView) -> Int { counts.count }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { counts[section] }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
+        cell.contentView.backgroundColor = colors[(indexPath.section * 3 + indexPath.item) % colors.count]
+        cell.contentView.layer.cornerRadius = 8
+        if let probe = probes[indexPath] { cell.probe(probe) }
+        return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        sizes?(indexPath) ?? (collectionViewLayout as? UICollectionViewFlowLayout)?.itemSize ?? CGSize(width: 50, height: 50)
+    }
+}
+
+public enum CollectionFixtures {
+    public static let all = [grid, horizontal, sized]
+
+    @MainActor static var sources: [GridSource] = []
+
+    @MainActor static func make(layout: UICollectionViewFlowLayout, source: GridSource, frame: CGRect = CGRect(x: 0, y: 0, width: 320, height: 400)) -> UIView {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: frame, collectionViewLayout: layout)
+        collection.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
+        collection.dataSource = source
+        collection.delegate = source
+        collection.backgroundColor = .systemBackground
+        root.addSubview(collection.probe("collection"))
+        sources.append(source)
+        return root
+    }
+
+    /// 90 × 60 items in 16 pt insets with 8 pt spacing: three per row in 320, wrapping.
+    public static let grid = UIKitFixture("uikit/collection/grid", size: CGSize(width: 320, height: 400)) {
+        let layout = UICollectionViewFlowLayout()
+        layout.itemSize = CGSize(width: 90, height: 60)
+        layout.minimumInteritemSpacing = 8
+        layout.minimumLineSpacing = 8
+        layout.sectionInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+        let source = GridSource()
+        source.counts = [7, 2]
+        source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 2, section: 0): "item2", IndexPath(item: 3, section: 0): "item3",
+                         IndexPath(item: 6, section: 0): "item6", IndexPath(item: 0, section: 1): "second0", IndexPath(item: 1, section: 1): "second1"]
+        return make(layout: layout, source: source)
+    }
+
+    /// A horizontal flow: 120 × 80 items in one line, 12 apart, 20 pt insets.
+    public static let horizontal = UIKitFixture("uikit/collection/horizontal", size: CGSize(width: 320, height: 400)) {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.itemSize = CGSize(width: 120, height: 80)
+        layout.minimumLineSpacing = 12
+        layout.sectionInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+        let source = GridSource()
+        source.counts = [4]
+        source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 3, section: 0): "item3"]
+        return make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 120))
+    }
+
+    /// Items sized by the delegate: widths 60, 100, 140, 60, 60; a row breaks where the next
+    /// item does not fit.
+    public static let sized = UIKitFixture("uikit/collection/sized", size: CGSize(width: 320, height: 400)) {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumInteritemSpacing = 10
+        layout.minimumLineSpacing = 10
+        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        let source = GridSource()
+        source.counts = [5]
+        source.sizes = { path in CGSize(width: [60, 100, 140, 60, 60][path.item], height: 40) }
+        source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 2, section: 0): "item2",
+                         IndexPath(item: 3, section: 0): "item3", IndexPath(item: 4, section: 0): "item4"]
+        return make(layout: layout, source: source)
+    }
+}
+#endif
+"""##,
         "Fixtures/UIKit/Controls/ControlFixtures.swift": ##"""
 // UISwitch and UITextField (Docs/elements/UIKit/UISwitch.md, UITextField.md): sized to fit,
 // on and off, rounded and plain fields with text and placeholders.
@@ -12477,6 +12744,96 @@ public enum NavigationFixtures {
 }
 #endif
 """##,
+        "Fixtures/UIKit/Presentation/PresentationFixtures.swift": ##"""
+// Presentations (Docs/elements/UIKit/Presentation.md): an alert, an action sheet and a page sheet
+// presented from a screen, captured with the whole window (they live beside the root controller's
+// view), measured against UIKit on the simulator.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+@MainActor public final class PresentationModel {
+    var presenter: UIViewController?
+    var presented: UIViewController?
+    public init() {}
+}
+
+final class PresentingController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        let label = UILabel()
+        label.text = "Behind"
+        label.font = .systemFont(ofSize: 17)
+        label.sizeToFit()
+        label.frame.origin = CGPoint(x: 16, y: 16)
+        view.addSubview(label.probe("behind"))
+    }
+}
+
+public enum PresentationFixtures {
+    public static let all = [alert, actionSheet, pageSheet]
+
+    /// An alert with a title, a message, a cancel action and a destructive one.
+    public static let alert = UIKitFixture("uikit/alert/basic", size: CGSize(width: 320, height: 500),
+                                           model: { PresentationModel() },
+                                           steps: [UIKitFixtureStep("present") { model in
+                                                       let alert = UIAlertController(title: "Delete file?", message: "This cannot be undone.", preferredStyle: .alert)
+                                                       alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                                       alert.addAction(UIAlertAction(title: "Delete", style: .destructive))
+                                                       model.presenter?.present(alert, animated: false)
+                                                       model.presented = alert
+                                                       alert.view.probe("alert")
+                                                   },
+                                                   UIKitFixtureStep("dismiss") { model in model.presented?.dismiss(animated: false) }],
+                                           controller: { model in
+        let controller = PresentingController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
+
+    /// An action sheet with two actions and cancel.
+    public static let actionSheet = UIKitFixture("uikit/alert/sheet", size: CGSize(width: 320, height: 500),
+                                                 model: { PresentationModel() },
+                                                 steps: [UIKitFixtureStep("present") { model in
+                                                             let sheet = UIAlertController(title: "Share", message: nil, preferredStyle: .actionSheet)
+                                                             sheet.addAction(UIAlertAction(title: "Copy Link", style: .default))
+                                                             sheet.addAction(UIAlertAction(title: "Save Image", style: .default))
+                                                             sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                                             model.presenter?.present(sheet, animated: false)
+                                                             model.presented = sheet
+                                                             sheet.view.probe("sheet")
+                                                         }],
+                                                 controller: { model in
+        let controller = PresentingController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
+
+    /// A view controller presented as a page sheet (the iPhone default).
+    public static let pageSheet = UIKitFixture("uikit/sheet/page", size: CGSize(width: 320, height: 500),
+                                               model: { PresentationModel() },
+                                               steps: [UIKitFixtureStep("present") { model in
+                                                           let presented = UIViewController()
+                                                           presented.view.backgroundColor = .systemGroupedBackground
+                                                           let label = UILabel()
+                                                           label.text = "Presented"
+                                                           label.font = .systemFont(ofSize: 17)
+                                                           label.sizeToFit()
+                                                           label.frame.origin = CGPoint(x: 16, y: 16)
+                                                           presented.view.addSubview(label.probe("presentedLabel"))
+                                                           model.presenter?.present(presented, animated: false)
+                                                           model.presented = presented
+                                                           presented.view.probe("presented")
+                                                       }],
+                                               controller: { model in
+        let controller = PresentingController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
+}
+#endif
+"""##,
         "Fixtures/UIKit/Stack/StackFixtures.swift": ##"""
 // UIStackView (Docs/elements/UIKit/UIStackView.md): vertical and horizontal stacks of labels
 // and buttons, the fill and fill-equally distributions, alignments.
@@ -12621,6 +12978,87 @@ public enum TableFixtures {
         make(style: .plain, cellStyle: .default, sections: [
             .init(header: nil, footer: nil, rows: [("First row", nil, .none), ("Second row", nil, .none), ("Third row", nil, .none)]),
         ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/TextView/TextViewFixtures.swift": ##"""
+// UITextView (Docs/elements/UIKit/TextView.md): a scrolling text view with wrapped body text,
+// text views sized to fit (the default insets, custom container insets),
+// centred text and a non-editable one on a fill, measured against UIKit on the simulator.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+public enum TextViewFixtures {
+    public static let all = [basic, heights]
+
+    public static let basic = UIKitFixture("uikit/textview/basic", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        root.backgroundColor = .white
+
+        let body = UITextView(frame: CGRect(x: 16, y: 16, width: 288, height: 96))
+        body.font = .systemFont(ofSize: 17)
+        body.text = "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs."
+        body.backgroundColor = .systemGray6
+        root.addSubview(body.probe("body"))
+
+        // `sizeToFit` on a text view: the width is the text's used width plus the insets (no
+        // line fragment padding), the height is the text's at the width it had before, so the
+        // text re-wraps narrower and is clipped: a UIKit quirk the golden pins.
+        let fitted = UITextView(frame: CGRect(x: 16, y: 128, width: 200, height: 10))
+        fitted.isScrollEnabled = false
+        fitted.font = .systemFont(ofSize: 17)
+        fitted.text = "Two lines of\ntext"
+        fitted.backgroundColor = .systemGray6
+        fitted.sizeToFit()
+        root.addSubview(fitted.probe("fitted"))
+
+        // Growing text views: a fixed width, the height `sizeThatFits` gives for it.
+        let padded = UITextView(frame: CGRect(x: 16, y: 200, width: 160, height: 10))
+        padded.isScrollEnabled = false
+        padded.font = .systemFont(ofSize: 15)
+        padded.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        padded.text = "Padded"
+        padded.backgroundColor = .systemGray6
+        padded.frame.size.height = padded.sizeThatFits(CGSize(width: 160, height: CGFloat.greatestFiniteMagnitude)).height
+        root.addSubview(padded.probe("padded"))
+
+        let centred = UITextView(frame: CGRect(x: 16, y: 264, width: 200, height: 10))
+        centred.isScrollEnabled = false
+        centred.font = .systemFont(ofSize: 17)
+        centred.textAlignment = .center
+        centred.text = "Centred"
+        centred.backgroundColor = .systemGray6
+        centred.frame.size.height = centred.sizeThatFits(CGSize(width: 200, height: CGFloat.greatestFiniteMagnitude)).height
+        root.addSubview(centred.probe("centred"))
+
+        let readOnly = UITextView(frame: CGRect(x: 16, y: 320, width: 288, height: 60))
+        readOnly.isEditable = false
+        readOnly.font = .systemFont(ofSize: 13)
+        readOnly.textColor = .secondaryLabel
+        readOnly.text = "Read-only footnote text that wraps onto a second line in this width."
+        readOnly.backgroundColor = .clear
+        root.addSubview(readOnly.probe("readOnly"))
+        return root
+    }
+
+    /// One-line text views at the sizes an app uses, each as tall as `sizeThatFits` says.
+    public static let heights = UIKitFixture("uikit/textview/heights", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        root.backgroundColor = .white
+        var y: CGFloat = 8
+        for size in [11, 12, 13, 14, 15, 16, 17, 20, 24, 28] as [CGFloat] {
+            let view = UITextView(frame: CGRect(x: 16, y: y, width: 200, height: 10))
+            view.isScrollEnabled = false
+            view.font = .systemFont(ofSize: size)
+            view.text = "Height \(Int(size))"
+            view.backgroundColor = .systemGray6
+            view.frame.size.height = view.sizeThatFits(CGSize(width: 200, height: CGFloat.greatestFiniteMagnitude)).height
+            root.addSubview(view.probe("h\(Int(size))"))
+            y += view.frame.height + 4
+        }
+        return root
     }
 }
 #endif

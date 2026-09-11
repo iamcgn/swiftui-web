@@ -78,6 +78,18 @@
       "lastBaseline" : 10.4736328125,
       "width" : 15
     },
+    "system:11:400:default|190.0|Height 11" : {
+      "firstBaseline" : 10.4736328125,
+      "height" : 13.5,
+      "lastBaseline" : 10.4736328125,
+      "width" : 48.5
+    },
+    "system:12:400:default|190.0|Height 12" : {
+      "firstBaseline" : 11.42578125,
+      "height" : 14.5,
+      "lastBaseline" : 11.42578125,
+      "width" : 54
+    },
     "system:13:400:default|;l1|Hg" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -108,11 +120,23 @@
       "lastBaseline" : 12.3779296875,
       "width" : 83
     },
+    "system:13:400:default|190.0|Height 13" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 58
+    },
     "system:13:400:default|256.0|A footer note." : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
       "lastBaseline" : 12.3779296875,
       "width" : 83
+    },
+    "system:13:400:default|278.0|Read-only footnote text that wraps onto a second line in this width." : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 31.5,
+      "lastBaseline" : 27.8916015625,
+      "width" : 256.5
     },
     "system:13:500:default|;l1|One" : {
       "firstBaseline" : 12.3779296875,
@@ -137,6 +161,12 @@
       "height" : 16,
       "lastBaseline" : 12.3779296875,
       "width" : 47
+    },
+    "system:14:400:default|190.0|Height 14" : {
+      "firstBaseline" : 13.330078125,
+      "height" : 17,
+      "lastBaseline" : 13.330078125,
+      "width" : 62
     },
     "system:15:400:default|;l1|+" : {
       "firstBaseline" : 14.2822265625,
@@ -174,6 +204,18 @@
       "lastBaseline" : 14.2822265625,
       "width" : 25
     },
+    "system:15:400:default|126.0|Padded" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 52.5
+    },
+    "system:15:400:default|190.0|Height 15" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 65.5
+    },
     "system:15:400:default|244.0|Share" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -185,6 +227,12 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 161.5
+    },
+    "system:16:400:default|190.0|Height 16" : {
+      "firstBaseline" : 15.234375,
+      "height" : 19.5,
+      "lastBaseline" : 15.234375,
+      "width" : 69.5
     },
     "system:17:400:default|;l1|26.0" : {
       "firstBaseline" : 16.1865234375,
@@ -462,6 +510,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 339
     },
+    "system:17:400:default|80.5|Two lines of\ntext" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 61,
+      "lastBaseline" : 56.7607421875,
+      "width" : 55
+    },
     "system:17:400:default|120.0;l1|The quick brown fox jumps over the lazy dog" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -474,6 +528,24 @@
       "lastBaseline" : 77.0478515625,
       "width" : 117
     },
+    "system:17:400:default|190.0|Centred" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 61.5
+    },
+    "system:17:400:default|190.0|Height 17" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 72
+    },
+    "system:17:400:default|190.0|Two lines of\ntext" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 41,
+      "lastBaseline" : 36.4736328125,
+      "width" : 90.5
+    },
     "system:17:400:default|200.0;l2|The quick brown fox jumps over the lazy dog" : {
       "firstBaseline" : 16.1865234375,
       "height" : 41,
@@ -485,6 +557,12 @@
       "height" : 41,
       "lastBaseline" : 36.4736328125,
       "width" : 181
+    },
+    "system:17:400:default|278.0|The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs." : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 61,
+      "lastBaseline" : 56.7607421875,
+      "width" : 275
     },
     "system:17:500:default|;l1|Edit" : {
       "firstBaseline" : 16.1865234375,
@@ -558,6 +636,12 @@
       "lastBaseline" : 19.04296875,
       "width" : 101.5
     },
+    "system:20:400:default|190.0|Height 20" : {
+      "firstBaseline" : 19.04296875,
+      "height" : 24,
+      "lastBaseline" : 19.04296875,
+      "width" : 87
+    },
     "system:20:600:default|;l1|Cancel" : {
       "firstBaseline" : 19.04296875,
       "height" : 24,
@@ -570,11 +654,23 @@
       "lastBaseline" : 19.04296875,
       "width" : 116
     },
+    "system:24:400:default|190.0|Height 24" : {
+      "firstBaseline" : 22.8515625,
+      "height" : 29,
+      "lastBaseline" : 22.8515625,
+      "width" : 103
+    },
     "system:28:400:default|;l1|Hg" : {
       "firstBaseline" : 26.66015625,
       "height" : 33.5,
       "lastBaseline" : 26.66015625,
       "width" : 36
+    },
+    "system:28:400:default|190.0|Height 28" : {
+      "firstBaseline" : 26.66015625,
+      "height" : 33.5,
+      "lastBaseline" : 26.66015625,
+      "width" : 120.5
     },
     "system:34:400:default|;l1|Hg" : {
       "firstBaseline" : 32.373046875,
@@ -674,6 +770,18 @@
       "textToText" : 0,
       "xHeight" : 5.7900390625
     },
+    "system:12:400:default" : {
+      "ascender" : 11.42578125,
+      "capHeight" : 8.455078125,
+      "descender" : -2.89453125,
+      "leading" : 0,
+      "lineHeight" : 14.3203125,
+      "pointSize" : 12,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 6.31640625
+    },
     "system:13:400:default" : {
       "ascender" : 12.3779296875,
       "capHeight" : 9.15966796875,
@@ -710,6 +818,18 @@
       "textToText" : 0,
       "xHeight" : 6.93798828125
     },
+    "system:14:400:default" : {
+      "ascender" : 13.330078125,
+      "capHeight" : 9.8642578125,
+      "descender" : -3.376953125,
+      "leading" : 0,
+      "lineHeight" : 16.70703125,
+      "pointSize" : 14,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 7.369140625
+    },
     "system:15:400:default" : {
       "ascender" : 14.2822265625,
       "capHeight" : 10.56884765625,
@@ -721,6 +841,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 7.8955078125
+    },
+    "system:16:400:default" : {
+      "ascender" : 15.234375,
+      "capHeight" : 11.2734375,
+      "descender" : -3.859375,
+      "leading" : 0,
+      "lineHeight" : 19.09375,
+      "pointSize" : 16,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 8.421875
     },
     "system:17:400:default" : {
       "ascender" : 16.1865234375,
@@ -781,6 +913,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 10.595703125
+    },
+    "system:24:400:default" : {
+      "ascender" : 22.8515625,
+      "capHeight" : 16.91015625,
+      "descender" : -5.7890625,
+      "leading" : 0,
+      "lineHeight" : 28.640625,
+      "pointSize" : 24,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 12.26953125
     },
     "system:28:400:default" : {
       "ascender" : 26.66015625,

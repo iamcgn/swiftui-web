@@ -218,7 +218,7 @@ public final class UIKitHostedTree {
 
     /// The text field in this tree with keyboard focus, by semantics identifier.
     public var focusedTextFieldIdentifier: Int? {
-        guard let field = UIKitScene.shared.firstResponder as? UITextField, field.window === window else { return nil }
+        guard let field = UIKitScene.shared.firstResponder as? any HostTextInput, field.window === window else { return nil }
         return field.semanticsIdentifier
     }
 
@@ -229,17 +229,17 @@ public final class UIKitHostedTree {
     }
 
     public func textField(_ semanticsIdentifier: Int, didChange text: String) {
-        (view(semanticsIdentifier) as? UITextField)?.hostDidChange(text)
+        (view(semanticsIdentifier) as? any HostTextInput)?.hostDidChange(text)
         UIKitScene.shared.setNeedsFrame()
     }
 
     public func textFieldDidSubmit(_ semanticsIdentifier: Int) {
-        (view(semanticsIdentifier) as? UITextField)?.hostDidSubmit()
+        (view(semanticsIdentifier) as? any HostTextInput)?.hostDidSubmit()
         UIKitScene.shared.setNeedsFrame()
     }
 
     public func textField(_ semanticsIdentifier: Int, focused: Bool) {
-        guard let field = view(semanticsIdentifier) as? UITextField else { return }
+        guard let field = view(semanticsIdentifier) as? any HostTextInput else { return }
         if focused { _ = field.becomeFirstResponder() } else if field.isFirstResponder { _ = field.resignFirstResponder() }
         UIKitScene.shared.setNeedsFrame()
     }

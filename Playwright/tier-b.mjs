@@ -25,7 +25,7 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 // beside the sidebar panel with a black-to-clear gradient (about 3.4 % of a 480 × 300 window).
 // texteditor/basic: NSTextView sets SF tighter between letters and wider at spaces than SwiftUI's
 // Text does, so its paragraph keeps one more word on the first line.
-const approximate = ['uikit/label/wrapping', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
+const approximate = ['uikit/label/wrapping', 'uikit/textview/basic', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
   'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 // ios/symbol/ and ios/label/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt),

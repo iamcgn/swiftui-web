@@ -17,6 +17,9 @@ import JavaScriptEventLoop
 /// for a fixture that captures the window: presented alerts live beside the root view).
 var currentHostedInstance: UIKitFixtureInstance?
 var currentHostedCapturesWindow = false
+/// The fixture `currentHostedInstance` was made for: the probes are read only once the
+/// instance on show is the mounted fixture's (a slow runner can still hold the previous one).
+var currentHostedFixtureName: String?
 
 /// A UIKit fixture's controller as a SwiftUI view (decision 0014: the gallery shows the UIKit
 /// fixtures through a representable, at the fixture's size).
@@ -30,6 +33,7 @@ struct UIKitFixtureHost: UIViewControllerRepresentable {
         box.instance = instance
         currentHostedInstance = instance
         currentHostedCapturesWindow = fixture.capturesWindow
+        currentHostedFixtureName = fixture.name
         return instance.controller
     }
 
@@ -267,9 +271,12 @@ final class Gallery {
         var closure: JSClosure!
         closure = JSClosure { [weak self] _ in
             attempts += 1
-            guard let self, self.hostedFixtureName == name, let view = currentHostedInstance?.controller.view else { return .undefined }
-            let root = currentHostedCapturesWindow ? (view.window ?? view) : view
-            let frames = UIKitProbes.frames(in: root)
+            guard let self, self.hostedFixtureName == name else { return .undefined }
+            // The representable makes the fixture's instance on a later frame: until then the
+            // instance on show is the previous fixture's, whose probes must not be published.
+            let view = currentHostedFixtureName == name ? currentHostedInstance?.controller.view : nil
+            let root = view.map { currentHostedCapturesWindow ? ($0.window ?? $0) : $0 }
+            let frames = root.map { UIKitProbes.frames(in: $0) } ?? [:]
             // A table's cells (and their probes) appear on its first layout, which a slow CI
             // runner reaches late: wait up to ten seconds before publishing an empty set.
             if !frames.isEmpty || attempts > 200 {

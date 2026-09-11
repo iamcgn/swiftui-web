@@ -120,6 +120,25 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Cancel", .system(size: 20, weight: "semibold")),
         UIKitTextRequest("Copy Link", .system(size: 17)),
         UIKitTextRequest("Save Image", .system(size: 17)),
+        // uikit/textview/basic: the container is the frame less the insets and the 5 pt line
+        // fragment padding each side (278 in a 288 view)
+        UIKitTextRequest("The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.", .system(size: 17), width: 278, lines: 0),
+        UIKitTextRequest("Two lines of\ntext", .system(size: 17), width: 190, lines: 0),
+        UIKitTextRequest("Two lines of\ntext", .system(size: 17), width: 80.5, lines: 0),
+        UIKitTextRequest("Padded", .system(size: 15), width: 126, lines: 0),
+        UIKitTextRequest("Centred", .system(size: 17), width: 190, lines: 0),
+        UIKitTextRequest("Read-only footnote text that wraps onto a second line in this width.", .system(size: 13), width: 278, lines: 0),
+        // uikit/textview/heights
+        UIKitTextRequest("Height 11", .system(size: 11), width: 190, lines: 0),
+        UIKitTextRequest("Height 12", .system(size: 12), width: 190, lines: 0),
+        UIKitTextRequest("Height 13", .system(size: 13), width: 190, lines: 0),
+        UIKitTextRequest("Height 14", .system(size: 14), width: 190, lines: 0),
+        UIKitTextRequest("Height 15", .system(size: 15), width: 190, lines: 0),
+        UIKitTextRequest("Height 16", .system(size: 16), width: 190, lines: 0),
+        UIKitTextRequest("Height 17", .system(size: 17), width: 190, lines: 0),
+        UIKitTextRequest("Height 20", .system(size: 20), width: 190, lines: 0),
+        UIKitTextRequest("Height 24", .system(size: 24), width: 190, lines: 0),
+        UIKitTextRequest("Height 28", .system(size: 28), width: 190, lines: 0),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

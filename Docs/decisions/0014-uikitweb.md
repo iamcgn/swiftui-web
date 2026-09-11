@@ -233,3 +233,11 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   step, which is where an alert exists. The dump showed iOS 26 drawing action sheets as the same
   centred card as alerts, and a page sheet's spring still 0.13 pt short of rest after half a
   second, so the harness now settles for 1.2 s after a step.
+- Step 6 (2026-09-11): `UITextView` (`Docs/ROADMAP.md`, Phase 7 status 4.9;
+  `Docs/elements/UIKit/TextView.md`). The goldens showed TextKit's line fragments on the pixel
+  grid (a 20.5 pt pitch for 17 pt, the first baseline rounded up), `sizeThatFits` answering the
+  used width plus the insets without the fragment padding, and a non-scrolling view laying out
+  only the lines its container holds; a default-font view left the fixture because UIKit's
+  default is Helvetica 12, which the web cannot measure. Found on the way: the nav and tab bar
+  buttons fired their actions twice (UIControl already sends `primaryActionTriggered` on the
+  touch up), which orphaned an alert under its container in the settings example.
