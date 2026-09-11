@@ -266,7 +266,9 @@ final class Gallery {
             attempts += 1
             guard let self, self.hostedFixtureName == name, let root = currentHostedInstance?.controller.viewIfLoaded else { return .undefined }
             let frames = UIKitProbes.frames(in: root)
-            if !frames.isEmpty || attempts > 20 {
+            // A table's cells (and their probes) appear on its first layout, which a slow CI
+            // runner reaches late: wait up to ten seconds before publishing an empty set.
+            if !frames.isEmpty || attempts > 200 {
                 let object = JSObject.global.Object.function!.new()
                 for (id, frame) in frames {
                     let rect = JSObject.global.Object.function!.new()
