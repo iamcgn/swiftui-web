@@ -198,6 +198,15 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
     private var supplementary: [String: [Int: UICollectionViewLayoutAttributes]] = [:]
     private var contentSize = CGSize.zero
 
+    /// An orthogonally scrolling section: where its scroll view sits in the collection (the
+    /// section inset by its content insets) and how wide its content runs.
+    struct OrthogonalSection {
+        let frame: CGRect
+        let contentWidth: CGFloat
+        let behavior: NSCollectionLayoutSection.OrthogonalScrollingBehavior
+    }
+    private(set) var orthogonalSections: [Int: OrthogonalSection] = [:]
+
     public init(section: NSCollectionLayoutSection) {
         sectionProvider = { _, _ in section }
         configuration = UICollectionViewCompositionalLayoutConfiguration()
@@ -227,6 +236,7 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
     open override func prepare() {
         itemAttributes.removeAll()
         supplementary.removeAll()
+        orthogonalSections.removeAll()
         guard let collection = collectionView, let dataSource = collection.dataSource else { contentSize = .zero; return }
         let bounds = collection.bounds
         let vertical = configuration.scrollDirection == .vertical
@@ -252,6 +262,32 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
             cursor += vertical ? insets.top : insets.leading
             var item = 0
             var groupIndex = 0
+            if vertical, layoutSection.orthogonalScrollingBehavior != .none {
+                // The groups run sideways in a scroll view of their own, inset by the section's
+                // insets (uikit/collection/orthogonal: 200 pt groups 12 apart from x 16 in a 288
+                // wide scroll view 100 tall); the items' attributes stay in the collection's space.
+                let group = layoutSection.group
+                let groupSize = group.layoutSize.resolved(in: container)
+                var x = insets.leading
+                while item < count {
+                    if groupIndex > 0 { x += layoutSection.interGroupSpacing }
+                    let placed = place(group, in: CGRect(origin: CGPoint(x: x, y: cursor), size: groupSize), section: section, from: item, count: count)
+                    for (path, frame) in placed.frames {
+                        let attribute = UICollectionViewLayoutAttributes(forCellWith: path)
+                        attribute.frame = frame
+                        attribute.orthogonalSection = section
+                        itemAttributes[path] = attribute
+                    }
+                    item = placed.next
+                    x += groupSize.width
+                    groupIndex += 1
+                    if placed.frames.isEmpty { break }
+                }
+                orthogonalSections[section] = OrthogonalSection(frame: CGRect(x: insets.leading, y: cursor, width: bounds.width - insets.leading - insets.trailing, height: groupSize.height),
+                                                                contentWidth: x - insets.leading + insets.trailing, behavior: layoutSection.orthogonalScrollingBehavior)
+                cursor += groupSize.height
+                item = count
+            }
             while item < count {
                 if groupIndex > 0 { cursor += layoutSection.interGroupSpacing }
                 let group = layoutSection.group

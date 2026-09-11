@@ -15,6 +15,8 @@ open class UICollectionViewLayoutAttributes {
     /// A list row's place in its section and the list's appearance (Containers/ListLayout.swift).
     var listPosition: (first: Bool, last: Bool)?
     var listAppearance: UICollectionLayoutListConfiguration.Appearance?
+    /// The orthogonally scrolling section this item belongs to (Containers/CompositionalLayout.swift).
+    var orthogonalSection: Int?
     public enum Category { case cell, supplementaryView, decorationView }
     open var frame: CGRect
     open var indexPath: IndexPath
@@ -389,6 +391,8 @@ open class UICollectionView: UIScrollView {
     private var visibleCellsByPath: [IndexPath: UICollectionViewCell] = [:]
     /// Supplementary views: registered by kind and identifier, pooled, and visible by kind and section.
     private var registeredSupplementaries: [String: () -> UICollectionReusableView] = [:]
+    /// The scroll views hosting orthogonally scrolling sections' cells, by section.
+    private var orthogonalScrollViews: [Int: OrthogonalScrollView] = [:]
     private var supplementaryPool: [String: [UICollectionReusableView]] = [:]
     private var visibleSupplementaries: [String: UICollectionReusableView] = [:]
     private var needsReload = true
@@ -555,18 +559,66 @@ open class UICollectionView: UIScrollView {
     private func updateVisibleCells() {
         guard let dataSource else { return }
         let visible = bounds
-        for (path, cell) in visibleCellsByPath where !(layoutAttributesForItem(at: path)?.frame.intersects(visible) ?? false) {
-            cell.removeFromSuperview()
-            visibleCellsByPath.removeValue(forKey: path)
-            if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+        // Orthogonal sections: a scroll view per section in view, whose offset decides which
+        // of its cells exist (the ones past its right edge are not made, as UIKit does not).
+        let sections = (collectionViewLayout as? UICollectionViewCompositionalLayout)?.orthogonalSections ?? [:]
+        for (section, scrollView) in orthogonalScrollViews where sections[section] == nil || !sections[section]!.frame.intersects(visible) {
+            for (path, cell) in visibleCellsByPath where cell.superview === scrollView {
+                cell.removeFromSuperview()
+                visibleCellsByPath.removeValue(forKey: path)
+                if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+            }
+            scrollView.removeFromSuperview()
+            orthogonalScrollViews.removeValue(forKey: section)
         }
-        let elements = collectionViewLayout.layoutAttributesForElements(in: visible) ?? []
-        for attribute in elements where attribute.representedElementKind == nil && visibleCellsByPath[attribute.indexPath] == nil {
+        for (section, info) in sections where info.frame.intersects(visible) {
+            let scrollView = orthogonalScrollViews[section] ?? {
+                let view = OrthogonalScrollView()
+                view.onScroll = { [weak self] in self?.setNeedsLayout() }
+                addSubview(view)
+                orthogonalScrollViews[section] = view
+                return view
+            }()
+            if scrollView.frame != info.frame { scrollView.frame = info.frame }
+            let contentSize = CGSize(width: info.contentWidth, height: info.frame.height)
+            if scrollView.contentSize != contentSize { scrollView.contentSize = contentSize }
+            scrollView.isPagingEnabled = info.behavior == .paging || info.behavior == .groupPaging || info.behavior == .groupPagingCentered
+        }
+        func isVisible(_ attribute: UICollectionViewLayoutAttributes) -> Bool {
+            guard let section = attribute.orthogonalSection, let info = sections[section], let scrollView = orthogonalScrollViews[section] else { return attribute.frame.intersects(visible) }
+            let window = CGRect(x: info.frame.minX + scrollView.contentOffset.x, y: info.frame.minY, width: info.frame.width, height: info.frame.height)
+            return attribute.frame.intersects(window)
+        }
+        for (path, cell) in visibleCellsByPath {
+            guard let attribute = layoutAttributesForItem(at: path), isVisible(attribute) else {
+                cell.removeFromSuperview()
+                visibleCellsByPath.removeValue(forKey: path)
+                if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+                continue
+            }
+        }
+        var elements = collectionViewLayout.layoutAttributesForElements(in: visible) ?? []
+        // An orthogonal section's items sit past the bounds sideways: ask for its scrolled window too.
+        for (section, info) in sections where info.frame.intersects(visible) {
+            guard let scrollView = orthogonalScrollViews[section] else { continue }
+            let window = CGRect(x: info.frame.minX + scrollView.contentOffset.x, y: info.frame.minY, width: info.frame.width, height: info.frame.height)
+            let seen = Set(elements.map { $0.indexPath })
+            for attribute in collectionViewLayout.layoutAttributesForElements(in: window) ?? [] where attribute.representedElementKind == nil && attribute.orthogonalSection == section && !seen.contains(attribute.indexPath) {
+                elements.append(attribute)
+            }
+        }
+        for attribute in elements where attribute.representedElementKind == nil && visibleCellsByPath[attribute.indexPath] == nil && isVisible(attribute) {
             let cell = dataSource.collectionView(self, cellForItemAt: attribute.indexPath)
             cell.apply(attribute)
             cell.isSelected = selected.contains(attribute.indexPath)
             collectionDelegate?.collectionView(self, willDisplay: cell, forItemAt: attribute.indexPath)
-            if cell.superview !== self { addSubview(cell) }
+            if let section = attribute.orthogonalSection, let info = sections[section], let scrollView = orthogonalScrollViews[section] {
+                // Inside its section's scroll view, in that view's content coordinates.
+                cell.frame = attribute.frame.offsetBy(dx: -info.frame.minX, dy: -info.frame.minY)
+                if cell.superview !== scrollView { scrollView.addSubview(cell) }
+            } else if cell.superview !== self {
+                addSubview(cell)
+            }
             visibleCellsByPath[attribute.indexPath] = cell
         }
         // Headers and footers in view; the ones scrolled away go back to their pool.
@@ -589,5 +641,23 @@ open class UICollectionView: UIScrollView {
 
     open override var contentOffset: CGPoint {
         didSet { if contentOffset != oldValue, !needsReload { setNeedsLayout() } }
+    }
+}
+
+/// The scroll view an orthogonally scrolling section's cells live in: horizontal, without
+/// indicators, telling the collection view when it moves so the cells in view update.
+@MainActor
+final class OrthogonalScrollView: UIScrollView {
+    var onScroll: (() -> Void)?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        showsVerticalScrollIndicator = false
+        showsHorizontalScrollIndicator = false
+        alwaysBounceVertical = false
+    }
+
+    override var contentOffset: CGPoint {
+        didSet { if contentOffset != oldValue { onScroll?() } }
     }
 }

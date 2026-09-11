@@ -319,3 +319,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   is a compositional layout in name that lays rows out as the inset grouped table does, sizing
   each through the list cell's preferred attributes; the dump gave the list content's metrics
   (24.5 pt body labels, rows 56 and 79.5), which differ from a table cell's labels.
+- Step 24 (2026-09-11): orthogonal scrolling (`Docs/ROADMAP.md`, Phase 7 status 4.27). The dump
+  showed UIKit's embedded scroll view sitting inside the section's insets with the cells kept
+  in the section's coordinates and the off-screen ones never made; the collection view hosts
+  such sections' cells in a scroll view per section and re-culls when it moves. Nested scroll
+  views needed a rule for sharing a drag: a pan mostly along an axis a scroll view cannot
+  scroll passes to the enclosing one.

@@ -114,7 +114,7 @@ final class ListSource: NSObject, UICollectionViewDataSource {
 }
 
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -225,6 +225,31 @@ public enum CollectionFixtures {
     }
 
     @MainActor static var listSources: [ListSource] = []
+
+    /// An orthogonally scrolling section (a carousel of 200 × 100 groups 12 apart, inset 16)
+    /// above a plain vertical section of full-width rows.
+    public static let orthogonal = UIKitFixture("uikit/collection/orthogonal", size: CGSize(width: 320, height: 400)) {
+        let layout = UICollectionViewCompositionalLayout { section, _ in
+            if section == 0 {
+                let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1)))
+                let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .absolute(200), heightDimension: .absolute(100)), subitems: [item])
+                let section = NSCollectionLayoutSection(group: group)
+                section.orthogonalScrollingBehavior = .continuous
+                section.interGroupSpacing = 12
+                section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+                return section
+            }
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)), subitems: [item])
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = 8
+            return section
+        }
+        let source = GridSource()
+        source.counts = [4, 2]
+        source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 2, section: 0): "item2", IndexPath(item: 0, section: 1): "item4", IndexPath(item: 1, section: 1): "item5"]
+        return make(layout: layout, source: source)
+    }
 
     /// Section headers (44 tall) and footers (30 tall) from the flow layout's reference sizes.
     public static let headers = UIKitFixture("uikit/collection/headers", size: CGSize(width: 320, height: 400)) {

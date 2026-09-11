@@ -224,8 +224,21 @@ open class UIScrollView: UIView {
         return CGPoint(x: inside.x + Self.rubberBanded(overX, dimension: bounds.width), y: inside.y + Self.rubberBanded(overY, dimension: bounds.height))
     }
 
+    /// Whether a pan mostly along an axis this view cannot scroll is left to an enclosing
+    /// scroll view (a carousel inside a list: horizontal drags scroll the carousel, vertical
+    /// ones the list).
+    private var ignoringPan = false
+
     private func handlePan(_ pan: UIPanGestureRecognizer) {
         guard isScrollEnabled else { return }
+        if pan.state == .began {
+            let translation = pan.translation(in: self)
+            let scrollsHorizontally = alwaysBounceHorizontal || contentSize.width + contentInset.left + contentInset.right > bounds.width + 0.5
+            let scrollsVertically = alwaysBounceVertical || contentSize.height + contentInset.top + contentInset.bottom > bounds.height + 0.5
+            let mostlyVertical = abs(translation.y) > abs(translation.x)
+            ignoringPan = mostlyVertical ? (!scrollsVertically && scrollsHorizontally) : (!scrollsHorizontally && scrollsVertically)
+        }
+        guard !ignoringPan else { return }
         switch pan.state {
         case .began:
             panStartOffset = contentOffset

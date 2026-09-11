@@ -118,3 +118,15 @@ trailing edge for a disclosure (the 10.5 × 14 chevron 16 in) and 40 for a check
 18.5 in); a 1 pt separator between rows runs 16 in from both card edges. Pixels 0.8 % off the
 simulator. Open: plain appearance metrics, headers and footers, swipe actions, `UIListContentConfiguration`
 in table cells on these metrics.
+
+## Orthogonal scrolling (2026-09-11, `uikit/collection/orthogonal`)
+
+A section with `orthogonalScrollingBehavior` other than `none` lays its groups out sideways in a
+scroll view of its own, inset by the section's content insets (a 288 × 100 scroll view at
+(16, 16) for 200 × 100 groups 12 apart), its content as wide as the groups and the trailing
+inset; the items' layout attributes stay in the collection's coordinates (the third group at
+x 440), and only the cells inside the scroll view's visible width exist, as UIKit makes them.
+Horizontal drags on the section scroll it (the paging behaviours snap to pages); vertical ones
+scroll the list: a scroll view leaves pans mostly along an axis it cannot scroll to the
+enclosing one. Pixels 1.3 % off the simulator. Open: `groupPagingCentered` centring,
+`visibleItemsInvalidationHandler`, decoration items.
