@@ -30,10 +30,19 @@ public struct UIKitFixture: Sendable {
     public let stepNames: [String]
     public let instantiate: @MainActor @Sendable () -> UIKitFixtureInstance
     public var style: UIUserInterfaceStyle = .light
+    /// Whether the golden captures the whole window (presented alerts and sheets live beside the
+    /// root controller's view, not in it) and its probes are relative to the window.
+    public var capturesWindow = false
 
     public func style(_ style: UIUserInterfaceStyle) -> UIKitFixture {
         var copy = self
         copy.style = style
+        return copy
+    }
+
+    public func capturesWindow(_ flag: Bool = true) -> UIKitFixture {
+        var copy = self
+        copy.capturesWindow = flag
         return copy
     }
 
@@ -151,10 +160,11 @@ public final class UIKitFixtureRunner {
         window.makeKeyAndVisible()
     }
 
-    /// Lays out at the fixture size and returns the probe frames relative to the root view.
+    /// Lays out at the fixture size and returns the probe frames relative to the root view (or
+    /// the window, for a fixture that captures it).
     public func layoutFrames() -> [String: CGRect] {
         UIKitScene.shared.layout(in: fixture.size)
-        return UIKitProbes.frames(in: instance.controller.view)
+        return UIKitProbes.frames(in: fixture.capturesWindow ? window : instance.controller.view)
     }
 
     /// Paints the laid-out fixture into a display list at `scale`.

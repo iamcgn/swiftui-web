@@ -35,10 +35,19 @@ public struct UIKitFixture: Sendable {
     public let instantiate: @MainActor @Sendable () -> UIKitFixtureInstance
     /// The appearance the fixture is rendered in.
     public var style: UIUserInterfaceStyle = .light
+    /// Whether the golden captures the whole window (presented alerts and sheets live beside the
+    /// root controller's view, not in it) and its probes are relative to the window.
+    public var capturesWindow = false
 
     public func style(_ style: UIUserInterfaceStyle) -> UIKitFixture {
         var copy = self
         copy.style = style
+        return copy
+    }
+
+    public func capturesWindow(_ flag: Bool = true) -> UIKitFixture {
+        var copy = self
+        copy.capturesWindow = flag
         return copy
     }
 

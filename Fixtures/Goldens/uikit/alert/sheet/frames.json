@@ -1,0 +1,34 @@
+{
+  "fixture" : "uikit\/alert\/sheet",
+  "frames" : {
+    "behind" : {
+      "height" : 20.5,
+      "width" : 53,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 500,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "behind" : {
+          "height" : 20.5,
+          "width" : 53,
+          "x" : 16,
+          "y" : 16
+        },
+        "sheet" : {
+          "height" : 252,
+          "width" : 300,
+          "x" : 10,
+          "y" : 124
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

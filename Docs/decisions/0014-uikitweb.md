@@ -226,3 +226,10 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   items of one size always sit on the grid a full line would make, so a short last line keeps
   the same gap. Cells exist for the items in view only, which the golden for the horizontal
   fixture demands (its fourth item has no probe: UIKit never made the cell).
+- Step 5 (2026-09-11): alerts and sheets (`Docs/ROADMAP.md`, Phase 7 status 4.8;
+  `Docs/elements/UIKit/Presentation.md`). Presentations live beside the root controller's view,
+  so the UIKit golden generator learned to capture the whole window (a `capturesWindow()`
+  fixture flag, the same in both fixture kits) and to dump the view tree after each behaviour
+  step, which is where an alert exists. The dump showed iOS 26 drawing action sheets as the same
+  centred card as alerts, and a page sheet's spring still 0.13 pt short of rest after half a
+  second, so the harness now settles for 1.2 s after a step.

@@ -13,8 +13,10 @@ import JavaScriptEventLoop
     var instance: UIKitFixtureInstance?
 }
 
-/// The UIKit fixture instance on show (its controller's view is the probes' root).
+/// The UIKit fixture instance on show (its controller's view is the probes' root, or its window
+/// for a fixture that captures the window: presented alerts live beside the root view).
 var currentHostedInstance: UIKitFixtureInstance?
+var currentHostedCapturesWindow = false
 
 /// A UIKit fixture's controller as a SwiftUI view (decision 0014: the gallery shows the UIKit
 /// fixtures through a representable, at the fixture's size).
@@ -27,6 +29,7 @@ struct UIKitFixtureHost: UIViewControllerRepresentable {
         let instance = fixture.instantiate()
         box.instance = instance
         currentHostedInstance = instance
+        currentHostedCapturesWindow = fixture.capturesWindow
         return instance.controller
     }
 
@@ -264,7 +267,8 @@ final class Gallery {
         var closure: JSClosure!
         closure = JSClosure { [weak self] _ in
             attempts += 1
-            guard let self, self.hostedFixtureName == name, let root = currentHostedInstance?.controller.view else { return .undefined }
+            guard let self, self.hostedFixtureName == name, let view = currentHostedInstance?.controller.view else { return .undefined }
+            let root = currentHostedCapturesWindow ? (view.window ?? view) : view
             let frames = UIKitProbes.frames(in: root)
             // A table's cells (and their probes) appear on its first layout, which a slow CI
             // runner reaches late: wait up to ten seconds before publishing an empty set.

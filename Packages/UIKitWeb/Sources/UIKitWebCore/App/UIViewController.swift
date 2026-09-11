@@ -76,6 +76,8 @@ open class UIViewController: UIResponder, UITraitEnvironment {
 
     /// The window the controller's view is in (set by the window for its root).
     weak var window: UIWindow?
+    /// The container a presentation put this controller's view in (Containers/UIAlertController.swift).
+    var presentationContainer: UIView?
     /// The bar items (Containers/BarItems.swift).
     var storedNavigationItem: UINavigationItem?
     var storedTabBarItem: UITabBarItem?

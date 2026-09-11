@@ -84,7 +84,11 @@ open class UIWindow: UIView {
 
     /// After the first layout of a joined window, controllers that were about to appear did.
     func completePendingAppearances() {
-        rootViewController?.completeAppearanceIfPending()
+        var controller = rootViewController
+        while let current = controller {
+            current.completeAppearanceIfPending()
+            controller = current.presentedViewController
+        }
     }
 
     public struct Level: Hashable, Sendable, RawRepresentable, Comparable {

@@ -106,6 +106,20 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("One", .system(size: 13, weight: "medium")),
         UIKitTextRequest("Two", .system(size: 13, weight: "medium")),
         UIKitTextRequest("Three", .system(size: 13, weight: "medium")),
+        // uikit/alert/*, uikit/sheet/page (alert titles 17 semibold, messages 13, actions 17 regular / semibold for cancel)
+        UIKitTextRequest("Behind", .system(size: 17)),
+        UIKitTextRequest("Presented", .system(size: 17)),
+        UIKitTextRequest("Delete file?", .system(size: 17, weight: "semibold"), width: 244, lines: 0),
+        UIKitTextRequest("This cannot be undone.", .system(size: 15), width: 244, lines: 0),
+        UIKitTextRequest("Cancel", .system(size: 17, weight: "semibold")),
+        UIKitTextRequest("Cancel", .system(size: 17)),
+        UIKitTextRequest("Delete", .system(size: 17)),
+        UIKitTextRequest("Share", .system(size: 15), width: 244, lines: 0),
+        UIKitTextRequest("Copy Link", .system(size: 20)),
+        UIKitTextRequest("Save Image", .system(size: 20)),
+        UIKitTextRequest("Cancel", .system(size: 20, weight: "semibold")),
+        UIKitTextRequest("Copy Link", .system(size: 17)),
+        UIKitTextRequest("Save Image", .system(size: 17)),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

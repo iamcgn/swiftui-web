@@ -37,9 +37,11 @@ final class Host {
     let instance: UIKitFixtureInstance
     private let window: UIWindow
     private let size: CGSize
+    private let capturesWindow: Bool
 
     init(_ fixture: UIKitFixture) {
         size = fixture.size
+        capturesWindow = fixture.capturesWindow
         UIKitProbes.reset()
         instance = fixture.instantiate()
         window = UIWindow(frame: CGRect(origin: .zero, size: size))
@@ -57,7 +59,8 @@ final class Host {
         }
     }
 
-    var root: UIView { instance.controller.view }
+    /// The view the golden shows: the root controller's, or the whole window.
+    var root: UIView { capturesWindow ? window : instance.controller.view }
 
     func frames() -> [String: CGRect] {
         root.layoutIfNeeded()
@@ -65,9 +68,10 @@ final class Host {
         return UIKitProbes.frames(in: root)
     }
 
-    /// Lets the animations a step started finish (goldens hold end states).
+    /// Lets the animations a step started finish (goldens hold end states): a sheet's spring
+    /// was still 0.13 pt short of its rest after half a second.
     func settle() {
-        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+        RunLoop.main.run(until: Date().addingTimeInterval(1.2))
     }
 
     func png(scale: Int) throws -> (data: Data, width: Int, height: Int) {
@@ -173,6 +177,14 @@ enum Generator {
         _ = host.frames()
         print("== \(fixture.name)")
         describe(host.root)
+        // Behaviour steps: the tree after each (a presented alert appears only then).
+        for (index, step) in host.instance.steps.enumerated() {
+            step.run()
+            host.settle()
+            _ = host.frames()
+            print("== \(fixture.name) / step \(index + 1) \(step.name)")
+            describe(host.root)
+        }
     }
 
     /// The faces the recorder's fonts and the convenience constructors resolve to.

@@ -64,15 +64,18 @@ public final class UIKitScene: HostedScene {
         setNeedsFrame()
     }
 
-    /// Modal presentation (Phase 3): the presented controller's view covers the window.
+    /// Modal presentation: a container over the window holds the dimming and the presented
+    /// controller's view as the card its style calls for (Containers/UIAlertController.swift).
     func present(_ controller: UIViewController, from presenter: UIViewController) {
         guard let window = presenter.viewIfLoaded?.window ?? windows.first else { return }
         controller.window = window
+        let container = PresentationContainerView(controller: controller, frame: window.bounds)
+        controller.presentationContainer = container
         let view = controller.view!
-        view.frame = window.bounds
-        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.autoresizingMask = []
         controller.beginAppearanceTransition(true, animated: false)
-        window.addSubview(view)
+        container.addSubview(view)
+        window.addSubview(container)
         controller.pendingAppearance = true
         setNeedsFrame()
     }
@@ -80,6 +83,8 @@ public final class UIKitScene: HostedScene {
     func dismiss(_ controller: UIViewController) {
         controller.beginAppearanceTransition(false, animated: false)
         controller.viewIfLoaded?.removeFromSuperview()
+        controller.presentationContainer?.removeFromSuperview()
+        controller.presentationContainer = nil
         controller.endAppearanceTransition()
         controller.window = nil
         setNeedsFrame()

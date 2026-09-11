@@ -1,0 +1,45 @@
+{
+  "fixture" : "uikit\/alert\/basic",
+  "frames" : {
+    "behind" : {
+      "height" : 20.5,
+      "width" : 53,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 500,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "alert" : {
+          "height" : 160,
+          "width" : 300,
+          "x" : 10,
+          "y" : 170
+        },
+        "behind" : {
+          "height" : 20.5,
+          "width" : 53,
+          "x" : 16,
+          "y" : 16
+        }
+      },
+      "name" : "present"
+    },
+    {
+      "frames" : {
+        "behind" : {
+          "height" : 20.5,
+          "width" : 53,
+          "x" : 16,
+          "y" : 16
+        }
+      },
+      "name" : "dismiss"
+    }
+  ]
+}

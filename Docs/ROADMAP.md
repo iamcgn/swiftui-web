@@ -323,8 +323,8 @@ substrate both share), `Packages/UIKitWeb`, and the root, which depends on UIKit
 SwiftUI depends on UIKit. Phase 0 extracts the substrate with no behaviour change; Phase 1 makes
 UIKitWeb run alone (`Examples/UIKitCounter`); Phase 2 adds the representables; Phase 3 Auto
 Layout (done 2026-09-10), `draw(_:)`, `UIView.animate` and `UIHostingController` (done 2026-09-11). Phase 4 (the larger
-UIKit classes): navigation and tab bar controllers, `UITableView` and `UICollectionView` (done 2026-09-11),
-then alerts and sheets.
+UIKit classes): navigation and tab bar controllers, `UITableView`, `UICollectionView`, alerts and sheets (all
+done 2026-09-11).
 
 ### Phase 7 status
 
@@ -346,6 +346,7 @@ then alerts and sheets.
 | 4.5 The landing page | done 2026-09-11: a "UIKit too" section on `Examples/Landing` hosts a `UISlider` and a `UISegmentedControl` through `UIViewRepresentable` next to the SwiftUI controls they share a model with; the support matrix gained the UIKit interop section. |
 | 4.6 Scroll momentum | done 2026-09-11: a pan that ends with velocity carries a `UIScrollView` (and so a table) on the scene's clock at UIKit's deceleration rate, stopping at an edge or under 4 pt/s; a touch stops it; the delegate hears. Open: rubber banding, paging, scroll indicators. |
 | 4.7 UICollectionView | done 2026-09-11: `UICollectionView` over the scroll view with a layout object, `UICollectionViewFlowLayout` (vertical and horizontal, section insets, line and interitem spacing, delegate-sized items; full lines justified, one-size items on a full line's grid), `UICollectionViewCell`, layout attributes, reuse, selection by tap; cells for the items in view only. Three `uikit/collection/*` fixtures exact and within 0.2 % of the simulator's pixels (`Docs/elements/UIKit/CollectionView.md`). Open: supplementary views, compositional layouts, self-sizing. |
+| 4.8 Alerts and sheets | done 2026-09-11: `UIAlertController` and `UIAlertAction` (the iOS 26 centred glass card for both styles: 300 wide, 34 pt corners, capsule action buttons with the cancel action filled), modal presentation as a page sheet card over a 20 % dim (or full screen by style), presented controllers' appearance callbacks, a tap outside a sheet dismissing it. The UIKit golden generator can capture the whole window (`capturesWindow()`) and dumps the tree after each behaviour step. Three fixtures (`Docs/elements/UIKit/Presentation.md`). Open: alert text fields, presentation animations, detents. |
 | 0.3 Verification and docs | done 2026-09-06: Counter 2,751,777 bytes brotli after the split against 2,762,661 before (decision 0014 has the log); `Docs/ARCHITECTURE.md` and the README describe the three-package layout. |
 
 ## Risk register
