@@ -125,3 +125,39 @@ import UIKit
         #expect(!root.constraints.contains { $0 === narrow })
     }
 }
+
+/// The visual format language (Layout/NSLayoutConstraint.swift): spacing, sizes, relations,
+/// priorities, metrics and alignment options resolve to the frames UIKit gives
+/// (uikit/autolayout/visualformat pins the same layout on the simulator).
+@Suite @MainActor struct VisualFormatTests {
+    @Test func formatsLayOutTheViews() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.configureScreen(size: CGSize(width: 320, height: 300), scale: 2)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let controller = UIViewController()   // a root view's margins are 16 sideways: `|-[c]-|` lands on them
+        window.rootViewController = controller
+        let root = controller.view!
+        let a = UIView(), b = UIView(), c = UIView(), d = UIView()
+        for view in [a, b, c, d] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
+        let views: [String: Any] = ["a": a, "b": b, "c": c, "d": d]
+        let metrics: [String: Any] = ["gap": 12, "side": 16]
+        var constraints: [NSLayoutConstraint] = []
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-side-[a(80)]-8-[b(>=60)]-side-|", options: [.alignAllTop, .alignAllBottom], metrics: metrics, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|-20-[a(40)]-gap-[c(30)]-(>=8)-|", options: [], metrics: metrics, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-[c]-|", options: [], metrics: nil, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:[c]-gap-[d(24)]", options: [], metrics: metrics, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-(>=20)-[d(120@750)]-20-|", options: [], metrics: nil, views: views)
+        #expect(constraints.count == 19)
+        NSLayoutConstraint.activate(constraints)
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 320, height: 300))
+        #expect(a.frame == CGRect(x: 16, y: 20, width: 80, height: 40))
+        #expect(b.frame == CGRect(x: 104, y: 20, width: 200, height: 40))
+        #expect(c.frame == CGRect(x: 16, y: 72, width: 288, height: 30))
+        #expect(d.frame == CGRect(x: 180, y: 114, width: 120, height: 24))
+        // A format that does not parse yields nothing.
+        #expect(NSLayoutConstraint.constraints(withVisualFormat: "H:[missing]", options: [], metrics: nil, views: views).isEmpty)
+        #expect(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[a", options: [], metrics: nil, views: views).isEmpty)
+    }
+}

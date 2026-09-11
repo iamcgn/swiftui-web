@@ -5077,6 +5077,25 @@ public static let update = UIKitFixture("uikit/autolayout/update", size: CGSize(
     return root
 }
 """#),
+        FixtureSource(name: "uikit/autolayout/visualformat", file: "Fixtures/UIKit/AutoLayout/AutoLayoutFixtures.swift", firstLine: 272, lastLine: 288, declaration: #"""
+/// The visual format language: superview and inter-view spacing (default 20 and 8, metrics,
+/// inequalities), sizes with relations and priorities, and alignment options.
+public static let visualFormat = UIKitFixture("uikit/autolayout/visualformat", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let a = box(.systemRed, "a"), b = box(.systemGreen, "b"), c = box(.systemBlue, "c"), d = box(.systemOrange, "d")
+    for view in [a, b, c, d] { root.addSubview(view) }
+    let views: [String: Any] = ["a": a, "b": b, "c": c, "d": d]
+    let metrics: [String: Any] = ["gap": 12, "side": 16]
+    var constraints: [NSLayoutConstraint] = []
+    constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-side-[a(80)]-8-[b(>=60)]-side-|", options: [.alignAllTop, .alignAllBottom], metrics: metrics, views: views)
+    constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|-20-[a(40)]-gap-[c(30)]-(>=8)-|", options: [], metrics: metrics, views: views)
+    constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-[c]-|", options: [], metrics: nil, views: views)
+    constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:[c]-gap-[d(24)]", options: [], metrics: metrics, views: views)
+    constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-(>=20)-[d(120@750)]-20-|", options: [], metrics: nil, views: views)
+    NSLayoutConstraint.activate(constraints)
+    return root
+}
+"""#),
         FixtureSource(name: "uikit/button/basic", file: "Fixtures/UIKit/Button/ButtonFixtures.swift", firstLine: 10, lastLine: 37, declaration: #"""
 public static let basic = UIKitFixture("uikit/button/basic", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
@@ -12145,7 +12164,7 @@ import UIKit
 import UIKitFixtureKit
 
 public enum AutoLayoutFixtures {
-    public static let all = [pins, priorities, guides, fitting, baseline, update]
+    public static let all = [pins, priorities, guides, fitting, baseline, update, visualFormat]
 
     @MainActor static func box(_ color: UIColor, _ id: String) -> UIView {
         let view = UIView()
@@ -12404,6 +12423,24 @@ public enum AutoLayoutFixtures {
             mover.topAnchor.constraint(equalTo: root.topAnchor, constant: 16),
             mover.heightAnchor.constraint(equalToConstant: 40),
         ])
+        return root
+    }
+
+    /// The visual format language: superview and inter-view spacing (default 20 and 8, metrics,
+    /// inequalities), sizes with relations and priorities, and alignment options.
+    public static let visualFormat = UIKitFixture("uikit/autolayout/visualformat", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let a = box(.systemRed, "a"), b = box(.systemGreen, "b"), c = box(.systemBlue, "c"), d = box(.systemOrange, "d")
+        for view in [a, b, c, d] { root.addSubview(view) }
+        let views: [String: Any] = ["a": a, "b": b, "c": c, "d": d]
+        let metrics: [String: Any] = ["gap": 12, "side": 16]
+        var constraints: [NSLayoutConstraint] = []
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-side-[a(80)]-8-[b(>=60)]-side-|", options: [.alignAllTop, .alignAllBottom], metrics: metrics, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|-20-[a(40)]-gap-[c(30)]-(>=8)-|", options: [], metrics: metrics, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-[c]-|", options: [], metrics: nil, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:[c]-gap-[d(24)]", options: [], metrics: metrics, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-(>=20)-[d(120@750)]-20-|", options: [], metrics: nil, views: views)
+        NSLayoutConstraint.activate(constraints)
         return root
     }
 }

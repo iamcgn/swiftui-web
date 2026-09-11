@@ -24,11 +24,21 @@ public final class NSLayoutConstraint {
     public struct FormatOptions: OptionSet, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let alignAllLeft = FormatOptions(rawValue: 1 << 1)
+        public static let alignAllRight = FormatOptions(rawValue: 1 << 2)
+        public static let alignAllTop = FormatOptions(rawValue: 1 << 3)
+        public static let alignAllBottom = FormatOptions(rawValue: 1 << 4)
         public static let alignAllLeading = FormatOptions(rawValue: 1 << 5)
         public static let alignAllTrailing = FormatOptions(rawValue: 1 << 6)
         public static let alignAllCenterX = FormatOptions(rawValue: 1 << 9)
         public static let alignAllCenterY = FormatOptions(rawValue: 1 << 10)
+        public static let alignAllLastBaseline = FormatOptions(rawValue: 1 << 11)
+        public static let alignAllFirstBaseline = FormatOptions(rawValue: 1 << 12)
+        public static let alignmentMask = FormatOptions(rawValue: 0xFFFF)
         public static let directionLeadingToTrailing = FormatOptions([])
+        public static let directionLeftToRight = FormatOptions(rawValue: 1 << 16)
+        public static let directionRightToLeft = FormatOptions(rawValue: 2 << 16)
+        public static let directionMask = FormatOptions(rawValue: 0x3 << 16)
     }
 
     public private(set) weak var firstItem: AnyObject?
@@ -105,9 +115,256 @@ public final class NSLayoutConstraint {
         return nil
     }
 
-    /// Visual format constraints are not parsed: the call returns nothing (sources compile).
+    /// The visual format language (`H:|-[a(80)]-8-[b(>=60@750)]-|`): the standard 20 pt
+    /// spacing to the superview and 8 between views, metrics, relations and priorities on
+    /// sizes and gaps, and the alignment options across the format's views. A format that does
+    /// not parse prints the fault and yields nothing (UIKit raises).
     public static func constraints(withVisualFormat format: String, options: FormatOptions = [], metrics: [String: Any]?, views: [String: Any]) -> [NSLayoutConstraint] {
-        []
+        var parser = VisualFormatParser(format: format, options: options, metrics: metrics ?? [:], views: views)
+        do {
+            return try parser.parse()
+        } catch {
+            print("UIKitWeb: visual format \"\(format)\" not parsed: \(error)")
+            return []
+        }
+    }
+}
+
+/// The visual format grammar, as Apple documents it: `(H|V:)? (|<connection>)? <view> (<connection> <view>)* (<connection> |)?`.
+@MainActor
+struct VisualFormatParser {
+    struct Fault: Error, CustomStringConvertible {
+        let description: String
+    }
+
+    let options: NSLayoutConstraint.FormatOptions
+    let metrics: [String: Any]
+    let views: [String: Any]
+    private let characters: [Character]
+    private var index = 0
+    private var horizontal = true
+
+    init(format: String, options: NSLayoutConstraint.FormatOptions, metrics: [String: Any], views: [String: Any]) {
+        self.options = options
+        self.metrics = metrics
+        self.views = views
+        characters = Array(format)
+    }
+
+    private var atEnd: Bool { index >= characters.count }
+    private func peek() -> Character? { atEnd ? nil : characters[index] }
+    private mutating func take(_ character: Character) -> Bool {
+        guard peek() == character else { return false }
+        index += 1
+        return true
+    }
+    private mutating func expect(_ character: Character) throws {
+        guard take(character) else { throw Fault(description: "expected '\(character)' at \(index)") }
+    }
+
+    /// A relation, an object (a number, a metric or a view's name) and a priority.
+    private struct Predicate {
+        var relation: NSLayoutConstraint.Relation = .equal
+        var constant: CGFloat?
+        var viewName: String?
+        var priority: UILayoutPriority = .required
+    }
+
+    /// A connection between two items: flush (nothing), the standard spacing (`-`), or
+    /// explicit predicates (`-8-`, `-(>=8@750)-`).
+    private enum Connection {
+        case flush, standard, explicit([Predicate])
+
+        var isStandard: Bool { if case .standard = self { return true } else { return false } }
+
+        func predicates(standardSpacing: CGFloat) -> [Predicate] {
+            switch self {
+            case .flush: return [Predicate(constant: 0)]
+            case .standard: return [Predicate(constant: standardSpacing)]
+            case .explicit(let list): return list
+            }
+        }
+    }
+
+    mutating func parse() throws -> [NSLayoutConstraint] {
+        if take("H") { try expect(":"); horizontal = true } else if take("V") { try expect(":"); horizontal = false }
+        var constraints: [NSLayoutConstraint] = []
+        var previous: (name: String, view: AnyObject)?
+        var superviewConnection: Connection?
+        var formatViews: [AnyObject] = []
+        var pendingConnection = Connection.flush
+        if take("|") {
+            superviewConnection = try connection()
+            guard peek() == "[" else { throw Fault(description: "a view must follow '|'") }
+        }
+        while peek() == "[" {
+            let (name, view, predicates) = try viewSpec()
+            formatViews.append(view)
+            for predicate in predicates {
+                let attribute: NSLayoutConstraint.Attribute = horizontal ? .width : .height
+                let constraint: NSLayoutConstraint
+                if let other = predicate.viewName {
+                    guard let otherView = views[other] as AnyObject? else { throw Fault(description: "unknown view \(other)") }
+                    constraint = NSLayoutConstraint(item: view, attribute: attribute, relatedBy: predicate.relation, toItem: otherView, attribute: attribute, multiplier: 1, constant: 0)
+                } else {
+                    constraint = NSLayoutConstraint(item: view, attribute: attribute, relatedBy: predicate.relation, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: predicate.constant ?? 0)
+                }
+                constraint.priority = predicate.priority
+                constraints.append(constraint)
+            }
+            if let connection = superviewConnection {
+                // `|-x-[view]`: the view's leading (top) is the superview's plus x; a bare `-`
+                // is the superview's layout margin (uikit/autolayout/visualformat: 16 on a root view).
+                guard let superview = (view as? UIView)?.superview else { throw Fault(description: "\(name) has no superview for '|'") }
+                let standard = connection.isStandard
+                for predicate in connection.predicates(standardSpacing: 0) {
+                    let constraint = NSLayoutConstraint(item: view, attribute: leading, relatedBy: predicate.relation, toItem: superview, attribute: standard ? leadingMargin : leading, multiplier: 1, constant: predicate.constant ?? 0)
+                    constraint.priority = predicate.priority
+                    constraints.append(constraint)
+                }
+                superviewConnection = nil
+            }
+            if let previous {
+                // `[previous]-x-[view]`: the view's leading is the previous view's trailing plus x (8 for `-`).
+                for predicate in pendingConnection.predicates(standardSpacing: 8) {
+                    let constraint = NSLayoutConstraint(item: view, attribute: leading, relatedBy: predicate.relation, toItem: previous.view, attribute: trailing, multiplier: 1, constant: predicate.constant ?? 0)
+                    constraint.priority = predicate.priority
+                    constraints.append(constraint)
+                }
+            }
+            previous = (name, view)
+            guard !atEnd else { break }
+            pendingConnection = try connection()
+            if take("|") {
+                // `[view]-x-|`: the superview's trailing (bottom) is the view's plus x (20 for `-`).
+                guard let superview = (view as? UIView)?.superview else { throw Fault(description: "\(name) has no superview for '|'") }
+                let standard = pendingConnection.isStandard
+                for predicate in pendingConnection.predicates(standardSpacing: 0) {
+                    let constraint = NSLayoutConstraint(item: superview, attribute: standard ? trailingMargin : trailing, relatedBy: predicate.relation, toItem: view, attribute: trailing, multiplier: 1, constant: predicate.constant ?? 0)
+                    constraint.priority = predicate.priority
+                    constraints.append(constraint)
+                }
+                break
+            }
+        }
+        guard atEnd else { throw Fault(description: "unexpected '\(peek()!)' at \(index)") }
+        // The alignment options: every view aligned with the first on the named attributes.
+        for (option, attribute) in Self.alignments where options.contains(option) {
+            for view in formatViews.dropFirst() {
+                constraints.append(NSLayoutConstraint(item: view, attribute: attribute, relatedBy: .equal, toItem: formatViews[0], attribute: attribute, multiplier: 1, constant: 0))
+            }
+        }
+        return constraints
+    }
+
+    private var leading: NSLayoutConstraint.Attribute { horizontal ? (options.contains(.directionLeftToRight) ? .left : .leading) : .top }
+    private var trailing: NSLayoutConstraint.Attribute { horizontal ? (options.contains(.directionLeftToRight) ? .right : .trailing) : .bottom }
+    private var leadingMargin: NSLayoutConstraint.Attribute { horizontal ? (options.contains(.directionLeftToRight) ? .leftMargin : .leadingMargin) : .topMargin }
+    private var trailingMargin: NSLayoutConstraint.Attribute { horizontal ? (options.contains(.directionLeftToRight) ? .rightMargin : .trailingMargin) : .bottomMargin }
+
+    private static let alignments: [(NSLayoutConstraint.FormatOptions, NSLayoutConstraint.Attribute)] = [
+        (.alignAllLeft, .left), (.alignAllRight, .right), (.alignAllTop, .top), (.alignAllBottom, .bottom), (.alignAllLeading, .leading),
+        (.alignAllTrailing, .trailing), (.alignAllCenterX, .centerX), (.alignAllCenterY, .centerY), (.alignAllLastBaseline, .lastBaseline),
+        (.alignAllFirstBaseline, .firstBaseline),
+    ]
+
+    /// `[name]` or `[name(predicates)]`.
+    private mutating func viewSpec() throws -> (String, AnyObject, [Predicate]) {
+        try expect("[")
+        let name = identifier()
+        guard !name.isEmpty else { throw Fault(description: "a view name must follow '[' at \(index)") }
+        guard let view = views[name] as AnyObject? else { throw Fault(description: "unknown view \(name)") }
+        var predicates: [Predicate] = []
+        if peek() == "(" { predicates = try predicateList() }
+        try expect("]")
+        return (name, view, predicates)
+    }
+
+    /// Nothing (flush), `-` (the standard spacing: 20 to the superview, 8 between views), or
+    /// `-x-` / `-(predicates)-`.
+    private mutating func connection() throws -> Connection {
+        guard take("-") else { return .flush }
+        if peek() == "[" || peek() == "|" { return .standard }
+        let predicates: [Predicate]
+        if peek() == "(" { predicates = try predicateList() } else { predicates = [try simplePredicate()] }
+        try expect("-")
+        return .explicit(predicates)
+    }
+
+    private mutating func predicateList() throws -> [Predicate] {
+        try expect("(")
+        var list: [Predicate] = []
+        repeat {
+            list.append(try predicate())
+        } while take(",")
+        try expect(")")
+        return list
+    }
+
+    private mutating func simplePredicate() throws -> Predicate {
+        let object = try objectOfPredicate()
+        return Predicate(relation: .equal, constant: object.constant, viewName: object.viewName, priority: .required)
+    }
+
+    private mutating func predicate() throws -> Predicate {
+        var result = Predicate()
+        if take("=") { try expect("="); result.relation = .equal }
+        else if take("<") { try expect("="); result.relation = .lessThanOrEqual }
+        else if take(">") { try expect("="); result.relation = .greaterThanOrEqual }
+        let object = try objectOfPredicate()
+        result.constant = object.constant
+        result.viewName = object.viewName
+        if take("@") {
+            let value = try number(orMetric: true)
+            result.priority = UILayoutPriority(Float(value))
+        }
+        return result
+    }
+
+    /// A number, a metric's name, or a view's name (for sizes equal to another view's).
+    private mutating func objectOfPredicate() throws -> (constant: CGFloat?, viewName: String?) {
+        if let character = peek(), character.isNumber || character == "-" || character == "." {
+            return (try number(orMetric: false), nil)
+        }
+        let name = identifier()
+        guard !name.isEmpty else { throw Fault(description: "expected a value at \(index)") }
+        if let metric = metrics[name] { return (Self.value(metric), nil) }
+        if views[name] != nil { return (nil, name) }
+        throw Fault(description: "unknown metric or view \(name)")
+    }
+
+    private mutating func number(orMetric: Bool) throws -> CGFloat {
+        if orMetric, let character = peek(), !(character.isNumber || character == "-" || character == ".") {
+            let name = identifier()
+            guard let metric = metrics[name] else { throw Fault(description: "unknown metric \(name)") }
+            return Self.value(metric)
+        }
+        var text = ""
+        while let character = peek(), character.isNumber || character == "." || (character == "-" && text.isEmpty) {
+            text.append(character)
+            index += 1
+        }
+        guard let value = Double(text) else { throw Fault(description: "expected a number at \(index)") }
+        return CGFloat(value)
+    }
+
+    private mutating func identifier() -> String {
+        var text = ""
+        while let character = peek(), character.isLetter || character.isNumber || character == "_" {
+            text.append(character)
+            index += 1
+        }
+        return text
+    }
+
+    private static func value(_ metric: Any) -> CGFloat {
+        switch metric {
+        case let value as CGFloat: return value
+        case let value as Double: return CGFloat(value)
+        case let value as Int: return CGFloat(value)
+        case let value as Float: return CGFloat(value)
+        default: return 0
+        }
     }
 }
 

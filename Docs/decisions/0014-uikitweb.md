@@ -282,3 +282,6 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   status 4.17). The flow layout's supplementary attributes join the item attributes in
   `layoutAttributesForElements(in:)` with their element kind set, and the collection view
   hosts and pools them beside the cells.
+- Step 15 (2026-09-11): the visual format language (`Docs/ROADMAP.md`, Phase 7 status 4.18):
+  a recursive-descent parser over Apple's published grammar producing ordinary constraints,
+  so the solver and the goldens already in place verify it.

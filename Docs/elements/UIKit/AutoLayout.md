@@ -71,8 +71,20 @@ solves the subtree alone with the target proposed at the fitting priorities.
 - `update`: a constant changed from 16 to 100 moves the view on the next layout; deactivating a
   width and activating another resizes it.
 
-Open: the visual format language, `UIStackView` on constraints (its baseline alignments),
+Open: `UIStackView` on constraints (its baseline alignments),
 constraints between a view and its own layout guides made with `addLayoutGuide` (their frames are
 not solved yet), `contentHuggingPriority` defaults per control (UIKit's 250/750 with UILabel's
 251 are modelled; others unverified), performance on large trees (one tableau per pass),
 animation of constraint changes.
+
+## Visual format language (2026-09-11, `uikit/autolayout/visualformat`)
+
+`NSLayoutConstraint.constraints(withVisualFormat:options:metrics:views:)` parses Apple's grammar:
+`H:` / `V:`, `|` for the superview, `[view]`, `[view(80)]`, `[view(>=60@750)]`, `[view(==other)]`,
+connections `-` (the standard spacing: the superview's layout margins for `|-` and `-|`, 8 between views), `-x-`, `-metric-`
+and `-(>=8@750)-`, and the alignment options (`alignAllTop` … `alignAllFirstBaseline`) that tie
+every view in the format to the first; `directionLeftToRight` uses left and right instead of
+leading and trailing. The fixture's four formats land a, b, c and d at (16, 20, 80, 40),
+(104, 20, 200, 40), (16, 72, 288, 30) and (180, 114, 120, 24), exact against UIKit: `|-[c]-|` sits on
+the root view's 16 pt margins, not 20 in from the edges. A format that
+does not parse prints the fault and yields nothing (UIKit raises an exception).
