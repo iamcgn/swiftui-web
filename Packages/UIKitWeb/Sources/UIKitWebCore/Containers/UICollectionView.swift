@@ -410,6 +410,8 @@ open class UICollectionView: UIScrollView {
         registeredCells[identifier] = { type.init(frame: .zero) }
     }
 
+    func hasRegisteredCell(withIdentifier identifier: String) -> Bool { registeredCells[identifier] != nil }
+
     open func dequeueReusableCell(withReuseIdentifier identifier: String, for indexPath: IndexPath) -> UICollectionViewCell {
         if let cell = reusePool[identifier]?.popLast() {
             cell.prepareForReuse()

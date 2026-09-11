@@ -307,3 +307,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
 - Step 20 (2026-09-11): pinned table headers (`Docs/ROADMAP.md`, Phase 7 status 4.23), the
   clamp UIKit applies to a plain header's frame between its natural place, the visible top and
   its section's end; the fixture's steps probe `headerView(forSection:)` after each scroll.
+- Step 21 (2026-09-11): diffable data sources and registrations (`Docs/ROADMAP.md`, Phase 7
+  status 4.24): the snapshot is a value with ordered sections and items, the data sources
+  keep the applied one and answer the plain protocols from it, and registrations map to the
+  reuse identifiers already in place. Animated differences stay open.

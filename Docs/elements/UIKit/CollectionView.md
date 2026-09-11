@@ -70,3 +70,16 @@ gives 59 × 34 for "Swift"), and the cell returns to the reuse pool. The delegat
 their free space (49.5 and 49 pt gaps in the fixture's first line), a short last line keeps the
 minimum spacing. Cells built for measurement add their subviews on first configure, as
 `TagCell` does, so both UIKits see the same constraints.
+
+## Diffable data sources and registrations (2026-09-11)
+
+`Containers/DiffableDataSource.swift`. `NSDiffableDataSourceSnapshot` (sections and items:
+append, insert before / after, delete, move, reload, reconfigure, lookups),
+`UICollectionViewDiffableDataSource` (`init(collectionView:cellProvider:)`, `apply(_:animatingDifferences:completion:)`,
+`applySnapshotUsingReloadData`, `snapshot()`, `itemIdentifier(for:)`, `indexPath(for:)`,
+`sectionIdentifier(for:)`, `supplementaryViewProvider`), `UITableViewDiffableDataSource` (the
+same over a table, `defaultRowAnimation` stored, `titleForHeaderInSection` overridable),
+`UICollectionView.CellRegistration` / `SupplementaryRegistration` with
+`dequeueConfiguredReusableCell(using:for:item:)` / `dequeueConfiguredReusableSupplementary(using:for:)`.
+Applying a snapshot reloads the view to match; the differences are not animated (open), and the
+completion runs on the next frame.

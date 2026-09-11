@@ -362,6 +362,7 @@ done 2026-09-11).
 | 4.21 Content configurations and UIHostingConfiguration | done 2026-09-11: `contentConfiguration` / `backgroundConfiguration` on table and collection cells (`UIContentConfiguration`, `UIContentView`, `UIListContentConfiguration` approximate) and `UIHostingConfiguration` hosting SwiftUI in a cell with margins (16 sideways measured), a background and a minimum size; rows at least 56 (`ios/representable/hostingcells`, `Docs/elements/Representable.md`). |
 | 4.22 Self-sizing collection cells | done 2026-09-11: an estimated item size makes the flow layout ask each cell for `preferredLayoutAttributesFitting` (the content view's compressed fit from its constraints), then the flow rules justify the lines; `uikit/collection/selfsizing` (`Docs/elements/UIKit/CollectionView.md`). The smoke tests poll for their expected texts instead of fixed waits (a slow CI runner). |
 | 4.23 Pinned table headers | done 2026-09-11: plain-style section headers pin to the top of the visible bounds and are pushed away by the next section's header; `headerView(forSection:)`; `uikit/table/pinned` with scroll steps (`Docs/elements/UIKit/TableView.md`). |
+| 4.24 Diffable data sources | done 2026-09-11: `NSDiffableDataSourceSnapshot`, `UICollectionViewDiffableDataSource`, `UITableViewDiffableDataSource`, cell and supplementary registrations with the configured dequeues; applying a snapshot reloads the view (differences not animated) (`Docs/elements/UIKit/CollectionView.md`). |
 
 ## Risk register
 
