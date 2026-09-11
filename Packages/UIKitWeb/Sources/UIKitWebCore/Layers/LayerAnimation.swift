@@ -38,11 +38,14 @@ enum AnimatableProperty: Hashable {
 enum AnimationCurve {
     case easeInOut, easeIn, easeOut, linear
     case spring(damping: Double, velocity: Double)
+    /// A CSS-style cubic bezier (`CAMediaTimingFunction(controlPoints:)`).
+    case cubic(Double, Double, Double, Double)
 
     /// The eased fraction at linear fraction `t` (0…1).
     func value(at t: Double) -> Double {
         switch self {
         case .linear: return t
+        case .cubic(let x1, let y1, let x2, let y2): return Self.cubicBezier(x1, y1, x2, y2, t)
         case .easeIn: return Self.cubicBezier(0.42, 0, 1, 1, t)
         case .easeOut: return Self.cubicBezier(0, 0, 0.58, 1, t)
         case .easeInOut: return Self.cubicBezier(0.42, 0, 0.58, 1, t)
@@ -86,6 +89,13 @@ final class UIViewAnimationGroup {
     let curve: AnimationCurve
     var completion: ((Bool) -> Void)?
     private(set) var elapsed: Double = 0
+    /// Core Animation timing: how many times the animation plays (`.infinity` for ever) and
+    /// whether it plays back to the start each time (`CAAnimation.repeatCount`, `autoreverses`).
+    var repeatCount: Double = 1
+    var autoreverses = false
+    /// A Core Animation that keeps its final value (`fillMode` forwards without removal):
+    /// finished, it stays on its layers at progress 1 until removed.
+    var retainsFinalValue = false
     struct Entry {
         weak var layer: CALayer?
         let property: AnimatableProperty
@@ -100,13 +110,25 @@ final class UIViewAnimationGroup {
         self.curve = curve
     }
 
-    /// The eased progress now (0 before the delay ends, 1 when done).
+    /// The eased progress now (0 before the delay ends, 1 when done); a repeating animation
+    /// cycles, an autoreversing one goes back each odd cycle.
     var progress: Double {
         guard duration > 0 else { return elapsed >= delay ? 1 : 0 }
-        return curve.value(at: min(1, max(0, (elapsed - delay) / duration)))
+        let time = max(0, elapsed - delay)
+        if isFinished { return autoreverses ? 0 : 1 }
+        let cycle = time / duration
+        var fraction = cycle - cycle.rounded(.down)
+        if autoreverses, Int(cycle.rounded(.down)) % 2 == 1 { fraction = 1 - fraction }
+        return curve.value(at: min(1, max(0, fraction)))
     }
 
-    var isFinished: Bool { elapsed >= delay + duration }
+    /// The whole run: the duration times the repeats (twice each when autoreversing).
+    var totalDuration: Double {
+        guard repeatCount.isFinite else { return .infinity }
+        return duration * max(1, repeatCount) * (autoreverses ? 2 : 1)
+    }
+
+    var isFinished: Bool { elapsed >= delay + totalDuration }
 
     func record(_ layer: CALayer, _ property: AnimatableProperty, from: AnimatableValue, to: AnimatableValue) {
         if let index = entries.firstIndex(where: { $0.layer === layer && $0.property == property }) {
@@ -117,14 +139,19 @@ final class UIViewAnimationGroup {
         layer.animatingGroups.append(self)
     }
 
-    /// Moves the clock; returns whether the group still runs.
+    /// Moves the clock; returns whether the group still runs. A finished group leaves its
+    /// layers unless it retains its final value (`removeFromLayers` takes it off then).
     func advance(by seconds: Double) -> Bool {
         elapsed += seconds
         if isFinished {
-            for entry in entries { entry.layer?.animatingGroups.removeAll { $0 === self } }
+            if !retainsFinalValue { removeFromLayers() }
             return false
         }
         return true
+    }
+
+    func removeFromLayers() {
+        for entry in entries { entry.layer?.animatingGroups.removeAll { $0 === self } }
     }
 
     /// The presented value of a layer's property, if this group animates it.
@@ -140,10 +167,16 @@ enum UIViewAnimationContext {
     static var current: UIViewAnimationGroup?
     static var disabled = false
 
-    /// Records a change to `property` when inside an animation block.
+    /// Records a change to `property` when inside an animation block, or as a standalone
+    /// layer's implicit animation under the current `CATransaction` (a view's backing layer
+    /// animates only in `UIView.animate` blocks, as in UIKit).
     static func record(_ layer: CALayer, _ property: AnimatableProperty, from: AnimatableValue, to: AnimatableValue) {
-        guard let group = current, !disabled else { return }
-        group.record(layer, property, from: from, to: to)
+        guard !disabled else { return }
+        if let group = current {
+            group.record(layer, property, from: from, to: to)
+        } else if layer.view == nil, let group = CATransaction.implicitGroup() {
+            group.record(layer, property, from: from, to: to)
+        }
     }
 }
 

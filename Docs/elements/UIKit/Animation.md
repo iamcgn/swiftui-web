@@ -34,3 +34,24 @@ starts from the model's value, not the presented one), `UIViewPropertyAnimator`,
 `CABasicAnimation`/`CAKeyframeAnimation` added to layers, `layoutIfNeeded` inside a block
 animating Auto Layout changes (it does: the constraint pass sets frames inside the block),
 hit testing during an animation (the model's frame).
+
+## Core Animation (2026-09-11)
+
+`Layers/CAAnimation.swift`. `CABasicAnimation(keyPath:)` (`fromValue`, `toValue`, `byValue`),
+`CAKeyframeAnimation` (`values`, approximate: first to last), `CAAnimationGroup` (stored),
+`duration`, `beginTime` (a delay), `timingFunction` (`CAMediaTimingFunction` named or by
+control points), `repeatCount`, `repeatDuration`, `autoreverses`, `fillMode`,
+`isRemovedOnCompletion`, `delegate` (`animationDidStart`, `animationDidStop(_:finished:)`);
+`CALayer.add(_:forKey:)`, `removeAnimation(forKey:)`, `removeAllAnimations`,
+`animation(forKey:)`, `animationKeys()`. Key paths: `opacity`, `position` (`.x`, `.y`),
+`bounds` (`.size.width`, `.size.height`), `transform` (`.scale`, `.rotation`), `cornerRadius`,
+`borderWidth`, `backgroundColor`, `borderColor`, `shadowOpacity`. An explicit animation drives
+the layer's presented value from the scene's frame clock and leaves the model alone; on
+completion it is removed (the presented value snaps back to the model, as Core Animation's
+does) unless `fillMode` is `forwards` and `isRemovedOnCompletion` is false, when it stays until
+removed. `CATransaction` (`begin`, `commit`, `setAnimationDuration`, `setDisableActions`,
+`setAnimationTimingFunction`, `setCompletionBlock`, `flush`): a standalone layer's property
+changes animate implicitly over the transaction's duration (0.25 s by default); a view's
+backing layer animates only inside `UIView.animate`, as in UIKit. Changes made outside any
+transaction join an implicit one the scene commits at its next frame. Open: `CAAnimationGroup`
+playback, keyframe interpolation through every value, additive animations, `CADisplayLink`.

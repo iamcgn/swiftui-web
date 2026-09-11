@@ -190,6 +190,7 @@ public final class UIKitScene: HostedScene {
     }
 
     public func advanceFrame(elapsed: Double) -> Bool {
+        CATransaction.commitImplicit()
         runTimers(elapsed: elapsed)
         let animating = advanceAnimations(elapsed: elapsed)
         let scrolling = advanceScrolling(elapsed: elapsed)

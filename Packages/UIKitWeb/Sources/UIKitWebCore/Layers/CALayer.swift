@@ -176,6 +176,8 @@ open class CALayer {
     public private(set) weak var superlayer: CALayer?
     /// The view this layer draws for, if it is a view's layer.
     weak var view: UIView?
+    /// The explicit animations added by key (Layers/CAAnimation.swift).
+    var explicitAnimations: [String: (animation: CAAnimation, group: UIViewAnimationGroup)] = [:]
 
     public required init() {}
 

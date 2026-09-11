@@ -285,3 +285,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
 - Step 15 (2026-09-11): the visual format language (`Docs/ROADMAP.md`, Phase 7 status 4.18):
   a recursive-descent parser over Apple's published grammar producing ordinary constraints,
   so the solver and the goldens already in place verify it.
+- Step 16 (2026-09-11): Core Animation (`Docs/ROADMAP.md`, Phase 7 status 4.19). Explicit
+  animations and transactions sit on the same animation groups `UIView.animate` records
+  into: an explicit animation is a group whose entry names the layer property a key path
+  maps to, and a transaction is a group standalone layers' property setters record into when
+  no animation block is open. The groups gained repeats, autoreverse and a retained final
+  value for the forwards fill mode.

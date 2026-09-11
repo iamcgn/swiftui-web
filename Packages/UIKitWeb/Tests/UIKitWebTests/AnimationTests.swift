@@ -80,3 +80,116 @@ import UIKit
         #expect(AnimationCurve.spring(damping: 0.5, velocity: 0).value(at: 0.3) > 1)   // an underdamped spring overshoots
     }
 }
+
+/// Core Animation (Layers/CAAnimation.swift): explicit animations drive the presented value and
+/// leave the model, removed on completion unless the fill mode keeps them; key paths reach
+/// components; transactions animate standalone layers implicitly and run completions.
+@Suite @MainActor struct CoreAnimationTests {
+    final class Stops: CAAnimationDelegate {
+        var stops: [Bool] = []
+        func animationDidStop(_ anim: CAAnimation, finished flag: Bool) { stops.append(flag) }
+    }
+
+    private func setUp() -> (UIKitScene, UIView) {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.configureScreen(size: CGSize(width: 200, height: 200), scale: 2)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 200, height: 200))
+        let box = UIView(frame: CGRect(x: 20, y: 20, width: 40, height: 40))
+        box.backgroundColor = .systemBlue
+        window.addSubview(box)
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 200, height: 200))
+        return (scene, box)
+    }
+
+    @Test func basicAnimationDrivesThePresentedValueAndIsRemoved() {
+        let (scene, box) = setUp()
+        let fade = CABasicAnimation(keyPath: "opacity")
+        fade.fromValue = 1.0
+        fade.toValue = 0.0
+        fade.duration = 0.5
+        fade.timingFunction = CAMediaTimingFunction(name: .linear)
+        let stops = Stops()
+        fade.delegate = stops
+        box.layer.add(fade, forKey: "fade")
+        #expect(box.layer.animationKeys() == ["fade"])
+        #expect(scene.isAnimating)
+        _ = scene.advanceFrame(elapsed: 0.25)
+        #expect(box.alpha == 1)   // the model stays
+        #expect(abs(box.layer.presented(.opacity, model: .scalar(1)).scalar - 0.5) < 0.01)
+        _ = scene.advanceFrame(elapsed: 0.3)
+        #expect(box.layer.presented(.opacity, model: .scalar(1)).scalar == 1)   // removed on completion: back to the model
+        #expect(box.layer.animationKeys() == nil)
+        #expect(stops.stops == [true])
+    }
+
+    @Test func fillModeForwardsKeepsTheFinalValueUntilRemoved() {
+        let (scene, box) = setUp()
+        let move = CABasicAnimation(keyPath: "position.x")
+        move.toValue = 150.0
+        move.duration = 0.2
+        move.fillMode = .forwards
+        move.isRemovedOnCompletion = false
+        box.layer.add(move, forKey: "move")
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(box.layer.presented(.position, model: .point(box.layer.position)).point.x == 150)
+        #expect(box.layer.position.x == 40)
+        #expect(box.layer.animationKeys() == ["move"])
+        box.layer.removeAnimation(forKey: "move")
+        #expect(box.layer.presented(.position, model: .point(box.layer.position)).point.x == 40)
+    }
+
+    @Test func repeatingAndAutoreversingRunsTwiceAsLong() {
+        let (scene, box) = setUp()
+        let pulse = CABasicAnimation(keyPath: "transform.scale")
+        pulse.fromValue = 1.0
+        pulse.toValue = 2.0
+        pulse.duration = 0.2
+        pulse.autoreverses = true
+        pulse.repeatCount = 2
+        pulse.timingFunction = CAMediaTimingFunction(name: .linear)
+        box.layer.add(pulse, forKey: "pulse")
+        _ = scene.advanceFrame(elapsed: 0.3)   // second half-cycle, reversing: 0.5 of the way back
+        let mid = box.layer.presented(.transform, model: .transform(.identity)).transform.a
+        #expect(abs(mid - 1.5) < 0.05)
+        _ = scene.advanceFrame(elapsed: 0.3)   // 0.6 s: still running (0.8 total)
+        #expect(scene.isAnimating)
+        _ = scene.advanceFrame(elapsed: 0.3)
+        #expect(!scene.isAnimating)
+    }
+
+    @Test func transactionsAnimateStandaloneLayers() {
+        let (scene, box) = setUp()
+        let shape = CAShapeLayer()
+        shape.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
+        box.layer.addSublayer(shape)
+        var completed = false
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.4)
+        CATransaction.setCompletionBlock { completed = true }
+        shape.opacity = 0
+        CATransaction.commit()
+        #expect(shape.opacity == 0)
+        #expect(scene.isAnimating)
+        _ = scene.advanceFrame(elapsed: 0.2)
+        #expect(shape.presented(.opacity, model: .scalar(0)).scalar > 0.05)
+        #expect(!completed)
+        _ = scene.advanceFrame(elapsed: 0.3)
+        #expect(completed)
+        // Disabled actions apply at once; a view's backing layer never animates implicitly.
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        shape.opacity = 1
+        box.layer.opacity = 0.5
+        CATransaction.commit()
+        #expect(!scene.isAnimating)
+        // Outside a transaction a standalone layer's change animates over 0.25 s from the next frame.
+        shape.opacity = 0.2
+        _ = scene.advanceFrame(elapsed: 0.1)
+        #expect(scene.isAnimating)
+        #expect(shape.presented(.opacity, model: .scalar(0.2)).scalar > 0.3)
+        _ = scene.advanceFrame(elapsed: 0.3)
+        #expect(!scene.isAnimating)
+    }
+}
