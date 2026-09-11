@@ -315,3 +315,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   solver walks sections, groups and items with the dimensions resolved against their
   container; the golden settled the one rule that is not documented, that a group fills its
   slots by the items' own sizes and then takes a fixed spacing out of the fractional ones.
+- Step 23 (2026-09-11): list layouts (`Docs/ROADMAP.md`, Phase 7 status 4.26). The list layout
+  is a compositional layout in name that lays rows out as the inset grouped table does, sizing
+  each through the list cell's preferred attributes; the dump gave the list content's metrics
+  (24.5 pt body labels, rows 56 and 79.5), which differ from a table cell's labels.

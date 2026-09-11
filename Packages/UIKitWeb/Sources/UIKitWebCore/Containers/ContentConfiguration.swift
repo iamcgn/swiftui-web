@@ -84,6 +84,18 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
     public var imageToTextPadding: CGFloat = 16
     public var textToSecondaryTextVerticalPadding: CGFloat = 2
     let layout: Layout
+    /// A list cell's metrics (uikit/collection/list): body text in a 24.5 pt label 16 in, a
+    /// subheadline secondary text in 21 below it 4 apart; rows 56 tall for one line, 79.5 for two.
+    var listMetrics = false {
+        didSet {
+            guard listMetrics else { return }
+            textProperties.font = .preferredFont(forTextStyle: .body)
+            secondaryTextProperties.font = .preferredFont(forTextStyle: .subheadline)
+            secondaryTextProperties.color = .secondaryLabel
+            directionalLayoutMargins = UIEdgeInsets(top: 15, left: 16, bottom: 15, right: 16)
+            textToSecondaryTextVerticalPadding = 4
+        }
+    }
 
     init(layout: Layout) {
         self.layout = layout
@@ -137,8 +149,13 @@ public final class UIListContentView: UIView, UIContentView {
     }
 
     /// The content's height for a width: the margins around the text block (one line, or the
-    /// text over the secondary text for the subtitle layout), at least 44.
+    /// text over the secondary text for the subtitle layout), at least 44; on the list's metrics
+    /// a one-line row is 56 and a two-line one 79.5 (uikit/collection/list).
     public override func sizeThatFits(_ size: CGSize) -> CGSize {
+        if list.listMetrics {
+            let hasSecondary = secondaryTextLabel.text?.isEmpty == false && list.layout == .subtitle
+            return CGSize(width: size.width, height: hasSecondary ? 79.5 : 56)
+        }
         let margins = list.directionalLayoutMargins
         let imageWidth = imageView.image.map { $0.size.width + list.imageToTextPadding } ?? 0
         let width = max(0, size.width - margins.left - margins.right - imageWidth)
@@ -168,7 +185,8 @@ public final class UIListContentView: UIView, UIContentView {
         switch list.layout {
         case .subtitle:
             let block = textHeight + (textHeight > 0 && secondaryHeight > 0 ? list.textToSecondaryTextVerticalPadding : 0) + secondaryHeight
-            let top = ((bounds.height - block) / 2).rounded()
+            // A one-line list row puts its label 16 down in 56; two lines start 15 down in 79.5.
+            let top = list.listMetrics ? (secondaryHeight > 0 ? 15 : 16) : ((bounds.height - block) / 2).rounded()
             textLabel.frame = CGRect(x: x, y: top, width: width, height: textHeight)
             secondaryTextLabel.frame = CGRect(x: x, y: top + textHeight + (textHeight > 0 ? list.textToSecondaryTextVerticalPadding : 0), width: width, height: secondaryHeight)
         case .value:

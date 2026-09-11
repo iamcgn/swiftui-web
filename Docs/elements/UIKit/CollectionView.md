@@ -102,3 +102,19 @@ fixed inter-item spacing comes out of the fractional items' share, on the pixel 
 content insets. Pixels 0.4 % off the simulator. Open: orthogonal scrolling, pinned boundary
 items, estimated (self-sizing) dimensions, item supplementary items, `list(using:)` and
 `UICollectionViewListCell`.
+
+## Lists (2026-09-11, `uikit/collection/list`)
+
+`Containers/ListLayout.swift`. `UICollectionViewCompositionalLayout.list(using:)` with
+`UICollectionLayoutListConfiguration` (`appearance` plain / grouped / insetGrouped / sidebar,
+`showsSeparators`, `backgroundColor`, `headerMode` and `footerMode` stored, `headerTopPadding`)
+and `UICollectionViewListCell` (`defaultContentConfiguration()` on the list's metrics,
+`accessories` of `UICellAccessory`: disclosure indicator, checkmark, detail, label, and the
+editing ones stored; `indentationLevel`). Measured (inset grouped): the collection's background
+is the grouped ground, cards 16 in with 26 pt corners on a section's first and last rows, 35
+above each section; a row with body text alone is 56 tall (the 24.5 pt label 16 down), one with
+a subheadline secondary text 79.5 (labels at 15 and 43.5); the content view ends 30 before the
+trailing edge for a disclosure (the 10.5 × 14 chevron 16 in) and 40 for a checkmark (19 × 18,
+18.5 in); a 1 pt separator between rows runs 16 in from both card edges. Pixels 0.8 % off the
+simulator. Open: plain appearance metrics, headers and footers, swipe actions, `UIListContentConfiguration`
+in table cells on these metrics.

@@ -364,6 +364,7 @@ done 2026-09-11).
 | 4.23 Pinned table headers | done 2026-09-11: plain-style section headers pin to the top of the visible bounds and are pushed away by the next section's header; `headerView(forSection:)`; `uikit/table/pinned` with scroll steps (`Docs/elements/UIKit/TableView.md`). |
 | 4.24 Diffable data sources | done 2026-09-11: `NSDiffableDataSourceSnapshot`, `UICollectionViewDiffableDataSource`, `UITableViewDiffableDataSource`, cell and supplementary registrations with the configured dequeues; applying a snapshot reloads the view (differences not animated) (`Docs/elements/UIKit/CollectionView.md`). |
 | 4.25 Compositional layouts | done 2026-09-11: `UICollectionViewCompositionalLayout` with sections, groups (repeating, nested, spaced, inset), items, fractional and absolute dimensions and top / bottom boundary items; fixed spacing comes out of the fractional items on the pixel grid; `uikit/collection/compositional` exact and within 0.4 % (`Docs/elements/UIKit/CollectionView.md`). Open: orthogonal scrolling, estimated sizes, lists. |
+| 4.26 List layouts | done 2026-09-11: `UICollectionViewCompositionalLayout.list(using:)` with `UICollectionLayoutListConfiguration` and `UICollectionViewListCell` (default content configuration on the list's metrics, accessories, card and separator drawing); inset grouped rows 56 / 79.5 in 16 pt cards 35 apart; `uikit/collection/list` exact and within 0.8 % (`Docs/elements/UIKit/CollectionView.md`). |
 
 ## Risk register
 

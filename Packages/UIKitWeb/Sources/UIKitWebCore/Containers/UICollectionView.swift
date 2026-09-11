@@ -12,6 +12,9 @@ import Foundation
 /// The layout attributes of one element in a collection view.
 @MainActor
 open class UICollectionViewLayoutAttributes {
+    /// A list row's place in its section and the list's appearance (Containers/ListLayout.swift).
+    var listPosition: (first: Bool, last: Bool)?
+    var listAppearance: UICollectionLayoutListConfiguration.Appearance?
     public enum Category { case cell, supplementaryView, decorationView }
     open var frame: CGRect
     open var indexPath: IndexPath

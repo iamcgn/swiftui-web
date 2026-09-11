@@ -1,0 +1,39 @@
+{
+  "fixture" : "uikit\/collection\/list",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "item0" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 35
+    },
+    "item1" : {
+      "height" : 79.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 91
+    },
+    "item2" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 205.5
+    },
+    "item3" : {
+      "height" : 79.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 261.5
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}
