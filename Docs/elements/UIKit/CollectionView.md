@@ -47,3 +47,15 @@ data source, delegate and flow layout delegate protocols, `IndexPath.item`. Fixt
 Open: supplementary views (section headers and footers), decoration views, compositional
 layouts (`UICollectionViewCompositionalLayout`), `UICollectionViewListCell` and content
 configurations, self-sizing cells (`estimatedItemSize`), item animations, drag reordering.
+
+## Supplementary views (2026-09-11, `uikit/collection/headers`)
+
+`register(_:forSupplementaryViewOfKind:withReuseIdentifier:)`,
+`dequeueReusableSupplementaryView(ofKind:withReuseIdentifier:for:)`,
+`supplementaryView(forElementKind:at:)`, the data source's
+`viewForSupplementaryElementOfKind`, the flow layout's `headerReferenceSize` /
+`footerReferenceSize` and the delegate's `referenceSizeForHeaderInSection` / `Footer`. A header
+spans the cross axis before its section's inset and a footer follows the inset, each the
+reference size's extent along the scroll direction (none when zero); views for the ones in
+view are made and pooled like cells. `UICollectionReusableView` has no `init?(coder:)` (wasm
+has no `NSCoder`), so fixture subclasses add their subviews on first layout.

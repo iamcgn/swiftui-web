@@ -5,7 +5,7 @@
 import UIKit
 import UIKitFixtureKit
 
-final class GridSource: NSObject, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+class GridSource: NSObject, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     var counts: [Int] = [7]
     var probes: [IndexPath: String] = [:]
     var sizes: ((IndexPath) -> CGSize)?
@@ -25,10 +25,43 @@ final class GridSource: NSObject, UICollectionViewDataSource, UICollectionViewDe
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         sizes?(indexPath) ?? (collectionViewLayout as? UICollectionViewFlowLayout)?.itemSize ?? CGSize(width: 50, height: 50)
     }
+
+    /// Declared on the class so a subclass's override is the protocol witness (a method added
+    /// only in the subclass would lose to the protocol extension's default in Swift).
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath)
+    }
+}
+
+/// A section header or footer: a label 16 in, vertically centred.
+final class SectionHeaderView: UICollectionReusableView {
+    let label = UILabel()   // added on first layout: no initializer to mirror on both UIKits
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if label.superview == nil { addSubview(label) }
+        label.sizeToFit()
+        label.frame.origin = CGPoint(x: 16, y: ((bounds.height - label.frame.height) / 2).rounded())
+    }
+}
+
+/// A grid source that also supplies headers and footers.
+final class HeaderSource: GridSource {
+    var headerProbes: [Int: String] = [:]
+    var footerProbes: [Int: String] = [:]
+    override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as! SectionHeaderView
+        let isHeader = kind == UICollectionView.elementKindSectionHeader
+        view.label.text = isHeader ? "Section \(indexPath.section + 1)" : "\(counts[indexPath.section]) items"
+        view.label.font = isHeader ? .systemFont(ofSize: 17, weight: .semibold) : .systemFont(ofSize: 13)
+        view.label.textColor = isHeader ? .label : .secondaryLabel
+        view.backgroundColor = isHeader ? .systemGray6 : .clear
+        if let probe = isHeader ? headerProbes[indexPath.section] : footerProbes[indexPath.section] { view.probe(probe) }
+        return view
+    }
 }
 
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized]
+    public static let all = [grid, horizontal, sized, headers]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -69,6 +102,27 @@ public enum CollectionFixtures {
         source.counts = [4]
         source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 3, section: 0): "item3"]
         return make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 120))
+    }
+
+    /// Section headers (44 tall) and footers (30 tall) from the flow layout's reference sizes.
+    public static let headers = UIKitFixture("uikit/collection/headers", size: CGSize(width: 320, height: 400)) {
+        let layout = UICollectionViewFlowLayout()
+        layout.itemSize = CGSize(width: 90, height: 60)
+        layout.minimumInteritemSpacing = 9
+        layout.minimumLineSpacing = 12
+        layout.sectionInset = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
+        layout.headerReferenceSize = CGSize(width: 0, height: 44)
+        layout.footerReferenceSize = CGSize(width: 0, height: 30)
+        let source = HeaderSource()
+        source.counts = [3, 2]
+        source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 0, section: 1): "item3"]
+        source.headerProbes = [0: "header0", 1: "header1"]
+        source.footerProbes = [0: "footer0", 1: "footer1"]
+        let root = make(layout: layout, source: source)
+        let collection = root.subviews.first { $0 is UICollectionView } as! UICollectionView
+        collection.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collection.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "header")
+        return root
     }
 
     /// Items sized by the delegate: widths 60, 100, 140, 60, 60; a row breaks where the next

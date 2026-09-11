@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/collection\/headers",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "footer0" : {
+      "height" : 30,
+      "width" : 320,
+      "x" : 0,
+      "y" : 128
+    },
+    "footer1" : {
+      "height" : 30,
+      "width" : 320,
+      "x" : 0,
+      "y" : 286
+    },
+    "header0" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "header1" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 158
+    },
+    "item0" : {
+      "height" : 60,
+      "width" : 90,
+      "x" : 16,
+      "y" : 56
+    },
+    "item3" : {
+      "height" : 60,
+      "width" : 90,
+      "x" : 16,
+      "y" : 214
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

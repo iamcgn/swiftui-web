@@ -58,6 +58,7 @@ open class UICollectionViewLayout {
     open var collectionViewContentSize: CGSize { .zero }
     open func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? { nil }
     open func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+    open func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
     open func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool { false }
     open func invalidateLayout() { collectionView?.setNeedsReload() }
 }
@@ -69,6 +70,8 @@ public protocol UICollectionViewDelegateFlowLayout: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize
 }
 
 extension UICollectionViewDelegateFlowLayout {
@@ -83,6 +86,12 @@ extension UICollectionViewDelegateFlowLayout {
     }
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         (collectionViewLayout as? UICollectionViewFlowLayout)?.minimumInteritemSpacing ?? 10
+    }
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        (collectionViewLayout as? UICollectionViewFlowLayout)?.headerReferenceSize ?? .zero
+    }
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        (collectionViewLayout as? UICollectionViewFlowLayout)?.footerReferenceSize ?? .zero
     }
 }
 
@@ -105,6 +114,8 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
     open var sectionHeadersPinToVisibleBounds = false
 
     private var attributes: [IndexPath: UICollectionViewLayoutAttributes] = [:]
+    /// The headers' and footers' attributes, by kind then section.
+    private var supplementary: [String: [Int: UICollectionViewLayoutAttributes]] = [:]
     private var contentSize = CGSize.zero
 
     open override var collectionViewContentSize: CGSize { contentSize }
@@ -115,6 +126,7 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
     /// when it takes the gap of a full line (uikit/collection/grid, sized).
     open override func prepare() {
         attributes.removeAll()
+        supplementary.removeAll()
         guard let collection = collectionView, let dataSource = collection.dataSource else { contentSize = .zero; return }
         let flowDelegate = collection.delegate as? any UICollectionViewDelegateFlowLayout
         let horizontal = scrollDirection == .horizontal
@@ -128,6 +140,16 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
             let itemSpacing = flowDelegate?.collectionView(collection, layout: self, minimumInteritemSpacingForSectionAt: section) ?? minimumInteritemSpacing
             let count = dataSource.collectionView(collection, numberOfItemsInSection: section)
             let sizes = (0..<count).map { item in flowDelegate?.collectionView(collection, layout: self, sizeForItemAt: IndexPath(item: item, section: section)) ?? itemSize }
+            // A header spans the cross axis before the section's inset; a footer follows the inset
+            // (the reference size's extent along the scroll direction; zero means none).
+            let headerSize = flowDelegate?.collectionView(collection, layout: self, referenceSizeForHeaderInSection: section) ?? headerReferenceSize
+            let headerExtent = horizontal ? headerSize.width : headerSize.height
+            if headerExtent > 0 {
+                let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, with: IndexPath(item: 0, section: section))
+                attribute.frame = horizontal ? CGRect(x: cursor, y: 0, width: headerExtent, height: bounds.height) : CGRect(x: 0, y: cursor, width: bounds.width, height: headerExtent)
+                supplementary[UICollectionView.elementKindSectionHeader, default: [:]][section] = attribute
+                cursor += headerExtent
+            }
             // The room across the scroll direction for a line of items.
             let available = (horizontal ? bounds.height - inset.top - inset.bottom : bounds.width - inset.left - inset.right)
             func across(_ size: CGSize) -> CGFloat { horizontal ? size.height : size.width }
@@ -182,6 +204,14 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
                 cursor += lineExtent + (isLast ? 0 : lineSpacing)
             }
             cursor += horizontal ? inset.right : inset.bottom
+            let footerSize = flowDelegate?.collectionView(collection, layout: self, referenceSizeForFooterInSection: section) ?? footerReferenceSize
+            let footerExtent = horizontal ? footerSize.width : footerSize.height
+            if footerExtent > 0 {
+                let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, with: IndexPath(item: 0, section: section))
+                attribute.frame = horizontal ? CGRect(x: cursor, y: 0, width: footerExtent, height: bounds.height) : CGRect(x: 0, y: cursor, width: bounds.width, height: footerExtent)
+                supplementary[UICollectionView.elementKindSectionFooter, default: [:]][section] = attribute
+                cursor += footerExtent
+            }
             crossExtent = max(crossExtent, horizontal ? bounds.height : bounds.width)
         }
         contentSize = horizontal ? CGSize(width: cursor, height: crossExtent) : CGSize(width: crossExtent, height: cursor)
@@ -194,10 +224,15 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
     }
 
     open override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        attributes.values.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
+        let items = attributes.values.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
+        let extras = supplementary.values.flatMap { $0.values }.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
+        return items + extras
     }
 
     open override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { attributes[indexPath] }
+    open override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        supplementary[kind]?[indexPath.section]
+    }
     open override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool { newBounds.size != collectionView?.bounds.size }
 
     /// Every item's attributes (for hit testing and rects).
@@ -208,6 +243,8 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
 @MainActor
 open class UICollectionReusableView: UIView {
     public internal(set) var reuseIdentifier: String?
+    /// The pool a supplementary view returns to (its kind and identifier).
+    var supplementaryKey: String?
     open func prepareForReuse() {}
     open func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         frame = layoutAttributes.frame
@@ -247,10 +284,14 @@ public protocol UICollectionViewDataSource: AnyObject {
     func numberOfSections(in collectionView: UICollectionView) -> Int
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView
 }
 
 extension UICollectionViewDataSource {
     public func numberOfSections(in collectionView: UICollectionView) -> Int { 1 }
+    public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        UICollectionReusableView(frame: .zero)
+    }
 }
 
 /// The methods adopted by the object you use to manage user interactions with items in a
@@ -303,6 +344,10 @@ open class UICollectionView: UIScrollView {
     private var registeredCells: [String: () -> UICollectionViewCell] = [:]
     private var reusePool: [String: [UICollectionViewCell]] = [:]
     private var visibleCellsByPath: [IndexPath: UICollectionViewCell] = [:]
+    /// Supplementary views: registered by kind and identifier, pooled, and visible by kind and section.
+    private var registeredSupplementaries: [String: () -> UICollectionReusableView] = [:]
+    private var supplementaryPool: [String: [UICollectionReusableView]] = [:]
+    private var visibleSupplementaries: [String: UICollectionReusableView] = [:]
     private var needsReload = true
     private var selected: Set<IndexPath> = []
 
@@ -333,6 +378,27 @@ open class UICollectionView: UIScrollView {
         let cell = registeredCells[identifier]?() ?? UICollectionViewCell(frame: .zero)
         cell.reuseIdentifier = identifier
         return cell
+    }
+
+    open func register(_ viewClass: AnyClass?, forSupplementaryViewOfKind kind: String, withReuseIdentifier identifier: String) {
+        guard let type = viewClass as? UICollectionReusableView.Type else { return }
+        registeredSupplementaries[kind + "|" + identifier] = { type.init(frame: .zero) }
+    }
+
+    open func dequeueReusableSupplementaryView(ofKind kind: String, withReuseIdentifier identifier: String, for indexPath: IndexPath) -> UICollectionReusableView {
+        let key = kind + "|" + identifier
+        if let view = supplementaryPool[key]?.popLast() {
+            view.prepareForReuse()
+            return view
+        }
+        let view = registeredSupplementaries[key]?() ?? UICollectionReusableView(frame: .zero)
+        view.reuseIdentifier = identifier
+        view.supplementaryKey = key
+        return view
+    }
+
+    open func supplementaryView(forElementKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView? {
+        visibleSupplementaries[kind + "#" + "\(indexPath.section)"]
     }
 
     open var visibleCells: [UICollectionViewCell] { visibleCellsByPath.sorted { $0.key < $1.key }.map(\.value) }
@@ -411,6 +477,11 @@ open class UICollectionView: UIScrollView {
                 if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
             }
             visibleCellsByPath.removeAll()
+            for view in visibleSupplementaries.values {
+                view.removeFromSuperview()
+                if let key = view.supplementaryKey { supplementaryPool[key, default: []].append(view) }
+            }
+            visibleSupplementaries.removeAll()
             collectionViewLayout.prepare()
             contentSize = collectionViewLayout.collectionViewContentSize
         }
@@ -427,13 +498,30 @@ open class UICollectionView: UIScrollView {
             visibleCellsByPath.removeValue(forKey: path)
             if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
         }
-        for attribute in collectionViewLayout.layoutAttributesForElements(in: visible) ?? [] where visibleCellsByPath[attribute.indexPath] == nil {
+        let elements = collectionViewLayout.layoutAttributesForElements(in: visible) ?? []
+        for attribute in elements where attribute.representedElementKind == nil && visibleCellsByPath[attribute.indexPath] == nil {
             let cell = dataSource.collectionView(self, cellForItemAt: attribute.indexPath)
             cell.apply(attribute)
             cell.isSelected = selected.contains(attribute.indexPath)
             collectionDelegate?.collectionView(self, willDisplay: cell, forItemAt: attribute.indexPath)
             if cell.superview !== self { addSubview(cell) }
             visibleCellsByPath[attribute.indexPath] = cell
+        }
+        // Headers and footers in view; the ones scrolled away go back to their pool.
+        let wanted = Set(elements.compactMap { element in element.representedElementKind.map { kind in kind + "#" + "\(element.indexPath.section)" } })
+        for (key, view) in visibleSupplementaries where !wanted.contains(key) {
+            view.removeFromSuperview()
+            visibleSupplementaries.removeValue(forKey: key)
+            if let pool = view.supplementaryKey { supplementaryPool[pool, default: []].append(view) }
+        }
+        for attribute in elements {
+            guard let kind = attribute.representedElementKind else { continue }
+            let key = kind + "#" + "\(attribute.indexPath.section)"
+            guard visibleSupplementaries[key] == nil else { continue }
+            let view = dataSource.collectionView(self, viewForSupplementaryElementOfKind: kind, at: attribute.indexPath)
+            view.apply(attribute)
+            if view.superview !== self { addSubview(view) }
+            visibleSupplementaries[key] = view
         }
     }
 

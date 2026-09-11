@@ -139,6 +139,11 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Padded", .system(size: 15), width: 126, lines: 0),
         UIKitTextRequest("Centred", .system(size: 17), width: 190, lines: 0),
         UIKitTextRequest("Read-only footnote text that wraps onto a second line in this width.", .system(size: 13), width: 278, lines: 0),
+        // uikit/collection/headers
+        UIKitTextRequest("Section 1", .system(size: 17, weight: "semibold")),
+        UIKitTextRequest("Section 2", .system(size: 17, weight: "semibold")),
+        UIKitTextRequest("3 items", .system(size: 13)),
+        UIKitTextRequest("2 items", .system(size: 13)),
         // uikit/datepicker/compact (17 pt labels in the capsules)
         UIKitTextRequest("Sep 11, 2026", .system(size: 17)),
         UIKitTextRequest("2:30\u{202F}PM", .system(size: 17)),   // UIKit joins the time and its period with a narrow no-break space

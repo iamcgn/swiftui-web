@@ -90,6 +90,18 @@
       "lastBaseline" : 11.42578125,
       "width" : 54
     },
+    "system:13:400:default|;l1|2 items" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 44.5
+    },
+    "system:13:400:default|;l1|3 items" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 45
+    },
     "system:13:400:default|;l1|corey" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -701,6 +713,18 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 44.5
+    },
+    "system:17:600:default|;l1|Section 1" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 72.5
+    },
+    "system:17:600:default|;l1|Section 2" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 75
     },
     "system:17:600:default|;l1|Settings" : {
       "firstBaseline" : 16.1865234375,

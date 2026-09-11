@@ -278,3 +278,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   from UIKit's published curve, paging, and indicators whose geometry the text view dump had
   already recorded (3 pt bars 3 in, black at 35 %). They are hidden at rest, so no golden
   changes; the tests drive them through the scene's pointer and frame clock.
+- Step 14 (2026-09-11): collection view headers and footers (`Docs/ROADMAP.md`, Phase 7
+  status 4.17). The flow layout's supplementary attributes join the item attributes in
+  `layoutAttributesForElements(in:)` with their element kind set, and the collection view
+  hosts and pools them beside the cells.
