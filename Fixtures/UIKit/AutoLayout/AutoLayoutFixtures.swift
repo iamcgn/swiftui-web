@@ -7,7 +7,7 @@ import UIKit
 import UIKitFixtureKit
 
 public enum AutoLayoutFixtures {
-    public static let all = [pins, priorities, guides, fitting, baseline, update, visualFormat]
+    public static let all = [pins, priorities, guides, fitting, baseline, update, visualFormat, stacks]
 
     @MainActor static func box(_ color: UIColor, _ id: String) -> UIView {
         let view = UIView()
@@ -284,6 +284,51 @@ public enum AutoLayoutFixtures {
         constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:[c]-gap-[d(24)]", options: [], metrics: metrics, views: views)
         constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-(>=20)-[d(120@750)]-20-|", options: [], metrics: nil, views: views)
         NSLayoutConstraint.activate(constraints)
+        return root
+    }
+
+    /// Stack views placed by constraints: a filled column pinned to the edges, rows aligned on
+    /// their first and last baselines, and a centred row with a box.
+    public static let stacks = UIKitFixture("uikit/autolayout/stacks", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let column = UIStackView(arrangedSubviews: [label("Title", "title", size: 22), label("Body text", "body"), label("Third line", "third", size: 15)])
+        column.axis = .vertical
+        column.spacing = 8
+        column.alignment = .fill
+        column.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(column.probe("column"))
+        let firsts = UIStackView(arrangedSubviews: [label("Big", "big", size: 28), label("small", "small", size: 13), label("mid", "mid")])
+        firsts.axis = .horizontal
+        firsts.spacing = 8
+        firsts.alignment = .firstBaseline
+        firsts.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(firsts.probe("firsts"))
+        let lasts = UIStackView(arrangedSubviews: [label("Big", "big2", size: 28), label("small", "small2", size: 13)])
+        lasts.axis = .horizontal
+        lasts.spacing = 8
+        lasts.alignment = .lastBaseline
+        lasts.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(lasts.probe("lasts"))
+        let square = box(.systemTeal, "square")
+        let centred = UIStackView(arrangedSubviews: [square, label("Beside", "beside")])
+        centred.axis = .horizontal
+        centred.spacing = 8
+        centred.alignment = .center
+        centred.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(centred.probe("centred"))
+        NSLayoutConstraint.activate([
+            column.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            column.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+            column.topAnchor.constraint(equalTo: root.topAnchor, constant: 16),
+            firsts.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            firsts.topAnchor.constraint(equalTo: column.bottomAnchor, constant: 24),
+            lasts.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            lasts.topAnchor.constraint(equalTo: firsts.bottomAnchor, constant: 24),
+            square.widthAnchor.constraint(equalToConstant: 40),
+            square.heightAnchor.constraint(equalToConstant: 40),
+            centred.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+            centred.topAnchor.constraint(equalTo: lasts.bottomAnchor, constant: 24),
+        ])
         return root
     }
 }

@@ -60,7 +60,9 @@ final class LayoutEngine {
             solver.add(LayoutConstraintRow(expression: LinearExpression(v.width, constant: -frame.width), relation: .equal, strength: LayoutStrength.required))
             solver.add(LayoutConstraintRow(expression: LinearExpression(v.height, constant: -frame.height), relation: .equal, strength: LayoutStrength.required))
         } else {
-            placed.append(view)
+            // A stack view's arranged subviews are laid out by the stack (UIKit's stack makes
+            // their constraints itself); the solver sizes them but does not place them.
+            if !(view.superview is UIStackView) { placed.append(view) }
             let intrinsic = view.intrinsicContentSize
             let insets = view.alignmentRectInsets
             if intrinsic.width >= 0 {

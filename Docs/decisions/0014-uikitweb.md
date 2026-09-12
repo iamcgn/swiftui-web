@@ -408,3 +408,8 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   letter geometry came from the golden's ink (the dump shows only the private index view's
   frame). Its probes also showed the table making cells half a viewport ahead where UIKit makes
   only visible ones; creation now stops at the bounds while kept cells still linger.
+- Step 39 (2026-09-11): stack views under constraints (`Docs/ROADMAP.md`, Phase 7 status 4.43).
+  The first run put every arranged label at its stack's origin: views that do not translate
+  their autoresizing mask were placed by the solver, stack children included. UIKit's stack
+  owns its children's constraints, so the engine now sizes but never places a stack's arranged
+  subviews, and the stack reads a constrained child's size through its own constraints.

@@ -79,7 +79,10 @@ in a layout pass and in `systemLayoutSizeFitting`). A wrapped label's intrinsic 
 point more than its fit (two 15 pt lines fit in 36 and take 37; three 54 and 55; two 13 pt lines
 31.5 and 32.5), a single line exactly its fit.
 
-Open: `UIStackView` on constraints (its baseline alignments),
+Stack views under constraints and their baseline alignments are measured in
+`Docs/elements/UIKit/UIStackView.md` (`uikit/autolayout/stacks`).
+
+Open:
 constraints between a view and its own layout guides made with `addLayoutGuide` (their frames are
 not solved yet), `contentHuggingPriority` defaults per control (UIKit's 250/750 with UILabel's
 251 are modelled; others unverified), performance on large trees (one tableau per pass),

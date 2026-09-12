@@ -183,6 +183,9 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("E", .system(size: 17, weight: "semibold"), width: 288, lines: 0), UIKitTextRequest("F", .system(size: 17, weight: "semibold"), width: 288, lines: 0),
         UIKitTextRequest("A", .system(size: 11, weight: "semibold")), UIKitTextRequest("B", .system(size: 11, weight: "semibold")), UIKitTextRequest("C", .system(size: 11, weight: "semibold")),
         UIKitTextRequest("D", .system(size: 11, weight: "semibold")), UIKitTextRequest("E", .system(size: 11, weight: "semibold")), UIKitTextRequest("F", .system(size: 11, weight: "semibold")),
+        // uikit/autolayout/stacks (labels in stack views)
+        UIKitTextRequest("Title", .system(size: 22)), UIKitTextRequest("Body text", .system(size: 17)), UIKitTextRequest("Third line", .system(size: 15)),
+        UIKitTextRequest("Big", .system(size: 28)), UIKitTextRequest("small", .system(size: 13)), UIKitTextRequest("mid", .system(size: 17)), UIKitTextRequest("Beside", .system(size: 17)),
         // uikit/table/selfsizing (body-style wrapping labels in default cells, 15 pt in the note cell)
         UIKitTextRequest("Short", .style("body"), lines: 0),
         UIKitTextRequest("Short again", .style("body"), lines: 0),

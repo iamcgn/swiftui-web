@@ -648,6 +648,12 @@
       "lastBaseline" : 12.3779296875,
       "width" : 58.5
     },
+    "system:13:400:default|;l1|small" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 31.5
+    },
     "system:13:400:default|;l1|Three" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -797,6 +803,12 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 25
+    },
+    "system:15:400:default|;l1|Third line" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 63.5
     },
     "system:15:400:default|;l1|UIKit" : {
       "firstBaseline" : 14.2822265625,
@@ -984,6 +996,18 @@
       "lastBaseline" : 16.1865234375,
       "width" : 53
     },
+    "system:17:400:default|;l1|Beside" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 52
+    },
+    "system:17:400:default|;l1|Body text" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 72.5
+    },
     "system:17:400:default|;l1|Cancel" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1073,6 +1097,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 45.5
+    },
+    "system:17:400:default|;l1|mid" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 28.5
     },
     "system:17:400:default|;l1|Pinned label" : {
       "firstBaseline" : 16.1865234375,
@@ -1506,6 +1536,12 @@
       "lastBaseline" : 19.04296875,
       "width" : 131
     },
+    "system:22:400:default|;l1|Title" : {
+      "firstBaseline" : 20.947265625,
+      "height" : 26.5,
+      "lastBaseline" : 20.947265625,
+      "width" : 41
+    },
     "system:22:700:default:tabular|;l1|0000" : {
       "firstBaseline" : 20.947265625,
       "height" : 26.5,
@@ -1541,6 +1577,12 @@
       "height" : 29,
       "lastBaseline" : 22.8515625,
       "width" : 103
+    },
+    "system:28:400:default|;l1|Big" : {
+      "firstBaseline" : 26.66015625,
+      "height" : 33.5,
+      "lastBaseline" : 26.66015625,
+      "width" : 39.5
     },
     "system:28:400:default|;l1|Hg" : {
       "firstBaseline" : 26.66015625,
@@ -1873,6 +1915,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 10.595703125
+    },
+    "system:22:400:default" : {
+      "ascender" : 20.947265625,
+      "capHeight" : 15.5009765625,
+      "descender" : -5.306640625,
+      "leading" : 0,
+      "lineHeight" : 26.25390625,
+      "pointSize" : 22,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 11.365234375
     },
     "system:22:700:default" : {
       "ascender" : 20.947265625,

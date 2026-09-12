@@ -79,6 +79,13 @@ open class UIStackView: UIView {
 
     /// A view's natural size along and across the axis.
     private func natural(_ view: UIView, across: CGFloat?) -> CGSize {
+        // A view with constraints of its own (a fixed width and height) is as big as they say
+        // (uikit/autolayout/stacks: a 40 pt box in a centred row).
+        if !view.translatesAutoresizingMaskIntoConstraints, LayoutEngine.hasConstraints(view),
+           let constrained = view.constrainedSizeFitting(UIView.layoutFittingCompressedSize, horizontal: .fittingSizeLevel, vertical: .fittingSizeLevel), constrained.width > 0 || constrained.height > 0 {
+            let intrinsic = view.intrinsicContentSize
+            return CGSize(width: constrained.width > 0 ? constrained.width : max(0, intrinsic.width), height: constrained.height > 0 ? constrained.height : max(0, intrinsic.height))
+        }
         let intrinsic = view.intrinsicContentSize
         let fitting = CGSize(width: horizontal ? CGFloat.greatestFiniteMagnitude : (across ?? CGFloat.greatestFiniteMagnitude),
                              height: horizontal ? (across ?? CGFloat.greatestFiniteMagnitude) : CGFloat.greatestFiniteMagnitude)
@@ -93,6 +100,25 @@ open class UIStackView: UIView {
         views.dropLast().reduce(0) { $0 + customSpacing(after: $1) }
     }
 
+    /// Baseline alignments (horizontal stacks): each view's first or last baseline from its top,
+    /// and the height the aligned views need (the deepest ascent plus the deepest descent).
+    private var alignsBaselines: Bool { horizontal && (alignment == .firstBaseline || alignment == .lastBaseline) }
+
+    private func baseline(of view: UIView, size: CGSize) -> CGFloat {
+        let baselines = view.textBaselines(in: size)
+        return alignment == .firstBaseline ? baselines.first : baselines.last
+    }
+
+    private func baselineExtent(_ views: [UIView], sizes: [CGSize]) -> (ascent: CGFloat, descent: CGFloat) {
+        var ascent: CGFloat = 0, descent: CGFloat = 0
+        for (view, size) in zip(views, sizes) {
+            let line = baseline(of: view, size: size)
+            ascent = max(ascent, line)
+            descent = max(descent, size.height - line)
+        }
+        return (ascent, descent)
+    }
+
     override open var intrinsicContentSize: CGSize {
         let views = visible
         guard !views.isEmpty else { return CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) }
@@ -102,7 +128,11 @@ open class UIStackView: UIView {
         case .fillEqually: mainTotal = (sizes.map(along).max() ?? 0) * CGFloat(views.count) + totalSpacing(views)
         default: mainTotal = sizes.map(along).reduce(0, +) + totalSpacing(views)
         }
-        let crossMax = sizes.map(across).max() ?? 0
+        var crossMax = sizes.map(across).max() ?? 0
+        if alignsBaselines {
+            let extent = baselineExtent(views, sizes: sizes)
+            crossMax = extent.ascent + extent.descent
+        }
         let m = margins
         let width = (horizontal ? mainTotal : crossMax) + m.left + m.right
         let height = (horizontal ? crossMax : mainTotal) + m.top + m.bottom
@@ -160,6 +190,7 @@ open class UIStackView: UIView {
             gaps = Array(repeating: gap, count: views.count)
         }
         var cursor = horizontal ? content.minX : content.minY
+        let extent = alignsBaselines ? baselineExtent(views, sizes: naturals) : (ascent: 0, descent: 0)
         for (index, view) in views.enumerated() {
             let main = mains[index]
             let naturalCross = across(naturals[index])
@@ -169,6 +200,12 @@ open class UIStackView: UIView {
             case .fill: cross = crossAvailable; offset = 0
             case .leading: cross = min(naturalCross, crossAvailable); offset = 0
             case .trailing: cross = min(naturalCross, crossAvailable); offset = crossAvailable - cross
+            case .firstBaseline where horizontal, .lastBaseline where horizontal:
+                // The baselines meet: each view sits so its baseline is at the deepest ascent
+                // (first) or the row's bottom less the deepest descent (last).
+                cross = naturalCross
+                let line = baseline(of: view, size: naturals[index])
+                offset = alignment == .firstBaseline ? extent.ascent - line : (crossAvailable - extent.descent) - line
             default: cross = min(naturalCross, crossAvailable); offset = (crossAvailable - cross) / 2
             }
             // Auto Layout rounds the placement to the pixel grid in the stack's own coordinates
