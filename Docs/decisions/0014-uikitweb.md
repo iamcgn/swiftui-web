@@ -325,3 +325,8 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   such sections' cells in a scroll view per section and re-culls when it moves. Nested scroll
   views needed a rule for sharing a drag: a pan mostly along an axis a scroll view cannot
   scroll passes to the enclosing one.
+- Step 25 (2026-09-11): list headers and footers (`Docs/ROADMAP.md`, Phase 7 status 4.28).
+  A supplementary header replaces the 35 pt gap above a grouped section and the footer follows
+  its rows, both sized through the list cell's preferred attributes without the 44 pt row floor;
+  the dump gave the grouped header and footer content metrics (a headline 10 down in 44.5, a
+  footnote 8 down in 35 laid out 21 tall although the label fits in 19).

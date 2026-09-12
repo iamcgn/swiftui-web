@@ -163,6 +163,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Sounds", .style("body"), width: 216, lines: 0),
         UIKitTextRequest("On", .style("subheadline"), width: 226, lines: 0),
         UIKitTextRequest("Silent", .style("subheadline"), width: 216, lines: 0),
+        // uikit/collection/listheaders (headline headers, footnote footers, body rows 256 wide)
+        UIKitTextRequest("General", .style("headline"), width: 256, lines: 0),
+        UIKitTextRequest("Display", .style("headline"), width: 256, lines: 0),
+        UIKitTextRequest("A footer note about the section.", .style("footnote"), width: 256, lines: 0),
+        UIKitTextRequest("Wi-Fi", .style("body"), width: 256, lines: 0),
+        UIKitTextRequest("Bluetooth", .style("body"), width: 256, lines: 0),
+        UIKitTextRequest("Brightness", .style("body"), width: 256, lines: 0),
         // uikit/collection/selfsizing (15 pt tags)
         UIKitTextRequest("Swift", .system(size: 15)),
         UIKitTextRequest("SwiftUI", .system(size: 15)),

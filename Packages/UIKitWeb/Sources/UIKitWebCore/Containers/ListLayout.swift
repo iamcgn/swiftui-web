@@ -59,6 +59,7 @@ extension UICollectionViewCompositionalLayout {
 final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
     let listConfiguration: UICollectionLayoutListConfiguration
     private var rows: [IndexPath: UICollectionViewLayoutAttributes] = [:]
+    private var supplementary: [String: [Int: UICollectionViewLayoutAttributes]] = [:]
     private var size = CGSize.zero
     private var appliedBackground = false
 
@@ -73,6 +74,7 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
 
     override func prepare() {
         rows.removeAll()
+        supplementary.removeAll()
         guard let collection = collectionView, let dataSource = collection.dataSource else { size = .zero; return }
         if !appliedBackground {
             appliedBackground = true
@@ -84,7 +86,18 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
         let sections = dataSource.numberOfSections(in: collection)
         for section in 0..<sections {
             let count = dataSource.collectionView(collection, numberOfItemsInSection: section)
-            if listConfiguration.isGrouped { y += listConfiguration.headerTopPadding ?? 35 }
+            // A supplementary header replaces the 35 pt gap above a grouped section
+            // (uikit/collection/listheaders: 44.5 tall for a headline, rows right under it).
+            if listConfiguration.headerMode == .supplementary {
+                let path = IndexPath(item: 0, section: section)
+                let height = collection.selfSizedSupplementary(ofKind: UICollectionView.elementKindSectionHeader, at: path, estimated: CGSize(width: width - 2 * inset, height: 44.5)).height
+                let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, with: path)
+                attribute.frame = CGRect(x: inset, y: y, width: width - 2 * inset, height: height)
+                supplementary[UICollectionView.elementKindSectionHeader, default: [:]][section] = attribute
+                y += height
+            } else if listConfiguration.isGrouped {
+                y += listConfiguration.headerTopPadding ?? 35
+            }
             for item in 0..<count {
                 let path = IndexPath(item: item, section: section)
                 let height = collection.selfSizedItem(at: path, estimated: CGSize(width: width - 2 * inset, height: 56)).height
@@ -95,16 +108,26 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
                 rows[path] = attribute
                 y += height
             }
+            if listConfiguration.footerMode == .supplementary {
+                let path = IndexPath(item: 0, section: section)
+                let height = collection.selfSizedSupplementary(ofKind: UICollectionView.elementKindSectionFooter, at: path, estimated: CGSize(width: width - 2 * inset, height: 35)).height
+                let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, with: path)
+                attribute.frame = CGRect(x: inset, y: y, width: width - 2 * inset, height: height)
+                supplementary[UICollectionView.elementKindSectionFooter, default: [:]][section] = attribute
+                y += height
+            }
         }
         size = CGSize(width: width, height: y)
     }
 
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        rows.values.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
+        let items = rows.values.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
+        let extras = supplementary.values.flatMap { $0.values }.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
+        return items + extras
     }
 
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { rows[indexPath] }
-    override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+    override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { supplementary[kind]?[indexPath.section] }
 }
 
 /// A collection view cell that provides list features and default styling.
@@ -125,9 +148,14 @@ open class UICollectionViewListCell: UICollectionViewCell {
     /// The list content configuration a list cell starts from: body text over subheadline
     /// secondary text on the list's metrics (`UIListContentConfiguration.listMetrics`).
     open func defaultContentConfiguration() -> UIListContentConfiguration {
-        var configuration = UIListContentConfiguration.subtitleCell()
-        configuration.listMetrics = true
-        return configuration
+        switch supplementaryKind {
+        case UICollectionView.elementKindSectionHeader?: return .groupedHeader()
+        case UICollectionView.elementKindSectionFooter?: return .groupedFooter()
+        default:
+            var configuration = UIListContentConfiguration.subtitleCell()
+            configuration.listMetrics = true
+            return configuration
+        }
     }
 
     open override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
@@ -170,11 +198,14 @@ open class UICollectionViewListCell: UICollectionViewCell {
         let accessory = accessorySize
         let contentWidth = accessory.width > 0 ? layoutAttributes.frame.width - accessory.width - accessoryTrailingInset : layoutAttributes.frame.width
         let height = configuredContent?.view.sizeThatFits(CGSize(width: contentWidth, height: .greatestFiniteMagnitude)).height ?? 44
-        attributes.frame = CGRect(origin: layoutAttributes.frame.origin, size: CGSize(width: layoutAttributes.frame.width, height: max(44, height)))
+        // Rows are at least 44; headers and footers are exactly their content (a footer is 35).
+        let floor: CGFloat = supplementaryKind == nil ? 44 : 0
+        attributes.frame = CGRect(origin: layoutAttributes.frame.origin, size: CGSize(width: layoutAttributes.frame.width, height: max(floor, height)))
         return attributes
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
+        guard supplementaryKind == nil else { return }   // headers and footers: text on the ground, no card
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let inset = listAppearance == .insetGrouped || listAppearance == .sidebar
         // The card (or the plain row) in the cell's grouped background colour, selected in grey.

@@ -116,8 +116,22 @@ above each section; a row with body text alone is 56 tall (the 24.5 pt label 16 
 a subheadline secondary text 79.5 (labels at 15 and 43.5); the content view ends 30 before the
 trailing edge for a disclosure (the 10.5 × 14 chevron 16 in) and 40 for a checkmark (19 × 18,
 18.5 in); a 1 pt separator between rows runs 16 in from both card edges. Pixels 0.8 % off the
-simulator. Open: plain appearance metrics, headers and footers, swipe actions, `UIListContentConfiguration`
+simulator. Open: plain appearance metrics, swipe actions, `UIListContentConfiguration`
 in table cells on these metrics.
+
+## List headers and footers (2026-09-11, `uikit/collection/listheaders`)
+
+`headerMode` and `footerMode` of `.supplementary` on the list configuration ask the data source
+for a header and footer view per section (`elementKindSectionHeader` / `elementKindSectionFooter`,
+`UICollectionViewListCell` registered for the kind), each sized through its preferred layout
+attributes like a row but without the 44 pt floor, and a list cell dequeued for a supplementary
+kind answers `defaultContentConfiguration()` with `UIListContentConfiguration.groupedHeader()` or
+`groupedFooter()` (the plain variants are the same) and draws no card. Measured (inset grouped):
+the header replaces the 35 pt gap above its section, 44.5 tall with the headline label 16 in and
+10 down; the rows follow at once; the footer is 35 tall with the footnote label in the secondary
+colour 16 in and 8 down, laid out 21 tall although the label fits in 19; the next section's
+header sits right under the footer. Pixels 1.6 % off the simulator. Open: `.firstItemInSection`,
+`headerTopPadding` with supplementary headers, plain appearance headers.
 
 ## Orthogonal scrolling (2026-09-11, `uikit/collection/orthogonal`)
 

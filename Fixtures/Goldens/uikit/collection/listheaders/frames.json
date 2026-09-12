@@ -1,0 +1,57 @@
+{
+  "fixture" : "uikit\/collection\/listheaders",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "footer0" : {
+      "height" : 35,
+      "width" : 288,
+      "x" : 16,
+      "y" : 156.5
+    },
+    "footer1" : {
+      "height" : 35,
+      "width" : 288,
+      "x" : 16,
+      "y" : 292
+    },
+    "header0" : {
+      "height" : 44.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 0
+    },
+    "header1" : {
+      "height" : 44.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 191.5
+    },
+    "row00" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 44.5
+    },
+    "row01" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 100.5
+    },
+    "row10" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 236
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

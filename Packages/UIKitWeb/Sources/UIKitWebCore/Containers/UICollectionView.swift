@@ -261,6 +261,8 @@ open class UICollectionReusableView: UIView {
     public internal(set) var reuseIdentifier: String?
     /// The pool a supplementary view returns to (its kind and identifier).
     var supplementaryKey: String?
+    /// The element kind a supplementary view was dequeued for (a list cell styles itself by it).
+    var supplementaryKind: String?
     open func prepareForReuse() {}
     open func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         frame = layoutAttributes.frame
@@ -438,12 +440,28 @@ open class UICollectionView: UIScrollView {
         let key = kind + "|" + identifier
         if let view = supplementaryPool[key]?.popLast() {
             view.prepareForReuse()
+            view.supplementaryKind = kind
             return view
         }
         let view = registeredSupplementaries[key]?() ?? UICollectionReusableView(frame: .zero)
         view.reuseIdentifier = identifier
         view.supplementaryKey = key
+        view.supplementaryKind = kind
         return view
+    }
+
+    /// A supplementary view's size for a section: the data source's view, asked for its preferred
+    /// attributes, then returned to its pool (a list header or footer sized by its content).
+    func selfSizedSupplementary(ofKind kind: String, at indexPath: IndexPath, estimated: CGSize) -> CGSize {
+        guard let dataSource else { return estimated }
+        let key = kind + "#" + "\(indexPath.section)"
+        let attributes = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: kind, with: indexPath)
+        attributes.frame = CGRect(origin: .zero, size: estimated)
+        if let visible = visibleSupplementaries[key] { return visible.preferredLayoutAttributesFitting(attributes).frame.size }
+        let view = dataSource.collectionView(self, viewForSupplementaryElementOfKind: kind, at: indexPath)
+        let size = view.preferredLayoutAttributesFitting(attributes).frame.size
+        if let pool = view.supplementaryKey, view.superview == nil { supplementaryPool[pool, default: []].append(view) }
+        return size
     }
 
     /// A self-sizing item's size: the data source's cell for it, asked for its preferred

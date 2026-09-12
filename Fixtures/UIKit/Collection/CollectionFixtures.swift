@@ -113,8 +113,30 @@ final class ListSource: NSObject, UICollectionViewDataSource {
     }
 }
 
+/// Two sections with header cells ("General", "Display") and a footer under the first.
+final class ListHeaderSource: NSObject, UICollectionViewDataSource {
+    let rows = [["Wi-Fi", "Bluetooth"], ["Brightness"]]
+    func numberOfSections(in collectionView: UICollectionView) -> Int { rows.count }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { rows[section].count }
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "list", for: indexPath) as! UICollectionViewListCell
+        var content = cell.defaultContentConfiguration()
+        content.text = rows[indexPath.section][indexPath.item]
+        cell.contentConfiguration = content
+        return cell.probe("row\(indexPath.section)\(indexPath.item)")
+    }
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        let isHeader = kind == UICollectionView.elementKindSectionHeader
+        let cell = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: isHeader ? "header" : "footer", for: indexPath) as! UICollectionViewListCell
+        var content = cell.defaultContentConfiguration()
+        content.text = isHeader ? (indexPath.section == 0 ? "General" : "Display") : "A footer note about the section."
+        cell.contentConfiguration = content
+        return cell.probe(isHeader ? "header\(indexPath.section)" : "footer\(indexPath.section)")
+    }
+}
+
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -225,6 +247,27 @@ public enum CollectionFixtures {
     }
 
     @MainActor static var listSources: [ListSource] = []
+
+    /// A list with supplementary headers and a footer made from list cells' default header and
+    /// footer content configurations.
+    public static let listHeaders = UIKitFixture("uikit/collection/listheaders", size: CGSize(width: 320, height: 400)) {
+        var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+        configuration.headerMode = .supplementary
+        configuration.footerMode = .supplementary
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let source = ListHeaderSource()
+        listHeaderSources.append(source)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "footer")
+        collection.dataSource = source
+        root.addSubview(collection.probe("collection"))
+        return root
+    }
+
+    @MainActor static var listHeaderSources: [ListHeaderSource] = []
 
     /// An orthogonally scrolling section (a carousel of 200 × 100 groups 12 apart, inset 16)
     /// above a plain vertical section of full-width rows.

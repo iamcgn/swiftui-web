@@ -105,10 +105,27 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
     public static func cell() -> UIListContentConfiguration { UIListContentConfiguration(layout: .cell) }
     public static func subtitleCell() -> UIListContentConfiguration { UIListContentConfiguration(layout: .subtitle) }
     public static func valueCell() -> UIListContentConfiguration { UIListContentConfiguration(layout: .value) }
-    public static func plainHeader() -> UIListContentConfiguration { UIListContentConfiguration(layout: .cell) }
-    public static func groupedHeader() -> UIListContentConfiguration { UIListContentConfiguration(layout: .cell) }
-    public static func plainFooter() -> UIListContentConfiguration { UIListContentConfiguration(layout: .cell) }
-    public static func groupedFooter() -> UIListContentConfiguration { UIListContentConfiguration(layout: .cell) }
+    public static func plainHeader() -> UIListContentConfiguration { groupedHeader() }
+    /// A grouped list header (uikit/collection/listheaders): headline text 10 down in 44.5.
+    public static func groupedHeader() -> UIListContentConfiguration {
+        var configuration = UIListContentConfiguration(layout: .cell)
+        configuration.textProperties.font = .preferredFont(forTextStyle: .headline)
+        configuration.directionalLayoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        configuration.listRole = .header
+        return configuration
+    }
+    public static func plainFooter() -> UIListContentConfiguration { groupedFooter() }
+    /// A grouped list footer: footnote text in the secondary colour 8 down in 35.
+    public static func groupedFooter() -> UIListContentConfiguration {
+        var configuration = UIListContentConfiguration(layout: .cell)
+        configuration.textProperties.font = .preferredFont(forTextStyle: .footnote)
+        configuration.textProperties.color = .secondaryLabel
+        configuration.directionalLayoutMargins = UIEdgeInsets(top: 8, left: 16, bottom: 6, right: 16)
+        configuration.listRole = .footer
+        return configuration
+    }
+    enum ListRole: Sendable { case cell, header, footer }
+    var listRole: ListRole = .cell
 
     public func makeContentView() -> UIView & UIContentView { UIListContentView(configuration: self) }
 }
@@ -156,6 +173,13 @@ public final class UIListContentView: UIView, UIContentView {
             let hasSecondary = secondaryTextLabel.text?.isEmpty == false && list.layout == .subtitle
             return CGSize(width: size.width, height: hasSecondary ? 79.5 : 56)
         }
+        if list.listRole != .cell {
+            // Headers and footers: the margins around the text's label height (24.5 for a
+            // headline, 21 for a footnote line), no minimum.
+            let margins = list.directionalLayoutMargins
+            let width = max(0, size.width - margins.left - margins.right)
+            return CGSize(width: size.width, height: roleTextHeight(width: width) + margins.top + margins.bottom)
+        }
         let margins = list.directionalLayoutMargins
         let imageWidth = imageView.image.map { $0.size.width + list.imageToTextPadding } ?? 0
         let width = max(0, size.width - margins.left - margins.right - imageWidth)
@@ -169,6 +193,15 @@ public final class UIListContentView: UIView, UIContentView {
         return CGSize(width: size.width, height: max(44, height + margins.top + margins.bottom))
     }
 
+    /// A header's or footer's text height for a width: the label's fit, at least 21 for a footer
+    /// (UIKit lays a one-line footnote footer out 21 tall although the label fits in 19;
+    /// uikit/collection/listheaders: 8 + 21 + 6 = 35).
+    private func roleTextHeight(width: CGFloat) -> CGFloat {
+        guard textLabel.text?.isEmpty == false else { return 0 }
+        let fit = textLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height
+        return list.listRole == .footer ? max(21, fit) : fit
+    }
+
     public override func layoutSubviews() {
         super.layoutSubviews()
         let margins = list.directionalLayoutMargins
@@ -180,7 +213,7 @@ public final class UIListContentView: UIView, UIContentView {
             imageView.frame = .zero
         }
         let width = max(0, bounds.width - x - margins.right)
-        let textHeight = textLabel.text?.isEmpty == false ? textLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height : 0
+        let textHeight = list.listRole == .cell ? (textLabel.text?.isEmpty == false ? textLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height : 0) : roleTextHeight(width: width)
         let secondaryHeight = secondaryTextLabel.text?.isEmpty == false ? secondaryTextLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height : 0
         switch list.layout {
         case .subtitle:
@@ -195,7 +228,8 @@ public final class UIListContentView: UIView, UIContentView {
             secondaryTextLabel.frame = CGRect(x: x + width - secondaryWidth, y: ((bounds.height - secondaryHeight) / 2).rounded(), width: secondaryWidth, height: secondaryHeight)
             secondaryTextLabel.textAlignment = .right
         case .cell:
-            textLabel.frame = CGRect(x: x, y: ((bounds.height - textHeight) / 2).rounded(), width: width, height: textHeight)
+            let y = list.listRole == .cell ? ((bounds.height - textHeight) / 2).rounded() : margins.top
+            textLabel.frame = CGRect(x: x, y: y, width: width, height: textHeight)
             secondaryTextLabel.frame = .zero
         }
     }
