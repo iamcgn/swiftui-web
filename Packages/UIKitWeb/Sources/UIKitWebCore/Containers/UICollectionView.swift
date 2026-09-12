@@ -41,6 +41,13 @@ open class UICollectionViewLayoutAttributes {
         representedElementKind = kind
     }
 
+    public init(forDecorationViewOfKind kind: String, with indexPath: IndexPath) {
+        self.indexPath = indexPath
+        frame = .zero
+        representedElementCategory = .decorationView
+        representedElementKind = kind
+    }
+
     open var center: CGPoint {
         get { CGPoint(x: frame.midX, y: frame.midY) }
         set { frame.origin = CGPoint(x: newValue.x - frame.width / 2, y: newValue.y - frame.height / 2) }
@@ -64,8 +71,16 @@ open class UICollectionViewLayout {
     open func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? { nil }
     open func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
     open func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+    open func layoutAttributesForDecorationView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
     open func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool { false }
     open func invalidateLayout() { collectionView?.setNeedsReload() }
+
+    /// Decoration views the layout makes itself (a section background), by element kind.
+    var registeredDecorations: [String: () -> UICollectionReusableView] = [:]
+    open func register(_ viewClass: AnyClass?, forDecorationViewOfKind kind: String) {
+        guard let type = viewClass as? UICollectionReusableView.Type else { registeredDecorations[kind] = nil; return }
+        registeredDecorations[kind] = { type.init(frame: .zero) }
+    }
 }
 
 /// The methods a flow layout's delegate implements to size items and space sections.
@@ -397,6 +412,8 @@ open class UICollectionView: UIScrollView {
     private var orthogonalScrollViews: [Int: OrthogonalScrollView] = [:]
     private var supplementaryPool: [String: [UICollectionReusableView]] = [:]
     private var visibleSupplementaries: [String: UICollectionReusableView] = [:]
+    /// Decoration views by kind and section, made by the layout's registered classes.
+    private var visibleDecorations: [String: UICollectionReusableView] = [:]
     private var needsReload = true
     private var selected: Set<IndexPath> = []
 
@@ -422,12 +439,18 @@ open class UICollectionView: UIScrollView {
     func hasRegisteredCell(withIdentifier identifier: String) -> Bool { registeredCells[identifier] != nil }
 
     open func dequeueReusableCell(withReuseIdentifier identifier: String, for indexPath: IndexPath) -> UICollectionViewCell {
-        if let cell = reusePool[identifier]?.popLast() {
-            cell.prepareForReuse()
-            return cell
+        let cell: UICollectionViewCell
+        if let pooled = reusePool[identifier]?.popLast() {
+            pooled.prepareForReuse()
+            cell = pooled
+        } else {
+            cell = registeredCells[identifier]?() ?? UICollectionViewCell(frame: .zero)
+            cell.reuseIdentifier = identifier
         }
-        let cell = registeredCells[identifier]?() ?? UICollectionViewCell(frame: .zero)
-        cell.reuseIdentifier = identifier
+        // A list cell dequeued as its section's first-item header knows before it is configured.
+        if let listCell = cell as? UICollectionViewListCell {
+            listCell.isHeaderItem = (collectionViewLayout as? UICollectionViewListLayout)?.isHeaderItem(indexPath) ?? false
+        }
         return cell
     }
 
@@ -566,6 +589,8 @@ open class UICollectionView: UIScrollView {
                 if let key = view.supplementaryKey { supplementaryPool[key, default: []].append(view) }
             }
             visibleSupplementaries.removeAll()
+            for view in visibleDecorations.values { view.removeFromSuperview() }
+            visibleDecorations.removeAll()
             collectionViewLayout.prepare()
             contentSize = collectionViewLayout.collectionViewContentSize
         }
@@ -639,21 +664,52 @@ open class UICollectionView: UIScrollView {
             }
             visibleCellsByPath[attribute.indexPath] = cell
         }
-        // Headers and footers in view; the ones scrolled away go back to their pool.
-        let wanted = Set(elements.compactMap { element in element.representedElementKind.map { kind in kind + "#" + "\(element.indexPath.section)" } })
+        // Headers and footers in view; the ones scrolled away go back to their pool. A pinned
+        // header's attributes move with the bounds, so a visible one takes them again.
+        func key(_ element: UICollectionViewLayoutAttributes) -> String { (element.representedElementKind ?? "") + "#" + "\(element.indexPath.section)" }
+        let wanted = Set(elements.filter { $0.representedElementCategory == .supplementaryView }.map(key))
         for (key, view) in visibleSupplementaries where !wanted.contains(key) {
             view.removeFromSuperview()
             visibleSupplementaries.removeValue(forKey: key)
             if let pool = view.supplementaryKey { supplementaryPool[pool, default: []].append(view) }
         }
-        for attribute in elements {
+        for attribute in elements where attribute.representedElementCategory == .supplementaryView {
             guard let kind = attribute.representedElementKind else { continue }
-            let key = kind + "#" + "\(attribute.indexPath.section)"
-            guard visibleSupplementaries[key] == nil else { continue }
+            if let view = visibleSupplementaries[key(attribute)] {
+                if view.frame != attribute.frame { view.apply(attribute) }
+                continue
+            }
             let view = dataSource.collectionView(self, viewForSupplementaryElementOfKind: kind, at: attribute.indexPath)
             view.apply(attribute)
             if view.superview !== self { addSubview(view) }
-            visibleSupplementaries[key] = view
+            visibleSupplementaries[key(attribute)] = view
+        }
+        // Raised supplementaries (pinned headers) stay above the cells added after them; lowered
+        // ones (a header being pushed away) sit just above the decorations, under the cells.
+        for attribute in elements where attribute.representedElementCategory == .supplementaryView && attribute.zIndex != 0 {
+            guard let view = visibleSupplementaries[key(attribute)] else { continue }
+            if attribute.zIndex > 0 {
+                if subviews.last !== view { bringSubviewToFront(view) }
+            } else if let index = subviews.firstIndex(where: { $0 === view }), index != visibleDecorations.count {
+                insertSubview(view, at: visibleDecorations.count)
+            }
+        }
+        // Decoration views (section backgrounds) in view, behind the cells.
+        let wantedDecorations = Set(elements.filter { $0.representedElementCategory == .decorationView }.map(key))
+        for (key, view) in visibleDecorations where !wantedDecorations.contains(key) {
+            view.removeFromSuperview()
+            visibleDecorations.removeValue(forKey: key)
+        }
+        for attribute in elements where attribute.representedElementCategory == .decorationView {
+            guard let kind = attribute.representedElementKind else { continue }
+            if let view = visibleDecorations[key(attribute)] {
+                if view.frame != attribute.frame { view.apply(attribute) }
+                continue
+            }
+            guard let view = collectionViewLayout.registeredDecorations[kind]?() else { continue }
+            view.apply(attribute)
+            insertSubview(view, at: 0)
+            visibleDecorations[key(attribute)] = view
         }
     }
 

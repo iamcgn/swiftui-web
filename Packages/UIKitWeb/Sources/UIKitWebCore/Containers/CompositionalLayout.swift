@@ -140,6 +140,17 @@ open class NSCollectionLayoutBoundarySupplementaryItem: NSCollectionLayoutSupple
 
 public enum NSRectAlignment: Int, Sendable { case none = 0, top, topLeading, leading, bottomLeading, bottom, bottomTrailing, trailing, topTrailing }
 
+/// A decoration behind a section: a view of a kind registered with the layout, filling the
+/// section's frame inside the item's content insets.
+@MainActor
+open class NSCollectionLayoutDecorationItem {
+    public let elementKind: String
+    open var contentInsets = NSDirectionalEdgeInsets.zero
+    open var zIndex = 0
+    public init(elementKind: String) { self.elementKind = elementKind }
+    public class func background(elementKind: String) -> NSCollectionLayoutDecorationItem { NSCollectionLayoutDecorationItem(elementKind: elementKind) }
+}
+
 /// A section: its group repeated along the layout's scroll direction until the items run out.
 @MainActor
 open class NSCollectionLayoutSection {
@@ -148,6 +159,7 @@ open class NSCollectionLayoutSection {
     open var contentInsets = NSDirectionalEdgeInsets.zero
     open var interGroupSpacing: CGFloat = 0
     open var boundarySupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] = []
+    open var decorationItems: [NSCollectionLayoutDecorationItem] = []
     open var orthogonalScrollingBehavior: OrthogonalScrollingBehavior = .none
     open var supplementariesFollowContentInsets = true
     open var visibleItemsInvalidationHandler: ((Any, CGPoint, Any) -> Void)?
@@ -196,6 +208,11 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
 
     private var itemAttributes: [IndexPath: UICollectionViewLayoutAttributes] = [:]
     private var supplementary: [String: [Int: UICollectionViewLayoutAttributes]] = [:]
+    private var decorations: [String: [Int: UICollectionViewLayoutAttributes]] = [:]
+    /// A pinned top boundary item: its natural frame and the end of its section (the next
+    /// section's start), where the following header pushes it away.
+    private struct PinnedHeader { let kind: String; let section: Int; let sectionEnd: CGFloat }
+    private var pinned: [PinnedHeader] = []
     private var contentSize = CGSize.zero
 
     /// An orthogonally scrolling section: where its scroll view sits in the collection (the
@@ -236,6 +253,8 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
     open override func prepare() {
         itemAttributes.removeAll()
         supplementary.removeAll()
+        decorations.removeAll()
+        pinned.removeAll()
         orthogonalSections.removeAll()
         guard let collection = collectionView, let dataSource = collection.dataSource else { contentSize = .zero; return }
         let bounds = collection.bounds
@@ -251,11 +270,13 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
                 ? CGSize(width: bounds.width - insets.leading - insets.trailing, height: bounds.height)
                 : CGSize(width: bounds.width, height: bounds.height - insets.top - insets.bottom)
             if section > 0 { cursor += configuration.interSectionSpacing }
+            let sectionStart = cursor
             // Boundary items at the top (leading) span the section's container.
             for boundary in layoutSection.boundarySupplementaryItems where boundary.alignment == .top || boundary.alignment == .topLeading || boundary.alignment == .topTrailing {
                 let size = boundary.layoutSize.resolved(in: container)
                 let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: boundary.elementKind, with: IndexPath(item: 0, section: section))
                 attribute.frame = vertical ? CGRect(x: insets.leading, y: cursor, width: size.width, height: size.height) : CGRect(x: cursor, y: insets.top, width: size.width, height: size.height)
+                if boundary.pinToVisibleBounds { attribute.zIndex = 1; pinned.append(PinnedHeader(kind: boundary.elementKind, section: section, sectionEnd: 0)) }
                 supplementary[boundary.elementKind, default: [:]][section] = attribute
                 cursor += vertical ? size.height : size.width
             }
@@ -312,8 +333,39 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
                 supplementary[boundary.elementKind, default: [:]][section] = attribute
                 cursor += vertical ? size.height : size.width
             }
+            // Decoration items span the section, boundary items and content insets included.
+            for decoration in layoutSection.decorationItems {
+                let attribute = UICollectionViewLayoutAttributes(forDecorationViewOfKind: decoration.elementKind, with: IndexPath(item: 0, section: section))
+                let frame = vertical ? CGRect(x: 0, y: sectionStart, width: bounds.width, height: cursor - sectionStart) : CGRect(x: sectionStart, y: 0, width: cursor - sectionStart, height: bounds.height)
+                attribute.frame = frame.inset(by: decoration.contentInsets)
+                attribute.zIndex = decoration.zIndex - 1
+                decorations[decoration.elementKind, default: [:]][section] = attribute
+            }
+            for index in pinned.indices where pinned[index].section == section { pinned[index] = PinnedHeader(kind: pinned[index].kind, section: section, sectionEnd: cursor) }
         }
         contentSize = vertical ? CGSize(width: bounds.width, height: cursor) : CGSize(width: cursor, height: bounds.height)
+    }
+
+    /// A pinned header's attributes for the current bounds: held at the visible top while its
+    /// section scrolls past, pushed away by the end of its section.
+    private func pinnedAttributes(_ header: PinnedHeader) -> UICollectionViewLayoutAttributes? {
+        guard let natural = supplementary[header.kind]?[header.section], let collection = collectionView else { return nil }
+        let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: header.kind, with: natural.indexPath)
+        var frame = natural.frame
+        let top: CGFloat
+        if configuration.scrollDirection == .vertical {
+            top = collection.contentOffset.y + collection.adjustedContentInset.top
+            frame.origin.y = min(max(natural.frame.minY, top), header.sectionEnd - natural.frame.height)
+        } else {
+            top = collection.contentOffset.x + collection.adjustedContentInset.left
+            frame.origin.x = min(max(natural.frame.minX, top), header.sectionEnd - natural.frame.width)
+        }
+        // A pinned header rides above the cells; one being pushed away by the next section
+        // slips under them (uikit/collection/pinned push: the last row covers it).
+        let pushed = (configuration.scrollDirection == .vertical ? frame.minY : frame.minX) < top
+        attribute.zIndex = pushed ? -1 : 1
+        attribute.frame = frame
+        return attribute
     }
 
     /// Lays a group's subitems out in `frame`, repeating them to fill the group's axis, taking
@@ -407,12 +459,21 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
 
     open override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         let items = itemAttributes.values.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
-        let extras = supplementary.values.flatMap { $0.values }.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
-        return items + extras
+        let pinnedKeys = Set(pinned.map { $0.kind + "#" + "\($0.section)" })
+        var extras = supplementary.values.flatMap { $0.values }
+            .filter { !pinnedKeys.contains(($0.representedElementKind ?? "") + "#" + "\($0.indexPath.section)") && $0.frame.intersects(rect) }
+        extras += pinned.compactMap(pinnedAttributes).filter { $0.frame.intersects(rect) }
+        extras.sort { $0.indexPath < $1.indexPath }
+        let backgrounds = decorations.values.flatMap { $0.values }.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
+        return backgrounds + items + extras
     }
 
     open override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { itemAttributes[indexPath] }
-    open override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { supplementary[kind]?[indexPath.section] }
+    open override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        if let header = pinned.first(where: { $0.kind == kind && $0.section == indexPath.section }) { return pinnedAttributes(header) }
+        return supplementary[kind]?[indexPath.section]
+    }
+    open override func layoutAttributesForDecorationView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { decorations[kind]?[indexPath.section] }
     open override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool { newBounds.size != collectionView?.bounds.size }
 }
 

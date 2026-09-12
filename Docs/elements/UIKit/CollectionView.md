@@ -99,9 +99,8 @@ nested groups, `interItemSpacing`, `contentInsets`), `NSCollectionLayoutItem` (`
 fixed inter-item spacing comes out of the fractional items' share, on the pixel grid (three
 1/3-width items 8 apart in 288 are 90.5 wide at 16, 114.5 and 213); rows follow one another
 `interGroupSpacing` apart; a section's top boundary item spans its container above the
-content insets. Pixels 0.4 % off the simulator. Open: orthogonal scrolling, pinned boundary
-items, estimated (self-sizing) dimensions, item supplementary items, `list(using:)` and
-`UICollectionViewListCell`.
+content insets. Pixels 0.4 % off the simulator. Open: estimated (self-sizing) dimensions, item
+supplementary items.
 
 ## Lists (2026-09-11, `uikit/collection/list`)
 
@@ -130,8 +129,17 @@ kind answers `defaultContentConfiguration()` with `UIListContentConfiguration.gr
 the header replaces the 35 pt gap above its section, 44.5 tall with the headline label 16 in and
 10 down; the rows follow at once; the footer is 35 tall with the footnote label in the secondary
 colour 16 in and 8 down, laid out 21 tall although the label fits in 19; the next section's
-header sits right under the footer. Pixels 1.6 % off the simulator. Open: `.firstItemInSection`,
-`headerTopPadding` with supplementary headers, plain appearance headers.
+header sits right under the footer. Pixels 1.6 % off the simulator. Open: `headerTopPadding`
+with supplementary headers, plain appearance headers.
+
+## First-item headers (2026-09-11, `uikit/collection/firstitem`)
+
+`headerMode == .firstItemInSection` makes each section's first cell its header: the collection
+view marks a list cell dequeued for item 0 so its `defaultContentConfiguration()` is the grouped
+header, it draws no card and has no 44 pt floor, and the card starts at item 1. Measured: the
+header is 44.5 tall at the section's top (no gap above the first section), the rows follow at
+once, and 17.5 separates a section's last row from the next header. Pixels 1.2 % off the
+simulator. Open: `.outlineDisclosure()` expanding and collapsing sections.
 
 ## Orthogonal scrolling (2026-09-11, `uikit/collection/orthogonal`)
 
@@ -143,4 +151,27 @@ x 440), and only the cells inside the scroll view's visible width exist, as UIKi
 Horizontal drags on the section scroll it (the paging behaviours snap to pages); vertical ones
 scroll the list: a scroll view leaves pans mostly along an axis it cannot scroll to the
 enclosing one. Pixels 1.3 % off the simulator. Open: `groupPagingCentered` centring,
-`visibleItemsInvalidationHandler`, decoration items.
+`visibleItemsInvalidationHandler`.
+
+## Decoration items (2026-09-11, `uikit/collection/decoration`)
+
+`NSCollectionLayoutDecorationItem.background(elementKind:)` (`contentInsets`, `zIndex`) in a
+section's `decorationItems`, the view class registered on the layout with
+`register(_:forDecorationViewOfKind:)`; the collection view makes the view itself (no data
+source call), applies the attributes (`indexPath.section` says which section) and hosts it
+behind the cells. Measured: a background spans its section from where the section starts to
+where it ends, boundary items and content insets included (128 tall for two 44 pt rows 8 apart
+in 16 pt insets), and its own content insets shrink it (8 sideways gives 304 wide at 8). Pixels
+0.1 % off the simulator. Open: decorations in orthogonal sections.
+
+## Pinned headers (2026-09-11, `uikit/collection/pinned`)
+
+A top boundary item with `pinToVisibleBounds` holds at the visible top (the content offset plus
+the adjusted top inset) while its section scrolls under it, until the next section's start
+pushes it away; the collection view re-applies a pinned header's attributes on every layout and
+keeps it above the cells. Measured on two scroll steps: at offset 100 the first header sits at 0
+in the view and the second at its natural 334 (234 in view); at 320 the second header is pinned
+at 14 and the first, pushed to 304, shows at -16 under the last row: iOS 26 draws a pushed
+header beneath the content (a scroll pocket blurs the band, which UIKitWeb does not paint), so
+its attributes carry a negative z-index and the view drops below the cells. Pixels 1.6 % off the
+simulator at worst. Open: pinned footers, the scroll pocket blur.

@@ -330,3 +330,11 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   its rows, both sized through the list cell's preferred attributes without the 44 pt row floor;
   the dump gave the grouped header and footer content metrics (a headline 10 down in 44.5, a
   footnote 8 down in 35 laid out 21 tall although the label fits in 19).
+- Step 26 (2026-09-11): first-item headers, decoration items, pinned headers (`Docs/ROADMAP.md`,
+  Phase 7 status 4.29-4.31). The dumps settled three guesses: a first-item header is the same
+  44.5 pt card-less header cell as a supplementary one with 17.5 between sections; a background
+  decoration spans its section with the content insets included (its own insets shrink it);
+  a pinned header clamps between the visible top and the next section's start, and once pushed
+  away iOS 26 draws it beneath the cells (a scroll pocket blur UIKitWeb does not paint). The
+  pinned fixture probes no row that scrolls away: UIKitWeb recycles its cell while UIKit keeps
+  every cell, so the probe would follow the reused cell.

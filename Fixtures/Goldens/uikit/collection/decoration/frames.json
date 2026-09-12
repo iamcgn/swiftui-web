@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/collection\/decoration",
+  "frames" : {
+    "background0" : {
+      "height" : 128,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "background1" : {
+      "height" : 180,
+      "width" : 304,
+      "x" : 8,
+      "y" : 128
+    },
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "item0" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 16
+    },
+    "item1" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 68
+    },
+    "item2" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 144
+    },
+    "item4" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 248
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

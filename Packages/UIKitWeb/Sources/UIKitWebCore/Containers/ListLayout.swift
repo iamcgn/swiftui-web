@@ -87,8 +87,11 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
         for section in 0..<sections {
             let count = dataSource.collectionView(collection, numberOfItemsInSection: section)
             // A supplementary header replaces the 35 pt gap above a grouped section
-            // (uikit/collection/listheaders: 44.5 tall for a headline, rows right under it).
-            if listConfiguration.headerMode == .supplementary {
+            // (uikit/collection/listheaders: 44.5 tall for a headline, rows right under it); a
+            // first-item header does too, with 17.5 between sections (uikit/collection/firstitem).
+            if listConfiguration.headerMode == .firstItemInSection {
+                if section > 0 { y += 17.5 }
+            } else if listConfiguration.headerMode == .supplementary {
                 let path = IndexPath(item: 0, section: section)
                 let height = collection.selfSizedSupplementary(ofKind: UICollectionView.elementKindSectionHeader, at: path, estimated: CGSize(width: width - 2 * inset, height: 44.5)).height
                 let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, with: path)
@@ -103,7 +106,8 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
                 let height = collection.selfSizedItem(at: path, estimated: CGSize(width: width - 2 * inset, height: 56)).height
                 let attribute = UICollectionViewLayoutAttributes(forCellWith: path)
                 attribute.frame = CGRect(x: inset, y: y, width: width - 2 * inset, height: height)
-                attribute.listPosition = (first: item == 0, last: item == count - 1)
+                let firstRow = listConfiguration.headerMode == .firstItemInSection ? 1 : 0
+                attribute.listPosition = (first: item == firstRow, last: item == count - 1)
                 attribute.listAppearance = listConfiguration.appearance
                 rows[path] = attribute
                 y += height
@@ -128,6 +132,9 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
 
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { rows[indexPath] }
     override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { supplementary[kind]?[indexPath.section] }
+
+    /// Whether the item is its section's header (`headerMode == .firstItemInSection`).
+    func isHeaderItem(_ indexPath: IndexPath) -> Bool { listConfiguration.headerMode == .firstItemInSection && indexPath.item == 0 }
 }
 
 /// A collection view cell that provides list features and default styling.
@@ -139,6 +146,11 @@ open class UICollectionViewListCell: UICollectionViewCell {
     open var indentsAccessories = true
     var listPosition: (first: Bool, last: Bool) = (true, true)
     var listAppearance: UICollectionLayoutListConfiguration.Appearance = .plain
+    /// Dequeued as its section's header (`headerMode == .firstItemInSection`): styled like a
+    /// supplementary header, no card.
+    var isHeaderItem = false
+    /// Whether the cell stands for a header or footer rather than a row.
+    var isHeaderOrFooter: Bool { supplementaryKind != nil || isHeaderItem }
 
     public required init(frame: CGRect) {
         super.init(frame: frame)
@@ -151,6 +163,7 @@ open class UICollectionViewListCell: UICollectionViewCell {
         switch supplementaryKind {
         case UICollectionView.elementKindSectionHeader?: return .groupedHeader()
         case UICollectionView.elementKindSectionFooter?: return .groupedFooter()
+        case nil where isHeaderItem: return .groupedHeader()
         default:
             var configuration = UIListContentConfiguration.subtitleCell()
             configuration.listMetrics = true
@@ -199,13 +212,13 @@ open class UICollectionViewListCell: UICollectionViewCell {
         let contentWidth = accessory.width > 0 ? layoutAttributes.frame.width - accessory.width - accessoryTrailingInset : layoutAttributes.frame.width
         let height = configuredContent?.view.sizeThatFits(CGSize(width: contentWidth, height: .greatestFiniteMagnitude)).height ?? 44
         // Rows are at least 44; headers and footers are exactly their content (a footer is 35).
-        let floor: CGFloat = supplementaryKind == nil ? 44 : 0
+        let floor: CGFloat = isHeaderOrFooter ? 0 : 44
         attributes.frame = CGRect(origin: layoutAttributes.frame.origin, size: CGSize(width: layoutAttributes.frame.width, height: max(floor, height)))
         return attributes
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
-        guard supplementaryKind == nil else { return }   // headers and footers: text on the ground, no card
+        guard !isHeaderOrFooter else { return }   // headers and footers: text on the ground, no card
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let inset = listAppearance == .insetGrouped || listAppearance == .sidebar
         // The card (or the plain row) in the cell's grouped background colour, selected in grey.

@@ -5133,7 +5133,7 @@ public static let basic = UIKitFixture("uikit/button/basic", size: CGSize(width:
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/compositional", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 202, lastLine: 231, declaration: #"""
+        FixtureSource(name: "uikit/collection/compositional", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 233, lastLine: 262, declaration: #"""
 /// A compositional layout: a section of full-width 44 pt rows 8 apart with a 30 pt header,
 /// then a three-column grid of 60 pt cells 8 apart inside 16 pt content insets.
 public static let compositional = UIKitFixture("uikit/collection/compositional", size: CGSize(width: 320, height: 400)) {
@@ -5165,7 +5165,45 @@ public static let compositional = UIKitFixture("uikit/collection/compositional",
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/grid", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 155, lastLine: 167, declaration: #"""
+        FixtureSource(name: "uikit/collection/decoration", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 320, lastLine: 339, declaration: #"""
+/// Section background decoration items: full-width 44 pt rows 8 apart in 16 pt insets, the
+/// second section's background inset 8 sideways.
+public static let decoration = UIKitFixture("uikit/collection/decoration", size: CGSize(width: 320, height: 400)) {
+    let layout = UICollectionViewCompositionalLayout { section, _ in
+        let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)), subitems: [item])
+        let layoutSection = NSCollectionLayoutSection(group: group)
+        layoutSection.interGroupSpacing = 8
+        layoutSection.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        let background = NSCollectionLayoutDecorationItem.background(elementKind: "background")
+        if section == 1 { background.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8) }
+        layoutSection.decorationItems = [background]
+        return layoutSection
+    }
+    layout.register(SectionBackgroundView.self, forDecorationViewOfKind: "background")
+    let source = GridSource()
+    source.counts = [2, 3]
+    source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 0, section: 1): "item2", IndexPath(item: 2, section: 1): "item4"]
+    return make(layout: layout, source: source)
+}
+"""#),
+        FixtureSource(name: "uikit/collection/firstitem", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 303, lastLine: 316, declaration: #"""
+/// A list whose first item in each section is its header (`headerMode == .firstItemInSection`).
+public static let firstItem = UIKitFixture("uikit/collection/firstitem", size: CGSize(width: 320, height: 400)) {
+    var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+    configuration.headerMode = .firstItemInSection
+    let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+    let source = FirstItemSource()
+    firstItemSources.append(source)
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+    collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+    collection.dataSource = source
+    root.addSubview(collection.probe("collection"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/collection/grid", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 186, lastLine: 198, declaration: #"""
 /// 90 × 60 items in 16 pt insets with 8 pt spacing: three per row in 320, wrapping.
 public static let grid = UIKitFixture("uikit/collection/grid", size: CGSize(width: 320, height: 400)) {
     let layout = UICollectionViewFlowLayout()
@@ -5180,7 +5218,7 @@ public static let grid = UIKitFixture("uikit/collection/grid", size: CGSize(widt
     return make(layout: layout, source: source)
 }
 """#),
-        FixtureSource(name: "uikit/collection/headers", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 297, lastLine: 316, declaration: #"""
+        FixtureSource(name: "uikit/collection/headers", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 399, lastLine: 418, declaration: #"""
 /// Section headers (44 tall) and footers (30 tall) from the flow layout's reference sizes.
 public static let headers = UIKitFixture("uikit/collection/headers", size: CGSize(width: 320, height: 400)) {
     let layout = UICollectionViewFlowLayout()
@@ -5202,7 +5240,7 @@ public static let headers = UIKitFixture("uikit/collection/headers", size: CGSiz
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/horizontal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 169, lastLine: 180, declaration: #"""
+        FixtureSource(name: "uikit/collection/horizontal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 200, lastLine: 211, declaration: #"""
 /// A horizontal flow: 120 × 80 items in one line, 12 apart, 20 pt insets.
 public static let horizontal = UIKitFixture("uikit/collection/horizontal", size: CGSize(width: 320, height: 400)) {
     let layout = UICollectionViewFlowLayout()
@@ -5216,7 +5254,7 @@ public static let horizontal = UIKitFixture("uikit/collection/horizontal", size:
     return make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 120))
 }
 """#),
-        FixtureSource(name: "uikit/collection/list", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 233, lastLine: 247, declaration: #"""
+        FixtureSource(name: "uikit/collection/list", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 264, lastLine: 278, declaration: #"""
 /// A list layout in the inset grouped appearance: list cells with text, secondary text and
 /// a disclosure accessory in two sections.
 public static let list = UIKitFixture("uikit/collection/list", size: CGSize(width: 320, height: 400)) {
@@ -5233,7 +5271,7 @@ public static let list = UIKitFixture("uikit/collection/list", size: CGSize(widt
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/listheaders", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 251, lastLine: 268, declaration: #"""
+        FixtureSource(name: "uikit/collection/listheaders", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 282, lastLine: 299, declaration: #"""
 /// A list with supplementary headers and a footer made from list cells' default header and
 /// footer content configurations.
 public static let listHeaders = UIKitFixture("uikit/collection/listheaders", size: CGSize(width: 320, height: 400)) {
@@ -5253,7 +5291,7 @@ public static let listHeaders = UIKitFixture("uikit/collection/listheaders", siz
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/orthogonal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 272, lastLine: 295, declaration: #"""
+        FixtureSource(name: "uikit/collection/orthogonal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 374, lastLine: 397, declaration: #"""
 /// An orthogonally scrolling section (a carousel of 200 × 100 groups 12 apart, inset 16)
 /// above a plain vertical section of full-width rows.
 public static let orthogonal = UIKitFixture("uikit/collection/orthogonal", size: CGSize(width: 320, height: 400)) {
@@ -5279,7 +5317,41 @@ public static let orthogonal = UIKitFixture("uikit/collection/orthogonal", size:
     return make(layout: layout, source: source)
 }
 """#),
-        FixtureSource(name: "uikit/collection/selfsizing", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 185, lastLine: 200, declaration: #"""
+        FixtureSource(name: "uikit/collection/pinned", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 341, lastLine: 372, declaration: #"""
+/// Boundary headers pinned to the visible bounds: each stays at the top while its section
+/// scrolls under it and the next section's header pushes it away.
+public static let pinned = UIKitFixture("uikit/collection/pinned", size: CGSize(width: 320, height: 300),
+                                        model: { CollectionModel() },
+                                        steps: [UIKitFixtureStep("scroll") { model in
+                                                    model.collection?.contentOffset = CGPoint(x: 0, y: 100)
+                                                    model.collection?.layoutIfNeeded()
+                                                },
+                                                UIKitFixtureStep("push") { model in
+                                                    model.collection?.contentOffset = CGPoint(x: 0, y: 320)
+                                                    model.collection?.layoutIfNeeded()
+                                                }]) { model in
+    let layout = UICollectionViewCompositionalLayout { _, _ in
+        let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)), subitems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 8
+        let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(30)), elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
+        header.pinToVisibleBounds = true
+        section.boundarySupplementaryItems = [header]
+        return section
+    }
+    let source = HeaderSource()
+    source.counts = [6, 6]
+    source.probes = [IndexPath(item: 5, section: 0): "item5", IndexPath(item: 0, section: 1): "item6"]   // no probe on a row that scrolls away: UIKitWeb recycles its cell, UIKit keeps it
+    source.headerProbes = [0: "header0", 1: "header1"]
+    let root = make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let collection = root.subviews.first { $0 is UICollectionView } as! UICollectionView
+    collection.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+    model.collection = collection
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/collection/selfsizing", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 216, lastLine: 231, declaration: #"""
 public static let selfSizing = UIKitFixture("uikit/collection/selfsizing", size: CGSize(width: 320, height: 200)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
     let layout = UICollectionViewFlowLayout()
@@ -5297,7 +5369,7 @@ public static let selfSizing = UIKitFixture("uikit/collection/selfsizing", size:
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/sized", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 318, lastLine: 331, declaration: #"""
+        FixtureSource(name: "uikit/collection/sized", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 420, lastLine: 433, declaration: #"""
 /// Items sized by the delegate: widths 60, 100, 140, 60, 60; a row breaks where the next
 /// item does not fit.
 public static let sized = UIKitFixture("uikit/collection/sized", size: CGSize(width: 320, height: 400)) {
@@ -12899,8 +12971,39 @@ final class ListHeaderSource: NSObject, UICollectionViewDataSource {
     }
 }
 
+
+/// Two sections whose first items are their headers (`headerMode == .firstItemInSection`).
+final class FirstItemSource: NSObject, UICollectionViewDataSource {
+    let rows = [["General", "Wi-Fi", "Bluetooth"], ["Display", "Brightness"]]
+    func numberOfSections(in collectionView: UICollectionView) -> Int { rows.count }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { rows[section].count }
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "list", for: indexPath) as! UICollectionViewListCell
+        var content = cell.defaultContentConfiguration()
+        content.text = rows[indexPath.section][indexPath.item]
+        cell.contentConfiguration = content
+        return cell.probe("row\(indexPath.section)\(indexPath.item)")
+    }
+}
+
+/// A section background decoration: a grey rounded card behind the section.
+final class SectionBackgroundView: UICollectionReusableView {
+    override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        super.apply(layoutAttributes)
+        backgroundColor = .systemGray5
+        layer.cornerRadius = 12
+        probe("background\(layoutAttributes.indexPath.section)")
+    }
+}
+
+/// The collection view a behaviour fixture scrolls between renders.
+@MainActor public final class CollectionModel {
+    var collection: UICollectionView?
+    public init() {}
+}
+
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -13032,6 +13135,77 @@ public enum CollectionFixtures {
     }
 
     @MainActor static var listHeaderSources: [ListHeaderSource] = []
+
+    /// A list whose first item in each section is its header (`headerMode == .firstItemInSection`).
+    public static let firstItem = UIKitFixture("uikit/collection/firstitem", size: CGSize(width: 320, height: 400)) {
+        var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+        configuration.headerMode = .firstItemInSection
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let source = FirstItemSource()
+        firstItemSources.append(source)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+        collection.dataSource = source
+        root.addSubview(collection.probe("collection"))
+        return root
+    }
+
+    @MainActor static var firstItemSources: [FirstItemSource] = []
+
+    /// Section background decoration items: full-width 44 pt rows 8 apart in 16 pt insets, the
+    /// second section's background inset 8 sideways.
+    public static let decoration = UIKitFixture("uikit/collection/decoration", size: CGSize(width: 320, height: 400)) {
+        let layout = UICollectionViewCompositionalLayout { section, _ in
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)), subitems: [item])
+            let layoutSection = NSCollectionLayoutSection(group: group)
+            layoutSection.interGroupSpacing = 8
+            layoutSection.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+            let background = NSCollectionLayoutDecorationItem.background(elementKind: "background")
+            if section == 1 { background.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8) }
+            layoutSection.decorationItems = [background]
+            return layoutSection
+        }
+        layout.register(SectionBackgroundView.self, forDecorationViewOfKind: "background")
+        let source = GridSource()
+        source.counts = [2, 3]
+        source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 0, section: 1): "item2", IndexPath(item: 2, section: 1): "item4"]
+        return make(layout: layout, source: source)
+    }
+
+    /// Boundary headers pinned to the visible bounds: each stays at the top while its section
+    /// scrolls under it and the next section's header pushes it away.
+    public static let pinned = UIKitFixture("uikit/collection/pinned", size: CGSize(width: 320, height: 300),
+                                            model: { CollectionModel() },
+                                            steps: [UIKitFixtureStep("scroll") { model in
+                                                        model.collection?.contentOffset = CGPoint(x: 0, y: 100)
+                                                        model.collection?.layoutIfNeeded()
+                                                    },
+                                                    UIKitFixtureStep("push") { model in
+                                                        model.collection?.contentOffset = CGPoint(x: 0, y: 320)
+                                                        model.collection?.layoutIfNeeded()
+                                                    }]) { model in
+        let layout = UICollectionViewCompositionalLayout { _, _ in
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)), subitems: [item])
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = 8
+            let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(30)), elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
+            header.pinToVisibleBounds = true
+            section.boundarySupplementaryItems = [header]
+            return section
+        }
+        let source = HeaderSource()
+        source.counts = [6, 6]
+        source.probes = [IndexPath(item: 5, section: 0): "item5", IndexPath(item: 0, section: 1): "item6"]   // no probe on a row that scrolls away: UIKitWeb recycles its cell, UIKit keeps it
+        source.headerProbes = [0: "header0", 1: "header1"]
+        let root = make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let collection = root.subviews.first { $0 is UICollectionView } as! UICollectionView
+        collection.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        model.collection = collection
+        return root
+    }
 
     /// An orthogonally scrolling section (a carousel of 200 × 100 groups 12 apart, inset 16)
     /// above a plain vertical section of full-width rows.

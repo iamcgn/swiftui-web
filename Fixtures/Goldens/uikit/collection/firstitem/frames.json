@@ -1,0 +1,45 @@
+{
+  "fixture" : "uikit\/collection\/firstitem",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row00" : {
+      "height" : 44.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 0
+    },
+    "row01" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 44.5
+    },
+    "row02" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 100.5
+    },
+    "row10" : {
+      "height" : 44.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 174
+    },
+    "row11" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 218.5
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}
