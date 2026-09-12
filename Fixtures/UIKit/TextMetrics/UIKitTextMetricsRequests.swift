@@ -175,6 +175,14 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Eggs", .style("body")),
         UIKitTextRequest("Add an item", .style("body")),
         UIKitTextRequest("Fixed", .style("body")),
+        // uikit/table/indexed (body rows, 17 pt semibold plain headers 288 wide, 11 pt semibold index letters)
+        UIKitTextRequest("Ada", .style("body")), UIKitTextRequest("Alan", .style("body")), UIKitTextRequest("Barbara", .style("body")), UIKitTextRequest("Bjarne", .style("body")),
+        UIKitTextRequest("Claude", .style("body")), UIKitTextRequest("Dennis", .style("body")), UIKitTextRequest("Donald", .style("body")), UIKitTextRequest("Edsger", .style("body")), UIKitTextRequest("Frances", .style("body")),
+        UIKitTextRequest("A", .system(size: 17, weight: "semibold"), width: 288, lines: 0), UIKitTextRequest("B", .system(size: 17, weight: "semibold"), width: 288, lines: 0),
+        UIKitTextRequest("C", .system(size: 17, weight: "semibold"), width: 288, lines: 0), UIKitTextRequest("D", .system(size: 17, weight: "semibold"), width: 288, lines: 0),
+        UIKitTextRequest("E", .system(size: 17, weight: "semibold"), width: 288, lines: 0), UIKitTextRequest("F", .system(size: 17, weight: "semibold"), width: 288, lines: 0),
+        UIKitTextRequest("A", .system(size: 11, weight: "semibold")), UIKitTextRequest("B", .system(size: 11, weight: "semibold")), UIKitTextRequest("C", .system(size: 11, weight: "semibold")),
+        UIKitTextRequest("D", .system(size: 11, weight: "semibold")), UIKitTextRequest("E", .system(size: 11, weight: "semibold")), UIKitTextRequest("F", .system(size: 11, weight: "semibold")),
         // uikit/table/selfsizing (body-style wrapping labels in default cells, 15 pt in the note cell)
         UIKitTextRequest("Short", .style("body"), lines: 0),
         UIKitTextRequest("Short again", .style("body"), lines: 0),

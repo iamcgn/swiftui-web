@@ -110,6 +110,25 @@ final class EditingSource: NSObject, UITableViewDataSource, UITableViewDelegate 
     }
 }
 
+
+/// Sections lettered A to F with an index strip on the right.
+final class IndexedSource: NSObject, UITableViewDataSource {
+    let sections: [(title: String, rows: [String])] = [
+        ("A", ["Ada", "Alan"]), ("B", ["Barbara", "Bjarne"]), ("C", ["Claude"]), ("D", ["Dennis", "Donald"]), ("E", ["Edsger"]), ("F", ["Frances"]),
+    ]
+    func numberOfSections(in tableView: UITableView) -> Int { sections.count }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { sections[section].rows.count }
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { sections[section].title }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
+        cell.textLabel?.text = sections[indexPath.section].rows[indexPath.row]
+        if indexPath.row == 0 { cell.textLabel?.probe("label\(indexPath.section)") }
+        return indexPath.row == 0 ? cell.probe("row\(indexPath.section)") : cell
+    }
+    func sectionIndexTitles(for tableView: UITableView) -> [String]? { sections.map(\.title) }
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int { index }
+}
+
 @MainActor public final class TableModel {
     var table: UITableView?
     var source: TableSource?
@@ -117,7 +136,7 @@ final class EditingSource: NSObject, UITableViewDataSource, UITableViewDelegate 
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing]
+    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing, indexed]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -235,5 +254,19 @@ public enum TableFixtures {
     }
 
     @MainActor static var editingSources: [EditingSource] = []
+
+    /// A plain table with lettered section headers and the section index strip.
+    public static let indexed = UIKitFixture("uikit/table/indexed", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let source = IndexedSource()
+        indexedSources.append(source)
+        let table = UITableView(frame: root.bounds, style: .plain)
+        table.rowHeight = 44
+        table.dataSource = source
+        root.addSubview(table.probe("table"))
+        return root
+    }
+
+    @MainActor static var indexedSources: [IndexedSource] = []
 }
 #endif

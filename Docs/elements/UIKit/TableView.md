@@ -75,6 +75,20 @@ lines are 76.5 tall in a 104 pt row, one line stays at the 56 minimum); else the
 73. Measured on the simulator; frames exact, pixels within the text-heavy tolerance. See the
 wrapping-label rules in `Docs/elements/UIKit/AutoLayout.md`.
 
+## Section index (2026-09-11, `uikit/table/indexed`)
+
+`Containers/SectionIndex.swift`. The data source's `sectionIndexTitles(for:)` and
+`tableView(_:sectionForSectionIndexTitle:at:)`, the table's `sectionIndexColor`,
+`sectionIndexBackgroundColor`, `sectionIndexTrackingBackgroundColor` (stored) and
+`sectionIndexMinimumDisplayRowCount`. Measured: the strip is 15 wide at the right edge over
+the rows, riding the visible bounds; its titles are 11 pt semibold in the tint, one column
+centred vertically with the cap tops 14 apart; rows beside it end their content 15 early and
+their titles 8 before the content's edge (a 281 wide label in a 320 row). A touch on a title
+scrolls its section's header to the top, and dragging along the strip follows. Cells are now
+made only for the rows in the bounds (UIKit makes none ahead; the fixture's probes showed the
+half-viewport prefetch) while the ones half a viewport away are still kept. Pixels 0.9 % off
+the simulator. Open: the tracking background while touched, the haptic, right-to-left layouts.
+
 ## Batch updates (2026-09-11)
 
 `Containers/BatchUpdates.swift`. `insertRows` / `deleteRows` / `reloadRows` / `moveRow`,

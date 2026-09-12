@@ -57,6 +57,8 @@ public protocol UITableViewDataSource: AnyObject {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath)
     func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool
     func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath)
+    func sectionIndexTitles(for tableView: UITableView) -> [String]?
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int
 }
 
 extension UITableViewDataSource {
@@ -67,6 +69,8 @@ extension UITableViewDataSource {
     public func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {}
     public func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool { false }
     public func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {}
+    public func sectionIndexTitles(for tableView: UITableView) -> [String]? { nil }
+    public func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int { index }
 }
 
 /// Methods for managing selections, configuring section headers and footers, deleting and
@@ -140,6 +144,13 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
     /// Editing mode: editable rows shift right behind delete or insert controls, movable ones
     /// show a reorder grip (uikit/table/editing).
     open var allowsSelectionDuringEditing = false
+    /// The section index strip (Containers/SectionIndex.swift): shown when the data source
+    /// gives titles, over the rows at the right edge.
+    open var sectionIndexColor: UIColor? { didSet { sectionIndex.setNeedsDisplay() } }
+    open var sectionIndexBackgroundColor: UIColor? { didSet { sectionIndex.setNeedsDisplay() } }
+    open var sectionIndexTrackingBackgroundColor: UIColor?
+    open var sectionIndexMinimumDisplayRowCount = 0
+    let sectionIndex = SectionIndexView()
     open var isEditing = false { didSet { if isEditing != oldValue { closeSwipe(animated: false); applyEditingState() } } }
     open func setEditing(_ editing: Bool, animated: Bool) {
         guard editing != isEditing else { return }
@@ -185,9 +196,11 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
         backgroundColor = style == .plain ? .systemBackground : UIColor(light: RGBA(r: 242, g: 242, b: 247), dark: .black)
         alwaysBounceVertical = true
         let swipe = UIPanGestureRecognizer()
+        swipe.delegate = self
         swipe.addTarget { [weak self] recognizer in self?.handleSwipe(recognizer as! UIPanGestureRecognizer) }
         addGestureRecognizer(swipe)
         swipeRecognizer = swipe
+        panGestureRecognizer.delegate = self
         let tap = UITapGestureRecognizer()
         tap.delegate = self
         tap.addTarget { [weak self] recognizer in self?.handleTap(recognizer) }
@@ -271,11 +284,12 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
         cell.setEditing(isEditing && editable, animated: false)
     }
 
-    /// A swipe action button takes its own taps: the table's tap recognizer leaves them alone.
+    /// A swipe action button takes its own taps and the section index its own touches: the
+    /// table's recognizers (tap, swipe, scroll) leave them alone.
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         var view = touch.view
         while let current = view, current !== self {
-            if current is SwipeActionButton { return false }
+            if current is SwipeActionButton || current is SectionIndexView { return false }
             view = current.superview
         }
         return true
@@ -692,7 +706,32 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
             y += footer.frame.height
         }
         contentSize = CGSize(width: width, height: y)
+        let titles = dataSource.sectionIndexTitles(for: self) ?? []
+        let totalRows = rowCounts.values.reduce(0, +)
+        sectionIndex.titles = titles
+        sectionIndex.isHidden = titles.isEmpty || totalRows < sectionIndexMinimumDisplayRowCount
+        if !sectionIndex.isHidden {
+            sectionIndex.table = self
+            if sectionIndex.superview !== self { addSubview(sectionIndex) }
+        }
         updateVisibleCells()
+    }
+
+    /// The index strip rides the visible bounds at the right edge, above everything.
+    private func placeSectionIndex() {
+        guard !sectionIndex.isHidden, sectionIndex.superview === self else { return }
+        sectionIndex.frame = CGRect(x: bounds.width - SectionIndexView.width, y: contentOffset.y, width: SectionIndexView.width, height: bounds.height)
+        bringSubviewToFront(sectionIndex)
+    }
+
+    /// Scrolls so the section the index title names starts at the top.
+    func jumpToIndexTitle(_ title: String, at index: Int) {
+        guard let dataSource else { return }
+        let section = dataSource.tableView(self, sectionForSectionIndexTitle: title, at: index)
+        guard section >= 0 else { return }
+        let target = headerNaturalFrames[section]?.minY ?? rowFrames[IndexPath(row: 0, section: section)]?.minY ?? 0
+        let maxOffset = max(0, contentSize.height - bounds.height)
+        contentOffset = CGPoint(x: 0, y: min(max(0, target), maxOffset))
     }
 
     /// The header view of a section on show (a plain header pins while its section scrolls).
@@ -748,6 +787,7 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 
     private func place(_ cell: UITableViewCell, at path: IndexPath, frame: CGRect) {
         cell.frame = frame
+        cell.besideSectionIndex = !sectionIndex.isHidden
         // Grouped cards are the secondary grouped background (white; 28 grey in the dark).
         if isGrouped, cell.backgroundColor == .systemBackground { cell.backgroundColor = .secondarySystemGroupedBackground }
         cell.setSelected(selected.contains(path), animated: false)
@@ -767,8 +807,10 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
             visibleCellsByPath.removeValue(forKey: path)
             if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
         }
+        // Cells are made for the rows in the bounds only (UIKit makes no cell ahead; probes of
+        // uikit/table/indexed), while the ones half a viewport away are kept.
         var corrected = false
-        for (path, frame) in rowFrames.sorted(by: { $0.key < $1.key }) where frame.intersects(visible) && visibleCellsByPath[path] == nil {
+        for (path, frame) in rowFrames.sorted(by: { $0.key < $1.key }) where frame.intersects(bounds) && visibleCellsByPath[path] == nil {
             let cell = cellForRow(path, rows: rowCounts[path.section] ?? path.row + 1)
             // An estimated row measures itself once its cell exists; a different height lays
             // the rows out again below (the cells made so far are kept).
@@ -792,6 +834,7 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
             return
         }
         pinHeaders()
+        placeSectionIndex()
     }
 
     /// Scrolling brings other rows into view.
@@ -912,6 +955,9 @@ open class UITableViewCell: UIView {
     open var shouldIndentWhileEditing = true
     var canMove = false { didSet { setNeedsLayout() } }
     var showsGrip: Bool { isEditing && canMove && showsReorderControl }
+    /// The table shows a section index: the content ends before the 15 pt strip and the title
+    /// 8 before the content's edge (uikit/table/indexed: a 281 wide label in a 320 row).
+    var besideSectionIndex = false { didSet { if besideSectionIndex != oldValue { setNeedsLayout() } } }
 
     open func setEditing(_ editing: Bool, animated: Bool) {
         guard editing != isEditing else { return }
@@ -1135,7 +1181,7 @@ open class UITableViewCell: UIView {
         let accessory = isEditing ? .zero : accessorySize
         let accessoryRight: CGFloat = accessoryType == .checkmark ? 18.5 : 16
         let contentLeft: CGFloat = isEditing && shouldIndentWhileEditing ? Self.editingContentInset : 0
-        let contentRight: CGFloat = showsGrip ? Self.reorderControlWidth + 16 : 0
+        let contentRight: CGFloat = showsGrip ? Self.reorderControlWidth + 16 : (besideSectionIndex ? SectionIndexView.width : 0)
         let contentWidth = accessory.width > 0 ? width - accessoryRight - accessory.width : width - contentLeft - contentRight
         contentView.frame = CGRect(x: contentLeft + swipeOffset, y: 0, width: contentWidth, height: bounds.height)
         if let accessoryView {
@@ -1166,8 +1212,8 @@ open class UITableViewCell: UIView {
             imageView?.frame = .zero
         }
         guard let title = textLabel else { return }
-        // Before a reorder grip or an accessory the title ends 8 in, else 16 (uikit/table/editing).
-        let trailing: CGFloat = showsGrip || accessory.width > 0 ? 8 : 16
+        // Before a reorder grip, an accessory or the section index the title ends 8 in, else 16.
+        let trailing: CGFloat = showsGrip || accessory.width > 0 || besideSectionIndex ? 8 : 16
         switch style {
         case .default:
             title.frame = CGRect(x: x, y: 0, width: contentWidth - x - trailing, height: bounds.height)

@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/table\/indexed",
+  "frames" : {
+    "label0" : {
+      "height" : 44,
+      "width" : 281,
+      "x" : 16,
+      "y" : 50
+    },
+    "label1" : {
+      "height" : 44,
+      "width" : 281,
+      "x" : 16,
+      "y" : 188
+    },
+    "label2" : {
+      "height" : 44,
+      "width" : 281,
+      "x" : 16,
+      "y" : 326
+    },
+    "row0" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 50
+    },
+    "row1" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 188
+    },
+    "row2" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 326
+    },
+    "table" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

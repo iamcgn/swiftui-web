@@ -404,3 +404,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   status 4.41). One dump showed UIKit placing the last section's plain footer 21 into its row,
   a self-sizing artefact at the list's end; the fixture leaves that footer unprobed rather
   than copy a bug.
+- Step 38 (2026-09-11): the section index (`Docs/ROADMAP.md`, Phase 7 status 4.42). The strip's
+  letter geometry came from the golden's ink (the dump shows only the private index view's
+  frame). Its probes also showed the table making cells half a viewport ahead where UIKit makes
+  only visible ones; creation now stops at the bounds while kept cells still linger.

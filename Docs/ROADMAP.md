@@ -380,6 +380,7 @@ done 2026-09-11).
 | 4.39 Outlines | done 2026-09-11: `NSDiffableDataSourceSectionSnapshot` and `apply(_:to:)` with levels, expansion and `sectionSnapshotHandlers`; list cells indent 10 per level with their separator, an outline parent's tap toggles it; `uikit/collection/outline` (collapse and expand steps) exact (`Docs/elements/UIKit/CollectionView.md`). |
 | 4.40 Plain lists | done 2026-09-11: the plain list appearance (full-width rows, separators under every row, headers 22 below what precedes them, pinned with the pocket scrim) and lazy row measurement (rows out of view at the estimate, measured as their cells appear); `uikit/collection/plainlist` with a scroll step exact (`Docs/elements/UIKit/CollectionView.md`). |
 | 4.41 List header padding and plain footers | done 2026-09-11: `headerTopPadding` above supplementary grouped headers (default 0), plain footers, and a plain last row's separator only without a footer; `uikit/collection/listpadding` and `plainfooters` exact (`Docs/elements/UIKit/CollectionView.md`). |
+| 4.42 Section index | done 2026-09-11: the table's index strip (15 wide, 11 pt semibold titles 14 apart, centred), rows narrowed beside it, touch and drag jump to sections; cells made only for visible rows; `uikit/table/indexed` exact (`Docs/elements/UIKit/TableView.md`). |
 
 ## Risk register
 

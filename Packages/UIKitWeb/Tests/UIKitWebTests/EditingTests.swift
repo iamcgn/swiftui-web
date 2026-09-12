@@ -167,4 +167,41 @@ import UIKit
         #expect(first.frame.minY == 88)
         #expect(table.cellForRow(at: IndexPath(row: 2, section: 0))?.textLabel?.text == "a")
     }
+
+    /// The section index (Containers/SectionIndex.swift): a touch on a title scrolls its section
+    /// to the top; dragging along the strip follows.
+    @Test func sectionIndexJumpsToSections() {
+        final class Indexed: NSObject, UITableViewDataSource {
+            let titles = ["A", "B", "C", "D", "E", "F", "G", "H"]
+            func numberOfSections(in tableView: UITableView) -> Int { titles.count }
+            func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 3 }
+            func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { titles[section] }
+            func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+                tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
+            }
+            func sectionIndexTitles(for tableView: UITableView) -> [String]? { titles }
+        }
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.configureScreen(size: CGSize(width: 320, height: 300), scale: 2)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let table = UITableView(frame: window.bounds, style: .plain)
+        table.rowHeight = 44
+        let source = Indexed()
+        defer { withExtendedLifetime(source) {} }
+        table.dataSource = source
+        window.addSubview(table)
+        window.makeKeyAndVisible()
+        scene.layout(in: window.bounds.size)
+        #expect(!table.sectionIndex.isHidden && table.sectionIndex.frame == CGRect(x: 305, y: 0, width: 15, height: 300))
+        #expect(table.cellForRow(at: IndexPath(row: 0, section: 0))?.contentView.frame.width == 305)
+        // The strip's column of 8 titles is centred: 112 tall from 94; the fourth title at 136..150.
+        scene.pointerDown(at: CGPoint(x: 312, y: 143), type: .touch, time: 1)
+        #expect(table.contentOffset.y == table.rectForRow(at: IndexPath(row: 0, section: 3)).minY - 28)
+        scene.pointerMoved(to: CGPoint(x: 312, y: 200), time: 1.1)
+        scene.pointerUp(at: CGPoint(x: 312, y: 200), time: 1.2)
+        let last = table.contentOffset.y
+        #expect(last > table.rectForRow(at: IndexPath(row: 0, section: 3)).minY - 28)
+        #expect(last <= max(0, table.contentSize.height - 300))
+    }
 }
