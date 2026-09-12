@@ -123,8 +123,23 @@ above each section; a row with body text alone is 56 tall (the 24.5 pt label 16 
 a subheadline secondary text 79.5 (labels at 15 and 43.5); the content view ends 30 before the
 trailing edge for a disclosure (the 10.5 × 14 chevron 16 in) and 40 for a checkmark (19 × 18,
 18.5 in); a 1 pt separator between rows runs 16 in from both card edges. Pixels 0.8 % off the
-simulator. Open: plain appearance metrics, swipe actions, `UIListContentConfiguration`
-in table cells on these metrics.
+simulator. Open: swipe actions, `UIListContentConfiguration` in table cells on these metrics.
+
+## Plain lists (2026-09-11, `uikit/collection/plainlist`)
+
+The plain appearance: full-width 56 pt rows on the system background with separators 16 in
+from both edges under every row, the last of a section included; a supplementary header sits
+22 below what precedes it (the first at 22), 44.5 tall with the same headline content as a
+grouped one, and pins to the visible top while its section scrolls under it until the next
+section's header pushes it away (the pinned header paints the ground under itself, a 16 pt
+fade below, and the pocket's scrim: black at 15 % at its top easing to nothing 60 pt down, as
+the plain table's pinned header does; UIKit blurs the rows passing under). Rows are measured
+only as they appear: a row out of view is laid out at the estimate (56; headers 44.5, footers
+35) and, when its cell appears with another height, the layout runs again with the measured
+value (the fixture's rows below the fold have no cells, as on the simulator; a data source's
+cell provider runs only for rows in view). Frames exact with a scroll step, pixels 1.9 % off
+the simulator at worst. Open: the sidebar appearances, `headerTopPadding`, plain footers,
+`UIListContentConfiguration.plainHeader()` (the grouped header for now).
 
 ## List headers and footers (2026-09-11, `uikit/collection/listheaders`)
 

@@ -1,0 +1,112 @@
+{
+  "fixture" : "uikit\/collection\/plainlist",
+  "frames" : {
+    "collection" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "header0" : {
+      "height" : 44.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 22
+    },
+    "row00" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 66.5
+    },
+    "row01" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 122.5
+    },
+    "row02" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 178.5
+    },
+    "row03" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 234.5
+    },
+    "row04" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 290.5
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "collection" : {
+          "height" : 300,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "header0" : {
+          "height" : 44.5,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "header1" : {
+          "height" : 44.5,
+          "width" : 320,
+          "x" : 0,
+          "y" : 248.5
+        },
+        "row00" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : -53.5
+        },
+        "row01" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : 2.5
+        },
+        "row02" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : 58.5
+        },
+        "row03" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : 114.5
+        },
+        "row04" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : 170.5
+        },
+        "row10" : {
+          "height" : 56,
+          "width" : 320,
+          "x" : 0,
+          "y" : 293
+        }
+      },
+      "name" : "scroll"
+    }
+  ]
+}

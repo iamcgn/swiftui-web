@@ -150,6 +150,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 44.5
     },
+    "style:body||Archive" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 57
+    },
     "style:body||Bluetooth" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -161,6 +167,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 48.5
+    },
+    "style:body||Drafts" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 47
     },
     "style:body||Filled" : {
       "firstBaseline" : 18.357620599453821,
@@ -186,6 +198,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 36
     },
+    "style:body||Inbox" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 41.5
+    },
     "style:body||Leek" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -204,11 +222,29 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 34.5
     },
+    "style:body||Personal" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 66
+    },
     "style:body||Plain" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 36.5
+    },
+    "style:body||Receipts" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 66
+    },
+    "style:body||Sent" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 35
     },
     "style:body||Short" : {
       "firstBaseline" : 18.357620599453821,
@@ -234,6 +270,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 48.5
     },
+    "style:body||Trash" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 42.5
+    },
     "style:body||Vegetables" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -245,6 +287,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 40.5
+    },
+    "style:body||Work" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 40
     },
     "style:body|216.0|Sounds" : {
       "firstBaseline" : 18.357620599453821,
@@ -300,6 +348,18 @@
       "lastBaseline" : 13.993718187553094,
       "width" : 54.5
     },
+    "style:footnote||Folders" : {
+      "firstBaseline" : 13.993718187553094,
+      "height" : 19,
+      "lastBaseline" : 13.993718187553094,
+      "width" : 45
+    },
+    "style:footnote||Mailboxes" : {
+      "firstBaseline" : 13.993718187553094,
+      "height" : 19,
+      "lastBaseline" : 13.993718187553094,
+      "width" : 60.5
+    },
     "style:footnote|256.0|A footer note about the section." : {
       "firstBaseline" : 13.993718187553094,
       "height" : 19,
@@ -311,6 +371,18 @@
       "height" : 24.5,
       "lastBaseline" : 18.325751773774499,
       "width" : 70.5
+    },
+    "style:headline||Folders" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 59.5
+    },
+    "style:headline||Mailboxes" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 80
     },
     "style:headline|256.0|Display" : {
       "firstBaseline" : 18.325751773774499,
@@ -335,6 +407,18 @@
       "height" : 21,
       "lastBaseline" : 15.797740091254949,
       "width" : 77
+    },
+    "style:subheadline||Folders" : {
+      "firstBaseline" : 15.797740091254949,
+      "height" : 21,
+      "lastBaseline" : 15.797740091254949,
+      "width" : 51
+    },
+    "style:subheadline||Mailboxes" : {
+      "firstBaseline" : 15.797740091254949,
+      "height" : 21,
+      "lastBaseline" : 15.797740091254949,
+      "width" : 68.5
     },
     "style:subheadline||On" : {
       "firstBaseline" : 15.797740091254949,

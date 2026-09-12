@@ -394,3 +394,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   so expansion rides the existing animated diff. Fixture lesson: a golden's probes are read
   from views, so a removed cell keeps reporting its last frame and a reused one another item's;
   fixtures whose steps remove rows probe only the rows that stay.
+- Step 36 (2026-09-11): plain lists (`Docs/ROADMAP.md`, Phase 7 status 4.40). The fixture's
+  probes showed the list layout had been asking the data source for every row's cell to size
+  it, so rows below the fold existed here and not on the simulator; the layout now lays rows
+  out at the estimate until their cells appear and measures then (the table's estimate
+  correction, in the collection's terms). The pinned header's pocket has the same scrim
+  profile as the plain table's (214 grey at the top over white, 253 at 65 pt).

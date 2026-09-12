@@ -14,6 +14,8 @@ import Foundation
 open class UICollectionViewLayoutAttributes {
     /// A list row's place in its section and the list's appearance (Containers/ListLayout.swift).
     var listPosition: (first: Bool, last: Bool)?
+    /// A plain list header held at the visible top by scrolling (it paints its ground).
+    var listHeaderPinned = false
     var listAppearance: UICollectionLayoutListConfiguration.Appearance?
     /// The orthogonally scrolling section this item belongs to (Containers/CompositionalLayout.swift).
     var orthogonalSection: Int?
@@ -752,8 +754,15 @@ open class UICollectionView: UIScrollView {
                 elements.append(attribute)
             }
         }
+        let listLayout = collectionViewLayout as? UICollectionViewListLayout
+        var corrected = false
         for attribute in elements where attribute.representedElementKind == nil && visibleCellsByPath[attribute.indexPath] == nil && isVisible(attribute) {
             let cell = retainedCells.removeValue(forKey: attribute.indexPath) ?? dataSource.collectionView(self, cellForItemAt: attribute.indexPath)
+            // A list row laid out at an estimate measures itself as it appears.
+            if let listLayout, listLayout.needsMeasurement(of: attribute.indexPath) {
+                let fitted = cell.preferredLayoutAttributesFitting(attribute).frame.height
+                if listLayout.recordMeasured(fitted, at: attribute.indexPath) { corrected = true }
+            }
             cell.apply(attribute)
             cell.isSelected = selected.contains(attribute.indexPath)
             collectionDelegate?.collectionView(self, willDisplay: cell, forItemAt: attribute.indexPath)
@@ -782,9 +791,19 @@ open class UICollectionView: UIScrollView {
                 continue
             }
             let view = dataSource.collectionView(self, viewForSupplementaryElementOfKind: kind, at: attribute.indexPath)
+            if let listLayout, listLayout.needsMeasurement(ofKind: kind, section: attribute.indexPath.section) {
+                let fitted = view.preferredLayoutAttributesFitting(attribute).frame.height
+                if listLayout.recordMeasured(fitted, kind: kind, section: attribute.indexPath.section) { corrected = true }
+            }
             view.apply(attribute)
             if view.superview !== self { addSubview(view) }
             visibleSupplementaries[key(attribute)] = view
+        }
+        if corrected {
+            // Measured heights changed the layout: lay out again (the cells made so far are pooled).
+            needsReload = true
+            layoutSubviews()
+            return
         }
         // Raised supplementaries (pinned headers) stay above the cells added after them; lowered
         // ones (a header being pushed away) sit just above the decorations, under the cells.

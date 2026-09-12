@@ -60,6 +60,33 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
     let listConfiguration: UICollectionLayoutListConfiguration
     private var rows: [IndexPath: UICollectionViewLayoutAttributes] = [:]
     private var supplementary: [String: [Int: UICollectionViewLayoutAttributes]] = [:]
+    /// Where each section ends (a plain header pins until the next section pushes it away).
+    private var sectionEnds: [Int: CGFloat] = [:]
+    /// Heights measured from cells and supplementaries that appeared; rows out of view are laid
+    /// out at the estimate (56, headers 44.5, footers 35) until then, as UIKit sizes lazily
+    /// (uikit/collection/plainlist: no cell exists for a row below the fold).
+    private var measuredRows: [IndexPath: CGFloat] = [:]
+    private var measuredSupplementary: [String: CGFloat] = [:]
+
+    func needsMeasurement(of path: IndexPath) -> Bool { measuredRows[path] == nil }
+    func needsMeasurement(ofKind kind: String, section: Int) -> Bool { measuredSupplementary[kind + "#" + "\(section)"] == nil }
+
+    /// Records a row's measured height; true when it changes the row's laid-out height.
+    func recordMeasured(_ height: CGFloat, at path: IndexPath) -> Bool {
+        measuredRows[path] = height
+        return rows[path].map { $0.frame.height != height } ?? false
+    }
+
+    func recordMeasured(_ height: CGFloat, kind: String, section: Int) -> Bool {
+        measuredSupplementary[kind + "#" + "\(section)"] = height
+        return supplementary[kind]?[section].map { $0.frame.height != height } ?? false
+    }
+
+    override func invalidateLayout() {
+        measuredRows.removeAll()
+        measuredSupplementary.removeAll()
+        super.invalidateLayout()
+    }
     private var size = CGSize.zero
     private var appliedBackground = false
 
@@ -75,6 +102,7 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
     override func prepare() {
         rows.removeAll()
         supplementary.removeAll()
+        sectionEnds.removeAll()
         guard let collection = collectionView, let dataSource = collection.dataSource else { size = .zero; return }
         if !appliedBackground {
             appliedBackground = true
@@ -84,6 +112,22 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
         let inset: CGFloat = listConfiguration.isInset ? 16 : 0
         var y: CGFloat = 0
         let sections = dataSource.numberOfSections(in: collection)
+        // Only what the bounds show is measured now; the rest takes the estimate until it appears.
+        let window = collection.bounds
+        func rowHeight(_ path: IndexPath, estimate: CGFloat) -> CGFloat {
+            if let measured = measuredRows[path] { return measured }
+            guard CGRect(x: inset, y: y, width: width - 2 * inset, height: estimate).intersects(window) else { return estimate }
+            let height = collection.selfSizedItem(at: path, estimated: CGSize(width: width - 2 * inset, height: estimate)).height
+            measuredRows[path] = height
+            return height
+        }
+        func supplementaryHeight(_ kind: String, _ path: IndexPath, estimate: CGFloat) -> CGFloat {
+            if let measured = measuredSupplementary[kind + "#" + "\(path.section)"] { return measured }
+            guard CGRect(x: inset, y: y, width: width - 2 * inset, height: estimate).intersects(window) else { return estimate }
+            let height = collection.selfSizedSupplementary(ofKind: kind, at: path, estimated: CGSize(width: width - 2 * inset, height: estimate)).height
+            measuredSupplementary[kind + "#" + "\(path.section)"] = height
+            return height
+        }
         for section in 0..<sections {
             let count = dataSource.collectionView(collection, numberOfItemsInSection: section)
             // A supplementary header replaces the 35 pt gap above a grouped section
@@ -92,8 +136,10 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
             if listConfiguration.headerMode == .firstItemInSection {
                 if section > 0 { y += 17.5 }
             } else if listConfiguration.headerMode == .supplementary {
+                // A plain header sits 22 below what precedes it (uikit/collection/plainlist).
+                if !listConfiguration.isGrouped { y += 22 }
                 let path = IndexPath(item: 0, section: section)
-                let height = collection.selfSizedSupplementary(ofKind: UICollectionView.elementKindSectionHeader, at: path, estimated: CGSize(width: width - 2 * inset, height: 44.5)).height
+                let height = supplementaryHeight(UICollectionView.elementKindSectionHeader, path, estimate: 44.5)
                 let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, with: path)
                 attribute.frame = CGRect(x: inset, y: y, width: width - 2 * inset, height: height)
                 supplementary[UICollectionView.elementKindSectionHeader, default: [:]][section] = attribute
@@ -103,7 +149,7 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
             }
             for item in 0..<count {
                 let path = IndexPath(item: item, section: section)
-                let height = collection.selfSizedItem(at: path, estimated: CGSize(width: width - 2 * inset, height: 56)).height
+                let height = rowHeight(path, estimate: 56)
                 let attribute = UICollectionViewLayoutAttributes(forCellWith: path)
                 attribute.frame = CGRect(x: inset, y: y, width: width - 2 * inset, height: height)
                 let firstRow = listConfiguration.headerMode == .firstItemInSection ? 1 : 0
@@ -114,24 +160,53 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
             }
             if listConfiguration.footerMode == .supplementary {
                 let path = IndexPath(item: 0, section: section)
-                let height = collection.selfSizedSupplementary(ofKind: UICollectionView.elementKindSectionFooter, at: path, estimated: CGSize(width: width - 2 * inset, height: 35)).height
+                let height = supplementaryHeight(UICollectionView.elementKindSectionFooter, path, estimate: 35)
                 let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, with: path)
                 attribute.frame = CGRect(x: inset, y: y, width: width - 2 * inset, height: height)
                 supplementary[UICollectionView.elementKindSectionFooter, default: [:]][section] = attribute
                 y += height
             }
+            sectionEnds[section] = y
         }
         size = CGSize(width: width, height: y)
     }
 
+    /// Plain-appearance headers pin to the visible top while their section scrolls under them,
+    /// pushed away by the next section (uikit/collection/plainlist); grouped ones scroll.
+    private var pinsHeaders: Bool { !listConfiguration.isGrouped && listConfiguration.headerMode == .supplementary }
+
+    private func headerAttributes(for section: Int) -> UICollectionViewLayoutAttributes? {
+        guard let natural = supplementary[UICollectionView.elementKindSectionHeader]?[section] else { return nil }
+        guard pinsHeaders, let collection = collectionView else { return natural }
+        let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, with: natural.indexPath)
+        let top = collection.contentOffset.y + collection.adjustedContentInset.top
+        let end = sectionEnds[section] ?? natural.frame.maxY
+        var frame = natural.frame
+        frame.origin.y = min(max(natural.frame.minY, top), end - natural.frame.height)
+        attribute.frame = frame
+        attribute.zIndex = frame.minY < top ? -1 : 1
+        attribute.listHeaderPinned = frame.minY > natural.frame.minY
+        attribute.listAppearance = listConfiguration.appearance
+        return attribute
+    }
+
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         let items = rows.values.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
-        let extras = supplementary.values.flatMap { $0.values }.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
+        var extras: [UICollectionViewLayoutAttributes] = []
+        for (kind, bySection) in supplementary {
+            for (section, attribute) in bySection {
+                let placed = kind == UICollectionView.elementKindSectionHeader ? (headerAttributes(for: section) ?? attribute) : attribute
+                if placed.frame.intersects(rect) { extras.append(placed) }
+            }
+        }
+        extras.sort { $0.indexPath < $1.indexPath }
         return items + extras
     }
 
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { rows[indexPath] }
-    override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { supplementary[kind]?[indexPath.section] }
+    override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        kind == UICollectionView.elementKindSectionHeader ? headerAttributes(for: indexPath.section) : supplementary[kind]?[indexPath.section]
+    }
 
     /// Whether the item is its section's header (`headerMode == .firstItemInSection`).
     func isHeaderItem(_ indexPath: IndexPath) -> Bool { listConfiguration.headerMode == .firstItemInSection && indexPath.item == 0 }
@@ -144,6 +219,9 @@ open class UICollectionViewListCell: UICollectionViewCell {
     open var indentationLevel = 0 { didSet { setNeedsLayout() } }
     /// An outline parent's state: the disclosure chevron points down when expanded.
     var isOutlineExpanded = false { didSet { setNeedsDisplay() } }
+    /// A plain header held at the visible top: it paints the list's ground under itself and a
+    /// short fade below, where UIKit blurs the rows passing under (a scroll pocket).
+    var isPinnedHeader = false { didSet { if isPinnedHeader != oldValue { setNeedsDisplay() } } }
     open var indentationWidth: CGFloat = 10
     open var indentsAccessories = true
     var listPosition: (first: Bool, last: Bool) = (true, true)
@@ -177,6 +255,7 @@ open class UICollectionViewListCell: UICollectionViewCell {
         super.apply(layoutAttributes)
         if let position = layoutAttributes.listPosition { listPosition = position }
         if let appearance = layoutAttributes.listAppearance { listAppearance = appearance }
+        isPinnedHeader = layoutAttributes.listHeaderPinned
         setNeedsLayout()
         setNeedsDisplay()
     }
@@ -220,7 +299,26 @@ open class UICollectionViewListCell: UICollectionViewCell {
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
-        guard !isHeaderOrFooter else { return }   // headers and footers: text on the ground, no card
+        if isHeaderOrFooter {
+            // Headers and footers: text on the ground, no card. A pinned plain header covers the
+            // rows under it with the ground and a 16 pt fade (uikit/collection/plainlist scroll).
+            if isPinnedHeader {
+                // The ground under the header, then the pocket's scrim: black at 15 % at the
+                // top easing to nothing 60 pt down (the table's pinned header measures the same).
+                let ground = (listAppearance == .plain ? UIColor.systemBackground : UIColor.systemGroupedBackground).rgba(for: userStyle)
+                let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
+                list.append(.fillRect(rect, ground))
+                let fade = context.absoluteRect(CGRect(x: 0, y: bounds.height, width: bounds.width, height: 16))
+                let fadeGradient = DisplayGradient(kind: .linear(start: CGPoint(x: fade.minX, y: fade.minY), end: CGPoint(x: fade.minX, y: fade.maxY)),
+                                                   stops: [DisplayGradient.Stop(location: 0, color: ground), DisplayGradient.Stop(location: 1, color: ground.multiplyingAlpha(by: 0))])
+                list.append(.fillGradient(Path(fade), fadeGradient))
+                let top = context.absoluteRect(CGRect(x: 0, y: 0, width: bounds.width, height: 60))
+                let ink: RGBA = userStyle == .dark ? RGBA(r: 255, g: 255, b: 255) : RGBA(r: 0, g: 0, b: 0)
+                let stops = [(0.0, 0.15), (0.25, 0.106), (0.5, 0.065), (0.75, 0.028), (1.0, 0.0)].map { DisplayGradient.Stop(location: $0.0, color: ink.multiplyingAlpha(by: $0.1)) }
+                list.append(.fillGradient(Path(top), DisplayGradient(kind: .linear(start: CGPoint(x: top.minX, y: top.minY), end: CGPoint(x: top.minX, y: top.maxY)), stops: stops)))
+            }
+            return
+        }
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let inset = listAppearance == .insetGrouped || listAppearance == .sidebar
         // The card (or the plain row) in the cell's grouped background colour, selected in grey.
@@ -272,8 +370,9 @@ open class UICollectionViewListCell: UICollectionViewCell {
             }
         }
         // The separator: 1 pt at the bottom, 16 in from both edges of the card (an indented
-        // outline child's starts with its content: 42 in the card at one level), between rows only.
-        if !listPosition.last {
+        // outline child's starts with its content: 42 in the card at one level), between rows;
+        // a plain section's last row keeps its separator (uikit/collection/plainlist).
+        if !listPosition.last || listAppearance == .plain {
             let left = 16 + CGFloat(indentationLevel) * indentationWidth
             let line = context.absoluteRect(CGRect(x: left, y: bounds.height - 1, width: bounds.width - left - 16, height: 1))
             list.append(.fillRect(line, UIColor.separator.rgba(for: userStyle)))

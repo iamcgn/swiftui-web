@@ -183,8 +183,35 @@ final class SectionBackgroundView: UICollectionReusableView {
     }
 }
 
+
+/// Plain-appearance rows: two sections of body rows with a disclosure, headers over both.
+final class PlainListSource: NSObject, UICollectionViewDataSource {
+    let rows = [["Inbox", "Drafts", "Sent", "Archive", "Trash"], ["Work", "Personal", "Receipts"]]
+    func numberOfSections(in collectionView: UICollectionView) -> Int { rows.count }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { rows[section].count }
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "list", for: indexPath) as! UICollectionViewListCell
+        var content = cell.defaultContentConfiguration()
+        content.text = rows[indexPath.section][indexPath.item]
+        cell.contentConfiguration = content
+        cell.accessories = indexPath.item == 0 ? [.disclosureIndicator()] : []
+        return cell.probe("row\(indexPath.section)\(indexPath.item)")
+    }
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        let cell = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as! UICollectionViewListCell
+        var content = cell.defaultContentConfiguration()
+        content.text = indexPath.section == 0 ? "Mailboxes" : "Folders"
+        cell.contentConfiguration = content
+        return cell.probe("header\(indexPath.section)")
+    }
+}
+
+@MainActor final class PlainListModel {
+    var collection: UICollectionView?
+}
+
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline, plainList]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -487,5 +514,30 @@ public enum CollectionFixtures {
         root.addSubview(collection.probe("collection"))
         return root
     }
+
+    /// The plain appearance: full-width rows with supplementary headers, which pin while their
+    /// section scrolls under them.
+    public static let plainList = UIKitFixture("uikit/collection/plainlist", size: CGSize(width: 320, height: 300),
+                                               model: { PlainListModel() },
+                                               steps: [UIKitFixtureStep("scroll") { model in
+                                                           model.collection?.contentOffset = CGPoint(x: 0, y: 120)
+                                                           model.collection?.layoutIfNeeded()
+                                                       }]) { model in
+        var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
+        configuration.headerMode = .supplementary
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let source = PlainListSource()
+        plainListSources.append(source)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collection.dataSource = source
+        model.collection = collection
+        root.addSubview(collection.probe("collection"))
+        return root
+    }
+
+    @MainActor static var plainListSources: [PlainListSource] = []
 }
 #endif
