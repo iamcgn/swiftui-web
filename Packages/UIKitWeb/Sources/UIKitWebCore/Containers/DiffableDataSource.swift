@@ -120,6 +120,25 @@ public struct NSDiffableDataSourceSnapshot<SectionIdentifierType: Hashable & Sen
 
     public mutating func reloadItems(_ identifiers: [ItemIdentifierType]) { reloaded.formUnion(identifiers) }
     public mutating func reconfigureItems(_ identifiers: [ItemIdentifierType]) { reconfigured.formUnion(identifiers) }
+
+    /// The items of this snapshot that `new` still holds, old index path to new, and the new
+    /// paths whose cells are replaced (reloaded, reconfigured, or in a reloaded section).
+    func retained(in new: NSDiffableDataSourceSnapshot) -> (mapping: [IndexPath: IndexPath], replaced: Set<IndexPath>) {
+        var newPaths: [ItemIdentifierType: IndexPath] = [:]
+        for (section, identifier) in new.sectionIdentifiers.enumerated() {
+            for (item, itemIdentifier) in (new.items[identifier] ?? []).enumerated() { newPaths[itemIdentifier] = IndexPath(item: item, section: section) }
+        }
+        var mapping: [IndexPath: IndexPath] = [:]
+        var replaced: Set<IndexPath> = []
+        for (section, identifier) in sectionIdentifiers.enumerated() {
+            for (item, itemIdentifier) in (items[identifier] ?? []).enumerated() {
+                guard let newPath = newPaths[itemIdentifier] else { continue }
+                mapping[IndexPath(item: item, section: section)] = newPath
+                if new.reloaded.contains(itemIdentifier) || new.reconfigured.contains(itemIdentifier) || new.reloadedSections.contains(identifier) { replaced.insert(newPath) }
+            }
+        }
+        return (mapping, replaced)
+    }
 }
 
 /// The shared bookkeeping: the applied snapshot and lookups by index path.
@@ -209,11 +228,19 @@ open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & 
         collectionView.dataSource = self
     }
 
-    /// Applies the snapshot: the view reloads to match (differences are not animated).
+    /// Applies the snapshot: animating, the items in both snapshots keep their cells and slide
+    /// to their new places while removed ones fade out and added ones fade in (reloaded and
+    /// reconfigured items get fresh cells); otherwise the view reloads to match.
     open func apply(_ snapshot: NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>, animatingDifferences: Bool = true, completion: (() -> Void)? = nil) {
+        let old = state.snapshot
         state.snapshot = snapshot
-        collectionView?.reloadData()
-        if let completion { UIKitScene.shared.schedule(after: 0) { completion() } }
+        guard animatingDifferences, let collectionView else {
+            collectionView?.reloadData()
+            if let completion { _ = UIKitScene.shared.schedule(after: 0) { completion() } }
+            return
+        }
+        let diff = old.retained(in: snapshot)
+        collectionView.animateUpdate(retained: diff.mapping, replaced: diff.replaced, completion: completion.map { done in { _ in done() } })
     }
 
     open func applySnapshotUsingReloadData(_ snapshot: NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>, completion: (() -> Void)? = nil) {
@@ -256,9 +283,15 @@ open class UITableViewDiffableDataSource<SectionIdentifierType: Hashable & Senda
     }
 
     open func apply(_ snapshot: NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>, animatingDifferences: Bool = true, completion: (() -> Void)? = nil) {
+        let old = state.snapshot
         state.snapshot = snapshot
-        tableView?.reloadData()
-        if let completion { UIKitScene.shared.schedule(after: 0) { completion() } }
+        guard animatingDifferences, let tableView else {
+            tableView?.reloadData()
+            if let completion { _ = UIKitScene.shared.schedule(after: 0) { completion() } }
+            return
+        }
+        let diff = old.retained(in: snapshot)
+        tableView.animateUpdate(retained: diff.mapping, replaced: diff.replaced, completion: completion.map { done in { _ in done() } })
     }
 
     open func applySnapshotUsingReloadData(_ snapshot: NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>, completion: (() -> Void)? = nil) {

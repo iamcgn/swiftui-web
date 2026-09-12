@@ -558,19 +558,112 @@ open class UICollectionView: UIScrollView {
     // MARK: Loading
 
     open func reloadData() { setNeedsReload() }
-    open func reloadItems(at indexPaths: [IndexPath]) { setNeedsReload() }
-    open func reloadSections(_ sections: IndexSet) { setNeedsReload() }
-    open func insertItems(at indexPaths: [IndexPath]) { setNeedsReload() }
-    open func deleteItems(at indexPaths: [IndexPath]) { setNeedsReload() }
-    open func insertSections(_ sections: IndexSet) { setNeedsReload() }
-    open func deleteSections(_ sections: IndexSet) { setNeedsReload() }
+
+    // MARK: Batch updates (Containers/BatchUpdates.swift)
+
+    private var pendingUpdate: BatchUpdateMapping?
+    private var updateDepth = 0
+    /// The items per section at the last layout (the old counts of a batch update).
+    private var itemCounts: [Int] = []
+    /// Cells kept across an animated update, by their new index path.
+    private var retainedCells: [IndexPath: UICollectionViewCell] = [:]
+
+    private func record(_ change: (inout BatchUpdateMapping) -> Void) {
+        if pendingUpdate != nil {
+            change(&pendingUpdate!)
+        } else {
+            beginUpdates()
+            change(&pendingUpdate!)
+            endUpdates(completion: nil)
+        }
+    }
+
+    open func reloadItems(at indexPaths: [IndexPath]) { record { $0.reloadedItems.formUnion(indexPaths) } }
+    open func reloadSections(_ sections: IndexSet) { record { $0.reloadedSections.formUnion(sections) } }
+    open func insertItems(at indexPaths: [IndexPath]) { record { $0.insertedItems.formUnion(indexPaths) } }
+    open func deleteItems(at indexPaths: [IndexPath]) { record { $0.deletedItems.formUnion(indexPaths) } }
+    open func moveItem(at indexPath: IndexPath, to newIndexPath: IndexPath) { record { $0.moves[indexPath] = newIndexPath } }
+    open func insertSections(_ sections: IndexSet) { record { $0.insertedSections.formUnion(sections) } }
+    open func deleteSections(_ sections: IndexSet) { record { $0.deletedSections.formUnion(sections) } }
+    open func moveSection(_ section: Int, toSection newSection: Int) { record { $0.deletedSections.insert(section); $0.insertedSections.insert(newSection) } }
+
+    private func beginUpdates() {
+        if pendingUpdate == nil { pendingUpdate = BatchUpdateMapping(oldCounts: itemCounts) }
+        updateDepth += 1
+    }
+
+    private func endUpdates(completion: ((Bool) -> Void)?) {
+        updateDepth = max(0, updateDepth - 1)
+        guard updateDepth == 0, let update = pendingUpdate else { return }
+        pendingUpdate = nil
+        let retained = update.retained()
+        animateUpdate(retained: retained.mapping, replaced: retained.reloaded, completion: completion)
+    }
+
     open func performBatchUpdates(_ updates: (() -> Void)?, completion: ((Bool) -> Void)? = nil) {
+        beginUpdates()
         updates?()
-        setNeedsReload()
-        completion?(true)
+        endUpdates(completion: completion)
+    }
+
+    /// Lays the collection out for the new data keeping the cells of `retained` items (old
+    /// index path to new), which slide to their new frames; other items' cells fade out, new
+    /// items' cells fade in; `replaced` items (reloaded) get a new cell at once. Off screen or
+    /// before the first layout the collection just reloads.
+    func animateUpdate(retained: [IndexPath: IndexPath], replaced: Set<IndexPath>, completion: ((Bool) -> Void)?) {
+        guard window != nil, !visibleCellsByPath.isEmpty, !needsReload else {
+            reloadData()
+            if let completion { _ = UIKitScene.shared.schedule(after: 0) { completion(true) } }
+            return
+        }
+        var startFrames: [IndexPath: CGRect] = [:]
+        var fading: [UICollectionViewCell] = []
+        for (oldPath, cell) in visibleCellsByPath {
+            if let newPath = retained[oldPath], !replaced.contains(newPath), cell.superview === self {
+                retainedCells[newPath] = cell
+                startFrames[newPath] = cell.frame
+            } else {
+                fading.append(cell)
+            }
+        }
+        visibleCellsByPath.removeAll()
+        let before = Set(fading.map { ObjectIdentifier($0) }).union(retainedCells.values.map { ObjectIdentifier($0) })
+        needsReload = true
+        layoutSubviews()
+        for cell in retainedCells.values {
+            cell.removeFromSuperview()
+            if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+        }
+        retainedCells.removeAll()
+        var inserted: [UICollectionViewCell] = []
+        for (path, cell) in visibleCellsByPath {
+            if let start = startFrames[path] {
+                let target = cell.frame
+                UIView.performWithoutAnimation { cell.frame = start }
+                UIView.animate(withDuration: batchUpdateDuration) { cell.frame = target }
+            } else if !before.contains(ObjectIdentifier(cell)) {
+                inserted.append(cell)
+            }
+        }
+        for cell in fading { bringSubviewToFront(cell) }
+        UIView.performWithoutAnimation { for cell in inserted { cell.alpha = 0 } }
+        UIView.animate(withDuration: batchUpdateDuration, animations: {
+            for cell in inserted { cell.alpha = 1 }
+            for cell in fading { cell.alpha = 0 }
+        }, completion: { [weak self] _ in
+            guard let self else { return }
+            for cell in fading {
+                cell.removeFromSuperview()
+                cell.alpha = 1
+                if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+            }
+            completion?(true)
+        })
     }
 
     func setNeedsReload() {
+        pendingUpdate = nil
+        updateDepth = 0
         needsReload = true
         setNeedsLayout()
     }
@@ -593,6 +686,11 @@ open class UICollectionView: UIScrollView {
             visibleDecorations.removeAll()
             collectionViewLayout.prepare()
             contentSize = collectionViewLayout.collectionViewContentSize
+            if let dataSource {
+                itemCounts = (0..<dataSource.numberOfSections(in: self)).map { dataSource.collectionView(self, numberOfItemsInSection: $0) }
+            } else {
+                itemCounts = []
+            }
         }
         updateVisibleCells()
     }
@@ -651,7 +749,7 @@ open class UICollectionView: UIScrollView {
             }
         }
         for attribute in elements where attribute.representedElementKind == nil && visibleCellsByPath[attribute.indexPath] == nil && isVisible(attribute) {
-            let cell = dataSource.collectionView(self, cellForItemAt: attribute.indexPath)
+            let cell = retainedCells.removeValue(forKey: attribute.indexPath) ?? dataSource.collectionView(self, cellForItemAt: attribute.indexPath)
             cell.apply(attribute)
             cell.isSelected = selected.contains(attribute.indexPath)
             collectionDelegate?.collectionView(self, willDisplay: cell, forItemAt: attribute.indexPath)

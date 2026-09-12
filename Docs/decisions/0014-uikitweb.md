@@ -354,3 +354,10 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   slot comes from the "0" advance and a per-weight ratio measured with CoreText (regular text
   face: exactly the "0"), sent in the font string, digits centred in their slots. The recorded
   metrics key gains `:tabular`, spelled by `UIKitFixtureFont.monospacedDigit`.
+- Step 30 (2026-09-11): animated batch updates (`Docs/ROADMAP.md`, Phase 7 status 4.35). Rather
+  than diffing views, both containers take a map of surviving rows (old index path to new): the
+  batch API builds it from the recorded inserts, deletes and moves under UIKit's old/new index
+  semantics, the diffable data sources from the item identifiers. The container lays out for
+  the new data with the surviving cells handed back to it under their new paths, then animates
+  frames and alpha with `UIView.animate`; no golden covers the motion (the harness settles
+  before capturing), so `BatchUpdateTests` drive the scene's clock.

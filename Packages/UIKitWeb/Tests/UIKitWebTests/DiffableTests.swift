@@ -64,7 +64,10 @@ import UIKit
         var completed = false
         source.apply(next) { completed = true }
         scene.layout(in: CGSize(width: 320, height: 300))
+        // The animated apply completes with its 0.3 s animation (BatchUpdateTests).
         _ = scene.advanceFrame(elapsed: 0.05)
+        #expect(!completed)
+        _ = scene.advanceFrame(elapsed: 0.3)
         #expect(completed)
         #expect(collection.visibleCells.count == 3)
         #expect(source.itemIdentifier(for: IndexPath(item: 1, section: 0)) == "c")

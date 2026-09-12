@@ -61,7 +61,22 @@ half a viewport above and below, are returned to the reuse pool as they scroll o
 Rows with automatic heights and no estimate still build every cell (their height needs it);
 an estimate is taken as the height, not corrected when the cell appears.
 
-Open: row animations, editing (swipe to
+## Batch updates (2026-09-11)
+
+`Containers/BatchUpdates.swift`. `insertRows` / `deleteRows` / `reloadRows` / `moveRow`,
+`insertSections` / `deleteSections` / `reloadSections` / `moveSection`, `beginUpdates` /
+`endUpdates` and `performBatchUpdates(_:completion:)` record an update (deletes and reloads
+name old index paths, inserts new ones, as UIKit's batch semantics have it; a call outside a
+batch is its own update). Committing it maps every surviving row to its new place: the rows a
+section keeps take the new indices its inserts and moved-in rows leave free, in order. The
+table then lays out for the new data keeping the surviving rows' cells, which slide from their
+old frames to the new ones over 0.3 s, while deleted rows' cells fade out on top and inserted
+rows' cells fade in; reloaded rows get a fresh cell at once. The completion runs when the
+animation ends. A table off screen or before its first layout just reloads (`RowAnimation` is
+accepted; every animation is the fade and slide). `BatchUpdateTests` drive the scene's clock
+through an update.
+
+Open: editing (swipe to
 delete, reordering), `UIListContentConfiguration` / `contentConfiguration`, section index titles,
 `UICollectionView`, the grouped (non-inset) style's exact geometry, dark appearance.
 

@@ -81,8 +81,16 @@ append, insert before / after, delete, move, reload, reconfigure, lookups),
 same over a table, `defaultRowAnimation` stored, `titleForHeaderInSection` overridable),
 `UICollectionView.CellRegistration` / `SupplementaryRegistration` with
 `dequeueConfiguredReusableCell(using:for:item:)` / `dequeueConfiguredReusableSupplementary(using:for:)`.
-Applying a snapshot reloads the view to match; the differences are not animated (open), and the
-completion runs on the next frame.
+Applying a snapshot with `animatingDifferences` (2026-09-11) keeps the cells of the items both
+snapshots hold and slides them to their new places over 0.3 s while removed items' cells fade
+out and added items' cells fade in; reloaded, reconfigured and reloaded-section items get fresh
+cells at once, and the completion runs when the animation ends. Without animation, or before the
+view's first layout, the view reloads to match and the completion runs on the next frame. The
+same animation serves `performBatchUpdates` with `insertItems` / `deleteItems` / `reloadItems` /
+`moveItem` and the section calls (`Containers/BatchUpdates.swift`; the mapping rules are in
+`Docs/elements/UIKit/TableView.md`). Open: the diffable data source's per-item move detection
+when an item also changes section, `UICollectionViewLayout` animation hooks
+(`initialLayoutAttributesForAppearingItem` and friends).
 
 ## Compositional layouts (2026-09-11, `uikit/collection/compositional`)
 

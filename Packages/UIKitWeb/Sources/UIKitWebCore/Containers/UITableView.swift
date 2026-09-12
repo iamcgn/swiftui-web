@@ -26,6 +26,10 @@ public struct IndexSet: Hashable, Sendable, ExpressibleByArrayLiteral, Sequence 
     public var count: Int { indices.count }
     public func contains(_ integer: Int) -> Bool { indices.contains(integer) }
     public mutating func insert(_ integer: Int) { indices.insert(integer) }
+    public mutating func remove(_ integer: Int) { indices.remove(integer) }
+    public mutating func formUnion(_ other: IndexSet) { indices.formUnion(other.indices) }
+    public func union(_ other: IndexSet) -> IndexSet { IndexSet(indices.union(other.indices)) }
+    public var isEmpty: Bool { indices.isEmpty }
 }
 #else
 import Foundation
@@ -232,21 +236,116 @@ open class UITableView: UIScrollView {
     // MARK: Loading
 
     open func reloadData() { setNeedsReload() }
-    open func reloadRows(at indexPaths: [IndexPath], with animation: RowAnimation) { setNeedsReload() }
-    open func reloadSections(_ sections: IndexSet, with animation: RowAnimation) { setNeedsReload() }
-    open func insertRows(at indexPaths: [IndexPath], with animation: RowAnimation) { setNeedsReload() }
-    open func deleteRows(at indexPaths: [IndexPath], with animation: RowAnimation) { setNeedsReload() }
-    open func insertSections(_ sections: IndexSet, with animation: RowAnimation) { setNeedsReload() }
-    open func deleteSections(_ sections: IndexSet, with animation: RowAnimation) { setNeedsReload() }
-    open func beginUpdates() {}
-    open func endUpdates() { setNeedsReload() }
+    // MARK: Batch updates (Containers/BatchUpdates.swift)
+
+    /// The update being recorded between `beginUpdates` and `endUpdates`.
+    private var pendingUpdate: BatchUpdateMapping?
+    private var updateDepth = 0
+    /// Cells kept across an animated update, by their new index path (`cellForRow` takes them
+    /// before asking the data source).
+    private var retainedCells: [IndexPath: UITableViewCell] = [:]
+
+    private func record(_ change: (inout BatchUpdateMapping) -> Void) {
+        if pendingUpdate != nil {
+            change(&pendingUpdate!)
+        } else {
+            beginUpdates()
+            change(&pendingUpdate!)
+            endUpdates()
+        }
+    }
+
+    open func reloadRows(at indexPaths: [IndexPath], with animation: RowAnimation) { record { $0.reloadedItems.formUnion(indexPaths) } }
+    open func reloadSections(_ sections: IndexSet, with animation: RowAnimation) { record { $0.reloadedSections.formUnion(sections) } }
+    open func insertRows(at indexPaths: [IndexPath], with animation: RowAnimation) { record { $0.insertedItems.formUnion(indexPaths) } }
+    open func deleteRows(at indexPaths: [IndexPath], with animation: RowAnimation) { record { $0.deletedItems.formUnion(indexPaths) } }
+    open func moveRow(at indexPath: IndexPath, to newIndexPath: IndexPath) { record { $0.moves[indexPath] = newIndexPath } }
+    open func insertSections(_ sections: IndexSet, with animation: RowAnimation) { record { $0.insertedSections.formUnion(sections) } }
+    open func deleteSections(_ sections: IndexSet, with animation: RowAnimation) { record { $0.deletedSections.formUnion(sections) } }
+    open func moveSection(_ section: Int, toSection newSection: Int) { record { $0.deletedSections.insert(section); $0.insertedSections.insert(newSection) } }
+
+    open func beginUpdates() {
+        if pendingUpdate == nil {
+            let sections = rowCounts.keys.max().map { $0 + 1 } ?? 0
+            pendingUpdate = BatchUpdateMapping(oldCounts: (0..<sections).map { rowCounts[$0] ?? 0 })
+        }
+        updateDepth += 1
+    }
+
+    open func endUpdates() { endUpdates(completion: nil) }
+
+    private func endUpdates(completion: ((Bool) -> Void)?) {
+        updateDepth = max(0, updateDepth - 1)
+        guard updateDepth == 0, let update = pendingUpdate else { return }
+        pendingUpdate = nil
+        let retained = update.retained()
+        animateUpdate(retained: retained.mapping, replaced: retained.reloaded, completion: completion)
+    }
+
     open func performBatchUpdates(_ updates: (() -> Void)?, completion: ((Bool) -> Void)? = nil) {
+        beginUpdates()
         updates?()
-        setNeedsReload()
-        completion?(true)
+        endUpdates(completion: completion)
+    }
+
+    /// Lays the table out for the new data keeping the cells of `retained` rows (old index path
+    /// to new), which slide to their new frames; other rows' cells fade out, new rows' cells
+    /// fade in; `replaced` rows (reloaded) get a new cell at once. Off screen or before the
+    /// first layout the table just reloads.
+    func animateUpdate(retained: [IndexPath: IndexPath], replaced: Set<IndexPath>, completion: ((Bool) -> Void)?) {
+        guard window != nil, !visibleCellsByPath.isEmpty, !needsReload else {
+            reloadData()
+            if let completion { _ = UIKitScene.shared.schedule(after: 0) { completion(true) } }
+            return
+        }
+        var startFrames: [IndexPath: CGRect] = [:]
+        var fading: [UITableViewCell] = []
+        for (oldPath, cell) in visibleCellsByPath {
+            if let newPath = retained[oldPath], !replaced.contains(newPath) {
+                retainedCells[newPath] = cell
+                startFrames[newPath] = cell.frame
+            } else {
+                fading.append(cell)
+            }
+        }
+        visibleCellsByPath.removeAll()
+        let before = Set(fading.map { ObjectIdentifier($0) }).union(retainedCells.values.map { ObjectIdentifier($0) })
+        reload()
+        // Retained rows now out of view go back to the pool.
+        for cell in retainedCells.values {
+            cell.removeFromSuperview()
+            if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+        }
+        retainedCells.removeAll()
+        var inserted: [UITableViewCell] = []
+        for (path, cell) in visibleCellsByPath {
+            if let start = startFrames[path] {
+                let target = cell.frame
+                UIView.performWithoutAnimation { cell.frame = start }
+                UIView.animate(withDuration: batchUpdateDuration) { cell.frame = target }
+            } else if !before.contains(ObjectIdentifier(cell)) {
+                inserted.append(cell)
+            }
+        }
+        for cell in fading { bringSubviewToFront(cell) }
+        UIView.performWithoutAnimation { for cell in inserted { cell.alpha = 0 } }
+        UIView.animate(withDuration: batchUpdateDuration, animations: {
+            for cell in inserted { cell.alpha = 1 }
+            for cell in fading { cell.alpha = 0 }
+        }, completion: { [weak self] _ in
+            guard let self else { return }
+            for cell in fading {
+                cell.removeFromSuperview()
+                cell.alpha = 1
+                if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+            }
+            completion?(true)
+        })
     }
 
     private func setNeedsReload() {
+        pendingUpdate = nil
+        updateDepth = 0
         needsReload = true
         setNeedsLayout()
     }
@@ -415,7 +514,7 @@ open class UITableView: UIScrollView {
     /// Asks the data source for the cell and marks its place in the section.
     private func cellForRow(_ path: IndexPath, rows: Int) -> UITableViewCell {
         guard let dataSource else { return UITableViewCell(style: .default, reuseIdentifier: nil) }
-        let cell = dataSource.tableView(self, cellForRowAt: path)
+        let cell = retainedCells.removeValue(forKey: path) ?? dataSource.tableView(self, cellForRowAt: path)
         cell.tableStyle = style
         cell.isFirstInSection = path.row == 0
         cell.isLastInSection = path.row == rows - 1

@@ -373,6 +373,7 @@ done 2026-09-11).
 | 4.32 String and image drawing | done 2026-09-11: `draw(at:withAttributes:)`, `draw(in:withAttributes:)`, `size(withAttributes:)`, `boundingRect`, `NSAttributedString` (a stand-in on wasm) with `.font` / `.foregroundColor` / `.paragraphStyle`, `NSMutableParagraphStyle` alignment, `UIImage.draw(at:)` / `draw(in:)` (symbols and catalog images) through the context's transform, alpha and shadow; `uikit/draw/text` within 2.6 % (`Docs/elements/UIKit/Drawing.md`). |
 | 4.33 Search scope bar | done 2026-09-11: `scopeButtonTitles`, `showsScopeBar`, `selectedScopeButtonIndex` and the delegate's scope change; a 47 pt band under the 64 pt bar holding an equal-width segmented control with 15 pt titles; `uikit/search/scope` exact and within 1.7 % (`Docs/elements/UIKit/Bars.md`). |
 | 4.34 Tabular figures | done 2026-09-11: `monospacedDigitSystemFont` and `Font.monospacedDigit()` set `ResolvedFont.tabularDigits`; CoreText uses the number-spacing feature, Canvas2D draws and measures digits on a slot from the "0" advance and a per-weight ratio (`TabularFigures`); `uikit/label/tabular` exact (`Docs/elements/UIKit/UIFont.md`). |
+| 4.35 Animated batch updates | done 2026-09-11: `performBatchUpdates`, insert / delete / reload / move rows, items and sections, and diffable `apply(animatingDifferences:)` keep surviving cells and slide them, fade removed cells out and new ones in over 0.3 s, completion at the end (`Containers/BatchUpdates.swift`, `BatchUpdateTests`; `Docs/elements/UIKit/TableView.md`). |
 
 ## Risk register
 
