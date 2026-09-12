@@ -1,0 +1,15 @@
+{
+  "fixture" : "uikit\/draw\/text",
+  "frames" : {
+    "text" : {
+      "height" : 240,
+      "width" : 280,
+      "x" : 20,
+      "y" : 10
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

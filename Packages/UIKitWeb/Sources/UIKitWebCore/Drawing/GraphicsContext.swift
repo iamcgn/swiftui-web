@@ -227,6 +227,22 @@ public final class UIGraphicsRecordingContext {
         withShadow { commands.append(.strokePath(path.applying(state.ctm), style: scaled, color)) }
     }
 
+    /// The current alpha, for text and image drawing.
+    var currentAlpha: CGFloat { state.alpha }
+
+    /// Records commands spelled in the context's own coordinates: between a concat of the
+    /// transform and a restore, inside the shadow group when there is one.
+    func record(_ local: [DisplayCommand]) {
+        guard !local.isEmpty else { return }
+        let ctm = state.ctm
+        withShadow {
+            commands.append(.save)
+            commands.append(.concat(ctm))
+            commands.append(contentsOf: local)
+            commands.append(.restore)
+        }
+    }
+
     /// Closes what is still open when drawing ends.
     func finish() {
         while !stack.isEmpty { restoreGState() }

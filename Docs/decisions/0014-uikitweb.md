@@ -338,3 +338,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   away iOS 26 draws it beneath the cells (a scroll pocket blur UIKitWeb does not paint). The
   pinned fixture probes no row that scrolls away: UIKitWeb recycles its cell while UIKit keeps
   every cell, so the probe would follow the reused cell.
+- Step 27 (2026-09-11): string and image drawing in `draw(_:)` (`Docs/ROADMAP.md`, Phase 7
+  status 4.32). Text and images recorded from a graphics context go between a concat of the
+  context's transform and a restore rather than through pre-transformed geometry, since the
+  symbol painter and the image draw have no transform of their own; the display list already
+  had the command. `NSAttributedString` is Foundation's on Apple platforms (with the UIKit keys
+  added as extensions) and a one-dictionary stand-in on wasm, where FoundationEssentials has none.

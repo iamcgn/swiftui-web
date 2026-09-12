@@ -170,6 +170,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Wi-Fi", .style("body"), width: 256, lines: 0),
         UIKitTextRequest("Bluetooth", .style("body"), width: 256, lines: 0),
         UIKitTextRequest("Brightness", .style("body"), width: 256, lines: 0),
+        // uikit/draw/text (string drawing: unwrapped, or wrapped to 150)
+        UIKitTextRequest("Hello, drawing", .system(size: 20, weight: "semibold"), lines: 0),
+        UIKitTextRequest("Right aligned", .system(size: 17), lines: 0),
+        UIKitTextRequest("Centred", .system(size: 17), lines: 0),
+        UIKitTextRequest("Attributed", .system(size: 15, weight: "semibold"), lines: 0),
+        UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 15), width: 150, lines: 0),
+        UIKitTextRequest("Tilted", .system(size: 17, weight: "medium"), lines: 0),
         // uikit/collection/selfsizing (15 pt tags)
         UIKitTextRequest("Swift", .system(size: 15)),
         UIKitTextRequest("SwiftUI", .system(size: 15)),

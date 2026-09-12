@@ -17,7 +17,7 @@ import WebGraphicsNative
     /// Fixtures held to three times the tolerance: text-heavy ones, where CoreText's rendering of
     /// SF on macOS differs from the simulator's in antialiasing and line pitch (`label/wrapping`:
     /// 4.6 % with identical text and breaks).
-    static let approximate: Set<String> = ["uikit/label/wrapping"]
+    static let approximate: Set<String> = ["uikit/label/wrapping", "uikit/draw/text"]
     /// Fixtures compared by frames only (their look is not painted yet).
     /// The wheels date picker: a drum drawn approximately (Docs/elements/UIKit/DatePicker.md).
     static let framesOnly: Set<String> = ["uikit/datepicker/wheels", "uikit/picker/basic"]

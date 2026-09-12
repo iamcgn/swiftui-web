@@ -48,7 +48,27 @@ CoreGraphics painter: the transforms, dashes, even-odd fills, clips and shadow m
 `UIBezierPath.addArc(clockwise:)` runs clockwise on screen (y down), which is the substrate's
 counter-clockwise flag.
 
-Open: text drawing (`NSString.draw(at:withAttributes:)`, `NSAttributedString`), `UIImage.draw`,
-gradients (`CGGradient`), `UIGraphicsImageRenderer` and image contexts, blend modes,
+## Strings and images (2026-09-11, `uikit/draw/text`)
+
+`Drawing/StringDrawing.swift`. `draw(at:withAttributes:)` (unwrapped), `draw(in:withAttributes:)`
+(wrapped to the rect's width, the lines that fit its height), `size(withAttributes:)` and
+`boundingRect(with:options:attributes:context:)` on strings; `NSAttributedString.draw(at:)`,
+`draw(in:)`, `size()` and `boundingRect` reading the attributes at the string's start
+(`.font`, `.foregroundColor`, `.paragraphStyle`; the class is Foundation's on Apple platforms
+and a one-dictionary stand-in on wasm); `NSParagraphStyle` / `NSMutableParagraphStyle` with
+`alignment` and `lineBreakMode`; `UIImage.draw(at:)` and `draw(in:)` for symbols (the symbol
+painter, tinted) and catalog images (an image draw). Everything is recorded between a concat of
+the context's transform and a restore, inside the context's shadow group, with its alpha
+(images under 1 in an opacity group). Defaults without attributes: the 12 pt system font in
+black. Measured: a string's first baseline sits at the font's ascender below the point, lines
+one line pitch apart; a right-aligned or centred paragraph places each line by its ink width in
+the rect. The fixture (a semibold title with a line under its measured width, right-aligned and
+centred lines, an attributed string, text wrapped to 150 pt, a rotated string, a 40 pt tinted
+star) renders within 2.6 % of the simulator's pixels, the star's glyph shape from the symbol
+table making most of the difference; the CoreText engine wraps the fox sentence on the same
+words. Open: per-range attributes, underline and strikethrough, `NSMutableAttributedString`,
+`UIImage.draw` with blend modes.
+
+Open: gradients (`CGGradient`), `UIGraphicsImageRenderer` and image contexts, blend modes,
 `CGPath`/`CGMutablePath` on Apple platforms (there `UIBezierPath.cgPath` is the substrate's
 `Path`, not CoreGraphics's), caching of drawn content between frames.

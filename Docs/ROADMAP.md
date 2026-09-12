@@ -370,6 +370,7 @@ done 2026-09-11).
 | 4.29 First-item list headers | done 2026-09-11: `headerMode == .firstItemInSection` styles each section's first cell as its header (the list cell knows at dequeue; grouped header content, no card, 17.5 between sections); `uikit/collection/firstitem` exact and within 1.2 % (`Docs/elements/UIKit/CollectionView.md`). |
 | 4.30 Decoration items | done 2026-09-11: `NSCollectionLayoutDecorationItem.background(elementKind:)` with `contentInsets`, `register(_:forDecorationViewOfKind:)`; a decoration spans its section, insets included, hosted behind the cells; `uikit/collection/decoration` exact and within 0.1 %. |
 | 4.31 Pinned boundary headers | done 2026-09-11: `pinToVisibleBounds` holds a section's top header at the visible top until the next section pushes it away; a pushed header slips under the cells as iOS 26 hides it; `uikit/collection/pinned` (two scroll steps) exact and within 1.6 %. |
+| 4.32 String and image drawing | done 2026-09-11: `draw(at:withAttributes:)`, `draw(in:withAttributes:)`, `size(withAttributes:)`, `boundingRect`, `NSAttributedString` (a stand-in on wasm) with `.font` / `.foregroundColor` / `.paragraphStyle`, `NSMutableParagraphStyle` alignment, `UIImage.draw(at:)` / `draw(in:)` (symbols and catalog images) through the context's transform, alpha and shadow; `uikit/draw/text` within 2.6 % (`Docs/elements/UIKit/Drawing.md`). |
 
 ## Risk register
 

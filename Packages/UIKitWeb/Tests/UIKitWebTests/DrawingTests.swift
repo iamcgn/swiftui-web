@@ -3,6 +3,10 @@
 // restores nest, clips and shadows close.
 import Testing
 import UIKit
+import WebGraphics
+#if canImport(AppKit)
+import WebGraphicsNative
+#endif
 
 @Suite @MainActor struct DrawingTests {
     final class Drawer: UIView {
@@ -71,5 +75,38 @@ import UIKit
             path.stroke()
         }
         #expect(commands.contains { $0.hasPrefix("strokePath(") && $0.contains("w=2") && $0.contains("#00FF00") })
+    }
+
+    /// String and image drawing (Drawing/StringDrawing.swift): text lands as drawText commands
+    /// under a concat of the context's transform, at the view's origin plus the point; an alpha
+    /// wraps an image in a group.
+    @Test func drawsStringsAndImagesThroughTheTransform() throws {
+        #if canImport(AppKit)
+        UIKitScene.shared.textEngine = CoreTextEngine()
+        #endif
+        defer { UIKitScene.shared.textEngine = try! Goldens.textEngine() }
+        let commands = render { context in
+            "Hi".draw(at: CGPoint(x: 5, y: 7), withAttributes: [.font: UIFont.systemFont(ofSize: 17), .foregroundColor: UIColor.red])
+            context.translateBy(x: 20, y: 0)
+            NSAttributedString(string: "There", attributes: [.font: UIFont.boldSystemFont(ofSize: 15)]).draw(at: .zero)
+            context.setAlpha(0.5)
+            UIImage(systemName: "star.fill")?.draw(in: CGRect(x: 0, y: 30, width: 20, height: 20))
+        }
+        #if canImport(AppKit)
+        let texts = commands.filter { $0.hasPrefix("drawText(") }
+        #expect(texts.count == 2, "\(commands)")
+        // The first string is red at (5, 7 + ascender) inside a concat translating by the view's origin (10, 20).
+        #expect(texts.first?.contains("\"Hi\"") == true && texts.first?.contains("#FF0000") == true)
+        let concats = commands.filter { $0.hasPrefix("concat(") }
+        #expect(concats.first == "concat(1, 0, 0, 1, 10, 20)", "\(concats)")
+        #expect(concats.dropFirst().first == "concat(1, 0, 0, 1, 30, 20)", "\(concats)")
+        #endif
+        #expect(commands.contains { $0.hasPrefix("beginGroup(opacity: 0.5") })
+        let measured = "Hi".size(withAttributes: [.font: UIFont.systemFont(ofSize: 17)])
+        #if canImport(AppKit)
+        #expect(measured.width > 10 && measured.height > 15)
+        #else
+        #expect(measured.height >= 0)
+        #endif
     }
 }

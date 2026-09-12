@@ -5564,7 +5564,7 @@ public static let wheels = UIKitFixture("uikit/datepicker/wheels", size: CGSize(
     return root
 }
 """#),
-        FixtureSource(name: "uikit/draw/basic", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 86, lastLine: 95, declaration: #"""
+        FixtureSource(name: "uikit/draw/basic", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 126, lastLine: 135, declaration: #"""
 public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 320, height: 420)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 420))
     let shapes = ShapesView(frame: CGRect(x: 20, y: 10, width: 280, height: 190))
@@ -5573,6 +5573,15 @@ public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 3
     let context = ContextView(frame: CGRect(x: 20, y: 210, width: 280, height: 190))
     context.backgroundColor = .clear
     root.addSubview(context.probe("context"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/draw/text", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 137, lastLine: 143, declaration: #"""
+public static let text = UIKitFixture("uikit/draw/text", size: CGSize(width: 320, height: 260)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 260))
+    let view = TextDrawingView(frame: CGRect(x: 20, y: 10, width: 280, height: 240))
+    view.backgroundColor = .clear
+    root.addSubview(view.probe("text"))
     return root
 }
 """#),
@@ -13572,8 +13581,48 @@ final class ContextView: UIView {
     }
 }
 
+
+/// Strings, attributed strings and images drawn in `draw(_:)`: a semibold title with a line under
+/// its measured width, right-aligned and centred lines in a rect, an attributed string, wrapped
+/// text in a narrow rect, a rotated string, a tinted symbol scaled into a rect.
+final class TextDrawingView: UIView {
+    override func draw(_ rect: CGRect) {
+        let title = "Hello, drawing"
+        let titleAttributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 20, weight: .semibold), .foregroundColor: UIColor.systemBlue]
+        title.draw(at: CGPoint(x: 10, y: 10), withAttributes: titleAttributes)
+        let measured = title.size(withAttributes: titleAttributes)
+        UIColor.systemBlue.setStroke()
+        let underline = UIBezierPath()
+        underline.move(to: CGPoint(x: 10, y: 10 + measured.height + 2))
+        underline.addLine(to: CGPoint(x: 10 + measured.width, y: 10 + measured.height + 2))
+        underline.lineWidth = 2
+        underline.stroke()
+
+        let right = NSMutableParagraphStyle()
+        right.alignment = .right
+        "Right aligned".draw(in: CGRect(x: 10, y: 50, width: 260, height: 30), withAttributes: [.font: UIFont.systemFont(ofSize: 17), .foregroundColor: UIColor.label, .paragraphStyle: right])
+        let centre = NSMutableParagraphStyle()
+        centre.alignment = .center
+        "Centred".draw(in: CGRect(x: 10, y: 80, width: 260, height: 30), withAttributes: [.font: UIFont.systemFont(ofSize: 17), .foregroundColor: UIColor.secondaryLabel, .paragraphStyle: centre])
+
+        NSAttributedString(string: "Attributed", attributes: [.font: UIFont.boldSystemFont(ofSize: 15), .foregroundColor: UIColor.systemRed]).draw(at: CGPoint(x: 10, y: 120))
+
+        "The quick brown fox jumps over the lazy dog".draw(in: CGRect(x: 10, y: 150, width: 150, height: 80), withAttributes: [.font: UIFont.systemFont(ofSize: 15), .foregroundColor: UIColor.label])
+
+        if let context = UIGraphicsGetCurrentContext() {
+            context.saveGState()
+            context.translateBy(x: 180, y: 200)
+            context.rotate(by: -.pi / 12)
+            "Tilted".draw(at: .zero, withAttributes: [.font: UIFont.systemFont(ofSize: 17, weight: .medium), .foregroundColor: UIColor.systemPurple])
+            context.restoreGState()
+        }
+
+        UIImage(systemName: "star.fill")?.withTintColor(.systemYellow).draw(in: CGRect(x: 200, y: 10, width: 40, height: 40))
+    }
+}
+
 public enum DrawFixtures {
-    public static let all = [basic]
+    public static let all = [basic, text]
 
     public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 320, height: 420)) {
         let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 420))
@@ -13583,6 +13632,14 @@ public enum DrawFixtures {
         let context = ContextView(frame: CGRect(x: 20, y: 210, width: 280, height: 190))
         context.backgroundColor = .clear
         root.addSubview(context.probe("context"))
+        return root
+    }
+
+    public static let text = UIKitFixture("uikit/draw/text", size: CGSize(width: 320, height: 260)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 260))
+        let view = TextDrawingView(frame: CGRect(x: 20, y: 10, width: 280, height: 240))
+        view.backgroundColor = .clear
+        root.addSubview(view.probe("text"))
         return root
     }
 }

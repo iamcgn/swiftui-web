@@ -390,6 +390,12 @@
       "lastBaseline" : 14.2822265625,
       "width" : 52.5
     },
+    "system:15:400:default|150.0|The quick brown fox jumps over the lazy dog" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 54,
+      "lastBaseline" : 50.0830078125,
+      "width" : 142.5
+    },
     "system:15:400:default|190.0|Height 15" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -413,6 +419,12 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 161.5
+    },
+    "system:15:600:default||Attributed" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 73.5
     },
     "system:16:400:default|190.0|Height 16" : {
       "firstBaseline" : 15.234375,
@@ -738,6 +750,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 46
     },
+    "system:17:400:default||Centred" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 61.5
+    },
     "system:17:400:default||Field" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -767,6 +785,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 73.5
+    },
+    "system:17:400:default||Right aligned" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 99.5
     },
     "system:17:400:default||secret" : {
       "firstBaseline" : 16.1865234375,
@@ -869,6 +893,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 40
+    },
+    "system:17:500:default||Tilted" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 44.5
     },
     "system:17:600:default|;l1|Cancel" : {
       "firstBaseline" : 16.1865234375,
@@ -1007,6 +1037,12 @@
       "height" : 24,
       "lastBaseline" : 19.04296875,
       "width" : 116
+    },
+    "system:20:600:default||Hello, drawing" : {
+      "firstBaseline" : 19.04296875,
+      "height" : 24,
+      "lastBaseline" : 19.04296875,
+      "width" : 131
     },
     "system:24:400:default|190.0|Height 24" : {
       "firstBaseline" : 22.8515625,
@@ -1213,6 +1249,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 7.8955078125
+    },
+    "system:15:600:default" : {
+      "ascender" : 14.2822265625,
+      "capHeight" : 10.56884765625,
+      "descender" : -3.6181640625,
+      "leading" : 0,
+      "lineHeight" : 17.900390625,
+      "pointSize" : 15,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 8.00537109375
     },
     "system:16:400:default" : {
       "ascender" : 15.234375,
