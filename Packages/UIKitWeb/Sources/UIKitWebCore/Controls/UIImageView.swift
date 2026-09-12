@@ -13,8 +13,10 @@ public final class UIImage: Hashable, @unchecked Sendable {
     public let size: CGSize
     public let tint: UIColor?
     public let symbolConfiguration: SymbolConfiguration?
+    /// The recording an image context made (`UIGraphicsImageRenderer`), replayed when drawn.
+    public let drawing: UIImageDrawing?
 
-    init(name: String, isSystemSymbol: Bool, renderingMode: RenderingMode = .automatic, scale: CGFloat = 2, size: CGSize, tint: UIColor? = nil, symbolConfiguration: SymbolConfiguration? = nil) {
+    init(name: String, isSystemSymbol: Bool, renderingMode: RenderingMode = .automatic, scale: CGFloat = 2, size: CGSize, tint: UIColor? = nil, symbolConfiguration: SymbolConfiguration? = nil, drawing: UIImageDrawing? = nil) {
         self.name = name
         self.isSystemSymbol = isSystemSymbol
         self.renderingMode = renderingMode
@@ -22,6 +24,12 @@ public final class UIImage: Hashable, @unchecked Sendable {
         self.size = size
         self.tint = tint
         self.symbolConfiguration = symbolConfiguration
+        self.drawing = drawing
+    }
+
+    /// An image made by an image context.
+    convenience init(drawing: UIImageDrawing) {
+        self.init(name: "", isSystemSymbol: false, scale: drawing.scale, size: drawing.size, drawing: drawing)
     }
 
     /// An image from the app's asset catalog; nil when the catalog has no such name.
@@ -42,11 +50,11 @@ public final class UIImage: Hashable, @unchecked Sendable {
     }
 
     public func withRenderingMode(_ mode: RenderingMode) -> UIImage {
-        UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: mode, scale: scale, size: size, tint: tint, symbolConfiguration: symbolConfiguration)
+        UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: mode, scale: scale, size: size, tint: tint, symbolConfiguration: symbolConfiguration, drawing: drawing)
     }
 
     public func withTintColor(_ color: UIColor, renderingMode: RenderingMode = .alwaysOriginal) -> UIImage {
-        UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: renderingMode, scale: scale, size: size, tint: color, symbolConfiguration: symbolConfiguration)
+        UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: renderingMode, scale: scale, size: size, tint: color, symbolConfiguration: symbolConfiguration, drawing: drawing)
     }
 
     public func withConfiguration(_ configuration: SymbolConfiguration) -> UIImage {
@@ -56,7 +64,7 @@ public final class UIImage: Hashable, @unchecked Sendable {
     }
 
     public static func == (lhs: UIImage, rhs: UIImage) -> Bool {
-        lhs.name == rhs.name && lhs.isSystemSymbol == rhs.isSystemSymbol && lhs.renderingMode == rhs.renderingMode && lhs.size == rhs.size && lhs.tint == rhs.tint
+        lhs.name == rhs.name && lhs.isSystemSymbol == rhs.isSystemSymbol && lhs.renderingMode == rhs.renderingMode && lhs.size == rhs.size && lhs.tint == rhs.tint && lhs.drawing === rhs.drawing
     }
     public func hash(into hasher: inout Hasher) { hasher.combine(name) }
 
@@ -135,6 +143,10 @@ open class UIImageView: UIView {
         let rect = context.absoluteRect(imageRect(for: image.size))
         let tint: RGBA? = image.renderingMode == .alwaysTemplate || (image.renderingMode == .automatic && image.isSystemSymbol)
             ? (image.tint ?? tintColor).rgba(for: style) : image.tint?.rgba(for: style)
+        if let drawing = image.drawing {
+            for command in drawing.commands(in: rect) { list.append(command) }
+            return
+        }
         if image.isSystemSymbol {
             SymbolPainter.paint(name: image.name, in: rect, color: tint ?? UIColor.label.rgba(for: style), weight: image.symbolConfiguration?.weight?.css ?? 400, into: &list)
             return

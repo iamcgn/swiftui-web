@@ -5718,7 +5718,7 @@ public static let wheels = UIKitFixture("uikit/datepicker/wheels", size: CGSize(
     return root
 }
 """#),
-        FixtureSource(name: "uikit/draw/basic", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 126, lastLine: 135, declaration: #"""
+        FixtureSource(name: "uikit/draw/basic", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 160, lastLine: 169, declaration: #"""
 public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 320, height: 420)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 420))
     let shapes = ShapesView(frame: CGRect(x: 20, y: 10, width: 280, height: 190))
@@ -5730,7 +5730,16 @@ public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 3
     return root
 }
 """#),
-        FixtureSource(name: "uikit/draw/text", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 137, lastLine: 143, declaration: #"""
+        FixtureSource(name: "uikit/draw/gradient", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 179, lastLine: 185, declaration: #"""
+public static let gradient = UIKitFixture("uikit/draw/gradient", size: CGSize(width: 320, height: 200)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+    let view = GradientView(frame: CGRect(x: 20, y: 10, width: 280, height: 180))
+    view.backgroundColor = .clear
+    root.addSubview(view.probe("gradient"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/draw/text", file: "Fixtures/UIKit/Draw/DrawFixtures.swift", firstLine: 171, lastLine: 177, declaration: #"""
 public static let text = UIKitFixture("uikit/draw/text", size: CGSize(width: 320, height: 260)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 260))
     let view = TextDrawingView(frame: CGRect(x: 20, y: 10, width: 280, height: 240))
@@ -14121,8 +14130,42 @@ final class TextDrawingView: UIView {
     }
 }
 
+
+/// Gradients through the graphics context and an image made by `UIGraphicsImageRenderer`: a
+/// linear gradient across a rect, a radial one in a clipped circle, and a rendered badge
+/// (a rounded rect with a stroke) drawn twice.
+final class GradientView: UIView {
+    override func draw(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        let space = CGColorSpaceCreateDeviceRGB()
+        context.saveGState()
+        context.clip(to: CGRect(x: 10, y: 10, width: 260, height: 50))
+        let linear = CGGradient(colorsSpace: space, colors: [UIColor.systemBlue.cgColor, UIColor.systemPurple.cgColor] as CFArray, locations: [0, 1])!
+        context.drawLinearGradient(linear, start: CGPoint(x: 10, y: 10), end: CGPoint(x: 270, y: 10), options: [])
+        context.restoreGState()
+
+        context.saveGState()
+        context.addEllipse(in: CGRect(x: 10, y: 80, width: 80, height: 80))
+        context.clip()
+        let radial = CGGradient(colorsSpace: space, colors: [UIColor.white.cgColor, UIColor.systemOrange.cgColor] as CFArray, locations: [0, 1])!
+        context.drawRadialGradient(radial, startCenter: CGPoint(x: 40, y: 110), startRadius: 0, endCenter: CGPoint(x: 50, y: 120), endRadius: 45, options: [])
+        context.restoreGState()
+
+        let badge = UIGraphicsImageRenderer(size: CGSize(width: 60, height: 30)).image { renderer in
+            UIColor.systemGreen.setFill()
+            UIBezierPath(roundedRect: CGRect(x: 0, y: 0, width: 60, height: 30), cornerRadius: 8).fill()
+            UIColor.white.setStroke()
+            let inner = UIBezierPath(roundedRect: CGRect(x: 4, y: 4, width: 52, height: 22), cornerRadius: 5)
+            inner.lineWidth = 2
+            inner.stroke()
+        }
+        badge.draw(at: CGPoint(x: 120, y: 90))
+        badge.draw(in: CGRect(x: 200, y: 85, width: 80, height: 40))
+    }
+}
+
 public enum DrawFixtures {
-    public static let all = [basic, text]
+    public static let all = [basic, text, gradient]
 
     public static let basic = UIKitFixture("uikit/draw/basic", size: CGSize(width: 320, height: 420)) {
         let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 420))
@@ -14140,6 +14183,14 @@ public enum DrawFixtures {
         let view = TextDrawingView(frame: CGRect(x: 20, y: 10, width: 280, height: 240))
         view.backgroundColor = .clear
         root.addSubview(view.probe("text"))
+        return root
+    }
+
+    public static let gradient = UIKitFixture("uikit/draw/gradient", size: CGSize(width: 320, height: 200)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+        let view = GradientView(frame: CGRect(x: 20, y: 10, width: 280, height: 180))
+        view.backgroundColor = .clear
+        root.addSubview(view.probe("gradient"))
         return root
     }
 }

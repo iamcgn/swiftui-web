@@ -1,0 +1,15 @@
+{
+  "fixture" : "uikit\/draw\/gradient",
+  "frames" : {
+    "gradient" : {
+      "height" : 180,
+      "width" : 280,
+      "x" : 20,
+      "y" : 10
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

@@ -290,6 +290,8 @@ public final class CoreGraphicsPainter {
             ctx.drawLinearGradient(cgGradient, start: start, end: end, options: options)
         case .radial(let center, let r0, let r1):
             ctx.drawRadialGradient(cgGradient, startCenter: center, startRadius: r0, endCenter: center, endRadius: r1, options: options)
+        case .focalRadial(let start, let r0, let end, let r1):
+            ctx.drawRadialGradient(cgGradient, startCenter: start, startRadius: r0, endCenter: end, endRadius: r1, options: options)
         case .angular(let center, let startAngle):
             let box = ctx.boundingBoxOfClipPath
             let corners = [box.origin, CGPoint(x: box.maxX, y: box.minY), CGPoint(x: box.minX, y: box.maxY), CGPoint(x: box.maxX, y: box.maxY)]

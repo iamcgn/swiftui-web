@@ -201,13 +201,15 @@ extension UIGraphicsRecordingContext {
     }
 
     /// Records the image scaled into `rect`: a symbol through the symbol painter, a catalog
-    /// image as an image draw.
+    /// image as an image draw, an image context's recording replayed.
     func drawImage(_ image: UIImage, in rect: CGRect, alpha: CGFloat) {
         let style = UITraitCollection.current.userInterfaceStyle
         let tint: RGBA? = image.renderingMode == .alwaysTemplate || (image.renderingMode == .automatic && image.isSystemSymbol)
             ? (image.tint ?? UIColor.label).rgba(for: style) : image.tint?.rgba(for: style)
         var list = DisplayList()
-        if image.isSystemSymbol {
+        if let drawing = image.drawing {
+            for command in drawing.commands(in: rect) { list.append(command) }
+        } else if image.isSystemSymbol {
             SymbolPainter.paint(name: image.name, in: rect, color: tint ?? UIColor.label.rgba(for: style), weight: image.symbolConfiguration?.weight?.css ?? 400, into: &list)
         } else {
             let catalog = UIKitScene.shared.assetCatalog

@@ -27,6 +27,11 @@ import WebGraphicsNative
 public typealias CGContext = UIGraphicsRecordingContext
 #endif
 
+/// Gradients for `drawLinearGradient` / `drawRadialGradient`: the recording context's own class.
+/// Declared here, beside the re-export of CoreGraphics, the name shadows CoreGraphics's
+/// `CGGradient` (opaque, so it could not be drawn by the recorder) for apps importing UIKit.
+public typealias CGGradient = UIGraphicsGradient
+
 /// Marker used by the module-shadowing check (decision 0014).
 public struct UIKitWebMarker: Sendable {
     public init() {}

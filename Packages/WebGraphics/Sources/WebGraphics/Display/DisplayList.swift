@@ -200,6 +200,7 @@ extension DisplayGradient {
         switch kind {
         case .linear(let start, let end): kindText = "linear \(p(start))→\(p(end))"
         case .radial(let center, let r0, let r1): kindText = "radial \(p(center)) r\(r0)→\(r1)"
+        case .focalRadial(let start, let r0, let end, let r1): kindText = "radial \(p(start)) r\(r0)→\(p(end)) r\(r1)"
         case .angular(let center, let angle): kindText = "angular \(p(center)) a\(angle)"
         }
         func hex(_ value: Double) -> String {

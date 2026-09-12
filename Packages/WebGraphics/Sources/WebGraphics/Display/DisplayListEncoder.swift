@@ -73,6 +73,7 @@ public enum DisplayListEncoder {
             case .linear(let start, let end): out.ops += [0, start.x, start.y, end.x, end.y]
             case .radial(let center, let r0, let r1): out.ops += [1, center.x, center.y, r0, r1]
             case .angular(let center, let angle): out.ops += [2, center.x, center.y, angle]
+            case .focalRadial(let start, let r0, let end, let r1): out.ops += [3, start.x, start.y, r0, end.x, end.y, r1]
             }
             out.ops.append(Double(g.stops.count))
             for stop in g.stops { out.ops.append(stop.location); color(stop.color) }
@@ -182,11 +183,11 @@ public enum DisplayListDecoder {
         func f(_ r: CGRect) -> String { "\(r.minX),\(r.minY),\(r.width),\(r.height)" }
         func gradientText() -> String {
             let kind = Int(next())
-            let params = kind == 2 ? 3 : 4
+            let params = [4, 4, 3, 6][kind]
             let numbers = (0..<params).map { _ in next() }
             let count = Int(next())
             let stops = (0..<count).map { _ in "\(next()):\(color())" }
-            return "\(["linear", "radial", "angular"][kind]) \(numbers) [\(stops.joined(separator: " "))]"
+            return "\(["linear", "radial", "angular", "focalRadial"][kind]) \(numbers) [\(stops.joined(separator: " "))]"
         }
         while i < ops.count {
             switch DisplayOp(rawValue: next())! {

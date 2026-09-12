@@ -230,6 +230,9 @@ public final class UIGraphicsRecordingContext {
     /// The current alpha, for text and image drawing.
     var currentAlpha: CGFloat { state.alpha }
 
+    /// Records one absolute command inside the shadow group when there is one.
+    func recordShadowed(_ command: DisplayCommand) { withShadow { commands.append(command) } }
+
     /// Records commands spelled in the context's own coordinates: between a concat of the
     /// transform and a restore, inside the shadow group when there is one.
     func record(_ local: [DisplayCommand]) {

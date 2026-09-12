@@ -3,7 +3,6 @@
 // restores nest, clips and shadows close.
 import Testing
 import UIKit
-import WebGraphics
 #if canImport(AppKit)
 import WebGraphicsNative
 #endif
@@ -108,5 +107,72 @@ import WebGraphicsNative
         #else
         #expect(measured.height >= 0)
         #endif
+    }
+
+    @Test func gradientsFillTheClippedRegionThroughTheTransform() {
+        let commands = render { context in
+            let space = CGColorSpaceCreateDeviceRGB()
+            let linear = CGGradient(colorsSpace: space, colors: [UIColor.red.cgColor, UIColor.blue.cgColor] as CFArray, locations: [0, 1])!
+            context.saveGState()
+            context.clip(to: CGRect(x: 0, y: 0, width: 50, height: 20))
+            context.drawLinearGradient(linear, start: CGPoint(x: 0, y: 0), end: CGPoint(x: 50, y: 0), options: [])
+            context.restoreGState()
+            context.translateBy(x: 10, y: 10)
+            context.setAlpha(0.5)
+            let radial = CGGradient(colorsSpace: space, colors: [UIColor.white.cgColor, UIColor.black.cgColor] as CFArray, locations: [0, 1])!
+            context.drawRadialGradient(radial, startCenter: CGPoint(x: 5, y: 5), startRadius: 2, endCenter: CGPoint(x: 10, y: 10), endRadius: 20, options: [])
+        }
+        let gradients = commands.filter { $0.hasPrefix("fillGradient(") }
+        #expect(gradients.count == 2, "\(commands)")
+        // The linear band lands after the clip, its points at the view's origin (10, 20).
+        #expect(commands.firstIndex { $0.hasPrefix("clipPath(") }! < commands.firstIndex { $0.hasPrefix("fillGradient(") }!)
+        #expect(gradients[0].contains("linear 10.0,20.0→60.0,20.0") && gradients[0].contains("0.0:FF0000") && gradients[0].contains("1.0:0000FF"), "\(gradients[0])")
+        // The radial one: two circles through the translation, an even-odd region outside the start circle, half alpha.
+        #expect(gradients[1].contains(" eo ") && gradients[1].contains("radial 25.0,35.0 r2.0→30.0,40.0 r20.0"), "\(gradients[1])")
+        #expect(gradients[1].contains("FFFFFF") && gradients[1].contains("000000"))
+    }
+
+    @Test func imageRenderersRecordAndReplay() throws {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 20, height: 10))
+        let badge = renderer.image { context in
+            UIColor.green.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 20, height: 10))
+            UIColor.white.setStroke()
+            UIBezierPath(rect: CGRect(x: 2, y: 2, width: 16, height: 6)).stroke()
+        }
+        #expect(badge.size == CGSize(width: 20, height: 10))
+        #expect(badge.drawing?.commands.count == 2)
+        #expect(UIGraphicsGetCurrentContext() == nil)
+        let commands = render { context in
+            badge.draw(at: CGPoint(x: 5, y: 5))
+            badge.draw(in: CGRect(x: 0, y: 30, width: 40, height: 20))
+        }
+        let concats = commands.filter { $0.hasPrefix("concat(") }
+        // Each draw: the context's transform (the view at 10, 20), then the image's placement and scale.
+        #expect(concats == ["concat(1, 0, 0, 1, 10, 20)", "concat(1, 0, 0, 1, 5, 5)", "concat(1, 0, 0, 1, 10, 20)", "concat(2, 0, 0, 2, 0, 30)"], "\(concats)")
+        #expect(commands.filter { $0.hasPrefix("fillPath(") && $0.contains("#00FF00") }.count == 2)
+        #expect(commands.filter { $0.hasPrefix("strokePath(") && $0.contains("#FFFFFF") }.count == 2)
+
+        // The older functions record the same way, and the image view draws the recording too.
+        UIGraphicsBeginImageContextWithOptions(CGSize(width: 8, height: 8), false, 0)
+        UIColor.red.setFill()
+        UIRectFill(CGRect(x: 0, y: 0, width: 8, height: 8))
+        let square = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        #expect(square?.size == CGSize(width: 8, height: 8) && square?.drawing?.commands.count == 1)
+        #expect(UIGraphicsGetImageFromCurrentImageContext() == nil)
+        let imageView = UIImageView(image: square)
+        #expect(imageView.intrinsicContentSize == CGSize(width: 8, height: 8))
+        UIKitScene.shared.removeAllWindows()
+        UIKitScene.shared.configureScreen(size: CGSize(width: 200, height: 200), scale: 2)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 200, height: 200))
+        imageView.frame = CGRect(x: 3, y: 4, width: 8, height: 8)
+        window.addSubview(imageView)
+        window.makeKeyAndVisible()
+        UIKitScene.shared.layout(in: CGSize(width: 200, height: 200))
+        let painted = UIKitScene.shared.render(scale: 2, background: false).commands.map(\.description)
+        let placement = try #require(painted.firstIndex(of: "concat(1, 0, 0, 1, 3, 4)"), "\(painted)")
+        #expect(painted[placement - 1] == "save" && painted[placement + 2] == "restore")
+        #expect(painted[placement + 1].hasPrefix("fillPath(") && painted[placement + 1].contains("#FF0000"), "\(painted[placement + 1])")
     }
 }

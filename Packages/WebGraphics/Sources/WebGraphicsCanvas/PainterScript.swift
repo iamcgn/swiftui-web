@@ -157,7 +157,8 @@ enum PainterScript {
         let style;
         if (kind === 0) style = ctx.createLinearGradient(buf[i++], buf[i++], buf[i++], buf[i++]);
         else if (kind === 1) { const cx = buf[i++], cy = buf[i++], r0 = buf[i++], r1 = buf[i++]; style = ctx.createRadialGradient(cx, cy, r0, cx, cy, r1); }
-        else { const cx = buf[i++], cy = buf[i++], angle = buf[i++]; style = ctx.createConicGradient(angle, cx, cy); }
+        else if (kind === 2) { const cx = buf[i++], cy = buf[i++], angle = buf[i++]; style = ctx.createConicGradient(angle, cx, cy); }
+        else { const x0 = buf[i++], y0 = buf[i++], r0 = buf[i++], x1 = buf[i++], y1 = buf[i++], r1 = buf[i++]; style = ctx.createRadialGradient(x0, y0, r0, x1, y1, r1); }
         const count = buf[i++];
         for (let k = 0; k < count; k++) { const loc = buf[i++]; style.addColorStop(Math.min(Math.max(loc, 0), 1), color(buf[i++], buf[i++], buf[i++], buf[i++])); }
         return { style, i };

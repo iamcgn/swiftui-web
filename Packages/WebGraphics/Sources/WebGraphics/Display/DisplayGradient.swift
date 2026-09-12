@@ -3,6 +3,9 @@ public struct DisplayGradient: Equatable, Sendable {
     public enum Kind: Equatable, Sendable {
         case linear(start: CGPoint, end: CGPoint)
         case radial(center: CGPoint, startRadius: CGFloat, endRadius: CGFloat)
+        /// A radial gradient between two circles that need not share a centre (CoreGraphics's
+        /// `drawRadialGradient`, Canvas2D's `createRadialGradient`).
+        case focalRadial(startCenter: CGPoint, startRadius: CGFloat, endCenter: CGPoint, endRadius: CGFloat)
         case angular(center: CGPoint, startAngle: Double)
     }
 

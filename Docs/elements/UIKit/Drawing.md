@@ -1,7 +1,8 @@
 # Custom drawing: draw(_:), UIBezierPath, the graphics context
 
 `Packages/UIKitWeb/Sources/UIKitWebCore/Drawing/` (decision 0014, Phase 3): `UIBezierPath.swift`,
-`GraphicsContext.swift`. Fixture `uikit/draw/basic` (`Fixtures/UIKit/Draw`), compared by
+`GraphicsContext.swift`, `StringDrawing.swift`, `Gradients.swift`, `ImageRenderer.swift`.
+Fixtures `uikit/draw/basic`, `text` and `gradient` (`Fixtures/UIKit/Draw`), compared by
 pixels against the simulator (`UIKitPixelTests`); `DrawingTests` holds the mechanics.
 
 ## API
@@ -69,6 +70,48 @@ table making most of the difference; the CoreText engine wraps the fox sentence 
 words. Open: per-range attributes, underline and strikethrough, `NSMutableAttributedString`,
 `UIImage.draw` with blend modes.
 
-Open: gradients (`CGGradient`), `UIGraphicsImageRenderer` and image contexts, blend modes,
-`CGPath`/`CGMutablePath` on Apple platforms (there `UIBezierPath.cgPath` is the substrate's
-`Path`, not CoreGraphics's), caching of drawn content between frames.
+## Gradients and image contexts (2026-09-12, `uikit/draw/gradient`)
+
+`Drawing/Gradients.swift`, `Drawing/ImageRenderer.swift`.
+
+- `CGGradient(colorsSpace:colors:locations:)` (a `CFArray` of `CGColor`s, the locations as an
+  array or nil for evenly spaced) and `init(colorSpace:colorComponents:locations:count:)`. The
+  class is `UIGraphicsGradient` in `UIKitWebCore`; the thin `UIKit` module declares the
+  `CGGradient` typealias beside its re-export of CoreGraphics, and Swift's shadowing rule (a
+  module's declarations hide same-named ones in the modules it re-exports) makes a file that
+  imports UIKit see only it, so `locations: nil` resolves (a real `CGGradient` cannot be read
+  back; `CGGradientShadowTests`). A file that also imports `WebGraphics`, which re-exports
+  CoreGraphics, sees both classes and must pass the locations as an array (`[0, 1]` picks the
+  array overload over the pointer one; `nil` is ambiguous). On wasm the module also provides
+  `CGColorSpace` (`CGColorSpaceCreateDeviceRGB()`, `CGColorSpaceCreateDeviceGray()`), `CFArray`
+  (`[Any]`) and `CGGradientDrawingOptions`.
+- `drawLinearGradient(_:start:end:options:)`, `drawRadialGradient(_:startCenter:startRadius:endCenter:endRadius:options:)`:
+  each becomes one `fillGradient` of the region CoreGraphics paints, inside the current clip:
+  the band between the perpendiculars through the two points (extended past either end by the
+  options), or the end circle minus the start circle (even-odd; the options extend to the plane
+  or fill the start circle). Points go through the current transform, radii by its magnitude.
+  The stops are the colours as given: CoreGraphics blends them linearly in the colour space,
+  as Canvas2D and the CoreGraphics painter do, so nothing is expanded in Oklab (SwiftUI's
+  gradients are). A radial gradient whose circles have different centres is the display
+  list's `focalRadial` kind (added for this; Canvas2D's `createRadialGradient` and
+  CoreGraphics's `drawRadialGradient` take both circles). The context's alpha multiplies the
+  stops; the shadow wraps the fill.
+- `UIGraphicsImageRenderer(size:)` / `(bounds:)` / with a `UIGraphicsImageRendererFormat`
+  (`scale`, `opaque`, `preferredRange`; `.default()` is the screen's scale): `image(actions:)`
+  runs the block with a fresh recording context as the current one (the
+  `UIGraphicsImageRendererContext` offers `cgContext`, `format`, `fill`, `stroke`, `clip(to:)`,
+  `currentImage`) and returns a `UIImage` whose `drawing` (`UIImageDrawing`: commands, size,
+  scale) is the recording. `UIGraphicsBeginImageContext(WithOptions)`,
+  `UIGraphicsGetImageFromCurrentImageContext()` and `UIGraphicsEndImageContext()` do the same
+  through a context stack. The image is a vector recording, not a bitmap: `draw(at:)`,
+  `draw(in:)` and `UIImageView` replay it between a save, a concat scaling the recording into
+  the rectangle, and a restore, so it stays sharp at any size; the rendering mode and tint
+  do not apply to it (open), nor does `Image(uiImage:)` carry it into SwiftUI yet.
+
+Measured: `uikit/draw/gradient` (a linear gradient clipped to a rect, a radial one with offset
+centres in a clipped circle, a rendered badge drawn at its size and scaled) within 0.09 % of the
+simulator's pixels. The radial highlight sits where the start centre is, as the simulator draws it.
+
+Open: blend modes, `CGPath`/`CGMutablePath` on Apple platforms (there `UIBezierPath.cgPath` is
+the substrate's `Path`, not CoreGraphics's), tinting and `pngData()` of rendered images, caching
+of drawn content between frames.
