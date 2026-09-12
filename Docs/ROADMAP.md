@@ -371,6 +371,7 @@ done 2026-09-11).
 | 4.30 Decoration items | done 2026-09-11: `NSCollectionLayoutDecorationItem.background(elementKind:)` with `contentInsets`, `register(_:forDecorationViewOfKind:)`; a decoration spans its section, insets included, hosted behind the cells; `uikit/collection/decoration` exact and within 0.1 %. |
 | 4.31 Pinned boundary headers | done 2026-09-11: `pinToVisibleBounds` holds a section's top header at the visible top until the next section pushes it away; a pushed header slips under the cells as iOS 26 hides it; `uikit/collection/pinned` (two scroll steps) exact and within 1.6 %. |
 | 4.32 String and image drawing | done 2026-09-11: `draw(at:withAttributes:)`, `draw(in:withAttributes:)`, `size(withAttributes:)`, `boundingRect`, `NSAttributedString` (a stand-in on wasm) with `.font` / `.foregroundColor` / `.paragraphStyle`, `NSMutableParagraphStyle` alignment, `UIImage.draw(at:)` / `draw(in:)` (symbols and catalog images) through the context's transform, alpha and shadow; `uikit/draw/text` within 2.6 % (`Docs/elements/UIKit/Drawing.md`). |
+| 4.33 Search scope bar | done 2026-09-11: `scopeButtonTitles`, `showsScopeBar`, `selectedScopeButtonIndex` and the delegate's scope change; a 47 pt band under the 64 pt bar holding an equal-width segmented control with 15 pt titles; `uikit/search/scope` exact and within 1.7 % (`Docs/elements/UIKit/Bars.md`). |
 
 ## Risk register
 

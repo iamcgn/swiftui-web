@@ -19,6 +19,8 @@ the iPhone SE simulator (iOS 26).
   (`textDidChange`, `searchBarSearchButtonClicked`, `searchBarCancelButtonClicked`,
   `should/DidBegin/EndEditing`), `becomeFirstResponder`, `barTintColor`, `returnKeyType`,
   `keyboardType`, `autocapitalizationType`. Editing goes through the substrate's text input.
+  Scope bar: `scopeButtonTitles`, `showsScopeBar` / `setShowsScope(_:animated:)`,
+  `selectedScopeButtonIndex`, the delegate's `selectedScopeButtonIndexDidChange`.
 
 ## Measured
 
@@ -40,7 +42,12 @@ the iPhone SE simulator (iOS 26).
   (137, 137, 141 over white). The default style draws a faint band (252) with 0.5 pt hairlines
   at the bar's top and bottom; the minimal style draws no band and no capsule. The clear button
   UIKit lays out at the field's end is not drawn in the capture and not drawn here.
-- Pixels: `uikit/toolbar/basic` 0.7 % and `uikit/search/basic` 0.6 % off the simulator.
+- Scope bar (`uikit/search/scope`, 2026-09-11): with `showsScopeBar` and titles the bar grows to
+  111 (64 plus a 47 pt band) and holds a segmented control 8 in and 7 below the field (y 71),
+  304 wide, its segments of equal width with 15 pt regular titles (18 tall at 7), the selected
+  one under the lens; titles without `showsScopeBar` change nothing (64 tall).
+- Pixels: `uikit/toolbar/basic` 0.7 %, `uikit/search/basic` 0.6 % and `uikit/search/scope`
+  1.7 % off the simulator.
 
 ## In a navigation controller (`uikit/nav/toolbar`, `uikit/nav/search`)
 
@@ -62,7 +69,8 @@ the iPhone SE simulator (iOS 26).
 
 ## Open
 
-The search bar's scope bar and prompt, `hidesSearchBarWhenScrolling`, search results
+The search bar's prompt, the scope bar in a navigation controller's floating search,
+`hidesSearchBarWhenScrolling`, search results
 presentation (`searchResultsController` is stored, not shown), the clear and bookmark buttons,
 toolbar items next to a floating search field, dark mode samples (the dark colours are the
 platter's).

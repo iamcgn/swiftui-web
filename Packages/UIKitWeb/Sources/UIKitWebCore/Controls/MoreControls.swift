@@ -112,6 +112,10 @@ open class UISegmentedControl: UIControl {
 
     static let height: CGFloat = 32
     static let padding: CGFloat = 10
+    /// The titles' size and whether the selected one is medium: 13 with a medium selection for
+    /// a control of its own, 15 regular throughout in a search bar's scope bar (uikit/search/scope).
+    var titleSize: CGFloat = 13 { didSet { setNeedsLayout() } }
+    var emphasisesSelection = true { didSet { setNeedsLayout() } }
 
     public init(items: [Any]?) {
         super.init(frame: .zero)
@@ -162,7 +166,7 @@ open class UISegmentedControl: UIControl {
         labels = titles.map { title in
             let label = UILabel()
             label.text = title
-            label.font = .systemFont(ofSize: 13)
+            label.font = .systemFont(ofSize: titleSize)
             label.textAlignment = .center
             addSubview(label)
             return label
@@ -187,9 +191,10 @@ open class UISegmentedControl: UIControl {
         super.layoutSubviews()
         let width = bounds.width / CGFloat(max(1, titles.count))
         for (index, label) in labels.enumerated() {
-            label.font = .systemFont(ofSize: 13, weight: index == selectedSegmentIndex ? .medium : .regular)
-            let textWidth = label.intrinsicContentSize.width
-            label.frame = CGRect(x: (width * CGFloat(index) + (width - textWidth) / 2).rounded(), y: 8, width: textWidth, height: 16)
+            label.font = .systemFont(ofSize: titleSize, weight: emphasisesSelection && index == selectedSegmentIndex ? .medium : .regular)
+            let textSize = label.intrinsicContentSize
+            // The label is centred in the segment: 13 pt titles 16 tall at 8, 15 pt ones 18 tall at 7.
+            label.frame = CGRect(x: (width * CGFloat(index) + (width - textSize.width) / 2).rounded(), y: ((Self.height - textSize.height) / 2).rounded(), width: textSize.width, height: textSize.height)
         }
     }
 

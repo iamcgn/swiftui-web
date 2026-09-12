@@ -5743,7 +5743,7 @@ public static let basic = UIKitFixture("uikit/picker/basic", size: CGSize(width:
     return root
 }
 """#),
-        FixtureSource(name: "uikit/search/basic", file: "Fixtures/UIKit/Bars/BarFixtures.swift", firstLine: 49, lastLine: 76, declaration: #"""
+        FixtureSource(name: "uikit/search/basic", file: "Fixtures/UIKit/Bars/BarFixtures.swift", firstLine: 75, lastLine: 102, declaration: #"""
 public static let search = UIKitFixture("uikit/search/basic", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
     root.backgroundColor = .white
@@ -5770,6 +5770,33 @@ public static let search = UIKitFixture("uikit/search/basic", size: CGSize(width
     minimal.frame = CGRect(x: 0, y: 176, width: 320, height: minimal.frame.height)
     root.addSubview(minimal.probe("minimal"))
     minimal.searchTextField.probe("minimalField")
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/search/scope", file: "Fixtures/UIKit/Bars/BarFixtures.swift", firstLine: 49, lastLine: 73, declaration: #"""
+/// A search bar with a scope bar (three scopes, the second selected) under its field, and
+/// one whose scope bar is hidden although titles are set.
+public static let scope = UIKitFixture("uikit/search/scope", size: CGSize(width: 320, height: 240)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+    root.backgroundColor = .white
+
+    let scoped = UISearchBar()
+    scoped.placeholder = "Search"
+    scoped.scopeButtonTitles = ["All", "Recent", "Shared"]
+    scoped.showsScopeBar = true
+    scoped.selectedScopeButtonIndex = 1
+    scoped.sizeToFit()
+    scoped.frame = CGRect(x: 0, y: 16, width: 320, height: scoped.frame.height)
+    root.addSubview(scoped.probe("scoped"))
+    scoped.searchTextField.probe("scopedField")
+
+    let hidden = UISearchBar()
+    hidden.placeholder = "Search"
+    hidden.scopeButtonTitles = ["All", "Recent"]
+    hidden.showsScopeBar = false
+    hidden.sizeToFit()
+    hidden.frame = CGRect(x: 0, y: 160, width: 320, height: hidden.frame.height)
+    root.addSubview(hidden.probe("hidden"))
     return root
 }
 """#),
@@ -12731,7 +12758,7 @@ import UIKit
 import UIKitFixtureKit
 
 public enum BarFixtures {
-    public static let all = [toolbar, search]
+    public static let all = [toolbar, search, scope]
 
     public static let toolbar = UIKitFixture("uikit/toolbar/basic", size: CGSize(width: 320, height: 400)) {
         let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
@@ -12767,6 +12794,32 @@ public enum BarFixtures {
         compact.sizeToFit()
         compact.frame = CGRect(x: 16, y: 120, width: compact.frame.width, height: compact.frame.height)
         root.addSubview(compact.probe("compact"))
+        return root
+    }
+
+    /// A search bar with a scope bar (three scopes, the second selected) under its field, and
+    /// one whose scope bar is hidden although titles are set.
+    public static let scope = UIKitFixture("uikit/search/scope", size: CGSize(width: 320, height: 240)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        root.backgroundColor = .white
+
+        let scoped = UISearchBar()
+        scoped.placeholder = "Search"
+        scoped.scopeButtonTitles = ["All", "Recent", "Shared"]
+        scoped.showsScopeBar = true
+        scoped.selectedScopeButtonIndex = 1
+        scoped.sizeToFit()
+        scoped.frame = CGRect(x: 0, y: 16, width: 320, height: scoped.frame.height)
+        root.addSubview(scoped.probe("scoped"))
+        scoped.searchTextField.probe("scopedField")
+
+        let hidden = UISearchBar()
+        hidden.placeholder = "Search"
+        hidden.scopeButtonTitles = ["All", "Recent"]
+        hidden.showsScopeBar = false
+        hidden.sizeToFit()
+        hidden.frame = CGRect(x: 0, y: 160, width: 320, height: hidden.frame.height)
+        root.addSubview(hidden.probe("hidden"))
         return root
     }
 

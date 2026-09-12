@@ -14,6 +14,7 @@ public protocol UISearchBarDelegate: AnyObject {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
+    func searchBar(_ searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int)
 }
 
 extension UISearchBarDelegate {
@@ -24,6 +25,7 @@ extension UISearchBarDelegate {
     public func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {}
     public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {}
     public func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {}
+    public func searchBar(_ searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {}
 }
 
 /// A specialized view for receiving search-related information from the user.
@@ -36,6 +38,11 @@ open class UISearchBar: UIView {
     static let fieldTop: CGFloat = 10
     static let fieldHeight: CGFloat = 44
     static let cancelGap: CGFloat = 11
+    /// The scope bar under the field (uikit/search/scope): a 47 pt band holding a segmented
+    /// control 8 in, 7 down (71 in the 111 pt bar), 8 above the bar's end; 15 pt titles.
+    static let scopeInset: CGFloat = 8
+    static let scopeGap: CGFloat = 7
+    static let scopeBottom: CGFloat = 8
 
     open var text: String? {
         get { searchTextField.text }
@@ -69,6 +76,32 @@ open class UISearchBar: UIView {
     }
     open weak var delegate: (any UISearchBarDelegate)?
 
+    /// The scope bar: segment titles shown under the field while `showsScopeBar` is set.
+    open var scopeButtonTitles: [String]? {
+        didSet { rebuildScopeBar() }
+    }
+    open var showsScopeBar = false { didSet { scopeBar.isHidden = !showsScopeBar || (scopeButtonTitles ?? []).isEmpty; invalidateIntrinsicContentSize(); setNeedsLayout() } }
+    open var selectedScopeButtonIndex: Int {
+        get { scopeBar.selectedSegmentIndex }
+        set { scopeBar.selectedSegmentIndex = newValue }
+    }
+    open func setShowsScope(_ show: Bool, animated: Bool) { showsScopeBar = show }
+    private let scopeBar = UISegmentedControl(items: [])
+
+    private func rebuildScopeBar() {
+        let selected = scopeBar.selectedSegmentIndex
+        scopeBar.removeAllSegments()
+        for (index, title) in (scopeButtonTitles ?? []).enumerated() { scopeBar.insertSegment(withTitle: title, at: index, animated: false) }
+        scopeBar.selectedSegmentIndex = scopeBar.numberOfSegments > 0 ? min(max(0, selected), scopeBar.numberOfSegments - 1) : UISegmentedControl.noSegment
+        scopeBar.isHidden = !showsScopeBar || scopeBar.numberOfSegments == 0
+        invalidateIntrinsicContentSize()
+        setNeedsLayout()
+    }
+
+    /// Whether the scope bar takes room under the field.
+    private var scopeBarIsShown: Bool { showsScopeBar && !(scopeButtonTitles ?? []).isEmpty }
+    private var scopeHeight: CGFloat { scopeBarIsShown ? Self.scopeGap + UISegmentedControl.height + Self.scopeBottom : 0 }
+
     /// The text field the bar edits (public since iOS 13).
     public let searchTextField = UISearchTextField()
     private let cancelButton = SearchCancelButton()
@@ -84,6 +117,14 @@ open class UISearchBar: UIView {
         cancelButton.isHidden = true
         cancelButton.addAction(UIAction { [weak self] _ in self?.cancel() }, for: .primaryActionTriggered)
         addSubview(cancelButton)
+        scopeBar.isHidden = true
+        scopeBar.titleSize = 15
+        scopeBar.emphasisesSelection = false
+        scopeBar.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            delegate?.searchBar(self, selectedScopeButtonIndexDidChange: scopeBar.selectedSegmentIndex)
+        }, for: .valueChanged)
+        addSubview(scopeBar)
     }
 
     open func setShowsCancelButton(_ showsCancelButton: Bool, animated: Bool) { self.showsCancelButton = showsCancelButton }
@@ -99,8 +140,8 @@ open class UISearchBar: UIView {
     override open func resignFirstResponder() -> Bool { searchTextField.resignFirstResponder() }
     override open var isFirstResponder: Bool { searchTextField.isFirstResponder }
 
-    override open func sizeThatFits(_ size: CGSize) -> CGSize { CGSize(width: size.width < CGFloat.greatestFiniteMagnitude ? size.width : bounds.width, height: Self.height) }
-    override open var intrinsicContentSize: CGSize { CGSize(width: UIView.noIntrinsicMetric, height: Self.height) }
+    override open func sizeThatFits(_ size: CGSize) -> CGSize { CGSize(width: size.width < CGFloat.greatestFiniteMagnitude ? size.width : bounds.width, height: Self.height + scopeHeight) }
+    override open var intrinsicContentSize: CGSize { CGSize(width: UIView.noIntrinsicMetric, height: Self.height + scopeHeight) }
 
     override open func layoutSubviews() {
         super.layoutSubviews()
@@ -109,6 +150,9 @@ open class UISearchBar: UIView {
         let cancelWidth = showsCancelButton ? Self.fieldHeight + Self.cancelGap : 0
         searchTextField.frame = CGRect(x: Self.fieldInset, y: Self.fieldTop, width: bounds.width - 2 * Self.fieldInset - cancelWidth, height: Self.fieldHeight)
         cancelButton.frame = CGRect(x: bounds.width - Self.fieldInset - Self.fieldHeight, y: Self.fieldTop, width: Self.fieldHeight, height: Self.fieldHeight)
+        if scopeBarIsShown {
+            scopeBar.frame = CGRect(x: Self.scopeInset, y: Self.fieldTop + Self.fieldHeight + Self.scopeGap, width: bounds.width - 2 * Self.scopeInset, height: UISegmentedControl.height)
+        }
     }
 
     /// The default style's band: a faint fill with 0.5 pt hairlines top and bottom.

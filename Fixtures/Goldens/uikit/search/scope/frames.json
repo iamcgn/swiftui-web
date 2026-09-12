@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/search\/scope",
+  "frames" : {
+    "hidden" : {
+      "height" : 64,
+      "width" : 320,
+      "x" : 0,
+      "y" : 160
+    },
+    "scoped" : {
+      "height" : 111,
+      "width" : 320,
+      "x" : 0,
+      "y" : 16
+    },
+    "scopedField" : {
+      "height" : 44,
+      "width" : 304,
+      "x" : 8,
+      "y" : 26
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

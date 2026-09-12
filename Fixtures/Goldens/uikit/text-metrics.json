@@ -324,6 +324,12 @@
       "lastBaseline" : 14.2822265625,
       "width" : 9.5
     },
+    "system:15:400:default|;l1|All" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 17
+    },
     "system:15:400:default|;l1|Auto Layout" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -353,6 +359,18 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 77
+    },
+    "system:15:400:default|;l1|Recent" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 48
+    },
+    "system:15:400:default|;l1|Shared" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 49
     },
     "system:15:400:default|;l1|Swift" : {
       "firstBaseline" : 14.2822265625,

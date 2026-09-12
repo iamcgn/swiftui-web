@@ -344,3 +344,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   symbol painter and the image draw have no transform of their own; the display list already
   had the command. `NSAttributedString` is Foundation's on Apple platforms (with the UIKit keys
   added as extensions) and a one-dictionary stand-in on wasm, where FoundationEssentials has none.
+- Step 28 (2026-09-11): the search bar's scope bar (`Docs/ROADMAP.md`, Phase 7 status 4.33).
+  The dump showed the scope bar is a segmented control unlike a standalone one: segments of
+  equal width across the bar and 15 pt regular titles even when selected, so the control gained
+  a title size and an emphasis switch the search bar sets.

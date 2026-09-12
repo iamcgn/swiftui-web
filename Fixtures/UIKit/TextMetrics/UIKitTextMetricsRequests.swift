@@ -170,6 +170,10 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Wi-Fi", .style("body"), width: 256, lines: 0),
         UIKitTextRequest("Bluetooth", .style("body"), width: 256, lines: 0),
         UIKitTextRequest("Brightness", .style("body"), width: 256, lines: 0),
+        // uikit/search/scope (a scope bar's segment titles are 15 pt regular, selected or not)
+        UIKitTextRequest("All", .system(size: 15)),
+        UIKitTextRequest("Recent", .system(size: 15)),
+        UIKitTextRequest("Shared", .system(size: 15)),
         // uikit/draw/text (string drawing: unwrapped, or wrapped to 150)
         UIKitTextRequest("Hello, drawing", .system(size: 20, weight: "semibold"), lines: 0),
         UIKitTextRequest("Right aligned", .system(size: 17), lines: 0),
