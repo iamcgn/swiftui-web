@@ -138,8 +138,15 @@ only as they appear: a row out of view is laid out at the estimate (56; headers 
 35) and, when its cell appears with another height, the layout runs again with the measured
 value (the fixture's rows below the fold have no cells, as on the simulator; a data source's
 cell provider runs only for rows in view). Frames exact with a scroll step, pixels 1.9 % off
-the simulator at worst. Open: the sidebar appearances, `headerTopPadding`, plain footers,
-`UIListContentConfiguration.plainHeader()` (the grouped header for now).
+the simulator at worst. Header padding and plain footers (`uikit/collection/listpadding`,
+`plainfooters`): with supplementary headers `headerTopPadding` adds above every grouped header
+(8 puts the first at 8 and the next 8 under the footer before it; the default is 0, the header
+replacing the 35 pt gap); a plain footer is the grouped one (35 tall, the footnote 8 down) right
+under its rows, the next header 22 below it, and a plain section's last row drops its separator
+when a footer follows. The simulator lays the last section's plain footer 21 into its row (a
+self-sizing artefact at the list's end) which is not copied, so that footer goes unprobed.
+Open: the sidebar appearances, `UIListContentConfiguration.plainHeader()` (the grouped header
+for now).
 
 ## List headers and footers (2026-09-11, `uikit/collection/listheaders`)
 

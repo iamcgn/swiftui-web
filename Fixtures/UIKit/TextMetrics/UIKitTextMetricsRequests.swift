@@ -232,6 +232,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Folders", .style("subheadline"), lines: 0),
         UIKitTextRequest("Mailboxes", .style("footnote"), lines: 0),
         UIKitTextRequest("Folders", .style("footnote"), lines: 0),
+        // uikit/collection/plainfooters (the list headers strings at the plain width, unbounded)
+        UIKitTextRequest("General", .style("headline"), lines: 0),
+        UIKitTextRequest("Display", .style("headline"), lines: 0),
+        UIKitTextRequest("A footer note about the section.", .style("footnote"), lines: 0),
+        UIKitTextRequest("Wi-Fi", .style("body"), lines: 0),
+        UIKitTextRequest("Bluetooth", .style("body"), lines: 0),
+        UIKitTextRequest("Brightness", .style("body"), lines: 0),
         // uikit/collection/outline (body rows, unbounded so any indentation fits)
         UIKitTextRequest("Fruit", .style("body"), lines: 0),
         UIKitTextRequest("Apple", .style("body"), lines: 0),

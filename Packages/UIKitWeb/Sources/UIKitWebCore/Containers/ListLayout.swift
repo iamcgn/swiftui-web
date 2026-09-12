@@ -136,8 +136,9 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
             if listConfiguration.headerMode == .firstItemInSection {
                 if section > 0 { y += 17.5 }
             } else if listConfiguration.headerMode == .supplementary {
-                // A plain header sits 22 below what precedes it (uikit/collection/plainlist).
-                if !listConfiguration.isGrouped { y += 22 }
+                // A plain header sits 22 below what precedes it (uikit/collection/plainlist); a
+                // grouped one directly after, plus `headerTopPadding` (uikit/collection/listpadding).
+                y += listConfiguration.isGrouped ? (listConfiguration.headerTopPadding ?? 0) : 22
                 let path = IndexPath(item: 0, section: section)
                 let height = supplementaryHeight(UICollectionView.elementKindSectionHeader, path, estimate: 44.5)
                 let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, with: path)
@@ -155,6 +156,9 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
                 let firstRow = listConfiguration.headerMode == .firstItemInSection ? 1 : 0
                 attribute.listPosition = (first: item == firstRow, last: item == count - 1)
                 attribute.listAppearance = listConfiguration.appearance
+                // Separators run between rows; a plain section's last row keeps its own unless a
+                // footer follows (uikit/collection/plainlist, plainfooters).
+                attribute.listSeparatorAfter = item < count - 1 || (!listConfiguration.isGrouped && listConfiguration.footerMode != .supplementary)
                 rows[path] = attribute
                 y += height
             }
@@ -226,6 +230,7 @@ open class UICollectionViewListCell: UICollectionViewCell {
     open var indentsAccessories = true
     var listPosition: (first: Bool, last: Bool) = (true, true)
     var listAppearance: UICollectionLayoutListConfiguration.Appearance = .plain
+    var drawsSeparator = false
     /// Dequeued as its section's header (`headerMode == .firstItemInSection`): styled like a
     /// supplementary header, no card.
     var isHeaderItem = false
@@ -255,6 +260,7 @@ open class UICollectionViewListCell: UICollectionViewCell {
         super.apply(layoutAttributes)
         if let position = layoutAttributes.listPosition { listPosition = position }
         if let appearance = layoutAttributes.listAppearance { listAppearance = appearance }
+        if let separator = layoutAttributes.listSeparatorAfter { drawsSeparator = separator }
         isPinnedHeader = layoutAttributes.listHeaderPinned
         setNeedsLayout()
         setNeedsDisplay()
@@ -372,7 +378,7 @@ open class UICollectionViewListCell: UICollectionViewCell {
         // The separator: 1 pt at the bottom, 16 in from both edges of the card (an indented
         // outline child's starts with its content: 42 in the card at one level), between rows;
         // a plain section's last row keeps its separator (uikit/collection/plainlist).
-        if !listPosition.last || listAppearance == .plain {
+        if drawsSeparator {
             let left = 16 + CGFloat(indentationLevel) * indentationWidth
             let line = context.absoluteRect(CGRect(x: left, y: bounds.height - 1, width: bounds.width - left - 16, height: 1))
             list.append(.fillRect(line, UIColor.separator.rgba(for: userStyle)))

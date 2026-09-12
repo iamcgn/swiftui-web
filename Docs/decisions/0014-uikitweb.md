@@ -400,3 +400,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   out at the estimate until their cells appear and measures then (the table's estimate
   correction, in the collection's terms). The pinned header's pocket has the same scrim
   profile as the plain table's (214 grey at the top over white, 253 at 65 pt).
+- Step 37 (2026-09-11): list header padding and plain footers (`Docs/ROADMAP.md`, Phase 7
+  status 4.41). One dump showed UIKit placing the last section's plain footer 21 into its row,
+  a self-sizing artefact at the list's end; the fixture leaves that footer unprobed rather
+  than copy a bug.

@@ -116,6 +116,9 @@ final class ListSource: NSObject, UICollectionViewDataSource {
 /// Two sections with header cells ("General", "Display") and a footer under the first.
 final class ListHeaderSource: NSObject, UICollectionViewDataSource {
     let rows = [["Wi-Fi", "Bluetooth"], ["Brightness"]]
+    /// The plain appearance lays the last section's footer 21 into its row on the simulator
+    /// (a self-sizing artefact at the list's end), so that fixture leaves it unprobed.
+    var probesLastFooter = true
     func numberOfSections(in collectionView: UICollectionView) -> Int { rows.count }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { rows[section].count }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -131,6 +134,7 @@ final class ListHeaderSource: NSObject, UICollectionViewDataSource {
         var content = cell.defaultContentConfiguration()
         content.text = isHeader ? (indexPath.section == 0 ? "General" : "Display") : "A footer note about the section."
         cell.contentConfiguration = content
+        if !isHeader, !probesLastFooter, indexPath.section == rows.count - 1 { return cell }
         return cell.probe(isHeader ? "header\(indexPath.section)" : "footer\(indexPath.section)")
     }
 }
@@ -211,7 +215,7 @@ final class PlainListSource: NSObject, UICollectionViewDataSource {
 }
 
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline, plainList]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline, plainList, listPadding, plainFooters]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -539,5 +543,44 @@ public enum CollectionFixtures {
     }
 
     @MainActor static var plainListSources: [PlainListSource] = []
+
+    /// Supplementary headers with `headerTopPadding` (8 instead of the default) in the inset
+    /// grouped appearance, over the list headers fixture's rows.
+    public static let listPadding = UIKitFixture("uikit/collection/listpadding", size: CGSize(width: 320, height: 400)) {
+        var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+        configuration.headerMode = .supplementary
+        configuration.footerMode = .supplementary
+        configuration.headerTopPadding = 8
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let source = ListHeaderSource()
+        listHeaderSources.append(source)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "footer")
+        collection.dataSource = source
+        root.addSubview(collection.probe("collection"))
+        return root
+    }
+
+    /// Plain-appearance headers and footers over the list headers fixture's rows.
+    public static let plainFooters = UIKitFixture("uikit/collection/plainfooters", size: CGSize(width: 320, height: 400)) {
+        var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
+        configuration.headerMode = .supplementary
+        configuration.footerMode = .supplementary
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let source = ListHeaderSource()
+        source.probesLastFooter = false
+        listHeaderSources.append(source)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "footer")
+        collection.dataSource = source
+        root.addSubview(collection.probe("collection"))
+        return root
+    }
 }
 #endif

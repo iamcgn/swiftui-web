@@ -1,0 +1,57 @@
+{
+  "fixture" : "uikit\/collection\/listpadding",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "footer0" : {
+      "height" : 35,
+      "width" : 288,
+      "x" : 16,
+      "y" : 164.5
+    },
+    "footer1" : {
+      "height" : 35,
+      "width" : 288,
+      "x" : 16,
+      "y" : 308
+    },
+    "header0" : {
+      "height" : 44.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 8
+    },
+    "header1" : {
+      "height" : 44.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 207.5
+    },
+    "row00" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 52.5
+    },
+    "row01" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 108.5
+    },
+    "row10" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 252
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

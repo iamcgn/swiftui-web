@@ -162,6 +162,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 74
     },
+    "style:body||Brightness" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 81.5
+    },
     "style:body||Carrot" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -348,6 +354,12 @@
       "lastBaseline" : 13.993718187553094,
       "width" : 54.5
     },
+    "style:footnote||A footer note about the section." : {
+      "firstBaseline" : 13.993718187553094,
+      "height" : 19,
+      "lastBaseline" : 13.993718187553094,
+      "width" : 192.5
+    },
     "style:footnote||Folders" : {
       "firstBaseline" : 13.993718187553094,
       "height" : 19,
@@ -372,11 +384,23 @@
       "lastBaseline" : 18.325751773774499,
       "width" : 70.5
     },
+    "style:headline||Display" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 58.5
+    },
     "style:headline||Folders" : {
       "firstBaseline" : 18.325751773774499,
       "height" : 24.5,
       "lastBaseline" : 18.325751773774499,
       "width" : 59.5
+    },
+    "style:headline||General" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 62
     },
     "style:headline||Mailboxes" : {
       "firstBaseline" : 18.325751773774499,

@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/collection\/plainfooters",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "footer0" : {
+      "height" : 35,
+      "width" : 320,
+      "x" : 0,
+      "y" : 178.5
+    },
+    "header0" : {
+      "height" : 44.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 22
+    },
+    "header1" : {
+      "height" : 44.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 235.5
+    },
+    "row00" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 66.5
+    },
+    "row01" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 122.5
+    },
+    "row10" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 280
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

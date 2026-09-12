@@ -16,6 +16,8 @@ open class UICollectionViewLayoutAttributes {
     var listPosition: (first: Bool, last: Bool)?
     /// A plain list header held at the visible top by scrolling (it paints its ground).
     var listHeaderPinned = false
+    /// Whether a list row draws its separator (Containers/ListLayout.swift decides per appearance).
+    var listSeparatorAfter: Bool?
     var listAppearance: UICollectionLayoutListConfiguration.Appearance?
     /// The orthogonally scrolling section this item belongs to (Containers/CompositionalLayout.swift).
     var orthogonalSection: Int?

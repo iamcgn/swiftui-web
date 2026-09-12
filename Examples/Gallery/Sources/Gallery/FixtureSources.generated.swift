@@ -5133,7 +5133,7 @@ public static let basic = UIKitFixture("uikit/button/basic", size: CGSize(width:
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/compositional", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 277, lastLine: 306, declaration: #"""
+        FixtureSource(name: "uikit/collection/compositional", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 281, lastLine: 310, declaration: #"""
 /// A compositional layout: a section of full-width 44 pt rows 8 apart with a 30 pt header,
 /// then a three-column grid of 60 pt cells 8 apart inside 16 pt content insets.
 public static let compositional = UIKitFixture("uikit/collection/compositional", size: CGSize(width: 320, height: 400)) {
@@ -5165,7 +5165,7 @@ public static let compositional = UIKitFixture("uikit/collection/compositional",
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/decoration", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 364, lastLine: 383, declaration: #"""
+        FixtureSource(name: "uikit/collection/decoration", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 368, lastLine: 387, declaration: #"""
 /// Section background decoration items: full-width 44 pt rows 8 apart in 16 pt insets, the
 /// second section's background inset 8 sideways.
 public static let decoration = UIKitFixture("uikit/collection/decoration", size: CGSize(width: 320, height: 400)) {
@@ -5187,7 +5187,7 @@ public static let decoration = UIKitFixture("uikit/collection/decoration", size:
     return make(layout: layout, source: source)
 }
 """#),
-        FixtureSource(name: "uikit/collection/firstitem", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 347, lastLine: 360, declaration: #"""
+        FixtureSource(name: "uikit/collection/firstitem", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 351, lastLine: 364, declaration: #"""
 /// A list whose first item in each section is its header (`headerMode == .firstItemInSection`).
 public static let firstItem = UIKitFixture("uikit/collection/firstitem", size: CGSize(width: 320, height: 400)) {
     var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
@@ -5203,7 +5203,7 @@ public static let firstItem = UIKitFixture("uikit/collection/firstitem", size: C
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/grid", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 230, lastLine: 242, declaration: #"""
+        FixtureSource(name: "uikit/collection/grid", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 234, lastLine: 246, declaration: #"""
 /// 90 × 60 items in 16 pt insets with 8 pt spacing: three per row in 320, wrapping.
 public static let grid = UIKitFixture("uikit/collection/grid", size: CGSize(width: 320, height: 400)) {
     let layout = UICollectionViewFlowLayout()
@@ -5218,7 +5218,7 @@ public static let grid = UIKitFixture("uikit/collection/grid", size: CGSize(widt
     return make(layout: layout, source: source)
 }
 """#),
-        FixtureSource(name: "uikit/collection/headers", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 443, lastLine: 462, declaration: #"""
+        FixtureSource(name: "uikit/collection/headers", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 447, lastLine: 466, declaration: #"""
 /// Section headers (44 tall) and footers (30 tall) from the flow layout's reference sizes.
 public static let headers = UIKitFixture("uikit/collection/headers", size: CGSize(width: 320, height: 400)) {
     let layout = UICollectionViewFlowLayout()
@@ -5240,7 +5240,7 @@ public static let headers = UIKitFixture("uikit/collection/headers", size: CGSiz
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/horizontal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 244, lastLine: 255, declaration: #"""
+        FixtureSource(name: "uikit/collection/horizontal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 248, lastLine: 259, declaration: #"""
 /// A horizontal flow: 120 × 80 items in one line, 12 apart, 20 pt insets.
 public static let horizontal = UIKitFixture("uikit/collection/horizontal", size: CGSize(width: 320, height: 400)) {
     let layout = UICollectionViewFlowLayout()
@@ -5254,7 +5254,7 @@ public static let horizontal = UIKitFixture("uikit/collection/horizontal", size:
     return make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 120))
 }
 """#),
-        FixtureSource(name: "uikit/collection/list", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 308, lastLine: 322, declaration: #"""
+        FixtureSource(name: "uikit/collection/list", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 312, lastLine: 326, declaration: #"""
 /// A list layout in the inset grouped appearance: list cells with text, secondary text and
 /// a disclosure accessory in two sections.
 public static let list = UIKitFixture("uikit/collection/list", size: CGSize(width: 320, height: 400)) {
@@ -5271,7 +5271,7 @@ public static let list = UIKitFixture("uikit/collection/list", size: CGSize(widt
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/listheaders", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 326, lastLine: 343, declaration: #"""
+        FixtureSource(name: "uikit/collection/listheaders", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 330, lastLine: 347, declaration: #"""
 /// A list with supplementary headers and a footer made from list cells' default header and
 /// footer content configurations.
 public static let listHeaders = UIKitFixture("uikit/collection/listheaders", size: CGSize(width: 320, height: 400)) {
@@ -5291,7 +5291,28 @@ public static let listHeaders = UIKitFixture("uikit/collection/listheaders", siz
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/orthogonal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 418, lastLine: 441, declaration: #"""
+        FixtureSource(name: "uikit/collection/listpadding", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 547, lastLine: 565, declaration: #"""
+/// Supplementary headers with `headerTopPadding` (8 instead of the default) in the inset
+/// grouped appearance, over the list headers fixture's rows.
+public static let listPadding = UIKitFixture("uikit/collection/listpadding", size: CGSize(width: 320, height: 400)) {
+    var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+    configuration.headerMode = .supplementary
+    configuration.footerMode = .supplementary
+    configuration.headerTopPadding = 8
+    let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+    let source = ListHeaderSource()
+    listHeaderSources.append(source)
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+    collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+    collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+    collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "footer")
+    collection.dataSource = source
+    root.addSubview(collection.probe("collection"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/collection/orthogonal", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 422, lastLine: 445, declaration: #"""
 /// An orthogonally scrolling section (a carousel of 200 × 100 groups 12 apart, inset 16)
 /// above a plain vertical section of full-width rows.
 public static let orthogonal = UIKitFixture("uikit/collection/orthogonal", size: CGSize(width: 320, height: 400)) {
@@ -5317,7 +5338,7 @@ public static let orthogonal = UIKitFixture("uikit/collection/orthogonal", size:
     return make(layout: layout, source: source)
 }
 """#),
-        FixtureSource(name: "uikit/collection/outline", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 479, lastLine: 516, declaration: #"""
+        FixtureSource(name: "uikit/collection/outline", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 483, lastLine: 520, declaration: #"""
 /// An outline in a list: parents with an outline disclosure, children under an expanded
 /// parent; the steps collapse the first parent and expand the second.
 public static let outline = UIKitFixture("uikit/collection/outline", size: CGSize(width: 320, height: 400),
@@ -5357,7 +5378,7 @@ public static let outline = UIKitFixture("uikit/collection/outline", size: CGSiz
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/pinned", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 385, lastLine: 416, declaration: #"""
+        FixtureSource(name: "uikit/collection/pinned", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 389, lastLine: 420, declaration: #"""
 /// Boundary headers pinned to the visible bounds: each stays at the top while its section
 /// scrolls under it and the next section's header pushes it away.
 public static let pinned = UIKitFixture("uikit/collection/pinned", size: CGSize(width: 320, height: 300),
@@ -5391,7 +5412,27 @@ public static let pinned = UIKitFixture("uikit/collection/pinned", size: CGSize(
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/plainlist", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 518, lastLine: 539, declaration: #"""
+        FixtureSource(name: "uikit/collection/plainfooters", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 567, lastLine: 584, declaration: #"""
+/// Plain-appearance headers and footers over the list headers fixture's rows.
+public static let plainFooters = UIKitFixture("uikit/collection/plainfooters", size: CGSize(width: 320, height: 400)) {
+    var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
+    configuration.headerMode = .supplementary
+    configuration.footerMode = .supplementary
+    let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+    let source = ListHeaderSource()
+    source.probesLastFooter = false
+    listHeaderSources.append(source)
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+    collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+    collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+    collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "footer")
+    collection.dataSource = source
+    root.addSubview(collection.probe("collection"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/collection/plainlist", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 522, lastLine: 543, declaration: #"""
 /// The plain appearance: full-width rows with supplementary headers, which pin while their
 /// section scrolls under them.
 public static let plainList = UIKitFixture("uikit/collection/plainlist", size: CGSize(width: 320, height: 300),
@@ -5415,7 +5456,7 @@ public static let plainList = UIKitFixture("uikit/collection/plainlist", size: C
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/selfsizing", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 260, lastLine: 275, declaration: #"""
+        FixtureSource(name: "uikit/collection/selfsizing", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 264, lastLine: 279, declaration: #"""
 public static let selfSizing = UIKitFixture("uikit/collection/selfsizing", size: CGSize(width: 320, height: 200)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
     let layout = UICollectionViewFlowLayout()
@@ -5433,7 +5474,7 @@ public static let selfSizing = UIKitFixture("uikit/collection/selfsizing", size:
     return root
 }
 """#),
-        FixtureSource(name: "uikit/collection/sized", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 464, lastLine: 477, declaration: #"""
+        FixtureSource(name: "uikit/collection/sized", file: "Fixtures/UIKit/Collection/CollectionFixtures.swift", firstLine: 468, lastLine: 481, declaration: #"""
 /// Items sized by the delegate: widths 60, 100, 140, 60, 60; a row breaks where the next
 /// item does not fit.
 public static let sized = UIKitFixture("uikit/collection/sized", size: CGSize(width: 320, height: 400)) {
@@ -13144,6 +13185,9 @@ final class ListSource: NSObject, UICollectionViewDataSource {
 /// Two sections with header cells ("General", "Display") and a footer under the first.
 final class ListHeaderSource: NSObject, UICollectionViewDataSource {
     let rows = [["Wi-Fi", "Bluetooth"], ["Brightness"]]
+    /// The plain appearance lays the last section's footer 21 into its row on the simulator
+    /// (a self-sizing artefact at the list's end), so that fixture leaves it unprobed.
+    var probesLastFooter = true
     func numberOfSections(in collectionView: UICollectionView) -> Int { rows.count }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { rows[section].count }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -13159,6 +13203,7 @@ final class ListHeaderSource: NSObject, UICollectionViewDataSource {
         var content = cell.defaultContentConfiguration()
         content.text = isHeader ? (indexPath.section == 0 ? "General" : "Display") : "A footer note about the section."
         cell.contentConfiguration = content
+        if !isHeader, !probesLastFooter, indexPath.section == rows.count - 1 { return cell }
         return cell.probe(isHeader ? "header\(indexPath.section)" : "footer\(indexPath.section)")
     }
 }
@@ -13239,7 +13284,7 @@ final class PlainListSource: NSObject, UICollectionViewDataSource {
 }
 
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline, plainList]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline, plainList, listPadding, plainFooters]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -13567,6 +13612,45 @@ public enum CollectionFixtures {
     }
 
     @MainActor static var plainListSources: [PlainListSource] = []
+
+    /// Supplementary headers with `headerTopPadding` (8 instead of the default) in the inset
+    /// grouped appearance, over the list headers fixture's rows.
+    public static let listPadding = UIKitFixture("uikit/collection/listpadding", size: CGSize(width: 320, height: 400)) {
+        var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+        configuration.headerMode = .supplementary
+        configuration.footerMode = .supplementary
+        configuration.headerTopPadding = 8
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let source = ListHeaderSource()
+        listHeaderSources.append(source)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "footer")
+        collection.dataSource = source
+        root.addSubview(collection.probe("collection"))
+        return root
+    }
+
+    /// Plain-appearance headers and footers over the list headers fixture's rows.
+    public static let plainFooters = UIKitFixture("uikit/collection/plainfooters", size: CGSize(width: 320, height: 400)) {
+        var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
+        configuration.headerMode = .supplementary
+        configuration.footerMode = .supplementary
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let source = ListHeaderSource()
+        source.probesLastFooter = false
+        listHeaderSources.append(source)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        collection.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: "list")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collection.register(UICollectionViewListCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "footer")
+        collection.dataSource = source
+        root.addSubview(collection.probe("collection"))
+        return root
+    }
 }
 #endif
 """##,
