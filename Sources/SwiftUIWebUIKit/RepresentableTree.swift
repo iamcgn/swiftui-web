@@ -28,9 +28,36 @@ final class RepresentableTree: _PlatformViewTree {
         if scene.assetCatalog != assetCatalog { scene.assetCatalog = assetCatalog }
     }
 
-    func layout(size: CGSize, colorScheme: ColorScheme) {
-        hosted.overrideUserInterfaceStyle = colorScheme == .dark ? .dark : .light
+    /// The environment becomes the tree's traits (ios/representable/traits: the colour scheme
+    /// is the appearance, the dynamic type size the content size category, the layout direction
+    /// and the size classes theirs) and the safe area its window's insets.
+    func layout(size: CGSize, safeAreaInsets: EdgeInsets, environment: EnvironmentValues) {
+        var traits = UITraitOverrides()
+        traits.userInterfaceStyle = environment.colorScheme == .dark ? .dark : .light
+        traits.preferredContentSizeCategory = Self.contentSizeCategory(for: environment.dynamicTypeSize)
+        traits.layoutDirection = environment.layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
+        traits.horizontalSizeClass = environment.horizontalSizeClass.map { $0 == .compact ? .compact : .regular }
+        traits.verticalSizeClass = environment.verticalSizeClass.map { $0 == .compact ? .compact : .regular }
+        hosted.traitOverrides = traits
+        hosted.safeAreaInsets = UIEdgeInsets(top: safeAreaInsets.top, left: safeAreaInsets.leading, bottom: safeAreaInsets.bottom, right: safeAreaInsets.trailing)
         hosted.layout(size: size)
+    }
+
+    static func contentSizeCategory(for size: DynamicTypeSize) -> UIContentSizeCategory {
+        switch size {
+        case .xSmall: return .extraSmall
+        case .small: return .small
+        case .medium: return .medium
+        case .large: return .large
+        case .xLarge: return .extraLarge
+        case .xxLarge: return .extraExtraLarge
+        case .xxxLarge: return .extraExtraExtraLarge
+        case .accessibility1: return .accessibilityMedium
+        case .accessibility2: return .accessibilityLarge
+        case .accessibility3: return .accessibilityExtraLarge
+        case .accessibility4: return .accessibilityExtraExtraLarge
+        case .accessibility5: return .accessibilityExtraExtraExtraLarge
+        }
     }
 
     func baselines(in size: CGSize) -> (first: CGFloat, last: CGFloat) { hosted.baselines(in: size) }

@@ -276,8 +276,32 @@ open class UIView: UIResponder, UITraitEnvironment {
 
     open var traitCollection: UITraitCollection {
         var traits = superview?.traitCollection ?? UIScreen.main.traitCollection
+        traitOverrides.apply(to: &traits)
         if overrideUserInterfaceStyle != .unspecified { traits.userInterfaceStyle = overrideUserInterfaceStyle }
         return traits
+    }
+
+    /// Traits this view and its subtree see instead of the inherited ones (a hosted tree takes
+    /// SwiftUI's environment this way; Docs/elements/Representable.md).
+    open var traitOverrides = UITraitOverrides() {
+        willSet { traitsBeforeOverrides = traitCollection }
+        didSet {
+            guard traitOverrides != oldValue else { return }
+            propagateTraitChange(from: traitsBeforeOverrides)
+            setNeedsLayout()
+            setNeedsDisplay()
+        }
+    }
+    private var traitsBeforeOverrides: UITraitCollection?
+
+    /// The direction the view lays out in: forced by `semanticContentAttribute`, else the
+    /// trait collection's.
+    open var effectiveUserInterfaceLayoutDirection: UIUserInterfaceLayoutDirection {
+        switch semanticContentAttribute {
+        case .forceLeftToRight: return .leftToRight
+        case .forceRightToLeft: return .rightToLeft
+        default: return traitCollection.layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
+        }
     }
 
     open func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -287,7 +311,8 @@ open class UIView: UIResponder, UITraitEnvironment {
 
     /// The appearance this view paints in: the override, else the inherited one.
     func effectiveStyle(_ inherited: UIUserInterfaceStyle) -> UIUserInterfaceStyle {
-        overrideUserInterfaceStyle == .unspecified ? inherited : overrideUserInterfaceStyle
+        if overrideUserInterfaceStyle != .unspecified { return overrideUserInterfaceStyle }
+        return traitOverrides.userInterfaceStyle ?? inherited
     }
 
     /// Tells the subtree the traits changed.

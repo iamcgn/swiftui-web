@@ -120,6 +120,45 @@ import Foundation
         static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) { coordinator.model.counts.dismantled += 1 }
     }
 
+    /// A view that records the safe area and traits it is laid out with.
+    final class ObservingView: UIView {
+        var seenInsets = UIEdgeInsets.zero
+        var seenTraits = UITraitCollection()
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            seenInsets = safeAreaInsets
+            seenTraits = traitCollection
+        }
+        override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+            super.traitCollectionDidChange(previousTraitCollection)
+            seenTraits = traitCollection
+        }
+    }
+
+    struct Observing: UIViewRepresentable {
+        let view: ObservingView
+        let model: Model
+        func makeUIView(context: Context) -> ObservingView { view }
+        func updateUIView(_ uiView: ObservingView, context: Context) { model.counts.updates += 1 }
+    }
+
+    /// The same without safe-area propagation.
+    struct Unpropagated: UIViewRepresentable {
+        let view: ObservingView
+        func makeUIView(context: Context) -> ObservingView { view }
+        func updateUIView(_ uiView: ObservingView, context: Context) {}
+        static func _layoutOptions(_ provider: ObservingView) -> LayoutOptions { [] }
+    }
+
+    /// The environment around the observing view follows the model.
+    struct TraitScreen: View {
+        let model: Model
+        let view: ObservingView
+        var body: some View {
+            Observing(view: view, model: model).environment(\.colorScheme, model.isOn ? .dark : .light)
+        }
+    }
+
     final class LoggingController: UIViewController {
         let model: Model
         init(_ model: Model) { self.model = model; super.init(nibName: nil, bundle: nil) }
@@ -271,6 +310,86 @@ import Foundation
         #expect(r.focusedTextFieldIdentifier == field.identifier)
         r.textField(field.identifier, focused: false)
         #expect(r.focusedTextFieldIdentifier == nil)
+    }
+
+    private func iOSRuntime() -> Runtime {
+        var environment = EnvironmentValues()
+        environment.platformProfile = .iOS
+        return Runtime(environment: environment)
+    }
+
+    /// ios/representable/safearea, safearea-ignored: a representable laid out inside the safe
+    /// area sees no insets; one that ignores it is laid out under the bar and sees the bar as its
+    /// top inset, unless its layout options do not propagate the safe area.
+    @Test func safeAreaReachesTheViewWhereItExtendsIntoIt() {
+        let model = Model()
+        let size = CGSize(width: 200, height: 100)
+        let plain = ObservingView()
+        plain.backgroundColor = UIColor(red: 0, green: 0, blue: 1, alpha: 1)
+        let r1 = iOSRuntime()
+        r1.mount(ZStack { Observing(view: plain, model: model)._probe("box") }.safeAreaPadding(.top, 30))
+        r1.layout(in: size)
+        #expect(r1.probeFrames["box"] == CGRect(x: 0, y: 30, width: 200, height: 70))
+        #expect(plain.seenInsets == .zero)
+        #expect(r1.render(scale: 2).commands.map(\.description).contains("fillRect(0, 30, 200, 70) #0000FF"))
+
+        let ignoring = ObservingView()
+        ignoring.backgroundColor = UIColor(red: 0, green: 0, blue: 1, alpha: 1)
+        let r2 = iOSRuntime()
+        r2.mount(ZStack { Observing(view: ignoring, model: model).ignoresSafeArea()._probe("box") }.safeAreaPadding(.top, 30))
+        r2.layout(in: size)
+        // The modifier's frame stays the safe one; the view fills the window and sees 30 above.
+        #expect(r2.probeFrames["box"] == CGRect(x: 0, y: 30, width: 200, height: 70))
+        #expect(ignoring.seenInsets == UIEdgeInsets(top: 30, left: 0, bottom: 0, right: 0))
+        #expect(r2.render(scale: 2).commands.map(\.description).contains("fillRect(0, 0, 200, 100) #0000FF"))
+
+        let unpropagated = ObservingView()
+        let r3 = iOSRuntime()
+        r3.mount(ZStack { Unpropagated(view: unpropagated).ignoresSafeArea() }.safeAreaPadding(.top, 30))
+        r3.layout(in: size)
+        #expect(unpropagated.frame.height == 100)
+        #expect(unpropagated.seenInsets == .zero)
+    }
+
+    /// ios/representable/traits: the environment is the hosted view's trait collection, and
+    /// `updateUIView` runs when it changes.
+    @Test func environmentBecomesTheTraitCollection() {
+        let model = Model()
+        let view = ObservingView()
+        let r = iOSRuntime()
+        r.mount(Observing(view: view, model: model)
+            .environment(\.colorScheme, .dark).dynamicTypeSize(.xxxLarge)
+            .environment(\.layoutDirection, .rightToLeft).environment(\.horizontalSizeClass, .regular))
+        r.layout(in: CGSize(width: 200, height: 100))
+        #expect(view.seenTraits.userInterfaceStyle == .dark)
+        #expect(view.seenTraits.preferredContentSizeCategory == .extraExtraExtraLarge)
+        #expect(view.seenTraits.layoutDirection == .rightToLeft)
+        #expect(view.effectiveUserInterfaceLayoutDirection == .rightToLeft)
+        #expect(view.seenTraits.horizontalSizeClass == .regular)
+        #expect(view.seenTraits.verticalSizeClass == .regular)
+
+        // The iOS profile's defaults: light, large, left to right, compact × regular.
+        let plain = ObservingView()
+        let defaults = iOSRuntime()
+        defaults.mount(Observing(view: plain, model: model))
+        defaults.layout(in: CGSize(width: 200, height: 100))
+        #expect(plain.seenTraits.userInterfaceStyle == .light)
+        #expect(plain.seenTraits.preferredContentSizeCategory == .large)
+        #expect(plain.seenTraits.layoutDirection == .leftToRight)
+        #expect(plain.seenTraits.horizontalSizeClass == .compact)
+        #expect(plain.seenTraits.verticalSizeClass == .regular)
+
+        // A change of the environment updates the view and its traits.
+        let following = ObservingView()
+        let changing = iOSRuntime()
+        changing.mount(TraitScreen(model: model, view: following))
+        changing.layout(in: CGSize(width: 200, height: 100))
+        #expect(following.seenTraits.userInterfaceStyle == .light)
+        let updates = model.updates
+        model.isOn = true
+        changing.layout(in: CGSize(width: 200, height: 100))
+        #expect(model.updates == updates + 1)
+        #expect(following.seenTraits.userInterfaceStyle == .dark)
     }
 
     @Test func controllersGetAppearanceCallbacksAndDismantlingRuns() {

@@ -23,20 +23,29 @@ Apple docs: [position(x:y:)](https://developer.apple.com/documentation/swiftui/v
 its own coordinate space. It reports `paintsOutsideFrame`, so a child moved out of the frame is
 not culled by a scroll view.
 
-A browser window has no safe area, but the safe-area modifiers create one for their content.
-`SafeAreaNode` (`safeAreaInset` with an inset view, `safeAreaPadding` with fixed lengths) asks its
-child whether it *extends into the safe area* (`ViewNode.extendsIntoSafeArea`: scroll views and
-`ignoresSafeArea`, forwarded through wrappers that do not change their child's size — painting
-modifiers, proxies, non-layout nodes — but not through frames, padding, aspect ratio or fixed size,
-which start a fresh safe area):
+A browser window has no safe area, but the safe-area modifiers create one for their content,
+and a host may give the root one (`Runtime.safeAreaInsets`: a `UIHostingController` under a
+navigation bar; the iOS profile's `NavigationStack` gives its screen its bar as one). The safe
+area travels down by geometry, set on each node by its placer in `place(at:)` (2026-09-12,
+measured on the simulator in `ios/representable/safearea-rule`, `safearea-color`):
 
-- a plain child is measured and placed in the bounds minus the insets; with nothing proposed the
-  insets add to the child's size;
-- an extending child keeps the full bounds and reads the insets through `_SafeAreaProvider`
-  (`ViewNode.inheritedSafeAreaInsets` walks up through forwarding wrappers to the nearest
-  provider; nested safe-area modifiers accumulate). `ScrollNode` takes them as content insets: the
-  content starts at the top/leading inset, the scrollable range grows by the insets, and the frame
-  is unchanged. `IgnoresSafeAreaNode` extends and provides zero insets on the ignored edges.
+- a node's `safeAreaOverlap` is how much of its frame lies in the unsafe region on each edge, and
+  its `safeAreaExtension` how far beyond an edge that *touches* the safe boundary the unsafe
+  region reaches; an edge inside the safe area gets neither (a colour padded 10 pt below a bar
+  stays put; one touching the bar extends under it through a `frame(width:)` or a padding on
+  the other edges);
+- `SafeAreaNode` (`safeAreaInset` with an inset view, `safeAreaPadding` with fixed lengths) adds
+  its insets: a plain child is measured and placed in the bounds minus the insets (with nothing
+  proposed the insets add to the child's size); a child that *extends into the safe area*
+  (`ViewNode.extendsIntoSafeArea`: scroll views, forwarded through wrappers that do not change
+  their child's size) keeps the full bounds and its overlap is the insets. `ScrollNode` takes
+  the overlap as content insets: the content starts at the top/leading inset, the scrollable
+  range grows by the insets, the frame is unchanged; nested safe-area modifiers accumulate;
+- `IgnoresSafeAreaNode` keeps the safe frame its parent gives it (a background or probe outside
+  the modifier sees that frame) and proposes its content that frame grown by the extension on
+  the ignored edges, placed in the grown rect and centred when smaller; the content gets no safe
+  area on those edges (a scroll view ignoring it does not inset), while the geometry stays in
+  `platformSafeAreaOverlap` for a hosted UIKit view (Representable.md).
 
 The inset view is proposed the cross length and nothing along its edge's axis, placed at the edge
 aligned by `alignment`, and paints (and is hit tested) over the content. Its length plus the
@@ -59,8 +68,9 @@ Tier A: 3 fixtures exact. Tier C: all three 0.00 %. Tier B: Chromium and WebKit 
 frames; Firefox 2/3 (`position/basic` carries the known 0.25 pt shift of "Above"). `PositionTests`
 cover the proposal-sized frame and centring, insets on every edge with alignment and spacing, the
 scroll view's content inset and scrollable range under nested insets, `safeAreaPadding`'s three
-spellings, `ignoresSafeArea` (and the older spelling), forwarding through painting modifiers but
-not frames, and unproposed sizes.
+spellings, `ignoresSafeArea` (and the older spelling), the geometric rule through frames,
+padding and stacks, the host's safe area, and unproposed sizes (2026-09-12: the earlier
+assumption that a frame stops the safe area was refuted by `ios/representable/safearea-rule`).
 
 ## Not yet covered
 

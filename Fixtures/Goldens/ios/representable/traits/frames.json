@@ -1,0 +1,45 @@
+{
+  "fixture" : "ios\/representable\/traits",
+  "frames" : {
+    "dark" : {
+      "height" : 68,
+      "width" : 300,
+      "x" : 10,
+      "y" : 100
+    },
+    "plain" : {
+      "height" : 68,
+      "width" : 300,
+      "x" : 10,
+      "y" : 24
+    },
+    "regular" : {
+      "height" : 68,
+      "width" : 300,
+      "x" : 10,
+      "y" : 328
+    },
+    "rtl" : {
+      "height" : 68,
+      "width" : 300,
+      "x" : 10,
+      "y" : 252
+    },
+    "stack" : {
+      "height" : 372,
+      "width" : 300,
+      "x" : 10,
+      "y" : 24
+    },
+    "xxxLarge" : {
+      "height" : 68,
+      "width" : 300,
+      "x" : 10,
+      "y" : 176
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 320
+  }
+}

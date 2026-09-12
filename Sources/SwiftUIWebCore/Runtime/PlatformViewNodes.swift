@@ -17,8 +17,9 @@ package protocol _PlatformViewTree: AnyObject {
     /// Gives the tree the runtime's services before it measures or paints (the text engine that
     /// answers the host's strings, the app's asset catalog).
     func prepare(textEngine: any TextEngine, assetCatalog: AssetCatalog)
-    /// Lays the tree out in `size`.
-    func layout(size: CGSize, colorScheme: ColorScheme)
+    /// Lays the tree out in `size`, with `safeAreaInsets` as the part of it under the host's
+    /// bars and insets, in the host's `environment` (the traits the tree resolves against).
+    func layout(size: CGSize, safeAreaInsets: EdgeInsets, environment: EnvironmentValues)
     /// The first and last text baselines of the content laid out in `size`, from its top.
     func baselines(in size: CGSize) -> (first: CGFloat, last: CGFloat)
     /// Paints the tree; `context.origin` is the tree's origin in absolute coordinates.
@@ -72,15 +73,19 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     private let sizing: @MainActor (ProposedViewSize, V, EnvironmentValues) -> CGSize
     /// Pushes the view value into the hosted content (`updateUIView`).
     private let updateContent: @MainActor (V, EnvironmentValues) -> Void
+    /// Whether the tree takes the safe area the node lies under as its own insets
+    /// (`_PlatformViewRepresentableLayoutOptions.propagatesSafeArea`).
+    private let propagatesSafeArea: Bool
     private let identifier: Int
     private var lastPressPoint = CGPoint.zero
     /// The environment generation the content was last updated for.
     private var updatedGeneration: UInt64?
 
-    package init(_ context: _NodeContext<V>, tree: any _PlatformViewTree,
+    package init(_ context: _NodeContext<V>, tree: any _PlatformViewTree, propagatesSafeArea: Bool = true,
                  sizing: @escaping @MainActor (ProposedViewSize, V, EnvironmentValues) -> CGSize,
                  update: @escaping @MainActor (V, EnvironmentValues) -> Void) {
         self.tree = tree
+        self.propagatesSafeArea = propagatesSafeArea
         self.sizing = sizing
         self.updateContent = update
         identifier = _nextGestureIdentifier()
@@ -127,8 +132,11 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
         return sizing(proposal, view, environment)
     }
 
+    /// The tree's safe area is the part of the node under a bar or inset, by geometry: zero for
+    /// a representable laid out inside the safe area, the bar's height for one that ignores it
+    /// (ios/representable/safearea, safearea-ignored; Docs/elements/Representable.md).
     override package func layoutContents(proposal: ProposedViewSize) {
-        tree.layout(size: frame.size, colorScheme: environment.colorScheme)
+        tree.layout(size: frame.size, safeAreaInsets: propagatesSafeArea ? platformSafeAreaOverlap : EdgeInsets(), environment: environment)
     }
 
     /// The hosted content's baselines are the representable's alignment guides.

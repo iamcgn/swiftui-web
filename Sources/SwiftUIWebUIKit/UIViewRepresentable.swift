@@ -5,6 +5,16 @@
 import SwiftUIWebCore
 import UIKitWebCore
 
+/// Options for how a representable's platform view is laid out (`_layoutOptions`).
+public struct _PlatformViewRepresentableLayoutOptions: OptionSet, Sendable {
+    public let rawValue: Int
+    public init(rawValue: Int) { self.rawValue = rawValue }
+    /// The platform view sees the safe area the representable lies under as its own insets
+    /// (ios/representable/safearea-ignored: a view that ignores the safe area under a bar is
+    /// laid out under it and gets the bar's height as its top inset). The default.
+    public static let propagatesSafeArea = _PlatformViewRepresentableLayoutOptions(rawValue: 1 << 0)
+}
+
 /// A wrapper for a UIKit view that you use to integrate that view into your SwiftUI view
 /// hierarchy.
 @MainActor @preconcurrency
@@ -32,10 +42,17 @@ public protocol UIViewRepresentable: View where Body == Never {
 
     /// Given a proposed size, returns the preferred size of the composite view.
     @MainActor @preconcurrency func sizeThatFits(_ proposal: ProposedViewSize, uiView: UIViewType, context: Context) -> CGSize?
+
+    typealias LayoutOptions = _PlatformViewRepresentableLayoutOptions
+
+    /// How the view is laid out; the default propagates the safe area.
+    @MainActor @preconcurrency static func _layoutOptions(_ provider: UIViewType) -> LayoutOptions
 }
 
 extension UIViewRepresentable {
     public static func dismantleUIView(_ uiView: UIViewType, coordinator: Coordinator) {}
+
+    public static func _layoutOptions(_ provider: UIViewType) -> LayoutOptions { [.propagatesSafeArea] }
 
     /// The default returns nil: SwiftUI sizes the view from its intrinsic content size and its
     /// content hugging and compression resistance priorities.
@@ -77,7 +94,7 @@ extension UIViewRepresentable {
         tree.hosted.setRootView(view)
         tree.dismantleContent = { Self.dismantleUIView(view, coordinator: coordinator) }
         return _PlatformViewHostNode(
-            context, tree: tree,
+            context, tree: tree, propagatesSafeArea: Self._layoutOptions(view).contains(.propagatesSafeArea),
             sizing: { proposal, representable, environment in
                 representable.sizeThatFits(proposal, uiView: view, context: makeContext(environment))
                     ?? RepresentableSizing.size(for: proposal, of: view)

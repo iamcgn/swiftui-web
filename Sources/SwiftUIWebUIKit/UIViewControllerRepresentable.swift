@@ -30,10 +30,17 @@ public protocol UIViewControllerRepresentable: View where Body == Never {
 
     /// Given a proposed size, returns the preferred size of the composite view.
     @MainActor @preconcurrency func sizeThatFits(_ proposal: ProposedViewSize, uiViewController: UIViewControllerType, context: Context) -> CGSize?
+
+    typealias LayoutOptions = _PlatformViewRepresentableLayoutOptions
+
+    /// How the controller's view is laid out; the default propagates the safe area.
+    @MainActor @preconcurrency static func _layoutOptions(_ provider: UIViewControllerType) -> LayoutOptions
 }
 
 extension UIViewControllerRepresentable {
     public static func dismantleUIViewController(_ uiViewController: UIViewControllerType, coordinator: Coordinator) {}
+
+    public static func _layoutOptions(_ provider: UIViewControllerType) -> LayoutOptions { [.propagatesSafeArea] }
 
     /// The default returns nil: SwiftUI sizes the controller's view from its intrinsic content
     /// size and priorities.
@@ -72,7 +79,7 @@ extension UIViewControllerRepresentable {
         tree.hosted.setRootViewController(controller)
         tree.dismantleContent = { Self.dismantleUIViewController(controller, coordinator: coordinator) }
         return _PlatformViewHostNode(
-            context, tree: tree,
+            context, tree: tree, propagatesSafeArea: Self._layoutOptions(controller).contains(.propagatesSafeArea),
             sizing: { proposal, representable, environment in
                 representable.sizeThatFits(proposal, uiViewController: controller, context: makeContext(environment))
                     ?? RepresentableSizing.size(for: proposal, of: controller)

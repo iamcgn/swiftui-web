@@ -1,0 +1,33 @@
+{
+  "fixture" : "ios\/representable\/safearea-color",
+  "frames" : {
+    "ignoring" : {
+      "height" : 236,
+      "width" : 320,
+      "x" : 0,
+      "y" : 64
+    },
+    "nav" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "plain" : {
+      "height" : 236,
+      "width" : 320,
+      "x" : 0,
+      "y" : 64
+    },
+    "zstack" : {
+      "height" : 236,
+      "width" : 320,
+      "x" : 0,
+      "y" : 64
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

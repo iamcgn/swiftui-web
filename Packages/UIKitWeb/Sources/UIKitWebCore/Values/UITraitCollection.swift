@@ -20,6 +20,44 @@ public enum UITraitEnvironmentLayoutDirection: Int, Sendable {
     case unspecified = -1, leftToRight = 0, rightToLeft = 1
 }
 
+/// The reading direction of the interface (`effectiveUserInterfaceLayoutDirection`).
+public enum UIUserInterfaceLayoutDirection: Int, Sendable {
+    case leftToRight = 0, rightToLeft = 1
+}
+
+/// A Dynamic Type size, from extra small to the accessibility sizes, in UIKit's order.
+public struct UIContentSizeCategory: Hashable, Sendable, RawRepresentable, Comparable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+
+    public static let unspecified = UIContentSizeCategory(rawValue: "_UICTContentSizeCategoryUnspecified")
+    public static let extraSmall = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryXS")
+    public static let small = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryS")
+    public static let medium = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryM")
+    public static let large = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryL")
+    public static let extraLarge = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryXL")
+    public static let extraExtraLarge = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryXXL")
+    public static let extraExtraExtraLarge = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryXXXL")
+    public static let accessibilityMedium = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryAccessibilityM")
+    public static let accessibilityLarge = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryAccessibilityL")
+    public static let accessibilityExtraLarge = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryAccessibilityXL")
+    public static let accessibilityExtraExtraLarge = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryAccessibilityXXL")
+    public static let accessibilityExtraExtraExtraLarge = UIContentSizeCategory(rawValue: "UICTContentSizeCategoryAccessibilityXXXL")
+
+    /// The categories from the smallest to the largest.
+    public static let ordered: [UIContentSizeCategory] = [
+        .extraSmall, .small, .medium, .large, .extraLarge, .extraExtraLarge, .extraExtraExtraLarge,
+        .accessibilityMedium, .accessibilityLarge, .accessibilityExtraLarge, .accessibilityExtraExtraLarge, .accessibilityExtraExtraExtraLarge,
+    ]
+
+    /// Whether the category is one of the accessibility sizes.
+    public var isAccessibilityCategory: Bool { (Self.ordered.firstIndex(of: self) ?? 0) >= 7 }
+
+    public static func < (lhs: UIContentSizeCategory, rhs: UIContentSizeCategory) -> Bool {
+        (ordered.firstIndex(of: lhs) ?? -1) < (ordered.firstIndex(of: rhs) ?? -1)
+    }
+}
+
 /// The traits a view resolves against.
 public struct UITraitCollection: Hashable, Sendable {
     public var userInterfaceStyle: UIUserInterfaceStyle = .light
@@ -28,8 +66,17 @@ public struct UITraitCollection: Hashable, Sendable {
     public var userInterfaceIdiom: UIUserInterfaceIdiom = .pad
     public var displayScale: CGFloat = 2
     public var layoutDirection: UITraitEnvironmentLayoutDirection = .leftToRight
+    public var preferredContentSizeCategory: UIContentSizeCategory = .large
 
     public init() {}
+
+    public init(preferredContentSizeCategory: UIContentSizeCategory) {
+        self.preferredContentSizeCategory = preferredContentSizeCategory
+    }
+
+    public init(layoutDirection: UITraitEnvironmentLayoutDirection) {
+        self.layoutDirection = layoutDirection
+    }
 
     public init(userInterfaceStyle: UIUserInterfaceStyle) {
         self.userInterfaceStyle = userInterfaceStyle
@@ -53,6 +100,8 @@ public struct UITraitCollection: Hashable, Sendable {
             if t.userInterfaceStyle != .unspecified { result.userInterfaceStyle = t.userInterfaceStyle }
             if t.horizontalSizeClass != .unspecified { result.horizontalSizeClass = t.horizontalSizeClass }
             if t.verticalSizeClass != .unspecified { result.verticalSizeClass = t.verticalSizeClass }
+            if t.layoutDirection != .unspecified { result.layoutDirection = t.layoutDirection }
+            if t.preferredContentSizeCategory != .unspecified { result.preferredContentSizeCategory = t.preferredContentSizeCategory }
         }
         self = result
     }
@@ -83,4 +132,27 @@ public struct UITraitCollection: Hashable, Sendable {
 public protocol UITraitEnvironment: AnyObject {
     var traitCollection: UITraitCollection { get }
     func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?)
+}
+
+/// The traits a view overrides for itself and its subtree (`UIView.traitOverrides`): each set
+/// value replaces the inherited one.
+public struct UITraitOverrides: Hashable, Sendable {
+    public var userInterfaceStyle: UIUserInterfaceStyle?
+    public var horizontalSizeClass: UIUserInterfaceSizeClass?
+    public var verticalSizeClass: UIUserInterfaceSizeClass?
+    public var layoutDirection: UITraitEnvironmentLayoutDirection?
+    public var preferredContentSizeCategory: UIContentSizeCategory?
+    public var displayScale: CGFloat?
+
+    public init() {}
+
+    /// Applies the set values to `traits`.
+    public func apply(to traits: inout UITraitCollection) {
+        if let userInterfaceStyle { traits.userInterfaceStyle = userInterfaceStyle }
+        if let horizontalSizeClass { traits.horizontalSizeClass = horizontalSizeClass }
+        if let verticalSizeClass { traits.verticalSizeClass = verticalSizeClass }
+        if let layoutDirection { traits.layoutDirection = layoutDirection }
+        if let preferredContentSizeCategory { traits.preferredContentSizeCategory = preferredContentSizeCategory }
+        if let displayScale { traits.displayScale = displayScale }
+    }
 }

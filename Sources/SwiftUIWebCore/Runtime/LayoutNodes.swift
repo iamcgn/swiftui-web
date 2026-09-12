@@ -123,6 +123,8 @@ package protocol _UnaryLayoutModifier: AnyObject {
     func zIndex(of target: ViewNode) -> Double
     /// Whether the targets are hidden (`hidden`): not painted, hit tested or exposed.
     var hidesTargets: Bool { get }
+    /// Whether the modifier changes its child's size (frames, padding).
+    var changesChildSize: Bool { get }
     func layoutValue<K: LayoutValueKey>(of target: ViewNode, for key: K.Type) -> K.Value
     func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext)
 }
@@ -242,9 +244,9 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
     override package var layoutSpacing: ViewSpacing { targets.first.map(spacing(of:)) ?? ViewSpacing() }
     override package var zIndex: Double { targets.first.map(zIndex(of:)) ?? 0 }
 
-    /// Painting modifiers pass the safe area through; sizing ones (`changesChildSize`) do not.
+    /// Whether this modifier changes its child's size (frames, padding): such a modifier does
+    /// not extend into the safe area with its child.
     package var changesChildSize: Bool { false }
-    override package var forwardsSafeArea: Bool { !changesChildSize }
     /// A probed or painted Spacer is still a Spacer to its stack.
     override package var isSpacer: Bool {
         let targets = targets
@@ -303,8 +305,7 @@ package final class LayoutModifierProxy: ViewNode {
     override package var layoutPriority: Double { owner.priority(of: target) }
     override package var layoutSpacing: ViewSpacing { owner.spacing(of: target) }
     override package var zIndex: Double { owner.zIndex(of: target) }
-    override package var forwardsSafeArea: Bool { (owner as? ViewNode)?.forwardsSafeArea ?? false }
-    override package var extendsIntoSafeArea: Bool { forwardsSafeArea && target.extendsIntoSafeArea }
+    override package var extendsIntoSafeArea: Bool { !owner.changesChildSize && target.extendsIntoSafeArea }
     override package var paintedChildren: [ViewNode] { owner.hidesTargets ? [] : [target] }
     override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
         owner.paintTarget(target, in: self, into: &list, context: context)

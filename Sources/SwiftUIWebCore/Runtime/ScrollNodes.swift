@@ -88,8 +88,8 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     package var isScrollEnabled: Bool { environment.isScrollEnabled }
     override package var extendsIntoSafeArea: Bool { true }
 
-    /// Safe-area insets from an enclosing `safeAreaInset`/`safeAreaPadding`: the scroll view
-    /// keeps its frame and insets the content (read at layout, kept for scrolling).
+    /// Safe-area insets from an enclosing `safeAreaInset`/`safeAreaPadding` or the host: the
+    /// scroll view keeps its frame and insets the content (read at layout, kept for scrolling).
     package private(set) var contentInsets = EdgeInsets()
 
     /// Whether an indicator may show along each axis.
@@ -112,7 +112,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     /// none); across it, exactly the content's size (fixtures `scroll/narrow-content`,
     /// `scroll/wide-content`).
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        let insets = inheritedSafeAreaInsets
+        let insets = safeAreaOverlap
         var size = child.sizeThatFits(contentProposal(proposal, insets: insets))
         size.width += insets.leading + insets.trailing
         size.height += insets.top + insets.bottom
@@ -143,7 +143,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     override package func layoutContents(proposal: ProposedViewSize) {
-        contentInsets = inheritedSafeAreaInsets
+        contentInsets = safeAreaOverlap
         let contentProposal = contentProposal(proposal, insets: contentInsets)
         contentSize = child.sizeThatFits(contentProposal)
         if !appliedDefaultAnchor {

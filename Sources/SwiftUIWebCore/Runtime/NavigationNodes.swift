@@ -386,6 +386,19 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         }
     }
 
+    /// The bar over a screen is the screen's safe area: content is laid out under it, and a
+    /// view that ignores the safe area extends up under the bar (ios/representable/safearea-color,
+    /// safearea-ignored). A scroll view or list is laid out under the bar as well rather than
+    /// extending and insetting (the goldens place its frame there).
+    override package func providedSafeAreaInsets(for child: ViewNode) -> EdgeInsets {
+        let bars = self.bars
+        for (index, screen) in screens.enumerated() where screen.nodes.contains(where: { $0 === child }) {
+            guard index < bars.count, let bar = bars[index] else { return EdgeInsets() }
+            return EdgeInsets(top: bar.height, leading: 0, bottom: 0, trailing: 0)
+        }
+        return EdgeInsets()
+    }
+
     /// macOS: the top screen's size. iOS: the proposal, whatever the content (ios/nav/sizing: a
     /// stack holding one word is 320 × 267.5 in a 300 pt column next to a text), the content
     /// sizing only an unspecified dimension.

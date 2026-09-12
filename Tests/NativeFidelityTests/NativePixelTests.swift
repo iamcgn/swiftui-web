@@ -34,7 +34,7 @@ enum NativeGoldens {
     /// fonts are real, but the bound is kept for parity with Tier B.
     /// `splitview/*`: Apple's capture drops the sidebar's rows and selection and fills the 8 pt
     /// bands beside the sidebar panel with a black-to-clear gradient (about 3.4 % of the window).
-    static let approximate: Set<String> = ["text/system-fonts", "button/styles", "progress/indeterminate", "splitview/basic", "splitview/widths",
+    static let approximate: Set<String> = ["ios/representable/hostingsafearea-tabs", "text/system-fonts", "button/styles", "progress/indeterminate", "splitview/basic", "splitview/widths",
                                            "splitview/three", "splitview/columns", "splitview/sized", "splitview/selection", "splitview/visibility",
                                            "texteditor/basic"]   // NSTextView's tighter letters and wider spaces wrap one more word onto the first line
     /// Probes allowed two points (symbol sizes the metrics table scales to), as in Tier A.

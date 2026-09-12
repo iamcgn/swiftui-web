@@ -1491,6 +1491,13 @@ public static let darkNavigation = Fixture(
     .probe("nav")
 }.platform(.iOS).colorScheme(.dark)
 """##),
+        FixtureSource(name: "ios/dark/representable-controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 330, lastLine: 334, declaration: #"""
+/// The controls in the dark appearance: the environment's colour scheme reaches the hosted
+/// views as their user interface style.
+public static let darkControls = Fixture("ios/dark/representable-controls", size: CGSize(width: 320, height: 320)) {
+    controlsContent()
+}.platform(.iOS).colorScheme(.dark)
+"""#),
         FixtureSource(name: "ios/dark/system-colors", file: "Fixtures/Sources/iOS/IOSDarkFixtures.swift", firstLine: 31, lastLine: 33, declaration: #"""
 public static let darkSystemColors = Fixture("ios/dark/system-colors", size: CGSize(width: 400, height: 240)) {
     systemColorGrid()
@@ -1853,7 +1860,7 @@ public static let progress = Fixture("ios/progress/basic", size: CGSize(width: 3
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/controller", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 273, lastLine: 281, declaration: #"""
+        FixtureSource(name: "ios/representable/controller", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 393, lastLine: 401, declaration: #"""
 /// A view controller: in a 200 × 60 container and at its ideal size (its view has no
 /// intrinsic size; `preferredContentSize` is 80 × 40).
 public static let controller = Fixture("ios/representable/controller", size: CGSize(width: 320, height: 200)) {
@@ -1864,28 +1871,40 @@ public static let controller = Fixture("ios/representable/controller", size: CGS
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 214, lastLine: 225, declaration: #"""
+        FixtureSource(name: "ios/representable/controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 324, lastLine: 328, declaration: #"""
 /// Controls: a switch and a system button (intrinsic sizes on both axes) in a large
 /// container and at their ideal sizes, a text field (an intrinsic height only).
 public static let controls = Fixture("ios/representable/controls", size: CGSize(width: 320, height: 320)) {
-    VStack(alignment: .leading, spacing: 8) {
-        VStack { SwitchBox().probe("switchLarge") }.frame(width: 200, height: 60)
-        SwitchBox().fixedSize().probe("switchIdeal")
-        VStack { FieldBox().probe("field") }.frame(width: 200, height: 60)
-        VStack { ButtonBox().probe("button") }.frame(width: 200, height: 60)
-        ButtonBox().fixedSize().probe("buttonIdeal")
-    }
-    .probe("stack")
+    controlsContent()
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingcells", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 296, lastLine: 300, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingcells", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 569, lastLine: 573, declaration: #"""
 /// A table whose rows host SwiftUI through `UIHostingConfiguration`: default margins, custom
 /// margins with a background, and a minimum height.
 public static let hostingCells = Fixture("ios/representable/hostingcells", size: CGSize(width: 320, height: 300)) {
     HostingCellsTable().probe("table")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/label", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 181, lastLine: 192, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingsafearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 540, lastLine: 544, declaration: #"""
+/// A hosting controller as a navigation controller's screen: the hosted SwiftUI content sees
+/// the bar's safe area (green below the bar, yellow under it).
+public static let hostingSafeArea = Fixture("ios/representable/hostingsafearea", size: CGSize(width: 320, height: 300)) {
+    HostingNavBox().probe("host")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/hostingsafearea-none", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 546, lastLine: 549, declaration: #"""
+/// The same with `safeAreaRegions` empty: the content ignores the bar.
+public static let hostingSafeAreaNone = Fixture("ios/representable/hostingsafearea-none", size: CGSize(width: 320, height: 300)) {
+    HostingNavBox(regions: []).probe("host")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/hostingsafearea-tabs", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 551, lastLine: 554, declaration: #"""
+/// A hosting controller as a tab: the tab bar's safe area at the bottom.
+public static let hostingSafeAreaTabs = Fixture("ios/representable/hostingsafearea-tabs", size: CGSize(width: 320, height: 300)) {
+    HostingNavBox(tabs: true).probe("host")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/label", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 291, lastLine: 302, declaration: #"""
 /// A label (an intrinsic size on both axes, UILabel's default priorities 251 / 750) under a
 /// proposal larger than it, one smaller, at its ideal size, and a wrapping label in a
 /// narrow container.
@@ -1899,7 +1918,7 @@ public static let label = Fixture("ios/representable/label", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/plain", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 170, lastLine: 179, declaration: #"""
+        FixtureSource(name: "ios/representable/plain", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 280, lastLine: 289, declaration: #"""
 /// A view without an intrinsic size: in a 200 × 60 container, at its ideal size, and in a
 /// row next to a text.
 public static let plain = Fixture("ios/representable/plain", size: CGSize(width: 320, height: 200)) {
@@ -1911,7 +1930,7 @@ public static let plain = Fixture("ios/representable/plain", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/priorities", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 194, lastLine: 212, declaration: #"""
+        FixtureSource(name: "ios/representable/priorities", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 304, lastLine: 322, declaration: #"""
 /// The priorities that decide between the intrinsic size and the proposal: content hugging
 /// from 252 to 1000 under a larger proposal, compression resistance from 250 to 1000 under
 /// a smaller one.
@@ -1932,7 +1951,136 @@ public static let priorities = Fixture("ios/representable/priorities", size: CGS
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/sizing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 227, lastLine: 251, declaration: #"""
+        FixtureSource(name: "ios/representable/safearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 492, lastLine: 503, declaration: ##"""
+/// A representable under an inline navigation bar: where SwiftUI places it and what safe
+/// area the UIKit view sees (green over the safe area, blue elsewhere).
+public static let safeArea = Fixture("ios/representable/safearea", size: CGSize(width: 320, height: 300)) {
+    NavigationStack {
+        SafeAreaBox().probe("box")
+            .navigationTitle("Settings")
+            #if canImport(SwiftUIWebCore) || os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""##),
+        FixtureSource(name: "ios/representable/safearea-color", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 448, lastLine: 463, declaration: ##"""
+/// The control: a SwiftUI colour ignoring the safe area under the same bar, and one in a
+/// stack that does not.
+public static let safeAreaColor = Fixture("ios/representable/safearea-color", size: CGSize(width: 320, height: 300)) {
+    NavigationStack {
+        ZStack {
+            Color.blue.ignoresSafeArea().probe("ignoring")
+            Color.green.probe("plain")
+        }
+        .probe("zstack")
+        .navigationTitle("Settings")
+        #if canImport(SwiftUIWebCore) || os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""##),
+        FixtureSource(name: "ios/representable/safearea-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 514, lastLine: 525, declaration: ##"""
+/// The representable told to ignore the safe area: it extends under the bar, and the safe
+/// area the view sees says whether the bar's inset still reaches it.
+public static let safeAreaIgnored = Fixture("ios/representable/safearea-ignored", size: CGSize(width: 320, height: 300)) {
+    NavigationStack {
+        SafeAreaBox().ignoresSafeArea().probe("box")
+            .navigationTitle("Settings")
+            #if canImport(SwiftUIWebCore) || os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""##),
+        FixtureSource(name: "ios/representable/safearea-inset", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 465, lastLine: 478, declaration: ##"""
+/// A safe area SwiftUI makes (`safeAreaInset` at the bottom) around a representable: whether
+/// the UIKit view extends into it and sees it as an inset.
+public static let safeAreaInset = Fixture("ios/representable/safearea-inset", size: CGSize(width: 320, height: 300)) {
+    NavigationStack {
+        SafeAreaBox()
+            .safeAreaInset(edge: .bottom) { Color.red.frame(height: 40).probe("inset") }
+            .probe("box")
+            .navigationTitle("Settings")
+            #if canImport(SwiftUIWebCore) || os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""##),
+        FixtureSource(name: "ios/representable/safearea-large", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 505, lastLine: 512, declaration: #"""
+/// The same under a large title.
+public static let safeAreaLarge = Fixture("ios/representable/safearea-large", size: CGSize(width: 320, height: 300)) {
+    NavigationStack {
+        SafeAreaBox().probe("box")
+            .navigationTitle("Settings")
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/safearea-rule", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 419, lastLine: 446, declaration: ##"""
+/// The rule for views away from the safe edge: a colour padded 10 from the top that ignores
+/// the safe area, one 10 below the top in a stack, and a scroll view in a row.
+public static let safeAreaRule = Fixture("ios/representable/safearea-rule", size: CGSize(width: 320, height: 300)) {
+    NavigationStack {
+        ZStack(alignment: .top) {
+            Color.green
+            HStack(alignment: .top, spacing: 0) {
+                Color.blue.ignoresSafeArea().padding(.top, 10).frame(width: 60).probe("padded")
+                VStack(spacing: 0) {
+                    Color.clear.frame(height: 10)
+                    Color.red.ignoresSafeArea().probe("offsetColor")
+                }
+                .frame(width: 60)
+                .probe("offset")
+                ScrollView { Color.orange.frame(height: 400).probe("scrollContent") }.frame(width: 80).probe("scroll")
+                Color.purple.ignoresSafeArea().frame(width: 60).probe("framed")
+                Color.pink.ignoresSafeArea().padding(.horizontal, 5).frame(width: 60).probe("hpadded")
+            }
+            .probe("row")
+        }
+        .probe("zstack")
+        .navigationTitle("Settings")
+        #if canImport(SwiftUIWebCore) || os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""##),
+        FixtureSource(name: "ios/representable/safearea-scroll", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 527, lastLine: 538, declaration: ##"""
+/// A UIScrollView under the bar: whether it extends under it and where its content starts
+/// (the automatic content inset adjustment).
+public static let safeAreaScroll = Fixture("ios/representable/safearea-scroll", size: CGSize(width: 320, height: 300)) {
+    NavigationStack {
+        StripesScrollBox().probe("scroll")
+            .navigationTitle("Settings")
+            #if canImport(SwiftUIWebCore) || os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""##),
+        FixtureSource(name: "ios/representable/safearea-scroll-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 480, lastLine: 490, declaration: ##"""
+/// A UIScrollView ignoring the safe area under the bar: the automatic content inset.
+public static let safeAreaScrollIgnored = Fixture("ios/representable/safearea-scroll-ignored", size: CGSize(width: 320, height: 300)) {
+    NavigationStack {
+        StripesScrollBox().ignoresSafeArea().probe("scroll")
+            .navigationTitle("Settings")
+            #if canImport(SwiftUIWebCore) || os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+    }
+    .probe("nav")
+}.platform(.iOS)
+"""##),
+        FixtureSource(name: "ios/representable/sizing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 347, lastLine: 371, declaration: #"""
 /// The representable's own `sizeThatFits`: a fixed size, the proposal's width, the ideal
 /// size when nothing is proposed, and how a representable aligns to a text baseline.
 public static let sizing = Fixture("ios/representable/sizing", size: CGSize(width: 320, height: 340)) {
@@ -1959,7 +2107,7 @@ public static let sizing = Fixture("ios/representable/sizing", size: CGSize(widt
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/spacing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 253, lastLine: 271, declaration: #"""
+        FixtureSource(name: "ios/representable/spacing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 373, lastLine: 391, declaration: #"""
 /// Stack spacing around representables: a label between texts in a column, a switch between
 /// texts in a row.
 public static let spacing = Fixture("ios/representable/spacing", size: CGSize(width: 320, height: 200)) {
@@ -1980,7 +2128,21 @@ public static let spacing = Fixture("ios/representable/spacing", size: CGSize(wi
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/update", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 283, lastLine: 292, declaration: #"""
+        FixtureSource(name: "ios/representable/traits", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 556, lastLine: 567, declaration: #"""
+/// The environment as the hosted view's trait collection: the colour scheme, the dynamic
+/// type size, the layout direction and the size classes, each drawn as bar widths.
+public static let traits = Fixture("ios/representable/traits", size: CGSize(width: 320, height: 420)) {
+    VStack(alignment: .leading, spacing: 8) {
+        TraitBox().probe("plain")
+        TraitBox().environment(\.colorScheme, .dark).probe("dark")
+        TraitBox().dynamicTypeSize(.xxxLarge).probe("xxxLarge")
+        TraitBox().environment(\.layoutDirection, .rightToLeft).probe("rtl")
+        TraitBox().environment(\.horizontalSizeClass, .regular).probe("regular")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/update", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 403, lastLine: 412, declaration: #"""
 /// Updates reach the UIKit views: a longer text widens the label, the switch turns off.
 public static let update = Fixture("ios/representable/update", size: CGSize(width: 320, height: 200),
                                    model: { RepresentableModel() },
@@ -9871,6 +10033,116 @@ struct ControllerBox: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: BoxController, context: Context) {}
 }
 
+// MARK: Safe areas and traits (Phase 8: ix-layout-options, ix-traits)
+
+/// A view that shows its safe area: blue over its bounds, green over the bounds inset by its
+/// `safeAreaInsets`.
+final class SafeAreaView: UIView {
+    let safe = UIView()
+
+    static func make() -> SafeAreaView {
+        let view = SafeAreaView()
+        view.backgroundColor = .systemBlue
+        view.safe.backgroundColor = .systemGreen
+        view.addSubview(view.safe)
+        return view
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        safe.frame = bounds.inset(by: safeAreaInsets)
+    }
+
+    override func safeAreaInsetsDidChange() {
+        super.safeAreaInsetsDidChange()
+        setNeedsLayout()
+    }
+}
+
+struct SafeAreaBox: UIViewRepresentable {
+    func makeUIView(context: Context) -> SafeAreaView { SafeAreaView.make() }
+    func updateUIView(_ uiView: SafeAreaView, context: Context) {}
+}
+
+/// A scroll view over 800 pt of 50 pt stripes: the first red, then blue and green in turn.
+struct StripesScrollBox: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIScrollView {
+        let scroll = UIScrollView()
+        scroll.backgroundColor = .systemBackground
+        for index in 0..<16 {
+            let stripe = UIView(frame: CGRect(x: 0, y: CGFloat(index) * 50, width: 320, height: 50))
+            stripe.backgroundColor = index == 0 ? .systemRed : (index % 2 == 1 ? .systemBlue : .systemGreen)
+            scroll.addSubview(stripe)
+        }
+        scroll.contentSize = CGSize(width: 320, height: 800)
+        return scroll
+    }
+    func updateUIView(_ uiView: UIScrollView, context: Context) {}
+}
+
+/// A navigation (or tab bar) controller whose screen is a hosting controller showing yellow
+/// that ignores the safe area under green that respects it.
+struct HostingNavBox: UIViewControllerRepresentable {
+    var regions: SafeAreaRegions = .all
+    var tabs = false
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let hosting = UIHostingController(rootView: ZStack { Color.yellow.ignoresSafeArea(); Color.green })
+        hosting.safeAreaRegions = regions
+        hosting.title = "Settings"
+        if tabs {
+            let controller = UITabBarController()
+            hosting.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), tag: 0)
+            controller.viewControllers = [hosting]
+            return controller
+        }
+        return UINavigationController(rootViewController: hosting)
+    }
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+/// A view that draws its traits as red bars on white, 8 pt tall and 12 apart, each 20 pt wide
+/// plus 20 per step of its value: the appearance (light 1, dark 2), the content size category
+/// (its index from extraSmall, plus one), the layout direction (left to right 1, right to left
+/// 2), the horizontal and vertical size classes (compact 1, regular 2), and the effective
+/// layout direction (as the layout direction).
+final class TraitView: UIView {
+    static let categories: [UIContentSizeCategory] = [
+        .extraSmall, .small, .medium, .large, .extraLarge, .extraExtraLarge, .extraExtraExtraLarge,
+        .accessibilityMedium, .accessibilityLarge, .accessibilityExtraLarge, .accessibilityExtraExtraLarge, .accessibilityExtraExtraExtraLarge,
+    ]
+    static let rows = 6
+    static let size = CGSize(width: 300, height: 68)
+
+    static func make() -> TraitView {
+        let view = TraitView()
+        view.backgroundColor = .white
+        for _ in 0..<rows {
+            let bar = UIView()
+            bar.backgroundColor = .red
+            view.addSubview(bar)
+        }
+        return view
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let traits = traitCollection
+        let category = Self.categories.firstIndex(of: traits.preferredContentSizeCategory) ?? -1
+        let values = [traits.userInterfaceStyle.rawValue, category + 1, traits.layoutDirection.rawValue + 1,
+                      traits.horizontalSizeClass.rawValue, traits.verticalSizeClass.rawValue, effectiveUserInterfaceLayoutDirection.rawValue + 1]
+        for (row, bar) in subviews.enumerated() {
+            bar.frame = CGRect(x: 0, y: CGFloat(row) * 12, width: 20 + 20 * CGFloat(values[row]), height: 8)
+        }
+    }
+}
+
+struct TraitBox: UIViewRepresentable {
+    func makeUIView(context: Context) -> TraitView { TraitView.make() }
+    func updateUIView(_ uiView: TraitView, context: Context) { uiView.setNeedsLayout() }
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: TraitView, context: Context) -> CGSize? { TraitView.size }
+}
+
 @Observable final class RepresentableModel {
     var text = "Hello"
     var isOn = true
@@ -9924,6 +10196,16 @@ public enum RepresentableFixtures {
     /// Controls: a switch and a system button (intrinsic sizes on both axes) in a large
     /// container and at their ideal sizes, a text field (an intrinsic height only).
     public static let controls = Fixture("ios/representable/controls", size: CGSize(width: 320, height: 320)) {
+        controlsContent()
+    }.platform(.iOS)
+
+    /// The controls in the dark appearance: the environment's colour scheme reaches the hosted
+    /// views as their user interface style.
+    public static let darkControls = Fixture("ios/dark/representable-controls", size: CGSize(width: 320, height: 320)) {
+        controlsContent()
+    }.platform(.iOS).colorScheme(.dark)
+
+    @MainActor private static func controlsContent() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             VStack { SwitchBox().probe("switchLarge") }.frame(width: 200, height: 60)
             SwitchBox().fixedSize().probe("switchIdeal")
@@ -9932,7 +10214,7 @@ public enum RepresentableFixtures {
             ButtonBox().fixedSize().probe("buttonIdeal")
         }
         .probe("stack")
-    }.platform(.iOS)
+    }
 
     /// The representable's own `sizeThatFits`: a fixed size, the proposal's width, the ideal
     /// size when nothing is proposed, and how a representable aligns to a text baseline.
@@ -10001,7 +10283,160 @@ public enum RepresentableFixtures {
         .probe("stack")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [plain, label, priorities, controls, sizing, spacing, controller, update, hostingCells]
+    public static let all: [Fixture] = [plain, label, priorities, controls, darkControls, sizing, spacing, controller, update, hostingCells,
+                                        safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
+                                        hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
+                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule]
+
+    /// The rule for views away from the safe edge: a colour padded 10 from the top that ignores
+    /// the safe area, one 10 below the top in a stack, and a scroll view in a row.
+    public static let safeAreaRule = Fixture("ios/representable/safearea-rule", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            ZStack(alignment: .top) {
+                Color.green
+                HStack(alignment: .top, spacing: 0) {
+                    Color.blue.ignoresSafeArea().padding(.top, 10).frame(width: 60).probe("padded")
+                    VStack(spacing: 0) {
+                        Color.clear.frame(height: 10)
+                        Color.red.ignoresSafeArea().probe("offsetColor")
+                    }
+                    .frame(width: 60)
+                    .probe("offset")
+                    ScrollView { Color.orange.frame(height: 400).probe("scrollContent") }.frame(width: 80).probe("scroll")
+                    Color.purple.ignoresSafeArea().frame(width: 60).probe("framed")
+                    Color.pink.ignoresSafeArea().padding(.horizontal, 5).frame(width: 60).probe("hpadded")
+                }
+                .probe("row")
+            }
+            .probe("zstack")
+            .navigationTitle("Settings")
+            #if canImport(SwiftUIWebCore) || os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// The control: a SwiftUI colour ignoring the safe area under the same bar, and one in a
+    /// stack that does not.
+    public static let safeAreaColor = Fixture("ios/representable/safearea-color", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            ZStack {
+                Color.blue.ignoresSafeArea().probe("ignoring")
+                Color.green.probe("plain")
+            }
+            .probe("zstack")
+            .navigationTitle("Settings")
+            #if canImport(SwiftUIWebCore) || os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// A safe area SwiftUI makes (`safeAreaInset` at the bottom) around a representable: whether
+    /// the UIKit view extends into it and sees it as an inset.
+    public static let safeAreaInset = Fixture("ios/representable/safearea-inset", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            SafeAreaBox()
+                .safeAreaInset(edge: .bottom) { Color.red.frame(height: 40).probe("inset") }
+                .probe("box")
+                .navigationTitle("Settings")
+                #if canImport(SwiftUIWebCore) || os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// A UIScrollView ignoring the safe area under the bar: the automatic content inset.
+    public static let safeAreaScrollIgnored = Fixture("ios/representable/safearea-scroll-ignored", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            StripesScrollBox().ignoresSafeArea().probe("scroll")
+                .navigationTitle("Settings")
+                #if canImport(SwiftUIWebCore) || os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// A representable under an inline navigation bar: where SwiftUI places it and what safe
+    /// area the UIKit view sees (green over the safe area, blue elsewhere).
+    public static let safeArea = Fixture("ios/representable/safearea", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            SafeAreaBox().probe("box")
+                .navigationTitle("Settings")
+                #if canImport(SwiftUIWebCore) || os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// The same under a large title.
+    public static let safeAreaLarge = Fixture("ios/representable/safearea-large", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            SafeAreaBox().probe("box")
+                .navigationTitle("Settings")
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// The representable told to ignore the safe area: it extends under the bar, and the safe
+    /// area the view sees says whether the bar's inset still reaches it.
+    public static let safeAreaIgnored = Fixture("ios/representable/safearea-ignored", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            SafeAreaBox().ignoresSafeArea().probe("box")
+                .navigationTitle("Settings")
+                #if canImport(SwiftUIWebCore) || os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// A UIScrollView under the bar: whether it extends under it and where its content starts
+    /// (the automatic content inset adjustment).
+    public static let safeAreaScroll = Fixture("ios/representable/safearea-scroll", size: CGSize(width: 320, height: 300)) {
+        NavigationStack {
+            StripesScrollBox().probe("scroll")
+                .navigationTitle("Settings")
+                #if canImport(SwiftUIWebCore) || os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// A hosting controller as a navigation controller's screen: the hosted SwiftUI content sees
+    /// the bar's safe area (green below the bar, yellow under it).
+    public static let hostingSafeArea = Fixture("ios/representable/hostingsafearea", size: CGSize(width: 320, height: 300)) {
+        HostingNavBox().probe("host")
+    }.platform(.iOS)
+
+    /// The same with `safeAreaRegions` empty: the content ignores the bar.
+    public static let hostingSafeAreaNone = Fixture("ios/representable/hostingsafearea-none", size: CGSize(width: 320, height: 300)) {
+        HostingNavBox(regions: []).probe("host")
+    }.platform(.iOS)
+
+    /// A hosting controller as a tab: the tab bar's safe area at the bottom.
+    public static let hostingSafeAreaTabs = Fixture("ios/representable/hostingsafearea-tabs", size: CGSize(width: 320, height: 300)) {
+        HostingNavBox(tabs: true).probe("host")
+    }.platform(.iOS)
+
+    /// The environment as the hosted view's trait collection: the colour scheme, the dynamic
+    /// type size, the layout direction and the size classes, each drawn as bar widths.
+    public static let traits = Fixture("ios/representable/traits", size: CGSize(width: 320, height: 420)) {
+        VStack(alignment: .leading, spacing: 8) {
+            TraitBox().probe("plain")
+            TraitBox().environment(\.colorScheme, .dark).probe("dark")
+            TraitBox().dynamicTypeSize(.xxxLarge).probe("xxxLarge")
+            TraitBox().environment(\.layoutDirection, .rightToLeft).probe("rtl")
+            TraitBox().environment(\.horizontalSizeClass, .regular).probe("regular")
+        }
+        .probe("stack")
+    }.platform(.iOS)
 
     /// A table whose rows host SwiftUI through `UIHostingConfiguration`: default margins, custom
     /// margins with a background, and a minimum height.

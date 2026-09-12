@@ -46,7 +46,7 @@ enum Goldens {
     static func textEngine(for fixture: Fixture) throws -> RecordedTextEngine {
         let file = fixture.platform == .iOS ? "ios/text-metrics.json" : "text-metrics.json"
         let engine = try RecordedTextEngine(contentsOf: root.appendingPathComponent(file))
-        guard fixture.name.hasPrefix("ios/representable/") else { return engine }
+        guard fixture.name.hasPrefix("ios/representable/") || fixture.name.hasPrefix("ios/dark/representable") else { return engine }
         let uikit = try RecordedTextEngine(contentsOf: root.appendingPathComponent("uikit/text-metrics.json"))
         return RecordedTextEngine(entries: engine.entries.merging(uikit.entries) { _, label in label }, fonts: engine.fonts)
     }

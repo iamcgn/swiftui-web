@@ -64,6 +64,13 @@ public final class Runtime {
     /// their goldens are transparent).
     public var paintsWindowBackground = false
 
+    /// The host's safe area (a `UIHostingController` under a navigation bar; a browser page has
+    /// none): the root view is laid out inside it unless it extends into it, as under a
+    /// `safeAreaPadding` (ios/representable/hostingsafearea).
+    public var safeAreaInsets = EdgeInsets() {
+        didSet { if safeAreaInsets != oldValue { requestLayout() } }
+    }
+
     /// Whether the runtime draws window chrome a browser page lacks: the toolbar
     /// (`Runtime/ToolbarNodes.swift`). Hosts with a real title bar leave it off or keep the title
     /// out of the bar (`chromeShowsTitle`).
@@ -322,9 +329,17 @@ public final class Runtime {
         layoutToolbar(in: size)
         let top = toolbar?.frame.height ?? 0
         let content = CGSize(width: size.width, height: max(0, size.height - top))
+        let insets = safeAreaInsets
+        let safe = CGRect(x: insets.leading, y: top + insets.top, width: max(0, content.width - insets.leading - insets.trailing),
+                          height: max(0, content.height - insets.top - insets.bottom))
         for node in root.layoutChildren {
-            node.place(at: CGPoint(x: content.width / 2, y: top + content.height / 2), anchor: .center,
-                       proposal: ProposedViewSize(content), by: root)
+            if node.extendsIntoSafeArea {
+                node.safeAreaOverlap = insets
+                node.place(at: CGPoint(x: content.width / 2, y: top + content.height / 2), anchor: .center,
+                           proposal: ProposedViewSize(content), by: root)
+            } else {
+                node.place(at: CGPoint(x: safe.midX, y: safe.midY), anchor: .center, proposal: ProposedViewSize(safe.size), by: root)
+            }
         }
         layoutPresentations(in: size)
         isLayingOut = false
@@ -352,6 +367,9 @@ package final class RootNode: ViewNode {
     package init(runtime: Runtime, environment: EnvironmentValues) {
         super.init(parent: nil, runtime: runtime, environment: environment)
     }
+
+    /// The host's safe area is the root view's.
+    override package func providedSafeAreaInsets(for child: ViewNode) -> EdgeInsets { runtime.safeAreaInsets }
 
     fileprivate func mount<V: View>(_ view: V) -> TypedNode<V> {
         if let existing = child as? TypedNode<V> {

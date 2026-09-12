@@ -74,6 +74,28 @@ import Foundation
         #expect(commands().contains { $0.contains("drawText(\"Count 5\"") })
     }
 
+    /// ios/representable/hostingsafearea: a hosting controller under a navigation bar lays its
+    /// content out below the bar, and a view ignoring the safe area extends under it; with
+    /// `safeAreaRegions` empty the content fills the view (hostingsafearea-none).
+    @Test func aContainersBarsAreTheContentsSafeArea() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.textEngine = engine()
+        scene.configureScreen(size: CGSize(width: 300, height: 300), scale: 2)
+        let controller = UIHostingController(rootView: ZStack { Color.red.ignoresSafeArea(); Color.blue })
+        let navigation = UINavigationController(rootViewController: controller)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
+        window.rootViewController = navigation
+        window.makeKeyAndVisible()
+        var painted = commands()
+        // The bar ends 64 pt down (uikit/nav/basic): red everywhere, blue below the bar.
+        #expect(painted.contains("fillRect(0, 0, 300, 300) #FF383C"), "\(painted)")
+        #expect(painted.contains("fillRect(0, 64, 300, 236) #0088FF"), "\(painted)")
+        controller.safeAreaRegions = []
+        painted = commands()
+        #expect(painted.contains("fillRect(0, 0, 300, 300) #0088FF"), "\(painted)")
+    }
+
     @Test func touchesReachTheContentAndSemanticsJoinTheScene() {
         let model = Model()
         let (_, _) = window(model)

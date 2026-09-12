@@ -992,10 +992,12 @@
         {
           "api": "safeAreaInset / safeAreaPadding / ignoresSafeArea / edgesIgnoringSafeArea",
           "status": "partial",
-          "notes": "The modifiers create a safe area: plain content is laid out inside it (inset length + 8 pt spacing), scroll views keep their frame and inset their content, ignoresSafeArea extends. The window itself has no safe area and GeometryProxy.safeAreaInsets stays zero",
+          "notes": "The modifiers create a safe area: plain content is laid out inside it (inset length + 8 pt spacing), scroll views keep their frame and inset their content, ignoresSafeArea extends where the view's edge touches the safe boundary (through frames and padding on other edges, by geometry: ios/representable/safearea-rule); an iOS navigation bar and a UIHostingController's bars are safe areas too. A browser window has none and GeometryProxy.safeAreaInsets stays zero",
           "fixtures": [
             "position/safe-area",
-            "position/safe-area-padding"
+            "position/safe-area-padding",
+            "ios/representable/safearea-color",
+            "ios/representable/safearea-rule"
           ]
         },
         {
@@ -1148,7 +1150,7 @@
         {
           "api": "UIViewRepresentable / UIViewRepresentableContext",
           "status": "partial",
-          "notes": "makeUIView, updateUIView (under observation tracking), dismantleUIView, makeCoordinator, sizeThatFits; the UIKit view (UIKitWeb) paints into the same display list, presses become touches, its accessibility elements join the semantics tree, text fields type through the host input; sizing from intrinsicContentSize less alignmentRectInsets with the 750 hugging / resistance rule, baselines top and bottom (a label: its line); Tier A exact on 8 fixtures, Tier B (Chromium) and Tier C within tolerance; no layoutOptions, no hover",
+          "notes": "makeUIView, updateUIView (under observation tracking), dismantleUIView, makeCoordinator, sizeThatFits; the UIKit view (UIKitWeb) paints into the same display list, presses become touches, its accessibility elements join the semantics tree, text fields type through the host input; sizing from intrinsicContentSize less alignmentRectInsets with the 750 hugging / resistance rule, baselines top and bottom (a label: its line); _layoutOptions (propagatesSafeArea, the default): a representable that ignores the safe area is laid out under the bar and its UIKit view sees the bar as its insets; the environment is the tree's trait collection (appearance, dynamic type size, layout direction, size classes) and updateUIView runs when it changes; Tier A exact on 21 fixtures, Tier B (Chromium) and Tier C within tolerance; no hover",
           "fixtures": [
             "ios/representable/*"
           ]
@@ -1169,7 +1171,12 @@
         {
           "api": "UIHostingController",
           "status": "partial",
-          "notes": "init(rootView:), rootView, sizeThatFits(in:), sizingOptions.preferredContentSize; the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI; no safe-area bars"
+          "notes": "init(rootView:), rootView, sizeThatFits(in:), sizingOptions.preferredContentSize, safeAreaRegions (a navigation or tab bar's safe area is the content's; empty regions fill the view); the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI",
+          "fixtures": [
+            "ios/representable/hostingsafearea",
+            "ios/representable/hostingsafearea-none",
+            "ios/representable/hostingsafearea-tabs"
+          ]
         },
         {
           "api": "UIHostingConfiguration",

@@ -31,7 +31,13 @@ scrolling from the host reaches the innermost scroll view that can move.
   offset. They show while the finger or momentum moves the content and fade out over 0.25 s,
   0.3 s after it stops; hidden at rest, as UIKit hides them.
 
+- `adjustedContentInset` (2026-09-12): the content inset plus the safe area the scroll view lies
+  under, per `contentInsetAdjustmentBehavior` (`.never` nothing, `.always` all of it, `.automatic`
+  and `.scrollableAxes` the axes the content scrolls on); the offset is clamped against it and
+  content resting at the top moves with a change of it (a `UIScrollView` in a representable
+  under a SwiftUI bar starts its content below the bar: `ios/representable/safearea-scroll-ignored`).
+
 ## Open
 
-Zooming, `contentInsetAdjustmentBehavior`, keyboard dismissal, scroll-to-top, the indicator
-insets, refresh controls.
+Zooming, `.automatic`'s extra rules inside navigation controllers, keyboard dismissal,
+scroll-to-top, the indicator insets, refresh controls.

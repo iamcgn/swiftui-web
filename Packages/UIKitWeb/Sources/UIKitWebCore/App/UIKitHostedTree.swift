@@ -9,6 +9,8 @@
 @MainActor
 final class HostedWindow: UIWindow {
     weak var tree: UIKitHostedTree?
+    /// The host's safe area, not the screen's.
+    override var safeAreaInsets: UIEdgeInsets { tree?.safeAreaInsets ?? .zero }
 }
 
 /// A UIKit view or view controller hosted inside another scene. Points are in the tree's own
@@ -44,6 +46,24 @@ public final class UIKitHostedTree {
             let previous = window.traitCollection
             window.overrideUserInterfaceStyle = newValue
             window.propagateTraitChange(from: previous)
+        }
+    }
+
+    /// The traits the host sets for the tree (SwiftUI's environment: the appearance, the
+    /// dynamic type size, the layout direction, the size classes).
+    public var traitOverrides: UITraitOverrides {
+        get { window.traitOverrides }
+        set { window.traitOverrides = newValue }
+    }
+
+    /// The safe area the host gives the tree (the part of its frame under a SwiftUI bar or
+    /// inset): the window's insets, so every view's `safeAreaInsets` and layout guide follow.
+    public var safeAreaInsets = UIEdgeInsets.zero {
+        didSet {
+            guard safeAreaInsets != oldValue else { return }
+            for view in window.subviews { view.safeAreaDidChange() }
+            rootViewController?.viewSafeAreaInsetsDidChange()
+            UIKitScene.shared.setNeedsFrame()
         }
     }
 
@@ -135,8 +155,7 @@ public final class UIKitHostedTree {
         isBusy = true
         defer { isBusy = false }
         if UIScreen.main.scale != context.scale { UIScreen.main.scale = context.scale }
-        let style = window.effectiveStyle(UIScreen.main.traitCollection.userInterfaceStyle)
-        window.layer.paint(into: &list, context: context, style: style)
+        window.layer.paint(into: &list, context: context, style: window.traitCollection.userInterfaceStyle)
     }
 
     // MARK: Pointer
@@ -258,5 +277,14 @@ public final class UIKitHostedTree {
         let isHere = (current as? UIView)?.window === window
         guard wasHere || isHere else { return }
         onFocusedTextFieldChange?(focusedTextFieldIdentifier)
+    }
+}
+
+extension UIView {
+    /// The safe area over this subtree changed: every view hears it and lays out again.
+    func safeAreaDidChange() {
+        safeAreaInsetsDidChange()
+        setNeedsLayout()
+        for subview in subviews { subview.safeAreaDidChange() }
     }
 }

@@ -1,0 +1,69 @@
+{
+  "fixture" : "ios\/representable\/safearea-rule",
+  "frames" : {
+    "framed" : {
+      "height" : 236,
+      "width" : 60,
+      "x" : 200,
+      "y" : 64
+    },
+    "hpadded" : {
+      "height" : 236,
+      "width" : 60,
+      "x" : 260,
+      "y" : 64
+    },
+    "nav" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "offset" : {
+      "height" : 236,
+      "width" : 60,
+      "x" : 60,
+      "y" : 64
+    },
+    "offsetColor" : {
+      "height" : 226,
+      "width" : 60,
+      "x" : 60,
+      "y" : 74
+    },
+    "padded" : {
+      "height" : 236,
+      "width" : 60,
+      "x" : 0,
+      "y" : 64
+    },
+    "row" : {
+      "height" : 236,
+      "width" : 320,
+      "x" : 0,
+      "y" : 64
+    },
+    "scroll" : {
+      "height" : 236,
+      "width" : 80,
+      "x" : 120,
+      "y" : 64
+    },
+    "scrollContent" : {
+      "height" : 400,
+      "width" : 80,
+      "x" : 120,
+      "y" : 64
+    },
+    "zstack" : {
+      "height" : 236,
+      "width" : 320,
+      "x" : 0,
+      "y" : 64
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

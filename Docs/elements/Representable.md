@@ -13,6 +13,8 @@ the UIKit labels' strings are measured by a real `UILabel` into `uikit/text-metr
   `dismantleUIView(_:coordinator:)` (default empty), `sizeThatFits(_:uiView:context:)` (default
   nil). `UIViewRepresentableContext`: `coordinator`, `transaction`, `environment`.
 - `UIViewControllerRepresentable` with the same shape over `UIViewControllerType`.
+- `static func _layoutOptions(_:) -> _PlatformViewRepresentableLayoutOptions` on both, the
+  default `[.propagatesSafeArea]` (SwiftUI's SPI, as on iOS 17).
 - `Color(uiColor:)` (and `Color(_ uiColor:)`), `Image(uiImage:)`, `Font(_ uiFont:)`.
 - `import SwiftUI` re-exports `UIKit` (UIKitWeb's) on every platform, as Apple's does on iOS, so
   a file that names `UIColor` or declares a representable compiles unchanged. The `SwiftUI`
@@ -22,7 +24,8 @@ the UIKit labels' strings are measured by a real `UILabel` into `uikit/text-metr
 
 `Sources/SwiftUIWebUIKit/UIHostingController.swift`: `init(rootView:)`, `rootView` (setting it
 re-mounts), `sizeThatFits(in:)`, `sizingOptions` (`preferredContentSize` sets the controller's
-preferred size from the ideal size), `safeAreaRegions` (accepted). The controller's view is a
+preferred size from the ideal size), `safeAreaRegions` (with `.container` the view's safe area,
+a navigation or tab bar's, is the content's: `Runtime.safeAreaInsets`; see below). The controller's view is a
 `_UIHostingView` running its own `Runtime` in the iOS profile on a `systemBackground` ground:
 `layoutSubviews` lays the runtime out in the bounds, `sizeThatFits` proposes the size (a fitting
 size or nothing counts as unspecified, so the intrinsic size is the content's ideal size),
@@ -98,9 +101,55 @@ label from 39 to 90 and the stack follows; a switch turns off.
 
 Not verified: `sizeThatFits` returning nil on one axis only (impossible: it returns a `CGSize`),
 `alignmentRectInsets` on other controls (zero for labels, fields, buttons and plain views:
-`uikit/controls/intrinsic`), the label baseline at other sizes, `layoutOptions`
-(`_PlatformViewRepresentableLayoutOptions`), `UIHostingController` (Phase 3), wheel scrolling of
-a `UIScrollView` inside a representable (routed, not measured), hover.
+`uikit/controls/intrinsic`), the label baseline at other sizes, wheel scrolling of a
+`UIScrollView` inside a representable (routed, not measured), hover.
+
+## Safe areas through the seam (2026-09-12, `ios/representable/safearea*`, `hostingsafearea*`)
+
+Measured under an inline navigation bar (64 pt) on the SE simulator, pixels of a view that
+paints its `safeAreaInsets` (`SafeAreaView`: blue, green over the safe area):
+
+- A representable is laid out like any view, inside the safe area: under the bar its frame
+  starts at 64 (116.5 under a large title) and the UIKit view sees zero insets (`safearea`,
+  `safearea-large`). Under a `safeAreaInset(edge: .bottom)` it is shrunk like plain content
+  (64 to 252 for a 40 pt inset with the 8 pt spacing) and sees no inset (`safearea-inset`).
+- With `ignoresSafeArea()` the UIKit view is laid out under the bar (0 to 300) and sees the bar
+  as its top inset, 64: that is `propagatesSafeArea`, the default `_layoutOptions`
+  (`safearea-ignored`; a `UIScrollView` there starts its content at 64 through its automatic
+  content inset adjustment, `safearea-scroll-ignored`; without `ignoresSafeArea` it sits below
+  the bar with its content at 64, `safearea-scroll`). The probe on the ignoring modifier still
+  reports 64 to 300: the modifier's frame is the safe one and its content extends.
+- The same holds for SwiftUI's own views (`safearea-color`, `safearea-rule`; Position.md has the
+  rule): a colour extends under the bar when its frame touches the safe edge, through a
+  `frame(width:)` or a horizontal padding, and not at all 10 pt below it.
+- A `UIHostingController` under a UIKit navigation bar lays its content out below the bar
+  (green from 64) while `ignoresSafeArea` content extends under it (yellow, `hostingsafearea`);
+  `safeAreaRegions = []` lets the content fill the view (`hostingsafearea-none`); under a tab
+  bar the content stops at the bar's top (`hostingsafearea-tabs`, approximate in the pixel
+  tiers: UIKitWeb's tab bar pill is opaque where iOS 26's glass tints the yellow beneath it).
+
+Runtime: `_PlatformViewHostNode` hands the tree `platformSafeAreaOverlap`, the part of its frame
+under a bar or inset by geometry (zero unless it extended into one), and `UIKitHostedTree` makes
+it the window's `safeAreaInsets`, so `safeAreaInsets`, `safeAreaLayoutGuide` and
+`safeAreaInsetsDidChange` work inside as in a UIKit app. `_UIHostingView` reads its own UIKit
+`safeAreaInsets` and sets `Runtime.safeAreaInsets`, which lays the root view out inside them
+(an extending root, a scroll view, keeps the frame and insets its content).
+
+## Traits (2026-09-12, `ios/representable/traits`, `ios/dark/representable-controls`)
+
+The environment is the hosted tree's trait collection: `colorScheme` is `userInterfaceStyle`
+(through `.environment(\.colorScheme, .dark)` too), `dynamicTypeSize` the
+`preferredContentSizeCategory` (`.xxxLarge` is `extraExtraExtraLarge`), `layoutDirection` the
+trait and `effectiveUserInterfaceLayoutDirection` (right to left both), `horizontalSizeClass`
+and `verticalSizeClass` theirs (an iPhone: compact × regular; `.environment(\.horizontalSizeClass,
+.regular)` reaches the view). Each variant drew its traits as bar widths and every one matched.
+`RepresentableTree` sets them as the hosted window's `traitOverrides` (`UITraitOverrides`, new
+in UIKitWeb with `UIContentSizeCategory`), so `traitCollectionDidChange` runs down the tree and
+`updateUIView` runs when the environment changes (`RepresentableTests`). The dark twin of the
+controls fixture renders the switch, field and button in the dark appearance (0.6 % of pixels
+off). The environment values `dynamicTypeSize`, `layoutDirection` and the size classes are new
+in the core; the runtime itself does not lay out by them yet (Docs/todo.json `sw-dynamic-type`,
+`sw-rtl`).
 
 ## UIHostingConfiguration (2026-09-11, `ios/representable/hostingcells`)
 

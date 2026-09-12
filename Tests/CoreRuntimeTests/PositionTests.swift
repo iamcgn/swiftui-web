@@ -63,9 +63,32 @@ import SwiftUIWebHeadless
         let ignoring = frames(Color.red.ignoresSafeArea().safeAreaInset(edge: .bottom) { Color.blue.frame(height: 30) })
         #expect(ignoring == ["fillRect(0, 0, 200, 100) #FF383C", "fillRect(0, 70, 200, 30) #0088FF"])
         #expect(frames(Color.red.edgesIgnoringSafeArea(.all).safeAreaPadding(20)) == ["fillRect(0, 0, 200, 100) #FF383C"])
-        // Painting modifiers pass the safe area through; a frame does not.
+        // The safe area passes through painting and layout modifiers by geometry: a frame
+        // touching the top and bottom of the safe area extends there but not sideways; padding
+        // on the ignored edge stops the extension (ios/representable/safearea-rule).
         #expect(frames(Color.red.ignoresSafeArea().opacity(0.9).safeAreaPadding(20)).contains("fillRect(0, 0, 200, 100) #FF383C"))
-        #expect(frames(Color.red.ignoresSafeArea().frame(width: 100).safeAreaPadding(20)) == ["fillRect(50, 20, 100, 60) #FF383C"])
+        // (Here the padding hugs the 100 pt frame, whose edges all touch the safe boundary, so
+        // the colour extends on every edge: the rule's consequence, not a measurement.)
+        #expect(frames(Color.red.ignoresSafeArea().frame(width: 100).safeAreaPadding(20)) == ["fillRect(30, 0, 140, 100) #FF383C"])
+        #expect(frames(Color.red.ignoresSafeArea().padding(.top, 10).safeAreaPadding(20)) == ["fillRect(0, 30, 200, 70) #FF383C"])
+        #expect(frames(ZStack { Color.red.ignoresSafeArea(); Color.blue }.safeAreaPadding(20)) == ["fillRect(0, 0, 200, 100) #FF383C", "fillRect(20, 20, 160, 60) #0088FF"])
+        // The modifier's own frame stays the safe one: a background outside it sees 160 × 60.
+        let probed = Runtime()
+        probed.mount(Color.red.ignoresSafeArea()._probe("ignoring").safeAreaPadding(20))
+        probed.layout(in: CGSize(width: 200, height: 100))
+        #expect(probed.probeFrames["ignoring"] == CGRect(x: 20, y: 20, width: 160, height: 60))
+        // A scroll view ignoring the safe area does not inset its content.
+        let scrolled = Runtime()
+        scrolled.mount(ScrollView { Color.red.frame(height: 300)._probe("content") }.ignoresSafeArea().safeAreaPadding(.top, 20))
+        scrolled.layout(in: CGSize(width: 200, height: 100))
+        #expect(scrolled.probeFrames["content"] == CGRect(x: 0, y: 0, width: 200, height: 300))
+        // The host's safe area: the root is laid out inside it, ignoring it extends into it.
+        let hosted = Runtime()
+        hosted.safeAreaInsets = EdgeInsets(top: 30, leading: 0, bottom: 10, trailing: 0)
+        hosted.mount(ZStack { Color.red.ignoresSafeArea(); Color.blue._probe("safe") })
+        hosted.layout(in: CGSize(width: 200, height: 100))
+        #expect(hosted.probeFrames["safe"] == CGRect(x: 0, y: 30, width: 200, height: 60))
+        #expect(hosted.render(scale: 2).commands.map(\.description).filter { $0.hasPrefix("fillRect") } == ["fillRect(0, 0, 200, 100) #FF383C", "fillRect(0, 30, 200, 60) #0088FF"])
         // Nothing proposed: the insets add to the content's size.
         let sized = Runtime()
         sized.mount(Color.red.frame(width: 20, height: 10).safeAreaPadding(5).fixedSize())

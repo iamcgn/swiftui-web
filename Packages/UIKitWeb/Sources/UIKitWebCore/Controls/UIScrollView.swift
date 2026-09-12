@@ -31,8 +31,49 @@ open class UIScrollView: UIView {
 
     open var contentSize = CGSize.zero { didSet { clampOffset(); setNeedsDisplay() } }
     open var contentInset = UIEdgeInsets.zero { didSet { clampOffset() } }
-    open var adjustedContentInset: UIEdgeInsets { contentInset }
-    open var contentInsetAdjustmentBehavior: ContentInsetAdjustmentBehavior = .automatic
+    /// The content inset plus the safe area the scroll view lies under, per
+    /// `contentInsetAdjustmentBehavior`: `.never` adds nothing, `.always` the whole safe area,
+    /// `.automatic` and `.scrollableAxes` the safe area along the axes the content scrolls on
+    /// (ios/representable/safearea-scroll-ignored: a scroll view under a bar starts its content
+    /// below the bar).
+    open var adjustedContentInset: UIEdgeInsets {
+        var insets = contentInset
+        let safe = safeAreaInsets
+        switch contentInsetAdjustmentBehavior {
+        case .never: break
+        case .always:
+            insets.top += safe.top; insets.bottom += safe.bottom; insets.left += safe.left; insets.right += safe.right
+        case .automatic, .scrollableAxes:
+            if alwaysBounceVertical || contentSize.height + contentInset.top + contentInset.bottom > bounds.height + 0.5 {
+                insets.top += safe.top; insets.bottom += safe.bottom
+            }
+            if alwaysBounceHorizontal || contentSize.width + contentInset.left + contentInset.right > bounds.width + 0.5 {
+                insets.left += safe.left; insets.right += safe.right
+            }
+        }
+        return insets
+    }
+    open var contentInsetAdjustmentBehavior: ContentInsetAdjustmentBehavior = .automatic { didSet { adjustedContentInsetDidChange() } }
+    /// The adjusted inset the offset was last clamped against: content resting at the top stays
+    /// at the top when the inset changes (UIKit moves the offset with the adjustment).
+    private var appliedAdjustedInset = UIEdgeInsets.zero
+
+    /// The safe area or the behaviour changed: the offset follows the new adjusted inset.
+    open func adjustedContentInsetDidChange() {
+        let adjusted = adjustedContentInset
+        guard adjusted != appliedAdjustedInset else { return }
+        var offset = contentOffset
+        if offset.y == -appliedAdjustedInset.top { offset.y = -adjusted.top }
+        if offset.x == -appliedAdjustedInset.left { offset.x = -adjusted.left }
+        appliedAdjustedInset = adjusted
+        contentOffset = clamped(offset)
+        setNeedsLayout()
+    }
+
+    override open func safeAreaInsetsDidChange() {
+        super.safeAreaInsetsDidChange()
+        adjustedContentInsetDidChange()
+    }
     open var isScrollEnabled = true
     open var isPagingEnabled = false
     open var bounces = true
@@ -109,6 +150,7 @@ open class UIScrollView: UIView {
 
     override open func layoutSubviews() {
         super.layoutSubviews()
+        adjustedContentInsetDidChange()
         layoutIndicators()
     }
 
@@ -187,9 +229,10 @@ open class UIScrollView: UIView {
 
     /// The offset within the scrollable range.
     func clamped(_ offset: CGPoint) -> CGPoint {
-        let maxX = max(-contentInset.left, contentSize.width + contentInset.right - bounds.width)
-        let maxY = max(-contentInset.top, contentSize.height + contentInset.bottom - bounds.height)
-        return CGPoint(x: min(max(offset.x, -contentInset.left), maxX), y: min(max(offset.y, -contentInset.top), maxY))
+        let inset = adjustedContentInset
+        let maxX = max(-inset.left, contentSize.width + inset.right - bounds.width)
+        let maxY = max(-inset.top, contentSize.height + inset.bottom - bounds.height)
+        return CGPoint(x: min(max(offset.x, -inset.left), maxX), y: min(max(offset.y, -inset.top), maxY))
     }
 
     private func clampOffset() {

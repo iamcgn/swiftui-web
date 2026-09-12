@@ -41,3 +41,10 @@ dark values already measured for the light twins' materials hold.
 Open: `overrideUserInterfaceStyle` on a view rather than the window; `UITraitCollection`
 `userInterfaceStyle` observation; dark samples of the pickers' wheels and presentations other
 than the alert.
+
+`traitOverrides` (2026-09-12, `UITraitOverrides`): a view's set values replace the inherited
+`userInterfaceStyle`, size classes, `layoutDirection`, `preferredContentSizeCategory`
+(`UIContentSizeCategory`, new) and `displayScale` for its subtree, with `traitCollectionDidChange`
+down the tree on a change; `effectiveUserInterfaceLayoutDirection` follows
+`semanticContentAttribute`, else the trait. SwiftUI's environment reaches a hosted tree this way
+(Docs/elements/Representable.md, `ios/representable/traits`).

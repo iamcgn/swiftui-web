@@ -421,6 +421,7 @@ kind, a priority and a status, rendered to `Docs/TODO.md` and to the progress pa
 | Step | Status |
 |---|---|
 | 0 Plan | 2026-09-12: decision 0016, `Docs/todo.json` (123 items: 8 site, 13 interop, 60 SwiftUI, 38 UIKit, 4 platform; 22 next, 55 soon, 43 later, 3 non-goals), `Docs/TODO.md`, `scripts/gen-progress.py` with `--check` in CI. |
+| 1 Representables: safe areas and traits | 2026-09-12: `ix-layout-options`, `ix-traits` done. 13 new simulator fixtures (`ios/representable/safearea*`, `hostingsafearea*`, `traits`, `ios/dark/representable-controls`): a representable ignoring the safe area is laid out under the bar and its UIKit view sees the bar as its insets (`propagatesSafeArea`), `UIHostingController.safeAreaRegions` works, the environment is the hosted tree's trait collection. The core's safe area became geometric (a view extends where its edge touches the safe boundary, through frames and padding; the iOS navigation bar and the host's insets are safe areas), `UIScrollView.adjustedContentInset`, `UITraitOverrides`. Tier A exact, Tier B 24/24, Tier C within tolerance (the tab bar case approximate). |
 
 ## Risk register
 

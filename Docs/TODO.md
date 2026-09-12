@@ -5,11 +5,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Site | 8 | 8 | 0 | 0 |
-| Interop | 13 | 11 | 1 | 1 |
-| SwiftUI | 58 | 1 | 29 | 28 |
+| Interop | 11 | 9 | 1 | 1 |
+| SwiftUI | 59 | 1 | 30 | 28 |
 | UIKit | 37 | 2 | 24 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **120** | 22 | 55 | 43 |
+| **All** | **119** | 20 | 56 | 43 |
 
 ## Next (Phase 8, in order)
 
@@ -34,10 +34,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Interop
 
-- ☐ **layoutOptions and safe areas through the seam** `ix-layout-options` · Representables · accepted  
-  `_PlatformViewRepresentableLayoutOptions` (`propagatesSafeArea`): a representable's UIKit tree gets the SwiftUI safe area as its window's insets, and `UIHostingController.safeAreaRegions` (accepted today) hands the controller's safe area to the hosted runtime. Fixtures on the simulator under a navigation bar. ([Representable.md](Docs/elements/Representable.md))
-- ☐ **Environment to trait collection** `ix-traits` · Representables · missing  
-  colorScheme becomes userInterfaceStyle, dynamicTypeSize the content size category, layoutDirection and the size classes follow; `updateUIView` runs when they change. A dark twin of ios/representable/controls. ([Representable.md](Docs/elements/Representable.md))
 - ☐ **Hover inside a representable** `ix-hover` · Representables · missing  
   SwiftUI's pointer moves reach the hosted tree as `UIHoverGestureRecognizer` events and `UIPointerInteraction` styles; the host cursor follows. Depends on uk-hover. ([Representable.md](Docs/elements/Representable.md), [Hover.md](Docs/elements/Hover.md))
 - ☐ **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Representables · verify  
@@ -98,6 +94,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   `Font.custom` with a font file in the app bundle: metrics read from the file for layout, the face loaded by the browser and by CoreText; the recorded engine keyed by family. ([Text.md](Docs/elements/Text.md), [0005-text-metrics.md](Docs/decisions/0005-text-metrics.md))
 - ☐ **NavigationStack gaps** `sw-navigation` · Navigation · missing  
   `navigationDestination(item:destination:)`, the codable `NavigationPath` representation, ⌘[ and Escape, macOS's back button and push animation parity, a destination-link entry left on top after a path change removes its view. ([Navigation.md](Docs/elements/Navigation.md))
+- ☐ **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · Navigation · approximate  
+  A List or ScrollView under a NavigationStack bar is laid out below the bar (the goldens' frames) rather than extending under it with a content inset, so content does not slide under the glass while it scrolls; views that ignore the safe area and representables do extend (ios/representable/safearea-*). Measure the scrolled frames and pixels on the simulator, then let extending children keep the full height with the bar as their overlap. ([Navigation.md](Docs/elements/Navigation.md), [Position.md](Docs/elements/Position.md))
 - ☐ **The Tab API, page style and badges** `sw-tabview` · TabView · missing  
   `Tab(...)` (iOS 18), `tabViewStyle(.page)` and `.sidebarAdaptable`, badges, images in the macOS bar, disabled tabs, the bar's focus ring, the iOS bar from the simulator (sw-ios-sheets). ([TabView.md](Docs/elements/TabView.md))
 - ☐ **Menu rows, sections and navigation** `sw-menu` · Menu · missing  
@@ -166,15 +164,15 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☐ **UIRefreshControl** `uk-refresh` · Scrolling · missing  
   The pull-to-refresh control on scroll views and tables, its spinner (uk-spinner) and the iOS 26 geometry from the simulator. ([UIScrollView.md](Docs/elements/UIKit/UIScrollView.md))
 - ☐ **Zooming, inset adjustment and scroll-to-top** `uk-scroll-rest` · Scrolling · missing  
-  `viewForZooming` with pinch and `zoomScale`, `contentInsetAdjustmentBehavior`, `keyboardDismissMode`, scroll-to-top on a status bar tap, `scrollIndicatorInsets`. ([UIScrollView.md](Docs/elements/UIKit/UIScrollView.md))
+  `viewForZooming` with pinch and `zoomScale`, `.automatic`'s extra rules inside navigation controllers (the safe-area adjustment is done), `keyboardDismissMode`, scroll-to-top on a status bar tap, `scrollIndicatorInsets`. ([UIScrollView.md](Docs/elements/UIKit/UIScrollView.md))
 - ☐ **UIPageViewController** `uk-pageviewcontroller` · Containers · missing  
   Scroll and page-curl-as-scroll transition styles, the data source and delegate, the page indicator. ([Containers](Packages/UIKitWeb/Sources/UIKitWebCore/Containers))
 - ☐ **UIVisualEffectView and the glass** `uk-materials` · Views · approximate  
-  Blur and vibrancy effects as a display-list filter group over what lies beneath (the painters have blur); the iOS 26 glass in bars and the scroll pocket is a tint today. ([Bars.md](Docs/elements/UIKit/Bars.md), [iOS.md](Docs/elements/iOS.md))
+  Blur and vibrancy effects as a display-list filter group over what lies beneath (the painters have blur); the iOS 26 glass in bars and the scroll pocket is a tint today. The floating tab bar over coloured content is opaque where iOS 26's glass tints what lies beneath (ios/representable/hostingsafearea-tabs is approximate, 5.6 %). ([Bars.md](Docs/elements/UIKit/Bars.md), [iOS.md](Docs/elements/iOS.md))
 - ☐ **Layer corners, borders and shadows against pixels** `uk-view-pixels` · Views · verify  
   The painted corners (continuous too), borders and shadows of `uikit/view/*` compared with the simulator's pixels; the fixtures are frames-only where the look is unverified. ([UIView.md](Docs/elements/UIKit/UIView.md))
 - ☐ **Trait overrides and observation** `uk-traits` · Views · missing  
-  `overrideUserInterfaceStyle` on a view (the window's works), `registerForTraitChanges` and `traitCollectionDidChange` on every change, size classes from the host size, dark samples of the wheels and of presentations other than the alert. ([Dark.md](Docs/elements/UIKit/Dark.md))
+  `overrideUserInterfaceStyle` on a view (the window's and `traitOverrides` work), `registerForTraitChanges` and `traitCollectionDidChange` on every change, size classes from the host size, dark samples of the wheels and of presentations other than the alert. ([Dark.md](Docs/elements/UIKit/Dark.md))
 - ☐ **Gradient and text layers, display links, animation options** `uk-layers` · Core Animation · missing  
   `CAGradientLayer`, `CATextLayer`, `CADisplayLink` on the scene's clock, `CAAnimationGroup` playback, keyframes through every value, additive animations, `repeat`/`autoreverse`/`beginFromCurrentState` on `UIView.animate` (accepted), `delayFactor`, `scrubsLinearly` and spring velocity on property animators. ([Animation.md](Docs/elements/UIKit/Animation.md))
 - ☐ **Layout guides, animated constraints and stacks** `uk-autolayout-rest` · Auto Layout · verify  
@@ -241,7 +239,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☐ **AsyncImage caching and transactions** `sw-asyncimage` · AsyncImage · accepted  
   Cancellation on unmount, a cache keyed by URL, the phase transaction (accepted), the default placeholder colour (approximate). ([AsyncImage.md](Docs/elements/AsyncImage.md))
 - ☐ **Safe area corners** `sw-safe-area` · Position · missing  
-  `GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. ([Position.md](Docs/elements/Position.md))
+  `GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. `ignoresSafeArea` on a view whose safe-area modifier hugs it on every edge extends on every edge by the geometric rule (PositionTests): a consequence, not a measurement. ([Position.md](Docs/elements/Position.md))
 - ☐ **Timeline modes and pausing** `sw-timeline` · TimelineView · accepted  
   `lowFrequency` (accepted), pausing when the page is hidden, content reading the environment's calendar and time zone. ([TimelineView.md](Docs/elements/TimelineView.md))
 - ☐ **Rendering previews** `sw-previews` · Preview · accepted  
@@ -292,6 +290,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host. ([0012-native-painter.md](Docs/decisions/0012-native-painter.md))
 - ☐ **First frame and large lists** `pf-perf` · Performance · infra  
   The gallery and progress bundles' first frame on a slow connection, laziness in lists and lazy stacks (sw-lazy, sw-list-looks), a frame budget probe in CI over Examples/Landing. ([landing-perf.mjs](Playwright/landing-perf.mjs))
+
+## Landed
+
+- ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables
+- ☑ 2026-09-12 **Environment to trait collection** `ix-traits` · Interop · Representables
 
 ## Non-goals
 

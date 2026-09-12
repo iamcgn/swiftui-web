@@ -18,30 +18,36 @@ package final class PositionNode<Content: View>: UnaryLayoutModifierNode<Content
 
 /// Shared by `safeAreaInset` and `safeAreaPadding`: `insets` (measured per layout) shrink a plain
 /// child's bounds; a child that extends into the safe area keeps the full bounds and reads the
-/// insets through `_SafeAreaProvider` (scroll views inset their content).
+/// insets as its overlap (scroll views inset their content).
 @MainActor
-package class SafeAreaNode<Content: View, Modifier: ViewModifier>: UnaryLayoutModifierNode<Content, Modifier>, _SafeAreaProvider {
+package class SafeAreaNode<Content: View, Modifier: ViewModifier>: UnaryLayoutModifierNode<Content, Modifier> {
     override package var changesChildSize: Bool { true }
     /// Nested safe-area modifiers keep an extending child (a scroll view) extending; the
-    /// insets accumulate through `safeAreaInsets(for:)`.
+    /// overlaps accumulate through placement.
     override package var extendsIntoSafeArea: Bool { targets.count == 1 && targets[0].extendsIntoSafeArea }
 
     /// The insets this node adds, for the given proposal (an inset view is measured against it).
     package func insets(for proposal: ProposedViewSize) -> EdgeInsets { EdgeInsets() }
 
-    package func safeAreaInsets(for child: ViewNode) -> EdgeInsets {
-        // Insets accumulate through nested safe-area modifiers.
-        let inherited = inheritedSafeAreaInsets
-        let own = insets(for: ProposedViewSize(frame.size))
-        return EdgeInsets(top: inherited.top + own.top, leading: inherited.leading + own.leading,
-                          bottom: inherited.bottom + own.bottom, trailing: inherited.trailing + own.trailing)
+    override package func providedSafeAreaInsets(for child: ViewNode) -> EdgeInsets { insets(for: ProposedViewSize(frame.size)) }
+
+    /// What an extending target overlaps once placed in the full bounds: this node's own overlap
+    /// plus its insets. Set before measuring so the first layout sizes with it.
+    private func presetOverlap(of target: ViewNode, for proposal: ProposedViewSize) {
+        let own = insets(for: proposal)
+        let overlap = safeAreaOverlap
+        target.safeAreaOverlap = EdgeInsets(top: overlap.top + own.top, leading: overlap.leading + own.leading,
+                                            bottom: overlap.bottom + own.bottom, trailing: overlap.trailing + own.trailing)
     }
 
     private func extends(_ target: ViewNode) -> Bool { target.extendsIntoSafeArea }
 
     override package func measure(_ target: ViewNode, proposal: ProposedViewSize) -> CGSize {
         let insets = insets(for: proposal)
-        if extends(target) { return target.sizeThatFits(proposal) }
+        if extends(target) {
+            presetOverlap(of: target, for: proposal)
+            return target.sizeThatFits(proposal)
+        }
         let reduced = Self.reduce(proposal, by: insets)
         let size = target.sizeThatFits(reduced)
         return CGSize(width: size.width + insets.leading + insets.trailing, height: size.height + insets.top + insets.bottom)
@@ -49,7 +55,10 @@ package class SafeAreaNode<Content: View, Modifier: ViewModifier>: UnaryLayoutMo
 
     override package func dimensions(of target: ViewNode, in proposal: ProposedViewSize) -> ViewDimensions {
         let insets = insets(for: proposal)
-        if extends(target) { return target.dimensions(in: proposal) }
+        if extends(target) {
+            presetOverlap(of: target, for: proposal)
+            return target.dimensions(in: proposal)
+        }
         let dims = target.dimensions(in: Self.reduce(proposal, by: insets))
         let size = CGSize(width: dims.width + insets.leading + insets.trailing, height: dims.height + insets.top + insets.bottom)
         return dims.offset(by: CGPoint(x: insets.leading, y: insets.top), size: size)
@@ -156,20 +165,58 @@ package final class SafeAreaPaddingNode<Content: View>: SafeAreaNode<Content, _S
     override package var nodeDescription: String { "SafeAreaPadding" }
 }
 
-/// `ignoresSafeArea`: keeps the full bounds under a safe-area modifier and gives its child no
-/// safe area on the ignored edges.
+/// `ignoresSafeArea`: the modified view keeps the frame its parent gives it inside the safe
+/// area; its content is proposed that frame grown by the unsafe depth beyond the ignored edges
+/// it touches (`safeAreaExtension`) and placed in the grown rect, centred when it is smaller,
+/// so a colour or a scroll view extends under a bar while a background or probe outside the
+/// modifier still sees the safe frame (ios/representable/safearea-color, safearea-rule). The
+/// content gets no safe area on the ignored edges; the geometry stays for hosted platform views.
 @MainActor
-package final class IgnoresSafeAreaNode<Content: View>: UnaryLayoutModifierNode<Content, _IgnoresSafeAreaModifier>, _SafeAreaProvider {
-    override package var extendsIntoSafeArea: Bool { true }
-    override package var forwardsSafeArea: Bool { false }
+package final class IgnoresSafeAreaNode<Content: View>: UnaryLayoutModifierNode<Content, _IgnoresSafeAreaModifier> {
+    override package var paintsOutsideFrame: Bool { true }
+    override package var changesChildSize: Bool { true }
 
-    package func safeAreaInsets(for child: ViewNode) -> EdgeInsets {
-        var insets = inheritedSafeAreaInsets
+    /// The unsafe depth beyond each ignored edge (zero on the others).
+    private var ignored: EdgeInsets {
+        var insets = safeAreaExtension
         let edges = modifier.edges
-        if edges.contains(.top) { insets.top = 0 }
-        if edges.contains(.bottom) { insets.bottom = 0 }
-        if edges.contains(.leading) { insets.leading = 0 }
-        if edges.contains(.trailing) { insets.trailing = 0 }
+        if !edges.contains(.top) { insets.top = 0 }
+        if !edges.contains(.bottom) { insets.bottom = 0 }
+        if !edges.contains(.leading) { insets.leading = 0 }
+        if !edges.contains(.trailing) { insets.trailing = 0 }
         return insets
     }
+
+    override package func childProposal(_ proposal: ProposedViewSize) -> ProposedViewSize {
+        let insets = ignored
+        return ProposedViewSize(width: proposal.width.map { $0 + insets.leading + insets.trailing },
+                                height: proposal.height.map { $0 + insets.top + insets.bottom })
+    }
+
+    /// The child's size less what it took of the extension: a filling child reports the safe
+    /// size, a fixed one its own.
+    override package func size(forChild childSize: CGSize, proposal: ProposedViewSize) -> CGSize {
+        let insets = ignored
+        var size = childSize
+        if let width = proposal.width { size.width -= min(insets.leading + insets.trailing, max(0, childSize.width - width)) }
+        if let height = proposal.height { size.height -= min(insets.top + insets.bottom, max(0, childSize.height - height)) }
+        return size
+    }
+
+    override package func childOrigin(_ child: ViewDimensions, in size: CGSize) -> CGPoint {
+        let insets = ignored
+        let extended = CGSize(width: size.width + insets.leading + insets.trailing, height: size.height + insets.top + insets.bottom)
+        return CGPoint(x: -insets.leading + (extended.width - child.width) / 2, y: -insets.top + (extended.height - child.height) / 2)
+    }
+
+    override package func assignSafeArea(to child: ViewNode) {
+        super.assignSafeArea(to: child)
+        let edges = modifier.edges
+        if edges.contains(.top) { child.safeAreaOverlap.top = 0; child.safeAreaExtension.top = 0 }
+        if edges.contains(.bottom) { child.safeAreaOverlap.bottom = 0; child.safeAreaExtension.bottom = 0 }
+        if edges.contains(.leading) { child.safeAreaOverlap.leading = 0; child.safeAreaExtension.leading = 0 }
+        if edges.contains(.trailing) { child.safeAreaOverlap.trailing = 0; child.safeAreaExtension.trailing = 0 }
+    }
+
+    override package var nodeDescription: String { "IgnoresSafeArea" }
 }

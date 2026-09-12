@@ -194,6 +194,7 @@ open class ViewNode {
             }
         }
         hasBeenPlaced = true
+        placer.assignSafeArea(to: self)
         layoutContents(proposal: proposal)
     }
 
@@ -310,24 +311,49 @@ open class ViewNode {
     // MARK: Safe area
 
     /// Whether this node keeps the full bounds under a safe-area modifier and insets its own
-    /// content instead (scroll views, `ignoresSafeArea`). Wrapper nodes forward their child's.
+    /// content instead (scroll views). Wrapper nodes forward their child's.
     package var extendsIntoSafeArea: Bool { false }
 
-    /// Whether a safe area passes through this node to its child: true for nodes that do not
-    /// change their child's size (non-layout wrappers, painting modifiers); false for layout
-    /// modifiers such as frames and padding, whose child gets a fresh safe area.
-    package var forwardsSafeArea: Bool { !isLayoutNode }
+    /// The safe area as placed, set by the placer in `place(at:...)` (Docs/elements/Position.md):
+    /// `safeAreaOverlap` is how much of this node's frame lies in the unsafe region on each edge
+    /// (a scroll view insets its content by it); `safeAreaExtension` is how far beyond an edge
+    /// that touches the safe boundary the unsafe region reaches (`ignoresSafeArea` extends into
+    /// it). `platformSafeAreaOverlap` is the overlap by geometry alone, which `ignoresSafeArea`
+    /// does not clear: a hosted UIKit view takes it as its insets.
+    package var safeAreaOverlap = EdgeInsets()
+    package var safeAreaExtension = EdgeInsets()
+    package var platformSafeAreaOverlap = EdgeInsets()
 
-    /// The safe-area insets the nearest providing ancestor gives this node (through forwarding
-    /// wrappers), or none.
-    package var inheritedSafeAreaInsets: EdgeInsets {
-        var node: ViewNode = self
-        while let parent = node.parent {
-            if let provider = parent as? _SafeAreaProvider { return provider.safeAreaInsets(for: node) }
-            guard parent.forwardsSafeArea else { break }
-            node = parent
+    /// The insets this node adds to the safe area of its children (`safeAreaInset`, a navigation
+    /// bar, the host's own safe area); zero for other nodes.
+    package func providedSafeAreaInsets(for child: ViewNode) -> EdgeInsets { EdgeInsets() }
+
+    /// Sets `child`'s safe area from its frame in this node: per edge, a child edge inside the
+    /// safe boundary gets nothing; one on the boundary may extend through the whole unsafe
+    /// depth; one past it overlaps the unsafe region by the distance and may extend through the
+    /// rest (ios/representable/safearea-rule: a colour padded 10 pt from the bar's edge stays
+    /// put, one whose frame touches it extends under the bar, through a frame or padding on the
+    /// other edges).
+    package func assignSafeArea(to child: ViewNode) {
+        let own = providedSafeAreaInsets(for: child)
+        let frame = child.frame
+        let size = self.frame.size
+        func edge(_ distance: CGFloat, boundary: CGFloat, depth: CGFloat) -> (overlap: CGFloat, reach: CGFloat) {
+            if distance > boundary + 0.01 { return (0, 0) }
+            if distance > boundary - 0.01 { return (0, depth) }
+            let inside = boundary - distance
+            return (min(depth, inside), max(0, depth - inside))
         }
-        return EdgeInsets()
+        func assign(_ overlap: EdgeInsets, _ reach: EdgeInsets) -> (EdgeInsets, EdgeInsets) {
+            let top = edge(frame.minY, boundary: overlap.top + own.top, depth: overlap.top + own.top + reach.top)
+            let leading = edge(frame.minX, boundary: overlap.leading + own.leading, depth: overlap.leading + own.leading + reach.leading)
+            let bottom = edge(size.height - frame.maxY, boundary: overlap.bottom + own.bottom, depth: overlap.bottom + own.bottom + reach.bottom)
+            let trailing = edge(size.width - frame.maxX, boundary: overlap.trailing + own.trailing, depth: overlap.trailing + own.trailing + reach.trailing)
+            return (EdgeInsets(top: top.overlap, leading: leading.overlap, bottom: bottom.overlap, trailing: trailing.overlap),
+                    EdgeInsets(top: top.reach, leading: leading.reach, bottom: bottom.reach, trailing: trailing.reach))
+        }
+        (child.safeAreaOverlap, child.safeAreaExtension) = assign(safeAreaOverlap, safeAreaExtension)
+        child.platformSafeAreaOverlap = assign(platformSafeAreaOverlap, safeAreaExtension).0
     }
 
     /// Whether this node reads its own geometry during layout (GeometryReader, probes): a scroll
@@ -550,9 +576,3 @@ package func _shortTypeName(_ type: Any.Type) -> String {
     return out
 }
 
-/// A node that defines the safe area of its child (`safeAreaInset`, `safeAreaPadding`,
-/// `ignoresSafeArea`).
-@MainActor
-package protocol _SafeAreaProvider: AnyObject {
-    func safeAreaInsets(for child: ViewNode) -> EdgeInsets
-}

@@ -42,6 +42,7 @@ open class UIWindow: UIView {
     override open var next: UIResponder? { UIApplication.shared }
     override open var traitCollection: UITraitCollection {
         var traits = UIScreen.main.traitCollection
+        traitOverrides.apply(to: &traits)
         if overrideUserInterfaceStyle != .unspecified { traits.userInterfaceStyle = overrideUserInterfaceStyle }
         return traits
     }

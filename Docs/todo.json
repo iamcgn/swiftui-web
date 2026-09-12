@@ -10,7 +10,9 @@
       "kind": "infra",
       "priority": "next",
       "status": "in-progress",
-      "refs": ["Docs/decisions/0016-progress-page.md"]
+      "refs": [
+        "Docs/decisions/0016-progress-page.md"
+      ]
     },
     {
       "id": "st-uikit-rows",
@@ -21,7 +23,9 @@
       "kind": "infra",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit"]
+      "refs": [
+        "Docs/elements/UIKit"
+      ]
     },
     {
       "id": "st-row-audit",
@@ -32,7 +36,10 @@
       "kind": "infra",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/support.json", "Docs/elements"]
+      "refs": [
+        "Docs/support.json",
+        "Docs/elements"
+      ]
     },
     {
       "id": "st-fixture-links",
@@ -43,7 +50,10 @@
       "kind": "infra",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/support.json", "Examples/Gallery"]
+      "refs": [
+        "Docs/support.json",
+        "Examples/Gallery"
+      ]
     },
     {
       "id": "st-gallery-deploy",
@@ -54,7 +64,10 @@
       "kind": "infra",
       "priority": "next",
       "status": "planned",
-      "refs": ["Examples/Gallery", "scripts/build-landing.sh"]
+      "refs": [
+        "Examples/Gallery",
+        "scripts/build-landing.sh"
+      ]
     },
     {
       "id": "st-progress-page",
@@ -65,7 +78,9 @@
       "kind": "infra",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/decisions/0016-progress-page.md"]
+      "refs": [
+        "Docs/decisions/0016-progress-page.md"
+      ]
     },
     {
       "id": "st-landing-links",
@@ -76,7 +91,9 @@
       "kind": "infra",
       "priority": "next",
       "status": "planned",
-      "refs": ["Examples/Landing"]
+      "refs": [
+        "Examples/Landing"
+      ]
     },
     {
       "id": "st-workflow",
@@ -87,30 +104,38 @@
       "kind": "infra",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/ELEMENT_WORKFLOW.md", ".github/workflows/landing.yml"]
+      "refs": [
+        "Docs/ELEMENT_WORKFLOW.md",
+        ".github/workflows/landing.yml"
+      ]
     },
-
     {
       "id": "ix-layout-options",
       "framework": "Interop",
       "area": "Representables",
       "title": "layoutOptions and safe areas through the seam",
-      "detail": "`_PlatformViewRepresentableLayoutOptions` (`propagatesSafeArea`): a representable's UIKit tree gets the SwiftUI safe area as its window's insets, and `UIHostingController.safeAreaRegions` (accepted today) hands the controller's safe area to the hosted runtime. Fixtures on the simulator under a navigation bar.",
+      "detail": "`_PlatformViewRepresentableLayoutOptions` (`propagatesSafeArea`, the default): a representable's UIKit tree gets the part of its frame under a SwiftUI bar or inset as its window's safe area, and `UIHostingController.safeAreaRegions` hands the controller's safe area (a navigation or tab bar's) to the hosted runtime. Measured on the simulator under a navigation bar (ios/representable/safearea*, hostingsafearea*), with the safe area's geometric rule for every view (Position.md).",
       "kind": "accepted",
       "priority": "next",
-      "status": "planned",
-      "refs": ["Docs/elements/Representable.md"]
+      "status": "done",
+      "refs": [
+        "Docs/elements/Representable.md"
+      ],
+      "done": "2026-09-12"
     },
     {
       "id": "ix-traits",
       "framework": "Interop",
       "area": "Representables",
       "title": "Environment to trait collection",
-      "detail": "colorScheme becomes userInterfaceStyle, dynamicTypeSize the content size category, layoutDirection and the size classes follow; `updateUIView` runs when they change. A dark twin of ios/representable/controls.",
+      "detail": "colorScheme is userInterfaceStyle, dynamicTypeSize the content size category, layoutDirection and the size classes follow through `UITraitOverrides`; `updateUIView` runs when they change (ios/representable/traits, ios/dark/representable-controls).",
       "kind": "missing",
       "priority": "next",
-      "status": "planned",
-      "refs": ["Docs/elements/Representable.md"]
+      "status": "done",
+      "refs": [
+        "Docs/elements/Representable.md"
+      ],
+      "done": "2026-09-12"
     },
     {
       "id": "ix-hover",
@@ -121,7 +146,10 @@
       "kind": "missing",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/Representable.md", "Docs/elements/Hover.md"]
+      "refs": [
+        "Docs/elements/Representable.md",
+        "Docs/elements/Hover.md"
+      ]
     },
     {
       "id": "ix-wheel",
@@ -132,7 +160,9 @@
       "kind": "verify",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/Representable.md"]
+      "refs": [
+        "Docs/elements/Representable.md"
+      ]
     },
     {
       "id": "ix-transaction",
@@ -143,7 +173,9 @@
       "kind": "verify",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/Representable.md"]
+      "refs": [
+        "Docs/elements/Representable.md"
+      ]
     },
     {
       "id": "ix-containers",
@@ -154,7 +186,9 @@
       "kind": "verify",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/Representable.md"]
+      "refs": [
+        "Docs/elements/Representable.md"
+      ]
     },
     {
       "id": "ix-lifecycle",
@@ -165,7 +199,9 @@
       "kind": "verify",
       "priority": "next",
       "status": "planned",
-      "refs": ["Sources/SwiftUIWebUIKit"]
+      "refs": [
+        "Sources/SwiftUIWebUIKit"
+      ]
     },
     {
       "id": "ix-hosting-config",
@@ -176,7 +212,9 @@
       "kind": "approximate",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/Representable.md"]
+      "refs": [
+        "Docs/elements/Representable.md"
+      ]
     },
     {
       "id": "ix-hosting-controller",
@@ -187,7 +225,9 @@
       "kind": "missing",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/Representable.md"]
+      "refs": [
+        "Docs/elements/Representable.md"
+      ]
     },
     {
       "id": "ix-rendered-images",
@@ -198,7 +238,9 @@
       "kind": "missing",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Drawing.md"]
+      "refs": [
+        "Docs/elements/UIKit/Drawing.md"
+      ]
     },
     {
       "id": "ix-measure-rest",
@@ -209,7 +251,9 @@
       "kind": "verify",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Representable.md"]
+      "refs": [
+        "Docs/elements/Representable.md"
+      ]
     },
     {
       "id": "ix-size-gate",
@@ -220,7 +264,10 @@
       "kind": "infra",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/decisions/0014-uikitweb.md", "Docs/decisions/0006-binary-size.md"]
+      "refs": [
+        "Docs/decisions/0014-uikitweb.md",
+        "Docs/decisions/0006-binary-size.md"
+      ]
     },
     {
       "id": "ix-appkit",
@@ -231,9 +278,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/decisions/0014-uikitweb.md"]
+      "refs": [
+        "Docs/decisions/0014-uikitweb.md"
+      ]
     },
-
     {
       "id": "sw-ios-sheets",
       "framework": "SwiftUI",
@@ -243,7 +291,10 @@
       "kind": "verify",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/iOS.md", "Docs/elements/Presentation.md"]
+      "refs": [
+        "Docs/elements/iOS.md",
+        "Docs/elements/Presentation.md"
+      ]
     },
     {
       "id": "sw-presentations",
@@ -254,7 +305,9 @@
       "kind": "approximate",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Presentation.md"]
+      "refs": [
+        "Docs/elements/Presentation.md"
+      ]
     },
     {
       "id": "sw-list-editing",
@@ -265,7 +318,10 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/List.md", "Docs/elements/ForEach.md"]
+      "refs": [
+        "Docs/elements/List.md",
+        "Docs/elements/ForEach.md"
+      ]
     },
     {
       "id": "sw-list-looks",
@@ -276,7 +332,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/List.md"]
+      "refs": [
+        "Docs/elements/List.md"
+      ]
     },
     {
       "id": "sw-scroll-apis",
@@ -287,7 +345,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/ScrollView.md"]
+      "refs": [
+        "Docs/elements/ScrollView.md"
+      ]
     },
     {
       "id": "sw-lazy",
@@ -298,7 +358,9 @@
       "kind": "accepted",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Lazy.md"]
+      "refs": [
+        "Docs/elements/Lazy.md"
+      ]
     },
     {
       "id": "sw-textfield",
@@ -309,7 +371,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/TextField.md"]
+      "refs": [
+        "Docs/elements/TextField.md"
+      ]
     },
     {
       "id": "sw-text-fit",
@@ -320,7 +384,9 @@
       "kind": "accepted",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Text.md"]
+      "refs": [
+        "Docs/elements/Text.md"
+      ]
     },
     {
       "id": "sw-attributed-text",
@@ -331,7 +397,10 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Text.md", "Docs/elements/Link.md"]
+      "refs": [
+        "Docs/elements/Text.md",
+        "Docs/elements/Link.md"
+      ]
     },
     {
       "id": "sw-custom-fonts",
@@ -342,7 +411,10 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Text.md", "Docs/decisions/0005-text-metrics.md"]
+      "refs": [
+        "Docs/elements/Text.md",
+        "Docs/decisions/0005-text-metrics.md"
+      ]
     },
     {
       "id": "sw-dynamic-type",
@@ -353,7 +425,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Text.md", "Docs/elements/iOS.md"]
+      "refs": [
+        "Docs/elements/Text.md",
+        "Docs/elements/iOS.md"
+      ]
     },
     {
       "id": "sw-texteditor",
@@ -364,7 +439,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/TextEditor.md"]
+      "refs": [
+        "Docs/elements/TextEditor.md"
+      ]
     },
     {
       "id": "sw-text-selection",
@@ -375,7 +452,9 @@
       "kind": "accepted",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/TextScale.md"]
+      "refs": [
+        "Docs/elements/TextScale.md"
+      ]
     },
     {
       "id": "sw-navigation",
@@ -386,7 +465,23 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Navigation.md"]
+      "refs": [
+        "Docs/elements/Navigation.md"
+      ]
+    },
+    {
+      "id": "sw-ios-nav-scroll",
+      "framework": "SwiftUI",
+      "area": "Navigation",
+      "title": "Scroll content under the iOS 26 bar",
+      "detail": "A List or ScrollView under a NavigationStack bar is laid out below the bar (the goldens' frames) rather than extending under it with a content inset, so content does not slide under the glass while it scrolls; views that ignore the safe area and representables do extend (ios/representable/safearea-*). Measure the scrolled frames and pixels on the simulator, then let extending children keep the full height with the bar as their overlap.",
+      "kind": "approximate",
+      "priority": "soon",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Navigation.md",
+        "Docs/elements/Position.md"
+      ]
     },
     {
       "id": "sw-splitview",
@@ -397,7 +492,9 @@
       "kind": "approximate",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/NavigationSplitView.md"]
+      "refs": [
+        "Docs/elements/NavigationSplitView.md"
+      ]
     },
     {
       "id": "sw-tabview",
@@ -408,7 +505,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/TabView.md"]
+      "refs": [
+        "Docs/elements/TabView.md"
+      ]
     },
     {
       "id": "sw-menu",
@@ -419,7 +518,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Menu.md"]
+      "refs": [
+        "Docs/elements/Menu.md"
+      ]
     },
     {
       "id": "sw-picker",
@@ -430,7 +531,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Picker.md"]
+      "refs": [
+        "Docs/elements/Picker.md"
+      ]
     },
     {
       "id": "sw-toolbar",
@@ -441,7 +544,9 @@
       "kind": "accepted",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Toolbar.md"]
+      "refs": [
+        "Docs/elements/Toolbar.md"
+      ]
     },
     {
       "id": "sw-search",
@@ -452,7 +557,9 @@
       "kind": "accepted",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Toolbar.md"]
+      "refs": [
+        "Docs/elements/Toolbar.md"
+      ]
     },
     {
       "id": "sw-windows",
@@ -463,7 +570,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Windows.md"]
+      "refs": [
+        "Docs/elements/Windows.md"
+      ]
     },
     {
       "id": "sw-button-looks",
@@ -474,7 +583,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Button.md"]
+      "refs": [
+        "Docs/elements/Button.md"
+      ]
     },
     {
       "id": "sw-toggle",
@@ -485,7 +596,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Toggle.md"]
+      "refs": [
+        "Docs/elements/Toggle.md"
+      ]
     },
     {
       "id": "sw-slider-stepper",
@@ -496,7 +609,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Slider.md", "Docs/elements/Stepper.md"]
+      "refs": [
+        "Docs/elements/Slider.md",
+        "Docs/elements/Stepper.md"
+      ]
     },
     {
       "id": "sw-progress",
@@ -507,7 +623,10 @@
       "kind": "approximate",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/ProgressView.md", "Docs/elements/Gauge.md"]
+      "refs": [
+        "Docs/elements/ProgressView.md",
+        "Docs/elements/Gauge.md"
+      ]
     },
     {
       "id": "sw-datepicker",
@@ -518,7 +637,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/DatePicker.md"]
+      "refs": [
+        "Docs/elements/DatePicker.md"
+      ]
     },
     {
       "id": "sw-colorpicker",
@@ -529,7 +650,9 @@
       "kind": "approximate",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/ColorPicker.md"]
+      "refs": [
+        "Docs/elements/ColorPicker.md"
+      ]
     },
     {
       "id": "sw-label-forms",
@@ -540,7 +663,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Label.md", "Docs/elements/LabeledContent.md"]
+      "refs": [
+        "Docs/elements/Label.md",
+        "Docs/elements/LabeledContent.md"
+      ]
     },
     {
       "id": "sw-disclosure",
@@ -551,7 +677,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/DisclosureGroup.md"]
+      "refs": [
+        "Docs/elements/DisclosureGroup.md"
+      ]
     },
     {
       "id": "sw-form",
@@ -562,7 +690,10 @@
       "kind": "verify",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Form.md", "Docs/elements/GroupBox.md"]
+      "refs": [
+        "Docs/elements/Form.md",
+        "Docs/elements/GroupBox.md"
+      ]
     },
     {
       "id": "sw-content-unavailable",
@@ -573,7 +704,9 @@
       "kind": "verify",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/ContentUnavailableView.md"]
+      "refs": [
+        "Docs/elements/ContentUnavailableView.md"
+      ]
     },
     {
       "id": "sw-sharelink",
@@ -584,7 +717,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/ShareLink.md", "Docs/elements/Link.md"]
+      "refs": [
+        "Docs/elements/ShareLink.md",
+        "Docs/elements/Link.md"
+      ]
     },
     {
       "id": "sw-viewthatfits",
@@ -595,7 +731,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Layout.md"]
+      "refs": [
+        "Docs/elements/Layout.md"
+      ]
     },
     {
       "id": "sw-rtl",
@@ -606,7 +744,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Layout.md", "Docs/elements/CustomLayout.md"]
+      "refs": [
+        "Docs/elements/Layout.md",
+        "Docs/elements/CustomLayout.md"
+      ]
     },
     {
       "id": "sw-custom-layout",
@@ -617,7 +758,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/CustomLayout.md", "Docs/elements/Grid.md"]
+      "refs": [
+        "Docs/elements/CustomLayout.md",
+        "Docs/elements/Grid.md"
+      ]
     },
     {
       "id": "sw-shapes",
@@ -628,7 +772,9 @@
       "kind": "approximate",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Shape.md"]
+      "refs": [
+        "Docs/elements/Shape.md"
+      ]
     },
     {
       "id": "sw-canvas",
@@ -639,7 +785,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Canvas.md"]
+      "refs": [
+        "Docs/elements/Canvas.md"
+      ]
     },
     {
       "id": "sw-gradients",
@@ -650,7 +798,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Gradient.md"]
+      "refs": [
+        "Docs/elements/Gradient.md"
+      ]
     },
     {
       "id": "sw-effects",
@@ -661,7 +811,9 @@
       "kind": "accepted",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Effects.md"]
+      "refs": [
+        "Docs/elements/Effects.md"
+      ]
     },
     {
       "id": "sw-transform3d",
@@ -672,7 +824,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Transform.md"]
+      "refs": [
+        "Docs/elements/Transform.md"
+      ]
     },
     {
       "id": "sw-symbols",
@@ -683,7 +837,10 @@
       "kind": "approximate",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Image.md", "Docs/elements/SymbolEffect.md"]
+      "refs": [
+        "Docs/elements/Image.md",
+        "Docs/elements/SymbolEffect.md"
+      ]
     },
     {
       "id": "sw-images",
@@ -694,7 +851,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Image.md", "Docs/elements/Redaction.md"]
+      "refs": [
+        "Docs/elements/Image.md",
+        "Docs/elements/Redaction.md"
+      ]
     },
     {
       "id": "sw-asyncimage",
@@ -705,18 +865,22 @@
       "kind": "accepted",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/AsyncImage.md"]
+      "refs": [
+        "Docs/elements/AsyncImage.md"
+      ]
     },
     {
       "id": "sw-safe-area",
       "framework": "SwiftUI",
       "area": "Position",
       "title": "Safe area corners",
-      "detail": "`GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser.",
+      "detail": "`GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. `ignoresSafeArea` on a view whose safe-area modifier hugs it on every edge extends on every edge by the geometric rule (PositionTests): a consequence, not a measurement.",
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Position.md"]
+      "refs": [
+        "Docs/elements/Position.md"
+      ]
     },
     {
       "id": "sw-animation",
@@ -727,7 +891,10 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Animation.md", "Docs/elements/Animator.md"]
+      "refs": [
+        "Docs/elements/Animation.md",
+        "Docs/elements/Animator.md"
+      ]
     },
     {
       "id": "sw-lifecycle",
@@ -738,7 +905,10 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Lifecycle.md", "Docs/elements/ObservableObject.md"]
+      "refs": [
+        "Docs/elements/Lifecycle.md",
+        "Docs/elements/ObservableObject.md"
+      ]
     },
     {
       "id": "sw-entry-macro",
@@ -749,7 +919,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Sources/SwiftUIWebMacros"]
+      "refs": [
+        "Sources/SwiftUIWebMacros"
+      ]
     },
     {
       "id": "sw-timeline",
@@ -760,7 +932,9 @@
       "kind": "accepted",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/TimelineView.md"]
+      "refs": [
+        "Docs/elements/TimelineView.md"
+      ]
     },
     {
       "id": "sw-previews",
@@ -771,7 +945,9 @@
       "kind": "accepted",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Preview.md"]
+      "refs": [
+        "Docs/elements/Preview.md"
+      ]
     },
     {
       "id": "sw-gestures",
@@ -782,7 +958,9 @@
       "kind": "accepted",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Gestures.md"]
+      "refs": [
+        "Docs/elements/Gestures.md"
+      ]
     },
     {
       "id": "sw-focus",
@@ -793,7 +971,10 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Focus.md", "Docs/elements/Keyboard.md"]
+      "refs": [
+        "Docs/elements/Focus.md",
+        "Docs/elements/Keyboard.md"
+      ]
     },
     {
       "id": "sw-accessibility",
@@ -804,7 +985,10 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Accessibility.md", "Docs/elements/Hover.md"]
+      "refs": [
+        "Docs/elements/Accessibility.md",
+        "Docs/elements/Hover.md"
+      ]
     },
     {
       "id": "sw-dark",
@@ -815,7 +999,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/DarkMode.md"]
+      "refs": [
+        "Docs/elements/DarkMode.md"
+      ]
     },
     {
       "id": "sw-hover-looks",
@@ -826,7 +1012,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Hover.md"]
+      "refs": [
+        "Docs/elements/Hover.md"
+      ]
     },
     {
       "id": "sw-dragdrop-os",
@@ -837,7 +1025,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/DragDrop.md"]
+      "refs": [
+        "Docs/elements/DragDrop.md"
+      ]
     },
     {
       "id": "sw-table",
@@ -848,7 +1038,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/Table.md"]
+      "refs": [
+        "Docs/elements/Table.md"
+      ]
     },
     {
       "id": "sw-subviews",
@@ -859,7 +1051,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/ForEach.md"]
+      "refs": [
+        "Docs/elements/ForEach.md"
+      ]
     },
     {
       "id": "sw-frameworks",
@@ -870,7 +1064,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/support.json"]
+      "refs": [
+        "Docs/support.json"
+      ]
     },
     {
       "id": "sw-nsimage",
@@ -881,7 +1077,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "wontfix",
-      "refs": ["Docs/elements/Image.md"]
+      "refs": [
+        "Docs/elements/Image.md"
+      ]
     },
     {
       "id": "sw-itemprovider",
@@ -892,9 +1090,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "wontfix",
-      "refs": ["Docs/elements/DragDrop.md"]
+      "refs": [
+        "Docs/elements/DragDrop.md"
+      ]
     },
-
     {
       "id": "uk-spinner",
       "framework": "UIKit",
@@ -904,7 +1103,9 @@
       "kind": "approximate",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Controls.md"]
+      "refs": [
+        "Docs/elements/UIKit/Controls.md"
+      ]
     },
     {
       "id": "uk-hover",
@@ -915,7 +1116,9 @@
       "kind": "missing",
       "priority": "next",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UIButton.md"]
+      "refs": [
+        "Docs/elements/UIKit/UIButton.md"
+      ]
     },
     {
       "id": "uk-gestures",
@@ -926,7 +1129,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Packages/UIKitWeb/Sources/UIKitWebCore/Events"]
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/Events"
+      ]
     },
     {
       "id": "uk-nav-polish",
@@ -937,7 +1142,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Navigation.md"]
+      "refs": [
+        "Docs/elements/UIKit/Navigation.md"
+      ]
     },
     {
       "id": "uk-tabbar",
@@ -948,7 +1155,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Navigation.md"]
+      "refs": [
+        "Docs/elements/UIKit/Navigation.md"
+      ]
     },
     {
       "id": "uk-sheets",
@@ -959,7 +1168,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Presentation.md"]
+      "refs": [
+        "Docs/elements/UIKit/Presentation.md"
+      ]
     },
     {
       "id": "uk-system-sheets",
@@ -970,7 +1181,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Presentation.md"]
+      "refs": [
+        "Docs/elements/UIKit/Presentation.md"
+      ]
     },
     {
       "id": "uk-menus",
@@ -981,7 +1194,10 @@
       "kind": "accepted",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UIButton.md", "Docs/elements/UIKit/Bars.md"]
+      "refs": [
+        "Docs/elements/UIKit/UIButton.md",
+        "Docs/elements/UIKit/Bars.md"
+      ]
     },
     {
       "id": "uk-button",
@@ -992,7 +1208,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UIButton.md"]
+      "refs": [
+        "Docs/elements/UIKit/UIButton.md"
+      ]
     },
     {
       "id": "uk-label",
@@ -1003,7 +1221,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UILabel.md"]
+      "refs": [
+        "Docs/elements/UIKit/UILabel.md"
+      ]
     },
     {
       "id": "uk-fonts",
@@ -1014,7 +1234,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UIFont.md"]
+      "refs": [
+        "Docs/elements/UIKit/UIFont.md"
+      ]
     },
     {
       "id": "uk-textfield",
@@ -1025,7 +1247,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UITextField.md"]
+      "refs": [
+        "Docs/elements/UIKit/UITextField.md"
+      ]
     },
     {
       "id": "uk-textview",
@@ -1036,7 +1260,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/TextView.md"]
+      "refs": [
+        "Docs/elements/UIKit/TextView.md"
+      ]
     },
     {
       "id": "uk-text-input",
@@ -1047,7 +1273,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/TextView.md"]
+      "refs": [
+        "Docs/elements/UIKit/TextView.md"
+      ]
     },
     {
       "id": "uk-datepicker",
@@ -1058,7 +1286,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/DatePicker.md"]
+      "refs": [
+        "Docs/elements/UIKit/DatePicker.md"
+      ]
     },
     {
       "id": "uk-controls-rest",
@@ -1069,7 +1299,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Controls.md"]
+      "refs": [
+        "Docs/elements/UIKit/Controls.md"
+      ]
     },
     {
       "id": "uk-searchbar",
@@ -1080,7 +1312,9 @@
       "kind": "accepted",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Bars.md"]
+      "refs": [
+        "Docs/elements/UIKit/Bars.md"
+      ]
     },
     {
       "id": "uk-images",
@@ -1091,7 +1325,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Drawing.md"]
+      "refs": [
+        "Docs/elements/UIKit/Drawing.md"
+      ]
     },
     {
       "id": "uk-refresh",
@@ -1102,18 +1338,22 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UIScrollView.md"]
+      "refs": [
+        "Docs/elements/UIKit/UIScrollView.md"
+      ]
     },
     {
       "id": "uk-scroll-rest",
       "framework": "UIKit",
       "area": "Scrolling",
       "title": "Zooming, inset adjustment and scroll-to-top",
-      "detail": "`viewForZooming` with pinch and `zoomScale`, `contentInsetAdjustmentBehavior`, `keyboardDismissMode`, scroll-to-top on a status bar tap, `scrollIndicatorInsets`.",
+      "detail": "`viewForZooming` with pinch and `zoomScale`, `.automatic`'s extra rules inside navigation controllers (the safe-area adjustment is done), `keyboardDismissMode`, scroll-to-top on a status bar tap, `scrollIndicatorInsets`.",
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UIScrollView.md"]
+      "refs": [
+        "Docs/elements/UIKit/UIScrollView.md"
+      ]
     },
     {
       "id": "uk-pageviewcontroller",
@@ -1124,7 +1364,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Packages/UIKitWeb/Sources/UIKitWebCore/Containers"]
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/Containers"
+      ]
     },
     {
       "id": "uk-splitviewcontroller",
@@ -1135,7 +1377,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Packages/UIKitWeb/Sources/UIKitWebCore/Containers"]
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/Containers"
+      ]
     },
     {
       "id": "uk-table-rest",
@@ -1146,7 +1390,9 @@
       "kind": "approximate",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/TableView.md"]
+      "refs": [
+        "Docs/elements/UIKit/TableView.md"
+      ]
     },
     {
       "id": "uk-collection-rest",
@@ -1157,18 +1403,23 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/CollectionView.md"]
+      "refs": [
+        "Docs/elements/UIKit/CollectionView.md"
+      ]
     },
     {
       "id": "uk-materials",
       "framework": "UIKit",
       "area": "Views",
       "title": "UIVisualEffectView and the glass",
-      "detail": "Blur and vibrancy effects as a display-list filter group over what lies beneath (the painters have blur); the iOS 26 glass in bars and the scroll pocket is a tint today.",
+      "detail": "Blur and vibrancy effects as a display-list filter group over what lies beneath (the painters have blur); the iOS 26 glass in bars and the scroll pocket is a tint today. The floating tab bar over coloured content is opaque where iOS 26's glass tints what lies beneath (ios/representable/hostingsafearea-tabs is approximate, 5.6 %).",
       "kind": "approximate",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Bars.md", "Docs/elements/iOS.md"]
+      "refs": [
+        "Docs/elements/UIKit/Bars.md",
+        "Docs/elements/iOS.md"
+      ]
     },
     {
       "id": "uk-view-pixels",
@@ -1179,18 +1430,22 @@
       "kind": "verify",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/UIView.md"]
+      "refs": [
+        "Docs/elements/UIKit/UIView.md"
+      ]
     },
     {
       "id": "uk-traits",
       "framework": "UIKit",
       "area": "Views",
       "title": "Trait overrides and observation",
-      "detail": "`overrideUserInterfaceStyle` on a view (the window's works), `registerForTraitChanges` and `traitCollectionDidChange` on every change, size classes from the host size, dark samples of the wheels and of presentations other than the alert.",
+      "detail": "`overrideUserInterfaceStyle` on a view (the window's and `traitOverrides` work), `registerForTraitChanges` and `traitCollectionDidChange` on every change, size classes from the host size, dark samples of the wheels and of presentations other than the alert.",
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Dark.md"]
+      "refs": [
+        "Docs/elements/UIKit/Dark.md"
+      ]
     },
     {
       "id": "uk-appearance",
@@ -1201,7 +1456,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Packages/UIKitWeb/Sources/UIKitWebCore/Views"]
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/Views"
+      ]
     },
     {
       "id": "uk-layers",
@@ -1212,7 +1469,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Animation.md"]
+      "refs": [
+        "Docs/elements/UIKit/Animation.md"
+      ]
     },
     {
       "id": "uk-autolayout-rest",
@@ -1223,7 +1482,10 @@
       "kind": "verify",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/AutoLayout.md", "Docs/elements/UIKit/UIStackView.md"]
+      "refs": [
+        "Docs/elements/UIKit/AutoLayout.md",
+        "Docs/elements/UIKit/UIStackView.md"
+      ]
     },
     {
       "id": "uk-drawing-rest",
@@ -1234,7 +1496,9 @@
       "kind": "accepted",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/UIKit/Drawing.md"]
+      "refs": [
+        "Docs/elements/UIKit/Drawing.md"
+      ]
     },
     {
       "id": "uk-keyboard",
@@ -1245,7 +1509,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Packages/UIKitWeb/Sources/UIKitWebCore/Events"]
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/Events"
+      ]
     },
     {
       "id": "uk-dragdrop",
@@ -1256,7 +1522,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/elements/DragDrop.md"]
+      "refs": [
+        "Docs/elements/DragDrop.md"
+      ]
     },
     {
       "id": "uk-accessibility",
@@ -1267,7 +1535,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/Accessibility.md"]
+      "refs": [
+        "Docs/elements/Accessibility.md"
+      ]
     },
     {
       "id": "uk-pasteboard",
@@ -1278,7 +1548,9 @@
       "kind": "missing",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/elements/DragDrop.md"]
+      "refs": [
+        "Docs/elements/DragDrop.md"
+      ]
     },
     {
       "id": "uk-scenes",
@@ -1289,7 +1561,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Packages/UIKitWeb/Sources/UIKitWebCore/App"]
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/App"
+      ]
     },
     {
       "id": "uk-size",
@@ -1300,7 +1574,10 @@
       "kind": "infra",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/decisions/0014-uikitweb.md", "Docs/decisions/0006-binary-size.md"]
+      "refs": [
+        "Docs/decisions/0014-uikitweb.md",
+        "Docs/decisions/0006-binary-size.md"
+      ]
     },
     {
       "id": "uk-storyboards",
@@ -1311,9 +1588,10 @@
       "kind": "missing",
       "priority": "later",
       "status": "wontfix",
-      "refs": ["Docs/decisions/0014-uikitweb.md"]
+      "refs": [
+        "Docs/decisions/0014-uikitweb.md"
+      ]
     },
-
     {
       "id": "pf-linux",
       "framework": "Platform",
@@ -1323,7 +1601,9 @@
       "kind": "infra",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/ROADMAP.md"]
+      "refs": [
+        "Docs/ROADMAP.md"
+      ]
     },
     {
       "id": "pf-native-text",
@@ -1334,7 +1614,9 @@
       "kind": "missing",
       "priority": "later",
       "status": "planned",
-      "refs": ["Docs/decisions/0012-native-painter.md"]
+      "refs": [
+        "Docs/decisions/0012-native-painter.md"
+      ]
     },
     {
       "id": "pf-browser-sessions",
@@ -1345,7 +1627,9 @@
       "kind": "verify",
       "priority": "soon",
       "status": "planned",
-      "refs": ["Docs/ROADMAP.md"]
+      "refs": [
+        "Docs/ROADMAP.md"
+      ]
     },
     {
       "id": "pf-perf",
@@ -1356,7 +1640,9 @@
       "kind": "infra",
       "priority": "later",
       "status": "planned",
-      "refs": ["Playwright/landing-perf.mjs"]
+      "refs": [
+        "Playwright/landing-perf.mjs"
+      ]
     }
   ]
 }

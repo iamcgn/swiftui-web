@@ -21,8 +21,12 @@ open class UIHostingController<Content: View>: UIViewController {
     public var rootView: Content {
         didSet { hostingView?.rootView = rootView }
     }
-    /// The safe area regions the content respects (accepted; a hosted view has no bars).
-    public var safeAreaRegions: SafeAreaRegions = .all
+    /// The safe area regions the content respects: with `.container` the hosting view's safe
+    /// area (a navigation or tab bar's) is the content's (ios/representable/hostingsafearea);
+    /// without it the content fills the view (hostingsafearea-none).
+    public var safeAreaRegions: SafeAreaRegions = .all {
+        didSet { hostingView?.safeAreaRegions = safeAreaRegions }
+    }
     public var sizingOptions: UIHostingControllerSizingOptions = [] {
         didSet { if sizingOptions.contains(.preferredContentSize), let view = hostingView { preferredContentSize = view.sizeThatFits(UIView.layoutFittingExpandedSize) } }
     }
@@ -36,6 +40,7 @@ open class UIHostingController<Content: View>: UIViewController {
     open override func loadView() {
         let view = _UIHostingView(rootView: rootView)
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.safeAreaRegions = safeAreaRegions
         hostingView = view
         self.view = view
     }
@@ -58,6 +63,10 @@ final class _UIHostingView<Content: View>: UIView {
         }
     }
     private var laidOutSize = CGSize.zero
+    /// The regions of the view's safe area the content respects (the controller's setting).
+    var safeAreaRegions: SafeAreaRegions = .all {
+        didSet { if safeAreaRegions != oldValue { setNeedsLayout() } }
+    }
 
     init(rootView: Content) {
         self.rootView = rootView
@@ -88,6 +97,14 @@ final class _UIHostingView<Content: View>: UIView {
         if runtime.assetCatalog != scene.assetCatalog { runtime.assetCatalog = scene.assetCatalog }
         let scheme: ColorScheme = traitCollection.userInterfaceStyle == .dark ? .dark : .light
         if runtime.hostColorScheme != scheme { runtime.hostColorScheme = scheme }
+        // The view's safe area (a container's bars) is the content's, unless ignored.
+        let insets = safeAreaRegions.contains(.container) ? safeAreaInsets : .zero
+        runtime.safeAreaInsets = EdgeInsets(top: insets.top, leading: insets.left, bottom: insets.bottom, trailing: insets.right)
+    }
+
+    override func safeAreaInsetsDidChange() {
+        super.safeAreaInsetsDidChange()
+        setNeedsLayout()
     }
 
     override func layoutSubviews() {
