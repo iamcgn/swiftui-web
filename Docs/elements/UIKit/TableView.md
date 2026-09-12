@@ -58,8 +58,22 @@ or `estimatedRowHeight`) are laid out as frames alone; cells exist for the rows 
 half a viewport above and below, are returned to the reuse pool as they scroll out
 (`dequeueReusableCell` hands them back), and `cellForRowAt` runs as rows appear
 (`TableRecyclingTests`: a thousand 44 pt rows in a 400 pt table cost fewer than 30 cells).
-Rows with automatic heights and no estimate still build every cell (their height needs it);
-an estimate is taken as the height, not corrected when the cell appears.
+Rows with automatic heights and no estimate still build every cell (their height needs it).
+
+## Self-sizing rows (2026-09-11, `uikit/table/selfsizing`)
+
+With `rowHeight` automatic and an `estimatedRowHeight`, a row is laid out at the estimate until
+its cell appears; the cell then measures itself for the row's width and, when the height
+differs, the table lays every row out again keeping the cells it has made (the estimate is
+never trusted twice: measured heights stay until `reloadData`). A cell's automatic height is,
+in order: its content configuration's fit (at least 56); constrained content's fitting size for
+the row width required (`systemLayoutSizeFitting` with the width at the required priority, as
+UIKit sizes cells: a 15 pt label 12 above and below gives 61 for two lines, 79 for three, 56.5
+for two 13 pt lines); a default cell's wrapping `textLabel` plus 13.75 above and below (the
+labels use the body and subheadline text styles as UIKit's do, so the lines are 26 apart: three
+lines are 76.5 tall in a 104 pt row, one line stays at the 56 minimum); else the style's 56 or
+73. Measured on the simulator; frames exact, pixels within the text-heavy tolerance. See the
+wrapping-label rules in `Docs/elements/UIKit/AutoLayout.md`.
 
 ## Batch updates (2026-09-11)
 

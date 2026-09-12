@@ -361,3 +361,10 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   the new data with the surviving cells handed back to it under their new paths, then animates
   frames and alpha with `UIView.animate`; no golden covers the motion (the harness settles
   before capturing), so `BatchUpdateTests` drive the scene's clock.
+- Step 31 (2026-09-11): self-sizing table rows (`Docs/ROADMAP.md`, Phase 7 status 4.36). The
+  dump showed three things the guesses had wrong: a default cell's labels use the body and
+  subheadline text styles (a wrapping title's lines are 26 apart, not 20.5), UIKit fits a cell
+  with the row width required rather than compressed (else a wrapping label widens the content
+  view instead of wrapping), and a wrapped label under constraints is a point taller than its
+  own fit. The estimate correction reuses the batch-update retained-cell path: the rows are laid
+  out again with the cells already made handed back under their paths.

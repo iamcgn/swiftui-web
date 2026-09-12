@@ -374,6 +374,7 @@ done 2026-09-11).
 | 4.33 Search scope bar | done 2026-09-11: `scopeButtonTitles`, `showsScopeBar`, `selectedScopeButtonIndex` and the delegate's scope change; a 47 pt band under the 64 pt bar holding an equal-width segmented control with 15 pt titles; `uikit/search/scope` exact and within 1.7 % (`Docs/elements/UIKit/Bars.md`). |
 | 4.34 Tabular figures | done 2026-09-11: `monospacedDigitSystemFont` and `Font.monospacedDigit()` set `ResolvedFont.tabularDigits`; CoreText uses the number-spacing feature, Canvas2D draws and measures digits on a slot from the "0" advance and a per-weight ratio (`TabularFigures`); `uikit/label/tabular` exact (`Docs/elements/UIKit/UIFont.md`). |
 | 4.35 Animated batch updates | done 2026-09-11: `performBatchUpdates`, insert / delete / reload / move rows, items and sections, and diffable `apply(animatingDifferences:)` keep surviving cells and slide them, fade removed cells out and new ones in over 0.3 s, completion at the end (`Containers/BatchUpdates.swift`, `BatchUpdateTests`; `Docs/elements/UIKit/TableView.md`). |
+| 4.36 Self-sizing table rows | done 2026-09-11: an estimated row measures its cell when it appears and the table lays out again keeping its cells; automatic heights from constrained content (the row width required), wrapping default text labels (body style, 13.75 margins) and content configurations; wrapping labels get UIKit's second Auto Layout pass and a point over their fit; `uikit/table/selfsizing` exact (`Docs/elements/UIKit/TableView.md`). |
 
 ## Risk register
 

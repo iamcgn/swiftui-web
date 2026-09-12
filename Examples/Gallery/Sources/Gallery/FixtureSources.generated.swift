@@ -5887,7 +5887,7 @@ public static let basic = UIKitFixture("uikit/stack/basic", size: CGSize(width: 
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 79, lastLine: 85, declaration: #"""
+        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 127, lastLine: 133, declaration: #"""
 /// The inset grouped style: two sections with headers and a footer, value1 cells.
 public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(width: 320, height: 400)) {
     make(style: .insetGrouped, cellStyle: .value1, sections: [
@@ -5896,7 +5896,7 @@ public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(wid
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 0, section: 1): "row2"])
 }
 """#),
-        FixtureSource(name: "uikit/table/pinned", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 87, lastLine: 107, declaration: #"""
+        FixtureSource(name: "uikit/table/pinned", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 135, lastLine: 155, declaration: #"""
 /// Plain-style section headers pin to the top while their section scrolls under them and
 /// are pushed away by the next header.
 public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width: 320, height: 300),
@@ -5919,7 +5919,7 @@ public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 0, section: 1): "row4"], model: model)
 }
 """#),
-        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 65, lastLine: 70, declaration: #"""
+        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 113, lastLine: 118, declaration: #"""
 /// A plain table: one section without a header, default cells with and without accessories.
 public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 320, height: 400)) {
     make(style: .plain, cellStyle: .default, sections: [
@@ -5927,7 +5927,7 @@ public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 3, section: 0): "row3"])
 }
 """#),
-        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 109, lastLine: 117, declaration: #"""
+        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 157, lastLine: 165, declaration: #"""
 /// Selecting a row highlights it; deselecting clears it.
 public static let selection = UIKitFixture("uikit/table/selection", size: CGSize(width: 320, height: 400),
                                            model: { TableModel() },
@@ -5938,7 +5938,22 @@ public static let selection = UIKitFixture("uikit/table/selection", size: CGSize
     ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
 }
 """#),
-        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 72, lastLine: 77, declaration: #"""
+        FixtureSource(name: "uikit/table/selfsizing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 167, lastLine: 179, declaration: #"""
+/// Automatic row heights from an estimate: wrapping text labels in default cells and a
+/// custom cell with a constrained label.
+public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    let source = SelfSizingSource()
+    selfSizingSources.append(source)
+    let table = UITableView(frame: root.bounds, style: .plain)
+    table.rowHeight = UITableView.automaticDimension
+    table.estimatedRowHeight = 44
+    table.dataSource = source
+    root.addSubview(table.probe("table"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 120, lastLine: 125, declaration: #"""
 /// Subtitle cells with a header, under the plain style.
 public static let subtitle = UIKitFixture("uikit/table/subtitle", size: CGSize(width: 320, height: 400)) {
     make(style: .plain, cellStyle: .subtitle, sections: [
@@ -14203,6 +14218,54 @@ final class TableSource: NSObject, UITableViewDataSource, UITableViewDelegate {
     }
 }
 
+
+/// A cell whose height comes from a wrapping label constrained 16 in and 12 above and below.
+final class NoteCell: UITableViewCell {
+    let note = UILabel()   // constrained on first configure: no initializer to mirror on both UIKits
+    private var constrained = false
+    func configure(_ text: String, size: CGFloat) {
+        note.text = text
+        note.font = .systemFont(ofSize: size)
+        note.numberOfLines = 0
+        guard !constrained else { return }
+        constrained = true
+        note.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(note)
+        NSLayoutConstraint.activate([
+            note.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            note.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            note.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            note.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
+        ])
+    }
+}
+
+/// Rows sized by their content: default cells with wrapping text labels and note cells.
+final class SelfSizingSource: NSObject, UITableViewDataSource {
+    let rows: [(text: String, custom: Bool, size: CGFloat)] = [
+        ("Short", false, 17),
+        ("A default cell whose text label wraps onto several lines when the text runs past the cell's width", false, 17),
+        ("A note cell sized by its constrained label, twelve points above and below the text", true, 15),
+        ("A longer note that needs a third line at this size once it has said everything it has to say about itself", true, 15),
+        ("A footnote-sized note wrapping onto a second line inside the very same cell", true, 13),
+    ]
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { rows.count }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let row = rows[indexPath.row]
+        if row.custom {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "note") as? NoteCell ?? NoteCell(style: .default, reuseIdentifier: "note")
+            cell.configure(row.text, size: row.size)
+            cell.note.probe("label\(indexPath.row)")
+            return cell.probe("row\(indexPath.row)")
+        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
+        cell.textLabel?.text = row.text
+        cell.textLabel?.numberOfLines = 0
+        cell.textLabel?.probe("label\(indexPath.row)")
+        return cell.probe("row\(indexPath.row)")
+    }
+}
+
 @MainActor public final class TableModel {
     var table: UITableView?
     var source: TableSource?
@@ -14210,7 +14273,7 @@ final class TableSource: NSObject, UITableViewDataSource, UITableViewDelegate {
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection, pinned]
+    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -14286,6 +14349,22 @@ public enum TableFixtures {
             .init(header: nil, footer: nil, rows: [("First row", nil, .none), ("Second row", nil, .none), ("Third row", nil, .none)]),
         ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
     }
+
+    /// Automatic row heights from an estimate: wrapping text labels in default cells and a
+    /// custom cell with a constrained label.
+    public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let source = SelfSizingSource()
+        selfSizingSources.append(source)
+        let table = UITableView(frame: root.bounds, style: .plain)
+        table.rowHeight = UITableView.automaticDimension
+        table.estimatedRowHeight = 44
+        table.dataSource = source
+        root.addSubview(table.probe("table"))
+        return root
+    }
+
+    @MainActor static var selfSizingSources: [SelfSizingSource] = []
 }
 #endif
 """##,

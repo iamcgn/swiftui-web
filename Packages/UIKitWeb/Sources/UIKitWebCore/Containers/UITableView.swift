@@ -346,6 +346,7 @@ open class UITableView: UIScrollView {
     private func setNeedsReload() {
         pendingUpdate = nil
         updateDepth = 0
+        measuredHeights.removeAll()
         needsReload = true
         setNeedsLayout()
     }
@@ -437,7 +438,7 @@ open class UITableView: UIScrollView {
                 var cell: UITableViewCell?
                 if height == nil {
                     let made = cellForRow(path, rows: rows)
-                    height = made.preferredHeight
+                    height = made.preferredHeight(width: rowWidth)
                     cell = made
                 }
                 let frame = CGRect(x: cardInset, y: y, width: rowWidth, height: height!)
@@ -502,11 +503,22 @@ open class UITableView: UIScrollView {
 
     /// The rows per section, from the last reload.
     private var rowCounts: [Int: Int] = [:]
+    /// Automatic heights measured from cells that appeared, replacing the estimate they were
+    /// laid out with (cleared by `reloadData`).
+    private var measuredHeights: [IndexPath: CGFloat] = [:]
+
+    /// Whether the row's height is an estimate until its cell measures it.
+    private func isEstimated(_ path: IndexPath) -> Bool {
+        if let delegateHeight = tableDelegate?.tableView(self, heightForRowAt: path), delegateHeight != Self.automaticDimension { return false }
+        if rowHeight != Self.automaticDimension { return false }
+        return estimatedRowHeight > 0 && measuredHeights[path] == nil
+    }
 
     /// The row's height when it can be known without its cell.
     private func knownHeight(for path: IndexPath) -> CGFloat? {
         if let delegateHeight = tableDelegate?.tableView(self, heightForRowAt: path), delegateHeight != Self.automaticDimension { return delegateHeight }
         if rowHeight != Self.automaticDimension { return rowHeight }
+        if let measured = measuredHeights[path] { return measured }
         if estimatedRowHeight > 0 { return estimatedRowHeight }
         return nil
     }
@@ -538,9 +550,29 @@ open class UITableView: UIScrollView {
             visibleCellsByPath.removeValue(forKey: path)
             if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
         }
-        for (path, frame) in rowFrames where frame.intersects(visible) && visibleCellsByPath[path] == nil {
+        var corrected = false
+        for (path, frame) in rowFrames.sorted(by: { $0.key < $1.key }) where frame.intersects(visible) && visibleCellsByPath[path] == nil {
             let cell = cellForRow(path, rows: rowCounts[path.section] ?? path.row + 1)
+            // An estimated row measures itself once its cell exists; a different height lays
+            // the rows out again below (the cells made so far are kept).
+            if isEstimated(path) {
+                let measured = cell.preferredHeight(width: frame.width)
+                measuredHeights[path] = measured
+                if measured != frame.height { corrected = true }
+            }
             place(cell, at: path, frame: frame)
+        }
+        if corrected {
+            let kept = visibleCellsByPath
+            visibleCellsByPath.removeAll()
+            retainedCells = kept
+            reload()
+            for cell in retainedCells.values {
+                cell.removeFromSuperview()
+                if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
+            }
+            retainedCells.removeAll()
+            return
         }
         pinHeaders()
     }
@@ -654,13 +686,15 @@ open class UITableViewCell: UIView {
         super.init(frame: .zero)
         backgroundColor = .systemBackground
         addSubview(contentView)
+        // The labels use the body and subheadline text styles, as UIKit's do (a wrapping
+        // title's lines are 26 apart, the body style's pitch; uikit/table/selfsizing).
         let title = UILabel()
-        title.font = .systemFont(ofSize: 17)
+        title.font = .preferredFont(forTextStyle: .body)
         textLabel = title
         contentView.addSubview(title)
         if style != .default {
             let detail = UILabel()
-            detail.font = .systemFont(ofSize: style == .subtitle ? 15 : 17)
+            detail.font = .preferredFont(forTextStyle: style == .subtitle ? .subheadline : .body)
             detail.textColor = .secondaryLabel
             detailTextLabel = detail
             contentView.addSubview(detail)
@@ -695,13 +729,37 @@ open class UITableViewCell: UIView {
     /// The row's automatic height: the content configuration's fit for the width, at least the
     /// 56 pt default row (ios/representable/hostingcells: a one-line hosted row is 56, a row with
     /// an 80 pt minimum size 80); else the style's.
-    var preferredHeight: CGFloat {
+    var preferredHeight: CGFloat { preferredHeight(width: bounds.width > 0 ? bounds.width : UIScreen.main.bounds.width) }
+
+    /// The row's automatic height for a width (uikit/table/selfsizing): a content
+    /// configuration's fit (at least 56); constrained content's compressed fitting size (a
+    /// label 12 above and below gives 61 for two 15 pt lines); a default cell's wrapping text
+    /// label plus the row's margins (104 for four 17 pt lines); else the style's 56 or 73.
+    func preferredHeight(width: CGFloat) -> CGFloat {
         if let content = configuredContent?.view as UIView? {
-            let fitted = content.sizeThatFits(CGSize(width: bounds.width > 0 ? bounds.width : UIScreen.main.bounds.width, height: .greatestFiniteMagnitude)).height
+            let fitted = content.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height
             return max(56, fitted)
+        }
+        if contentView.subviews.contains(where: { !$0.translatesAutoresizingMaskIntoConstraints }) {
+            if bounds.width != width { frame.size.width = width }
+            contentView.frame = CGRect(x: 0, y: 0, width: width, height: contentView.frame.height)
+            // The row's width is required, the height what fits, as UIKit sizes cells.
+            let fitted = contentView.systemLayoutSizeFitting(CGSize(width: width, height: 0), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height
+            if fitted > 0 { return fitted }
+        }
+        if style == .default, let title = textLabel, title.numberOfLines != 1, let text = title.text, !text.isEmpty {
+            let accessory = accessorySize
+            let contentWidth = accessory.width > 0 ? width - (accessoryType == .checkmark ? 18.5 : 16) - accessory.width : width
+            let labelWidth = contentWidth - 32 - (imageView?.image.map { $0.size.width + 16 } ?? 0)
+            let text = title.sizeThatFits(CGSize(width: labelWidth, height: .greatestFiniteMagnitude)).height
+            return max(56, text + 2 * Self.wrappingTextMargin)
         }
         return style == .subtitle ? 73 : 56
     }
+
+    /// Above and below a default cell's wrapping text label (uikit/table/selfsizing: three
+    /// body lines, 76.5 tall, in a 104 pt row).
+    static let wrappingTextMargin: CGFloat = 13.75
 
     /// A content configuration makes the content view that fills the cell's content view and
     /// sizes the row (Containers/ContentConfiguration.swift).

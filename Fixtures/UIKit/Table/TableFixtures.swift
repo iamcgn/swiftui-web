@@ -32,6 +32,54 @@ final class TableSource: NSObject, UITableViewDataSource, UITableViewDelegate {
     }
 }
 
+
+/// A cell whose height comes from a wrapping label constrained 16 in and 12 above and below.
+final class NoteCell: UITableViewCell {
+    let note = UILabel()   // constrained on first configure: no initializer to mirror on both UIKits
+    private var constrained = false
+    func configure(_ text: String, size: CGFloat) {
+        note.text = text
+        note.font = .systemFont(ofSize: size)
+        note.numberOfLines = 0
+        guard !constrained else { return }
+        constrained = true
+        note.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(note)
+        NSLayoutConstraint.activate([
+            note.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            note.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            note.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            note.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
+        ])
+    }
+}
+
+/// Rows sized by their content: default cells with wrapping text labels and note cells.
+final class SelfSizingSource: NSObject, UITableViewDataSource {
+    let rows: [(text: String, custom: Bool, size: CGFloat)] = [
+        ("Short", false, 17),
+        ("A default cell whose text label wraps onto several lines when the text runs past the cell's width", false, 17),
+        ("A note cell sized by its constrained label, twelve points above and below the text", true, 15),
+        ("A longer note that needs a third line at this size once it has said everything it has to say about itself", true, 15),
+        ("A footnote-sized note wrapping onto a second line inside the very same cell", true, 13),
+    ]
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { rows.count }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let row = rows[indexPath.row]
+        if row.custom {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "note") as? NoteCell ?? NoteCell(style: .default, reuseIdentifier: "note")
+            cell.configure(row.text, size: row.size)
+            cell.note.probe("label\(indexPath.row)")
+            return cell.probe("row\(indexPath.row)")
+        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
+        cell.textLabel?.text = row.text
+        cell.textLabel?.numberOfLines = 0
+        cell.textLabel?.probe("label\(indexPath.row)")
+        return cell.probe("row\(indexPath.row)")
+    }
+}
+
 @MainActor public final class TableModel {
     var table: UITableView?
     var source: TableSource?
@@ -39,7 +87,7 @@ final class TableSource: NSObject, UITableViewDataSource, UITableViewDelegate {
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection, pinned]
+    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -115,5 +163,21 @@ public enum TableFixtures {
             .init(header: nil, footer: nil, rows: [("First row", nil, .none), ("Second row", nil, .none), ("Third row", nil, .none)]),
         ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
     }
+
+    /// Automatic row heights from an estimate: wrapping text labels in default cells and a
+    /// custom cell with a constrained label.
+    public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let source = SelfSizingSource()
+        selfSizingSources.append(source)
+        let table = UITableView(frame: root.bounds, style: .plain)
+        table.rowHeight = UITableView.automaticDimension
+        table.estimatedRowHeight = 44
+        table.dataSource = source
+        root.addSubview(table.probe("table"))
+        return root
+    }
+
+    @MainActor static var selfSizingSources: [SelfSizingSource] = []
 }
 #endif

@@ -71,6 +71,14 @@ solves the subtree alone with the target proposed at the fitting priorities.
 - `update`: a constant changed from 16 to 100 moves the view on the next layout; deactivating a
   width and activating another resizes it.
 
+Wrapping labels (2026-09-11, `uikit/table/selfsizing`): a label with `numberOfLines` other than
+1 and no `preferredMaxLayoutWidth` measures unbounded on the first solve; when the solve gives
+it less width than its text, that width becomes its layout width and the subtree solves again
+with the wrapped height, as UIKit sets a multi-line label's preferred width since iOS 8 (both
+in a layout pass and in `systemLayoutSizeFitting`). A wrapped label's intrinsic height is a
+point more than its fit (two 15 pt lines fit in 36 and take 37; three 54 and 55; two 13 pt lines
+31.5 and 32.5), a single line exactly its fit.
+
 Open: `UIStackView` on constraints (its baseline alignments),
 constraints between a view and its own layout guides made with `addLayoutGuide` (their frames are
 not solved yet), `contentHuggingPriority` defaults per control (UIKit's 250/750 with UILabel's

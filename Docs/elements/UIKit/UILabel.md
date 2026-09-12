@@ -29,5 +29,8 @@ colour when off), `preferredMaxLayoutWidth`, `sizeThatFits`, `intrinsicContentSi
 - Text is measured by the scene's text engine; in Tier A the recorded `UILabel` measurements
   (`Fixtures/Goldens/uikit/text-metrics.json`, keyed as the label asks: `font|width;l<lines>|text`).
 
+Under Auto Layout a wrapping label takes the width it is solved to and reports its wrapped
+height plus a point (`Docs/elements/UIKit/AutoLayout.md`, 2026-09-11).
+
 Open: the ink position of a text-style line (its 24.5 box holds a 24.29 line; unverified until
 UIKit pixels are compared), attributed text, font scaling to fit, letter-form adjustments.

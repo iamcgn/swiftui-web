@@ -84,8 +84,18 @@ open class UILabel: UIView {
         return CGSize(width: width.map { min($0, fitted.width) } ?? fitted.width, height: fitted.height)
     }
 
+    /// The width Auto Layout gave a wrapping label on its first pass (UIKit sets a multi-line
+    /// label's preferred width from its solved width and solves again; Layout/LayoutEngine.swift).
+    var layoutWrapWidth: CGFloat = 0
+
+    /// The intrinsic size: unbounded, or wrapped to the preferred layout width; a label that
+    /// wraps reports a point more than its fit (uikit/table/selfsizing: two 15 pt lines fit in
+    /// 36 and take 37 under constraints, three 54 and 55, two 13 pt lines 31.5 and 32.5).
     override open var intrinsicContentSize: CGSize {
-        textSize(fitting: preferredMaxLayoutWidth > 0 ? preferredMaxLayoutWidth : nil)
+        let width: CGFloat? = preferredMaxLayoutWidth > 0 ? preferredMaxLayoutWidth : (numberOfLines != 1 && layoutWrapWidth > 0 ? layoutWrapWidth : nil)
+        var size = textSize(fitting: width)
+        if width != nil, size.height > font.labelHeight(lines: 1, scale: UIScreen.main.scale) { size.height += 1 }
+        return size
     }
 
     /// The text's rectangle in `bounds`: one line measures unbounded (it truncates rather than

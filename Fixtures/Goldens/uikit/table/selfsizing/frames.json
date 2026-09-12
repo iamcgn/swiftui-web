@@ -1,0 +1,75 @@
+{
+  "fixture" : "uikit\/table\/selfsizing",
+  "frames" : {
+    "label0" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 0
+    },
+    "label1" : {
+      "height" : 104,
+      "width" : 288,
+      "x" : 16,
+      "y" : 56
+    },
+    "label2" : {
+      "height" : 37,
+      "width" : 288,
+      "x" : 16,
+      "y" : 172
+    },
+    "label3" : {
+      "height" : 55,
+      "width" : 288,
+      "x" : 16,
+      "y" : 233
+    },
+    "label4" : {
+      "height" : 32.5,
+      "width" : 288,
+      "x" : 16,
+      "y" : 312
+    },
+    "row0" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 104,
+      "width" : 320,
+      "x" : 0,
+      "y" : 56
+    },
+    "row2" : {
+      "height" : 61,
+      "width" : 320,
+      "x" : 0,
+      "y" : 160
+    },
+    "row3" : {
+      "height" : 79,
+      "width" : 320,
+      "x" : 0,
+      "y" : 221
+    },
+    "row4" : {
+      "height" : 56.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 300
+    },
+    "table" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

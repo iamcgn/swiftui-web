@@ -206,6 +206,24 @@ final class LayoutEngine {
     private func round(_ value: Double) -> CGFloat {
         (CGFloat(value) * scale).rounded() / scale
     }
+
+    /// After a solve: gives every wrapping label narrower than its text the width it was
+    /// solved to, so a second pass can size its height for that width (UIKit's automatic
+    /// preferred layout width). Returns whether a second pass is needed.
+    func wrapLabelsForSecondPass() -> Bool {
+        var needed = false
+        for view in placed {
+            guard let label = view as? UILabel, label.numberOfLines != 1, label.preferredMaxLayoutWidth == 0, label.text?.isEmpty == false else { continue }
+            let width = round(solver.value(of: variables(for: label).width))
+            guard width > 0, width != label.layoutWrapWidth else { continue }
+            let unbounded = label.textSize(fitting: nil).width
+            if width < unbounded || label.layoutWrapWidth > 0 {
+                label.layoutWrapWidth = width
+                needed = true
+            }
+        }
+        return needed
+    }
 }
 
 /// Per-view Auto Layout state, kept out of `UIView`'s declaration.
@@ -224,7 +242,9 @@ extension UIView {
     func solveConstraintsIfNeeded() {
         updateConstraintsIfNeeded()
         guard LayoutEngine.hasConstraints(self) else { return }
-        LayoutEngine(root: self, fixRoot: true).apply()
+        let engine = LayoutEngine(root: self, fixRoot: true)
+        engine.apply()
+        if engine.wrapLabelsForSecondPass() { LayoutEngine(root: self, fixRoot: true).apply() }
     }
 
     /// The size the subtree's constraints give this view for `targetSize`, or nil when nothing
@@ -232,6 +252,9 @@ extension UIView {
     func constrainedSizeFitting(_ targetSize: CGSize, horizontal: UILayoutPriority, vertical: UILayoutPriority) -> CGSize? {
         guard LayoutEngine.hasConstraints(self) else { return nil }
         updateConstraintsIfNeeded()
-        return LayoutEngine(root: self, fixRoot: false).fit(targetSize, horizontal: horizontal, vertical: vertical)
+        let engine = LayoutEngine(root: self, fixRoot: false)
+        let size = engine.fit(targetSize, horizontal: horizontal, vertical: vertical)
+        if engine.wrapLabelsForSecondPass() { return LayoutEngine(root: self, fixRoot: false).fit(targetSize, horizontal: horizontal, vertical: vertical) }
+        return size
     }
 }
