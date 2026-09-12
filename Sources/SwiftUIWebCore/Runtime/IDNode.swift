@@ -22,8 +22,12 @@ package final class IDNode<Content: View, ID: Hashable>: TypedNode<IDView<Conten
         self.environment = environment
         clearNeedsUpdate()
         if idChanged {
-            child.unmount()
+            // The new content is made (and a representable in it updated) before the old one
+            // is unmounted, as SwiftUI does (ios/representable/lifecycle `swap`: coordinator2,
+            // make2, update2, then dismantle1).
+            let old = child
             child = Content._makeNode(_NodeContext(view: view.content, parent: self, environment: environment))
+            old?.unmount()
         } else {
             child.update(view: view.content, environment: environment, force: force)
         }

@@ -195,13 +195,14 @@
       "framework": "Interop",
       "area": "Representables",
       "title": "Dismantle and coordinator lifecycle tests",
-      "detail": "`RepresentableTests`: make, update, dismantle order on removal and identity change; the coordinator outlives updates and dies with the node; `makeCoordinator` once per node.",
+      "detail": "`RepresentableTests` and ios/representable/lifecycle: make, update, dismantle order at first sight, on an identity change (the new coordinator, view and update come before the old view's dismantle) and on removal; every evaluation of the parent's body updates the view; the coordinator is made once per node, outlives updates and dies with the node.",
       "kind": "verify",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Sources/SwiftUIWebUIKit"
-      ]
+      ],
+      "done": "2026-09-12"
     },
     {
       "id": "ix-hosting-config",

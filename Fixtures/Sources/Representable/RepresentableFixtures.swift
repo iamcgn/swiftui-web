@@ -271,6 +271,69 @@ struct TraitBox: UIViewRepresentable {
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: TraitView, context: Context) -> CGSize? { TraitView.size }
 }
 
+// MARK: Lifecycle (Phase 8: ix-lifecycle)
+
+/// The calls a representable receives, recorded outside observation.
+final class RepresentableCallLog {
+    var entries: [String] = []
+}
+
+@Observable final class RepresentableLifecycleModel {
+    var identity = 0
+    var shows = true
+    /// The log as last read by a step, which the view draws.
+    var shown: [String] = []
+    @ObservationIgnored let log = RepresentableCallLog()
+}
+
+/// A representable that logs its coordinator's creation, make, update and dismantle, each with
+/// the coordinator's number.
+struct LoggingBox: UIViewRepresentable {
+    let log: RepresentableCallLog
+
+    final class Coordinator {
+        let log: RepresentableCallLog
+        let number: Int
+        init(log: RepresentableCallLog, number: Int) {
+            self.log = log
+            self.number = number
+            log.entries.append("coordinator\(number)")
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        let number = log.entries.filter { $0.hasPrefix("coordinator") }.count + 1
+        return Coordinator(log: log, number: number)
+    }
+
+    func makeUIView(context: Context) -> UIView {
+        log.entries.append("make\(context.coordinator.number)")
+        let view = UIView()
+        view.backgroundColor = .systemGray
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        log.entries.append("update\(context.coordinator.number)")
+    }
+
+    static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
+        coordinator.log.entries.append("dismantle\(coordinator.number)")
+    }
+}
+
+/// One log entry as a bar: the kind picks the colour and a base width (coordinator 20, make 40,
+/// update 60, dismantle 80), the coordinator's number adds 4 per number.
+struct CallEntryBar: View {
+    let entry: String
+    var body: some View {
+        let kinds: [(String, Color, CGFloat)] = [("coordinator", .orange, 20), ("make", .blue, 40), ("update", .green, 60), ("dismantle", .red, 80)]
+        let kind = kinds.first { entry.hasPrefix($0.0) } ?? ("?", .black, 10)
+        let number = CGFloat(Int(entry.dropFirst(kind.0.count)) ?? 0)
+        kind.1.frame(width: kind.2 + 4 * number, height: 6)
+    }
+}
+
 @Observable final class RepresentableModel {
     var text = "Hello"
     var isOn = true
@@ -414,7 +477,28 @@ public enum RepresentableFixtures {
     public static let all: [Fixture] = [plain, label, priorities, controls, darkControls, sizing, spacing, controller, update, hostingCells,
                                         safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
-                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule]
+                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle]
+
+    /// The order of a representable's calls: at first sight, after its identity changes (a new
+    /// coordinator and view, the old view dismantled) and after it leaves the tree. A step
+    /// mutates the model, the next copies the log into the view, which draws one bar per entry.
+    public static let lifecycle = Fixture("ios/representable/lifecycle", size: CGSize(width: 320, height: 200),
+                                          model: { RepresentableLifecycleModel() },
+                                          steps: [FixtureStep("read") { $0.shown = $0.log.entries },
+                                                  FixtureStep("swap") { $0.identity = 1 },
+                                                  FixtureStep("readSwap") { $0.shown = $0.log.entries },
+                                                  FixtureStep("remove") { $0.shows = false },
+                                                  FixtureStep("readRemove") { $0.shown = $0.log.entries }]) { model in
+        VStack(alignment: .leading, spacing: 2) {
+            if model.shows {
+                LoggingBox(log: model.log).id(model.identity).frame(width: 100, height: 20).probe("box")
+            }
+            ForEach(Array(model.shown.enumerated()), id: \.offset) { index, entry in
+                CallEntryBar(entry: entry).probe("e\(index)")
+            }
+        }
+        .probe("stack")
+    }.platform(.iOS)
 
     /// The rule for views away from the safe edge: a colour padded 10 from the top that ignores
     /// the safe area, one 10 below the top in a stack, and a scroll view in a row.

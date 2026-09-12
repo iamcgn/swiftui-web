@@ -392,6 +392,83 @@ import Foundation
         #expect(following.seenTraits.userInterfaceStyle == .dark)
     }
 
+    /// The calls a representable receives, recorded outside observation.
+    final class CallLog { var entries: [String] = [] }
+
+    @Observable final class LifecycleModel {
+        var identity = 0
+        var shows = true
+        var tick = 0
+        @ObservationIgnored let log = CallLog()
+    }
+
+    struct Logging: UIViewRepresentable {
+        let log: CallLog
+        final class Coordinator {
+            let log: CallLog
+            let number: Int
+            init(log: CallLog, number: Int) { self.log = log; self.number = number; log.entries.append("coordinator\(number)") }
+        }
+        func makeCoordinator() -> Coordinator { Coordinator(log: log, number: log.entries.filter { $0.hasPrefix("coordinator") }.count + 1) }
+        func makeUIView(context: Context) -> UIView { log.entries.append("make\(context.coordinator.number)"); return UIView() }
+        func updateUIView(_ uiView: UIView, context: Context) { log.entries.append("update\(context.coordinator.number)") }
+        static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) { coordinator.log.entries.append("dismantle\(coordinator.number)") }
+    }
+
+    struct LifecycleScreen: View {
+        let model: LifecycleModel
+        var body: some View {
+            VStack {
+                if model.shows { Logging(log: model.log).id(model.identity).frame(width: 100, height: 20) }
+                Color.clear.frame(width: CGFloat(model.tick) + 1, height: 1)
+            }
+        }
+    }
+
+    /// ios/representable/lifecycle: the coordinator, the view and one update at first; every
+    /// evaluation of the parent's body updates the view again; a new identity makes a new
+    /// coordinator and view and updates them before the old view is dismantled; a removal
+    /// dismantles.
+    @Test func lifecycleOrderMatchesTheSimulator() {
+        let model = LifecycleModel()
+        let r = iOSRuntime()
+        r.mount(LifecycleScreen(model: model))
+        r.layout(in: Self.size)
+        #expect(model.log.entries == ["coordinator1", "make1", "update1"])
+        model.tick = 1
+        r.layout(in: Self.size)
+        #expect(model.log.entries == ["coordinator1", "make1", "update1", "update1"])
+        model.identity = 1
+        r.layout(in: Self.size)
+        #expect(model.log.entries == ["coordinator1", "make1", "update1", "update1", "coordinator2", "make2", "update2", "dismantle1"])
+        model.shows = false
+        r.layout(in: Self.size)
+        #expect(model.log.entries.suffix(1) == ["dismantle2"])
+    }
+
+    /// The coordinator is made once per node, outlives every update and dies with the node.
+    @Test func coordinatorLivesWithTheNode() {
+        let model = LifecycleModel()
+        let r = iOSRuntime()
+        r.mount(LifecycleScreen(model: model))
+        r.layout(in: Self.size)
+        model.tick = 1
+        r.layout(in: Self.size)
+        model.tick = 2
+        r.layout(in: Self.size)
+        #expect(model.log.entries.filter { $0.hasPrefix("coordinator") } == ["coordinator1"])
+        #expect(model.log.entries.filter { $0.hasPrefix("update") }.count == 3)
+        weak var coordinator: Logging.Coordinator?
+        do {
+            let holder = Logging(log: model.log).makeCoordinator()
+            coordinator = holder
+        }
+        #expect(coordinator == nil)   // nothing else retains a coordinator made outside a node
+        model.shows = false
+        r.layout(in: Self.size)
+        #expect(model.log.entries.last == "dismantle1")
+    }
+
     @Test func controllersGetAppearanceCallbacksAndDismantlingRuns() {
         let model = Model()
         let r = runtime(model)

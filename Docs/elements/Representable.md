@@ -135,6 +135,25 @@ it the window's `safeAreaInsets`, so `safeAreaInsets`, `safeAreaLayoutGuide` and
 `safeAreaInsets` and sets `Runtime.safeAreaInsets`, which lays the root view out inside them
 (an extending root, a scroll view, keeps the frame and insets its content).
 
+## Lifecycle (2026-09-12, `ios/representable/lifecycle`)
+
+The fixture draws the calls a representable received as bars (one per entry, the kind as a
+colour and width, the coordinator's number added), copied into the view by a step after each
+change, so the goldens pin the order:
+
+- At first sight: `makeCoordinator`, `makeUIView`, `updateUIView`, in that order.
+- Every evaluation of the parent's body updates the view again, whether or not the
+  representable's value changed (a step that changed an unrelated property of the model logged
+  another `update1`): `_PlatformViewHostNode.update` runs `updateUIView` on every update from
+  its parent, and only skips when nothing above it re-evaluated.
+- A new identity (`.id()`): the new coordinator, view and update come first, then the old
+  view's `dismantleUIView`, with the old coordinator (`IDNode` makes the new content before it
+  unmounts the old).
+- Leaving the tree: `dismantleUIView` alone.
+
+`RepresentableTests` hold the same order headless, and that the coordinator is made once per
+node, outlives every update and is released with the node.
+
 ## Traits (2026-09-12, `ios/representable/traits`, `ios/dark/representable-controls`)
 
 The environment is the hosted tree's trait collection: `colorScheme` is `userInterfaceStyle`

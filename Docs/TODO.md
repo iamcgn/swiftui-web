@@ -5,11 +5,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Site | 8 | 8 | 0 | 0 |
-| Interop | 11 | 9 | 1 | 1 |
+| Interop | 10 | 8 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
 | UIKit | 37 | 2 | 24 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **119** | 20 | 56 | 43 |
+| **All** | **118** | 19 | 56 | 43 |
 
 ## Next (Phase 8, in order)
 
@@ -42,8 +42,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   `context.transaction` carries the SwiftUI animation into `updateUIView`; a `withAnimation` that resizes a representable tweens the UIKit frame; `UIView.animate` inside `updateUIView` runs on the outer clock. Tests on the headless clock. ([Representable.md](Docs/elements/Representable.md))
 - ☐ **Representables in lists, forms, scroll views and sheets** `ix-containers` · Representables · verify  
   Fixtures on the simulator for a representable as a List row, in a grouped Form, inside a ScrollView (both scrolling) and in a sheet; the row heights and the hosted view's frame compared exactly. ([Representable.md](Docs/elements/Representable.md))
-- ☐ **Dismantle and coordinator lifecycle tests** `ix-lifecycle` · Representables · verify  
-  `RepresentableTests`: make, update, dismantle order on removal and identity change; the coordinator outlives updates and dies with the node; `makeCoordinator` once per node. ([SwiftUIWebUIKit](Sources/SwiftUIWebUIKit))
 - ☐ **UIHostingConfiguration: margins, self-sizing, configuration state** `ix-hosting-config` · UIHostingConfiguration · approximate  
   The vertical margins above one-line content (hidden by the 56 pt floor today), hosted content in self-sizing collection cells, and `updated(for:)` with the cell's configuration state (selected, highlighted). ([Representable.md](Docs/elements/Representable.md))
 - ☐ **UIHostingController in containers** `ix-hosting-controller` · UIHostingController · missing  
@@ -295,6 +293,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables
 - ☑ 2026-09-12 **Environment to trait collection** `ix-traits` · Interop · Representables
+- ☑ 2026-09-12 **Dismantle and coordinator lifecycle tests** `ix-lifecycle` · Interop · Representables
 
 ## Non-goals
 
