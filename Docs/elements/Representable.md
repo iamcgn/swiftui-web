@@ -113,3 +113,12 @@ least the 56 pt default row (a row with `minSize(height: 80)` is 80); the conten
 The table's automatic row heights ask the content view for its fit. Open: the vertical margins
 above one-line content (the 56 pt floor hides them), `UIHostingConfiguration` in collection
 cells' self-sizing, the cell's configuration state.
+
+## Hosting inside a hosted tree (2026-09-11)
+
+A representable's controller may host SwiftUI again with a `UIHostingController`: the inner
+runtime lays out in the hosting view's bounds, its display list is concatenated at the view's
+origin inside the outer list, and presses travel from the outer runtime through the
+representable and the hosting view to the inner gestures (`NestedHostingTests`: a red and a blue
+rectangle painted at the node, a tap on the blue one counted). No fixture: the geometry is the
+outer node's and the colours the inner tree's.

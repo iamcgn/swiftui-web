@@ -384,6 +384,7 @@ done 2026-09-11).
 | 4.43 Stack views under constraints | done 2026-09-11: constraint-placed stacks lay their arranged subviews out themselves (the solver sizes, never places them), constrained children are as big as their constraints, and horizontal stacks align first and last baselines; `uikit/autolayout/stacks` exact (`Docs/elements/UIKit/UIStackView.md`). |
 | 4.44 List content in table cells | done 2026-09-11: a table cell's `defaultContentConfiguration()` on the table's measured metrics (57 / 76.5 pt rows, value text 8 before the edge, symbol images in a 28 × 27 slot with the text at 56 and the separator following); `uikit/table/configured` exact (`Docs/elements/UIKit/TableView.md`). |
 | 4.45 Dark appearance, round two | done 2026-09-11: seven more dark twins (text view, toolbar, search bar, tab bar, compact date picker, buttons, basic controls) within tolerance without colour changes; the compact picker fixture moved to 11:30 with pinned single-mode widths since iOS 26 sizes those from the clock (`Docs/elements/UIKit/Dark.md`, `DatePicker.md`). |
+| 4.46 Hosting inside hosted trees | verified 2026-09-11: a representable's controller hosting a `UIHostingController` paints its inner tree at the node and takes presses through the outer runtime (`NestedHostingTests`; `Docs/elements/Representable.md`). |
 
 ## Risk register
 
