@@ -5,7 +5,7 @@ import UIKit
 import UIKitFixtureKit
 
 public enum LabelFixtures {
-    public static let all = [basic, wrapping]
+    public static let all = [basic, wrapping, tabular]
 
     /// Labels sized to fit: the default 17 pt system font, text styles, weights.
     public static let basic = UIKitFixture("uikit/label/basic", size: CGSize(width: 320, height: 300)) {
@@ -53,6 +53,31 @@ public enum LabelFixtures {
         let truncated = UILabel(frame: CGRect(x: 16, y: 160, width: 120, height: 21))
         truncated.text = "The quick brown fox jumps over the lazy dog"
         root.addSubview(truncated.probe("truncated"))
+        return root
+    }
+
+    /// Tabular figures: the same digit strings in the proportional system font and in
+    /// `monospacedDigitSystemFont`, where every digit takes the same advance.
+    public static let tabular = UIKitFixture("uikit/label/tabular", size: CGSize(width: 320, height: 220)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 220))
+        @MainActor @discardableResult func label(_ text: String, _ font: UIFont, x: CGFloat, y: CGFloat, id: String) -> UILabel {
+            let label = UILabel()
+            label.text = text
+            label.font = font
+            label.sizeToFit()
+            label.frame.origin = CGPoint(x: x, y: y)
+            root.addSubview(label.probe(id))
+            return label
+        }
+        label("1111", .systemFont(ofSize: 17), x: 16, y: 16, id: "ones")
+        label("1111", .monospacedDigitSystemFont(ofSize: 17, weight: .regular), x: 160, y: 16, id: "tabularOnes")
+        label("0000", .systemFont(ofSize: 17), x: 16, y: 48, id: "zeros")
+        label("0000", .monospacedDigitSystemFont(ofSize: 17, weight: .regular), x: 160, y: 48, id: "tabularZeros")
+        label("12:34:56", .systemFont(ofSize: 17), x: 16, y: 80, id: "time")
+        label("12:34:56", .monospacedDigitSystemFont(ofSize: 17, weight: .regular), x: 160, y: 80, id: "tabularTime")
+        label("Total 1,234.56", .systemFont(ofSize: 15, weight: .semibold), x: 16, y: 112, id: "total")
+        label("Total 1,234.56", .monospacedDigitSystemFont(ofSize: 15, weight: .semibold), x: 160, y: 112, id: "tabularTotal")
+        label("Score 71 / 99", .monospacedDigitSystemFont(ofSize: 22, weight: .bold), x: 16, y: 150, id: "tabularScore")
         return root
     }
 }

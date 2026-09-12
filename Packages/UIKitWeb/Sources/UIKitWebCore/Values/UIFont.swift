@@ -118,8 +118,9 @@ public final class UIFont: Hashable, @unchecked Sendable {
         UIFont(resolved: ResolvedFont(family: "system-monospaced", size: size, weight: FontWeight(weight.css), italic: false, textStyle: nil, profile: "iOS"), weight: weight)
     }
 
+    /// The system font with tabular figures (every digit on one advance; uikit/label/tabular).
     public static func monospacedDigitSystemFont(ofSize size: CGFloat, weight: Weight) -> UIFont {
-        systemFont(ofSize: size, weight: weight)
+        UIFont(resolved: ResolvedFont(family: "system", size: size, weight: FontWeight(weight.css), italic: false, textStyle: nil, profile: "iOS", tabularDigits: true), weight: weight)
     }
 
     public static func preferredFont(forTextStyle style: TextStyle) -> UIFont {

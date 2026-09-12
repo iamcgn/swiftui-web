@@ -36,6 +36,8 @@ public struct DisplayFont: Hashable, Sendable {
     public var italic: Bool
     /// Extra advance after every character, in points (`kerning`/`tracking`).
     public var letterSpacing: CGFloat = 0
+    /// Tabular figures: digits on one fixed advance.
+    public var tabularDigits = false
 
     public init(_ font: ResolvedFont, letterSpacing: CGFloat = 0) {
         family = font.family
@@ -43,6 +45,7 @@ public struct DisplayFont: Hashable, Sendable {
         weight = font.weight.value
         italic = font.italic
         self.letterSpacing = letterSpacing
+        tabularDigits = font.tabularDigits
     }
 }
 

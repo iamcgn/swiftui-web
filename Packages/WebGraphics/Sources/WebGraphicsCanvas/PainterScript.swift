@@ -12,23 +12,42 @@ enum PainterScript {
         if (!s) { s = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; colorCache.set(k, s); }
         return s;
       }
-      // A font string may carry letter spacing (points) after a '|'. Returns the spacing the
-      // context could not apply itself (no letterSpacing: WebKit, Firefox), for fillSpacedText.
+      // A font string may carry letter spacing (points) after a '|', and '|t<ratio>' after that
+      // for tabular figures: the digit slot as a multiple of the "0" advance (Canvas2D has no
+      // font-variant-numeric). Returns the spacing the context could not apply itself (no
+      // letterSpacing: WebKit, Firefox), for fillSpacedText; sets tabularSlot for the font.
+      let tabularSlot = 0;
+      const slotCache = new Map();
+      function isDigit(ch) { return ch >= '0' && ch <= '9'; }
       function setFont(ctx, font) {
-        const bar = font.indexOf('|');
-        if (bar < 0) { ctx.font = font; if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'; return 0; }
-        ctx.font = font.slice(0, bar);
-        const spacing = Number(font.slice(bar + 1));
+        const parts = font.split('|');
+        ctx.font = parts[0];
+        if (parts.length > 2 && parts[2][0] === 't') {
+          let slot = slotCache.get(font);
+          if (slot === undefined) { slot = ctx.measureText('0').width * Number(parts[2].slice(1)); slotCache.set(font, slot); }
+          tabularSlot = slot;
+        } else {
+          tabularSlot = 0;
+        }
+        const spacing = parts.length > 1 ? Number(parts[1]) : 0;
         if ('letterSpacing' in ctx) { ctx.letterSpacing = spacing + 'px'; return 0; }
         return spacing;
       }
-      // Draws text with `spacing` after every character when the context cannot space itself.
+      // Draws text with `spacing` after every character when the context cannot space itself,
+      // and digits centred in fixed slots when the font is tabular.
       function fillSpacedText(ctx, text, x, y, spacing) {
-        if (!spacing) { ctx.fillText(text, x, y); return; }
+        if (!spacing && !tabularSlot) { ctx.fillText(text, x, y); return; }
         let cursor = x;
+        const slot = tabularSlot;
         for (const ch of Array.from(text)) {
-          ctx.fillText(ch, cursor, y);
-          cursor += ctx.measureText(ch).width + spacing;
+          const w = ctx.measureText(ch).width;
+          if (slot && isDigit(ch)) {
+            ctx.fillText(ch, cursor + (slot - w) / 2, y);
+            cursor += slot + spacing;
+          } else {
+            ctx.fillText(ch, cursor, y);
+            cursor += w + spacing;
+          }
         }
       }
       const lineCaps = ['butt', 'round', 'square'];
@@ -500,7 +519,21 @@ enum PainterScript {
       function measure(ctx, font, text) {
         const k = font + ' ' + text;
         let w = measureCache.get(k);
-        if (w === undefined) { setFont(ctx, font); w = ctx.measureText(text).width; measureCache.set(k, w); }
+        if (w === undefined) {
+          setFont(ctx, font);
+          if (tabularSlot) {
+            // Digits on the slot, the runs between them measured as they are.
+            w = 0; let run = '';
+            for (const ch of Array.from(text)) {
+              if (isDigit(ch)) { if (run) { w += ctx.measureText(run).width; run = ''; } w += tabularSlot; }
+              else run += ch;
+            }
+            if (run) w += ctx.measureText(run).width;
+          } else {
+            w = ctx.measureText(text).width;
+          }
+          measureCache.set(k, w);
+        }
         return w;
       }
       window.__swiftuiweb = {

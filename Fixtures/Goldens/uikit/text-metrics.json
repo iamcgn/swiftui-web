@@ -438,6 +438,42 @@
       "lastBaseline" : 14.2822265625,
       "width" : 161.5
     },
+    "system:15:600:default:tabular|;l1|0000" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 38.5
+    },
+    "system:15:600:default:tabular|;l1|1111" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 38.5
+    },
+    "system:15:600:default:tabular|;l1|Total 1,234.56" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 106
+    },
+    "system:15:600:default|;l1|0000" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 39
+    },
+    "system:15:600:default|;l1|Total " : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 39
+    },
+    "system:15:600:default|;l1|Total 1,234.56" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 102
+    },
     "system:15:600:default||Attributed" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -449,6 +485,30 @@
       "height" : 19.5,
       "lastBaseline" : 15.234375,
       "width" : 69.5
+    },
+    "system:17:400:default:tabular|;l1|0000" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 41.5
+    },
+    "system:17:400:default:tabular|;l1|12:34:56" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 71
+    },
+    "system:17:400:default:tabular|;l1|1111" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 41.5
+    },
+    "system:17:400:default|;l1|0000" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 41.5
     },
     "system:17:400:default|;l1|0:00 PM" : {
       "firstBaseline" : 16.1865234375,
@@ -462,11 +522,23 @@
       "lastBaseline" : 16.1865234375,
       "width" : 62
     },
+    "system:17:400:default|;l1|12:34:56" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 68
+    },
     "system:17:400:default|;l1|26.0" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 34
+    },
+    "system:17:400:default|;l1|1111" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 30
     },
     "system:17:400:default|;l1|A long label that needs room" : {
       "firstBaseline" : 16.1865234375,
@@ -918,6 +990,18 @@
       "lastBaseline" : 16.1865234375,
       "width" : 44.5
     },
+    "system:17:600:default:tabular|;l1|0000" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 43
+    },
+    "system:17:600:default|;l1|0000" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 43.5
+    },
     "system:17:600:default|;l1|Cancel" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1061,6 +1145,36 @@
       "height" : 24,
       "lastBaseline" : 19.04296875,
       "width" : 131
+    },
+    "system:22:700:default:tabular|;l1|0000" : {
+      "firstBaseline" : 20.947265625,
+      "height" : 26.5,
+      "lastBaseline" : 20.947265625,
+      "width" : 57
+    },
+    "system:22:700:default:tabular|;l1|1111" : {
+      "firstBaseline" : 20.947265625,
+      "height" : 26.5,
+      "lastBaseline" : 20.947265625,
+      "width" : 57
+    },
+    "system:22:700:default:tabular|;l1|Score 71 \/ 99" : {
+      "firstBaseline" : 20.947265625,
+      "height" : 26.5,
+      "lastBaseline" : 20.947265625,
+      "width" : 137.5
+    },
+    "system:22:700:default|;l1|0000" : {
+      "firstBaseline" : 20.947265625,
+      "height" : 26.5,
+      "lastBaseline" : 20.947265625,
+      "width" : 58
+    },
+    "system:22:700:default|;l1|Score " : {
+      "firstBaseline" : 20.947265625,
+      "height" : 26.5,
+      "lastBaseline" : 20.947265625,
+      "width" : 64.5
     },
     "system:24:400:default|190.0|Height 24" : {
       "firstBaseline" : 22.8515625,
@@ -1280,6 +1394,18 @@
       "textToText" : 0,
       "xHeight" : 8.00537109375
     },
+    "system:15:600:default:tabular" : {
+      "ascender" : 14.2822265625,
+      "capHeight" : 10.56884765625,
+      "descender" : -3.6181640625,
+      "leading" : 0,
+      "lineHeight" : 17.900390625,
+      "pointSize" : 15,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 8.00537109375
+    },
     "system:16:400:default" : {
       "ascender" : 15.234375,
       "capHeight" : 11.2734375,
@@ -1293,6 +1419,18 @@
       "xHeight" : 8.421875
     },
     "system:17:400:default" : {
+      "ascender" : 16.1865234375,
+      "capHeight" : 11.97802734375,
+      "descender" : -4.1005859375,
+      "leading" : 0,
+      "lineHeight" : 20.287109375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 8.9482421875
+    },
+    "system:17:400:default:tabular" : {
       "ascender" : 16.1865234375,
       "capHeight" : 11.97802734375,
       "descender" : -4.1005859375,
@@ -1328,6 +1466,18 @@
       "textToText" : 0,
       "xHeight" : 9.07275390625
     },
+    "system:17:600:default:tabular" : {
+      "ascender" : 16.1865234375,
+      "capHeight" : 11.97802734375,
+      "descender" : -4.1005859375,
+      "leading" : 0,
+      "lineHeight" : 20.287109375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 9.07275390625
+    },
     "system:20:400:default" : {
       "ascender" : 19.04296875,
       "capHeight" : 14.091796875,
@@ -1351,6 +1501,30 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 10.595703125
+    },
+    "system:22:700:default" : {
+      "ascender" : 20.947265625,
+      "capHeight" : 15.5009765625,
+      "descender" : -5.306640625,
+      "leading" : 0,
+      "lineHeight" : 26.25390625,
+      "pointSize" : 22,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 11.666015625
+    },
+    "system:22:700:default:tabular" : {
+      "ascender" : 20.947265625,
+      "capHeight" : 15.5009765625,
+      "descender" : -5.306640625,
+      "leading" : 0,
+      "lineHeight" : 26.25390625,
+      "pointSize" : 22,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 11.666015625
     },
     "system:24:400:default" : {
       "ascender" : 22.8515625,

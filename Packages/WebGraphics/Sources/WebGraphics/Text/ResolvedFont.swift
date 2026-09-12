@@ -13,9 +13,12 @@ public struct ResolvedFont: Hashable, Sendable {
     /// The platform profile the font was resolved for (`PlatformProfile.name`): its line
     /// metrics come from that platform's table, whichever engine measures the glyphs.
     public var profile: String
+    /// Tabular (monospaced) figures: every digit on the same advance (`Font.monospacedDigit()`,
+    /// `UIFont.monospacedDigitSystemFont`). The line metrics are the plain font's.
+    public var tabularDigits: Bool
 
     public init(family: String, size: CGFloat, weight: FontWeight, italic: Bool,
-                textStyle: FontTextStyle?, weightOverridden: Bool = false, profile: String = "macOS") {
+                textStyle: FontTextStyle?, weightOverridden: Bool = false, profile: String = "macOS", tabularDigits: Bool = false) {
         self.family = family
         self.size = size
         self.weight = weight
@@ -23,6 +26,7 @@ public struct ResolvedFont: Hashable, Sendable {
         self.textStyle = textStyle
         self.weightOverridden = weightOverridden
         self.profile = profile
+        self.tabularDigits = tabularDigits
     }
 
     public var designName: String {
@@ -37,9 +41,9 @@ public struct ResolvedFont: Hashable, Sendable {
 
     /// Key used by the recorded metrics table and the fixture harness. Must match
     /// `FixtureFont.key` in Fixtures/Sources/TextMetricsRequests.swift:
-    /// `style:<name>[:w<weight>][:<design>][:italic]` or `system:<size>:<weight>:<design>[:italic]`.
+    /// `style:<name>[:w<weight>][:<design>][:italic][:tabular]` or `system:<size>:<weight>:<design>[:italic][:tabular]`.
     public var key: String {
-        let italicSuffix = italic ? ":italic" : ""
+        let italicSuffix = (italic ? ":italic" : "") + (tabularDigits ? ":tabular" : "")
         if let textStyle {
             var key = "style:\(textStyle)"
             if weightOverridden { key += ":w\(weight.value)" }

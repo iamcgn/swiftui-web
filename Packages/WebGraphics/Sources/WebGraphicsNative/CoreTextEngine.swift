@@ -34,6 +34,13 @@ public final class CoreTextEngine: TextEngine {
         if font.italic, let italic = NSFont(descriptor: result.fontDescriptor.withSymbolicTraits(.italic), size: font.size) {
             result = italic
         }
+        if font.tabularDigits {
+            // Tabular figures through the font's number-spacing feature, as UIKit's
+            // monospacedDigitSystemFont does.
+            let feature: [NSFontDescriptor.FeatureKey: Int] = [.typeIdentifier: kNumberSpacingType, .selectorIdentifier: kMonospacedNumbersSelector]
+            let descriptor = result.fontDescriptor.addingAttributes([.featureSettings: [feature]])
+            if let tabular = NSFont(descriptor: descriptor, size: font.size) { result = tabular }
+        }
         fontCache[font] = result
         return result
     }
@@ -41,13 +48,13 @@ public final class CoreTextEngine: TextEngine {
     /// The font with the display font's values (painting).
     public func nsFont(_ font: DisplayFont) -> NSFont {
         let weights: [Int: FontWeight] = [100: .ultraLight, 200: .thin, 300: .light, 400: .regular, 500: .medium, 600: .semibold, 700: .bold, 800: .heavy, 900: .black]
-        return nsFont(ResolvedFont(family: font.family, size: font.size, weight: weights[font.weight] ?? .regular, italic: font.italic, textStyle: nil))
+        return nsFont(ResolvedFont(family: font.family, size: font.size, weight: weights[font.weight] ?? .regular, italic: font.italic, textStyle: nil, tabularDigits: font.tabularDigits))
     }
 
     /// The advance of `text` in a display font (the host's caret).
     public func advance(of text: String, font: DisplayFont) -> CGFloat {
         let weights: [Int: FontWeight] = [100: .ultraLight, 200: .thin, 300: .light, 400: .regular, 500: .medium, 600: .semibold, 700: .bold, 800: .heavy, 900: .black]
-        return width(of: text, font: ResolvedFont(family: font.family, size: font.size, weight: weights[font.weight] ?? .regular, italic: font.italic, textStyle: nil))
+        return width(of: text, font: ResolvedFont(family: font.family, size: font.size, weight: weights[font.weight] ?? .regular, italic: font.italic, textStyle: nil, tabularDigits: font.tabularDigits))
     }
 
     /// Unrounded advance of `text` in `font` (rounding to the half point happens per line).

@@ -145,7 +145,10 @@ public enum DisplayListEncoder {
         }
         let size = font.size == font.size.rounded() ? "\(Int(font.size))" : "\(font.size)"
         let css = "\(font.italic ? "italic " : "")\(font.weight) \(size)px \(family)"
-        // Letter spacing rides behind the CSS font, split off by the painter (`setFont`).
+        // Letter spacing rides behind the CSS font, split off by the painter (`setFont`); tabular
+        // figures add a third part (`|<spacing>|t<ratio>`): the digit slot as a multiple of the
+        // "0" advance the painter measures (`TabularFigures`).
+        if font.tabularDigits { return css + "|" + _displayFormat(font.letterSpacing) + "|t" + _displayFormat(TabularFigures.slotRatio(size: font.size, weight: font.weight)) }
         return font.letterSpacing == 0 ? css : css + "|" + _displayFormat(font.letterSpacing)
     }
 }

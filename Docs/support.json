@@ -466,9 +466,9 @@
           "notes": "sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL; Tier B (Chromium) within tolerance"
         },
         {
-          "api": "Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced)",
+          "api": "Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced/monospacedDigit)",
           "status": "partial",
-          "notes": "macOS text-style table; bold() is a per-style trait; italic keys; Tier B (Chromium) within tolerance",
+          "notes": "macOS text-style table; bold() is a per-style trait; italic keys; monospacedDigit() gives tabular figures (CoreText's number-spacing feature natively, fixed digit slots in Canvas2D; measured on UIKit's monospacedDigitSystemFont, Docs/elements/UIKit/UIFont.md); Tier B (Chromium) within tolerance",
           "fixtures": [
             "text/styles",
             "text/system-fonts",

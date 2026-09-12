@@ -1,0 +1,63 @@
+{
+  "fixture" : "uikit\/label\/tabular",
+  "frames" : {
+    "ones" : {
+      "height" : 20.5,
+      "width" : 30,
+      "x" : 16,
+      "y" : 16
+    },
+    "tabularOnes" : {
+      "height" : 20.5,
+      "width" : 41.5,
+      "x" : 160,
+      "y" : 16
+    },
+    "tabularScore" : {
+      "height" : 26.5,
+      "width" : 137.5,
+      "x" : 16,
+      "y" : 150
+    },
+    "tabularTime" : {
+      "height" : 20.5,
+      "width" : 71,
+      "x" : 160,
+      "y" : 80
+    },
+    "tabularTotal" : {
+      "height" : 18,
+      "width" : 106,
+      "x" : 160,
+      "y" : 112
+    },
+    "tabularZeros" : {
+      "height" : 20.5,
+      "width" : 41.5,
+      "x" : 160,
+      "y" : 48
+    },
+    "time" : {
+      "height" : 20.5,
+      "width" : 68,
+      "x" : 16,
+      "y" : 80
+    },
+    "total" : {
+      "height" : 18,
+      "width" : 102,
+      "x" : 16,
+      "y" : 112
+    },
+    "zeros" : {
+      "height" : 20.5,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 48
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 320
+  }
+}

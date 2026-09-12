@@ -10,6 +10,8 @@ public enum UIKitFixtureFont: Hashable, Sendable {
     case style(String)
     /// A point size and a weight name ("regular", "semibold", "bold", …).
     case system(size: CGFloat, weight: String = "regular")
+    /// `monospacedDigitSystemFont(ofSize:weight:)`: the system font with tabular figures.
+    case monospacedDigit(size: CGFloat, weight: String = "regular")
 
     public static let weights: [String: (UIFont.Weight, Int)] = [
         "ultraLight": (.ultraLight, 100), "thin": (.thin, 200), "light": (.light, 300), "regular": (.regular, 400),
@@ -28,6 +30,9 @@ public enum UIKitFixtureFont: Hashable, Sendable {
         case .system(let size, let weight):
             let sizeText = size == size.rounded() ? "\(Int(size))" : "\(size)"
             return "system:\(sizeText):\(Self.weights[weight]!.1):default"
+        case .monospacedDigit(let size, let weight):
+            let sizeText = size == size.rounded() ? "\(Int(size))" : "\(size)"
+            return "system:\(sizeText):\(Self.weights[weight]!.1):default:tabular"
         }
     }
 
@@ -35,6 +40,7 @@ public enum UIKitFixtureFont: Hashable, Sendable {
         switch self {
         case .style(let name): return UIFont.preferredFont(forTextStyle: Self.styles[name]!)
         case .system(let size, let weight): return UIFont.systemFont(ofSize: size, weight: Self.weights[weight]!.0)
+        case .monospacedDigit(let size, let weight): return UIFont.monospacedDigitSystemFont(ofSize: size, weight: Self.weights[weight]!.0)
         }
     }
 }

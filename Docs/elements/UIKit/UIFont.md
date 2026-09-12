@@ -9,7 +9,7 @@ styles, each with the height a one- and a two-line `UILabel` takes).
 ## API
 
 `systemFont(ofSize:weight:)`, `italicSystemFont`, `monospacedSystemFont`,
-`monospacedDigitSystemFont` (the plain system font: digits are not measured), `preferredFont(forTextStyle:)`
+`monospacedDigitSystemFont` (tabular figures, below), `preferredFont(forTextStyle:)`
 at the large content size, `boldSystemFont` (SF Semibold, as iOS resolves it; `weight: .bold` is Bold), `init?(name:size:)`, `withSize(_:)` (a plain font at the new size, as
 UIKit returns: a text style's metrics belong to its own size), `pointSize`, `familyName`,
 `fontName`, `ascender`, `descender`, `capHeight`, `xHeight`, `leading`, `lineHeight`.
@@ -34,5 +34,19 @@ recording came from there), which is one reason the goldens moved to the simulat
 The text styles are, at the large content size: largeTitle 34, title 28, title2 22, title3 20,
 headline 17 semibold, body 17, callout 16, subheadline 15, footnote 13, caption 12, caption2 11.
 The `UIFontMetricsTests` suite holds every font the fixtures use to the recorded values.
+
+## Tabular figures (2026-09-11, `uikit/label/tabular`)
+
+`monospacedDigitSystemFont(ofSize:weight:)` resolves to the system font with `tabularDigits`
+set on the substrate's `ResolvedFont` (key suffix `:tabular`; `Font.monospacedDigit()` sets the
+same flag in SwiftUI). CoreText applies the font's number-spacing feature, so the native painter
+and the pixel tier draw real tabular digits; Canvas2D has no `font-variant-numeric`, so the
+browser puts every digit on a slot derived from the "0" advance it can measure, centred, and
+measures text the same way (`TabularFigures`: the slot is the proportional "0" advance times a
+per-weight ratio, 1 for the regular text face, 0.987 semibold, 0.980 bold, drifting with the
+optical size between 17 and 28 pt, measured with CoreText). Measured on the simulator: "1111"
+grows from 30 to 41.5 at 17 pt (the "0000" width); "0000" is 38.5 tabular against 39 at 15 pt
+semibold and 57 against 58 at 22 pt bold. Frames exact in every tier; pixels within the
+text-heavy tolerance.
 
 Open: custom fonts, italic and monospaced system fonts, the other content size categories.

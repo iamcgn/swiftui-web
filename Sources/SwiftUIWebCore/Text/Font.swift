@@ -140,7 +140,8 @@ extension Font {
         }
         if modifiers.monospaced { family = "system-monospaced" }
         return ResolvedFont(family: family, size: size, weight: weight, italic: modifiers.italic,
-                            textStyle: textStyle, weightOverridden: weightOverridden, profile: profile.name)
+                            textStyle: textStyle, weightOverridden: weightOverridden, profile: profile.name,
+                            tabularDigits: modifiers.monospacedDigit)
     }
 }
 

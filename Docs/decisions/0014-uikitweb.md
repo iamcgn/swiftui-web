@@ -348,3 +348,9 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   The dump showed the scope bar is a segmented control unlike a standalone one: segments of
   equal width across the bar and 15 pt regular titles even when selected, so the control gained
   a title size and an emphasis switch the search bar sets.
+- Step 29 (2026-09-11): tabular figures (`Docs/ROADMAP.md`, Phase 7 status 4.34). The flag
+  lives on the substrate's `ResolvedFont` so both frameworks and every engine see it. Chromium's
+  `font-variant-numeric` does nothing for the system font, so a DOM measurement was no use; the
+  slot comes from the "0" advance and a per-weight ratio measured with CoreText (regular text
+  face: exactly the "0"), sent in the font string, digits centred in their slots. The recorded
+  metrics key gains `:tabular`, spelled by `UIKitFixtureFont.monospacedDigit`.

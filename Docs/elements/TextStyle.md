@@ -18,7 +18,8 @@ Apple docs: [underline(_:pattern:color:)](https://developer.apple.com/documentat
 | `Text.Case` (`uppercase`, `lowercase`), `View.textCase(_:)`, `EnvironmentValues.textCase` | implemented (applied before layout and measurement) |
 | `Text.baselineOffset(_:)`, `View.baselineOffset(_:)` | implemented (layout and painting) |
 | `Text.kerning(_:)`, `Text.tracking(_:)`, `View.kerning(_:)`, `View.tracking(_:)` | implemented (the text's own value wins over the environment's; tracking wins over kerning) |
-| `textSelection`, `textScale`, `monospacedDigit`, `speechAdjustedPitch`… | missing |
+| `Font.monospacedDigit()` | implemented (tabular figures through the substrate; CoreText's number-spacing feature natively, fixed digit slots in Canvas2D; see `Docs/elements/UIKit/UIFont.md`) |
+| `textSelection`, `textScale`, `speechAdjustedPitch`… | missing |
 
 ## Behaviour
 
