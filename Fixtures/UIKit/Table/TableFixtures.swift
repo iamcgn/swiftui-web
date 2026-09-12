@@ -129,6 +129,27 @@ final class IndexedSource: NSObject, UITableViewDataSource {
     func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int { index }
 }
 
+
+/// Rows configured through `defaultContentConfiguration()`: text alone, text with a symbol
+/// image, a subtitle cell and a value cell with secondary text.
+final class ConfiguredSource: NSObject, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 4 }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let style: UITableViewCell.CellStyle = indexPath.row == 2 ? .subtitle : (indexPath.row == 3 ? .value1 : .default)
+        let cell = UITableViewCell(style: style, reuseIdentifier: nil)
+        var content = cell.defaultContentConfiguration()
+        switch indexPath.row {
+        case 0: content.text = "Plain text"
+        case 1: content.text = "With a star"; content.image = UIImage(systemName: "star.fill")
+        case 2: content.text = "Subtitle"; content.secondaryText = "Secondary line"
+        default: content.text = "Value"; content.secondaryText = "42"
+        }
+        cell.contentConfiguration = content
+        cell.accessoryType = indexPath.row == 3 ? .disclosureIndicator : .none
+        return cell.probe("row\(indexPath.row)")
+    }
+}
+
 @MainActor public final class TableModel {
     var table: UITableView?
     var source: TableSource?
@@ -136,7 +157,7 @@ final class IndexedSource: NSObject, UITableViewDataSource {
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing, indexed]
+    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing, indexed, configured]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -268,5 +289,18 @@ public enum TableFixtures {
     }
 
     @MainActor static var indexedSources: [IndexedSource] = []
+
+    /// Table cells driven by list content configurations in a plain table.
+    public static let configured = UIKitFixture("uikit/table/configured", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let source = ConfiguredSource()
+        configuredSources.append(source)
+        let table = UITableView(frame: root.bounds, style: .plain)
+        table.dataSource = source
+        root.addSubview(table.probe("table"))
+        return root
+    }
+
+    @MainActor static var configuredSources: [ConfiguredSource] = []
 }
 #endif

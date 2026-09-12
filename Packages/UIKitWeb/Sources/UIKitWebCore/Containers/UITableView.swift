@@ -1149,11 +1149,14 @@ open class UITableViewCell: UIView {
     var configuredContent: ConfiguredContent?
 
     open func defaultContentConfiguration() -> UIListContentConfiguration {
+        var configuration: UIListContentConfiguration
         switch style {
-        case .subtitle: return .subtitleCell()
-        case .value1, .value2: return .valueCell()
-        default: return .cell()
+        case .subtitle: configuration = .subtitleCell()
+        case .value1, .value2: configuration = .valueCell()
+        default: configuration = .cell()
         }
+        configuration.tableMetrics = true
+        return configuration
     }
 
     private func installConfiguredContent() {
@@ -1297,7 +1300,8 @@ open class UITableViewCell: UIView {
         // right (the plain style keeps 16 on the right too); a grouped section's last row has none.
         if !(tableStyle != .plain && isLastInSection) {
             let separatorColor = UIColor.separator.rgba(for: userStyle)
-            let left = separatorInset.left
+            // The separator starts where the content's text does (56 after a list content symbol).
+            let left = max(separatorInset.left, (configuredContent?.view as? UIListContentView)?.textLeading ?? 0)
             let right: CGFloat = tableStyle == .plain ? 16 : (accessorySize.width > 0 ? 16 : 0)
             let line = context.absoluteRect(CGRect(x: left, y: bounds.height - 1, width: bounds.width - left - right, height: 1))
             list.append(.fillRect(line, separatorColor))

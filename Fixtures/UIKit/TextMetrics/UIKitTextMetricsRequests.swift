@@ -186,6 +186,11 @@ public enum UIKitTextMetricsRequests {
         // uikit/autolayout/stacks (labels in stack views)
         UIKitTextRequest("Title", .system(size: 22)), UIKitTextRequest("Body text", .system(size: 17)), UIKitTextRequest("Third line", .system(size: 15)),
         UIKitTextRequest("Big", .system(size: 28)), UIKitTextRequest("small", .system(size: 13)), UIKitTextRequest("mid", .system(size: 17)), UIKitTextRequest("Beside", .system(size: 17)),
+        // uikit/table/configured (list content in table cells: body text, subheadline / body secondary, unbounded)
+        UIKitTextRequest("Plain text", .style("body"), lines: 0), UIKitTextRequest("With a star", .style("body"), lines: 0),
+        UIKitTextRequest("Subtitle", .style("body"), lines: 0), UIKitTextRequest("Secondary line", .style("subheadline"), lines: 0),
+        UIKitTextRequest("Value", .style("body"), lines: 0), UIKitTextRequest("42", .style("body"), lines: 0),
+        UIKitTextRequest("Secondary line", .style("footnote"), lines: 0), UIKitTextRequest("42", .style("subheadline"), lines: 0),
         // uikit/table/selfsizing (body-style wrapping labels in default cells, 15 pt in the note cell)
         UIKitTextRequest("Short", .style("body"), lines: 0),
         UIKitTextRequest("Short again", .style("body"), lines: 0),

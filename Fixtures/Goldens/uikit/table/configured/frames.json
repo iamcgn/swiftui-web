@@ -1,0 +1,39 @@
+{
+  "fixture" : "uikit\/table\/configured",
+  "frames" : {
+    "row0" : {
+      "height" : 57,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 57,
+      "width" : 320,
+      "x" : 0,
+      "y" : 57
+    },
+    "row2" : {
+      "height" : 76.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 114
+    },
+    "row3" : {
+      "height" : 57,
+      "width" : 320,
+      "x" : 0,
+      "y" : 190.5
+    },
+    "table" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

@@ -198,6 +198,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 31.5
     },
+    "style:body||42" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 20.5
+    },
     "style:body||Apple" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -294,6 +300,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 36.5
     },
+    "style:body||Plain text" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 70
+    },
     "style:body||Receipts" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -324,6 +336,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 57.5
     },
+    "style:body||Subtitle" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 58.5
+    },
     "style:body||Tinted" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -336,6 +354,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 42.5
     },
+    "style:body||Value" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 42
+    },
     "style:body||Vegetables" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -347,6 +371,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 40.5
+    },
+    "style:body||With a star" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 82
     },
     "style:body||Work" : {
       "firstBaseline" : 18.357620599453821,
@@ -426,6 +456,12 @@
       "lastBaseline" : 13.993718187553094,
       "width" : 60.5
     },
+    "style:footnote||Secondary line" : {
+      "firstBaseline" : 13.993718187553094,
+      "height" : 19,
+      "lastBaseline" : 13.993718187553094,
+      "width" : 90
+    },
     "style:footnote|256.0|A footer note about the section." : {
       "firstBaseline" : 13.993718187553094,
       "height" : 19,
@@ -486,6 +522,12 @@
       "lastBaseline" : 15.797740091254949,
       "width" : 77
     },
+    "style:subheadline||42" : {
+      "firstBaseline" : 15.797740091254949,
+      "height" : 21,
+      "lastBaseline" : 15.797740091254949,
+      "width" : 18.5
+    },
     "style:subheadline||Folders" : {
       "firstBaseline" : 15.797740091254949,
       "height" : 21,
@@ -503,6 +545,12 @@
       "height" : 21,
       "lastBaseline" : 15.797740091254949,
       "width" : 20
+    },
+    "style:subheadline||Secondary line" : {
+      "firstBaseline" : 15.797740091254949,
+      "height" : 21,
+      "lastBaseline" : 15.797740091254949,
+      "width" : 101.5
     },
     "style:subheadline||Silent" : {
       "firstBaseline" : 15.797740091254949,

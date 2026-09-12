@@ -382,6 +382,7 @@ done 2026-09-11).
 | 4.41 List header padding and plain footers | done 2026-09-11: `headerTopPadding` above supplementary grouped headers (default 0), plain footers, and a plain last row's separator only without a footer; `uikit/collection/listpadding` and `plainfooters` exact (`Docs/elements/UIKit/CollectionView.md`). |
 | 4.42 Section index | done 2026-09-11: the table's index strip (15 wide, 11 pt semibold titles 14 apart, centred), rows narrowed beside it, touch and drag jump to sections; cells made only for visible rows; `uikit/table/indexed` exact (`Docs/elements/UIKit/TableView.md`). |
 | 4.43 Stack views under constraints | done 2026-09-11: constraint-placed stacks lay their arranged subviews out themselves (the solver sizes, never places them), constrained children are as big as their constraints, and horizontal stacks align first and last baselines; `uikit/autolayout/stacks` exact (`Docs/elements/UIKit/UIStackView.md`). |
+| 4.44 List content in table cells | done 2026-09-11: a table cell's `defaultContentConfiguration()` on the table's measured metrics (57 / 76.5 pt rows, value text 8 before the edge, symbol images in a 28 × 27 slot with the text at 56 and the separator following); `uikit/table/configured` exact (`Docs/elements/UIKit/TableView.md`). |
 
 ## Risk register
 

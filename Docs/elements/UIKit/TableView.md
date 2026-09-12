@@ -144,10 +144,18 @@ Open: `UIListContentConfiguration` / `contentConfiguration`, section index title
 content view and sizes automatic rows; `backgroundConfiguration` applies its colour.
 `UIListContentConfiguration` (`cell()`, `subtitleCell()`, `valueCell()`, the header and footer
 variants; `text`, `secondaryText`, `image`, `textProperties`, `secondaryTextProperties`,
-`directionalLayoutMargins`, `imageToTextPadding`) draws a `UIListContentView` laid out like the
-cell styles (approximate: no golden yet; the margins are UIKit's documented 11 / 20).
-`UIHostingConfiguration` (SwiftUIWebUIKit) hosts SwiftUI the same way
-(`Docs/elements/Representable.md`).
+`directionalLayoutMargins`, `imageToTextPadding`) draws a `UIListContentView`; a configuration
+made by a table cell's `defaultContentConfiguration()` carries the table's metrics, measured on
+`uikit/table/configured` (2026-09-11): the body text 16.5 down in a 57 pt row; a subtitle
+cell's text 15.5 down with the subheadline secondary text right under it in a 76.5 pt row; a
+value cell's secondary text (body, secondary colour) ending 8 before the content's edge, both
+labels 16.5 down; a symbol image in a 28 × 27 slot 14 in with the text starting 56 in and the
+separator following it. Frames exact, pixels 1.2 %. A configuration made through the static
+constructors keeps UIKit's documented margins (11 / 20) and centres its text; the collection
+list cell's metrics are in `Docs/elements/UIKit/CollectionView.md`. `UIHostingConfiguration`
+(SwiftUIWebUIKit) hosts SwiftUI the same way (`Docs/elements/Representable.md`). Open: catalog
+images in list content (sized as the image), `imageProperties` (tint, corner radius, symbol
+configuration), grouped tables' content cells (the same metrics assumed).
 
 ## Pinned headers (2026-09-11, `uikit/table/pinned`)
 

@@ -97,6 +97,21 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
         }
     }
 
+    /// A table cell's metrics (uikit/table/configured): the body text 16.5 down in a 57 pt row
+    /// (a subtitle cell's 15.5 with the subheadline secondary text right under it in 76.5), a
+    /// value cell's secondary text ending 8 before the content, a symbol image 28 × 27 at 14
+    /// with the text starting 56 in.
+    var tableMetrics = false {
+        didSet {
+            guard tableMetrics else { return }
+            textProperties.font = .preferredFont(forTextStyle: .body)
+            secondaryTextProperties.font = .preferredFont(forTextStyle: layout == .subtitle ? .subheadline : .body)
+            secondaryTextProperties.color = .secondaryLabel
+            directionalLayoutMargins = UIEdgeInsets(top: 16.5, left: 16, bottom: 16, right: 16)
+            textToSecondaryTextVerticalPadding = 0
+        }
+    }
+
     init(layout: Layout) {
         self.layout = layout
         if layout == .value { secondaryTextProperties = TextProperties(font: .systemFont(ofSize: 17), color: .secondaryLabel) }
@@ -168,10 +183,17 @@ public final class UIListContentView: UIView, UIContentView {
     /// The content's height for a width: the margins around the text block (one line, or the
     /// text over the secondary text for the subtitle layout), at least 44; on the list's metrics
     /// a one-line row is 56 and a two-line one 79.5 (uikit/collection/list).
+    /// Where the text starts (the separator of a table cell follows it: 56 after a symbol).
+    private(set) var textLeading: CGFloat = 16
+
     public override func sizeThatFits(_ size: CGSize) -> CGSize {
         if list.listMetrics {
             let hasSecondary = secondaryTextLabel.text?.isEmpty == false && list.layout == .subtitle
             return CGSize(width: size.width, height: hasSecondary ? 79.5 : 56)
+        }
+        if list.tableMetrics {
+            let hasSecondary = secondaryTextLabel.text?.isEmpty == false && list.layout == .subtitle
+            return CGSize(width: size.width, height: hasSecondary ? 76.5 : 57)
         }
         if list.listRole != .cell {
             // Headers and footers: the margins around the text's label height (24.5 for a
@@ -207,28 +229,39 @@ public final class UIListContentView: UIView, UIContentView {
         let margins = list.directionalLayoutMargins
         var x = margins.left
         if let image = imageView.image {
-            imageView.frame = CGRect(x: x, y: ((bounds.height - image.size.height) / 2).rounded(), width: image.size.width, height: image.size.height)
-            x += image.size.width + list.imageToTextPadding
+            if image.isSystemSymbol, list.tableMetrics || list.listMetrics {
+                // A symbol in list content: a 28 × 27 slot 14 in, the text 14 after it.
+                imageView.frame = CGRect(x: 14, y: ((bounds.height - 27) / 2).rounded(), width: 28, height: 27)
+                x = 56
+            } else {
+                imageView.frame = CGRect(x: x, y: ((bounds.height - image.size.height) / 2).rounded(), width: image.size.width, height: image.size.height)
+                x += image.size.width + list.imageToTextPadding
+            }
         } else {
             imageView.frame = .zero
         }
+        textLeading = x
         let width = max(0, bounds.width - x - margins.right)
         let textHeight = list.listRole == .cell ? (textLabel.text?.isEmpty == false ? textLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height : 0) : roleTextHeight(width: width)
         let secondaryHeight = secondaryTextLabel.text?.isEmpty == false ? secondaryTextLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height : 0
         switch list.layout {
         case .subtitle:
             let block = textHeight + (textHeight > 0 && secondaryHeight > 0 ? list.textToSecondaryTextVerticalPadding : 0) + secondaryHeight
-            // A one-line list row puts its label 16 down in 56; two lines start 15 down in 79.5.
-            let top = list.listMetrics ? (secondaryHeight > 0 ? 15 : 16) : ((bounds.height - block) / 2).rounded()
+            // A one-line list row puts its label 16 down in 56; two lines start 15 down in 79.5;
+            // a table cell's 16.5 in 57 and 15.5 in 76.5.
+            let top = list.listMetrics ? (secondaryHeight > 0 ? 15 : 16) : (list.tableMetrics ? (secondaryHeight > 0 ? 15.5 : 16.5) : ((bounds.height - block) / 2).rounded())
             textLabel.frame = CGRect(x: x, y: top, width: width, height: textHeight)
             secondaryTextLabel.frame = CGRect(x: x, y: top + textHeight + (textHeight > 0 ? list.textToSecondaryTextVerticalPadding : 0), width: width, height: secondaryHeight)
         case .value:
             let secondaryWidth = secondaryTextLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).width
-            textLabel.frame = CGRect(x: x, y: ((bounds.height - textHeight) / 2).rounded(), width: max(0, width - secondaryWidth - 8), height: textHeight)
-            secondaryTextLabel.frame = CGRect(x: x + width - secondaryWidth, y: ((bounds.height - secondaryHeight) / 2).rounded(), width: secondaryWidth, height: secondaryHeight)
+            // A table cell's value ends 8 before the content's edge, both labels 16.5 down.
+            let right = list.tableMetrics ? bounds.width - 8 : x + width
+            let textTop = list.tableMetrics ? 16.5 : ((bounds.height - textHeight) / 2).rounded()
+            textLabel.frame = CGRect(x: x, y: textTop, width: max(0, right - secondaryWidth - 8 - x), height: textHeight)
+            secondaryTextLabel.frame = CGRect(x: right - secondaryWidth, y: list.tableMetrics ? 16.5 : ((bounds.height - secondaryHeight) / 2).rounded(), width: secondaryWidth, height: secondaryHeight)
             secondaryTextLabel.textAlignment = .right
         case .cell:
-            let y = list.listRole == .cell ? ((bounds.height - textHeight) / 2).rounded() : margins.top
+            let y = list.listRole == .cell ? (list.tableMetrics ? 16.5 : ((bounds.height - textHeight) / 2).rounded()) : margins.top
             textLabel.frame = CGRect(x: x, y: y, width: width, height: textHeight)
             secondaryTextLabel.frame = .zero
         }

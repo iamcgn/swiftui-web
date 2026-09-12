@@ -6038,7 +6038,19 @@ public static let basic = UIKitFixture("uikit/stack/basic", size: CGSize(width: 
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/editing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 232, lastLine: 254, declaration: #"""
+        FixtureSource(name: "uikit/table/configured", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 293, lastLine: 302, declaration: #"""
+/// Table cells driven by list content configurations in a plain table.
+public static let configured = UIKitFixture("uikit/table/configured", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let source = ConfiguredSource()
+    configuredSources.append(source)
+    let table = UITableView(frame: root.bounds, style: .plain)
+    table.dataSource = source
+    root.addSubview(table.probe("table"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/table/editing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 253, lastLine: 275, declaration: #"""
 /// Editing mode: the rows shift right behind delete and insert controls, movable rows show
 /// a reorder handle, a row that cannot be edited stays put.
 public static let editing = UIKitFixture("uikit/table/editing", size: CGSize(width: 320, height: 300),
@@ -6063,7 +6075,7 @@ public static let editing = UIKitFixture("uikit/table/editing", size: CGSize(wid
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 176, lastLine: 182, declaration: #"""
+        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 197, lastLine: 203, declaration: #"""
 /// The inset grouped style: two sections with headers and a footer, value1 cells.
 public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(width: 320, height: 400)) {
     make(style: .insetGrouped, cellStyle: .value1, sections: [
@@ -6072,7 +6084,7 @@ public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(wid
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 0, section: 1): "row2"])
 }
 """#),
-        FixtureSource(name: "uikit/table/indexed", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 258, lastLine: 268, declaration: #"""
+        FixtureSource(name: "uikit/table/indexed", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 279, lastLine: 289, declaration: #"""
 /// A plain table with lettered section headers and the section index strip.
 public static let indexed = UIKitFixture("uikit/table/indexed", size: CGSize(width: 320, height: 400)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
@@ -6085,7 +6097,7 @@ public static let indexed = UIKitFixture("uikit/table/indexed", size: CGSize(wid
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/pinned", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 184, lastLine: 204, declaration: #"""
+        FixtureSource(name: "uikit/table/pinned", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 205, lastLine: 225, declaration: #"""
 /// Plain-style section headers pin to the top while their section scrolls under them and
 /// are pushed away by the next header.
 public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width: 320, height: 300),
@@ -6108,7 +6120,7 @@ public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 0, section: 1): "row4"], model: model)
 }
 """#),
-        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 162, lastLine: 167, declaration: #"""
+        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 183, lastLine: 188, declaration: #"""
 /// A plain table: one section without a header, default cells with and without accessories.
 public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 320, height: 400)) {
     make(style: .plain, cellStyle: .default, sections: [
@@ -6116,7 +6128,7 @@ public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 3, section: 0): "row3"])
 }
 """#),
-        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 206, lastLine: 214, declaration: #"""
+        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 227, lastLine: 235, declaration: #"""
 /// Selecting a row highlights it; deselecting clears it.
 public static let selection = UIKitFixture("uikit/table/selection", size: CGSize(width: 320, height: 400),
                                            model: { TableModel() },
@@ -6127,7 +6139,7 @@ public static let selection = UIKitFixture("uikit/table/selection", size: CGSize
     ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
 }
 """#),
-        FixtureSource(name: "uikit/table/selfsizing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 216, lastLine: 228, declaration: #"""
+        FixtureSource(name: "uikit/table/selfsizing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 237, lastLine: 249, declaration: #"""
 /// Automatic row heights from an estimate: wrapping text labels in default cells and a
 /// custom cell with a constrained label.
 public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSize(width: 320, height: 400)) {
@@ -6142,7 +6154,7 @@ public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSi
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 169, lastLine: 174, declaration: #"""
+        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 190, lastLine: 195, declaration: #"""
 /// Subtitle cells with a header, under the plain style.
 public static let subtitle = UIKitFixture("uikit/table/subtitle", size: CGSize(width: 320, height: 400)) {
     make(style: .plain, cellStyle: .subtitle, sections: [
@@ -14700,6 +14712,27 @@ final class IndexedSource: NSObject, UITableViewDataSource {
     func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int { index }
 }
 
+
+/// Rows configured through `defaultContentConfiguration()`: text alone, text with a symbol
+/// image, a subtitle cell and a value cell with secondary text.
+final class ConfiguredSource: NSObject, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 4 }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let style: UITableViewCell.CellStyle = indexPath.row == 2 ? .subtitle : (indexPath.row == 3 ? .value1 : .default)
+        let cell = UITableViewCell(style: style, reuseIdentifier: nil)
+        var content = cell.defaultContentConfiguration()
+        switch indexPath.row {
+        case 0: content.text = "Plain text"
+        case 1: content.text = "With a star"; content.image = UIImage(systemName: "star.fill")
+        case 2: content.text = "Subtitle"; content.secondaryText = "Secondary line"
+        default: content.text = "Value"; content.secondaryText = "42"
+        }
+        cell.contentConfiguration = content
+        cell.accessoryType = indexPath.row == 3 ? .disclosureIndicator : .none
+        return cell.probe("row\(indexPath.row)")
+    }
+}
+
 @MainActor public final class TableModel {
     var table: UITableView?
     var source: TableSource?
@@ -14707,7 +14740,7 @@ final class IndexedSource: NSObject, UITableViewDataSource {
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing, indexed]
+    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing, indexed, configured]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -14839,6 +14872,19 @@ public enum TableFixtures {
     }
 
     @MainActor static var indexedSources: [IndexedSource] = []
+
+    /// Table cells driven by list content configurations in a plain table.
+    public static let configured = UIKitFixture("uikit/table/configured", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let source = ConfiguredSource()
+        configuredSources.append(source)
+        let table = UITableView(frame: root.bounds, style: .plain)
+        table.dataSource = source
+        root.addSubview(table.probe("table"))
+        return root
+    }
+
+    @MainActor static var configuredSources: [ConfiguredSource] = []
 }
 #endif
 """##,

@@ -413,3 +413,7 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   their autoresizing mask were placed by the solver, stack children included. UIKit's stack
   owns its children's constraints, so the engine now sizes but never places a stack's arranged
   subviews, and the stack reads a constrained child's size through its own constraints.
+- Step 40 (2026-09-11): list content in table cells (`Docs/ROADMAP.md`, Phase 7 status 4.44).
+  The content view's third set of metrics (after the collection list's and the plain
+  constructors'): a table cell's rows are 57 and 76.5, a point off the collection list's 56
+  and 79.5, and a symbol image takes a fixed 28 × 27 slot rather than its own size.
