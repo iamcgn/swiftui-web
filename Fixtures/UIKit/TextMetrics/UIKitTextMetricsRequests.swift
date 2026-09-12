@@ -170,6 +170,11 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Wi-Fi", .style("body"), width: 256, lines: 0),
         UIKitTextRequest("Bluetooth", .style("body"), width: 256, lines: 0),
         UIKitTextRequest("Brightness", .style("body"), width: 256, lines: 0),
+        // uikit/table/editing (body-style titles)
+        UIKitTextRequest("Milk", .style("body")),
+        UIKitTextRequest("Eggs", .style("body")),
+        UIKitTextRequest("Add an item", .style("body")),
+        UIKitTextRequest("Fixed", .style("body")),
         // uikit/table/selfsizing (body-style wrapping labels in default cells, 15 pt in the note cell)
         UIKitTextRequest("Short", .style("body"), lines: 0),
         UIKitTextRequest("Short again", .style("body"), lines: 0),

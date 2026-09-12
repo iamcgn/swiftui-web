@@ -108,23 +108,27 @@ open class UITapGestureRecognizer: UIGestureRecognizer {
     private var startLocation = CGPoint.zero
     private var tapsSoFar = 0
     private var lastTapTime: Double = 0
+    /// Set once the finger travelled: the tap has failed for this touch (the state resets to
+    /// possible at once, so the end of the touch must not recognise it).
+    private var travelled = false
 
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)
         guard let touch = touches.first else { return }
         startLocation = touch.location(in: nil)
+        travelled = false
         if event.timestamp - lastTapTime > 0.35 { tapsSoFar = 0 }
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
-        guard let touch = touches.first else { return }
+        guard let touch = touches.first, !travelled else { return }
         let location = touch.location(in: nil)
         // A finger that travels fails the tap (UIKit's slop is about 10 pt).
-        if abs(location.x - startLocation.x) > 10 || abs(location.y - startLocation.y) > 10 { transition(to: .failed) }
+        if abs(location.x - startLocation.x) > 10 || abs(location.y - startLocation.y) > 10 { travelled = true; transition(to: .failed) }
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
-        guard state == .possible, mayBegin() else { return }
+        guard state == .possible, !travelled, mayBegin() else { return }
         tapsSoFar += 1
         lastTapTime = event.timestamp
         if tapsSoFar >= numberOfTapsRequired {
@@ -209,10 +213,11 @@ open class UIPanGestureRecognizer: UIGestureRecognizer {
         lastTime = event.timestamp
         switch state {
         case .possible:
-            // The pan begins once the finger has travelled the slop.
-            if abs(location.x - startLocation.x) > 10 || abs(location.y - startLocation.y) > 10, mayBegin() {
+            // The pan begins once the finger has travelled the slop; the translation is set
+            // first so the view can judge the direction in `gestureRecognizerShouldBegin`.
+            if abs(location.x - startLocation.x) > 10 || abs(location.y - startLocation.y) > 10 {
                 accumulated = CGPoint(x: location.x - startLocation.x, y: location.y - startLocation.y)
-                transition(to: .began)
+                if mayBegin() { transition(to: .began) } else { accumulated = .zero }
             }
         case .began, .changed:
             accumulated = CGPoint(x: location.x - startLocation.x, y: location.y - startLocation.y)

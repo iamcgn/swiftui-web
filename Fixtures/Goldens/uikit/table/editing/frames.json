@@ -1,0 +1,183 @@
+{
+  "fixture" : "uikit\/table\/editing",
+  "frames" : {
+    "label0" : {
+      "height" : 44,
+      "width" : 269.5,
+      "x" : 16,
+      "y" : 0
+    },
+    "label1" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 44
+    },
+    "label2" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 88
+    },
+    "label3" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 132
+    },
+    "row0" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 44
+    },
+    "row2" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 88
+    },
+    "row3" : {
+      "height" : 44,
+      "width" : 320,
+      "x" : 0,
+      "y" : 132
+    },
+    "table" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "label0" : {
+          "height" : 44,
+          "width" : 213,
+          "x" : 56,
+          "y" : 0
+        },
+        "label1" : {
+          "height" : 44,
+          "width" : 213,
+          "x" : 56,
+          "y" : 44
+        },
+        "label2" : {
+          "height" : 44,
+          "width" : 248,
+          "x" : 56,
+          "y" : 88
+        },
+        "label3" : {
+          "height" : 44,
+          "width" : 288,
+          "x" : 16,
+          "y" : 132
+        },
+        "row0" : {
+          "height" : 44,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "row1" : {
+          "height" : 44,
+          "width" : 320,
+          "x" : 0,
+          "y" : 44
+        },
+        "row2" : {
+          "height" : 44,
+          "width" : 320,
+          "x" : 0,
+          "y" : 88
+        },
+        "row3" : {
+          "height" : 44,
+          "width" : 320,
+          "x" : 0,
+          "y" : 132
+        },
+        "table" : {
+          "height" : 300,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "edit"
+    },
+    {
+      "frames" : {
+        "label0" : {
+          "height" : 44,
+          "width" : 269.5,
+          "x" : 16,
+          "y" : 0
+        },
+        "label1" : {
+          "height" : 44,
+          "width" : 288,
+          "x" : 16,
+          "y" : 44
+        },
+        "label2" : {
+          "height" : 44,
+          "width" : 288,
+          "x" : 16,
+          "y" : 88
+        },
+        "label3" : {
+          "height" : 44,
+          "width" : 288,
+          "x" : 16,
+          "y" : 132
+        },
+        "row0" : {
+          "height" : 44,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "row1" : {
+          "height" : 44,
+          "width" : 320,
+          "x" : 0,
+          "y" : 44
+        },
+        "row2" : {
+          "height" : 44,
+          "width" : 320,
+          "x" : 0,
+          "y" : 88
+        },
+        "row3" : {
+          "height" : 44,
+          "width" : 320,
+          "x" : 0,
+          "y" : 132
+        },
+        "table" : {
+          "height" : 300,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "done"
+    }
+  ]
+}

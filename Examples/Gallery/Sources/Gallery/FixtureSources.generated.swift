@@ -5887,7 +5887,32 @@ public static let basic = UIKitFixture("uikit/stack/basic", size: CGSize(width: 
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 127, lastLine: 133, declaration: #"""
+        FixtureSource(name: "uikit/table/editing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 213, lastLine: 235, declaration: #"""
+/// Editing mode: the rows shift right behind delete and insert controls, movable rows show
+/// a reorder handle, a row that cannot be edited stays put.
+public static let editing = UIKitFixture("uikit/table/editing", size: CGSize(width: 320, height: 300),
+                                         model: { TableModel() },
+                                         steps: [UIKitFixtureStep("edit") { model in
+                                                     model.table?.setEditing(true, animated: false)
+                                                     model.table?.layoutIfNeeded()
+                                                 },
+                                                 UIKitFixtureStep("done") { model in
+                                                     model.table?.setEditing(false, animated: false)
+                                                     model.table?.layoutIfNeeded()
+                                                 }]) { model in
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let source = EditingSource()
+    editingSources.append(source)
+    let table = UITableView(frame: root.bounds, style: .plain)
+    table.rowHeight = 44
+    table.dataSource = source
+    table.delegate = source
+    root.addSubview(table.probe("table"))
+    model.table = table
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 157, lastLine: 163, declaration: #"""
 /// The inset grouped style: two sections with headers and a footer, value1 cells.
 public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(width: 320, height: 400)) {
     make(style: .insetGrouped, cellStyle: .value1, sections: [
@@ -5896,7 +5921,7 @@ public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(wid
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 0, section: 1): "row2"])
 }
 """#),
-        FixtureSource(name: "uikit/table/pinned", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 135, lastLine: 155, declaration: #"""
+        FixtureSource(name: "uikit/table/pinned", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 165, lastLine: 185, declaration: #"""
 /// Plain-style section headers pin to the top while their section scrolls under them and
 /// are pushed away by the next header.
 public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width: 320, height: 300),
@@ -5919,7 +5944,7 @@ public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 0, section: 1): "row4"], model: model)
 }
 """#),
-        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 113, lastLine: 118, declaration: #"""
+        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 143, lastLine: 148, declaration: #"""
 /// A plain table: one section without a header, default cells with and without accessories.
 public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 320, height: 400)) {
     make(style: .plain, cellStyle: .default, sections: [
@@ -5927,7 +5952,7 @@ public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 3, section: 0): "row3"])
 }
 """#),
-        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 157, lastLine: 165, declaration: #"""
+        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 187, lastLine: 195, declaration: #"""
 /// Selecting a row highlights it; deselecting clears it.
 public static let selection = UIKitFixture("uikit/table/selection", size: CGSize(width: 320, height: 400),
                                            model: { TableModel() },
@@ -5938,7 +5963,7 @@ public static let selection = UIKitFixture("uikit/table/selection", size: CGSize
     ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
 }
 """#),
-        FixtureSource(name: "uikit/table/selfsizing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 167, lastLine: 179, declaration: #"""
+        FixtureSource(name: "uikit/table/selfsizing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 197, lastLine: 209, declaration: #"""
 /// Automatic row heights from an estimate: wrapping text labels in default cells and a
 /// custom cell with a constrained label.
 public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSize(width: 320, height: 400)) {
@@ -5953,7 +5978,7 @@ public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSi
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 120, lastLine: 125, declaration: #"""
+        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 150, lastLine: 155, declaration: #"""
 /// Subtitle cells with a header, under the plain style.
 public static let subtitle = UIKitFixture("uikit/table/subtitle", size: CGSize(width: 320, height: 400)) {
     make(style: .plain, cellStyle: .subtitle, sections: [
@@ -14266,6 +14291,36 @@ final class SelfSizingSource: NSObject, UITableViewDataSource {
     }
 }
 
+
+/// Rows that can be edited: the first two delete and reorder, the third inserts, the fourth
+/// cannot be edited.
+final class EditingSource: NSObject, UITableViewDataSource, UITableViewDelegate {
+    var rows = ["Milk", "Eggs", "Add an item", "Fixed"]
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { rows.count }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
+        cell.textLabel?.text = rows[indexPath.row]
+        cell.accessoryType = indexPath.row == 0 ? .disclosureIndicator : .none
+        cell.showsReorderControl = indexPath.row < 2
+        cell.textLabel?.probe("label\(indexPath.row)")
+        return cell.probe("row\(indexPath.row)")
+    }
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool { indexPath.row != 3 }
+    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool { indexPath.row < 2 }
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        rows.insert(rows.remove(at: sourceIndexPath.row), at: destinationIndexPath.row)
+    }
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+        indexPath.row == 2 ? .insert : .delete
+    }
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            rows.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+        }
+    }
+}
+
 @MainActor public final class TableModel {
     var table: UITableView?
     var source: TableSource?
@@ -14273,7 +14328,7 @@ final class SelfSizingSource: NSObject, UITableViewDataSource {
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing]
+    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -14365,6 +14420,32 @@ public enum TableFixtures {
     }
 
     @MainActor static var selfSizingSources: [SelfSizingSource] = []
+
+    /// Editing mode: the rows shift right behind delete and insert controls, movable rows show
+    /// a reorder handle, a row that cannot be edited stays put.
+    public static let editing = UIKitFixture("uikit/table/editing", size: CGSize(width: 320, height: 300),
+                                             model: { TableModel() },
+                                             steps: [UIKitFixtureStep("edit") { model in
+                                                         model.table?.setEditing(true, animated: false)
+                                                         model.table?.layoutIfNeeded()
+                                                     },
+                                                     UIKitFixtureStep("done") { model in
+                                                         model.table?.setEditing(false, animated: false)
+                                                         model.table?.layoutIfNeeded()
+                                                     }]) { model in
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let source = EditingSource()
+        editingSources.append(source)
+        let table = UITableView(frame: root.bounds, style: .plain)
+        table.rowHeight = 44
+        table.dataSource = source
+        table.delegate = source
+        root.addSubview(table.probe("table"))
+        model.table = table
+        return root
+    }
+
+    @MainActor static var editingSources: [EditingSource] = []
 }
 #endif
 """##,

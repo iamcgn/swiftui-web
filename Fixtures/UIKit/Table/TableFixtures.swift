@@ -80,6 +80,36 @@ final class SelfSizingSource: NSObject, UITableViewDataSource {
     }
 }
 
+
+/// Rows that can be edited: the first two delete and reorder, the third inserts, the fourth
+/// cannot be edited.
+final class EditingSource: NSObject, UITableViewDataSource, UITableViewDelegate {
+    var rows = ["Milk", "Eggs", "Add an item", "Fixed"]
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { rows.count }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
+        cell.textLabel?.text = rows[indexPath.row]
+        cell.accessoryType = indexPath.row == 0 ? .disclosureIndicator : .none
+        cell.showsReorderControl = indexPath.row < 2
+        cell.textLabel?.probe("label\(indexPath.row)")
+        return cell.probe("row\(indexPath.row)")
+    }
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool { indexPath.row != 3 }
+    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool { indexPath.row < 2 }
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        rows.insert(rows.remove(at: sourceIndexPath.row), at: destinationIndexPath.row)
+    }
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+        indexPath.row == 2 ? .insert : .delete
+    }
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            rows.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+        }
+    }
+}
+
 @MainActor public final class TableModel {
     var table: UITableView?
     var source: TableSource?
@@ -87,7 +117,7 @@ final class SelfSizingSource: NSObject, UITableViewDataSource {
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing]
+    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -179,5 +209,31 @@ public enum TableFixtures {
     }
 
     @MainActor static var selfSizingSources: [SelfSizingSource] = []
+
+    /// Editing mode: the rows shift right behind delete and insert controls, movable rows show
+    /// a reorder handle, a row that cannot be edited stays put.
+    public static let editing = UIKitFixture("uikit/table/editing", size: CGSize(width: 320, height: 300),
+                                             model: { TableModel() },
+                                             steps: [UIKitFixtureStep("edit") { model in
+                                                         model.table?.setEditing(true, animated: false)
+                                                         model.table?.layoutIfNeeded()
+                                                     },
+                                                     UIKitFixtureStep("done") { model in
+                                                         model.table?.setEditing(false, animated: false)
+                                                         model.table?.layoutIfNeeded()
+                                                     }]) { model in
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let source = EditingSource()
+        editingSources.append(source)
+        let table = UITableView(frame: root.bounds, style: .plain)
+        table.rowHeight = 44
+        table.dataSource = source
+        table.delegate = source
+        root.addSubview(table.probe("table"))
+        model.table = table
+        return root
+    }
+
+    @MainActor static var editingSources: [EditingSource] = []
 }
 #endif

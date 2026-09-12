@@ -55,14 +55,18 @@ public protocol UITableViewDataSource: AnyObject {
     func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String?
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath)
+    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath)
 }
 
 extension UITableViewDataSource {
     public func numberOfSections(in tableView: UITableView) -> Int { 1 }
     public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { nil }
     public func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? { nil }
-    public func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool { false }
+    public func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool { true }
     public func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {}
+    public func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool { false }
+    public func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {}
 }
 
 /// Methods for managing selections, configuring section headers and footers, deleting and
@@ -79,6 +83,13 @@ public protocol UITableViewDelegate: UIScrollViewDelegate {
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath)
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath)
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle
+    func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String?
+    func tableView(_ tableView: UITableView, shouldIndentWhileEditingRowAt indexPath: IndexPath) -> Bool
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration?
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration?
+    func tableView(_ tableView: UITableView, willBeginEditingRowAt indexPath: IndexPath)
+    func tableView(_ tableView: UITableView, didEndEditingRowAt indexPath: IndexPath?)
 }
 
 extension UITableViewDelegate {
@@ -92,11 +103,18 @@ extension UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {}
     public func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {}
     public func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {}
+    public func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle { .delete }
+    public func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? { nil }
+    public func tableView(_ tableView: UITableView, shouldIndentWhileEditingRowAt indexPath: IndexPath) -> Bool { true }
+    public func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? { nil }
+    public func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? { nil }
+    public func tableView(_ tableView: UITableView, willBeginEditingRowAt indexPath: IndexPath) {}
+    public func tableView(_ tableView: UITableView, didEndEditingRowAt indexPath: IndexPath?) {}
 }
 
 /// A view that presents data using rows in a single column.
 @MainActor
-open class UITableView: UIScrollView {
+open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
     public enum Style: Int, Sendable { case plain = 0, grouped, insetGrouped }
     public enum ScrollPosition: Int, Sendable { case none = 0, top, middle, bottom }
     public enum RowAnimation: Int, Sendable { case fade = 0, right, left, top, bottom, none, middle, automatic = 100 }
@@ -119,7 +137,22 @@ open class UITableView: UIScrollView {
     open var allowsMultipleSelection = false
     open var tableHeaderView: UIView? { didSet { oldValue?.removeFromSuperview(); if let view = tableHeaderView { addSubview(view) }; setNeedsReload() } }
     open var tableFooterView: UIView? { didSet { oldValue?.removeFromSuperview(); if let view = tableFooterView { addSubview(view) }; setNeedsReload() } }
-    open var isEditing = false
+    /// Editing mode: editable rows shift right behind delete or insert controls, movable ones
+    /// show a reorder grip (uikit/table/editing).
+    open var allowsSelectionDuringEditing = false
+    open var isEditing = false { didSet { if isEditing != oldValue { closeSwipe(animated: false); applyEditingState() } } }
+    open func setEditing(_ editing: Bool, animated: Bool) {
+        guard editing != isEditing else { return }
+        if animated {
+            UIView.animate(withDuration: batchUpdateDuration) { self.isEditing = editing; self.layoutIfNeeded() }
+        } else {
+            isEditing = editing
+        }
+    }
+    /// The row whose swipe actions are open, and the recognizer that reveals them.
+    private(set) var swipedRow: IndexPath?
+    private var swipeRecognizer: UIPanGestureRecognizer!
+    private var swipeTrailing = true
     open var cellLayoutMarginsFollowReadableWidth = false
     open var insetsContentViewsToSafeArea = true
 
@@ -146,7 +179,12 @@ open class UITableView: UIScrollView {
         // The grouped ground is (242, 242, 247) on the iPhone (uikit/table/grouped).
         backgroundColor = style == .plain ? .systemBackground : UIColor(light: RGBA(r: 242, g: 242, b: 247), dark: .black)
         alwaysBounceVertical = true
+        let swipe = UIPanGestureRecognizer()
+        swipe.addTarget { [weak self] recognizer in self?.handleSwipe(recognizer as! UIPanGestureRecognizer) }
+        addGestureRecognizer(swipe)
+        swipeRecognizer = swipe
         let tap = UITapGestureRecognizer()
+        tap.delegate = self
         tap.addTarget { [weak self] recognizer in self?.handleTap(recognizer) }
         addGestureRecognizer(tap)
     }
@@ -213,10 +251,122 @@ open class UITableView: UIScrollView {
         setContentOffset(offset, animated: animated)
     }
 
+    // MARK: Editing and swipe actions (Containers/SwipeActions.swift)
+
+    /// Editable rows take the editing state; the cells lay out again.
+    private func applyEditingState() {
+        for (path, cell) in visibleCellsByPath { configureEditing(of: cell, at: path) }
+        setNeedsLayout()
+    }
+
+    private func configureEditing(of cell: UITableViewCell, at path: IndexPath) {
+        let editable = dataSource?.tableView(self, canEditRowAt: path) ?? false
+        cell.editingStyle = editable ? (tableDelegate?.tableView(self, editingStyleForRowAt: path) ?? .delete) : .none
+        cell.canMove = editable && (dataSource?.tableView(self, canMoveRowAt: path) ?? false)
+        cell.setEditing(isEditing && editable, animated: false)
+    }
+
+    /// A swipe action button takes its own taps: the table's tap recognizer leaves them alone.
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        var view = touch.view
+        while let current = view, current !== self {
+            if current is SwipeActionButton { return false }
+            view = current.superview
+        }
+        return true
+    }
+
+    /// A horizontal pan on a row with actions on that side reveals them; vertical pans scroll.
+    open override func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+        guard recognizer === swipeRecognizer, let pan = recognizer as? UIPanGestureRecognizer else { return super.gestureRecognizerShouldBegin(recognizer) }
+        let translation = pan.translation(in: self)
+        guard abs(translation.x) > abs(translation.y) else { return false }
+        if let open = swipedRow, visibleCellsByPath[open] != nil { return true }
+        guard !isEditing || true, let path = indexPathForRow(at: pan.location(in: self)), let cell = visibleCellsByPath[path] else { return false }
+        let trailing = translation.x < 0
+        guard let configuration = trailing ? tableDelegate?.tableView(self, trailingSwipeActionsConfigurationForRowAt: path) ?? defaultDeleteActions(for: path)
+                                          : tableDelegate?.tableView(self, leadingSwipeActionsConfigurationForRowAt: path), !configuration.actions.isEmpty else { return false }
+        cell.installSwipeActions(configuration, trailing: trailing, table: self, indexPath: path)
+        swipedRow = path
+        swipeTrailing = trailing
+        tableDelegate?.tableView(self, willBeginEditingRowAt: path)
+        return true
+    }
+
+    /// An editable row without a trailing configuration deletes with a "Delete" button, as
+    /// UIKit's `commit editingStyle` path does.
+    private func defaultDeleteActions(for path: IndexPath) -> UISwipeActionsConfiguration? {
+        guard dataSource?.tableView(self, canEditRowAt: path) ?? false,
+              (tableDelegate?.tableView(self, editingStyleForRowAt: path) ?? .delete) == .delete else { return nil }
+        let title = tableDelegate?.tableView(self, titleForDeleteConfirmationButtonForRowAt: path) ?? "Delete"
+        let delete = UIContextualAction(style: .destructive, title: title) { [weak self] _, _, done in
+            guard let self else { return }
+            dataSource?.tableView(self, commit: .delete, forRowAt: path)
+            done(true)
+        }
+        return UISwipeActionsConfiguration(actions: [delete])
+    }
+
+    private func handleSwipe(_ pan: UIPanGestureRecognizer) {
+        guard let path = swipedRow, let cell = visibleCellsByPath[path] else { return }
+        let translation = pan.translation(in: self)
+        switch pan.state {
+        case .began, .changed:
+            cell.dragSwipe(by: translation.x)
+        case .ended, .cancelled, .failed:
+            let velocity = pan.velocity(in: self).x
+            cell.endSwipe(velocity: velocity) { [weak self] open in
+                guard let self else { return }
+                if !open { self.swipedRow = nil; self.tableDelegate?.tableView(self, didEndEditingRowAt: path) }
+            }
+        default: break
+        }
+    }
+
+    /// Closes the open row's actions.
+    open func closeSwipe(animated: Bool) {
+        guard let path = swipedRow else { return }
+        swipedRow = nil
+        visibleCellsByPath[path]?.closeSwipe(animated: animated)
+        tableDelegate?.tableView(self, didEndEditingRowAt: path)
+    }
+
+    /// A tapped action runs its handler, then the row closes.
+    func perform(_ action: UIContextualAction, at path: IndexPath) {
+        guard let cell = visibleCellsByPath[path] else { return }
+        action.handler(action, cell) { [weak self] _ in self?.closeSwipe(animated: true) }
+    }
+
+    /// The editing control of a row: the delete control reveals the Delete button, the insert
+    /// control commits an insert.
+    func editingControlTapped(at path: IndexPath) {
+        guard let cell = visibleCellsByPath[path] else { return }
+        switch cell.editingStyle {
+        case .insert:
+            dataSource?.tableView(self, commit: .insert, forRowAt: path)
+        case .delete:
+            if swipedRow == path { closeSwipe(animated: true); return }
+            closeSwipe(animated: true)
+            guard let configuration = tableDelegate?.tableView(self, trailingSwipeActionsConfigurationForRowAt: path) ?? defaultDeleteActions(for: path) else { return }
+            cell.installSwipeActions(configuration, trailing: true, table: self, indexPath: path)
+            swipedRow = path
+            swipeTrailing = true
+            cell.openSwipe(animated: true)
+        case .none: break
+        }
+    }
+
     private func handleTap(_ recognizer: UIGestureRecognizer) {
-        guard allowsSelection, recognizer.state == .ended else { return }
+        guard recognizer.state == .ended else { return }
         let point = recognizer.location(in: self)
+        // A tap while a row's actions are open closes them (the buttons take their own taps).
+        if swipedRow != nil { closeSwipe(animated: true); return }
         guard let path = indexPathForRow(at: point) else { return }
+        if isEditing {
+            if let cell = visibleCellsByPath[path], cell.isEditing, point.x - cell.frame.minX < UITableViewCell.editingContentInset { editingControlTapped(at: path) }
+            guard allowsSelectionDuringEditing else { return }
+        }
+        guard allowsSelection else { return }
         if selected.contains(path), allowsMultipleSelection {
             deselectRow(at: path, animated: false)
             tableDelegate?.tableView(self, didDeselectRowAt: path)
@@ -536,6 +686,8 @@ open class UITableView: UIScrollView {
     private func place(_ cell: UITableViewCell, at path: IndexPath, frame: CGRect) {
         cell.frame = frame
         cell.setSelected(selected.contains(path), animated: false)
+        configureEditing(of: cell, at: path)
+        if path != swipedRow { cell.closeSwipe(animated: false) }
         tableDelegate?.tableView(self, willDisplay: cell, forRowAt: path)
         if cell.superview !== self { addSubview(cell) }
         visibleCellsByPath[path] = cell
@@ -680,6 +832,110 @@ open class UITableViewCell: UIView {
     var isFirstInSection = false
     var isLastInSection = false
 
+    // MARK: Editing (Containers/SwipeActions.swift)
+
+    /// Editing mode (uikit/table/editing): the content view starts 40 in behind the control,
+    /// a 22 pt circle centred at (28, 22); a reorder grip 27 wide ends 16 from the right.
+    static let editingContentInset: CGFloat = 40
+    static let reorderControlWidth: CGFloat = 27
+    open private(set) var isEditing = false
+    open var editingStyle: UITableViewCell.EditingStyle = .none { didSet { setNeedsLayout(); setNeedsDisplay() } }
+    open var showsReorderControl = false { didSet { setNeedsLayout() } }
+    open var editingAccessoryType: AccessoryType = .none
+    open var shouldIndentWhileEditing = true
+    var canMove = false { didSet { setNeedsLayout() } }
+    var showsGrip: Bool { isEditing && canMove && showsReorderControl }
+
+    open func setEditing(_ editing: Bool, animated: Bool) {
+        guard editing != isEditing else { return }
+        isEditing = editing
+        setNeedsLayout()
+        setNeedsDisplay()
+    }
+
+    /// Swipe actions: the content slides sideways by `swipeOffset` (negative for trailing
+    /// actions) and the buttons fill the room it leaves.
+    private(set) var swipeOffset: CGFloat = 0
+    private var swipeButtons: [SwipeActionButton] = []
+    private var swipeTrailing = true
+    private var swipeConfiguration: UISwipeActionsConfiguration?
+    private var swipeStartOffset: CGFloat = 0
+    var swipeActionsWidth: CGFloat { swipeButtons.reduce(0) { $0 + $1.preferredWidth } }
+    var isSwipeOpen: Bool { swipeConfiguration != nil && abs(swipeOffset) >= swipeActionsWidth - 0.5 }
+
+    func installSwipeActions(_ configuration: UISwipeActionsConfiguration, trailing: Bool, table: UITableView, indexPath: IndexPath) {
+        if swipeConfiguration === configuration { return }
+        for button in swipeButtons { button.removeFromSuperview() }
+        swipeConfiguration = configuration
+        swipeTrailing = trailing
+        swipeButtons = configuration.actions.map { action in
+            let button = SwipeActionButton(action: action)
+            button.addAction(UIAction { [weak table] _ in table?.perform(action, at: indexPath) }, for: .primaryActionTriggered)
+            insertSubview(button, at: 0)
+            return button
+        }
+        swipeStartOffset = swipeOffset
+        setNeedsLayout()
+    }
+
+    private var swipeTravel: CGFloat = 0
+
+    func dragSwipe(by translation: CGFloat) {
+        let width = swipeActionsWidth
+        var offset = swipeStartOffset + translation
+        swipeTravel = abs(offset)
+        if swipeTrailing {
+            offset = min(0, offset)
+            if -offset > width { offset = -(width + (-offset - width) * 0.3) }
+        } else {
+            offset = max(0, offset)
+            if offset > width { offset = width + (offset - width) * 0.3 }
+        }
+        swipeOffset = offset
+        setNeedsLayout()
+    }
+
+    /// Settles past half the actions' width (or a flick) open, else closed; a full swipe
+    /// past the row's midpoint performs the first action when the configuration allows.
+    func endSwipe(velocity: CGFloat, completion: @escaping (Bool) -> Void) {
+        guard let configuration = swipeConfiguration else { completion(false); return }
+        let width = swipeActionsWidth
+        let travel = abs(swipeOffset)
+        if configuration.performsFirstActionWithFullSwipe, swipeTravel > bounds.width * 0.5, let first = configuration.actions.first, let table = superview as? UITableView, let path = table.indexPath(for: self) {
+            table.perform(first, at: path)
+            completion(true)
+            return
+        }
+        let flick = swipeTrailing ? velocity < -300 : velocity > 300
+        let open = travel > width / 2 || flick
+        if open { openSwipe(animated: true) } else { closeSwipe(animated: true) }
+        completion(open)
+    }
+
+    func openSwipe(animated: Bool) {
+        let target = swipeTrailing ? -swipeActionsWidth : swipeActionsWidth
+        let apply = { self.swipeOffset = target; self.swipeStartOffset = target; self.setNeedsLayout(); self.layoutIfNeeded() }
+        if animated { UIView.animate(withDuration: batchUpdateDuration, animations: apply) } else { apply() }
+    }
+
+    func closeSwipe(animated: Bool) {
+        guard swipeConfiguration != nil else { return }
+        let buttons = swipeButtons
+        let finish = {
+            for button in buttons { button.removeFromSuperview() }
+        }
+        swipeButtons = []
+        swipeConfiguration = nil
+        swipeStartOffset = 0
+        if animated {
+            UIView.animate(withDuration: batchUpdateDuration, animations: { self.swipeOffset = 0; self.setNeedsLayout(); self.layoutIfNeeded() }, completion: { _ in finish() })
+        } else {
+            swipeOffset = 0
+            setNeedsLayout()
+            finish()
+        }
+    }
+
     public required init(style: CellStyle, reuseIdentifier: String?) {
         self.style = style
         self.reuseIdentifier = reuseIdentifier
@@ -712,6 +968,8 @@ open class UITableViewCell: UIView {
         isHighlighted = false
         accessoryType = .none
         accessoryView = nil
+        closeSwipe(animated: false)
+        isEditing = false
     }
 
     open func setSelected(_ selected: Bool, animated: Bool) {
@@ -805,13 +1063,33 @@ open class UITableViewCell: UIView {
         super.layoutSubviews()
         let width = bounds.width
         // The content view ends where the accessory starts (16 from the right for a chevron,
-        // 18.5 for a checkmark), else spans the row.
-        let accessory = accessorySize
+        // 18.5 for a checkmark), else spans the row. Editing hides the accessory: the content
+        // starts 40 in and ends before the reorder grip (43 from the right) or at the edge.
+        let accessory = isEditing ? .zero : accessorySize
         let accessoryRight: CGFloat = accessoryType == .checkmark ? 18.5 : 16
-        let contentWidth = accessory.width > 0 ? width - accessoryRight - accessory.width : width
-        contentView.frame = CGRect(x: 0, y: 0, width: contentWidth, height: bounds.height)
+        let contentLeft: CGFloat = isEditing && shouldIndentWhileEditing ? Self.editingContentInset : 0
+        let contentRight: CGFloat = showsGrip ? Self.reorderControlWidth + 16 : 0
+        let contentWidth = accessory.width > 0 ? width - accessoryRight - accessory.width : width - contentLeft - contentRight
+        contentView.frame = CGRect(x: contentLeft + swipeOffset, y: 0, width: contentWidth, height: bounds.height)
         if let accessoryView {
+            accessoryView.isHidden = isEditing
             accessoryView.frame = CGRect(x: contentWidth, y: (bounds.height - accessoryView.frame.height) / 2, width: accessoryView.frame.width, height: accessoryView.frame.height)
+        }
+        // Swipe action buttons fill the room the content leaves, from the row's edge inward.
+        if !swipeButtons.isEmpty {
+            let total = swipeActionsWidth
+            let revealed = abs(swipeOffset)
+            var edge: CGFloat = swipeTrailing ? width : 0
+            for button in swipeButtons {
+                let share = total > 0 ? button.preferredWidth / total * revealed : 0
+                if swipeTrailing {
+                    button.frame = CGRect(x: edge - share, y: 0, width: share, height: bounds.height)
+                    edge -= share
+                } else {
+                    button.frame = CGRect(x: edge, y: 0, width: share, height: bounds.height)
+                    edge += share
+                }
+            }
         }
         var x: CGFloat = 16
         if let imageView, let image = imageView.image {
@@ -821,9 +1099,11 @@ open class UITableViewCell: UIView {
             imageView?.frame = .zero
         }
         guard let title = textLabel else { return }
+        // Before a reorder grip or an accessory the title ends 8 in, else 16 (uikit/table/editing).
+        let trailing: CGFloat = showsGrip || accessory.width > 0 ? 8 : 16
         switch style {
         case .default:
-            title.frame = CGRect(x: x, y: 0, width: contentWidth - x - 16, height: bounds.height)
+            title.frame = CGRect(x: x, y: 0, width: contentWidth - x - trailing, height: bounds.height)
         case .subtitle:
             let titleWidth = title.intrinsicContentSize.width
             title.frame = CGRect(x: x, y: 11, width: min(titleWidth, contentWidth - x - 16), height: 24.5)
@@ -857,7 +1137,25 @@ open class UITableViewCell: UIView {
         }
         let ink = UIColor.tertiaryLabel.rgba(for: userStyle)
         let contentWidth = contentView.bounds.width
-        switch accessoryType {
+        if isEditing {
+            // The editing control: a 22 pt red (delete) or green (insert) circle centred at
+            // (28, 22) with a white minus or plus, and the grip: three grey lines 23 wide.
+            if editingStyle != .none {
+                let circle = context.absoluteRect(CGRect(x: 17, y: 11, width: 22, height: 22))
+                list.append(.fillPath(Path(ellipseIn: circle), (editingStyle == .delete ? UIColor.systemRed : UIColor.systemGreen).rgba(for: userStyle)))
+                let white = RGBA(r: 255, g: 255, b: 255)
+                list.append(.fillRect(context.absoluteRect(CGRect(x: 22, y: 21, width: 12, height: 2)), white))
+                if editingStyle == .insert { list.append(.fillRect(context.absoluteRect(CGRect(x: 27, y: 16, width: 2, height: 12)), white)) }
+            }
+            if showsGrip {
+                let grey = UIColor.systemGray3.rgba(for: userStyle)
+                let left = bounds.width - 16 - Self.reorderControlWidth + 2
+                for line in 0..<3 {
+                    list.append(.fillRect(context.absoluteRect(CGRect(x: left, y: (bounds.height - 15) / 2 + 2 + CGFloat(line) * 4.5, width: 23, height: 1.5)), grey))
+                }
+            }
+        }
+        switch isEditing ? .none : accessoryType {
         case .disclosureIndicator, .detailDisclosureButton:
             // The chevron: 10.5 × 14 at the content view's right, centred; a 2 pt stroke.
             let box = context.absoluteRect(CGRect(x: contentWidth, y: (bounds.height - 14) / 2, width: 10.5, height: 14))

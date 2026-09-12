@@ -368,3 +368,12 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   view instead of wrapping), and a wrapped label under constraints is a point taller than its
   own fit. The estimate correction reuses the batch-update retained-cell path: the rows are laid
   out again with the cells already made handed back under their paths.
+- Step 32 (2026-09-11): table editing and swipe actions (`Docs/ROADMAP.md`, Phase 7 status
+  4.37). Editing mode came from a golden with steps (`setEditing` is public); swipes cannot be
+  captured on the simulator (no public way to open a row's actions), so their geometry is
+  UIKit-shaped rather than measured and `EditingTests` drive the scene's pointer. The swipe is
+  a pan recognizer on the table that begins only for horizontal pans on rows with actions
+  (the scroll view already leaves horizontal pans alone); a bug surfaced in the tap
+  recognizer, which failed on movement but reset to possible at once and so recognised at the
+  end of a drag. Two test gotchas: a data source held only by the test's tuple is deallocated
+  (the table keeps it weakly), and every stored-property change needs a package clean.
