@@ -150,7 +150,11 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
     open var sectionIndexBackgroundColor: UIColor? { didSet { sectionIndex.setNeedsDisplay() } }
     open var sectionIndexTrackingBackgroundColor: UIColor?
     open var sectionIndexMinimumDisplayRowCount = 0
-    let sectionIndex = SectionIndexView()
+    let sectionIndex: SectionIndexView = {
+        let view = SectionIndexView()
+        view.isHidden = true
+        return view
+    }()
     open var isEditing = false { didSet { if isEditing != oldValue { closeSwipe(animated: false); applyEditingState() } } }
     open func setEditing(_ editing: Bool, animated: Bool) {
         guard editing != isEditing else { return }
@@ -607,6 +611,10 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
         rowFrames.removeAll()
         rowCounts.removeAll()
         guard let dataSource else { contentSize = .zero; return }
+        // The index strip's presence first: rows built below lay out beside it.
+        let titles = dataSource.sectionIndexTitles(for: self) ?? []
+        sectionIndex.titles = titles
+        sectionIndex.isHidden = titles.isEmpty
 
         var y: CGFloat = 0
         let width = bounds.width
@@ -706,9 +714,7 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
             y += footer.frame.height
         }
         contentSize = CGSize(width: width, height: y)
-        let titles = dataSource.sectionIndexTitles(for: self) ?? []
         let totalRows = rowCounts.values.reduce(0, +)
-        sectionIndex.titles = titles
         sectionIndex.isHidden = titles.isEmpty || totalRows < sectionIndexMinimumDisplayRowCount
         if !sectionIndex.isHidden {
             sectionIndex.table = self
