@@ -387,6 +387,41 @@ done 2026-09-11).
 | 4.46 Hosting inside hosted trees | verified 2026-09-11: a representable's controller hosting a `UIHostingController` paints its inner tree at the node and takes presses through the outer runtime (`NestedHostingTests`; `Docs/elements/Representable.md`). |
 | 4.47 Gradients and image contexts | done 2026-09-12: `CGGradient` (`UIGraphicsGradient`, named by the thin `UIKit` module so it shadows CoreGraphics's opaque class for files importing UIKit; a stand-in with `CGColorSpace`, `CFArray` and the drawing options on wasm), `drawLinearGradient` / `drawRadialGradient` as gradient fills of the region CoreGraphics paints (a `focalRadial` display gradient for circles with different centres), `UIGraphicsImageRenderer` and the `UIGraphicsBeginImageContext` family returning a `UIImage` holding the recording, replayed scaled by `draw(at:)`, `draw(in:)` and `UIImageView`; `uikit/draw/gradient` within 0.09 % (`Docs/elements/UIKit/Drawing.md`). |
 
+### Phase 8 — Progress page, representables finish, the gap sweep (decision 0016)
+
+The plan moves out of this file: `Docs/todo.json` holds every remaining gap with a framework, a
+kind, a priority and a status, rendered to `Docs/TODO.md` and to the progress page by
+`scripts/gen-progress.py` (CI checks the outputs are current). This phase, in order:
+
+1. **Finish the representables** (the `ix-*` items marked `next`): `layoutOptions` and safe
+   areas through the seam, environment to trait collection, hover, wheel scrolling measured,
+   animations across the seam, representables in lists, forms, scroll views and sheets,
+   dismantle and coordinator tests, `UIHostingConfiguration`'s margins, self-sizing and
+   configuration state, `UIHostingController` in containers, `Image(uiImage:)` for rendered
+   images, the size-gate decision on the unconditional `UIKit` re-export. AppKit representables
+   stay a decision to make (`ix-appkit`).
+2. **The tracking data** (`st-tracking`, `st-uikit-rows`, `st-row-audit`, `st-fixture-links`):
+   `framework` on support sections, support rows for every UIKit class, the stale rows and doc
+   notes reconciled, a fixture named by every row (golden-less `demo/` fixtures where no golden
+   can capture the behaviour), the generator taking over `support-matrix.py` and
+   `gen-landing-support.py`.
+3. **The gallery on Pages** (`st-gallery-deploy`): a release build at `/gallery/` with the
+   loading screen, `?filter=`, a link back, its size in the deploy log.
+4. **The progress page** (`st-progress-page`): `Examples/Progress` at `/progress/`, counts,
+   the full matrix with filters and links, the todo list, what landed recently.
+5. **The landing page links** (`st-landing-links`, `st-workflow`): navigation and hero links to
+   both pages, the matrix section as a summary card, README and the element workflow updated.
+6. **The gap sweep**: the `next` items outside the steps above (iOS sheets, tab bars and date
+   pickers from the simulator; the spinning activity indicator; UIKit hover), then the `soon`
+   items per framework in `todo.json`'s order, each with the element workflow, each moving its
+   item to done and adding the gaps it finds.
+
+### Phase 8 status
+
+| Step | Status |
+|---|---|
+| 0 Plan | 2026-09-12: decision 0016, `Docs/todo.json` (123 items: 8 site, 13 interop, 60 SwiftUI, 38 UIKit, 4 platform; 22 next, 55 soon, 43 later, 3 non-goals), `Docs/TODO.md`, `scripts/gen-progress.py` with `--check` in CI. |
+
 ## Risk register
 
 | Risk | Mitigation |

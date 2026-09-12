@@ -13,6 +13,8 @@ jobs:
           swiftly init --assume-yes --skip-install --no-modify-profile
           . ~/.swiftly/env.sh
           swiftly install $SWIFT_VERSION --use --assume-yes
+      - name: Progress outputs are current (Docs/TODO.md from Docs/todo.json)
+        run: python3 scripts/gen-progress.py --check
       - name: Native tests
         run: . ~/.swiftly/env.sh && swift test
       - name: UIKitWeb tests

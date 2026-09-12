@@ -6,7 +6,8 @@ and behaviour fidelity measured against the real SwiftUI.
 
 **Landing page: [iamcgn.github.io/swiftui-web](https://iamcgn.github.io/swiftui-web/)**, itself
 written in SwiftUI and rendered by SwiftUIWeb (source in [`Examples/Landing`](Examples/Landing)).
-The current support matrix is [`Docs/support-matrix.md`](Docs/support-matrix.md).
+The current support matrix is [`Docs/support-matrix.md`](Docs/support-matrix.md); what remains,
+by priority, is [`Docs/TODO.md`](Docs/TODO.md) (decision 0016).
 
 ```swift
 import SwiftUI
