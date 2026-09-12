@@ -147,7 +147,26 @@ view marks a list cell dequeued for item 0 so its `defaultContentConfiguration()
 header, it draws no card and has no 44 pt floor, and the card starts at item 1. Measured: the
 header is 44.5 tall at the section's top (no gap above the first section), the rows follow at
 once, and 17.5 separates a section's last row from the next header. Pixels 1.2 % off the
-simulator. Open: `.outlineDisclosure()` expanding and collapsing sections.
+simulator.
+
+## Outlines (2026-09-11, `uikit/collection/outline`)
+
+`NSDiffableDataSourceSectionSnapshot` (`append(_:to:)`, `insert(_:before:/after:)`, `delete`,
+`deleteAll`, `expand` / `collapse`, `isExpanded`, `isVisible`, `contains`, `level(of:)`,
+`parent(of:)`, `index(of:)`, `items`, `rootItems`, `visibleItems`, `snapshot(of:includingParent:)`)
+and `UICollectionViewDiffableDataSource.apply(_:to:animatingDifferences:completion:)` /
+`snapshot(for:)` / `sectionSnapshotHandlers` (should / will expand and collapse,
+`snapshotForExpandingParent`). Applying an outline to a section shows its visible items
+(children only under expanded parents) through the animated diff; the data source sets each
+list cell's `indentationLevel` from the item's level and its disclosure open or closed; a tap
+on a cell with `.outlineDisclosure()` expands or collapses the item instead of selecting it.
+Measured (inset grouped): a child's content view starts 10 in for one level (the label with
+it) and its separator with its content (42 in the card rather than 32); rows stay 56 in the
+card, and an expanded parent's chevron points down. The fixture's steps collapse and expand
+parents; only the roots are probed since a removed child's cell keeps reporting a stale
+frame. Pixels 0.8 % off the simulator. Open: the sidebar appearance's outline (its header-style
+parents), `UICellAccessory.OutlineDisclosureOptions` (`style`, `isHidden`), reordering
+outline items, per-item expansion animation (the rows fade and slide as any batch update).
 
 ## Orthogonal scrolling (2026-09-11, `uikit/collection/orthogonal`)
 

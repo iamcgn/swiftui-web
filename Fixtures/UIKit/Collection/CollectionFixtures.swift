@@ -166,8 +166,25 @@ final class SectionBackgroundView: UICollectionReusableView {
     public init() {}
 }
 
+
+/// The outline's data source: parents with an outline disclosure over their children.
+@MainActor final class OutlineModel {
+    var collection: UICollectionView?
+    var source: UICollectionViewDiffableDataSource<Int, String>?
+    static let children: [String: [String]] = ["Fruit": ["Apple", "Pear"], "Vegetables": ["Carrot", "Leek"]]
+    static let roots = ["Fruit", "Vegetables", "Other"]
+
+    func sectionSnapshot(expanded: [String]) -> NSDiffableDataSourceSectionSnapshot<String> {
+        var snapshot = NSDiffableDataSourceSectionSnapshot<String>()
+        snapshot.append(Self.roots)
+        for (parent, children) in Self.children.sorted(by: { $0.key < $1.key }) { snapshot.append(children, to: parent) }
+        snapshot.expand(expanded)
+        return snapshot
+    }
+}
+
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -430,6 +447,45 @@ public enum CollectionFixtures {
         source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 2, section: 0): "item2",
                          IndexPath(item: 3, section: 0): "item3", IndexPath(item: 4, section: 0): "item4"]
         return make(layout: layout, source: source)
+    }
+
+    /// An outline in a list: parents with an outline disclosure, children under an expanded
+    /// parent; the steps collapse the first parent and expand the second.
+    public static let outline = UIKitFixture("uikit/collection/outline", size: CGSize(width: 320, height: 400),
+                                             model: { OutlineModel() },
+                                             steps: [UIKitFixtureStep("collapse") { model in
+                                                         model.source?.apply(model.sectionSnapshot(expanded: []), to: 0, animatingDifferences: false)
+                                                         model.collection?.layoutIfNeeded()
+                                                     },
+                                                     UIKitFixtureStep("expand") { model in
+                                                         model.source?.apply(model.sectionSnapshot(expanded: ["Vegetables"]), to: 0, animatingDifferences: false)
+                                                         model.collection?.layoutIfNeeded()
+                                                     }]) { model in
+        var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+        configuration.headerMode = .none
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        let registration = UICollectionView.CellRegistration<UICollectionViewListCell, String> { cell, _, item in
+            var content = cell.defaultContentConfiguration()
+            content.text = item
+            cell.contentConfiguration = content
+            cell.accessories = OutlineModel.children[item] != nil ? [.outlineDisclosure()] : []
+            // Only the roots are probed: they stay on show through the steps (a removed child's
+            // cell would keep reporting a stale frame, or its reused cell another item's).
+            if OutlineModel.roots.contains(item) { cell.probe("item-\(item)") }
+        }
+        let source = UICollectionViewDiffableDataSource<Int, String>(collectionView: collection) { collection, path, item in
+            collection.dequeueConfiguredReusableCell(using: registration, for: path, item: item)
+        }
+        var sections = NSDiffableDataSourceSnapshot<Int, String>()
+        sections.appendSections([0])
+        source.apply(sections, animatingDifferences: false)
+        source.apply(model.sectionSnapshot(expanded: ["Fruit"]), to: 0, animatingDifferences: false)
+        model.collection = collection
+        model.source = source
+        root.addSubview(collection.probe("collection"))
+        return root
     }
 }
 #endif

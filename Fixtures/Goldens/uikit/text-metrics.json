@@ -144,17 +144,35 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 31.5
     },
+    "style:body||Apple" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 44.5
+    },
     "style:body||Bluetooth" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 74
     },
+    "style:body||Carrot" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 48.5
+    },
     "style:body||Filled" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 40.5
+    },
+    "style:body||Fruit" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 34.5
     },
     "style:body||General" : {
       "firstBaseline" : 18.357620599453821,
@@ -167,6 +185,24 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 36
+    },
+    "style:body||Leek" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 36.5
+    },
+    "style:body||Other" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 43.5
+    },
+    "style:body||Pear" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 34.5
     },
     "style:body||Plain" : {
       "firstBaseline" : 18.357620599453821,
@@ -197,6 +233,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 48.5
+    },
+    "style:body||Vegetables" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 85
     },
     "style:body||Wi-Fi" : {
       "firstBaseline" : 18.357620599453821,

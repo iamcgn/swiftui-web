@@ -142,6 +142,8 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
 open class UICollectionViewListCell: UICollectionViewCell {
     open var accessories: [UICellAccessory] = [] { didSet { setNeedsLayout(); setNeedsDisplay() } }
     open var indentationLevel = 0 { didSet { setNeedsLayout() } }
+    /// An outline parent's state: the disclosure chevron points down when expanded.
+    var isOutlineExpanded = false { didSet { setNeedsDisplay() } }
     open var indentationWidth: CGFloat = 10
     open var indentsAccessories = true
     var listPosition: (first: Bool, last: Bool) = (true, true)
@@ -236,11 +238,19 @@ open class UICollectionViewListCell: UICollectionViewCell {
         if let accessory = accessories.first(where: { $0.displayed != .whenEditing }) {
             switch accessory.kind {
             case .disclosureIndicator, .outlineDisclosure:
-                let box = context.absoluteRect(CGRect(x: contentRight + 2, y: ((bounds.height - 14) / 2).rounded(), width: 10.5, height: 14))
                 var chevron = Path()
-                chevron.move(to: CGPoint(x: box.minX + 2, y: box.minY + 1.5))
-                chevron.addLine(to: CGPoint(x: box.maxX - 1.5, y: box.midY))
-                chevron.addLine(to: CGPoint(x: box.minX + 2, y: box.maxY - 1.5))
+                if case .outlineDisclosure = accessory.kind, isOutlineExpanded {
+                    // Expanded: the chevron points down (14 wide, 10.5 tall in the same box).
+                    let box = context.absoluteRect(CGRect(x: contentRight, y: ((bounds.height - 10.5) / 2).rounded(), width: 14, height: 10.5))
+                    chevron.move(to: CGPoint(x: box.minX + 1.5, y: box.minY + 2))
+                    chevron.addLine(to: CGPoint(x: box.midX, y: box.maxY - 1.5))
+                    chevron.addLine(to: CGPoint(x: box.maxX - 1.5, y: box.minY + 2))
+                } else {
+                    let box = context.absoluteRect(CGRect(x: contentRight + 2, y: ((bounds.height - 14) / 2).rounded(), width: 10.5, height: 14))
+                    chevron.move(to: CGPoint(x: box.minX + 2, y: box.minY + 1.5))
+                    chevron.addLine(to: CGPoint(x: box.maxX - 1.5, y: box.midY))
+                    chevron.addLine(to: CGPoint(x: box.minX + 2, y: box.maxY - 1.5))
+                }
                 list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round), ink))
             case .checkmark:
                 let box = context.absoluteRect(CGRect(x: contentRight + 2.5, y: ((bounds.height - 18) / 2 * 2).rounded() / 2, width: 19, height: 18))
@@ -261,9 +271,11 @@ open class UICollectionViewListCell: UICollectionViewCell {
             default: break
             }
         }
-        // The separator: 1 pt at the bottom, 16 in from both edges of the card, between rows only.
+        // The separator: 1 pt at the bottom, 16 in from both edges of the card (an indented
+        // outline child's starts with its content: 42 in the card at one level), between rows only.
         if !listPosition.last {
-            let line = context.absoluteRect(CGRect(x: 16, y: bounds.height - 1, width: bounds.width - 32, height: 1))
+            let left = 16 + CGFloat(indentationLevel) * indentationWidth
+            let line = context.absoluteRect(CGRect(x: left, y: bounds.height - 1, width: bounds.width - left - 16, height: 1))
             list.append(.fillRect(line, UIColor.separator.rgba(for: userStyle)))
         }
     }

@@ -143,6 +143,96 @@ public struct NSDiffableDataSourceSnapshot<SectionIdentifierType: Hashable & Sen
 
 /// The shared bookkeeping: the applied snapshot and lookups by index path.
 @MainActor
+
+/// A hierarchical snapshot of one section: items under parents, expanded or collapsed
+/// (`UICollectionViewDiffableDataSource.apply(_:to:)`, uikit/collection/outline).
+public struct NSDiffableDataSourceSectionSnapshot<ItemIdentifierType: Hashable & Sendable>: Sendable {
+    public private(set) var rootItems: [ItemIdentifierType] = []
+    private var children: [ItemIdentifierType: [ItemIdentifierType]] = [:]
+    private var parents: [ItemIdentifierType: ItemIdentifierType] = [:]
+    private var expanded: Set<ItemIdentifierType> = []
+
+    public init() {}
+
+    /// Every item, parents before their children, in outline order.
+    public var items: [ItemIdentifierType] { rootItems.flatMap { descendants(of: $0, onlyVisible: false) } }
+    /// The items an outline shows: children only under expanded parents.
+    public var visibleItems: [ItemIdentifierType] { rootItems.flatMap { descendants(of: $0, onlyVisible: true) } }
+
+    private func descendants(of item: ItemIdentifierType, onlyVisible: Bool) -> [ItemIdentifierType] {
+        var result = [item]
+        if !onlyVisible || expanded.contains(item) {
+            for child in children[item] ?? [] { result += descendants(of: child, onlyVisible: onlyVisible) }
+        }
+        return result
+    }
+
+    public mutating func append(_ items: [ItemIdentifierType], to parent: ItemIdentifierType? = nil) {
+        if let parent {
+            children[parent, default: []] += items
+            for item in items { parents[item] = parent }
+        } else {
+            rootItems += items
+        }
+    }
+
+    public mutating func insert(_ items: [ItemIdentifierType], before item: ItemIdentifierType) { insert(items, relativeTo: item, after: false) }
+    public mutating func insert(_ items: [ItemIdentifierType], after item: ItemIdentifierType) { insert(items, relativeTo: item, after: true) }
+
+    private mutating func insert(_ items: [ItemIdentifierType], relativeTo anchor: ItemIdentifierType, after: Bool) {
+        if let parent = parents[anchor], var siblings = children[parent], let index = siblings.firstIndex(of: anchor) {
+            siblings.insert(contentsOf: items, at: after ? index + 1 : index)
+            children[parent] = siblings
+            for item in items { parents[item] = parent }
+        } else if let index = rootItems.firstIndex(of: anchor) {
+            rootItems.insert(contentsOf: items, at: after ? index + 1 : index)
+        }
+    }
+
+    public mutating func delete(_ items: [ItemIdentifierType]) {
+        for item in items {
+            for child in children[item] ?? [] { delete([child]) }
+            children[item] = nil
+            expanded.remove(item)
+            if let parent = parents.removeValue(forKey: item) { children[parent]?.removeAll { $0 == item } }
+            rootItems.removeAll { $0 == item }
+        }
+    }
+
+    public mutating func deleteAll() { rootItems = []; children = [:]; parents = [:]; expanded = [] }
+    public mutating func expand(_ items: [ItemIdentifierType]) { expanded.formUnion(items) }
+    public mutating func collapse(_ items: [ItemIdentifierType]) { expanded.subtract(items) }
+    public func isExpanded(_ item: ItemIdentifierType) -> Bool { expanded.contains(item) }
+    public func isVisible(_ item: ItemIdentifierType) -> Bool { visibleItems.contains(item) }
+    public func contains(_ item: ItemIdentifierType) -> Bool { rootItems.contains(item) || parents[item] != nil }
+    public func parent(of item: ItemIdentifierType) -> ItemIdentifierType? { parents[item] }
+    public func level(of item: ItemIdentifierType) -> Int {
+        var level = 0
+        var current = item
+        while let parent = parents[current] { level += 1; current = parent }
+        return level
+    }
+    public func index(of item: ItemIdentifierType) -> Int? { items.firstIndex(of: item) }
+    /// Whether the item has children (an outline shows it with a disclosure).
+    public func hasChildren(_ item: ItemIdentifierType) -> Bool { !(children[item] ?? []).isEmpty }
+
+    /// The subtree under `parent`, with or without the parent itself.
+    public func snapshot(of parent: ItemIdentifierType, includingParent: Bool = false) -> NSDiffableDataSourceSectionSnapshot {
+        var result = NSDiffableDataSourceSectionSnapshot()
+        func copy(_ item: ItemIdentifierType, to target: ItemIdentifierType?) {
+            result.append([item], to: target)
+            if expanded.contains(item) { result.expand([item]) }
+            for child in children[item] ?? [] { copy(child, to: item) }
+        }
+        if includingParent {
+            copy(parent, to: nil)
+        } else {
+            for child in children[parent] ?? [] { copy(child, to: nil) }
+        }
+        return result
+    }
+}
+
 final class DiffableState<SectionIdentifierType: Hashable & Sendable, ItemIdentifierType: Hashable & Sendable> {
     var snapshot = NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>()
 
@@ -212,7 +302,7 @@ extension UICollectionView {
 
 /// A collection view data source driven by snapshots.
 @MainActor
-open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & Sendable, ItemIdentifierType: Hashable & Sendable>: NSObject, UICollectionViewDataSource {
+open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & Sendable, ItemIdentifierType: Hashable & Sendable>: NSObject, UICollectionViewDataSource, _OutlineToggling {
     public typealias CellProvider = (UICollectionView, IndexPath, ItemIdentifierType) -> UICollectionViewCell?
     public typealias SupplementaryViewProvider = (UICollectionView, String, IndexPath) -> UICollectionReusableView?
 
@@ -220,6 +310,19 @@ open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & 
     private let cellProvider: CellProvider
     private let state = DiffableState<SectionIdentifierType, ItemIdentifierType>()
     open var supplementaryViewProvider: SupplementaryViewProvider?
+    /// The outlines applied per section (`apply(_:to:)`), kept for levels and expansion.
+    private var sectionSnapshots: [SectionIdentifierType: NSDiffableDataSourceSectionSnapshot<ItemIdentifierType>] = [:]
+
+    /// Callbacks around expanding and collapsing outline items.
+    public struct SectionSnapshotHandlers {
+        public var shouldExpandItem: ((ItemIdentifierType) -> Bool)?
+        public var willExpandItem: ((ItemIdentifierType) -> Void)?
+        public var shouldCollapseItem: ((ItemIdentifierType) -> Bool)?
+        public var willCollapseItem: ((ItemIdentifierType) -> Void)?
+        public var snapshotForExpandingParent: ((ItemIdentifierType, NSDiffableDataSourceSectionSnapshot<ItemIdentifierType>) -> NSDiffableDataSourceSectionSnapshot<ItemIdentifierType>)?
+        public init() {}
+    }
+    open var sectionSnapshotHandlers = SectionSnapshotHandlers()
 
     public init(collectionView: UICollectionView, cellProvider: @escaping CellProvider) {
         self.collectionView = collectionView
@@ -247,6 +350,24 @@ open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & 
         apply(snapshot, animatingDifferences: false, completion: completion)
     }
 
+    /// Applies an outline to a section: the section shows the snapshot's visible items (the
+    /// section is appended when the snapshot lacks it).
+    open func apply(_ sectionSnapshot: NSDiffableDataSourceSectionSnapshot<ItemIdentifierType>, to section: SectionIdentifierType, animatingDifferences: Bool = true, completion: (() -> Void)? = nil) {
+        sectionSnapshots[section] = sectionSnapshot
+        var snapshot = state.snapshot
+        if !snapshot.sectionIdentifiers.contains(section) { snapshot.appendSections([section]) }
+        snapshot.deleteItems(snapshot.itemIdentifiers(inSection: section))
+        snapshot.appendItems(sectionSnapshot.visibleItems, toSection: section)
+        apply(snapshot, animatingDifferences: animatingDifferences, completion: completion)
+    }
+
+    open func snapshot(for section: SectionIdentifierType) -> NSDiffableDataSourceSectionSnapshot<ItemIdentifierType> {
+        if let kept = sectionSnapshots[section] { return kept }
+        var flat = NSDiffableDataSourceSectionSnapshot<ItemIdentifierType>()
+        flat.append(state.snapshot.itemIdentifiers(inSection: section))
+        return flat
+    }
+
     open func snapshot() -> NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType> { state.snapshot }
     open func itemIdentifier(for indexPath: IndexPath) -> ItemIdentifierType? { state.itemIdentifier(for: indexPath) }
     open func indexPath(for itemIdentifier: ItemIdentifierType) -> IndexPath? { state.indexPath(for: itemIdentifier) }
@@ -258,7 +379,40 @@ open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & 
     }
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let item = state.itemIdentifier(for: indexPath), let cell = cellProvider(collectionView, indexPath, item) else { return UICollectionViewCell(frame: .zero) }
+        // An outline's list cell indents by its level and shows its disclosure open or closed.
+        if let listCell = cell as? UICollectionViewListCell, let section = state.sectionIdentifier(for: indexPath.section), let outline = sectionSnapshots[section] {
+            listCell.indentationLevel = outline.level(of: item)
+            listCell.isOutlineExpanded = outline.isExpanded(item)
+        }
         return cell
+    }
+
+    /// Expands or collapses the item at `indexPath` when it is an outline parent; false when
+    /// the tap is not an outline's.
+    func toggleOutlineItem(at indexPath: IndexPath) -> Bool {
+        guard let item = state.itemIdentifier(for: indexPath), let section = state.sectionIdentifier(for: indexPath.section),
+              var outline = sectionSnapshots[section], outline.hasChildren(item) else { return false }
+        if outline.isExpanded(item) {
+            guard sectionSnapshotHandlers.shouldCollapseItem?(item) ?? true else { return true }
+            sectionSnapshotHandlers.willCollapseItem?(item)
+            outline.collapse([item])
+        } else {
+            guard sectionSnapshotHandlers.shouldExpandItem?(item) ?? true else { return true }
+            sectionSnapshotHandlers.willExpandItem?(item)
+            if let provider = sectionSnapshotHandlers.snapshotForExpandingParent {
+                let replacement = provider(item, outline.snapshot(of: item))
+                outline.delete(outline.snapshot(of: item).items)
+                outline.append(replacement.rootItems, to: item)
+                for root in replacement.rootItems {
+                    for child in replacement.snapshot(of: root).rootItems { outline.append([child], to: root) }
+                }
+            }
+            outline.expand([item])
+        }
+        // The parent's cell survives the diff untouched: its disclosure takes the new state here.
+        (collectionView?.cellForItem(at: indexPath) as? UICollectionViewListCell)?.isOutlineExpanded = outline.isExpanded(item)
+        apply(outline, to: section, animatingDifferences: true)
+        return true
     }
     public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         supplementaryViewProvider?(collectionView, kind, indexPath) ?? UICollectionReusableView(frame: .zero)

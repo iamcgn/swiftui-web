@@ -542,7 +542,11 @@ open class UICollectionView: UIScrollView {
     }
 
     private func handleTap(_ recognizer: UIGestureRecognizer) {
-        guard allowsSelection, recognizer.state == .ended, let path = indexPathForItem(at: recognizer.location(in: self)) else { return }
+        guard recognizer.state == .ended, let path = indexPathForItem(at: recognizer.location(in: self)) else { return }
+        // An outline parent's tap expands or collapses it rather than selecting it.
+        if let listCell = visibleCellsByPath[path] as? UICollectionViewListCell, listCell.accessories.contains(where: { if case .outlineDisclosure = $0.kind { return true } else { return false } }),
+           let outline = dataSource as? any _OutlineToggling, outline.toggleOutlineItem(at: path) { return }
+        guard allowsSelection else { return }
         if selected.contains(path), allowsMultipleSelection {
             deselectItem(at: path, animated: false)
             collectionDelegate?.collectionView(self, didDeselectItemAt: path)
@@ -832,4 +836,10 @@ final class OrthogonalScrollView: UIScrollView {
     override var contentOffset: CGPoint {
         didSet { if contentOffset != oldValue { onScroll?() } }
     }
+}
+
+/// A data source whose sections can be outlines (the diffable data source).
+@MainActor
+protocol _OutlineToggling: AnyObject {
+    func toggleOutlineItem(at indexPath: IndexPath) -> Bool
 }

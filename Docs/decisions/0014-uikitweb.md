@@ -389,3 +389,8 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   exposed a third: a view made under one interface style kept its layer's resolved colour on
   joining a tree of the other, so insertion now re-resolves dynamic colours when the styles
   differ (UIKit's trait change on moving to a window).
+- Step 35 (2026-09-11): outlines (`Docs/ROADMAP.md`, Phase 7 status 4.39). The section snapshot
+  is a value the data source keeps per section and flattens into the plain snapshot's items,
+  so expansion rides the existing animated diff. Fixture lesson: a golden's probes are read
+  from views, so a removed cell keeps reporting its last frame and a reused one another item's;
+  fixtures whose steps remove rows probe only the rows that stay.

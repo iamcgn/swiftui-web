@@ -217,6 +217,14 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Attributed", .system(size: 15, weight: "semibold"), lines: 0),
         UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 15), width: 150, lines: 0),
         UIKitTextRequest("Tilted", .system(size: 17, weight: "medium"), lines: 0),
+        // uikit/collection/outline (body rows, unbounded so any indentation fits)
+        UIKitTextRequest("Fruit", .style("body"), lines: 0),
+        UIKitTextRequest("Apple", .style("body"), lines: 0),
+        UIKitTextRequest("Pear", .style("body"), lines: 0),
+        UIKitTextRequest("Vegetables", .style("body"), lines: 0),
+        UIKitTextRequest("Carrot", .style("body"), lines: 0),
+        UIKitTextRequest("Leek", .style("body"), lines: 0),
+        UIKitTextRequest("Other", .style("body"), lines: 0),
         // uikit/collection/selfsizing (15 pt tags)
         UIKitTextRequest("Swift", .system(size: 15)),
         UIKitTextRequest("SwiftUI", .system(size: 15)),

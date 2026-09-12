@@ -2,6 +2,7 @@
 // items, applying one reloads the view to match, and cell registrations configure cells by item.
 import Testing
 import UIKit
+@testable import UIKitWebCore
 
 @Suite @MainActor struct DiffableTests {
     enum Section: Hashable, Sendable { case main, more }
@@ -97,5 +98,55 @@ import UIKit
         #expect(table.numberOfRows(inSection: 0) == 2)
         #expect(table.cellForRow(at: IndexPath(row: 0, section: 1))?.textLabel?.text == "Row 3")
         #expect(source.sectionIdentifier(for: 1) == .more)
+    }
+
+    /// Outlines (NSDiffableDataSourceSectionSnapshot): the section shows the visible items,
+    /// children indent by their level, and a tap on a parent expands or collapses it.
+    @Test func outlinesExpandAndCollapse() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.configureScreen(size: CGSize(width: 320, height: 400), scale: 2)
+        var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+        configuration.headerMode = .none
+        let collection = UICollectionView(frame: CGRect(x: 0, y: 0, width: 320, height: 400), collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration))
+        let registration = UICollectionView.CellRegistration<UICollectionViewListCell, String> { cell, _, item in
+            var content = cell.defaultContentConfiguration()
+            content.text = item
+            cell.contentConfiguration = content
+            cell.accessories = item == "Fruit" ? [.outlineDisclosure()] : []
+        }
+        let source = UICollectionViewDiffableDataSource<Int, String>(collectionView: collection) { collection, path, item in
+            collection.dequeueConfiguredReusableCell(using: registration, for: path, item: item)
+        }
+        var outline = NSDiffableDataSourceSectionSnapshot<String>()
+        outline.append(["Fruit", "Other"])
+        outline.append(["Apple", "Pear"], to: "Fruit")
+        #expect(outline.items == ["Fruit", "Apple", "Pear", "Other"])
+        #expect(outline.visibleItems == ["Fruit", "Other"])
+        #expect(outline.level(of: "Pear") == 1 && outline.parent(of: "Pear") == "Fruit")
+        outline.expand(["Fruit"])
+        source.apply(outline, to: 0, animatingDifferences: false)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        window.addSubview(collection)
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 320, height: 400))
+        #expect(source.snapshot().itemIdentifiers == ["Fruit", "Apple", "Pear", "Other"])
+        let apple = collection.cellForItem(at: IndexPath(item: 1, section: 0)) as? UICollectionViewListCell
+        #expect(apple?.indentationLevel == 1)
+        #expect(apple?.contentView.frame.minX == 10)
+        let fruit = collection.cellForItem(at: IndexPath(item: 0, section: 0)) as? UICollectionViewListCell
+        #expect(fruit?.isOutlineExpanded == true)
+        // A tap on the parent collapses it; the children go and it is not selected.
+        scene.pointerDown(at: CGPoint(x: 160, y: 60), type: .touch, time: 1)
+        scene.pointerUp(at: CGPoint(x: 160, y: 60), time: 1.05)
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(source.snapshot().itemIdentifiers == ["Fruit", "Other"])
+        #expect(source.snapshot(for: 0).isExpanded("Fruit") == false)
+        #expect(fruit?.isOutlineExpanded == false)
+        #expect(collection.indexPathsForSelectedItems == nil)
+        scene.pointerDown(at: CGPoint(x: 160, y: 60), type: .touch, time: 2)
+        scene.pointerUp(at: CGPoint(x: 160, y: 60), time: 2.05)
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(source.snapshot().itemIdentifiers == ["Fruit", "Apple", "Pear", "Other"])
     }
 }

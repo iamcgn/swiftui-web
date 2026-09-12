@@ -1,0 +1,93 @@
+{
+  "fixture" : "uikit\/collection\/outline",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "item-Fruit" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 35
+    },
+    "item-Other" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 259
+    },
+    "item-Vegetables" : {
+      "height" : 56,
+      "width" : 288,
+      "x" : 16,
+      "y" : 203
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "collection" : {
+          "height" : 400,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "item-Fruit" : {
+          "height" : 56,
+          "width" : 288,
+          "x" : 16,
+          "y" : 35
+        },
+        "item-Other" : {
+          "height" : 56,
+          "width" : 288,
+          "x" : 16,
+          "y" : 147
+        },
+        "item-Vegetables" : {
+          "height" : 56,
+          "width" : 288,
+          "x" : 16,
+          "y" : 91
+        }
+      },
+      "name" : "collapse"
+    },
+    {
+      "frames" : {
+        "collection" : {
+          "height" : 400,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "item-Fruit" : {
+          "height" : 56,
+          "width" : 288,
+          "x" : 16,
+          "y" : 35
+        },
+        "item-Other" : {
+          "height" : 56,
+          "width" : 288,
+          "x" : 16,
+          "y" : 259
+        },
+        "item-Vegetables" : {
+          "height" : 56,
+          "width" : 288,
+          "x" : 16,
+          "y" : 91
+        }
+      },
+      "name" : "expand"
+    }
+  ]
+}
