@@ -133,7 +133,9 @@ public final class UIColor: Hashable, @unchecked Sendable {
 
     /// The label colours keep the alphas the Catalyst goldens show (216/255 for the primary).
     public static let label = UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 216.0 / 255), dark: RGBA(r: 255, g: 255, b: 255, a: 216.0 / 255))
-    public static let secondaryLabel = UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 0.5), dark: RGBA(r: 255, g: 255, b: 255, a: 140.0 / 255))
+    /// (60, 60, 67) at 60 % and (235, 235, 245) at 60 %, as UIKit has them (133 grey over the
+    /// grouped ground, 141 over black: uikit/table/grouped, uikit/dark/table).
+    public static let secondaryLabel = UIColor(light: RGBA(r: 60, g: 60, b: 67, a: 0.6), dark: RGBA(r: 235, g: 235, b: 245, a: 0.6))
     public static let tertiaryLabel = UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 0.26), dark: RGBA(r: 255, g: 255, b: 255, a: 0.25))
     public static let quaternaryLabel = UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 0.1), dark: RGBA(r: 255, g: 255, b: 255, a: 0.1))
     public static let placeholderText = UIColor(light: RGBA(r: 189, g: 189, b: 190), dark: RGBA(r: 235, g: 235, b: 245, a: 0.3))

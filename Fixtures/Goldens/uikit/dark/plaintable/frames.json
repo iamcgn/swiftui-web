@@ -1,0 +1,33 @@
+{
+  "fixture" : "uikit\/dark\/plaintable",
+  "frames" : {
+    "row0" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 56
+    },
+    "row3" : {
+      "height" : 56,
+      "width" : 320,
+      "x" : 0,
+      "y" : 168
+    },
+    "table" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

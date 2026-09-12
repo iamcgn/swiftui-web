@@ -166,9 +166,13 @@ open class UIView: UIResponder, UITraitEnvironment {
             view.removeFromSuperviewQuietly()
         }
         if oldWindow !== newWindow { view.willMoveTree(toWindow: newWindow) }
+        let previousTraits = view.traitCollection
         let position = min(index, subviews.count)
         subviews.insert(view, at: position)
         view.superview = self
+        // A view made under other traits (a cell built before it joins a dark window) resolves
+        // its dynamic colours again for the traits it inherits here, as UIKit does on moving.
+        if view.traitCollection.userInterfaceStyle != previousTraits.userInterfaceStyle { view.propagateTraitChange(from: previousTraits) }
         if view.layer.superlayer === layer {
             layer.move(view.layer, to: position)
         } else {

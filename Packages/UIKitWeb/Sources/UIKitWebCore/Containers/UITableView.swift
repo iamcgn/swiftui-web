@@ -748,6 +748,8 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 
     private func place(_ cell: UITableViewCell, at path: IndexPath, frame: CGRect) {
         cell.frame = frame
+        // Grouped cards are the secondary grouped background (white; 28 grey in the dark).
+        if isGrouped, cell.backgroundColor == .systemBackground { cell.backgroundColor = .secondarySystemGroupedBackground }
         cell.setSelected(selected.contains(path), animated: false)
         configureEditing(of: cell, at: path)
         if path != swipedRow { cell.closeSwipe(animated: false) }
@@ -811,7 +813,7 @@ open class UITableViewHeaderFooterView: UIView {
         didSet {
             // The fonts before the first layout, so the table can measure the title.
             textLabel?.font = isHeader ? .systemFont(ofSize: 17, weight: .semibold) : .systemFont(ofSize: 13)
-            textLabel?.textColor = isHeader ? .label : .secondaryLabel
+            textLabel?.textColor = isHeader && style == .plain ? .label : .secondaryLabel
         }
     }
     var style: UITableView.Style = .plain
@@ -841,7 +843,9 @@ open class UITableViewHeaderFooterView: UIView {
         guard let label = textLabel else { return }
         if isHeader {
             label.font = .systemFont(ofSize: 17, weight: .semibold)
-            label.textColor = .label
+            // A grouped header's title is in the secondary label colour (133 grey on the light
+            // ground, 141 on black), a plain one's in the label colour.
+            label.textColor = style == .plain ? .label : .secondaryLabel
             let size = label.sizeThatFits(CGSize(width: contentView.bounds.width - 32, height: .greatestFiniteMagnitude))
             let y: CGFloat = style == .plain ? 2 : (bounds.height > 40 ? 27 : 9.5)
             label.frame = CGRect(x: 16, y: y, width: size.width, height: style == .plain ? 25 : 24.5)

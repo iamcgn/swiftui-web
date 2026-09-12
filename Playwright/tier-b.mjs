@@ -111,8 +111,8 @@ async function comparePixels(name, shotPath, goldenPng) {
   let differing = 0;
   const diff = new PNG({ width: a.width, height: a.height });
   // Compare composited onto the window's colour: the goldens have a transparent background, and
-  // an iPhone draws a black window behind a dark fixture (ios/dark/).
-  const ground = name.startsWith('ios/dark/') ? 0 : 255;
+  // an iPhone draws a black window behind a dark fixture (ios/dark/, uikit/dark/).
+  const ground = name.startsWith('ios/dark/') || name.startsWith('uikit/dark/') ? 0 : 255;
   const over = (data, i, c) => { const alpha = data[i + 3] / 255; return Math.round(data[i + c] * alpha + ground * (1 - alpha)); };
   for (let i = 0; i < a.data.length; i += 4) {
     const d = Math.max(Math.abs(over(a.data, i, 0) - over(b.data, i, 0)), Math.abs(over(a.data, i, 1) - over(b.data, i, 1)),

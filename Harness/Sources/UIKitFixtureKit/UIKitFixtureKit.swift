@@ -29,7 +29,7 @@ public struct UIKitFixtureInstance {
 /// A UIKit fixture: a name (`uikit/…`, its goldens directory), a size, and the root view or
 /// controller it shows.
 public struct UIKitFixture: Sendable {
-    public let name: String
+    public private(set) var name: String
     public let size: CGSize
     public let stepNames: [String]
     public let instantiate: @MainActor @Sendable () -> UIKitFixtureInstance
@@ -42,6 +42,13 @@ public struct UIKitFixture: Sendable {
     public func style(_ style: UIUserInterfaceStyle) -> UIKitFixture {
         var copy = self
         copy.style = style
+        return copy
+    }
+
+    /// The same fixture under another name (a dark twin of a light fixture).
+    public func renamed(_ name: String) -> UIKitFixture {
+        var copy = self
+        copy.name = name
         return copy
     }
 

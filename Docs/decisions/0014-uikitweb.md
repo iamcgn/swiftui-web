@@ -380,3 +380,12 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   Reordering rides the same recognizer: a pan starting on a grip lifts the row instead; the
   begin check must use where the finger went down (location minus translation), since the pan
   begins after the slop.
+- Step 34 (2026-09-11): dark appearance (`Docs/ROADMAP.md`, Phase 7 status 4.38). Rather than
+  new content, six light fixtures are declared again dark through a `renamed(_:)` on the
+  fixture kit (both twins), so the goldens measure only what the appearance changes. Two
+  colour errors hid inside the light tolerances until the dark twins exposed them: grouped
+  cards drew the cell's default `systemBackground` (white in the light, black in the dark) and
+  grouped headers drew in the label colour; both are fixed for both appearances. The browser
+  exposed a third: a view made under one interface style kept its layer's resolved colour on
+  joining a tree of the other, so insertion now re-resolves dynamic colours when the styles
+  differ (UIKit's trait change on moving to a window).
