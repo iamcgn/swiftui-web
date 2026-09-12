@@ -377,3 +377,6 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   recognizer, which failed on movement but reset to possible at once and so recognised at the
   end of a drag. Two test gotchas: a data source held only by the test's tuple is deallocated
   (the table keeps it weakly), and every stored-property change needs a package clean.
+  Reordering rides the same recognizer: a pan starting on a grip lifts the row instead; the
+  begin check must use where the finger went down (location minus translation), since the pan
+  begins after the slop.

@@ -16,9 +16,16 @@ import UIKit
         func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
             cell.textLabel?.text = rows[indexPath.row]
+            cell.showsReorderControl = true
             return cell
         }
         func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle { indexPath.row == 2 ? .insert : .delete }
+        var moved: [(IndexPath, IndexPath)] = []
+        func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool { true }
+        func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+            moved.append((sourceIndexPath, destinationIndexPath))
+            rows.insert(rows.remove(at: sourceIndexPath.row), at: destinationIndexPath.row)
+        }
         func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
             committed.append((editingStyle, indexPath))
             if editingStyle == .delete { rows.remove(at: indexPath.row); tableView.deleteRows(at: [indexPath], with: .fade) }
@@ -133,5 +140,31 @@ import UIKit
         #expect(source.committed.map(\.0) == [.insert, .delete])
         #expect(source.rows.first == "b")
         #expect(table.cellForRow(at: IndexPath(row: 0, section: 0))?.textLabel?.text == "b")
+    }
+
+    @Test func draggingTheGripReordersRows() {
+        let (table, source) = table()
+        defer { withExtendedLifetime(source) {} }
+        table.setEditing(true, animated: false)
+        UIKitScene.shared.layout(in: CGSize(width: 320, height: 300))
+        let first = table.cellForRow(at: IndexPath(row: 0, section: 0))!
+        // Drag row 0's grip (at the right edge) down past the third row's middle.
+        let scene = UIKitScene.shared
+        scene.pointerDown(at: CGPoint(x: 300, y: 22), type: .touch, time: 10)
+        scene.pointerMoved(to: CGPoint(x: 300, y: 60), time: 10.05)
+        #expect(table.reorderingRow == IndexPath(row: 0, section: 0))
+        scene.pointerMoved(to: CGPoint(x: 300, y: 120), time: 10.1)
+        #expect(first.frame.minY == 98)
+        _ = scene.advanceFrame(elapsed: 0.3)
+        // The second and third rows have moved up to make way.
+        #expect(table.cellForRow(at: IndexPath(row: 1, section: 0))?.frame.minY == 0)
+        scene.pointerUp(at: CGPoint(x: 300, y: 120), time: 10.3)
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(source.moved.map { $0.0.row } == [0] && source.moved.map { $0.1.row } == [2])
+        #expect(source.rows.prefix(3) == ["b", "c", "a"])
+        #expect(table.reorderingRow == nil)
+        #expect(table.cellForRow(at: IndexPath(row: 2, section: 0)) === first)
+        #expect(first.frame.minY == 88)
+        #expect(table.cellForRow(at: IndexPath(row: 2, section: 0))?.textLabel?.text == "a")
     }
 }

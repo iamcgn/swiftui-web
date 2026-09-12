@@ -113,11 +113,13 @@ half the buttons' width or on a flick, else closed; a swipe past the row's midpo
 the first action when the configuration allows; a tap on a button runs its handler and closes
 the row; a tap elsewhere closes it; vertical pans scroll. The delete control reveals the Delete
 button, the insert control commits an insert. `EditingTests` drive the scene's pointer through
-all of it. Not measured: the buttons' widths and font (UIKit's are approximated), the leading
-side's look, reordering by dragging the grip (the data source's move is wired but nothing
-drags yet).
+all of it. Reordering: a pan that starts on a movable row's grip lifts the row (it follows
+the finger within its section, above the others), the rows whose middles it crosses make way
+over 0.2 s, and on release the data source's `moveRowAt` runs and the rows settle into the new
+order through the batch-update path. Not measured: the buttons' widths and font (UIKit's are
+approximated), the leading side's look, the lifted row's shadow (none is drawn).
 
-Open: reordering by drag, `UIListContentConfiguration` / `contentConfiguration`, section index titles,
+Open: `UIListContentConfiguration` / `contentConfiguration`, section index titles,
 `UICollectionView`, the grouped (non-inset) style's exact geometry, dark appearance.
 
 ## Content configurations (2026-09-11)

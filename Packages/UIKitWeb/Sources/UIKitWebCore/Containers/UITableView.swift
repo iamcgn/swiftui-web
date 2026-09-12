@@ -149,10 +149,15 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
             isEditing = editing
         }
     }
-    /// The row whose swipe actions are open, and the recognizer that reveals them.
+    /// The row whose swipe actions are open, and the recognizer that reveals them (and drags a
+    /// row by its reorder grip in editing mode).
     private(set) var swipedRow: IndexPath?
     private var swipeRecognizer: UIPanGestureRecognizer!
     private var swipeTrailing = true
+    /// The row being dragged by its grip, where it started and where it would drop.
+    private(set) var reorderingRow: IndexPath?
+    private var reorderTarget: IndexPath?
+    private var reorderStartFrame = CGRect.zero
     open var cellLayoutMarginsFollowReadableWidth = false
     open var insetsContentViewsToSafeArea = true
 
@@ -280,9 +285,21 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
     open override func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
         guard recognizer === swipeRecognizer, let pan = recognizer as? UIPanGestureRecognizer else { return super.gestureRecognizerShouldBegin(recognizer) }
         let translation = pan.translation(in: self)
+        // Where the finger went down (the pan begins after the slop).
+        let current = pan.location(in: self)
+        let location = CGPoint(x: current.x - translation.x, y: current.y - translation.y)
+        // In editing mode a pan starting on a movable row's grip drags the row.
+        if isEditing, let path = indexPathForRow(at: location), let cell = visibleCellsByPath[path], cell.showsGrip,
+           location.x >= cell.frame.maxX - UITableViewCell.reorderControlWidth - 24 {
+            reorderingRow = path
+            reorderTarget = path
+            reorderStartFrame = cell.frame
+            bringSubviewToFront(cell)
+            return true
+        }
         guard abs(translation.x) > abs(translation.y) else { return false }
         if let open = swipedRow, visibleCellsByPath[open] != nil { return true }
-        guard !isEditing || true, let path = indexPathForRow(at: pan.location(in: self)), let cell = visibleCellsByPath[path] else { return false }
+        guard let path = indexPathForRow(at: location), let cell = visibleCellsByPath[path] else { return false }
         let trailing = translation.x < 0
         guard let configuration = trailing ? tableDelegate?.tableView(self, trailingSwipeActionsConfigurationForRowAt: path) ?? defaultDeleteActions(for: path)
                                           : tableDelegate?.tableView(self, leadingSwipeActionsConfigurationForRowAt: path), !configuration.actions.isEmpty else { return false }
@@ -308,6 +325,7 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
     }
 
     private func handleSwipe(_ pan: UIPanGestureRecognizer) {
+        if reorderingRow != nil { handleReorder(pan); return }
         guard let path = swipedRow, let cell = visibleCellsByPath[path] else { return }
         let translation = pan.translation(in: self)
         switch pan.state {
@@ -319,6 +337,51 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
                 guard let self else { return }
                 if !open { self.swipedRow = nil; self.tableDelegate?.tableView(self, didEndEditingRowAt: path) }
             }
+        default: break
+        }
+    }
+
+    /// The dragged row follows the finger within its section; the rows it passes make way,
+    /// and on release the data source moves it and the rows settle.
+    private func handleReorder(_ pan: UIPanGestureRecognizer) {
+        guard let origin = reorderingRow, let cell = visibleCellsByPath[origin] else { return }
+        let translation = pan.translation(in: self)
+        switch pan.state {
+        case .began, .changed:
+            let count = rowCounts[origin.section] ?? 1
+            guard let firstFrame = rowFrames[IndexPath(row: 0, section: origin.section)], let lastFrame = rowFrames[IndexPath(row: count - 1, section: origin.section)] else { return }
+            let y = min(max(reorderStartFrame.minY + translation.y, firstFrame.minY), lastFrame.maxY - reorderStartFrame.height)
+            cell.frame.origin.y = y
+            // The slot whose centre the dragged row's centre has crossed.
+            let centre = y + reorderStartFrame.height / 2
+            var target = origin
+            for row in 0..<count {
+                let path = IndexPath(row: row, section: origin.section)
+                guard let frame = rowFrames[path] else { continue }
+                if row < origin.row, centre < frame.midY { target = path; break }
+                if row > origin.row, centre > frame.midY { target = path }
+            }
+            guard target != reorderTarget else { return }
+            reorderTarget = target
+            UIView.animate(withDuration: 0.2) {
+                for (path, other) in self.visibleCellsByPath where path != origin {
+                    guard let frame = self.rowFrames[path] else { continue }
+                    var shifted = frame
+                    if origin.row < target.row, path.row > origin.row, path.row <= target.row { shifted.origin.y -= self.reorderStartFrame.height }
+                    if origin.row > target.row, path.row >= target.row, path.row < origin.row { shifted.origin.y += self.reorderStartFrame.height }
+                    other.frame = shifted
+                }
+            }
+        case .ended, .cancelled, .failed:
+            let target = reorderTarget ?? origin
+            reorderingRow = nil
+            reorderTarget = nil
+            if target != origin { dataSource?.tableView(self, moveRowAt: origin, to: target) }
+            var update = BatchUpdateMapping(oldCounts: (0..<(rowCounts.keys.max().map { $0 + 1 } ?? 0)).map { rowCounts[$0] ?? 0 })
+            update.moves = [origin: target]
+            let retained = update.retained()
+            animateUpdate(retained: target == origin ? [:] : retained.mapping, replaced: [], completion: nil)
+            if target == origin { UIView.animate(withDuration: batchUpdateDuration) { cell.frame = self.reorderStartFrame } }
         default: break
         }
     }
