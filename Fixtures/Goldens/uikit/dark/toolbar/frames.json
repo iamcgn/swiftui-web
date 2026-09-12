@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/dark\/toolbar",
+  "frames" : {
+    "bottom" : {
+      "height" : 48,
+      "width" : 320,
+      "x" : 0,
+      "y" : 352
+    },
+    "compact" : {
+      "height" : 48,
+      "width" : 0,
+      "x" : 16,
+      "y" : 120
+    },
+    "top" : {
+      "height" : 48,
+      "width" : 320,
+      "x" : 0,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

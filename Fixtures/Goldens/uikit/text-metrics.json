@@ -1002,6 +1002,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 41.5
     },
+    "system:17:400:default|;l1|00:00 AM" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 73.5
+    },
     "system:17:400:default|;l1|0:00 PM" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1013,6 +1019,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 62
+    },
+    "system:17:400:default|;l1|11:30 AM" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 67.5
     },
     "system:17:400:default|;l1|12:34:56" : {
       "firstBaseline" : 16.1865234375,

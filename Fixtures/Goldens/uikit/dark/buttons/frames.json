@@ -1,0 +1,45 @@
+{
+  "fixture" : "uikit\/dark\/buttons",
+  "frames" : {
+    "disabled" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 16,
+      "y" : 56
+    },
+    "filled" : {
+      "height" : 40.5,
+      "width" : 64.5,
+      "x" : 16,
+      "y" : 228
+    },
+    "gray" : {
+      "height" : 40.5,
+      "width" : 60,
+      "x" : 16,
+      "y" : 140
+    },
+    "plain" : {
+      "height" : 40.5,
+      "width" : 60.5,
+      "x" : 16,
+      "y" : 96
+    },
+    "system" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 16,
+      "y" : 16
+    },
+    "tinted" : {
+      "height" : 40.5,
+      "width" : 72.5,
+      "x" : 16,
+      "y" : 184
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

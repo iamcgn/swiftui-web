@@ -93,8 +93,10 @@ open class UIDatePicker: UIControl {
     }
     private var compactHeight: CGFloat { showsTime ? 40 : 38.5 }
 
-    /// A compact picker fits both capsules whatever its mode (212.5 for 11 September 2026,
-    /// 14:30), the capsules right-aligned; a wheels picker is 320 × 216.
+    /// A compact picker fits both capsules whatever its mode (223.5 for 11 September 2026,
+    /// 11:30: 122 + 4 + 97.5), the capsules right-aligned; a wheels picker is 320 × 216. iOS 26
+    /// sizes a date-only or time-only picker's hidden capsule for the current time instead
+    /// (the fixture pins those widths); the picker's own time stands in for it here.
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
         switch datePickerStyle {
         case .wheels: return CGSize(width: 320, height: 216)

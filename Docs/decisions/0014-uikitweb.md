@@ -417,3 +417,8 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   The content view's third set of metrics (after the collection list's and the plain
   constructors'): a table cell's rows are 57 and 76.5, a point off the collection list's 56
   and 79.5, and a symbol image takes a fixed 28 × 27 slot rather than its own size.
+- Step 41 (2026-09-11): dark appearance, round two (`Docs/ROADMAP.md`, Phase 7 status 4.45).
+  Seven more twins passed as they were; the one surprise was the compact date picker, whose
+  dark twin came out 10 wider than its morning light golden with the same fixed date: iOS 26
+  sizes a date-only or time-only picker's hidden capsule for the current time (3 PM has one
+  hour digit, 10 PM two). The fixture pins those pickers' widths so the goldens hold all day.

@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/dark\/tabs",
+  "frames" : {
+    "content" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "label" : {
+      "height" : 20.5,
+      "width" : 108.5,
+      "x" : 16,
+      "y" : 16
+    },
+    "tabBar" : {
+      "height" : 83,
+      "width" : 320,
+      "x" : 0,
+      "y" : 317
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

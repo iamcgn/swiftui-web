@@ -279,6 +279,8 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Sep 11, 2026", .system(size: 17)),
         UIKitTextRequest("2:30\u{202F}PM", .system(size: 17)),   // UIKit joins the time and its period with a narrow no-break space
         UIKitTextRequest("0:00\u{202F}PM", .system(size: 17)),   // the time label's monospaced digits: every digit as wide as a zero
+        UIKitTextRequest("11:30\u{202F}AM", .system(size: 17)),
+        UIKitTextRequest("00:00\u{202F}AM", .system(size: 17)),
         // uikit/nav/toolbar, uikit/nav/search
         UIKitTextRequest("Files", .system(size: 17, weight: "semibold")),
         UIKitTextRequest("Items", .system(size: 17, weight: "semibold")),

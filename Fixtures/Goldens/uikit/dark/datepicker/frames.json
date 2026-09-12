@@ -1,5 +1,5 @@
 {
-  "fixture" : "uikit\/datepicker\/compact",
+  "fixture" : "uikit\/dark\/datepicker",
   "frames" : {
     "date" : {
       "height" : 38.5,

@@ -33,6 +33,11 @@ are within tolerance in every tier (0.2–1.9 % on macOS), so the system colours
 Tier B composites a `uikit/dark/` golden onto black, as it does `ios/dark/` (the captures are
 transparent where UIKit draws materials).
 
-Open: dark samples of the text field, text view, date picker, toolbar and search bar, tab bar;
-`overrideUserInterfaceStyle` on a view rather than the window; `UITraitCollection`
-`userInterfaceStyle` observation.
+A second round (the same day) added the text view, toolbar, search bar, tab bar, compact date
+picker, buttons and the basic controls (`uikit/dark/textview`, `toolbar`, `search`, `tabs`,
+`datepicker`, `buttons`, `basiccontrols`), all within tolerance without a colour change: the
+dark values already measured for the light twins' materials hold.
+
+Open: `overrideUserInterfaceStyle` on a view rather than the window; `UITraitCollection`
+`userInterfaceStyle` observation; dark samples of the pickers' wheels and presentations other
+than the alert.
