@@ -537,8 +537,16 @@ enum PainterScript {
         }
         return w;
       }
+      // A display list painted into a canvas of its own, as a PNG data URL (UIImage.pngData).
+      function rasterize(buf, strings, dpr, w, h) {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(w * dpr));
+        canvas.height = Math.max(1, Math.round(h * dpr));
+        paint(canvas.getContext('2d'), buf, strings, dpr, w, h);
+        return canvas.toDataURL('image/png');
+      }
       window.__swiftuiweb = {
-        paint: paint, measure: measure, imageState: imageState, version: 4,
+        paint: paint, rasterize: rasterize, measure: measure, imageState: imageState, version: 4,
         setImageLoadHandler: function (handler) { onImageLoad = handler; },
         overlayAdd: function (id, element) { overlay.set(id, element.style); },
         overlayRemove: function (id) { overlay.delete(id); },

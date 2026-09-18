@@ -16,6 +16,13 @@ the UIKit labels' strings are measured by a real `UILabel` into `uikit/text-metr
 - `static func _layoutOptions(_:) -> _PlatformViewRepresentableLayoutOptions` on both, the
   default `[.propagatesSafeArea]` (SwiftUI's SPI, as on iOS 17).
 - `Color(uiColor:)` (and `Color(_ uiColor:)`), `Image(uiImage:)`, `Font(_ uiFont:)`.
+  `Image(uiImage:)` of an image an image context drew (`UIGraphicsImageRenderer`,
+  2026-09-18, `ios/representable/renderedimage`) shows the recording at its size, scaled when
+  resizable, and its silhouette in the foreground colour as a template (UIKit's
+  `withRenderingMode(.alwaysTemplate)` or SwiftUI's `renderingMode(.template)`); a tint set
+  with `withTintColor` alone keeps the drawing's colours, as measured. `UIImage.pngData()`
+  rasterises the recording through the host (`ImageRasterizer`: a canvas of its own in the
+  browser, the CoreGraphics painter natively; nil headless and for catalog images and symbols).
 - `import SwiftUI` re-exports `UIKit` (UIKitWeb's) on every platform, as Apple's does on iOS, so
   a file that names `UIColor` or declares a representable compiles unchanged. The `SwiftUI`
   module depends on `SwiftUIWebUIKit`, which depends on `SwiftUIWebCore` and `UIKitWebCore`.

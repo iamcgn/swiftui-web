@@ -1,3 +1,8 @@
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 // UIImage and UIImageView: catalog images (decision 0011) and symbols, drawn by content mode.
 
 /// An object that manages image data in your app.
@@ -56,6 +61,20 @@ public final class UIImage: Hashable, @unchecked Sendable {
     public func withTintColor(_ color: UIColor, renderingMode: RenderingMode = .alwaysOriginal) -> UIImage {
         UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: renderingMode, scale: scale, size: size, tint: color, symbolConfiguration: symbolConfiguration, drawing: drawing)
     }
+
+    /// The image as PNG data: a recorded drawing rasterised by the host (nil without a host
+    /// rasteriser, and for catalog images and symbols, whose files the host already has).
+    @MainActor
+    public func pngData() -> Data? {
+        guard let drawing, let rasterizer = UIKitScene.shared.imageRasterizer else { return nil }
+        var list = DisplayList()
+        for command in drawing.commands { list.append(command) }
+        return rasterizer(list, drawing.size, drawing.scale)
+    }
+
+    /// JPEG is not made in this substrate: the PNG data, the quality ignored.
+    @MainActor
+    public func jpegData(compressionQuality: CGFloat) -> Data? { pngData() }
 
     public func withConfiguration(_ configuration: SymbolConfiguration) -> UIImage {
         let pointSize = configuration.pointSize ?? 17

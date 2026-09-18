@@ -1,3 +1,8 @@
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import WebGraphics
 #if os(WASI)
 import JavaScriptKit
@@ -89,6 +94,17 @@ public final class CanvasSceneHost {
             return .undefined
         }
         scene.imageLoader = CanvasImageLoader(bridge: bridge)
+        // A recorded drawing becomes PNG data through a canvas of its own (`UIImage.pngData()`).
+        let painterBridge = bridge
+        scene.imageRasterizer = { list, size, scale in
+            let encoded = DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)
+            let buffer = JSTypedArray<Double>(encoded.ops)
+            let strings = JSObject.global.Array.function!.new()
+            for s in encoded.strings { _ = strings.push!(s) }
+            guard let url = painterBridge.rasterize!(buffer, strings, scale, size.width, size.height).string,
+                  let comma = url.firstIndex(of: ",") else { return nil }
+            return Data(base64Encoded: String(url[url.index(after: comma)...]))
+        }
         closures.append(imageLoaded)
         _ = bridge.setImageLoadHandler!(imageLoaded)
         // Copies reach the system clipboard when the page may write it.

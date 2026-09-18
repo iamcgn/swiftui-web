@@ -1167,7 +1167,10 @@
         {
           "api": "Color(uiColor:) / Image(uiImage:) / Font(_ uiFont:)",
           "status": "partial",
-          "notes": "A UIColor resolves per appearance; a UIImage names its catalog image or symbol (template rendering kept); a UIFont maps to the text style or size and weight"
+          "notes": "A UIColor resolves per appearance; a UIImage names its catalog image or symbol (template rendering kept) or carries an image context's recording, replayed at its size, scaled when resizable, its silhouette as a template, with pngData() through the host's rasteriser; a UIFont maps to the text style or size and weight",
+          "fixtures": [
+            "ios/representable/renderedimage"
+          ]
         },
         {
           "api": "UIHostingController",

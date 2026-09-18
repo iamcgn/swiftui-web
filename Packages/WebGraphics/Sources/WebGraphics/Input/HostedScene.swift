@@ -3,6 +3,8 @@
 // loop, the pixels and the platform's input and accessibility; the scene owns layout, painting
 // into a display list, and what the input means.
 
+import Foundation
+
 /// What a host drives: installs its services, asks for frames, forwards input, and mirrors the
 /// semantics tree into the platform's accessibility and text-input facilities.
 @MainActor
@@ -15,6 +17,9 @@ public protocol HostedScene: AnyObject {
     var assetCatalog: AssetCatalog { get set }
     /// The host's image fetcher for URLs (`_ImageLoading`).
     var imageLoader: (any _ImageLoading)? { get set }
+    /// Rasterises a display list of `size` points at `scale` into PNG data (a platform image's
+    /// `pngData()`); nil where the host cannot.
+    var imageRasterizer: ImageRasterizer? { get set }
     /// The system appearance, now and whenever it changes.
     var hostColorScheme: ColorScheme { get set }
     /// Writes text to the system clipboard, when the host may.
@@ -76,3 +81,6 @@ public protocol HostedScene: AnyObject {
     func textFieldDidSubmit(_ semanticsIdentifier: Int)
     func textField(_ semanticsIdentifier: Int, focused: Bool)
 }
+
+/// Turns a display list in a space of `size` points into PNG data at `scale` pixels per point.
+public typealias ImageRasterizer = @MainActor (_ list: DisplayList, _ size: CGSize, _ scale: CGFloat) -> Data?

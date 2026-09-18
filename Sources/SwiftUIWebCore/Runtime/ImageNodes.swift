@@ -45,6 +45,10 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber {
             resource = environment.assetCatalog.image(named: name)
             symbol = nil
             symbolSize = nil
+        case .drawing:
+            resource = nil
+            symbol = nil
+            symbolSize = nil
         case .url(let url, let pixelSize, let scale):
             // A loaded URL is a one-variant resource the painters fetch by its URL.
             resource = ImageResource(name: url, variants: [ImageVariant(file: url, scale: scale, pixelWidth: Int(pixelSize.width), pixelHeight: Int(pixelSize.height))])
@@ -85,6 +89,7 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber {
             return CGSize(width: (size * 1.18).rounded(), height: (size * 1.145).rounded())
         }
         if let symbolSize { return CGSize(width: symbolSize.width, height: symbolSize.height) }
+        if case .drawing(let drawing) = view.source { return drawing.size }
         return resource?.pointSize(scheme: environment.colorScheme, idiom: environment.assetIdiom) ?? .zero
     }
 
@@ -138,6 +143,16 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber {
         }
         if case .system = view.source {
             paintSymbol(into: &list, context: context)
+            return
+        }
+        if case .drawing(let drawing) = view.source {
+            // The recording replayed into the frame; a template takes the foreground colour (a
+            // `withTintColor` tint alone leaves the colours, as measured:
+            // ios/representable/renderedimage).
+            let bounds = absoluteBounds(context)
+            guard bounds.width > 0, bounds.height > 0 else { return }
+            let tint: RGBA? = isTemplate ? (environment.foregroundColor ?? .primary).resolve(in: environment) : nil
+            for command in drawing.commands(in: bounds, tint: tint) { list.append(command) }
             return
         }
         guard let resource,

@@ -240,13 +240,14 @@
       "framework": "Interop",
       "area": "Bridging",
       "title": "Image(uiImage:) for rendered images",
-      "detail": "A `UIImage` from `UIGraphicsImageRenderer` (a recording) drawn by SwiftUI's `Image`, with `withTintColor` and `pngData()` (the recording rasterised by the host).",
+      "detail": "ios/representable/renderedimage: a UIImage from UIGraphicsImageRenderer drawn by Image (at its size, resizable, as a template in the foreground colour; withTintColor alone keeps the colours, as measured), and pngData() rasterised by the host (a canvas in the browser, CoreGraphics natively).",
       "kind": "missing",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Drawing.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-measure-rest",

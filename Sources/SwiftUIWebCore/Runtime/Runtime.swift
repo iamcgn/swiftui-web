@@ -84,6 +84,9 @@ public final class Runtime {
     package var toolbar: ToolbarChromeNode?
     package var searchSources: [SearchSource] = []
     package var _imageLoader: (any _ImageLoading)?
+    /// The host's rasteriser for recorded drawings (`UIImage.pngData()` inside a representable;
+    /// hosted trees take it from the runtime).
+    public var imageRasterizer: ImageRasterizer?
     package var asyncImageNodes: [WeakAsyncImageNode] = []
 
     // Animation (Runtime/AnimationNodes.swift)

@@ -1,0 +1,45 @@
+{
+  "fixture" : "ios\/representable\/renderedimage",
+  "frames" : {
+    "natural" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 100,
+      "y" : 14
+    },
+    "resized" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 100,
+      "y" : 62
+    },
+    "stack" : {
+      "height" : 272,
+      "width" : 120,
+      "x" : 100,
+      "y" : 14
+    },
+    "swiftuiTemplate" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 100,
+      "y" : 246
+    },
+    "template" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 100,
+      "y" : 198
+    },
+    "tinted" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 100,
+      "y" : 150
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

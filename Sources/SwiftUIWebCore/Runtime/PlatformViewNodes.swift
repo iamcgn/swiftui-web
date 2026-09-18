@@ -17,6 +17,8 @@ package protocol _PlatformViewTree: AnyObject {
     /// Gives the tree the runtime's services before it measures or paints (the text engine that
     /// answers the host's strings, the app's asset catalog).
     func prepare(textEngine: any TextEngine, assetCatalog: AssetCatalog)
+    /// The host's rasteriser for recorded drawings, if any. Set by the node.
+    var imageRasterizer: ImageRasterizer? { get set }
     /// Lays the tree out in `size`, with `safeAreaInsets` as the part of it under the host's
     /// bars and insets, in the host's `environment` (the traits the tree resolves against).
     func layout(size: CGSize, safeAreaInsets: EdgeInsets, environment: EnvironmentValues)
@@ -119,6 +121,7 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
 
     private func prepareTree() {
         tree.prepare(textEngine: runtime.textEngine, assetCatalog: runtime.assetCatalog)
+        tree.imageRasterizer = runtime.imageRasterizer
     }
 
     /// Runs the representable's update with observation tracking, as a body evaluation: the

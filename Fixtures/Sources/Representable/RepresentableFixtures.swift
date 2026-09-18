@@ -177,6 +177,16 @@ struct HostingSizingContent: View {
     }
 }
 
+/// A 60 × 40 image drawn by an image renderer: a blue field with a green disc.
+@MainActor func renderedFixtureImage() -> UIImage {
+    UIGraphicsImageRenderer(size: CGSize(width: 60, height: 40)).image { context in
+        UIColor.systemBlue.setFill()
+        context.fill(CGRect(x: 0, y: 0, width: 60, height: 40))
+        UIColor.systemGreen.setFill()
+        UIBezierPath(ovalIn: CGRect(x: 10, y: 5, width: 30, height: 30)).fill()
+    }
+}
+
 @Observable final class HostingStateModel {
     var selected = false
 }
@@ -645,7 +655,22 @@ public enum RepresentableFixtures {
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
                                         safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel,
                                         listRows, formRows, scrollContent, hostingMargins, hostingCollection, hostingState,
-                                        hostingNavItem, hostingSizing]
+                                        hostingNavItem, hostingSizing, renderedImage]
+
+    /// `Image(uiImage:)` with an image an image renderer drew: at its size, resizable, tinted
+    /// with `withTintColor`, as a UIKit template under a SwiftUI foreground style, and as a
+    /// SwiftUI template.
+    public static let renderedImage = Fixture("ios/representable/renderedimage", size: CGSize(width: 320, height: 300)) {
+        let image = renderedFixtureImage()
+        return VStack(alignment: .leading, spacing: 8) {
+            Image(uiImage: image).probe("natural")
+            Image(uiImage: image).resizable().frame(width: 120, height: 80).probe("resized")
+            Image(uiImage: image.withTintColor(.systemRed)).probe("tinted")
+            Image(uiImage: image.withRenderingMode(.alwaysTemplate)).foregroundStyle(Color.orange).probe("template")
+            Image(uiImage: image).renderingMode(.template).foregroundStyle(Color.purple).probe("swiftuiTemplate")
+        }
+        .probe("stack")
+    }.platform(.iOS)
 
     /// The hosted content's navigation title and toolbar item in the UIKit navigation bar.
     public static let hostingNavItem = Fixture("ios/representable/hostingnav", size: CGSize(width: 320, height: 200)) {

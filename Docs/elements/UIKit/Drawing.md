@@ -115,3 +115,8 @@ simulator's pixels. The radial highlight sits where the start centre is, as the 
 Open: blend modes, `CGPath`/`CGMutablePath` on Apple platforms (there `UIBezierPath.cgPath` is
 the substrate's `Path`, not CoreGraphics's), tinting and `pngData()` of rendered images, caching
 of drawn content between frames.
+
+`UIImage.pngData()` (2026-09-18): a recorded drawing rasterised by the host's `ImageRasterizer`
+(`UIKitScene.imageRasterizer`: the canvas host paints it into a canvas of its own and reads a
+PNG data URL; the native host paints it with CoreGraphics); nil headless and for catalog
+images and symbols. `jpegData` returns the same PNG.

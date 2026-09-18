@@ -192,6 +192,7 @@ final class _UIHostingView<Content: View>: UIView {
             runtime.textEngine = scene.textEngine
         }
         if runtime.assetCatalog != scene.assetCatalog { runtime.assetCatalog = scene.assetCatalog }
+        if runtime.imageRasterizer == nil, let rasterizer = scene.imageRasterizer { runtime.imageRasterizer = rasterizer }
         let scheme: ColorScheme = traitCollection.userInterfaceStyle == .dark ? .dark : .light
         if runtime.hostColorScheme != scheme { runtime.hostColorScheme = scheme }
         // The view's safe area (a container's bars) is the content's, unless ignored.

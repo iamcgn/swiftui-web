@@ -26,7 +26,10 @@ final class RepresentableTree: _PlatformViewTree {
             scene.textEngine = textEngine
         }
         if scene.assetCatalog != assetCatalog { scene.assetCatalog = assetCatalog }
+        if scene.imageRasterizer == nil, let rasterizer = imageRasterizer { scene.imageRasterizer = rasterizer }
     }
+    /// The runtime's rasteriser, handed to the scene for `UIImage.pngData()`.
+    var imageRasterizer: ImageRasterizer?
 
     /// The environment becomes the tree's traits (ios/representable/traits: the colour scheme
     /// is the appearance, the dynamic type size the content size category, the layout direction

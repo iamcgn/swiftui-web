@@ -15,6 +15,9 @@ public struct Image: Equatable, Sendable {
         case system(String)
         /// An image the runtime's loader fetched (`AsyncImage`): its URL string and pixel size.
         case url(String, pixelSize: CGSize, scale: CGFloat)
+        /// A drawing recorded by a platform image context (`Image(uiImage:)` of a
+        /// `UIGraphicsImageRenderer` image): replayed scaled into the image's frame.
+        case drawing(_ImageDrawing)
     }
 
     /// How a resizable image fills its frame.
@@ -59,7 +62,7 @@ public struct Image: Equatable, Sendable {
         switch source {
         case .named(let name): return name
         case .system(let name): return name
-        case .url: return ""
+        case .url, .drawing: return ""
         }
     }
     package var resizing: Resizing?
@@ -235,5 +238,49 @@ extension View {
     /// Scales this view to fill its parent.
     nonisolated public func scaledToFill() -> some View {
         aspectRatio(nil, contentMode: .fill)
+    }
+}
+
+/// A recorded drawing an `Image` shows: display commands in a space of `size` points, with the
+/// tint a platform image was given (`withTintColor`; kept for hosts, SwiftUI draws the colours
+/// as recorded). Two drawings are equal when they are the same recording.
+public final class _ImageDrawing: Equatable, @unchecked Sendable {
+    public let commands: [DisplayCommand]
+    public let size: CGSize
+    public let scale: CGFloat
+    public let tint: Color?
+
+    public init(commands: [DisplayCommand], size: CGSize, scale: CGFloat, tint: Color? = nil) {
+        self.commands = commands
+        self.size = size
+        self.scale = scale
+        self.tint = tint
+    }
+
+    public static func == (lhs: _ImageDrawing, rhs: _ImageDrawing) -> Bool { lhs === rhs }
+
+    /// The recording scaled into `rect`, every colour replaced by `tint` when given (a
+    /// template: the drawing's silhouette in the foreground colour).
+    package func commands(in rect: CGRect, tint: RGBA?) -> [DisplayCommand] {
+        guard !commands.isEmpty, size.width > 0, size.height > 0 else { return [] }
+        let transform = CGAffineTransform(a: rect.width / size.width, b: 0, c: 0, d: rect.height / size.height, tx: rect.minX, ty: rect.minY)
+        let body = tint.map { tint in commands.map { Self.tinted($0, tint) } } ?? commands
+        return [.save, .concat(transform)] + body + [.restore]
+    }
+
+    private static func tinted(_ command: DisplayCommand, _ tint: RGBA) -> DisplayCommand {
+        func color(_ original: RGBA) -> RGBA { tint.multiplyingAlpha(by: original.alpha) }
+        switch command {
+        case .fillRect(let rect, let rgba): return .fillRect(rect, color(rgba))
+        case .fillRRect(let rect, let radius, let rgba): return .fillRRect(rect, cornerRadius: radius, color(rgba))
+        case .fillPath(let path, let rgba, let eoFill): return .fillPath(path, color(rgba), eoFill: eoFill)
+        case .strokePath(let path, let style, let rgba): return .strokePath(path, style: style, color(rgba))
+        case .fillGradient(let path, _, let eoFill): return .fillPath(path, tint, eoFill: eoFill)
+        case .strokeGradient(let path, let style, _): return .strokePath(path, style: style, tint)
+        case .drawText(let text, let font, let origin, let rgba): return .drawText(text, font, origin: origin, color(rgba))
+        case .drawTextGradient(let text, let font, let origin, _): return .drawText(text, font, origin: origin, tint)
+        case .drawImage(var draw): draw.tint = tint; return .drawImage(draw)
+        default: return command
+        }
     }
 }

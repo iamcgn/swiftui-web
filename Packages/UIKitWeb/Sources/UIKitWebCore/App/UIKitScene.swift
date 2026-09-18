@@ -143,6 +143,8 @@ public final class UIKitScene: HostedScene {
     public var textEngine: any TextEngine = PlaceholderTextEngine()
     public var assetCatalog: AssetCatalog = .empty { didSet { setNeedsFrame() } }
     public var imageLoader: (any _ImageLoading)?
+    /// Rasterises a recorded drawing for `UIImage.pngData()` (installed by hosts that can).
+    public var imageRasterizer: ImageRasterizer?
     public var hostColorScheme: ColorScheme = .light {
         didSet {
             guard hostColorScheme != oldValue else { return }

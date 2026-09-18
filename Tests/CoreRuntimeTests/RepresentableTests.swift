@@ -580,6 +580,49 @@ import Foundation
         #expect(r.probeFrames["growing"]?.height == 80)
     }
 
+    /// ios/representable/renderedimage: an image an image context drew is replayed at its size,
+    /// scaled when resizable, its silhouette in the foreground colour as a template; a tint set
+    /// with `withTintColor` alone keeps the drawing's colours; `pngData()` goes through the
+    /// host's rasteriser.
+    @Test func renderedImagesDrawAndRasterize() {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 60, height: 40)).image { context in
+            UIColor(red: 0, green: 0, blue: 1, alpha: 1).setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 60, height: 40))
+            UIColor(red: 0, green: 1, blue: 0, alpha: 1).setFill()
+            context.fill(CGRect(x: 10, y: 10, width: 20, height: 20))
+        }
+        let r = iOSRuntime()
+        r.mount(VStack(spacing: 0) {
+            Image(uiImage: image)._probe("natural")
+            Image(uiImage: image).resizable().frame(width: 120, height: 80)._probe("resized")
+            Image(uiImage: image.withTintColor(UIColor(red: 1, green: 0, blue: 0, alpha: 1)))._probe("tinted")
+            Image(uiImage: image.withRenderingMode(.alwaysTemplate)).foregroundStyle(Color(red: 1, green: 0.5, blue: 0))._probe("template")
+        })
+        r.layout(in: CGSize(width: 320, height: 300))
+        #expect(r.probeFrames["natural"]?.size == CGSize(width: 60, height: 40))
+        #expect(r.probeFrames["resized"]?.size == CGSize(width: 120, height: 80))
+        let painted = r.render(scale: 2).commands.map(\.description)
+        let fills = painted.filter { $0.hasPrefix("fill") }
+        // The recording's rects, four times: blue and green twice in the original colours (the
+        // resizable one under a 2× transform), then the template's two rects in orange.
+        #expect(fills.filter { $0.contains("#0000FF") }.count == 3, "\(fills)")
+        #expect(fills.filter { $0.contains("#00FF00") }.count == 3, "\(fills)")
+        #expect(fills.filter { $0.contains("#FF8000") || $0.contains("#FF7F00") }.count == 2, "\(fills)")
+        #expect(painted.contains { $0.hasPrefix("concat(2") }, "the resizable image is scaled twice")
+
+        var rasterized: (commands: Int, size: CGSize, scale: CGFloat)?
+        UIKitScene.shared.imageRasterizer = { list, size, scale in
+            rasterized = (list.commands.count, size, scale)
+            return Data([0x89, 0x50, 0x4E, 0x47])
+        }
+        let png = image.pngData()
+        #expect(png?.count == 4)
+        #expect(rasterized?.size == CGSize(width: 60, height: 40))
+        #expect(rasterized?.commands == image.drawing?.commands.count)
+        UIKitScene.shared.imageRasterizer = nil
+        #expect(UIImage(systemName: "star")?.pngData() == nil)
+    }
+
     @Test func controllersGetAppearanceCallbacksAndDismantlingRuns() {
         let model = Model()
         let r = runtime(model)

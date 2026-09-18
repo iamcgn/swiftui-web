@@ -14,9 +14,18 @@ extension Color {
 }
 
 extension Image {
-    /// Creates a SwiftUI image from a UIKit image: the catalog image or symbol it names.
+    /// Creates a SwiftUI image from a UIKit image: the catalog image or symbol it names, or the
+    /// drawing an image context recorded (ios/representable/renderedimage: drawn at its size,
+    /// scaled when resizable, its silhouette in the foreground colour as a template; a
+    /// `withTintColor` tint applies only when the image is rendered as a template).
     public init(uiImage: UIImage) {
-        let image = uiImage.isSystemSymbol ? Image(systemName: uiImage.name) : Image(uiImage.name)
+        let image: Image
+        if let drawing = uiImage.drawing {
+            let tint = uiImage.tint.map { Color(uiColor: $0) }
+            image = Image(source: .drawing(_ImageDrawing(commands: drawing.commands, size: drawing.size, scale: drawing.scale, tint: tint)), label: nil)
+        } else {
+            image = uiImage.isSystemSymbol ? Image(systemName: uiImage.name) : Image(uiImage.name)
+        }
         self = uiImage.renderingMode == .alwaysTemplate ? image.renderingMode(.template) : image
     }
 }
