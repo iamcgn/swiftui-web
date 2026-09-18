@@ -9,6 +9,7 @@ on:
     paths:
       - Examples/Landing/**
       - Examples/Gallery/**
+      - Examples/Progress/**
       - Fixtures/**
       - Sources/**
       - Packages/**
@@ -51,6 +52,7 @@ jobs:
           path: |
             Examples/Landing/.build/wasm
             Examples/Gallery/.build/wasm
+            Examples/Progress/.build/wasm
           key: landing-wasm-${{ env.SWIFT_VERSION }}-${{ hashFiles('Examples/Landing/Package.resolved', 'Package.resolved') }}
           restore-keys: landing-wasm-${{ env.SWIFT_VERSION }}-
       - name: Build the site

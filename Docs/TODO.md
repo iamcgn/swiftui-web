@@ -4,19 +4,17 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| Site | 3 | 3 | 0 | 0 |
+| Site | 2 | 2 | 0 | 0 |
 | Interop | 2 | 0 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
 | UIKit | 36 | 2 | 23 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **104** | 6 | 55 | 43 |
+| **All** | **103** | 5 | 55 | 43 |
 
 ## Next (Phase 8, in order)
 
 ### Site
 
-- ☐ **The progress page** `st-progress-page` · Progress page · infra  
-  Examples/Progress, a SwiftUI app at /progress/: status counts per framework and section, the full matrix with filters and a search field, every row linking to its gallery examples and its element doc, and this list grouped by framework and priority with what landed recently. Generated data, the commit and the date on the page. ([0016-progress-page.md](Docs/decisions/0016-progress-page.md))
 - ☐ **The landing page links to progress and examples** `st-landing-links` · Landing page · infra  
   Navigation links to /progress/ and /gallery/; the hero's stats come from the generated counts; the support matrix section becomes a summary card with the counts per framework and a link to the full page (a lighter landing bundle). README and the docs point at the same two pages. ([Landing](Examples/Landing))
 - ☐ **The element workflow records progress** `st-workflow` · Tracking · infra  
@@ -265,6 +263,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **Audit the stale rows and doc notes** `st-row-audit` · Site · Tracking
 - ☑ 2026-09-18 **A live example for every support row** `st-fixture-links` · Site · Examples
 - ☑ 2026-09-18 **Publish the gallery next to the landing page** `st-gallery-deploy` · Site · Examples
+- ☑ 2026-09-18 **The progress page** `st-progress-page` · Site · Progress page
 - ☑ 2026-09-18 **Hover inside a representable** `ix-hover` · Interop · Representables
 - ☑ 2026-09-18 **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Interop · Representables
 - ☑ 2026-09-18 **Animations across the seam** `ix-transaction` · Interop · Representables

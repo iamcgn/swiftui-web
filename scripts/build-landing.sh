@@ -32,5 +32,17 @@ if [[ -z "${1:-}" ]]; then
   # The size line (raw and brotli) and the gate: 4 MB brotli (3.53 MB at the first release build, 2026-09-18).
   "$ROOT/scripts/size-gate.sh" Examples/Gallery 4194304
 fi
+# The progress page (decision 0016): counts, the full matrix, the todo list, at /progress/.
+"$ROOT/scripts/build-wasm.sh" Examples/Progress ${1:+"$1"}
+PROGRESS="$DIST/progress"
+mkdir -p "$PROGRESS"
+PBUNDLE="bundle-$(git -C "$ROOT" rev-parse --short HEAD)-$(date +%Y%m%d%H%M)"
+cp -R "$ROOT/Examples/Progress/.build/wasm/plugins/PackageToJS/outputs/Package" "$PROGRESS/$PBUNDLE"
+PWASM="$PROGRESS/$PBUNDLE/Progress.wasm"
+PBYTES=$(stat -f%z "$PWASM" 2>/dev/null || stat -c%s "$PWASM")
+sed -e "s|./.build/wasm/plugins/PackageToJS/outputs/Package/|./$PBUNDLE/|g" -e "s|data-wasm-bytes=\"\"|data-wasm-bytes=\"$PBYTES\"|" \
+  -e "s|data-commit=\"\"|data-commit=\"$(git -C "$ROOT" rev-parse --short HEAD)\"|" \
+  "$ROOT/Examples/Progress/index.html" > "$PROGRESS/index.html"
+if [[ -z "${1:-}" ]]; then "$ROOT/scripts/size-gate.sh" Examples/Progress 3670016; fi
 touch "$DIST/.nojekyll"
-echo "Site: $DIST ($(du -sh "$DIST" | cut -f1); gallery $(du -sh "$GALLERY" | cut -f1)); serve with: python3 -m http.server --directory $DIST"
+echo "Site: $DIST ($(du -sh "$DIST" | cut -f1); gallery $(du -sh "$GALLERY" | cut -f1); progress $(du -sh "$PROGRESS" | cut -f1)); serve with: python3 -m http.server --directory $DIST"

@@ -121,6 +121,9 @@ preview, with buttons for its behaviour steps; `index.html?fixture=text/wrapped`
 and `?filter=ios/representable` narrows the list to a prefix. `scripts/build-landing.sh` publishes
 a release build of it next to the landing page at `/gallery/` (the support matrix's rows link to
 the fixtures that prove them), behind the same loading screen and a 4 MB brotli gate.
+`Examples/Progress` is the progress page at `/progress/`: the counts, the full support matrix
+with search and filters (rows link to their gallery fixtures), the todo list from `Docs/todo.json`
+(items link to their docs) and what landed recently, all from `scripts/gen-progress.py`.
 `scripts/gen-goldens.sh` regenerates goldens with Apple's SwiftUI (macOS only).
 
 `Tools/Host` is the native host of Phase 4: `swiftui-host <package-dir>` serves the package's
