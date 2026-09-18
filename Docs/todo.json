@@ -169,13 +169,14 @@
       "framework": "Interop",
       "area": "Representables",
       "title": "Animations across the seam",
-      "detail": "`context.transaction` carries the SwiftUI animation into `updateUIView`; a `withAnimation` that resizes a representable tweens the UIKit frame; `UIView.animate` inside `updateUIView` runs on the outer clock. Tests on the headless clock.",
+      "detail": "`context.transaction` carries the SwiftUI animation into `updateUIView`; a `withAnimation` that resizes a representable lays the UIKit view out at every tweened size; `UIView.animate` inside `updateUIView` runs on the outer clock, advanced once per host frame for every representable. `RepresentableTests` on the headless clock.",
       "kind": "verify",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Representable.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-containers",

@@ -124,10 +124,12 @@ import Foundation
     final class ObservingView: UIView {
         var seenInsets = UIEdgeInsets.zero
         var seenTraits = UITraitCollection()
+        var seenSizes: [CGSize] = []
         override func layoutSubviews() {
             super.layoutSubviews()
             seenInsets = safeAreaInsets
             seenTraits = traitCollection
+            seenSizes.append(bounds.size)
         }
         override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
             super.traitCollectionDidChange(previousTraitCollection)
@@ -467,6 +469,70 @@ import Foundation
         model.shows = false
         r.layout(in: Self.size)
         #expect(model.log.entries.last == "dismantle1")
+    }
+
+    @Observable final class AnimationModel {
+        var wide = false
+        var faded = false
+        @ObservationIgnored var transactions: [Animation?] = []
+    }
+
+    struct AnimatedBox: UIViewRepresentable {
+        let model: AnimationModel
+        let view: ObservingView
+        func makeUIView(context: Context) -> ObservingView { view }
+        func updateUIView(_ uiView: ObservingView, context: Context) {
+            model.transactions.append(context.transaction.animation)
+            if model.faded, uiView.alpha == 1 { UIView.animate(withDuration: 1) { uiView.alpha = 0 } }
+        }
+    }
+
+    struct AnimatedScreen: View {
+        let model: AnimationModel
+        let first: ObservingView
+        let second: ObservingView
+        var body: some View {
+            HStack(spacing: 0) {
+                AnimatedBox(model: model, view: first).frame(width: model.wide ? 200 : 100, height: 20)
+                AnimatedBox(model: model, view: second).frame(width: 50, height: 20)
+            }
+        }
+    }
+
+    /// `context.transaction` carries the animation of the state change; a `withAnimation` that
+    /// resizes the representable lays the UIKit view out at every interpolated size; a
+    /// `UIView.animate` started in `updateUIView` runs on the host's clock, advanced once per
+    /// frame however many representables share the scene.
+    @Test func animationsCrossTheSeam() {
+        let model = AnimationModel()
+        let first = ObservingView(), second = ObservingView()
+        let r = iOSRuntime()
+        r.mount(AnimatedScreen(model: model, first: first, second: second))
+        r.layout(in: Self.size)
+        #expect(model.transactions == [nil, nil])
+        #expect(first.bounds.width == 100)
+
+        withAnimation(.linear(duration: 1)) { model.wide = true }
+        r.layout(in: Self.size)
+        #expect(model.transactions.last == .linear(duration: 1))
+        _ = r.advanceFrame(elapsed: 0.5)
+        r.layout(in: Self.size)
+        _ = r.render(scale: 2)
+        #expect(first.bounds.width == 150)
+        _ = r.advanceFrame(elapsed: 0.6)
+        r.layout(in: Self.size)
+        _ = r.render(scale: 2)
+        #expect(first.bounds.width == 200)
+
+        model.faded = true
+        r.layout(in: Self.size)
+        #expect(model.transactions.last == .some(nil))
+        #expect(UIKitScene.shared.isAnimating)
+        #expect(r.advanceFrame(elapsed: 0.6))
+        #expect(UIKitScene.shared.isAnimating, "a one-second fade is still running after 0.6 s with two representables")
+        #expect(!r.advanceFrame(elapsed: 0.6) || !UIKitScene.shared.isAnimating)
+        #expect(!UIKitScene.shared.isAnimating)
+        #expect(first.alpha == 0)
     }
 
     @Test func controllersGetAppearanceCallbacksAndDismantlingRuns() {

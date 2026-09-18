@@ -199,13 +199,19 @@ public final class UIKitScene: HostedScene {
 
     /// Advances the timers and animations for a host whose frame loop drives a hosted tree (the
     /// scene's own host goes through `advanceFrame`); returns whether either still runs.
-    func advanceTimers(elapsed: Double) -> Bool {
+    func advanceTimers(elapsed: Double, hostFrame: AnyHashable? = nil) -> Bool {
+        if let hostFrame {
+            guard hostFrame != lastHostFrame else { return isAnimating || !decelerating.isEmpty || !timers.isEmpty }
+            lastHostFrame = hostFrame
+        }
         runTimers(elapsed: elapsed)
         let animating = advanceAnimations(elapsed: elapsed)
         let scrolling = advanceScrolling(elapsed: elapsed)
         let hosting = advanceHostingViews(elapsed: elapsed)
         return animating || scrolling || hosting || !timers.isEmpty
     }
+    /// The host frame the clocks were last advanced for (`UIKitHostedTree.advanceFrame`).
+    private var lastHostFrame: AnyHashable?
 
     public func layout(in size: CGSize) {
         needsFrame = false

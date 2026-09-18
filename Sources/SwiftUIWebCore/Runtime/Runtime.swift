@@ -221,6 +221,8 @@ public final class Runtime {
     package var lastPointerType: PointerType = .mouse
     /// The nodes hosting another framework's view trees (Runtime/PlatformViewNodes.swift).
     package var platformHosts: [WeakPlatformHost] = []
+    /// Counts the frames the hosted trees were advanced for (`_HostFrame`).
+    package var hostFrameNumber: UInt64 = 0
 
     /// Hover state (Runtime/HoverNodes.swift): the nodes the pointer is over, the memoised
     /// tracking nodes, a pending or shown tooltip and the pointer style hosts apply.

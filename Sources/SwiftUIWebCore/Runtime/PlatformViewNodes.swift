@@ -25,7 +25,8 @@ package protocol _PlatformViewTree: AnyObject {
     /// Paints the tree; `context.origin` is the tree's origin in absolute coordinates.
     func paint(into list: inout DisplayList, context: PaintContext)
     /// Advances the tree's clocks by `elapsed` seconds; true means it needs another frame.
-    func advanceFrame(elapsed: Double) -> Bool
+    /// `frame` identifies the host's frame: trees sharing one clock advance it once per frame.
+    func advanceFrame(elapsed: Double, frame: _HostFrame) -> Bool
 
     func pointerDown(at point: CGPoint, type: PointerType, time: Double)
     func pointerMoved(to point: CGPoint, time: Double)
@@ -58,6 +59,16 @@ package protocol _PlatformViewTree: AnyObject {
     func dismantle()
 }
 
+/// One frame of a host runtime, for clocks shared between its hosted trees.
+public struct _HostFrame: Hashable, Sendable {
+    public let host: ObjectIdentifier
+    public let number: UInt64
+    public init(host: ObjectIdentifier, number: UInt64) {
+        self.host = host
+        self.number = number
+    }
+}
+
 /// Type-erased access to a host node for the runtime's routing.
 @MainActor
 package protocol _PlatformViewHosting: AnyObject {
@@ -71,8 +82,10 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     /// The size the tree wants for a proposal (the representable's own `sizeThatFits`, else the
     /// framework's rule for the hosted view).
     private let sizing: @MainActor (ProposedViewSize, V, EnvironmentValues) -> CGSize
-    /// Pushes the view value into the hosted content (`updateUIView`).
-    private let updateContent: @MainActor (V, EnvironmentValues) -> Void
+    /// Pushes the view value into the hosted content (`updateUIView`) under a transaction.
+    private let updateContent: @MainActor (V, EnvironmentValues, Transaction) -> Void
+    /// The size the tree was last laid out in (the presented size while a frame tween runs).
+    private var laidOutSize: CGSize?
     /// Whether the tree takes the safe area the node lies under as its own insets
     /// (`_PlatformViewRepresentableLayoutOptions.propagatesSafeArea`).
     private let propagatesSafeArea: Bool
@@ -83,7 +96,7 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
 
     package init(_ context: _NodeContext<V>, tree: any _PlatformViewTree, propagatesSafeArea: Bool = true,
                  sizing: @escaping @MainActor (ProposedViewSize, V, EnvironmentValues) -> CGSize,
-                 update: @escaping @MainActor (V, EnvironmentValues) -> Void) {
+                 update: @escaping @MainActor (V, EnvironmentValues, Transaction) -> Void) {
         self.tree = tree
         self.propagatesSafeArea = propagatesSafeArea
         self.sizing = sizing
@@ -103,9 +116,13 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     }
 
     /// Runs the representable's update with observation tracking, as a body evaluation: the
-    /// `@Observable` properties it reads invalidate the node when they change.
+    /// `@Observable` properties it reads invalidate the node when they change. The context's
+    /// transaction carries the animation of the state change being flushed (`withAnimation`,
+    /// an `animation(_:value:)` scope).
     private func pushContent() {
-        _trackingObservation(for: self) { updateContent(view, environment) }
+        var transaction = Transaction()
+        transaction.animation = runtime.effectiveUpdateAnimation(for: self)
+        _trackingObservation(for: self) { updateContent(view, environment, transaction) }
         updatedGeneration = environment.generation
     }
 
@@ -136,7 +153,12 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     /// a representable laid out inside the safe area, the bar's height for one that ignores it
     /// (ios/representable/safearea, safearea-ignored; Docs/elements/Representable.md).
     override package func layoutContents(proposal: ProposedViewSize) {
-        tree.layout(size: frame.size, safeAreaInsets: propagatesSafeArea ? platformSafeAreaOverlap : EdgeInsets(), environment: environment)
+        layoutTree(size: frame.size)
+    }
+
+    private func layoutTree(size: CGSize) {
+        tree.layout(size: size, safeAreaInsets: propagatesSafeArea ? platformSafeAreaOverlap : EdgeInsets(), environment: environment)
+        laidOutSize = size
     }
 
     /// The hosted content's baselines are the representable's alignment guides.
@@ -149,7 +171,11 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
         ])
     }
 
+    /// While the node's frame tweens (`withAnimation` resizing the representable) the tree is
+    /// laid out at each interpolated size, as SwiftUI animates a platform view's frame.
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
+        let size = presentedFrame.size
+        if size != laidOutSize { layoutTree(size: size) }
         tree.paint(into: &list, context: context)
     }
 
@@ -226,11 +252,14 @@ extension Runtime {
         return nil
     }
 
-    /// Advances every hosted tree's clocks; true means one needs another frame.
+    /// Advances every hosted tree's clocks; true means one needs another frame. Trees sharing
+    /// a clock (UIKit's scene) see the same frame and advance it once.
     package func advancePlatformHosts(elapsed: Double) -> Bool {
+        hostFrameNumber += 1
+        let frame = _HostFrame(host: ObjectIdentifier(self), number: hostFrameNumber)
         var animating = false
         for entry in platformHosts {
-            if entry.node?.tree.advanceFrame(elapsed: elapsed) == true { animating = true }
+            if entry.node?.tree.advanceFrame(elapsed: elapsed, frame: frame) == true { animating = true }
         }
         return animating
     }

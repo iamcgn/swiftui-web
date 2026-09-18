@@ -63,7 +63,7 @@ final class RepresentableTree: _PlatformViewTree {
     func baselines(in size: CGSize) -> (first: CGFloat, last: CGFloat) { hosted.baselines(in: size) }
 
     func paint(into list: inout DisplayList, context: PaintContext) { hosted.paint(into: &list, context: context) }
-    func advanceFrame(elapsed: Double) -> Bool { hosted.advanceFrame(elapsed: elapsed) }
+    func advanceFrame(elapsed: Double, frame: _HostFrame) -> Bool { hosted.advanceFrame(elapsed: elapsed, key: frame) }
 
     func pointerDown(at point: CGPoint, type: PointerType, time: Double) { hosted.pointerDown(at: point, type: type, time: time) }
     func pointerMoved(to point: CGPoint, time: Double) { hosted.pointerMoved(to: point, time: time) }

@@ -154,6 +154,19 @@ change, so the goldens pin the order:
 `RepresentableTests` hold the same order headless, and that the coordinator is made once per
 node, outlives every update and is released with the node.
 
+## Animations across the seam (2026-09-18, `RepresentableTests`)
+
+`context.transaction.animation` in `updateUIView` is the animation of the state change being
+flushed (`withAnimation`, or the nearest `animation(_:value:)` scope), nil otherwise; the
+context made for `makeUIView` carries the transaction current at that moment. A `withAnimation`
+that resizes a representable tweens the node's frame as it does any view's, and the UIKit view
+is laid out at every interpolated size before it paints (`_PlatformViewHostNode.paintSelf`), as
+SwiftUI animates a platform view's frame. A `UIView.animate` started inside `updateUIView` runs
+on the host's frame clock: `UIKitHostedTree.advanceFrame` advances the shared UIKit scene's
+timers, animation groups and scroll momentum once per host frame (`_HostFrame`), however many
+representables the tree holds. Headless on the runtime's clock; no fixture (the goldens are
+stills).
+
 ## Traits (2026-09-12, `ios/representable/traits`, `ios/dark/representable-controls`)
 
 The environment is the hosted tree's trait collection: `colorScheme` is `userInterfaceStyle`

@@ -68,24 +68,24 @@ public struct UIViewControllerRepresentableContext<Representable: UIViewControll
 extension UIViewControllerRepresentable {
     public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
         let coordinator = context.view.makeCoordinator()
-        let makeContext = { (environment: EnvironmentValues) in
-            Context(coordinator: coordinator, transaction: Transaction._current ?? Transaction(), environment: environment)
+        let makeContext = { (environment: EnvironmentValues, transaction: Transaction) in
+            Context(coordinator: coordinator, transaction: transaction, environment: environment)
         }
         // The scene measures with the runtime's engine from the start: a controller that sizes
         // labels in viewDidLoad would otherwise measure them with the placeholder engine.
         let tree = RepresentableTree()
         tree.prepare(textEngine: context.runtime.textEngine, assetCatalog: context.runtime.assetCatalog)
-        let controller = context.view.makeUIViewController(context: makeContext(context.environment))
+        let controller = context.view.makeUIViewController(context: makeContext(context.environment, Transaction._current ?? Transaction()))
         tree.hosted.setRootViewController(controller)
         tree.dismantleContent = { Self.dismantleUIViewController(controller, coordinator: coordinator) }
         return _PlatformViewHostNode(
             context, tree: tree, propagatesSafeArea: Self._layoutOptions(controller).contains(.propagatesSafeArea),
             sizing: { proposal, representable, environment in
-                representable.sizeThatFits(proposal, uiViewController: controller, context: makeContext(environment))
+                representable.sizeThatFits(proposal, uiViewController: controller, context: makeContext(environment, Transaction()))
                     ?? RepresentableSizing.size(for: proposal, of: controller)
             },
-            update: { representable, environment in
-                representable.updateUIViewController(controller, context: makeContext(environment))
+            update: { representable, environment, transaction in
+                representable.updateUIViewController(controller, context: makeContext(environment, transaction))
             })
     }
 }

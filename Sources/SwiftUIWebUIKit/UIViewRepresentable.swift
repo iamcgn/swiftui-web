@@ -85,22 +85,22 @@ extension UIViewRepresentable {
     /// node that stands for it in the SwiftUI tree.
     public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
         let coordinator = context.view.makeCoordinator()
-        let makeContext = { (environment: EnvironmentValues) in
-            Context(coordinator: coordinator, transaction: Transaction._current ?? Transaction(), environment: environment)
+        let makeContext = { (environment: EnvironmentValues, transaction: Transaction) in
+            Context(coordinator: coordinator, transaction: transaction, environment: environment)
         }
         let tree = RepresentableTree()
         tree.prepare(textEngine: context.runtime.textEngine, assetCatalog: context.runtime.assetCatalog)
-        let view = context.view.makeUIView(context: makeContext(context.environment))
+        let view = context.view.makeUIView(context: makeContext(context.environment, Transaction._current ?? Transaction()))
         tree.hosted.setRootView(view)
         tree.dismantleContent = { Self.dismantleUIView(view, coordinator: coordinator) }
         return _PlatformViewHostNode(
             context, tree: tree, propagatesSafeArea: Self._layoutOptions(view).contains(.propagatesSafeArea),
             sizing: { proposal, representable, environment in
-                representable.sizeThatFits(proposal, uiView: view, context: makeContext(environment))
+                representable.sizeThatFits(proposal, uiView: view, context: makeContext(environment, Transaction()))
                     ?? RepresentableSizing.size(for: proposal, of: view)
             },
-            update: { representable, environment in
-                representable.updateUIView(view, context: makeContext(environment))
+            update: { representable, environment, transaction in
+                representable.updateUIView(view, context: makeContext(environment, transaction))
             })
     }
 }

@@ -111,10 +111,12 @@ public final class UIKitHostedTree {
         UIKitScene.shared.unregister(self)
     }
 
-    /// Advances the scene's timers (long presses) by `elapsed` seconds for the host's frame
-    /// loop; returns whether any are still pending, so the host keeps frames coming.
-    public func advanceFrame(elapsed: Double) -> Bool {
-        UIKitScene.shared.advanceTimers(elapsed: elapsed)
+    /// Advances the scene's clocks (timers, `UIView.animate` groups, scroll momentum) by
+    /// `elapsed` seconds for the host's frame loop; returns whether any still run, so the host
+    /// keeps frames coming. The scene is shared by every hosted tree of a host: `key` names the
+    /// host's frame so the first tree advances it and the others only report.
+    public func advanceFrame(elapsed: Double, key: some Hashable) -> Bool {
+        UIKitScene.shared.advanceTimers(elapsed: elapsed, hostFrame: AnyHashable(key))
     }
 
     // MARK: Layout and painting
