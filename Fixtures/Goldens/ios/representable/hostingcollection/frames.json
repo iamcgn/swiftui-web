@@ -1,0 +1,15 @@
+{
+  "fixture" : "ios\/representable\/hostingcollection",
+  "frames" : {
+    "collection" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

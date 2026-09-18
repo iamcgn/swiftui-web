@@ -293,7 +293,9 @@ open class UICollectionViewListCell: UICollectionViewCell {
     }
 
     open override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
-        // The row is as tall as its content view's fit for the width less the accessory.
+        // The row is as tall as its content view's fit for the width less the accessory (a
+        // hosted configuration's fit is at least 56: ios/representable/hostingcollection).
+        updateConfigurationIfNeeded()
         let attributes = UICollectionViewLayoutAttributes(forCellWith: layoutAttributes.indexPath)
         let accessory = accessorySize
         let contentWidth = accessory.width > 0 ? layoutAttributes.frame.width - accessory.width - accessoryTrailingInset : layoutAttributes.frame.width

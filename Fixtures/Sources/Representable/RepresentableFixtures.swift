@@ -54,6 +54,104 @@ struct HostingCellsTable: UIViewRepresentable {
     func updateUIView(_ uiView: UITableView, context: Context) {}
 }
 
+/// A plain table whose rows host colours through `UIHostingConfiguration` with different
+/// margins: the row heights show the default vertical margins and the 56 pt floor.
+struct HostingMarginsTable: UIViewRepresentable {
+    final class Source: NSObject, UITableViewDataSource {
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 4 }
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            switch indexPath.row {
+            case 0: cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: 60) }.background(Color.yellow)
+            case 1: cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: 60) }.background(Color.yellow).margins(.all, 0)
+            case 2: cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: 20) }.background(Color.yellow).margins(.all, 0)
+            default: cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: 20) }.background(Color.yellow).margins(.vertical, 30)
+            }
+            return cell
+        }
+    }
+
+    func makeCoordinator() -> Source { Source() }
+    func makeUIView(context: Context) -> UITableView {
+        let table = UITableView(frame: .zero, style: .plain)
+        table.dataSource = context.coordinator
+        table.isScrollEnabled = false
+        return table
+    }
+    func updateUIView(_ uiView: UITableView, context: Context) {}
+}
+
+/// A collection view in the plain list layout whose self-sizing cells host colours of three
+/// heights through `UIHostingConfiguration`.
+struct HostingCollection: UIViewRepresentable {
+    final class Coordinator {
+        var source: UICollectionViewDiffableDataSource<Int, Int>?
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+    func makeUIView(context: Context) -> UICollectionView {
+        let layout = UICollectionViewCompositionalLayout.list(using: UICollectionLayoutListConfiguration(appearance: .plain))
+        let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collection.isScrollEnabled = false
+        let registration = UICollectionView.CellRegistration<UICollectionViewListCell, Int> { cell, _, height in
+            cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: CGFloat(height)) }.background(Color.yellow)
+        }
+        let source = UICollectionViewDiffableDataSource<Int, Int>(collectionView: collection) { collection, indexPath, item in
+            collection.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: item)
+        }
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Int>()
+        snapshot.appendSections([0])
+        snapshot.appendItems([20, 60, 100])
+        source.apply(snapshot, animatingDifferences: false)
+        context.coordinator.source = source
+        return collection
+    }
+    func updateUIView(_ uiView: UICollectionView, context: Context) {}
+}
+
+@Observable final class HostingStateModel {
+    var selected = false
+}
+
+/// A table whose rows rebuild their hosted content from the cell's configuration state
+/// (`configurationUpdateHandler`): the selected row says so on a yellow ground.
+struct HostingStateTable: UIViewRepresentable {
+    let model: HostingStateModel
+
+    final class Source: NSObject, UITableViewDataSource {
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 2 }
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            let number = indexPath.row + 1
+            cell.configurationUpdateHandler = { cell, state in
+                cell.contentConfiguration = UIHostingConfiguration {
+                    HStack {
+                        Text(state.isSelected ? "Selected" : "Row \(number)")
+                        Spacer()
+                    }
+                }
+                .background(state.isSelected ? Color.yellow : Color.clear)
+            }
+            return cell
+        }
+    }
+
+    func makeCoordinator() -> Source { Source() }
+    func makeUIView(context: Context) -> UITableView {
+        let table = UITableView(frame: .zero, style: .plain)
+        table.dataSource = context.coordinator
+        table.isScrollEnabled = false
+        return table
+    }
+    func updateUIView(_ uiView: UITableView, context: Context) {
+        if model.selected {
+            uiView.selectRow(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .none)
+        } else {
+            uiView.deselectRow(at: IndexPath(row: 0, section: 0), animated: false)
+        }
+    }
+}
+
 /// A UIKit view with no intrinsic size.
 struct PlainBox: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
@@ -478,7 +576,26 @@ public enum RepresentableFixtures {
                                         safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
                                         safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel,
-                                        listRows, formRows, scrollContent]
+                                        listRows, formRows, scrollContent, hostingMargins, hostingCollection, hostingState]
+
+    /// Hosted rows with a 60 pt colour under the default margins and no margins, a 20 pt colour
+    /// with no margins (the 56 pt floor) and with 30 pt vertical margins.
+    public static let hostingMargins = Fixture("ios/representable/hostingmargins", size: CGSize(width: 320, height: 300)) {
+        HostingMarginsTable().probe("table")
+    }.platform(.iOS)
+
+    /// Self-sizing collection list cells hosting 20, 60 and 100 pt colours.
+    public static let hostingCollection = Fixture("ios/representable/hostingcollection", size: CGSize(width: 320, height: 300)) {
+        HostingCollection().probe("collection")
+    }.platform(.iOS)
+
+    /// A step selects the first row: its configuration update handler rebuilds the hosted
+    /// content for the selected state.
+    public static let hostingState = Fixture("ios/representable/hostingstate", size: CGSize(width: 320, height: 200),
+                                             model: { HostingStateModel() },
+                                             steps: [FixtureStep("select") { $0.selected = true }, FixtureStep("deselect") { $0.selected = false }]) { model in
+        HostingStateTable(model: model).probe("table")
+    }.platform(.iOS)
 
     /// Representables as list rows: a hugging label, a switch, a plain view with a frame, next
     /// to a text row; the row pitch and the hosted views' frames.

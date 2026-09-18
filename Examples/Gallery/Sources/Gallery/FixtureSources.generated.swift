@@ -1491,7 +1491,7 @@ public static let darkNavigation = Fixture(
     .probe("nav")
 }.platform(.iOS).colorScheme(.dark)
 """##),
-        FixtureSource(name: "ios/dark/representable-controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 393, lastLine: 397, declaration: #"""
+        FixtureSource(name: "ios/dark/representable-controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 491, lastLine: 495, declaration: #"""
 /// The controls in the dark appearance: the environment's colour scheme reaches the hosted
 /// views as their user interface style.
 public static let darkControls = Fixture("ios/dark/representable-controls", size: CGSize(width: 320, height: 320)) {
@@ -1860,7 +1860,7 @@ public static let progress = Fixture("ios/progress/basic", size: CGSize(width: 3
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/controller", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 456, lastLine: 464, declaration: #"""
+        FixtureSource(name: "ios/representable/controller", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 554, lastLine: 562, declaration: #"""
 /// A view controller: in a 200 × 60 container and at its ideal size (its view has no
 /// intrinsic size; `preferredContentSize` is 80 × 40).
 public static let controller = Fixture("ios/representable/controller", size: CGSize(width: 320, height: 200)) {
@@ -1871,14 +1871,14 @@ public static let controller = Fixture("ios/representable/controller", size: CGS
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 387, lastLine: 391, declaration: #"""
+        FixtureSource(name: "ios/representable/controls", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 485, lastLine: 489, declaration: #"""
 /// Controls: a switch and a system button (intrinsic sizes on both axes) in a large
 /// container and at their ideal sizes, a text field (an intrinsic height only).
 public static let controls = Fixture("ios/representable/controls", size: CGSize(width: 320, height: 320)) {
     controlsContent()
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/form", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 496, lastLine: 510, declaration: #"""
+        FixtureSource(name: "ios/representable/form", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 613, lastLine: 627, declaration: #"""
 /// The same in a grouped form.
 public static let formRows = Fixture("ios/representable/form", size: CGSize(width: 320, height: 400)) {
     Form {
@@ -1895,33 +1895,55 @@ public static let formRows = Fixture("ios/representable/form", size: CGSize(widt
     .probe("form")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingcells", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 714, lastLine: 718, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingcells", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 831, lastLine: 835, declaration: #"""
 /// A table whose rows host SwiftUI through `UIHostingConfiguration`: default margins, custom
 /// margins with a background, and a minimum height.
 public static let hostingCells = Fixture("ios/representable/hostingcells", size: CGSize(width: 320, height: 300)) {
     HostingCellsTable().probe("table")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingsafearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 685, lastLine: 689, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingcollection", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 587, lastLine: 590, declaration: #"""
+/// Self-sizing collection list cells hosting 20, 60 and 100 pt colours.
+public static let hostingCollection = Fixture("ios/representable/hostingcollection", size: CGSize(width: 320, height: 300)) {
+    HostingCollection().probe("collection")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/hostingmargins", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 581, lastLine: 585, declaration: #"""
+/// Hosted rows with a 60 pt colour under the default margins and no margins, a 20 pt colour
+/// with no margins (the 56 pt floor) and with 30 pt vertical margins.
+public static let hostingMargins = Fixture("ios/representable/hostingmargins", size: CGSize(width: 320, height: 300)) {
+    HostingMarginsTable().probe("table")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/hostingsafearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 802, lastLine: 806, declaration: #"""
 /// A hosting controller as a navigation controller's screen: the hosted SwiftUI content sees
 /// the bar's safe area (green below the bar, yellow under it).
 public static let hostingSafeArea = Fixture("ios/representable/hostingsafearea", size: CGSize(width: 320, height: 300)) {
     HostingNavBox().probe("host")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingsafearea-none", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 691, lastLine: 694, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingsafearea-none", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 808, lastLine: 811, declaration: #"""
 /// The same with `safeAreaRegions` empty: the content ignores the bar.
 public static let hostingSafeAreaNone = Fixture("ios/representable/hostingsafearea-none", size: CGSize(width: 320, height: 300)) {
     HostingNavBox(regions: []).probe("host")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingsafearea-tabs", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 696, lastLine: 699, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingsafearea-tabs", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 813, lastLine: 816, declaration: #"""
 /// A hosting controller as a tab: the tab bar's safe area at the bottom.
 public static let hostingSafeAreaTabs = Fixture("ios/representable/hostingsafearea-tabs", size: CGSize(width: 320, height: 300)) {
     HostingNavBox(tabs: true).probe("host")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/label", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 354, lastLine: 365, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingstate", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 592, lastLine: 598, declaration: #"""
+/// A step selects the first row: its configuration update handler rebuilds the hosted
+/// content for the selected state.
+public static let hostingState = Fixture("ios/representable/hostingstate", size: CGSize(width: 320, height: 200),
+                                         model: { HostingStateModel() },
+                                         steps: [FixtureStep("select") { $0.selected = true }, FixtureStep("deselect") { $0.selected = false }]) { model in
+    HostingStateTable(model: model).probe("table")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/label", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 452, lastLine: 463, declaration: #"""
 /// A label (an intrinsic size on both axes, UILabel's default priorities 251 / 750) under a
 /// proposal larger than it, one smaller, at its ideal size, and a wrapping label in a
 /// narrow container.
@@ -1935,7 +1957,7 @@ public static let label = Fixture("ios/representable/label", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/lifecycle", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 543, lastLine: 562, declaration: #"""
+        FixtureSource(name: "ios/representable/lifecycle", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 660, lastLine: 679, declaration: #"""
 /// The order of a representable's calls: at first sight, after its identity changes (a new
 /// coordinator and view, the old view dismantled) and after it leaves the tree. A step
 /// mutates the model, the next copies the log into the view, which draws one bar per entry.
@@ -1957,7 +1979,7 @@ public static let lifecycle = Fixture("ios/representable/lifecycle", size: CGSiz
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/list", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 483, lastLine: 494, declaration: #"""
+        FixtureSource(name: "ios/representable/list", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 600, lastLine: 611, declaration: #"""
 /// Representables as list rows: a hugging label, a switch, a plain view with a frame, next
 /// to a text row; the row pitch and the hosted views' frames.
 public static let listRows = Fixture("ios/representable/list", size: CGSize(width: 320, height: 360)) {
@@ -1971,7 +1993,7 @@ public static let listRows = Fixture("ios/representable/list", size: CGSize(widt
     .probe("list")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/plain", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 343, lastLine: 352, declaration: #"""
+        FixtureSource(name: "ios/representable/plain", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 441, lastLine: 450, declaration: #"""
 /// A view without an intrinsic size: in a 200 × 60 container, at its ideal size, and in a
 /// row next to a text.
 public static let plain = Fixture("ios/representable/plain", size: CGSize(width: 320, height: 200)) {
@@ -1983,7 +2005,7 @@ public static let plain = Fixture("ios/representable/plain", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/priorities", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 367, lastLine: 385, declaration: #"""
+        FixtureSource(name: "ios/representable/priorities", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 465, lastLine: 483, declaration: #"""
 /// The priorities that decide between the intrinsic size and the proposal: content hugging
 /// from 252 to 1000 under a larger proposal, compression resistance from 250 to 1000 under
 /// a smaller one.
@@ -2004,7 +2026,7 @@ public static let priorities = Fixture("ios/representable/priorities", size: CGS
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/safearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 637, lastLine: 648, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 754, lastLine: 765, declaration: ##"""
 /// A representable under an inline navigation bar: where SwiftUI places it and what safe
 /// area the UIKit view sees (green over the safe area, blue elsewhere).
 public static let safeArea = Fixture("ios/representable/safearea", size: CGSize(width: 320, height: 300)) {
@@ -2018,7 +2040,7 @@ public static let safeArea = Fixture("ios/representable/safearea", size: CGSize(
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-color", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 593, lastLine: 608, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-color", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 710, lastLine: 725, declaration: ##"""
 /// The control: a SwiftUI colour ignoring the safe area under the same bar, and one in a
 /// stack that does not.
 public static let safeAreaColor = Fixture("ios/representable/safearea-color", size: CGSize(width: 320, height: 300)) {
@@ -2036,7 +2058,7 @@ public static let safeAreaColor = Fixture("ios/representable/safearea-color", si
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 659, lastLine: 670, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 776, lastLine: 787, declaration: ##"""
 /// The representable told to ignore the safe area: it extends under the bar, and the safe
 /// area the view sees says whether the bar's inset still reaches it.
 public static let safeAreaIgnored = Fixture("ios/representable/safearea-ignored", size: CGSize(width: 320, height: 300)) {
@@ -2050,7 +2072,7 @@ public static let safeAreaIgnored = Fixture("ios/representable/safearea-ignored"
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-inset", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 610, lastLine: 623, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-inset", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 727, lastLine: 740, declaration: ##"""
 /// A safe area SwiftUI makes (`safeAreaInset` at the bottom) around a representable: whether
 /// the UIKit view extends into it and sees it as an inset.
 public static let safeAreaInset = Fixture("ios/representable/safearea-inset", size: CGSize(width: 320, height: 300)) {
@@ -2066,7 +2088,7 @@ public static let safeAreaInset = Fixture("ios/representable/safearea-inset", si
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-large", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 650, lastLine: 657, declaration: #"""
+        FixtureSource(name: "ios/representable/safearea-large", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 767, lastLine: 774, declaration: #"""
 /// The same under a large title.
 public static let safeAreaLarge = Fixture("ios/representable/safearea-large", size: CGSize(width: 320, height: 300)) {
     NavigationStack {
@@ -2076,7 +2098,7 @@ public static let safeAreaLarge = Fixture("ios/representable/safearea-large", si
     .probe("nav")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/safearea-rule", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 564, lastLine: 591, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-rule", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 681, lastLine: 708, declaration: ##"""
 /// The rule for views away from the safe edge: a colour padded 10 from the top that ignores
 /// the safe area, one 10 below the top in a stack, and a scroll view in a row.
 public static let safeAreaRule = Fixture("ios/representable/safearea-rule", size: CGSize(width: 320, height: 300)) {
@@ -2106,7 +2128,7 @@ public static let safeAreaRule = Fixture("ios/representable/safearea-rule", size
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-scroll", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 672, lastLine: 683, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-scroll", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 789, lastLine: 800, declaration: ##"""
 /// A UIScrollView under the bar: whether it extends under it and where its content starts
 /// (the automatic content inset adjustment).
 public static let safeAreaScroll = Fixture("ios/representable/safearea-scroll", size: CGSize(width: 320, height: 300)) {
@@ -2120,7 +2142,7 @@ public static let safeAreaScroll = Fixture("ios/representable/safearea-scroll", 
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-scroll-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 625, lastLine: 635, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-scroll-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 742, lastLine: 752, declaration: ##"""
 /// A UIScrollView ignoring the safe area under the bar: the automatic content inset.
 public static let safeAreaScrollIgnored = Fixture("ios/representable/safearea-scroll-ignored", size: CGSize(width: 320, height: 300)) {
     NavigationStack {
@@ -2133,7 +2155,7 @@ public static let safeAreaScrollIgnored = Fixture("ios/representable/safearea-sc
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/scroll", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 512, lastLine: 526, declaration: #"""
+        FixtureSource(name: "ios/representable/scroll", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 629, lastLine: 643, declaration: #"""
 /// Representables in a vertical scroll view's content, sized by the content's width.
 public static let scrollContent = Fixture("ios/representable/scroll", size: CGSize(width: 320, height: 300)) {
     ScrollView {
@@ -2150,7 +2172,7 @@ public static let scrollContent = Fixture("ios/representable/scroll", size: CGSi
     .probe("scroll")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/sizing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 410, lastLine: 434, declaration: #"""
+        FixtureSource(name: "ios/representable/sizing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 508, lastLine: 532, declaration: #"""
 /// The representable's own `sizeThatFits`: a fixed size, the proposal's width, the ideal
 /// size when nothing is proposed, and how a representable aligns to a text baseline.
 public static let sizing = Fixture("ios/representable/sizing", size: CGSize(width: 320, height: 340)) {
@@ -2177,7 +2199,7 @@ public static let sizing = Fixture("ios/representable/sizing", size: CGSize(widt
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/spacing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 436, lastLine: 454, declaration: #"""
+        FixtureSource(name: "ios/representable/spacing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 534, lastLine: 552, declaration: #"""
 /// Stack spacing around representables: a label between texts in a column, a switch between
 /// texts in a row.
 public static let spacing = Fixture("ios/representable/spacing", size: CGSize(width: 320, height: 200)) {
@@ -2198,7 +2220,7 @@ public static let spacing = Fixture("ios/representable/spacing", size: CGSize(wi
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/traits", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 701, lastLine: 712, declaration: #"""
+        FixtureSource(name: "ios/representable/traits", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 818, lastLine: 829, declaration: #"""
 /// The environment as the hosted view's trait collection: the colour scheme, the dynamic
 /// type size, the layout direction and the size classes, each drawn as bar widths.
 public static let traits = Fixture("ios/representable/traits", size: CGSize(width: 320, height: 420)) {
@@ -2212,7 +2234,7 @@ public static let traits = Fixture("ios/representable/traits", size: CGSize(widt
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/update", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 466, lastLine: 475, declaration: #"""
+        FixtureSource(name: "ios/representable/update", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 564, lastLine: 573, declaration: #"""
 /// Updates reach the UIKit views: a longer text widens the label, the switch turns off.
 public static let update = Fixture("ios/representable/update", size: CGSize(width: 320, height: 200),
                                    model: { RepresentableModel() },
@@ -2224,7 +2246,7 @@ public static let update = Fixture("ios/representable/update", size: CGSize(widt
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/wheel", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 528, lastLine: 541, declaration: #"""
+        FixtureSource(name: "ios/representable/wheel", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 645, lastLine: 658, declaration: #"""
 /// A UIScrollView in a representable inside a SwiftUI scroll view: the still is the golden;
 /// Playwright/wheel-probe.mjs wheels over the inner one, then past its end into the outer.
 public static let wheel = Fixture("ios/representable/wheel", size: CGSize(width: 320, height: 300)) {
@@ -10012,6 +10034,104 @@ struct HostingCellsTable: UIViewRepresentable {
     func updateUIView(_ uiView: UITableView, context: Context) {}
 }
 
+/// A plain table whose rows host colours through `UIHostingConfiguration` with different
+/// margins: the row heights show the default vertical margins and the 56 pt floor.
+struct HostingMarginsTable: UIViewRepresentable {
+    final class Source: NSObject, UITableViewDataSource {
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 4 }
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            switch indexPath.row {
+            case 0: cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: 60) }.background(Color.yellow)
+            case 1: cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: 60) }.background(Color.yellow).margins(.all, 0)
+            case 2: cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: 20) }.background(Color.yellow).margins(.all, 0)
+            default: cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: 20) }.background(Color.yellow).margins(.vertical, 30)
+            }
+            return cell
+        }
+    }
+
+    func makeCoordinator() -> Source { Source() }
+    func makeUIView(context: Context) -> UITableView {
+        let table = UITableView(frame: .zero, style: .plain)
+        table.dataSource = context.coordinator
+        table.isScrollEnabled = false
+        return table
+    }
+    func updateUIView(_ uiView: UITableView, context: Context) {}
+}
+
+/// A collection view in the plain list layout whose self-sizing cells host colours of three
+/// heights through `UIHostingConfiguration`.
+struct HostingCollection: UIViewRepresentable {
+    final class Coordinator {
+        var source: UICollectionViewDiffableDataSource<Int, Int>?
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+    func makeUIView(context: Context) -> UICollectionView {
+        let layout = UICollectionViewCompositionalLayout.list(using: UICollectionLayoutListConfiguration(appearance: .plain))
+        let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collection.isScrollEnabled = false
+        let registration = UICollectionView.CellRegistration<UICollectionViewListCell, Int> { cell, _, height in
+            cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: CGFloat(height)) }.background(Color.yellow)
+        }
+        let source = UICollectionViewDiffableDataSource<Int, Int>(collectionView: collection) { collection, indexPath, item in
+            collection.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: item)
+        }
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Int>()
+        snapshot.appendSections([0])
+        snapshot.appendItems([20, 60, 100])
+        source.apply(snapshot, animatingDifferences: false)
+        context.coordinator.source = source
+        return collection
+    }
+    func updateUIView(_ uiView: UICollectionView, context: Context) {}
+}
+
+@Observable final class HostingStateModel {
+    var selected = false
+}
+
+/// A table whose rows rebuild their hosted content from the cell's configuration state
+/// (`configurationUpdateHandler`): the selected row says so on a yellow ground.
+struct HostingStateTable: UIViewRepresentable {
+    let model: HostingStateModel
+
+    final class Source: NSObject, UITableViewDataSource {
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 2 }
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            let number = indexPath.row + 1
+            cell.configurationUpdateHandler = { cell, state in
+                cell.contentConfiguration = UIHostingConfiguration {
+                    HStack {
+                        Text(state.isSelected ? "Selected" : "Row \(number)")
+                        Spacer()
+                    }
+                }
+                .background(state.isSelected ? Color.yellow : Color.clear)
+            }
+            return cell
+        }
+    }
+
+    func makeCoordinator() -> Source { Source() }
+    func makeUIView(context: Context) -> UITableView {
+        let table = UITableView(frame: .zero, style: .plain)
+        table.dataSource = context.coordinator
+        table.isScrollEnabled = false
+        return table
+    }
+    func updateUIView(_ uiView: UITableView, context: Context) {
+        if model.selected {
+            uiView.selectRow(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .none)
+        } else {
+            uiView.deselectRow(at: IndexPath(row: 0, section: 0), animated: false)
+        }
+    }
+}
+
 /// A UIKit view with no intrinsic size.
 struct PlainBox: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
@@ -10436,7 +10556,26 @@ public enum RepresentableFixtures {
                                         safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
                                         safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel,
-                                        listRows, formRows, scrollContent]
+                                        listRows, formRows, scrollContent, hostingMargins, hostingCollection, hostingState]
+
+    /// Hosted rows with a 60 pt colour under the default margins and no margins, a 20 pt colour
+    /// with no margins (the 56 pt floor) and with 30 pt vertical margins.
+    public static let hostingMargins = Fixture("ios/representable/hostingmargins", size: CGSize(width: 320, height: 300)) {
+        HostingMarginsTable().probe("table")
+    }.platform(.iOS)
+
+    /// Self-sizing collection list cells hosting 20, 60 and 100 pt colours.
+    public static let hostingCollection = Fixture("ios/representable/hostingcollection", size: CGSize(width: 320, height: 300)) {
+        HostingCollection().probe("collection")
+    }.platform(.iOS)
+
+    /// A step selects the first row: its configuration update handler rebuilds the hosted
+    /// content for the selected state.
+    public static let hostingState = Fixture("ios/representable/hostingstate", size: CGSize(width: 320, height: 200),
+                                             model: { HostingStateModel() },
+                                             steps: [FixtureStep("select") { $0.selected = true }, FixtureStep("deselect") { $0.selected = false }]) { model in
+        HostingStateTable(model: model).probe("table")
+    }.platform(.iOS)
 
     /// Representables as list rows: a hugging label, a switch, a plain view with a frame, next
     /// to a text row; the row pitch and the hosted views' frames.

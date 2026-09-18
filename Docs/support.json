@@ -1182,9 +1182,12 @@
         {
           "api": "UIHostingConfiguration",
           "status": "partial",
-          "notes": "SwiftUI content as a table or collection cell's contentConfiguration with margins (16 sideways measured), background(_:) and minSize; hosted rows size to their content, at least 56; no configuration state",
+          "notes": "SwiftUI content as a table or collection cell's contentConfiguration with margins (16 sideways, 15 above and below, measured), background(_:) and minSize (56 by default); table rows are the fit plus the separator point, collection list cells the fit; the cell's configuration state rebuilds the content through configurationUpdateHandler",
           "fixtures": [
-            "ios/representable/hostingcells"
+            "ios/representable/hostingcells",
+            "ios/representable/hostingmargins",
+            "ios/representable/hostingcollection",
+            "ios/representable/hostingstate"
           ]
         }
       ]

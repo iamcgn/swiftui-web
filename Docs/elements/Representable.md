@@ -201,17 +201,29 @@ off). The environment values `dynamicTypeSize`, `layoutDirection` and the size c
 in the core; the runtime itself does not lay out by them yet (Docs/todo.json `sw-dynamic-type`,
 `sw-rtl`).
 
-## UIHostingConfiguration (2026-09-11, `ios/representable/hostingcells`)
+## UIHostingConfiguration (2026-09-11, `ios/representable/hostingcells`; 2026-09-18, `hostingmargins`, `hostingcollection`, `hostingstate`)
 
 `Sources/SwiftUIWebUIKit/UIHostingConfiguration.swift`. `UIHostingConfiguration { content }` as a
 table or collection cell's `contentConfiguration`: the SwiftUI content is hosted by the runtime
 `UIHostingController` uses, over `background(_:)` (a view or a shape style, spanning the whole
-cell), inside `margins(_:_:)` / `margins(_:)` (16 sideways by default, measured; 11 above and
-below), with `minSize(width:height:)`. A hosted row is as tall as its content and margins, at
-least the 56 pt default row (a row with `minSize(height: 80)` is 80); the content sits centred.
-The table's automatic row heights ask the content view for its fit. Open: the vertical margins
-above one-line content (the 56 pt floor hides them), `UIHostingConfiguration` in collection
-cells' self-sizing, the cell's configuration state.
+cell), inside `margins(_:_:)` / `margins(_:)`, with `minSize(width:height:)`. Measured:
+
+- The default margins are 16 sideways and 15 above and below: a 60 pt colour makes a 90 pt
+  cell; with `margins(.all, 0)` a 60 pt one, and a 20 pt colour a 56 pt one (the default
+  minimum size, `minSize`'s default height); with `margins(.vertical, 30)` a 20 pt colour makes
+  80 (`hostingmargins`).
+- A table row adds its separator point to a hosted content's fit: 57, 61, 57 and 81 for those
+  rows, 57 for a one-line text and 81 for `minSize(height: 80)` (`hostingcells`); a list content
+  configuration's own fit already carries it (`uikit/table/configured`). Self-sizing collection
+  list cells are exactly the fit: 56, 90 and 130 for 20, 60 and 100 pt colours
+  (`hostingcollection`; a reused cell measures its new content, `Runtime.flushForMeasurement`).
+- The cell's configuration state reaches the content through UIKit's own machinery, new in
+  UIKitWeb: `configurationState`, `configurationUpdateHandler`, `setNeedsUpdateConfiguration`,
+  `updateConfiguration(using:)` and the automatic `updated(for:)` on both cell classes, run
+  before a cell's first layout and when its selection, highlight or editing changes; a content
+  view that `supports` the new configuration takes it (a hosting content view re-mounts its
+  root). `hostingstate` selects a row by a step: the handler rebuilds the hosted content as
+  "Selected" on yellow, and back on deselection.
 
 ## Hosting inside a hosted tree (2026-09-11)
 

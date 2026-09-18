@@ -308,13 +308,61 @@ open class UICollectionViewCell: UICollectionReusableView {
     public let contentView = UIView()
     open var backgroundView: UIView? { didSet { oldValue?.removeFromSuperview(); if let view = backgroundView { insertSubview(view, at: 0) } } }
     open var selectedBackgroundView: UIView?
-    open var isSelected = false { didSet { setNeedsDisplay() } }
-    open var isHighlighted = false { didSet { setNeedsDisplay() } }
+    open var isSelected = false { didSet { if isSelected != oldValue { setNeedsUpdateConfiguration() }; setNeedsDisplay() } }
+    open var isHighlighted = false { didSet { if isHighlighted != oldValue { setNeedsUpdateConfiguration() }; setNeedsDisplay() } }
+
+    // MARK: Configuration state
+
+    public typealias ConfigurationUpdateHandler = (UICollectionViewCell, UICellConfigurationState) -> Void
+
+    /// The cell's state as a configuration sees it.
+    open var configurationState: UICellConfigurationState {
+        var state = UICellConfigurationState(traitCollection: traitCollection)
+        state.isSelected = isSelected
+        state.isHighlighted = isHighlighted
+        state.isExpanded = (self as? UICollectionViewListCell)?.isOutlineExpanded ?? false
+        return state
+    }
+    /// Runs after the automatic updates whenever the state changes, and before the cell first
+    /// lays out or sizes.
+    open var configurationUpdateHandler: ConfigurationUpdateHandler? { didSet { setNeedsUpdateConfiguration() } }
+    open var automaticallyUpdatesContentConfiguration = true
+    open var automaticallyUpdatesBackgroundConfiguration = true
+    private var needsConfigurationUpdate = true
+
+    open func setNeedsUpdateConfiguration() {
+        needsConfigurationUpdate = true
+        setNeedsLayout()
+    }
+
+    open func updateConfiguration(using state: UICellConfigurationState) {
+        if automaticallyUpdatesContentConfiguration, let configuration = contentConfiguration {
+            contentConfiguration = configuration.updated(for: state)
+        }
+        configurationUpdateHandler?(self, state)
+    }
+
+    func updateConfigurationIfNeeded() {
+        guard needsConfigurationUpdate else { return }
+        needsConfigurationUpdate = false
+        updateConfiguration(using: configurationState)
+    }
+
+    open override func layoutSubviews() {
+        super.layoutSubviews()
+        updateConfigurationIfNeeded()
+    }
 
     /// A content configuration makes the content view that fills the cell's content view
-    /// (Containers/ContentConfiguration.swift).
+    /// (Containers/ContentConfiguration.swift); a content view that supports the new
+    /// configuration takes it instead.
     open var contentConfiguration: (any UIContentConfiguration)? {
         didSet {
+            if let contentConfiguration, let current = configuredContent?.view, current.supports(contentConfiguration) {
+                current.configuration = contentConfiguration
+                setNeedsLayout()
+                return
+            }
             configuredContent?.view.removeFromSuperview()
             configuredContent = nil
             guard let contentConfiguration else { return }
@@ -341,6 +389,7 @@ open class UICollectionViewCell: UICollectionReusableView {
     open override func prepareForReuse() {
         isSelected = false
         isHighlighted = false
+        setNeedsUpdateConfiguration()
     }
 }
 

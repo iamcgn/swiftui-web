@@ -565,7 +565,7 @@ extension TextMetricsRequests {
         let body = ["Hello", "One", "Two", "Hg", "Enabled", "OK", "Bordered", "Prominent", "Borderless", "Disabled", "Delete",
                     "Quantity: 3", "Placeholder", "Password", "Name", "Fruit", "Apple", "Banana", "Cherry", "Size", "Small", "Medium", "Large",
                     "Wi-Fi", "Bluetooth", "Volume", "Save", "Bold", "Body", "secret", "••••••",
-                    "Row 1", "Row 2", "Row 3", "Detail"]   // ios/representable/hostingcells
+                    "Row 1", "Row 2", "Row 3", "Detail", "Selected"]   // ios/representable/hostingcells, hostingstate
         for string in body {
             requests.append(TextMetricRequest(string, .style("body")))
             requests.append(TextMetricRequest(string, .style("body", weight: "semibold")))

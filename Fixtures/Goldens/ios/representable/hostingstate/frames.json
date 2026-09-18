@@ -1,0 +1,39 @@
+{
+  "fixture" : "ios\/representable\/hostingstate",
+  "frames" : {
+    "table" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "table" : {
+          "height" : 200,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "select"
+    },
+    {
+      "frames" : {
+        "table" : {
+          "height" : 200,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "deselect"
+    }
+  ]
+}

@@ -8,10 +8,13 @@ import UIKitWebCore
 public struct UIHostingConfiguration<Content: View, Background: View>: UIContentConfiguration {
     let content: Content
     let background: Background
-    /// The margins; nil takes the cell's default (16 sideways, ios/representable/hostingcells;
-    /// 11 above and below, under the row's 56 pt floor).
+    /// The margins; nil takes the cell's default: 16 sideways (ios/representable/hostingcells),
+    /// 15 above and below (hostingmargins: a 60 pt colour makes a 90 pt row plus the separator;
+    /// hostingcollection: 90 and 130 pt cells for 60 and 100).
     var marginInsets: EdgeInsets?
-    var minimumSize = CGSize(width: 0, height: 0)
+    /// At least the platform's default row height tall (56: a 20 pt colour makes a 56 pt table
+    /// row and collection cell alike, ios/representable/hostingmargins, hostingcollection).
+    var minimumSize = CGSize(width: 0, height: 56)
 
     public init(@ViewBuilder content: () -> Content) where Background == EmptyView {
         self.content = content()
@@ -59,14 +62,14 @@ public struct UIHostingConfiguration<Content: View, Background: View>: UIContent
 
     public func minSize(_ size: CGSize) -> Self { minSize(width: size.width, height: size.height) }
 
-    static var defaultMargins: EdgeInsets { EdgeInsets(top: 11, leading: 16, bottom: 11, trailing: 16) }
+    static var defaultMargins: EdgeInsets { EdgeInsets(top: 15, leading: 16, bottom: 15, trailing: 16) }
 
     public func makeContentView() -> UIView & UIContentView { _UIHostingContentView(configuration: self) }
 }
 
 /// The hosted content: the background behind the content inset by the margins, in one runtime.
 @MainActor
-final class _UIHostingContentView<Content: View, Background: View>: UIView, UIContentView {
+final class _UIHostingContentView<Content: View, Background: View>: UIView, UIContentView, _HostedCellContentView {
     private var hosted: UIHostingConfiguration<Content, Background>
     private let hostingView: _UIHostingView<AnyView>
 

@@ -5,11 +5,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Site | 8 | 8 | 0 | 0 |
-| Interop | 7 | 5 | 1 | 1 |
+| Interop | 6 | 4 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
 | UIKit | 37 | 2 | 24 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **115** | 16 | 56 | 43 |
+| **All** | **114** | 15 | 56 | 43 |
 
 ## Next (Phase 8, in order)
 
@@ -36,8 +36,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **Hover inside a representable** `ix-hover` · Representables · missing  
   SwiftUI's pointer moves reach the hosted tree as `UIHoverGestureRecognizer` events and `UIPointerInteraction` styles; the host cursor follows. Depends on uk-hover. ([Representable.md](Docs/elements/Representable.md), [Hover.md](Docs/elements/Hover.md))
-- ☐ **UIHostingConfiguration: margins, self-sizing, configuration state** `ix-hosting-config` · UIHostingConfiguration · approximate  
-  The vertical margins above one-line content (hidden by the 56 pt floor today), hosted content in self-sizing collection cells, and `updated(for:)` with the cell's configuration state (selected, highlighted). ([Representable.md](Docs/elements/Representable.md))
 - ☐ **UIHostingController in containers** `ix-hosting-controller` · UIHostingController · missing  
   A hosting controller pushed on a navigation controller or in a tab sees the bars' safe area; `sizingOptions.intrinsicContentSize`; `rootView` changes animate under a transaction; `navigationItem` driven by the SwiftUI `navigationTitle` and `toolbar` (as Apple bridges them). ([Representable.md](Docs/elements/Representable.md))
 - ☐ **Image(uiImage:) for rendered images** `ix-rendered-images` · Bridging · missing  
@@ -288,6 +286,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Interop · Representables
 - ☑ 2026-09-18 **Animations across the seam** `ix-transaction` · Interop · Representables
 - ☑ 2026-09-18 **Representables in lists, forms, scroll views and sheets** `ix-containers` · Interop · Representables
+- ☑ 2026-09-18 **UIHostingConfiguration: margins, self-sizing, configuration state** `ix-hosting-config` · Interop · UIHostingConfiguration
 - ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables
 - ☑ 2026-09-12 **Environment to trait collection** `ix-traits` · Interop · Representables
 - ☑ 2026-09-12 **Dismantle and coordinator lifecycle tests** `ix-lifecycle` · Interop · Representables

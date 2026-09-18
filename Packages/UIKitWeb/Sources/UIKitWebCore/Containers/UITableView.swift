@@ -954,7 +954,7 @@ open class UITableViewCell: UIView {
     /// a 22 pt circle centred at (28, 22); a reorder grip 27 wide ends 16 from the right.
     static let editingContentInset: CGFloat = 40
     static let reorderControlWidth: CGFloat = 27
-    open private(set) var isEditing = false
+    open private(set) var isEditing = false { didSet { if isEditing != oldValue { setNeedsUpdateConfiguration() } } }
     open var editingStyle: UITableViewCell.EditingStyle = .none { didSet { setNeedsLayout(); setNeedsDisplay() } }
     open var showsReorderControl = false { didSet { setNeedsLayout() } }
     open var editingAccessoryType: AccessoryType = .none
@@ -1085,6 +1085,7 @@ open class UITableViewCell: UIView {
     open func prepareForReuse() {
         isSelected = false
         isHighlighted = false
+        setNeedsUpdateConfiguration()
         accessoryType = .none
         accessoryView = nil
         closeSwipe(animated: false)
@@ -1092,13 +1093,55 @@ open class UITableViewCell: UIView {
     }
 
     open func setSelected(_ selected: Bool, animated: Bool) {
+        guard isSelected != selected else { return }
         isSelected = selected
+        setNeedsUpdateConfiguration()
         setNeedsDisplay()
     }
 
     open func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        guard isHighlighted != highlighted else { return }
         isHighlighted = highlighted
+        setNeedsUpdateConfiguration()
         setNeedsDisplay()
+    }
+
+    // MARK: Configuration state (ios/representable/hostingstate)
+
+    public typealias ConfigurationUpdateHandler = (UITableViewCell, UICellConfigurationState) -> Void
+
+    /// The cell's state as a configuration sees it: selected, highlighted, editing, the traits.
+    open var configurationState: UICellConfigurationState {
+        var state = UICellConfigurationState(traitCollection: traitCollection)
+        state.isSelected = isSelected
+        state.isHighlighted = isHighlighted
+        state.isEditing = isEditing
+        return state
+    }
+    /// Runs after the automatic updates whenever the state changes, and before the cell first
+    /// lays out; it may set the content and background configurations for the state.
+    open var configurationUpdateHandler: ConfigurationUpdateHandler? { didSet { setNeedsUpdateConfiguration() } }
+    open var automaticallyUpdatesContentConfiguration = true
+    open var automaticallyUpdatesBackgroundConfiguration = true
+    private var needsConfigurationUpdate = true
+
+    open func setNeedsUpdateConfiguration() {
+        needsConfigurationUpdate = true
+        setNeedsLayout()
+    }
+
+    /// Updates the configurations for `state`: each `updated(for:)`, then the handler.
+    open func updateConfiguration(using state: UICellConfigurationState) {
+        if automaticallyUpdatesContentConfiguration, let configuration = contentConfiguration {
+            contentConfiguration = configuration.updated(for: state)
+        }
+        configurationUpdateHandler?(self, state)
+    }
+
+    func updateConfigurationIfNeeded() {
+        guard needsConfigurationUpdate else { return }
+        needsConfigurationUpdate = false
+        updateConfiguration(using: configurationState)
     }
 
     /// The row height UIKit gives the cell's content: 56 for a text row (the default and
@@ -1113,9 +1156,14 @@ open class UITableViewCell: UIView {
     /// label 12 above and below gives 61 for two 15 pt lines); a default cell's wrapping text
     /// label plus the row's margins (104 for four 17 pt lines); else the style's 56 or 73.
     func preferredHeight(width: CGFloat) -> CGFloat {
+        updateConfigurationIfNeeded()
         if let content = configuredContent?.view as UIView? {
+            // The fit, at least 56. A list content view's fit carries the table's separator
+            // (uikit/table/configured: 57, 76.5); a hosted content view's does not, so the row
+            // adds the point (ios/representable/hostingcells, hostingmargins: 57, 61, 81, 91;
+            // a collection cell adds nothing, hostingcollection: 56, 90, 130).
             let fitted = content.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height
-            return max(56, fitted)
+            return max(56, fitted) + (content is any _HostedCellContentView ? 1 : 0)
         }
         if contentView.subviews.contains(where: { !$0.translatesAutoresizingMaskIntoConstraints }) {
             if bounds.width != width { frame.size.width = width }
@@ -1160,6 +1208,13 @@ open class UITableViewCell: UIView {
     }
 
     private func installConfiguredContent() {
+        // A content view that supports the new configuration takes it (a hosted configuration
+        // re-mounts its content); else a new one is made.
+        if let contentConfiguration, let current = configuredContent?.view, current.supports(contentConfiguration) {
+            current.configuration = contentConfiguration
+            setNeedsLayout()
+            return
+        }
         configuredContent?.view.removeFromSuperview()
         configuredContent = nil
         guard let contentConfiguration else { setNeedsLayout(); return }
@@ -1183,6 +1238,7 @@ open class UITableViewCell: UIView {
 
     open override func layoutSubviews() {
         super.layoutSubviews()
+        updateConfigurationIfNeeded()
         let width = bounds.width
         // The content view ends where the accessory starts (16 from the right for a chevron,
         // 18.5 for a checkmark), else spans the row. Editing hides the accessory: the content

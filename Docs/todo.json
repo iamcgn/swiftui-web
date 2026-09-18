@@ -212,13 +212,14 @@
       "framework": "Interop",
       "area": "UIHostingConfiguration",
       "title": "UIHostingConfiguration: margins, self-sizing, configuration state",
-      "detail": "The vertical margins above one-line content (hidden by the 56 pt floor today), hosted content in self-sizing collection cells, and `updated(for:)` with the cell's configuration state (selected, highlighted).",
+      "detail": "Measured on the simulator (ios/representable/hostingmargins, hostingcollection, hostingstate): default margins 15 above and below, a table row's fit plus its separator point, self-sizing collection list cells exactly the fit, and the cell's configuration state (`configurationUpdateHandler`, `updateConfiguration(using:)`, `setNeedsUpdateConfiguration`, now in UIKitWeb for table and collection cells) rebuilding the hosted content on selection.",
       "kind": "approximate",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Representable.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-hosting-controller",

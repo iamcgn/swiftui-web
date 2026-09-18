@@ -181,6 +181,15 @@ public final class Runtime {
         scheduler.flush()
     }
 
+    /// Applies pending invalidations before a host measures the tree outside a layout pass (a
+    /// hosting view's `sizeThatFits`): a re-mounted or updated root drops the memoised sizes,
+    /// which only a layout would otherwise do (ios/representable/hostingcollection: a reused
+    /// cell measured its previous content).
+    package func flushForMeasurement() {
+        flush()
+        if sizesInvalidated || scheduler.hasPendingWork { layoutGeneration += 1 }
+    }
+
     /// Incremented at the start of every layout pass; size caches are keyed by it.
     package private(set) var layoutGeneration: UInt64 = 0
 

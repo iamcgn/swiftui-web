@@ -157,6 +157,18 @@ list cell's metrics are in `Docs/elements/UIKit/CollectionView.md`. `UIHostingCo
 images in list content (sized as the image), `imageProperties` (tint, corner radius, symbol
 configuration), grouped tables' content cells (the same metrics assumed).
 
+Configuration state (2026-09-18, `ios/representable/hostingstate`, `ConfigurationStateTests`):
+`UITableViewCell` and `UICollectionViewCell` carry `configurationState`
+(`UICellConfigurationState`: selected, highlighted, editing, expanded for outline parents, the
+traits), `configurationUpdateHandler`, `automaticallyUpdatesContentConfiguration`,
+`setNeedsUpdateConfiguration()` and `updateConfiguration(using:)`, which applies the content
+configuration's `updated(for:)` and then the handler. An update runs before the cell's first
+layout or sizing, after `prepareForReuse`, and whenever the selection, highlight or editing
+state changes. A content view that `supports` a new configuration takes it through its
+`configuration` setter instead of being remade. A hosted content view's fit (SwiftUIWebUIKit's
+`UIHostingConfiguration`, `_HostedCellContentView`) gets the table's separator point added to
+the row; a list content view's fit already carries it.
+
 ## Pinned headers (2026-09-11, `uikit/table/pinned`)
 
 A plain-style section header sticks to the top of the visible bounds while its section scrolls

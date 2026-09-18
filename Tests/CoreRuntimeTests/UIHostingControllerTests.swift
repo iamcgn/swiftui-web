@@ -96,6 +96,36 @@ import Foundation
         #expect(painted.contains("fillRect(0, 0, 300, 300) #0088FF"), "\(painted)")
     }
 
+    /// ios/representable/hostingcollection: list cells hosting 20, 60 and 100 pt colours size
+    /// themselves to 56 (the floor), 90 and 130 (15 pt margins above and below) and stack.
+    @Test func hostedCollectionCellsSelfSize() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.textEngine = engine()
+        scene.configureScreen(size: CGSize(width: 320, height: 300), scale: 2)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let layout = UICollectionViewCompositionalLayout.list(using: UICollectionLayoutListConfiguration(appearance: .plain))
+        let collection = UICollectionView(frame: window.bounds, collectionViewLayout: layout)
+        let registration = UICollectionView.CellRegistration<UICollectionViewListCell, Int> { cell, _, height in
+            cell.contentConfiguration = UIHostingConfiguration { Color.green.frame(height: CGFloat(height)) }.background(Color.yellow)
+        }
+        let source = UICollectionViewDiffableDataSource<Int, Int>(collectionView: collection) { collection, indexPath, item in
+            collection.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: item)
+        }
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Int>()
+        snapshot.appendSections([0])
+        snapshot.appendItems([20, 60, 100])
+        source.apply(snapshot, animatingDifferences: false)
+        window.addSubview(collection)
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 320, height: 300))
+        scene.layout(in: CGSize(width: 320, height: 300))
+        let frames = (0..<3).map { collection.cellForItem(at: IndexPath(item: $0, section: 0))?.frame ?? .null }
+        #expect(frames.map(\.minY) == [0, 56, 146], "\(frames)")
+        #expect(frames.map(\.height) == [56, 90, 130], "\(frames)")
+        #expect(collection.contentSize.height == 276)
+    }
+
     @Test func touchesReachTheContentAndSemanticsJoinTheScene() {
         let model = Model()
         let (_, _) = window(model)

@@ -118,7 +118,7 @@ final class _UIHostingView<Content: View>: UIView {
     /// unspecified, so `sizeThatFits(in:)` and the intrinsic size give the ideal size.
     override func sizeThatFits(_ size: CGSize) -> CGSize {
         prepare()
-        runtime.flush()
+        runtime.flushForMeasurement()
         guard let node = runtime.root.layoutChildren.first else { return .zero }
         func proposed(_ value: CGFloat) -> CGFloat? { value <= 0 || value >= UIView.layoutFittingExpandedSize.width ? nil : value }
         return node.sizeThatFits(ProposedViewSize(width: proposed(size.width), height: proposed(size.height)))

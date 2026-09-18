@@ -50,6 +50,11 @@ extension UIContentView {
     public func supports(_ configuration: any UIContentConfiguration) -> Bool { true }
 }
 
+/// A content view hosting another framework's tree (SwiftUIWebUIKit's hosting configuration):
+/// its fit is the content's, and a table row adds its separator point to it.
+@MainActor
+public protocol _HostedCellContentView: AnyObject {}
+
 /// A cell's background (accepted: the colour applies; the rest is stored).
 public struct UIBackgroundConfiguration: Sendable {
     public var backgroundColor: UIColor?
