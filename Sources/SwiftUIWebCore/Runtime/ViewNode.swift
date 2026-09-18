@@ -537,6 +537,25 @@ private func _openEquatable<E: Equatable>(_: E.Type, _ a: Any, _ b: Any) -> Bool
     (a as! E) == (b as! E)
 }
 
+/// Whether two values differ member by member, as SwiftUI compares a representable's value:
+/// `Equatable` members by `==`, class references by identity, plain-data members by their
+/// bytes, nested structs recursively; a member that is none of those (a closure) differs.
+package func _valuesDifferMemberwise<T>(_ old: T, _ new: T) -> Bool {
+    func differ(_ a: Any, _ b: Any) -> Bool {
+        let type = Swift.type(of: a)
+        guard type == Swift.type(of: b) else { return true }
+        if let equatable = type as? any Equatable.Type { return !_openEquatable(equatable, a, b) }
+        if type is AnyObject.Type { return (a as AnyObject) !== (b as AnyObject) }
+        let mirrorA = Mirror(reflecting: a), mirrorB = Mirror(reflecting: b)
+        guard mirrorA.displayStyle == .struct || mirrorA.displayStyle == .tuple || mirrorA.displayStyle == .optional || mirrorA.displayStyle == .enum else { return true }
+        guard mirrorA.children.count == mirrorB.children.count else { return true }
+        if mirrorA.children.isEmpty { return mirrorA.displayStyle == .enum ? String(describing: a) != String(describing: b) : false }
+        for (childA, childB) in zip(mirrorA.children, mirrorB.children) where differ(childA.value, childB.value) { return true }
+        return false
+    }
+    return differ(old, new)
+}
+
 /// Strips module and private-context qualifiers from a type description, inside generic
 /// arguments too: `Module.(unknown context at $1).Outer.Inner<Module.Arg>` → `Inner<Arg>`.
 package func _shortTypeName(_ type: Any.Type) -> String {

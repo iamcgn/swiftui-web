@@ -1172,8 +1172,10 @@
         {
           "api": "UIHostingController",
           "status": "partial",
-          "notes": "init(rootView:), rootView, sizeThatFits(in:), sizingOptions.preferredContentSize, safeAreaRegions (a navigation or tab bar's safe area is the content's; empty regions fill the view); the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI",
+          "notes": "init(rootView:), rootView (animated under withAnimation), sizeThatFits(in:), sizingOptions (preferredContentSize kept current, intrinsicContentSize invalidated on change), safeAreaRegions (a navigation or tab bar's safe area is the content's; empty regions fill the view); navigationTitle and toolbar items become the navigation item's title and bar buttons; the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI",
           "fixtures": [
+            "ios/representable/hostingnav",
+            "ios/representable/hostingsizing",
             "ios/representable/hostingsafearea",
             "ios/representable/hostingsafearea-none",
             "ios/representable/hostingsafearea-tabs"

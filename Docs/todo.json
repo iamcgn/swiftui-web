@@ -226,13 +226,14 @@
       "framework": "Interop",
       "area": "UIHostingController",
       "title": "UIHostingController in containers",
-      "detail": "A hosting controller pushed on a navigation controller or in a tab sees the bars' safe area; `sizingOptions.intrinsicContentSize`; `rootView` changes animate under a transaction; `navigationItem` driven by the SwiftUI `navigationTitle` and `toolbar` (as Apple bridges them).",
+      "detail": "ios/representable/hostingnav, hostingsizing and UIHostingControllerTests: a hosting controller under a navigation or tab bar sees the bars' safe area (ix-layout-options); navigationTitle and toolbar items drive its navigationItem as titled bar buttons whose taps run the actions; sizingOptions keep the preferred size and invalidate the intrinsic size; rootView set under withAnimation tweens. A representable is re-measured only when its value, environment or proposal changes.",
       "kind": "missing",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Representable.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-rendered-images",

@@ -535,6 +535,51 @@ import Foundation
         #expect(first.alpha == 0)
     }
 
+    /// A view whose intrinsic size the app changes on its own.
+    final class GrowingView: UIView {
+        var height: CGFloat = 40 { didSet { invalidateIntrinsicContentSize() } }
+        override var intrinsicContentSize: CGSize { CGSize(width: 100, height: height) }
+    }
+
+    struct Growing: UIViewRepresentable {
+        let view: GrowingView
+        let model: Model
+        func makeUIView(context: Context) -> GrowingView { view }
+        func updateUIView(_ uiView: GrowingView, context: Context) { model.counts.updates += 1 }
+    }
+
+    struct GrowingScreen: View {
+        let model: Model
+        let view: GrowingView
+        var body: some View {
+            VStack(spacing: 0) {
+                Growing(view: view, model: model)._probe("growing")
+                Color.clear.frame(width: CGFloat(model.text.count), height: 1)
+            }
+        }
+    }
+
+    /// ios/representable/hostingsizing: SwiftUI measures a representable again only when its
+    /// value, environment or proposal changes; a platform view growing on its own keeps the
+    /// representable's frame, though the view is updated.
+    @Test func sizesAreKeptUntilTheValueChanges() {
+        let model = Model()
+        let view = GrowingView()
+        view.setContentHuggingPriority(.required, for: .vertical)
+        let r = iOSRuntime()
+        r.mount(GrowingScreen(model: model, view: view))
+        r.layout(in: Self.size)
+        #expect(r.probeFrames["growing"]?.height == 40)
+        view.height = 80
+        model.text = "Hello!"
+        r.layout(in: Self.size)
+        #expect(r.probeFrames["growing"]?.height == 40)
+        #expect(model.updates == 2)
+        // A new proposal measures again.
+        r.layout(in: CGSize(width: 320, height: 500))
+        #expect(r.probeFrames["growing"]?.height == 80)
+    }
+
     @Test func controllersGetAppearanceCallbacksAndDismantlingRuns() {
         let model = Model()
         let r = runtime(model)

@@ -34,3 +34,7 @@ labels to the width; a centred row centres a box beside a label. Frames exact, p
 
 Open: `fillProportionally` against real UIKit, compression when the content overflows,
 spacing after hidden views, baseline alignments in vertical stacks (UIKit ignores them).
+
+`systemLayoutSizeFitting` (2026-09-18): a stack's fitting size is its arranged content's
+intrinsic total (a required target keeps its length), so a representable sized by it is 70 tall
+for a 40 pt hosting view over a 30 pt constrained view (`ios/representable/hostingsizing`).

@@ -1380,6 +1380,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 60.5
     },
+    "system:17:500:default|;l1|Save" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 38
+    },
     "system:17:500:default|;l1|Search" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,

@@ -94,6 +94,11 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     private var lastPressPoint = CGPoint.zero
     /// The environment generation the content was last updated for.
     private var updatedGeneration: UInt64?
+    /// Sizes measured per proposal: SwiftUI measures a representable again only when its value,
+    /// its environment or the proposal changes, not when the platform view's own content does
+    /// (ios/representable/hostingsizing: a hosted view that grows keeps its representable's
+    /// frame; ios/representable/update: a new text re-measures).
+    private var measured: [ProposedViewSize: CGSize] = [:]
 
     package init(_ context: _NodeContext<V>, tree: any _PlatformViewTree, propagatesSafeArea: Bool = true,
                  sizing: @escaping @MainActor (ProposedViewSize, V, EnvironmentValues) -> CGSize,
@@ -129,10 +134,17 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
 
     override package func update(view: V, environment: EnvironmentValues, force: Bool) {
         let changed = force || needsUpdate || _valuesDiffer(self.view, view) || updatedGeneration != environment.generation
+        if force || _valuesDifferMemberwise(self.view, view) || updatedGeneration != environment.generation { measured.removeAll() }
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
         if changed { pushContent() }
+    }
+
+    /// An observed property the update read changed: the content is pushed again from the
+    /// stored value, which keeps the memoised sizes (the value did not change).
+    override package func performUpdate() {
+        update(view: view, environment: environment, force: false)
     }
 
     override package func unmount() {
@@ -146,8 +158,11 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     // MARK: Layout and painting
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        if let size = measured[proposal] { return size }
         prepareTree()
-        return sizing(proposal, view, environment)
+        let size = sizing(proposal, view, environment)
+        measured[proposal] = size
+        return size
     }
 
     /// The tree's safe area is the part of the node under a bar or inset, by geometry: zero for

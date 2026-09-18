@@ -109,6 +109,74 @@ struct HostingCollection: UIViewRepresentable {
     func updateUIView(_ uiView: UICollectionView, context: Context) {}
 }
 
+/// A navigation controller whose screen is a hosting controller: SwiftUI's `navigationTitle`
+/// and `toolbar` drive the UIKit bar.
+struct HostingNavItemBox: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIViewController {
+        let hosting = UIHostingController(rootView: HostingNavContent())
+        return UINavigationController(rootViewController: hosting)
+    }
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+struct HostingNavContent: View {
+    var body: some View {
+        VStack { Text("Content") }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .navigationTitle("Settings")
+            #if canImport(SwiftUIWebCore) || os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { Button("Save") {} }
+            }
+    }
+}
+
+@Observable final class HostingSizingModel {
+    var tall = false
+}
+
+/// A vertical stack view holding a hosting controller's view (sized by its intrinsic content
+/// size) over a red view: when the hosted content grows, the red view moves down.
+struct HostingSizingBox: UIViewRepresentable {
+    let model: HostingSizingModel
+
+    final class Coordinator {
+        var hosting: UIHostingController<HostingSizingContent>?
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+    func makeUIView(context: Context) -> UIStackView {
+        let hosting = UIHostingController(rootView: HostingSizingContent(model: model))
+        hosting.sizingOptions = .intrinsicContentSize
+        context.coordinator.hosting = hosting
+        let red = UIView()
+        red.backgroundColor = .systemRed
+        red.translatesAutoresizingMaskIntoConstraints = false
+        red.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        let stack = UIStackView(arrangedSubviews: [hosting.view, red])
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.distribution = .fill
+        return stack
+    }
+    func updateUIView(_ uiView: UIStackView, context: Context) {
+        _ = model.tall
+    }
+    /// The stack's fitting height: the hosted content's intrinsic size plus the red view.
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UIStackView, context: Context) -> CGSize? {
+        CGSize(width: proposal.width ?? 200, height: uiView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height)
+    }
+}
+
+struct HostingSizingContent: View {
+    let model: HostingSizingModel
+    var body: some View {
+        Color.green.frame(height: model.tall ? 80 : 40)
+    }
+}
+
 @Observable final class HostingStateModel {
     var selected = false
 }
@@ -576,7 +644,26 @@ public enum RepresentableFixtures {
                                         safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
                                         safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel,
-                                        listRows, formRows, scrollContent, hostingMargins, hostingCollection, hostingState]
+                                        listRows, formRows, scrollContent, hostingMargins, hostingCollection, hostingState,
+                                        hostingNavItem, hostingSizing]
+
+    /// The hosted content's navigation title and toolbar item in the UIKit navigation bar.
+    public static let hostingNavItem = Fixture("ios/representable/hostingnav", size: CGSize(width: 320, height: 200)) {
+        HostingNavItemBox().probe("host")
+    }.platform(.iOS)
+
+    /// `sizingOptions.intrinsicContentSize`: the representable is the stack's fitting height,
+    /// the hosted content's intrinsic size (40) plus the 30 pt red view; a step grows the content
+    /// to 80 and the representable follows.
+    public static let hostingSizing = Fixture("ios/representable/hostingsizing", size: CGSize(width: 320, height: 200),
+                                              model: { HostingSizingModel() },
+                                              steps: [FixtureStep("grow") { $0.tall = true }]) { model in
+        VStack {
+            HostingSizingBox(model: model).probe("stack")
+        }
+        .frame(width: 200)
+        .probe("column")
+    }.platform(.iOS)
 
     /// Hosted rows with a 60 pt colour under the default margins and no margins, a 20 pt colour
     /// with no margins (the 56 pt floor) and with 30 pt vertical margins.

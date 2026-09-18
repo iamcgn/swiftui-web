@@ -126,6 +126,75 @@ import Foundation
         #expect(collection.contentSize.height == 276)
     }
 
+    struct Screen: View {
+        let model: Model
+        var body: some View {
+            VStack { Text("Count \(model.count)") }
+                .navigationTitle("Settings")
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { Button("Tap") { model.count += 1 } }
+                    ToolbarItem(placement: .topBarLeading) { Button("Count 0") { model.count += 10 } }
+                }
+        }
+    }
+
+    /// ios/representable/hostingnav: the content's navigation title and toolbar items become
+    /// the controller's navigation item, titled bar buttons whose taps run the SwiftUI actions.
+    @Test func navigationTitleAndToolbarDriveTheNavigationItem() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.textEngine = engine()
+        scene.configureScreen(size: CGSize(width: 300, height: 300), scale: 2)
+        let model = Model()
+        let controller = UIHostingController(rootView: Screen(model: model))
+        let navigation = UINavigationController(rootViewController: controller)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
+        window.rootViewController = navigation
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 300, height: 300))
+        #expect(controller.navigationItem.title == "Settings")
+        #expect(controller.navigationItem.rightBarButtonItems?.map(\.title) == ["Tap"])
+        #expect(controller.navigationItem.leftBarButtonItems?.map(\.title) == ["Count 0"])
+        // The bar items are the scene's buttons: activating them runs the SwiftUI actions.
+        scene.layout(in: CGSize(width: 300, height: 300))
+        let elements = scene.semanticsTree()
+        let tap = elements.first { $0.role == .button && $0.label == "Tap" }
+        #expect(tap != nil, "\(elements.map(\.label))")
+        if let tap { scene.activate(semanticsIdentifier: tap.identifier) }
+        #expect(model.count == 1)
+        if let left = elements.first(where: { $0.role == .button && $0.label == "Count 0" }) { scene.activate(semanticsIdentifier: left.identifier) }
+        #expect(model.count == 11)
+        // (The bar's own labels need UIKit font metrics the headless engine here lacks; the
+        // pixels are ios/representable/hostingnav's.)
+    }
+
+    /// A root view set inside `withAnimation` tweens, as a state change would; the sizing
+    /// options keep the preferred size current and invalidate the intrinsic size on change.
+    @Test func rootViewChangesAnimateAndSizingOptionsFollowContent() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.textEngine = engine()
+        scene.configureScreen(size: CGSize(width: 300, height: 300), scale: 2)
+        let controller = UIHostingController(rootView: AnyView(Color.red.frame(width: 100, height: 40)))
+        controller.sizingOptions = [.preferredContentSize, .intrinsicContentSize]
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 300, height: 300))
+        #expect(controller.preferredContentSize == CGSize(width: 100, height: 40))
+        #expect(controller.view.intrinsicContentSize == CGSize(width: 100, height: 40))
+        withAnimation(.linear(duration: 1)) { controller.rootView = AnyView(Color.red.frame(width: 200, height: 40)) }
+        scene.layout(in: CGSize(width: 300, height: 300))
+        _ = scene.advanceFrame(elapsed: 0.5)
+        let painted = commands()
+        // Half way: 150 wide, centred in the 300 pt window.
+        #expect(painted.contains("fillRect(75, 130, 150, 40) #FF383C"), "\(painted.filter { $0.hasPrefix("fillRect") })")
+        _ = scene.advanceFrame(elapsed: 0.6)
+        #expect(commands().contains("fillRect(50, 130, 200, 40) #FF383C"))
+        #expect(controller.preferredContentSize == CGSize(width: 200, height: 40))
+        #expect(controller.view.intrinsicContentSize == CGSize(width: 200, height: 40))
+    }
+
     @Test func touchesReachTheContentAndSemanticsJoinTheScene() {
         let model = Model()
         let (_, _) = window(model)

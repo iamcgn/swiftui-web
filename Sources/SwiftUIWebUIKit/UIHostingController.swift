@@ -27,10 +27,19 @@ open class UIHostingController<Content: View>: UIViewController {
     public var safeAreaRegions: SafeAreaRegions = .all {
         didSet { hostingView?.safeAreaRegions = safeAreaRegions }
     }
+    /// `preferredContentSize` keeps the controller's preferred size at the content's ideal size;
+    /// `intrinsicContentSize` invalidates the view's intrinsic size when the content changes.
     public var sizingOptions: UIHostingControllerSizingOptions = [] {
-        didSet { if sizingOptions.contains(.preferredContentSize), let view = hostingView { preferredContentSize = view.sizeThatFits(UIView.layoutFittingExpandedSize) } }
+        didSet {
+            hostingView?.sizingOptions = sizingOptions
+            if sizingOptions.contains(.preferredContentSize), let view = hostingView { preferredContentSize = view.sizeThatFits(UIView.layoutFittingExpandedSize) }
+        }
     }
     private var hostingView: _UIHostingView<Content>?
+    /// The bar items made from the content's `toolbar`, each keeping the runtime that answers
+    /// its tap.
+    private var bridgedItems: [BridgedBarItem] = []
+    private var bridgedTitle: String?
 
     public init(rootView: Content) {
         self.rootView = rootView
@@ -41,8 +50,37 @@ open class UIHostingController<Content: View>: UIViewController {
         let view = _UIHostingView(rootView: rootView)
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.safeAreaRegions = safeAreaRegions
+        view.sizingOptions = sizingOptions
+        view.onContentChange = { [weak self] in self?.contentDidChange() }
+        view.onChromeChange = { [weak self] title, items in self?.syncNavigationItem(title: title, items: items) }
         hostingView = view
         self.view = view
+        contentDidChange()
+    }
+
+    private func contentDidChange() {
+        if sizingOptions.contains(.preferredContentSize), let view = hostingView {
+            let size = view.sizeThatFits(UIView.layoutFittingExpandedSize)
+            if preferredContentSize != size { preferredContentSize = size }
+        }
+    }
+
+    /// The content's `navigationTitle` and `toolbar` drive the navigation item, as SwiftUI
+    /// bridges them for a hosting controller in a navigation controller
+    /// (ios/representable/hostingnav): a titled item per button, leading placements on the
+    /// left, the rest on the right; a tap runs the button's action.
+    private func syncNavigationItem(title: String?, items: [_ToolbarItemData]) {
+        if let title, title != bridgedTitle {
+            bridgedTitle = title
+            navigationItem.title = title
+        }
+        let labels = items.map(BridgedBarItem.label)
+        guard labels != bridgedItems.map(\.label) || items.count != bridgedItems.count else { return }
+        bridgedItems = items.map { BridgedBarItem(item: $0) }
+        let leading = bridgedItems.filter(\.isLeading).map(\.barItem)
+        let trailing = bridgedItems.filter { !$0.isLeading }.map(\.barItem)
+        navigationItem.leftBarButtonItems = leading.isEmpty ? nil : leading
+        navigationItem.rightBarButtonItems = trailing.isEmpty ? nil : trailing.reversed()
     }
 
     /// The size the content wants for a proposal (nothing proposed: the ideal size).
@@ -52,17 +90,63 @@ open class UIHostingController<Content: View>: UIViewController {
     }
 }
 
+/// A SwiftUI toolbar item as a bar button item: its label and role come from the item's
+/// semantics in a runtime of its own, which also answers the tap.
+@MainActor
+final class BridgedBarItem {
+    let runtime = Runtime()
+    let barItem: UIBarButtonItem
+    let label: String
+    let isLeading: Bool
+
+    static func label(of item: _ToolbarItemData) -> String {
+        let runtime = Runtime()
+        runtime.mount(item.view)
+        runtime.layout(in: CGSize(width: 320, height: 44))
+        return runtime.semanticsTree().first { !$0.label.isEmpty }?.label ?? ""
+    }
+
+    init(item: _ToolbarItemData) {
+        var environment = EnvironmentValues()
+        environment.platformProfile = .iOS
+        runtime.rootEnvironment = environment
+        runtime.mount(item.view)
+        runtime.layout(in: CGSize(width: 320, height: 44))
+        let element = runtime.semanticsTree().first { !$0.label.isEmpty }
+        label = element?.label ?? ""
+        switch item.placement.group {
+        case .leading: isLeading = true
+        default: isLeading = false
+        }
+        let identifier = element?.identifier
+        let runtime = self.runtime
+        barItem = UIBarButtonItem(title: label, primaryAction: UIAction { _ in
+            if let identifier { runtime.activate(semanticsIdentifier: identifier) }
+        })
+    }
+}
+
 /// The view a hosting controller manages: a SwiftUI runtime in a UIKit view.
 @MainActor
 final class _UIHostingView<Content: View>: UIView {
     let runtime: Runtime
+    /// Setting the root inside `withAnimation` animates the change, as a state change would.
     var rootView: Content {
         didSet {
+            if let transaction = Transaction._current, !transaction.disablesAnimations, let animation = transaction.animation {
+                runtime.pendingAnimation = animation
+            }
             runtime.mount(rootView)
             setNeedsLayout()
         }
     }
     private var laidOutSize = CGSize.zero
+    var sizingOptions: UIHostingControllerSizingOptions = []
+    /// The content asked for a frame (a state change): the controller keeps its sizes current.
+    var onContentChange: (@MainActor () -> Void)?
+    /// The content's navigation title and toolbar items after a layout, when either changed.
+    var onChromeChange: (@MainActor (String?, [_ToolbarItemData]) -> Void)?
+    private var syncedChrome: (title: String?, count: Int, labels: [String])?
     /// The regions of the view's safe area the content respects (the controller's setting).
     var safeAreaRegions: SafeAreaRegions = .all {
         didSet { if safeAreaRegions != oldValue { setNeedsLayout() } }
@@ -84,6 +168,19 @@ final class _UIHostingView<Content: View>: UIView {
     private func contentNeedsFrame() {
         setNeedsLayout()
         setNeedsDisplay()
+        if sizingOptions.contains(.intrinsicContentSize) { invalidateIntrinsicContentSize() }
+        onContentChange?()
+    }
+
+    /// Hands the controller the title and toolbar items the content declares, when they changed.
+    private func syncChrome() {
+        guard let onChromeChange else { return }
+        let items = runtime._toolbarItems
+        let labels = items.map(BridgedBarItem.label)
+        let title = runtime.navigationTitle
+        if let synced = syncedChrome, synced.title == title, synced.count == items.count, synced.labels == labels { return }
+        syncedChrome = (title, items.count, labels)
+        onChromeChange(title, items)
     }
 
     /// The runtime measures with the scene's engine and reads its catalog and appearance.
@@ -112,6 +209,7 @@ final class _UIHostingView<Content: View>: UIView {
         prepare()
         runtime.layout(in: bounds.size)
         laidOutSize = bounds.size
+        syncChrome()
     }
 
     /// The content's size for a proposal: a dimension at or beyond the fitting sizes is left

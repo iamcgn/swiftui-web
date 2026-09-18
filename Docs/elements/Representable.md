@@ -35,6 +35,18 @@ hosting SPI (`UIView._hosted*`: paint, semantics, routing by identifier, focus, 
 the frame clock, wheel scrolling). The scene registers hosting views so it can advance their
 clocks and route the identifiers they own. Tests: `UIHostingControllerTests`.
 
+In containers (2026-09-18, `ios/representable/hostingnav`, `hostingsizing`): the content's
+`navigationTitle` and `toolbar` drive the controller's `navigationItem` as SwiftUI bridges them
+for a hosting controller in a navigation controller: the title, and one titled bar button per
+toolbar item (leading placements on the left, the rest on the right, a `Button("Save")` as a
+"Save" platter), whose tap runs the SwiftUI action (each item keeps a runtime of its own that
+answers through its semantics). `sizingOptions`: `.preferredContentSize` keeps the controller's
+preferred size at the content's ideal size as the content changes, `.intrinsicContentSize`
+invalidates the view's intrinsic size, so a stack view around it re-lays out; setting `rootView`
+inside `withAnimation` tweens the change. A hosting view measured by UIKit before its layout
+(`systemLayoutSizeFitting` of a stack holding it) flushes its pending changes and still lays out
+on the next pass (`Runtime.flushForMeasurement`).
+
 ## How it works
 
 A representable is a leaf of the SwiftUI tree, `_PlatformViewHostNode`
@@ -52,6 +64,12 @@ an identifier (UIKit identifiers start at 20 000 000, above every range SwiftUIW
 scene's `setNeedsFrame` (a `setNeedsLayout` or `setNeedsDisplay` anywhere) asks the runtime for a
 layout, except while the tree is laying out or painting for it. `updateUIView` runs under
 observation tracking like a body: the `@Observable` properties it reads invalidate the node.
+SwiftUI measures a representable again only when its value (member by member: `Equatable`
+members by `==`, class references by identity), its environment or the proposal changes, not
+when the platform view's own content does: `ios/representable/hostingsizing` grows a hosted
+view inside a stack view and the representable keeps its 70 pt frame while the stack compresses
+the hosting view (the content, 80 tall, centred and overflowing it); `_PlatformViewHostNode`
+keeps the measured sizes until then (`RepresentableTests`).
 
 ## Measured (iOS 26, iPhone SE simulator)
 

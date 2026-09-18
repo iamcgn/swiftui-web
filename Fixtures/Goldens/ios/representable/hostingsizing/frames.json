@@ -1,0 +1,40 @@
+{
+  "fixture" : "ios\/representable\/hostingsizing",
+  "frames" : {
+    "column" : {
+      "height" : 70,
+      "width" : 200,
+      "x" : 60,
+      "y" : 65
+    },
+    "stack" : {
+      "height" : 70,
+      "width" : 200,
+      "x" : 60,
+      "y" : 65
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "column" : {
+          "height" : 70,
+          "width" : 200,
+          "x" : 60,
+          "y" : 65
+        },
+        "stack" : {
+          "height" : 70,
+          "width" : 200,
+          "x" : 60,
+          "y" : 65
+        }
+      },
+      "name" : "grow"
+    }
+  ]
+}

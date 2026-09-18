@@ -77,6 +77,9 @@ public final class Runtime {
     public var paintsWindowChrome = false
     public var chromeShowsTitle = true
     package var toolbarSources: [ToolbarSource] = []
+    /// The `toolbar` items registered in the tree, for hosts that show them in their own bars
+    /// (a `UIHostingController`'s navigation item).
+    public var _toolbarItems: [_ToolbarItemData] { toolbarSources.flatMap(\.items) }
     package var toolbarVisibility: [ToolbarVisibilitySource] = []
     package var toolbar: ToolbarChromeNode?
     package var searchSources: [SearchSource] = []
@@ -186,8 +189,15 @@ public final class Runtime {
     /// which only a layout would otherwise do (ios/representable/hostingcollection: a reused
     /// cell measured its previous content).
     package func flushForMeasurement() {
+        let pending = scheduler.hasPendingWork
         flush()
-        if sizesInvalidated || scheduler.hasPendingWork { layoutGeneration += 1 }
+        guard pending || sizesInvalidated else { return }
+        // The flushed change still needs a layout: the next `layout(in:)` must not take a
+        // no-work path (ios/representable/hostingsizing: the stack measured the hosting view
+        // before its layout).
+        layoutGeneration += 1
+        sizesInvalidated = true
+        layoutRequested = true
     }
 
     /// Incremented at the start of every layout pass; size caches are keyed by it.

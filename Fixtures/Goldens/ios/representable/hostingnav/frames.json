@@ -1,0 +1,15 @@
+{
+  "fixture" : "ios\/representable\/hostingnav",
+  "frames" : {
+    "host" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

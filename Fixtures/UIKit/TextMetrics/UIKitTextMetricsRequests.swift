@@ -75,6 +75,7 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Home content", .system(size: 17)),
         UIKitTextRequest("Search content", .system(size: 17)),
         UIKitTextRequest("Edit", .system(size: 17, weight: "medium")),
+        UIKitTextRequest("Save", .system(size: 17, weight: "medium")),   // ios/representable/hostingnav (a SwiftUI toolbar item)
         UIKitTextRequest("Home", .system(size: 10, weight: "semibold")),
         UIKitTextRequest("Home", .system(size: 10, weight: "medium")),
         UIKitTextRequest("Search", .system(size: 10, weight: "semibold")),

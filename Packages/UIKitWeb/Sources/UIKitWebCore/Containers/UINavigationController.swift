@@ -157,7 +157,12 @@ open class UINavigationController: UIViewController {
                     if hasAppeared { top.endAppearanceTransition() }
                 }
             }
-            top.navigationItem.onChange = { [weak self] in self?.navigationBar.setNeedsLayout() }
+            // A title or items set later (a hosting controller bridging its content's
+            // navigation title and toolbar) rebuild the bar.
+            top.navigationItem.onChange = { [weak self] in
+                self?.navigationBar.rebuild()
+                self?.navigationBar.setNeedsLayout()
+            }
         }
         navigationBar.items = viewControllers.map(\.navigationItem)
         toolbar.items = topViewController?.toolbarItems
@@ -283,7 +288,7 @@ open class UINavigationBar: UIView {
 
     var preferredHeight: CGFloat { Self.contentHeight + (showsLargeTitle ? Self.largeTitleHeight : 0) }
 
-    private func rebuild() {
+    func rebuild() {
         backButton?.removeFromSuperview()
         backButton = nil
         for button in leftButtons + rightButtons { button.removeFromSuperview() }

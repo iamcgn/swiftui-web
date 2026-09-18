@@ -145,6 +145,16 @@ open class UIStackView: UIView {
         return intrinsic
     }
 
+    /// A stack's fitting size is its arranged content's (ios/representable/hostingsizing: a
+    /// representable sized by `systemLayoutSizeFitting` of a stack holding a hosting view and a
+    /// constrained view is 70 tall); a required target keeps its length.
+    override open func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontal: UILayoutPriority, verticalFittingPriority vertical: UILayoutPriority) -> CGSize {
+        let intrinsic = intrinsicContentSize
+        if intrinsic.width < 0 { return super.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: horizontal, verticalFittingPriority: vertical) }
+        return CGSize(width: horizontal == .required ? targetSize.width : intrinsic.width,
+                      height: vertical == .required ? targetSize.height : intrinsic.height)
+    }
+
     // MARK: Layout
 
     override open func layoutSubviews() {
