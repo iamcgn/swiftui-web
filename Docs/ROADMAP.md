@@ -425,6 +425,7 @@ kind, a priority and a status, rendered to `Docs/TODO.md` and to the progress pa
 | 2 Tracking data | 2026-09-18: `scripts/gen-progress.py` validates both data files and renders `Docs/TODO.md`, `Docs/support-matrix.md` and the landing `SupportData.swift` (`support-matrix.py` and `gen-landing-support.py` retired); `Docs/support.json` carries a `framework` per section, ten UIKit sections (48 rows) with their fixtures, a fixture or a `noFixture` reason on every SwiftUI row (`demo/pasteboard` is the first golden-less demo); the stale rows and doc lines reconciled. |
 | 3 Gallery on Pages | 2026-09-18: `scripts/build-landing.sh` builds the release gallery into `dist/gallery/` (14.3 MB raw, 3.53 MB brotli; gate 4 MB) with the loading screen, a link back, `?filter=` and the size line; the landing workflow watches `Examples/Gallery/**` and `Fixtures/**`. |
 | 4 Progress page | 2026-09-18: `Examples/Progress` at `/progress/` (counts, the matrix with search and filters linking rows to gallery fixtures, the todo list linking items to docs, recently landed, non-goals); `ProgressData.swift` from the generator, checked by CI; built into the site by `build-landing.sh`. |
+| 5 Landing links and workflow | 2026-09-18: navigation, hero and footer link to `/progress/` and `/gallery/`; the matrix section is a summary card from generated counts (the row blob left the landing bundle); README, the element workflow and the deploy paths point at the pages. Steps 0 to 5 of decision 0016 are landed; the gap sweep begins with `uk-size`. |
 
 ## Risk register
 

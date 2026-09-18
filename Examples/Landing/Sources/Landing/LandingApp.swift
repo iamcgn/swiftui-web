@@ -3,8 +3,8 @@
 //
 // This file and SupportData.swift are meant to live in a GitHub gist as well as in
 // Examples/Landing (`scripts/landing-gist.sh push` / `pull`): keep them self-contained, with no
-// dependency beyond `import SwiftUI`. The feature list comes from Docs/support.json through
-// `scripts/gen-landing-support.py`; rerun it after adding an element so the page stays current.
+// dependency beyond `import SwiftUI`. The counts come from Docs/support.json through
+// `scripts/gen-progress.py`; rerun it after adding an element so the page stays current.
 import SwiftUI
 
 @main
@@ -116,6 +116,9 @@ struct Columns<First: View, Second: View>: View {
 enum Site {
     static let repository = URL(string: "https://github.com/iamcgn/swiftui-web")!
     static let matrix = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/support-matrix.md")!
+    /// The pages published next to this one (decision 0016): the fixture gallery and the progress page.
+    static let gallery = URL(string: "gallery/")!
+    static let progress = URL(string: "progress/")!
     static let roadmap = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ROADMAP.md")!
     static let architecture = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ARCHITECTURE.md")!
     static let workflow = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ELEMENT_WORKFLOW.md")!
@@ -145,7 +148,7 @@ struct LandingPage: View {
                 IOSDemo()
                 UIKitDemo()
                 HowItWorks()
-                SupportMatrix()
+                SupportSummary()
                 Footer()
             }
             .frame(maxWidth: Site.contentWidth)
@@ -173,8 +176,9 @@ struct NavigationBar: View {
             }
             Spacer()
             if !compact {
+                Link("Progress", destination: Site.progress)
+                Link("Gallery", destination: Site.gallery)
                 Link("Docs", destination: Site.architecture)
-                Link("Support matrix", destination: Site.matrix)
                 Link("Roadmap", destination: Site.roadmap)
             }
             ThemeSwitcher(theme: $theme)
@@ -260,9 +264,14 @@ struct Hero: View {
                 Button { openURL(Site.repository) } label: { Label("Get the source", systemImage: "arrow.right") }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                Button { openURL(Site.matrix) } label: { Label("See what works", systemImage: "checkmark.circle.fill") }
+                Button { openURL(Site.progress) } label: { Label("See what works", systemImage: "checkmark.circle.fill") }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
+                if !compact {
+                    Button { openURL(Site.gallery) } label: { Label("Browse the gallery", systemImage: "square.grid.2x2") }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                }
             }
             .fixedSize()
 
@@ -915,45 +924,47 @@ struct CodeSample: View {
     }
 }
 
-// MARK: - Support matrix
+// MARK: - Support summary
 
-struct SupportMatrix: View {
-    @State private var filter: SupportStatus? = nil
-    @State private var expanded: Set<String> = ["Views"]
+/// The counts per framework and a link to the progress page, which holds the full matrix with
+/// its filters and the todo list (the rows used to be here; the page is lighter without them).
+struct SupportSummary: View {
     @Environment(\.isCompact) private var compact
+    @Environment(\.openURL) private var openURL
+    @Environment(\.palette) private var palette
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             SectionHeader(kicker: "Status", title: "What works today")
-            Text("Generated from the repository's support matrix on \(SupportData.generated). Anything not listed is not implemented; the missing rows are the next phase's plan.")
+            Text("The support matrix tracks \(SupportData.total) APIs across SwiftUI, UIKit and the seam between them, generated from the repository's data (last edited \(SupportData.generated)); every row names the fixtures that prove it, which the gallery shows live.")
                 .foregroundColor(.secondary)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 10)], alignment: .leading, spacing: 10) {
-                StatusPill(status: nil, count: SupportData.total, selected: filter == nil) { filter = nil }
-                ForEach(SupportStatus.allCases, id: \.self) { status in
-                    StatusPill(status: status, count: SupportData.counts[status, default: 0], selected: filter == status) { filter = status }
-                }
-            }
-            ForEach(SupportData.sections) { section in
-                let rows = section.entries.filter { filter == nil || $0.status == filter }
-                if !rows.isEmpty {
-                    DisclosureGroup(isExpanded: Binding(get: { expanded.contains(section.id) }, set: { open in
-                        if open { expanded.insert(section.id) } else { expanded.remove(section.id) }
-                    })) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            ForEach(rows) { entry in
-                                SupportRow(entry: entry)
-                                Divider()
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: compact ? 150 : 220), spacing: 12)], alignment: .leading, spacing: 12) {
+                ForEach(SupportData.frameworks) { framework in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(framework.name).font(.headline)
+                        Text("\(framework.total) rows").font(.system(size: 26, weight: .bold)).foregroundStyle(Site.gradient)
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(SupportStatus.allCases, id: \.self) { status in
+                                let n = framework.counts[status, default: 0]
+                                if n > 0 {
+                                    HStack(spacing: 6) { StatusDot(status: status); Text("\(n) \(status.title.lowercased())").font(.caption).foregroundColor(.secondary) }
+                                }
                             }
                         }
-                        .padding(.top, 8)
-                    } label: {
-                        HStack {
-                            Text(section.title).font(.headline)
-                            Text("\(rows.count)").font(.caption).foregroundColor(.secondary)
-                        }
                     }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(palette.paper))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(palette.line, lineWidth: 1))
                 }
             }
+            HStack(spacing: 12) {
+                Button { openURL(Site.progress) } label: { Label("Open the full matrix and the plan", systemImage: "list.bullet.rectangle") }
+                    .buttonStyle(.borderedProminent)
+                Button { openURL(Site.gallery) } label: { Label("Every fixture, live", systemImage: "square.grid.2x2") }
+                    .buttonStyle(.bordered)
+            }
+            .fixedSize()
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: 12)], alignment: .leading, spacing: 8) {
                 ForEach(SupportStatus.allCases, id: \.self) { status in
                     HStack(spacing: 6) {
@@ -964,30 +975,6 @@ struct SupportMatrix: View {
             }
         }
         .padding(.vertical, 40)
-    }
-}
-
-struct StatusPill: View {
-    let status: SupportStatus?
-    let count: Int
-    let selected: Bool
-    let action: @MainActor @Sendable () -> Void
-    @Environment(\.palette) private var palette
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                if let status { StatusDot(status: status) }
-                Text(status?.title ?? "All").fixedSize()
-                Text("\(count)").foregroundColor(selected ? palette.pillSelectedText.opacity(0.6) : .secondary)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Capsule().fill(selected ? palette.pillSelected : palette.paper))
-            .foregroundColor(selected ? palette.pillSelectedText : .primary)
-            .overlay(Capsule().stroke(palette.line, lineWidth: selected ? 0 : 1))
-        }
-        .buttonStyle(.plain)
     }
 }
 
@@ -1005,27 +992,6 @@ struct StatusDot: View {
     var body: some View { Circle().fill(color).frame(width: 9, height: 9) }
 }
 
-struct SupportRow: View {
-    let entry: SupportEntry
-    @Environment(\.isCompact) private var compact
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            StatusDot(status: entry.status).padding(.top, 5)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(entry.api).font(.system(size: 13, weight: .semibold))
-                if !entry.notes.isEmpty {
-                    Text(entry.notes).font(.callout).foregroundColor(.secondary).lineLimit(2)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            if !compact {
-                Text(entry.status.title).font(.caption).foregroundColor(.secondary).frame(width: 84, alignment: .trailing)
-            }
-        }
-        .padding(.vertical, 8)
-    }
-}
-
 // MARK: - Footer
 
 struct Footer: View {
@@ -1040,6 +1006,8 @@ struct Footer: View {
             }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 12)], alignment: .leading, spacing: 8) {
                 Link("GitHub", destination: Site.repository)
+                Link("Progress", destination: Site.progress)
+                Link("Gallery", destination: Site.gallery)
                 Link("Architecture", destination: Site.architecture)
                 Link("Element workflow", destination: Site.workflow)
                 Link("Apache-2.0", destination: Site.license)

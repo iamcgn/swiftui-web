@@ -93,27 +93,29 @@
       "framework": "Site",
       "area": "Landing page",
       "title": "The landing page links to progress and examples",
-      "detail": "Navigation links to /progress/ and /gallery/; the hero's stats come from the generated counts; the support matrix section becomes a summary card with the counts per framework and a link to the full page (a lighter landing bundle). README and the docs point at the same two pages.",
+      "detail": "The landing page's navigation bar, hero and footer link to /progress/ and /gallery/; the matrix section is a summary card (rows per framework and status, generated) with buttons to the full page and the gallery, which drops the row blob from the landing bundle; README and the docs point at the same two pages.",
       "kind": "infra",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Examples/Landing"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "st-workflow",
       "framework": "Site",
       "area": "Tracking",
       "title": "The element workflow records progress",
-      "detail": "ELEMENT_WORKFLOW step 6 gains: mark the todo item done with the date, add the new gaps as items, run scripts/gen-progress.py, commit the outputs. Pages redeploys on every push to main that touches the data.",
+      "detail": "ELEMENT_WORKFLOW step 6: update the support row (a fixture or a noFixture reason, the generated date), mark the todo item done with the date, add the new gaps as items, run scripts/gen-progress.py and commit its outputs, add the roadmap status row; the landing workflow redeploys the site on every push to main that touches the data, the pages or the runtime.",
       "kind": "infra",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/ELEMENT_WORKFLOW.md",
         ".github/workflows/landing.yml"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-layout-options",

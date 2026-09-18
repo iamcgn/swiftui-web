@@ -1,10 +1,11 @@
 # Landing page
 
 The SwiftUIWeb landing page, written in nothing but SwiftUI and rendered by SwiftUIWeb: a sales
-page with live controls and the support matrix. `Sources/Landing/LandingApp.swift` is the page;
-`Sources/Landing/SupportData.swift` is generated from `Docs/support.json` by
-`scripts/gen-landing-support.py` (run it after adding an element, so the page's feature list
-stays current).
+page with live controls and a summary of the support matrix, which links to the progress page
+(`Examples/Progress`, `/progress/`) and the fixture gallery (`Examples/Gallery`, `/gallery/`)
+built next to it. `Sources/Landing/LandingApp.swift` is the page; `Sources/Landing/SupportData.swift`
+(the counts) is generated from `Docs/support.json` by `scripts/gen-progress.py` (run it after
+adding an element, so the page stays current).
 
 ```sh
 . scripts/env.sh

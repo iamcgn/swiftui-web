@@ -1,7 +1,7 @@
 # 0016 — The progress page: one source of truth for what works and what is next
 
 Date: 2026-09-12
-Status: proposed
+Status: accepted (2026-09-12); landed 2026-09-18 (Phase 8 steps 1 to 5: `Docs/ROADMAP.md`, Phase 8 status)
 
 ## Context
 
