@@ -3,7 +3,11 @@
 // loop, the pixels and the platform's input and accessibility; the scene owns layout, painting
 // into a display list, and what the input means.
 
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+#else
 import Foundation
+#endif
 
 /// What a host drives: installs its services, asks for frames, forwards input, and mirrors the
 /// semantics tree into the platform's accessibility and text-input facilities.

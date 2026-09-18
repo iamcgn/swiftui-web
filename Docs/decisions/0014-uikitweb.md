@@ -158,6 +158,28 @@ Packages/WebGraphics       WebGraphics (geometry, Path, DisplayList + encoder, T
   2,835,785 bytes brotli against 2,751,777 before UIKitWeb was linked (budget 3,145,728), so the
   re-export stays unconditional.
 
+## Size gate outcome (2026-09-18, Phase 8 `ix-size-gate`)
+
+Measured with a clean wasm scratch (`rm -rf Examples/Counter/.build/wasm`, then
+`scripts/build-wasm.sh Examples/Counter` and `scripts/size-gate.sh`): the Counter release bundle
+is 3,046,910 bytes brotli (11,822,198 raw) after the Phase 8 representable work, against
+2,998,820 at the Phase 8 plan commit and 2,835,785 when UIKitWeb was first linked; the budget is
+3,145,728. UIKitWeb's whole share is about 295 KB over the 2,751,777 of the pre-UIKitWeb
+bundle; the representable work since added 48 KB. The headroom is 97 KB.
+
+Decision: the `SwiftUI` module keeps re-exporting `UIKit` unconditionally. The API parity is the
+point (an `import SwiftUI` file names `UIColor` or declares a representable unchanged), a product
+option would fork the module map, the fixtures and the gallery, and the substrate's cost is not
+in the re-export but in its tables. The size work moves to `uk-size` as the next item after the
+representables: load the symbol glyphs an app names rather than the whole table, split the font
+metrics tables by platform profile, and get at least 300 KB of headroom back under the same
+3 MB budget. The gate itself stays as it is.
+
+A lesson recorded on the way: an incremental wasm build after module-level changes can produce
+a bundle that links full `Foundation` (13 MB brotli, ICU inside) although no source imports it;
+a clean scratch build is the only trustworthy measurement, and the `os(WASI)` guard, not
+`canImport(FoundationEssentials)`, is the convention for the essentials import.
+
 ## Phase 3 log
 
 - Step 1 (2026-09-10): Auto Layout (`Docs/ROADMAP.md`, Phase 7 status 3.1;

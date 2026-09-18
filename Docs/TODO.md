@@ -5,11 +5,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Site | 8 | 8 | 0 | 0 |
-| Interop | 4 | 2 | 1 | 1 |
+| Interop | 3 | 1 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
-| UIKit | 37 | 2 | 24 | 11 |
+| UIKit | 37 | 3 | 23 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **112** | 13 | 56 | 43 |
+| **All** | **111** | 13 | 55 | 43 |
 
 ## Next (Phase 8, in order)
 
@@ -36,8 +36,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **Hover inside a representable** `ix-hover` · Representables · missing  
   SwiftUI's pointer moves reach the hosted tree as `UIHoverGestureRecognizer` events and `UIPointerInteraction` styles; the host cursor follows. Depends on uk-hover. ([Representable.md](Docs/elements/Representable.md), [Hover.md](Docs/elements/Hover.md))
-- ☐ **Decide whether SwiftUI keeps re-exporting UIKit unconditionally** `ix-size-gate` · Size · infra  
-  Decision 0014 left this to the size gate: Counter is 2.84 MB brotli with UIKitWeb linked (budget 3 MB). Either trim the substrate tables (uk-size) or make the re-export a product option; record the outcome in the decision. ([0014-uikitweb.md](Docs/decisions/0014-uikitweb.md), [0006-binary-size.md](Docs/decisions/0006-binary-size.md))
 
 ### SwiftUI
 
@@ -50,6 +48,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   A still of eight spokes today: rotate the spokes on the scene's clock at UIKit's rate, `startAnimating`/`stopAnimating`, `hidesWhenStopped`. ([Controls.md](Docs/elements/UIKit/Controls.md))
 - ☐ **Hover and pointer interactions** `uk-hover` · Events · missing  
   `UIHoverGestureRecognizer`, `UIPointerInteraction` with the pointer styles the host cursor can show, `UIButton`'s pointer effect. Feeds ix-hover. ([UIButton.md](Docs/elements/UIKit/UIButton.md))
+- ☐ **Trim the substrate tables** `uk-size` · Size · infra  
+  UIKitCounter is 2.24 MB brotli and Counter 3.05 MB (97 KB under the budget, decision 0014's size gate outcome) because the symbol and font tables come along whole: load the symbol glyphs the app names, split the metrics tables per platform profile; target at least 300 KB of headroom under the 3 MB budget. ([0014-uikitweb.md](Docs/decisions/0014-uikitweb.md), [0006-binary-size.md](Docs/decisions/0006-binary-size.md))
 
 ## Soon (the gap sweep)
 
@@ -169,8 +169,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   `UIAccessibility.post`, `accessibilityCustomActions`, `accessibilityElements` ordering, `isAccessibilityElement` and traits verified against the overlay the SwiftUI walk produces; a VoiceOver pass over Examples/UIKitSettings. ([Accessibility.md](Docs/elements/Accessibility.md))
 - ☐ **UIPasteboard** `uk-pasteboard` · App · missing  
   `UIPasteboard.general` over the runtime pasteboard and the host clipboard writer SwiftUI's `copyable` uses. ([DragDrop.md](Docs/elements/DragDrop.md))
-- ☐ **Trim the substrate tables** `uk-size` · Size · infra  
-  UIKitCounter is 2.24 MB brotli because the symbol and font tables come along whole; load the symbol glyphs the app names, split the metrics tables per platform profile. ([0014-uikitweb.md](Docs/decisions/0014-uikitweb.md), [0006-binary-size.md](Docs/decisions/0006-binary-size.md))
 
 ### Platform
 
@@ -285,6 +283,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **UIHostingConfiguration: margins, self-sizing, configuration state** `ix-hosting-config` · Interop · UIHostingConfiguration
 - ☑ 2026-09-18 **UIHostingController in containers** `ix-hosting-controller` · Interop · UIHostingController
 - ☑ 2026-09-18 **Image(uiImage:) for rendered images** `ix-rendered-images` · Interop · Bridging
+- ☑ 2026-09-18 **Decide whether SwiftUI keeps re-exporting UIKit unconditionally** `ix-size-gate` · Interop · Size
 - ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables
 - ☑ 2026-09-12 **Environment to trait collection** `ix-traits` · Interop · Representables
 - ☑ 2026-09-12 **Dismantle and coordinator lifecycle tests** `ix-lifecycle` · Interop · Representables

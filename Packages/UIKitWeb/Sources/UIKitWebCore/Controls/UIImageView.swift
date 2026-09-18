@@ -1,5 +1,5 @@
-#if canImport(FoundationEssentials)
-import FoundationEssentials
+#if os(WASI)
+import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
 #else
 import Foundation
 #endif

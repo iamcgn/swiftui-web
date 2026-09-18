@@ -267,14 +267,15 @@
       "framework": "Interop",
       "area": "Size",
       "title": "Decide whether SwiftUI keeps re-exporting UIKit unconditionally",
-      "detail": "Decision 0014 left this to the size gate: Counter is 2.84 MB brotli with UIKitWeb linked (budget 3 MB). Either trim the substrate tables (uk-size) or make the re-export a product option; record the outcome in the decision.",
+      "detail": "Decided 2026-09-18 (decision 0014, size gate outcome): the re-export stays unconditional; Counter is 3,046,910 bytes brotli against the 3,145,728 budget after the representable work (97 KB of headroom), so uk-size follows next to win at least 300 KB back.",
       "kind": "infra",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/decisions/0014-uikitweb.md",
         "Docs/decisions/0006-binary-size.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-appkit",
@@ -1577,9 +1578,9 @@
       "framework": "UIKit",
       "area": "Size",
       "title": "Trim the substrate tables",
-      "detail": "UIKitCounter is 2.24 MB brotli because the symbol and font tables come along whole; load the symbol glyphs the app names, split the metrics tables per platform profile.",
+      "detail": "UIKitCounter is 2.24 MB brotli and Counter 3.05 MB (97 KB under the budget, decision 0014's size gate outcome) because the symbol and font tables come along whole: load the symbol glyphs the app names, split the metrics tables per platform profile; target at least 300 KB of headroom under the 3 MB budget.",
       "kind": "infra",
-      "priority": "soon",
+      "priority": "next",
       "status": "planned",
       "refs": [
         "Docs/decisions/0014-uikitweb.md",
