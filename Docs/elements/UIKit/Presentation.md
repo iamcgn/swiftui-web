@@ -47,9 +47,9 @@ root controller's view), from the iPhone SE simulator on iOS 26.
   the presentation settles, in a 500 pt window without a status bar; its origin elsewhere is
   unmeasured) with 38 pt top corners over a 20 % dim; the presenting view stays as it is behind.
 
-Open: alert text fields, the `severity` badge, the dismiss and present animations (the cards
-appear at once), sheet detents and the grabber, `popover` on the iPhone (it becomes a sheet),
-`UIActivityViewController`, `UIDocumentPickerViewController`.
+Open: the `severity` badge, sheet detents and the grabber, `popover` on the iPhone (it becomes
+a sheet), `UIActivityViewController`, `UIDocumentPickerViewController`. (Alert text fields and
+the present and dismiss animations landed: below and in the API section.)
 - Text fields (`uikit/alert/textfield`, `uikit/alert/textfields`): a block under the header,
   34 per field and 12 below (46 for one, 80 for two), each field in a white box 270 wide 15 in
   with 7 pt corners and a 0.5 pt white ring, the 13 pt field 7.5 in and 7 down, its text line

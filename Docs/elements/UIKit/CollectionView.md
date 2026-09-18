@@ -44,9 +44,8 @@ data source, delegate and flow layout delegate protocols, `IndexPath.item`. Fixt
 - Cells exist only for items whose frames meet the bounds (the fourth 120 pt item of a
   320 pt horizontal collection has none until it scrolls in); the reuse pool hands them back.
 
-Open: supplementary views (section headers and footers), decoration views, compositional
-layouts (`UICollectionViewCompositionalLayout`), `UICollectionViewListCell` and content
-configurations, self-sizing cells (`estimatedItemSize`), item animations, drag reordering.
+Open: item animations, drag reordering. (Supplementary and decoration views, compositional
+layouts, list cells, content configurations and self-sizing cells landed in the sections below.)
 
 ## Supplementary views (2026-09-11, `uikit/collection/headers`)
 

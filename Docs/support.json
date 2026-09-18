@@ -1,52 +1,88 @@
 {
+  "generated": "2026-09-18",
   "sections": [
     {
       "title": "App lifecycle",
+      "framework": "SwiftUI",
       "entries": [
         {
           "api": "App / Scene / WindowGroup / @main",
           "status": "partial",
-          "notes": "App/Scene/WindowGroup/SceneBuilder API; main() mounts the first WindowGroup in the canvas host (wasm) or lays out headlessly; Tier B (Chromium) within tolerance"
+          "notes": "App/Scene/WindowGroup/SceneBuilder API; main() mounts the first WindowGroup in the canvas host (wasm) or lays out headlessly; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "layout/root-centering",
+            "nav/title"
+          ]
         }
       ]
     },
     {
       "title": "View composition",
+      "framework": "SwiftUI",
       "entries": [
         {
           "api": "View / ViewBuilder (if/else, optional, switch, #available, any child count)",
           "status": "partial",
-          "notes": "Runtime node tree with structural identity; no layout or painting yet; Tier B (Chromium) within tolerance"
+          "notes": "The runtime's node tree with structural identity: if/else, optional, switch and #available branches keep state per branch, any child count through TupleView; every fixture exercises it",
+          "fixtures": [
+            "layout/nested-stacks",
+            "foreach/empty",
+            "section/mixed"
+          ]
         },
         {
           "api": "EmptyView / TupleView / Group / _ConditionalContent / Optional",
           "status": "partial",
-          "notes": "Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance"
+          "notes": "Structural nodes transparent to layout; Group forwards its modifiers to each child (layout/group-modifier), EmptyView takes no room",
+          "fixtures": [
+            "layout/group-modifier",
+            "foreach/empty"
+          ]
         },
         {
           "api": "AnyView",
           "status": "partial",
-          "notes": "Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance"
+          "notes": "A type-erased node rebuilt when the wrapped type changes and updated in place otherwise (customlayout/any hosts a layout through it)",
+          "fixtures": [
+            "customlayout/any"
+          ]
         },
         {
           "api": "ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)",
           "status": "partial",
-          "notes": "Runtime nodes exist; no layout yet; Tier B (Chromium) within tolerance"
+          "notes": "Modifier nodes with bodies, dynamic properties and the environment; layout modifiers distribute over list content (one proxy per element)",
+          "fixtures": [
+            "layout/group-modifier",
+            "paint/background-overlay"
+          ]
         },
         {
           "api": "EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment",
           "status": "partial",
-          "notes": "@Entry macro not provided; Tier B (Chromium) within tolerance"
+          "notes": "@Entry macro not provided; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "text/styles",
+            "dark/text",
+            "ios/representable/traits"
+          ]
         },
         {
           "api": "Transaction / TransactionKey / withTransaction",
-          "status": "stub",
-          "notes": "No `animation` member until the animation system exists"
+          "status": "partial",
+          "notes": "animation, disablesAnimations, isContinuous and custom keys; withTransaction and withAnimation record the animation for the flush and layout that apply the change; the transaction reaches a representable's updateUIView (ios/representable, 2026-09-18)",
+          "fixtures": [
+            "animation/implicit",
+            "animation/frame"
+          ]
         },
         {
           "api": "id(_:) / IDView",
           "status": "partial",
-          "notes": "Identity change rebuilds the subtree; Tier B (Chromium) within tolerance"
+          "notes": "Identity change rebuilds the subtree; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "foreach/identity",
+            "ios/representable/lifecycle"
+          ]
         },
         {
           "api": "ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent",
@@ -67,18 +103,24 @@
         {
           "api": "DynamicProperty (custom, nested)",
           "status": "partial",
-          "notes": "update() and nested installation; Tier B (Chromium) within tolerance"
+          "notes": "update() and nested installation; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "observable/object",
+            "focus/basic"
+          ]
         },
         {
           "api": "#Preview / PreviewTrait / PreviewProvider",
           "status": "stub",
           "notes": "The macro expands to nothing (SwiftUIWebMacros, prebuilt swift-syntax) so preview blocks compile; nothing renders previews",
-          "fixtures": []
+          "fixtures": [],
+          "noFixture": "A preview body is not a screen: the macro plugin's expansion is held by PreviewTests, not a golden."
         }
       ]
     },
     {
       "title": "Views",
+      "framework": "SwiftUI",
       "entries": [
         {
           "api": "Text (verbatim/localized/interpolation, concatenation with mixed styles)",
@@ -102,12 +144,15 @@
         {
           "api": "allowsTightening / minimumScaleFactor",
           "status": "stub",
-          "notes": "Environment values stored, not applied to layout"
+          "notes": "Environment values stored, not applied to layout",
+          "fixtures": [
+            "text/truncation"
+          ]
         },
         {
           "api": "VStack / HStack / ZStack",
           "status": "partial",
-          "notes": "Layout exact against goldens; no painting yet; Tier B (Chromium) within tolerance",
+          "notes": "Layout exact against the goldens: alignment, spacing (default and explicit), priorities, ideal sizes, nesting; painted as their children",
           "fixtures": [
             "layout/*"
           ]
@@ -115,7 +160,7 @@
         {
           "api": "Spacer",
           "status": "partial",
-          "notes": "Layout exact; no painting yet; Tier B (Chromium) within tolerance",
+          "notes": "Layout exact: minimum length, flexible growth, the stack's leftover shared by priority",
           "fixtures": [
             "layout/spacer",
             "layout/spacer-min-length"
@@ -447,7 +492,7 @@
         {
           "api": "Divider",
           "status": "partial",
-          "notes": "Layout exact (1pt); no painting yet; Tier B (Chromium) within tolerance",
+          "notes": "Layout exact (1 pt across the stack's axis); painted as a hairline in the separator colour",
           "fixtures": [
             "layout/divider"
           ]
@@ -463,7 +508,12 @@
         {
           "api": "Layout protocol / custom layouts / layoutValue",
           "status": "partial",
-          "notes": "sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL; Tier B (Chromium) within tolerance"
+          "notes": "sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "customlayout/flow",
+            "customlayout/radial",
+            "customlayout/values"
+          ]
         },
         {
           "api": "Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced/monospacedDigit)",
@@ -534,13 +584,18 @@
           "api": "ContainerRelativeShape",
           "status": "approximate",
           "notes": "A rectangle; container shapes are not modelled",
-          "fixtures": []
+          "fixtures": [
+            "shape/builtin"
+          ]
         },
         {
           "api": "Shape boolean operations (union / intersection / subtracting / symmetricDifference / lineIntersection / lineSubtraction)",
           "status": "full",
           "notes": "Combined paths from flattened geometry (edges cut at crossings, fragments classified by winding or even-odd, chained into loops with holes oriented); a circle against a square in every operation, filled and stroked, is pixel-identical to SwiftUI in Tier B/C; curves are 16-segment polygons (Docs/elements/Shape.md)",
-          "fixtures": []
+          "fixtures": [
+            "shapebool/fills",
+            "shapebool/strokes"
+          ]
         },
         {
           "api": "Angle",
@@ -555,7 +610,9 @@
           "status": "partial",
           "notes": "No safe area or anchors; Tier B (Chromium) within tolerance",
           "fixtures": [
-            "all (probe implementation)"
+            "position/basic",
+            "scroll/scroll-to",
+            "layout/alignment-guide"
           ]
         },
         {
@@ -652,32 +709,54 @@
         {
           "api": "Window management: WindowGroup (id, title, for: value), Window, Settings, MenuBarExtra, openWindow, dismissWindow, openSettings, defaultSize",
           "status": "partial",
-          "notes": "Scenes register as window descriptors; secondary windows open as floating, non-modal windows inside the host (title bar with traffic lights, cascaded, content-sized or defaultSize), one per id or distinct value, brought forward when reopened; MenuBarExtra is recorded, not shown; no separate browser windows, moving, resizing or DocumentGroup (Docs/elements/Windows.md)"
+          "notes": "Scenes register as window descriptors; secondary windows open as floating, non-modal windows inside the host (title bar with traffic lights, cascaded, content-sized or defaultSize), one per id or distinct value, brought forward when reopened; MenuBarExtra is recorded, not shown; no separate browser windows, moving, resizing or DocumentGroup (Docs/elements/Windows.md)",
+          "noFixture": "Windows open as runtime presentations the gallery cannot host; WindowTests and Examples/Windows exercise them."
         }
       ]
     },
     {
       "title": "State",
+      "framework": "SwiftUI",
       "entries": [
         {
           "api": "@State",
           "status": "partial",
-          "notes": "Box per node; writes coalesce; no animation transactions yet; Tier B (Chromium) within tolerance"
+          "notes": "Box per node; writes coalesce; no animation transactions yet; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "button/basic",
+            "toggle/steps",
+            "stepper/steps"
+          ]
         },
         {
           "api": "@Binding",
           "status": "partial",
-          "notes": "get/set, constant, dynamic member lookup, optional and collection projections; Tier B (Chromium) within tolerance"
+          "notes": "get/set, constant, dynamic member lookup, optional and collection projections; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "foreach/binding",
+            "textfield/steps",
+            "toggle/steps"
+          ]
         },
         {
           "api": "@Environment",
           "status": "partial",
-          "notes": "Key-path and Observable-object forms (`Environment(Model.self)`, optional variant); `.environment(object)`; Tier B (Chromium) within tolerance"
+          "notes": "Key-path and Observable-object forms (`Environment(Model.self)`, optional variant); `.environment(object)`; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "dark/text",
+            "form/styles",
+            "ios/representable/traits"
+          ]
         },
         {
           "api": "@Observable / @Bindable",
           "status": "partial",
-          "notes": "Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath; Tier B (Chromium) within tolerance"
+          "notes": "Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "observable/object",
+            "foreach/identity",
+            "ios/representable/update"
+          ]
         },
         {
           "api": "ObservableObject / @Published / @StateObject / @ObservedObject / @EnvironmentObject",
@@ -707,6 +786,7 @@
     },
     {
       "title": "Modifiers",
+      "framework": "SwiftUI",
       "entries": [
         {
           "api": "padding",
@@ -737,7 +817,12 @@
         {
           "api": "foregroundStyle / foregroundColor",
           "status": "partial",
-          "notes": "Flat colours only; Tier B (Chromium) within tolerance"
+          "notes": "Flat colours only; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "text/modifiers",
+            "paint/system-colors",
+            "gradient/text"
+          ]
         },
         {
           "api": "fixedSize / layoutPriority / alignmentGuide",
@@ -768,12 +853,20 @@
         {
           "api": "preference / transformPreference / onPreferenceChange / coordinateSpace",
           "status": "partial",
-          "notes": "Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet; Tier B (Chromium) within tolerance"
+          "notes": "Bottom-up reduction after layout; no anchorPreference or overlayPreferenceValue yet; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "position/basic",
+            "scroll/scroll-to",
+            "layout/alignment-guide"
+          ]
         },
         {
           "api": "onTapGesture",
           "status": "partial",
-          "notes": "Single tap via the pointer arena; count ignored; Tier B (Chromium) within tolerance"
+          "notes": "Single tap via the pointer arena; count ignored; Tier B (Chromium) within tolerance",
+          "fixtures": [
+            "gesture/basic"
+          ]
         },
         {
           "api": "scrollIndicators / scrollDisabled / scrollBounceBehavior / scrollClipDisabled / defaultScrollAnchor",
@@ -829,13 +922,17 @@
           "api": "onSubmit(_:) / onSubmit(of:_:) / SubmitTriggers",
           "status": "partial",
           "notes": "Return in a text field runs the action; triggers ignored",
-          "fixtures": []
+          "fixtures": [
+            "textfield/steps"
+          ]
         },
         {
           "api": "autocorrectionDisabled(_:)",
           "status": "stub",
           "notes": "Stored only",
-          "fixtures": []
+          "fixtures": [
+            "textfield/basic"
+          ]
         },
         {
           "api": "listRowInsets / listRowBackground / listRowSeparator / listRowSeparatorTint",
@@ -849,7 +946,9 @@
           "api": "listSectionSeparator / listSectionSeparatorTint / listItemTint",
           "status": "stub",
           "notes": "Stored only",
-          "fixtures": []
+          "fixtures": [
+            "list/modifiers"
+          ]
         },
         {
           "api": "navigationDestination(for:) / navigationDestination(isPresented:) / navigationTitle",
@@ -1039,37 +1138,62 @@
         {
           "api": "textSelection / textScale",
           "status": "partial",
-          "notes": "textScale(.secondary) measured with a TextRenderer: point size and tracking per weight (0.8 of the size up to 17 pt, fading to 0.46 at 70; regular tracking 0.25), line height unchanged, serif/monospaced unscaled; the recorded engine is exact (Tier A/C on textscale/*), browsers approximate the heavier scaled face with letter spacing; textSelection sets the environment and an I-beam pointer, no selection/copy (Docs/elements/TextScale.md)"
+          "notes": "textScale(.secondary) measured with a TextRenderer: point size and tracking per weight (0.8 of the size up to 17 pt, fading to 0.46 at 70; regular tracking 0.25), line height unchanged, serif/monospaced unscaled; the recorded engine is exact (Tier A/C on textscale/*), browsers approximate the heavier scaled face with letter spacing; textSelection sets the environment and an I-beam pointer, no selection/copy (Docs/elements/TextScale.md)",
+          "fixtures": [
+            "textscale/selection",
+            "textscale/styles",
+            "textscale/wrapped"
+          ]
         },
         {
           "api": "Text under height pressure (fewer lines and truncation)",
           "status": "full",
-          "notes": "floor(height / line pitch) lines, at least one, tail-truncated (pressure/heights, overflow, alone*); stacks set Spacers aside with their minimum reserved and share the rest in flexibility order (pressure/stack-*, spacer-*, two-texts, three-texts, row-tight); 15 fixtures exact in Tier A/C (Docs/elements/Text.md, Layout.md)"
+          "notes": "floor(height / line pitch) lines, at least one, tail-truncated (pressure/heights, overflow, alone*); stacks set Spacers aside with their minimum reserved and share the rest in flexibility order (pressure/stack-*, spacer-*, two-texts, three-texts, row-tight); 15 fixtures exact in Tier A/C (Docs/elements/Text.md, Layout.md)",
+          "fixtures": [
+            "pressure/heights",
+            "pressure/overflow",
+            "pressure/stack-tight"
+          ]
         },
         {
           "api": "matchedGeometryEffect / @Namespace / MatchedGeometryProperties",
           "status": "partial",
-          "notes": "A view arriving under an animation glides (frame and scale) from the last frame recorded for its id while a retiring view glides to it; followers lay their content out at the source's size and on the source's anchor point per properties and anchor, as measured on 30 source/follower cells (matched/anchors, matched/follower pixel-identical in Tier C) (Docs/elements/Animator.md)"
+          "notes": "A view arriving under an animation glides (frame and scale) from the last frame recorded for its id while a retiring view glides to it; followers lay their content out at the source's size and on the source's anchor point per properties and anchor, as measured on 30 source/follower cells (matched/anchors, matched/follower pixel-identical in Tier C) (Docs/elements/Animator.md)",
+          "fixtures": [
+            "matched/anchors",
+            "matched/follower"
+          ]
         },
         {
           "api": "contentTransition / ContentTransition (identity, opacity, interpolate, numericText, symbolEffect)",
           "status": "partial",
-          "notes": "Text crossfades from its old content to the new one over the update's animation; numericText rolls the texts vertically (whole text, not per digit); interpolate and symbolEffect are crossfades; images snap (Docs/elements/Animator.md)"
+          "notes": "Text crossfades from its old content to the new one over the update's animation; numericText rolls the texts vertically (whole text, not per digit); interpolate and symbolEffect are crossfades; images snap (Docs/elements/Animator.md)",
+          "noFixture": "A content transition is motion between two stills; ContentTransitionTests hold its frames on the headless clock."
         },
         {
           "api": "PhaseAnimator / phaseAnimator / KeyframeAnimator / keyframeAnimator / KeyframeTimeline / KeyframeTrack / Linear, Cubic, Spring, Move keyframes",
           "status": "full",
-          "notes": "Phases step under each phase's animation on the runtime's animation clock (free-running or per trigger change, back to the first phase); keyframe tracks (linear with UnitCurve, cubic Hermite with Catmull-Rom velocities, spring curve, move) evaluate per frame and rebuild the content; unit-tested on the headless clock, animator/phase and animator/keyframe exact at rest in Tier A/B/C (Docs/elements/Animator.md)"
+          "notes": "Phases step under each phase's animation on the runtime's animation clock (free-running or per trigger change, back to the first phase); keyframe tracks (linear with UnitCurve, cubic Hermite with Catmull-Rom velocities, spring curve, move) evaluate per frame and rebuild the content; unit-tested on the headless clock, animator/phase and animator/keyframe exact at rest in Tier A/B/C (Docs/elements/Animator.md)",
+          "fixtures": [
+            "animator/phase",
+            "animator/keyframe"
+          ]
         },
         {
           "api": "draggable / dropDestination / Transferable (Proxy, Codable, Data representations)",
           "status": "partial",
-          "notes": "In-app drags: a press that moves 4 pt lifts the payload (view or preview painted under the pointer), destinations under the pointer are targeted, release delivers the values and drop point; String/Data/URL transferable, proxy and data conversions between types; no onDrag/onDrop item providers, pasteboard or cross-app drags (Docs/elements/DragDrop.md)"
+          "notes": "In-app drags: a press that moves 4 pt lifts the payload (view or preview painted under the pointer), destinations under the pointer are targeted, release delivers the values and drop point; String/Data/URL transferable, proxy and data conversions between types; no onDrag/onDrop item providers, pasteboard or cross-app drags (Docs/elements/DragDrop.md)",
+          "fixtures": [
+            "dragdrop/basic"
+          ]
         },
         {
           "api": "copyable / cuttable / pasteDestination / PasteButton",
           "status": "partial",
-          "notes": "⌘C, ⌘X and ⌘V around the focused view through the app's pasteboard (Transferable values, the same conversions as drops); copies write their text to the host clipboard; the system clipboard is not read (Docs/elements/DragDrop.md)"
+          "notes": "⌘C, ⌘X and ⌘V around the focused view through the app's pasteboard (Transferable values, the same conversions as drops); copies write their text to the host clipboard; the system clipboard is not read (Docs/elements/DragDrop.md)",
+          "fixtures": [
+            "demo/pasteboard"
+          ]
         },
         {
           "api": "onDrag / onDrop (NSItemProvider) / DropDelegate",
@@ -1097,7 +1221,10 @@
         {
           "api": "symbolEffect (pulse, scale, variableColor, bounce, wiggle, rotate, breathe; isActive and value forms) / SymbolEffectOptions / symbolEffectsRemoved",
           "status": "partial",
-          "notes": "Whole-symbol motion on the animation clock: indefinite effects while active, discrete ones per value change with repeat and speed options; the stand-in glyphs have one layer, so by-layer and variable-colour layers are approximated; appear/disappear/replace accepted as plain transitions (Docs/elements/SymbolEffect.md)"
+          "notes": "Whole-symbol motion on the animation clock: indefinite effects while active, discrete ones per value change with repeat and speed options; the stand-in glyphs have one layer, so by-layer and variable-colour layers are approximated; appear/disappear/replace accepted as plain transitions (Docs/elements/SymbolEffect.md)",
+          "fixtures": [
+            "symboleffect/basic"
+          ]
         },
         {
           "api": "environment(\\.platformProfile, .iOS) / PlatformProfile / Runtime.hostPlatformProfile / navigationBarTitleDisplayMode",
@@ -1146,6 +1273,7 @@
     },
     {
       "title": "UIKit interop (decision 0014)",
+      "framework": "Interop",
       "entries": [
         {
           "api": "UIViewRepresentable / UIViewRepresentableContext",
@@ -1193,6 +1321,510 @@
             "ios/representable/hostingmargins",
             "ios/representable/hostingcollection",
             "ios/representable/hostingstate"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "UIKit: views and layers",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UIView: tree, geometry and the layout cycle",
+          "status": "partial",
+          "notes": "addSubview / insertSubview / removeFromSuperview / bringSubviewToFront / sendSubviewToBack / exchangeSubview, superview / subviews / window, frame / bounds / center / transform / autoresizingMask, convert(_:to:), setNeedsLayout / layoutIfNeeded / layoutSubviews, sizeThatFits / sizeToFit / intrinsicContentSize / invalidateIntrinsicContentSize / systemLayoutSizeFitting, hugging and compression priorities, layoutMargins, safeAreaInsets (a window's, a container's bars, a hosted tree's), hitTest / point(inside:); open: pixel checks of the painted corners, borders and shadows against the simulator",
+          "fixtures": [
+            "uikit/view/autoresizing",
+            "uikit/view/layers",
+            "uikit/autolayout/fitting"
+          ]
+        },
+        {
+          "api": "CALayer (cornerRadius / cornerCurve / maskedCorners / border / shadow / opacity / mask / backgroundColor / sublayers / zPosition)",
+          "status": "partial",
+          "notes": "Painted into the display list at the layer's frame; continuous corners as SwiftUI's; masksToBounds clips; open: layer transforms beyond translation, CAShapeLayer paths beyond fills and strokes",
+          "fixtures": [
+            "uikit/view/layers"
+          ]
+        },
+        {
+          "api": "Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)",
+          "status": "partial",
+          "notes": "The window's style, a hosted tree's overrides (style, size classes, layout direction, content size category), traitCollectionDidChange down the tree; open: overrideUserInterfaceStyle on a view, registerForTraitChanges",
+          "fixtures": [
+            "uikit/dark/*",
+            "ios/representable/traits",
+            "ios/dark/representable-controls"
+          ]
+        },
+        {
+          "api": "Gesture recognizers (UITapGestureRecognizer / UILongPressGestureRecognizer / UIPanGestureRecognizer / UIHoverGestureRecognizer, delegate, closure targets)",
+          "status": "partial",
+          "notes": "Touches route through TouchRouter to the hit view's recognizers, then the view; a pan drives scroll views and switches; hover follows press-less pointer moves; open: pinch, rotation, swipe and screen-edge recognizers, the failure-requirement delegate methods",
+          "fixtures": [
+            "uikit/controls/basic",
+            "uikit/table/editing",
+            "ios/representable/hover"
+          ]
+        },
+        {
+          "api": "UIInteraction / UIPointerInteraction / UIPointerStyle / UIButton.isPointerInteractionEnabled",
+          "status": "partial",
+          "notes": "Regions and styles from the delegate; beams, shapes and effects map to the cursors a browser can show; the pointer's own morphing is not drawn",
+          "fixtures": [
+            "ios/representable/hover"
+          ]
+        },
+        {
+          "api": "Accessibility (isAccessibilityElement, accessibilityLabel / Value / Traits / Identifier, accessibilityActivate / Increment / Decrement)",
+          "status": "partial",
+          "notes": "Every view contributes to the scene's semantics tree, which the browser host mirrors into the DOM overlay and the routing by identifier drives",
+          "noFixture": "The semantics tree is not pixels: the Playwright probes and HoverTests read it through the overlay."
+        }
+      ]
+    },
+    {
+      "title": "UIKit: controls",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UIButton",
+          "status": "partial",
+          "notes": "System, tinted, gray, filled and configured buttons sized to fit, titles and system images, UIAction / addAction, the pressed state; open: custom-type title fonts (17 pt assumed), image placement, subtitles, buttonSize, the disabled look, configuration update handlers",
+          "fixtures": [
+            "uikit/button/basic",
+            "ios/representable/controls"
+          ]
+        },
+        {
+          "api": "UISwitch",
+          "status": "full",
+          "notes": "68 × 30 on iOS 26 with the 2 pt alignment inset, isOn / setOn(_:animated:), onTintColor / thumbTintColor, a tap or a pan toggles, valueChanged through UIAction, a switch in the semantics tree",
+          "fixtures": [
+            "uikit/controls/basic",
+            "uikit/controls/intrinsic",
+            "ios/representable/controls"
+          ]
+        },
+        {
+          "api": "UITextField",
+          "status": "partial",
+          "notes": "Rounded-rect, line and bezel borders, placeholder, secure entry, keyboard and return types, delegate callbacks, editingChanged through UIAction, text through the substrate's input overlay; open: the text's vertical position against the pixels, clear button, left and right views, attributed placeholders",
+          "fixtures": [
+            "uikit/controls/basic",
+            "uikit/controls/intrinsic",
+            "uikit/alert/textfield"
+          ]
+        },
+        {
+          "api": "UISlider / UISegmentedControl / UIStepper / UIProgressView",
+          "status": "partial",
+          "notes": "Measured looks at their intrinsic sizes, taps and drags set values and send valueChanged; open: slider min/max images, segment images and widths, momentary segments, the stepper's repeat",
+          "fixtures": [
+            "uikit/controls/more"
+          ]
+        },
+        {
+          "api": "UIActivityIndicatorView",
+          "status": "approximate",
+          "notes": "A still of eight fading spokes at the medium and large sizes; it does not spin (Docs/todo.json uk-spinner)",
+          "fixtures": [
+            "uikit/controls/more"
+          ]
+        },
+        {
+          "api": "UIPageControl",
+          "status": "partial",
+          "notes": "Dots for numberOfPages with the current page filled; open: the continuous interaction style, custom indicator images",
+          "fixtures": [
+            "uikit/controls/more"
+          ]
+        },
+        {
+          "api": "UIDatePicker",
+          "status": "partial",
+          "notes": "The compact style's date and time pills and the wheels style (three columns on a 32 pt pitch), modes, minimum and maximum dates, minuteInterval; inline draws the wheels; open: the compact popover, the inline calendar, locales other than en_US",
+          "fixtures": [
+            "uikit/datepicker/compact",
+            "uikit/datepicker/wheels"
+          ]
+        },
+        {
+          "api": "UIPickerView",
+          "status": "partial",
+          "notes": "Components and rows from a data source, row heights and widths from the delegate, selectRow; open: custom row views, the wheel's perspective (approximated)",
+          "fixtures": [
+            "uikit/picker/basic"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "UIKit: text",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UILabel",
+          "status": "partial",
+          "notes": "Sizing at the system and text-style fonts, wrapping and truncation modes, numberOfLines, preferredMaxLayoutWidth, tabular figures, the tertiary colour when disabled; open: attributedText per range, adjustsFontSizeToFitWidth / minimumScaleFactor, the ink position of a text-style line against the pixels",
+          "fixtures": [
+            "uikit/label/basic",
+            "uikit/label/wrapping",
+            "uikit/label/tabular"
+          ]
+        },
+        {
+          "api": "UITextView",
+          "status": "partial",
+          "notes": "Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits; open: attributed text, links, selection handles, keyboard avoidance",
+          "fixtures": [
+            "uikit/textview/basic",
+            "uikit/textview/heights"
+          ]
+        },
+        {
+          "api": "UIFont",
+          "status": "partial",
+          "notes": "System fonts by size and weight, the text styles at the large content size, boldSystemFont as SF Semibold, monospacedDigitSystemFont, the metrics table measured on the simulator (ascender, descender, lineHeight, capHeight, xHeight); open: custom fonts from files, italic and monospaced system fonts, the other content size categories (Dynamic Type)",
+          "fixtures": [
+            "uikit/label/basic",
+            "uikit/textview/basic"
+          ]
+        },
+        {
+          "api": "NSAttributedString / NSString drawing (draw(at:), draw(in:), size(withAttributes:), boundingRect)",
+          "status": "partial",
+          "notes": "Whole-string attributes (font, colour, paragraph alignment) drawn and measured through the text engine; open: per-range attributes, underline and strikethrough, NSMutableAttributedString edits",
+          "fixtures": [
+            "uikit/draw/text"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "UIKit: containers",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UIStackView",
+          "status": "partial",
+          "notes": "Axes, spacing and custom spacing, the five distributions, alignments including baselines, layout-margins arrangement, hidden arranged subviews, intrinsic and fitting sizes, constrained arranged views; open: fillProportionally against real UIKit, compression when the content overflows",
+          "fixtures": [
+            "uikit/stack/basic",
+            "uikit/autolayout/stacks",
+            "ios/representable/hostingsizing"
+          ]
+        },
+        {
+          "api": "UIScrollView",
+          "status": "partial",
+          "notes": "Content size and offset, insets and the safe-area adjustment, wheel scrolling, finger pans with momentum, rubber banding and paging, the indicators, delegate callbacks; open: zooming, keyboard dismissal, scroll-to-top, refresh controls",
+          "fixtures": [
+            "uikit/textview/basic",
+            "ios/representable/wheel",
+            "ios/representable/safearea-scroll-ignored"
+          ]
+        },
+        {
+          "api": "UITableView (plain, grouped, inset grouped)",
+          "status": "partial",
+          "notes": "The row, header and footer geometry measured on the simulator, recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView; open: the grouped (non-inset) style's exact geometry, right-to-left layouts",
+          "fixtures": [
+            "uikit/table/plain",
+            "uikit/table/grouped",
+            "uikit/table/subtitle",
+            "uikit/table/selection",
+            "uikit/table/selfsizing",
+            "uikit/table/indexed",
+            "uikit/table/pinned"
+          ]
+        },
+        {
+          "api": "UITableViewCell styles and content configurations (UIListContentConfiguration, contentConfiguration, configurationState, configurationUpdateHandler)",
+          "status": "partial",
+          "notes": "The default, subtitle and value cell styles, accessories, list content configurations with the table's metrics, the configuration state machinery (selected, highlighted, editing) with content views reused when they support the new configuration; open: catalog images in list content, the value2 style",
+          "fixtures": [
+            "uikit/table/configured",
+            "uikit/table/subtitle",
+            "ios/representable/hostingcells",
+            "ios/representable/hostingstate"
+          ]
+        },
+        {
+          "api": "UITableView editing, swipe actions, reordering and batch updates",
+          "status": "partial",
+          "notes": "setEditing with the delete and reorder controls, leading and trailing swipe actions, drag reordering, animated insertions and deletions; open: the tracking background while touched, the RowAnimation kinds beyond fade and slide, swipe button fonts",
+          "fixtures": [
+            "uikit/table/editing"
+          ]
+        },
+        {
+          "api": "UICollectionView with a flow layout",
+          "status": "partial",
+          "notes": "Item sizes, spacing and insets from the layout and the delegate, horizontal scrolling, self-sizing with estimatedItemSize, selection, supplementary headers and footers; open: decoration views in flow layouts, item animations",
+          "fixtures": [
+            "uikit/collection/grid",
+            "uikit/collection/horizontal",
+            "uikit/collection/sized",
+            "uikit/collection/selfsizing",
+            "uikit/collection/headers"
+          ]
+        },
+        {
+          "api": "UICollectionViewCompositionalLayout and list layouts (UICollectionLayoutListConfiguration, UICollectionViewListCell, accessories, outlines)",
+          "status": "partial",
+          "notes": "Items, groups and sections with fractional and estimated dimensions, orthogonal scrolling, pinned and first-item headers, decoration items, the plain and grouped list appearances with their measured metrics, cell accessories and outline disclosure; open: estimated dimensions across every axis, item animations, swipe actions in list cells",
+          "fixtures": [
+            "uikit/collection/compositional",
+            "uikit/collection/orthogonal",
+            "uikit/collection/pinned",
+            "uikit/collection/decoration",
+            "uikit/collection/list",
+            "uikit/collection/listheaders",
+            "uikit/collection/listpadding",
+            "uikit/collection/plainlist",
+            "uikit/collection/plainfooters",
+            "uikit/collection/firstitem",
+            "uikit/collection/outline"
+          ]
+        },
+        {
+          "api": "UICollectionViewDiffableDataSource / NSDiffableDataSourceSnapshot / CellRegistration / SupplementaryRegistration",
+          "status": "partial",
+          "notes": "Snapshots applied with or without animation, registrations dequeuing configured cells and supplementaries, section snapshots for outlines; open: per-item move detection in animated applies",
+          "fixtures": [
+            "uikit/collection/list",
+            "uikit/collection/outline",
+            "ios/representable/hostingcollection"
+          ]
+        },
+        {
+          "api": "UIViewController (lifecycle, containment, preferredContentSize, safe areas, layout margins)",
+          "status": "partial",
+          "notes": "loadView / viewDidLoad / the appearance callbacks as a window's root or a container's child, addChild / removeFromParent, additionalSafeAreaInsets, systemMinimumLayoutMargins; open: the appearance callbacks' animated flag semantics, viewSafeAreaInsetsDidChange outside hosted trees",
+          "fixtures": [
+            "uikit/nav/basic",
+            "uikit/nav/push",
+            "ios/representable/controller"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "UIKit: navigation and bars",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UINavigationController / UINavigationBar / UINavigationItem",
+          "status": "partial",
+          "notes": "Push and pop with the measured slide, inline and large titles, back buttons, bar button items in glass platters, the bar's items following later title and button changes, the safe area a bar gives its content; open: the interactive pop, large-title collapse on scroll, titleView sizing, appearance objects (accepted)",
+          "fixtures": [
+            "uikit/nav/basic",
+            "uikit/nav/large",
+            "uikit/nav/push",
+            "uikit/nav/items",
+            "ios/representable/hostingnav"
+          ]
+        },
+        {
+          "api": "UITabBarController / UITabBar / UITabBarItem",
+          "status": "approximate",
+          "notes": "Tabs with symbol images and titles in the floating bar, selection, the safe area below; the glass pill over coloured content is opaque where iOS 26 tints what lies beneath; open: badges, the More tab, customisation",
+          "fixtures": [
+            "uikit/tabs/basic",
+            "ios/representable/hostingsafearea-tabs"
+          ]
+        },
+        {
+          "api": "UIToolbar and toolbars in navigation controllers",
+          "status": "partial",
+          "notes": "Items, spaces and the done style in the floating bar, setToolbarHidden; open: customisation, the bar's own tint and appearance objects (accepted)",
+          "fixtures": [
+            "uikit/toolbar/basic",
+            "uikit/nav/toolbar"
+          ]
+        },
+        {
+          "api": "UISearchBar / UISearchController",
+          "status": "partial",
+          "notes": "The field with its placeholder, cancel button and scope bar, editing through the substrate's input, hosted in a navigation bar; open: search suggestions, tokens, the search controller's results updating",
+          "fixtures": [
+            "uikit/search/basic",
+            "uikit/search/scope",
+            "uikit/nav/search"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "UIKit: presentation",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UIAlertController (alerts and action sheets)",
+          "status": "partial",
+          "notes": "The measured cards with titles, messages, actions in their styles and text fields, present and dismiss with the followed animations; open: the severity badge, action sheets anchored to bar items",
+          "fixtures": [
+            "uikit/alert/basic",
+            "uikit/alert/sheet",
+            "uikit/alert/textfield",
+            "uikit/alert/textfields"
+          ]
+        },
+        {
+          "api": "UIViewController.present / dismiss (page and form sheets, full screen, custom containers)",
+          "status": "partial",
+          "notes": "The page sheet card with its dimming and a tap outside dismissing, full-screen styles filling the window, appearance callbacks for presented controllers; open: detents and the grabber, popovers, custom presentation controllers and transitioning delegates",
+          "fixtures": [
+            "uikit/sheet/page"
+          ]
+        },
+        {
+          "api": "UIMenu / UIAction menus (UIButton.menu, UIBarButtonItem(menu:), UIContextMenuInteraction)",
+          "status": "stub",
+          "notes": "UIMenu is a data holder: nothing shows yet (Docs/todo.json uk-menus)",
+          "noFixture": "Nothing draws yet; the fixture comes with uk-menus."
+        }
+      ]
+    },
+    {
+      "title": "UIKit: Auto Layout",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "NSLayoutConstraint and anchors (NSLayoutAnchor, NSLayoutDimension, activate / deactivate, priorities, constant changes)",
+          "status": "partial",
+          "notes": "A Cassowary solver per layout pass with UIKit's priorities as weights, anchors and the item-attribute initialiser, baselines, margins attributes; open: constraint removal mid-pass (a fresh tableau each pass), ambiguity and unsatisfiable-constraint reports",
+          "fixtures": [
+            "uikit/autolayout/pins",
+            "uikit/autolayout/priorities",
+            "uikit/autolayout/update",
+            "uikit/autolayout/baseline"
+          ]
+        },
+        {
+          "api": "UILayoutGuide, safeAreaLayoutGuide, layoutMarginsGuide, readableContentGuide",
+          "status": "partial",
+          "notes": "Guides with anchors and layout frames, the safe-area and margins guides from the view's insets; the readable guide is the margins guide",
+          "fixtures": [
+            "uikit/autolayout/guides"
+          ]
+        },
+        {
+          "api": "Visual format language (constraints(withVisualFormat:options:metrics:views:))",
+          "status": "partial",
+          "notes": "The H: / V: formats with connections, sizes, priorities and metrics; open: the alignment options",
+          "fixtures": [
+            "uikit/autolayout/visualformat"
+          ]
+        },
+        {
+          "api": "Fitting sizes (systemLayoutSizeFitting, layoutFittingCompressedSize / ExpandedSize, self-sizing table rows)",
+          "status": "partial",
+          "notes": "Constrained content's compressed and expanded fits, stack views' arranged content, table rows sized by their content view's fit",
+          "fixtures": [
+            "uikit/autolayout/fitting",
+            "uikit/table/selfsizing",
+            "ios/representable/hostingsizing"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "UIKit: drawing",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UIView.draw(_:), UIGraphicsGetCurrentContext, UIBezierPath, UIColor.setFill / setStroke, UIRectFill",
+          "status": "partial",
+          "notes": "A recording context per frame replayed into the display list: paths, fills, strokes, clips, dashes, the blend-mode-and-alpha forms; open: blend modes, CGPath on Apple platforms",
+          "fixtures": [
+            "uikit/draw/basic"
+          ]
+        },
+        {
+          "api": "String and image drawing in draw(_:) (NSString.draw(at:withAttributes:), UIImage.draw(at:), draw(in:))",
+          "status": "partial",
+          "notes": "Strings measured and painted through the text engine, catalog images and symbols drawn scaled; open: per-range attributes",
+          "fixtures": [
+            "uikit/draw/text"
+          ]
+        },
+        {
+          "api": "CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData()",
+          "status": "partial",
+          "notes": "Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay; pngData rasterises through the host; open: blend modes, UIImage from pixel data",
+          "fixtures": [
+            "uikit/draw/gradient",
+            "ios/representable/renderedimage"
+          ]
+        },
+        {
+          "api": "UIImage / UIImageView (catalog images, symbols, rendering modes, tints, content modes)",
+          "status": "partial",
+          "notes": "Catalog images by name at the paint scale, SF Symbol stand-ins with configurations, template rendering and tints, the content modes; open: symbol layers, rendered-image tinting when drawn by UIImageView",
+          "fixtures": [
+            "uikit/tabs/basic",
+            "uikit/draw/text",
+            "uikit/collection/grid"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "UIKit: animation",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UIView.animate (durations, delays, curves, springs, transition(with:), performWithoutAnimation)",
+          "status": "partial",
+          "notes": "Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; open: repeat / autoreverse / beginFromCurrentState (accepted), the transition options' flips and cross-dissolves",
+          "noFixture": "Motion is not a still: AnimationTests and RepresentableTests hold the curves on the headless clock; the table batch-update goldens hold the end states."
+        },
+        {
+          "api": "Core Animation (CABasicAnimation, CAKeyframeAnimation, CATransaction, layer implicit animations)",
+          "status": "partial",
+          "notes": "Explicit animations on layer properties joined to the scene's implicit transaction; open: CAAnimationGroup, timing functions beyond the four curves and cubic points, removedOnCompletion semantics",
+          "noFixture": "Motion is not a still: AnimationTests hold the interpolation on the headless clock."
+        },
+        {
+          "api": "UIViewPropertyAnimator",
+          "status": "partial",
+          "notes": "Start, pause, scrub by fractionComplete, reverse, continue with a timing and completion; open: delayFactor, scrubsLinearly, interactive spring velocity",
+          "noFixture": "Motion is not a still: AnimationTests hold the animator's states on the headless clock."
+        }
+      ]
+    },
+    {
+      "title": "UIKit: app, scene and events",
+      "framework": "UIKit",
+      "entries": [
+        {
+          "api": "UIApplication / UIApplicationDelegate / UIWindow / UIScreen / UIKitScene (the host seam)",
+          "status": "partial",
+          "notes": "An app delegate's window made key and visible on a screen the host sizes, the scene laid out and painted per frame, wheel and pointer input, the semantics tree; open: scenes and scene delegates, state restoration, multiple windows",
+          "fixtures": [
+            "uikit/view/autoresizing",
+            "uikit/nav/basic"
+          ]
+        },
+        {
+          "api": "Touches and the responder chain (UITouch, UIEvent, touchesBegan / Moved / Ended / Cancelled, first responder, becomeFirstResponder)",
+          "status": "partial",
+          "notes": "One pointer as one touch routed to the hit view's recognizers then the view, cancellation when a recognizer claims it or the host scrolls, first responders for text input; open: multi-touch, the motion and press events",
+          "fixtures": [
+            "uikit/controls/basic",
+            "uikit/textview/basic",
+            "uikit/table/selection"
+          ]
+        },
+        {
+          "api": "UIColor (system colours, dynamic providers, the label and background palettes) and the dark appearance",
+          "status": "partial",
+          "notes": "The iOS 26 palette in both appearances resolved per trait collection, dynamic colours re-resolved on trait changes, dark twins of the views, controls, lists, bars and alerts; open: dark samples of the pickers' wheels and of presentations other than the alert",
+          "fixtures": [
+            "uikit/dark/*",
+            "ios/representable/traits"
           ]
         }
       ]

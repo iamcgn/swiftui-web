@@ -3,7 +3,7 @@
 # index.html and the wasm bundle. Usage: scripts/build-landing.sh [--debug]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-python3 "$ROOT/scripts/gen-landing-support.py"
+python3 "$ROOT/scripts/gen-progress.py"
 "$ROOT/scripts/build-wasm.sh" Examples/Landing ${1:+"$1"}
 DIST="$ROOT/Examples/Landing/dist"
 rm -rf "$DIST" && mkdir -p "$DIST"

@@ -23,7 +23,8 @@ Apple docs: [Text](https://developer.apple.com/documentation/swiftui/text),
 | `View.truncationMode(_:)`, `Text.TruncationMode` | implemented: head, middle, tail |
 | `View.lineSpacing(_:)` | implemented |
 | `View.allowsTightening`, `minimumScaleFactor` | environment values stored, not applied |
-| `kerning`, `tracking`, `baselineOffset`, `underline`, `strikethrough`, `Text.Case`, `AttributedString`, `Text(Date…)`, `Text(Image)`, `textSelection` | missing |
+| `kerning`, `tracking`, `baselineOffset`, `underline`, `strikethrough`, `Text.Case` | implemented (2026-09-04, `Docs/elements/TextStyle.md`: `textstyle/*`) |
+| `AttributedString`, `Text(Date…)`, `Text(Image)`, `textSelection` | missing (`textSelection` is accepted; `Docs/elements/TextScale.md`) |
 
 ## How Tier A stays exact
 

@@ -60,8 +60,7 @@ wasm js tests pass.
 
 ## Not yet covered
 
-Transforms (`scaleEffect`, `rotationEffect`, `.scale` transitions), animating shape and text
-colours, `Animatable`/`animatableData` interpolation for shapes, `matchedGeometryEffect`,
-`phaseAnimator`/`keyframeAnimator`, completion callbacks, animation blending (`blendDuration`)
-and initial velocity, animating `ScrollView` offsets through `withAnimation`, ghosts inside
+`.scale` transitions (they fade), animating shape and text colours, `Animatable`/`animatableData`
+interpolation for shapes, completion callbacks, animation blending (`blendDuration`) and initial
+velocity, animating `ScrollView` offsets through `withAnimation`, ghosts inside
 containers that paint their children themselves (`List`, `Picker`, grouped `Form`), reduce-motion.

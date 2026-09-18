@@ -39,6 +39,12 @@ fixture in a representable: `scripts/tier-b.sh --filter uikit/`), docs in
 5. **Verify**: `swift test --filter GoldenFrameTests` (Tier A exact, steps included), wasm build
    and `js test` in a worktree, `scripts/tier-b.sh --filter <Element>/` within tolerance (each step
    is checked as its own render), gallery page added, browser screenshot attached to the PR.
-6. **Record**: update `Docs/support.json` honestly and run `scripts/support-matrix.py`; write the
-   measured constants (spacing, padding, control geometry) into the element doc with the fixture
-   that proves each one.
+6. **Record**: update `Docs/support.json` honestly (the row's status, notes and the fixtures that
+   prove it; a row that does something names at least one fixture or says in `noFixture` why none
+   can exist, and the file's `generated` date moves to today), mark the step's item in
+   `Docs/todo.json` `done` with the date and add the gaps the step found as new items, run
+   `scripts/gen-progress.py` (it validates both files and renders `Docs/TODO.md`,
+   `Docs/support-matrix.md` and the landing page's `SupportData.swift`; CI fails on stale
+   outputs) and commit the outputs; write the measured constants (spacing, padding, control
+   geometry) into the element doc with the fixture that proves each one, and add a row to the
+   phase's status table in `Docs/ROADMAP.md`.

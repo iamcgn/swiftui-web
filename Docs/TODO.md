@@ -4,25 +4,17 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| Site | 8 | 8 | 0 | 0 |
+| Site | 4 | 4 | 0 | 0 |
 | Interop | 2 | 0 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
 | UIKit | 36 | 2 | 23 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **109** | 11 | 55 | 43 |
+| **All** | **105** | 7 | 55 | 43 |
 
 ## Next (Phase 8, in order)
 
 ### Site
 
-- ◐ **One source of truth for what works and what is next** `st-tracking` · Tracking · infra  
-  Docs/support.json sections carry a `framework` (SwiftUI, UIKit, Interop); Docs/todo.json is this list; scripts/gen-progress.py renders Docs/support-matrix.md, Docs/TODO.md and the progress page's data; CI fails when the outputs are stale. ([0016-progress-page.md](Docs/decisions/0016-progress-page.md))
-- ☐ **Support rows for every UIKit class** `st-uikit-rows` · Tracking · infra  
-  UIKitWeb's classes have element docs but no support rows: add UIKit sections (views and layers, controls, text, containers, presentation, Auto Layout, drawing, animation, app and events) with a status, notes and the uikit/ fixtures for each, so the UIKit half of the matrix is as honest as the SwiftUI half. ([UIKit](Docs/elements/UIKit))
-- ☐ **Audit the stale rows and doc notes** `st-row-audit` · Tracking · infra  
-  Some rows and `Open:` lines predate the work that closed them (Transaction says it has no `animation` member; Text.md lists kerning and underline as missing; CollectionView.md and Presentation.md list done steps as open). Reconcile every row and `## Not yet covered` / `Open:` line with this list. ([support.json](Docs/support.json), [elements](Docs/elements))
-- ☐ **A live example for every support row** `st-fixture-links` · Examples · infra  
-  38 of 139 rows name no fixture. Link each to the fixtures that exercise it (state rows to button/ and foreach/, composition rows to layout/), and add golden-less `demo/` fixtures (like the browser-only `probe/` prefix) for behaviour no golden can capture: windows, pasteboard, previews. ([support.json](Docs/support.json), [Gallery](Examples/Gallery))
 - ☐ **Publish the gallery next to the landing page** `st-gallery-deploy` · Examples · infra  
   A release build of Examples/Gallery at /gallery/ on Pages: every fixture with its source and its steps, SwiftUI and UIKit alike. Needs the landing page's loading screen, a `?filter=` parameter so a support row can link to a prefix, a link back to the site, and a size line in the deploy log. ([Gallery](Examples/Gallery), [build-landing.sh](scripts/build-landing.sh))
 - ☐ **The progress page** `st-progress-page` · Progress page · infra  
@@ -270,6 +262,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-09-18 **One source of truth for what works and what is next** `st-tracking` · Site · Tracking
+- ☑ 2026-09-18 **Support rows for every UIKit class** `st-uikit-rows` · Site · Tracking
+- ☑ 2026-09-18 **Audit the stale rows and doc notes** `st-row-audit` · Site · Tracking
+- ☑ 2026-09-18 **A live example for every support row** `st-fixture-links` · Site · Examples
 - ☑ 2026-09-18 **Hover inside a representable** `ix-hover` · Interop · Representables
 - ☑ 2026-09-18 **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Interop · Representables
 - ☑ 2026-09-18 **Animations across the seam** `ix-transaction` · Interop · Representables

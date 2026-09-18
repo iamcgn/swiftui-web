@@ -6,54 +6,58 @@
       "framework": "Site",
       "area": "Tracking",
       "title": "One source of truth for what works and what is next",
-      "detail": "Docs/support.json sections carry a `framework` (SwiftUI, UIKit, Interop); Docs/todo.json is this list; scripts/gen-progress.py renders Docs/support-matrix.md, Docs/TODO.md and the progress page's data; CI fails when the outputs are stale.",
+      "detail": "scripts/gen-progress.py validates Docs/todo.json and Docs/support.json (a framework per section, a fixture or a noFixture reason per row that does something, fixtures that exist, a generated date) and renders Docs/TODO.md, Docs/support-matrix.md and the landing page's SupportData.swift; support-matrix.py and gen-landing-support.py are gone; CI --check fails on stale outputs.",
       "kind": "infra",
       "priority": "next",
-      "status": "in-progress",
+      "status": "done",
       "refs": [
         "Docs/decisions/0016-progress-page.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "st-uikit-rows",
       "framework": "Site",
       "area": "Tracking",
       "title": "Support rows for every UIKit class",
-      "detail": "UIKitWeb's classes have element docs but no support rows: add UIKit sections (views and layers, controls, text, containers, presentation, Auto Layout, drawing, animation, app and events) with a status, notes and the uikit/ fixtures for each, so the UIKit half of the matrix is as honest as the SwiftUI half.",
+      "detail": "Ten UIKit sections (views and layers, controls, text, containers, navigation and bars, presentation, Auto Layout, drawing, animation, app and events), 48 rows with a status, notes and the uikit/ and ios/representable fixtures that prove each; the matrix shows per-framework counts.",
       "kind": "infra",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "st-row-audit",
       "framework": "Site",
       "area": "Tracking",
       "title": "Audit the stale rows and doc notes",
-      "detail": "Some rows and `Open:` lines predate the work that closed them (Transaction says it has no `animation` member; Text.md lists kerning and underline as missing; CollectionView.md and Presentation.md list done steps as open). Reconcile every row and `## Not yet covered` / `Open:` line with this list.",
+      "detail": "Reconciled 2026-09-18: the Phase 0 notes on the composition rows and the stacks, the Transaction row (animation exists), Text.md's kerning and underline row, Animation.md's not-yet list, and the first Open lines of CollectionView.md, Presentation.md, TableView.md and Navigation.md.",
       "kind": "infra",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/support.json",
         "Docs/elements"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "st-fixture-links",
       "framework": "Site",
       "area": "Examples",
       "title": "A live example for every support row",
-      "detail": "38 of 139 rows name no fixture. Link each to the fixtures that exercise it (state rows to button/ and foreach/, composition rows to layout/), and add golden-less `demo/` fixtures (like the browser-only `probe/` prefix) for behaviour no golden can capture: windows, pasteboard, previews.",
+      "detail": "Every SwiftUI row that does something names fixtures now (state rows to button/, toggle/, foreach/ and observable/, composition rows to layout/ and customlayout/), demo/pasteboard joins the golden-less prefixes, and three rows say why no fixture can exist (previews, content transitions, windows).",
       "kind": "infra",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/support.json",
         "Examples/Gallery"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "st-gallery-deploy",

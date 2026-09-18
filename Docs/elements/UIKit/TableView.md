@@ -133,8 +133,9 @@ over 0.2 s, and on release the data source's `moveRowAt` runs and the rows settl
 order through the batch-update path. Not measured: the buttons' widths and font (UIKit's are
 approximated), the leading side's look, the lifted row's shadow (none is drawn).
 
-Open: `UIListContentConfiguration` / `contentConfiguration`, section index titles,
-`UICollectionView`, the grouped (non-inset) style's exact geometry, dark appearance.
+Open: the grouped (non-inset) style's exact geometry. (Content configurations, the section
+index, `UICollectionView` and the dark appearance landed: the sections below and
+`Docs/elements/UIKit/CollectionView.md`, `Dark.md`.)
 
 ## Content configurations (2026-09-11)
 

@@ -15,7 +15,8 @@ on:
       - scripts/build-landing.sh
       - scripts/build-wasm.sh
       - scripts/deploy-landing.sh
-      - scripts/gen-landing-support.py
+      - scripts/gen-progress.py
+      - Docs/todo.json
       - scripts/assets.py
       - .github/workflows/landing.yml
   workflow_dispatch:

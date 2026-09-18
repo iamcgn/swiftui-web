@@ -55,6 +55,7 @@ on iOS 26 (`scripts/gen-goldens-sim.sh uikit --dump uikit/nav/` shows UIKit's ba
   with 10 pt medium titles. The selected child's view fills the container; its safe area's
   bottom is the band.
 
-Open: the interactive pop gesture, `titleView` sizing, toolbars
-(`UIToolbar`, `setToolbarHidden`), large-title collapse on scroll, `hidesBottomBarWhenPushed`,
-tab bar badges and the More tab, appearance objects, `UISearchController` in the bar.
+Open: the interactive pop gesture, `titleView` sizing, large-title collapse on scroll,
+`hidesBottomBarWhenPushed`, tab bar badges and the More tab, appearance objects (accepted).
+(Toolbars and `UISearchController` in the bar landed: `Docs/elements/UIKit/Bars.md`,
+`uikit/nav/toolbar`, `uikit/nav/search`.)
