@@ -1,12 +1,15 @@
 name: Landing page
-# Builds Examples/Landing (release wasm bundle) and publishes it as the gh-pages branch, which
-# GitHub Pages serves at https://iamcgn.github.io/swiftui-web/ (repository settings: Pages source
-# "Deploy from a branch", gh-pages, /). The same as running scripts/deploy-landing.sh locally.
+# Builds Examples/Landing (release wasm bundle) and the fixture gallery (Examples/Gallery, at
+# /gallery/) and publishes them as the gh-pages branch, which GitHub Pages serves at
+# https://iamcgn.github.io/swiftui-web/ (repository settings: Pages source "Deploy from a branch",
+# gh-pages, /). The same as running scripts/deploy-landing.sh locally.
 on:
   push:
     branches: [main]
     paths:
       - Examples/Landing/**
+      - Examples/Gallery/**
+      - Fixtures/**
       - Sources/**
       - Packages/**
       - Package.swift
@@ -45,7 +48,9 @@ jobs:
       - name: Cache the wasm build
         uses: actions/cache@v4
         with:
-          path: Examples/Landing/.build/wasm
+          path: |
+            Examples/Landing/.build/wasm
+            Examples/Gallery/.build/wasm
           key: landing-wasm-${{ env.SWIFT_VERSION }}-${{ hashFiles('Examples/Landing/Package.resolved', 'Package.resolved') }}
           restore-keys: landing-wasm-${{ env.SWIFT_VERSION }}-
       - name: Build the site

@@ -117,7 +117,10 @@ and `scripts/deploy-landing.sh` publishes that to GitHub Pages (the `gh-pages` b
 
 `Examples/Gallery` lists every fixture in a left pane and shows the selected one as code (the
 `Fixture(...)` declaration or its whole file, via `scripts/gen-fixture-sources.py`) next to its live
-preview, with buttons for its behaviour steps; `index.html?fixture=text/wrapped` opens one directly.
+preview, with buttons for its behaviour steps; `index.html?fixture=text/wrapped` opens one directly
+and `?filter=ios/representable` narrows the list to a prefix. `scripts/build-landing.sh` publishes
+a release build of it next to the landing page at `/gallery/` (the support matrix's rows link to
+the fixtures that prove them), behind the same loading screen and a 4 MB brotli gate.
 `scripts/gen-goldens.sh` regenerates goldens with Apple's SwiftUI (macOS only).
 
 `Tools/Host` is the native host of Phase 4: `swiftui-host <package-dir>` serves the package's

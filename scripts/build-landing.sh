@@ -17,5 +17,20 @@ WASM="$DIST/$BUNDLE/Landing.wasm"
 BYTES=$(stat -f%z "$WASM" 2>/dev/null || stat -c%s "$WASM")
 sed -e "s|./.build/wasm/plugins/PackageToJS/outputs/Package/|./$BUNDLE/|" -e "s|data-wasm-bytes=\"\"|data-wasm-bytes=\"$BYTES\"|" \
   "$ROOT/Examples/Landing/index.html" > "$DIST/index.html"
+# The gallery (decision 0016): a release build of every fixture with its source and steps at
+# /gallery/, with the same loading screen; the deploy refuses a bundle over its budget.
+"$ROOT/scripts/build-wasm.sh" Examples/Gallery ${1:+"$1"}
+GALLERY="$DIST/gallery"
+mkdir -p "$GALLERY"
+GBUNDLE="bundle-$(git -C "$ROOT" rev-parse --short HEAD)-$(date +%Y%m%d%H%M)"
+cp -R "$ROOT/Examples/Gallery/.build/wasm/plugins/PackageToJS/outputs/Package" "$GALLERY/$GBUNDLE"
+GWASM="$GALLERY/$GBUNDLE/Gallery.wasm"
+GBYTES=$(stat -f%z "$GWASM" 2>/dev/null || stat -c%s "$GWASM")
+sed -e "s|./.build/wasm/plugins/PackageToJS/outputs/Package/|./$GBUNDLE/|g" -e "s|data-wasm-bytes=\"\"|data-wasm-bytes=\"$GBYTES\"|" \
+  "$ROOT/Examples/Gallery/index.html" > "$GALLERY/index.html"
+if [[ -z "${1:-}" ]]; then
+  # The size line (raw and brotli) and the gate: 4 MB brotli (3.53 MB at the first release build, 2026-09-18).
+  "$ROOT/scripts/size-gate.sh" Examples/Gallery 4194304
+fi
 touch "$DIST/.nojekyll"
-echo "Site: $DIST ($(du -sh "$DIST" | cut -f1)); serve with: python3 -m http.server --directory $DIST"
+echo "Site: $DIST ($(du -sh "$DIST" | cut -f1); gallery $(du -sh "$GALLERY" | cut -f1)); serve with: python3 -m http.server --directory $DIST"

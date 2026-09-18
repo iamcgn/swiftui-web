@@ -4,19 +4,17 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| Site | 4 | 4 | 0 | 0 |
+| Site | 3 | 3 | 0 | 0 |
 | Interop | 2 | 0 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
 | UIKit | 36 | 2 | 23 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **105** | 7 | 55 | 43 |
+| **All** | **104** | 6 | 55 | 43 |
 
 ## Next (Phase 8, in order)
 
 ### Site
 
-- ☐ **Publish the gallery next to the landing page** `st-gallery-deploy` · Examples · infra  
-  A release build of Examples/Gallery at /gallery/ on Pages: every fixture with its source and its steps, SwiftUI and UIKit alike. Needs the landing page's loading screen, a `?filter=` parameter so a support row can link to a prefix, a link back to the site, and a size line in the deploy log. ([Gallery](Examples/Gallery), [build-landing.sh](scripts/build-landing.sh))
 - ☐ **The progress page** `st-progress-page` · Progress page · infra  
   Examples/Progress, a SwiftUI app at /progress/: status counts per framework and section, the full matrix with filters and a search field, every row linking to its gallery examples and its element doc, and this list grouped by framework and priority with what landed recently. Generated data, the commit and the date on the page. ([0016-progress-page.md](Docs/decisions/0016-progress-page.md))
 - ☐ **The landing page links to progress and examples** `st-landing-links` · Landing page · infra  
@@ -266,6 +264,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **Support rows for every UIKit class** `st-uikit-rows` · Site · Tracking
 - ☑ 2026-09-18 **Audit the stale rows and doc notes** `st-row-audit` · Site · Tracking
 - ☑ 2026-09-18 **A live example for every support row** `st-fixture-links` · Site · Examples
+- ☑ 2026-09-18 **Publish the gallery next to the landing page** `st-gallery-deploy` · Site · Examples
 - ☑ 2026-09-18 **Hover inside a representable** `ix-hover` · Interop · Representables
 - ☑ 2026-09-18 **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Interop · Representables
 - ☑ 2026-09-18 **Animations across the seam** `ix-transaction` · Interop · Representables

@@ -72,11 +72,14 @@ func percentDecoded(_ s: String) -> String {
     return String(decoding: bytes, as: UTF8.self)
 }
 
-/// The fixture named by `?fixture=` in a query string, if any.
-func requestedFixture(in search: String) -> String? {
+/// The value of `key` in a query string, if any.
+func queryValue(_ key: String, in search: String) -> String? {
     let query = search.dropFirst().split(separator: "&").map { $0.split(separator: "=", maxSplits: 1).map(String.init) }
-    return query.first { $0.first == "fixture" }?.last.map(percentDecoded)
+    return query.first { $0.first == key && $0.count == 2 }?.last.map(percentDecoded)
 }
+
+/// The fixture named by `?fixture=` in a query string, if any.
+func requestedFixture(in search: String) -> String? { queryValue("fixture", in: search) }
 
 /// Three panes: every fixture listed on the left (`#list`); the code that declares the selected
 /// one in the middle (`#code`, from the generated `FixtureSources`, highlighted by highlight.js
@@ -177,6 +180,12 @@ final class Gallery {
         }
         html += "</ul>"
         list.innerHTML = .string(html)
+    }
+
+    /// Sets the filter field and applies it.
+    func filter(_ text: String) {
+        filter.value = .string(text)
+        applyFilter()
     }
 
     private func applyFilter() {
@@ -398,5 +407,13 @@ final class Gallery {
 
 JavaScriptEventLoop.installGlobalExecutor()
 let gallery = Gallery()
-gallery.select(requestedFixture(in: JSObject.global.location.object!.search.string ?? ""))
+let search = JSObject.global.location.object!.search.string ?? ""
+// `?filter=<prefix>` narrows the list (a support row links to the fixtures that prove it) and,
+// without a `?fixture=`, shows the first match.
+if let prefix = queryValue("filter", in: search), !prefix.isEmpty {
+    gallery.filter(prefix)
+    gallery.select(requestedFixture(in: search) ?? allFixtures.first { $0.name.lowercased().contains(prefix.lowercased()) }?.name)
+} else {
+    gallery.select(requestedFixture(in: search))
+}
 #endif

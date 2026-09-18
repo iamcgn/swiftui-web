@@ -1,6 +1,6 @@
 <!doctype html>
-<html>
-<head><meta charset="utf-8"><title>SwiftUIWeb gallery</title>
+<html data-wasm-bytes="">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SwiftUIWeb gallery</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
 <style>
 :root{--line:18px}
@@ -44,10 +44,22 @@ button:hover{background:#f5f5f7}
 #previewcol{flex:0 0 auto;max-width:60%;min-width:min-content;display:flex;flex-direction:column}
 #stage{flex:1;overflow:auto;padding:16px}
 #app{position:relative;background:#fff;outline:1px dashed #c7c7cc}
+#sidebar header a.back{display:inline-block;margin-bottom:6px;font-size:12px;color:#0071e3;text-decoration:none}
+#sidebar header a.back:hover{text-decoration:underline}
+/* The loading screen: shown until the first fixture has painted (`swiftuiwebready`), as on the landing page. */
+#loading{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#fff;color:#1a1a1f;font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;transition:opacity .3s ease}
+#loading.done{opacity:0;pointer-events:none}
+#loading .name{font-size:22px;font-weight:600;letter-spacing:-.01em}
+#loading .bar{position:relative;width:min(240px,60vw);height:4px;border-radius:2px;background:rgba(0,0,0,.08);overflow:hidden}
+#loading .fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:2px;background:linear-gradient(90deg,#fa5c38,#9e33d9);transition:width .15s linear}
+#loading .fill.indeterminate{width:40%;animation:slide 1.1s ease-in-out infinite}
+@keyframes slide{from{left:-40%}to{left:100%}}
+#loading .status{font-size:13px;color:#6e6e73;font-variant-numeric:tabular-nums;min-height:1.4em}
+#loading.failed .fill{background:#d0342c}
 </style></head>
 <body>
 <aside id="sidebar">
-  <header><h1>SwiftUIWeb fixtures</h1><input id="filter" type="search" placeholder="Filter" autocomplete="off"></header>
+  <header><a class="back" href="../">← SwiftUIWeb</a><h1>SwiftUIWeb fixtures</h1><input id="filter" type="search" placeholder="Filter (or ?filter=prefix)" autocomplete="off"></header>
   <nav id="list"></nav>
 </aside>
 <main id="detail">
@@ -63,11 +75,56 @@ button:hover{background:#f5f5f7}
     </section>
   </div>
 </main>
+<div id="loading" role="status" aria-live="polite"><div class="name">SwiftUIWeb gallery</div><div class="bar"><div class="fill indeterminate"></div></div><div class="status">Loading…</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
 <script src="./.build/wasm/plugins/PackageToJS/outputs/Package/assets/manifest.js"></script>
 <script type="module">
   import { init } from "./.build/wasm/plugins/PackageToJS/outputs/Package/index.js";
-  await init();
+  const wasm = new URL("./.build/wasm/plugins/PackageToJS/outputs/Package/Gallery.wasm", import.meta.url);
+  const screen = document.getElementById("loading");
+  const fill = screen.querySelector(".fill"), status = screen.querySelector(".status");
+  const phase = (text) => { status.textContent = text; fill.classList.add("indeterminate"); fill.style.width = ""; };
+  // The first painted fixture takes the loading screen down (the host dispatches the event).
+  let hidden = false;
+  const hide = () => {
+    if (hidden) return;
+    hidden = true;
+    screen.classList.add("done");
+    screen.addEventListener("transitionend", () => screen.remove(), { once: true });
+  };
+  document.addEventListener("swiftuiwebready", hide, { once: true });
+  try {
+    const response = await fetch(wasm);
+    if (!response.ok) throw new Error("HTTP " + response.status + " for " + wasm.pathname.split("/").pop());
+    const declared = Number(document.documentElement.dataset.wasmBytes) || 0;
+    const total = response.headers.get("content-encoding") ? declared : (Number(response.headers.get("content-length")) || declared);
+    let received = 0;
+    const megabytes = (n) => (n / 1048576).toFixed(1) + " MB";
+    const progress = () => {
+      if (total > 0) {
+        const fraction = Math.min(1, received / total);
+        fill.classList.remove("indeterminate");
+        fill.style.width = (fraction * 100).toFixed(1) + "%";
+        status.textContent = "Downloading " + Math.round(fraction * 100) + "%";
+      } else {
+        status.textContent = "Downloading " + megabytes(received);
+      }
+    };
+    const watched = response.body.pipeThrough(new TransformStream({
+      transform(chunk, controller) { received += chunk.byteLength; progress(); controller.enqueue(chunk); },
+      flush() { phase("Compiling…"); },
+    }));
+    const module = new Response(watched, { headers: { "Content-Type": "application/wasm" } });
+    await init({ module });
+    phase("Starting…");
+    setTimeout(hide, 2000);
+  } catch (error) {
+    screen.classList.add("failed");
+    fill.classList.remove("indeterminate");
+    fill.style.width = "100%";
+    status.textContent = "Could not load: " + (error && error.message ? error.message : error);
+    throw error;
+  }
 </script>
 </body>
 </html>
