@@ -1,0 +1,75 @@
+{
+  "fixture" : "ios\/representable\/wheel",
+  "frames" : {
+    "content" : {
+      "height" : 630,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "inner" : {
+      "height" : 150,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "outer" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row0" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 150
+    },
+    "row1" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 210
+    },
+    "row2" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 270
+    },
+    "row3" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 330
+    },
+    "row4" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 390
+    },
+    "row5" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 450
+    },
+    "row6" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 510
+    },
+    "row7" : {
+      "height" : 60,
+      "width" : 320,
+      "x" : 0,
+      "y" : 570
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

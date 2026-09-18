@@ -49,6 +49,24 @@ private struct ReadingRows: View {
         #expect(runtime.layoutGeneration == generation + 1)
     }
 
+    /// A geometry reader in a background layer (a probe) forbids the fast path as one in the
+    /// content does: the gallery's probe frames follow a wheel over ios/representable/wheel.
+    @Test func geometryReadersInLayersForceLayout() {
+        let runtime = Runtime()
+        runtime.mount(ScrollView {
+            VStack(spacing: 0) {
+                ForEach(0..<8, id: \.self) { _ in
+                    Color.red.frame(height: 60).background(GeometryReader { _ in Color.clear })
+                }
+            }
+        })
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        let layouts = runtime.fullLayoutCount
+        runtime.scrollWheel(by: CGSize(width: 0, height: 60), at: CGPoint(x: 100, y: 50))
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        #expect(runtime.fullLayoutCount == layouts + 1)
+    }
+
     @Test func geometryReadersStillFollowScrolls() {
         let readings = Readings()
         let runtime = Runtime()

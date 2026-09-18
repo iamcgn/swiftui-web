@@ -477,7 +477,22 @@ public enum RepresentableFixtures {
     public static let all: [Fixture] = [plain, label, priorities, controls, darkControls, sizing, spacing, controller, update, hostingCells,
                                         safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
-                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle]
+                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel]
+
+    /// A UIScrollView in a representable inside a SwiftUI scroll view: the still is the golden;
+    /// Playwright/wheel-probe.mjs wheels over the inner one, then past its end into the outer.
+    public static let wheel = Fixture("ios/representable/wheel", size: CGSize(width: 320, height: 300)) {
+        ScrollView {
+            VStack(spacing: 0) {
+                StripesScrollBox().frame(height: 150).probe("inner")
+                ForEach(0..<8, id: \.self) { index in
+                    (index % 2 == 0 ? Color.orange : Color.purple).frame(height: 60).probe("row\(index)")
+                }
+            }
+            .probe("content")
+        }
+        .probe("outer")
+    }.platform(.iOS)
 
     /// The order of a representable's calls: at first sight, after its identity changes (a new
     /// coordinator and view, the old view dismantled) and after it leaves the tree. A step

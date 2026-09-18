@@ -5,11 +5,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Site | 8 | 8 | 0 | 0 |
-| Interop | 9 | 7 | 1 | 1 |
+| Interop | 8 | 6 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
 | UIKit | 37 | 2 | 24 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **117** | 18 | 56 | 43 |
+| **All** | **116** | 17 | 56 | 43 |
 
 ## Next (Phase 8, in order)
 
@@ -36,8 +36,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **Hover inside a representable** `ix-hover` · Representables · missing  
   SwiftUI's pointer moves reach the hosted tree as `UIHoverGestureRecognizer` events and `UIPointerInteraction` styles; the host cursor follows. Depends on uk-hover. ([Representable.md](Docs/elements/Representable.md), [Hover.md](Docs/elements/Hover.md))
-- ☐ **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Representables · verify  
-  Routed but never measured: a fixture with a scroll view in a representable, a Playwright probe that wheels over it, and the frames compared after the scroll. ([Representable.md](Docs/elements/Representable.md))
 - ☐ **Representables in lists, forms, scroll views and sheets** `ix-containers` · Representables · verify  
   Fixtures on the simulator for a representable as a List row, in a grouped Form, inside a ScrollView (both scrolling) and in a sheet; the row heights and the hosted view's frame compared exactly. ([Representable.md](Docs/elements/Representable.md))
 - ☐ **UIHostingConfiguration: margins, self-sizing, configuration state** `ix-hosting-config` · UIHostingConfiguration · approximate  
@@ -289,6 +287,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-09-18 **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Interop · Representables
 - ☑ 2026-09-18 **Animations across the seam** `ix-transaction` · Interop · Representables
 - ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables
 - ☑ 2026-09-12 **Environment to trait collection** `ix-traits` · Interop · Representables

@@ -76,7 +76,7 @@ final class RepresentableTree: _PlatformViewTree {
         if axes.vertical { set.insert(.vertical) }
         return set
     }
-    func scrollWheel(by delta: CGSize, at point: CGPoint) -> Bool { hosted.scrollWheel(by: delta, at: point) }
+    func scrollWheel(by delta: CGSize, at point: CGPoint) -> CGSize { hosted.scrollWheel(by: delta, at: point) }
 
     func semantics() -> [SemanticsNode] { hosted.semantics() }
     func contains(semanticsIdentifier: Int) -> Bool { hosted.contains(semanticsIdentifier: semanticsIdentifier) }

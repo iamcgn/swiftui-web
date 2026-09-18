@@ -185,17 +185,22 @@ public final class UIKitHostedTree {
         (window.hitTest(point, with: nil) ?? window).enclosingScrollAxes
     }
 
-    /// A wheel scroll at `point`; returns whether a scroll view in the tree moved.
-    public func scrollWheel(by delta: CGSize, at point: CGPoint) -> Bool {
+    /// A wheel scroll at `point`: the scroll views under it take what they can, innermost
+    /// first; returns what is left for the host's own scroll views.
+    public func scrollWheel(by delta: CGSize, at point: CGPoint) -> CGSize {
+        var remaining = delta
         var view = window.hitTest(point, with: nil)
-        while let v = view {
-            if let scroll = v as? UIScrollView, scroll.isScrollEnabled, scroll.scroll(by: delta) {
-                UIKitScene.shared.setNeedsFrame()
-                return true
+        while let v = view, remaining != .zero {
+            if let scroll = v as? UIScrollView, scroll.isScrollEnabled {
+                let before = scroll.contentOffset
+                if scroll.scroll(by: remaining) {
+                    remaining = CGSize(width: remaining.width - (scroll.contentOffset.x - before.x), height: remaining.height - (scroll.contentOffset.y - before.y))
+                    UIKitScene.shared.setNeedsFrame()
+                }
             }
             view = v.superview
         }
-        return false
+        return remaining
     }
 
     // MARK: Semantics

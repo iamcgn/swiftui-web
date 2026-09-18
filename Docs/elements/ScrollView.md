@@ -42,7 +42,9 @@ finger, and lifting hands the smoothed velocity to the innermost scroll view, wh
 at UIScrollView's normal rate (× 0.998 per millisecond) and stops at the edges. The host
 (`CanvasHost`) normalises `deltaMode` (lines × 16, pages × viewport), consumes the wheel event so
 the page does not scroll, and calls `advanceScrollAnimations` once per frame for momentum and
-the indicator fade. Every scroll runs a full layout pass; there is no offset-only fast path yet
+the indicator fade. A scroll frame moves the content without a layout pass when nothing in the
+content reads its geometry (`ScrollNode.canMoveContentOnly`; a geometry reader in a background
+or overlay layer, such as a fixture probe, counts since 2026-09-18), else it lays out again
 (see the frame-time measurement below).
 
 A control that tracks drags declares the axes it keeps (`_Interactive.dragAxes`; a slider's

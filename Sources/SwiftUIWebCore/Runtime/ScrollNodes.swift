@@ -185,7 +185,9 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         guard pendingTarget == nil, hasBeenPlaced else { return false }
         if geometryCheckGeneration != runtime.layoutGeneration {
             geometryCheckGeneration = runtime.layoutGeneration
-            contentReadsGeometry = !child.collectNodes(where: { $0.readsGeometry }).isEmpty
+            // Structural descendants: a geometry reader in a background or overlay layer (a
+            // fixture probe) reads the scrolled frame too.
+            contentReadsGeometry = !child.descendants(where: { $0.readsGeometry }).isEmpty
         }
         return !contentReadsGeometry
     }
@@ -442,10 +444,13 @@ extension Runtime {
     /// A wheel event at `point`; deltas are in points (the host has already normalised line and
     /// page modes). Desktop wheel deltas carry the OS's own momentum, so none is added.
     public func scrollWheel(by delta: CGSize, at point: CGPoint) {
-        // A scroll view inside a hosted tree under the pointer takes the wheel first.
+        // A scroll view inside a hosted tree under the pointer takes the wheel first; what it
+        // leaves (at its end) chains to the scroll views around it (ios/representable/wheel).
+        var delta = delta
         if let host = interactiveNode(at: point) as? any _PlatformViewHosting, let node = host as? ViewNode {
             let origin = node.frameInRoot.origin
-            if host.tree.scrollWheel(by: delta, at: CGPoint(x: point.x - origin.x, y: point.y - origin.y)) { return }
+            delta = host.tree.scrollWheel(by: delta, at: CGPoint(x: point.x - origin.x, y: point.y - origin.y))
+            if delta == .zero { return }
         }
         scroll(by: delta, at: point)
     }

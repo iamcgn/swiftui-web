@@ -156,13 +156,14 @@
       "framework": "Interop",
       "area": "Representables",
       "title": "Wheel scrolling of a hosted UIScrollView",
-      "detail": "Routed but never measured: a fixture with a scroll view in a representable, a Playwright probe that wheels over it, and the frames compared after the scroll.",
+      "detail": "ios/representable/wheel (a UIScrollView in a representable inside a SwiftUI ScrollView) and Playwright/wheel-probe.mjs: a wheel over the inner scroll view moves it by the delta while the outer holds; past its end the outer takes the rest.",
       "kind": "verify",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Representable.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-transaction",

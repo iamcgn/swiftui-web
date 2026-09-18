@@ -101,8 +101,14 @@ label from 39 to 90 and the stack follows; a switch turns off.
 
 Not verified: `sizeThatFits` returning nil on one axis only (impossible: it returns a `CGSize`),
 `alignmentRectInsets` on other controls (zero for labels, fields, buttons and plain views:
-`uikit/controls/intrinsic`), the label baseline at other sizes, wheel scrolling of a
-`UIScrollView` inside a representable (routed, not measured), hover.
+`uikit/controls/intrinsic`), the label baseline at other sizes, hover.
+
+Wheel scrolling (2026-09-18, `ios/representable/wheel`, `Playwright/wheel-probe.mjs`): a wheel
+over a `UIScrollView` in a representable moves that scroll view by the delta (its stripes shift
+by the 100 pt wheeled) while the SwiftUI scroll view around it holds; once the inner one is at
+its end the outer takes the rest (`Runtime.scrollWheel` asks the hosted tree first and falls
+through to the SwiftUI scroll views when nothing inside moved). The golden is the rest state;
+the probe runs against the served gallery (`node wheel-probe.mjs http://127.0.0.1:8767/index.html`).
 
 ## Safe areas through the seam (2026-09-12, `ios/representable/safearea*`, `hostingsafearea*`)
 

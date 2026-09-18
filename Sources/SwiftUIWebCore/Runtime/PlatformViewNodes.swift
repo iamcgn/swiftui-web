@@ -36,8 +36,9 @@ package protocol _PlatformViewTree: AnyObject {
     /// The axes a press at `point` may drag along without becoming a pan of the host's scroll
     /// views (a scroll view inside the tree).
     func dragAxes(at point: CGPoint) -> Axis.Set
-    /// A wheel scroll at `point`; returns whether the tree consumed it.
-    func scrollWheel(by delta: CGSize, at point: CGPoint) -> Bool
+    /// A wheel scroll at `point`; returns what the tree's scroll views left of the delta (the
+    /// whole delta when nothing inside scrolls), for the host's scroll views to take.
+    func scrollWheel(by delta: CGSize, at point: CGPoint) -> CGSize
 
     /// The tree's accessibility elements, frames in the tree's coordinates.
     func semantics() -> [SemanticsNode]
