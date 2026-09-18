@@ -5,11 +5,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Site | 8 | 8 | 0 | 0 |
-| Interop | 3 | 1 | 1 | 1 |
+| Interop | 2 | 0 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
-| UIKit | 37 | 3 | 23 | 11 |
+| UIKit | 36 | 2 | 23 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **111** | 13 | 55 | 43 |
+| **All** | **109** | 11 | 55 | 43 |
 
 ## Next (Phase 8, in order)
 
@@ -32,11 +32,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☐ **The element workflow records progress** `st-workflow` · Tracking · infra  
   ELEMENT_WORKFLOW step 6 gains: mark the todo item done with the date, add the new gaps as items, run scripts/gen-progress.py, commit the outputs. Pages redeploys on every push to main that touches the data. ([ELEMENT_WORKFLOW.md](Docs/ELEMENT_WORKFLOW.md), [landing.yml](.github/workflows/landing.yml))
 
-### Interop
-
-- ☐ **Hover inside a representable** `ix-hover` · Representables · missing  
-  SwiftUI's pointer moves reach the hosted tree as `UIHoverGestureRecognizer` events and `UIPointerInteraction` styles; the host cursor follows. Depends on uk-hover. ([Representable.md](Docs/elements/Representable.md), [Hover.md](Docs/elements/Hover.md))
-
 ### SwiftUI
 
 - ☐ **iOS sheets, tab bars and date pickers from the simulator** `sw-ios-sheets` · iOS profile · verify  
@@ -46,8 +41,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **UIActivityIndicatorView spins** `uk-spinner` · Controls · approximate  
   A still of eight spokes today: rotate the spokes on the scene's clock at UIKit's rate, `startAnimating`/`stopAnimating`, `hidesWhenStopped`. ([Controls.md](Docs/elements/UIKit/Controls.md))
-- ☐ **Hover and pointer interactions** `uk-hover` · Events · missing  
-  `UIHoverGestureRecognizer`, `UIPointerInteraction` with the pointer styles the host cursor can show, `UIButton`'s pointer effect. Feeds ix-hover. ([UIButton.md](Docs/elements/UIKit/UIButton.md))
 - ☐ **Trim the substrate tables** `uk-size` · Size · infra  
   UIKitCounter is 2.24 MB brotli and Counter 3.05 MB (97 KB under the budget, decision 0014's size gate outcome) because the symbol and font tables come along whole: load the symbol glyphs the app names, split the metrics tables per platform profile; target at least 300 KB of headroom under the 3 MB budget. ([0014-uikitweb.md](Docs/decisions/0014-uikitweb.md), [0006-binary-size.md](Docs/decisions/0006-binary-size.md))
 
@@ -277,6 +270,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-09-18 **Hover inside a representable** `ix-hover` · Interop · Representables
 - ☑ 2026-09-18 **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Interop · Representables
 - ☑ 2026-09-18 **Animations across the seam** `ix-transaction` · Interop · Representables
 - ☑ 2026-09-18 **Representables in lists, forms, scroll views and sheets** `ix-containers` · Interop · Representables
@@ -284,6 +278,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **UIHostingController in containers** `ix-hosting-controller` · Interop · UIHostingController
 - ☑ 2026-09-18 **Image(uiImage:) for rendered images** `ix-rendered-images` · Interop · Bridging
 - ☑ 2026-09-18 **Decide whether SwiftUI keeps re-exporting UIKit unconditionally** `ix-size-gate` · Interop · Size
+- ☑ 2026-09-18 **Hover and pointer interactions** `uk-hover` · UIKit · Events
 - ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables
 - ☑ 2026-09-12 **Environment to trait collection** `ix-traits` · Interop · Representables
 - ☑ 2026-09-12 **Dismantle and coordinator lifecycle tests** `ix-lifecycle` · Interop · Representables

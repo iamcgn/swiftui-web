@@ -288,11 +288,20 @@ public final class UIKitScene: HostedScene {
         touches.pointerDown(at: point, in: window, type: type, time: time)
     }
 
+    /// A move while pressing drags; one without a press hovers the view under the pointer.
     public func pointerMoved(to point: CGPoint, time: Double) {
-        touches.pointerMoved(to: point, time: time)
+        if touches.isPressing {
+            touches.pointerMoved(to: point, time: time)
+        } else {
+            hover.update(to: point, in: windows.last(where: { !$0.isHidden }))
+        }
     }
 
-    public func pointerLeft() {}
+    public func pointerLeft() {
+        hover.update(to: nil, in: nil)
+    }
+
+    private let hover = HoverRouter()
 
     public func pointerUp(at point: CGPoint, time: Double) {
         touches.pointerUp(at: point, time: time, cancelled: point.x < 0 && point.y < 0)
@@ -313,7 +322,8 @@ public final class UIKitScene: HostedScene {
     }
 
     public func keyDown(_ event: KeyEvent) -> Bool { false }
-    public var pointerCursor: String? { nil }
+    /// The cursor the hovered pointer interaction asks for (Events/Hover.swift).
+    public var pointerCursor: String? { hover.cursor }
 
     // MARK: Semantics
 

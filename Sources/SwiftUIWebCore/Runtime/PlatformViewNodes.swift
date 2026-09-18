@@ -41,6 +41,10 @@ package protocol _PlatformViewTree: AnyObject {
     /// A wheel scroll at `point`; returns what the tree's scroll views left of the delta (the
     /// whole delta when nothing inside scrolls), for the host's scroll views to take.
     func scrollWheel(by delta: CGSize, at point: CGPoint) -> CGSize
+    /// The pointer hovers at `point` in the tree's space (no press), or left it (`nil`).
+    func hover(at point: CGPoint?)
+    /// The pointer style the hovered view inside asks for, if any.
+    var pointerStyle: PointerStyle? { get }
 
     /// The tree's accessibility elements, frames in the tree's coordinates.
     func semantics() -> [SemanticsNode]
@@ -80,7 +84,7 @@ package protocol _PlatformViewHosting: AnyObject {
 
 /// The leaf that stands for a hosted tree in the SwiftUI layout.
 @MainActor
-package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _PlatformViewHosting, _FocusBoxObserving {
+package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _PlatformViewHosting, _FocusBoxObserving, _HoverTracking, _PointerStyled {
     package let tree: any _PlatformViewTree
     /// The size the tree wants for a proposal (the representable's own `sizeThatFits`, else the
     /// framework's rule for the hosted view).
@@ -151,6 +155,7 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     }
 
     override package func unmount() {
+        runtime.forgetHover(self)
         tree.dismantle()
         runtime.forgetPlatformHost(self)
         super.unmount()
@@ -216,6 +221,14 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     package func pressEnded(inside: Bool, at point: CGPoint) { tree.pointerUp(at: point, time: runtime.lastPointerTime) }
     package func pressCancelled(at point: CGPoint) { tree.pointerCancelled(at: point, time: runtime.lastPointerTime) }
     package var dragAxes: Axis.Set { tree.dragAxes(at: lastPressPoint) }
+
+    /// SwiftUI's hover reaches the tree as the pointer's position inside it, and the tree's
+    /// hovered view sets the host's cursor (Docs/elements/Representable.md, hover).
+    package func hoverChanged(inside: Bool, at point: CGPoint) {
+        tree.hover(at: inside ? point : nil)
+    }
+
+    package var pointerStyle: PointerStyle? { tree.pointerStyle }
 
     /// The whole tree as one element (the semantics walk lists the tree's own elements instead).
     package var semantics: SemanticsNode {

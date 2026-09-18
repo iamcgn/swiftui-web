@@ -504,6 +504,8 @@ open class UIView: UIResponder, UITraitEnvironment {
     }
 
     public private(set) var gestureRecognizers: [UIGestureRecognizer]?
+    /// The interactions (Events/Hover.swift).
+    var storedInteractions: [any UIInteraction] = []
 
     open func addGestureRecognizer(_ recognizer: UIGestureRecognizer) {
         recognizer.view?.removeGestureRecognizer(recognizer)

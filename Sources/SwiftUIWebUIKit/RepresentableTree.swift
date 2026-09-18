@@ -80,6 +80,8 @@ final class RepresentableTree: _PlatformViewTree {
         return set
     }
     func scrollWheel(by delta: CGSize, at point: CGPoint) -> CGSize { hosted.scrollWheel(by: delta, at: point) }
+    func hover(at point: CGPoint?) { hosted.hover(at: point) }
+    var pointerStyle: PointerStyle? { hosted.pointerCursor.map { PointerStyle(css: $0) } }
 
     func semantics() -> [SemanticsNode] { hosted.semantics() }
     func contains(semanticsIdentifier: Int) -> Bool { hosted.contains(semanticsIdentifier: semanticsIdentifier) }

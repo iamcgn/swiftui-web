@@ -623,6 +623,50 @@ import Foundation
         #expect(UIImage(systemName: "star")?.pngData() == nil)
     }
 
+    final class Beam: UIPointerInteractionDelegate {
+        func pointerInteraction(_ interaction: UIPointerInteraction, styleFor region: UIPointerRegion) -> UIPointerStyle? {
+            UIPointerStyle(shape: .horizontalBeam(length: 20))
+        }
+    }
+
+    struct Hovering: UIViewRepresentable {
+        let states: Counts
+        let beam: Beam
+        func makeUIView(context: Context) -> UIView {
+            let view = UIView()
+            view.addGestureRecognizer(UIHoverGestureRecognizer { recognizer in states.appearances.append("hover \(recognizer.state)") })
+            view.addInteraction(UIPointerInteraction(delegate: beam))
+            return view
+        }
+        func updateUIView(_ uiView: UIView, context: Context) {}
+    }
+
+    /// ios/representable/hover: SwiftUI's pointer moves hover the hosted tree (a hover
+    /// recognizer begins, changes and ends) and the hovered view's pointer interaction sets the
+    /// runtime's pointer style.
+    @Test func hoverReachesTheTreeAndItsPointerStyleTheHost() {
+        let counts = Counts()
+        let beam = Beam()
+        let r = iOSRuntime()
+        r.mount(VStack(spacing: 0) {
+            Hovering(states: counts, beam: beam).frame(width: 100, height: 50)._probe("hover")
+            Color.clear.frame(width: 100, height: 50)
+        })
+        r.layout(in: Self.size)
+        let frame = r.probeFrames["hover"]!
+        r.pointerMoved(to: CGPoint(x: frame.midX, y: frame.midY))
+        #expect(counts.appearances == ["hover began"])
+        #expect(r.pointerStyle?.css == "text")
+        r.pointerMoved(to: CGPoint(x: frame.midX + 5, y: frame.midY))
+        #expect(counts.appearances == ["hover began", "hover changed"])
+        r.pointerMoved(to: CGPoint(x: frame.midX, y: frame.maxY + 20))
+        #expect(counts.appearances == ["hover began", "hover changed", "hover ended"])
+        #expect(r.pointerStyle == nil)
+        r.pointerMoved(to: CGPoint(x: frame.midX, y: frame.midY))
+        r.pointerLeft()
+        #expect(counts.appearances.last == "hover ended")
+    }
+
     @Test func controllersGetAppearanceCallbacksAndDismantlingRuns() {
         let model = Model()
         let r = runtime(model)

@@ -142,14 +142,15 @@
       "framework": "Interop",
       "area": "Representables",
       "title": "Hover inside a representable",
-      "detail": "SwiftUI's pointer moves reach the hosted tree as `UIHoverGestureRecognizer` events and `UIPointerInteraction` styles; the host cursor follows. Depends on uk-hover.",
+      "detail": "SwiftUI's pointer moves reach the hosted tree as a hover (`UIHoverGestureRecognizer` events) and the hovered view's `UIPointerInteraction` style or a button's pointer effect becomes the host cursor (ios/representable/hover, Playwright/representable-hover-probe.mjs, RepresentableTests).",
       "kind": "missing",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Representable.md",
         "Docs/elements/Hover.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-wheel",
@@ -1120,13 +1121,14 @@
       "framework": "UIKit",
       "area": "Events",
       "title": "Hover and pointer interactions",
-      "detail": "`UIHoverGestureRecognizer`, `UIPointerInteraction` with the pointer styles the host cursor can show, `UIButton`'s pointer effect. Feeds ix-hover.",
+      "detail": "`UIHoverGestureRecognizer`, `UIInteraction` / `UIPointerInteraction` with `UIPointerStyle` (shapes and effects mapped to the cursors a browser can show), `UIButton.isPointerInteractionEnabled`; press-less pointer moves hover the view under them (HoverTests). The pointer's own morphing over a hover-effect view is not drawn.",
       "kind": "missing",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/UIButton.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "uk-gestures",

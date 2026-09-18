@@ -37,6 +37,9 @@ every view under the pointer. Clipping by scroll views and presentations is not 
   shadow), 20 pt below the pointer and flipped above it near the bottom, kept inside the window.
   `Runtime.visibleTooltip` reports it for tests. The look is an approximation of the macOS
   tooltip panel, which lives in its own window and cannot be captured.
+- A representable (`_PlatformViewHostNode`) tracks hover like an `onHover` view and forwards
+  it to its UIKit tree, whose hovered pointer interaction contributes a style the same way
+  (Docs/elements/Representable.md, 2026-09-18).
 - `PointerStyleNode` contributes its style through `_PointerStyled`; `Runtime.pointerStyle` is
   the deepest hovered one. The browser host sets the canvas `cursor` to the CSS name; the native
   host sets the matching `NSCursor`.

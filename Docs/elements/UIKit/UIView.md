@@ -37,3 +37,19 @@ the layout guides and `systemLayoutSizeFitting` over the solver are in `Docs/ele
 
 Open: pixel comparison of the painted corners, borders, shadows and the continuous corner
 against these goldens; `draw(_:)`; animations (Phase 3).
+
+## Hover and pointer interactions (2026-09-18, `Events/Hover.swift`, `HoverTests`)
+
+A pointer move without a press hovers the view under it (`UIKitScene.pointerMoved` routes
+presses to the touches and the rest to a `HoverRouter`; `pointerLeft` ends every hover).
+`UIHoverGestureRecognizer` on the hit view and its superviews: `began` when the pointer enters
+the view, `changed` on every move inside, `ended` when it leaves, `location(in:)` the pointer's
+position. `UIView.addInteraction` / `removeInteraction` / `interactions` with `UIInteraction`;
+`UIPointerInteraction` asks its delegate for the region and the `UIPointerStyle` (`.system()`,
+`.hidden()`, a shape: beams and paths, or an effect over a `UITargetedPreview` of the view)
+when the pointer is over its view, with `willEnter` / `willExit` on region changes; the style
+maps to the cursor the host shows (`UIKitScene.pointerCursor`: `text`, `vertical-text`,
+`pointer`, `none`, or nothing for the system style). `UIButton.isPointerInteractionEnabled`
+shows the hand. The pointer's own morphing over a hover-effect view is not drawn: the browser
+has a cursor, not a pointer shape. A hosted tree (`UIKitHostedTree.hover(at:)`) hovers the same
+way from its host's pointer and reports its cursor (`ios/representable/hover`).

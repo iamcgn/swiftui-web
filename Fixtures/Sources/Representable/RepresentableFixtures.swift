@@ -187,6 +187,53 @@ struct HostingSizingContent: View {
     }
 }
 
+/// A view that turns red while the pointer hovers over it (`UIHoverGestureRecognizer`) and
+/// asks for a text-beam pointer (`UIPointerInteraction`).
+final class HoverView: UIView, UIPointerInteractionDelegate {
+    static func make() -> HoverView {
+        let view = HoverView()
+        view.backgroundColor = .systemBlue
+        let hover = UIHoverGestureRecognizer()
+        #if canImport(SwiftUIWebCore)
+        hover.addTarget { [weak view] recognizer in view?.apply(recognizer.state) }   // UIKitWeb: closure targets, no selectors
+        #else
+        hover.addTarget(view, action: #selector(hovered(_:)))
+        #endif
+        view.addGestureRecognizer(hover)
+        view.addInteraction(UIPointerInteraction(delegate: view))
+        return view
+    }
+
+    func apply(_ state: UIGestureRecognizer.State) {
+        switch state {
+        case .began, .changed: backgroundColor = .systemRed
+        default: backgroundColor = .systemBlue
+        }
+    }
+
+    #if !canImport(SwiftUIWebCore)
+    @objc func hovered(_ recognizer: UIHoverGestureRecognizer) { apply(recognizer.state) }
+    #endif
+
+    func pointerInteraction(_ interaction: UIPointerInteraction, styleFor region: UIPointerRegion) -> UIPointerStyle? {
+        UIPointerStyle(shape: .horizontalBeam(length: 20))
+    }
+}
+
+/// The hover view over a system button with the pointer effect on.
+struct HoverBox: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIStackView {
+        let button = UIButton(type: .system)
+        button.setTitle("Tap", for: .normal)
+        button.isPointerInteractionEnabled = true
+        let stack = UIStackView(arrangedSubviews: [HoverView.make(), button])
+        stack.axis = .vertical
+        stack.distribution = .fillEqually
+        return stack
+    }
+    func updateUIView(_ uiView: UIStackView, context: Context) {}
+}
+
 @Observable final class HostingStateModel {
     var selected = false
 }
@@ -655,7 +702,14 @@ public enum RepresentableFixtures {
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
                                         safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel,
                                         listRows, formRows, scrollContent, hostingMargins, hostingCollection, hostingState,
-                                        hostingNavItem, hostingSizing, renderedImage]
+                                        hostingNavItem, hostingSizing, renderedImage, hover]
+
+    /// Hover through the seam: the still is the golden; Playwright/representable-hover-probe.mjs
+    /// moves the pointer over the view (it turns red, the cursor becomes a text beam) and the
+    /// button (the pointer effect's cursor), then away.
+    public static let hover = Fixture("ios/representable/hover", size: CGSize(width: 320, height: 200)) {
+        HoverBox().frame(width: 200, height: 120).probe("box")
+    }.platform(.iOS)
 
     /// `Image(uiImage:)` with an image an image renderer drew: at its size, resizable, tinted
     /// with `withTintColor`, as a UIKit template under a SwiftUI foreground style, and as a

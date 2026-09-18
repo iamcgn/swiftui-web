@@ -126,7 +126,16 @@ label from 39 to 90 and the stack follows; a switch turns off.
 
 Not verified: `sizeThatFits` returning nil on one axis only (impossible: it returns a `CGSize`),
 `alignmentRectInsets` on other controls (zero for labels, fields, buttons and plain views:
-`uikit/controls/intrinsic`), the label baseline at other sizes, hover.
+`uikit/controls/intrinsic`), the label baseline at other sizes.
+
+Hover (2026-09-18, `ios/representable/hover`, `Playwright/representable-hover-probe.mjs`):
+SwiftUI's pointer moves reach the hosted tree as a hover at the pointer's position
+(`_PlatformViewHostNode` tracks hover like an `onHover` view and hands the tree the point or
+its leaving), so a `UIHoverGestureRecognizer` on the view under it begins, changes and ends
+and a `UIPointerInteraction`'s style, or a `UIButton`'s pointer effect, becomes the host's
+cursor through the runtime's pointer style (a text beam is `text`, an effect or a custom shape
+the hand, a hidden pointer `none`). The golden is the rest state; the probe moves the pointer
+over the view (red, a text cursor), the button (a hand) and away (blue, the default cursor).
 
 Wheel scrolling (2026-09-18, `ios/representable/wheel`, `Playwright/wheel-probe.mjs`): a wheel
 over a `UIScrollView` in a representable moves that scroll view by the delta (its stripes shift

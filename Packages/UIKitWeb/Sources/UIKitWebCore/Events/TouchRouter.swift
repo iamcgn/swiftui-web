@@ -6,6 +6,8 @@
 @MainActor
 final class TouchRouter {
     private var activeTouch: UITouch?
+    /// Whether a press is in progress (a pointer move then drags rather than hovers).
+    var isPressing: Bool { activeTouch != nil }
     private var activeEvent: UIEvent?
     private var lastTapTime: Double = 0
     private var lastTapLocation = CGPoint.zero

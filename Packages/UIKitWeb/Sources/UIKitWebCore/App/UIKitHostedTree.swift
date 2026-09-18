@@ -203,6 +203,18 @@ public final class UIKitHostedTree {
         return remaining
     }
 
+    // MARK: Hover
+
+    private let hover = HoverRouter()
+
+    /// The host's pointer hovers at `point` in the tree's coordinates, or left it (`nil`).
+    public func hover(at point: CGPoint?) {
+        hover.update(to: point, in: point == nil ? nil : window)
+    }
+
+    /// The cursor the hovered view inside asks for.
+    public var pointerCursor: String? { hover.cursor }
+
     // MARK: Semantics
 
     /// The tree's accessibility elements, frames in the tree's coordinates.
