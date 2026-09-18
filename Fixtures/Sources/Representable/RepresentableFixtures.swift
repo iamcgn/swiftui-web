@@ -477,7 +477,53 @@ public enum RepresentableFixtures {
     public static let all: [Fixture] = [plain, label, priorities, controls, darkControls, sizing, spacing, controller, update, hostingCells,
                                         safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
-                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel]
+                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel,
+                                        listRows, formRows, scrollContent]
+
+    /// Representables as list rows: a hugging label, a switch, a plain view with a frame, next
+    /// to a text row; the row pitch and the hosted views' frames.
+    public static let listRows = Fixture("ios/representable/list", size: CGSize(width: 320, height: 360)) {
+        List {
+            LabelBox(hugging: 1000).probe("label")
+            SwitchBox().probe("switch")
+            PlainBox().frame(height: 30).probe("plain")
+            Text("Row").probe("text")
+            FieldBox().probe("field")
+        }
+        .probe("list")
+    }.platform(.iOS)
+
+    /// The same in a grouped form.
+    public static let formRows = Fixture("ios/representable/form", size: CGSize(width: 320, height: 400)) {
+        Form {
+            Section {
+                LabelBox(hugging: 1000).probe("label")
+                SwitchBox().probe("switch")
+                Text("Row").probe("text")
+            }
+            Section {
+                PlainBox().frame(height: 30).probe("plain")
+                FieldBox().probe("field")
+            }
+        }
+        .probe("form")
+    }.platform(.iOS)
+
+    /// Representables in a vertical scroll view's content, sized by the content's width.
+    public static let scrollContent = Fixture("ios/representable/scroll", size: CGSize(width: 320, height: 300)) {
+        ScrollView {
+            VStack(spacing: 8) {
+                LabelBox(hugging: 1000).probe("label")
+                PlainBox().frame(height: 40).probe("plain")
+                SwitchBox().probe("switch")
+                FieldBox().probe("field")
+                Text("Row").probe("text")
+                ControllerBox().frame(height: 50).probe("controller")
+            }
+            .probe("content")
+        }
+        .probe("scroll")
+    }.platform(.iOS)
 
     /// A UIScrollView in a representable inside a SwiftUI scroll view: the still is the golden;
     /// Playwright/wheel-probe.mjs wheels over the inner one, then past its end into the outer.

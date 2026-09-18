@@ -1878,27 +1878,44 @@ public static let controls = Fixture("ios/representable/controls", size: CGSize(
     controlsContent()
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingcells", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 668, lastLine: 672, declaration: #"""
+        FixtureSource(name: "ios/representable/form", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 496, lastLine: 510, declaration: #"""
+/// The same in a grouped form.
+public static let formRows = Fixture("ios/representable/form", size: CGSize(width: 320, height: 400)) {
+    Form {
+        Section {
+            LabelBox(hugging: 1000).probe("label")
+            SwitchBox().probe("switch")
+            Text("Row").probe("text")
+        }
+        Section {
+            PlainBox().frame(height: 30).probe("plain")
+            FieldBox().probe("field")
+        }
+    }
+    .probe("form")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/hostingcells", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 714, lastLine: 718, declaration: #"""
 /// A table whose rows host SwiftUI through `UIHostingConfiguration`: default margins, custom
 /// margins with a background, and a minimum height.
 public static let hostingCells = Fixture("ios/representable/hostingcells", size: CGSize(width: 320, height: 300)) {
     HostingCellsTable().probe("table")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingsafearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 639, lastLine: 643, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingsafearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 685, lastLine: 689, declaration: #"""
 /// A hosting controller as a navigation controller's screen: the hosted SwiftUI content sees
 /// the bar's safe area (green below the bar, yellow under it).
 public static let hostingSafeArea = Fixture("ios/representable/hostingsafearea", size: CGSize(width: 320, height: 300)) {
     HostingNavBox().probe("host")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingsafearea-none", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 645, lastLine: 648, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingsafearea-none", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 691, lastLine: 694, declaration: #"""
 /// The same with `safeAreaRegions` empty: the content ignores the bar.
 public static let hostingSafeAreaNone = Fixture("ios/representable/hostingsafearea-none", size: CGSize(width: 320, height: 300)) {
     HostingNavBox(regions: []).probe("host")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/hostingsafearea-tabs", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 650, lastLine: 653, declaration: #"""
+        FixtureSource(name: "ios/representable/hostingsafearea-tabs", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 696, lastLine: 699, declaration: #"""
 /// A hosting controller as a tab: the tab bar's safe area at the bottom.
 public static let hostingSafeAreaTabs = Fixture("ios/representable/hostingsafearea-tabs", size: CGSize(width: 320, height: 300)) {
     HostingNavBox(tabs: true).probe("host")
@@ -1918,7 +1935,7 @@ public static let label = Fixture("ios/representable/label", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/lifecycle", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 497, lastLine: 516, declaration: #"""
+        FixtureSource(name: "ios/representable/lifecycle", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 543, lastLine: 562, declaration: #"""
 /// The order of a representable's calls: at first sight, after its identity changes (a new
 /// coordinator and view, the old view dismantled) and after it leaves the tree. A step
 /// mutates the model, the next copies the log into the view, which draws one bar per entry.
@@ -1938,6 +1955,20 @@ public static let lifecycle = Fixture("ios/representable/lifecycle", size: CGSiz
         }
     }
     .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/representable/list", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 483, lastLine: 494, declaration: #"""
+/// Representables as list rows: a hugging label, a switch, a plain view with a frame, next
+/// to a text row; the row pitch and the hosted views' frames.
+public static let listRows = Fixture("ios/representable/list", size: CGSize(width: 320, height: 360)) {
+    List {
+        LabelBox(hugging: 1000).probe("label")
+        SwitchBox().probe("switch")
+        PlainBox().frame(height: 30).probe("plain")
+        Text("Row").probe("text")
+        FieldBox().probe("field")
+    }
+    .probe("list")
 }.platform(.iOS)
 """#),
         FixtureSource(name: "ios/representable/plain", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 343, lastLine: 352, declaration: #"""
@@ -1973,7 +2004,7 @@ public static let priorities = Fixture("ios/representable/priorities", size: CGS
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/safearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 591, lastLine: 602, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 637, lastLine: 648, declaration: ##"""
 /// A representable under an inline navigation bar: where SwiftUI places it and what safe
 /// area the UIKit view sees (green over the safe area, blue elsewhere).
 public static let safeArea = Fixture("ios/representable/safearea", size: CGSize(width: 320, height: 300)) {
@@ -1987,7 +2018,7 @@ public static let safeArea = Fixture("ios/representable/safearea", size: CGSize(
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-color", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 547, lastLine: 562, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-color", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 593, lastLine: 608, declaration: ##"""
 /// The control: a SwiftUI colour ignoring the safe area under the same bar, and one in a
 /// stack that does not.
 public static let safeAreaColor = Fixture("ios/representable/safearea-color", size: CGSize(width: 320, height: 300)) {
@@ -2005,7 +2036,7 @@ public static let safeAreaColor = Fixture("ios/representable/safearea-color", si
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 613, lastLine: 624, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 659, lastLine: 670, declaration: ##"""
 /// The representable told to ignore the safe area: it extends under the bar, and the safe
 /// area the view sees says whether the bar's inset still reaches it.
 public static let safeAreaIgnored = Fixture("ios/representable/safearea-ignored", size: CGSize(width: 320, height: 300)) {
@@ -2019,7 +2050,7 @@ public static let safeAreaIgnored = Fixture("ios/representable/safearea-ignored"
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-inset", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 564, lastLine: 577, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-inset", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 610, lastLine: 623, declaration: ##"""
 /// A safe area SwiftUI makes (`safeAreaInset` at the bottom) around a representable: whether
 /// the UIKit view extends into it and sees it as an inset.
 public static let safeAreaInset = Fixture("ios/representable/safearea-inset", size: CGSize(width: 320, height: 300)) {
@@ -2035,7 +2066,7 @@ public static let safeAreaInset = Fixture("ios/representable/safearea-inset", si
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-large", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 604, lastLine: 611, declaration: #"""
+        FixtureSource(name: "ios/representable/safearea-large", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 650, lastLine: 657, declaration: #"""
 /// The same under a large title.
 public static let safeAreaLarge = Fixture("ios/representable/safearea-large", size: CGSize(width: 320, height: 300)) {
     NavigationStack {
@@ -2045,7 +2076,7 @@ public static let safeAreaLarge = Fixture("ios/representable/safearea-large", si
     .probe("nav")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/safearea-rule", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 518, lastLine: 545, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-rule", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 564, lastLine: 591, declaration: ##"""
 /// The rule for views away from the safe edge: a colour padded 10 from the top that ignores
 /// the safe area, one 10 below the top in a stack, and a scroll view in a row.
 public static let safeAreaRule = Fixture("ios/representable/safearea-rule", size: CGSize(width: 320, height: 300)) {
@@ -2075,7 +2106,7 @@ public static let safeAreaRule = Fixture("ios/representable/safearea-rule", size
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-scroll", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 626, lastLine: 637, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-scroll", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 672, lastLine: 683, declaration: ##"""
 /// A UIScrollView under the bar: whether it extends under it and where its content starts
 /// (the automatic content inset adjustment).
 public static let safeAreaScroll = Fixture("ios/representable/safearea-scroll", size: CGSize(width: 320, height: 300)) {
@@ -2089,7 +2120,7 @@ public static let safeAreaScroll = Fixture("ios/representable/safearea-scroll", 
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/representable/safearea-scroll-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 579, lastLine: 589, declaration: ##"""
+        FixtureSource(name: "ios/representable/safearea-scroll-ignored", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 625, lastLine: 635, declaration: ##"""
 /// A UIScrollView ignoring the safe area under the bar: the automatic content inset.
 public static let safeAreaScrollIgnored = Fixture("ios/representable/safearea-scroll-ignored", size: CGSize(width: 320, height: 300)) {
     NavigationStack {
@@ -2102,6 +2133,23 @@ public static let safeAreaScrollIgnored = Fixture("ios/representable/safearea-sc
     .probe("nav")
 }.platform(.iOS)
 """##),
+        FixtureSource(name: "ios/representable/scroll", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 512, lastLine: 526, declaration: #"""
+/// Representables in a vertical scroll view's content, sized by the content's width.
+public static let scrollContent = Fixture("ios/representable/scroll", size: CGSize(width: 320, height: 300)) {
+    ScrollView {
+        VStack(spacing: 8) {
+            LabelBox(hugging: 1000).probe("label")
+            PlainBox().frame(height: 40).probe("plain")
+            SwitchBox().probe("switch")
+            FieldBox().probe("field")
+            Text("Row").probe("text")
+            ControllerBox().frame(height: 50).probe("controller")
+        }
+        .probe("content")
+    }
+    .probe("scroll")
+}.platform(.iOS)
+"""#),
         FixtureSource(name: "ios/representable/sizing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 410, lastLine: 434, declaration: #"""
 /// The representable's own `sizeThatFits`: a fixed size, the proposal's width, the ideal
 /// size when nothing is proposed, and how a representable aligns to a text baseline.
@@ -2150,7 +2198,7 @@ public static let spacing = Fixture("ios/representable/spacing", size: CGSize(wi
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/traits", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 655, lastLine: 666, declaration: #"""
+        FixtureSource(name: "ios/representable/traits", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 701, lastLine: 712, declaration: #"""
 /// The environment as the hosted view's trait collection: the colour scheme, the dynamic
 /// type size, the layout direction and the size classes, each drawn as bar widths.
 public static let traits = Fixture("ios/representable/traits", size: CGSize(width: 320, height: 420)) {
@@ -2176,7 +2224,7 @@ public static let update = Fixture("ios/representable/update", size: CGSize(widt
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/wheel", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 482, lastLine: 495, declaration: #"""
+        FixtureSource(name: "ios/representable/wheel", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 528, lastLine: 541, declaration: #"""
 /// A UIScrollView in a representable inside a SwiftUI scroll view: the still is the golden;
 /// Playwright/wheel-probe.mjs wheels over the inner one, then past its end into the outer.
 public static let wheel = Fixture("ios/representable/wheel", size: CGSize(width: 320, height: 300)) {
@@ -10387,7 +10435,53 @@ public enum RepresentableFixtures {
     public static let all: [Fixture] = [plain, label, priorities, controls, darkControls, sizing, spacing, controller, update, hostingCells,
                                         safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
-                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel]
+                                        safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel,
+                                        listRows, formRows, scrollContent]
+
+    /// Representables as list rows: a hugging label, a switch, a plain view with a frame, next
+    /// to a text row; the row pitch and the hosted views' frames.
+    public static let listRows = Fixture("ios/representable/list", size: CGSize(width: 320, height: 360)) {
+        List {
+            LabelBox(hugging: 1000).probe("label")
+            SwitchBox().probe("switch")
+            PlainBox().frame(height: 30).probe("plain")
+            Text("Row").probe("text")
+            FieldBox().probe("field")
+        }
+        .probe("list")
+    }.platform(.iOS)
+
+    /// The same in a grouped form.
+    public static let formRows = Fixture("ios/representable/form", size: CGSize(width: 320, height: 400)) {
+        Form {
+            Section {
+                LabelBox(hugging: 1000).probe("label")
+                SwitchBox().probe("switch")
+                Text("Row").probe("text")
+            }
+            Section {
+                PlainBox().frame(height: 30).probe("plain")
+                FieldBox().probe("field")
+            }
+        }
+        .probe("form")
+    }.platform(.iOS)
+
+    /// Representables in a vertical scroll view's content, sized by the content's width.
+    public static let scrollContent = Fixture("ios/representable/scroll", size: CGSize(width: 320, height: 300)) {
+        ScrollView {
+            VStack(spacing: 8) {
+                LabelBox(hugging: 1000).probe("label")
+                PlainBox().frame(height: 40).probe("plain")
+                SwitchBox().probe("switch")
+                FieldBox().probe("field")
+                Text("Row").probe("text")
+                ControllerBox().frame(height: 50).probe("controller")
+            }
+            .probe("content")
+        }
+        .probe("scroll")
+    }.platform(.iOS)
 
     /// A UIScrollView in a representable inside a SwiftUI scroll view: the still is the golden;
     /// Playwright/wheel-probe.mjs wheels over the inner one, then past its end into the outer.

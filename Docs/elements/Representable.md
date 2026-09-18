@@ -160,6 +160,18 @@ change, so the goldens pin the order:
 `RepresentableTests` hold the same order headless, and that the coordinator is made once per
 node, outlives every update and is released with the node.
 
+## In containers (2026-09-18, `ios/representable/list`, `form`, `scroll`)
+
+Representables as list rows, form rows and scroll content lay out by the containers' own rules,
+exact on every tier: in a plain `List` a hugging label (39 × 20.5) sits at y 52.75, a switch
+(66 × 30) at 106, a plain view with a 30 pt frame at 166 (256 wide, the row's content width), a
+text at 226.75 and a rounded text field (34 tall) at 282, all 32 in; in a grouped `Form` the
+first card's rows match those and the second, header-less card starts 35 below the first (a
+gap the runtime lacked before this fixture: `ListNodes` now adds the top inset between a row and
+the next section's first row); in a vertical `ScrollView` the content is 320 wide and the
+representables take their intrinsic or framed sizes, centred by the stack (`scroll`). A
+representable in a sheet waits for the iOS sheet look (Docs/todo.json `sw-ios-sheets`).
+
 ## Animations across the seam (2026-09-18, `RepresentableTests`)
 
 `context.transaction.animation` in `updateUIView` is the animation of the state change being

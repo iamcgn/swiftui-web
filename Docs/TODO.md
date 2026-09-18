@@ -5,11 +5,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Site | 8 | 8 | 0 | 0 |
-| Interop | 8 | 6 | 1 | 1 |
+| Interop | 7 | 5 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
 | UIKit | 37 | 2 | 24 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **116** | 17 | 56 | 43 |
+| **All** | **115** | 16 | 56 | 43 |
 
 ## Next (Phase 8, in order)
 
@@ -36,8 +36,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **Hover inside a representable** `ix-hover` · Representables · missing  
   SwiftUI's pointer moves reach the hosted tree as `UIHoverGestureRecognizer` events and `UIPointerInteraction` styles; the host cursor follows. Depends on uk-hover. ([Representable.md](Docs/elements/Representable.md), [Hover.md](Docs/elements/Hover.md))
-- ☐ **Representables in lists, forms, scroll views and sheets** `ix-containers` · Representables · verify  
-  Fixtures on the simulator for a representable as a List row, in a grouped Form, inside a ScrollView (both scrolling) and in a sheet; the row heights and the hosted view's frame compared exactly. ([Representable.md](Docs/elements/Representable.md))
 - ☐ **UIHostingConfiguration: margins, self-sizing, configuration state** `ix-hosting-config` · UIHostingConfiguration · approximate  
   The vertical margins above one-line content (hidden by the 56 pt floor today), hosted content in self-sizing collection cells, and `updated(for:)` with the cell's configuration state (selected, highlighted). ([Representable.md](Docs/elements/Representable.md))
 - ☐ **UIHostingController in containers** `ix-hosting-controller` · UIHostingController · missing  
@@ -50,7 +48,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 ### SwiftUI
 
 - ☐ **iOS sheets, tab bars and date pickers from the simulator** `sw-ios-sheets` · iOS profile · verify  
-  Open since the simulator arrived: capture the window (as the UIKit generator does) for `sheet`, `alert`, `confirmationDialog`, `TabView`'s bar and `DatePicker` in the iOS profile, and pin their geometry and looks; list selection looks too. ([iOS.md](Docs/elements/iOS.md), [Presentation.md](Docs/elements/Presentation.md))
+  Open since the simulator arrived: capture the window (as the UIKit generator does) for `sheet`, `alert`, `confirmationDialog`, `TabView`'s bar and `DatePicker` in the iOS profile, and pin their geometry and looks; list selection looks too. Includes a representable in a sheet (ix-containers left it here). ([iOS.md](Docs/elements/iOS.md), [Presentation.md](Docs/elements/Presentation.md))
 
 ### UIKit
 
@@ -289,6 +287,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☑ 2026-09-18 **Wheel scrolling of a hosted UIScrollView** `ix-wheel` · Interop · Representables
 - ☑ 2026-09-18 **Animations across the seam** `ix-transaction` · Interop · Representables
+- ☑ 2026-09-18 **Representables in lists, forms, scroll views and sheets** `ix-containers` · Interop · Representables
 - ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables
 - ☑ 2026-09-12 **Environment to trait collection** `ix-traits` · Interop · Representables
 - ☑ 2026-09-12 **Dismantle and coordinator lifecycle tests** `ix-lifecycle` · Interop · Representables

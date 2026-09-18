@@ -1,0 +1,45 @@
+{
+  "fixture" : "ios\/representable\/list",
+  "frames" : {
+    "field" : {
+      "height" : 34,
+      "width" : 256,
+      "x" : 32,
+      "y" : 282
+    },
+    "label" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 32,
+      "y" : 52.75
+    },
+    "list" : {
+      "height" : 360,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "plain" : {
+      "height" : 30,
+      "width" : 256,
+      "x" : 32,
+      "y" : 166
+    },
+    "switch" : {
+      "height" : 30,
+      "width" : 66,
+      "x" : 32,
+      "y" : 106
+    },
+    "text" : {
+      "height" : 24.5,
+      "width" : 32.5,
+      "x" : 32,
+      "y" : 226.75
+    }
+  },
+  "size" : {
+    "height" : 360,
+    "width" : 320
+  }
+}

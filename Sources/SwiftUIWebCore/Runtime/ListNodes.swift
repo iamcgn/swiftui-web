@@ -138,7 +138,15 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         if iOSLayout, let first = elements.first, first.kind == .header { y = 0 }
         for index in elements.indices {
             var element = elements[index]
-            if index > 0, element.isSectionStart, !iOSLayout { y += PlatformMetrics.listSectionSpacing }
+            if index > 0, element.isSectionStart {
+                if !iOSLayout {
+                    y += PlatformMetrics.listSectionSpacing
+                } else if element.kind == .row, elements[index - 1].kind == .row {
+                    // iOS: a card without a header sits the top inset (35) below the previous
+                    // card (ios/representable/form); headers and footers carry their own gaps.
+                    y += profile.topInset
+                }
+            }
             let contentWidth = width - 2 * profile.margin
             switch element.kind {
             case .header where iOSLayout:

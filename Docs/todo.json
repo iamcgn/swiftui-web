@@ -184,13 +184,14 @@
       "framework": "Interop",
       "area": "Representables",
       "title": "Representables in lists, forms, scroll views and sheets",
-      "detail": "Fixtures on the simulator for a representable as a List row, in a grouped Form, inside a ScrollView (both scrolling) and in a sheet; the row heights and the hosted view's frame compared exactly.",
+      "detail": "ios/representable/list, form and scroll on the simulator: row heights and the hosted views' frames exact (a header-less grouped section sits 35 below the previous card, which the runtime now does). A representable in a sheet joins sw-ios-sheets.",
       "kind": "verify",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Representable.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-lifecycle",
@@ -290,7 +291,7 @@
       "framework": "SwiftUI",
       "area": "iOS profile",
       "title": "iOS sheets, tab bars and date pickers from the simulator",
-      "detail": "Open since the simulator arrived: capture the window (as the UIKit generator does) for `sheet`, `alert`, `confirmationDialog`, `TabView`'s bar and `DatePicker` in the iOS profile, and pin their geometry and looks; list selection looks too.",
+      "detail": "Open since the simulator arrived: capture the window (as the UIKit generator does) for `sheet`, `alert`, `confirmationDialog`, `TabView`'s bar and `DatePicker` in the iOS profile, and pin their geometry and looks; list selection looks too. Includes a representable in a sheet (ix-containers left it here).",
       "kind": "verify",
       "priority": "next",
       "status": "planned",

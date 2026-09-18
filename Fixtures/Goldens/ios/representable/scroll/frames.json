@@ -1,0 +1,57 @@
+{
+  "fixture" : "ios\/representable\/scroll",
+  "frames" : {
+    "content" : {
+      "height" : 239,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "controller" : {
+      "height" : 50,
+      "width" : 320,
+      "x" : 0,
+      "y" : 189
+    },
+    "field" : {
+      "height" : 34,
+      "width" : 320,
+      "x" : 0,
+      "y" : 114.5
+    },
+    "label" : {
+      "height" : 20.5,
+      "width" : 39,
+      "x" : 140.5,
+      "y" : 0
+    },
+    "plain" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 28.5
+    },
+    "scroll" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "switch" : {
+      "height" : 30,
+      "width" : 66,
+      "x" : 127,
+      "y" : 76.5
+    },
+    "text" : {
+      "height" : 24.5,
+      "width" : 32.5,
+      "x" : 143.75,
+      "y" : 156.5
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}
