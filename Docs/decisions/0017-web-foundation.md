@@ -70,6 +70,8 @@ worked because CoreGraphics is a C module, which Swift declarations shadow outri
 | Counter (clean scratch build) | 3,046,910 (11,822,198 raw) | 2,076,672 (7,991,519 raw) |
 | UIKitCounter | 2.24 MB (decision 0014) | 1,460,084 (5,537,540 raw) |
 | UIKitSettings | — | 1,483,850 (5,548,099 raw) |
+| Gallery (release, `/gallery/`) | 3.53 MB | 2,769,461 (11,219,571 raw) |
+| Progress (`/progress/`) | 3.09 MB | 2,326,123 (9,001,009 raw) |
 
 After the change the link holds no FoundationEssentials, FoundationCollections,
 `_StringProcessing` or `_RegexParser` member; `WebFoundation` is 205 KB raw. The headroom under
