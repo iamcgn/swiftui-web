@@ -43,6 +43,13 @@ package protocol _Scrollable: AnyObject {
     var canMoveContentOnly: Bool { get }
     /// Moves the content to the current offset without laying it out again.
     func moveContent()
+    /// A touch landed on the scroll view (phase `tracking`).
+    func beginTracking()
+    /// The touch lifted with `velocity` (points per second, zero for none): momentum, or a scroll
+    /// target behaviour settling the content.
+    func endTracking(velocity: CGSize)
+    /// Whether a pan starting in the scroll view drops keyboard focus (`scrollDismissesKeyboard`).
+    var dismissesKeyboardOnScroll: Bool { get }
 }
 
 extension Axis.Set {
@@ -55,6 +62,9 @@ extension Axis.Set {
 extension _Scrollable {
     package func pull(by distance: CGFloat) -> Bool { false }
     package func endPull() {}
+    package func beginTracking() {}
+    package func endTracking(velocity: CGSize) { beginMomentum(velocity: velocity) }
+    package var dismissesKeyboardOnScroll: Bool { false }
 }
 
 package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, _ScrollTarget, _Scrollable {
@@ -72,6 +82,29 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     private var appliedDefaultAnchor = false
     private var pendingTarget: (id: AnyHashable, anchor: UnitPoint?)?
+    private var lastContentSize: CGSize?
+
+    /// The scroll phase, published to the `onScrollPhaseChange` nodes above.
+    package private(set) var phase: ScrollPhase = .idle {
+        didSet {
+            guard phase != oldValue else { return }
+            let context = ScrollPhaseChangeContext(geometry: scrollGeometry, velocity: velocity == .zero ? nil : CGVector(dx: velocity.width, dy: velocity.height))
+            for observer in ancestors(of: _ScrollPhaseObserving.self) { observer.scrollPhaseDidChange(from: oldValue, to: phase, context: context) }
+        }
+    }
+    private var hasPublished = false
+    /// The content offset when the gesture began (behaviours limit how far a gesture settles).
+    private var trackingStartOffset = CGPoint.zero
+    /// A scroll target behaviour carrying the content to its target.
+    private var settle: (from: CGPoint, to: CGPoint, elapsed: Double)?
+    /// Seconds of wheel quiet left before the wheel scroll counts as ended.
+    private var wheelIdle = 0.0
+
+    /// The scroll targets (`scrollTargetLayout`) in content coordinates, refreshed at layout.
+    package private(set) var targets: [(id: AnyHashable?, rect: CGRect)] = []
+    /// The position binding's last value seen, and the identity last written to it.
+    private var lastPosition: ScrollPosition?
+    private var lastPositionedID: AnyHashable?
 
     // Animation state, advanced by the host through `Runtime.advanceScrollAnimations`.
     package private(set) var indicatorOpacity: Double = 0
@@ -122,7 +155,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     /// none); across it, exactly the content's size (fixtures `scroll/narrow-content`,
     /// `scroll/wide-content`).
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        let insets = safeAreaOverlap
+        let insets = safeAreaOverlap + environment._contentMargins.content
         var size = child.sizeThatFits(contentProposal(proposal, insets: insets))
         size.width += insets.leading + insets.trailing
         size.height += insets.top + insets.bottom
@@ -153,19 +186,27 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     override package func layoutContents(proposal: ProposedViewSize) {
-        contentInsets = safeAreaOverlap
+        contentInsets = safeAreaOverlap + environment._contentMargins.content
         let contentProposal = contentProposal(proposal, insets: contentInsets)
-        contentSize = child.sizeThatFits(contentProposal)
+        let size = child.sizeThatFits(contentProposal)
+        if let old = lastContentSize, old != size, let anchor = environment._defaultScrollAnchorForSizeChanges {
+            keepAnchor(anchor, oldSize: old, newSize: size)
+        }
+        contentSize = size
+        lastContentSize = size
         if !appliedDefaultAnchor {
             appliedDefaultAnchor = true
             if let anchor = environment.defaultScrollAnchor {
                 let maximum = maximumOffset
                 contentOffset = CGPoint(x: maximum.x * anchor.x, y: maximum.y * anchor.y)
             }
+            if environment._scrollIndicatorsFlashOnAppear { showIndicators() }
         }
         contentOffset = clamped(contentOffset)
         placeContent(proposal: contentProposal)
         layoutRefreshIndicator()
+        refreshTargets()
+        applyPositionBinding()
         // A programmatic target needs the content's fresh frames, so it is resolved after the
         // first placement and the content placed again when the offset moves.
         if let target = pendingTarget {
@@ -178,15 +219,165 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
                 }
             }
         }
+        lastPositionedID = targets.isEmpty ? nil : positionedID(anchor: positioningNode()?.positionAnchor)
+        publishGeometry()
+        if !hasPublished {
+            hasPublished = true
+            // The phase observers hear `idle` once as the scroll view appears (`scroll/geometry`).
+            let context = ScrollPhaseChangeContext(geometry: scrollGeometry, velocity: nil)
+            for observer in ancestors(of: _ScrollPhaseObserving.self) { observer.scrollPhaseDidChange(from: .idle, to: .idle, context: context) }
+        }
     }
 
     private func placeContent(proposal: ProposedViewSize) {
         child.place(at: contentOrigin, anchor: .topLeading, proposal: proposal, by: self)
     }
 
-    /// Where the content's top-left sits: the safe-area inset, scrolled by the offset.
+    /// Where the content's top-left sits: the safe-area inset, scrolled by the offset; content
+    /// shorter than the viewport is placed by the alignment anchor (`scroll/anchor-roles`).
     private var contentOrigin: CGPoint {
-        CGPoint(x: contentInsets.leading - contentOffset.x, y: contentInsets.top - contentOffset.y + refreshOffset)
+        var origin = CGPoint(x: contentInsets.leading - contentOffset.x, y: contentInsets.top - contentOffset.y + refreshOffset)
+        if let anchor = environment._defaultScrollAnchorForAlignment {
+            for axis in Axis.allCases where axes.contains(Axis.Set(axis)) {
+                let available = frame.size[axis] - insetsAlong(axis)
+                if contentSize[axis] < available {
+                    origin[axis] += (available - contentSize[axis]) * (axis == .horizontal ? anchor.x : anchor.y)
+                }
+            }
+        }
+        return origin
+    }
+
+    /// The content insets along `axis`, both ends.
+    private func insetsAlong(_ axis: Axis) -> CGFloat {
+        axis == .horizontal ? contentInsets.leading + contentInsets.trailing : contentInsets.top + contentInsets.bottom
+    }
+
+    /// `defaultScrollAnchor(_:for: .sizeChanges)`: content sitting at the anchor stays there as
+    /// the size changes (a chat at its bottom stays at the bottom; content at the top does not
+    /// move, `scroll/anchor-roles`).
+    private func keepAnchor(_ anchor: UnitPoint, oldSize: CGSize, newSize: CGSize) {
+        for axis in Axis.allCases where axes.contains(Axis.Set(axis)) {
+            let fraction = axis == .horizontal ? anchor.x : anchor.y
+            let oldMaximum = max(0, oldSize[axis] + insetsAlong(axis) - frame.size[axis])
+            guard abs(contentOffset[axis] - oldMaximum * fraction) < 0.5 else { continue }
+            let newMaximum = max(0, newSize[axis] + insetsAlong(axis) - frame.size[axis])
+            contentOffset[axis] = newMaximum * fraction
+        }
+    }
+
+    // MARK: Geometry, position binding and targets (API/ScrollTargets.swift)
+
+    /// The nodes of `type` between this scroll view and the scroll view enclosing it.
+    private func ancestors<T>(of type: T.Type) -> [T] {
+        var result: [T] = []
+        var node = parent
+        while let current = node {
+            if current is _Scrollable { break }
+            if let match = current as? T { result.append(match) }
+            node = current.parent
+        }
+        return result
+    }
+
+    /// The geometry as `ScrollGeometry` reports it: the offset from the content's origin
+    /// (negative at rest under an inset) and the inset container (`scroll/geometry`).
+    package var scrollGeometry: ScrollGeometry {
+        ScrollGeometry(contentOffset: CGPoint(x: contentOffset.x - contentInsets.leading, y: contentOffset.y - contentInsets.top),
+                       contentSize: contentSize, contentInsets: contentInsets,
+                       containerSize: CGSize(width: max(0, frame.width - insetsAlong(.horizontal)), height: max(0, frame.height - insetsAlong(.vertical))))
+    }
+
+    private func publishGeometry() {
+        let observers = ancestors(of: _ScrollGeometryObserving.self)
+        guard !observers.isEmpty else { return }
+        let geometry = scrollGeometry
+        for observer in observers { observer.scrollGeometryDidChange(geometry) }
+    }
+
+    private func positioningNode() -> _ScrollPositioning? { ancestors(of: _ScrollPositioning.self).first }
+
+    /// The scroll targets below, in content coordinates.
+    private func refreshTargets() {
+        guard let provider = child.descendants(where: { ($0 as? _ScrollTargetLayoutProviding)?.isEnabled == true }).first as? _ScrollTargetLayoutProviding else {
+            targets = []
+            return
+        }
+        let origin = child.frameInRoot.origin
+        targets = provider.scrollTargets().map { target in
+            let frame = target.node.frameInRoot
+            return (target.id, CGRect(x: frame.minX - origin.x, y: frame.minY - origin.y, width: frame.width, height: frame.height))
+        }
+    }
+
+    /// The binding's value changed since the last layout: scroll to it. The initial value and
+    /// programmatic scrolls leave the binding alone (`scroll/position`).
+    private func applyPositionBinding() {
+        guard let positioning = positioningNode() else { return }
+        let current = _trackingObservation(for: self) { positioning.currentPosition }
+        guard let last = lastPosition else {
+            lastPosition = current
+            return
+        }
+        guard current != last else { return }
+        lastPosition = current
+        switch current.request {
+        case .none:
+            break
+        case .id(let id, let anchor):
+            pendingTarget = (id, anchor ?? positioning.positionAnchor)
+        case .edge(let edge):
+            let maximum = maximumOffset
+            switch edge {
+            case .top: contentOffset.y = 0
+            case .bottom: contentOffset.y = maximum.y
+            case .leading: contentOffset.x = 0
+            case .trailing: contentOffset.x = maximum.x
+            }
+            placeContent(proposal: contentProposal(ProposedViewSize(frame.size), insets: contentInsets))
+        case .point(let x, let y):
+            contentOffset = clamped(CGPoint(x: x.map { $0 + contentInsets.leading } ?? contentOffset.x,
+                                            y: y.map { $0 + contentInsets.top } ?? contentOffset.y))
+            placeContent(proposal: contentProposal(ProposedViewSize(frame.size), insets: contentInsets))
+        }
+    }
+
+    /// The target the scroll view is positioned on: without an anchor the one showing the most
+    /// (the first of equals); with one, the target under the anchor point of the visible region,
+    /// else the nearest to it.
+    package func positionedID(anchor: UnitPoint?) -> AnyHashable? {
+        let container = scrollGeometry.containerSize
+        let visible = CGRect(origin: contentOffset, size: container)
+        if let anchor {
+            let point = CGPoint(x: contentOffset.x + anchor.x * container.width, y: contentOffset.y + anchor.y * container.height)
+            if let hit = targets.first(where: { $0.rect.minX <= point.x && point.x < $0.rect.maxX && $0.rect.minY <= point.y && point.y < $0.rect.maxY }) {
+                return hit.id
+            }
+            var best: (id: AnyHashable?, distance: CGFloat)?
+            for target in targets {
+                let dx = target.rect.midX - point.x, dy = target.rect.midY - point.y
+                let distance = dx * dx + dy * dy
+                if best == nil || distance < best!.distance { best = (target.id, distance) }
+            }
+            return best?.id
+        }
+        var best: (id: AnyHashable?, area: CGFloat)?
+        for target in targets {
+            let overlap = target.rect.intersection(visible)
+            let area = overlap.isNull ? 0 : overlap.width * overlap.height
+            if area > 0, best == nil || area > best!.area { best = (target.id, area) }
+        }
+        return best?.id
+    }
+
+    /// After a user scroll: the positioned identity changed, so the binding takes it.
+    private func updatePositionBinding() {
+        guard let positioning = positioningNode(), !targets.isEmpty else { return }
+        let id = positionedID(anchor: positioning.positionAnchor)
+        guard id != lastPositionedID else { return }
+        lastPositionedID = id
+        positioning.userScrolled(to: id)
+        lastPosition = positioning.currentPosition
     }
 
     override package func unmount() {
@@ -269,10 +460,13 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     package func moveContent() {
         child.moveFrame(toOrigin: contentOrigin)
+        publishGeometry()
     }
 
-    /// The frame of the identified descendant in content coordinates, or `nil`.
+    /// The frame of the identified descendant in content coordinates, or `nil`: a scroll target
+    /// (a `ForEach` element of the target layout) or a `View.id(_:)` descendant.
     private func targetRect(id: AnyHashable) -> CGRect? {
+        if let target = targets.first(where: { $0.id == id }) { return target.rect }
         guard let node = identifiedNode(id) else { return nil }
         let frames = node.layoutChildren.map(\.frameInRoot)
         guard var union = frames.first else { return nil }
@@ -308,7 +502,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     // MARK: Programmatic and user scrolling
 
     package func scrollTo(id: AnyHashable, anchor: UnitPoint?) -> Bool {
-        guard identifiedNode(id) != nil else { return false }
+        guard targets.contains(where: { $0.id == id }) || identifiedNode(id) != nil else { return false }
         pendingTarget = (id, anchor)
         // The target is resolved in the next full layout (the fast path only moves frames).
         runtime.requestFullLayout()
@@ -330,8 +524,67 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
             contentOffset = offset
             runtime.noteScrolled(self)
             runtime.requestLayout(invalidatingSizes: false)
+            if runtime.pan?.active == true {
+                phase = .interacting
+            } else if velocity == .zero, settle == nil {
+                // A wheel: interacting until it goes quiet (there is no gesture end to hear).
+                if wheelIdle == 0 { trackingStartOffset = CGPoint(x: offset.x - delta.width, y: offset.y - delta.height) }
+                phase = .interacting
+                wheelIdle = environment.platformProfile.metrics.scrollWheelIdleSeconds
+                runtime.animate(self)
+            }
+            updatePositionBinding()
         }
         return remaining
+    }
+
+    package func beginTracking() {
+        settle = nil
+        wheelIdle = 0
+        trackingStartOffset = contentOffset
+        phase = .tracking
+    }
+
+    package func endTracking(velocity: CGSize) {
+        if environment._scrollTargetBehavior != nil {
+            settleWithBehavior(velocity: velocity)
+        } else if velocity != .zero {
+            beginMomentum(velocity: velocity)
+        } else {
+            phase = .idle
+        }
+    }
+
+    package var dismissesKeyboardOnScroll: Bool {
+        environment.platformProfile.isIOS && environment.scrollDismissesKeyboardMode.role != .never
+    }
+
+    /// Hands the projected rest position to the scroll target behaviour and carries the content
+    /// to the target it returns.
+    private func settleWithBehavior(velocity: CGSize) {
+        guard let behavior = environment._scrollTargetBehavior else { return }
+        let metrics = environment.platformProfile.metrics
+        let rate = metrics.scrollDecelerationRate
+        // The distance momentum would cover: the geometric sum of the per-millisecond decays.
+        let seconds = rate / (1 - rate) / 1000
+        let projected = clamped(CGPoint(x: contentOffset.x + velocity.width * seconds, y: contentOffset.y + velocity.height * seconds))
+        let geometry = scrollGeometry
+        var target = ScrollTarget(rect: CGRect(origin: CGPoint(x: projected.x - contentInsets.leading, y: projected.y - contentInsets.top), size: geometry.containerSize))
+        let context = ScrollTargetBehaviorContext(
+            originalTarget: target, velocity: CGVector(dx: velocity.width, dy: velocity.height),
+            contentSize: contentSize, containerSize: geometry.containerSize, axes: axes, environment: environment,
+            targets: targets.map(\.rect), startOffset: CGPoint(x: trackingStartOffset.x - contentInsets.leading, y: trackingStartOffset.y - contentInsets.top),
+            contentInsets: contentInsets)
+        behavior.updateTarget(&target, context: context)
+        let destination = clamped(CGPoint(x: target.rect.minX + contentInsets.leading, y: target.rect.minY + contentInsets.top))
+        self.velocity = .zero
+        guard destination != contentOffset else {
+            phase = .idle
+            return
+        }
+        settle = (contentOffset, destination, 0)
+        phase = .decelerating
+        runtime.animate(self)
     }
 
     package func showIndicators() {
@@ -345,18 +598,49 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     package func beginMomentum(velocity: CGSize) {
         guard velocity != .zero else { return }
         self.velocity = velocity
+        phase = .decelerating
         runtime.animate(self)
     }
 
-    package var isDecelerating: Bool { velocity != .zero }
+    package var isDecelerating: Bool { velocity != .zero || settle != nil }
 
     package func stopMomentum() {
         velocity = .zero
+        settle = nil
         indicatorHold = PlatformMetrics.scrollerHoldSeconds
     }
 
     package func advance(elapsed: Double) -> Bool {
         var animating = false
+        if var state = settle {
+            state.elapsed += elapsed
+            let duration = environment.platformProfile.metrics.scrollTargetSettleSeconds
+            let progress = duration > 0 ? min(1, state.elapsed / duration) : 1
+            let eased = 1 - (1 - progress) * (1 - progress) * (1 - progress)
+            contentOffset = CGPoint(x: state.from.x + (state.to.x - state.from.x) * eased, y: state.from.y + (state.to.y - state.from.y) * eased)
+            runtime.noteScrolled(self)
+            runtime.requestLayout(invalidatingSizes: false)
+            updatePositionBinding()
+            if progress >= 1 {
+                settle = nil
+                phase = .idle
+            } else {
+                settle = state
+                animating = true
+            }
+            indicatorHold = PlatformMetrics.scrollerHoldSeconds
+        }
+        if wheelIdle > 0 {
+            wheelIdle = max(0, wheelIdle - elapsed)
+            if wheelIdle > 0 {
+                animating = true
+            } else if environment._scrollTargetBehavior != nil {
+                settleWithBehavior(velocity: .zero)
+                if settle != nil { animating = true }
+            } else {
+                phase = .idle
+            }
+        }
         if velocity != .zero {
             let step = CGSize(width: velocity.width * elapsed, height: velocity.height * elapsed)
             let remaining = scroll(by: step)
@@ -366,7 +650,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
                               height: remaining.height == 0 ? velocity.height * decay : 0)
             if abs(velocity.width) < PlatformMetrics.scrollVelocityFloor { velocity.width = 0 }
             if abs(velocity.height) < PlatformMetrics.scrollVelocityFloor { velocity.height = 0 }
-            if velocity != .zero { animating = true }
+            if velocity != .zero { animating = true } else if phase == .decelerating { phase = .idle }
             indicatorHold = PlatformMetrics.scrollerHoldSeconds
         }
         if indicatorOpacity > 0 {
@@ -408,20 +692,30 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     /// Overlay scrollers: a knob on the trailing edge of each scrollable axis, shown only while
-    /// scrolling (approximate; the goldens never show one at rest).
+    /// scrolling: a 7 pt black core at half opacity in a 1 pt white halo, 2 pt from the trailing
+    /// edge and 4 pt from the ends of the track (measured from `NSScroller.drawKnob`; the hold
+    /// and fade times and the minimum length are approximate). The indicator content margins
+    /// shorten the track.
     private func paintIndicators(into list: inout DisplayList, context: PaintContext) {
         guard indicatorOpacity > 0 else { return }
         let shows = showsIndicators
-        let thickness = PlatformMetrics.scrollerThickness, inset = PlatformMetrics.scrollerInset
+        let thickness = PlatformMetrics.scrollerThickness, inset = PlatformMetrics.scrollerInset, endInset = PlatformMetrics.scrollerEndInset
+        let halo = PlatformMetrics.scrollerHaloWidth
+        let margins = environment._contentMargins.indicators
         for axis in Axis.allCases where axis == .horizontal ? shows.horizontal : shows.vertical {
-            let viewport = frame.size[axis], content = contentSize[axis]
-            guard content > viewport, viewport > 2 * inset else { continue }
-            let track = viewport - 2 * inset
+            let viewport = frame.size[axis], content = contentSize[axis] + insetsAlong(axis)
+            let leadingMargin = axis == .horizontal ? margins.leading : margins.top
+            let trailingMargin = axis == .horizontal ? margins.trailing : margins.bottom
+            let track = viewport - 2 * endInset - leadingMargin - trailingMargin
+            guard content > viewport, track > 0 else { continue }
             let knob = min(track, max(PlatformMetrics.scrollerMinimumKnobLength, track * viewport / content))
-            let position = inset + (track - knob) * (contentOffset[axis] / (content - viewport))
+            let position = endInset + leadingMargin + (track - knob) * (contentOffset[axis] / (content - viewport))
+            let across = axis == .vertical ? margins.trailing : margins.bottom
             let rect = axis == .vertical
-                ? CGRect(x: frame.width - inset - thickness, y: position, width: thickness, height: knob)
-                : CGRect(x: position, y: frame.height - inset - thickness, width: knob, height: thickness)
+                ? CGRect(x: frame.width - inset - thickness - across, y: position, width: thickness, height: knob)
+                : CGRect(x: position, y: frame.height - inset - thickness - across, width: knob, height: thickness)
+            list.append(.fillRRect(context.absoluteRect(rect.insetBy(dx: -halo, dy: -halo)), cornerRadius: thickness / 2 + halo,
+                                   PlatformMetrics.scrollerHalo.multiplyingAlpha(by: indicatorOpacity)))
             list.append(.fillRRect(context.absoluteRect(rect), cornerRadius: thickness / 2,
                                    PlatformMetrics.scrollerKnob.multiplyingAlpha(by: indicatorOpacity)))
         }
@@ -563,6 +857,7 @@ extension Runtime {
             state.active = true
             requestLayout(invalidatingSizes: false)
         }
+        nodes.first?.beginTracking()
         pan = state
     }
 
@@ -581,12 +876,15 @@ extension Runtime {
                 let dominant: Axis.Set = abs(dx) >= abs(dy) ? .horizontal : .vertical
                 if pressed.dragAxes.contains(dominant) || time - state.startTime >= PlatformMetrics.touchHoldInterval {
                     pan = nil
+                    state.nodes.first?.endTracking(velocity: .zero)
                     return
                 }
             }
             state.active = true
             pressedNode?.pressEnded(inside: false)
             pressedNode = nil
+            // iOS: scrolling dismisses the keyboard (`scrollDismissesKeyboard`).
+            if let first = state.nodes.first, first.dismissesKeyboardOnScroll { focusTextField(nil) }
         }
         let delta = CGSize(width: state.last.x - point.x, height: state.last.y - point.y)
         let remaining = scroll(by: delta, through: state.nodes)
@@ -609,12 +907,14 @@ extension Runtime {
     package func endPan(time: Double) -> Bool {
         guard let state = pan else { return false }
         pan = nil
-        guard state.active else { return false }
+        guard state.active else {
+            state.nodes.first?.endTracking(velocity: .zero)
+            return false
+        }
         state.nodes.first?.endPull()
         // A finger that stopped before lifting leaves no momentum.
-        if time - state.lastTime < PlatformMetrics.panRestInterval, let node = state.nodes.first {
-            node.beginMomentum(velocity: state.velocity)
-        }
+        let velocity = time - state.lastTime < PlatformMetrics.panRestInterval ? state.velocity : .zero
+        state.nodes.first?.endTracking(velocity: velocity)
         return true
     }
 }

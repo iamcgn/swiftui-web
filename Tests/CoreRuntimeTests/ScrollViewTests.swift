@@ -185,8 +185,10 @@ private struct Changing: View {
         #expect(commands[5] == "restore")
         // The indicator shows while scrolling: a 20 pt knob 3 pt from the trailing edge, a third of
         // the way along its 4 pt travel (offset 10 of 30), then it fades.
-        #expect(commands.count == 7)
-        #expect(commands[6] == "fillRRect(40, 4.5, 7, 20) r=3.5 #000000@0.5")
+        #expect(commands.count == 8)
+        // The knob: its white halo, then the 7 pt core 2 pt from the trailing edge and 4 pt from the top.
+        #expect(commands[6] == "fillRRect(40, 3.5, 9, 22) r=4.5 #FFFFFF@0.15")
+        #expect(commands[7] == "fillRRect(41, 4.5, 7, 20) r=3.5 #000000@0.5")
         #expect(runtime.advanceScrollAnimations(elapsed: 0.5))
         #expect(runtime.advanceScrollAnimations(elapsed: 0.5))
         #expect(!runtime.advanceScrollAnimations(elapsed: 0.5))

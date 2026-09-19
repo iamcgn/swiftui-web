@@ -176,8 +176,15 @@ public final class FixtureRunner {
     }
 
     /// Applies pending updates, lays out at the fixture size and returns the probe frames.
+    /// Actions the layout queues (scroll geometry observers) apply in further frames, as a host
+    /// would run them.
     public func layoutFrames() -> [String: CGRect] {
         runtime.layout(in: fixture.size)
+        var frames = 0
+        while runtime.scheduler.hasPendingWork, frames < 8 {
+            frames += 1
+            runtime.layout(in: fixture.size)
+        }
         return collector.frames
     }
 

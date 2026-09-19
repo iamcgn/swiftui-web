@@ -520,13 +520,20 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var labelIconSpacing: CGFloat = 8
 
     // Scrolling (Docs/elements/ScrollView.md). Overlay scrollers only show while scrolling, so the
-    // goldens cannot verify them; the values approximate macOS 26 overlay scrollers.
-    package var scrollerThickness: CGFloat = 7            // unverified
-    package var scrollerInset: CGFloat = 3                // unverified
+    // goldens cannot show them; the knob was measured from `NSScroller.drawKnob` (2026-09-19).
+    package var scrollerThickness: CGFloat = 7            // the knob's core across the track
+    package var scrollerInset: CGFloat = 2                // the core's gap to the trailing edge
+    package var scrollerEndInset: CGFloat = 4             // the core's gap to the ends of the track
+    package var scrollerHaloWidth: CGFloat = 1            // the light rim around the core
+    package var scrollerHalo = RGBA(red: 1, green: 1, blue: 1, alpha: 0.15)
     package var scrollerMinimumKnobLength: CGFloat = 20   // unverified
-    package var scrollerKnob = RGBA(red: 0, green: 0, blue: 0, alpha: 0.5)   // unverified
+    package var scrollerKnob = RGBA(red: 0, green: 0, blue: 0, alpha: 0.5)
     package var scrollerHoldSeconds = 0.6                 // unverified
     package var scrollerFadeSeconds = 0.25                // unverified
+    /// A scroll target behaviour carries the content to its target this long (ease out).
+    package var scrollTargetSettleSeconds = 0.35          // unverified
+    /// Wheel deltas this far apart belong to separate scrolls (the phase ends, a behaviour settles).
+    package var scrollWheelIdleSeconds = 0.15             // unverified
     /// Touch momentum: velocity multiplier per millisecond (UIScrollView's `normal` rate).
     package var scrollDecelerationRate = 0.998
     /// Momentum stops below this speed (points per second).

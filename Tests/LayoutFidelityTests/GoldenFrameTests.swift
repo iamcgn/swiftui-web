@@ -109,6 +109,10 @@ enum Goldens {
     /// larger styles within 1.5 pt (Docs/elements/iOS.md), and a label row grows to its icon.
     static let approximatePrefixes = ["ios/symbol/", "ios/label/"]
 
+    /// Fixtures whose lazy stack lays out only the rows in view on Apple's side: ours may carry
+    /// more probes than the golden.
+    static let lazyFixtures = ["scroll/position", "ios/scroll/position"]
+
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
         let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }
         let approximate = approximateFixture ? Set(golden.keys) : (Self.approximateProbes[label] ?? [])
@@ -122,7 +126,11 @@ enum Goldens {
                 && abs(actual.width - expectedRect.width) < tolerance && abs(actual.height - expectedRect.height) < tolerance
             #expect(close, "\(label)/\(id): \(actual) != \(expectedRect)")
         }
-        #expect(Set(ours.keys).subtracting(ignored) == Set(golden.keys).subtracting(ignored), "\(label): probe sets differ")
+        if Self.lazyFixtures.contains(where: { label == $0 || label.hasPrefix($0 + "/") }) {
+            #expect(Set(golden.keys).subtracting(ignored).isSubset(of: Set(ours.keys)), "\(label): golden probes missing")
+        } else {
+            #expect(Set(ours.keys).subtracting(ignored) == Set(golden.keys).subtracting(ignored), "\(label): probe sets differ")
+        }
     }
 }
 #endif

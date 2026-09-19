@@ -20,9 +20,18 @@ Apple docs: [ScrollView](https://developer.apple.com/documentation/swiftui/scrol
 | `View.scrollDisabled(_:)`, environment `isScrollEnabled` | implemented (wheel, pan and momentum ignore the view; `scrollTo` still works) |
 | `View.scrollBounceBehavior(_:axes:)`, `ScrollBounceBehavior` | stored in the environment, no effect: there is no rubber band yet |
 | `View.scrollClipDisabled(_:)` | implemented |
-| `View.defaultScrollAnchor(_:)` | implemented for the initial offset only (the `for:` role overload is missing) |
+| `View.defaultScrollAnchor(_:)`, `View.defaultScrollAnchor(_:for:)`, `ScrollAnchorRole` (`initialOffset`, `sizeChanges`, `alignment`) | implemented: `alignment` places content shorter than the viewport by the anchor; `sizeChanges` keeps content sitting at the anchor there as the content grows (`scroll/anchor-roles`) |
 | `View.onChange(of:initial:_:)` (two-argument and zero-argument actions), deprecated `onChange(of:perform:)` | implemented: actions run after the update pass that changed the value, from the scheduler's action queue |
-| `scrollPosition`, `scrollTargetLayout`, `scrollTargetBehavior` (paging, view-aligned), `contentMargins`, `scrollContentBackground`, `onScrollGeometryChange`, `onScrollPhaseChange`, `scrollIndicatorsFlash`, `scrollDismissesKeyboard`, `ScrollViewReader` inside `List` | missing |
+| `View.scrollPosition(id:anchor:)`, `View.scrollPosition(_:anchor:)`, `ScrollPosition` (`init(edge:)`, `init(point:)`, `init(x:y:)`, `init(id:anchor:)`, `viewID`, `edge`, `point`, `isPositionedByUser`, `scrollTo(id:anchor:)`, `scrollTo(edge:)`, `scrollTo(point:)`, `scrollTo(x:y:)`) | implemented: the binding's changes scroll (an identity with the smallest change without an anchor, an edge, a point); the identity of the view positioned at the anchor (without one, the target showing the most) is written back as the user scrolls; the initial value and programmatic scrolls leave the binding alone (`scroll/position`, `ios/scroll/position`) |
+| `View.scrollTargetLayout(isEnabled:)` | implemented: the outermost layout container below the modifier; `ForEach` elements and `id(_:)` views give the targets' identities |
+| `View.scrollTargetBehavior(_:)`, `ScrollTargetBehavior` (`updateTarget(_:context:)`), `ScrollTarget`, `ScrollTargetBehaviorContext` (`originalTarget`, `velocity`, `contentSize`, `containerSize`, `axes`, environment by dynamic member), `.paging`, `.viewAligned`, `.viewAligned(limitBehavior:)`, `.viewAligned(anchor:)`, `ViewAlignedScrollTargetBehavior.LimitBehavior` (`automatic`, `always`, `alwaysByFew`, `alwaysByOne`, `never`) | implemented: when a pan ends (or a wheel goes quiet for 0.15 s) the behaviour receives the projected rest position and the content eases to its target over 0.35 s; paging moves at most one container length from where the gesture began; view-aligned picks the nearest target (`automatic` limits a compact width to one view, `alwaysByFew` to three) |
+| `View.contentMargins(_:_:for:)` (edges + insets, edges + length, length), `ContentMarginPlacement` (`automatic`, `scrollContent`, `scrollIndicators`) | implemented: content margins inset the content and widen the scroll view across its axis like safe-area insets (`scroll/margins`); indicator margins shorten the scroller's track |
+| `View.onScrollGeometryChange(for:of:action:)`, `ScrollGeometry` (`contentOffset`, `contentSize`, `contentInsets`, `containerSize`, `visibleRect`, `bounds`) | implemented: published after every layout and scrolled frame; the action runs once with the value of an empty geometry when the scroll view appears, then on changes (`scroll/geometry`) |
+| `View.onScrollPhaseChange(_:)` (two- and three-argument actions), `ScrollPhase` (`idle`, `tracking`, `interacting`, `decelerating`, `animating`, `isScrolling`), `ScrollPhaseChangeContext` (`geometry`, `velocity`) | implemented: `idle` once at appearance, `tracking` on touch, `interacting` while the finger or wheel moves the content, `decelerating` for momentum and a behaviour settling; programmatic scrolls change no phase |
+| `View.scrollIndicatorsFlash(onAppear:)`, `View.scrollIndicatorsFlash(trigger:)` | implemented (the indicators show and fade as after a scroll) |
+| `View.scrollDismissesKeyboard(_:)`, `ScrollDismissesKeyboardMode` (`automatic`, `immediately`, `interactively`, `never`), environment `scrollDismissesKeyboardMode` | implemented on iOS: a pan in a scroll view drops keyboard focus unless the mode is `never` (`interactively` behaves as `immediately`) |
+| `ScrollViewReader` inside `List` | implemented (2026-09-19, Docs/elements/List.md) |
+| `scrollContentBackground` | implemented for `List` (Docs/elements/List.md); no effect on `ScrollView` |
 
 ## Runtime
 
@@ -58,7 +67,21 @@ UIScrollView's delayed content touches let a UISlider do (2026-09-05).
 Overlay scrollers are painted by the node while `indicatorOpacity > 0`: a knob on the trailing
 edge whose length is the viewport's share of the content, held 0.6 s after the last scroll and
 faded over 0.25 s. The goldens never show one (macOS renders overlay scrollers only while
-scrolling), so the geometry is approximate and marked unverified in `PlatformMetrics`.
+scrolling; `scroll/flash` with `scrollIndicatorsFlash(onAppear:)` captured none either), so the
+knob was measured by drawing an `NSScroller` of the overlay style with `drawKnob()` into a 2×
+bitmap (2026-09-19): a 7 pt core of black at 50 % inside a 1 pt white rim at 15 %, the core
+2 pt from the trailing edge and 4 pt from the ends of the track, its length the viewport's
+share of the track. The hold, the fade and the minimum knob length stay approximate.
+
+Scroll targets and behaviours (`API/ScrollTargets.swift`, `Runtime/ScrollTargetNodes.swift`):
+`scrollPosition`, `onScrollGeometryChange` and `onScrollPhaseChange` become transparent nodes
+the scroll view finds by walking its ancestors up to the enclosing scroll view; the target
+layout is found below it and its targets (the items of the outermost layout container, with
+the identities of `ForEach` elements and `id(_:)` views) are refreshed in content coordinates at
+every layout. A behaviour runs when a pan ends or a wheel goes quiet: the projected rest position
+(the momentum's geometric sum) becomes the original target, the behaviour's answer is eased to
+over `scrollTargetSettleSeconds`. Geometry is published after every layout and every scrolled
+frame; actions queued during a layout run in the next frame, as `FixtureRunner` also does.
 
 ## Measured behaviours (macOS 26.2, SwiftUI 7.2.5, hosted-window goldens 2026-09-02)
 
@@ -116,18 +139,40 @@ glyph cache. iPhone Safari runs `requestAnimationFrame` at 60 Hz on ProMotion ph
 visitor turns off "Prefer Page Rendering Updates near 60fps" in Safari's feature flags (iOS 18+);
 the page cannot ask for 120 Hz, it can only keep a frame under 8 ms so it is smooth when allowed.
 
+## Scroll position, targets and geometry (macOS 26.6.2, SwiftUI 7.6.1, goldens 2026-09-19; iOS 26 simulator twins)
+
+Values a golden cannot show as pixels are encoded in 1 pt tall probes `value + 100` wide.
+
+| Behaviour | Value | Fixture |
+|---|---|---|
+| `scrollPosition(id:)` initial value | no scroll: row 0 stays at y 0 with the binding at 10 (macOS and iPhone; a lazy stack parks the rows it prepared at y 428+, below the viewport) | `scroll/position`, `scroll/position-center`, `ios/scroll/position` |
+| Setting the binding | the smallest offset change: row 20 ends up bottom-aligned (y 199 of 219; y 626 of 666 on iPhone) | `scroll/position/row20`, `ios/scroll/position/row20` |
+| `ScrollViewReader.scrollTo` with a position binding | scrolls, the binding keeps its value (20) | `scroll/position/proxy5`, `proxy-center` |
+| `contentMargins(20, for: .scrollContent)` | content at y 20 and the scroll view 160 wide for 120 pt rows (the margins add across the axis); `.horizontal, 12` gives 144; `.top, 30` (automatic) insets the content; `for: .scrollIndicators` changes nothing | `scroll/margins` |
+| `ScrollGeometry` at rest with a 20 pt top margin | `contentOffset` (0, −20), `contentInsets.top` 20, `containerSize` 120 × 130 for a 150 pt viewport, `bounds` (0, −20, 120, 130), `visibleRect` (0, −20, 120, 150), `contentSize` 120 × 400 | `scroll/geometry`, `ios/scroll/geometry` |
+| `ScrollGeometry` after `scrollTo(10, anchor: .top)` | `contentOffset.y` 180 (row 10 sits under the margin), `visibleRect.minY` 180 | `scroll/geometry/row10` |
+| `onScrollGeometryChange` calls | 2 at rest (an initial call, then the laid-out geometry), 3 after the programmatic scroll | `scroll/geometry` |
+| `onScrollPhaseChange` calls | 1 at rest, none for the programmatic scroll | `scroll/geometry` |
+| `defaultScrollAnchor(.bottom, for: .alignment)` | 3 rows in 200 pt sit at y 140–200; `.center` at 70 | `scroll/anchor-roles` |
+| `defaultScrollAnchor(.bottom, for: .sizeChanges)` | content at the top stays put as 5 rows are added; content at the bottom (`defaultScrollAnchor(.bottom)`) stays at the bottom (offset 200 → 300) | `scroll/anchor-roles/grow` |
+| `scrollIndicatorsFlash(onAppear: true)` | nothing in the capture: the flash had faded | `scroll/flash` |
+
 ## Fidelity
 
-Tier A: all 14 fixtures exact, including the 4 `scroll/scroll-to` steps. Tier B: Chromium 17/17
-renders (frames exact, pixels ≤ 0.63 %), WebKit 17/17 (≤ 0.2 %), Firefox 17/17 (worst 1.09 % on
-`scroll/text`, the usual glyph-hinting class).
+Tier A: all 22 fixtures exact (the `scroll/scroll-to`, `scroll/position` and `scroll/geometry`
+steps included). Tier C ≤ 0.8 % (`scroll/position` steps). Tier B: Chromium within tolerance
+(`scroll/flash` frames only: ours paints the knob at rest), WebKit 17/17 (≤ 0.2 %), Firefox 17/17
+(worst 1.09 % on `scroll/text`, the usual glyph-hinting class) as of 2026-09-02 for the older
+fixtures.
 
 ## Open
 
 - Rubber band / bounce and `scrollBounceBehavior`; keyboard scrolling (arrows, page, home/end);
-  hover-expanding legacy scroller; indicator geometry verified against a screen recording.
-- `scrollPosition`, `scrollTargetLayout` / `scrollTargetBehavior` (paging, view-aligned),
-  `contentMargins`, `onScrollGeometryChange`, `onScrollPhaseChange`, animated `scrollTo`.
+  hover-expanding legacy scroller; the indicator's hold and fade times and its minimum length.
+- Animated `scrollTo` (`withAnimation` around a position write); the `animating` phase is never
+  reported; `contentMargins` on `List`; the positioned identity written back during a scroll is
+  the target showing the most (SwiftUI's exact rule is unmeasured: the goldens cannot scroll
+  by hand).
 - Which scroll view a nested `scrollTo` should pick (structural order today, outermost first).
 - Lazy stacks; an offset-only repaint path, damage rects and content layer caching once a
   measurement shows the full layout pass per scrolled frame is the bottleneck.

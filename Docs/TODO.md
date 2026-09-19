@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 59 | 0 | 27 | 32 |
+| SwiftUI | 58 | 0 | 26 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **99** | 0 | 51 | 48 |
+| **All** | **98** | 0 | 50 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Scroll position, targets and geometry** `sw-scroll-apis` · ScrollView · missing  
-  `scrollPosition`, `scrollTargetLayout`, `scrollTargetBehavior` (paging, view aligned), `contentMargins`, `onScrollGeometryChange`, `onScrollPhaseChange`, `defaultScrollAnchor(for:)`, `scrollIndicatorsFlash`, `scrollDismissesKeyboard`, `ScrollViewReader` inside `List`; the indicator geometry measured (marked unverified). ([ScrollView.md](Docs/elements/ScrollView.md))
 - ☐ **Real laziness and pinned headers** `sw-lazy` · Lazy stacks and grids · accepted  
   Cells created on demand as they scroll into view (every cell is laid out today), `Section` headers and footers in lazy grids, `pinnedViews` (accepted) pinning while scrolling, `GridItem` alignment against the grid's. ([Lazy.md](Docs/elements/Lazy.md))
 - ☐ **TextField forms and the painted caret** `sw-textfield` · TextField · missing  
@@ -238,6 +236,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 ## Landed
 
 - ☑ 2026-09-19 **List styles, spacing and outline forms** `sw-list-looks` · SwiftUI · List
+- ☑ 2026-09-19 **Scroll position, targets and geometry** `sw-scroll-apis` · SwiftUI · ScrollView
 - ☑ 2026-09-18 **One source of truth for what works and what is next** `st-tracking` · Site · Tracking
 - ☑ 2026-09-18 **Support rows for every UIKit class** `st-uikit-rows` · Site · Tracking
 - ☑ 2026-09-18 **Audit the stale rows and doc notes** `st-row-audit` · Site · Tracking

@@ -627,7 +627,7 @@
         {
           "api": "ScrollView (axes, showsIndicators) / ScrollViewReader / ScrollViewProxy.scrollTo",
           "status": "partial",
-          "notes": "Fills the proposal along its axes and is exactly content-sized across them, implicit VStack content, clipping, defaultScrollAnchor, scrollTo with/without anchor resolved at layout; wheel scrolling with chaining, touch pan + momentum (0.998/ms), overlay indicators while scrolling (approximate geometry); no bounce, keyboard scrolling, scrollPosition/scrollTargetBehavior, contentMargins or lazy stacks; Tier B exact frames in Chromium, WebKit and Firefox (17/17 renders each)",
+          "notes": "Fills the proposal along its axes and is exactly content-sized across them, implicit VStack content, clipping, defaultScrollAnchor and its sizeChanges/alignment roles, scrollTo with/without anchor resolved at layout; wheel scrolling with chaining, touch pan + momentum (0.998/ms), overlay indicators while scrolling (the knob measured from NSScroller.drawKnob 2026-09-19; hold and fade approximate), scrollIndicatorsFlash; scrollPosition (id and ScrollPosition bindings: writes scroll, the positioned identity is written back as the user scrolls, the initial value does not scroll), scrollTargetLayout, scrollTargetBehavior (paging, viewAligned with limits, custom behaviours; the content eases to the target when a pan ends or a wheel goes quiet), contentMargins (content and indicator placements), onScrollGeometryChange, onScrollPhaseChange, scrollDismissesKeyboard on iOS (2026-09-19, six macOS goldens and two simulator twins); no bounce or keyboard scrolling, no animated scrollTo",
           "fixtures": [
             "scroll/*"
           ]

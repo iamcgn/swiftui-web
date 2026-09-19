@@ -434,10 +434,15 @@ extension PlatformMetrics {
     package static var labelIconSpacing: CGFloat { current.labelIconSpacing }
     package static var scrollerThickness: CGFloat { current.scrollerThickness }
     package static var scrollerInset: CGFloat { current.scrollerInset }
+    package static var scrollerEndInset: CGFloat { current.scrollerEndInset }
+    package static var scrollerHaloWidth: CGFloat { current.scrollerHaloWidth }
+    package static var scrollerHalo: RGBA { current.scrollerHalo }
     package static var scrollerMinimumKnobLength: CGFloat { current.scrollerMinimumKnobLength }
     package static var scrollerKnob: RGBA { current.scrollerKnob }
     package static var scrollerHoldSeconds: Double { current.scrollerHoldSeconds }
     package static var scrollerFadeSeconds: Double { current.scrollerFadeSeconds }
+    package static var scrollTargetSettleSeconds: Double { current.scrollTargetSettleSeconds }
+    package static var scrollWheelIdleSeconds: Double { current.scrollWheelIdleSeconds }
     package static var scrollDecelerationRate: Double { current.scrollDecelerationRate }
     package static var scrollVelocityFloor: CGFloat { current.scrollVelocityFloor }
     package static var panSlop: CGFloat { current.panSlop }

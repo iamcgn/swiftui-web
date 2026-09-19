@@ -415,13 +415,14 @@
       "framework": "SwiftUI",
       "area": "ScrollView",
       "title": "Scroll position, targets and geometry",
-      "detail": "`scrollPosition`, `scrollTargetLayout`, `scrollTargetBehavior` (paging, view aligned), `contentMargins`, `onScrollGeometryChange`, `onScrollPhaseChange`, `defaultScrollAnchor(for:)`, `scrollIndicatorsFlash`, `scrollDismissesKeyboard`, `ScrollViewReader` inside `List`; the indicator geometry measured (marked unverified).",
+      "detail": "Done 2026-09-19: scrollPosition (id and ScrollPosition bindings), scrollTargetLayout, scrollTargetBehavior (paging, viewAligned with limits, custom behaviours), contentMargins, onScrollGeometryChange, onScrollPhaseChange, defaultScrollAnchor(for:) roles, scrollIndicatorsFlash, scrollDismissesKeyboard (iOS), ScrollViewReader inside List; six macOS goldens (26.6) and two simulator twins measure the position binding, margins, geometry and anchor roles; the overlay scroller knob was measured from NSScroller.drawKnob.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/ScrollView.md"
-      ]
+      ],
+      "done": "2026-09-19"
     },
     {
       "id": "sw-lazy",

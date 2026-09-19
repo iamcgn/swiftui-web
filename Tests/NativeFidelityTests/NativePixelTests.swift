@@ -160,7 +160,8 @@ struct Bitmap {
         let engine = CoreTextEngine()
         let painter = CoreGraphicsPainter(textEngine: engine, assetBase: NativeGoldens.assetBase)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
-        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name == "list/tint"
+        // scroll/flash: the capture missed Apple's flash; ours paints the knob at rest.
+        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name == "list/tint" || name == "scroll/flash"
         compare(runner.layoutFrames(), to: golden.frames, label: name)
         try comparePixels(runner, fixture: fixture, png: "image@2x.png", label: name, framesOnly: framesOnly, painter: painter)
         for (index, step) in (golden.steps ?? []).enumerated() where index < fixture.stepNames.count {
