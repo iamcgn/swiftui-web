@@ -1,0 +1,63 @@
+{
+  "fixture" : "lazy\/grid-alignment",
+  "frames" : {
+    "l0" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 30,
+      "y" : 130
+    },
+    "l1" : {
+      "height" : 40,
+      "width" : 20,
+      "x" : 98,
+      "y" : 120
+    },
+    "l2" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 206,
+      "y" : 140
+    },
+    "leading" : {
+      "height" : 40,
+      "width" : 240,
+      "x" : 30,
+      "y" : 120
+    },
+    "t0" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 74,
+      "y" : 50
+    },
+    "t1" : {
+      "height" : 40,
+      "width" : 20,
+      "x" : 182,
+      "y" : 40
+    },
+    "t2" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 250,
+      "y" : 60
+    },
+    "t3" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 74,
+      "y" : 84
+    },
+    "trailing" : {
+      "height" : 64,
+      "width" : 240,
+      "x" : 30,
+      "y" : 40
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

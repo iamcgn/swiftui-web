@@ -1,5 +1,7 @@
 // Lazy grids (Docs/elements/Lazy.md): `GridItem` tracks (fixed, flexible, adaptive) and the
-// `LazyVGrid`/`LazyHGrid` layout that flows cells across them, eagerly.
+// `LazyVGrid`/`LazyHGrid` layout that flows cells across them; section headers and footers take
+// a line of their own. The `_LazyContainer` around the layout makes a `ForEach` inside create
+// its cells as they scroll into view and pins the sections' headers and footers.
 
 /// A description of a row or a column in a lazy grid.
 public struct GridItem: Sendable {
@@ -41,7 +43,9 @@ public struct LazyVGrid<Content: View>: View {
     }
 
     public var body: some View {
-        _LazyGridLayout(axis: .vertical, tracks: columns, alignment: Alignment(horizontal: alignment, vertical: .center), spacing: spacing) { content }
+        _LazyContainer(axis: .vertical, pinnedViews: pinnedViews) {
+            _LazyGridLayout(axis: .vertical, tracks: columns, alignment: Alignment(horizontal: alignment, vertical: .center), spacing: spacing) { content }
+        }
     }
 }
 
@@ -63,7 +67,9 @@ public struct LazyHGrid<Content: View>: View {
     }
 
     public var body: some View {
-        _LazyGridLayout(axis: .horizontal, tracks: rows, alignment: Alignment(horizontal: .center, vertical: alignment), spacing: spacing) { content }
+        _LazyContainer(axis: .horizontal, pinnedViews: pinnedViews) {
+            _LazyGridLayout(axis: .horizontal, tracks: rows, alignment: Alignment(horizontal: .center, vertical: alignment), spacing: spacing) { content }
+        }
     }
 }
 
@@ -126,31 +132,59 @@ public struct _LazyGridLayout: Sendable {
         return result
     }
 
+    package struct Cell {
+        var line: Int
+        /// The track, or nil for a section header or footer spanning the grid (`lazy/grid-sections`).
+        var track: Int?
+    }
+
     package struct Plan {
         var tracks: [Track]
         /// Each line's extent along the major axis.
         var lines: [CGFloat]
+        var cells: [Cell]
         var lineSpacing: CGFloat
         var minor: CGFloat        // the tracks' total across the minor axis
         var major: CGFloat        // the lines' total along the major axis
+        /// The grid's extent across the minor axis: the proposal, else the tracks' total.
+        var fullMinor: CGFloat
+
+        func cellProposal(_ cell: Cell, axis: Axis) -> ProposedViewSize {
+            let extent = cell.track.map { tracks[$0].size } ?? fullMinor
+            return axis == .vertical ? ProposedViewSize(width: extent, height: nil) : ProposedViewSize(width: nil, height: extent)
+        }
     }
 
     @MainActor package func plan(proposal: ProposedViewSize, subviews: LayoutSubviews) -> Plan {
-        let available = axis == .vertical ? proposal.width : proposal.height
-        let tracks = resolvedTracks(in: available.flatMap { $0.isFinite ? $0 : nil })
+        let available = (axis == .vertical ? proposal.width : proposal.height).flatMap { $0.isFinite ? $0 : nil }
+        let tracks = resolvedTracks(in: available)
         let lineSpacing = spacing ?? PlatformMetrics.gridItemSpacing
-        var lines: [CGFloat] = []
-        for (index, subview) in subviews.enumerated() {
-            let track = tracks[index % tracks.count]
-            let cellProposal = axis == .vertical ? ProposedViewSize(width: track.size, height: nil) : ProposedViewSize(width: nil, height: track.size)
-            let size = subview.sizeThatFits(cellProposal)
-            let extent = axis == .vertical ? size.height : size.width
-            let line = index / tracks.count
-            if line < lines.count { lines[line] = max(lines[line], extent) } else { lines.append(extent) }
-        }
         let minor = tracks.reduce(0) { $0 + $1.size + $1.spacingAfter }
+        let fullMinor = available ?? minor
+        var lines: [CGFloat] = []
+        var cells: [Cell] = []
+        var trackCursor = 0
+        for subview in subviews {
+            let cell: Cell
+            if _lazySectionRole(of: subview.node, in: subview.container) != nil {
+                // A header or footer: a line of its own across the whole grid.
+                trackCursor = 0
+                lines.append(0)
+                cell = Cell(line: lines.count - 1, track: nil)
+            } else {
+                if trackCursor == 0 { lines.append(0) }
+                cell = Cell(line: lines.count - 1, track: trackCursor)
+                trackCursor = (trackCursor + 1) % tracks.count
+            }
+            let plan = Plan(tracks: tracks, lines: lines, cells: [], lineSpacing: lineSpacing, minor: minor, major: 0, fullMinor: fullMinor)
+            let size = subview.sizeThatFits(plan.cellProposal(cell, axis: axis))
+            let extent = axis == .vertical ? size.height : size.width
+            lines[cell.line] = max(lines[cell.line], extent)
+            cells.append(cell)
+            if cell.track == nil { trackCursor = 0 }
+        }
         let major = lines.reduce(0, +) + lineSpacing * CGFloat(max(0, lines.count - 1))
-        return Plan(tracks: tracks, lines: lines, lineSpacing: lineSpacing, minor: minor, major: major)
+        return Plan(tracks: tracks, lines: lines, cells: cells, lineSpacing: lineSpacing, minor: minor, major: major, fullMinor: fullMinor)
     }
 }
 
@@ -191,20 +225,25 @@ extension _LazyGridLayout: Layout {
             trackOffsets.append(offset)
             offset += track.size + track.spacingAfter
         }
+        var lineStarts: [CGFloat] = []
         var majorOffset: CGFloat = 0
+        for extent in plan.lines {
+            lineStarts.append(majorOffset)
+            majorOffset += extent + plan.lineSpacing
+        }
         for (index, subview) in subviews.enumerated() {
-            let trackIndex = index % plan.tracks.count
-            let line = index / plan.tracks.count
-            if trackIndex == 0, line > 0 { majorOffset += plan.lines[line - 1] + plan.lineSpacing }
-            let track = plan.tracks[trackIndex]
-            let cellAlignment = track.alignment ?? alignment
+            let planCell = plan.cells[index]
+            let line = planCell.line
+            let cellAlignment = planCell.track.flatMap { plan.tracks[$0].alignment } ?? alignment
+            let minorStartOfCell = planCell.track.map { trackOffsets[$0] } ?? 0
+            let minorSize = planCell.track.map { plan.tracks[$0].size } ?? minorExtent
             let cell: CGRect
             if axis == .vertical {
-                cell = CGRect(x: bounds.minX + trackOffsets[trackIndex], y: bounds.minY + majorOffset, width: track.size, height: plan.lines[line])
+                cell = CGRect(x: bounds.minX + minorStartOfCell, y: bounds.minY + lineStarts[line], width: minorSize, height: plan.lines[line])
             } else {
-                cell = CGRect(x: bounds.minX + majorOffset, y: bounds.minY + trackOffsets[trackIndex], width: plan.lines[line], height: track.size)
+                cell = CGRect(x: bounds.minX + lineStarts[line], y: bounds.minY + minorStartOfCell, width: plan.lines[line], height: minorSize)
             }
-            let cellProposal = axis == .vertical ? ProposedViewSize(width: track.size, height: nil) : ProposedViewSize(width: nil, height: track.size)
+            let cellProposal = plan.cellProposal(planCell, axis: axis)
             let size = subview.sizeThatFits(cellProposal)
             let x: CGFloat
             switch cellAlignment.horizontal {

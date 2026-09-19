@@ -111,7 +111,7 @@ enum Goldens {
 
     /// Fixtures whose lazy stack lays out only the rows in view on Apple's side: ours may carry
     /// more probes than the golden.
-    static let lazyFixtures = ["scroll/position", "ios/scroll/position"]
+    static let lazyFixtures = ["scroll/position", "ios/scroll/position", "lazy/pinned-headers", "lazy/pinned-footers", "lazy/pinned-both", "lazy/laziness"]
 
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
         let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }

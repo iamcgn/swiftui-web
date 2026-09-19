@@ -1,0 +1,93 @@
+{
+  "fixture" : "lazy\/grid-sections",
+  "frames" : {
+    "a0" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 52,
+      "y" : 28
+    },
+    "a1" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 120,
+      "y" : 28
+    },
+    "a2" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 188,
+      "y" : 28
+    },
+    "a3" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 52,
+      "y" : 52
+    },
+    "a4" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 120,
+      "y" : 52
+    },
+    "aF" : {
+      "height" : 16,
+      "width" : 240,
+      "x" : 30,
+      "y" : 76
+    },
+    "aH" : {
+      "height" : 24,
+      "width" : 240,
+      "x" : 30,
+      "y" : 0
+    },
+    "b0" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 52,
+      "y" : 116
+    },
+    "b1" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 120,
+      "y" : 116
+    },
+    "b2" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 188,
+      "y" : 116
+    },
+    "b3" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 52,
+      "y" : 140
+    },
+    "bH" : {
+      "height" : 16,
+      "width" : 46,
+      "x" : 127,
+      "y" : 96
+    },
+    "grid" : {
+      "height" : 160,
+      "width" : 240,
+      "x" : 30,
+      "y" : 0
+    },
+    "scroll" : {
+      "height" : 300,
+      "width" : 240,
+      "x" : 30,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 300
+  }
+}

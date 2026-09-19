@@ -449,10 +449,16 @@
         {
           "api": "LazyVStack / LazyHStack / LazyVGrid / LazyHGrid / GridItem (fixed, flexible, adaptive) / PinnedScrollableViews",
           "status": "partial",
-          "notes": "Eager: stacks fill their cross axis; grids resolve fixed/flexible (clamped, no redistribution)/adaptive tracks and flow cells line by line, centred in the frame; no laziness, pinned headers or sections in grids",
+          "notes": "Stacks fill their cross axis; grids resolve fixed/flexible (clamped, no redistribution)/adaptive tracks and flow cells line by line, the tracks placed by the grid's alignment and cells aligned by their item's; section headers and footers take a line of their own in grids; inside a scroll view a ForEach creates its elements as they come within a viewport of the visible region (placeholders sized by the created ones keep the content's extent; scrollTo creates the element it targets), and pinnedViews pins section headers and footers to the scroll view's edges (2026-09-19, lazy/pinned-*, lazy/laziness, lazy/grid-*); created elements are kept rather than released",
           "fixtures": [
             "lazy/stacks",
-            "lazy/grids"
+            "lazy/grids",
+            "lazy/pinned-headers",
+            "lazy/pinned-footers",
+            "lazy/pinned-both",
+            "lazy/laziness",
+            "lazy/grid-sections",
+            "lazy/grid-alignment"
           ]
         },
         {

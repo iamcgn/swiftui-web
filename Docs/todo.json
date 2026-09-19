@@ -429,13 +429,14 @@
       "framework": "SwiftUI",
       "area": "Lazy stacks and grids",
       "title": "Real laziness and pinned headers",
-      "detail": "Cells created on demand as they scroll into view (every cell is laid out today), `Section` headers and footers in lazy grids, `pinnedViews` (accepted) pinning while scrolling, `GridItem` alignment against the grid's.",
+      "detail": "Done 2026-09-19: a ForEach in a lazy stack or grid inside a scroll view creates its elements as they come within a viewport of the visible region (placeholders sized by the created ones keep the content's extent; scrollTo creates its target), pinnedViews pins section headers and footers (six macOS goldens: lazy/pinned-headers, -footers, -both, laziness, grid-sections, grid-alignment), sections in grids take their own lines, GridItem alignment against the grid's measured (no change needed). Elements are kept rather than released.",
       "kind": "accepted",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Lazy.md"
-      ]
+      ],
+      "done": "2026-09-19"
     },
     {
       "id": "sw-textfield",

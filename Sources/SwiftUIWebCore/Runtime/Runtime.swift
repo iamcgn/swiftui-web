@@ -206,6 +206,9 @@ public final class Runtime {
     /// Incremented at the start of every layout pass; size caches are keyed by it.
     package private(set) var layoutGeneration: UInt64 = 0
 
+    /// Forgets every memoised size within a layout pass (lazy elements were just created).
+    package func invalidateSizeMemos() { layoutGeneration += 1 }
+
     /// Counts the layout passes that walked the tree (not the ones that only moved scrolled
     /// content); the semantics tree is cached against it (`semanticsTree()`).
     package private(set) var fullLayoutCount: UInt64 = 0

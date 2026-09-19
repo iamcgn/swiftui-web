@@ -13,11 +13,14 @@ import Foundation
 /// are ordered like the data. Duplicate ids get independent nodes, as SwiftUI does (it warns).
 @MainActor
 package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Content: View>:
-    TypedNode<ForEach<Data, ID, Content>>, _ForEachNodeProviding
+    TypedNode<ForEach<Data, ID, Content>>, _ForEachNodeProviding, _LazyMaterializing, _LazyEstimating
 {
     package struct Entry {
         package let id: ID
-        package let node: TypedNode<Content>
+        /// The element's subtree, or nil while a placeholder stands for it (lazy containers).
+        package fileprivate(set) var node: TypedNode<Content>?
+        fileprivate var placeholder: LazyPlaceholderNode?
+        package var view: ViewNode { node ?? placeholder! }
     }
 
     package private(set) var entries: [Entry] = []
@@ -27,6 +30,11 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
 
     /// Number of subtrees created over the node's life, for tests.
     package private(set) var created = 0
+
+    /// The axis of the lazy container this `ForEach` is in: elements beyond the first are
+    /// placeholders until they scroll into view (Runtime/LazyNodes.swift).
+    private var lazyAxis: Axis?
+    private var estimate: (generation: UInt64, proposal: ProposedViewSize, size: CGSize)?
 
     init(_ context: _NodeContext<ForEach<Data, ID, Content>>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
@@ -42,38 +50,144 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
     }
 
     private func reconcile(previous: [Entry], environment: EnvironmentValues, force: Bool) {
+        // Lazy only inside a scroll view: everything else shows every element anyway.
+        lazyAxis = hasEnclosingScrollView ? environment._lazyContainerAxis : nil
         // Group survivors by id; a queue per id keeps duplicates stable in order.
         var available: [ID: [TypedNode<Content>]] = [:]
+        var placeholders: [ID: [LazyPlaceholderNode]] = [:]
         for entry in previous.reversed() {
-            available[entry.id, default: []].append(entry.node)
+            if let node = entry.node { available[entry.id, default: []].append(node) }
+            if let placeholder = entry.placeholder { placeholders[entry.id, default: []].append(placeholder) }
         }
         var next: [Entry] = []
         next.reserveCapacity(view.data.count)
+        var hasRealNode = !available.isEmpty
         for element in view.data {
             let id = view.id(of: element)
-            let content = view.content(element)
             if let node = available[id]?.popLast() {
-                node.update(view: content, environment: environment, force: force)
-                next.append(Entry(id: id, node: node))
+                node.update(view: view.content(element), environment: environment, force: force)
+                next.append(Entry(id: id, node: node, placeholder: nil))
+            } else if lazyAxis != nil, let placeholder = placeholders[id]?.popLast() {
+                next.append(Entry(id: id, node: nil, placeholder: placeholder))
+            } else if lazyAxis != nil, hasRealNode {
+                // Created when it scrolls into view; the first element seeds the size estimate.
+                next.append(Entry(id: id, node: nil, placeholder: LazyPlaceholderNode(owner: self)))
             } else {
                 created += 1
-                let node = Content._makeNode(_NodeContext(view: content, parent: self, environment: environment))
-                next.append(Entry(id: id, node: node))
+                hasRealNode = true
+                let node = Content._makeNode(_NodeContext(view: view.content(element), parent: self, environment: environment))
+                next.append(Entry(id: id, node: node, placeholder: nil))
                 if !previous.isEmpty { noteInserted(node) }
             }
         }
         for nodes in available.values {
             for node in nodes { retire(node) }
         }
+        for nodes in placeholders.values {
+            for node in nodes { node.unmount() }
+        }
         entries = next
     }
 
-    package var children: [TypedNode<Content>] { entries.map(\.node) }
+    // MARK: Laziness
 
-    package var _entries: [(AnyHashable, ViewNode)] { entries.map { (AnyHashable($0.id), $0.node) } }
+    private var hasEnclosingScrollView: Bool {
+        var node = parent
+        while let current = node {
+            if current is any _ScrollViewport { return true }
+            node = current.parent
+        }
+        return false
+    }
 
-    override package var structuralChildren: [ViewNode] { entries.map(\.node) }
-    override package var layoutChildren: [ViewNode] { entries.flatMap { $0.node.layoutChildren } }
+    private func placeholderRect(_ placeholder: LazyPlaceholderNode, contentOrigin origin: CGPoint) -> CGRect {
+        let frame = placeholder.frameInRoot
+        return CGRect(x: frame.minX - origin.x, y: frame.minY - origin.y, width: frame.width, height: frame.height)
+    }
+
+    package func needsMaterialization(visible: CGRect, contentOrigin origin: CGPoint) -> Bool {
+        guard lazyAxis != nil else { return false }
+        return entries.contains { entry in
+            guard let placeholder = entry.placeholder else { return false }
+            return placeholderRect(placeholder, contentOrigin: origin).intersects(visible)
+        }
+    }
+
+    package func materialize(visible: CGRect, contentOrigin origin: CGPoint) -> Bool {
+        guard lazyAxis != nil, entries.contains(where: { $0.placeholder != nil }) else { return false }
+        var changed = false
+        var index = 0
+        for element in view.data {
+            defer { index += 1 }
+            guard index < entries.count, let placeholder = entries[index].placeholder,
+                  placeholderRect(placeholder, contentOrigin: origin).intersects(visible) else { continue }
+            created += 1
+            let node = Content._makeNode(_NodeContext(view: view.content(element), parent: self, environment: environment))
+            placeholder.unmount()
+            entries[index].node = node
+            entries[index].placeholder = nil
+            changed = true
+        }
+        return changed
+    }
+
+    /// The placeholder element identified by `id` (its own id, or the `id(_:)` on its content).
+    private func placeholderIndex(id: AnyHashable) -> Int? {
+        guard lazyAxis != nil, entries.contains(where: { $0.placeholder != nil }) else { return nil }
+        var index = 0
+        for element in view.data {
+            defer { index += 1 }
+            guard index < entries.count, entries[index].placeholder != nil else { continue }
+            if AnyHashable(entries[index].id) == id { return index }
+            if let identified = view.content(element) as? any _IDProviding, identified._identifier == id { return index }
+        }
+        return nil
+    }
+
+    package func hasPlaceholder(id: AnyHashable) -> Bool { placeholderIndex(id: id) != nil }
+
+    package func materialize(id: AnyHashable) -> Bool {
+        guard let index = placeholderIndex(id: id), let placeholder = entries[index].placeholder else { return false }
+        let element = view.data[view.data.index(view.data.startIndex, offsetBy: index)]
+        created += 1
+        let node = Content._makeNode(_NodeContext(view: view.content(element), parent: self, environment: environment))
+        placeholder.unmount()
+        entries[index].node = node
+        entries[index].placeholder = nil
+        return true
+    }
+
+    /// The average size of the created elements for `proposal`: their layout children summed
+    /// along the lazy axis and the widest across it.
+    package func estimatedSize(for proposal: ProposedViewSize) -> CGSize {
+        if let estimate, estimate.generation == runtime.layoutGeneration, estimate.proposal == proposal { return estimate.size }
+        let axis = lazyAxis ?? .vertical
+        var total = CGSize.zero
+        var count = 0
+        for entry in entries {
+            guard let node = entry.node else { continue }
+            var along: CGFloat = 0, across: CGFloat = 0
+            for child in node.layoutChildren {
+                let size = child.sizeThatFits(proposal)
+                along += size[axis]
+                across = max(across, size[axis == .vertical ? .horizontal : .vertical])
+            }
+            total[axis] += along
+            total[axis == .vertical ? .horizontal : .vertical] = max(total[axis == .vertical ? .horizontal : .vertical], across)
+            count += 1
+        }
+        var size = total
+        if count > 0 { size[axis] = total[axis] / CGFloat(count) }
+        estimate = (runtime.layoutGeneration, proposal, size)
+        return size
+    }
+
+    package var children: [TypedNode<Content>] { entries.compactMap(\.node) }
+
+    package var _entries: [(AnyHashable, ViewNode)] { entries.map { (AnyHashable($0.id), $0.view) } }
+
+    override package var structuralChildren: [ViewNode] { entries.map(\.view) }
+    override package var layoutChildren: [ViewNode] { entries.flatMap { $0.view.layoutChildren } }
     override package var nodeDescription: String { "ForEach(\(entries.count))" }
 }
 

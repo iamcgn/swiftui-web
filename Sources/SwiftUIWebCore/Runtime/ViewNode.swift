@@ -286,8 +286,11 @@ open class ViewNode {
         }.map(\.element)
     }
 
+    /// A pinned header or footer: its placer skips it and the lazy container paints it last.
+    package var paintsDeferred = false
+
     package func paintChildren(into list: inout DisplayList, context: PaintContext) {
-        for child in paintOrderedChildren {
+        for child in paintOrderedChildren where !child.paintsDeferred {
             let frame = child.presentedFrame
             if let visible = context.visibleRect, !child.paintsOutsideFrame, frame.width > 0, frame.height > 0,
                !frame.offsetBy(dx: context.origin.x, dy: context.origin.y).intersects(visible) {

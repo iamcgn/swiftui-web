@@ -113,18 +113,25 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     package init(_ context: _NodeContext<ScrollView<Content>>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime, environment: context.environment)
-        child = VStack<Content>._makeNode(_NodeContext(view: Self.wrapped(context.view), parent: self, environment: context.environment))
+        child = VStack<Content>._makeNode(_NodeContext(view: Self.wrapped(context.view), parent: self, environment: Self.contentEnvironment(context.environment)))
     }
 
     private static func wrapped(_ view: ScrollView<Content>) -> VStack<Content> {
         VStack { view.content }
     }
 
+    /// The content starts a lazy context of its own (a scroll view in a lazy stack's row).
+    private static func contentEnvironment(_ environment: EnvironmentValues) -> EnvironmentValues {
+        var environment = environment
+        environment._lazyContainerAxis = nil
+        return environment
+    }
+
     override package func update(view: ScrollView<Content>, environment: EnvironmentValues, force: Bool) {
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
-        child.update(view: Self.wrapped(view), environment: environment, force: force)
+        child.update(view: Self.wrapped(view), environment: Self.contentEnvironment(environment), force: force)
     }
 
     package var axes: Axis.Set { view.axes }
@@ -204,6 +211,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         }
         contentOffset = clamped(contentOffset)
         placeContent(proposal: contentProposal)
+        materializeLazyContent(proposal: contentProposal)
         layoutRefreshIndicator()
         refreshTargets()
         applyPositionBinding()
@@ -211,11 +219,19 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         // first placement and the content placed again when the offset moves.
         if let target = pendingTarget {
             pendingTarget = nil
+            // A lazy element not created yet is created where its placeholder sits.
+            if targetRect(id: target.id) == nil, lazyProviders.contains(where: { $0.materialize(id: target.id) }) {
+                runtime.invalidateSizeMemos()
+                contentSize = child.sizeThatFits(contentProposal)
+                lastContentSize = contentSize
+                placeContent(proposal: contentProposal)
+            }
             if let rect = targetRect(id: target.id) {
                 let offset = offset(scrollingTo: rect, anchor: target.anchor)
                 if offset != contentOffset {
                     contentOffset = offset
                     placeContent(proposal: contentProposal)
+                    materializeLazyContent(proposal: contentProposal)
                 }
             }
         }
@@ -231,6 +247,47 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     private func placeContent(proposal: ProposedViewSize) {
         child.place(at: contentOrigin, anchor: .topLeading, proposal: proposal, by: self)
+    }
+
+    // MARK: Lazy content (Runtime/LazyNodes.swift)
+
+    /// The viewport in content coordinates, one viewport further along each scroll axis: the
+    /// elements a lazy `ForEach` creates ahead of the scroll.
+    private var lazyWindow: CGRect {
+        var window = CGRect(x: contentOffset.x - contentInsets.leading, y: contentOffset.y - contentInsets.top, width: frame.width, height: frame.height)
+        if axes.contains(.horizontal) { window = window.insetBy(dx: -frame.width, dy: 0) }
+        if axes.contains(.vertical) { window = window.insetBy(dx: 0, dy: -frame.height) }
+        return window
+    }
+
+    private var lazyProviders: [any _LazyMaterializing] {
+        child.descendants(where: { $0 is _LazyMaterializing }).map { $0 as! any _LazyMaterializing }
+    }
+
+    /// Creates the lazy elements in the window and lays the content out again with them, a few
+    /// times over when the new sizes bring more into view.
+    private func materializeLazyContent(proposal: ProposedViewSize) {
+        var passes = 0
+        while passes < 3 {
+            let origin = child.frameInRoot.origin
+            let window = lazyWindow
+            var changed = false
+            for provider in lazyProviders where provider.materialize(visible: window, contentOrigin: origin) { changed = true }
+            guard changed else { return }
+            passes += 1
+            runtime.invalidateSizeMemos()
+            contentSize = child.sizeThatFits(proposal)
+            lastContentSize = contentSize
+            contentOffset = clamped(contentOffset)
+            placeContent(proposal: proposal)
+        }
+    }
+
+    /// Whether the offset moved lazy placeholders into the window (a frame must lay out).
+    private var lazyContentNeedsLayout: Bool {
+        let origin = child.frameInRoot.origin
+        let window = lazyWindow
+        return lazyProviders.contains { $0.needsMaterialization(visible: window, contentOrigin: origin) }
     }
 
     /// Where the content's top-left sits: the safe-area inset, scrolled by the offset; content
@@ -448,7 +505,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     private var contentReadsGeometry = false
 
     package var canMoveContentOnly: Bool {
-        guard pendingTarget == nil, hasBeenPlaced else { return false }
+        guard pendingTarget == nil, hasBeenPlaced, !lazyContentNeedsLayout else { return false }
         if geometryCheckGeneration != runtime.layoutGeneration {
             geometryCheckGeneration = runtime.layoutGeneration
             // Structural descendants: a geometry reader in a background or overlay layer (a
@@ -502,7 +559,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     // MARK: Programmatic and user scrolling
 
     package func scrollTo(id: AnyHashable, anchor: UnitPoint?) -> Bool {
-        guard targets.contains(where: { $0.id == id }) || identifiedNode(id) != nil else { return false }
+        guard targets.contains(where: { $0.id == id }) || identifiedNode(id) != nil || lazyProviders.contains(where: { $0.hasPlaceholder(id: id) }) else { return false }
         pendingTarget = (id, anchor)
         // The target is resolved in the next full layout (the fast path only moves frames).
         runtime.requestFullLayout()
