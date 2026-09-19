@@ -4,20 +4,15 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| Interop | 2 | 0 | 1 | 1 |
+| Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 59 | 0 | 30 | 29 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **100** | 0 | 55 | 45 |
+| **All** | **99** | 0 | 54 | 45 |
 
 ## Next (Phase 8, in order)
 
 ## Soon (the gap sweep)
-
-### Interop
-
-- ☐ **The unmeasured sizing corners** `ix-measure-rest` · Representables · verify  
-  `alignmentRectInsets` on controls other than the switch, a label's baseline at sizes other than 17 pt, a `sizeThatFits` that returns a size on one axis and the intrinsic on the other; one grid fixture on the simulator. ([Representable.md](Docs/elements/Representable.md))
 
 ### SwiftUI
 
@@ -257,6 +252,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **UIHostingConfiguration: margins, self-sizing, configuration state** `ix-hosting-config` · Interop · UIHostingConfiguration
 - ☑ 2026-09-18 **UIHostingController in containers** `ix-hosting-controller` · Interop · UIHostingController
 - ☑ 2026-09-18 **Image(uiImage:) for rendered images** `ix-rendered-images` · Interop · Bridging
+- ☑ 2026-09-18 **The unmeasured sizing corners** `ix-measure-rest` · Interop · Representables
 - ☑ 2026-09-18 **Decide whether SwiftUI keeps re-exporting UIKit unconditionally** `ix-size-gate` · Interop · Size
 - ☑ 2026-09-18 **iOS sheets, tab bars and date pickers from the simulator** `sw-ios-sheets` · SwiftUI · iOS profile
 - ☑ 2026-09-18 **UIActivityIndicatorView spins** `uk-spinner` · UIKit · Controls

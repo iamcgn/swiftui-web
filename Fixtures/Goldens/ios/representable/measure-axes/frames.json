@@ -1,0 +1,57 @@
+{
+  "fixture" : "ios\/representable\/measure-axes",
+  "frames" : {
+    "half" : {
+      "height" : 60,
+      "width" : 200,
+      "x" : 0,
+      "y" : 0
+    },
+    "halfIdeal" : {
+      "height" : 30,
+      "width" : 0,
+      "x" : 0,
+      "y" : 68
+    },
+    "halfRow" : {
+      "height" : 97.5,
+      "width" : 294,
+      "x" : 26,
+      "y" : 106
+    },
+    "halfText" : {
+      "height" : 24.5,
+      "width" : 18,
+      "x" : 0,
+      "y" : 142.5
+    },
+    "mixed" : {
+      "height" : 20.5,
+      "width" : 50,
+      "x" : 75,
+      "y" : 231.25
+    },
+    "mixedIdeal" : {
+      "height" : 20.5,
+      "width" : 50,
+      "x" : 0,
+      "y" : 279.5
+    },
+    "row" : {
+      "height" : 97.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 106
+    },
+    "stack" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

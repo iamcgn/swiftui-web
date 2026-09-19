@@ -1494,6 +1494,12 @@
       "lastBaseline" : 18.5,
       "width" : 36
     },
+    "style:body||C" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 12
+    },
     "style:body||Calendar" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -1745,6 +1751,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 30
+    },
+    "style:body||Long cell" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 68.5
     },
     "style:body||Max" : {
       "firstBaseline" : 18.5,
@@ -2100,6 +2112,12 @@
       "lastBaseline" : 18.5,
       "width" : 31.5
     },
+    "style:body||Tx" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 18
+    },
     "style:body||Value" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -2314,6 +2332,12 @@
       "firstBaseline" : 18.5,
       "height" : 101,
       "lastBaseline" : 95,
+      "width" : 0
+    },
+    "style:body|0.0|C" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
       "width" : 0
     },
     "style:body|0.0|Calendar" : {
@@ -2566,6 +2590,12 @@
       "firstBaseline" : 18.5,
       "height" : 101,
       "lastBaseline" : 95,
+      "width" : 0
+    },
+    "style:body|0.0|Long cell" : {
+      "firstBaseline" : 18.5,
+      "height" : 205,
+      "lastBaseline" : 199,
       "width" : 0
     },
     "style:body|0.0|Max" : {
@@ -2922,6 +2952,12 @@
       "lastBaseline" : 69,
       "width" : 0
     },
+    "style:body|0.0|Tx" : {
+      "firstBaseline" : 18.5,
+      "height" : 49,
+      "lastBaseline" : 43,
+      "width" : 0
+    },
     "style:body|0.0|Value" : {
       "firstBaseline" : 18.5,
       "height" : 127,
@@ -2958,6 +2994,12 @@
       "lastBaseline" : 95,
       "width" : 0
     },
+    "style:body|11.5|C" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 11.5
+    },
     "style:body|150.0;s4.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 18.5,
       "height" : 109.5,
@@ -2969,6 +3011,18 @@
       "height" : 102.5,
       "lastBaseline" : 96.5,
       "width" : 147
+    },
+    "style:body|156.0|Tx" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 18
+    },
+    "style:body|169.75|Long cell" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 68.5
     },
     "style:body|260.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 18.5,
@@ -3119,6 +3173,30 @@
       "height" : 50.5,
       "lastBaseline" : 44.5,
       "width" : 382.5
+    },
+    "style:body|1000.0|A" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 11.5
+    },
+    "style:body|1000.0|B" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 11
+    },
+    "style:body|1000.0|C" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 12
+    },
+    "style:body|1000.0|Long cell" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 68.5
     },
     "style:callout:w400||Apple" : {
       "firstBaseline" : 17.5,

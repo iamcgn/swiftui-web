@@ -32,6 +32,9 @@ iPhone SE simulator on iOS 26. `UISwitch` and `UITextField` have their own pages
   fill and knob at 50 %.
 - Segmented control: 32 tall with 16 pt corners; every segment as wide as the widest title plus
   20 (55 for "Three" at 35.5), the ground (115, 115, 123) at 12 %; a white lens 2 in under the
+  Every segment is at least 32 wide, and SwiftUI lays the control out on a 31 pt alignment rect
+  inside the 32 (`ios/representable/measure-controls`). A slider and a progress view hug
+  vertically (`defaultHigh`): they keep their heights in taller containers.
   selected segment (51 × 28 for a 55 pt segment); 13 pt titles 16 tall at 8, centred, the selected
   one medium.
 - Stepper: 94 × 32 (UIKit hosts a SwiftUI stepper): the capsule (58, 58, 70) at 8.6 %, a 1 pt

@@ -648,6 +648,12 @@
       "lastBaseline" : 10.4736328125,
       "width" : 7
     },
+    "system:12:400:default|;l1|Hg" : {
+      "firstBaseline" : 11.42578125,
+      "height" : 14.5,
+      "lastBaseline" : 11.42578125,
+      "width" : 16.5
+    },
     "system:12:400:default|190.0|Height 12" : {
       "firstBaseline" : 11.42578125,
       "height" : 14.5,
@@ -665,6 +671,18 @@
       "height" : 16,
       "lastBaseline" : 12.3779296875,
       "width" : 45
+    },
+    "system:13:400:default|;l1|A" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 9
+    },
+    "system:13:400:default|;l1|B" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 8.5
     },
     "system:13:400:default|;l1|corey" : {
       "firstBaseline" : 12.3779296875,
@@ -755,6 +773,18 @@
       "height" : 31.5,
       "lastBaseline" : 27.8916015625,
       "width" : 285
+    },
+    "system:13:500:default|;l1|A" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 9
+    },
+    "system:13:500:default|;l1|B" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 9
     },
     "system:13:500:default|;l1|One" : {
       "firstBaseline" : 12.3779296875,
@@ -1122,6 +1152,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 128
     },
+    "system:17:400:default|;l1|Go" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 22
+    },
     "system:17:400:default|;l1|Hello" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1158,7 +1194,25 @@
       "lastBaseline" : 16.1865234375,
       "width" : 45.5
     },
+    "system:17:400:default|;l1|Mar 15, 2025" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 100
+    },
     "system:17:400:default|;l1|mid" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 28.5
+    },
+    "system:17:400:default|;l1|Mixed" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 46
+    },
+    "system:17:400:default|;l1|one" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
@@ -1247,6 +1301,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 33
+    },
+    "system:17:400:default|;l1|two" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 28
     },
     "system:17:400:default|;l1|UILabel in a sheet" : {
       "firstBaseline" : 16.1865234375,

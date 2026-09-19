@@ -698,6 +698,7 @@ public enum RepresentableFixtures {
     }.platform(.iOS)
 
     public static let all: [Fixture] = [plain, label, priorities, controls, darkControls, sizing, spacing, controller, update, hostingCells,
+                                        measureControls, measureBaselines, measureAxes, grid,
                                         safeArea, safeAreaLarge, safeAreaIgnored, safeAreaScroll,
                                         hostingSafeArea, hostingSafeAreaNone, hostingSafeAreaTabs, traits,
                                         safeAreaColor, safeAreaInset, safeAreaScrollIgnored, safeAreaRule, lifecycle, wheel,
@@ -1000,9 +1001,138 @@ public enum RepresentableFixtures {
         HostingCellsTable().probe("table")
     }.platform(.iOS)
 }
+// MARK: The unmeasured sizing corners (Phase 8: ix-measure-rest)
+
+/// A control made by a closure, sized by the seam's rules.
+struct ControlBox: UIViewRepresentable {
+    let make: @MainActor () -> UIView
+    func makeUIView(context: Context) -> UIView { make() }
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+/// A hugging label at a font size (baselines at sizes other than 17 pt).
+struct SizedLabelBox: UIViewRepresentable {
+    var text = "Hg"
+    var size: CGFloat
+    func makeUIView(context: Context) -> UILabel {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: size)
+        label.backgroundColor = .systemYellow
+        label.setContentHuggingPriority(UILayoutPriority(1000), for: .horizontal)
+        label.setContentHuggingPriority(UILayoutPriority(1000), for: .vertical)
+        return label
+    }
+    func updateUIView(_ uiView: UILabel, context: Context) { uiView.text = text }
+}
+
+/// A view with an intrinsic height (30) and no intrinsic width.
+final class HalfIntrinsicView: UIView {
+    override var intrinsicContentSize: CGSize { CGSize(width: UIView.noIntrinsicMetric, height: 30) }
+}
+
+struct HalfIntrinsicBox: UIViewRepresentable {
+    func makeUIView(context: Context) -> HalfIntrinsicView {
+        let view = HalfIntrinsicView()
+        view.backgroundColor = .systemTeal
+        return view
+    }
+    func updateUIView(_ uiView: HalfIntrinsicView, context: Context) {}
+}
+
+/// A label whose `sizeThatFits` gives a width of 50 and the label's own intrinsic height.
+struct MixedBox: UIViewRepresentable {
+    func makeUIView(context: Context) -> UILabel {
+        let label = UILabel()
+        label.text = "Mixed"
+        label.font = .systemFont(ofSize: 17)
+        label.backgroundColor = .systemYellow
+        return label
+    }
+    func updateUIView(_ uiView: UILabel, context: Context) {}
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UILabel, context: Context) -> CGSize? {
+        CGSize(width: 50, height: uiView.intrinsicContentSize.height)
+    }
+}
+
+extension RepresentableFixtures {
+    static let measureDate = Date(timeIntervalSinceReferenceDate: 763744140 - 4 * 3600)
+
+    /// The controls' alignment rects: UIKit's `alignmentRectInsets` and intrinsic sizes for a
+    /// slider, stepper, segmented control, progress view, activity indicator, page control,
+    /// a filled button and a compact date picker, in containers and at their ideal sizes.
+    public static let measureControls = Fixture("ios/representable/measure-controls", size: CGSize(width: 320, height: 640)) {
+        VStack(alignment: .leading, spacing: 6) {
+            VStack { ControlBox { let slider = UISlider(); slider.value = 0.5; return slider }.probe("slider") }.frame(width: 200, height: 44)
+            ControlBox { let slider = UISlider(); slider.value = 0.5; return slider }.fixedSize().probe("sliderIdeal")
+            ControlBox { UIStepper() }.fixedSize().probe("stepper")
+            ControlBox { let segments = UISegmentedControl(items: ["A", "B"]); segments.selectedSegmentIndex = 0; return segments }.fixedSize().probe("segments")
+            VStack { ControlBox { let progress = UIProgressView(progressViewStyle: .default); progress.progress = 0.5; return progress }.probe("progress") }.frame(width: 200, height: 44)
+            ControlBox { let spinner = UIActivityIndicatorView(style: .medium); spinner.hidesWhenStopped = false; return spinner }.fixedSize().probe("spinner")
+            ControlBox { let pages = UIPageControl(); pages.numberOfPages = 3; return pages }.fixedSize().probe("pages")
+            ControlBox { var configuration = UIButton.Configuration.filled(); configuration.title = "Go"; return UIButton(configuration: configuration) }.fixedSize().probe("filled")
+            ControlBox {
+                let picker = UIDatePicker()
+                picker.datePickerMode = .date
+                picker.preferredDatePickerStyle = .compact
+                picker.timeZone = TimeZone(secondsFromGMT: 0)
+                picker.date = measureDate
+                return picker
+            }.fixedSize().probe("datePicker")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// A hugging label's baselines at 12, 20 and 34 pt next to a text, on the first and last baselines.
+    public static let measureBaselines = Fixture("ios/representable/measure-baselines", size: CGSize(width: 320, height: 260)) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) { Text("Hg").probe("textSmall"); SizedLabelBox(size: 12).probe("labelSmall") }.probe("rowSmall")
+            HStack(alignment: .firstTextBaseline, spacing: 8) { Text("Hg").probe("textTitle"); SizedLabelBox(size: 20).probe("labelTitle") }.probe("rowTitle")
+            HStack(alignment: .firstTextBaseline, spacing: 8) { Text("Hg").probe("textLarge"); SizedLabelBox(size: 34).probe("labelLarge") }.probe("rowLarge")
+            HStack(alignment: .lastTextBaseline, spacing: 8) { Text("Hg").probe("textLast"); SizedLabelBox(size: 20).probe("labelLast") }.probe("rowLast")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// One axis intrinsic, the other not: a view with an intrinsic height only, in a container,
+    /// at its ideal size and beside a text; a `sizeThatFits` mixing its own width with the
+    /// view's intrinsic height.
+    public static let measureAxes = Fixture("ios/representable/measure-axes", size: CGSize(width: 320, height: 300)) {
+        VStack(alignment: .leading, spacing: 8) {
+            VStack { HalfIntrinsicBox().probe("half") }.frame(width: 200, height: 60)
+            HalfIntrinsicBox().fixedSize().probe("halfIdeal")
+            HStack(spacing: 8) { Text("Tx").probe("halfText"); HalfIntrinsicBox().probe("halfRow") }.probe("row")
+            VStack { MixedBox().probe("mixed") }.frame(width: 200, height: 60)
+            MixedBox().fixedSize().probe("mixedIdeal")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    /// Representables in a `Grid`: labels and a switch as cells, a slider spanning two columns.
+    public static let grid = Fixture("ios/representable/grid", size: CGSize(width: 320, height: 200)) {
+        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+            GridRow {
+                Text("A").probe("a")
+                LabelBox(text: "one", hugging: 1000).probe("one")
+                Text("Long cell").probe("long")
+            }
+            GridRow {
+                LabelBox(text: "two", hugging: 1000).probe("two")
+                Text("B").probe("b")
+                SwitchBox().probe("gridSwitch")
+            }
+            GridRow {
+                Text("C").probe("c")
+                ControlBox { let slider = UISlider(); slider.value = 0.5; return slider }.probe("gridSlider").gridCellColumns(2)
+            }
+        }
+        .probe("grid")
+    }.platform(.iOS)
+}
+
 #else
 /// The representable fixtures need UIKit: none on a plain macOS build of the harness.
 public enum RepresentableFixtures {
     public static let all: [Fixture] = []
 }
+
 #endif

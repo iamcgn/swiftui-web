@@ -1,0 +1,63 @@
+{
+  "fixture" : "ios\/representable\/grid",
+  "frames" : {
+    "a" : {
+      "height" : 24.5,
+      "width" : 11.5,
+      "x" : 0,
+      "y" : 47.75
+    },
+    "b" : {
+      "height" : 24.5,
+      "width" : 11,
+      "x" : 40,
+      "y" : 83
+    },
+    "c" : {
+      "height" : 24.5,
+      "width" : 12,
+      "x" : 0,
+      "y" : 123
+    },
+    "grid" : {
+      "height" : 104.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 47.75
+    },
+    "gridSlider" : {
+      "height" : 34,
+      "width" : 280,
+      "x" : 40,
+      "y" : 118.25
+    },
+    "gridSwitch" : {
+      "height" : 30,
+      "width" : 66,
+      "x" : 166,
+      "y" : 80.25
+    },
+    "long" : {
+      "height" : 24.5,
+      "width" : 68.5,
+      "x" : 166,
+      "y" : 47.75
+    },
+    "one" : {
+      "height" : 20.5,
+      "width" : 28.5,
+      "x" : 40,
+      "y" : 49.75
+    },
+    "two" : {
+      "height" : 20.5,
+      "width" : 28,
+      "x" : 0,
+      "y" : 85
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

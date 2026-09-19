@@ -120,6 +120,11 @@ enum RepresentableSizing {
         // Layout works on the alignment rect: the intrinsic size less the alignment insets.
         let insets = view.alignmentRectInsets
         var intrinsic = view.intrinsicContentSize
+        // A compact date picker reports no intrinsic size to SwiftUI on iOS 26 (measured: 0 × 0
+        // under `fixedSize()`, ios/representable/measure-controls); UIKit's own layout keeps it.
+        if let picker = view as? UIDatePicker, picker.datePickerStyle != .wheels, picker.datePickerStyle != .inline {
+            intrinsic = CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric)
+        }
         if intrinsic.width >= 0 { intrinsic.width -= insets.left + insets.right }
         if intrinsic.height >= 0 { intrinsic.height -= insets.top + insets.bottom }
         func axis(_ proposed: CGFloat?, intrinsic: CGFloat, fallback: CGFloat, hugging: UILayoutPriority, resistance: UILayoutPriority) -> CGFloat {

@@ -48,6 +48,19 @@ public enum UIKitTextMetricsRequests {
         // ios/representable/* (SwiftUI fixtures hosting UIKit views; Fixtures/Sources/Representable)
         UIKitTextRequest("Hello", .system(size: 17)),
         UIKitTextRequest("UILabel in a sheet", .system(size: 17)),   // ios/representable/sheet
+        // ios/representable/measure-*, grid: labels at other sizes, the segments' titles, the compact picker's date.
+        UIKitTextRequest("Hg", .system(size: 12)),
+        UIKitTextRequest("Hg", .system(size: 20)),
+        UIKitTextRequest("Hg", .system(size: 34)),
+        UIKitTextRequest("Mixed", .system(size: 17)),
+        UIKitTextRequest("one", .system(size: 17)),
+        UIKitTextRequest("two", .system(size: 17)),
+        UIKitTextRequest("A", .system(size: 13)),
+        UIKitTextRequest("B", .system(size: 13)),
+        UIKitTextRequest("A", .system(size: 13, weight: "medium")),
+        UIKitTextRequest("B", .system(size: 13, weight: "medium")),
+        UIKitTextRequest("Mar 15, 2025", .system(size: 17)),
+        UIKitTextRequest("Go", .system(size: 17)),
         UIKitTextRequest("Hello, world", .system(size: 17)),
         UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), lines: 0),
         UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), width: 120, lines: 0),

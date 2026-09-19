@@ -124,9 +124,27 @@ Alignment and spacing (`ios/representable/sizing`, `spacing`):
 Updates (`ios/representable/update`): a longer text through `updateUIView` widens a hugging
 label from 39 to 90 and the stack follows; a switch turns off.
 
-Not verified: `sizeThatFits` returning nil on one axis only (impossible: it returns a `CGSize`),
-`alignmentRectInsets` on other controls (zero for labels, fields, buttons and plain views:
-`uikit/controls/intrinsic`), the label baseline at other sizes.
+The corners left open earlier, measured 2026-09-18 (`ios/representable/measure-controls`,
+`measure-baselines`, `measure-axes`, `grid`; Tier A exact, Tier C within 1.1 %):
+
+- `alignmentRectInsets` beyond the switch: a `UISegmentedControl` ("A", "B") lays out on a
+  31 pt rect inside its 32 and is 64 wide (every segment at least 32); the slider (34 tall),
+  stepper (94 × 32), progress view (4), activity indicator (20 × 20), page control (74 × 26 for
+  three pages) and a filled `UIButton` ("Go", 46 × 40.5) have none. A slider and a progress
+  view keep their heights in a 44 pt container (UIKit hugs them vertically); a slider has no
+  intrinsic width (0 under `fixedSize()`). A compact `UIDatePicker` reports no intrinsic size to
+  SwiftUI on iOS 26: 0 × 0 under `fixedSize()` with a clipped capsule, so the seam hands SwiftUI
+  none for it while UIKit's own layout keeps the capsules.
+- A hugging label's baselines at 12, 20 and 34 pt follow its font's metrics as at 17
+  (`uikit/text-metrics.json`), on the first and the last baseline alike.
+- One axis intrinsic only: a view with an intrinsic height and no width fills a 200 × 60
+  container, is 0 × 30 under `fixedSize()` and beside a text takes the row's width and the
+  height the stack hands the row (97.5 of 300); a `sizeThatFits` mixing its own width with the
+  view's intrinsic height is taken as is (50 × 20.5). `sizeThatFits` cannot return nil on one
+  axis only (it returns a `CGSize`).
+- In a `Grid` labels and a switch are cells like any view; a slider spanning two columns takes
+  the 280 left of the row and the extra width is shared equally by the spanned columns
+  (114 and 154 for contents of 28.5 and 68.5).
 
 Hover (2026-09-18, `ios/representable/hover`, `Playwright/representable-hover-probe.mjs`):
 SwiftUI's pointer moves reach the hosted tree as a hover at the pointer's position

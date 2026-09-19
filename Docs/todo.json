@@ -263,13 +263,14 @@
       "framework": "Interop",
       "area": "Representables",
       "title": "The unmeasured sizing corners",
-      "detail": "`alignmentRectInsets` on controls other than the switch, a label's baseline at sizes other than 17 pt, a `sizeThatFits` that returns a size on one axis and the intrinsic on the other; one grid fixture on the simulator.",
+      "detail": "Done 2026-09-18: `ios/representable/measure-controls`, `measure-baselines`, `measure-axes` and `grid` on the simulator; the segmented control's 31 pt alignment rect and 32 pt minimum segment, sliders and progress views hugging vertically, the compact date picker's missing intrinsic size, label baselines at 12/20/34 pt, one-axis intrinsic sizes and a Grid with representables (Docs/elements/Representable.md).",
       "kind": "verify",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Representable.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "ix-size-gate",

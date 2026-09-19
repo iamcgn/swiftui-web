@@ -648,6 +648,15 @@ extension TextMetricsRequests {
         }
         for string in ["Mar 15, 2025", "11:09 AM"] { requests.append(TextMetricRequest(string, seventeen)) }
         requests.append(TextMetricRequest("UILabel in a sheet", seventeen))
+        // The sizing corners (ios/representable/measure-axes, grid): the texts beside the boxes and the grid's cells.
+        requests.append(TextMetricRequest("Tx", .style("body")))
+        requests.append(TextMetricRequest("Tx", .style("body"), width: 156))
+        for string in ["A", "B", "C", "Long cell"] {
+            requests.append(TextMetricRequest(string, .style("body")))
+            requests.append(TextMetricRequest(string, .style("body"), width: 1000))
+        }
+        requests.append(TextMetricRequest("C", .style("body"), width: 11.5))
+        requests.append(TextMetricRequest("Long cell", .style("body"), width: 169.75))
         return requests
     }()
 }

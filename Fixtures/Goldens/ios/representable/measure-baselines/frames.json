@@ -1,0 +1,87 @@
+{
+  "fixture" : "ios\/representable\/measure-baselines",
+  "frames" : {
+    "labelLarge" : {
+      "height" : 41,
+      "width" : 43.5,
+      "x" : 153.5,
+      "y" : 125.75
+    },
+    "labelLast" : {
+      "height" : 24,
+      "width" : 26,
+      "x" : 153.5,
+      "y" : 174.75
+    },
+    "labelSmall" : {
+      "height" : 14.5,
+      "width" : 16.5,
+      "x" : 153.5,
+      "y" : 67.25
+    },
+    "labelTitle" : {
+      "height" : 24,
+      "width" : 26,
+      "x" : 153.5,
+      "y" : 92.75
+    },
+    "rowLarge" : {
+      "height" : 41,
+      "width" : 74,
+      "x" : 123,
+      "y" : 125.75
+    },
+    "rowLast" : {
+      "height" : 25,
+      "width" : 56.5,
+      "x" : 123,
+      "y" : 174.75
+    },
+    "rowSmall" : {
+      "height" : 24.5,
+      "width" : 47,
+      "x" : 123,
+      "y" : 60.25
+    },
+    "rowTitle" : {
+      "height" : 25,
+      "width" : 56.5,
+      "x" : 123,
+      "y" : 92.75
+    },
+    "stack" : {
+      "height" : 139.5,
+      "width" : 74,
+      "x" : 123,
+      "y" : 60.25
+    },
+    "textLarge" : {
+      "height" : 24.5,
+      "width" : 22.5,
+      "x" : 123,
+      "y" : 139.75
+    },
+    "textLast" : {
+      "height" : 24.5,
+      "width" : 22.5,
+      "x" : 123,
+      "y" : 175.25
+    },
+    "textSmall" : {
+      "height" : 24.5,
+      "width" : 22.5,
+      "x" : 123,
+      "y" : 60.25
+    },
+    "textTitle" : {
+      "height" : 24.5,
+      "width" : 22.5,
+      "x" : 123,
+      "y" : 93.25
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

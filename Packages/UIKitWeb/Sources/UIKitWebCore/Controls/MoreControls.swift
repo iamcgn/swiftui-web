@@ -24,6 +24,8 @@ open class UISlider: UIControl {
         super.init(frame: CGRect(origin: frame.origin, size: CGSize(width: frame.width, height: Self.height)))
         isAccessibilityElement = true
         accessibilityTraits = .adjustable
+        // A slider keeps its height in a taller container (ios/representable/measure-controls: 34 in 44).
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
     }
 
     open func setValue(_ value: Float, animated: Bool) { self.value = value }
@@ -175,11 +177,16 @@ open class UISegmentedControl: UIControl {
     }
 
     /// Every segment is as wide as the widest title plus 20 (uikit/controls/more: 55 for
-    /// "Three" at 35.5); the control is 32 tall.
+    /// "Three" at 35.5) and at least 32 (ios/representable/measure-controls: 64 for "A" and "B");
+    /// the control is 32 tall.
+    static let minimumSegmentWidth: CGFloat = 32
     var segmentWidth: CGFloat {
         let widest = labels.map { $0.intrinsicContentSize.width }.max() ?? 0
-        return (widest + 2 * Self.padding).rounded(.down)
+        return max(Self.minimumSegmentWidth, (widest + 2 * Self.padding).rounded(.down))
     }
+
+    /// SwiftUI lays the control out on a 31 pt alignment rect inside the 32 (ios/representable/measure-controls).
+    override open var alignmentRectInsets: UIEdgeInsets { UIEdgeInsets(top: 0.5, left: 0, bottom: 0.5, right: 0) }
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
         CGSize(width: segmentWidth * CGFloat(max(1, titles.count)), height: Self.height)
@@ -318,12 +325,15 @@ open class UIProgressView: UIView {
     public init(progressViewStyle style: Style) {
         progressViewStyle = style
         super.init(frame: CGRect(x: 0, y: 0, width: 0, height: Self.height))
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
         isAccessibilityElement = true
     }
 
     public override init(frame: CGRect) {
         super.init(frame: CGRect(origin: frame.origin, size: CGSize(width: frame.width, height: Self.height)))
         isAccessibilityElement = true
+        // A progress view keeps its 4 pt in a taller container (ios/representable/measure-controls).
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
     }
 
     open func setProgress(_ progress: Float, animated: Bool) { self.progress = progress }
