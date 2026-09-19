@@ -12,10 +12,11 @@ Apple docs: [sheet(isPresented:onDismiss:content:)](https://developer.apple.com/
 | `sheet(isPresented:onDismiss:content:)`, `sheet(item:onDismiss:content:)` | implemented (modal, dimmed backdrop) |
 | `popover(isPresented:attachmentAnchor:arrowEdge:content:)`, `popover(item:…)` | implemented (`attachmentAnchor` ignored: anchored to the view's bounds; a press outside dismisses) |
 | `alert(_:isPresented:actions:message:)` (Text, key and string titles, with and without a message) | implemented (buttons dismiss after their action) |
-| `confirmationDialog(_:isPresented:titleVisibility:actions:message:)` | implemented as an alert-style panel |
+| `confirmationDialog(_:isPresented:titleVisibility:actions:message:)` | implemented: an alert-style panel on macOS; on iOS a glass popover above its source, its actions stacked as capsules and the cancel button left out (`Docs/elements/iOS.md`, `ios/dialog/basic`) |
 | `@Environment(\.dismiss)`, `DismissAction` | implemented: dismisses the presentation the view is in, else pops the enclosing `NavigationStack` |
 | Pop-up `Picker` menu | implemented (`Docs/elements/Picker.md`): a menu below the button with the selected row checked |
-| `fullScreenCover`, `presentationDetents`, `presentationDragIndicator`, `interactiveDismissDisabled`, `Menu`, `contextMenu`, `fileImporter`, `presentationMode`, keyboard dismissal (Escape) | implemented 2026-09-04 (`Docs/elements/Keyboard.md`) |
+| `fullScreenCover`, `interactiveDismissDisabled`, `Menu`, `contextMenu`, `fileImporter`, `presentationMode`, keyboard dismissal (Escape) | implemented 2026-09-04 (`Docs/elements/Keyboard.md`) |
+| `presentationDetents` (`medium`, `large`; `fraction`, `height` and the selection form accepted), `presentationDragIndicator` | implemented 2026-09-18 for the iOS sheet (`ios/sheet/medium`): the medium detent's floating card and the grabber; no effect on macOS |
 
 ## Behaviour
 
@@ -32,6 +33,10 @@ binding. Content is mounted with the presenter's environment plus `dismiss`; `_d
 makes an alert's buttons dismiss after running. `Runtime.dismissTopmostPresentation()` is for hosts.
 
 ## Geometry (approximate: macOS shows these in separate windows, so there are no goldens)
+
+iOS is measured: the sheet, its medium detent, the alert and the dialog on the iPhone SE
+simulator are in `Docs/elements/iOS.md` (`ios/sheet/`, `ios/alert/`, `ios/dialog/`; the golden
+captures the whole window). The macOS looks below are by eye.
 
 | Kind | Panel |
 |---|---|
@@ -52,5 +57,5 @@ every kind in headless Chromium through the accessibility overlay. wasm js tests
 
 The real macOS looks (sheet slide-in and shadow, popover material, alert icon and button
 layout), sizes for wide content (no scrolling inside sheets), `Menu`/`contextMenu`, keyboard
-dismissal, focus moving into the presentation, `presentationDetents`, `interactiveDismissDisabled`,
+dismissal, focus moving into the presentation, detents beyond medium and large, `interactiveDismissDisabled`,
 `attachmentAnchor` other than the bounds, multiple presentations from one view.

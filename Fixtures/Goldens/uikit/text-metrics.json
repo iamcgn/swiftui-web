@@ -1248,6 +1248,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 33
     },
+    "system:17:400:default|;l1|UILabel in a sheet" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 135.5
+    },
     "system:17:400:default||••••••" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,

@@ -41,6 +41,14 @@ Chromium ≤ 0.41 %, WebKit ≤ 0.37 %, Firefox ≤ 0.46 % with its hinting-clas
 Tier C: `tabview/basic` 0.37 % (0.36 % after the step), `tabview/sized` 0.17 %. `TabViewTests` cover the bar geometry and painting, content
 placement, selection by press and keys, and the own-state variant.
 
+## iOS (iPhone SE simulator, `ios/tabs/basic`, `ios/tabs/second`, 2026-09-18)
+
+The bar is iOS 26's floating capsule at the window's bottom (`tabBarAtBottom`): 270 wide and
+58 tall on a 375 pt window, 23 above the bottom, a symbol and a 10 pt label per tab, the
+selected tab on a 93.5 × 53.5 pill; the content fills the window less 83 at the bottom. Numbers
+and colours in `Docs/elements/iOS.md`; `TabItemNode` reads the label's first system image for
+the symbol.
+
 ## Not yet covered
 
 Tab item images and badges, the iOS `Tab` API and styles, disabled tabs, the bar's focus ring,

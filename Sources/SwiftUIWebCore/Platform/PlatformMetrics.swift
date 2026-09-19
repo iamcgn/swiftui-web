@@ -181,6 +181,71 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var formGroupedHeaderSpacing: CGFloat = 8                       // unverified
 
     // Presentations (approximate: separate windows on macOS, Docs/elements/Presentation.md)
+    // iOS sheets, alerts, dialogs, the tab bar, the date pills and list selection (iOS 26 on the
+    // iPhone SE simulator: ios/sheet/, ios/alert/, ios/dialog/, ios/tabs/, ios/datepicker/compact,
+    // ios/list/selection; Docs/elements/iOS.md). macOS keeps its own looks: these defaults are
+    // the switches off and the values macOS's nodes never read.
+    package var sheetsFillWindow = false                          // iOS: the sheet is the window's width, its content centred
+    package var sheetTopInset: CGFloat = 0                        // iOS 31: where the large detent's card starts
+    package var sheetCornerRadius: CGFloat = 10                   // iOS 39
+    package var sheetMediumHeightFraction: CGFloat = 0.5          // iOS 351/667: the medium detent's height over the window's
+    package var sheetMediumSideInset: CGFloat = 0                 // iOS 6: the medium card floats in from the sides
+    package var sheetMediumBottomInset: CGFloat = 0               // iOS 6: and from the bottom
+    package var sheetGrabberSize: CGSize = CGSize(width: 36, height: 5)
+    package var sheetGrabberTop: CGFloat = 5
+    package var sheetGrabberAlpha = 0.25                          // iOS: (180) over the card's 239
+    package var presentationGlassFill: RGBA = RGBA(r: 239, g: 239, b: 239)   // iOS: the regular material over the dimmed white
+    package var alertCornerRadius: CGFloat = 10                   // iOS 34
+    package var alertInsets: EdgeInsets = EdgeInsets(top: 21.5, leading: 13.5, bottom: 13, trailing: 13.5)   // iOS: the buttons' insets
+    package var alertTextInset: CGFloat = 15                      // iOS: the texts sit 15 further in than the buttons
+    package var alertTitleSize: CGFloat = 17
+    package var alertMessageSize: CGFloat = 15
+    package var alertTitleMessageGap: CGFloat = 10.5
+    package var alertMessageButtonsGap: CGFloat = 27
+    package var alertButtonHeight: CGFloat = 46.5
+    package var alertButtonGap: CGFloat = 8.5
+    package var alertButtonFillAlpha = 16.0 / 255                 // iOS: (224) over the card's 239
+    package var alertDestructiveColor: RGBA = RGBA(r: 255, g: 56, b: 60)
+    package var dialogsArePopovers = false                        // iOS: a confirmation dialog is a glass panel above its source
+    package var dialogWidth: CGFloat = 238
+    package var dialogCornerRadius: CGFloat = 32.5
+    package var dialogInsets: EdgeInsets = EdgeInsets(top: 21.5, leading: 13.5, bottom: 13.5, trailing: 13.5)
+    package var dialogTextInset: CGFloat = 15
+    package var dialogTitleSize: CGFloat = 17
+    package var dialogMessageSize: CGFloat = 17
+    package var dialogTitleMessageGap: CGFloat = 4
+    package var dialogMessageButtonsGap: CGFloat = 19
+    package var dialogButtonHeight: CGFloat = 45.5
+    package var dialogButtonGap: CGFloat = 10.5
+    package var dialogArrowHeight: CGFloat = 13
+    package var dialogArrowWidth: CGFloat = 24                    // approximate: the base of the arrow at the panel's edge
+    package var dialogSourceGap: CGFloat = 1.25                   // from the arrow's tip to the source's edge
+    package var dialogGlassFill: RGBA = RGBA(r: 245, g: 246, b: 246)    // iOS: the material over white, no dim
+    package var dialogButtonFillAlpha = 16.0 / 255                // (230) over the panel's 245
+    package var tabBarAtBottom = false                            // iOS: the floating capsule at the window's bottom
+    package var tabBarContentBottomInset: CGFloat = 83            // iOS: the content area ends 83 above the window's bottom
+    package var tabBarCapsuleSideInset: CGFloat = 52.5
+    package var tabBarCapsuleBottomInset: CGFloat = 23
+    package var tabBarCapsuleHeight: CGFloat = 58
+    package var tabBarCapsuleFill: RGBA = RGBA(r: 251, g: 252, b: 252)
+    package var tabBarInnerPadding: CGFloat = 5.625               // the slots share the capsule's width less this at each end
+    package var tabPillSize: CGSize = CGSize(width: 93.5, height: 53.5)   // the selected tab's pill, 2 below the capsule's top
+    package var tabPillTop: CGFloat = 2
+    package var tabPillAlpha = 22.0 / 255                         // (233) over the capsule's 252
+    package var tabIconSize: CGFloat = 24                         // the symbol's point size (a house is 26.5 × 23.5)
+    package var tabIconTop: CGFloat = 7.5                         // from the pill's top
+    package var tabLabelSize: CGFloat = 10
+    package var tabLabelBaseline: CGFloat = 44                    // from the pill's top
+    package var datePills = false                                 // iOS: the compact picker's values sit in tinted pills
+    package var datePillPadding: CGFloat = 13.5                   // each side of the text
+    package var datePillCornerRadius: CGFloat = 8
+    package var datePillAlpha = 16.0 / 255                        // (239) over white
+    package var datePillGap: CGFloat = 5
+    package var datePillHeight: CGFloat = 38.5                    // a date alone
+    package var dateTimePillHeight: CGFloat = 40                  // rows holding a time
+    package var dateTextSize: CGFloat = 17
+    package var listSelectionFill: RGBA? = nil                    // iOS (209, 209, 214): an opaque fill over the row
+
     package var presentationPadding: CGFloat = 20
     package var presentationCornerRadius: CGFloat = 10
     package var presentationDimAlpha = 0.2

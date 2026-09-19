@@ -20,9 +20,12 @@ final class UIKitHost: GoldenHost {
     private let controller: UIHostingController<AnyView>
     private let window: UIWindow
     private let size: CGSize
+    /// Whether the capture is the whole window (sheets, alerts and dialogs presented over the view).
+    private let capturesWindow: Bool
 
-    init(_ view: AnyView, size: CGSize, colorScheme: ColorScheme) {
+    init(_ view: AnyView, size: CGSize, colorScheme: ColorScheme, capturesWindow: Bool) {
         self.size = size
+        self.capturesWindow = capturesWindow
         controller = UIHostingController(rootView: Self.root(view, collector: collector, colorScheme: colorScheme))
         controller.safeAreaRegions = []
         controller.view.backgroundColor = .clear
@@ -49,22 +52,24 @@ final class UIKitHost: GoldenHost {
         return collector.frames
     }
 
-    /// A navigation push or pop animates for 0.35 s in UIKit; the capture waits it out.
+    /// A navigation push or pop animates for 0.35 s in UIKit and a sheet's presentation about
+    /// 0.5 s plus its settling; the capture waits them out.
     func settle() {
-        RunLoop.main.run(until: Date().addingTimeInterval(1.0))
+        RunLoop.main.run(until: Date().addingTimeInterval(2.0))
     }
 
     func png(scale: Int) throws -> (data: Data, width: Int, height: Int) {
-        let bounds = controller.view.bounds
+        let root: UIView = capturesWindow ? window : controller.view
+        let bounds = root.bounds
         guard bounds.size == size else {
-            throw NSError(domain: "GoldenGenIOS", code: 1, userInfo: [NSLocalizedDescriptionKey: "hosting view is \(bounds.size), fixture is \(size)"])
+            throw NSError(domain: "GoldenGenIOS", code: 1, userInfo: [NSLocalizedDescriptionKey: "\(capturesWindow ? "window" : "hosting view") is \(bounds.size), fixture is \(size)"])
         }
         let format = UIGraphicsImageRendererFormat()
         format.scale = CGFloat(scale)
         format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: bounds.size, format: format)
         var drawn = false
-        let image = renderer.image { _ in drawn = controller.view.drawHierarchy(in: bounds, afterScreenUpdates: true) }
+        let image = renderer.image { _ in drawn = root.drawHierarchy(in: bounds, afterScreenUpdates: true) }
         guard drawn, let png = image.pngData() else { throw NSError(domain: "GoldenGenIOS", code: 2, userInfo: [NSLocalizedDescriptionKey: "drawHierarchy failed"]) }
         return (png, Int(bounds.width) * scale, Int(bounds.height) * scale)
     }
@@ -103,7 +108,7 @@ final class Delegate: NSObject, UIApplicationDelegate {
         let host = "iPhoneSimulator \(UIDevice.current.systemVersion) \(UIDevice.current.name)"
         #endif
         let platform = GoldenPlatform(profile: "iOS", host: host, subdirectory: "ios", fixturePlatform: .iOS,
-                                      makeHost: { UIKitHost($0, size: $1, colorScheme: $2) },
+                                      makeHost: { UIKitHost($0, size: $1, colorScheme: $2, capturesWindow: $3) },
                                       fontMetrics: { fixtureFont in
                                           let font = uiFont(fixtureFont)
                                           let ct = CTFontCreateWithFontDescriptor(font.fontDescriptor as CTFontDescriptor, font.pointSize, nil)

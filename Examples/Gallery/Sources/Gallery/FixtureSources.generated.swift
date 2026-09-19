@@ -513,16 +513,20 @@ public static let styles = Fixture("datepicker/styles", size: CGSize(width: 360,
     .probe("stack")
 }
 """##),
-        FixtureSource(name: "demo/pasteboard", file: "Fixtures/Sources/Demo/DemoFixtures.swift", firstLine: 13, lastLine: 20, declaration: #"""
+        FixtureSource(name: "demo/pasteboard", file: "Fixtures/Sources/Demo/DemoFixtures.swift", firstLine: 13, lastLine: 24, declaration: ##"""
 /// `copyable` puts the text on the pasteboard through the host; `PasteButton` reads it back.
 public static let pasteboard = Fixture("demo/pasteboard", size: CGSize(width: 360, height: 160), model: { PasteboardDemoModel() }, steps: []) { model in
     VStack(spacing: 12) {
+        #if os(iOS)   // `copyable` is macOS API; the iOS builds render only ios/ fixtures
+        Text("Copy me").probe("copyable")
+        #else
         Text("Copy me").copyable(["Copy me"]).probe("copyable")
+        #endif
         PasteButton(payloadType: String.self) { strings in model.pasted = strings.first ?? "" }.probe("paste")
         Text(model.pasted).probe("pasted")
     }
 }
-"""#),
+"""##),
         FixtureSource(name: "disclosure/basic", file: "Fixtures/Sources/Disclosure/DisclosureFixtures.swift", firstLine: 13, lastLine: 40, declaration: #"""
 public static let basic = Fixture(
     "disclosure/basic", size: CGSize(width: 320, height: 300),
@@ -1361,6 +1365,26 @@ public static let tiling = Fixture("image/tiling", size: CGSize(width: 300, heig
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "ios/alert/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 95, lastLine: 112, declaration: #"""
+/// The alert: title, message, a destructive and a cancel button.
+public static let alert = Fixture(
+    "ios/alert/basic", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.alert = true }]
+) { model in
+    ZStack {
+        Color.white.ignoresSafeArea()
+        Button("Delete…") { model.alert = true }.probe("button")
+    }
+    .alert("Delete the item?", isPresented: Binding(get: { model.alert }, set: { model.alert = $0 })) {
+        Button("Delete", role: .destructive) {}
+        Button("Cancel", role: .cancel) {}
+    } message: {
+        Text("This cannot be undone.")
+    }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
         FixtureSource(name: "ios/button/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 57, lastLine: 73, declaration: #"""
 /// Button styles: the plain default, bordered, prominent, borderless, disabled, destructive.
 public static let button = Fixture("ios/button/basic", size: CGSize(width: 320, height: 320)) {
@@ -1528,6 +1552,41 @@ public static let darkText = Fixture("ios/dark/text", size: CGSize(width: 320, h
     .probe("stack")
 }.platform(.iOS).colorScheme(.dark)
 """#),
+        FixtureSource(name: "ios/datepicker/compact", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 156, lastLine: 166, declaration: #"""
+/// The compact date picker in a form: date, date and time, time; the tinted pills.
+public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(width: 375, height: 360)) {
+    Form {
+        DatePicker("Date", selection: .constant(fixed), displayedComponents: .date).probe("date")
+        DatePicker("When", selection: .constant(fixed)).probe("dateTime")
+        DatePicker("Time", selection: .constant(fixed), displayedComponents: .hourAndMinute).probe("time")
+        DatePicker("Off", selection: .constant(fixed), displayedComponents: .date).disabled(true).probe("disabled")
+    }
+    .environment(\.timeZone, utc)
+    .probe("form")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/dialog/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 114, lastLine: 133, declaration: #"""
+/// The confirmation dialog: a titled action sheet with three actions and a cancel button.
+public static let dialog = Fixture(
+    "ios/dialog/basic", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.dialog = true }]
+) { model in
+    ZStack {
+        Color.white.ignoresSafeArea()
+        Button("Options…") { model.dialog = true }.probe("button")
+    }
+    .confirmationDialog("Item options", isPresented: Binding(get: { model.dialog }, set: { model.dialog = $0 }), titleVisibility: .visible) {
+        Button("Copy") {}
+        Button("Duplicate") {}
+        Button("Delete", role: .destructive) {}
+        Button("Cancel", role: .cancel) {}
+    } message: {
+        Text("Choose what to do with the item.")
+    }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
         FixtureSource(name: "ios/form/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 167, lastLine: 185, declaration: #"""
 /// A grouped form: sections with headers, the rows the settings screen uses.
 public static let form = Fixture("ios/form/basic", size: CGSize(width: 320, height: 520)) {
@@ -1663,6 +1722,21 @@ public static let listPlain = Fixture("ios/list/plain", size: CGSize(width: 320,
         Section("Fruit") { Text("Cherry").probe("row3") }
     }
     .listStyle(.plain)
+    .probe("list")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 168, lastLine: 180, declaration: #"""
+/// A list with a selection binding: the selected row's look after a step selects it.
+public static let listSelection = Fixture(
+    "ios/list/selection", size: CGSize(width: 375, height: 360),
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("select") { $0.selection = 2 }]
+) { model in
+    List(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+        Text("First").tag(1).probe("first")
+        Text("Second").tag(2).probe("second")
+        Text("Third").tag(3).probe("third")
+    }
     .probe("list")
 }.platform(.iOS)
 """#),
@@ -2226,6 +2300,29 @@ public static let scrollContent = Fixture("ios/representable/scroll", size: CGSi
     .probe("scroll")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/representable/sheet", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 72, lastLine: 92, declaration: #"""
+/// A representable inside a sheet (ix-containers left it here): the UIKit label sits in
+/// the sheet's content like any leaf.
+public static let sheetRepresentable = Fixture(
+    "ios/representable/sheet", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.sheet = true }]
+) { model in
+    ZStack {
+        Color.white.ignoresSafeArea()
+        Button("Show sheet") { model.sheet = true }.probe("button")
+    }
+    .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+        VStack(spacing: 12) {
+            Text("Above")
+            LabelBox(text: "UILabel in a sheet", hugging: 1000, resistance: 1000)
+            Text("Below")
+        }
+        
+    }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
         FixtureSource(name: "ios/representable/sizing", file: "Fixtures/Sources/Representable/RepresentableFixtures.swift", firstLine: 633, lastLine: 657, declaration: #"""
 /// The representable's own `sizeThatFits`: a fixed size, the proposal's width, the ideal
 /// size when nothing is proposed, and how a representable aligns to a text baseline.
@@ -2316,6 +2413,38 @@ public static let wheel = Fixture("ios/representable/wheel", size: CGSize(width:
     .probe("outer")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/sheet/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 41, lastLine: 53, declaration: #"""
+/// The default sheet (large detent): the dimmed window, the card's top corners and inset.
+public static let sheet = Fixture(
+    "ios/sheet/basic", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.sheet = true }]
+) { model in
+    ZStack {
+        Color.white.ignoresSafeArea()
+        Button("Show sheet") { model.sheet = true }.probe("button")
+    }
+    .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) { SheetBody() }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
+        FixtureSource(name: "ios/sheet/medium", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 55, lastLine: 69, declaration: #"""
+/// A medium detent and a hidden drag indicator's opposite: the visible grabber.
+public static let sheetMedium = Fixture(
+    "ios/sheet/medium", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.sheet = true }]
+) { model in
+    ZStack {
+        Color.white.ignoresSafeArea()
+        Button("Show sheet") { model.sheet = true }.probe("button")
+    }
+    .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+        SheetBody().presentationDetents([.medium]).presentationDragIndicator(.visible)
+    }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
         FixtureSource(name: "ios/slider/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 75, lastLine: 86, declaration: #"""
 /// Slider: plain, with a label, stepped, disabled.
 public static let slider = Fixture("ios/slider/basic", size: CGSize(width: 320, height: 220)) {
@@ -2373,6 +2502,29 @@ public static let symbols = Fixture("ios/symbol/basic", size: CGSize(width: 320,
     }
     .probe("stack")
 }.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/tabs/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 135, lastLine: 145, declaration: #"""
+/// The tab bar: three tabs with symbols, the first selected. No step selects another: a
+/// programmatic selection change leaves iOS 26's pill raised as glass for seconds, so
+/// `ios/tabs/second` starts on the second tab instead.
+public static let tabs = Fixture("ios/tabs/basic", size: phone) {
+    TabView(selection: .constant(0)) {
+        Text("Home content").probe("home").tabItem { Label("Home", systemImage: "house") }.tag(0)
+        Text("Search content").tabItem { Label("Search", systemImage: "magnifyingglass") }.tag(1)
+        Text("Settings content").tabItem { Label("Settings", systemImage: "gear") }.tag(2)
+    }
+    .probe("tabs")
+}.platform(.iOS).capturesWindow()
+"""#),
+        FixtureSource(name: "ios/tabs/second", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 147, lastLine: 154, declaration: #"""
+public static let tabsSecond = Fixture("ios/tabs/second", size: phone) {
+    TabView(selection: .constant(1)) {
+        Text("Home content").tabItem { Label("Home", systemImage: "house") }.tag(0)
+        Text("Search content").probe("search").tabItem { Label("Search", systemImage: "magnifyingglass") }.tag(1)
+        Text("Settings content").tabItem { Label("Settings", systemImage: "gear") }.tag(2)
+    }
+    .probe("tabs")
+}.platform(.iOS).capturesWindow()
 """#),
         FixtureSource(name: "ios/text/bold-trait", file: "Fixtures/Sources/iOS/IOSControlsFixtures.swift", firstLine: 24, lastLine: 40, declaration: #"""
 /// The bold trait on every text style.
@@ -7669,7 +7821,7 @@ public enum DatePickerFixtures {
     public static let all: [Fixture] = [basic, styles, graphical, clock, steps]
 }
 """##,
-        "Fixtures/Sources/Demo/DemoFixtures.swift": #"""
+        "Fixtures/Sources/Demo/DemoFixtures.swift": ##"""
 // Golden-less demonstrations (decision 0016, `demo/` prefix): behaviour no golden can capture,
 // shown in the gallery and named by a support row. Like `probe/`, no tier enables the prefix.
 import SwiftUI
@@ -7685,13 +7837,17 @@ public enum DemoFixtures {
     /// `copyable` puts the text on the pasteboard through the host; `PasteButton` reads it back.
     public static let pasteboard = Fixture("demo/pasteboard", size: CGSize(width: 360, height: 160), model: { PasteboardDemoModel() }, steps: []) { model in
         VStack(spacing: 12) {
+            #if os(iOS)   // `copyable` is macOS API; the iOS builds render only ios/ fixtures
+            Text("Copy me").probe("copyable")
+            #else
             Text("Copy me").copyable(["Copy me"]).probe("copyable")
+            #endif
             PasteButton(payloadType: String.self) { strings in model.pasted = strings.first ?? "" }.probe("paste")
             Text(model.pasted).probe("pasted")
         }
     }
 }
-"""#,
+"""##,
         "Fixtures/Sources/Disclosure/DisclosureFixtures.swift": #"""
 // DisclosureGroup fixtures: a collapsed group that expands in a step, an expanded group, a
 // custom label, and nested groups.
@@ -13699,6 +13855,197 @@ public enum IOSPickersFixtures {
     public static let all: [Fixture] = [menu, listFooterHeader]
 }
 """#,
+        "Fixtures/Sources/iOS/IOSPresentationFixtures.swift": ##"""
+// iOS presentation fixtures (`ios/sheet/`, `ios/alert/`, `ios/dialog/`, `ios/tabs/`,
+// `ios/datepicker/`, `ios/list/selection`, `ios/representable/sheet`): the sheet, alert and confirmation dialog captured
+// as the whole iPhone window after a step presents them, the tab bar, the compact date picker's
+// pills and a list's selection, rendered on the iPhone SE simulator (decision 0015) and
+// reproduced by the runtime's iOS profile (Docs/elements/iOS.md). The presenting screens are
+// white (`Color.white` behind the button): the glass materials blur what is behind them, and
+// the goldens must show them over an app's white, not the harness window's clear.
+import SwiftUI
+import FixtureKit
+
+@Observable
+public final class IOSPresentationModel {
+    public var sheet = false
+    public var alert = false
+    public var dialog = false
+    public var tab = 0
+    public var selection: Int?
+    public init() {}
+}
+
+private struct SheetBody: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("Sheet title").font(.headline)
+            Text("Some content under the title.")
+            Button("Done") { dismiss() }
+        }
+        
+    }
+}
+
+public enum IOSPresentationFixtures {
+    static let phone = CGSize(width: 375, height: 667)
+    static let utc = TimeZone(secondsFromGMT: 0)!
+    /// Four hours before the shared fixture date: 11:09 AM, a two-digit hour, because iOS 26
+    /// sizes a compact picker's time pill for the wider of its own time and the current time
+    /// (`Docs/elements/UIKit/DatePicker.md`), so a one-digit hour would vary by the time of day.
+    static let fixed = DatePickerFixtures.fixed.addingTimeInterval(-4 * 3600)
+
+    /// The default sheet (large detent): the dimmed window, the card's top corners and inset.
+    public static let sheet = Fixture(
+        "ios/sheet/basic", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Show sheet") { model.sheet = true }.probe("button")
+        }
+        .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) { SheetBody() }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// A medium detent and a hidden drag indicator's opposite: the visible grabber.
+    public static let sheetMedium = Fixture(
+        "ios/sheet/medium", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Show sheet") { model.sheet = true }.probe("button")
+        }
+        .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            SheetBody().presentationDetents([.medium]).presentationDragIndicator(.visible)
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    #if canImport(UIKit)
+    /// A representable inside a sheet (ix-containers left it here): the UIKit label sits in
+    /// the sheet's content like any leaf.
+    public static let sheetRepresentable = Fixture(
+        "ios/representable/sheet", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Show sheet") { model.sheet = true }.probe("button")
+        }
+        .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            VStack(spacing: 12) {
+                Text("Above")
+                LabelBox(text: "UILabel in a sheet", hugging: 1000, resistance: 1000)
+                Text("Below")
+            }
+            
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+    #endif
+
+    /// The alert: title, message, a destructive and a cancel button.
+    public static let alert = Fixture(
+        "ios/alert/basic", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.alert = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Delete…") { model.alert = true }.probe("button")
+        }
+        .alert("Delete the item?", isPresented: Binding(get: { model.alert }, set: { model.alert = $0 })) {
+            Button("Delete", role: .destructive) {}
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This cannot be undone.")
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// The confirmation dialog: a titled action sheet with three actions and a cancel button.
+    public static let dialog = Fixture(
+        "ios/dialog/basic", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.dialog = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Options…") { model.dialog = true }.probe("button")
+        }
+        .confirmationDialog("Item options", isPresented: Binding(get: { model.dialog }, set: { model.dialog = $0 }), titleVisibility: .visible) {
+            Button("Copy") {}
+            Button("Duplicate") {}
+            Button("Delete", role: .destructive) {}
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Choose what to do with the item.")
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// The tab bar: three tabs with symbols, the first selected. No step selects another: a
+    /// programmatic selection change leaves iOS 26's pill raised as glass for seconds, so
+    /// `ios/tabs/second` starts on the second tab instead.
+    public static let tabs = Fixture("ios/tabs/basic", size: phone) {
+        TabView(selection: .constant(0)) {
+            Text("Home content").probe("home").tabItem { Label("Home", systemImage: "house") }.tag(0)
+            Text("Search content").tabItem { Label("Search", systemImage: "magnifyingglass") }.tag(1)
+            Text("Settings content").tabItem { Label("Settings", systemImage: "gear") }.tag(2)
+        }
+        .probe("tabs")
+    }.platform(.iOS).capturesWindow()
+
+    public static let tabsSecond = Fixture("ios/tabs/second", size: phone) {
+        TabView(selection: .constant(1)) {
+            Text("Home content").tabItem { Label("Home", systemImage: "house") }.tag(0)
+            Text("Search content").probe("search").tabItem { Label("Search", systemImage: "magnifyingglass") }.tag(1)
+            Text("Settings content").tabItem { Label("Settings", systemImage: "gear") }.tag(2)
+        }
+        .probe("tabs")
+    }.platform(.iOS).capturesWindow()
+
+    /// The compact date picker in a form: date, date and time, time; the tinted pills.
+    public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(width: 375, height: 360)) {
+        Form {
+            DatePicker("Date", selection: .constant(fixed), displayedComponents: .date).probe("date")
+            DatePicker("When", selection: .constant(fixed)).probe("dateTime")
+            DatePicker("Time", selection: .constant(fixed), displayedComponents: .hourAndMinute).probe("time")
+            DatePicker("Off", selection: .constant(fixed), displayedComponents: .date).disabled(true).probe("disabled")
+        }
+        .environment(\.timeZone, utc)
+        .probe("form")
+    }.platform(.iOS)
+
+    /// A list with a selection binding: the selected row's look after a step selects it.
+    public static let listSelection = Fixture(
+        "ios/list/selection", size: CGSize(width: 375, height: 360),
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("select") { $0.selection = 2 }]
+    ) { model in
+        List(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+            Text("First").tag(1).probe("first")
+            Text("Second").tag(2).probe("second")
+            Text("Third").tag(3).probe("third")
+        }
+        .probe("list")
+    }.platform(.iOS)
+
+    public static var all: [Fixture] {
+        var fixtures = [sheet, sheetMedium, alert, dialog, tabs, tabsSecond, datePicker, listSelection]
+        #if canImport(UIKit)
+        fixtures.append(sheetRepresentable)
+        #endif
+        return fixtures
+    }
+}
+"""##,
         "Fixtures/Sources/iOS/IOSSymbolFixtures.swift": #"""
 // SF Symbols and labels in the iOS profile: symbol sizes at the iOS text styles and the
 // icon/title layout of a `Label`, alone and as list rows.

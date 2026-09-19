@@ -1,0 +1,21 @@
+{
+  "fixture" : "ios\/tabs\/basic",
+  "frames" : {
+    "home" : {
+      "height" : 24.5,
+      "width" : 108.5,
+      "x" : 133.25,
+      "y" : 279.75
+    },
+    "tabs" : {
+      "height" : 667,
+      "width" : 375,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 667,
+    "width" : 375
+  }
+}

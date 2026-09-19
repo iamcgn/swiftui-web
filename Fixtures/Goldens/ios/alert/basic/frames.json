@@ -1,0 +1,40 @@
+{
+  "fixture" : "ios\/alert\/basic",
+  "frames" : {
+    "button" : {
+      "height" : 24.5,
+      "width" : 62.5,
+      "x" : 156.25,
+      "y" : 321.25
+    },
+    "stack" : {
+      "height" : 667,
+      "width" : 375,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 667,
+    "width" : 375
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "button" : {
+          "height" : 24.5,
+          "width" : 62.5,
+          "x" : 156.25,
+          "y" : 321.25
+        },
+        "stack" : {
+          "height" : 667,
+          "width" : 375,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

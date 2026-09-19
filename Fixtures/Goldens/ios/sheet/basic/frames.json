@@ -1,0 +1,40 @@
+{
+  "fixture" : "ios\/sheet\/basic",
+  "frames" : {
+    "button" : {
+      "height" : 24.5,
+      "width" : 89,
+      "x" : 143,
+      "y" : 321.25
+    },
+    "stack" : {
+      "height" : 667,
+      "width" : 375,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 667,
+    "width" : 375
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "button" : {
+          "height" : 24.5,
+          "width" : 89,
+          "x" : 143,
+          "y" : 321.25
+        },
+        "stack" : {
+          "height" : 667,
+          "width" : 375,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

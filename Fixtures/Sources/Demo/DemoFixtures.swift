@@ -13,7 +13,11 @@ public enum DemoFixtures {
     /// `copyable` puts the text on the pasteboard through the host; `PasteButton` reads it back.
     public static let pasteboard = Fixture("demo/pasteboard", size: CGSize(width: 360, height: 160), model: { PasteboardDemoModel() }, steps: []) { model in
         VStack(spacing: 12) {
+            #if os(iOS)   // `copyable` is macOS API; the iOS builds render only ios/ fixtures
+            Text("Copy me").probe("copyable")
+            #else
             Text("Copy me").copyable(["Copy me"]).probe("copyable")
+            #endif
             PasteButton(payloadType: String.self) { strings in model.pasted = strings.first ?? "" }.probe("paste")
             Text(model.pasted).probe("pasted")
         }

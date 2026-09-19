@@ -43,7 +43,9 @@ public struct Button<Label: View>: View {
         } else {
             let configuration = ButtonStyleConfiguration(
                 label: ButtonStyleConfiguration.Label(AnyView(label)), isPressed: isPressed, role: role)
+            // The role travels as a layout value for layouts that order or hide actions by it (iOS alerts).
             _ButtonHost(action: action, isPressed: $isPressed, label: AnyView(style.makeBodyErased(configuration)))
+                .layoutValue(key: _ButtonRoleKey.self, value: role)
         }
     }
 }

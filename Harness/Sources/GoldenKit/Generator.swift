@@ -70,12 +70,14 @@ public struct GoldenPlatform {
     /// Where the platform's text-metrics.json lives under the goldens root ("" or "ios").
     public let subdirectory: String
     public let fixturePlatform: FixturePlatform
-    public let makeHost: @MainActor (AnyView, CGSize, ColorScheme) -> any GoldenHost
+    /// Makes the host for a view at a size and appearance; the flag asks for the whole window
+    /// in the capture (`Fixture.capturesWindow`).
+    public let makeHost: @MainActor (AnyView, CGSize, ColorScheme, Bool) -> any GoldenHost
     /// Font metrics layout cannot reveal: capHeight, xHeight, underlinePosition, underlineThickness.
     public let fontMetrics: @MainActor (FixtureFont) -> [String: Double]
 
     public init(profile: String, host: String, subdirectory: String, fixturePlatform: FixturePlatform,
-                makeHost: @escaping @MainActor (AnyView, CGSize, ColorScheme) -> any GoldenHost,
+                makeHost: @escaping @MainActor (AnyView, CGSize, ColorScheme, Bool) -> any GoldenHost,
                 fontMetrics: @escaping @MainActor (FixtureFont) -> [String: Double]) {
         self.profile = profile; self.host = host; self.subdirectory = subdirectory; self.fixturePlatform = fixturePlatform
         self.makeHost = makeHost; self.fontMetrics = fontMetrics
@@ -87,7 +89,7 @@ public enum Generator {
     static var platform: GoldenPlatform!
 
     static func collectFrames<V: View>(_ view: V, size: CGSize) -> [String: CGRect] {
-        platform.makeHost(AnyView(view), size, .light).frames()
+        platform.makeHost(AnyView(view), size, .light, false).frames()
     }
 
     /// The SwiftUI view of a text request: its runs concatenated, with the layout modifiers applied.
@@ -257,7 +259,7 @@ public enum Generator {
         FixtureAssets.appearance = fixture.colorScheme == .dark ? "dark" : "light"
         let instance = fixture.instantiate()
         let sized = instance.view.frame(width: fixture.size.width, height: fixture.size.height)
-        let host = platform.makeHost(fixture.rasterized ? AnyView(sized.drawingGroup()) : AnyView(sized), fixture.size, fixture.colorScheme)
+        let host = platform.makeHost(fixture.rasterized ? AnyView(sized.drawingGroup()) : AnyView(sized), fixture.size, fixture.colorScheme, fixture.capturesWindow)
         let initialFrames = host.frames()
         let image = try host.png(scale: 2)
         try image.data.write(to: dir.appendingPathComponent("image@2x.png"))

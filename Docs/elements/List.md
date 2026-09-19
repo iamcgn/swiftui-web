@@ -67,6 +67,12 @@ Tier A: 5 fixtures exact (`list/steps` steps included). Tier B, frames exact: Ch
 ≤ 0.73 % pixels, WebKit ≤ 0.56 %, Firefox ≤ 0.74 % (the pinned header's shadow gradient is the
 largest difference, `list/sections`). wasm js tests pass.
 
+## iOS selection (iPhone SE simulator, `ios/list/selection`, 2026-09-18)
+
+A selected row fills its row across the card with (209, 209, 214) (`listSelectionFill`), the
+separators beside it hidden. Rows outside a `ForEach` take their identity from `tag`, so a
+`selection` binding matches them as on Apple's platforms.
+
 ## Not yet covered
 
 Focused (accent) selection, keyboard navigation and Shift/Cmd ranges, hover highlight,

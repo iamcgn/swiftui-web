@@ -187,6 +187,9 @@ public enum _FormRowMode: Sendable {
     case centeredFractional
     /// Label, 8 pt, control; the label's baseline on the control's first text baseline (TextField).
     case firstTextBaseline
+    /// A grouped row as tall as the taller of label and control, the control at the trailing
+    /// edge (the compact date picker's pills on iOS).
+    case groupedFull
     /// The macOS form slider row: a 16 pt label 7 pt down, the track 1 pt down, 23 pt tall.
     case sliderColumns
     /// A grouped form row: the label at the leading edge, the control at the trailing edge.

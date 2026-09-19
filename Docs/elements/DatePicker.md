@@ -65,6 +65,13 @@ the calendar's sub-pixel text snapping, the clock's bezel and hands). Tier C: 1.
 components, stepping and selection by press and keys, range clamping and the period, the
 calendar's grid, paging and day selection, and the clock's commands.
 
+## iOS (iPhone SE simulator, `ios/datepicker/compact`, 2026-09-18)
+
+The compact picker is iOS's pills (`datePills`): in a form row that spans its width, the label
+leading and one tinted pill per value at the trailing edge ("Mar 15, 2025", "11:09 AM"), 38.5
+or 40 tall, the row 30 more. Measurements in `Docs/elements/iOS.md`. A tap on a pill does not
+open iOS's calendar popover yet (`sw-ios-presentation-rest`).
+
 ## Not yet covered
 
 Typing and editing components, the compact style's popover, dragging the clock's hands, the

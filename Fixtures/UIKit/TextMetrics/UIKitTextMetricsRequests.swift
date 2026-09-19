@@ -47,6 +47,7 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("••••••", .system(size: 17), lines: 0),
         // ios/representable/* (SwiftUI fixtures hosting UIKit views; Fixtures/Sources/Representable)
         UIKitTextRequest("Hello", .system(size: 17)),
+        UIKitTextRequest("UILabel in a sheet", .system(size: 17)),   // ios/representable/sheet
         UIKitTextRequest("Hello, world", .system(size: 17)),
         UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), lines: 0),
         UIKitTextRequest("The quick brown fox jumps over the lazy dog", .system(size: 17), width: 120, lines: 0),

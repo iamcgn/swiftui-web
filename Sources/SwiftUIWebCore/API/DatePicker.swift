@@ -18,6 +18,8 @@ public struct DatePicker<Label: View>: View {
     @Environment(\.datePickerStyle) private var style
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\._formStyle) private var formStyle
+    @Environment(\._inListRow) private var inListRow
+    @Environment(\.platformProfile) private var platform
 
     /// Creates a date picker with a custom label.
     public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> Label) {
@@ -66,8 +68,9 @@ public struct DatePicker<Label: View>: View {
         } else {
             content = AnyView(_DateFieldHost(date: date, binding: binding, components: components, stepper: style._kind != .field))
         }
+        // A grouped form row (or any iOS list row) spans its width: the label leading, the field trailing.
         return _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)), content: content,
-                               mode: formStyle == .grouped ? .grouped : .centered)
+                               mode: formStyle == .grouped || (platform.isIOS && inListRow) ? .groupedFull : .centered)
     }
 }
 

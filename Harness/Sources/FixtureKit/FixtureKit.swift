@@ -58,6 +58,18 @@ public struct Fixture: Sendable {
         return copy
     }
 
+    /// Whether the golden shows the whole window rather than the hosting view: what a sheet,
+    /// an alert or a dialog presented over the fixture looks like. The fixture's size is then the
+    /// window's; the runtime's window is the fixture already.
+    public var capturesWindow = false
+
+    /// The same fixture captured as its whole window.
+    public func capturesWindow(_ flag: Bool = true) -> Fixture {
+        var copy = self
+        copy.capturesWindow = flag
+        return copy
+    }
+
     /// Whether the harness rasterises the fixture through SwiftUI's own renderer (`drawingGroup`)
     /// instead of the window's layer tree: layer filters (colour effects, blur, blend modes) are
     /// applied by the render server on screen and skipped by an offscreen capture, while the

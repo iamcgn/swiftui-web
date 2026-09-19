@@ -304,13 +304,27 @@
       "framework": "SwiftUI",
       "area": "iOS profile",
       "title": "iOS sheets, tab bars and date pickers from the simulator",
-      "detail": "Open since the simulator arrived: capture the window (as the UIKit generator does) for `sheet`, `alert`, `confirmationDialog`, `TabView`'s bar and `DatePicker` in the iOS profile, and pin their geometry and looks; list selection looks too. Includes a representable in a sheet (ix-containers left it here).",
+      "detail": "Done 2026-09-18: `Fixture.capturesWindow` makes the iOS generator capture the whole window; `ios/sheet/basic`, `ios/sheet/medium` (presentationDetents, presentationDragIndicator), `ios/representable/sheet`, `ios/alert/basic`, `ios/dialog/basic` (iOS 26's popover form), `ios/tabs/basic`, `ios/tabs/second`, `ios/datepicker/compact` and `ios/list/selection` measured on the simulator and reproduced (Docs/elements/iOS.md): Tier A exact, Tier C within 1.5 % (the date picker 2.5 %). List rows outside a ForEach now take their identity from `tag`.",
       "kind": "verify",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/iOS.md",
         "Docs/elements/Presentation.md"
+      ],
+      "done": "2026-09-18"
+    },
+    {
+      "id": "sw-ios-presentation-rest",
+      "framework": "SwiftUI",
+      "area": "iOS profile",
+      "title": "iOS presentations and bars: the rest",
+      "detail": "After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/iOS.md"
       ]
     },
     {
@@ -318,7 +332,7 @@
       "framework": "SwiftUI",
       "area": "Presentation",
       "title": "Presentation looks and options",
-      "detail": "macOS sheets, popovers and alerts are separate windows the harness cannot capture, so the looks are by eye: measure them through a window-list capture spike or accept them as approximate in the row. `presentationDetents`, `interactiveDismissDisabled`, `attachmentAnchor` beyond the bounds, scrolling inside sheets, several presentations from one view.",
+      "detail": "macOS sheets, popovers and alerts are separate windows the harness cannot capture, so the looks are by eye: measure them through a window-list capture spike or accept them as approximate in the row. `interactiveDismissDisabled`, `attachmentAnchor` beyond the bounds, scrolling inside sheets, several presentations from one view.",
       "kind": "approximate",
       "priority": "soon",
       "status": "planned",
@@ -518,7 +532,7 @@
       "framework": "SwiftUI",
       "area": "TabView",
       "title": "The Tab API, page style and badges",
-      "detail": "`Tab(...)` (iOS 18), `tabViewStyle(.page)` and `.sidebarAdaptable`, badges, images in the macOS bar, disabled tabs, the bar's focus ring, the iOS bar from the simulator (sw-ios-sheets).",
+      "detail": "`Tab(...)` (iOS 18), `tabViewStyle(.page)` and `.sidebarAdaptable`, badges, images in the macOS bar, disabled tabs, the bar's focus ring; the iOS bar is measured (sw-ios-sheets), its badges and four or five tabs are not.",
       "kind": "missing",
       "priority": "soon",
       "status": "planned",

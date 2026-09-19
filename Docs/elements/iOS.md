@@ -88,11 +88,62 @@ at 80 over white), full after a quarter of the collapse; the large title travels
 and fades over the collapse instead of being clipped, and the scroll view keeps painting up to the
 window's top (`_navigationBarOverhang`), so the rows show through the glass.
 
+## Presentations, the tab bar, date pills and selection (iPhone SE simulator, iOS 26.0, 2026-09-18)
+
+Window-captured fixtures (`Fixture.capturesWindow`: the golden is the whole 375 × 667 window,
+a step presents first) `ios/sheet/basic`, `ios/sheet/medium`, `ios/representable/sheet`,
+`ios/alert/basic`, `ios/dialog/basic`, `ios/tabs/basic` and `ios/tabs/second`, plus
+`ios/datepicker/compact` and `ios/list/selection`; the presenting screens are white so the
+glass materials blur an app's ground. Tier A holds every probe exact; Tier C is within 1.5 %
+(the date picker 2.5 %): the materials are painted as their colour over the dimmed white and
+the shadows as rings (`PlatformMetricsIOS.swift`).
+
+- **Sheet** (`ios/sheet/basic`): the window dims 20 % black; the card is white, the window's
+  width, from 31 to the bottom with 39 pt top corners, its content centred in it
+  (`sheetsFillWindow`, `sheetTopInset`, `sheetCornerRadius`). With `presentationDetents([.medium])`
+  (`ios/sheet/medium`) the card floats: 351/667 of the window tall, 6 in from the sides and the
+  bottom, every corner 39, the regular material ((239) over the dimmed white); with
+  `presentationDragIndicator(.visible)` a 36 × 5 grabber 5 below the top at black 25 %. A
+  representable in a sheet lays out like any leaf (`ios/representable/sheet`).
+- **Alert** (`ios/alert/basic`): a 299 pt card centred with 34 pt corners in the material; a
+  17 pt bold title and a 15 pt message left-aligned 28.5 in, 21.5 from the top and 10.5 apart;
+  27 below the message the buttons share the width in a row 8.5 apart, 13.5 from the sides and
+  13 from the bottom, 46.5 pt capsules: the cancel role first, the accent under a semibold white
+  label; the destructive role red (255, 56, 60) on black 6 %; the rest the accent on that grey
+  (unmeasured).
+- **Confirmation dialog** (`ios/dialog/basic`): on the phone iOS 26 presents it as a glass
+  popover above its source, no dim: 238 wide, 32.5 corners, (245, 246, 246), centred on the
+  source at whole points, its bottom 14.25 above the source's top with a 24 × 13 arrow at the
+  source's centre; a 17 pt bold title, a 17 pt message 4 below, the actions 19 below stacked
+  as full-width 45.5 pt capsules 10.5 apart (black 6 %, the destructive one red), 13.5 from the
+  sides and the bottom; the cancel button is not shown (a tap outside dismisses).
+- **Tab bar** (`ios/tabs/basic`, `ios/tabs/second`): a floating capsule (251, 252, 252),
+  270 wide (52.5 in from each side), 58 tall, 23 above the window's bottom, a soft shadow
+  below; the content is centred in the window less 83 at the bottom. The tabs share the
+  capsule less 6 at each end; the selected tab sits on a 93.5 × 53.5 pill 2 below the capsule's
+  top at black 8.6 %, whatever its label; a 24 pt symbol 7.5 below the pill's top and a 10 pt
+  medium label on the baseline 44 below it, the accent for the selected tab, the primary colour
+  otherwise. A programmatic selection change leaves the pill raised as glass for seconds, so
+  `ios/tabs/second` starts on the second tab instead of stepping there.
+- **Compact date picker in a form** (`ios/datepicker/compact`): the row spans its width with
+  the label leading; each value sits in a pill at the trailing edge ("Mar 15, 2025", "11:09 AM"
+  in 17 pt, 13.5 of padding each side, 8 pt corners, black 6.3 %), the pills 5 apart; a date
+  alone is 38.5 tall, a picker with a time 40, and the row is that plus 30. Disabled, the pills
+  go and the texts stay black. The fixture's hour has two digits: iOS 26 sizes the time pill for
+  the wider of its own time and the current one.
+- **List selection** (`ios/list/selection`): the selected row fills its 56 pt row across the
+  card with (209, 209, 214), the separators beside it hidden; a row outside a `ForEach` is
+  identified by its `tag`.
+
 ## Open on the simulator
 
-The compact `DatePicker` (iOS's tinted pills), tab bars and sheets have no `ios/` fixtures yet;
-the simulator can render them now. The blur inside the bar's glass is approximated by the tint
-alone. Dark-appearance switch and slider tracks are painted with the light alphas in white.
+The materials' blur is approximated by their colour and the shadows by rings. Not measured:
+alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both
+detents, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs,
+badges and the pill's selection animation, a tap on a date pill (iOS opens a calendar popover)
+and selection in edit mode (`Docs/todo.json` `sw-ios-presentation-rest`). The blur inside the
+navigation bar's glass is approximated by the tint alone. Dark-appearance switch and slider
+tracks are painted with the light alphas in white.
 
 ## The Catalyst route (decision 0013), kept for comparison
 

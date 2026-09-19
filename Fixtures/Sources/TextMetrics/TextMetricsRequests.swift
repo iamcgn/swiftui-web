@@ -610,6 +610,44 @@ extension TextMetricsRequests {
             requests.append(TextMetricRequest(string, .style(style, weight: "semibold")))
             requests.append(TextMetricRequest(string, .style(style, weight: "bold")))
         }
+        // The presentations, tab bar, date pills and list selection (ios/sheet/, ios/alert/, ios/dialog/,
+        // ios/tabs/, ios/datepicker/compact, ios/list/selection): every text at the widths the
+        // fixtures propose (the phone's 375, the medium sheet's 363, the alert's 242 and its
+        // buttons' 131.75, the dialog's 181 and its buttons' 211, the list row's 311).
+        for string in ["Show sheet", "Delete…", "Options…", "Above", "Below", "Some content under the title.", "Done",
+                       "Home content", "Search content", "Settings content"] {
+            requests.append(TextMetricRequest(string, .style("body")))
+            for width: CGFloat in [375, 363] { requests.append(TextMetricRequest(string, .style("body"), width: width)) }
+        }
+        requests.append(TextMetricRequest("Sheet title", .style("headline")))
+        for width: CGFloat in [375, 363] { requests.append(TextMetricRequest("Sheet title", .style("headline"), width: width)) }
+        for string in ["First", "Second", "Third"] {
+            requests.append(TextMetricRequest(string, .style("body")))
+            requests.append(TextMetricRequest(string, .style("body"), width: 311))
+        }
+        let seventeen = FixtureFont.system(size: 17, weight: "regular", design: "default")
+        let seventeenBold = FixtureFont.system(size: 17, weight: "bold", design: "default")
+        let seventeenSemibold = FixtureFont.system(size: 17, weight: "semibold", design: "default")
+        requests.append(TextMetricRequest("Delete the item?", seventeenBold, width: 242))
+        requests.append(TextMetricRequest("This cannot be undone.", .system(size: 15, weight: "regular", design: "default"), width: 242))
+        for string in ["Delete", "Cancel"] {
+            for font in [seventeen, seventeenSemibold] {
+                requests.append(TextMetricRequest(string, font))
+                requests.append(TextMetricRequest(string, font, width: 131.75))
+                requests.append(TextMetricRequest(string, font, width: 211))
+            }
+        }
+        requests.append(TextMetricRequest("Item options", seventeenBold, width: 181))
+        requests.append(TextMetricRequest("Choose what to do with the item.", seventeen, width: 181))
+        for string in ["Copy", "Duplicate"] {
+            requests.append(TextMetricRequest(string, seventeen))
+            requests.append(TextMetricRequest(string, seventeen, width: 211))
+        }
+        for string in ["Home", "Search", "Settings"] {
+            requests.append(TextMetricRequest(string, .system(size: 10, weight: "medium", design: "default")))
+        }
+        for string in ["Mar 15, 2025", "11:09 AM"] { requests.append(TextMetricRequest(string, seventeen)) }
+        requests.append(TextMetricRequest("UILabel in a sheet", seventeen))
         return requests
     }()
 }

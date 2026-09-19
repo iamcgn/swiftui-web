@@ -75,10 +75,11 @@ package final class FormLabeledRowNode: LayoutNode<_FormLabeledRow> {
                         labelOrigin: CGPoint(x: 0, y: PlatformMetrics.formSliderLabelTop),
                         contentOrigin: CGPoint(x: labelWidth, y: PlatformMetrics.formSliderTrackTop),
                         size: CGSize(width: labelWidth + contentSize.width, height: PlatformMetrics.formSliderRowHeight))
-        case .grouped:
+        case .grouped, .groupedFull:
             // The row is as tall as its label; the control is centred on it (a switch overflows).
+            // `groupedFull`: as tall as the taller of the two (the date pills).
             let width = proposal.width ?? labelWidth + contentSize.width
-            let height = labelTarget == nil ? contentSize.height : labelSize.height
+            let height = labelTarget == nil || view.mode == .groupedFull ? max(contentSize.height, labelSize.height) : labelSize.height
             return Plan(labelSize: labelSize, contentSize: contentSize, contentProposal: contentProposal,
                         labelOrigin: CGPoint(x: 0, y: (height - labelSize.height) / 2),
                         contentOrigin: CGPoint(x: width - contentSize.width, y: (height - contentSize.height) / 2),
@@ -91,7 +92,7 @@ package final class FormLabeledRowNode: LayoutNode<_FormLabeledRow> {
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let plan = plan(proposal)
         var dims = ViewDimensions(size: plan.size)
-        dims.explicit[HorizontalAlignment._formControlColumn.key] = view.mode == .grouped ? 0 : plan.contentOrigin.x
+        dims.explicit[HorizontalAlignment._formControlColumn.key] = view.mode == .grouped || view.mode == .groupedFull ? 0 : plan.contentOrigin.x
         if let baseline = labelTarget?.dimensions(in: .unspecified)[explicit: VerticalAlignment.firstTextBaseline] ?? labelTarget.map({ _ in plan.labelSize.height }) {
             dims.explicit[VerticalAlignment.firstTextBaseline.key] = plan.labelOrigin.y + baseline
         }

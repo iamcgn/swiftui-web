@@ -99,7 +99,10 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 return
             }
             if node.isLayoutNode {
-                var element = Element(kind: .row, node: wrap(node), id: id)
+                // A row outside a `ForEach` is identified by its `tag`, read through the modifiers
+                // above it (ios/list/selection).
+                let row = wrap(node)
+                var element = Element(kind: .row, node: row, id: id ?? row.layoutValue(for: TagKey.self))
                 element.isSectionStart = sectionStart; sectionStart = false
                 result.append(element)
                 return
@@ -290,10 +293,11 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             }
             if selected[index] {
                 let cell = context.absoluteRect(element.frame.insetBy(dx: PlatformMetrics.listSelectionInset, dy: 0))
-                // A focused list shows its selection in the accent colour.
-                let color = runtime.focusedIdentifier == identifier && runtime.focusVisible
-                    ? Color.accentColor.opacity(PlatformMetrics.listFocusedSelectionAlpha).resolve(in: environment)
-                    : environment._ink(PlatformMetrics.listSelectionAlpha)
+                // A focused list shows its selection in the accent colour; iOS fills the row with its grey.
+                let color = PlatformMetrics.listSelectionFill
+                    ?? (runtime.focusedIdentifier == identifier && runtime.focusVisible
+                        ? Color.accentColor.opacity(PlatformMetrics.listFocusedSelectionAlpha).resolve(in: environment)
+                        : environment._ink(PlatformMetrics.listSelectionAlpha))
                 list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, color))
             }
             element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))

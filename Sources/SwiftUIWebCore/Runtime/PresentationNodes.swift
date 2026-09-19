@@ -33,10 +33,25 @@ package final class PresentationNode: ViewNode {
 
     package var isModal: Bool {
         switch kind {
-        case .sheet, .alert: return true
+        case .sheet, .alert, .dialog: return true
         case .popover, .menu, .submenu, .window: return false
         }
     }
+
+    /// A sheet's options, told by the `presentationDetents` and `presentationDragIndicator`
+    /// modifiers inside its content (`PresentationOptionsNode`).
+    package struct Options {
+        package var detents: Set<PresentationDetent> = [.large]
+        package var dragIndicator: Visibility = .automatic
+    }
+    package var options = Options()
+
+    /// The platform's metrics, read explicitly: presentations lay out and paint outside a node's
+    /// own profile selection.
+    private var metrics: PlatformMetricsTable { environment.platformProfile.metrics }
+
+    /// iOS: the medium detent when it is the only one offered (`sheetsFillWindow`).
+    private var mediumDetent: Bool { options.detents.contains(.medium) && !options.detents.contains(.large) }
 
     /// Secondary windows: the title bar above the content and the close button in it.
     package static let windowTitleBarHeight: CGFloat = 28
@@ -63,13 +78,45 @@ package final class PresentationNode: ViewNode {
     package func layout(in window: CGSize) {
         guard let target else { return }
         let padding = kind.isMenu ? 0 : PlatformMetrics.presentationPadding
+        let m = metrics
         switch kind {
+        case .sheet where m.sheetsFillWindow:
+            // iOS: the large detent's card from `sheetTopInset` to the bottom, the medium detent's
+            // card floating in from the sides and the bottom; the content centred in the card.
+            if mediumDetent {
+                let height = (window.height * m.sheetMediumHeightFraction).rounded()
+                panel = CGRect(x: m.sheetMediumSideInset, y: window.height - height, width: window.width - 2 * m.sheetMediumSideInset, height: height - m.sheetMediumBottomInset)
+            } else {
+                panel = CGRect(x: 0, y: m.sheetTopInset, width: window.width, height: window.height - m.sheetTopInset)
+            }
+            arrow = nil
+            let size = target.sizeThatFits(ProposedViewSize(panel.size))
+            contentFrame = CGRect(x: panel.midX - size.width / 2, y: panel.midY - size.height / 2, width: size.width, height: size.height)
+            target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(size), by: runtime.root)
+            return
+        case .dialog where m.dialogsArePopovers:
+            // iOS: a panel of `dialogWidth` centred on its source and floating above it, an arrow
+            // pointing down at the source (below it when there is no room above).
+            let size = target.sizeThatFits(ProposedViewSize(width: m.dialogWidth, height: nil))
+            let source = anchor?.frameInRoot ?? CGRect(x: window.width / 2, y: window.height / 2, width: 0, height: 0)
+            let x = min(max(0, (source.midX - size.width / 2).rounded(.down)), max(0, window.width - size.width))
+            let above = source.minY - m.dialogSourceGap - m.dialogArrowHeight - size.height
+            if above >= 0 {
+                panel = CGRect(x: x, y: above, width: size.width, height: size.height)
+                arrow = (.bottom, CGPoint(x: source.midX, y: source.minY - m.dialogSourceGap))
+            } else {
+                panel = CGRect(x: x, y: source.maxY + m.dialogSourceGap + m.dialogArrowHeight, width: size.width, height: size.height)
+                arrow = (.top, CGPoint(x: source.midX, y: source.maxY + m.dialogSourceGap))
+            }
+            contentFrame = panel
+            target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(size), by: runtime.root)
+            return
         case .sheet:
             let limit = ProposedViewSize(width: window.width - 2 * PlatformMetrics.sheetMargin - 2 * padding, height: nil)
             let size = target.sizeThatFits(limit)
             panel = CGRect(x: (window.width - size.width) / 2 - padding, y: 0, width: size.width + 2 * padding, height: size.height + 2 * padding)
             arrow = nil
-        case .alert:
+        case .alert, .dialog:
             let size = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
             panel = CGRect(x: (window.width - size.width) / 2, y: (window.height - size.height) / 2, width: size.width, height: size.height)
             arrow = nil
@@ -138,7 +185,9 @@ package final class PresentationNode: ViewNode {
             panel = CGRect(origin: origin, size: size)
             arrow = nil
         }
-        contentFrame = panel.insetBy(dx: padding, dy: padding)
+        // iOS alerts carry their insets in their content.
+        let inset = kind == .alert && m.alertInsets.top != PlatformMetrics.presentationPadding && environment.platformProfile.isIOS ? 0 : padding
+        contentFrame = panel.insetBy(dx: inset, dy: inset)
         target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(contentFrame.size), by: runtime.root)
     }
 
@@ -147,10 +196,53 @@ package final class PresentationNode: ViewNode {
     package func paintPresentation(into list: inout DisplayList, context: PaintContext) {
         // The dim is always black; the panel, its shadow and border follow the appearance (unverified in dark).
         let black = { (alpha: Double) in self.environment._ink(alpha) }
-        if isModal {
-            list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: runtime.layoutSize)), RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.presentationDimAlpha)))
+        let m = metrics
+        let iOS = environment.platformProfile.isIOS
+        if isModal && !(kind == .dialog && m.dialogsArePopovers) {
+            list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: runtime.layoutSize)), RGBA(red: 0, green: 0, blue: 0, alpha: m.presentationDimAlpha)))
         }
         let rect = context.absoluteRect(panel)
+        if kind == .sheet && m.sheetsFillWindow {
+            // iOS: the large card's top corners only (it runs off the window), the medium card
+            // in the glass fill with the grabber when asked for.
+            if mediumDetent {
+                list.append(.fillRRect(rect, cornerRadius: m.sheetCornerRadius, m.presentationGlassFill))
+                if options.dragIndicator == .visible {
+                    let grabber = CGRect(x: rect.midX - m.sheetGrabberSize.width / 2, y: rect.minY + m.sheetGrabberTop, width: m.sheetGrabberSize.width, height: m.sheetGrabberSize.height)
+                    list.append(.fillRRect(grabber, cornerRadius: m.sheetGrabberSize.height / 2, black(m.sheetGrabberAlpha)))
+                }
+            } else {
+                let extended = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + m.sheetCornerRadius)
+                list.append(.fillRRect(extended, cornerRadius: m.sheetCornerRadius, environment._windowBackground))
+            }
+            if let target { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
+            return
+        }
+        if iOS && (kind == .alert || (kind == .dialog && m.dialogsArePopovers)) {
+            // iOS: a glass card; the dialog with its arrow and a soft shadow around, no border.
+            let dialog = kind == .dialog
+            let fill = dialog ? m.dialogGlassFill : m.presentationGlassFill
+            let radius = dialog ? m.dialogCornerRadius : m.alertCornerRadius
+            for (spread, alpha) in [(3.0, 0.03), (8.0, 0.02), (16.0, 0.012), (28.0, 0.008)] {
+                list.append(.fillRRect(rect.insetBy(dx: -spread, dy: -spread).offsetBy(dx: 0, dy: spread / 4), cornerRadius: radius + spread, black(alpha)))
+            }
+            list.append(.fillRRect(rect, cornerRadius: radius, fill))
+            if let arrow {
+                let h = m.dialogArrowHeight, w = m.dialogArrowWidth / 2
+                let tip = CGPoint(x: context.origin.x + arrow.tip.x, y: context.origin.y + arrow.tip.y)
+                var path = Path()
+                path.move(to: tip)
+                if arrow.edge == .bottom {
+                    path.addLine(to: CGPoint(x: tip.x - w, y: tip.y - h)); path.addLine(to: CGPoint(x: tip.x + w, y: tip.y - h))
+                } else {
+                    path.addLine(to: CGPoint(x: tip.x - w, y: tip.y + h)); path.addLine(to: CGPoint(x: tip.x + w, y: tip.y + h))
+                }
+                path.closeSubpath()
+                list.append(.fillPath(path, fill))
+            }
+            if let target { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
+            return
+        }
         let radius = kind.isMenu ? PlatformMetrics.menuCornerRadius : kind.isWindow ? Self.windowCornerRadius : PlatformMetrics.presentationCornerRadius
         // A soft shadow ring, then the panel and its border.
         list.append(.fillRRect(rect.insetBy(dx: -2, dy: -2), cornerRadius: radius + 2, black(PlatformMetrics.presentationShadowAlpha)))
@@ -365,6 +457,33 @@ package final class PresentationSyncNode<Content: View>: UnaryLayoutModifierNode
         if let presented, presented.isMounted { runtime.remove(presentation: presented) }
         presented = nil
         super.unmount()
+    }
+}
+
+/// `presentationDetents` / `presentationDragIndicator`: transparent to layout; tells the
+/// presentation above it (the nearest `PresentationNode` ancestor) the sheet's options.
+@MainActor
+package final class PresentationOptionsNode<Content: View>: UnaryLayoutModifierNode<Content, _PresentationOptionsModifier> {
+    override package init(_ context: _NodeContext<ModifiedContent<Content, _PresentationOptionsModifier>>) {
+        super.init(context)
+        tell()
+    }
+
+    override package func update(view: ModifiedContent<Content, _PresentationOptionsModifier>, environment: EnvironmentValues, force: Bool) {
+        super.update(view: view, environment: environment, force: force)
+        tell()
+    }
+
+    private func tell() {
+        var current = parent
+        while let node = current {
+            if let presentation = node as? PresentationNode {
+                if let detents = modifier.detents { presentation.options.detents = detents }
+                if let indicator = modifier.dragIndicator { presentation.options.dragIndicator = indicator }
+                return
+            }
+            current = node.parent
+        }
     }
 }
 

@@ -74,7 +74,7 @@ func nsFont(_ font: FixtureFont) -> NSFont {
 }
 
 let platform = GoldenPlatform(profile: "macOS", host: "AppKit", subdirectory: "", fixturePlatform: .macOS,
-                              makeHost: { AppKitHost($0, size: $1, colorScheme: $2) },
+                              makeHost: { view, size, scheme, _ in AppKitHost(view, size: size, colorScheme: scheme) },
                               fontMetrics: { fixtureFont in
                                   let font = nsFont(fixtureFont)
                                   return ["capHeight": Double(font.capHeight), "xHeight": Double(font.xHeight),

@@ -159,7 +159,50 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
                       width: PlatformMetrics.dateStepperSize.width, height: PlatformMetrics.dateStepperSize.height)
     }
 
+    // MARK: iOS pills (ios/datepicker/compact)
+
+    /// iOS: the values sit in tinted pills at the row's trailing edge ("Mar 15, 2025", "11:09 AM").
+    private var pills: Bool { PlatformMetrics.datePills }
+    private var pillFont: ResolvedFont { _fontFor(size: PlatformMetrics.dateTextSize) }
+    private var pillHeight: CGFloat { view.components.contains(.hourAndMinute) ? PlatformMetrics.dateTimePillHeight : PlatformMetrics.datePillHeight }
+
+    package var pillTexts: [String] {
+        let parts = _DateMath.parts(of: view.date, calendar: calendar)
+        var result: [String] = []
+        if view.components.contains(.date) {
+            // English short months: the environment's calendar carries no locale (en_US is the harness's).
+            let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            let month = parts.month >= 1 && parts.month <= 12 ? months[parts.month - 1] : "\(parts.month)"
+            result.append("\(month) \(parts.day), \(parts.year)")
+        }
+        if view.components.contains(.hourAndMinute) {
+            let hour12 = parts.hour % 12 == 0 ? 12 : parts.hour % 12
+            let minute = parts.minute < 10 ? "0\(parts.minute)" : "\(parts.minute)"
+            result.append("\(hour12):\(minute) \(parts.hour < 12 ? "AM" : "PM")")
+        }
+        return result
+    }
+
+    /// The pills, trailing-aligned in the node, and their texts.
+    package var pillRects: [(text: String, rect: CGRect)] {
+        var x = frame.width
+        var result: [(String, CGRect)] = []
+        for text in pillTexts.reversed() {
+            let width = _textWidth(text, font: pillFont) + 2 * PlatformMetrics.datePillPadding
+            x -= width
+            result.insert((text, CGRect(x: x, y: 0, width: width, height: pillHeight)), at: 0)
+            x -= PlatformMetrics.datePillGap
+        }
+        return result
+    }
+
+    private var pillsWidth: CGFloat {
+        let texts = pillTexts
+        return texts.reduce(0) { $0 + _textWidth($1, font: pillFont) + 2 * PlatformMetrics.datePillPadding } + CGFloat(max(0, texts.count - 1)) * PlatformMetrics.datePillGap
+    }
+
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        if pills { return CGSize(width: pillsWidth, height: pillHeight) }
         if view.stepper {
             let width = PlatformMetrics.dateStepperBezelInset + contentWidth + PlatformMetrics.dateStepperGap + PlatformMetrics.dateStepperSize.width
             return CGSize(width: width, height: PlatformMetrics.dateFieldHeight)
@@ -176,8 +219,8 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
 
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let size = sizeThatFits(proposal)
-        let metrics = environment.platformProfile.systemFontMetrics(for: font)
-        let baseline = (view.stepper ? (size.height - metrics.lineHeight) / 2 : PlatformMetrics.dateFieldTextTop) + metrics.baseline
+        let metrics = environment.platformProfile.systemFontMetrics(for: pills ? pillFont : font)
+        let baseline = (view.stepper || pills ? (size.height - metrics.lineHeight) / 2 : PlatformMetrics.dateFieldTextTop) + metrics.baseline
         return ViewDimensions(size: size, explicit: [VerticalAlignment.firstTextBaseline.key: baseline, VerticalAlignment.lastTextBaseline.key: baseline])
     }
 
@@ -200,6 +243,19 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
         let bounds = absoluteBounds(context)
         let enabled = environment.isEnabled
         let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        if pills {
+            // iOS: a tinted pill per value with the text centred; disabled, the texts alone.
+            let font = pillFont
+            let lineHeight = environment.platformProfile.systemFontMetrics(for: font).lineHeight
+            let color = (environment.foregroundColor ?? .primary).resolve(in: environment)
+            for (text, rect) in pillRects {
+                let pill = context.absoluteRect(rect)
+                if enabled { list.append(.fillRRect(pill, cornerRadius: PlatformMetrics.datePillCornerRadius, black(PlatformMetrics.datePillAlpha))) }
+                let origin = CGPoint(x: pill.minX + PlatformMetrics.datePillPadding, y: pill.minY + (pill.height - lineHeight) / 2)
+                _drawText(text, font: font, lineTop: origin, color: color, into: &list)
+            }
+            return
+        }
         let bezel = context.absoluteRect(self.bezel)
         let outer = bezel.insetBy(dx: -PlatformMetrics.textFieldBorderWidth, dy: -PlatformMetrics.textFieldBorderWidth)
         list.append(.fillRRect(outer, cornerRadius: PlatformMetrics.textFieldCornerRadius + PlatformMetrics.textFieldBorderWidth, black(PlatformMetrics.dateFieldBorderAlpha)))

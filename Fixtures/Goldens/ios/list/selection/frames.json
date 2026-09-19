@@ -1,0 +1,64 @@
+{
+  "fixture" : "ios\/list\/selection",
+  "frames" : {
+    "first" : {
+      "height" : 24.5,
+      "width" : 33.5,
+      "x" : 32,
+      "y" : 50.75
+    },
+    "list" : {
+      "height" : 360,
+      "width" : 375,
+      "x" : 0,
+      "y" : 0
+    },
+    "second" : {
+      "height" : 24.5,
+      "width" : 58,
+      "x" : 32,
+      "y" : 106.75
+    },
+    "third" : {
+      "height" : 24.5,
+      "width" : 39.5,
+      "x" : 32,
+      "y" : 162.75
+    }
+  },
+  "size" : {
+    "height" : 360,
+    "width" : 375
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "first" : {
+          "height" : 24.5,
+          "width" : 33.5,
+          "x" : 32,
+          "y" : 50.75
+        },
+        "list" : {
+          "height" : 360,
+          "width" : 375,
+          "x" : 0,
+          "y" : 0
+        },
+        "second" : {
+          "height" : 24.5,
+          "width" : 58,
+          "x" : 32,
+          "y" : 106.75
+        },
+        "third" : {
+          "height" : 24.5,
+          "width" : 39.5,
+          "x" : 32,
+          "y" : 162.75
+        }
+      },
+      "name" : "select"
+    }
+  ]
+}

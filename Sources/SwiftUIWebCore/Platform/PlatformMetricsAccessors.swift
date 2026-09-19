@@ -143,6 +143,66 @@ extension PlatformMetrics {
     package static var formGroupedSwitchKnobSize: CGSize { current.formGroupedSwitchKnobSize }
     package static var formGroupedSectionSpacing: CGFloat { current.formGroupedSectionSpacing }
     package static var formGroupedHeaderSpacing: CGFloat { current.formGroupedHeaderSpacing }
+    package static var sheetsFillWindow: Bool { current.sheetsFillWindow }
+    package static var sheetTopInset: CGFloat { current.sheetTopInset }
+    package static var sheetCornerRadius: CGFloat { current.sheetCornerRadius }
+    package static var sheetMediumHeightFraction: CGFloat { current.sheetMediumHeightFraction }
+    package static var sheetMediumSideInset: CGFloat { current.sheetMediumSideInset }
+    package static var sheetMediumBottomInset: CGFloat { current.sheetMediumBottomInset }
+    package static var sheetGrabberSize: CGSize { current.sheetGrabberSize }
+    package static var sheetGrabberTop: CGFloat { current.sheetGrabberTop }
+    package static var sheetGrabberAlpha: Double { current.sheetGrabberAlpha }
+    package static var presentationGlassFill: RGBA { current.presentationGlassFill }
+    package static var alertCornerRadius: CGFloat { current.alertCornerRadius }
+    package static var alertInsets: EdgeInsets { current.alertInsets }
+    package static var alertTextInset: CGFloat { current.alertTextInset }
+    package static var alertTitleSize: CGFloat { current.alertTitleSize }
+    package static var alertMessageSize: CGFloat { current.alertMessageSize }
+    package static var alertTitleMessageGap: CGFloat { current.alertTitleMessageGap }
+    package static var alertMessageButtonsGap: CGFloat { current.alertMessageButtonsGap }
+    package static var alertButtonHeight: CGFloat { current.alertButtonHeight }
+    package static var alertButtonGap: CGFloat { current.alertButtonGap }
+    package static var alertButtonFillAlpha: Double { current.alertButtonFillAlpha }
+    package static var alertDestructiveColor: RGBA { current.alertDestructiveColor }
+    package static var dialogsArePopovers: Bool { current.dialogsArePopovers }
+    package static var dialogWidth: CGFloat { current.dialogWidth }
+    package static var dialogCornerRadius: CGFloat { current.dialogCornerRadius }
+    package static var dialogInsets: EdgeInsets { current.dialogInsets }
+    package static var dialogTextInset: CGFloat { current.dialogTextInset }
+    package static var dialogTitleSize: CGFloat { current.dialogTitleSize }
+    package static var dialogMessageSize: CGFloat { current.dialogMessageSize }
+    package static var dialogTitleMessageGap: CGFloat { current.dialogTitleMessageGap }
+    package static var dialogMessageButtonsGap: CGFloat { current.dialogMessageButtonsGap }
+    package static var dialogButtonHeight: CGFloat { current.dialogButtonHeight }
+    package static var dialogButtonGap: CGFloat { current.dialogButtonGap }
+    package static var dialogArrowHeight: CGFloat { current.dialogArrowHeight }
+    package static var dialogArrowWidth: CGFloat { current.dialogArrowWidth }
+    package static var dialogSourceGap: CGFloat { current.dialogSourceGap }
+    package static var dialogGlassFill: RGBA { current.dialogGlassFill }
+    package static var dialogButtonFillAlpha: Double { current.dialogButtonFillAlpha }
+    package static var tabBarAtBottom: Bool { current.tabBarAtBottom }
+    package static var tabBarContentBottomInset: CGFloat { current.tabBarContentBottomInset }
+    package static var tabBarCapsuleSideInset: CGFloat { current.tabBarCapsuleSideInset }
+    package static var tabBarCapsuleBottomInset: CGFloat { current.tabBarCapsuleBottomInset }
+    package static var tabBarCapsuleHeight: CGFloat { current.tabBarCapsuleHeight }
+    package static var tabBarCapsuleFill: RGBA { current.tabBarCapsuleFill }
+    package static var tabBarInnerPadding: CGFloat { current.tabBarInnerPadding }
+    package static var tabPillSize: CGSize { current.tabPillSize }
+    package static var tabPillTop: CGFloat { current.tabPillTop }
+    package static var tabPillAlpha: Double { current.tabPillAlpha }
+    package static var tabIconSize: CGFloat { current.tabIconSize }
+    package static var tabIconTop: CGFloat { current.tabIconTop }
+    package static var tabLabelSize: CGFloat { current.tabLabelSize }
+    package static var tabLabelBaseline: CGFloat { current.tabLabelBaseline }
+    package static var datePills: Bool { current.datePills }
+    package static var datePillPadding: CGFloat { current.datePillPadding }
+    package static var datePillCornerRadius: CGFloat { current.datePillCornerRadius }
+    package static var datePillAlpha: Double { current.datePillAlpha }
+    package static var datePillGap: CGFloat { current.datePillGap }
+    package static var datePillHeight: CGFloat { current.datePillHeight }
+    package static var dateTimePillHeight: CGFloat { current.dateTimePillHeight }
+    package static var dateTextSize: CGFloat { current.dateTextSize }
+    package static var listSelectionFill: RGBA? { current.listSelectionFill }
     package static var presentationPadding: CGFloat { current.presentationPadding }
     package static var presentationCornerRadius: CGFloat { current.presentationCornerRadius }
     package static var presentationDimAlpha: Double { current.presentationDimAlpha }

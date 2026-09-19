@@ -99,6 +99,23 @@ extension PlatformMetricsTable {
         t.navigationBarInlineHeight = 64
         t.navigationLargeTitleCollapse = 52.5                           // ios/nav/scroll: the bars' difference
         t.navigationTitleInset = 16                                     // the large title starts 16 in (ios/nav/basic pixels)
+        // Sheets, alerts, dialogs, the tab bar, date pills and list selection (2026-09-18, the iPhone SE
+        // simulator: ios/sheet/, ios/alert/, ios/dialog/, ios/tabs/, ios/datepicker/compact, ios/list/selection).
+        t.sheetsFillWindow = true
+        t.sheetTopInset = 31
+        t.sheetCornerRadius = 39
+        t.sheetMediumHeightFraction = 351.0 / 667
+        t.sheetMediumSideInset = 6
+        t.sheetMediumBottomInset = 6
+        t.presentationDimAlpha = 0.2
+        t.alertWidth = 299
+        t.alertCornerRadius = 34
+        t.dialogsArePopovers = true
+        t.tabBarAtBottom = true
+        t.datePills = true
+        t.listSelectionInset = 0
+        t.listSelectionCornerRadius = 0
+        t.listSelectionFill = RGBA(r: 209, g: 209, b: 214)
         return t
     }()
 }
