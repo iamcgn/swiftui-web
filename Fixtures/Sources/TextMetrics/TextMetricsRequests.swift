@@ -657,6 +657,9 @@ extension TextMetricsRequests {
         }
         requests.append(TextMetricRequest("C", .style("body"), width: 11.5))
         requests.append(TextMetricRequest("Long cell", .style("body"), width: 169.75))
+        // ios/list/editing: the section headers (body medium on iOS) and the rows.
+        for string in ["Editable", "Deletable", "Fixed"] { requests.append(TextMetricRequest(string, .style("body", weight: "medium"))) }
+        for string in ["Date", "Detail"] { requests.append(TextMetricRequest(string, .style("body"))) }
         return requests
     }()
 }

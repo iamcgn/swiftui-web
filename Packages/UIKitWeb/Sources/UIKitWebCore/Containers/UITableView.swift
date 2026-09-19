@@ -13,24 +13,6 @@ open class NSObject {
     public init() {}
 }
 public protocol NSObjectProtocol: AnyObject {}
-
-/// Foundation's index set is not in FoundationEssentials either: the sections a table reloads.
-public struct IndexSet: Hashable, Sendable, ExpressibleByArrayLiteral, Sequence {
-    public var indices: Set<Int>
-    public init() { indices = [] }
-    public init(_ indices: some Sequence<Int>) { self.indices = Set(indices) }
-    public init(integer: Int) { indices = [integer] }
-    public init(integersIn range: Range<Int>) { indices = Set(range) }
-    public init(arrayLiteral elements: Int...) { indices = Set(elements) }
-    public func makeIterator() -> Set<Int>.Iterator { indices.makeIterator() }
-    public var count: Int { indices.count }
-    public func contains(_ integer: Int) -> Bool { indices.contains(integer) }
-    public mutating func insert(_ integer: Int) { indices.insert(integer) }
-    public mutating func remove(_ integer: Int) { indices.remove(integer) }
-    public mutating func formUnion(_ other: IndexSet) { indices.formUnion(other.indices) }
-    public func union(_ other: IndexSet) -> IndexSet { IndexSet(indices.union(other.indices)) }
-    public var isEmpty: Bool { indices.isEmpty }
-}
 #else
 import Foundation
 #endif

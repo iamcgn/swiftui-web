@@ -1,0 +1,45 @@
+{
+  "fixture" : "ios\/list\/editing",
+  "frames" : {
+    "apple" : {
+      "height" : 24.5,
+      "width" : 44.5,
+      "x" : 72,
+      "y" : 60.25
+    },
+    "banana" : {
+      "height" : 24.5,
+      "width" : 57,
+      "x" : 72,
+      "y" : 116.25
+    },
+    "cherry" : {
+      "height" : 24.5,
+      "width" : 52,
+      "x" : 72,
+      "y" : 172.25
+    },
+    "date" : {
+      "height" : 24.5,
+      "width" : 36,
+      "x" : 72,
+      "y" : 290.25
+    },
+    "fixed" : {
+      "height" : 24.5,
+      "width" : 44,
+      "x" : 32,
+      "y" : 408.25
+    },
+    "list" : {
+      "height" : 420,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 320
+  }
+}

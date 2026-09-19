@@ -203,6 +203,16 @@ extension PlatformMetrics {
     package static var dateTimePillHeight: CGFloat { current.dateTimePillHeight }
     package static var dateTextSize: CGFloat { current.dateTextSize }
     package static var listSelectionFill: RGBA? { current.listSelectionFill }
+    package static var listEditLeadingInset: CGFloat { current.listEditLeadingInset }
+    package static var listEditGripWidth: CGFloat { current.listEditGripWidth }
+    package static var listEditCircleSize: CGFloat { current.listEditCircleSize }
+    package static var listEditCircleInset: CGFloat { current.listEditCircleInset }
+    package static var listEditCircleFill: RGBA { current.listEditCircleFill }
+    package static var listEditMinusSize: CGSize { current.listEditMinusSize }
+    package static var listEditGripLineSize: CGSize { current.listEditGripLineSize }
+    package static var listEditGripPitch: CGFloat { current.listEditGripPitch }
+    package static var listEditGripTrailingInset: CGFloat { current.listEditGripTrailingInset }
+    package static var listEditGripFill: RGBA { current.listEditGripFill }
     package static var presentationPadding: CGFloat { current.presentationPadding }
     package static var presentationCornerRadius: CGFloat { current.presentationCornerRadius }
     package static var presentationDimAlpha: Double { current.presentationDimAlpha }

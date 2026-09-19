@@ -1,5 +1,10 @@
 // Nodes for the data-driven list views. `ForEach` is the one place the runtime reconciles by
 // key (Docs/ARCHITECTURE.md, invariant 1); `Section` is a transparent three-part list.
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
 
 // MARK: ForEach
 
@@ -16,6 +21,9 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
     }
 
     package private(set) var entries: [Entry] = []
+
+    package var _onDelete: ((IndexSet) -> Void)? { view._onDelete }
+    package var _onMove: ((IndexSet, Int) -> Void)? { view._onMove }
 
     /// Number of subtrees created over the node's life, for tests.
     package private(set) var created = 0

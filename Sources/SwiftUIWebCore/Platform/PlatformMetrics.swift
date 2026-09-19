@@ -245,6 +245,17 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var dateTimePillHeight: CGFloat = 40                  // rows holding a time
     package var dateTextSize: CGFloat = 17
     package var listSelectionFill: RGBA? = nil                    // iOS (209, 209, 214): an opaque fill over the row
+    // iOS edit mode (ios/list/editing): the delete circle and the reorder grip.
+    package var listEditLeadingInset: CGFloat = 0                 // iOS 40: the row content moves right of the delete circle
+    package var listEditGripWidth: CGFloat = 0                    // iOS 40: the reorder grip's slot at the trailing edge
+    package var listEditCircleSize: CGFloat = 22                  // the red disc, 17 in from the card's edge, centred on the row
+    package var listEditCircleInset: CGFloat = 17
+    package var listEditCircleFill: RGBA = RGBA(r: 255, g: 58, b: 62)
+    package var listEditMinusSize: CGSize = CGSize(width: 10.5, height: 2)
+    package var listEditGripLineSize: CGSize = CGSize(width: 21.5, height: 1)   // three lines 5 apart, 18 in from the card's trailing edge
+    package var listEditGripPitch: CGFloat = 5
+    package var listEditGripTrailingInset: CGFloat = 18
+    package var listEditGripFill: RGBA = RGBA(r: 197, g: 197, b: 199)
 
     package var presentationPadding: CGFloat = 20
     package var presentationCornerRadius: CGFloat = 10

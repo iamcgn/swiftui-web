@@ -1,6 +1,11 @@
 // The list's content node: lays rows, section headers and footers out in a column with the
 // style's insets, paints row backgrounds, separators and the selection, and turns presses into
 // selection changes (Docs/elements/List.md).
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
 
 @MainActor
 private var nextListIdentifier = 4_000_000
@@ -30,6 +35,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         package var isSectionStart = false
         /// The slot of a header shown pinned at the top instead: laid out, not painted.
         package var isHidden = false
+        /// The `ForEach` the row belongs to and its offset in it (edit actions).
+        package var owner: (any _ForEachNodeProviding)?
+        package var offset = 0
     }
 
     package private(set) var elements: [Element] = []
@@ -71,7 +79,8 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// stands in for the element); other containers are transparent.
     private func collect() -> [Element] {
         var result: [Element] = []
-        func walk(_ node: ViewNode, id: AnyHashable?, sectionStart: inout Bool, wrap: @MainActor (ViewNode) -> ViewNode) {
+        func walk(_ node: ViewNode, id: AnyHashable?, owner: (any _ForEachNodeProviding)? = nil, offset: Int = 0,
+                  sectionStart: inout Bool, wrap: @MainActor (ViewNode) -> ViewNode) {
             if let section = node as? any _SectionNodeProviding {
                 var start = true
                 for header in section._headerNode.layoutChildren {
@@ -79,7 +88,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                     element.isSectionStart = start; start = false
                     result.append(element)
                 }
-                walk(section._contentNode, id: id, sectionStart: &start, wrap: wrap)
+                walk(section._contentNode, id: id, owner: owner, offset: offset, sectionStart: &start, wrap: wrap)
                 for footer in section._footerNode.layoutChildren {
                     var element = Element(kind: .footer, node: wrap(footer), id: nil)
                     element.isSectionStart = start; start = false
@@ -89,13 +98,15 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 return
             }
             if let forEach = node as? any _ForEachNodeProviding {
-                for (entryID, entryNode) in forEach._entries { walk(entryNode, id: entryID, sectionStart: &sectionStart, wrap: wrap) }
+                for (index, (entryID, entryNode)) in forEach._entries.enumerated() {
+                    walk(entryNode, id: entryID, owner: forEach, offset: index, sectionStart: &sectionStart, wrap: wrap)
+                }
                 return
             }
             if let modifier = node as? any _UnaryLayoutModifier {
                 var proxies: [ObjectIdentifier: ViewNode] = [:]
                 for (target, proxy) in zip(modifier.targets, node.layoutChildren) { proxies[ObjectIdentifier(target)] = proxy }
-                walk(modifier.modifiedContent, id: id, sectionStart: &sectionStart) { wrap(proxies[ObjectIdentifier($0)] ?? $0) }
+                walk(modifier.modifiedContent, id: id, owner: owner, offset: offset, sectionStart: &sectionStart) { wrap(proxies[ObjectIdentifier($0)] ?? $0) }
                 return
             }
             if node.isLayoutNode {
@@ -104,10 +115,12 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 let row = wrap(node)
                 var element = Element(kind: .row, node: row, id: id ?? row.layoutValue(for: TagKey.self))
                 element.isSectionStart = sectionStart; sectionStart = false
+                element.owner = owner
+                element.offset = offset
                 result.append(element)
                 return
             }
-            for structural in node.structuralChildren { walk(structural, id: id, sectionStart: &sectionStart, wrap: wrap) }
+            for structural in node.structuralChildren { walk(structural, id: id, owner: owner, offset: offset, sectionStart: &sectionStart, wrap: wrap) }
         }
         var start = false
         walk(child, id: nil, sectionStart: &start) { $0 }
@@ -181,7 +194,10 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 element.frame = CGRect(x: 0, y: y, width: width, height: size.height + 2 * pad)
                 element.separator = profile.showsSeparators && index != last && !element.isHidden
             case .row:
-                let insets = rowInsets(element.node)
+                var insets = rowInsets(element.node)
+                // iOS edit mode: the content moves in for the delete circle and leaves the grip its slot.
+                if editingAccessories, canDelete(element) { insets.leading += PlatformMetrics.listEditLeadingInset }
+                if editingAccessories, canMove(element) { insets.trailing += PlatformMetrics.listEditGripWidth }
                 let available = max(0, contentWidth - insets.leading - insets.trailing)
                 let size = element.node.sizeThatFits(ProposedViewSize(width: available, height: nil))
                 let height = max(profile.minimumRowHeight, size.height + insets.top + insets.bottom)
@@ -301,6 +317,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, color))
             }
             element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))
+            if editingAccessories, element.kind == .row { paintEditAccessories(for: element, into: &list, context: context) }
             // iOS: a navigation link row shows a chevron at its trailing edge.
             if profile.linkChevron, element.kind == .row, element.node.layoutValue(for: NavigationLinkActivationKey.self) != nil {
                 let size = PlatformMetrics.listLinkChevronSize
@@ -315,13 +332,107 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         }
     }
 
+    /// iOS edit mode (ios/list/editing): a red disc with a white minus at the row's leading edge
+    /// when the row can be deleted, three grey lines at its trailing edge when it can be moved.
+    private func paintEditAccessories(for element: Element, into list: inout DisplayList, context: PaintContext) {
+        let midY = element.frame.midY
+        if canDelete(element) {
+            let size = PlatformMetrics.listEditCircleSize
+            let disc = CGRect(x: profile.margin + PlatformMetrics.listEditCircleInset, y: midY - size / 2, width: size, height: size)
+            list.append(.fillPath(Path(ellipseIn: context.absoluteRect(disc)), PlatformMetrics.listEditCircleFill))
+            let minus = PlatformMetrics.listEditMinusSize
+            list.append(.fillRect(context.absoluteRect(CGRect(x: disc.midX - minus.width / 2, y: disc.midY - minus.height / 2, width: minus.width, height: minus.height)), RGBA(r: 255, g: 255, b: 255)))
+        }
+        if canMove(element) {
+            let line = PlatformMetrics.listEditGripLineSize
+            let right = frame.width - profile.margin - PlatformMetrics.listEditGripTrailingInset
+            for index in -1...1 {
+                let y = midY + CGFloat(index) * PlatformMetrics.listEditGripPitch - line.height / 2
+                list.append(.fillRect(context.absoluteRect(CGRect(x: right - line.width, y: y, width: line.width, height: line.height)), PlatformMetrics.listEditGripFill))
+            }
+        }
+    }
+
     // MARK: Selection
 
     package func pressBegan() {}
     package func pressEnded(inside: Bool) {}
 
+    // MARK: Reordering (onMove)
+
+    /// The row a press started on, and how far it has been dragged along the list.
+    private var pressedRow: Int?
+    private var pressStart: CGPoint = .zero
+    private var dragOffset: CGFloat = 0
+    private var reordering = false
+
+    package func pressBegan(at point: CGPoint) {
+        pressedRow = elements.firstIndex { $0.kind == .row && $0.frame.contains(point) }
+        pressStart = point
+        dragOffset = 0
+        reordering = false
+    }
+
+    /// A row whose `ForEach` has `onMove` follows a vertical drag (macOS: any press on it; iOS: a
+    /// press on its reorder grip in edit mode).
+    package var dragAxes: Axis.Set {
+        guard let index = pressedRow, canMove(elements[index]) else { return [] }
+        if environment.platformProfile.isIOS {
+            // Read through the profile: presses arrive outside a layout pass's metrics selection.
+            let grip = elements[index].frame.maxX - environment.platformProfile.metrics.listEditGripWidth
+            return isEditing && pressStart.x >= grip ? .vertical : []
+        }
+        return .vertical
+    }
+
+    package func pressMoved(to point: CGPoint) {
+        guard let index = pressedRow, canMove(elements[index]) else { return }
+        dragOffset = point.y - pressStart.y
+        if abs(dragOffset) >= PlatformMetrics.panSlop { reordering = true }
+        if reordering { runtime.setNeedsDisplay() }
+    }
+
+    /// iOS edit mode with rows that can be deleted or moved shows the accessories.
+    private var editingAccessories: Bool { isEditing && PlatformMetrics.listEditLeadingInset > 0 }
+
+    private func canMove(_ element: Element) -> Bool {
+        element.owner?._onMove != nil && !element.node.layoutValue(for: MoveDisabledKey.self)
+    }
+
+    private func canDelete(_ element: Element) -> Bool {
+        element.owner?._onDelete != nil && !element.node.layoutValue(for: DeleteDisabledKey.self)
+    }
+
+    package var isEditing: Bool { environment.editMode?.wrappedValue.isEditing ?? false }
+
+    /// Ends a reorder: the row lands before the row whose top the drop point passed, among the
+    /// rows of the same `ForEach`.
+    private func finishReorder(at point: CGPoint) {
+        defer { pressedRow = nil; reordering = false; dragOffset = 0 }
+        guard let index = pressedRow, let owner = elements[index].owner, let move = owner._onMove else { return }
+        let siblings = elements.enumerated().filter { $0.element.kind == .row && $0.element.owner === owner }
+        let from = elements[index].offset
+        var destination = siblings.count
+        for (_, element) in siblings where point.y < element.frame.midY {
+            destination = element.offset
+            break
+        }
+        guard destination != from && destination != from + 1 else { runtime.setNeedsDisplay(); return }
+        move(IndexSet(integer: from), destination)
+        runtime.setNeedsDisplay()
+    }
+
     package func pressEnded(inside: Bool, at point: CGPoint) {
+        if reordering { finishReorder(at: point); return }
+        pressedRow = nil
         guard inside, let element = elements.first(where: { $0.kind == .row && $0.frame.contains(point) }) else { return }
+        // iOS edit mode: a press on the delete circle deletes the row.
+        if isEditing, environment.platformProfile.isIOS, canDelete(element),
+           point.x < element.frame.minX + profile.margin + environment.platformProfile.metrics.listEditLeadingInset {
+            element.owner?._onDelete?(IndexSet(integer: element.offset))
+            runtime.setNeedsDisplay()
+            return
+        }
         // A row that is a `NavigationLink` pushes; a selectable row toggles its selection.
         element.node.layoutValue(for: NavigationLinkActivationKey.self)?.run()
         if let selection = view.selection, let id = element.id {
@@ -347,6 +458,16 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// anchor row in a multiple selection.
     package func handleKey(_ press: KeyPress) -> Bool {
         guard let selection = view.selection, press.modifiers.shortcutModifiers.isSubset(of: [.shift]) else { return false }
+        // Delete removes the selected rows through their `ForEach`'s `onDelete`.
+        if press.key == .delete || press.key == .deleteForward {
+            var deleted = false
+            for owner in elements.compactMap(\.owner) where owner._onDelete != nil {
+                let offsets = elements.filter { $0.kind == .row && $0.owner === owner && isSelected($0) && canDelete($0) }.map(\.offset)
+                if !offsets.isEmpty { owner._onDelete?(IndexSet(offsets)); deleted = true }
+            }
+            if deleted { runtime.setNeedsDisplay() }
+            return deleted
+        }
         let rows = elements.filter { $0.kind == .row && $0.id != nil }
         guard !rows.isEmpty else { return false }
         let current = rows.lastIndex { selection.isSelected($0.id!) }
@@ -399,4 +520,7 @@ package protocol _SectionNodeProviding: AnyObject {
 @MainActor
 package protocol _ForEachNodeProviding: AnyObject {
     var _entries: [(AnyHashable, ViewNode)] { get }
+    /// The `ForEach`'s edit actions (`onDelete`, `onMove`), by row offset.
+    var _onDelete: ((IndexSet) -> Void)? { get }
+    var _onMove: ((IndexSet, Int) -> Void)? { get }
 }

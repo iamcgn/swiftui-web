@@ -114,6 +114,24 @@
       "lastBaseline" : 18.5,
       "width" : 35.5
     },
+    "style:body:w500||Deletable" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 74.5
+    },
+    "style:body:w500||Editable" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 63.5
+    },
+    "style:body:w500||Fixed" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 42
+    },
     "style:body:w500||Footer" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -154,6 +172,24 @@
       "firstBaseline" : 18.5,
       "height" : 101,
       "lastBaseline" : 95,
+      "width" : 0
+    },
+    "style:body:w500|0.0|Deletable" : {
+      "firstBaseline" : 18.5,
+      "height" : 231,
+      "lastBaseline" : 225,
+      "width" : 0
+    },
+    "style:body:w500|0.0|Editable" : {
+      "firstBaseline" : 18.5,
+      "height" : 205,
+      "lastBaseline" : 199,
+      "width" : 0
+    },
+    "style:body:w500|0.0|Fixed" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
       "width" : 0
     },
     "style:body:w500|0.0|Footer" : {

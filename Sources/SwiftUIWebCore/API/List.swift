@@ -482,3 +482,13 @@ extension TupleView: _TupleHeadProviding {
         return (first as? any _SectionHeaderProviding)?._headerTitle
     }
 }
+
+extension List {
+    /// A list of a binding-backed collection whose rows can be deleted and moved through the binding.
+    public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions<Data>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent)
+    where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, Data.Element.ID)>, Data.Element.ID, RowContent>, SelectionValue == Never,
+          Data: MutableCollection, Data: RandomAccessCollection, Data: RangeReplaceableCollection, Data.Element: Identifiable, Data.Index: Hashable, RowContent: View
+    {
+        self.init { ForEach(data, editActions: editActions, content: rowContent) }
+    }
+}

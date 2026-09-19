@@ -116,6 +116,8 @@ extension PlatformMetricsTable {
         t.listSelectionInset = 0
         t.listSelectionCornerRadius = 0
         t.listSelectionFill = RGBA(r: 209, g: 209, b: 214)
+        t.listEditLeadingInset = 40
+        t.listEditGripWidth = 40
         return t
     }()
 }
