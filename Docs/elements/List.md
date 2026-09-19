@@ -73,11 +73,38 @@ A selected row fills its row across the card with (209, 209, 214) (`listSelectio
 separators beside it hidden. Rows outside a `ForEach` take their identity from `tag`, so a
 `selection` binding matches them as on Apple's platforms.
 
+## Editing (2026-09-18, `ListEditingTests`, `ios/list/editing`)
+
+`ForEach.onDelete` and `onMove` (and the binding-backed `ForEach(_:editActions:)` and
+`List(_:editActions:)`, which delete and move through the collection with
+`remove(atOffsets:)` and `move(fromOffsets:toOffset:)`), `deleteDisabled`, `moveDisabled`,
+`EditMode`, the environment's `editMode` binding and `EditButton`. A list deletes its selected
+rows on the Delete key through their `ForEach` and reorders a row dragged along the list
+(macOS: any press on a movable row; iOS: a press on the grip in edit mode), landing before the
+row whose middle the drop passed. In edit mode on iOS the rows of a `ForEach` with `onDelete`
+show a 22 pt red (255, 58, 62) disc with a white minus 17 in from the card's edge and move
+their content 40 in; rows with `onMove` show three grey (197, 197, 199) 21.5 × 1 lines 5 apart,
+18 from the card's trailing edge; other rows keep their place (measured on the simulator,
+Tier A exact, Tier C 0.9 %). A press on the disc deletes the row at once (iOS reveals a Delete
+button first: `sw-list-editing-rest`).
+
+`swipeActions(edge:allowsFullSwipe:content:)` (iOS): a sideways drag on a row shifts its content
+and reveals the edge's buttons, laid out outermost first, as full-height cells (74 pt minimum,
+16 pt of padding, red for the destructive role, else the tint or grey (142, 142, 147), white
+labels); past half the strip the row rests open, a press on a cell runs its button and closes
+the row, a press anywhere else closes it, and a drag past 60 % of the row runs the outermost
+action when `allowsFullSwipe`. A row of a `ForEach` with `onDelete` and no trailing actions gets
+a trailing Delete. The geometry and colours are approximate: no golden can hold a swipe.
+
+`refreshable(action:)` (iOS, touch): a pull past the top of a scroll view moves the content down
+half the finger's distance; released past 60 pt it runs the action, the content held 60 down
+behind a circular spinner until the action returns. Approximate: the rubber band and the
+spinner's growth are not measured.
+
 ## Not yet covered
 
 Focused (accent) selection, keyboard navigation and Shift/Cmd ranges, hover highlight,
 alternating row backgrounds, `listRowSpacing`/`listSectionSpacing`, `listItemTint` (stored) and
-section separator modifiers (stored), outline lists (`children:`), edit actions (`onDelete`,
-`onMove`, `swipeActions`), binding collection forms, the pinned header's gradient shadow and
+section separator modifiers (stored), outline lists (`children:`), the pinned header's gradient shadow and
 sticky behaviour for later sections while scrolling (only the first header pins, and it stays
 while scrolling), `scrollContentBackground`, `refreshable`, lazy rows (every row is laid out).

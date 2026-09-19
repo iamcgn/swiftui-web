@@ -150,5 +150,116 @@ import SwiftUIWebHeadless
         r.pointerDown(at: CGPoint(x: fixed.minX + 12, y: apple.midY)); r.pointerUp(at: CGPoint(x: fixed.minX + 12, y: apple.midY))
         #expect(model.deleted == [0])
     }
+
+    // MARK: Swipe actions and pull to refresh (iOS)
+
+    @Observable final class SwipeModel: @unchecked Sendable {
+        var items = ["Apple", "Banana", "Cherry"]
+        var flagged: [String] = []
+        var trashed: [String] = []
+        var deleted: [Int] = []
+        var refreshed = 0
+    }
+
+    struct Swipeable: View {
+        let model: SwipeModel
+        var body: some View {
+            List {
+                ForEach(model.items, id: \.self) { item in
+                    Text(item)._probe(item)
+                        .swipeActions {
+                            Button("Trash", role: .destructive) { model.trashed.append(item) }._probe("trash-\(item)")
+                            Button("Flag") { model.flagged.append(item) }._probe("flag-\(item)")
+                        }
+                }
+                .onDelete { model.deleted = Array($0) }
+            }
+        }
+    }
+
+    private func drag(_ r: Runtime, from: CGPoint, to: CGPoint) {
+        r.pointerDown(at: from, type: .touch, time: 0)
+        let mid = CGPoint(x: (from.x + to.x) / 2, y: (from.y + to.y) / 2)
+        r.pointerMoved(to: mid, time: 0.05)
+        r.pointerMoved(to: to, time: 0.1)
+        r.pointerUp(at: to, time: 0.15)
+        relayout(r)
+    }
+
+    @Test func swipeRevealsTheActionsAndAPressRunsOne() {
+        let model = SwipeModel()
+        let r = runtime(Swipeable(model: model), iOS: true)
+        let apple = r.probeFrames["Apple"]!
+        // A short swipe past half the strip leaves it open, the content shifted by its width.
+        drag(r, from: CGPoint(x: 250, y: apple.midY), to: CGPoint(x: 150, y: apple.midY))
+        let shifted = r.probeFrames["Apple"]!
+        #expect(shifted.minX < apple.minX)
+        // Two 74 pt cells fill the strip up to the card's edge (304); the first declared action,
+        // Trash, is the outermost, so Flag is the inner cell (probe frames are not republished
+        // after the cells are placed in reverse, so the geometry is asserted directly).
+        #expect(shifted.minX == apple.minX - 148)
+        r.pointerDown(at: CGPoint(x: 304 - 148 + 37, y: apple.midY), type: .touch, time: 1); r.pointerUp(at: CGPoint(x: 304 - 148 + 37, y: apple.midY), time: 1.05)
+        relayout(r)
+        #expect(model.flagged == ["Apple"] && model.trashed.isEmpty)
+        // Pressing closed the row.
+        #expect(r.probeFrames["Apple"]!.minX == apple.minX)
+    }
+
+    @Test func fullSwipeRunsTheOutermostAction() {
+        let model = SwipeModel()
+        let r = runtime(Swipeable(model: model), iOS: true)
+        let banana = r.probeFrames["Banana"]!
+        drag(r, from: CGPoint(x: 300, y: banana.midY), to: CGPoint(x: 40, y: banana.midY))
+        #expect(model.trashed == ["Banana"])
+        #expect(model.flagged.isEmpty)
+    }
+
+    struct Deletable: View {
+        let model: SwipeModel
+        var body: some View {
+            List {
+                ForEach(model.items, id: \.self) { item in Text(item)._probe(item) }
+                    .onDelete { model.deleted = Array($0) }
+            }
+        }
+    }
+
+    @Test func fullSwipeOnADeletableRowDeletesIt() {
+        let model = SwipeModel()
+        let r = runtime(Deletable(model: model), iOS: true)
+        let cherry = r.probeFrames["Cherry"]!
+        drag(r, from: CGPoint(x: 300, y: cherry.midY), to: CGPoint(x: 40, y: cherry.midY))
+        #expect(model.deleted == [2])
+    }
+
+    struct Refreshing: View {
+        let model: SwipeModel
+        var body: some View {
+            ScrollView {
+                VStack(spacing: 0) { Color.red.frame(width: 100, height: 500)._probe("content") }.frame(maxWidth: .infinity)
+            }
+            .refreshable { model.refreshed += 1 }
+        }
+    }
+
+    @Test func pullPastTheThresholdRefreshes() async {
+        let model = SwipeModel()
+        let r = runtime(Refreshing(model: model), iOS: true)
+        // A pull of 200 pt past the top counts half: 100, past the 60 pt threshold.
+        r.pointerDown(at: CGPoint(x: 100, y: 40), type: .touch, time: 0)
+        r.pointerMoved(to: CGPoint(x: 100, y: 60), time: 0.05)
+        r.pointerMoved(to: CGPoint(x: 100, y: 240), time: 0.1)
+        relayout(r)
+        #expect(r.probeFrames["content"]!.minY > 0)
+        r.pointerUp(at: CGPoint(x: 100, y: 240), time: 0.15)
+        for _ in 0..<100 where model.refreshed == 0 { await Task.yield() }
+        #expect(model.refreshed == 1)
+        // A short pull does nothing.
+        r.pointerDown(at: CGPoint(x: 100, y: 40), type: .touch, time: 2)
+        r.pointerMoved(to: CGPoint(x: 100, y: 80), time: 2.05)
+        r.pointerUp(at: CGPoint(x: 100, y: 80), time: 2.1)
+        for _ in 0..<20 { await Task.yield() }
+        #expect(model.refreshed == 1)
+    }
 }
 #endif

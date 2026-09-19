@@ -87,7 +87,7 @@
         {
           "api": "ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent",
           "status": "partial",
-          "notes": "Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) exact frames, ≤ 0.3 % pixels incl. every identity step",
+          "notes": "Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) exact frames, ≤ 0.3 % pixels incl. every identity step. onDelete, onMove and the editActions binding form (2026-09-18, Docs/elements/List.md); onInsert accepted without effect.",
           "fixtures": [
             "foreach/*"
           ]
@@ -198,13 +198,14 @@
         {
           "api": "List (content, selection, data/id/Range forms) / ListStyle (automatic, inset, plain, bordered, sidebar) / listStyle",
           "status": "partial",
-          "notes": "macOS row geometry, separators, section headers/footers with the pinned first header, styles, single and multiple selection by press, labels' icon slot and tint measured; no outline lists, edit actions, keyboard selection, focused (accent) highlight, alternating backgrounds or custom styles",
+          "notes": "macOS row geometry, separators, section headers/footers with the pinned first header, styles, single and multiple selection by press, labels' icon slot and tint measured; no outline lists, edit actions, keyboard selection, focused (accent) highlight, alternating backgrounds or custom styles. Editing (2026-09-18): onDelete on the Delete key, onMove by drag, the editActions binding forms, EditMode/EditButton with iOS's delete circle and grip measured (ios/list/editing), swipeActions and the implicit Delete (approximate: no golden holds a swipe), refreshable (approximate).",
           "fixtures": [
             "list/basic",
             "list/sections",
             "list/styles",
             "list/modifiers",
-            "list/steps"
+            "list/steps",
+            "ios/list/editing"
           ]
         },
         {

@@ -17,7 +17,7 @@ Apple docs: [ForEach](https://developer.apple.com/documentation/swiftui/foreach)
 | `init(_ data: Binding<C>, content: (Binding<C.Element>) -> R)` and the `id:` form | implemented; `Data == LazyMapSequence<C.Indices, (C.Index, ID)>`. Note that `Binding` is itself a `RandomAccessCollection` of element bindings, so `ForEach($items)` resolves to the plain collection initialiser with `Data == Binding<[Item]>`; behaviour is identical |
 | `init(_ data: Binding<C>, editActions:…)` (iOS 16 / macOS 13) | missing (needs `List`) |
 | `init(subviews:)`, `init(sections:)`, `ForEach(_:id:) { … }` over `Subviews` (iOS 18 / macOS 15) | missing |
-| `DynamicViewContent` (`data`), `onDelete`, `onMove`, `onInsert` | protocol and `data` only |
+| `DynamicViewContent` (`data`), `onDelete`, `onMove`, `onInsert`, `ForEach(_:editActions:)` | `onDelete` and `onMove` drive a list's editing (`Docs/elements/List.md`, 2026-09-18); `onInsert` is accepted without effect |
 
 `Section<Parent, Content, Footer>`:
 
@@ -56,7 +56,7 @@ them through the existing proxy mechanism.
 ## Open
 
 - `Section` header styling inside `Form`, `Picker` (`List` is done: `Docs/elements/List.md`).
-- Duplicate-id warning; `onDelete`/`onMove` edit actions; `Subviews`-based `ForEach`.
+- Duplicate-id warning; `onInsert` by drop; `Subviews`-based `ForEach`.
 - Tier B: Chromium and WebKit exact frames on all 14 fixtures (every identity step included);
   Firefox measures "Vegetables" 0.5 pt wider, which shifts the leading-aligned column of
   `section/title` and `section/foreach` by 0.25 pt (text-width class, not a ForEach/Section issue).

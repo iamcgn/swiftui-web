@@ -256,6 +256,13 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listEditGripPitch: CGFloat = 5
     package var listEditGripTrailingInset: CGFloat = 18
     package var listEditGripFill: RGBA = RGBA(r: 197, g: 197, b: 199)
+    // Swipe actions and pull to refresh (approximate: no golden can hold a swipe or a pull).
+    package var swipeActionMinimumWidth: CGFloat = 74            // a cell is at least this wide
+    package var swipeActionPadding: CGFloat = 16                 // each side of the label
+    package var swipeFullFraction: CGFloat = 0.6                 // a swipe past this fraction of the row performs the first action
+    package var refreshThreshold: CGFloat = 60                   // the resisted pull that starts a refresh
+    package var refreshHeight: CGFloat = 60                      // the band the content moves down while refreshing
+    package var refreshPullResistance: CGFloat = 0.5             // the finger's distance past the top counts this much
 
     package var presentationPadding: CGFloat = 20
     package var presentationCornerRadius: CGFloat = 10

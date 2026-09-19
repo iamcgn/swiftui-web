@@ -203,7 +203,8 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 let height = max(profile.minimumRowHeight, size.height + insets.top + insets.bottom)
                 element.frame = CGRect(x: 0, y: y, width: width, height: height)
                 let contentY = y + (height - size.height) / 2
-                element.contentFrame = CGRect(x: profile.margin + insets.leading, y: contentY, width: available, height: size.height)
+                let shift = swipe?.row == index ? swipe!.offset : 0
+                element.contentFrame = CGRect(x: profile.margin + insets.leading + shift, y: contentY, width: available, height: size.height)
                 let (visibility, edges) = element.node.layoutValue(for: ListRowSeparatorKey.self)
                 // A card's last row has no separator: the next element is a header, footer or nothing.
                 let followedByRow = index + 1 < elements.count && elements[index + 1].kind == .row && !(iOSLayout && elements[index + 1].isSectionStart)
@@ -248,14 +249,16 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             node.unmount()
             backgrounds[key] = nil
         }
+        layoutStrips()
     }
 
     override package var paintedChildren: [ViewNode] { elements.map(\.node) }
-    override package var structuralChildren: [ViewNode] { [child] }
+    override package var structuralChildren: [ViewNode] { [child] + strips.values.flatMap { Array($0.values) } }
     override package var nodeDescription: String { "List" }
 
     override package func unmount() {
         for node in backgrounds.values { node.unmount() }
+        for byEdge in strips.values { for node in byEdge.values { node.unmount() } }
         backgrounds.removeAll()
         super.unmount()
     }
@@ -317,6 +320,17 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, color))
             }
             element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))
+            if let state = swipe, state.row == index, state.offset != 0 {
+                // The revealed strip, clipped to the card.
+                let edge: HorizontalEdge = state.offset < 0 ? .trailing : .leading
+                if let strip = strips[ObjectIdentifier(element.node)]?[edge], let target = stripNode(strip) {
+                    let card = CGRect(x: profile.margin, y: element.frame.minY, width: frame.width - 2 * profile.margin, height: element.frame.height)
+                    list.append(.save)
+                    list.append(.clipRect(context.absoluteRect(card)))
+                    target.paint(into: &list, context: context.child(at: target.presentedFrame))
+                    list.append(.restore)
+                }
+            }
             if editingAccessories, element.kind == .row { paintEditAccessories(for: element, into: &list, context: context) }
             // iOS: a navigation link row shows a chevron at its trailing edge.
             if profile.linkChevron, element.kind == .row, element.node.layoutValue(for: NavigationLinkActivationKey.self) != nil {
@@ -366,6 +380,121 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     private var dragOffset: CGFloat = 0
     private var reordering = false
 
+    // MARK: Swipe actions (swipeActions, the implicit Delete of onDelete on iOS)
+
+    /// The row shifted sideways: its index, its offset (negative reveals the trailing edge) and
+    /// whether the offset rests open at an edge.
+    private struct Swipe {
+        var row: Int
+        var offset: CGFloat = 0
+        var open = false
+        var dragging = false
+        var startOffset: CGFloat = 0
+        /// The finger's distance from where it started plus the resting offset (unresisted).
+        var travel: CGFloat = 0
+    }
+    private var swipe: Swipe?
+    /// The mounted action strips per row (by the row node), per edge.
+    private var strips: [ObjectIdentifier: [HorizontalEdge: TypedNode<AnyView>]] = [:]
+
+    /// The action sets of a row: its `swipeActions` and, on iOS, a trailing Delete for a row of a
+    /// `ForEach` with `onDelete` that declares no trailing actions itself.
+    private func actionSets(for element: Element) -> [_SwipeActionSet] {
+        guard element.kind == .row, environment.platformProfile.isIOS, !isEditing else { return [] }
+        var sets = element.node.layoutValue(for: SwipeActionsKey.self)
+        if !sets.contains(where: { $0.edge == .trailing }), canDelete(element), let owner = element.owner, let delete = owner._onDelete {
+            let offset = element.offset
+            sets.append(_SwipeActionSet(edge: .trailing, allowsFullSwipe: true, content: AnyView(Button("Delete", role: .destructive) { delete(IndexSet(integer: offset)) })))
+        }
+        return sets
+    }
+
+    /// Mounts or updates the strip of an edge's actions for a row; nil when it has none.
+    private func strip(for element: Element, edge: HorizontalEdge) -> TypedNode<AnyView>? {
+        let sets = actionSets(for: element).filter { $0.edge == edge }
+        let key = ObjectIdentifier(element.node)
+        guard !sets.isEmpty else {
+            if let node = strips[key]?[edge] { node.unmount(); strips[key]?[edge] = nil }
+            return nil
+        }
+        let view = AnyView(HStack(spacing: 0) { ForEach(Array(sets.enumerated()), id: \.offset) { $0.element.content } }
+            .buttonStyle(_SwipeActionButtonStyle()).font(.body))
+        if let node = strips[key]?[edge] {
+            node.update(view: view, environment: environment, force: false)
+            return node
+        }
+        let node = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: environment))
+        strips[key, default: [:]][edge] = node
+        return node
+    }
+
+    private func stripNode(_ node: TypedNode<AnyView>) -> ViewNode? { node.layoutChildren.first }
+
+    /// Lays the strips out beside the row content, shifted with it.
+    private func layoutStrips() {
+        var live: Set<ObjectIdentifier> = []
+        for (index, element) in elements.enumerated() where element.kind == .row {
+            let shift = swipe?.row == index ? swipe!.offset : 0
+            live.insert(ObjectIdentifier(element.node))
+            for edge in [HorizontalEdge.leading, .trailing] {
+                guard let strip = strip(for: element, edge: edge), let target = stripNode(strip) else { continue }
+                let size = target.sizeThatFits(ProposedViewSize(width: nil, height: element.frame.height))
+                let cardLeft = profile.margin, cardRight = frame.width - profile.margin
+                let x = edge == .trailing ? cardRight + shift : cardLeft + shift - size.width
+                target.place(at: CGPoint(x: x, y: element.frame.minY), anchor: .topLeading, proposal: ProposedViewSize(width: size.width, height: element.frame.height), by: self)
+                // The first declared action is the outermost: a trailing strip's cells run from
+                // its far edge back, so they are placed again in reverse order.
+                if edge == .trailing {
+                    // The cells: each button's outermost ancestor below the stack, in declaration order.
+                    var stack: ViewNode = target
+                    while let modifier = stack as? any _UnaryLayoutModifier { stack = modifier.modifiedContent }
+                    var cells: [ViewNode] = []
+                    for button in stack.descendants(where: { $0 is ButtonHostNode }) {
+                        // The outermost layout node below the first container on the way up.
+                        var cell: ViewNode = button, node: ViewNode = button
+                        while let parent = node.parent, parent !== stack, parent !== target {
+                            if parent.isLayoutNode {
+                                if parent.layoutChildren.count > 1 { break }
+                                cell = parent
+                            }
+                            node = parent
+                        }
+                        if !cells.contains(where: { $0 === cell }) { cells.append(cell) }
+                    }
+                    var cellX = target.frame.width
+                    for cell in cells {
+                        cellX -= cell.frame.width
+                        cell.moveFrame(toOrigin: CGPoint(x: cellX, y: cell.frame.minY))
+                    }
+                }
+            }
+        }
+        for (key, byEdge) in strips where !live.contains(key) {
+            for node in byEdge.values { node.unmount() }
+            strips[key] = nil
+        }
+    }
+
+    /// The width of a row's strip at an edge (0 without one).
+    private func stripWidth(_ index: Int, _ edge: HorizontalEdge) -> CGFloat {
+        guard index < elements.count, let strip = strips[ObjectIdentifier(elements[index].node)]?[edge], let target = stripNode(strip) else { return 0 }
+        return target.frame.width
+    }
+
+    private func closeSwipe() {
+        guard swipe != nil else { return }
+        swipe = nil
+        runtime.requestFullLayout()
+    }
+
+    /// Runs the outermost action of the strip at `edge` of the swiped row (a full swipe).
+    private func performFirstAction(row: Int, edge: HorizontalEdge) {
+        guard let strip = strips[ObjectIdentifier(elements[row].node)]?[edge] else { return }
+        guard let button = strip.descendants(where: { $0 is ButtonHostNode }).first as? ButtonHostNode else { return }
+        button.pressBegan()
+        button.pressEnded(inside: true)
+    }
+
     package func pressBegan(at point: CGPoint) {
         pressedRow = elements.firstIndex { $0.kind == .row && $0.frame.contains(point) }
         pressStart = point
@@ -376,7 +505,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// A row whose `ForEach` has `onMove` follows a vertical drag (macOS: any press on it; iOS: a
     /// press on its reorder grip in edit mode).
     package var dragAxes: Axis.Set {
-        guard let index = pressedRow, canMove(elements[index]) else { return [] }
+        guard let index = pressedRow else { return [] }
+        if swipe != nil || !actionSets(for: elements[index]).isEmpty { return canMove(elements[index]) && isEditing ? [.horizontal, .vertical] : .horizontal }
+        guard canMove(elements[index]) else { return [] }
         if environment.platformProfile.isIOS {
             // Read through the profile: presses arrive outside a layout pass's metrics selection.
             let grip = elements[index].frame.maxX - environment.platformProfile.metrics.listEditGripWidth
@@ -386,10 +517,55 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     }
 
     package func pressMoved(to point: CGPoint) {
-        guard let index = pressedRow, canMove(elements[index]) else { return }
-        dragOffset = point.y - pressStart.y
-        if abs(dragOffset) >= PlatformMetrics.panSlop { reordering = true }
+        guard let index = pressedRow else { return }
+        let dx = point.x - pressStart.x, dy = point.y - pressStart.y
+        let slop = environment.platformProfile.metrics.panSlop
+        // A sideways drag on a row with actions swipes it; a drag along the list reorders.
+        if !reordering, !actionSets(for: elements[index]).isEmpty, swipe?.dragging == true || (abs(dx) >= slop && abs(dx) > abs(dy)) {
+            var state = swipe?.row == index ? swipe! : Swipe(row: index)
+            if !state.dragging { state.dragging = true; state.startOffset = state.offset }
+            let trailing = stripWidth(index, .trailing), leading = stripWidth(index, .leading)
+            var offset = state.startOffset + dx
+            state.travel = offset
+            // Past the strip the row follows the finger at a third of its distance; without a
+            // strip on that side it stays put.
+            if offset < -trailing { offset = trailing > 0 ? -trailing + (offset + trailing) / 3 : 0 }
+            if offset > leading { offset = leading > 0 ? leading + (offset - leading) / 3 : 0 }
+            state.offset = offset
+            swipe = state
+            runtime.requestFullLayout()
+            return
+        }
+        guard canMove(elements[index]), swipe?.dragging != true else { return }
+        dragOffset = dy
+        if abs(dragOffset) >= slop { reordering = true }
         if reordering { runtime.setNeedsDisplay() }
+    }
+
+    /// Ends a swipe: past `swipeFullFraction` of the row it performs the first action of that
+    /// edge (when allowed), past half the strip it rests open, else it closes.
+    private func finishSwipe(at point: CGPoint) {
+        guard var state = swipe else { return }
+        state.dragging = false
+        let row = state.row
+        let edge: HorizontalEdge = state.offset < 0 ? .trailing : .leading
+        let width = stripWidth(row, edge)
+        let sets = actionSets(for: elements[row]).filter { $0.edge == edge }
+        let full = sets.contains { $0.allowsFullSwipe } && abs(state.travel) >= elements[row].frame.width * environment.platformProfile.metrics.swipeFullFraction
+        if full {
+            swipe = nil
+            performFirstAction(row: row, edge: edge)
+            runtime.requestFullLayout()
+            return
+        }
+        if width > 0, abs(state.offset) >= width / 2 {
+            state.offset = edge == .trailing ? -width : width
+            state.open = true
+            swipe = state
+        } else {
+            swipe = nil
+        }
+        runtime.requestFullLayout()
     }
 
     /// iOS edit mode with rows that can be deleted or moved shows the accessories.
@@ -424,7 +600,20 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
 
     package func pressEnded(inside: Bool, at point: CGPoint) {
         if reordering { finishReorder(at: point); return }
+        if swipe?.dragging == true { pressedRow = nil; finishSwipe(at: point); return }
         pressedRow = nil
+        // An open row: a press on its strip presses that button, anywhere else closes it.
+        if let state = swipe, state.open {
+            let element = elements[state.row]
+            let edge: HorizontalEdge = state.offset < 0 ? .trailing : .leading
+            if let strip = strips[ObjectIdentifier(element.node)]?[edge], let target = stripNode(strip), target.frame.contains(point),
+               let hit = target.hitTest(CGPoint(x: point.x - target.frame.minX, y: point.y - target.frame.minY), where: { $0 is _Interactive }) as? (ViewNode & _Interactive) {
+                hit.pressBegan()
+                hit.pressEnded(inside: true)
+            }
+            closeSwipe()
+            return
+        }
         guard inside, let element = elements.first(where: { $0.kind == .row && $0.frame.contains(point) }) else { return }
         // iOS edit mode: a press on the delete circle deletes the row.
         if isEditing, environment.platformProfile.isIOS, canDelete(element),
@@ -523,4 +712,13 @@ package protocol _ForEachNodeProviding: AnyObject {
     /// The `ForEach`'s edit actions (`onDelete`, `onMove`), by row offset.
     var _onDelete: ((IndexSet) -> Void)? { get }
     var _onMove: ((IndexSet, Int) -> Void)? { get }
+}
+
+/// `swipeActions`: transparent to layout; adds its set to the ones below it in the chain.
+@MainActor
+package final class SwipeActionsNode<Content: View>: UnaryLayoutModifierNode<Content, _SwipeActionsModifier> {
+    override package func layoutValue<K: LayoutValueKey>(for key: K.Type) -> K.Value {
+        if key == SwipeActionsKey.self, let sets = (super.layoutValue(for: SwipeActionsKey.self) + [modifier.set]) as? K.Value { return sets }
+        return super.layoutValue(for: key)
+    }
 }

@@ -360,13 +360,27 @@
       "framework": "SwiftUI",
       "area": "List",
       "title": "List editing: onDelete, onMove, swipe actions, refreshable",
-      "detail": "`ForEach.onDelete`/`onMove`, `editActions:` bindings, `deleteDisabled`/`moveDisabled`, `editMode`, `swipeActions`, `refreshable`; the iOS looks from the simulator, macOS's from goldens where the harness can capture them.",
+      "detail": "Done 2026-09-18: onDelete/onMove, the editActions binding forms with remove(atOffsets:)/move(fromOffsets:toOffset:), deleteDisabled/moveDisabled, EditMode, editMode and EditButton; Delete key and drag reorder; iOS edit mode measured on the simulator (ios/list/editing); swipeActions with the implicit Delete and refreshable on iOS (approximate: no golden can hold a swipe or a pull). Rest in sw-list-editing-rest.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/List.md",
         "Docs/elements/ForEach.md"
+      ],
+      "done": "2026-09-18"
+    },
+    {
+      "id": "sw-list-editing-rest",
+      "framework": "SwiftUI",
+      "area": "List",
+      "title": "List editing: the rest",
+      "detail": "The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/List.md"
       ]
     },
     {

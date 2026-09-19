@@ -29,6 +29,11 @@ package protocol _Scrollable: AnyObject {
     func beginMomentum(velocity: CGSize)
     /// Whether momentum is still carrying the content.
     var isDecelerating: Bool { get }
+    /// A finger pulling the content down past its top: the scroll view takes the distance
+    /// (`refreshable`); returns whether it did.
+    func pull(by distance: CGFloat) -> Bool
+    /// The finger lifted after a pull: a pull past the threshold starts the refresh.
+    func endPull()
     /// Stops momentum where the content is (a finger landing on a decelerating scroll view).
     func stopMomentum()
     /// Advances momentum and indicator fading by `elapsed` seconds; true while still animating.
@@ -47,6 +52,11 @@ extension Axis.Set {
 /// Node for `ScrollView`. The builder content is wrapped in an implicit centre-aligned `VStack`
 /// (fixture `scroll/children`), which is the single content node placed at `-contentOffset`.
 @MainActor
+extension _Scrollable {
+    package func pull(by distance: CGFloat) -> Bool { false }
+    package func endPull() {}
+}
+
 package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, _ScrollTarget, _Scrollable {
     override package var clipsHitTesting: Bool { true }
     package private(set) var child: TypedNode<VStack<Content>>!
@@ -155,6 +165,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         }
         contentOffset = clamped(contentOffset)
         placeContent(proposal: contentProposal)
+        layoutRefreshIndicator()
         // A programmatic target needs the content's fresh frames, so it is resolved after the
         // first placement and the content placed again when the offset moves.
         if let target = pendingTarget {
@@ -175,7 +186,71 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     /// Where the content's top-left sits: the safe-area inset, scrolled by the offset.
     private var contentOrigin: CGPoint {
-        CGPoint(x: contentInsets.leading - contentOffset.x, y: contentInsets.top - contentOffset.y)
+        CGPoint(x: contentInsets.leading - contentOffset.x, y: contentInsets.top - contentOffset.y + refreshOffset)
+    }
+
+    override package func unmount() {
+        refreshIndicator?.unmount()
+        super.unmount()
+    }
+
+    // MARK: Pull to refresh (`refreshable`, iOS: Docs/elements/List.md)
+
+    /// The resisted distance of a pull in progress, then the band's height while refreshing.
+    private var pullDistance: CGFloat = 0
+    package private(set) var isRefreshing = false
+    private var refreshIndicator: TypedNode<AnyView>?
+    private var refreshOffset: CGFloat { isRefreshing ? PlatformMetrics.refreshHeight : pullDistance }
+    private var canRefresh: Bool { environment.refresh != nil && axes.contains(.vertical) && environment.platformProfile.isIOS }
+
+    package func pull(by distance: CGFloat) -> Bool {
+        guard canRefresh, !isRefreshing, contentOffset.y <= 0 else { return false }
+        pullDistance = max(0, pullDistance + distance * environment.platformProfile.metrics.refreshPullResistance)
+        runtime.requestFullLayout()
+        return true
+    }
+
+    package func endPull() {
+        guard pullDistance > 0 else { return }
+        let threshold = environment.platformProfile.metrics.refreshThreshold
+        let triggered = pullDistance >= threshold
+        pullDistance = 0
+        if triggered { beginRefresh() }
+        runtime.requestFullLayout()
+    }
+
+    /// Runs the environment's refresh action, the content moved down behind a spinner meanwhile.
+    package func beginRefresh() {
+        guard let action = environment.refresh, !isRefreshing else { return }
+        isRefreshing = true
+        runtime.requestFullLayout()
+        Task { @MainActor [weak self] in
+            await action()
+            guard let self, self.isMounted else { return }
+            self.isRefreshing = false
+            self.runtime.requestFullLayout()
+        }
+    }
+
+    /// The spinner in the band above the content while pulling or refreshing.
+    private func layoutRefreshIndicator() {
+        guard refreshOffset > 0 else {
+            if let node = refreshIndicator { node.unmount(); refreshIndicator = nil }
+            return
+        }
+        let view = AnyView(ProgressView().progressViewStyle(.circular).opacity(isRefreshing ? 1 : min(1, pullDistance / environment.platformProfile.metrics.refreshThreshold)))
+        let node: TypedNode<AnyView>
+        if let existing = refreshIndicator {
+            existing.update(view: view, environment: environment, force: false)
+            node = existing
+        } else {
+            node = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: environment))
+            refreshIndicator = node
+        }
+        guard let target = node.layoutChildren.first else { return }
+        let size = target.sizeThatFits(.unspecified)
+        target.place(at: CGPoint(x: (frame.width - size.width) / 2, y: contentInsets.top + (refreshOffset - size.height) / 2), anchor: .topLeading,
+                     proposal: ProposedViewSize(size), by: self)
     }
 
     private var geometryCheckGeneration: UInt64 = .max
@@ -326,6 +401,9 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         paintChildren(into: &list, context: context)
         if clips { list.append(.restore) }
         paintIndicators(into: &list, context: context)
+        if let indicator = refreshIndicator?.layoutChildren.first, refreshOffset > 0 {
+            indicator.paint(into: &list, context: context.child(at: indicator.presentedFrame))
+        }
     }
 
     /// Overlay scrollers: a knob on the trailing edge of each scrollable axis, shown only while
@@ -510,7 +588,9 @@ extension Runtime {
             pressedNode = nil
         }
         let delta = CGSize(width: state.last.x - point.x, height: state.last.y - point.y)
-        _ = scroll(by: delta, through: state.nodes)
+        let remaining = scroll(by: delta, through: state.nodes)
+        // A finger past the top of a refreshable scroll view pulls it (iOS).
+        if remaining.height < 0, let first = state.nodes.first, first.pull(by: -remaining.height) { }
         let dt = time - state.lastTime
         if dt > 0 {
             let sample = CGSize(width: delta.width / dt, height: delta.height / dt)
@@ -529,6 +609,7 @@ extension Runtime {
         guard let state = pan else { return false }
         pan = nil
         guard state.active else { return false }
+        state.nodes.first?.endPull()
         // A finger that stopped before lifting leaves no momentum.
         if time - state.lastTime < PlatformMetrics.panRestInterval, let node = state.nodes.first {
             node.beginMomentum(velocity: state.velocity)

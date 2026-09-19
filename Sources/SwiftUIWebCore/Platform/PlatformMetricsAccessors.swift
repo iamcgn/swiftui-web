@@ -213,6 +213,12 @@ extension PlatformMetrics {
     package static var listEditGripPitch: CGFloat { current.listEditGripPitch }
     package static var listEditGripTrailingInset: CGFloat { current.listEditGripTrailingInset }
     package static var listEditGripFill: RGBA { current.listEditGripFill }
+    package static var swipeActionMinimumWidth: CGFloat { current.swipeActionMinimumWidth }
+    package static var swipeActionPadding: CGFloat { current.swipeActionPadding }
+    package static var swipeFullFraction: CGFloat { current.swipeFullFraction }
+    package static var refreshThreshold: CGFloat { current.refreshThreshold }
+    package static var refreshHeight: CGFloat { current.refreshHeight }
+    package static var refreshPullResistance: CGFloat { current.refreshPullResistance }
     package static var presentationPadding: CGFloat { current.presentationPadding }
     package static var presentationCornerRadius: CGFloat { current.presentationCornerRadius }
     package static var presentationDimAlpha: Double { current.presentationDimAlpha }

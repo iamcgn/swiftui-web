@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 59 | 0 | 29 | 30 |
+| SwiftUI | 59 | 0 | 28 | 31 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **99** | 0 | 53 | 46 |
+| **All** | **99** | 0 | 52 | 47 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **List editing: onDelete, onMove, swipe actions, refreshable** `sw-list-editing` · List · missing  
-  `ForEach.onDelete`/`onMove`, `editActions:` bindings, `deleteDisabled`/`moveDisabled`, `editMode`, `swipeActions`, `refreshable`; the iOS looks from the simulator, macOS's from goldens where the harness can capture them. ([List.md](Docs/elements/List.md), [ForEach.md](Docs/elements/ForEach.md))
 - ☐ **List styles, spacing and outline forms** `sw-list-looks` · List · missing  
   `List(data, children:)` and `OutlineGroup`, `.inset(alternatesRowBackgrounds:)` / `.bordered`, `listRowSpacing`, `listSectionSpacing`, `alternatingRowBackgrounds`, `scrollContentBackground`, `headerProminence`, `listItemTint` and the section separator modifiers (stored today), the accent focused look, headers pinning as the content scrolls, lazy rows. ([List.md](Docs/elements/List.md))
 - ☐ **Scroll position, targets and geometry** `sw-scroll-apis` · ScrollView · missing  
@@ -142,6 +140,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection. ([iOS.md](Docs/elements/iOS.md))
 - ☐ **Measure the macOS presentation looks** `sw-mac-presentation-looks` · Presentation · approximate  
   The sheet, popover, alert and menu looks on macOS are by eye (separate windows the golden harness cannot capture). A window-list capture (CGWindowListCreateImage over the app's windows after a step presents) in the AppKit golden host would pin the panel geometry, materials and shadows the way `capturesWindow` does on iOS. ([Presentation.md](Docs/elements/Presentation.md))
+- ☐ **List editing: the rest** `sw-list-editing-rest` · List · approximate  
+  The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop. ([List.md](Docs/elements/List.md))
 - ☐ **Dynamic Type** `sw-dynamic-type` · Text · missing  
   `dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting. ([Text.md](Docs/elements/Text.md), [iOS.md](Docs/elements/iOS.md))
 - ☐ **TextEditor: selection, find, long content** `sw-texteditor` · TextEditor · missing  
@@ -256,6 +256,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **Decide whether SwiftUI keeps re-exporting UIKit unconditionally** `ix-size-gate` · Interop · Size
 - ☑ 2026-09-18 **iOS sheets, tab bars and date pickers from the simulator** `sw-ios-sheets` · SwiftUI · iOS profile
 - ☑ 2026-09-18 **Presentation looks and options** `sw-presentations` · SwiftUI · Presentation
+- ☑ 2026-09-18 **List editing: onDelete, onMove, swipe actions, refreshable** `sw-list-editing` · SwiftUI · List
 - ☑ 2026-09-18 **UIActivityIndicatorView spins** `uk-spinner` · UIKit · Controls
 - ☑ 2026-09-18 **Hover and pointer interactions** `uk-hover` · UIKit · Events
 - ☑ 2026-09-18 **Trim the wasm bundle: Foundation** `uk-size` · UIKit · Size

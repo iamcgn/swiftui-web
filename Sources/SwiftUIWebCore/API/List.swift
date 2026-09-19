@@ -492,3 +492,89 @@ extension List {
         self.init { ForEach(data, editActions: editActions, content: rowContent) }
     }
 }
+
+// MARK: - Swipe actions (Docs/elements/List.md)
+
+/// The buttons a horizontal swipe on a row reveals at one edge (`swipeActions`).
+public struct _SwipeActionSet {
+    package let edge: HorizontalEdge
+    package let allowsFullSwipe: Bool
+    package let content: AnyView
+}
+
+package struct SwipeActionsKey: LayoutValueKey {
+    package nonisolated(unsafe) static let defaultValue: [_SwipeActionSet] = []
+}
+
+/// Adds a set of swipe actions to the row's; the sets of both edges accumulate.
+public struct _SwipeActionsModifier {
+    package let set: _SwipeActionSet
+}
+
+extension _SwipeActionsModifier: ViewModifier {
+    public typealias Body = Never
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        SwipeActionsNode(context)
+    }
+}
+
+extension View {
+    /// Adds custom swipe actions to a row in a list: a swipe from the edge reveals the buttons;
+    /// with `allowsFullSwipe` a long swipe performs the first one. The buttons of one edge are
+    /// declared outermost first.
+    nonisolated public func swipeActions<T: View>(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> T) -> some View {
+        modifier(_SwipeActionsModifier(set: _SwipeActionSet(edge: edge, allowsFullSwipe: allowsFullSwipe, content: AnyView(content()))))
+    }
+}
+
+/// A swipe action's cell: a full-height fill (red for the destructive role, else the tint or
+/// grey) under a white label.
+package struct _SwipeActionButtonStyle: ButtonStyle {
+    package func makeBody(configuration: Configuration) -> some View {
+        _SwipeActionCell(label: configuration.label, role: configuration.role)
+    }
+}
+
+private struct _SwipeActionCell: View {
+    let label: ButtonStyleConfiguration.Label
+    let role: ButtonRole?
+    @Environment(\._tint) private var tint
+
+    var body: some View {
+        let fill: Color = role == .destructive ? Color(red: 1, green: 59.0 / 255, blue: 48.0 / 255) : tint ?? Color(red: 142.0 / 255, green: 142.0 / 255, blue: 147.0 / 255)
+        label
+            .foregroundStyle(.white)
+            .padding(.horizontal, PlatformMetrics.swipeActionPadding)
+            .frame(minWidth: PlatformMetrics.swipeActionMinimumWidth, maxHeight: .infinity)
+            .background(fill)
+    }
+}
+
+// MARK: - Refreshable
+
+/// An action that initiates a refresh operation (`refreshable`), read from the environment.
+public struct RefreshAction: Sendable {
+    package let action: @Sendable () async -> Void
+    package init(_ action: @escaping @Sendable () async -> Void) { self.action = action }
+    public func callAsFunction() async { await action() }
+}
+
+package struct RefreshKey: EnvironmentKey {
+    package static let defaultValue: RefreshAction? = nil
+}
+
+extension EnvironmentValues {
+    /// The refresh action the nearest `refreshable` modifier set, if any.
+    public var refresh: RefreshAction? {
+        get { self[RefreshKey.self] }
+        set { self[RefreshKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Marks this view as refreshable: a pull past the threshold on a scroll view (touch, iOS)
+    /// runs the action and shows a spinner until it returns.
+    nonisolated public func refreshable(action: @escaping @Sendable () async -> Void) -> some View {
+        environment(\.refresh, RefreshAction(action))
+    }
+}
