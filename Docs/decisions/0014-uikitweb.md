@@ -175,6 +175,10 @@ representables: load the symbol glyphs an app names rather than the whole table,
 metrics tables by platform profile, and get at least 300 KB of headroom back under the same
 3 MB budget. The gate itself stays as it is.
 
+Outcome of `uk-size` (2026-09-18, decision 0017): the tables were 60 KB brotli; the cost was
+FoundationEssentials, whose members link whole. With `WebFoundation`'s stand-ins Counter is
+about 2.1 MB brotli and UIKitCounter 1.46 MB.
+
 A lesson recorded on the way: an incremental wasm build after module-level changes can produce
 a bundle that links full `Foundation` (13 MB brotli, ICU inside) although no source imports it;
 a clean scratch build is the only trustworthy measurement, and the `os(WASI)` guard, not

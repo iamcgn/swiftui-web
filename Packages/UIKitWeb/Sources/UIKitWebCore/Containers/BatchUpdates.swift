@@ -3,7 +3,7 @@
 // index paths, inserts new ones, moves both, as UIKit's batch semantics have it; the rows a
 // section keeps take the new indices its inserts and moved-in rows leave free, in order.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

@@ -1,5 +1,5 @@
 #if os(WASI)
-import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
 #else
 import Foundation
 #endif
@@ -47,6 +47,10 @@ public final class CanvasSceneHost {
     public init(scene: any HostedScene) {
         self.scene = scene
         window = JSObject.global
+        // The browser's zone is the app's `TimeZone.current` (WebFoundation has no tz database).
+        if let minutes = JSObject.global.Date.function?.new().getTimezoneOffset?().number {
+            TimeZone._hostSecondsFromGMT = -Int(minutes) * 60
+        }
         document = window.document.object!
         if window.__swiftuiweb.isUndefined {
             let script = document.createElement!("script").object!

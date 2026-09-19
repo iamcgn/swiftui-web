@@ -3,7 +3,7 @@
 // 8 pt in and 4 down, alternating rounded bands running to the bottom, the selection band, and
 // sorting by header presses.
 #if os(WASI)
-import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
 #else
 import Foundation
 #endif

@@ -22,7 +22,7 @@ App source ── import SwiftUI ──▶ SwiftUI (thin re-export) ──▶ Sw
 ## Modules
 
 - `SwiftUI`: `@_exported import SwiftUIWebCore`, `SwiftUIWebUIKit`, `UIKit` (UIKitWeb's, as
-  Apple's SwiftUI re-exports UIKit on iOS), `Foundation`, `Observation`. Exists so tests can
+  Apple's SwiftUI re-exports UIKit on iOS), `WebFoundation`, `Observation`. Exists so tests can
   fall back to importing `SwiftUIWebCore` directly if `SwiftUI` ever resolves to Apple's framework
   on macOS (decision 0001).
 - `SwiftUIWebUIKit` (decision 0014, Phase 2): `UIViewRepresentable`, `UIViewControllerRepresentable`
@@ -30,6 +30,11 @@ App source ── import SwiftUI ──▶ SwiftUI (thin re-export) ──▶ Sw
   is a `_PlatformViewHostNode` in `SwiftUIWebCore` over a `UIKitHostedTree` in `UIKitWebCore`: UIKit
   views paint into the same display list and join the same semantics tree
   (`Docs/elements/Representable.md`).
+- `WebFoundation` (`Packages/WebGraphics`, decision 0017): the Foundation every module imports
+  (`import WebFoundation`, never `FoundationEssentials`). Foundation on Apple platforms and
+  Linux; on wasm FoundationEssentials plus stand-ins for `Data`, `URL`, `Calendar`, `TimeZone`,
+  `Locale`, `DateComponents`, `IndexPath` and the sort comparators, whose FoundationEssentials
+  members would link the whole library. Their cores are held to Foundation by tests on macOS.
 - `WebGraphics` (`Packages/WebGraphics`, decision 0014): the graphics substrate SwiftUIWeb and
   UIKitWeb share. `Geometry/` (`CGRect` and friends on wasm, `Angle`, `EdgeInsets`, trigonometry),
   `Shapes/` (`Path`, its geometry and boolean algebra, `StrokeStyle`), `Display/` (`DisplayList`

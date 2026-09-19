@@ -1587,14 +1587,28 @@
       "id": "uk-size",
       "framework": "UIKit",
       "area": "Size",
-      "title": "Trim the substrate tables",
-      "detail": "UIKitCounter is 2.24 MB brotli and Counter 3.05 MB (97 KB under the budget, decision 0014's size gate outcome) because the symbol and font tables come along whole: load the symbol glyphs the app names, split the metrics tables per platform profile; target at least 300 KB of headroom under the 3 MB budget.",
+      "title": "Trim the wasm bundle: Foundation",
+      "detail": "Asked for 300 KB of headroom under the 3 MB budget by trimming the symbol and font tables; the tables measured 60 KB brotli and the cost was FoundationEssentials, whose members link whole (6.3 MB raw for a `Calendar`). Decision 0017: the `WebFoundation` module's stand-ins for `Data`, `URL`, `Calendar`, `TimeZone`, `Locale`, `DateComponents`, `IndexPath` and the sort comparators shadow FoundationEssentials' on wasm; Counter 3.05 MB to about 2.1 MB brotli, UIKitCounter 2.24 MB to 1.46 MB.",
       "kind": "infra",
       "priority": "next",
+      "status": "done",
+      "refs": [
+        "Docs/decisions/0017-web-foundation.md",
+        "Docs/decisions/0006-binary-size.md"
+      ],
+      "done": "2026-09-18"
+    },
+    {
+      "id": "pf-web-foundation-gaps",
+      "framework": "Platform",
+      "area": "wasm",
+      "title": "WebFoundation's gaps against Foundation",
+      "detail": "The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Missing: `String.Encoding` and `String(data:encoding:)`, `URLComponents` and international host names, named time zones and daylight saving (`TimeZone.current` is the browser's fixed offset), calendars other than proleptic Gregorian, `DateFormatter` and `FormatStyle`, `wrappingComponents`, `Data` slices that keep their indices. Grow them as apps hit them; each FoundationEssentials type used instead costs the whole library.",
+      "kind": "missing",
+      "priority": "later",
       "status": "planned",
       "refs": [
-        "Docs/decisions/0014-uikitweb.md",
-        "Docs/decisions/0006-binary-size.md"
+        "Docs/decisions/0017-web-foundation.md"
       ]
     },
     {

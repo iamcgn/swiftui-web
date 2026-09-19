@@ -237,7 +237,7 @@ final class Gallery {
             host = CanvasHost()
             // Fixture pages compare against goldens whose toolbar lives in the window chrome,
             // outside the capture; `?chrome=1` shows the runtime's bar (Playwright/toolbar-probe.mjs).
-            host!.runtime.paintsWindowChrome = JSObject.global.location.search.string?.contains("chrome=1") == true
+            host!.runtime.paintsWindowChrome = JSObject.global.location.search.string?.split(separator: "?").last?.split(separator: "&").contains("chrome=1") == true
         }
         // A fresh tree for every fixture: two fixtures of the same view types would otherwise
         // update the previous one's nodes in place (ios/nav/push-inline then push-noback), keeping

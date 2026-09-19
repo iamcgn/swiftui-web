@@ -29,6 +29,7 @@ let package = Package(
             name: "UIKit",
             dependencies: [
                 "UIKitWebCore",
+                .product(name: "WebFoundation", package: "WebGraphics"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
                 .product(name: "WebGraphicsNative", package: "WebGraphics"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
@@ -37,7 +38,7 @@ let package = Package(
         ),
         .target(
             name: "UIKitWebCore",
-            dependencies: [.product(name: "WebGraphics", package: "WebGraphics")],
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // The fidelity loop (decision 0014): the UIKit fixture API, the fixtures themselves (a symlink
@@ -57,6 +58,7 @@ let package = Package(
         .testTarget(
             name: "UIKitWebTests",
             dependencies: ["UIKit", "UIKitFixtureKit", "UIKitFixtures",
+                           .product(name: "WebFoundation", package: "WebGraphics"),
                            .product(name: "WebGraphicsHeadless", package: "WebGraphics"),
                            .product(name: "WebGraphicsNative", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]

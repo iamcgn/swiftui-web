@@ -13,7 +13,7 @@ Apple docs: [Table](https://developer.apple.com/documentation/swiftui/table),
 | `TableColumn(_:value:)` (string key path), `TableColumn(_:value:content:)`, `TableColumn(_:content:)`; `LocalizedStringKey` and `StringProtocol` titles | implemented; a column with a `value:` key path is sortable |
 | `TableColumn.width(_:)`, `width(min:ideal:max:)` | implemented (the measured NSTableView distribution below) |
 | `TableColumnBuilder` | blocks, optionals and either branches; `TableColumnForEach`, `Group` of columns are missing |
-| `KeyPathComparator`, `SortOrder`, `sorted(using:)` | Foundation's on Apple platforms; the wasm SDK's FoundationEssentials lacks `KeyPathComparator`, so `API/SortComparators.swift` defines it there (key path, `order`, the comparator form, `Hashable`) |
+| `KeyPathComparator`, `SortOrder`, `sorted(using:)` | Foundation's on Apple platforms; on wasm `SortOrder`, `SortComparator` and `sorted(using:)` are WebFoundation's (decision 0017) and `API/SortComparators.swift` defines `KeyPathComparator` (key path, `order`, the comparator form, `Hashable`) |
 | Selection | a press toggles a row and focuses the table; Up/Down/Home/End move it, Shift extends a set selection from the anchor |
 | Sorting | a press on a sortable header sets `sortOrder` to that column forward, again reverses; the app sorts its data (as with Apple's table) |
 | `TableRow`, `TableRowContent` builders (`Table(of:columns:rows:)`), `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, `disclosureGroup` rows, column customisation and resizing by drag, context menus on rows, horizontal scrolling of overflowing columns, scrolling rows | missing |

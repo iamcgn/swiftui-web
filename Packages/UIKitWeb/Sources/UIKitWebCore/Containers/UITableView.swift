@@ -5,7 +5,7 @@
 // cards 16 in with 26 pt corners.
 
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 
 /// Foundation's root class does not exist on wasm; data sources and delegates written for UIKit
 /// subclass it, so an empty stand-in keeps them compiling.

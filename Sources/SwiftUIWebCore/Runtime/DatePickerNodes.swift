@@ -2,7 +2,7 @@
 // with a mini stepper), the month calendar and the analogue clock, plus the Gregorian date
 // arithmetic they share (Foundation's calendar in the environment's time zone).
 #if os(WASI)
-import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
 #else
 import Foundation
 #endif

@@ -2,7 +2,7 @@
 // and "2:30 PM" in 17 pt on the tertiary fill with 8 pt corners, 12 in and 7 down) and the
 // wheels style's three columns. Geometry from UIKit on the iPhone SE simulator (iOS 26).
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

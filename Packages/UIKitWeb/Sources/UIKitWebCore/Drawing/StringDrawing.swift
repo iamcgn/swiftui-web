@@ -4,7 +4,7 @@
 // all recorded into the current graphics context through its transform, alpha and shadow.
 // Measured on the iPhone SE simulator (uikit/draw/text).
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

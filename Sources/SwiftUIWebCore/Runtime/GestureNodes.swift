@@ -2,7 +2,7 @@
 // content; the runtime's press events reach its recogniser, which emits typed values to the
 // gesture's handlers. Long presses tick on the animation clock through a frame subscription.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

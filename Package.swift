@@ -44,6 +44,7 @@ let package = Package(
                 "SwiftUIWebMacros",
                 "SwiftUIWebUIKit",
                 .product(name: "UIKit", package: "UIKitWeb"),
+                .product(name: "WebFoundation", package: "WebGraphics"),
                 .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
                 .target(name: "SwiftUIWebNative", condition: .when(platforms: [.macOS])),
             ],
@@ -66,7 +67,7 @@ let package = Package(
         ),
         .target(
             name: "SwiftUIWebCore",
-            dependencies: [.product(name: "WebGraphics", package: "WebGraphics")],
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

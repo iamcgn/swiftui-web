@@ -4,7 +4,7 @@
 // `uikit/collection/grid`, `horizontal`, `sized`.
 
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

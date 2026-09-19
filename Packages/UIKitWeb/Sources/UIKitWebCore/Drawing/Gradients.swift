@@ -20,7 +20,7 @@ public final class CGColorSpace: @unchecked Sendable {
     /// Colour components before alpha: 3 for RGB, 1 for grey.
     public let numberOfComponents: Int
     init(numberOfComponents: Int) { self.numberOfComponents = numberOfComponents }
-    public convenience init?(name: String) { self.init(numberOfComponents: name.contains("Gray") ? 1 : 3) }
+    public convenience init?(name: String) { self.init(numberOfComponents: name._hasSubstring("Gray") ? 1 : 3) }
 }
 public func CGColorSpaceCreateDeviceRGB() -> CGColorSpace { CGColorSpace(numberOfComponents: 3) }
 public func CGColorSpaceCreateDeviceGray() -> CGColorSpace { CGColorSpace(numberOfComponents: 1) }
@@ -149,5 +149,17 @@ extension UIGraphicsRecordingContext {
         let alpha = Double(currentAlpha)
         let stops = alpha < 1 ? gradient.stops.map { DisplayGradient.Stop(location: $0.location, color: $0.color.multiplyingAlpha(by: alpha)) } : gradient.stops
         recordShadowed(.fillGradient(region.applying(ctm), DisplayGradient(kind: kind, stops: stops), eoFill: evenOdd))
+    }
+}
+
+extension StringProtocol {
+    /// `contains(_: String)` without _StringProcessing: that overload links the Regex engine
+    /// into the wasm bundle, 1.4 MB it never runs (decision 0006, the wasm size log).
+    func _hasSubstring(_ needle: String) -> Bool {
+        let needle = Array(needle.utf8)
+        guard !needle.isEmpty else { return true }
+        let haystack = Array(utf8)
+        guard haystack.count >= needle.count else { return false }
+        return (0...(haystack.count - needle.count)).contains { haystack[$0..<($0 + needle.count)].elementsEqual(needle) }
     }
 }

@@ -4,7 +4,7 @@
 // secondary text), and `UICollectionViewListCell` draws the card, the separator and its
 // accessories. Measured on the iPhone SE simulator (uikit/collection/list).
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

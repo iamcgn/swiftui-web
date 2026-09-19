@@ -3,7 +3,7 @@
 import Testing
 import UIKit
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

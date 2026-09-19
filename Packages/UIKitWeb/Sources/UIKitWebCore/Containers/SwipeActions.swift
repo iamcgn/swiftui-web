@@ -2,7 +2,7 @@
 // actions a row reveals when swiped, and the delete / insert controls and reorder grip of a
 // table in editing mode. Measured on the iPhone SE simulator (uikit/table/editing).
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

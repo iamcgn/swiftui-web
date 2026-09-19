@@ -1,7 +1,7 @@
 // ShareLink (Docs/elements/ShareLink.md): a bordered button with the share symbol that hands
 // its items to the host's share sheet.
 #if os(WASI)
-import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
 #else
 import Foundation
 #endif

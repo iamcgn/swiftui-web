@@ -2,7 +2,7 @@
 // right edge that scrolls to a section when touched or dragged. Measured on the iPhone SE
 // simulator (uikit/table/indexed).
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

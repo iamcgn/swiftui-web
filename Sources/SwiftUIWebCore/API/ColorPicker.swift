@@ -2,7 +2,7 @@
 // concentric swatch over a black/white diagonal ground) with its label; a press opens a popover
 // of preset swatches and, when opacity is supported, an opacity slider.
 #if os(WASI)
-import FoundationEssentials   // never full Foundation on wasm: it links ICU (decision 0006)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
 #else
 import Foundation
 #endif

@@ -2,7 +2,7 @@
 // `dropDestination` receives the payload. Payloads are `Transferable` values carried as they are;
 // a destination for another type reads them through the payload's proxy representation.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif
@@ -74,14 +74,14 @@ public struct ProxyRepresentation<Item, ProxyRepresentation: Transferable>: Tran
     }
 }
 
-/// Exports the item as JSON.
+/// Exports the item as JSON (`_TransferJSONEncoder`, the coder of `TransferJSON.swift`).
 public struct CodableRepresentation<Item: Codable>: TransferRepresentation {
     package let contentType: UTType
     public init(contentType: UTType = .json) { self.contentType = contentType }
     public var _exporters: [_TransferExporter<Item>] {
         [_TransferExporter(contentType: contentType, exportedType: Data.self,
-                           export: { try? JSONEncoder().encode($0) },
-                           importer: { ($0 as? Data).flatMap { try? JSONDecoder().decode(Item.self, from: $0) } })]
+                           export: { try? _TransferJSONEncoder().encode($0) },
+                           importer: { ($0 as? Data).flatMap { try? _TransferJSONDecoder().decode(Item.self, from: $0) } })]
     }
 }
 

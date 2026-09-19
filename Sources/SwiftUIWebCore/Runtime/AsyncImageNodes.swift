@@ -1,7 +1,7 @@
 // `AsyncImage` (API/AsyncImage.swift): the node asks the runtime's loader for the URL's state,
 // mounts the content for that phase, and re-evaluates when the host reports a finished load.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

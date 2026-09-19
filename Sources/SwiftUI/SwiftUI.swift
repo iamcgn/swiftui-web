@@ -13,8 +13,10 @@
 @_exported import Foundation
 @_exported import CoreGraphics
 #elseif os(WASI)
-// wasm: Foundation would add 12 MB of ICU data and a second CGRect (decision 0006).
-@_exported import FoundationEssentials
+// wasm: Foundation would add 12 MB of ICU data and a second CGRect (decision 0006);
+// WebFoundation is FoundationEssentials plus the stand-ins that keep its heavy members out
+// of the bundle (decision 0017).
+@_exported import WebFoundation
 #else
 @_exported import Foundation
 #endif

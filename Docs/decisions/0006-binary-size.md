@@ -50,6 +50,12 @@ within the 3 MB budget. `scripts/size-gate.sh` enforces it; the thin module re-e
   change. The page shows a loading screen with download progress meanwhile
   (`Examples/Landing/index.html`; `swiftuiwebready` from the host takes it down).
 
+## 2026-09-18: the FoundationEssentials share
+The Phase 8 size work (`uk-size`) found that any FoundationEssentials value type but `Date`
+links the whole library (6.3 MB raw) and the Regex engine with it. Decision 0017 adds the
+`WebFoundation` module whose stand-ins shadow those types on wasm; Counter fell from 3.05 MB to
+about 2.1 MB brotli. `scripts/wasm-size-map.py` reads a linker map.
+
 ## Open items
 - Whether a user's explicit `import Foundation` next to `import SwiftUI` makes `CGRect` ambiguous
   on wasm (two modules declaring it). Test in Phase 1 step 1; if it does, evaluate a

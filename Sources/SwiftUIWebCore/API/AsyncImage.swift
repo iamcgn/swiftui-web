@@ -2,7 +2,7 @@
 // browser host fetches with an `Image` element, the native host with `Data(contentsOf:)`) and
 // shows its content for the current phase. Docs/elements/AsyncImage.md.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

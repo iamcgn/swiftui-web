@@ -75,7 +75,7 @@ swift test                      # native runtime + layout tests (fast)
 | Path | Purpose |
 |---|---|
 | `Sources/SwiftUI` | Thin `import SwiftUI` module re-exporting the implementation |
-| `Packages/WebGraphics` | the graphics substrate shared with UIKitWeb: geometry, paths, display list, text measuring, the hosts (decision 0014) |
+| `Packages/WebGraphics` | the graphics substrate shared with UIKitWeb: geometry, paths, display list, text measuring, the hosts (decision 0014); `WebFoundation`, the Foundation every module imports, with the wasm stand-ins for `Data`, `URL`, `Calendar` and friends that keep FoundationEssentials out of the bundle (decision 0017) |
 | `Packages/UIKitWeb` | `import UIKit` on the same substrate: views, layers, controls, view controllers, Auto Layout (a Cassowary solver, the visual format language), `draw(_:)` with UIBezierPath, `UIView.animate` and Core Animation, navigation and tab bar controllers, `UITableView`, `UICollectionView` with flow, compositional and list layouts, diffable data sources, alerts and sheets, text views, toolbars and search bars, date and wheel pickers, sliders, segmented controls, steppers, progress and activity indicators, page controls; `Examples/UIKitCounter` and `Examples/UIKitSettings` (a tab bar, a navigation stack, an inset grouped table with controls); goldens from real UIKit on an iPhone simulator (`scripts/gen-goldens-sim.sh uikit`, `Fixtures/UIKit`) |
 | `Sources/SwiftUIWebUIKit` | `UIViewRepresentable`, `UIViewControllerRepresentable` and `UIHostingController` over UIKitWeb; `import SwiftUI` re-exports `UIKit` as on iOS (`Docs/elements/Representable.md`) |
 | `Sources/SwiftUIWebCore` | API, runtime, layout engine, font resolution |

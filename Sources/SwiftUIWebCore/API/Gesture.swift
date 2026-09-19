@@ -4,7 +4,7 @@
 // `@GestureState`, and the `gesture`/`highPriorityGesture`/`simultaneousGesture` modifiers.
 // Recognition lives in `Runtime/GestureNodes.swift`. Docs/elements/Gestures.md.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

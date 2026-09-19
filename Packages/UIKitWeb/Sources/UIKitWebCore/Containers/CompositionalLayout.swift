@@ -3,7 +3,7 @@
 // supplementary items, solved into layout attributes for the collection view. Measured on the
 // iPhone SE simulator (uikit/collection/compositional).
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

@@ -3,7 +3,7 @@
 // reloads to match (differences are not animated yet), and registrations that configure cells
 // and supplementary views by item.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 #else
 import Foundation
 #endif

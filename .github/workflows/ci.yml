@@ -19,6 +19,8 @@ jobs:
         run: . ~/.swiftly/env.sh && swift test
       - name: UIKitWeb tests
         run: . ~/.swiftly/env.sh && cd Packages/UIKitWeb && swift test
+      - name: WebFoundation tests (the wasm stand-ins against Foundation)
+        run: . ~/.swiftly/env.sh && cd Packages/WebGraphics && swift test
       - name: Harness builds (Apple toolchain, real SwiftUI)
         run: cd Harness && /usr/bin/swift build
       - name: Host builds (Apple toolchain, WKWebView)

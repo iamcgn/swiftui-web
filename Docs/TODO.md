@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 2 | 0 | 1 | 1 |
 | SwiftUI | 59 | 1 | 30 | 28 |
-| UIKit | 36 | 2 | 23 | 11 |
-| Platform | 4 | 0 | 1 | 3 |
-| **All** | **101** | 3 | 55 | 43 |
+| UIKit | 35 | 1 | 23 | 11 |
+| Platform | 5 | 0 | 1 | 4 |
+| **All** | **101** | 2 | 55 | 44 |
 
 ## Next (Phase 8, in order)
 
@@ -21,8 +21,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **UIActivityIndicatorView spins** `uk-spinner` · Controls · approximate  
   A still of eight spokes today: rotate the spokes on the scene's clock at UIKit's rate, `startAnimating`/`stopAnimating`, `hidesWhenStopped`. ([Controls.md](Docs/elements/UIKit/Controls.md))
-- ☐ **Trim the substrate tables** `uk-size` · Size · infra  
-  UIKitCounter is 2.24 MB brotli and Counter 3.05 MB (97 KB under the budget, decision 0014's size gate outcome) because the symbol and font tables come along whole: load the symbol glyphs the app names, split the metrics tables per platform profile; target at least 300 KB of headroom under the 3 MB budget. ([0014-uikitweb.md](Docs/decisions/0014-uikitweb.md), [0006-binary-size.md](Docs/decisions/0006-binary-size.md))
 
 ## Soon (the gap sweep)
 
@@ -241,6 +239,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Platform
 
+- ☐ **WebFoundation's gaps against Foundation** `pf-web-foundation-gaps` · wasm · missing  
+  The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Missing: `String.Encoding` and `String(data:encoding:)`, `URLComponents` and international host names, named time zones and daylight saving (`TimeZone.current` is the browser's fixed offset), calendars other than proleptic Gregorian, `DateFormatter` and `FormatStyle`, `wrappingComponents`, `Data` slices that keep their indices. Grow them as apps hit them; each FoundationEssentials type used instead costs the whole library. ([0017-web-foundation.md](Docs/decisions/0017-web-foundation.md))
 - ☐ **Linux: build, CI, painter and host** `pf-linux` · Linux · infra  
   WebGraphics does not build on Linux (the CoreGraphics shim is `#if os(WASI)` only), so the CI job is parked; then a Skia or Cairo painter, a GTK window and the WebKitGTK host. ([ROADMAP.md](Docs/ROADMAP.md))
 - ☐ **Native text selection, IME and windows** `pf-native-text` · Native macOS · missing  
@@ -267,6 +267,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **Image(uiImage:) for rendered images** `ix-rendered-images` · Interop · Bridging
 - ☑ 2026-09-18 **Decide whether SwiftUI keeps re-exporting UIKit unconditionally** `ix-size-gate` · Interop · Size
 - ☑ 2026-09-18 **Hover and pointer interactions** `uk-hover` · UIKit · Events
+- ☑ 2026-09-18 **Trim the wasm bundle: Foundation** `uk-size` · UIKit · Size
 - ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables
 - ☑ 2026-09-12 **Environment to trait collection** `ix-traits` · Interop · Representables
 - ☑ 2026-09-12 **Dismantle and coordinator lifecycle tests** `ix-lifecycle` · Interop · Representables
