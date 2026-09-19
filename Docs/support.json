@@ -996,7 +996,7 @@
         {
           "api": "sheet / popover (isPresented and item forms) / alert / confirmationDialog / dismiss environment action",
           "status": "approximate",
-          "notes": "Presented over the window by the runtime's presentation layer (modal sheets and alerts, popovers and menus dismissed outside); the looks approximate macOS (separate windows there, no goldens); no fullScreenCover, detents, Menu, contextMenu",
+          "notes": "Presented over the window by the runtime's presentation layer (modal sheets and alerts, popovers and menus dismissed outside; interactiveDismissDisabled keeps them; popovers attach to the bounds, a rect or a point; a sheet is limited to the window so a ScrollView inside scrolls; several presentations from one view). The macOS looks approximate the platform (separate windows there, no goldens; accepted 2026-09-18); no Menu, contextMenu. iOS (2026-09-18, window-captured goldens): the sheet and its medium detent (presentationDetents, presentationDragIndicator), the alert with its capsule buttons and the confirmation dialog as iOS 26's popover above the source; the materials' blur is approximated by their colour (Docs/elements/iOS.md).",
           "fixtures": [
             "presentation/basic"
           ]

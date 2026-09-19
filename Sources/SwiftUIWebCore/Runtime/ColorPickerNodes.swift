@@ -84,7 +84,7 @@ package final class ColorWellNode: LeafNode<_ColorWellHost>, _Interactive {
         let selection = view.selection, supportsOpacity = view.supportsOpacity
         weak let weakSelf = self
         let content = _ColorPanel(selection: selection, supportsOpacity: supportsOpacity) { weakSelf?.panel?.dismiss(); weakSelf?.panel = nil }
-        panel = runtime.present(kind: .popover(arrowEdge: .top), view: AnyView(content), environment: environment, anchor: self) { weakSelf?.panel = nil }
+        panel = runtime.present(kind: .popover(arrowEdge: .top, anchor: .rect(.bounds)), view: AnyView(content), environment: environment, anchor: self) { weakSelf?.panel = nil }
         runtime.setNeedsDisplay()
     }
 

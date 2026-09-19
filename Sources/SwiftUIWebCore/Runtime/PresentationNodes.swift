@@ -43,6 +43,7 @@ package final class PresentationNode: ViewNode {
     package struct Options {
         package var detents: Set<PresentationDetent> = [.large]
         package var dragIndicator: Visibility = .automatic
+        package var interactiveDismissDisabled = false
     }
     package var options = Options()
 
@@ -112,18 +113,29 @@ package final class PresentationNode: ViewNode {
             target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(size), by: runtime.root)
             return
         case .sheet:
+            // The content's ideal size, limited to the window less the margins (a taller content is
+            // proposed the limit, so a ScrollView inside scrolls).
             let limit = ProposedViewSize(width: window.width - 2 * PlatformMetrics.sheetMargin - 2 * padding, height: nil)
-            let size = target.sizeThatFits(limit)
+            var size = target.sizeThatFits(limit)
+            let maximumHeight = max(0, window.height - 2 * PlatformMetrics.sheetMargin - 2 * padding)
+            if size.height > maximumHeight { size = target.sizeThatFits(ProposedViewSize(width: limit.width, height: maximumHeight)); size.height = min(size.height, maximumHeight) }
             panel = CGRect(x: (window.width - size.width) / 2 - padding, y: 0, width: size.width + 2 * padding, height: size.height + 2 * padding)
             arrow = nil
         case .alert, .dialog:
             let size = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
             panel = CGRect(x: (window.width - size.width) / 2, y: (window.height - size.height) / 2, width: size.width, height: size.height)
             arrow = nil
-        case .popover(let edge):
+        case .popover(let edge, let attachment):
             let size = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
             let width = size.width + 2 * padding, height = size.height + 2 * padding
-            let source = anchor?.frameInRoot ?? CGRect(x: window.width / 2, y: window.height / 2, width: 0, height: 0)
+            let bounds = anchor?.frameInRoot ?? CGRect(x: window.width / 2, y: window.height / 2, width: 0, height: 0)
+            // The attachment anchor: the view's bounds, a rect in them, or a point of them.
+            let source: CGRect
+            switch attachment {
+            case .rect(.bounds): source = bounds
+            case .rect(.rect(let rect)): source = rect.offsetBy(dx: bounds.minX, dy: bounds.minY)
+            case .point(let unit): source = CGRect(x: bounds.minX + unit.x * bounds.width, y: bounds.minY + unit.y * bounds.height, width: 0, height: 0)
+            }
             let gap = PlatformMetrics.popoverArrowHeight
             var origin: CGPoint
             switch edge {
@@ -378,7 +390,8 @@ extension Runtime {
     @discardableResult
     public func dismissTopmostPresentation() -> Bool {
         guard let top = presentations.last else { return false }
-        top.dismiss()
+        // `interactiveDismissDisabled` keeps it (Escape is consumed).
+        if !top.options.interactiveDismissDisabled { top.dismiss() }
         return true
     }
 
@@ -411,6 +424,8 @@ extension Runtime {
             if presentation.isModal { return (nil, true) }
             // A press beside a window leaves it open and goes on to what is under it.
             if presentation.kind.isWindow { continue }
+            // `interactiveDismissDisabled`: the press is consumed, the presentation stays.
+            if presentation.options.interactiveDismissDisabled { return (nil, true) }
             presentation.dismiss()
             // A press outside a submenu closes it and goes on to its parent menu.
             if presentation.kind == .submenu { continue }
@@ -480,6 +495,7 @@ package final class PresentationOptionsNode<Content: View>: UnaryLayoutModifierN
             if let presentation = node as? PresentationNode {
                 if let detents = modifier.detents { presentation.options.detents = detents }
                 if let indicator = modifier.dragIndicator { presentation.options.dragIndicator = indicator }
+                if let disabled = modifier.interactiveDismissDisabled { presentation.options.interactiveDismissDisabled = disabled }
                 return
             }
             current = node.parent

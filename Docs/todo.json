@@ -333,9 +333,23 @@
       "framework": "SwiftUI",
       "area": "Presentation",
       "title": "Presentation looks and options",
-      "detail": "macOS sheets, popovers and alerts are separate windows the harness cannot capture, so the looks are by eye: measure them through a window-list capture spike or accept them as approximate in the row. `interactiveDismissDisabled`, `attachmentAnchor` beyond the bounds, scrolling inside sheets, several presentations from one view.",
+      "detail": "Done 2026-09-18: `interactiveDismissDisabled` (outside presses and Escape consumed), `attachmentAnchor` rects and points, sheets limited to the window so a ScrollView inside scrolls, several presentations from one view (PresentationTests). The macOS looks stay approximate in the support row: sheets, popovers and alerts are separate windows the harness cannot capture; a window-list capture spike would measure them (sw-mac-presentation-looks).",
       "kind": "approximate",
       "priority": "soon",
+      "status": "done",
+      "refs": [
+        "Docs/elements/Presentation.md"
+      ],
+      "done": "2026-09-18"
+    },
+    {
+      "id": "sw-mac-presentation-looks",
+      "framework": "SwiftUI",
+      "area": "Presentation",
+      "title": "Measure the macOS presentation looks",
+      "detail": "The sheet, popover, alert and menu looks on macOS are by eye (separate windows the golden harness cannot capture). A window-list capture (CGWindowListCreateImage over the app's windows after a step presents) in the AppKit golden host would pin the panel geometry, materials and shadows the way `capturesWindow` does on iOS.",
+      "kind": "approximate",
+      "priority": "later",
       "status": "planned",
       "refs": [
         "Docs/elements/Presentation.md"

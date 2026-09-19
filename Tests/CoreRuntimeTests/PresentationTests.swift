@@ -163,5 +163,111 @@ import SwiftUIWebHeadless
         relayout(r)
         #expect(!r.hasPresentations && texts(r) == ["Banana"])
     }
+
+    // MARK: Options (sw-presentations, 2026-09-18)
+
+    struct AnchoredPopover: View {
+        let model: Model
+        let anchor: PopoverAttachmentAnchor
+        var body: some View {
+            VStack {
+                Color.red.frame(width: 100, height: 40)._probe("source")
+                    .popover(isPresented: Binding(get: { model.popover }, set: { model.popover = $0 }), attachmentAnchor: anchor, arrowEdge: .bottom) {
+                        Text("Inside")._probe("inside")
+                    }
+            }
+        }
+    }
+
+    @Test func popoverAttachesToARectOrAPoint() {
+        let model = Model()
+        model.popover = true
+        let r = runtime(AnchoredPopover(model: model, anchor: .point(.topTrailing)))
+        let source = r.probeFrames["source"]!, inside = r.probeFrames["inside"]!
+        // The arrow points at the source's top trailing corner; the panel sits above it.
+        #expect(abs(inside.midX - source.maxX) < 0.5)
+        #expect(inside.maxY + 20 + 10 == source.minY)
+        let rect = runtime(AnchoredPopover(model: model, anchor: .rect(.rect(CGRect(x: 0, y: 0, width: 20, height: 10)))))
+        let rectSource = rect.probeFrames["source"]!, rectInside = rect.probeFrames["inside"]!
+        #expect(abs(rectInside.midX - (rectSource.minX + 10)) < 0.5)
+        #expect(rectInside.maxY + 20 + 10 == rectSource.minY)
+    }
+
+    struct StubbornPopover: View {
+        let model: Model
+        var body: some View {
+            Button("Open") { model.popover = true }._probe("open")
+                .popover(isPresented: Binding(get: { model.popover }, set: { model.popover = $0 })) {
+                    Text("Inside")._probe("inside").interactiveDismissDisabled()
+                }
+        }
+    }
+
+    @Test func interactiveDismissDisabledKeepsThePresentation() {
+        let model = Model()
+        model.popover = true
+        let r = runtime(StubbornPopover(model: model))
+        #expect(r.hasPresentations)
+        // A press outside is consumed but dismisses nothing; Escape neither.
+        press(r, CGPoint(x: 5, y: 290))
+        #expect(model.popover && r.hasPresentations)
+        #expect(r.dismissTopmostPresentation())
+        #expect(model.popover && r.hasPresentations)
+        // Programmatic dismissal still works.
+        model.popover = false
+        relayout(r)
+        #expect(!r.hasPresentations)
+    }
+
+    struct TallSheet: View {
+        let model: Model
+        var body: some View {
+            Text("Title")
+                .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            Color.blue.frame(width: 100, height: 600)._probe("tall")
+                        }
+                    }
+                    ._probe("scroll")
+                }
+        }
+    }
+
+    @Test func sheetIsLimitedToTheWindowSoItsScrollViewScrolls() {
+        let model = Model()
+        model.sheet = true
+        let r = runtime(TallSheet(model: model))
+        let scroll = r.probeFrames["scroll"]!
+        // The panel keeps 20 pt margins and 20 pt of padding inside a 300 pt window.
+        #expect(scroll.height == 220)
+        #expect(scroll.minY == 20)
+        #expect(r.probeFrames["tall"]!.height == 600)
+    }
+
+    struct TwoPresenters: View {
+        let model: Model
+        var body: some View {
+            Text("Title")
+                .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) { Text("Inside")._probe("inside") }
+                .alert("Title", isPresented: Binding(get: { model.alert }, set: { model.alert = $0 })) { Button("OK") {}._probe("ok") }
+        }
+    }
+
+    @Test func oneViewPresentsASheetAndAnAlert() {
+        let model = Model()
+        let r = runtime(TwoPresenters(model: model))
+        model.sheet = true
+        relayout(r)
+        model.alert = true
+        relayout(r)
+        // Both are up, the alert on top; dismissing the alert leaves the sheet.
+        #expect(r.probeFrames["inside"] != nil && r.probeFrames["ok"] != nil)
+        let ok = r.probeFrames["ok"]!
+        press(r, CGPoint(x: ok.midX, y: ok.midY))
+        relayout(r)
+        #expect(!model.alert && model.sheet)
+        #expect(r.probeFrames["ok"] == nil && r.probeFrames["inside"] != nil)
+    }
 }
 #endif

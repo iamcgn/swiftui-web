@@ -34,7 +34,7 @@ extension EnvironmentValues {
 /// How a presentation is shown.
 public enum _PresentationKind: Sendable, Equatable {
     case sheet
-    case popover(arrowEdge: Edge)
+    case popover(arrowEdge: Edge, anchor: PopoverAttachmentAnchor)
     case alert
     /// A confirmation dialog: an alert on macOS; on iOS a glass panel above its source.
     case dialog
@@ -49,12 +49,12 @@ public enum _PresentationKind: Sendable, Equatable {
 }
 
 /// Where a popover attaches to its source view.
-public enum PopoverAttachmentAnchor: Sendable {
+public enum PopoverAttachmentAnchor: Sendable, Equatable {
     case rect(_AnchorSource)
     case point(UnitPoint)
 }
 
-public enum _AnchorSource: Sendable {
+public enum _AnchorSource: Sendable, Equatable {
     case bounds
     case rect(CGRect)
 }
@@ -135,13 +135,13 @@ extension View {
     /// Presents a popover when a given condition is true.
     nonisolated public func popover<Content: View>(isPresented: Binding<Bool>, attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds),
                                                    arrowEdge: Edge = .top, @ViewBuilder content: @escaping () -> Content) -> some View {
-        modifier(_PresentationModifier(kind: .popover(arrowEdge: arrowEdge), isPresented: isPresented, onDismiss: nil) { AnyView(content()) })
+        modifier(_PresentationModifier(kind: .popover(arrowEdge: arrowEdge, anchor: attachmentAnchor), isPresented: isPresented, onDismiss: nil) { AnyView(content()) })
     }
 
     /// Presents a popover using the given item as a data source for the popover's content.
     nonisolated public func popover<Item: Identifiable, Content: View>(item: Binding<Item?>, attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds),
                                                                        arrowEdge: Edge = .top, @ViewBuilder content: @escaping (Item) -> Content) -> some View {
-        modifier(_PresentationModifier(kind: .popover(arrowEdge: arrowEdge), isPresented: _itemBinding(item), onDismiss: nil) {
+        modifier(_PresentationModifier(kind: .popover(arrowEdge: arrowEdge, anchor: attachmentAnchor), isPresented: _itemBinding(item), onDismiss: nil) {
             item.wrappedValue.map { AnyView(content($0)) } ?? AnyView(EmptyView())
         })
     }
@@ -443,6 +443,13 @@ public enum PresentationDetent: Hashable, Sendable {
 public struct _PresentationOptionsModifier {
     package let detents: Set<PresentationDetent>?
     package let dragIndicator: Visibility?
+    package let interactiveDismissDisabled: Bool?
+
+    package init(detents: Set<PresentationDetent>? = nil, dragIndicator: Visibility? = nil, interactiveDismissDisabled: Bool? = nil) {
+        self.detents = detents
+        self.dragIndicator = dragIndicator
+        self.interactiveDismissDisabled = interactiveDismissDisabled
+    }
 }
 
 extension _PresentationOptionsModifier: ViewModifier {
@@ -465,6 +472,12 @@ extension View {
 
     /// Shows or hides the sheet's drag indicator.
     nonisolated public func presentationDragIndicator(_ visibility: Visibility) -> some View {
-        modifier(_PresentationOptionsModifier(detents: nil, dragIndicator: visibility))
+        modifier(_PresentationOptionsModifier(dragIndicator: visibility))
+    }
+
+    /// Keeps the presentation this view is in from being dismissed by a press outside it or
+    /// Escape (a swipe on iOS); programmatic dismissal still works.
+    nonisolated public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> some View {
+        modifier(_PresentationOptionsModifier(interactiveDismissDisabled: isDisabled))
     }
 }
