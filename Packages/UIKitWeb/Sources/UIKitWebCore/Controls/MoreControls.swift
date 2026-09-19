@@ -373,14 +373,43 @@ open class UIActivityIndicatorView: UIView {
         updateHidden()
     }
 
-    open func startAnimating() { isAnimating = true; updateHidden(); setNeedsDisplay() }
-    open func stopAnimating() { isAnimating = false; updateHidden(); setNeedsDisplay() }
+    /// Seconds since `startAnimating`, advanced by the scene's frame loop: the spokes' pattern
+    /// steps one spoke every 1/8 s, a revolution per second (approximate: UIKit's rate is not
+    /// measured; the still at phase 0 is what the goldens hold).
+    private var clock: Double = 0
+    static let stepsPerSecond = 8.0
+    var phase: Int { Int(clock * Self.stepsPerSecond) % 8 }
+
+    open func startAnimating() {
+        guard !isAnimating else { return }
+        isAnimating = true
+        clock = 0
+        updateHidden()
+        UIKitScene.shared.spinners.append(WeakActivityIndicator(view: self))
+        UIKitScene.shared.setNeedsFrame()
+        setNeedsDisplay()
+    }
+
+    open func stopAnimating() {
+        isAnimating = false
+        updateHidden()
+        UIKitScene.shared.spinners.removeAll { $0.view === self || $0.view == nil }
+        setNeedsDisplay()
+    }
+
     private func updateHidden() { isHidden = hidesWhenStopped && !isAnimating }
+
+    /// Advances the clock; repaints when the pattern steps.
+    func advance(elapsed: Double) {
+        let before = phase
+        clock += elapsed
+        if phase != before { setNeedsDisplay() }
+    }
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize { Self.size(for: style) }
     override open var intrinsicContentSize: CGSize { Self.size(for: style) }
 
-    /// Eight spokes fading around the ring (a still of the animation).
+    /// Eight spokes fading around the ring; the pattern turns with `phase` while animating.
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let ink = (color ?? UIColor(light: RGBA(r: 61, g: 61, b: 67, a: 0.8), dark: RGBA(r: 152, g: 152, b: 157))).rgba(for: userStyle)
@@ -391,9 +420,15 @@ open class UIActivityIndicatorView: UIView {
             var path = Path()
             path.move(to: CGPoint(x: centre.x + inner * _cos(angle), y: centre.y + inner * _sin(angle)))
             path.addLine(to: CGPoint(x: centre.x + (outer - width / 2) * _cos(angle), y: centre.y + (outer - width / 2) * _sin(angle)))
-            list.append(.strokePath(path, style: StrokeStyle(lineWidth: width, lineCap: .round), ink.multiplyingAlpha(by: 0.3 + 0.7 * Double(spoke) / 7)))
+            let step = (spoke - phase + 8) % 8
+            list.append(.strokePath(path, style: StrokeStyle(lineWidth: width, lineCap: .round), ink.multiplyingAlpha(by: 0.3 + 0.7 * Double(step) / 7)))
         }
     }
+}
+
+/// A spinning indicator the scene advances (`UIKitScene.spinners`).
+struct WeakActivityIndicator {
+    weak var view: UIActivityIndicatorView?
 }
 
 /// A control that displays a horizontal series of dots, each of which corresponds to a page in

@@ -6,16 +6,11 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 2 | 0 | 1 | 1 |
 | SwiftUI | 59 | 0 | 30 | 29 |
-| UIKit | 35 | 1 | 23 | 11 |
+| UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **101** | 1 | 55 | 45 |
+| **All** | **100** | 0 | 55 | 45 |
 
 ## Next (Phase 8, in order)
-
-### UIKit
-
-- ☐ **UIActivityIndicatorView spins** `uk-spinner` · Controls · approximate  
-  A still of eight spokes today: rotate the spokes on the scene's clock at UIKit's rate, `startAnimating`/`stopAnimating`, `hidesWhenStopped`. ([Controls.md](Docs/elements/UIKit/Controls.md))
 
 ## Soon (the gap sweep)
 
@@ -264,6 +259,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-09-18 **Image(uiImage:) for rendered images** `ix-rendered-images` · Interop · Bridging
 - ☑ 2026-09-18 **Decide whether SwiftUI keeps re-exporting UIKit unconditionally** `ix-size-gate` · Interop · Size
 - ☑ 2026-09-18 **iOS sheets, tab bars and date pickers from the simulator** `sw-ios-sheets` · SwiftUI · iOS profile
+- ☑ 2026-09-18 **UIActivityIndicatorView spins** `uk-spinner` · UIKit · Controls
 - ☑ 2026-09-18 **Hover and pointer interactions** `uk-hover` · UIKit · Events
 - ☑ 2026-09-18 **Trim the wasm bundle: Foundation** `uk-size` · UIKit · Size
 - ☑ 2026-09-12 **layoutOptions and safe areas through the seam** `ix-layout-options` · Interop · Representables

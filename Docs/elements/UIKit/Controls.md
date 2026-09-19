@@ -19,8 +19,8 @@ iPhone SE simulator on iOS 26. `UISwitch` and `UITextField` have their own pages
 - `UIProgressView`: `init(progressViewStyle:)`, `progress`, `setProgress(_:animated:)`, the
   tint colours.
 - `UIActivityIndicatorView`: `init(style:)` (`medium`, `large`), `startAnimating`,
-  `stopAnimating`, `isAnimating`, `hidesWhenStopped`, `color`. A still of eight fading spokes;
-  it does not spin yet.
+  `stopAnimating`, `isAnimating`, `hidesWhenStopped`, `color`. Eight fading spokes whose
+  pattern turns on the scene's clock while animating (2026-09-18, `ActivityIndicatorTests`).
 - `UIPageControl`: `numberOfPages`, `currentPage`, `hidesForSinglePage`, the indicator tint
   colours, `size(forNumberOfPages:)`; a tap on either half moves a page and sends `valueChanged`.
 
@@ -38,7 +38,9 @@ iPhone SE simulator on iOS 26. `UISwitch` and `UITextField` have their own pages
   divider (59, 59, 67) at 36 %, black − and +.
 - Progress view: 4 tall, the track (120, 120, 125) at 20 %, the fill the tint colour as wide as
   the progress times the width, rounded.
-- Activity indicator: 20 × 20 (medium), 37 × 37 (large).
+- Activity indicator: 20 × 20 (medium), 37 × 37 (large); animating, the spoke pattern steps one
+  spoke every 1/8 s (a revolution per second: approximate, UIKit's rate is not measured; the
+  goldens hold the still at phase 0, `uikit/controls/more`).
 - Page control: 26 tall, 10 pt dots on an 18 pt pitch starting 14 in (92 wide for four pages);
   the dots are white (the current one opaque, the others at 45 %) over a material backdrop the
   capture leaves transparent, so on a white page they are as invisible here as in UIKit.

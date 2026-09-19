@@ -1130,13 +1130,14 @@
       "framework": "UIKit",
       "area": "Controls",
       "title": "UIActivityIndicatorView spins",
-      "detail": "A still of eight spokes today: rotate the spokes on the scene's clock at UIKit's rate, `startAnimating`/`stopAnimating`, `hidesWhenStopped`.",
+      "detail": "Done 2026-09-18: `startAnimating` registers the view with the scene, whose frame loop advances a clock; the spoke pattern steps one spoke every 1/8 s (a revolution per second, approximate: UIKit's rate is not measured) and `stopAnimating`/`hidesWhenStopped` hide it; the goldens keep the still at phase 0 (`ActivityIndicatorTests`).",
       "kind": "approximate",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Controls.md"
-      ]
+      ],
+      "done": "2026-09-18"
     },
     {
       "id": "uk-hover",

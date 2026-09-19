@@ -173,7 +173,9 @@ public final class UIKitScene: HostedScene {
     // MARK: Frames
 
     public private(set) var needsFrame = false
-    public var isAnimating: Bool { !animationGroups.isEmpty || !decelerating.isEmpty }
+    public var isAnimating: Bool { !animationGroups.isEmpty || !decelerating.isEmpty || !spinners.isEmpty }
+    /// The activity indicators animating (Controls/MoreControls.swift); their spokes turn on this clock.
+    var spinners: [WeakActivityIndicator] = []
     /// The running `UIView.animate` groups (Layers/LayerAnimation.swift).
     var animationGroups: [UIViewAnimationGroup] = []
     /// Scroll views carried by momentum (Controls/UIScrollView.swift).
@@ -196,7 +198,15 @@ public final class UIKitScene: HostedScene {
         runTimers(elapsed: elapsed)
         let animating = advanceAnimations(elapsed: elapsed)
         let scrolling = advanceScrolling(elapsed: elapsed)
-        return advanceHostingViews(elapsed: elapsed) || animating || scrolling
+        let spinning = advanceSpinners(elapsed: elapsed)
+        return advanceHostingViews(elapsed: elapsed) || animating || scrolling || spinning
+    }
+
+    /// Turns the animating activity indicators; true while any is on screen.
+    private func advanceSpinners(elapsed: Double) -> Bool {
+        spinners.removeAll { $0.view == nil || $0.view?.isAnimating == false }
+        for spinner in spinners { spinner.view?.advance(elapsed: elapsed) }
+        return !spinners.isEmpty
     }
 
     /// Advances the timers and animations for a host whose frame loop drives a hosted tree (the
@@ -209,8 +219,9 @@ public final class UIKitScene: HostedScene {
         runTimers(elapsed: elapsed)
         let animating = advanceAnimations(elapsed: elapsed)
         let scrolling = advanceScrolling(elapsed: elapsed)
+        let spinning = advanceSpinners(elapsed: elapsed)
         let hosting = advanceHostingViews(elapsed: elapsed)
-        return animating || scrolling || hosting || !timers.isEmpty
+        return animating || scrolling || spinning || hosting || !timers.isEmpty
     }
     /// The host frame the clocks were last advanced for (`UIKitHostedTree.advanceFrame`).
     private var lastHostFrame: AnyHashable?
