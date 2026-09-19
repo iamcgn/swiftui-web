@@ -1,0 +1,69 @@
+{
+  "fixture" : "list\/outline",
+  "frames" : {
+    "dgApple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 38,
+      "y" : 192
+    },
+    "dgBanana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 38,
+      "y" : 216
+    },
+    "dgFruits" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 38,
+      "y" : 216
+    },
+    "dgWater" : {
+      "height" : 16,
+      "width" : 36,
+      "x" : 25,
+      "y" : 240
+    },
+    "disclosure" : {
+      "height" : 130,
+      "width" : 320,
+      "x" : 0,
+      "y" : 154
+    },
+    "Fruits" : {
+      "height" : 16,
+      "width" : 34.5,
+      "x" : 25,
+      "y" : 30
+    },
+    "outline" : {
+      "height" : 130,
+      "width" : 320,
+      "x" : 0,
+      "y" : 16
+    },
+    "stack" : {
+      "height" : 268,
+      "width" : 320,
+      "x" : 0,
+      "y" : 16
+    },
+    "Vegetables" : {
+      "height" : 16,
+      "width" : 68,
+      "x" : 25,
+      "y" : 54
+    },
+    "Water" : {
+      "height" : 16,
+      "width" : 36,
+      "x" : 25,
+      "y" : 78
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

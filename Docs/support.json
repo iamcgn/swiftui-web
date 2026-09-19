@@ -198,14 +198,22 @@
         {
           "api": "List (content, selection, data/id/Range forms) / ListStyle (automatic, inset, plain, bordered, sidebar) / listStyle",
           "status": "partial",
-          "notes": "macOS row geometry, separators, section headers/footers with the pinned first header, styles, single and multiple selection by press, labels' icon slot and tint measured; no outline lists, edit actions, keyboard selection, focused (accent) highlight, alternating backgrounds or custom styles. Editing (2026-09-18): onDelete on the Delete key, onMove by drag, the editActions binding forms, EditMode/EditButton with iOS's delete circle and grip measured (ios/list/editing), swipeActions and the implicit Delete (approximate: no golden holds a swipe), refreshable (approximate).",
+          "notes": "macOS row geometry, separators, section headers/footers with the pinned first header, styles, single and multiple selection by press, labels' icon slot and tint measured; no outline lists, edit actions, keyboard selection, focused (accent) highlight, alternating backgrounds or custom styles. Editing (2026-09-18): onDelete on the Delete key, onMove by drag, the editActions binding forms, EditMode/EditButton with iOS's delete circle and grip measured (ios/list/editing), swipeActions and the implicit Delete (approximate: no golden holds a swipe), refreshable (approximate). Looks (2026-09-19): alternating row fills, headerProminence (no macOS change), outline lists and DisclosureGroup rows with chevrons and indentation, listItemTint, section separators hidden, scrollContentBackground hidden, the pinned header while scrolling and the 10 pt bottom inset, iOS listRowSpacing/listSectionSpacing (Docs/elements/List.md).",
           "fixtures": [
             "list/basic",
             "list/sections",
             "list/styles",
             "list/modifiers",
             "list/steps",
-            "ios/list/editing"
+            "ios/list/editing",
+            "list/alternating",
+            "list/prominence",
+            "list/outline",
+            "list/tint",
+            "list/separators",
+            "list/background",
+            "list/pinning",
+            "ios/list/spacing"
           ]
         },
         {

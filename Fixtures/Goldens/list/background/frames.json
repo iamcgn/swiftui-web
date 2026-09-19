@@ -1,0 +1,27 @@
+{
+  "fixture" : "list\/background",
+  "frames" : {
+    "list" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 14
+    },
+    "row2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 38
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

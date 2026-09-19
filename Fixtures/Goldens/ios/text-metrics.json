@@ -126,6 +126,12 @@
       "lastBaseline" : 18.5,
       "width" : 63.5
     },
+    "style:body:w500||First" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 34.5
+    },
     "style:body:w500||Fixed" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -155,6 +161,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 94.5
+    },
+    "style:body:w500||Second" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 59.5
     },
     "style:body:w500||Vegetables" : {
       "firstBaseline" : 18.5,
@@ -186,6 +198,12 @@
       "lastBaseline" : 199,
       "width" : 0
     },
+    "style:body:w500|0.0|First" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
+      "width" : 0
+    },
     "style:body:w500|0.0|Fixed" : {
       "firstBaseline" : 18.5,
       "height" : 127,
@@ -214,6 +232,12 @@
       "firstBaseline" : 18.5,
       "height" : 283,
       "lastBaseline" : 277,
+      "width" : 0
+    },
+    "style:body:w500|0.0|Second" : {
+      "firstBaseline" : 18.5,
+      "height" : 153,
+      "lastBaseline" : 147,
       "width" : 0
     },
     "style:body:w500|0.0|Vegetables" : {
@@ -3059,6 +3083,30 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 68.5
+    },
+    "style:body|256.0|Apple" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 44.5
+    },
+    "style:body|256.0|Banana" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 57
+    },
+    "style:body|256.0|Carrot" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 48.5
+    },
+    "style:body|256.0|Cherry" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 52
     },
     "style:body|260.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 18.5,
@@ -8826,6 +8874,90 @@
       "lastBaseline" : 129,
       "width" : 0
     },
+    "style:subheadline:w600|288.0|First" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 32
+    },
+    "style:subheadline:w600|288.0|Hidden" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 51.5
+    },
+    "style:subheadline:w600|288.0|Increased" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 70.5
+    },
+    "style:subheadline:w600|288.0|Rows" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
+    "style:subheadline:w600|288.0|Second" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 54
+    },
+    "style:subheadline:w600|288.0|Standard" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 66
+    },
+    "style:subheadline:w600|288.0|Tinted" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 46
+    },
+    "style:subheadline:w600|304.0|First" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 32
+    },
+    "style:subheadline:w600|304.0|Hidden" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 51.5
+    },
+    "style:subheadline:w600|304.0|Increased" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 70.5
+    },
+    "style:subheadline:w600|304.0|Rows" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
+    "style:subheadline:w600|304.0|Second" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 54
+    },
+    "style:subheadline:w600|304.0|Standard" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 66
+    },
+    "style:subheadline:w600|304.0|Tinted" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 46
+    },
     "style:subheadline:w700||Account" : {
       "firstBaseline" : 15.5,
       "height" : 21,
@@ -13062,6 +13194,12 @@
       "lastBaseline" : 12.5,
       "width" : 28
     },
+    "system:13:400:default||Bluetooth" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 59
+    },
     "system:13:400:default||Bordered" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -13632,6 +13770,42 @@
       "lastBaseline" : 12.5,
       "width" : 66
     },
+    "system:13:400:default||Item 1" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36.5
+    },
+    "system:13:400:default||Item 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38
+    },
+    "system:13:400:default||Item 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default||Item 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default||Item 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default||Item 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
     "system:13:400:default||Kerned text" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -13787,6 +13961,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 61
+    },
+    "system:13:400:default||Mobile" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 40.5
     },
     "system:13:400:default||More" : {
       "firstBaseline" : 12.5,
@@ -14087,6 +14267,30 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 37
+    },
+    "system:13:400:default||Row 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default||Row 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default||Row 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default||Row 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
     },
     "system:13:400:default||Save" : {
       "firstBaseline" : 12.5,
@@ -14418,11 +14622,23 @@
       "lastBaseline" : 12.5,
       "width" : 45.5
     },
+    "system:13:400:default||Water" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36
+    },
     "system:13:400:default||When" : {
       "firstBaseline" : 12.5,
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 35
+    },
+    "system:13:400:default||Wi-Fi" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 32.5
     },
     "system:13:400:default||Wide" : {
       "firstBaseline" : 12.5,
@@ -15024,6 +15240,12 @@
       "lastBaseline" : 59.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|Bluetooth" : {
+      "firstBaseline" : 12.5,
+      "height" : 140,
+      "lastBaseline" : 137,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Bordered" : {
       "firstBaseline" : 12.5,
       "height" : 124.5,
@@ -15594,6 +15816,42 @@
       "lastBaseline" : 168,
       "width" : 0
     },
+    "system:13:400:default|0.0|Item 1" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Item 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Item 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Item 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Item 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Item 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Kerned text" : {
       "firstBaseline" : 12.5,
       "height" : 155.5,
@@ -15748,6 +16006,12 @@
       "firstBaseline" : 12.5,
       "height" : 140,
       "lastBaseline" : 137,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Mobile" : {
+      "firstBaseline" : 12.5,
+      "height" : 93.5,
+      "lastBaseline" : 90.5,
       "width" : 0
     },
     "system:13:400:default|0.0|More" : {
@@ -16045,6 +16309,30 @@
       "width" : 0
     },
     "system:13:400:default|0.0|Row 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Row 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Row 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Row 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Row 6" : {
       "firstBaseline" : 12.5,
       "height" : 62.5,
       "lastBaseline" : 59.5,
@@ -16380,10 +16668,22 @@
       "lastBaseline" : 106,
       "width" : 0
     },
+    "system:13:400:default|0.0|Water" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "system:13:400:default|0.0|When" : {
       "firstBaseline" : 12.5,
       "height" : 62.5,
       "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Wi-Fi" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
       "width" : 0
     },
     "system:13:400:default|0.0|Wide" : {
@@ -16626,6 +16926,150 @@
       "lastBaseline" : 28.5,
       "width" : 227
     },
+    "system:13:400:default|266.0|Apple" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 35
+    },
+    "system:13:400:default|266.0|Banana" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 45
+    },
+    "system:13:400:default|266.0|Bluetooth" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 59
+    },
+    "system:13:400:default|266.0|Bottom" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 44.5
+    },
+    "system:13:400:default|266.0|Carrot" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|266.0|Fruits" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 34.5
+    },
+    "system:13:400:default|266.0|Item 1" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36.5
+    },
+    "system:13:400:default|266.0|Item 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38
+    },
+    "system:13:400:default|266.0|Item 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|266.0|Item 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|266.0|Item 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|266.0|Item 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|266.0|Last" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 26
+    },
+    "system:13:400:default|266.0|Mobile" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 40.5
+    },
+    "system:13:400:default|266.0|Row 1" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 35.5
+    },
+    "system:13:400:default|266.0|Row 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37
+    },
+    "system:13:400:default|266.0|Row 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|266.0|Row 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|266.0|Row 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|266.0|Row 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|266.0|Top" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 22.5
+    },
+    "system:13:400:default|266.0|Vegetables" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 68
+    },
+    "system:13:400:default|266.0|Water" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36
+    },
+    "system:13:400:default|266.0|Wi-Fi" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 32.5
+    },
     "system:13:400:default|270.0|Hello\nWorld" : {
       "firstBaseline" : 12.5,
       "height" : 31.5,
@@ -16643,6 +17087,258 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 24
+    },
+    "system:13:400:default|279.0|Apple" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 35
+    },
+    "system:13:400:default|279.0|Banana" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 45
+    },
+    "system:13:400:default|279.0|Bottom" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 44.5
+    },
+    "system:13:400:default|279.0|Carrot" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|279.0|Fruits" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 34.5
+    },
+    "system:13:400:default|279.0|Item 1" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36.5
+    },
+    "system:13:400:default|279.0|Item 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38
+    },
+    "system:13:400:default|279.0|Item 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|279.0|Item 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|279.0|Item 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|279.0|Item 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|279.0|Last" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 26
+    },
+    "system:13:400:default|279.0|Row 1" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 35.5
+    },
+    "system:13:400:default|279.0|Row 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37
+    },
+    "system:13:400:default|279.0|Row 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|279.0|Row 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|279.0|Row 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|279.0|Row 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|279.0|Top" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 22.5
+    },
+    "system:13:400:default|279.0|Vegetables" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 68
+    },
+    "system:13:400:default|279.0|Water" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36
+    },
+    "system:13:400:default|288.0|Apple" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 35
+    },
+    "system:13:400:default|288.0|Banana" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 45
+    },
+    "system:13:400:default|288.0|Bottom" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 44.5
+    },
+    "system:13:400:default|288.0|Carrot" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|288.0|Fruits" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 34.5
+    },
+    "system:13:400:default|288.0|Item 1" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36.5
+    },
+    "system:13:400:default|288.0|Item 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38
+    },
+    "system:13:400:default|288.0|Item 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|288.0|Item 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|288.0|Item 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|288.0|Item 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 38.5
+    },
+    "system:13:400:default|288.0|Last" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 26
+    },
+    "system:13:400:default|288.0|Row 1" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 35.5
+    },
+    "system:13:400:default|288.0|Row 2" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37
+    },
+    "system:13:400:default|288.0|Row 3" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|288.0|Row 4" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|288.0|Row 5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|288.0|Row 6" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 37.5
+    },
+    "system:13:400:default|288.0|Top" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 22.5
+    },
+    "system:13:400:default|288.0|Vegetables" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 68
+    },
+    "system:13:400:default|288.0|Water" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36
     },
     "system:13:400:default|300.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 12.5,

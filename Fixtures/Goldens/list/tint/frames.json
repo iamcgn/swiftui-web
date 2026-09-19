@@ -1,0 +1,33 @@
+{
+  "fixture" : "list\/tint",
+  "frames" : {
+    "green" : {
+      "height" : 16,
+      "width" : 54.5,
+      "x" : 16,
+      "y" : 14
+    },
+    "list" : {
+      "height" : 200,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "orange" : {
+      "height" : 16,
+      "width" : 81,
+      "x" : 16,
+      "y" : 38
+    },
+    "plain" : {
+      "height" : 16,
+      "width" : 62.5,
+      "x" : 16,
+      "y" : 62
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

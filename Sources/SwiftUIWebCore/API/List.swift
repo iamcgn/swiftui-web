@@ -32,6 +32,8 @@ public struct List<SelectionValue: Hashable, Content: View>: View {
     @Environment(\._inSidebarColumn) private var inSidebarColumn
     @Environment(\.platformProfile) private var platform
     @Environment(\._underNavigationBar) private var underNavigationBar
+    @Environment(\._scrollContentBackground) private var contentBackground
+    @Environment(\._alternatingRowBackgrounds) private var alternatingRows
 
     /// In a split view's sidebar column the automatic style is the sidebar style, and a sidebar
     /// list is transparent over the panel. On iOS every style but plain is inset grouped.
@@ -43,12 +45,16 @@ public struct List<SelectionValue: Hashable, Content: View>: View {
         }
         var profile = style is DefaultListStyle && inSidebarColumn ? SidebarListStyle()._profile : style._profile
         if inSidebarColumn, profile.name == "sidebar" { profile.background = .clear }
+        // `scrollContentBackground(.hidden)` shows what is behind the list (list/background);
+        // `alternatingRowBackgrounds` fills every other row (list/alternating).
+        if contentBackground == .hidden { profile.background = .clear }
+        if alternatingRows == .enabled { profile.alternatesRowBackgrounds = true }
         return profile
     }
 
     public var body: some View {
         let profile = profile
-        let pinnedTitle = profile.name == "sidebar" || platform.isIOS ? nil : _firstSectionTitle(of: content)
+        let pinnedHeader = profile.name == "sidebar" || platform.isIOS ? nil : _firstSectionHeader(of: content)
         // Read the selection here, inside the body, so observation tracks the model it comes
         // from; painting reads it again but is not tracked.
         let _: Void = selection?.read() ?? ()
@@ -56,11 +62,11 @@ public struct List<SelectionValue: Hashable, Content: View>: View {
         // black behind the rows, the window below); a grouped list and macOS fill the whole frame.
         let rowsOnly = platform.isIOS && !profile.cards
         ScrollView(.vertical) {
-            _ListContent(content: content, selection: selection, profile: profile, pinsFirstHeader: pinnedTitle != nil)
+            _ListContent(content: content, selection: selection, profile: profile, pinsFirstHeader: pinnedHeader != nil)
                 .background(rowsOnly ? profile.background : Color.clear)
         }
         .background(rowsOnly ? Color.clear : profile.background)
-        .overlay(alignment: .top) { _ListPinnedHeader(title: pinnedTitle, profile: profile) }
+        .overlay(alignment: .top) { _ListPinnedHeader(header: pinnedHeader, profile: profile) }
         .border(profile.borderColor ?? Color.clear, width: profile.borderColor == nil ? 0 : PlatformMetrics.listBorderWidth)
     }
 }
@@ -200,6 +206,8 @@ public struct _ListProfile: Equatable, Sendable {
     package var headerFont: Font? = nil
     /// The footers' font when it differs from the headers' (iOS: footnote).
     package var footerFont: Font? = nil
+    /// Every other row filled (`.inset(alternatesRowBackgrounds:)`, `alternatingRowBackgrounds`).
+    package var alternatesRowBackgrounds = false
     package var linkChevron = false
 
     /// The iOS look of a style: inset grouped cards for every style but plain.
@@ -235,12 +243,17 @@ public struct DefaultListStyle: ListStyle {
 
 /// The list style that describes the behavior and appearance of an inset list.
 public struct InsetListStyle: ListStyle {
-    public init() {}
+    /// Whether every other row is filled (`.inset(alternatesRowBackgrounds:)`).
+    public let alternatesRowBackgrounds: Bool
+    public init() { alternatesRowBackgrounds = false }
+    public init(alternatesRowBackgrounds: Bool) { self.alternatesRowBackgrounds = alternatesRowBackgrounds }
     public var _profile: _ListProfile {
-        _ListProfile(name: "inset", margin: PlatformMetrics.listInsetMargin, topInset: PlatformMetrics.listTopInset,
+        var profile = _ListProfile(name: "inset", margin: PlatformMetrics.listInsetMargin, topInset: PlatformMetrics.listTopInset,
                      minimumRowHeight: PlatformMetrics.listRowMinimumHeight, rowFont: nil, rowForeground: nil,
                      background: Color(storage: .system(.controlBackground)), borderColor: nil, showsSeparators: true,
                      separatorTrailing: PlatformMetrics.listInsetMargin, rowBackgroundExtendsToEdges: true)
+        profile.alternatesRowBackgrounds = alternatesRowBackgrounds
+        return profile
     }
 }
 
@@ -300,6 +313,7 @@ extension ListStyle where Self == InsetGroupedListStyle {
 }
 extension ListStyle where Self == InsetListStyle {
     public static var inset: InsetListStyle { InsetListStyle() }
+    public static func inset(alternatesRowBackgrounds: Bool) -> InsetListStyle { InsetListStyle(alternatesRowBackgrounds: alternatesRowBackgrounds) }
 }
 extension ListStyle where Self == PlainListStyle {
     public static var plain: PlainListStyle { PlainListStyle() }
@@ -396,13 +410,20 @@ extension View {
     }
 
     /// Sets the display mode for the separator associated with this specific section. Stored only.
-    nonisolated public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View { self }
+    nonisolated public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
+        layoutValue(key: ListSectionSeparatorKey.self, value: (visibility, edges))
+    }
 
     /// Sets the tint color associated with a section. Stored only.
-    nonisolated public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View { self }
+    nonisolated public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View {
+        layoutValue(key: ListSectionSeparatorTintKey.self, value: (color, edges))
+    }
 
     /// Sets a fixed tint color for content in a list. Stored only.
-    nonisolated public func listItemTint(_ tint: Color?) -> some View { self }
+    nonisolated public func listItemTint(_ tint: Color?) -> some View { environment(\._listItemTint, tint) }
+    nonisolated public func listItemTint(_ tint: ListItemTint?) -> some View {
+        environment(\._listItemTint, tint.map { switch $0 { case .fixed(let color), .preferred(let color): return color } })
+    }
 }
 
 // MARK: - Primitives
@@ -432,19 +453,19 @@ public struct _ListContent<Content: View>: View {
 /// The first section's header, pinned at the top of the list (macOS floats it above the rows;
 /// its in-flow slot stays blank).
 struct _ListPinnedHeader: View {
-    let title: String?
+    let header: AnyView?
     let profile: _ListProfile
 
     var body: some View {
-        if let title {
+        if let header {
             ZStack(alignment: .bottom) {
                 profile.background
-                Text(title)
+                header
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, profile.margin)
-                    .frame(height: PlatformMetrics.listPinnedHeaderHeight, alignment: .center)
+                    .padding(.top, PlatformMetrics.listPinnedHeaderTextTop)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 VStack(spacing: 0) {
                     Color.black.opacity(PlatformMetrics.listPinnedHeaderShadowAlpha).frame(height: PlatformMetrics.listPinnedHeaderLine)
@@ -463,16 +484,35 @@ func _firstSectionTitle<Content: View>(of content: Content) -> String? {
     ?? (content as? any _TupleHeadProviding)?._headTitle
 }
 
+/// The first section's header view, pinned at the top of a macOS list (any header view, not
+/// only a titled one: list/prominence).
+func _firstSectionHeader<Content: View>(of content: Content) -> AnyView? {
+    (content as? any _SectionHeaderProviding)?._headerView
+    ?? (content as? any _TupleHeadProviding)?._headView
+}
+
 package protocol _SectionHeaderProviding {
     var _headerTitle: String? { get }
+    var _headerView: AnyView? { get }
 }
 
 extension Section: _SectionHeaderProviding {
     package var _headerTitle: String? { (header as? Text)?.resolvedString }
+    package var _headerView: AnyView? {
+        guard !(header is EmptyView), let view = header as? any View else { return nil }
+        return _eraseView(view)
+    }
 }
 
 package protocol _TupleHeadProviding {
     var _headTitle: String? { get }
+    var _headView: AnyView? { get }
+}
+
+/// A modified section (`headerProminence`, `listSectionSeparator`) still heads a list.
+extension ModifiedContent: _SectionHeaderProviding where Content: _SectionHeaderProviding {
+    package var _headerTitle: String? { content._headerTitle }
+    package var _headerView: AnyView? { content._headerView }
 }
 
 extension TupleView: _TupleHeadProviding {
@@ -481,6 +521,17 @@ extension TupleView: _TupleHeadProviding {
         guard let first = mirror.children.first?.value else { return nil }
         return (first as? any _SectionHeaderProviding)?._headerTitle
     }
+    package var _headView: AnyView? {
+        let mirror = Mirror(reflecting: value)
+        guard let first = mirror.children.first?.value else { return nil }
+        return (first as? any _SectionHeaderProviding)?._headerView
+    }
+}
+
+/// Type-erases an existential view.
+func _eraseView(_ view: any View) -> AnyView {
+    func open<V: View>(_ view: V) -> AnyView { AnyView(view) }
+    return open(view)
 }
 
 extension List {
@@ -576,5 +627,168 @@ extension View {
     /// runs the action and shows a spinner until it returns.
     nonisolated public func refreshable(action: @escaping @Sendable () async -> Void) -> some View {
         environment(\.refresh, RefreshAction(action))
+    }
+}
+
+// MARK: - Looks (sw-list-looks, 2026-09-19): spacing, alternating rows, prominence, tints, outlines
+
+/// The spacing between a list's sections (`listSectionSpacing`).
+public enum ListSectionSpacing: Sendable, Equatable {
+    case `default`
+    case compact
+    case custom(CGFloat)
+}
+
+/// Whether a list fills every other row (`alternatingRowBackgrounds`).
+public enum AlternatingRowBackgroundBehavior: Sendable, Equatable {
+    case automatic, enabled, disabled
+}
+
+/// The prominence of a section header (`headerProminence`).
+public enum Prominence: Sendable, Equatable {
+    case standard, increased
+}
+
+/// The tint a list applies to a row's items (`listItemTint`).
+public enum ListItemTint: Sendable, Equatable {
+    case fixed(Color)
+    case preferred(Color)
+    public static var monochrome: ListItemTint { .fixed(.gray) }
+}
+
+package struct ListRowSpacingKey: EnvironmentKey { package static let defaultValue: CGFloat? = nil }
+package struct ListSectionSpacingKey: EnvironmentKey { package static let defaultValue: ListSectionSpacing? = nil }
+package struct AlternatingRowBackgroundsKey: EnvironmentKey { package static let defaultValue: AlternatingRowBackgroundBehavior? = nil }
+package struct HeaderProminenceKey: EnvironmentKey { package static let defaultValue: Prominence = .standard }
+package struct ListItemTintKey: EnvironmentKey { package static let defaultValue: Color? = nil }
+package struct ListSectionSeparatorKey: LayoutValueKey { package static let defaultValue: (Visibility, VerticalEdge.Set) = (.automatic, .all) }
+package struct ListSectionSeparatorTintKey: LayoutValueKey { package static let defaultValue: (Color?, VerticalEdge.Set) = (nil, .all) }
+
+extension EnvironmentValues {
+    package var _listRowSpacing: CGFloat? {
+        get { self[ListRowSpacingKey.self] }
+        set { self[ListRowSpacingKey.self] = newValue }
+    }
+    package var _listSectionSpacing: ListSectionSpacing? {
+        get { self[ListSectionSpacingKey.self] }
+        set { self[ListSectionSpacingKey.self] = newValue }
+    }
+    package var _alternatingRowBackgrounds: AlternatingRowBackgroundBehavior? {
+        get { self[AlternatingRowBackgroundsKey.self] }
+        set { self[AlternatingRowBackgroundsKey.self] = newValue }
+    }
+    package var _headerProminence: Prominence {
+        get { self[HeaderProminenceKey.self] }
+        set { self[HeaderProminenceKey.self] = newValue }
+    }
+    package var _listItemTint: Color? {
+        get { self[ListItemTintKey.self] }
+        set { self[ListItemTintKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Sets the spacing between a list's rows.
+    nonisolated public func listRowSpacing(_ spacing: CGFloat?) -> some View { environment(\._listRowSpacing, spacing) }
+    /// Sets the spacing between a list's sections.
+    nonisolated public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View { environment(\._listSectionSpacing, spacing) }
+    nonisolated public func listSectionSpacing(_ spacing: CGFloat) -> some View { environment(\._listSectionSpacing, .custom(spacing)) }
+    /// Fills every other row of the lists in this view.
+    nonisolated public func alternatingRowBackgrounds(_ behavior: AlternatingRowBackgroundBehavior = .enabled) -> some View {
+        environment(\._alternatingRowBackgrounds, behavior)
+    }
+    /// Sets the prominence of section headers in this view.
+    nonisolated public func headerProminence(_ prominence: Prominence) -> some View { environment(\._headerProminence, prominence) }
+}
+
+// MARK: - Outline groups (`List(_:children:)`, `OutlineGroup`)
+
+/// A row of an outline: its depth, whether it discloses children and how to toggle them.
+package struct _OutlineRow {
+    package let depth: Int
+    package let hasChildren: Bool
+    package let isExpanded: Bool
+    package let toggle: _ActionBox
+}
+
+package struct OutlineRowKey: LayoutValueKey {
+    package nonisolated(unsafe) static let defaultValue: _OutlineRow? = nil
+}
+
+/// How deep a row sits in an outline (children of an expanded row are one deeper).
+package struct OutlineDepthKey: EnvironmentKey {
+    package static let defaultValue = 0
+}
+
+extension EnvironmentValues {
+    package var _outlineDepth: Int {
+        get { self[OutlineDepthKey.self] }
+        set { self[OutlineDepthKey.self] = newValue }
+    }
+}
+
+/// A structure that computes views and disclosure groups on demand from an underlying
+/// collection of tree-structured, identified data.
+public struct OutlineGroup<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
+    package let data: Data
+    package let idPath: KeyPath<Data.Element, ID>
+    package let children: KeyPath<Data.Element, Data?>
+    package let content: (Data.Element) -> Content
+
+    public init(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, @ViewBuilder content: @escaping (Data.Element) -> Content) {
+        self.data = data
+        self.idPath = id
+        self.children = children
+        self.content = content
+    }
+
+    public var body: some View {
+        ForEach(data, id: idPath) { element in
+            _OutlineItem(element: element, idPath: idPath, children: children, content: content, depth: 0)
+        }
+    }
+}
+
+extension OutlineGroup where Data.Element: Identifiable, ID == Data.Element.ID {
+    public init(_ data: Data, children: KeyPath<Data.Element, Data?>, @ViewBuilder content: @escaping (Data.Element) -> Content) {
+        self.init(data, id: \.id, children: children, content: content)
+    }
+}
+
+/// One element of an outline: its row, then its children while expanded, a level deeper.
+struct _OutlineItem<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
+    let element: Data.Element
+    let idPath: KeyPath<Data.Element, ID>
+    let children: KeyPath<Data.Element, Data?>
+    let content: (Data.Element) -> Content
+    let depth: Int
+    @State private var isExpanded = false
+
+    var body: some View {
+        let kids = element[keyPath: children]
+        content(element)
+            .environment(\._outlineDepth, depth)
+            .layoutValue(key: OutlineRowKey.self, value: _OutlineRow(depth: depth, hasChildren: kids != nil, isExpanded: isExpanded, toggle: _ActionBox { isExpanded.toggle() }))
+        if isExpanded, let kids {
+            ForEach(kids, id: idPath) { child in
+                _OutlineItem(element: child, idPath: idPath, children: children, content: content, depth: depth + 1)
+            }
+        }
+    }
+}
+
+extension List {
+    /// A list of tree-structured data: each row discloses its children (`OutlineGroup`).
+    public init<Data, RowContent>(_ data: Data, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent)
+    where Content == OutlineGroup<Data, Data.Element.ID, RowContent>, SelectionValue == Never,
+          Data: RandomAccessCollection, Data.Element: Identifiable, RowContent: View
+    {
+        self.init { OutlineGroup(data, children: children, content: rowContent) }
+    }
+
+    public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent)
+    where Content == OutlineGroup<Data, ID, RowContent>, SelectionValue == Never, Data: RandomAccessCollection, ID: Hashable, RowContent: View
+    {
+        self.init { OutlineGroup(data, id: id, children: children, content: rowContent) }
     }
 }

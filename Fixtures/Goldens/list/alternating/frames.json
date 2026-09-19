@@ -1,0 +1,69 @@
+{
+  "fixture" : "list\/alternating",
+  "frames" : {
+    "altRow1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 30
+    },
+    "altRow2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 54
+    },
+    "altRow3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 78
+    },
+    "altRow4" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 16,
+      "y" : 102
+    },
+    "enabled" : {
+      "height" : 130,
+      "width" : 320,
+      "x" : 0,
+      "y" : 154
+    },
+    "enabledRow1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 168
+    },
+    "enabledRow2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 192
+    },
+    "enabledRow3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 216
+    },
+    "insetAlternating" : {
+      "height" : 130,
+      "width" : 320,
+      "x" : 0,
+      "y" : 16
+    },
+    "stack" : {
+      "height" : 268,
+      "width" : 320,
+      "x" : 0,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

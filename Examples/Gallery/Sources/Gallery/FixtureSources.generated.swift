@@ -1677,6 +1677,35 @@ public static let list = Fixture("ios/list/basic", size: CGSize(width: 320, heig
     .probe("list")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/list/editing", file: "Fixtures/Sources/iOS/IOSListEditingFixtures.swift", firstLine: 15, lastLine: 41, declaration: #"""
+/// Edit mode: deletable and movable rows, then deletable-only rows, then plain rows.
+public static let editing = Fixture(
+    "ios/list/editing", size: CGSize(width: 320, height: 420),
+    model: { IOSEditingModel() },
+    steps: []
+) { model in
+    List {
+        Section("Editable") {
+            ForEach(model.items, id: \.self) { item in
+                Text(item).probe(item.lowercased())
+            }
+            .onDelete { model.items.remove(atOffsets: $0) }
+            .onMove { model.items.move(fromOffsets: $0, toOffset: $1) }
+        }
+        Section("Deletable") {
+            ForEach(["Date"], id: \.self) { item in
+                Text(item).probe("date")
+            }
+            .onDelete { _ in }
+        }
+        Section("Fixed") {
+            Text("Detail").probe("fixed")
+        }
+    }
+    .fixtureEditModeActive()
+    .probe("list")
+}.platform(.iOS)
+"""#),
         FixtureSource(name: "ios/list/footer", file: "Fixtures/Sources/iOS/IOSControlsFixtures.swift", firstLine: 59, lastLine: 76, declaration: #"""
 /// Section footers in the grouped and plain looks.
 public static let listFooter = Fixture("ios/list/footer", size: CGSize(width: 320, height: 400)) {
@@ -1737,6 +1766,23 @@ public static let listSelection = Fixture(
         Text("Second").tag(2).probe("second")
         Text("Third").tag(3).probe("third")
     }
+    .probe("list")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/list/spacing", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 28, lastLine: 42, declaration: #"""
+/// `listRowSpacing` and `listSectionSpacing` are iOS API: measured on the simulator.
+public static let spacing = Fixture("ios/list/spacing", size: CGSize(width: 320, height: 400)) {
+    List {
+        Section("First") {
+            Text("Apple").probe("a1")
+            Text("Banana").probe("a2")
+        }
+        Section("Second") {
+            Text("Cherry").probe("b1")
+            Text("Carrot").probe("b2")
+        }
+    }
+    .fixtureListSpacing(row: 12, section: 30)
     .probe("list")
 }.platform(.iOS)
 """#),
@@ -3080,6 +3126,38 @@ public static let basic = Fixture("link/basic", size: CGSize(width: 320, height:
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "list/alternating", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 44, lastLine: 62, declaration: ##"""
+public static let alternating = Fixture("list/alternating", size: CGSize(width: 320, height: 300)) {
+    VStack(spacing: 8) {
+        #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
+        List {
+            Text("Apple").probe("altRow1"); Text("Banana").probe("altRow2"); Text("Cherry").probe("altRow3"); Text("Carrot").probe("altRow4")
+        }
+        .listStyle(.inset(alternatesRowBackgrounds: true))
+        .frame(height: 130)
+        .probe("insetAlternating")
+        List {
+            Text("Apple").probe("enabledRow1"); Text("Banana").probe("enabledRow2"); Text("Cherry").probe("enabledRow3")
+        }
+        .alternatingRowBackgrounds(.enabled)
+        .frame(height: 130)
+        .probe("enabled")
+        #endif
+    }
+    .probe("stack")
+}
+"""##),
+        FixtureSource(name: "list/background", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 132, lastLine: 140, declaration: #"""
+public static let background = Fixture("list/background", size: CGSize(width: 320, height: 200)) {
+    List {
+        Text("Apple").probe("row1")
+        Text("Banana").probe("row2")
+    }
+    .scrollContentBackground(.hidden)
+    .background(Color.yellow)
+    .probe("list")
+}
+"""#),
         FixtureSource(name: "list/basic", file: "Fixtures/Sources/List/ListFixtures.swift", firstLine: 23, lastLine: 34, declaration: #"""
 /// Row geometry: text rows, a tall row, a full-width row, a label and a toggle row.
 public static let basic = Fixture("list/basic", size: CGSize(width: 320, height: 260)) {
@@ -3107,6 +3185,68 @@ public static let modifiers = Fixture("list/modifiers", size: CGSize(width: 320,
     .probe("list")
 }
 """#),
+        FixtureSource(name: "list/outline", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 81, lastLine: 100, declaration: #"""
+public static let outline = Fixture("list/outline", size: CGSize(width: 320, height: 300)) {
+    VStack(spacing: 8) {
+        List(OutlineNode.tree, children: \.children) { node in
+            Text(node.name).probe(node.name)
+        }
+        .frame(height: 130)
+        .probe("outline")
+        List {
+            DisclosureGroup("Fruits", isExpanded: .constant(true)) {
+                Text("Apple").probe("dgApple")
+                Text("Banana").probe("dgBanana")
+            }
+            .probe("dgFruits")
+            Text("Water").probe("dgWater")
+        }
+        .frame(height: 130)
+        .probe("disclosure")
+    }
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "list/pinning", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 142, lastLine: 161, declaration: #"""
+/// The pinned header follows the sections as the list scrolls (a step scrolls to a row of
+/// the second section).
+public static let pinning = Fixture(
+    "list/pinning", size: CGSize(width: 320, height: 200),
+    model: { ListScrollModel() },
+    steps: [FixtureStep("scroll") { $0.proxy?.scrollTo("b3", anchor: .top) }]
+) { model in
+    ScrollViewReader { proxy in
+        List {
+            Section("First") {
+                ForEach(1...6, id: \.self) { index in Text("Row \(index)").id("a\(index)").probe("a\(index)") }
+            }
+            Section("Second") {
+                ForEach(1...6, id: \.self) { index in Text("Item \(index)").id("b\(index)").probe("b\(index)") }
+            }
+        }
+        .onAppear { model.proxy = proxy }
+    }
+    .probe("list")
+}
+"""#),
+        FixtureSource(name: "list/prominence", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 64, lastLine: 79, declaration: #"""
+public static let prominence = Fixture("list/prominence", size: CGSize(width: 320, height: 220)) {
+    List {
+        Section {
+            Text("Apple").probe("row1")
+        } header: {
+            Text("Increased").probe("increasedHeader")
+        }
+        .headerProminence(.increased)
+        Section {
+            Text("Banana").probe("row2")
+        } header: {
+            Text("Standard").probe("standardHeader")
+        }
+    }
+    .probe("list")
+}
+"""#),
         FixtureSource(name: "list/sections", file: "Fixtures/Sources/List/ListFixtures.swift", firstLine: 36, lastLine: 58, declaration: #"""
 /// Sections with headers and footers, and the sectioned data forms.
 public static let sections = Fixture("list/sections", size: CGSize(width: 320, height: 300)) {
@@ -3128,6 +3268,28 @@ public static let sections = Fixture("list/sections", size: CGSize(width: 320, h
             Text("Cherry").probe("cherry")
         }
         .probe("plainSection")
+    }
+    .probe("list")
+}
+"""#),
+        FixtureSource(name: "list/separators", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 111, lastLine: 130, declaration: #"""
+public static let separators = Fixture("list/separators", size: CGSize(width: 320, height: 300)) {
+    List {
+        Section("Hidden") {
+            Text("Apple").probe("hiddenRow1")
+            Text("Banana").probe("hiddenRow2")
+        }
+        .listSectionSeparator(.hidden)
+        Section("Tinted") {
+            Text("Cherry").probe("tintedRow1")
+            Text("Carrot").probe("tintedRow2")
+        }
+        .listSectionSeparatorTint(Color.red)
+        Section("Rows") {
+            Text("Top").listRowSeparator(.hidden, edges: .top).probe("topHidden")
+            Text("Bottom").listRowSeparator(.hidden, edges: .bottom).probe("bottomHidden")
+            Text("Last").probe("last")
+        }
     }
     .probe("list")
 }
@@ -3163,6 +3325,16 @@ public static let styles = Fixture("list/styles", size: CGSize(width: 320, heigh
     .probe("stack")
 }
 """##),
+        FixtureSource(name: "list/tint", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 102, lastLine: 109, declaration: #"""
+public static let tint = Fixture("list/tint", size: CGSize(width: 320, height: 200)) {
+    List {
+        Label("Wi-Fi", systemImage: "wifi").listItemTint(.green).probe("green")
+        Label("Bluetooth", systemImage: "antenna.radiowaves.left.and.right").listItemTint(ListItemTint.fixed(.orange)).probe("orange")
+        Label("Mobile", systemImage: "phone").probe("plain")
+    }
+    .probe("list")
+}
+"""#),
         FixtureSource(name: "matched/anchors", file: "Fixtures/Sources/MatchedGeometry/MatchedGeometryFixtures.swift", firstLine: 90, lastLine: 90, declaration: #"""
 public static let anchors = Fixture("matched/anchors", size: CGSize(width: 620, height: 820), content: { Grid() })
 """#),
@@ -9694,6 +9866,172 @@ public enum ListFixtures {
     public static let all: [Fixture] = [basic, sections, styles, modifiers, steps]
 }
 """##,
+        "Fixtures/Sources/List/ListLooksFixtures.swift": ##"""
+// List looks (`ios/list/spacing`, `list/alternating`, `list/prominence`, `list/outline`, `list/tint`,
+// `list/separators`, `list/background`, `list/pinning`): row and section spacing, alternating
+// row fills, header prominence, outline lists and disclosure groups in a list, item tints, the
+// section separator modifiers, a hidden scroll content background, and the pinned header as the
+// list scrolls (Docs/elements/List.md).
+import SwiftUI
+import FixtureKit
+
+public struct OutlineNode: Identifiable, Sendable {
+    public let id: String
+    public let name: String
+    public let children: [OutlineNode]?
+    public init(_ name: String, children: [OutlineNode]? = nil) { id = name; self.name = name; self.children = children }
+    public static let tree = [
+        OutlineNode("Fruits", children: [OutlineNode("Apple"), OutlineNode("Banana")]),
+        OutlineNode("Vegetables", children: [OutlineNode("Carrot")]),
+        OutlineNode("Water"),
+    ]
+}
+
+@Observable
+public final class ListScrollModel {
+    public var proxy: ScrollViewProxy?
+    public init() {}
+}
+
+public enum ListLooksFixtures {
+    /// `listRowSpacing` and `listSectionSpacing` are iOS API: measured on the simulator.
+    public static let spacing = Fixture("ios/list/spacing", size: CGSize(width: 320, height: 400)) {
+        List {
+            Section("First") {
+                Text("Apple").probe("a1")
+                Text("Banana").probe("a2")
+            }
+            Section("Second") {
+                Text("Cherry").probe("b1")
+                Text("Carrot").probe("b2")
+            }
+        }
+        .fixtureListSpacing(row: 12, section: 30)
+        .probe("list")
+    }.platform(.iOS)
+
+    public static let alternating = Fixture("list/alternating", size: CGSize(width: 320, height: 300)) {
+        VStack(spacing: 8) {
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
+            List {
+                Text("Apple").probe("altRow1"); Text("Banana").probe("altRow2"); Text("Cherry").probe("altRow3"); Text("Carrot").probe("altRow4")
+            }
+            .listStyle(.inset(alternatesRowBackgrounds: true))
+            .frame(height: 130)
+            .probe("insetAlternating")
+            List {
+                Text("Apple").probe("enabledRow1"); Text("Banana").probe("enabledRow2"); Text("Cherry").probe("enabledRow3")
+            }
+            .alternatingRowBackgrounds(.enabled)
+            .frame(height: 130)
+            .probe("enabled")
+            #endif
+        }
+        .probe("stack")
+    }
+
+    public static let prominence = Fixture("list/prominence", size: CGSize(width: 320, height: 220)) {
+        List {
+            Section {
+                Text("Apple").probe("row1")
+            } header: {
+                Text("Increased").probe("increasedHeader")
+            }
+            .headerProminence(.increased)
+            Section {
+                Text("Banana").probe("row2")
+            } header: {
+                Text("Standard").probe("standardHeader")
+            }
+        }
+        .probe("list")
+    }
+
+    public static let outline = Fixture("list/outline", size: CGSize(width: 320, height: 300)) {
+        VStack(spacing: 8) {
+            List(OutlineNode.tree, children: \.children) { node in
+                Text(node.name).probe(node.name)
+            }
+            .frame(height: 130)
+            .probe("outline")
+            List {
+                DisclosureGroup("Fruits", isExpanded: .constant(true)) {
+                    Text("Apple").probe("dgApple")
+                    Text("Banana").probe("dgBanana")
+                }
+                .probe("dgFruits")
+                Text("Water").probe("dgWater")
+            }
+            .frame(height: 130)
+            .probe("disclosure")
+        }
+        .probe("stack")
+    }
+
+    public static let tint = Fixture("list/tint", size: CGSize(width: 320, height: 200)) {
+        List {
+            Label("Wi-Fi", systemImage: "wifi").listItemTint(.green).probe("green")
+            Label("Bluetooth", systemImage: "antenna.radiowaves.left.and.right").listItemTint(ListItemTint.fixed(.orange)).probe("orange")
+            Label("Mobile", systemImage: "phone").probe("plain")
+        }
+        .probe("list")
+    }
+
+    public static let separators = Fixture("list/separators", size: CGSize(width: 320, height: 300)) {
+        List {
+            Section("Hidden") {
+                Text("Apple").probe("hiddenRow1")
+                Text("Banana").probe("hiddenRow2")
+            }
+            .listSectionSeparator(.hidden)
+            Section("Tinted") {
+                Text("Cherry").probe("tintedRow1")
+                Text("Carrot").probe("tintedRow2")
+            }
+            .listSectionSeparatorTint(Color.red)
+            Section("Rows") {
+                Text("Top").listRowSeparator(.hidden, edges: .top).probe("topHidden")
+                Text("Bottom").listRowSeparator(.hidden, edges: .bottom).probe("bottomHidden")
+                Text("Last").probe("last")
+            }
+        }
+        .probe("list")
+    }
+
+    public static let background = Fixture("list/background", size: CGSize(width: 320, height: 200)) {
+        List {
+            Text("Apple").probe("row1")
+            Text("Banana").probe("row2")
+        }
+        .scrollContentBackground(.hidden)
+        .background(Color.yellow)
+        .probe("list")
+    }
+
+    /// The pinned header follows the sections as the list scrolls (a step scrolls to a row of
+    /// the second section).
+    public static let pinning = Fixture(
+        "list/pinning", size: CGSize(width: 320, height: 200),
+        model: { ListScrollModel() },
+        steps: [FixtureStep("scroll") { $0.proxy?.scrollTo("b3", anchor: .top) }]
+    ) { model in
+        ScrollViewReader { proxy in
+            List {
+                Section("First") {
+                    ForEach(1...6, id: \.self) { index in Text("Row \(index)").id("a\(index)").probe("a\(index)") }
+                }
+                Section("Second") {
+                    ForEach(1...6, id: \.self) { index in Text("Item \(index)").id("b\(index)").probe("b\(index)") }
+                }
+            }
+            .onAppear { model.proxy = proxy }
+        }
+        .probe("list")
+    }
+
+    public static let all: [Fixture] = [spacing, alternating, prominence, outline, tint, separators, background, pinning]
+}
+"""##,
         "Fixtures/Sources/MatchedGeometry/MatchedGeometryFixtures.swift": #"""
 // matchedGeometryEffect at rest: non-source views take their source's geometry (frame,
 // position or size); their own layout slots stay where the stack put them.
@@ -14019,6 +14357,52 @@ public final class IOSNavigationModel {
     public init() {}
 }
 """##,
+        "Fixtures/Sources/iOS/IOSListEditingFixtures.swift": #"""
+// iOS list editing (`ios/list/editing`): a list in edit mode shows delete circles and reorder
+// grips on the rows whose `ForEach` has `onDelete` and `onMove`, and nothing on the others;
+// rendered on the iPhone SE simulator (decision 0015) and reproduced by the runtime's iOS
+// profile (Docs/elements/List.md, Docs/elements/iOS.md).
+import SwiftUI
+import FixtureKit
+
+@Observable
+public final class IOSEditingModel {
+    public var items = ["Apple", "Banana", "Cherry"]
+    public init() {}
+}
+
+public enum IOSListEditingFixtures {
+    /// Edit mode: deletable and movable rows, then deletable-only rows, then plain rows.
+    public static let editing = Fixture(
+        "ios/list/editing", size: CGSize(width: 320, height: 420),
+        model: { IOSEditingModel() },
+        steps: []
+    ) { model in
+        List {
+            Section("Editable") {
+                ForEach(model.items, id: \.self) { item in
+                    Text(item).probe(item.lowercased())
+                }
+                .onDelete { model.items.remove(atOffsets: $0) }
+                .onMove { model.items.move(fromOffsets: $0, toOffset: $1) }
+            }
+            Section("Deletable") {
+                ForEach(["Date"], id: \.self) { item in
+                    Text(item).probe("date")
+                }
+                .onDelete { _ in }
+            }
+            Section("Fixed") {
+                Text("Detail").probe("fixed")
+            }
+        }
+        .fixtureEditModeActive()
+        .probe("list")
+    }.platform(.iOS)
+
+    public static let all: [Fixture] = [editing]
+}
+"""#,
         "Fixtures/Sources/iOS/IOSPickersFixtures.swift": #"""
 // The iOS looks of the menu button and a footer followed by a header. (The compact date picker is
 // not measurable on Catalyst, which draws the Mac field: Docs/elements/iOS.md.)

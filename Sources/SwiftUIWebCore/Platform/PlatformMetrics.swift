@@ -86,6 +86,13 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listSelectionCornerRadius: CGFloat = 7                 // approximate
     package var listSelectionAlpha = 35.0 / 255
     package var listPinnedHeaderHeight: CGFloat = 27
+    package var listPinnedHeaderTextTop: CGFloat = 6                    // list/prominence: the pinned title's line starts 6 down
+    package var listAlternateRowFill: RGBA = RGBA(r: 244, g: 245, b: 245)   // list/alternating: every other row, no separators
+    package var listOutlineIndent: CGFloat = 9                          // list/outline: rows move in for the chevron column
+    package var listOutlineLevelIndent: CGFloat = 13                    // and 13 more per level
+    package var listOutlineChevronCentre: CGFloat = 18.5                // the chevron's centre from the list's leading edge, 1 pt grey (127)
+    package var listOutlineChevronSize = CGSize(width: 5, height: 5.5)
+    package var listOutlineChevronAlpha = 128.0 / 255
     package var listPinnedHeaderLine: CGFloat = 1
     package var listPinnedHeaderShadowAlpha = 7.0 / 255
     package var listPinnedHeaderLineAlpha = 48.0 / 255
@@ -583,6 +590,8 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listGroupedFooterBottom: CGFloat = 23.5                // the footer slot to the next card
     package var listFooterSlotHeight: CGFloat = 21                     // UIKit's footer label for an 18.5 pt footnote line
     package var listGroupedHeaderBottom: CGFloat = 10
+    package var listGroupedSectionSpacing: CGFloat = 17.5              // ios/list/spacing: the default `listSectionSpacing`; a header block is 10 + text + 10 below it
+    package var listGroupedHeaderPadding: CGFloat = 10
     package var listPlainHeaderTop: CGFloat = 32
     package var listPlainContentInset: CGFloat = 16
     package var listLinkChevronSize = CGSize(width: 7, height: 12)

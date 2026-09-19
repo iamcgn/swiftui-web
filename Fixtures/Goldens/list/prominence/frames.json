@@ -1,0 +1,39 @@
+{
+  "fixture" : "list\/prominence",
+  "frames" : {
+    "increasedHeader" : {
+      "height" : 16,
+      "width" : 54,
+      "x" : 16,
+      "y" : 6
+    },
+    "list" : {
+      "height" : 220,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 42
+    },
+    "row2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 114
+    },
+    "standardHeader" : {
+      "height" : 16,
+      "width" : 50,
+      "x" : 16,
+      "y" : 88
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 320
+  }
+}

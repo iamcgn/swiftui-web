@@ -38,6 +38,8 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         /// The `ForEach` the row belongs to and its offset in it (edit actions).
         package var owner: (any _ForEachNodeProviding)?
         package var offset = 0
+        /// How deep the row sits in an outline (from the row's own environment).
+        package var outlineDepth = 0
     }
 
     package private(set) var elements: [Element] = []
@@ -117,6 +119,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 element.isSectionStart = sectionStart; sectionStart = false
                 element.owner = owner
                 element.offset = offset
+                element.outlineDepth = node.environment._outlineDepth
                 result.append(element)
                 return
             }
@@ -148,6 +151,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
 
     private func plan(width: CGFloat) -> Plan {
         var elements = collect()
+        let outline = elements.contains { $0.node.layoutValue(for: OutlineRowKey.self) != nil }
         var y = profile.topInset
         let last = elements.indices.last
         // iOS: a first section that opens with a header starts at its header's gap, not the top inset.
@@ -160,17 +164,27 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 } else if element.kind == .row, elements[index - 1].kind == .row {
                     // iOS: a card without a header sits the top inset (35) below the previous
                     // card (ios/representable/form); headers and footers carry their own gaps.
-                    y += profile.topInset
+                    // A custom section spacing stands in for the default 17.5 of it (derived).
+                    if case .custom(let spacing)? = environment._listSectionSpacing {
+                        y += spacing + profile.topInset - PlatformMetrics.listGroupedSectionSpacing
+                    } else {
+                        y += profile.topInset
+                    }
                 }
+            } else if iOSLayout, index > 0, element.kind == .row, elements[index - 1].kind == .row, let spacing = environment._listRowSpacing {
+                // iOS `listRowSpacing`: the rows of a section are cards of their own, this far apart.
+                y += spacing
             }
             let contentWidth = width - 2 * profile.margin
             switch element.kind {
             case .header where iOSLayout:
                 // iOS: the header text sits `headerTop` below the previous card (`firstHeaderTop` at
                 // the top, `listGroupedFooterToHeader` below a footer's slot) and `headerBottom`
-                // above its card, inset like a row's content.
+                // above its card, inset like a row's content. `listSectionSpacing` replaces the
+                // default 17.5 of that gap above the header's 10 (ios/list/spacing).
                 let afterFooter = index > 0 && elements[index - 1].kind == .footer
-                let top = index == 0 ? profile.firstHeaderTop : afterFooter ? PlatformMetrics.listGroupedFooterToHeader : profile.headerTop
+                var top = index == 0 ? profile.firstHeaderTop : afterFooter ? PlatformMetrics.listGroupedFooterToHeader : profile.headerTop
+                if index > 0, !afterFooter, case .custom(let spacing)? = environment._listSectionSpacing { top = spacing + PlatformMetrics.listGroupedHeaderPadding }
                 let size = element.node.sizeThatFits(ProposedViewSize(width: nil, height: nil))
                 element.contentFrame = CGRect(x: profile.margin + profile.contentInset, y: y + top,
                                               width: min(size.width, contentWidth - 2 * profile.contentInset), height: size.height)
@@ -193,8 +207,15 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 element.contentFrame = CGRect(x: profile.margin, y: y + pad, width: contentWidth, height: size.height)
                 element.frame = CGRect(x: 0, y: y, width: width, height: size.height + 2 * pad)
                 element.separator = profile.showsSeparators && index != last && !element.isHidden
+                // `listSectionSeparator(.hidden)` on the section hides its header's line (list/separators).
+                let (sectionVisibility, sectionEdges) = element.node.layoutValue(for: ListSectionSeparatorKey.self)
+                if element.kind == .header, sectionVisibility == .hidden, sectionEdges.contains(.top) { element.separator = false }
+                // The pinned first header's slot sits where the pinned title is drawn, so its
+                // probe reads the title's place (list/prominence).
+                if element.isHidden { element.contentFrame.origin.y = PlatformMetrics.listPinnedHeaderTextTop }
             case .row:
                 var insets = rowInsets(element.node)
+                insets.leading += outlineIndent(element, hasOutline: outline)
                 // iOS edit mode: the content moves in for the delete circle and leaves the grip its slot.
                 if editingAccessories, canDelete(element) { insets.leading += PlatformMetrics.listEditLeadingInset }
                 if editingAccessories, canMove(element) { insets.trailing += PlatformMetrics.listEditGripWidth }
@@ -209,13 +230,22 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 // A card's last row has no separator: the next element is a header, footer or nothing.
                 let followedByRow = index + 1 < elements.count && elements[index + 1].kind == .row && !(iOSLayout && elements[index + 1].isSectionStart)
                 element.separator = profile.showsSeparators && index != last && !(visibility == .hidden && edges.contains(.bottom)) && (!iOSLayout || followedByRow)
+                // The next row hiding its top edge alone hides this one's line (`.hidden` with every
+                // edge hides only the row's own, list/modifiers); spaced or alternating rows have none.
+                if index + 1 < elements.count, elements[index + 1].kind == .row {
+                    let (nextVisibility, nextEdges) = elements[index + 1].node.layoutValue(for: ListRowSeparatorKey.self)
+                    if nextVisibility == .hidden, nextEdges == .top { element.separator = false }
+                }
+                if iOSLayout && environment._listRowSpacing != nil || profile.alternatesRowBackgrounds { element.separator = false }
                 let (tint, tintEdges) = element.node.layoutValue(for: ListRowSeparatorTintKey.self)
                 if tintEdges.contains(.bottom) { element.separatorTint = tint }
             }
             y = element.frame.maxY
             elements[index] = element
         }
-        return Plan(elements: elements, height: y)
+        // macOS keeps the top inset below the last row too (list/pinning: scrolled to the end, the
+        // last row's bottom sits 10 above the viewport's).
+        return Plan(elements: elements, height: iOSLayout ? y : y + profile.topInset)
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
@@ -274,8 +304,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     private var cardFrames: [CGRect] {
         var cards: [CGRect] = []
         var current: CGRect?
+        let spaced = environment._listRowSpacing != nil
         for element in elements {
-            if element.kind == .row, !(element.isSectionStart && current != nil) {
+            if element.kind == .row, !(element.isSectionStart && current != nil), !(spaced && current != nil) {
                 current = current.map { $0.union(element.frame) } ?? element.frame
             } else {
                 if let card = current { cards.append(card) }
@@ -306,7 +337,33 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                               width: max(0, frame.width - profile.separatorTrailing - x), height: PlatformMetrics.listSeparatorThickness)
             list.append(.fillRect(context.absoluteRect(line), color))
         }
+        // Every other row of an alternating list is filled edge to edge (list/alternating).
+        if profile.alternatesRowBackgrounds {
+            var rowIndex = 0
+            for element in elements where element.kind == .row && !element.isHidden {
+                if rowIndex % 2 == 1 { list.append(.fillRect(context.absoluteRect(element.frame), PlatformMetrics.listAlternateRowFill)) }
+                rowIndex += 1
+            }
+        }
+        let outline = hasOutline
         for (index, element) in elements.enumerated() where !element.isHidden {
+            if outline, element.kind == .row, let row = outlineRow(element), row.hasChildren {
+                // The disclosure chevron: 1 pt grey, pointing right, or down while expanded.
+                let centre = CGPoint(x: context.origin.x + PlatformMetrics.listOutlineChevronCentre + CGFloat(row.depth) * PlatformMetrics.listOutlineLevelIndent,
+                                     y: context.origin.y + element.frame.midY)
+                let size = PlatformMetrics.listOutlineChevronSize
+                var chevron = Path()
+                if row.isExpanded {
+                    chevron.move(to: CGPoint(x: centre.x - size.height / 2 - 0.5, y: centre.y - size.width / 2 + 0.5))
+                    chevron.addLine(to: CGPoint(x: centre.x, y: centre.y + size.width / 2 - 0.5))
+                    chevron.addLine(to: CGPoint(x: centre.x + size.height / 2 + 0.5, y: centre.y - size.width / 2 + 0.5))
+                } else {
+                    chevron.move(to: CGPoint(x: centre.x - size.width / 2, y: centre.y - size.height / 2))
+                    chevron.addLine(to: CGPoint(x: centre.x + size.width / 2, y: centre.y))
+                    chevron.addLine(to: CGPoint(x: centre.x - size.width / 2, y: centre.y + size.height / 2))
+                }
+                list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 1, lineCap: .round, lineJoin: .round), environment._ink(PlatformMetrics.listOutlineChevronAlpha)))
+            }
             if element.kind == .row, let background = backgrounds[ObjectIdentifier(element.node)] {
                 for layer in background.layoutChildren { layer.paint(into: &list, context: context.child(at: layer.presentedFrame)) }
             }
@@ -571,6 +628,16 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// iOS edit mode with rows that can be deleted or moved shows the accessories.
     private var editingAccessories: Bool { isEditing && PlatformMetrics.listEditLeadingInset > 0 }
 
+    // MARK: Outlines (list/outline: `List(_:children:)`, `OutlineGroup`, `DisclosureGroup` rows)
+
+    private func outlineRow(_ element: Element) -> _OutlineRow? { element.node.layoutValue(for: OutlineRowKey.self) }
+    private func outlineDepth(_ element: Element) -> Int { max(element.outlineDepth, outlineRow(element)?.depth ?? 0) }
+    /// A list with any outline row moves every row in for the chevron column.
+    private var hasOutline: Bool { elements.contains { outlineRow($0) != nil } }
+    private func outlineIndent(_ element: Element, hasOutline: Bool) -> CGFloat {
+        hasOutline ? PlatformMetrics.listOutlineIndent + CGFloat(outlineDepth(element)) * PlatformMetrics.listOutlineLevelIndent : 0
+    }
+
     private func canMove(_ element: Element) -> Bool {
         element.owner?._onMove != nil && !element.node.layoutValue(for: MoveDisabledKey.self)
     }
@@ -615,6 +682,12 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             return
         }
         guard inside, let element = elements.first(where: { $0.kind == .row && $0.frame.contains(point) }) else { return }
+        // An outline row's chevron column discloses or hides its children.
+        if let row = outlineRow(element), row.hasChildren, point.x < profile.margin + PlatformMetrics.listOutlineIndent + CGFloat(row.depth) * PlatformMetrics.listOutlineLevelIndent + rowInsets(element.node).leading {
+            row.toggle.run()
+            runtime.setNeedsDisplay()
+            return
+        }
         // iOS edit mode: a press on the delete circle deletes the row.
         if isEditing, environment.platformProfile.isIOS, canDelete(element),
            point.x < element.frame.minX + profile.margin + environment.platformProfile.metrics.listEditLeadingInset {

@@ -65,6 +65,13 @@ extension PlatformMetrics {
     package static var listSelectionCornerRadius: CGFloat { current.listSelectionCornerRadius }
     package static var listSelectionAlpha: Double { current.listSelectionAlpha }
     package static var listPinnedHeaderHeight: CGFloat { current.listPinnedHeaderHeight }
+    package static var listPinnedHeaderTextTop: CGFloat { current.listPinnedHeaderTextTop }
+    package static var listAlternateRowFill: RGBA { current.listAlternateRowFill }
+    package static var listOutlineIndent: CGFloat { current.listOutlineIndent }
+    package static var listOutlineLevelIndent: CGFloat { current.listOutlineLevelIndent }
+    package static var listOutlineChevronCentre: CGFloat { current.listOutlineChevronCentre }
+    package static var listOutlineChevronSize: CGSize { current.listOutlineChevronSize }
+    package static var listOutlineChevronAlpha: Double { current.listOutlineChevronAlpha }
     package static var listPinnedHeaderLine: CGFloat { current.listPinnedHeaderLine }
     package static var listPinnedHeaderShadowAlpha: Double { current.listPinnedHeaderShadowAlpha }
     package static var listPinnedHeaderLineAlpha: Double { current.listPinnedHeaderLineAlpha }
@@ -482,6 +489,8 @@ extension PlatformMetrics {
     package static var listGroupedFooterBottom: CGFloat { current.listGroupedFooterBottom }
     package static var listFooterSlotHeight: CGFloat { current.listFooterSlotHeight }
     package static var listGroupedHeaderBottom: CGFloat { current.listGroupedHeaderBottom }
+    package static var listGroupedSectionSpacing: CGFloat { current.listGroupedSectionSpacing }
+    package static var listGroupedHeaderPadding: CGFloat { current.listGroupedHeaderPadding }
     package static var listPlainHeaderTop: CGFloat { current.listPlainHeaderTop }
     package static var listPlainContentInset: CGFloat { current.listPlainContentInset }
     package static var listLinkChevronSize: CGSize { current.listLinkChevronSize }

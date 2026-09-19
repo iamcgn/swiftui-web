@@ -553,6 +553,19 @@ public enum TextMetricsRequests {
         for word in ["Caption small", "Caption strike"] { requests.append(TextMetricRequest(word, .style("caption"))) }
         for word in ["Bold Under", "Bold strike"] { requests.append(TextMetricRequest(word, defaultFont(weight: "bold"))) }
         requests.append(TextMetricRequest("Large strike", .style("largeTitle")))
+        // The list looks (list/alternating, prominence, outline, tint, separators, background, pinning).
+        for string in ["First", "Second", "Hidden", "Tinted", "Rows", "Increased", "Standard"] {
+            for width: CGFloat in [288, 304] { requests.append(TextMetricRequest(string, .style("subheadline", weight: "semibold"), width: width)) }
+        }
+        for string in ["Wi-Fi", "Bluetooth", "Mobile"] {
+            requests.append(TextMetricRequest(string, defaultFont))
+            requests.append(TextMetricRequest(string, defaultFont, width: 266))
+        }
+        let numbered = (1...6).map({ "Item \($0)" }) + (1...6).map({ "Row \($0)" })
+        for string in ["Water", "Fruits", "Vegetables", "Apple", "Banana", "Carrot", "Top", "Bottom", "Last"] + numbered {
+            requests.append(TextMetricRequest(string, defaultFont))
+            for width: CGFloat in [288, 279, 266] { requests.append(TextMetricRequest(string, defaultFont, width: width)) }
+        }
         return requests
     }()
 }
@@ -660,6 +673,9 @@ extension TextMetricsRequests {
         // ios/list/editing: the section headers (body medium on iOS) and the rows.
         for string in ["Editable", "Deletable", "Fixed"] { requests.append(TextMetricRequest(string, .style("body", weight: "medium"))) }
         for string in ["Date", "Detail"] { requests.append(TextMetricRequest(string, .style("body"))) }
+        // ios/list/spacing: the section headers and the rows at their width.
+        for string in ["First", "Second"] { requests.append(TextMetricRequest(string, .style("body", weight: "medium"))) }
+        for string in ["Apple", "Banana", "Cherry", "Carrot"] { requests.append(TextMetricRequest(string, .style("body"), width: 256)) }
         return requests
     }()
 }

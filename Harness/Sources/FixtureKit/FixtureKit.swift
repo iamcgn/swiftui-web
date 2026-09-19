@@ -142,3 +142,26 @@ extension View {
         })
     }
 }
+
+extension View {
+    /// Puts the view in an active edit mode: iOS's `editMode` environment (macOS has none: the
+    /// fixture is an iOS one, and the harness's macOS build only needs it to compile).
+    public func fixtureEditModeActive() -> some View {
+        #if os(iOS)
+        environment(\.editMode, .constant(.active))
+        #else
+        self
+        #endif
+    }
+}
+
+extension View {
+    /// Row and section spacing: iOS API on Apple's SwiftUI (the macOS harness only compiles the fixture).
+    public func fixtureListSpacing(row: CGFloat, section: CGFloat) -> some View {
+        #if os(iOS)
+        listRowSpacing(row).listSectionSpacing(section)
+        #else
+        self
+        #endif
+    }
+}

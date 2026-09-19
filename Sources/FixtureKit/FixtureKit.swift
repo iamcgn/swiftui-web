@@ -194,3 +194,17 @@ extension Fixture {
         FixtureRunner(self, textEngine: textEngine, assets: assets).layoutFrames()
     }
 }
+
+extension View {
+    /// Puts the view in an active edit mode (the twin of the harness's, on this runtime's `editMode`).
+    public func fixtureEditModeActive() -> some View {
+        environment(\.editMode, .constant(.active))
+    }
+}
+
+extension View {
+    /// Row and section spacing (the twin of the harness's helper).
+    public func fixtureListSpacing(row: CGFloat, section: CGFloat) -> some View {
+        listRowSpacing(row).listSectionSpacing(section)
+    }
+}

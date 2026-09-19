@@ -1,0 +1,57 @@
+{
+  "fixture" : "list\/separators",
+  "frames" : {
+    "bottomHidden" : {
+      "height" : 16,
+      "width" : 44.5,
+      "x" : 16,
+      "y" : 258
+    },
+    "hiddenRow1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 42
+    },
+    "hiddenRow2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 66
+    },
+    "last" : {
+      "height" : 16,
+      "width" : 26,
+      "x" : 16,
+      "y" : 282
+    },
+    "list" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "tintedRow1" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 138
+    },
+    "tintedRow2" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 16,
+      "y" : 162
+    },
+    "topHidden" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 16,
+      "y" : 234
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

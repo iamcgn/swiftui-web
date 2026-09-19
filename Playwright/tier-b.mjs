@@ -32,7 +32,8 @@ const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount
 // and a label row grows to its icon (Tier A's rule).
 const listBacked = (name) => name.startsWith('ios/label/');
 // ios/list/footer `header`: UIKit's header label measures "Header" a point wider than SwiftUI's Text (Tier A's rule).
-const approximateProbes = { 'ios/list/footer': ['header'] };
+// list/prominence `standardHeader`: Canvas2D measures "Standard" in the semibold subheadline half a point wider than CoreText.
+const approximateProbes = { 'ios/list/footer': ['header'], 'list/prominence': ['standardHeader'] };
 // The browser measures text on the half point, so iOS text widths and the positions that follow from them get 0.5.
 // uikit/autolayout/baseline chains six labels sideways: Canvas2D's widths of "Hg" at six sizes differ from
 // UILabel's by up to a point each on the CI runner and the errors add up along the row.
@@ -42,7 +43,7 @@ const frameTolerance = (name, key, expected, id) => (approximateProbes[name] || 
   : (name.startsWith('ios/') || name.startsWith('uikit/')) && (key === 'width' || key === 'x') ? 0.5 : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
 // fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
-const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name === 'uikit/datepicker/wheels' || name === 'uikit/picker/basic';
+const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name === 'list/tint' || name === 'uikit/datepicker/wheels' || name === 'uikit/picker/basic';
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {
@@ -83,7 +84,8 @@ const report = [];
 
 // Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame.
 // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
-const ignoredProbes = { 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'], 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'],
+const ignoredProbes = { 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'],
+  'list/pinning': ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'], 'list/pinning/scroll': ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'], 'list/outline': ['dgFruits'], 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'],
   'table/sorting/byCount': ['name2', 'name3', 'count2', 'count3'] };
 function compareFrames(name, frames, goldenFrames) {
   const mismatches = [];

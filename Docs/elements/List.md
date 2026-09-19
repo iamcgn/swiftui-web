@@ -18,12 +18,15 @@ Apple docs: [List](https://developer.apple.com/documentation/swiftui/list),
 | `ListStyle`: `.automatic` (= inset on macOS), `.inset`, `.plain`, `.bordered`, `.sidebar`; `listStyle(_:)` | implemented; `.inset(alternatesRowBackgrounds:)` / `.bordered(alternatesRowBackgrounds:)` missing; custom styles are not (Apple's protocol is closed) |
 | `listRowInsets(_:)`, `listRowBackground(_:)` | implemented |
 | `listRowSeparator(_:edges:)`, `listRowSeparatorTint(_:edges:)` | implemented for the bottom edge (macOS draws one separator per row); the top edge is ignored |
-| `listSectionSeparator(_:edges:)`, `listSectionSeparatorTint(_:edges:)`, `listItemTint(_:)` | stored only |
+| `listSectionSeparator(_:edges:)`, `listSectionSeparatorTint(_:edges:)`, `listItemTint(_:)` | `listSectionSeparator(.hidden)` hides the header's line (2026-09-19, `list/separators`); the tint is stored (macOS draws the standard grey); `listItemTint` tints a row's label icons (`list/tint`) |
 | `Visibility`, `VerticalEdge`, `VerticalEdge.Set` | implemented |
 | Selection by press: single (press again deselects), multiple (accumulates) | implemented; keyboard navigation with Shift ranges and an accent selection when focused since 2026-09-04 (`Docs/elements/Keyboard.md`); Cmd ranges and the real focused look missing |
 | `Section` inside a list: header and footer styling, spacing, pinned first header | implemented (`Docs/elements/ForEach.md` for `Section` itself) |
 | `Label` inside a list: fixed icon slot and accent tint | implemented (`Docs/elements/Label.md`) |
-| `listRowSpacing`, `listSectionSpacing`, `alternatingRowBackgrounds`, `listRowHoverEffect`, `swipeActions`, `onDelete`/`onMove`, `deleteDisabled`/`moveDisabled`, `editMode`, `refreshable`, `scrollContentBackground`, `headerProminence` | missing |
+| `listRowSpacing`, `listSectionSpacing` (iOS API), `alternatingRowBackgrounds`, `.inset(alternatesRowBackgrounds:)`, `scrollContentBackground`, `headerProminence` | implemented 2026-09-19 (the looks section below) |
+| `List(_:children:)`, `OutlineGroup`, `DisclosureGroup` in a list | implemented 2026-09-19: outline rows with a chevron column, children a level deeper while expanded (`list/outline`) |
+| `swipeActions`, `onDelete`/`onMove`, `deleteDisabled`/`moveDisabled`, `editMode`, `refreshable` | implemented 2026-09-18 (the editing section below) |
+| `listRowHoverEffect` | missing |
 
 ## Behaviour
 
@@ -101,10 +104,24 @@ half the finger's distance; released past 60 pt it runs the action, the content 
 behind a circular spinner until the action returns. Approximate: the rubber band and the
 spinner's growth are not measured.
 
+## Looks (macOS 26.6, `list/alternating`, `list/prominence`, `list/outline`, `list/tint`, `list/separators`, `list/background`, `list/pinning`; iPhone SE simulator `ios/list/spacing`; 2026-09-19)
+
+| Property | Value | Probe |
+|---|---|---|
+| Alternating rows (`.inset(alternatesRowBackgrounds: true)`, `alternatingRowBackgrounds(.enabled)`) | every other row filled (244, 245, 245) edge to edge, no separators; the rows keep their places | `altRow1…4`, `enabledRow1…3` |
+| `headerProminence(.increased)` | no change on macOS: the header keeps the subheadline look; the first header is pinned as always, its line 6 down in the 27 pt strip (the probe reads the pinned place) | `increasedHeader` (16, 6), `standardHeader` (16, 88) |
+| Outline (`List(_:children:)`, `OutlineGroup`, `DisclosureGroup`) | every row moves 9 in for the chevron column; a row with children shows a 1 pt grey (128) chevron 5 × 5.5 centred 18.5 in, pointing down while expanded; children rows sit 13 further in per level; a press on the chevron column discloses (SwiftUI toggles on the chevron; the whole column here) | `Fruits` (25, 30), `dgApple` (38, 192) |
+| `listItemTint` | the row's label icons take the tint (fixed and preferred alike); pixels frames-only (the symbols are stand-ins) | `green`, `orange`, `plain` |
+| `listSectionSeparator(.hidden)` | the section's header line disappears; `listSectionSeparatorTint` draws the standard grey (macOS ignores the tint); `listRowSeparator(.hidden, edges: .top)` hides the line above the row | `list/separators` pixels |
+| `scrollContentBackground(.hidden)` | the list's white is gone: what is behind it shows (yellow), the separators stay | `list/background` pixels |
+| Pinned header while scrolling | only the first header pins and it stays as the content scrolls under it; the second section's header scrolls up beneath the strip. The content keeps the 10 pt inset below its last row, so `scrollTo` at the end leaves it 10 above the bottom | `list/pinning` `scroll` |
+| iOS `listRowSpacing(12)`, `listSectionSpacing(30)` | rows become cards of their own, 12 apart, no separators; a section header sits the spacing plus its own 10 below the previous card (the default spacing is 17.5); a header-less card the spacing plus 17.5 (derived) | `a2` (32, 128.25), `b1` (32, 258.75) |
+
+The focused accent selection stays by eye (the golden window is never key) and every row is laid
+out (no laziness). `ListSectionSpacing.compact` is accepted as the default.
+
 ## Not yet covered
 
-Focused (accent) selection, keyboard navigation and Shift/Cmd ranges, hover highlight,
-alternating row backgrounds, `listRowSpacing`/`listSectionSpacing`, `listItemTint` (stored) and
-section separator modifiers (stored), outline lists (`children:`), the pinned header's gradient shadow and
-sticky behaviour for later sections while scrolling (only the first header pins, and it stays
-while scrolling), `scrollContentBackground`, `refreshable`, lazy rows (every row is laid out).
+Focused (accent) selection, keyboard navigation and Shift/Cmd ranges, hover highlight, the
+pinned header's gradient shadow, the section separator tint (macOS draws grey), lazy rows
+(every row is laid out), `listRowHoverEffect`, `ListSectionSpacing.compact`.

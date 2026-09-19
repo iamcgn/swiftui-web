@@ -96,6 +96,12 @@ enum Goldens {
         // UIKit's grouped footer label is 21 tall around a 19 pt footnote line (the slot is
         // laid out at 21; the text inside keeps its line; Docs/elements/iOS.md).
         "ios/list/footer": ["footer", "footer2"],
+        // Apple lays out only the rows in view: the base state has no second-section probes,
+        // the scrolled state none of the first section's. `dgFruits` is a group's probe, which
+        // Apple reports as its last child's frame.
+        "list/pinning": ["b1", "b2", "b3", "b4", "b5", "b6"],
+        "list/pinning/scroll": ["a1", "a2", "a3", "a4", "a5", "a6"],
+        "list/outline": ["dgFruits"],
         "ios/list/footer-header": ["footer"],
     ]
 

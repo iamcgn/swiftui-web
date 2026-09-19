@@ -64,7 +64,7 @@ import SwiftUIWebHeadless
         // The first header is drawn once, pinned at the top in the semibold subheadline, secondary
         // colour; its in-flow slot is blank and has no separator (list/sections).
         #expect(commands.filter { $0.contains("\"Fruits\"") }.count == 1)
-        #expect(commands.contains { $0.hasPrefix("drawText(\"Fruits\" system 11 w600 at 16,17.5 #000000@0.5") })
+        #expect(commands.contains { $0.hasPrefix("drawText(\"Fruits\" system 11 w600 at 16,18 #000000@0.5") })
         #expect(!commands.contains { $0.hasPrefix("fillRect(16, 37") })
         // Rows keep their separators, including the last row of a section.
         #expect(commands.contains { $0.hasPrefix("fillRect(16, 61, 288, 1)") })

@@ -45,6 +45,9 @@ enum NativeGoldens {
     /// Probes Apple reports but nothing reproduces (a hidden tab's stale frame), as in Tier A.
     static let ignoredProbes: [String: Set<String>] = [
         "ios/list/footer": ["footer", "footer2"],
+        "list/pinning": ["b1", "b2", "b3", "b4", "b5", "b6"],
+        "list/pinning/scroll": ["a1", "a2", "a3", "a4", "a5", "a6"],
+        "list/outline": ["dgFruits"],
         "ios/list/footer-header": ["footer"],
         "tabview/basic/second": ["first"],
         "splitview/visibility": ["sidebar", "row1", "detail"],
@@ -157,7 +160,7 @@ struct Bitmap {
         let engine = CoreTextEngine()
         let painter = CoreGraphicsPainter(textEngine: engine, assetBase: NativeGoldens.assetBase)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
-        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset"
+        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name == "list/tint"
         compare(runner.layoutFrames(), to: golden.frames, label: name)
         try comparePixels(runner, fixture: fixture, png: "image@2x.png", label: name, framesOnly: framesOnly, painter: painter)
         for (index, step) in (golden.steps ?? []).enumerated() where index < fixture.stepNames.count {

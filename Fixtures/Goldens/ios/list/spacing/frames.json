@@ -1,0 +1,39 @@
+{
+  "fixture" : "ios\/list\/spacing",
+  "frames" : {
+    "a1" : {
+      "height" : 24.5,
+      "width" : 44.5,
+      "x" : 32,
+      "y" : 60.25
+    },
+    "a2" : {
+      "height" : 24.5,
+      "width" : 57,
+      "x" : 32,
+      "y" : 128.25
+    },
+    "b1" : {
+      "height" : 24.5,
+      "width" : 52,
+      "x" : 32,
+      "y" : 258.75
+    },
+    "b2" : {
+      "height" : 24.5,
+      "width" : 48.5,
+      "x" : 32,
+      "y" : 326.75
+    },
+    "list" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

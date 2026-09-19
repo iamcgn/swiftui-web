@@ -73,6 +73,8 @@ package struct _DisclosureGroupBody: View {
     package let label: AnyView
     package let content: AnyView
     @Environment(\.disclosureGroupStyle) private var style
+    @Environment(\._inListRow) private var inList
+    @Environment(\._outlineDepth) private var depth
 
     package init(isExpanded: Binding<Bool>, label: AnyView, content: AnyView) {
         self.isExpanded = isExpanded
@@ -81,9 +83,20 @@ package struct _DisclosureGroupBody: View {
     }
 
     package var body: some View {
-        style.makeBodyErased(DisclosureGroupStyleConfiguration(
-            label: DisclosureGroupStyleConfiguration.Label(view: label), content: DisclosureGroupStyleConfiguration.Content(view: content),
-            isExpanded: isExpanded))
+        if inList {
+            // In a list the group is an outline: the label a row with a chevron, the content rows
+            // a level deeper while expanded (list/outline).
+            let binding = isExpanded
+            label
+                .layoutValue(key: OutlineRowKey.self, value: _OutlineRow(depth: depth, hasChildren: true, isExpanded: binding.wrappedValue, toggle: _ActionBox { binding.wrappedValue.toggle() }))
+            if binding.wrappedValue {
+                content.environment(\._outlineDepth, depth + 1)
+            }
+        } else {
+            style.makeBodyErased(DisclosureGroupStyleConfiguration(
+                label: DisclosureGroupStyleConfiguration.Label(view: label), content: DisclosureGroupStyleConfiguration.Content(view: content),
+                isExpanded: isExpanded))
+        }
     }
 }
 

@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 59 | 0 | 28 | 31 |
+| SwiftUI | 59 | 0 | 27 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **99** | 0 | 52 | 47 |
+| **All** | **99** | 0 | 51 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **List styles, spacing and outline forms** `sw-list-looks` · List · missing  
-  `List(data, children:)` and `OutlineGroup`, `.inset(alternatesRowBackgrounds:)` / `.bordered`, `listRowSpacing`, `listSectionSpacing`, `alternatingRowBackgrounds`, `scrollContentBackground`, `headerProminence`, `listItemTint` and the section separator modifiers (stored today), the accent focused look, headers pinning as the content scrolls, lazy rows. ([List.md](Docs/elements/List.md))
 - ☐ **Scroll position, targets and geometry** `sw-scroll-apis` · ScrollView · missing  
   `scrollPosition`, `scrollTargetLayout`, `scrollTargetBehavior` (paging, view aligned), `contentMargins`, `onScrollGeometryChange`, `onScrollPhaseChange`, `defaultScrollAnchor(for:)`, `scrollIndicatorsFlash`, `scrollDismissesKeyboard`, `ScrollViewReader` inside `List`; the indicator geometry measured (marked unverified). ([ScrollView.md](Docs/elements/ScrollView.md))
 - ☐ **Real laziness and pinned headers** `sw-lazy` · Lazy stacks and grids · accepted  
@@ -142,6 +140,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   The sheet, popover, alert and menu looks on macOS are by eye (separate windows the golden harness cannot capture). A window-list capture (CGWindowListCreateImage over the app's windows after a step presents) in the AppKit golden host would pin the panel geometry, materials and shadows the way `capturesWindow` does on iOS. ([Presentation.md](Docs/elements/Presentation.md))
 - ☐ **List editing: the rest** `sw-list-editing-rest` · List · approximate  
   The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop. ([List.md](Docs/elements/List.md))
+- ☐ **List looks: the rest** `sw-list-looks-rest` · List · approximate  
+  The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron. ([List.md](Docs/elements/List.md))
 - ☐ **Dynamic Type** `sw-dynamic-type` · Text · missing  
   `dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting. ([Text.md](Docs/elements/Text.md), [iOS.md](Docs/elements/iOS.md))
 - ☐ **TextEditor: selection, find, long content** `sw-texteditor` · TextEditor · missing  
@@ -237,6 +237,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-09-19 **List styles, spacing and outline forms** `sw-list-looks` · SwiftUI · List
 - ☑ 2026-09-18 **One source of truth for what works and what is next** `st-tracking` · Site · Tracking
 - ☑ 2026-09-18 **Support rows for every UIKit class** `st-uikit-rows` · Site · Tracking
 - ☑ 2026-09-18 **Audit the stale rows and doc notes** `st-row-audit` · Site · Tracking

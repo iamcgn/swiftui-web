@@ -388,9 +388,23 @@
       "framework": "SwiftUI",
       "area": "List",
       "title": "List styles, spacing and outline forms",
-      "detail": "`List(data, children:)` and `OutlineGroup`, `.inset(alternatesRowBackgrounds:)` / `.bordered`, `listRowSpacing`, `listSectionSpacing`, `alternatingRowBackgrounds`, `scrollContentBackground`, `headerProminence`, `listItemTint` and the section separator modifiers (stored today), the accent focused look, headers pinning as the content scrolls, lazy rows.",
+      "detail": "Done 2026-09-19: eight fixtures (macOS 26.6 goldens for alternating rows, header prominence, outlines, item tints, section separators, a hidden scroll background and the pinned header while scrolling; ios/list/spacing on the simulator). List(_:children:), OutlineGroup and DisclosureGroup rows, listRowSpacing/listSectionSpacing, alternatingRowBackgrounds, scrollContentBackground, listItemTint and listSectionSeparator work; the focused accent look and lazy rows stay open (sw-list-looks-rest).",
       "kind": "missing",
       "priority": "soon",
+      "status": "done",
+      "refs": [
+        "Docs/elements/List.md"
+      ],
+      "done": "2026-09-19"
+    },
+    {
+      "id": "sw-list-looks-rest",
+      "framework": "SwiftUI",
+      "area": "List",
+      "title": "List looks: the rest",
+      "detail": "The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron.",
+      "kind": "approximate",
+      "priority": "later",
       "status": "planned",
       "refs": [
         "Docs/elements/List.md"

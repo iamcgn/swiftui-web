@@ -310,7 +310,8 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     package func scrollTo(id: AnyHashable, anchor: UnitPoint?) -> Bool {
         guard identifiedNode(id) != nil else { return false }
         pendingTarget = (id, anchor)
-        runtime.requestLayout(invalidatingSizes: false)
+        // The target is resolved in the next full layout (the fast path only moves frames).
+        runtime.requestFullLayout()
         return true
     }
 

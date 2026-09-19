@@ -36,7 +36,7 @@ public enum IOSListEditingFixtures {
                 Text("Detail").probe("fixed")
             }
         }
-        .environment(\.editMode, .constant(.active))
+        .fixtureEditModeActive()
         .probe("list")
     }.platform(.iOS)
 
