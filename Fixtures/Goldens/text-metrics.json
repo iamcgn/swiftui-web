@@ -2682,6 +2682,12 @@
       "lastBaseline": 128,
       "width": 0
     },
+    "style:body|0.0|Sym": {
+      "firstBaseline": 14,
+      "height": 56.5,
+      "lastBaseline": 52,
+      "width": 0
+    },
     "style:body|0.0|The quick brown fox": {
       "firstBaseline": 14,
       "height": 303.5,
@@ -3941,6 +3947,12 @@
       "height": 18.5,
       "lastBaseline": 14,
       "width": 48.5
+    },
+    "style:body||Sym": {
+      "firstBaseline": 14,
+      "height": 18.5,
+      "lastBaseline": 14,
+      "width": 26.5
     },
     "style:body||The quick brown fox": {
       "firstBaseline": 14,

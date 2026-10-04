@@ -668,6 +668,8 @@ extension TextMetricsRequests {
         requests.append(TextMetricRequest("Count: 3", .style("body")))
         requests.append(TextMetricRequest("Nested", .style("body")))
         requests.append(TextMetricRequest("Nested", .style("body"), width: 279))
+        // canvas/images: the symbol drawn by `resolveSymbol`.
+        requests.append(TextMetricRequest("Sym", .style("body")))
         return requests
     }()
 

@@ -330,10 +330,11 @@
         {
           "api": "Canvas / GraphicsContext (fill, stroke, text, transforms, opacity, clip, drawLayer) / ResolvedText",
           "status": "partial",
-          "notes": "Immediate-mode drawing recorded into the display list (a concat op for rotated text); pixels within 0.11 % of Apple's; gradient shadings, images, blend modes, filters or symbols",
+          "notes": "Immediate-mode drawing recorded into the display list (a concat op for rotated text); pixels within 0.11 % of Apple's; gradient shadings, images, blend modes, filters or symbols; images and resolved symbols drawn through nodes, blend modes and filters (blur, shadow, colour matrices) wrapping each operation, tiledImage shadings, a scratch withCGContext on Apple platforms, the renderer under observation tracking (canvas/images, 2026-10-04)",
           "fixtures": [
             "canvas/basic",
-            "canvas/sizing"
+            "canvas/sizing",
+            "canvas/images"
           ]
         },
         {

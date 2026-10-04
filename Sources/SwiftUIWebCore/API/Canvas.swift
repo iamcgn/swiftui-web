@@ -53,6 +53,10 @@ package final class _GraphicsRecorder {
     package let environment: EnvironmentValues
     package let textEngine: any TextEngine
     package let scale: CGFloat
+    /// The canvas node: images and symbols paint through nodes made under it.
+    package weak var node: ViewNode?
+    /// The `symbols` views, by their tags (`resolveSymbol`).
+    package var symbols: [(id: AnyHashable, node: ViewNode)] = []
 
     package init(environment: EnvironmentValues, textEngine: any TextEngine, scale: CGFloat) {
         self.environment = environment
@@ -68,10 +72,12 @@ public struct GraphicsContext {
     public var transform: CGAffineTransform = .identity
     /// The opacity of drawing that follows.
     public var opacity: Double = 1
-    /// The blend mode of drawing that follows (only `.normal` is painted).
+    /// The blend mode of drawing that follows: each operation composites with it.
     public var blendMode: BlendMode = .normal
     /// Clips accumulated on this context, in the canvas's space.
     package var clips: [(Path, Bool)] = []
+    /// Filters applied to each operation that follows (`addFilter`), in order.
+    package var filters: [Filter] = []
     /// The environment of the canvas view.
     @MainActor public var environment: EnvironmentValues { recorder.environment }
 
@@ -87,8 +93,15 @@ public struct GraphicsContext {
             case conic(Gradient, center: CGPoint, angle: Angle)
             /// A shape style resolved against the drawn path's bounds.
             case style(any ShapeStyle)
+            /// An image repeated across the filled area, in the context's space.
+            case tiled(Image, origin: CGPoint, scale: CGFloat)
         }
         package let kind: Kind
+
+        /// A shading that fills with an image repeated from `origin` at `scale`.
+        public static func tiledImage(_ image: Image, origin: CGPoint = .zero, sourceRect: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1), scale: CGFloat = 1) -> Shading {
+            Shading(kind: .tiled(image, origin: origin, scale: scale))
+        }
 
         public static func color(_ color: Color) -> Shading { Shading(kind: .color(color)) }
         public static var foreground: Shading { Shading(kind: .foreground) }
@@ -114,7 +127,7 @@ public struct GraphicsContext {
             case .foreground: return (environment.foregroundColor ?? .primary).resolve(in: environment)
             case .background: return Color.white.resolve(in: environment)
             case .style(let style): return (style as? Color ?? .primary).resolve(in: environment)
-            case .linear, .radial, .conic: return Color.primary.resolve(in: environment)
+            case .linear, .radial, .conic, .tiled: return Color.primary.resolve(in: environment)
             }
         }
 
@@ -133,7 +146,7 @@ public struct GraphicsContext {
                                        stops: gradient.resolvedStops(in: environment))
             case .style(let style):
                 return (style as? any _GradientStyle)?._resolveGradient(in: bounds, environment: environment)
-            case .color, .foreground, .background:
+            case .color, .foreground, .background, .tiled:
                 return nil
             }
         }
@@ -178,7 +191,10 @@ public struct GraphicsContext {
 
     // MARK: Drawing
 
-    @MainActor private func withState(_ body: (inout DisplayList) -> Void) {
+    /// Records one operation inside the context's state: its opacity group, its clips, and the
+    /// filters and blend mode as effect groups over `bounds` (each operation on its own, as
+    /// SwiftUI applies them).
+    @MainActor private func withState(bounds: CGRect = .zero, _ body: (inout DisplayList) -> Void) {
         let needsGroup = opacity < 1
         let needsClip = !clips.isEmpty
         if needsGroup { recorder.list.append(.beginGroup(opacity: opacity)) }
@@ -186,7 +202,11 @@ public struct GraphicsContext {
             recorder.list.append(.save)
             for (path, eo) in clips { recorder.list.append(.clipPath(path, eoFill: eo)) }
         }
-        body(&recorder.list)
+        var effects: [PendingEffect] = filters.map { $0.effect(in: environment) }
+        if blendMode != .normal { effects.append(.blend(blendMode)) }
+        var context = PaintContext(origin: .zero, scale: recorder.scale)
+        context.effects = effects
+        context.withEffects(bounds, into: &recorder.list, body)
         if needsClip { recorder.list.append(.restore) }
         if needsGroup { recorder.list.append(.endGroup) }
     }
@@ -195,12 +215,24 @@ public struct GraphicsContext {
     @MainActor public func fill(_ path: Path, with shading: Shading, style: FillStyle = FillStyle()) {
         guard opacity > 0 else { return }
         let transformed = path.applying(transform)
+        if case .tiled(let image, let origin, let scale) = shading.kind {
+            // The image repeated over the path: a clip to the path, then the image tiled across
+            // the clip's bounds from the origin.
+            guard let draw = resolvedImage(image, in: CGRect(origin: origin, size: .zero), scale: scale, tiling: transformed.boundingRect) else { return }
+            withState(bounds: transformed.boundingRect) { list in
+                list.append(.save)
+                list.append(.clipPath(transformed, eoFill: style.isEOFilled))
+                list.append(.drawImage(draw))
+                list.append(.restore)
+            }
+            return
+        }
         if let gradient = shading.gradient(bounds: transformed.boundingRect, transform: transform, environment: environment) {
-            withState { $0.append(.fillGradient(transformed, gradient, eoFill: style.isEOFilled)) }
+            withState(bounds: transformed.boundingRect) { $0.append(.fillGradient(transformed, gradient, eoFill: style.isEOFilled)) }
             return
         }
         let color = shading.resolve(in: environment)
-        withState { $0.append(.fillPath(transformed, color, eoFill: style.isEOFilled)) }
+        withState(bounds: transformed.boundingRect) { $0.append(.fillPath(transformed, color, eoFill: style.isEOFilled)) }
     }
 
     /// Strokes a path with the given shading and line width.
@@ -216,11 +248,12 @@ public struct GraphicsContext {
         var scaled = style
         scaled.lineWidth = style.lineWidth * (scale > 0 ? scale : 1)
         let transformed = path.applying(transform)
+        let bounds = transformed.boundingRect.insetBy(dx: -scaled.lineWidth, dy: -scaled.lineWidth)
         if let gradient = shading.gradient(bounds: transformed.boundingRect, transform: transform, environment: environment) {
-            withState { $0.append(.strokeGradient(transformed, style: scaled, gradient)) }
+            withState(bounds: bounds) { $0.append(.strokeGradient(transformed, style: scaled, gradient)) }
             return
         }
-        withState { $0.append(.strokePath(transformed, style: scaled, color)) }
+        withState(bounds: bounds) { $0.append(.strokePath(transformed, style: scaled, color)) }
     }
 
     /// Draws a text view, positioned by an anchor point.
@@ -245,7 +278,7 @@ public struct GraphicsContext {
         guard opacity > 0 else { return }
         let layout = text.layout(width: rect.width.isFinite ? rect.width : nil)
         let isTranslation = transform.a == 1 && transform.b == 0 && transform.c == 0 && transform.d == 1
-        withState { list in
+        withState(bounds: rect.applying(transform)) { list in
             if !isTranslation { list.append(.save); list.append(.concat(transform)) }
             let origin = isTranslation ? CGPoint(x: rect.minX + transform.tx, y: rect.minY + transform.ty) : rect.origin
             for line in layout.lines {
@@ -283,9 +316,248 @@ public struct GraphicsContext {
         try content(&layer)
     }
 
-    /// Draws an image in a rectangle. Images need the asset catalog; a canvas cannot draw them yet.
-    @MainActor public func draw(_ image: Image, in rect: CGRect) {}
-    @MainActor public func draw(_ image: Image, at point: CGPoint, anchor: UnitPoint = .center) {}
+    // MARK: Images
+
+    /// An image resolved for measuring and repeated drawing.
+    public struct ResolvedImage {
+        package let image: Image
+        /// The image's size in points (zero when the name did not resolve).
+        public let size: CGSize
+        /// The image's baseline from its top (a symbol's; the bottom otherwise).
+        public let baseline: CGFloat
+        /// A shading to draw the image with instead of its own colours (a tint).
+        public var shading: Shading?
+    }
+
+    /// Resolves an image to its size at the canvas's environment.
+    @MainActor public func resolve(_ image: Image) -> ResolvedImage {
+        guard let node = makeNode(for: image) else { return ResolvedImage(image: image, size: .zero, baseline: 0, shading: nil) }
+        let size = node.sizeThatFits(.unspecified)
+        let baseline = node.dimensions(in: .unspecified)[VerticalAlignment.firstTextBaseline]
+        node.unmount()
+        return ResolvedImage(image: image, size: size, baseline: baseline.isFinite ? baseline : size.height, shading: nil)
+    }
+
+    /// Draws an image, resized into a rectangle.
+    @MainActor public func draw(_ image: Image, in rect: CGRect, style: FillStyle = FillStyle()) {
+        draw(resolve(image), in: rect)
+    }
+
+    /// Draws an image at its own size, positioned by an anchor point.
+    @MainActor public func draw(_ image: Image, at point: CGPoint, anchor: UnitPoint = .center) {
+        draw(resolve(image), at: point, anchor: anchor)
+    }
+
+    @MainActor public func draw(_ image: ResolvedImage, at point: CGPoint, anchor: UnitPoint = .center) {
+        draw(image, in: CGRect(x: point.x - image.size.width * anchor.x, y: point.y - image.size.height * anchor.y,
+                               width: image.size.width, height: image.size.height))
+    }
+
+    /// Draws a resolved image into a rectangle: the image's node, resizable, painted through
+    /// the context's transform (a translation moves the rect; anything else wraps the paint).
+    @MainActor public func draw(_ image: ResolvedImage, in rect: CGRect) {
+        guard opacity > 0, rect.width > 0, rect.height > 0 else { return }
+        var resized = image.image.resizable()
+        var tint: Color?
+        if let shading = image.shading, case .color(let color) = shading.kind {
+            resized = resized.renderingMode(.template)
+            tint = color
+        }
+        guard let node = makeNode(for: resized, tint: tint) else { return }
+        paint(node, in: rect)
+        node.unmount()
+    }
+
+    /// Paints a node into a rectangle of the context's space.
+    @MainActor private func paint(_ node: ViewNode, in rect: CGRect) {
+        guard let owner = recorder.node else { return }
+        node.place(at: .zero, anchor: .topLeading, proposal: ProposedViewSize(rect.size), by: owner)
+        let isTranslation = transform.a == 1 && transform.b == 0 && transform.c == 0 && transform.d == 1
+        let absolute = rect.applying(transform)
+        withState(bounds: absolute) { list in
+            if isTranslation {
+                node.paint(into: &list, context: PaintContext(origin: CGPoint(x: rect.minX + transform.tx, y: rect.minY + transform.ty), scale: recorder.scale))
+            } else {
+                list.append(.save)
+                list.append(.concat(transform))
+                node.paint(into: &list, context: PaintContext(origin: rect.origin, scale: recorder.scale))
+                list.append(.restore)
+            }
+        }
+    }
+
+    @MainActor private func makeNode(for image: Image, tint: Color? = nil) -> ViewNode? {
+        guard let owner = recorder.node else { return nil }
+        var environment = environment
+        if let tint { environment.foregroundColor = tint }
+        return Image._makeNode(_NodeContext(view: image, parent: owner, environment: environment))
+    }
+
+    /// The image's draw command for a tiled shading, or nil when it did not resolve.
+    @MainActor private func resolvedImage(_ image: Image, in rect: CGRect, scale: CGFloat, tiling bounds: CGRect) -> ImageDraw? {
+        guard let node = makeNode(for: image.resizable()) as? any _ImageDrawProviding else { return nil }
+        defer { (node as? ViewNode)?.unmount() }
+        guard var draw = node._imageDraw(scale: recorder.scale) else { return nil }
+        let size = CGSize(width: draw.pixelSize.width / draw.scale * scale, height: draw.pixelSize.height / draw.scale * scale)
+        guard size.width > 0, size.height > 0 else { return nil }
+        // The tiles start at the origin: the drawn rect spans the bounds from the tile grid's
+        // first cell before them.
+        let start = rect.origin.applying(transform)
+        let dx = ((bounds.minX - start.x) / size.width).rounded(.down) * size.width
+        let dy = ((bounds.minY - start.y) / size.height).rounded(.down) * size.height
+        let width = (((bounds.maxX - (start.x + dx)) / size.width).rounded(.up)) * size.width
+        let height = (((bounds.maxY - (start.y + dy)) / size.height).rounded(.up)) * size.height
+        draw.rect = CGRect(x: start.x + dx, y: start.y + dy, width: width, height: height)
+        draw.tiles = true
+        draw.pixelSize = CGSize(width: size.width * draw.scale, height: size.height * draw.scale)
+        return draw
+    }
+
+    // MARK: Symbols
+
+    /// A symbol view resolved for drawing.
+    public struct ResolvedSymbol {
+        package let node: ViewNode
+        /// The symbol's ideal size.
+        public let size: CGSize
+    }
+
+    /// Finds the `symbols` child tagged `id` and resolves it to its ideal size.
+    @MainActor public func resolveSymbol<ID: Hashable>(id: ID) -> ResolvedSymbol? {
+        guard let entry = recorder.symbols.first(where: { $0.id == AnyHashable(id) }) else { return nil }
+        return ResolvedSymbol(node: entry.node, size: entry.node.sizeThatFits(.unspecified))
+    }
+
+    /// Draws a symbol at its ideal size, positioned by an anchor point.
+    @MainActor public func draw(_ symbol: ResolvedSymbol, at point: CGPoint, anchor: UnitPoint = .center) {
+        draw(symbol, in: CGRect(x: point.x - symbol.size.width * anchor.x, y: point.y - symbol.size.height * anchor.y,
+                                width: symbol.size.width, height: symbol.size.height))
+    }
+
+    /// Draws a symbol resized into a rectangle.
+    @MainActor public func draw(_ symbol: ResolvedSymbol, in rect: CGRect) {
+        guard opacity > 0, rect.width > 0, rect.height > 0 else { return }
+        paint(symbol.node, in: rect)
+    }
+
+    // MARK: Filters
+
+    /// An effect applied to each drawing operation that follows (`addFilter`).
+    public struct Filter: Sendable {
+        package enum Kind: Sendable {
+            case blur(radius: CGFloat, opaque: Bool)
+            case shadow(Color, radius: CGFloat, offset: CGSize)
+            case matrix(ColorMatrix)
+            case none
+        }
+        package let kind: Kind
+
+        @MainActor package func effect(in environment: EnvironmentValues) -> PendingEffect {
+            switch kind {
+            case .blur(let radius, let opaque): return .filter(.blur(radius: radius, opaque: opaque))
+            case .shadow(let color, let radius, let offset): return .shadow(color.resolve(in: environment), radius: radius, offset: offset)
+            case .matrix(let matrix): return .filter(.colorMatrix(matrix))
+            case .none: return .opacity(1)
+            }
+        }
+
+        public static func blur(radius: CGFloat, options: BlurOptions = BlurOptions()) -> Filter {
+            Filter(kind: .blur(radius: radius, opaque: options.contains(.opaque)))
+        }
+        public static func shadow(color: Color = Color(.sRGBLinear, white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0,
+                                  blendMode: BlendMode = .normal, options: ShadowOptions = ShadowOptions()) -> Filter {
+            Filter(kind: .shadow(color, radius: radius, offset: CGSize(width: x, height: y)))
+        }
+        public static func colorMatrix(_ matrix: ColorMatrix) -> Filter { Filter(kind: .matrix(matrix)) }
+        public static func colorMultiply(_ color: Color) -> Filter {
+            // Resolved against sRGB without an environment: a plain colour's components.
+            let c = color.resolve(in: EnvironmentValues())
+            return Filter(kind: .matrix(ColorMatrix([c.red, 0, 0, 0, 0, 0, c.green, 0, 0, 0, 0, 0, c.blue, 0, 0, 0, 0, 0, c.alpha, 0])))
+        }
+        public static func grayscale(_ amount: Double) -> Filter { Filter(kind: .matrix(_ColorFilters.saturation(1 - min(max(amount, 0), 1)))) }
+        public static func saturation(_ amount: Double) -> Filter { Filter(kind: .matrix(_ColorFilters.saturation(amount))) }
+        public static func brightness(_ amount: Double) -> Filter {
+            Filter(kind: .matrix(ColorMatrix([1, 0, 0, 0, amount, 0, 1, 0, 0, amount, 0, 0, 1, 0, amount, 0, 0, 0, 1, 0])))
+        }
+        public static func contrast(_ amount: Double) -> Filter {
+            let t = (1 - amount) / 2
+            return Filter(kind: .matrix(ColorMatrix([amount, 0, 0, 0, t, 0, amount, 0, 0, t, 0, 0, amount, 0, t, 0, 0, 0, 1, 0])))
+        }
+        public static func colorInvert(_ amount: Double = 1) -> Filter {
+            let a = 1 - 2 * amount
+            return Filter(kind: .matrix(ColorMatrix([a, 0, 0, 0, amount, 0, a, 0, 0, amount, 0, 0, a, 0, amount, 0, 0, 0, 1, 0])))
+        }
+        public static func hueRotation(_ angle: Angle) -> Filter { Filter(kind: .matrix(_ColorFilters.hueRotation(angle.radians))) }
+        public static var luminanceToAlpha: Filter {
+            Filter(kind: .matrix(ColorMatrix([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2125, 0.7154, 0.0721, 0, 0])))
+        }
+        /// Accepted without effect.
+        public static func alphaThreshold(min: Double, max: Double = 1, color: Color = .black) -> Filter { Filter(kind: .none) }
+    }
+
+    public struct BlurOptions: OptionSet, Sendable {
+        public let rawValue: UInt32
+        public init(rawValue: UInt32) { self.rawValue = rawValue }
+        public static let opaque = BlurOptions(rawValue: 1)
+        public static let dithersResult = BlurOptions(rawValue: 2)
+    }
+
+    public struct ShadowOptions: OptionSet, Sendable {
+        public let rawValue: UInt32
+        public init(rawValue: UInt32) { self.rawValue = rawValue }
+        public static let shadowAbove = ShadowOptions(rawValue: 1)
+        public static let shadowOnly = ShadowOptions(rawValue: 2)
+        public static let invertsAlpha = ShadowOptions(rawValue: 4)
+        public static let disablesGroup = ShadowOptions(rawValue: 8)
+    }
+
+    public struct FilterOptions: OptionSet, Sendable {
+        public let rawValue: UInt32
+        public init(rawValue: UInt32) { self.rawValue = rawValue }
+        public static let linearColor = FilterOptions(rawValue: 1)
+    }
+
+    /// Adds a filter to the context: every drawing operation that follows runs through it.
+    public mutating func addFilter(_ filter: Filter, options: FilterOptions = FilterOptions()) {
+        filters.append(filter)
+    }
+
+    #if canImport(CoreGraphics)
+    /// Runs `content` with a scratch Core Graphics context the canvas's size. The web has no
+    /// Core Graphics, so what is drawn into it is not shown (accepted for source compatibility).
+    @MainActor public func withCGContext(content: (CGContext) throws -> Void) rethrows {
+        let size = recorder.node?.frame.size ?? CGSize(width: 1, height: 1)
+        guard let context = CGContext(data: nil, width: max(Int(size.width * recorder.scale), 1), height: max(Int(size.height * recorder.scale), 1),
+                                      bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return }
+        try content(context)
+    }
+    #endif
+}
+
+/// Colour matrices for the filters that are not a plain product.
+package enum _ColorFilters {
+    package static func saturation(_ s: Double) -> ColorMatrix {
+        let (lr, lg, lb) = (0.2126, 0.7152, 0.0722)
+        return ColorMatrix([lr + (1 - lr) * s, lg - lg * s, lb - lb * s, 0, 0,
+                            lr - lr * s, lg + (1 - lg) * s, lb - lb * s, 0, 0,
+                            lr - lr * s, lg - lg * s, lb + (1 - lb) * s, 0, 0,
+                            0, 0, 0, 1, 0])
+    }
+
+    package static func hueRotation(_ radians: Double) -> ColorMatrix {
+        let c = _cos(radians), sn = _sin(radians)
+        return ColorMatrix([0.213 + c * 0.787 - sn * 0.213, 0.715 - c * 0.715 - sn * 0.715, 0.072 - c * 0.072 + sn * 0.928, 0, 0,
+                            0.213 - c * 0.213 + sn * 0.143, 0.715 + c * 0.285 + sn * 0.140, 0.072 - c * 0.072 - sn * 0.283, 0, 0,
+                            0.213 - c * 0.213 - sn * 0.787, 0.715 - c * 0.715 + sn * 0.715, 0.072 + c * 0.928 + sn * 0.072, 0, 0,
+                            0, 0, 0, 1, 0])
+    }
+}
+
+/// A node that can hand out its image draw command (tiled shadings).
+@MainActor
+package protocol _ImageDrawProviding: AnyObject {
+    func _imageDraw(scale: CGFloat) -> ImageDraw?
 }
 
 /// A text view resolved for drawing in a graphics context.

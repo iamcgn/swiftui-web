@@ -246,6 +246,38 @@ public static let basic = Fixture("canvas/basic", size: CGSize(width: 320, heigh
     .probe("canvas")
 }
 """#),
+        FixtureSource(name: "canvas/images", file: "Fixtures/Sources/Canvas/CanvasFixtures.swift", firstLine: 51, lastLine: 80, declaration: #"""
+/// Images at a size and at their own, a system symbol, `symbols` resolved by tag, a blend
+/// mode, blur, shadow and greyscale filters, and a tiled image shading (the symbol glyph and
+/// the filters are approximate).
+public static let images = Fixture("canvas/images", size: CGSize(width: 320, height: 240)) {
+    Canvas { context, size in
+        context.draw(Image("swatch"), in: CGRect(x: 10, y: 10, width: 60, height: 40))
+        context.draw(Image("swatch"), at: CGPoint(x: 120, y: 30))
+        context.draw(Image(systemName: "star.fill"), at: CGPoint(x: 200, y: 30))
+        if let label = context.resolveSymbol(id: "label") { context.draw(label, at: CGPoint(x: 60, y: 90)) }
+        if let box = context.resolveSymbol(id: "box") { context.draw(box, in: CGRect(x: 120, y: 70, width: 50, height: 30)) }
+        var blended = context
+        blended.blendMode = .multiply
+        blended.fill(Path(CGRect(x: 200, y: 70, width: 50, height: 40)), with: .color(.yellow))
+        blended.fill(Path(CGRect(x: 225, y: 85, width: 50, height: 40)), with: .color(.cyan))
+        var blurred = context
+        blurred.addFilter(.blur(radius: 3))
+        blurred.fill(Path(ellipseIn: CGRect(x: 10, y: 140, width: 50, height: 50)), with: .color(.red))
+        var shadowed = context
+        shadowed.addFilter(.shadow(color: .black.opacity(0.5), radius: 4, x: 2, y: 2))
+        shadowed.fill(Path(CGRect(x: 90, y: 140, width: 50, height: 40)), with: .color(.green))
+        var grey = context
+        grey.addFilter(.grayscale(1))
+        grey.fill(Path(CGRect(x: 170, y: 140, width: 40, height: 40)), with: .color(.blue))
+        context.fill(Path(CGRect(x: 230, y: 140, width: 70, height: 60)), with: .tiledImage(Image("swatch"), scale: 0.5))
+    } symbols: {
+        Text("Sym").tag("label")
+        Color.purple.tag("box")
+    }
+    .probe("canvas")
+}
+"""#),
         FixtureSource(name: "canvas/sizing", file: "Fixtures/Sources/Canvas/CanvasFixtures.swift", firstLine: 34, lastLine: 49, declaration: #"""
 /// A canvas fills its stack's width and shares the height; a frame sizes it.
 public static let sizing = Fixture("canvas/sizing", size: CGSize(width: 320, height: 240)) {
@@ -8269,7 +8301,38 @@ public enum CanvasFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic, sizing]
+    /// Images at a size and at their own, a system symbol, `symbols` resolved by tag, a blend
+    /// mode, blur, shadow and greyscale filters, and a tiled image shading (the symbol glyph and
+    /// the filters are approximate).
+    public static let images = Fixture("canvas/images", size: CGSize(width: 320, height: 240)) {
+        Canvas { context, size in
+            context.draw(Image("swatch"), in: CGRect(x: 10, y: 10, width: 60, height: 40))
+            context.draw(Image("swatch"), at: CGPoint(x: 120, y: 30))
+            context.draw(Image(systemName: "star.fill"), at: CGPoint(x: 200, y: 30))
+            if let label = context.resolveSymbol(id: "label") { context.draw(label, at: CGPoint(x: 60, y: 90)) }
+            if let box = context.resolveSymbol(id: "box") { context.draw(box, in: CGRect(x: 120, y: 70, width: 50, height: 30)) }
+            var blended = context
+            blended.blendMode = .multiply
+            blended.fill(Path(CGRect(x: 200, y: 70, width: 50, height: 40)), with: .color(.yellow))
+            blended.fill(Path(CGRect(x: 225, y: 85, width: 50, height: 40)), with: .color(.cyan))
+            var blurred = context
+            blurred.addFilter(.blur(radius: 3))
+            blurred.fill(Path(ellipseIn: CGRect(x: 10, y: 140, width: 50, height: 50)), with: .color(.red))
+            var shadowed = context
+            shadowed.addFilter(.shadow(color: .black.opacity(0.5), radius: 4, x: 2, y: 2))
+            shadowed.fill(Path(CGRect(x: 90, y: 140, width: 50, height: 40)), with: .color(.green))
+            var grey = context
+            grey.addFilter(.grayscale(1))
+            grey.fill(Path(CGRect(x: 170, y: 140, width: 40, height: 40)), with: .color(.blue))
+            context.fill(Path(CGRect(x: 230, y: 140, width: 70, height: 60)), with: .tiledImage(Image("swatch"), scale: 0.5))
+        } symbols: {
+            Text("Sym").tag("label")
+            Color.purple.tag("box")
+        }
+        .probe("canvas")
+    }
+
+    public static let all: [Fixture] = [basic, sizing, images]
 }
 """#,
         "Fixtures/Sources/Color/ColorFixtures.swift": #"""

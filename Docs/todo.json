@@ -874,13 +874,14 @@
       "framework": "SwiftUI",
       "area": "Canvas",
       "title": "Canvas images, symbols and filters",
-      "detail": "`draw(Image)`, `resolveSymbol`, `addFilter`, `withCGContext`, `tiledImage`, the context's `blendMode`, `rendersAsynchronously`, invalidation on state read inside the renderer.",
+      "detail": "Done 2026-10-04: draw(Image) and resolve(Image) through image nodes, resolveSymbol over the tagged symbols child, addFilter (blur, shadow, colour matrices) and blendMode wrapping each operation in display-list groups, tiledImage shadings, withCGContext as a scratch context on Apple platforms, the renderer under observation tracking so state it reads repaints; canvas/images Tier A exact, Tier C 0.56 %.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Canvas.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-gradients",

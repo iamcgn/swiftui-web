@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 40 | 0 | 8 | 32 |
+| SwiftUI | 39 | 0 | 7 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **80** | 0 | 32 | 48 |
+| **All** | **79** | 0 | 31 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Canvas images, symbols and filters** `sw-canvas` · Canvas · missing  
-  `draw(Image)`, `resolveSymbol`, `addFilter`, `withCGContext`, `tiledImage`, the context's `blendMode`, `rendersAsynchronously`, invalidation on state read inside the renderer. ([Canvas.md](Docs/elements/Canvas.md))
 - ☐ **3D and projection transforms** `sw-transform3d` · Transform · missing  
   `rotation3DEffect`, `projectionEffect`, `GeometryEffect` conformances, hit testing through rotations and scales, anchors for scale transitions. ([Transform.md](Docs/elements/Transform.md))
 - ☐ **Animation completion, blending and reduce motion** `sw-animation` · Animation · missing  
@@ -212,6 +210,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Disclosure animation and outlines** `sw-disclosure` · SwiftUI · DisclosureGroup
 - ☑ 2026-10-04 **Grouped form constants** `sw-form` · SwiftUI · Form
 - ☑ 2026-10-04 **ViewThatFits** `sw-viewthatfits` · SwiftUI · Layout
+- ☑ 2026-10-04 **Canvas images, symbols and filters** `sw-canvas` · SwiftUI · Canvas
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

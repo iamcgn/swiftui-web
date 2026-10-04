@@ -178,6 +178,18 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
     }
 }
 
+extension ImageNode: _ImageDrawProviding {
+    /// The draw command of a catalog image (nil for symbols and recordings), sized to this
+    /// node's frame; tiled shadings reshape it.
+    package func _imageDraw(scale: CGFloat) -> ImageDraw? {
+        guard let resource, let variant = resource.variant(scale: scale, scheme: environment.colorScheme, idiom: environment.assetIdiom) else { return nil }
+        var draw = ImageDraw(file: variant.file, scale: variant.scale,
+                             pixelSize: CGSize(width: variant.pixelWidth, height: variant.pixelHeight), rect: frame)
+        if isTemplate { draw.tint = (environment.foregroundColor ?? .primary).resolve(in: environment) }
+        return draw
+    }
+}
+
 extension ImageNode {
     /// Draws the symbol's stand-in glyph: the outline (on Lucide's 24 × 24 grid) scaled uniformly
     /// to fit the frame and centred, stroked in the foreground colour with a width that follows
