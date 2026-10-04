@@ -103,6 +103,8 @@ extension Runtime {
         let grab = preview === source ? CGPoint(x: start.x - origin.x, y: start.y - origin.y)
             : CGPoint(x: preview.frame.width / 2, y: preview.frame.height / 2)
         dragSession = DragSession(item: source.makeDragItem(), source: source, previewNode: preview, grab: grab, location: point, target: nil)
+        for node in simultaneousPressNodes { node.pressEnded(inside: false) }
+        simultaneousPressNodes = []
         if let pressed = pressedNode {
             pressedNode = nil
             pressed.pressEnded(inside: false, at: .zero)

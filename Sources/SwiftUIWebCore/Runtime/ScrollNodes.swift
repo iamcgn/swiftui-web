@@ -940,6 +940,8 @@ extension Runtime {
             state.active = true
             pressedNode?.pressEnded(inside: false)
             pressedNode = nil
+            for node in simultaneousPressNodes { node.pressEnded(inside: false) }
+            simultaneousPressNodes = []
             // iOS: scrolling dismisses the keyboard (`scrollDismissesKeyboard`).
             if let first = state.nodes.first, first.dismissesKeyboardOnScroll { focusTextField(nil) }
         }

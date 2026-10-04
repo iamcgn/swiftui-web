@@ -37,7 +37,44 @@ struct GestureDemo: View {
     }
 }
 
+/// Pinches: a box that scales and turns with a magnify + rotate gesture, and a `@GestureState`
+/// set while a pinch runs. The golden is the resting state; the probe pinches with control-wheel
+/// events, Safari-style gesture events and two touches.
+struct PinchDemo: View {
+    @State private var scale: CGFloat = 1
+    @State private var angle: Angle = .zero
+    @GestureState private var pinching = false
+
+    private var label: String {
+        let hundredths = Int((scale * 100).rounded())
+        let fraction = hundredths % 100
+        return "Scale \(hundredths / 100).\(fraction < 10 ? "0" : "")\(fraction), \(Int(angle.degrees.rounded()))°"
+    }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Text(label).probe("pinchLabel")
+            Color.teal.frame(width: 100, height: 70)
+                .scaleEffect(scale)
+                .rotationEffect(angle)
+                .gesture(MagnifyGesture().simultaneously(with: RotateGesture())
+                    .onChanged { value in
+                        if let magnify = value.first { scale = magnify.magnification }
+                        if let rotate = value.second { angle = rotate.rotation }
+                    }
+                    .onEnded { _ in scale = 1; angle = .zero })
+                .probe("pinchBox")
+            Text(pinching ? "Pinching" : "Rest").probe("stateLabel")
+            Color.indigo.frame(width: 100, height: 40)
+                .gesture(MagnifyGesture().updating($pinching) { _, state, _ in state = true })
+                .probe("stateBox")
+        }
+        .probe("stack")
+    }
+}
+
 public enum GestureFixtures {
     public static let basic = Fixture("gesture/basic", size: CGSize(width: 320, height: 340), content: { GestureDemo() })
-    public static let all: [Fixture] = [basic]
+    public static let pinch = Fixture("gesture/pinch", size: CGSize(width: 320, height: 240), content: { PinchDemo() })
+    public static let all: [Fixture] = [basic, pinch]
 }

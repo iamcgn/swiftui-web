@@ -21605,6 +21605,30 @@
       "height": 47,
       "lastBaseline": 39,
       "width": 99.5
+    },
+    "system:13:400:default||Rest": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 27
+    },
+    "system:13:400:default||Scale 1.00, 0\u00b0": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 83
+    },
+    "system:13:400:default|0.0|Rest": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Scale 1.00, 0\u00b0": {
+      "firstBaseline": 13,
+      "height": 192,
+      "lastBaseline": 189,
+      "width": 0
     }
   },
   "fonts": {

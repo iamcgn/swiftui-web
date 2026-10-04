@@ -304,6 +304,7 @@ public final class CanvasSceneHost {
                 return
             }
             _ = self.canvas.setPointerCapture?(e.pointerId)
+            if self.pointerType(of: e) == .touch, self.touchDown(e) { return }
             self.scene.pointerDown(at: self.point(of: e), type: self.pointerType(of: e), time: self.seconds(of: e))
             self.scheduleFrame()
         }
@@ -311,6 +312,7 @@ public final class CanvasSceneHost {
         on(canvas, "contextmenu") { e in _ = e.preventDefault!() }
         on(canvas, "pointermove") { [weak self] e in
             guard let self else { return }
+            if self.pointerType(of: e) == .touch, self.touchMoved(e) { return }
             self.scene.pointerMoved(to: self.point(of: e), time: self.seconds(of: e))
             self.applyPointerStyle()
             if self.scene.needsFrame { self.scheduleFrame() }
@@ -323,20 +325,50 @@ public final class CanvasSceneHost {
         }
         on(canvas, "pointerup") { [weak self] e in
             guard let self, (e.button.number ?? 0) != 2 else { return }
+            if self.pointerType(of: e) == .touch, self.touchUp(e) { return }
             self.scene.pointerUp(at: self.point(of: e), time: self.seconds(of: e))
             self.scheduleFrame()
         }
         on(canvas, "pointercancel") { [weak self] e in
             guard let self else { return }
+            if self.pointerType(of: e) == .touch, self.touchUp(e) { return }
             self.scene.pointerUp(at: CGPoint(x: -1, y: -1), time: self.seconds(of: e))
             self.scheduleFrame()
         }
+        // Safari delivers trackpad pinches as gesture events (scale and rotation in degrees).
+        on(canvas, "gesturestart") { [weak self] e in
+            guard let self else { return }
+            _ = e.preventDefault?()
+            self.endWheelPinch()
+            self.gesturePinch = true
+            self.scene.pinch(.began, scale: 1, rotation: 0, at: self.clientPoint(of: e), time: self.seconds(of: e))
+            self.scheduleFrame()
+        }
+        on(canvas, "gesturechange") { [weak self] e in
+            guard let self, self.gesturePinch else { return }
+            _ = e.preventDefault?()
+            self.scene.pinch(.changed, scale: e.scale.number ?? 1, rotation: (e.rotation.number ?? 0) * .pi / 180, at: self.clientPoint(of: e), time: self.seconds(of: e))
+            self.scheduleFrame()
+        }
+        on(canvas, "gestureend") { [weak self] e in
+            guard let self, self.gesturePinch else { return }
+            _ = e.preventDefault?()
+            self.gesturePinch = false
+            self.scene.pinch(.ended, scale: e.scale.number ?? 1, rotation: (e.rotation.number ?? 0) * .pi / 180, at: self.clientPoint(of: e), time: self.seconds(of: e))
+            self.scheduleFrame()
+        }
         // Wheel deltas are consumed here (non-passive, so the page does not scroll too): pixel
-        // deltas map to points, lines to 16 pt, pages to the viewport.
+        // deltas map to points, lines to 16 pt, pages to the viewport. A wheel with the control
+        // key is a trackpad pinch (Chromium and Firefox): the scale compounds by e^(-deltaY/100)
+        // and the pinch ends a fifth of a second after its last event.
         let wheel = JSClosure { [weak self] args in
             MainActor.assumeIsolated {
                 guard let self, let e = args.first?.object else { return }
                 _ = e.preventDefault!()
+                if e.ctrlKey.boolean == true, !self.gesturePinch {
+                    self.wheelPinch(e)
+                    return
+                }
                 let mode = e.deltaMode.number ?? 0
                 let factor = mode == 1 ? 16.0 : mode == 2 ? self.height : 1.0
                 let delta = CGSize(width: (e.deltaX.number ?? 0) * factor, height: (e.deltaY.number ?? 0) * factor)
@@ -380,6 +412,119 @@ public final class CanvasSceneHost {
 
     private func point(of event: JSObject) -> CGPoint {
         CGPoint(x: event.offsetX.number ?? 0, y: event.offsetY.number ?? 0)
+    }
+
+    /// The event's point from its client coordinates (gesture events carry no offset).
+    private func clientPoint(of event: JSObject) -> CGPoint {
+        let rect = canvas.getBoundingClientRect!().object!
+        return CGPoint(x: (event.clientX.number ?? 0) - (rect.left.number ?? 0), y: (event.clientY.number ?? 0) - (rect.top.number ?? 0))
+    }
+
+    // MARK: Pinches
+
+    /// A Safari gesture-event pinch in flight (control-wheel events are ignored meanwhile).
+    private var gesturePinch = false
+    /// The cumulative scale of a control-wheel pinch, nil when none is in flight.
+    private var wheelPinchScale: Double?
+    private var wheelPinchPoint = CGPoint.zero
+    private var wheelPinchGeneration = 0
+    private var wheelPinchClosure: JSClosure?
+
+    private func wheelPinch(_ e: JSObject) {
+        let point = point(of: e)
+        let time = seconds(of: e)
+        if wheelPinchScale == nil {
+            wheelPinchScale = 1
+            wheelPinchPoint = point
+            scene.pinch(.began, scale: 1, rotation: 0, at: point, time: time)
+        }
+        let scale = (wheelPinchScale ?? 1) * _exp(-(e.deltaY.number ?? 0) / 100)
+        wheelPinchScale = scale
+        scene.pinch(.changed, scale: scale, rotation: 0, at: wheelPinchPoint, time: time)
+        scheduleFrame()
+        wheelPinchGeneration += 1
+        let generation = wheelPinchGeneration
+        let closure = JSClosure { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.wheelPinchGeneration == generation else { return }
+                self.endWheelPinch()
+            }
+            return .undefined
+        }
+        wheelPinchClosure = closure
+        _ = window.setTimeout!(closure, 200)
+    }
+
+    private func endWheelPinch() {
+        guard let scale = wheelPinchScale else { return }
+        wheelPinchScale = nil
+        wheelPinchGeneration += 1
+        scene.pinch(.ended, scale: scale, rotation: 0, at: wheelPinchPoint, time: now)
+        scheduleFrame()
+    }
+
+    /// Touches by pointer id; two of them pinch (the press under the first is cancelled, and
+    /// the touch that remains after the pinch is ignored until it lifts).
+    private var touches: [Int: CGPoint] = [:]
+    private var touchOrder: [Int] = []
+    private var touchPinch: (distance: Double, angle: Double)?
+    private var touchPinchLast: (scale: CGFloat, rotation: Double) = (1, 0)
+    private var touchesAfterPinch = false
+
+    private func touchGeometry() -> (centre: CGPoint, distance: Double, angle: Double)? {
+        guard touchOrder.count >= 2, let a = touches[touchOrder[0]], let b = touches[touchOrder[1]] else { return nil }
+        let dx = b.x - a.x, dy = b.y - a.y
+        return (CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2), (dx * dx + dy * dy).squareRoot(), _atan2(dy, dx))
+    }
+
+    /// Returns whether the touch was taken by a pinch (or ignored after one).
+    private func touchDown(_ e: JSObject) -> Bool {
+        let id = Int(e.pointerId.number ?? 0)
+        touches[id] = point(of: e)
+        touchOrder.append(id)
+        if touchesAfterPinch || touchPinch != nil { return true }
+        guard touchOrder.count == 2, let geometry = touchGeometry() else { return false }
+        scene.pointerUp(at: CGPoint(x: -1, y: -1), time: seconds(of: e))
+        touchPinch = (max(geometry.distance, 1), geometry.angle)
+        touchPinchLast = (1, 0)
+        scene.pinch(.began, scale: 1, rotation: 0, at: geometry.centre, time: seconds(of: e))
+        scheduleFrame()
+        return true
+    }
+
+    private func touchMoved(_ e: JSObject) -> Bool {
+        let id = Int(e.pointerId.number ?? 0)
+        guard touches[id] != nil else { return false }
+        touches[id] = point(of: e)
+        if touchesAfterPinch { return true }
+        guard let start = touchPinch, let geometry = touchGeometry() else { return false }
+        var rotation = geometry.angle - start.angle
+        while rotation > .pi { rotation -= 2 * .pi }
+        while rotation < -.pi { rotation += 2 * .pi }
+        touchPinchLast = (geometry.distance / start.distance, rotation)
+        scene.pinch(.changed, scale: touchPinchLast.scale, rotation: touchPinchLast.rotation, at: geometry.centre, time: seconds(of: e))
+        scheduleFrame()
+        return true
+    }
+
+    private func touchUp(_ e: JSObject) -> Bool {
+        let id = Int(e.pointerId.number ?? 0)
+        guard touches[id] != nil else { return false }
+        let centre = touchGeometry()?.centre ?? point(of: e)
+        touches[id] = nil
+        touchOrder.removeAll { $0 == id }
+        if touchPinch != nil {
+            touchPinch = nil
+            touchesAfterPinch = !touches.isEmpty
+            scene.pinch(.ended, scale: touchPinchLast.scale, rotation: touchPinchLast.rotation, at: centre, time: seconds(of: e))
+            scheduleFrame()
+            return true
+        }
+        if touchesAfterPinch {
+            if touches.isEmpty { touchesAfterPinch = false }
+            return true
+        }
+        return false
     }
 
     private func pointerType(of event: JSObject) -> PointerType {

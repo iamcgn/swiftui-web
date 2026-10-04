@@ -566,7 +566,7 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Masked text", defaultFont))
         for word in ["Outside", "Inside", "No pointer", "Help me", "Link", "Text", "Entries: 0"] { requests.append(TextMetricRequest(word, defaultFont)) }
         for word in ["Taps: 0", "Content below the toolbar", "Cherry", "Date", "Elderberry"] { requests.append(TextMetricRequest(word, defaultFont)) }
-        for word in ["Drag the box", "Long presses: 0", "Double taps: 0", "Idle"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        for word in ["Drag the box", "Long presses: 0", "Double taps: 0", "Idle", "Scale 1.00, 0°", "Rest"] { requests.append(TextMetricRequest(word, defaultFont)) }
         // Kerning and tracking (Phase 6): widths of the same words with letters spread or tightened.
         for word in ["Hello", "Kerned text", "Tracked text", "Tight"] {
             requests.append(TextMetricRequest(word, defaultFont))

@@ -1,8 +1,9 @@
 // Gestures beyond the tap: `DragGesture`, `LongPressGesture`, `TapGesture` (with counts), the
-// magnify and rotate gestures (API only: browsers deliver no pinch to a canvas yet), composition
-// (`sequenced`, `simultaneously`, `exclusively`), `onChanged`/`onEnded`/`map`/`updating` with
-// `@GestureState`, and the `gesture`/`highPriorityGesture`/`simultaneousGesture` modifiers.
-// Recognition lives in `Runtime/GestureNodes.swift`. Docs/elements/Gestures.md.
+// magnify and rotate gestures (pinches from trackpads and two touches, `Runtime.pinch`),
+// composition (`sequenced`, `simultaneously`, `exclusively`), `onChanged`/`onEnded`/`map`/
+// `updating` with `@GestureState`, and the `gesture`/`highPriorityGesture`/`simultaneousGesture`
+// modifiers with their masks. Recognition lives in `Runtime/GestureNodes.swift`.
+// Docs/elements/Gestures.md.
 #if os(WASI)
 import WebFoundation
 #else
@@ -27,7 +28,7 @@ extension Never: Gesture {
     @MainActor public func _makeRecognizer() -> _GestureRecognizer<Never> { fatalError("Never has no recogniser") }
 }
 
-/// How a view's gesture competes with its subviews' (`gesture(_:including:)`); accepted.
+/// Which gestures a `gesture(_:including:)` view takes: its own, its subviews', both or neither.
 public struct GestureMask: OptionSet, Sendable {
     public let rawValue: UInt32
     public init(rawValue: UInt32) { self.rawValue = rawValue }
@@ -100,54 +101,76 @@ public struct DragGesture: Gesture {
     @MainActor public func _makeRecognizer() -> _GestureRecognizer<Value> { DragRecognizer(minimumDistance: minimumDistance, global: coordinateSpace.isGlobal) }
 }
 
-/// A pinch (API only: no host delivers one to the canvas yet, so it never recognises).
+/// A pinch: the magnification relative to the pinch's start, from a trackpad (a wheel with the
+/// control key in Chromium and Firefox, Safari's gesture events) or two touches.
 public struct MagnifyGesture: Gesture {
     public typealias Body = Never
     public struct Value: Equatable, Sendable {
         public var magnification: CGFloat
+        /// The magnification's rate of change per second.
         public var velocity: CGFloat
+        /// Where the pinch started, as a fraction of the view's bounds.
         public var startAnchor: UnitPoint
+        /// Where the pinch started, in the view's space.
         public var startLocation: CGPoint
+        public init(magnification: CGFloat, velocity: CGFloat, startAnchor: UnitPoint, startLocation: CGPoint) {
+            self.magnification = magnification
+            self.velocity = velocity
+            self.startAnchor = startAnchor
+            self.startLocation = startLocation
+        }
     }
     public var minimumScaleDelta: CGFloat
     public init(minimumScaleDelta: CGFloat = 0.01) { self.minimumScaleDelta = minimumScaleDelta }
     public var body: Never { fatalError() }
-    @MainActor public func _makeRecognizer() -> _GestureRecognizer<Value> { _GestureRecognizer<Value>() }
+    @MainActor public func _makeRecognizer() -> _GestureRecognizer<Value> { MagnifyRecognizer(minimumScaleDelta: minimumScaleDelta) }
 }
 
-/// A rotation (API only, as `MagnifyGesture`).
+/// A rotation from a pinch's two fingers (Safari's gesture events and touches; a control-wheel
+/// pinch carries no rotation).
 public struct RotateGesture: Gesture {
     public typealias Body = Never
     public struct Value: Equatable, Sendable {
         public var rotation: Angle
+        /// The rotation's rate of change per second.
         public var velocity: Angle
         public var startAnchor: UnitPoint
         public var startLocation: CGPoint
+        public init(rotation: Angle, velocity: Angle, startAnchor: UnitPoint, startLocation: CGPoint) {
+            self.rotation = rotation
+            self.velocity = velocity
+            self.startAnchor = startAnchor
+            self.startLocation = startLocation
+        }
     }
     public var minimumAngleDelta: Angle
     public init(minimumAngleDelta: Angle = .degrees(1)) { self.minimumAngleDelta = minimumAngleDelta }
     public var body: Never { fatalError() }
-    @MainActor public func _makeRecognizer() -> _GestureRecognizer<Value> { _GestureRecognizer<Value>() }
+    @MainActor public func _makeRecognizer() -> _GestureRecognizer<Value> { RotateRecognizer(minimumAngleDelta: minimumAngleDelta) }
 }
 
-/// The older pinch gesture (API only).
+/// The older pinch gesture: the magnification alone.
 public struct MagnificationGesture: Gesture {
     public typealias Value = CGFloat
     public typealias Body = Never
     public var minimumScaleDelta: CGFloat
     public init(minimumScaleDelta: CGFloat = 0.01) { self.minimumScaleDelta = minimumScaleDelta }
     public var body: Never { fatalError() }
-    @MainActor public func _makeRecognizer() -> _GestureRecognizer<CGFloat> { _GestureRecognizer<CGFloat>() }
+    @MainActor public func _makeRecognizer() -> _GestureRecognizer<CGFloat> {
+        MapRecognizer(base: MagnifyRecognizer(minimumScaleDelta: minimumScaleDelta), transform: { $0.magnification })
+    }
 }
 
-/// The older rotation gesture (API only).
+/// The older rotation gesture: the angle alone.
 public struct RotationGesture: Gesture {
     public typealias Value = Angle
     public typealias Body = Never
     public var minimumAngleDelta: Angle
     public init(minimumAngleDelta: Angle = .degrees(1)) { self.minimumAngleDelta = minimumAngleDelta }
     public var body: Never { fatalError() }
-    @MainActor public func _makeRecognizer() -> _GestureRecognizer<Angle> { _GestureRecognizer<Angle>() }
+    @MainActor public func _makeRecognizer() -> _GestureRecognizer<Angle> {
+        MapRecognizer(base: RotateRecognizer(minimumAngleDelta: minimumAngleDelta), transform: { $0.rotation })
+    }
 }
 
 // MARK: - Modifiers
@@ -206,7 +229,7 @@ public struct _UpdatingGesture<G: Gesture, S>: Gesture {
             var current = state.wrappedValue
             var transaction = Transaction()
             update(value, &current, &transaction)
-            state._set(current)
+            state._set(current, transaction: transaction)
         }
         recognizer.resetHandlers.append { state._reset() }
         return recognizer
@@ -309,23 +332,39 @@ extension Gesture {
 public struct GestureState<Value>: DynamicProperty {
     package var state: State<Value>
     package let resetValue: Value
+    /// The `reset` closure: sees the value being reset and sets the transaction the reset uses.
+    package let resetTransaction: ((Value, inout Transaction) -> Void)?
 
     public init(wrappedValue: Value) {
         state = State(wrappedValue: wrappedValue)
         resetValue = wrappedValue
+        resetTransaction = nil
     }
 
     public init(initialValue: Value) { self.init(wrappedValue: initialValue) }
 
-    public init(wrappedValue: Value, reset: @escaping (Value, inout Transaction) -> Void) { self.init(wrappedValue: wrappedValue) }
+    public init(wrappedValue: Value, reset: @escaping (Value, inout Transaction) -> Void) {
+        state = State(wrappedValue: wrappedValue)
+        resetValue = wrappedValue
+        resetTransaction = reset
+    }
 
-    public init(initialValue: Value, reset: @escaping (Value, inout Transaction) -> Void) { self.init(wrappedValue: initialValue) }
+    public init(initialValue: Value, reset: @escaping (Value, inout Transaction) -> Void) { self.init(wrappedValue: initialValue, reset: reset) }
 
     public var wrappedValue: Value { state.wrappedValue }
     public var projectedValue: GestureState<Value> { self }
 
-    package func _set(_ value: Value) { state.wrappedValue = value }
-    package func _reset() { state.wrappedValue = resetValue }
+    /// Sets the value under the gesture's transaction (the `updating` body's).
+    @MainActor package func _set(_ value: Value, transaction: Transaction) {
+        withTransaction(transaction) { state.wrappedValue = value }
+    }
+
+    /// Restores the initial value under the reset closure's transaction.
+    @MainActor package func _reset() {
+        var transaction = Transaction()
+        resetTransaction?(state.wrappedValue, &transaction)
+        withTransaction(transaction) { state.wrappedValue = resetValue }
+    }
 }
 
 // MARK: - View modifiers
@@ -357,7 +396,8 @@ extension View {
         modifier(_GestureModifier(gesture: gesture, priority: .high, mask: mask))
     }
 
-    /// Attaches a gesture to run alongside the subviews' (here: with normal precedence).
+    /// Attaches a gesture that runs alongside the subviews': a press a subview's control or
+    /// gesture takes reaches this gesture too.
     nonisolated public func simultaneousGesture<G: Gesture>(_ gesture: G, including mask: GestureMask = .all) -> some View {
         modifier(_GestureModifier(gesture: gesture, priority: .simultaneous, mask: mask))
     }

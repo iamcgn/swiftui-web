@@ -1,0 +1,39 @@
+{
+  "fixture" : "gesture\/pinch",
+  "frames" : {
+    "pinchBox" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 110,
+      "y" : 58
+    },
+    "pinchLabel" : {
+      "height" : 16,
+      "width" : 83,
+      "x" : 118.5,
+      "y" : 28
+    },
+    "stack" : {
+      "height" : 184,
+      "width" : 100,
+      "x" : 110,
+      "y" : 28
+    },
+    "stateBox" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 110,
+      "y" : 172
+    },
+    "stateLabel" : {
+      "height" : 16,
+      "width" : 27,
+      "x" : 146.5,
+      "y" : 142
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

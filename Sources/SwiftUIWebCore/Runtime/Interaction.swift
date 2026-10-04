@@ -124,6 +124,22 @@ extension Runtime {
         guard let node = interactiveNode(at: point) else { return }
         pressedNode = node
         node.pressBegan(at: local(point, in: node))
+        // `simultaneousGesture` ancestors see the press the subview took.
+        simultaneousPressNodes = simultaneousGestureNodes(above: node)
+        for ancestor in simultaneousPressNodes { ancestor.pressBegan(at: local(point, in: ancestor)) }
+    }
+
+    /// The `simultaneousGesture` nodes above `node` (outermost last) that take presses.
+    private func simultaneousGestureNodes(above node: ViewNode) -> [ViewNode & _Interactive] {
+        var result: [ViewNode & _Interactive] = []
+        var current = node.parent
+        while let candidate = current {
+            if let target = candidate as? _PinchTarget, target.isSimultaneousGesture, let interactive = candidate as? (ViewNode & _Interactive), interactive.isInteractive {
+                result.append(interactive)
+            }
+            current = candidate.parent
+        }
+        return result
     }
 
     /// Pointer moved (pressed or not): drives presses, pans and hovering.
@@ -142,6 +158,7 @@ extension Runtime {
             return
         }
         if let node = pressedNode { node.pressMoved(to: local(point, in: node)) }
+        for node in simultaneousPressNodes { node.pressMoved(to: local(point, in: node)) }
         updateHover(at: point)
     }
 
@@ -166,13 +183,63 @@ extension Runtime {
             return
         }
         let panned = endPan(time: time)
+        let simultaneous = simultaneousPressNodes
+        simultaneousPressNodes = []
         guard let node = pressedNode else { return }
         pressedNode = nil
         if panned {
             node.pressCancelled(at: local(point, in: node))
+            for ancestor in simultaneous { ancestor.pressCancelled(at: local(point, in: ancestor)) }
             return
         }
         node.pressEnded(inside: interactiveNode(at: point) === node, at: local(point, in: node))
+        for ancestor in simultaneous {
+            let localPoint = local(point, in: ancestor)
+            ancestor.pressEnded(inside: ancestor.contains(localPoint), at: localPoint)
+        }
+    }
+
+    /// The pinch targets under a point: the deepest gesture node taking pinches and the
+    /// `simultaneousGesture` nodes above it.
+    private func pinchTargets(at point: CGPoint) -> [ViewNode & _PinchTarget] {
+        let accepts: (ViewNode) -> Bool = { ($0 as? _PinchTarget)?.acceptsPinch == true }
+        var roots: [ViewNode] = root.layoutChildren
+        for presentation in presentations { roots += presentation.semanticsRoots }
+        var deepest: ViewNode?
+        for node in roots.reversed() {
+            let shift = node.hitTestOffset
+            let local = CGPoint(x: point.x - node.frame.minX - shift.x, y: point.y - node.frame.minY - shift.y)
+            if node.clipsHitTesting, !node.contains(local) { continue }
+            if let hit = node.hitTest(local, where: accepts) { deepest = hit; break }
+        }
+        guard let deepest, let target = deepest as? (ViewNode & _PinchTarget) else { return [] }
+        var result: [ViewNode & _PinchTarget] = [target]
+        var current = deepest.parent
+        while let candidate = current {
+            if let ancestor = candidate as? (ViewNode & _PinchTarget), ancestor.acceptsPinch, ancestor.isSimultaneousGesture { result.append(ancestor) }
+            current = candidate.parent
+        }
+        return result
+    }
+
+    /// A pinch from the host (`HostedScene.pinch`): `scale` and `rotation` (radians) are
+    /// cumulative since `began`; `point` is the pinch's centre in window coordinates. The
+    /// targets are fixed when the pinch begins.
+    public func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double) {
+        lastPointerTime = time
+        if phase == .began {
+            pinchNodes = pinchTargets(at: point)
+        }
+        for node in pinchNodes {
+            let event = PinchEvent(location: local(point, in: node), scale: scale, rotation: rotation, time: time, bounds: node.frame.size)
+            switch phase {
+            case .began: node.pinchBegan(event)
+            case .changed: node.pinchChanged(event)
+            case .ended: node.pinchEnded(event, cancelled: false)
+            case .cancelled: node.pinchEnded(event, cancelled: true)
+            }
+        }
+        if phase == .ended || phase == .cancelled { pinchNodes = [] }
     }
 
     /// A click delivered by the accessibility overlay, by semantics identifier.

@@ -15,13 +15,13 @@ Apple docs: [Gesture](https://developer.apple.com/documentation/swiftui/gesture)
 | `TapGesture(count:)` | implemented: taps within 0.35 s and 10 pt of each other |
 | `LongPressGesture(minimumDuration:maximumDistance:)` | implemented: reports `true` on press, ends (recognises) once the duration passes on the animation clock, fails on movement or an early release |
 | `DragGesture(minimumDistance:coordinateSpace:)`, `DragGesture.Value` (`time`, `location`, `startLocation`, `translation`, `velocity`, `predictedEndLocation`, `predictedEndTranslation`) | implemented: `.local` and `.global` spaces (a named space reports local points); velocity from the last two events; the prediction is a quarter second of velocity |
-| `MagnifyGesture`, `RotateGesture`, `MagnificationGesture`, `RotationGesture` | API only: no host delivers a pinch or rotation to the canvas, so they never recognise |
-| `onChanged`, `onEnded`, `map`, `updating(_:body:)` with `@GestureState` | implemented; `GestureState` resets to its initial value when the gesture ends or fails (the `reset` closures are accepted without effect) |
+| `MagnifyGesture`, `RotateGesture`, `MagnificationGesture`, `RotationGesture` | implemented (2026-10-04): pinches from trackpads and two touches through `Runtime.pinch`; `minimumScaleDelta`/`minimumAngleDelta` before activation, velocities from the last two events, `startAnchor`/`startLocation` in the view's space |
+| `onChanged`, `onEnded`, `map`, `updating(_:body:)` with `@GestureState` | implemented; the `updating` body's transaction applies to the state change and the `reset` closure's transaction to the reset (2026-10-04) |
 | `sequenced(before:)`, `simultaneously(with:)`, `exclusively(before:)` and their value types | implemented (`_SequenceValue`, `_SimultaneousValue`, `_ExclusiveValue`) |
-| `gesture(_:including:)`, `highPriorityGesture`, `simultaneousGesture` | implemented; `GestureMask` accepted; `simultaneousGesture` behaves as `gesture` (one node takes a press) |
+| `gesture(_:including:)`, `highPriorityGesture`, `simultaneousGesture` | implemented; `GestureMask` honoured (`.subviews` leaves presses to the subviews, `.gesture` keeps them from the subviews, `.none` takes and drops them); `simultaneousGesture` runs alongside the subview's control or gesture (2026-10-04) |
 | `onLongPressGesture(minimumDuration:maximumDistance:perform:onPressingChanged:)` | implemented |
-| `onTapGesture(count:)` | `count` beyond 1 is still ignored by the tap modifier's own node; use `gesture(TapGesture(count:))` |
-| Gesture `Transaction` values, `GestureStateGesture` reset transactions, pinch/rotate from trackpads | missing |
+| `onTapGesture(count:)` | implemented: the modifier's node counts taps like `TapGesture(count:)` |
+| Pinches on iOS competing with scroll views, the focused window for pinches | missing (a two-finger touch always pinches; a scroll view under it does not zoom) |
 
 ## Behaviour
 
@@ -57,9 +57,36 @@ long presses on the clock, cancellation by movement and by an early release; tap
 intervals; `@GestureState`; sequenced, simultaneous and exclusive combinations; and priority
 against an inner button.
 
+## Pinches, simultaneity and transactions (2026-10-04)
+
+The canvas host delivers pinches to `HostedScene.pinch(_:scale:rotation:at:time:)` from three
+sources: a `wheel` event with the control key (Chromium and Firefox send trackpad pinches so;
+the scale compounds by e^(−deltaY/100) and the pinch ends 200 ms after its last event), Safari's
+`gesturestart`/`gesturechange`/`gestureend` (its `scale` and `rotation` in degrees), and two
+touches (the press under the first touch is cancelled, the distance and angle between the
+touches give the scale and rotation, and the touch that remains after one lifts is ignored
+until it lifts). `Runtime.pinch` fixes the targets when the pinch begins: the deepest gesture
+node under the centre whose recogniser takes pinches, plus the `simultaneousGesture` nodes
+above it; each gets `PinchEvent`s in its space with its bounds (for `startAnchor`).
+`MagnifyRecognizer` and `RotateRecognizer` activate at the minimum deltas and report the
+cumulative scale or angle with a velocity from the last two events; the older gestures map
+them to `CGFloat` and `Angle`. Composite recognisers forward pinches as they do presses.
+
+`simultaneousGesture` is now true simultaneity: when a subview's control or gesture takes the
+press, the runtime walks the pressed node's ancestors and feeds every `simultaneousGesture`
+node the same press (`inside` judged by that node's own frame), cancelling them with the press
+when a pan or drag takes it. `GestureMask` is honoured as in the table. `@GestureState` applies
+the `updating` body's transaction to its change and the `reset` closure's transaction to the
+reset, so both can animate.
+
+`gesture/pinch`: the resting state (Tier A exact, Tier C 0.00 %, Tier B within tolerance).
+`Playwright/gesture-probe.mjs` now also pinches it with synthetic control-wheel events, Safari
+style gesture events and two CDP touches. `PinchGestureTests` cover the thresholds, velocities,
+anchors, cancellation, the older gestures, the deepest target, simultaneous ancestors sharing
+pinches and presses with an inner button, the four masks and the transactions.
+
 ## Not yet covered
 
-Pinch and rotation from the trackpad (`wheel` with the control key, Safari's gesture events),
-touch drags competing with scroll views (a touch pan belongs to the scroll view), transactions in
-gesture callbacks, `simultaneousGesture` truly alongside a subview's gesture, and tap counts on
-`onTapGesture`.
+Touch drags competing with scroll views (a touch pan belongs to the scroll view), pinches
+zooming scroll views, trackpad pinches in Firefox verified by hand (the control-wheel route is
+exercised with synthetic events).

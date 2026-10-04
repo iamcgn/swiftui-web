@@ -1054,13 +1054,14 @@
       "framework": "SwiftUI",
       "area": "Gestures",
       "title": "Simultaneous, pinch and rotate gestures",
-      "detail": "`simultaneousGesture` as true simultaneity (one node takes a press today), `GestureMask`, the `reset` closures and gesture transactions (accepted), `MagnifyGesture`/`RotateGesture` from trackpads and touches, tap counts through `onTapGesture`.",
+      "detail": "Done 2026-10-04: simultaneousGesture as true simultaneity (the pressed node's simultaneousGesture ancestors share the press), GestureMask honoured, the updating body's and the reset closure's transactions applied to @GestureState, MagnifyGesture/RotateGesture (and the older two) from control-wheel pinches, Safari gesture events and two touches through HostedScene.pinch and Runtime.pinch (gesture/pinch, the probe pinches all three ways); onTapGesture counts were already in place (tested).",
       "kind": "accepted",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Gestures.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-focus",

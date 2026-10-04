@@ -75,6 +75,10 @@ public final class Runtime {
         requestFullLayout()
     }
 
+    /// The `simultaneousGesture` nodes above the pressed node, fed the press in flight.
+    package var simultaneousPressNodes: [ViewNode & _Interactive] = []
+    /// The gesture nodes taking the pinch in flight.
+    package var pinchNodes: [ViewNode & _PinchTarget] = []
     /// The mounted `focusedValue` nodes and the views reading focused values.
     package var focusedValueNodes: [WeakNode] = []
     package var focusedValueObservers: [WeakNode] = []

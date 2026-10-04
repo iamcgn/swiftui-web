@@ -17,8 +17,18 @@ public struct GestureEvent: Sendable {
     public var windowOrigin: CGPoint
 }
 
-/// A recogniser: receives press events, tracks a phase and emits values. The base class never
-/// recognises (gestures with no host input, such as pinches).
+/// One pinch event in the node's space: the cumulative scale and rotation (radians) since the
+/// pinch began, its centre, the host's event time and the node's bounds (for anchors).
+public struct PinchEvent: Sendable {
+    public var location: CGPoint
+    public var scale: CGFloat
+    public var rotation: Double
+    public var time: Double
+    public var bounds: CGSize
+}
+
+/// A recogniser: receives press (and pinch) events, tracks a phase and emits values. The base
+/// class never recognises.
 @MainActor
 open class _GestureRecognizer<Value> {
     public enum Phase: Sendable { case possible, active, ended, failed }
@@ -31,12 +41,17 @@ open class _GestureRecognizer<Value> {
 
     /// Whether the recogniser needs frames to complete (a long press waiting for its duration).
     open var wantsFrames: Bool { false }
+    /// Whether the recogniser takes pinches (magnify and rotate gestures, and composites of them).
+    open var recognizesPinch: Bool { false }
 
     open func began(_ event: GestureEvent) {}
     open func moved(_ event: GestureEvent) {}
     open func ended(_ event: GestureEvent, inside: Bool) { finish() }
     /// The animation clock advanced (only while `wantsFrames`).
     open func tick(clock: Double) {}
+    open func pinchBegan(_ event: PinchEvent) {}
+    open func pinchChanged(_ event: PinchEvent) {}
+    open func pinchEnded(_ event: PinchEvent, cancelled: Bool) {}
 
     /// Forgets the press without recognising.
     open func cancel() { finish() }
@@ -210,6 +225,94 @@ final class DragRecognizer: _GestureRecognizer<DragGesture.Value> {
     }
 }
 
+/// `MagnifyGesture`: active once the scale moved `minimumScaleDelta` from 1.
+@MainActor
+final class MagnifyRecognizer: _GestureRecognizer<MagnifyGesture.Value> {
+    let minimumScaleDelta: CGFloat
+    private var start: PinchEvent?
+    private var last: PinchEvent?
+    private var velocity: CGFloat = 0
+
+    init(minimumScaleDelta: CGFloat) { self.minimumScaleDelta = minimumScaleDelta }
+
+    override var recognizesPinch: Bool { true }
+
+    private func value(_ event: PinchEvent, start: PinchEvent) -> MagnifyGesture.Value {
+        MagnifyGesture.Value(magnification: event.scale, velocity: velocity, startAnchor: _pinchAnchor(start), startLocation: start.location)
+    }
+
+    override func pinchBegan(_ event: PinchEvent) {
+        start = event
+        last = event
+        velocity = 0
+        phase = .possible
+    }
+
+    override func pinchChanged(_ event: PinchEvent) {
+        guard let start else { return }
+        if let last, event.time > last.time { velocity = (event.scale - last.scale) / (event.time - last.time) }
+        last = event
+        if phase != .active, abs(event.scale - 1) < minimumScaleDelta { return }
+        emitChanged(value(event, start: start))
+    }
+
+    override func pinchEnded(_ event: PinchEvent, cancelled: Bool) {
+        if phase == .active, let start, !cancelled { emitEnded(value(event, start: start)) }
+        start = nil
+        last = nil
+        finish()
+    }
+
+    override func cancel() { start = nil; last = nil; finish() }
+}
+
+/// `RotateGesture`: active once the fingers turned `minimumAngleDelta`.
+@MainActor
+final class RotateRecognizer: _GestureRecognizer<RotateGesture.Value> {
+    let minimumAngleDelta: Angle
+    private var start: PinchEvent?
+    private var last: PinchEvent?
+    private var velocity: Double = 0
+
+    init(minimumAngleDelta: Angle) { self.minimumAngleDelta = minimumAngleDelta }
+
+    override var recognizesPinch: Bool { true }
+
+    private func value(_ event: PinchEvent, start: PinchEvent) -> RotateGesture.Value {
+        RotateGesture.Value(rotation: .radians(event.rotation), velocity: .radians(velocity), startAnchor: _pinchAnchor(start), startLocation: start.location)
+    }
+
+    override func pinchBegan(_ event: PinchEvent) {
+        start = event
+        last = event
+        velocity = 0
+        phase = .possible
+    }
+
+    override func pinchChanged(_ event: PinchEvent) {
+        guard let start else { return }
+        if let last, event.time > last.time { velocity = (event.rotation - last.rotation) / (event.time - last.time) }
+        last = event
+        if phase != .active, abs(event.rotation) < abs(minimumAngleDelta.radians) { return }
+        emitChanged(value(event, start: start))
+    }
+
+    override func pinchEnded(_ event: PinchEvent, cancelled: Bool) {
+        if phase == .active, let start, !cancelled { emitEnded(value(event, start: start)) }
+        start = nil
+        last = nil
+        finish()
+    }
+
+    override func cancel() { start = nil; last = nil; finish() }
+}
+
+/// The pinch's start as a fraction of the node's bounds.
+@MainActor private func _pinchAnchor(_ event: PinchEvent) -> UnitPoint {
+    guard event.bounds.width > 0, event.bounds.height > 0 else { return .center }
+    return UnitPoint(x: event.location.x / event.bounds.width, y: event.location.y / event.bounds.height)
+}
+
 /// `map`: forwards the base recogniser's values through `transform`.
 @MainActor
 final class MapRecognizer<Base, Value>: _GestureRecognizer<Value> {
@@ -223,10 +326,14 @@ final class MapRecognizer<Base, Value>: _GestureRecognizer<Value> {
     }
 
     override var wantsFrames: Bool { base.wantsFrames }
+    override var recognizesPinch: Bool { base.recognizesPinch }
     override func began(_ event: GestureEvent) { base.began(event) }
     override func moved(_ event: GestureEvent) { base.moved(event) }
     override func ended(_ event: GestureEvent, inside: Bool) { base.ended(event, inside: inside); finish() }
     override func tick(clock: Double) { base.tick(clock: clock) }
+    override func pinchBegan(_ event: PinchEvent) { base.pinchBegan(event) }
+    override func pinchChanged(_ event: PinchEvent) { base.pinchChanged(event) }
+    override func pinchEnded(_ event: PinchEvent, cancelled: Bool) { base.pinchEnded(event, cancelled: cancelled); finish() }
     override func cancel() { base.cancel(); finish() }
 }
 
@@ -278,6 +385,17 @@ final class SequenceRecognizer<F, S>: _GestureRecognizer<_SequenceValue<F, S>> {
     override func tick(clock: Double) {
         if firstValue != nil { second.tick(clock: clock) } else { first.tick(clock: clock) }
     }
+
+    override var recognizesPinch: Bool { first.recognizesPinch || second.recognizesPinch }
+    override func pinchBegan(_ event: PinchEvent) { if firstValue != nil { second.pinchBegan(event) } else { first.pinchBegan(event) } }
+    override func pinchChanged(_ event: PinchEvent) { if firstValue != nil { second.pinchChanged(event) } else { first.pinchChanged(event) } }
+    override func pinchEnded(_ event: PinchEvent, cancelled: Bool) {
+        if firstValue != nil { second.pinchEnded(event, cancelled: cancelled) } else { first.pinchEnded(event, cancelled: cancelled) }
+        firstValue = nil
+        pending = nil
+        finish()
+    }
+    override func cancel() { first.cancel(); second.cancel(); firstValue = nil; pending = nil; finish() }
 }
 
 /// `simultaneously`: both gestures see every event.
@@ -303,6 +421,11 @@ final class SimultaneousRecognizer<F, S>: _GestureRecognizer<_SimultaneousValue<
     override func moved(_ event: GestureEvent) { first.moved(event); second.moved(event) }
     override func ended(_ event: GestureEvent, inside: Bool) { first.ended(event, inside: inside); second.ended(event, inside: inside); finish() }
     override func tick(clock: Double) { first.tick(clock: clock); second.tick(clock: clock) }
+    override var recognizesPinch: Bool { first.recognizesPinch || second.recognizesPinch }
+    override func pinchBegan(_ event: PinchEvent) { firstValue = nil; secondValue = nil; first.pinchBegan(event); second.pinchBegan(event) }
+    override func pinchChanged(_ event: PinchEvent) { first.pinchChanged(event); second.pinchChanged(event) }
+    override func pinchEnded(_ event: PinchEvent, cancelled: Bool) { first.pinchEnded(event, cancelled: cancelled); second.pinchEnded(event, cancelled: cancelled); finish() }
+    override func cancel() { first.cancel(); second.cancel(); finish() }
 }
 
 /// `exclusively`: the first gesture to become active wins; the other is cancelled.
@@ -338,11 +461,31 @@ final class ExclusiveRecognizer<F, S>: _GestureRecognizer<_ExclusiveValue<F, S>>
         finish()
     }
     override func tick(clock: Double) { if winner != 2 { first.tick(clock: clock) }; if winner != 1 { second.tick(clock: clock) } }
+    override var recognizesPinch: Bool { first.recognizesPinch || second.recognizesPinch }
+    override func pinchBegan(_ event: PinchEvent) { winner = nil; first.pinchBegan(event); second.pinchBegan(event) }
+    override func pinchChanged(_ event: PinchEvent) { if winner != 2 { first.pinchChanged(event) }; if winner != 1 { second.pinchChanged(event) } }
+    override func pinchEnded(_ event: PinchEvent, cancelled: Bool) {
+        if winner != 2 { first.pinchEnded(event, cancelled: cancelled) }
+        if winner != 1 { second.pinchEnded(event, cancelled: cancelled) }
+        finish()
+    }
+    override func cancel() { first.cancel(); second.cancel(); winner = nil; finish() }
+}
+
+/// A gesture node that takes pinches (`Runtime.pinch`).
+@MainActor
+package protocol _PinchTarget: AnyObject {
+    var acceptsPinch: Bool { get }
+    /// Whether the node's gesture runs alongside its subviews' (`simultaneousGesture`).
+    var isSimultaneousGesture: Bool { get }
+    func pinchBegan(_ event: PinchEvent)
+    func pinchChanged(_ event: PinchEvent)
+    func pinchEnded(_ event: PinchEvent, cancelled: Bool)
 }
 
 /// The node behind `gesture`/`highPriorityGesture`/`simultaneousGesture`.
 @MainActor
-package final class GestureNode<Content: View, G: Gesture>: UnaryLayoutModifierNode<Content, _GestureModifier<G>>, _Interactive, _FrameSubscriber {
+package final class GestureNode<Content: View, G: Gesture>: UnaryLayoutModifierNode<Content, _GestureModifier<G>>, _Interactive, _FrameSubscriber, _PinchTarget {
     private var recognizer: _GestureRecognizer<G.Value>
     private var pressing = false
     private let identifier: Int
@@ -368,15 +511,20 @@ package final class GestureNode<Content: View, G: Gesture>: UnaryLayoutModifierN
         GestureEvent(location: point, time: runtime.lastPointerTime, clock: runtime.animationClock, windowOrigin: frameInRoot.origin)
     }
 
+    /// The mask's `.gesture` bit: without it the node's own gesture never runs.
+    private var takesEvents: Bool { modifier.mask.contains(.gesture) }
+
     package func pressBegan() {}
 
     package func pressBegan(at point: CGPoint) {
+        guard takesEvents else { return }
         pressing = true
         recognizer.began(event(point))
         if recognizer.wantsFrames { runtime.subscribeFrames(self) }
     }
 
     package func pressMoved(to point: CGPoint) {
+        guard pressing else { return }
         recognizer.moved(event(point))
         if !recognizer.wantsFrames { runtime.unsubscribeFrames(self) }
     }
@@ -384,6 +532,7 @@ package final class GestureNode<Content: View, G: Gesture>: UnaryLayoutModifierN
     package func pressEnded(inside: Bool) {}
 
     package func pressEnded(inside: Bool, at point: CGPoint) {
+        guard pressing else { return }
         recognizer.ended(event(point), inside: inside)
         pressing = false
         runtime.unsubscribeFrames(self)
@@ -396,8 +545,39 @@ package final class GestureNode<Content: View, G: Gesture>: UnaryLayoutModifierN
         if !recognizer.wantsFrames { runtime.unsubscribeFrames(self) }
     }
 
-    /// A high-priority gesture takes the press before its subviews' controls.
-    override package var capturesHitTesting: Bool { modifier.priority == .high }
+    // MARK: Pinches
+
+    package var acceptsPinch: Bool { takesEvents && recognizer.recognizesPinch }
+    package var isSimultaneousGesture: Bool { modifier.priority == .simultaneous }
+
+    private func pinchEvent(_ event: PinchEvent) -> PinchEvent {
+        var local = event
+        local.bounds = frame.size
+        return local
+    }
+
+    package func pinchBegan(_ event: PinchEvent) {
+        pressing = true
+        recognizer.pinchBegan(pinchEvent(event))
+    }
+
+    package func pinchChanged(_ event: PinchEvent) {
+        recognizer.pinchChanged(pinchEvent(event))
+        runtime.requestLayout()
+    }
+
+    package func pinchEnded(_ event: PinchEvent, cancelled: Bool) {
+        recognizer.pinchEnded(pinchEvent(event), cancelled: cancelled)
+        pressing = false
+        runtime.requestLayout()
+    }
+
+    /// A high-priority gesture takes the press before its subviews' controls; so does a mask
+    /// without `.subviews` (the subviews' gestures and controls are not offered the press).
+    override package var capturesHitTesting: Bool { modifier.priority == .high || !modifier.mask.contains(.subviews) }
+    /// A mask without `.gesture` leaves the presses to the subviews (`.none` takes them and
+    /// drops them, as `capturesHitTesting` keeps the subviews from them too).
+    package var isInteractive: Bool { takesEvents || !modifier.mask.contains(.subviews) }
 
     package var semantics: SemanticsNode { SemanticsNode(role: .group, label: "", frame: frameInRoot, identifier: identifier) }
     package var exposesChildren: Bool { true }

@@ -69,6 +69,9 @@ public protocol HostedScene: AnyObject {
     func secondaryPointerDown(at point: CGPoint)
     /// A wheel or trackpad scroll by `delta` points (positive moves content up and left).
     func scrollWheel(by delta: CGSize, at point: CGPoint)
+    /// A pinch from a trackpad or two touches: `scale` and `rotation` (radians, clockwise) are
+    /// cumulative since `began`; `point` is the pinch's centre.
+    func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double)
     /// A key press; returns whether the scene consumed it.
     func keyDown(_ event: KeyEvent) -> Bool
     /// The CSS cursor name the pointer should show, or nil for the default.
@@ -101,6 +104,12 @@ public protocol HostedScene: AnyObject {
 extension HostedScene {
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {}
     public func fontsDidLoad() {}
+    public func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double) {}
+}
+
+/// The phase of a continuous gesture a host delivers (pinches and rotations).
+public enum ContinuousGesturePhase: Sendable {
+    case began, changed, ended, cancelled
 }
 
 /// Turns a display list in a space of `size` points into PNG data at `scale` pixels per point.

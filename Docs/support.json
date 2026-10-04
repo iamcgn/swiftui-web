@@ -1149,11 +1149,12 @@
           ]
         },
         {
-          "api": "gesture / highPriorityGesture / simultaneousGesture / DragGesture / LongPressGesture / TapGesture / onLongPressGesture / sequenced / simultaneously / exclusively / GestureState / updating / map",
-          "status": "partial",
-          "notes": "Recognisers fed by the press events of the deepest interactive node (highPriorityGesture takes the press first); drags report local or global values with velocity, long presses tick on the animation clock, taps count within 0.35 s; MagnifyGesture/RotateGesture are API only (no pinch reaches the canvas); simultaneousGesture behaves as gesture (Docs/elements/Gestures.md)",
+          "api": "gesture / highPriorityGesture / simultaneousGesture / GestureMask / DragGesture / LongPressGesture / TapGesture / MagnifyGesture / RotateGesture / MagnificationGesture / RotationGesture / onLongPressGesture / sequenced / simultaneously / exclusively / GestureState / updating / map",
+          "status": "full",
+          "notes": "Recognisers fed by the press events of the deepest interactive node (highPriorityGesture takes the press first, simultaneousGesture ancestors share it, GestureMask honoured); drags report local or global values with velocity, long presses tick on the animation clock, taps count within 0.35 s; pinches from control-wheel events, Safari gesture events and two touches reach the magnify and rotate gestures; GestureState applies the updating and reset transactions (Docs/elements/Gestures.md)",
           "fixtures": [
-            "gesture/basic"
+            "gesture/basic",
+            "gesture/pinch"
           ]
         },
         {
