@@ -1,0 +1,51 @@
+{
+  "fixture" : "text\/inline-image",
+  "frames" : {
+    "between" : {
+      "height" : 16,
+      "width" : 76,
+      "x" : 162,
+      "y" : 73.25
+    },
+    "boldStar" : {
+      "height" : 16.5,
+      "width" : 49.5,
+      "x" : 162,
+      "y" : 150.25
+    },
+    "chevron" : {
+      "height" : 16,
+      "width" : 42,
+      "x" : 162,
+      "y" : 130.25
+    },
+    "column" : {
+      "height" : 133.5,
+      "width" : 76,
+      "x" : 162,
+      "y" : 33.25
+    },
+    "star" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 162,
+      "y" : 33.25
+    },
+    "starText" : {
+      "height" : 16,
+      "width" : 65,
+      "x" : 162,
+      "y" : 53.25
+    },
+    "starTitle" : {
+      "height" : 33,
+      "width" : 28.5,
+      "x" : 162,
+      "y" : 93.25
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 400
+  }
+}

@@ -220,6 +220,10 @@ package struct CalendarKey: EnvironmentKey {
     package static let defaultValue = Calendar.current
 }
 
+package struct LocaleKey: EnvironmentKey {
+    package static let defaultValue = Locale.current
+}
+
 extension EnvironmentValues {
     package var datePickerStyle: any DatePickerStyle {
         get { self[DatePickerStyleKey.self] }
@@ -236,6 +240,12 @@ extension EnvironmentValues {
     public var calendar: Calendar {
         get { self[CalendarKey.self] }
         set { self[CalendarKey.self] = newValue }
+    }
+
+    /// The current locale that views should use (dates and numbers format in English either way).
+    public var locale: Locale {
+        get { self[LocaleKey.self] }
+        set { self[LocaleKey.self] = newValue }
     }
 }
 

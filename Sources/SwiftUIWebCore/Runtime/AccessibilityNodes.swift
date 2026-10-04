@@ -71,7 +71,7 @@ extension Runtime {
             result += host.semanticsEntries
             return
         }
-        if let interactive = node as? any _Interactive {
+        if let interactive = node as? any _Interactive, interactive.isInteractive {
             var element = interactive.semantics
             element.frame = node.frameInRoot
             result.append(SemanticsEntry(node: node, element: element))

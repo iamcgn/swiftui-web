@@ -1,3 +1,5 @@
+import WebFoundation
+
 /// The key used to look up an entry in a strings file or strings dictionary file.
 @frozen
 public struct LocalizedStringKey: Equatable, Sendable, ExpressibleByStringInterpolation {
@@ -30,8 +32,13 @@ public struct Text: Equatable, Sendable {
     public typealias Scale = TextScale
     package enum Storage: Equatable, Sendable {
         case verbatim(String)
+        /// A literal: its inline markdown is interpreted (`Docs/elements/Text.md`, "Rich text").
         case localized(LocalizedStringKey)
         case concatenated([Text])
+        /// An image laid out like a glyph (`Text(Image)`).
+        case image(Image)
+        /// A date shown by a style, the live ones against the current instant.
+        case date(Date, DateStyle)
     }
 
     /// A style for drawing a line under or through text.
@@ -75,6 +82,10 @@ public struct Text: Equatable, Sendable {
         package var baselineOffset: CGFloat?
         package var kerning: CGFloat?
         package var tracking: CGFloat?
+        /// Markdown code spans and the `.code` intent: the font's monospaced design.
+        package var monospaced = false
+        /// A link (markdown `[text](url)`, the `link` attribute): accent-coloured, pressable.
+        package var link: URL?
 
         /// `self` applied on top of the enclosing text's modifiers.
         package func inheriting(_ parent: Modifiers) -> Modifiers {
@@ -86,6 +97,8 @@ public struct Text: Equatable, Sendable {
             result.baselineOffset = baselineOffset ?? parent.baselineOffset
             result.kerning = kerning ?? parent.kerning
             result.tracking = tracking ?? parent.tracking
+            result.monospaced = monospaced || parent.monospaced
+            result.link = link ?? parent.link
             return result
         }
     }
@@ -94,7 +107,12 @@ public struct Text: Equatable, Sendable {
     package struct Part: Equatable, Sendable {
         package var string: String
         package var modifiers: Modifiers
+        /// An inline image: `string` is one object replacement character standing for it.
+        package var image: Image? = nil
     }
+
+    /// The character an inline image occupies in the layout.
+    package static let objectReplacement = "\u{FFFC}"
 
     package let storage: Storage
     package var modifiers = Modifiers()
@@ -115,22 +133,44 @@ public struct Text: Equatable, Sendable {
         storage = .localized(key)
     }
 
-    /// The displayed string (localization is identity until Phase 3).
+    /// The displayed string (localization is identity until Phase 3; markdown markup removed).
     package var resolvedString: String {
         switch storage {
         case .verbatim(let s): return s
-        case .localized(let key): return key.key
+        case .localized(let key): return _InlineMarkdown.parse(key.key).map(\.text).joined()
         case .concatenated(let parts): return parts.map(\.resolvedString).joined()
+        case .image: return ""
+        case .date(let date, let style): return _DateText.string(for: date, style: style, context: .current)
+        }
+    }
+
+    /// Whether the text shows a date that moves with the clock.
+    package var isLive: Bool {
+        switch storage {
+        case .date(_, let style): return style.isLive
+        case .concatenated(let parts): return parts.contains(where: \.isLive)
+        default: return false
         }
     }
 
     /// The leaves of this text in order, each with the modifiers that apply to it.
-    package func parts(inheriting parent: Modifiers = Modifiers()) -> [Part] {
+    package func parts(inheriting parent: Modifiers = Modifiers(), context: _TextContext? = nil) -> [Part] {
         let effective = modifiers.inheriting(parent)
         switch storage {
         case .verbatim(let s): return [Part(string: s, modifiers: effective)]
-        case .localized(let key): return [Part(string: key.key, modifiers: effective)]
-        case .concatenated(let texts): return texts.flatMap { $0.parts(inheriting: effective) }
+        case .localized(let key):
+            return _InlineMarkdown.parse(key.key).map { run in
+                var modifiers = effective
+                if run.bold { modifiers.bold = true }
+                if run.italic { modifiers.italic = true }
+                if run.code { modifiers.monospaced = true }
+                if run.strikethrough { modifiers.strikethrough = .some(LineStyle()) }
+                if let link = run.link, let url = URL(string: link) { modifiers.link = url }
+                return Part(string: run.text, modifiers: modifiers)
+            }
+        case .concatenated(let texts): return texts.flatMap { $0.parts(inheriting: effective, context: context) }
+        case .image(let image): return [Part(string: Self.objectReplacement, modifiers: effective, image: image)]
+        case .date(let date, let style): return [Part(string: _DateText.string(for: date, style: style, context: context ?? .current), modifiers: effective)]
         }
     }
 
@@ -484,9 +524,91 @@ extension View {
 
 /// Lays out a text run with the runtime's text engine.
 @MainActor
-package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
-    package var pointerStyle: PointerStyle? { environment._textSelectionEnabled ? .horizontalText : nil }
-    package func hoverChanged(inside: Bool, at point: CGPoint) {}
+package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _Interactive {
+    /// The pointer over a link shows the hand; selectable text the I-beam.
+    package var pointerStyle: PointerStyle? {
+        if let point = hoverPoint, link(at: point) != nil { return .link }
+        return environment._textSelectionEnabled ? .horizontalText : nil
+    }
+    private var hoverPoint: CGPoint?
+    package func hoverChanged(inside: Bool, at point: CGPoint) {
+        hoverPoint = inside ? point : nil
+    }
+
+    // MARK: Links (markdown `[text](url)`, the `link` attribute)
+
+    /// Whether any part is a link: only then does the text take presses.
+    package var hasLinks: Bool { view.parts(context: textContext).contains { $0.modifiers.link != nil } }
+    package var isInteractive: Bool { hasLinks }
+
+    /// What the text resolves its parts against (dates in the environment's time zone).
+    package var textContext: _TextContext { _TextContext(timeZone: environment.timeZone, calendar: environment.calendar) }
+
+    /// The link under `point` (the node's coordinates), if any.
+    package func link(at point: CGPoint) -> URL? {
+        let parts = view.parts(context: textContext)
+        guard parts.contains(where: { $0.modifiers.link != nil }) else { return nil }
+        let (runs, _) = styledRuns
+        let layout = textLayout(width: frame.width, height: frame.height)
+        let alignment: CGFloat
+        switch environment.multilineTextAlignment {
+        case .leading: alignment = 0
+        case .center: alignment = 0.5
+        case .trailing: alignment = 1
+        }
+        let shiftUp = baselineShift.up
+        for line in layout.lines {
+            let font = runs.indices.contains(line.fragments.first?.run ?? 0) ? runs[line.fragments.first?.run ?? 0].font : resolvedFont
+            let metrics = environment.platformProfile.systemFontMetrics(for: font)
+            let top = line.baseline + shiftUp - metrics.baseline, bottom = top + metrics.lineHeight
+            guard point.y >= top, point.y < bottom else { continue }
+            let lineX = (frame.width - line.inkWidth) * alignment
+            for fragment in line.fragments where parts.indices.contains(fragment.run) {
+                if point.x >= lineX + fragment.x, point.x < lineX + fragment.x + fragment.width { return parts[fragment.run].modifiers.link }
+            }
+        }
+        return nil
+    }
+
+    private var pressedLink: URL?
+    package func pressBegan() {}
+    package func pressBegan(at point: CGPoint) { pressedLink = link(at: point) }
+    package func pressEnded(inside: Bool) { pressedLink = nil }
+    package func pressEnded(inside: Bool, at point: CGPoint) {
+        defer { pressedLink = nil }
+        guard inside, environment.isEnabled, let pressed = pressedLink, link(at: point) == pressed else { return }
+        environment.openURL(pressed)
+    }
+
+    package var semantics: SemanticsNode {
+        SemanticsNode(role: .link, label: view.resolvedString, frame: frameInRoot, identifier: ObjectIdentifier(self).hashValue & 0x7fffffff)
+    }
+
+    // MARK: Live dates
+
+    private var liveWake: Task<Void, Never>?
+
+    /// A text with a relative, offset or timer date re-resolves every second.
+    private func scheduleLiveRefresh() {
+        guard view.isLive else {
+            liveWake?.cancel(); liveWake = nil
+            return
+        }
+        guard liveWake == nil else { return }
+        liveWake = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            guard !Task.isCancelled, let self else { return }
+            self.liveWake = nil
+            self.invalidate()
+            self.runtime.requestLayout()
+        }
+    }
+
+    override package func unmount() {
+        liveWake?.cancel()
+        liveWake = nil
+        super.unmount()
+    }
 
     /// The previous text while a content transition runs: painted fading out (and rolling,
     /// for numeric text) as the new one fades in. The node's presentation opacity tween holds
@@ -502,6 +624,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
         let previousView = self.view, previousEnvironment = self.environment
         let previousRuns = styledRuns.runs
         super.update(view: view, environment: environment, force: force)
+        scheduleLiveRefresh()
         let transition = environment.contentTransition
         guard transition.fades, styledRuns.runs != previousRuns,
               let animation = runtime.effectiveUpdateAnimation(for: self) else { return }
@@ -533,6 +656,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
             resolved.weight = environment.platformProfile.boldTraitWeight(for: resolved.textStyle); resolved.weightOverridden = true
         }
         if modifiers.italic { resolved.italic = true }
+        if modifiers.monospaced, resolved.family.hasPrefix("system") { resolved.family = "system-monospaced" }
         return resolved
     }
 
@@ -540,10 +664,35 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
     /// concatenation may differ.
     package var resolvedFont: ResolvedFont { resolveFont(view.modifiers) }
 
-    /// The text's leaves as the engine sees them, with each part's colour.
+    /// The text's leaves as the engine sees them, with each part's colour; an inline image is a
+    /// run one replacement character long measuring the symbol's width at the font.
     package var styledRuns: (runs: [StyledRun], colors: [Color?]) {
-        let parts = view.parts()
-        return (parts.map { StyledRun(cased($0.string), font: resolveFont($0.modifiers)) }, parts.map(\.modifiers.foregroundColor))
+        let parts = view.parts(context: textContext)
+        return (parts.map { part in
+            let font = resolveFont(part.modifiers)
+            if let image = part.image {
+                let size = inlineSymbol(for: image, font: font)?.size
+                return StyledRun(part.string, font: font, inlineWidth: size?.width ?? 0, inlineHeight: size?.height)
+            }
+            return StyledRun(cased(part.string), font: font)
+        }, parts.map(\.modifiers.foregroundColor))
+    }
+
+    /// The glyph and size of an inline system image at `font` (`Image(systemName:)` only; other
+    /// images take no space).
+    package func inlineSymbol(for image: Image, font: ResolvedFont) -> (glyph: (glyph: SymbolGlyph, outline: SymbolGlyphOutline)?, size: SystemSymbolMetrics.Size)? {
+        guard case .system(let base) = image.source else { return nil }
+        let candidates = environment.symbolVariants.names(for: base)
+        func measure(_ name: String) -> SystemSymbolMetrics.Size? {
+            SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale)
+        }
+        let name = candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil && measure($0) != nil }
+            ?? candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil } ?? base
+        let glyph = SystemSymbolGlyphs.glyph(named: name)
+        if let size = measure(name) { return (glyph, size) }
+        let star = SystemSymbolMetricsTable.sizes["star"] ?? []
+        let size = star.count >= 36 ? SystemSymbolMetrics.size(values: star, pointSize: font.size, weight: font.weight, scale: environment.imageScale) : SystemSymbolMetrics.fallback
+        return (glyph, size)
     }
 
     /// `string` with the environment's `textCase` applied.
@@ -556,7 +705,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
     }
 
     /// Each part's own gradient, if it has one.
-    package var runGradients: [(any _GradientStyle)?] { view.parts().map { $0.modifiers.foregroundGradient?.style } }
+    package var runGradients: [(any _GradientStyle)?] { view.parts(context: textContext).map { $0.modifiers.foregroundGradient?.style } }
 
     /// The environment's layout options with the text's own kerning and tracking.
     package var layoutOptions: TextLayoutOptions {
@@ -639,15 +788,28 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
 
     /// Each part's baseline offset (its own, else the environment's).
     package var baselineOffsets: [CGFloat] {
-        view.parts().map { $0.modifiers.baselineOffset ?? environment._baselineOffset }
+        view.parts(context: textContext).map { $0.modifiers.baselineOffset ?? environment._baselineOffset }
     }
 
-    /// How far the text grows above and below for baseline offsets: the largest raise adds
-    /// space below the (unmoved) baseline guide, the largest drop adds space below the glyphs
-    /// (`textstyle/baseline`: a text 16 high with offset 6 is 22 high, with −4 it is 20).
+    /// How far the text grows above and below for baseline offsets: a raised part adds what its
+    /// ascent plus the offset reaches above the line's ascent, a dropped part what its descent
+    /// plus the drop reaches below the line's descent (`textstyle/baseline`: a text 16 high with
+    /// offset 6 is 22 high, with −4 it is 20; `text/attributed`: a 13 pt part raised 4 next to a
+    /// title stays within the title's line).
     package var baselineShift: (up: CGFloat, down: CGFloat) {
         let offsets = baselineOffsets
-        return (max(0, offsets.max() ?? 0), max(0, -(offsets.min() ?? 0)))
+        guard offsets.contains(where: { $0 != 0 }) else { return (0, 0) }
+        let runs = styledRuns.runs
+        let profile = environment.platformProfile
+        let metrics = runs.map { profile.systemFontMetrics(for: $0.font) }
+        let lineAscent = metrics.map(\.baseline).max() ?? 0
+        let lineDescent = metrics.map { $0.lineHeight - $0.baseline }.max() ?? 0
+        var up: CGFloat = 0, down: CGFloat = 0
+        for (index, offset) in offsets.enumerated() where metrics.indices.contains(index) {
+            up = max(up, metrics[index].baseline + offset - lineAscent)
+            down = max(down, metrics[index].lineHeight - metrics[index].baseline - offset - lineDescent)
+        }
+        return (max(0, up), max(0, down))
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
@@ -696,7 +858,11 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
             return
         }
         let inherited = (environment.foregroundColor ?? .primary)
-        let resolvedColors = colors.map { ($0 ?? inherited).resolve(in: environment) }
+        let parts = view.parts(context: textContext)
+        // A link without a colour of its own takes the accent (text/markdown `link`).
+        let resolvedColors = colors.indices.map { index in
+            (colors[index] ?? (parts.indices.contains(index) && parts[index].modifiers.link != nil ? Color.accentColor : inherited)).resolve(in: environment)
+        }
         let spacing = TextLayouter.letterSpacing(layoutOptions) + layout.tightening
         let secondary = layoutOptions.textScale == .secondary
         let fonts = runs.map { run -> DisplayFont in
@@ -716,7 +882,6 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
         case .center: alignment = 0.5
         case .trailing: alignment = 1
         }
-        let parts = view.parts()
         let offsets = baselineOffsets
         let shiftUp = baselineShift.up
         for line in layout.lines {
@@ -728,6 +893,14 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
                 let origin = CGPoint(x: lineX + fragment.x, y: bounds.minY + line.baseline + shiftUp - offset + dy)
                 let own = runGradients.indices.contains(run) ? runGradients[run]?._resolveGradient(in: bounds, environment: environment) : nil
                 let color = resolvedColors.indices.contains(run) ? resolvedColors[run] : inherited.resolve(in: environment)
+                if parts.indices.contains(run), let image = parts[run].image {
+                    // An inline image sits on the baseline by its descent, as wide as its advance.
+                    if let symbol = inlineSymbol(for: image, font: runs[run].font), let glyph = symbol.glyph {
+                        let rect = CGRect(x: origin.x, y: origin.y + symbol.size.descent - symbol.size.height, width: fragment.width, height: symbol.size.height)
+                        _SymbolPainter.paint(glyph, in: rect, weight: runs[run].font.weight.value, color: color, into: &list)
+                    }
+                    continue
+                }
                 if let gradient = own ?? inheritedGradient, colors.indices.contains(run) ? colors[run] == nil : true {
                     list.append(.drawTextGradient(fragment.text, font, origin: origin, gradient))
                 } else {

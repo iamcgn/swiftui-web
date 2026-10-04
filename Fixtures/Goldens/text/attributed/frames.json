@@ -1,0 +1,33 @@
+{
+  "fixture" : "text\/attributed",
+  "frames" : {
+    "attributed" : {
+      "height" : 33,
+      "width" : 169.5,
+      "x" : 98.75,
+      "y" : 63.5
+    },
+    "column" : {
+      "height" : 73,
+      "width" : 202.5,
+      "x" : 98.75,
+      "y" : 63.5
+    },
+    "intents" : {
+      "height" : 16,
+      "width" : 202.5,
+      "x" : 98.75,
+      "y" : 100.5
+    },
+    "plain" : {
+      "height" : 16,
+      "width" : 92.5,
+      "x" : 98.75,
+      "y" : 120.5
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 400
+  }
+}

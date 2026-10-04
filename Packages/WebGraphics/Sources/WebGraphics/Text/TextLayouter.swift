@@ -130,6 +130,12 @@ public struct TextLayouter {
         for (index, run) in runs.enumerated() { runOf += Array(repeating: index, count: run.string.count) }
         let fonts = runs.map(\.font)
         let firstFont = fonts.first ?? ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
+        let inlineWidths = runs.map(\.inlineWidth)
+        /// The width of `text` from run `run`: an inline object's width, else measured.
+        func measureRun(_ text: String, _ run: Int) -> CGFloat {
+            if let inline = inlineWidths[run] { return text.isEmpty ? 0 : inline }
+            return measure(text, fonts[run])
+        }
 
         func half(_ w: CGFloat) -> CGFloat { (w * 2).rounded(.up) / 2 }
         func isSpace(_ c: Character) -> Bool { c == " " || c == "\n" }
@@ -147,7 +153,7 @@ public struct TextLayouter {
             return result
         }
         func raw(_ lo: Int, _ hi: Int) -> CGFloat {
-            segments(lo, hi).reduce(0) { $0 + measure($1.text, fonts[$1.run]) }
+            segments(lo, hi).reduce(0) { $0 + measureRun($1.text, $1.run) }
         }
         /// End of the drawn part of [lo, hi): trailing spaces and newlines are not drawn.
         func inkEnd(_ lo: Int, _ hi: Int) -> Int {
@@ -166,7 +172,7 @@ public struct TextLayouter {
             var fragments: [TextLayout.Fragment] = []
             var x: CGFloat = 0
             for segment in segments(lo, ink) {
-                let w = measure(segment.text, fonts[segment.run])
+                let w = measureRun(segment.text, segment.run)
                 fragments.append(.init(text: segment.text, run: segment.run, x: x, width: w))
                 x += w
             }
@@ -181,7 +187,7 @@ public struct TextLayouter {
             var fragments: [TextLayout.Fragment] = []
             var x: CGFloat = 0
             func append(_ text: String, _ run: Int) {
-                let w = measure(text, fonts[run])
+                let w = text == Self.ellipsis ? measure(text, fonts[run]) : measureRun(text, run)
                 fragments.append(.init(text: text, run: run, x: x, width: w))
                 x += w
             }
@@ -338,7 +344,8 @@ public struct TextLayouter {
         for (index, piece) in pieces.enumerated() {
             let lineFonts = piece.runsShown.map { fonts.indices.contains($0) ? fonts[$0] : firstFont }
             let lineMetrics = lineFonts.map(metrics)
-            let lineHeight = lineMetrics.map(\.lineHeight).max() ?? 0
+            let inlineHeight = piece.runsShown.compactMap { runs.indices.contains($0) ? runs[$0].inlineHeight : nil }.max() ?? 0
+            let lineHeight = max(lineMetrics.map(\.lineHeight).max() ?? 0, inlineHeight)
             let baseline = lineMetrics.map(\.baseline).max() ?? 0
             let pitch = lineMetrics.map { $0.pitch(lineSpacing: options.lineSpacing) }.max() ?? 0
             let start = string.index(string.startIndex, offsetBy: piece.lo)

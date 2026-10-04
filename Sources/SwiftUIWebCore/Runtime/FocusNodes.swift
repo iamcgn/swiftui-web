@@ -27,7 +27,7 @@ package final class FocusedNode<Content: View, Value: Hashable>: UnaryLayoutModi
     /// The first text field in the subtree, else its first interactive or focusable view.
     package var focusTargetIdentifier: Int? {
         if let field = descendants(where: { $0 is TextFieldNode }).first as? TextFieldNode { return field.identifier }
-        return (descendants(where: { $0 is _Interactive }).first as? any _Interactive)?.semantics.identifier
+        return (descendants(where: { $0.isInteractiveNode }).first as? any _Interactive)?.semantics.identifier
     }
 }
 

@@ -471,14 +471,15 @@
       "framework": "SwiftUI",
       "area": "Text",
       "title": "AttributedString, markdown, dates and images in Text",
-      "detail": "`Text(AttributedString)` with per-run fonts, colours and links, markdown in string literals, `Text(date, style:)` and `Text(_:format:)`, `Text(Image)` inline, `Link` inside text.",
+      "detail": "Done 2026-10-03: markdown in string literals (bold, italic, code, strikethrough, links, escapes; _InlineMarkdown in WebFoundation), Text(AttributedString) with the SwiftUI attribute scope (font, colours, decorations, baseline offset, kern, tracking) plus Foundation's link and inlinePresentationIntent (a WebFoundation AttributedString stand-in on wasm with init(markdown:)), Text(Image) laid out as a symbol glyph on the baseline, Text(date, style:) (date, time at the environment's time zone; relative, offset and timer re-resolving each second) and Text(_:format:), links in text that open through openURL and show the hand; four macOS goldens, Tier A exact. Open: DateInterval and ranges, Duration, per-run kern, backgroundColor painting, non-system inline images.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Text.md",
         "Docs/elements/Link.md"
-      ]
+      ],
+      "done": "2026-10-03"
     },
     {
       "id": "sw-custom-fonts",

@@ -125,8 +125,12 @@
         {
           "api": "Text (verbatim/localized/interpolation, concatenation with mixed styles)",
           "status": "partial",
-          "notes": "Layout exact with recorded metrics on 17 fixtures; default font is the 13 pt system font and bold() resolves per text style (decision 0010); concatenated parts keep font/weight/traits/colour; wrapping, character wrapping, hard newlines, lineLimit (Int, ranges, reservesSpace), truncationMode head/middle/tail, multilineTextAlignment, lineSpacing; no localization tables, attributed strings; height pressure keeps floor(height / pitch) lines; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting)",
+          "notes": "Layout exact with recorded metrics on 17 fixtures; default font is the 13 pt system font and bold() resolves per text style (decision 0010); concatenated parts keep font/weight/traits/colour; wrapping, character wrapping, hard newlines, lineLimit (Int, ranges, reservesSpace), truncationMode head/middle/tail, multilineTextAlignment, lineSpacing; no localization tables, attributed strings; height pressure keeps floor(height / pitch) lines; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting) Rich text (2026-10-03): markdown in literals (bold, italic, code, strikethrough, links, escapes), Text(AttributedString) with the SwiftUI attribute scope and Foundation's link and inline presentation intents (a WebFoundation stand-in on wasm), Text(Image) as an inline symbol glyph, Text(date, style:) and Text(_:format:), links in text opening through openURL; text/markdown, text/attributed, text/dates, text/inline-image exact in Tier A",
           "fixtures": [
+            "text/markdown",
+            "text/attributed",
+            "text/dates",
+            "text/inline-image",
             "text/*"
           ]
         },

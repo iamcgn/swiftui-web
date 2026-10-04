@@ -215,3 +215,36 @@ extension View {
         listRowSpacing(row).listSectionSpacing(section)
     }
 }
+
+// MARK: - Rich text (text/attributed)
+
+/// The attributed strings of `text/attributed`, built with explicit keys (the twin in the
+/// harness's FixtureKit uses Apple's dynamic members).
+@MainActor
+public func fixtureRichString() -> AttributedString {
+    var hello = AttributedString("Hello ")
+    var world = AttributedString("world")
+    world[_SwiftUIFontAttribute.self] = .title
+    world[_SwiftUIForegroundColorAttribute.self] = .red
+    var under = AttributedString(" under")
+    under[_SwiftUIUnderlineStyleAttribute.self] = .single
+    var up = AttributedString(" up")
+    up[_SwiftUIBaselineOffsetAttribute.self] = 4
+    var link = AttributedString(" link")
+    link[AttributeScopes.FoundationAttributes.LinkAttribute.self] = URL(string: "https://example.com")
+    hello += world
+    hello += under
+    hello += up
+    hello += link
+    return hello
+}
+
+@MainActor
+public func fixtureIntentString() -> AttributedString {
+    func intent(_ string: String, _ intent: InlinePresentationIntent) -> AttributedString {
+        var result = AttributedString(string)
+        result[AttributeScopes.FoundationAttributes.InlinePresentationIntentAttribute.self] = intent
+        return result
+    }
+    return intent("Strong", .stronglyEmphasized) + intent(" emphasized", .emphasized) + intent(" code", .code) + intent(" struck", .strikethrough)
+}

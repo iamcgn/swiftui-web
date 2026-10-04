@@ -165,3 +165,35 @@ extension View {
         #endif
     }
 }
+
+// MARK: - Rich text (text/attributed)
+
+/// The attributed strings of `text/attributed`, through Apple's dynamic members.
+@MainActor
+public func fixtureRichString() -> AttributedString {
+    var hello = AttributedString("Hello ")
+    var world = AttributedString("world")
+    world.font = .title
+    world.foregroundColor = .red
+    var under = AttributedString(" under")
+    under.underlineStyle = .single
+    var up = AttributedString(" up")
+    up.baselineOffset = 4
+    var link = AttributedString(" link")
+    link.link = URL(string: "https://example.com")
+    hello += world
+    hello += under
+    hello += up
+    hello += link
+    return hello
+}
+
+@MainActor
+public func fixtureIntentString() -> AttributedString {
+    func intent(_ string: String, _ intent: InlinePresentationIntent) -> AttributedString {
+        var result = AttributedString(string)
+        result.inlinePresentationIntent = intent
+        return result
+    }
+    return intent("Strong", .stronglyEmphasized) + intent(" emphasized", .emphasized) + intent(" code", .code) + intent(" struck", .strikethrough)
+}

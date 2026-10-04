@@ -3,10 +3,17 @@
 public struct StyledRun: Hashable, Sendable {
     public var string: String
     public var font: ResolvedFont
+    /// An inline object (an image in text): the run measures this wide instead of its string,
+    /// which stands in for it (one object replacement character), and its line grows to
+    /// `inlineHeight` when that is taller than the fonts' line.
+    public var inlineWidth: CGFloat?
+    public var inlineHeight: CGFloat?
 
-    public init(_ string: String, font: ResolvedFont) {
+    public init(_ string: String, font: ResolvedFont, inlineWidth: CGFloat? = nil, inlineHeight: CGFloat? = nil) {
         self.string = string
         self.font = font
+        self.inlineWidth = inlineWidth
+        self.inlineHeight = inlineHeight
     }
 }
 
@@ -202,7 +209,7 @@ public enum TextMetricsKey {
     public static func mergedByFont(_ runs: [StyledRun]) -> [StyledRun] {
         var merged: [StyledRun] = []
         for run in runs {
-            if let last = merged.last, last.font == run.font {
+            if let last = merged.last, last.font == run.font, last.inlineWidth == nil, run.inlineWidth == nil {
                 merged[merged.count - 1].string += run.string
             } else {
                 merged.append(run)

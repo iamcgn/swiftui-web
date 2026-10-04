@@ -98,6 +98,11 @@ public enum SystemFontMetricsTables {
     /// Metrics for a resolved font from the tables of the platform it was resolved for (the
     /// font's profile, not this one's: a page can hold subtrees of another platform);
     /// interpolated for unmeasured point sizes.
+    /// Line metrics of the monospaced design where they differ from the default design's.
+    static let macOSMonospacedStyleLines: [FontTextStyle: (lineHeight: CGFloat, linePitch: CGFloat, unrounded: CGFloat)] = [
+        .title3: (23, 24, 21.66666666666667),
+    ]
+
     public static func systemFontMetrics(for font: ResolvedFont) -> SystemFontMetrics {
         let iOS = font.profile == "iOS"
         let styleMetrics = iOS ? Self.iOSTextStyleMetrics : Self.macOSTextStyleMetrics
@@ -108,6 +113,13 @@ public enum SystemFontMetricsTables {
                 metrics.baseline = face.baseline
                 metrics.linePitch = face.lineHeight.rounded(.up)
                 metrics.unroundedLineHeight = face.lineHeight
+            }
+            // The monospaced design's line is taller at some styles (text-metrics.json fonts:
+            // `style:title3:monospaced` 23 on a 24 pitch where the default is 22; measured 2026-10-03).
+            if !iOS, font.family == "system-monospaced", let mono = Self.macOSMonospacedStyleLines[style] {
+                metrics.lineHeight = mono.lineHeight
+                metrics.linePitch = mono.linePitch
+                metrics.unroundedLineHeight = mono.unrounded
             }
             return metrics
         }

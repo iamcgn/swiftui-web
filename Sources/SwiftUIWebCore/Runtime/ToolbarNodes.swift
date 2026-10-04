@@ -124,7 +124,7 @@ package final class ToolbarChromeNode: ViewNode {
     override package var nodeDescription: String { "Toolbar" }
 
     package var interactiveNodes: [ViewNode & _Interactive] {
-        content.layoutChildren.flatMap { $0.collectNodes(where: { $0 is _Interactive }) }.compactMap { $0 as? (ViewNode & _Interactive) }
+        content.layoutChildren.flatMap { $0.collectNodes(where: { $0.isInteractiveNode }) }.compactMap { $0 as? (ViewNode & _Interactive) }
     }
 
     /// The interactive node under a window point, if the point is in the bar.
@@ -132,7 +132,7 @@ package final class ToolbarChromeNode: ViewNode {
         guard frame.contains(point) else { return nil }
         for node in content.layoutChildren.reversed() {
             let local = CGPoint(x: point.x - node.frame.minX, y: point.y - node.frame.minY)
-            if let hit = node.hitTest(local, where: { $0 is _Interactive }) { return hit as? (ViewNode & _Interactive) }
+            if let hit = node.hitTest(local, where: { $0.isInteractiveNode }) { return hit as? (ViewNode & _Interactive) }
         }
         return nil
     }

@@ -344,14 +344,14 @@ package final class PresentationNode: ViewNode {
         if kind.isWindow, closeButtonFrame.insetBy(dx: -4, dy: -4).contains(point) { return closeButton }
         let local = CGPoint(x: point.x - target.frame.minX, y: point.y - target.frame.minY)
         guard target.contains(local) else { return nil }
-        return target.hitTest(local, where: { $0 is _Interactive }) as? (ViewNode & _Interactive)
+        return target.hitTest(local, where: { $0.isInteractiveNode }) as? (ViewNode & _Interactive)
     }
 
     /// The traffic-light close control of a secondary window.
     private lazy var closeButton: WindowCloseButton = WindowCloseButton(presentation: self)
 
     package var interactiveNodes: [ViewNode & _Interactive] {
-        (target?.collectNodes(where: { $0 is _Interactive }) ?? []).compactMap { $0 as? (ViewNode & _Interactive) }
+        (target?.collectNodes(where: { $0.isInteractiveNode }) ?? []).compactMap { $0 as? (ViewNode & _Interactive) }
     }
 
     override package var structuralChildren: [ViewNode] { [content] }

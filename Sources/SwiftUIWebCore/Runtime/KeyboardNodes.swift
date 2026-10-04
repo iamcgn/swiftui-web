@@ -60,7 +60,7 @@ package final class KeyboardShortcutNode<Content: View>: UnaryLayoutModifierNode
     }
 
     package func activate() {
-        guard let control = descendants(where: { $0 is _Interactive && !($0 is FocusableNode<Content>) }).first as? any _Interactive else { return }
+        guard let control = descendants(where: { $0.isInteractiveNode && !($0 is FocusableNode<Content>) }).first as? any _Interactive else { return }
         control.pressBegan()
         control.pressEnded(inside: true)
     }

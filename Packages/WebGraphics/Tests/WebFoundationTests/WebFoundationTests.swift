@@ -228,3 +228,33 @@ import Foundation
         #expect(percent.format(0.256) == "26%")
     }
 }
+
+@Suite struct InlineMarkdownTests {
+    private func runs(_ string: String) -> [_InlineMarkdownRun] { _InlineMarkdown.parse(string) }
+
+    @Test func plainTextIsOneRun() {
+        #expect(runs("Hello world") == [_InlineMarkdownRun(text: "Hello world")])
+        #expect(runs("") == [_InlineMarkdownRun(text: "")])
+    }
+
+    @Test func emphasisStrongCodeAndStrikethrough() {
+        #expect(runs("Plain **bold** and _italic_ and ***both*** done") == [
+            _InlineMarkdownRun(text: "Plain "), _InlineMarkdownRun(text: "bold", bold: true), _InlineMarkdownRun(text: " and "),
+            _InlineMarkdownRun(text: "italic", italic: true), _InlineMarkdownRun(text: " and "), _InlineMarkdownRun(text: "both", bold: true, italic: true),
+            _InlineMarkdownRun(text: " done")])
+        #expect(runs("`code`") == [_InlineMarkdownRun(text: "code", code: true)])
+        #expect(runs("~~struck~~ on") == [_InlineMarkdownRun(text: "struck", strikethrough: true), _InlineMarkdownRun(text: " on")])
+        #expect(runs("__strong__ *em* nested **a _b_ c**") == [
+            _InlineMarkdownRun(text: "strong", bold: true), _InlineMarkdownRun(text: " "), _InlineMarkdownRun(text: "em", italic: true), _InlineMarkdownRun(text: " nested "),
+            _InlineMarkdownRun(text: "a ", bold: true), _InlineMarkdownRun(text: "b", bold: true, italic: true), _InlineMarkdownRun(text: " c", bold: true)])
+    }
+
+    @Test func linksEscapesAndLooseDelimiters() {
+        #expect(runs("[a link](https://example.com) rest") == [_InlineMarkdownRun(text: "a link", link: "https://example.com"), _InlineMarkdownRun(text: " rest")])
+        #expect(runs("Escaped \\*stars\\*") == [_InlineMarkdownRun(text: "Escaped *stars*")])
+        // Unclosed or space-flanked delimiters stay literal.
+        #expect(runs("a * b * c") == [_InlineMarkdownRun(text: "a * b * c")])
+        #expect(runs("open **never") == [_InlineMarkdownRun(text: "open **never")])
+        #expect(runs("snake_case_name") == [_InlineMarkdownRun(text: "snake_case_name")])
+    }
+}

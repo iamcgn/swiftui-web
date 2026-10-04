@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 55 | 0 | 23 | 32 |
+| SwiftUI | 54 | 0 | 22 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **95** | 0 | 47 | 48 |
+| **All** | **94** | 0 | 46 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · Text · missing  
-  `Text(AttributedString)` with per-run fonts, colours and links, markdown in string literals, `Text(date, style:)` and `Text(_:format:)`, `Text(Image)` inline, `Link` inside text. ([Text.md](Docs/elements/Text.md), [Link.md](Docs/elements/Link.md))
 - ☐ **Custom fonts** `sw-custom-fonts` · Text · missing  
   `Font.custom` with a font file in the app bundle: metrics read from the file for layout, the face loaded by the browser and by CoreText; the recorded engine keyed by family. ([Text.md](Docs/elements/Text.md), [0005-text-metrics.md](Docs/decisions/0005-text-metrics.md))
 - ☐ **NavigationStack gaps** `sw-navigation` · Navigation · missing  
@@ -231,6 +229,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
+- ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text
 - ☑ 2026-09-19 **List styles, spacing and outline forms** `sw-list-looks` · SwiftUI · List
 - ☑ 2026-09-19 **Scroll position, targets and geometry** `sw-scroll-apis` · SwiftUI · ScrollView
 - ☑ 2026-09-19 **Real laziness and pinned headers** `sw-lazy` · SwiftUI · Lazy stacks and grids

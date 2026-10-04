@@ -253,6 +253,24 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Hello", defaultFont, options: .init(lineSpacing: 10)))
         requests.append(TextMetricRequest("Hello", defaultFont, options: .init(truncation: "head")))
         requests.append(TextMetricRequest(twoParagraphs, defaultFont))
+        // text/markdown, text/attributed: the runs markdown and attributed strings produce.
+        let bold = FixtureFont.system(size: 13, weight: "bold", design: "default")
+        let italic = FixtureFont.system(size: 13, weight: "regular", design: "default", italic: true)
+        let boldItalic = FixtureFont.system(size: 13, weight: "bold", design: "default", italic: true)
+        let mono = FixtureFont.system(size: 13, weight: "regular", design: "monospaced")
+        requests.append(TextMetricRequest(runs: [.init("Plain ", defaultFont), .init("bold", bold), .init(" and ", defaultFont), .init("italic", italic),
+                                                 .init(" and ", defaultFont), .init("both", boldItalic), .init(" done", defaultFont)]))
+        for (string, font) in [("bold", bold), ("italic", italic), ("both", boldItalic), ("code", mono), ("struck", defaultFont), ("a link", defaultFont),
+                               ("**not** markdown", defaultFont), ("Escaped *stars*", defaultFont), ("Plain attributed", defaultFont),
+                               (" Starred", defaultFont), ("Rate ", defaultFont), (" now", defaultFont), (" Next", defaultFont), (" Bold", bold)] {
+            requests.append(TextMetricRequest(string, font))
+        }
+        requests.append(TextMetricRequest(runs: [.init("Call ", defaultFont), .init("now", bold), .init(" or visit today", defaultFont)]))
+        requests.append(TextMetricRequest(runs: [.init("Mono ", .style("title3")), .init("code", .style("title3", design: "monospaced")), .init(" and plain", .style("title3"))]))
+        requests.append(TextMetricRequest(runs: [.init("Hello ", defaultFont), .init("world", .style("title")), .init(" under up link", defaultFont)]))
+        requests.append(TextMetricRequest(runs: [.init("Strong", bold), .init(" emphasized", italic), .init(" code", mono), .init(" struck", defaultFont)]))
+        // text/dates: the date and time styles at UTC (a narrow no-break space before the period).
+        for string in ["May 28, 2026", "8:26\u{202F}PM"] { requests.append(TextMetricRequest(string, defaultFont)) }
         // text/fit: minimumScaleFactor and allowsTightening.
         for width: CGFloat in [120, 100, 80, 60, 40] { requests.append(TextMetricRequest(sample, defaultFont, width: width, options: .init(lineLimit: 1, minimumScaleFactor: 0.5))) }
         for width: CGFloat in [100, 80, 60] { requests.append(TextMetricRequest(sample, defaultFont, width: width, options: .init(lineLimit: 1, minimumScaleFactor: 0.8))) }

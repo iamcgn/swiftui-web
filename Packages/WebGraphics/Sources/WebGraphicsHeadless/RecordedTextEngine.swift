@@ -74,6 +74,24 @@ public final class RecordedTextEngine: TextEngine {
     }
 
     public func layout(_ runs: [StyledRun], options: TextLayoutOptions, width: CGFloat?) -> TextLayout {
+        // Text with inline images: no recording spells an image, so the layouter runs over the
+        // text runs' own recordings (whole runs, unconstrained) and the images' widths.
+        if runs.contains(where: { $0.inlineWidth != nil }) {
+            let layouter = TextLayouter(
+                measure: { [self] text, font in
+                    if let entry = entries[Self.key(font: font, width: nil, string: text)] { return CGFloat(entry.width) }
+                    // A prefix the wrapping probes (a run without its trailing space): the whole
+                    // run's width over-estimates it, which only matters against the width.
+                    if let whole = runs.first(where: { $0.font == font && $0.string.hasPrefix(text) && $0.string != text }),
+                       let entry = entries[Self.key(font: font, width: nil, string: whole.string)] {
+                        return CGFloat(entry.width)
+                    }
+                    misses.append(Self.key(font: font, width: nil, string: text))
+                    return 0
+                },
+                metrics: { font in SystemFontMetricsTables.systemFontMetrics(for: font) })
+            return layouter.layout(runs, options: options, width: width)
+        }
         let key = TextMetricsKey.make(runs: runs, options: options, width: width)
         if let exact = entries[key] {
             return layout(from: exact, runs: runs)

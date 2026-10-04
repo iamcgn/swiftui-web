@@ -1,0 +1,57 @@
+{
+  "fixture" : "text\/dates",
+  "frames" : {
+    "column" : {
+      "height" : 136,
+      "width" : 83.5,
+      "x" : 158.25,
+      "y" : 32
+    },
+    "currency" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 158.25,
+      "y" : 132
+    },
+    "date" : {
+      "height" : 16,
+      "width" : 83.5,
+      "x" : 158.25,
+      "y" : 32
+    },
+    "dateTime" : {
+      "height" : 16,
+      "width" : 83.5,
+      "x" : 158.25,
+      "y" : 152
+    },
+    "int" : {
+      "height" : 16,
+      "width" : 33.5,
+      "x" : 158.25,
+      "y" : 92
+    },
+    "number" : {
+      "height" : 16,
+      "width" : 47.5,
+      "x" : 158.25,
+      "y" : 72
+    },
+    "percent" : {
+      "height" : 16,
+      "width" : 28,
+      "x" : 158.25,
+      "y" : 112
+    },
+    "time" : {
+      "height" : 16,
+      "width" : 49.5,
+      "x" : 158.25,
+      "y" : 52
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 400
+  }
+}

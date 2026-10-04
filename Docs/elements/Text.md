@@ -24,7 +24,13 @@ Apple docs: [Text](https://developer.apple.com/documentation/swiftui/text),
 | `View.lineSpacing(_:)` | implemented |
 | `View.allowsTightening`, `minimumScaleFactor` | implemented (2026-10-03, approximate): a line that would be truncated first closes its letter spacing by what it needs up to a 72nd of the font size per character (else truncates with that tightening, holding one more character), then shrinks its fonts to the largest scale down to the minimum at which nothing is truncated, and truncates at the minimum (`text/fit`; Tier A exact through the recorded metrics, pixels within the loosened bound) |
 | `kerning`, `tracking`, `baselineOffset`, `underline`, `strikethrough`, `Text.Case` | implemented (2026-09-04, `Docs/elements/TextStyle.md`: `textstyle/*`) |
-| `AttributedString`, `Text(Date…)`, `Text(Image)`, `textSelection` | missing (`textSelection` is accepted; `Docs/elements/TextScale.md`) |
+| Markdown in literals: `**bold**`, `_italic_`, `***both***`, `` `code` ``, `~~struck~~`, `[text](url)`, backslash escapes | implemented (2026-10-03, `text/markdown`): a `LocalizedStringKey` literal is parsed by `_InlineMarkdown` (WebFoundation); bold is the bold weight, italic the trait, code the monospaced design, a link the accent colour and a press target; `Text(verbatim:)` and string values stay literal |
+| `Text(AttributedString)`, `AttributeScopes.SwiftUIAttributes` (`font`, `foregroundColor`, `backgroundColor`, `underlineStyle`, `strikethroughStyle`, `baselineOffset`, `kern`, `tracking`), Foundation's `link` and `inlinePresentationIntent` | implemented (`text/attributed`): each run becomes a part with those modifiers; on wasm `WebFoundation` stands in for `AttributedString` (`init(markdown:)` included); `kern`/`tracking` on a run apply to the whole text; `backgroundColor` is read but not painted |
+| `Text(Image)` | implemented (`text/inline-image`): a system image lays out as a glyph the symbol's width on the baseline (the line grows to the symbol's height); other images take no space |
+| `Text(_ date: Date, style:)`, `Text.DateStyle` (`date`, `time`, `relative`, `offset`, `timer`) | implemented (`text/dates`): `date` and `time` in English in the environment's time zone ("May 28, 2026", "8:26 PM" with a narrow no-break space); the live styles re-resolve every second against now (approximate wording: "2 hours", "+2 hours", "1:23:45") |
+| `Text(_:format:)` | implemented for any `FormatStyle` producing a string (numbers on wasm through `WebFoundation`; dates on Apple platforms through Foundation) |
+| `Link` inside text | implemented: a link part paints in the accent colour, shows the hand and opens through `openURL` on press (the text takes presses only where it has links) |
+| `Text(DateInterval)`, `Text(ClosedRange<Date>)`, `Text(_: Duration)`, `textSelection` | missing (`textSelection` is accepted; `Docs/elements/TextScale.md`) |
 
 ## How Tier A stays exact
 
@@ -131,8 +137,41 @@ to 10 % and its pixels to the looser bound: CoreText and Canvas2D measure the sa
 where SwiftUI reports 124, so the fitted lines land a few points off (a tightened line holds
 "f…" at 108 where SwiftUI's holds "…" at 101) and the title truncates at the minimum.
 
+## Rich text (macOS 26.6, `text/markdown`, `text/attributed`, `text/dates`, `text/inline-image`, 2026-10-03)
+
+| Behaviour | Value | Probe |
+|---|---|---|
+| Markdown runs | "bold" 29 wide in the bold weight, "italic" 28.5 in the italic trait, "both" 30.5 bold italic, "code" 32.5 in the monospaced design, "a link" 32 in the accent colour, "struck" 38 with a strikethrough; the mixed sentence 213.5 | `bold`, `italic`, `both`, `code`, `link`, `struck`, `mixed` |
+| Verbatim and escapes | `Text(verbatim: "**not** markdown")` keeps its asterisks (110.5); `"Escaped \\*stars\\*"` shows the asterisks (97.5) | `verbatim`, `escaped` |
+| Code in a title | "Mono `code` and plain" in `.title3`: 146 × 23, the monospaced design's line (23) over the style's 22 | `codeTitle` |
+| Attributed runs | "Hello " + "world" (`.title`, red) + " under" (underlined) + " up" (baseline offset 4) + " link": 169.5 × 33, the raised 13 pt part staying within the title's line | `attributed` |
+| Inline presentation intents | strongly emphasized → bold, emphasized → italic, code → monospaced, strikethrough: 202.5 × 16 | `intents` |
+| Dates and formats at UTC | `.date` "May 28, 2026" (83.5), `.time` "8:26 PM" (49.5), `.number` 3.14159 and 1,234, `.percent` 25%, `.currency(code: "USD")` $12.50, `.dateTime.year().month().day()` "May 28, 2026" | `date`, `time`, `number`, `int`, `percent`, `currency`, `dateTime` |
+| Inline symbols | `Text(Image(systemName: "star"))` 16.5 × 16 (the symbol's image size at 13 pt), with " Starred" 65, "Rate ★ now" 76, the title star 28.5 × 33, "› Next" 42; with `.bold()` the star row grows to 16.5 (the bold symbol's height) | `star`, `starText`, `between`, `starTitle`, `chevron`, `boldStar` |
+
+Implementation: a `LocalizedStringKey` literal is parsed when the text's parts are resolved
+(`Text.parts`), each markdown run adding to the part's modifiers (`bold`, `italic`,
+`monospaced`, `strikethrough`, `link`). `Text(AttributedString)` reads each run's attributes
+through the key types (`_SwiftUIFontAttribute` and the rest; the key paths of
+`AttributeScopes.SwiftUIAttributes` alias them) and builds a concatenation. An image part is a
+`StyledRun` one object-replacement character long with `inlineWidth`/`inlineHeight` from
+`SystemSymbolMetrics` at the part's font; the layouter measures such runs by those instead of
+the string and grows the line to the height, and the painter draws the symbol's path on the
+baseline by its descent (`_SymbolPainter`). The recorded engine lays text with inline runs out
+through the layouter over the text runs' own unconstrained recordings, so Tier A stays exact.
+A date part resolves against the environment's time zone and calendar (`_TextContext`); a live
+style makes the node invalidate itself every second. A text with a link part becomes
+interactive (`_Interactive.isInteractive`, which the hit test honours so plain text never
+takes a press from the control around it); a press on a link's fragment opens it through
+`openURL`, and hovering it shows the hand.
+
 ## Open
 
+- Rich text: `Text(DateInterval)` and ranges, `Duration`, per-run `kern`/`tracking` (applied to
+  the whole text), `backgroundColor` attributes (not painted), non-system images in text, the
+  live date wordings (SwiftUI's "in 2 hours"/"2 hours ago" forms and thresholds are unmeasured),
+  `AttributedString` on wasm is a stand-in with runs, containers, ranges and markdown but none
+  of Foundation's views and indices.
 - The exact scale search (five bisection steps fit the three measured scales; the title case
   shows SwiftUI stopping above the minimum where ours reaches it) and the tightening maximum
   (a 72nd of the size per character fits the four widths within rounding).

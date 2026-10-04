@@ -31,8 +31,15 @@ public final class CoreTextEngine: TextEngine {
         } else {
             result = NSFont(name: font.family, size: font.size) ?? NSFont.systemFont(ofSize: font.size, weight: weight)
         }
-        if font.italic, let italic = NSFont(descriptor: result.fontDescriptor.withSymbolicTraits(.italic), size: font.size) {
-            result = italic
+        if font.italic {
+            // The font manager keeps the weight (a bold italic stays bold; `text/markdown`
+            // "both" is 30.5 wide, not the regular italic's 28.5); the descriptor route drops it.
+            let converted = NSFontManager.shared.convert(result, toHaveTrait: .italicFontMask)
+            if converted.fontDescriptor.symbolicTraits.contains(.italic) {
+                result = converted
+            } else if let italic = NSFont(descriptor: result.fontDescriptor.withSymbolicTraits(.italic), size: font.size) {
+                result = italic
+            }
         }
         if font.tabularDigits {
             // Tabular figures through the font's number-spacing feature, as UIKit's

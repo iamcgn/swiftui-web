@@ -5091,6 +5091,16 @@ public static let alignment = Fixture("text/alignment", size: CGSize(width: 400,
     .probe("column")
 }
 """#),
+        FixtureSource(name: "text/attributed", file: "Fixtures/Sources/Text/TextRichFixtures.swift", firstLine: 27, lastLine: 34, declaration: #"""
+public static let attributed = Fixture("text/attributed", size: CGSize(width: 400, height: 200)) {
+    VStack(alignment: .leading, spacing: 4) {
+        Text(fixtureRichString()).probe("attributed")
+        Text(fixtureIntentString()).probe("intents")
+        Text(AttributedString("Plain attributed")).probe("plain")
+    }
+    .probe("column")
+}
+"""#),
         FixtureSource(name: "text/baseline-wrapped", file: "Fixtures/Sources/Text/TextCompletenessFixtures.swift", firstLine: 93, lastLine: 109, declaration: #"""
 public static let baselineWrapped = Fixture("text/baseline-wrapped", size: CGSize(width: 400, height: 200)) {
     VStack(alignment: .leading, spacing: 0) {
@@ -5152,6 +5162,27 @@ public static let concatenation = Fixture("text/concatenation", size: CGSize(wid
     .probe("column")
 }
 """#),
+        FixtureSource(name: "text/dates", file: "Fixtures/Sources/Text/TextRichFixtures.swift", firstLine: 36, lastLine: 54, declaration: ##"""
+public static let dates = Fixture("text/dates", size: CGSize(width: 400, height: 200)) {
+    VStack(alignment: .leading, spacing: 4) {
+        Text(instant, style: .date).probe("date")
+        Text(instant, style: .time).probe("time")
+        Text(3.14159, format: .number).probe("number")
+        Text(1234, format: .number).probe("int")
+        Text(0.25, format: .percent).probe("percent")
+        Text(12.5, format: .currency(code: "USD")).probe("currency")
+        #if !os(WASI)
+        Text(instant, format: .dateTime.year().month().day()).probe("dateTime")
+        #else
+        // No `Date.FormatStyle` on wasm: the same words through the date style keep the frames.
+        Text(instant, style: .date).probe("dateTime")
+        #endif
+    }
+    .environment(\.timeZone, TimeZone(identifier: "UTC")!)
+    .environment(\.locale, Locale(identifier: "en_US"))
+    .probe("column")
+}
+"""##),
         FixtureSource(name: "text/fit", file: "Fixtures/Sources/Text/TextCompletenessFixtures.swift", firstLine: 113, lastLine: 133, declaration: #"""
 /// `minimumScaleFactor` and `allowsTightening`: the sample shrunk into narrowing frames at
 /// two factors, with and without a line limit, a title, and tightening alone and combined.
@@ -5208,6 +5239,19 @@ public static let hstackSpacing = Fixture("text/hstack-spacing", size: CGSize(wi
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "text/inline-image", file: "Fixtures/Sources/Text/TextRichFixtures.swift", firstLine: 56, lastLine: 66, declaration: #"""
+public static let inlineImage = Fixture("text/inline-image", size: CGSize(width: 400, height: 200)) {
+    VStack(alignment: .leading, spacing: 4) {
+        Text(Image(systemName: "star")).probe("star")
+        (Text(Image(systemName: "star")) + Text(" Starred")).probe("starText")
+        (Text("Rate ") + Text(Image(systemName: "star.fill")) + Text(" now")).probe("between")
+        Text(Image(systemName: "star")).font(.title).probe("starTitle")
+        (Text(Image(systemName: "chevron.right")) + Text(" Next")).probe("chevron")
+        (Text(Image(systemName: "star")) + Text(" Bold")).bold().probe("boldStar")
+    }
+    .probe("column")
+}
+"""#),
         FixtureSource(name: "text/line-limit", file: "Fixtures/Sources/Text/TextCompletenessFixtures.swift", firstLine: 29, lastLine: 43, declaration: #"""
 public static let lineLimit = Fixture("text/line-limit", size: CGSize(width: 400, height: 420)) {
     VStack(alignment: .leading, spacing: 0) {
@@ -5232,6 +5276,24 @@ public static let lineSpacing = Fixture("text/line-spacing", size: CGSize(width:
         Text(R.paragraph).lineSpacing(10).probe("s10").frame(width: 150, alignment: .topLeading)
         Text(R.paragraph).font(.body).lineSpacing(4).probe("bodyS4").frame(width: 150, alignment: .topLeading)
         Text("Hello").lineSpacing(10).probe("single")
+    }
+    .probe("column")
+}
+"""#),
+        FixtureSource(name: "text/markdown", file: "Fixtures/Sources/Text/TextRichFixtures.swift", firstLine: 10, lastLine: 25, declaration: #"""
+public static let markdown = Fixture("text/markdown", size: CGSize(width: 400, height: 300)) {
+    VStack(alignment: .leading, spacing: 4) {
+        Text("Plain **bold** and _italic_ and ***both*** done").probe("mixed")
+        Text("**bold**").probe("bold")
+        Text("_italic_").probe("italic")
+        Text("***both***").probe("both")
+        Text("`code`").probe("code")
+        Text("~~struck~~").probe("struck")
+        Text("[a link](https://example.com)").probe("link")
+        Text("Call **now** or [visit](https://example.com) today").probe("linkMixed")
+        Text(verbatim: "**not** markdown").probe("verbatim")
+        Text("Escaped \\*stars\\*").probe("escaped")
+        Text("Mono `code` and plain").font(.title3).probe("codeTitle")
     }
     .probe("column")
 }
@@ -13876,6 +13938,77 @@ public enum TextFixtures {
     public static let all: [Fixture] = [hello, styles, systemFonts, wrapped, vstackSpacing, vstackSpacingMixed, hstackSpacing, hstackBaseline, modifiers, boldTrait] + completeness
 }
 """#,
+        "Fixtures/Sources/Text/TextRichFixtures.swift": ##"""
+// Rich text (Docs/elements/Text.md, "Rich text"): markdown in string literals, AttributedString
+// runs, dates and formatted values, and images inline in text.
+import SwiftUI
+import FixtureKit
+
+public enum TextRichFixtures {
+    /// A fixed instant: 2026-05-28 20:26:40 UTC (shown at UTC in en_US).
+    public static let instant = Date(timeIntervalSince1970: 1_780_000_000)
+
+    public static let markdown = Fixture("text/markdown", size: CGSize(width: 400, height: 300)) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Plain **bold** and _italic_ and ***both*** done").probe("mixed")
+            Text("**bold**").probe("bold")
+            Text("_italic_").probe("italic")
+            Text("***both***").probe("both")
+            Text("`code`").probe("code")
+            Text("~~struck~~").probe("struck")
+            Text("[a link](https://example.com)").probe("link")
+            Text("Call **now** or [visit](https://example.com) today").probe("linkMixed")
+            Text(verbatim: "**not** markdown").probe("verbatim")
+            Text("Escaped \\*stars\\*").probe("escaped")
+            Text("Mono `code` and plain").font(.title3).probe("codeTitle")
+        }
+        .probe("column")
+    }
+
+    public static let attributed = Fixture("text/attributed", size: CGSize(width: 400, height: 200)) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(fixtureRichString()).probe("attributed")
+            Text(fixtureIntentString()).probe("intents")
+            Text(AttributedString("Plain attributed")).probe("plain")
+        }
+        .probe("column")
+    }
+
+    public static let dates = Fixture("text/dates", size: CGSize(width: 400, height: 200)) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(instant, style: .date).probe("date")
+            Text(instant, style: .time).probe("time")
+            Text(3.14159, format: .number).probe("number")
+            Text(1234, format: .number).probe("int")
+            Text(0.25, format: .percent).probe("percent")
+            Text(12.5, format: .currency(code: "USD")).probe("currency")
+            #if !os(WASI)
+            Text(instant, format: .dateTime.year().month().day()).probe("dateTime")
+            #else
+            // No `Date.FormatStyle` on wasm: the same words through the date style keep the frames.
+            Text(instant, style: .date).probe("dateTime")
+            #endif
+        }
+        .environment(\.timeZone, TimeZone(identifier: "UTC")!)
+        .environment(\.locale, Locale(identifier: "en_US"))
+        .probe("column")
+    }
+
+    public static let inlineImage = Fixture("text/inline-image", size: CGSize(width: 400, height: 200)) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(Image(systemName: "star")).probe("star")
+            (Text(Image(systemName: "star")) + Text(" Starred")).probe("starText")
+            (Text("Rate ") + Text(Image(systemName: "star.fill")) + Text(" now")).probe("between")
+            Text(Image(systemName: "star")).font(.title).probe("starTitle")
+            (Text(Image(systemName: "chevron.right")) + Text(" Next")).probe("chevron")
+            (Text(Image(systemName: "star")) + Text(" Bold")).bold().probe("boldStar")
+        }
+        .probe("column")
+    }
+
+    public static let all: [Fixture] = [markdown, attributed, dates, inlineImage]
+}
+"""##,
         "Fixtures/Sources/TextEditor/TextEditorFixtures.swift": #"""
 // TextEditor fixtures: the macOS multi-line editor (geometry in frames, wrapping, an empty one),
 // sizing in stacks, font and colour modifiers, disabled, and a behaviour fixture whose text

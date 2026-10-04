@@ -4,6 +4,8 @@
 /// A layout node that reacts to pointer input.
 @MainActor
 package protocol _Interactive: AnyObject {
+    /// Whether the node takes presses at all (a text takes them only where it has links).
+    var isInteractive: Bool { get }
     /// Called when a press starts inside the node.
     func pressBegan()
     /// Like `pressBegan()`, with the press point in the node's coordinate space (sliders jump to
@@ -28,7 +30,13 @@ package protocol _Interactive: AnyObject {
     var dragAxes: Axis.Set { get }
 }
 
+extension ViewNode {
+    /// Whether this node takes presses (`_Interactive` and enabled for them).
+    package var isInteractiveNode: Bool { (self as? any _Interactive)?.isInteractive ?? false }
+}
+
 extension _Interactive {
+    package var isInteractive: Bool { true }
     package func pressBegan(at point: CGPoint) { pressBegan() }
     package func pressMoved(to point: CGPoint) {}
     package func pressEnded(inside: Bool, at point: CGPoint) { pressEnded(inside: inside) }
@@ -96,7 +104,7 @@ extension Runtime {
             let shift = node.hitTestOffset
             let local = CGPoint(x: point.x - node.frame.minX - shift.x, y: point.y - node.frame.minY - shift.y)
             if node.clipsHitTesting, !node.contains(local) { continue }
-            if let hit = node.hitTest(local, where: { $0 is _Interactive }) { return hit as? (ViewNode & _Interactive) }
+            if let hit = node.hitTest(local, where: { $0.isInteractiveNode }) { return hit as? (ViewNode & _Interactive) }
         }
         return nil
     }
@@ -176,7 +184,7 @@ extension Runtime {
 
     package var interactiveNodes: [ViewNode & _Interactive] {
         (toolbar?.interactiveNodes ?? [])
-            + root.layoutChildren.flatMap { $0.collectNodes(where: { $0 is _Interactive }) }.compactMap { $0 as? (ViewNode & _Interactive) }
+            + root.layoutChildren.flatMap { $0.collectNodes(where: { $0.isInteractiveNode }) }.compactMap { $0 as? (ViewNode & _Interactive) }
             + presentations.flatMap(\.interactiveNodes)
     }
 

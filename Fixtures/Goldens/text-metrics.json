@@ -12,6 +12,18 @@
       "lastBaseline": 29,
       "width": 74
     },
+    "rich:style:title3=5,style:title3:monospaced=4,style:title3=10|0.0|Mono code and plain": {
+      "firstBaseline": 17,
+      "height": 382,
+      "lastBaseline": 377,
+      "width": 0
+    },
+    "rich:style:title3=5,style:title3:monospaced=4,style:title3=10||Mono code and plain": {
+      "firstBaseline": 17,
+      "height": 23,
+      "lastBaseline": 17,
+      "width": 146
+    },
     "rich:style:title=4,style:title:w700=4|0.0|Env bold": {
       "firstBaseline": 25,
       "height": 231,
@@ -36,6 +48,42 @@
       "lastBaseline": 25,
       "width": 90
     },
+    "rich:system:13:400:default=5,system:13:700:default=3,system:13:400:default=15|0.0|Call now or visit today": {
+      "firstBaseline": 13,
+      "height": 304,
+      "lastBaseline": 301,
+      "width": 0
+    },
+    "rich:system:13:400:default=5,system:13:700:default=3,system:13:400:default=15||Call now or visit today": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 135
+    },
+    "rich:system:13:400:default=6,style:title=5,system:13:400:default=14|0.0|Hello world under up link": {
+      "firstBaseline": 13,
+      "height": 421,
+      "lastBaseline": 418,
+      "width": 0
+    },
+    "rich:system:13:400:default=6,style:title=5,system:13:400:default=14||Hello world under up link": {
+      "firstBaseline": 25,
+      "height": 33,
+      "lastBaseline": 25,
+      "width": 169.5
+    },
+    "rich:system:13:400:default=6,system:13:700:default=4,system:13:400:default=5,system:13:400:default:italic=6,system:13:400:default=5,system:13:700:default:italic=4,system:13:400:default=5|0.0|Plain bold and italic and both done": {
+      "firstBaseline": 13,
+      "height": 464,
+      "lastBaseline": 461,
+      "width": 0
+    },
+    "rich:system:13:400:default=6,system:13:700:default=4,system:13:400:default=5,system:13:400:default:italic=6,system:13:400:default=5,system:13:700:default:italic=4,system:13:400:default=5||Plain bold and italic and both done": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 213.5
+    },
     "rich:system:13:700:default=12,system:13:400:default=60|0.0|Layout must wrap this sentence onto several lines inside a narrow frame.": {
       "firstBaseline": 13,
       "height": 976,
@@ -53,6 +101,18 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 445
+    },
+    "rich:system:13:700:default=6,system:13:400:default:italic=11,system:13:400:monospaced=5,system:13:400:default=7|0.0|Strong emphasized code struck": {
+      "firstBaseline": 13,
+      "height": 416,
+      "lastBaseline": 413,
+      "width": 0
+    },
+    "rich:system:13:700:default=6,system:13:400:default:italic=11,system:13:400:monospaced=5,system:13:400:default=7||Strong emphasized code struck": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 202.5
     },
     "rich:system:13:700:default=7,system:13:400:default=5|0.0|Hello, World": {
       "firstBaseline": 13,
@@ -9786,6 +9846,18 @@
       "lastBaseline": 19,
       "width": 47.5
     },
+    "style:title3:monospaced|0.0|code": {
+      "firstBaseline": 17,
+      "height": 95,
+      "lastBaseline": 89,
+      "width": 0
+    },
+    "style:title3:monospaced||code": {
+      "firstBaseline": 17,
+      "height": 23,
+      "lastBaseline": 17,
+      "width": 37.5
+    },
     "style:title3:w500|0.0|Account": {
       "firstBaseline": 17,
       "height": 167,
@@ -10266,6 +10338,12 @@
       "lastBaseline": 1001,
       "width": 0
     },
+    "style:title3|0.0| and plain": {
+      "firstBaseline": 17,
+      "height": 214,
+      "lastBaseline": 209,
+      "width": 0
+    },
     "style:title3|0.0|Account": {
       "firstBaseline": 17,
       "height": 166,
@@ -10306,6 +10384,12 @@
       "firstBaseline": 17,
       "height": 982,
       "lastBaseline": 1001,
+      "width": 0
+    },
+    "style:title3|0.0|Mono ": {
+      "firstBaseline": 17,
+      "height": 94,
+      "lastBaseline": 89,
       "width": 0
     },
     "style:title3|0.0|Name": {
@@ -10362,6 +10446,12 @@
       "lastBaseline": 17,
       "width": 439
     },
+    "style:title3|| and plain": {
+      "firstBaseline": 17,
+      "height": 22,
+      "lastBaseline": 17,
+      "width": 66.5
+    },
     "style:title3||Account": {
       "firstBaseline": 17,
       "height": 22,
@@ -10403,6 +10493,12 @@
       "height": 22,
       "lastBaseline": 17,
       "width": 496.5
+    },
+    "style:title3||Mono ": {
+      "firstBaseline": 17,
+      "height": 22,
+      "lastBaseline": 17,
+      "width": 43
     },
     "style:title3||Name": {
       "firstBaseline": 17,
@@ -10836,6 +10932,12 @@
       "lastBaseline": 355,
       "width": 0
     },
+    "style:title|0.0|world": {
+      "firstBaseline": 25,
+      "height": 165,
+      "lastBaseline": 157,
+      "width": 0
+    },
     "style:title|100.0;l1;m0.5|The quick brown fox": {
       "firstBaseline": 13,
       "height": 17,
@@ -11141,6 +11243,12 @@
       "height": 33,
       "lastBaseline": 25,
       "width": 116.5
+    },
+    "style:title||world": {
+      "firstBaseline": 25,
+      "height": 33,
+      "lastBaseline": 25,
+      "width": 53
     },
     "system:10:400:default|0.0|Apple": {
       "firstBaseline": 10,
@@ -12762,6 +12870,30 @@
       "lastBaseline": 12,
       "width": 68
     },
+    "system:13:400:default:italic|0.0| emphasized": {
+      "firstBaseline": 13,
+      "height": 176,
+      "lastBaseline": 173,
+      "width": 0
+    },
+    "system:13:400:default:italic|0.0|italic": {
+      "firstBaseline": 13,
+      "height": 96,
+      "lastBaseline": 93,
+      "width": 0
+    },
+    "system:13:400:default:italic|| emphasized": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 77
+    },
+    "system:13:400:default:italic||italic": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 28.5
+    },
     "system:13:400:default|0.0;k-1.0|Hello": {
       "firstBaseline": 13,
       "height": 80,
@@ -12960,10 +13092,58 @@
       "lastBaseline": 13,
       "width": 0
     },
+    "system:13:400:default|0.0| Next": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
     "system:13:400:default|0.0| PM": {
       "firstBaseline": 13,
       "height": 48,
       "lastBaseline": 45,
+      "width": 0
+    },
+    "system:13:400:default|0.0| Starred": {
+      "firstBaseline": 13,
+      "height": 128,
+      "lastBaseline": 125,
+      "width": 0
+    },
+    "system:13:400:default|0.0| and ": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
+      "width": 0
+    },
+    "system:13:400:default|0.0| done": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
+    "system:13:400:default|0.0| now": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
+      "width": 0
+    },
+    "system:13:400:default|0.0| or visit today": {
+      "firstBaseline": 13,
+      "height": 208,
+      "lastBaseline": 205,
+      "width": 0
+    },
+    "system:13:400:default|0.0| struck": {
+      "firstBaseline": 13,
+      "height": 112,
+      "lastBaseline": 109,
+      "width": 0
+    },
+    "system:13:400:default|0.0| under up link": {
+      "firstBaseline": 13,
+      "height": 192,
+      "lastBaseline": 189,
       "width": 0
     },
     "system:13:400:default|0.0|$1,234": {
@@ -12976,6 +13156,12 @@
       "firstBaseline": 13,
       "height": 96,
       "lastBaseline": 93,
+      "width": 0
+    },
+    "system:13:400:default|0.0|**not** markdown": {
+      "firstBaseline": 13,
+      "height": 240,
+      "lastBaseline": 237,
       "width": 0
     },
     "system:13:400:default|0.0|+": {
@@ -13206,6 +13392,12 @@
       "lastBaseline": 13,
       "width": 0
     },
+    "system:13:400:default|0.0|8:26 PM": {
+      "firstBaseline": 13,
+      "height": 112,
+      "lastBaseline": 109,
+      "width": 0
+    },
     "system:13:400:default|0.0|9": {
       "firstBaseline": 13,
       "height": 16,
@@ -13432,6 +13624,12 @@
       "firstBaseline": 13,
       "height": 128,
       "lastBaseline": 125,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Call ": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
       "width": 0
     },
     "system:13:400:default|0.0|Cancel": {
@@ -13728,6 +13926,12 @@
       "lastBaseline": 45,
       "width": 0
     },
+    "system:13:400:default|0.0|Escaped *stars*": {
+      "firstBaseline": 13,
+      "height": 224,
+      "lastBaseline": 221,
+      "width": 0
+    },
     "system:13:400:default|0.0|F": {
       "firstBaseline": 13,
       "height": 16,
@@ -13882,6 +14086,12 @@
       "firstBaseline": 13,
       "height": 160,
       "lastBaseline": 157,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Hello ": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
       "width": 0
     },
     "system:13:400:default|0.0|Hello World": {
@@ -14112,6 +14322,12 @@
       "lastBaseline": 45,
       "width": 0
     },
+    "system:13:400:default|0.0|May 28, 2026": {
+      "firstBaseline": 13,
+      "height": 160,
+      "lastBaseline": 157,
+      "width": 0
+    },
     "system:13:400:default|0.0|Medium": {
       "firstBaseline": 13,
       "height": 96,
@@ -14310,6 +14526,18 @@
       "lastBaseline": 77,
       "width": 0
     },
+    "system:13:400:default|0.0|Plain ": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Plain attributed": {
+      "firstBaseline": 13,
+      "height": 240,
+      "lastBaseline": 237,
+      "width": 0
+    },
     "system:13:400:default|0.0|Plain content": {
       "firstBaseline": 13,
       "height": 192,
@@ -14380,6 +14608,12 @@
       "firstBaseline": 13,
       "height": 80,
       "lastBaseline": 77,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Rate ": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
       "width": 0
     },
     "system:13:400:default|0.0|Red": {
@@ -14850,6 +15084,12 @@
       "lastBaseline": 93,
       "width": 0
     },
+    "system:13:400:default|0.0|a link": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
     "system:13:400:default|0.0|mixed Case": {
       "firstBaseline": 13,
       "height": 144,
@@ -14866,6 +15106,12 @@
       "firstBaseline": 13,
       "height": 80,
       "lastBaseline": 77,
+      "width": 0
+    },
+    "system:13:400:default|0.0|struck": {
+      "firstBaseline": 13,
+      "height": 96,
+      "lastBaseline": 93,
       "width": 0
     },
     "system:13:400:default|0.0|the site": {
@@ -15888,11 +16134,59 @@
       "lastBaseline": 13,
       "width": 4
     },
+    "system:13:400:default|| Next": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 32
+    },
     "system:13:400:default|| PM": {
       "firstBaseline": 13,
       "height": 16,
       "lastBaseline": 13,
       "width": 23.5
+    },
+    "system:13:400:default|| Starred": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 48.5
+    },
+    "system:13:400:default|| and ": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 30
+    },
+    "system:13:400:default|| done": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 34
+    },
+    "system:13:400:default|| now": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 28.5
+    },
+    "system:13:400:default|| or visit today": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 82
+    },
+    "system:13:400:default|| struck": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 41.5
+    },
+    "system:13:400:default|| under up link": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 82.5
     },
     "system:13:400:default||$1,234": {
       "firstBaseline": 13,
@@ -15905,6 +16199,12 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 41.5
+    },
+    "system:13:400:default||**not** markdown": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 110.5
     },
     "system:13:400:default||+": {
       "firstBaseline": 13,
@@ -16134,6 +16434,12 @@
       "lastBaseline": 13,
       "width": 8.5
     },
+    "system:13:400:default||8:26 PM": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 49.5
+    },
     "system:13:400:default||9": {
       "firstBaseline": 13,
       "height": 16,
@@ -16361,6 +16667,12 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 54.5
+    },
+    "system:13:400:default||Call ": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 26.5
     },
     "system:13:400:default||Cancel": {
       "firstBaseline": 13,
@@ -16656,6 +16968,12 @@
       "lastBaseline": 13,
       "width": 22
     },
+    "system:13:400:default||Escaped *stars*": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 97.5
+    },
     "system:13:400:default||F": {
       "firstBaseline": 13,
       "height": 16,
@@ -16811,6 +17129,12 @@
       "height": 32,
       "lastBaseline": 29,
       "width": 35.5
+    },
+    "system:13:400:default||Hello ": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 35
     },
     "system:13:400:default||Hello World": {
       "firstBaseline": 13,
@@ -17040,6 +17364,12 @@
       "lastBaseline": 13,
       "width": 25.5
     },
+    "system:13:400:default||May 28, 2026": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 83.5
+    },
     "system:13:400:default||Medium": {
       "firstBaseline": 13,
       "height": 16,
@@ -17238,6 +17568,18 @@
       "lastBaseline": 13,
       "width": 29.5
     },
+    "system:13:400:default||Plain ": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 33
+    },
+    "system:13:400:default||Plain attributed": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 92.5
+    },
     "system:13:400:default||Plain content": {
       "firstBaseline": 13,
       "height": 16,
@@ -17309,6 +17651,12 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 38.5
+    },
+    "system:13:400:default||Rate ": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 31
     },
     "system:13:400:default||Red": {
       "firstBaseline": 13,
@@ -17778,6 +18126,12 @@
       "lastBaseline": 13,
       "width": 38.5
     },
+    "system:13:400:default||a link": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 32
+    },
     "system:13:400:default||mixed Case": {
       "firstBaseline": 13,
       "height": 16,
@@ -17796,6 +18150,12 @@
       "lastBaseline": 13,
       "width": 31.5
     },
+    "system:13:400:default||struck": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 38
+    },
     "system:13:400:default||the site": {
       "firstBaseline": 13,
       "height": 16,
@@ -17813,6 +18173,30 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 8.5
+    },
+    "system:13:400:monospaced|0.0| code": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
+    "system:13:400:monospaced|0.0|code": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
+      "width": 0
+    },
+    "system:13:400:monospaced|| code": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 40.5
+    },
+    "system:13:400:monospaced||code": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 32.5
     },
     "system:13:500:default|0.0|AM": {
       "firstBaseline": 13,
@@ -18090,6 +18474,24 @@
       "lastBaseline": 13,
       "width": 44.5
     },
+    "system:13:700:default:italic|0.0|both": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
+      "width": 0
+    },
+    "system:13:700:default:italic||both": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 30.5
+    },
+    "system:13:700:default|0.0| Bold": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
     "system:13:700:default|0.0|Apr 2025": {
       "firstBaseline": 13,
       "height": 112,
@@ -18180,6 +18582,30 @@
       "lastBaseline": 61,
       "width": 0
     },
+    "system:13:700:default|0.0|Strong": {
+      "firstBaseline": 13,
+      "height": 96,
+      "lastBaseline": 93,
+      "width": 0
+    },
+    "system:13:700:default|0.0|bold": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
+      "width": 0
+    },
+    "system:13:700:default|0.0|now": {
+      "firstBaseline": 13,
+      "height": 48,
+      "lastBaseline": 45,
+      "width": 0
+    },
+    "system:13:700:default|| Bold": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 32.5
+    },
     "system:13:700:default||Apr 2025": {
       "firstBaseline": 13,
       "height": 16,
@@ -18269,6 +18695,24 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 27.5
+    },
+    "system:13:700:default||Strong": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 44
+    },
+    "system:13:700:default||bold": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 29
+    },
+    "system:13:700:default||now": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 27
     },
     "system:13:800:default|0.0|Bold": {
       "firstBaseline": 13,
@@ -19628,6 +20072,20 @@
       "unroundedLineHeight": 21.66666666666667,
       "xHeight": 7.8955078125
     },
+    "style:title3:monospaced": {
+      "capHeight": 10.56884765625,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 23,
+      "linePitch": 24,
+      "spacingAbove": 7.5515534928663115,
+      "spacingBelow": 13.59716796875,
+      "textToText": 2.5,
+      "underlinePosition": -1.46484375,
+      "underlineThickness": 0.732421875,
+      "unroundedLineHeight": 21.66666666666667,
+      "xHeight": 7.93212890625
+    },
     "style:title3:w500": {
       "capHeight": 10.56884765625,
       "horizontalTextToText": 8,
@@ -19936,6 +20394,34 @@
       "unroundedLineHeight": 16,
       "xHeight": 6.8427734375
     },
+    "system:13:400:default:italic": {
+      "capHeight": 9.15966796875,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 16,
+      "linePitch": 16,
+      "spacingAbove": 4.7421875,
+      "spacingBelow": 8.15087890625,
+      "textToText": 0,
+      "underlinePosition": -1.9677734375,
+      "underlineThickness": 0.76171875,
+      "unroundedLineHeight": 16,
+      "xHeight": 6.8427734375
+    },
+    "system:13:400:monospaced": {
+      "capHeight": 9.15966796875,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 16,
+      "linePitch": 16,
+      "spacingAbove": 4.7421875,
+      "spacingBelow": 8.15087890625,
+      "textToText": 0,
+      "underlinePosition": -1.26953125,
+      "underlineThickness": 0.634765625,
+      "unroundedLineHeight": 16,
+      "xHeight": 6.87451171875
+    },
     "system:13:500:default": {
       "capHeight": 9.15966796875,
       "horizontalTextToText": 8,
@@ -19965,6 +20451,20 @@
       "xHeight": 6.93798828125
     },
     "system:13:700:default": {
+      "capHeight": 9.15966796875,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 16,
+      "linePitch": 16,
+      "spacingAbove": 4.7421875,
+      "spacingBelow": 8.15087890625,
+      "textToText": 0,
+      "underlinePosition": -1.77734375,
+      "underlineThickness": 1.2060546875,
+      "unroundedLineHeight": 16,
+      "xHeight": 6.98876953125
+    },
+    "system:13:700:default:italic": {
       "capHeight": 9.15966796875,
       "horizontalTextToText": 8,
       "horizontalTrailing": 8,
