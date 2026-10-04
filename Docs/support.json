@@ -1042,11 +1042,12 @@
           ]
         },
         {
-          "api": "accessibilityLabel / Hint / Value / Identifier / Hidden / AddTraits / RemoveTraits / accessibilityElement(children:)",
-          "status": "partial",
-          "notes": "Applied on the semantics tree that the canvas host mirrors as an ARIA DOM overlay (headings, images, groups, switches, range inputs, spinbuttons); no custom actions, sort priority or rotors",
+          "api": "accessibilityLabel / Hint / Value / Identifier / Hidden / AddTraits / RemoveTraits / accessibilityElement(children:) / accessibilityAction / accessibilityActions / accessibilityAdjustableAction / accessibilitySortPriority / accessibilityHeading / accessibilityRepresentation / accessibilityChildren / AccessibilityFocusState / accessibilityRotor / accessibilityCustomContent",
+          "status": "full",
+          "notes": "Applied on the semantics tree that the canvas host mirrors as an ARIA DOM overlay (headings at their level, images, groups, switches, range inputs, spinbuttons, live regions, custom actions as inner buttons, rotors as navigation landmarks); representations and children laid out over the view; accessibility focus over the keyboard focus; VoiceOver by hand still pending (pf-browser-sessions)",
           "fixtures": [
-            "accessibility/basic"
+            "accessibility/basic",
+            "accessibility/actions"
           ]
         },
         {
@@ -1143,7 +1144,7 @@
         {
           "api": "onHover / onContinuousHover / help / pointerStyle",
           "status": "partial",
-          "notes": "Hover tracking from every pointer move (browser pointermove/pointerleave, native tracking area); help paints an approximated tooltip after a 1 s rest; pointerStyle sets the host cursor. Tooltips are not in the accessibility tree; no control hover looks (Docs/elements/Hover.md)",
+          "notes": "Hover tracking from every pointer move (browser pointermove/pointerleave, native tracking area); help paints an approximated tooltip after a 1 s rest; pointerStyle sets the host cursor. help text is the element's description in the accessibility tree; no control hover looks (Docs/elements/Hover.md)",
           "fixtures": [
             "hover/basic"
           ]

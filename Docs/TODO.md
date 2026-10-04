@@ -5,19 +5,14 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 33 | 0 | 1 | 32 |
+| SwiftUI | 32 | 0 | 0 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **73** | 0 | 25 | 48 |
+| **All** | **72** | 0 | 24 | 48 |
 
 ## Next (Phase 8, in order)
 
 ## Soon (the gap sweep)
-
-### SwiftUI
-
-- ☐ **Custom actions, rotors and a VoiceOver session** `sw-accessibility` · Accessibility · missing  
-  `accessibilityAction`, `accessibilityAdjustableAction`, `accessibilitySortPriority`, `accessibilityRepresentation`, `accessibilityChildren`, `accessibilityFocused`, rotors, live regions, heading levels, `help` exposed to assistive technology; a VoiceOver session by hand in Safari and an IME session (spike 0.12). ([Accessibility.md](Docs/elements/Accessibility.md), [Hover.md](Docs/elements/Hover.md))
 
 ### UIKit
 
@@ -205,6 +200,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **The @Entry macro** `sw-entry-macro` · SwiftUI · Environment
 - ☑ 2026-10-04 **Simultaneous, pinch and rotate gestures** `sw-gestures` · SwiftUI · Gestures
 - ☑ 2026-10-04 **Focused values, sections and commands** `sw-focus` · SwiftUI · Focus and keyboard
+- ☑ 2026-10-04 **Custom actions, rotors and a VoiceOver session** `sw-accessibility` · SwiftUI · Accessibility
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

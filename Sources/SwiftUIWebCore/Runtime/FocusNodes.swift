@@ -26,10 +26,12 @@ package final class FocusedNode<Content: View, Value: Hashable>: UnaryLayoutModi
         box.targets.removeAll { $0.node.node == nil }
     }
 
-    /// The first text field in the subtree, else its first interactive or focusable view.
+    /// The first text field in the subtree, else its first interactive or focusable view, else
+    /// its first static element (`accessibilityFocused` on text or an image).
     package var focusTargetIdentifier: Int? {
         if let field = descendants(where: { $0 is TextFieldNode }).first as? TextFieldNode { return field.identifier }
-        return (descendants(where: { $0.isInteractiveNode }).first as? any _Interactive)?.semantics.identifier
+        if let interactive = descendants(where: { $0.isInteractiveNode }).first as? any _Interactive { return interactive.semantics.identifier }
+        return descendants(where: { ($0 as? any _SemanticsProviding)?.staticSemantics != nil }).first?.semanticsIdentifier
     }
 }
 

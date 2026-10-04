@@ -1,0 +1,63 @@
+{
+  "fixture" : "accessibility\/actions",
+  "frames" : {
+    "apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 125.5,
+      "y" : 167
+    },
+    "banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 125.5,
+      "y" : 193
+    },
+    "card" : {
+      "height" : 16,
+      "width" : 69,
+      "x" : 125.5,
+      "y" : 37
+    },
+    "level" : {
+      "height" : 16,
+      "width" : 47,
+      "x" : 125.5,
+      "y" : 63
+    },
+    "second" : {
+      "height" : 16,
+      "width" : 46,
+      "x" : 125.5,
+      "y" : 115
+    },
+    "stack" : {
+      "height" : 198,
+      "width" : 69,
+      "x" : 125.5,
+      "y" : 11
+    },
+    "third" : {
+      "height" : 16,
+      "width" : 31.5,
+      "x" : 125.5,
+      "y" : 89
+    },
+    "ticker" : {
+      "height" : 16,
+      "width" : 37.5,
+      "x" : 125.5,
+      "y" : 141
+    },
+    "title" : {
+      "height" : 16,
+      "width" : 56.5,
+      "x" : 125.5,
+      "y" : 11
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 320
+  }
+}

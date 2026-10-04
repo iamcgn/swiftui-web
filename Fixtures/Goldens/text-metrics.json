@@ -21629,6 +21629,66 @@
       "height": 192,
       "lastBaseline": 189,
       "width": 0
+    },
+    "system:13:400:default||Archived: 0": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 69
+    },
+    "system:13:400:default||Level: 3": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 47
+    },
+    "system:13:400:default||Overview": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 56.5
+    },
+    "system:13:400:default||Third": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 31.5
+    },
+    "system:13:400:default||Ticker": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 37.5
+    },
+    "system:13:400:default|0.0|Archived: 0": {
+      "firstBaseline": 13,
+      "height": 160,
+      "lastBaseline": 157,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Level: 3": {
+      "firstBaseline": 13,
+      "height": 112,
+      "lastBaseline": 109,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Overview": {
+      "firstBaseline": 13,
+      "height": 128,
+      "lastBaseline": 125,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Third": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Ticker": {
+      "firstBaseline": 13,
+      "height": 96,
+      "lastBaseline": 93,
+      "width": 0
     }
   },
   "fonts": {

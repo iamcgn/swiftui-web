@@ -29,6 +29,18 @@ public struct SemanticsNode: Equatable, Sendable {
     public var isAdjustable = false
     /// Whether a static-looking element takes keyboard focus (`focusable` views, lists).
     public var isFocusable = false
+    /// A heading's level (1 to 6; nil for the default), from `accessibilityHeading`.
+    public var headingLevel: Int?
+    /// Whether the element's content changes on its own (`updatesFrequently`): a live region.
+    public var isLive = false
+    /// A longer description (`help`), exposed as the element's title.
+    public var description: String?
+    /// The names of the custom actions assistive technology can perform (`performAccessibilityAction`).
+    public var customActions: [String] = []
+    /// Whether the element is selected (`isSelected`).
+    public var isSelected: Bool?
+    /// Rotors (`accessibilityRotor`): named lists of entries pointing at other elements.
+    public var rotors: [SemanticsRotor] = []
 
     public init(role: Role, label: String, frame: CGRect, identifier: Int, isOn: Bool? = nil, textInput: TextInputInfo? = nil) {
         self.role = role
@@ -44,5 +56,23 @@ public struct SemanticsRange: Equatable, Sendable {
     public var minimum: Double, maximum: Double, value: Double, step: Double?
     public init(minimum: Double, maximum: Double, value: Double, step: Double? = nil) {
         self.minimum = minimum; self.maximum = maximum; self.value = value; self.step = step
+    }
+}
+
+/// A rotor: a named list of entries, each pointing at an element (by identifier) when resolved.
+public struct SemanticsRotor: Equatable, Sendable {
+    public struct Entry: Equatable, Sendable {
+        public var label: String
+        public var target: Int?
+        public init(label: String, target: Int?) {
+            self.label = label
+            self.target = target
+        }
+    }
+    public var label: String
+    public var entries: [Entry]
+    public init(label: String, entries: [Entry]) {
+        self.label = label
+        self.entries = entries
     }
 }

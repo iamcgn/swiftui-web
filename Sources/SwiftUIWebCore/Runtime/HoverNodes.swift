@@ -183,8 +183,15 @@ package final class ContinuousHoverNode<Content: View>: UnaryLayoutModifierNode<
 
 /// `help`: asks the runtime for a tooltip while hovered.
 @MainActor
-package final class HelpNode<Content: View>: UnaryLayoutModifierNode<Content, _HelpModifier>, _HoverTracking {
+package final class HelpNode<Content: View>: UnaryLayoutModifierNode<Content, _HelpModifier>, _HoverTracking, _AccessibilityAttributing {
     private var isInside = false
+
+    /// The help text is the element's description for assistive technology.
+    package var attributes: AccessibilityAttributes {
+        var attributes = AccessibilityAttributes()
+        attributes.help = modifier.text
+        return attributes
+    }
 
     package func hoverChanged(inside: Bool, at point: CGPoint) {
         if inside {

@@ -88,6 +88,8 @@ public protocol HostedScene: AnyObject {
     func activate(semanticsIdentifier: Int)
     func adjust(semanticsIdentifier: Int, increment: Bool)
     func setValue(semanticsIdentifier: Int, value: Double)
+    /// A custom action of an element (`SemanticsNode.customActions`) performed by assistive technology.
+    func performAccessibilityAction(semanticsIdentifier: Int, name: String)
     /// Keyboard focus moved to an element (`keyboard` tells whether a focus ring should show).
     func focus(semanticsIdentifier: Int?, keyboard: Bool)
     func blur(semanticsIdentifier: Int)
@@ -111,6 +113,7 @@ extension HostedScene {
     public func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double) {}
     public func keyUp(_ event: KeyEvent) -> Bool { false }
     public func pointerModifiersChanged(_ modifiers: EventModifiers) {}
+    public func performAccessibilityAction(semanticsIdentifier: Int, name: String) {}
 }
 
 /// The phase of a continuous gesture a host delivers (pinches and rotations).

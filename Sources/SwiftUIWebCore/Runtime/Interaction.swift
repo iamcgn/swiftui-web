@@ -80,11 +80,15 @@ extension ViewNode {
         return predicate(self) && contains(point) ? self : nil
     }
 
-    /// All nodes in paint order that satisfy `predicate`.
+    /// All nodes in paint order that satisfy `predicate` (an accessibility representation's
+    /// nodes count, though never painted: assistive technology reaches them).
     package func collectNodes(where predicate: (ViewNode) -> Bool) -> [ViewNode] {
         var result: [ViewNode] = []
         if predicate(self) { result.append(self) }
         for child in paintedChildren { result += child.collectNodes(where: predicate) }
+        if let replacing = self as? any _AccessibilityReplacing {
+            for child in replacing.replacementRoots { result += child.collectNodes(where: predicate) }
+        }
         return result
     }
 
@@ -247,6 +251,8 @@ extension Runtime {
 
     /// A click delivered by the accessibility overlay, by semantics identifier.
     public func activate(semanticsIdentifier: Int) {
+        // An element's default accessibility action comes before the control's own activation.
+        if performAccessibilityAction(semanticsIdentifier: semanticsIdentifier, kind: .default) { return }
         guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) else {
             platformTree(handling: semanticsIdentifier)?.activate(semanticsIdentifier: semanticsIdentifier)
             return
@@ -286,6 +292,7 @@ extension Runtime {
         for presentation in presentations {
             for node in presentation.semanticsRoots { collectSemantics(node, attributes: nil, into: &entries) }
         }
+        resolveRotors(in: &entries)
         semanticsCache = entries
         semanticsCacheLayout = fullLayoutCount
         return entries.map(\.element)
@@ -293,6 +300,7 @@ extension Runtime {
 
     /// Increments or decrements an adjustable element (arrow keys on a stepper or slider).
     public func adjust(semanticsIdentifier: Int, increment: Bool) {
+        if performAdjustableAction(semanticsIdentifier: semanticsIdentifier, increment: increment) { return }
         guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _Adjustable else {
             platformTree(handling: semanticsIdentifier)?.adjust(semanticsIdentifier: semanticsIdentifier, increment: increment)
             return

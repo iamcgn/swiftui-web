@@ -14,6 +14,13 @@ enum FixtureSources {
     static func source(for name: String) -> FixtureSource? { all.first { $0.name == name } }
 
     static let all: [FixtureSource] = [
+        FixtureSource(name: "accessibility/actions", file: "Fixtures/Sources/Accessibility/AccessibilityFixtures.swift", firstLine: 39, lastLine: 43, declaration: #"""
+/// Actions, levels, order, live regions, help and rotors on text alone (nothing that
+/// drifts between macOS releases): the golden is layout only, the probe checks the overlay.
+public static let actions = Fixture("accessibility/actions", size: CGSize(width: 320, height: 220)) {
+    AccessibilityActionsDemo()
+}
+"""#),
         FixtureSource(name: "accessibility/basic", file: "Fixtures/Sources/Accessibility/AccessibilityFixtures.swift", firstLine: 15, lastLine: 37, declaration: #"""
 public static let basic = Fixture(
     "accessibility/basic", size: CGSize(width: 320, height: 300),
@@ -8025,7 +8032,44 @@ public enum AccessibilityFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic]
+    /// Actions, levels, order, live regions, help and rotors on text alone (nothing that
+    /// drifts between macOS releases): the golden is layout only, the probe checks the overlay.
+    public static let actions = Fixture("accessibility/actions", size: CGSize(width: 320, height: 220)) {
+        AccessibilityActionsDemo()
+    }
+
+    public static let all: [Fixture] = [basic, actions]
+}
+
+struct AccessibilityActionsDemo: View {
+    @Namespace private var fruit
+    @State private var archived = 0
+    @State private var level = 3
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Overview").accessibilityHeading(.h1).probe("title")
+            Text("Archived: \(archived)")
+                .accessibilityAction(named: "Archive") { archived += 1 }
+                .accessibilityAction { archived += 10 }
+                .probe("card")
+            Text("Level: \(level)")
+                .accessibilityAdjustableAction { level += $0 == .increment ? 1 : -1 }
+                .probe("level")
+            Text("Third").accessibilitySortPriority(-1).probe("third")
+            Text("Second").probe("second")
+            Text("Ticker").accessibilityAddTraits(.updatesFrequently).help("Updates every second").probe("ticker")
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Apple").accessibilityRotorEntry(id: "apple", in: fruit).probe("apple")
+                Text("Banana").accessibilityRotorEntry(id: "banana", in: fruit).probe("banana")
+            }
+            .accessibilityRotor("Fruit") {
+                AccessibilityRotorEntry("Apple", id: "apple", in: fruit)
+                AccessibilityRotorEntry("Banana", id: "banana", in: fruit)
+            }
+        }
+        .probe("stack")
+    }
 }
 """#,
         "Fixtures/Sources/Animation/AnimationFixtures.swift": #"""

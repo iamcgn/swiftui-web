@@ -224,6 +224,12 @@ extension Runtime {
                 current = node.parent
             }
         }
+        // Escape runs the focused element's escape accessibility action.
+        if press.key == .escape, press.modifiers.shortcutModifiers.isEmpty, let focusedIdentifier,
+           performAccessibilityAction(semanticsIdentifier: focusedIdentifier, kind: .escape) {
+            setNeedsDisplay()
+            return true
+        }
         // The edit keys as responder commands (`onCommand`, `onCopyCommand` and the like), then
         // ⌘C / ⌘X / ⌘V for copyable, cuttable and paste destinations around the focused node.
         if let selector = standardSelector(for: press), performCommand(selector) { return true }
@@ -231,13 +237,22 @@ extension Runtime {
         // An open menu takes the keys next; then Tab moves focus and Space or Return activates the
         // focused control (a consumed press keeps a browser overlay button from clicking as well).
         if let top = presentations.last, top.kind.isMenu, top.handleKey(press) { return true }
-        // Arrows adjust a focused slider or stepper (Up/Right increment, Down/Left decrement).
-        if press.modifiers.shortcutModifiers.isEmpty, let focusedIdentifier,
-           let adjustable = interactiveNode(semanticsIdentifier: focusedIdentifier) as? any _Adjustable {
+        // Arrows adjust a focused slider or stepper (Up/Right increment, Down/Left decrement), or
+        // an element with an adjustable accessibility action.
+        if press.modifiers.shortcutModifiers.isEmpty, let focusedIdentifier {
+            let increment: Bool?
             switch press.key {
-            case .upArrow, .rightArrow: adjustable.adjust(increment: true); setNeedsDisplay(); return true
-            case .downArrow, .leftArrow: adjustable.adjust(increment: false); setNeedsDisplay(); return true
-            default: break
+            case .upArrow, .rightArrow: increment = true
+            case .downArrow, .leftArrow: increment = false
+            default: increment = nil
+            }
+            if let increment {
+                if performAdjustableAction(semanticsIdentifier: focusedIdentifier, increment: increment) { setNeedsDisplay(); return true }
+                if let adjustable = interactiveNode(semanticsIdentifier: focusedIdentifier) as? any _Adjustable {
+                    adjustable.adjust(increment: increment)
+                    setNeedsDisplay()
+                    return true
+                }
             }
         }
         if press.key == .tab, press.modifiers.shortcutModifiers.isSubset(of: [.shift]) {

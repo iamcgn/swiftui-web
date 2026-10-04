@@ -1083,14 +1083,15 @@
       "framework": "SwiftUI",
       "area": "Accessibility",
       "title": "Custom actions, rotors and a VoiceOver session",
-      "detail": "`accessibilityAction`, `accessibilityAdjustableAction`, `accessibilitySortPriority`, `accessibilityRepresentation`, `accessibilityChildren`, `accessibilityFocused`, rotors, live regions, heading levels, `help` exposed to assistive technology; a VoiceOver session by hand in Safari and an IME session (spike 0.12).",
+      "detail": "Done 2026-10-04: accessibilityAction (kinds, named, labelled, from buttons), accessibilityAdjustableAction, accessibilitySortPriority, accessibilityHeading levels, live regions, help as the description, accessibilityRepresentation and accessibilityChildren (a second subtree laid out over the view), @AccessibilityFocusState, rotors as navigation landmarks, custom content; accessibility/actions pins the layout and the probe reads Chromium's accessibility tree. The VoiceOver and IME sessions by hand stay with pf-browser-sessions.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Accessibility.md",
         "Docs/elements/Hover.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-dark",

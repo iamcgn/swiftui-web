@@ -11,7 +11,7 @@ Apple docs: [onHover(perform:)](https://developer.apple.com/documentation/swiftu
 |---|---|
 | `onHover(perform:)` | implemented |
 | `onContinuousHover(coordinateSpace:perform:)`, `HoverPhase` | implemented for `.local` and `.global` (a named space reports local points) |
-| `help(_:)` for `Text`, `LocalizedStringKey` and strings | implemented as a painted tooltip after a 1 s rest; not yet exposed to assistive technology |
+| `help(_:)` for `Text`, `LocalizedStringKey` and strings | implemented as a painted tooltip after a 1 s rest; the text is the element's description for assistive technology (the overlay's `title`, 2026-10-04) |
 | `pointerStyle(_:)`, `PointerStyle` (`default`, `link`, `grabIdle`, `grabActive`, `horizontalText`, `verticalText`, `rectSelection`, `zoomIn`, `zoomOut`, `columnResize`, `rowResize`, `frameResize`) | implemented as the host's cursor (`HorizontalDirection`, `VerticalDirection`, `FrameResizePosition`, `FrameResizeDirection` added); image pointers are not offered |
 | Hover effects on controls (`hoverEffect`, hovered looks) | missing; macOS controls do not change on hover |
 

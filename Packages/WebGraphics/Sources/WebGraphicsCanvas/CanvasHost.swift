@@ -678,6 +678,13 @@ public final class CanvasSceneHost {
                 continue
             }
             let element: JSObject
+            // A heading whose level changed needs a new element (the tag carries the level).
+            if let existing = overlayButtons[node.identifier], let previous = overlayState[node.identifier], Self.overlayTag(for: previous) != Self.overlayTag(for: node) {
+                _ = existing.remove!()
+                _ = bridge.overlayRemove!(node.identifier)
+                overlayButtons[node.identifier] = nil
+                overlayState[node.identifier] = nil
+            }
             if let existing = overlayButtons[node.identifier] {
                 element = existing
             } else {
@@ -733,6 +740,9 @@ public final class CanvasSceneHost {
             if previous == nil || previous != unmoved {
                 Self.applyAttributes(of: node, to: element)
             }
+            if previous?.customActions != node.customActions || previous?.rotors != node.rotors {
+                syncActionsAndRotors(of: node, in: element)
+            }
             overlayState[node.identifier] = node
             // Programmatic focus (`FocusState`, a click on a focusable view) moves the host's focus.
             if scene.focusedIdentifier == node.identifier, !(document.activeElement.object === element) {
@@ -749,19 +759,84 @@ public final class CanvasSceneHost {
     }
 
     /// The overlay element for a semantics role: real controls where the browser has them
-    /// (buttons, range inputs), headings and plain elements for static content.
+    /// (buttons, range inputs), headings (at their level) and plain elements for static content.
     private static func overlayTag(for node: SemanticsNode) -> String {
         switch node.role {
         case .slider: return "input"
-        case .heading: return "h2"
+        case .heading: return "h\(min(max(node.headingLevel ?? 2, 1), 6))"
         case .text, .image, .group, .list: return "div"
         default: return "button"
         }
     }
 
+    /// Custom actions become buttons inside the element (reachable by assistive technology,
+    /// each performing its action), rotors a `nav` landmark named after the rotor with a link
+    /// per entry that focuses the entry's element.
+    private func syncActionsAndRotors(of node: SemanticsNode, in element: JSObject) {
+        let stale = element.querySelectorAll!("[data-swiftuiweb-extra]").object!
+        var index = 0
+        while let child = stale[index].object {
+            _ = child.remove!()
+            index += 1
+        }
+        let id = node.identifier
+        for name in node.customActions {
+            let button = document.createElement!("button").object!
+            _ = button.setAttribute!("data-swiftuiweb-extra", "action")
+            _ = button.setAttribute!("aria-label", name)
+            button.textContent = .string(name)
+            Self.hide(button)
+            on(button, "click") { [weak self] e in
+                _ = e.stopPropagation?()
+                self?.scene.performAccessibilityAction(semanticsIdentifier: id, name: name)
+                self?.scheduleFrame()
+            }
+            _ = element.appendChild!(button)
+        }
+        for rotor in node.rotors {
+            let nav = document.createElement!("nav").object!
+            _ = nav.setAttribute!("data-swiftuiweb-extra", "rotor")
+            _ = nav.setAttribute!("aria-label", rotor.label)
+            Self.hide(nav)
+            for entry in rotor.entries {
+                let link = document.createElement!("a").object!
+                _ = link.setAttribute!("href", "#")
+                _ = link.setAttribute!("aria-label", entry.label)
+                link.textContent = .string(entry.label)
+                let target = entry.target
+                on(link, "click") { [weak self] e in
+                    _ = e.preventDefault?()
+                    _ = e.stopPropagation?()
+                    guard let self, let target else { return }
+                    self.scene.focus(semanticsIdentifier: target, keyboard: true)
+                    self.scheduleFrame()
+                }
+                _ = nav.appendChild!(link)
+            }
+            _ = element.appendChild!(nav)
+        }
+    }
+
+    private static func hide(_ element: JSObject) {
+        let style = element.style.object!
+        style.position = .string("absolute")
+        style.opacity = .string("0")
+        style.pointerEvents = .string("none")
+        style.margin = .string("0")
+        style.padding = .string("0")
+        style.border = .string("0")
+    }
+
     /// ARIA attributes and text for an element from its semantics.
     private static func applyAttributes(of node: SemanticsNode, to element: JSObject) {
-        element.textContent = .string(node.label)
+        // The label is the element's first text node (`textContent` would drop the action
+        // buttons and rotor landmarks inside it).
+        if let first = element.firstChild.object, first.nodeType.number == 3 {
+            first.nodeValue = .string(node.label)
+        } else {
+            let text = element.ownerDocument.object!.createTextNode!(node.label).object!
+            if let first = element.firstChild.object { _ = element.insertBefore!(text, first) } else { _ = element.appendChild!(text) }
+        }
         _ = element.setAttribute!("aria-label", node.label)
         switch node.role {
         case .checkbox:
@@ -797,8 +872,11 @@ public final class CanvasSceneHost {
         }
         if node.isFocusable { _ = element.setAttribute!("tabindex", "0") }
         if let value = node.value { _ = element.setAttribute!("aria-valuetext", value) }
-        if let hint = node.hint { _ = element.setAttribute!("aria-description", hint) }
+        if let hint = node.hint { _ = element.setAttribute!("aria-description", hint) } else { _ = element.removeAttribute!("aria-description") }
         if let identifier = node.accessibilityIdentifier { _ = element.setAttribute!("data-testid", identifier) }
+        if let description = node.description { _ = element.setAttribute!("title", description) } else { _ = element.removeAttribute!("title") }
+        if node.isLive { _ = element.setAttribute!("aria-live", "polite") } else { _ = element.removeAttribute!("aria-live") }
+        if let selected = node.isSelected { _ = element.setAttribute!("aria-selected", selected ? "true" : "false") } else { _ = element.removeAttribute!("aria-selected") }
     }
 
     /// A text field's editor: a real `<input>` over the text line with transparent text (the

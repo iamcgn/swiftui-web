@@ -228,3 +228,8 @@ package struct _IconAlignedTitle<Content: View>: View {
         content.alignmentGuide(._iconCenter) { $0[.firstTextBaseline] - half }
     }
 }
+
+extension Label: _TitleProviding where Title == Text {
+    /// Views are built on the main actor; the title is read there.
+    nonisolated public var _title: String { MainActor.assumeIsolated { title.resolvedString } }
+}
