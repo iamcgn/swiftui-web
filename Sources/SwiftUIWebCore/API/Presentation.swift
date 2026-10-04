@@ -387,17 +387,42 @@ package struct _AlertActionsLayout: Layout {
 
 /// A pop-up picker's menu: one row per option, the selected one checked; a press selects and dismisses.
 package struct _MenuList: View {
-    package let titles: [String]
+    /// A row of a pop-up's menu: an option (by its index among the options), a separator or a
+    /// section header.
+    package enum Entry: Hashable {
+        case option(title: String, index: Int)
+        case divider
+        case header(String)
+    }
+
+    package let entries: [Entry]
     package let selected: Int?
     package let select: _MenuSelection
 
+    package init(titles: [String], selected: Int?, select: _MenuSelection) {
+        entries = titles.enumerated().map { .option(title: $1, index: $0) }
+        self.selected = selected
+        self.select = select
+    }
+
+    package init(entries: [Entry], selected: Int?, select: _MenuSelection) {
+        self.entries = entries
+        self.selected = selected
+        self.select = select
+    }
+
     package var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(titles.enumerated()), id: \.offset) { index, title in
-                _MenuRow(title: title, checked: index == selected, index: index, select: select)
+            ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
+                switch entry {
+                case .option(let title, let index): _MenuRow(title: title, checked: index == selected, index: index, select: select)
+                case .divider: Divider()
+                case .header(let title): _MenuSectionHeader(header: AnyView(Text(title)))
+                }
             }
         }
         .padding(.vertical, PlatformMetrics.menuVerticalPadding)
+        .environment(\._inMenu, true)
     }
 }
 

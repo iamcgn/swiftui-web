@@ -10,7 +10,12 @@ Apple docs: [Picker](https://developer.apple.com/documentation/swiftui/picker),
 | API | Notes |
 |---|---|
 | `Picker(_ titleKey:selection:content:)`, `Picker(_ title: S, selection:content:)`, `Picker(selection:content:label:)` | implemented |
-| `Picker(sources:selection:…)`, `tag(_:includeOptional:)` | missing |
+| `Picker(_:sources:selection:content:)`, `Picker(sources:selection:content:label:)` | implemented (2026-10-04): the sources' common value is the selection and a choice writes to every source; sources that disagree select no option (the pop-up shows no title) |
+| `tag(_:includeOptional:)` | implemented: the tag as an optional of its type too, so an optional selection matches it |
+| Image and `Label` options | implemented: an option holding an image shows itself in a segment or the pop-up (a text option shows its title in the style's font); the radio group laid options out as themselves already |
+| `Divider` and `Section` in a pop-up's content | implemented: the open menu shows a separator and a small secondary header between the rows (`PickerNode.menuEntries`) |
+| Keyboard focus | implemented, approximate: a focused segmented control draws the accent ring around its selected segment, a radio group around its selected circle (no focused golden) |
+| `palette` style | the menu style (its icon row is not drawn) |
 | `tag(_:)` | implemented as a layout value; a `ForEach` option without a tag uses its id |
 | `PickerStyle`: `.automatic` (= pop-up on macOS), `.menu`, `.segmented`, `.radioGroup`, `.inline` (= radio group on macOS), `.palette` (= menu); `pickerStyle(_:)` | implemented; custom styles are not (Apple's protocol is closed) |
 | Opening the pop-up menu | implemented through the presentation layer (`Docs/elements/Presentation.md`): a menu of the options below the button, the selected row checked; a row press selects and closes, a press outside closes (look approximate) |
@@ -50,8 +55,14 @@ Tier A: 3 fixtures exact (`picker/steps` steps included). Tier B, frames exact: 
 (x 43.25 vs 43, widths 128 vs 128.5: the `Vegetables` glyph-hinting class), pixels ≤ 1.46 %.
 wasm js tests pass.
 
+## macOS 26.6 (observed 2026-10-04, `picker/options` out of the golden set)
+
+On macOS 26.6 (SwiftUI 7.6) every picker in a leading-aligned column stretches to the proposed
+width (360 for a 360 pt window), the pop-up is 20 pt tall and the segmented control 22, and the
+radio group's rows are 22.5 apart (18.5 lines, 4 between); the runtime keeps the 26.2 metrics of
+the goldens above (natural width, 24 pt controls, rows 6 apart), so that fixture stays out of
+Tier A and the unit tests (`PickerOptionsTests`) hold the behaviour instead.
+
 ## Not yet covered
 
-The real menu look (highlighted rows, separators), the focused (accent) look of segmented and radio
-controls (goldens come from an unfocused window: grey), image and `Label` options, menu
-sections and dividers, keyboard navigation, `palette` icons, `Picker(sources:)`.
+The real menu look (highlighted rows), `palette` icons, the macOS 26.6 metrics above.

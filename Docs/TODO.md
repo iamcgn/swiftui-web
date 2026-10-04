@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 49 | 0 | 17 | 32 |
+| SwiftUI | 48 | 0 | 16 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **89** | 0 | 41 | 48 |
+| **All** | **88** | 0 | 40 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Picker options and looks** `sw-picker` · Picker · missing  
-  `Picker(sources:selection:)`, `tag(_:includeOptional:)`, option images, labels, dividers and sections in menus, keyboard navigation, the focused accent look of segmented and radio controls, the `palette` style, the pop-up's measured look. ([Picker.md](Docs/elements/Picker.md))
 - ☐ **Search suggestions, scopes and tokens** `sw-search` · Toolbar · accepted  
   `searchSuggestions` (accepted), `searchScopes`, `searchable(text:tokens:)`, `searchCompletion`, `searchPresentationToolbarBehavior`, `isSearching` following focus. ([Toolbar.md](Docs/elements/Toolbar.md))
 - ☐ **Button roles, sizes and states** `sw-button-looks` · Button · missing  
@@ -221,6 +219,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation
 - ☑ 2026-10-04 **The Tab API, page style and badges** `sw-tabview` · SwiftUI · TabView
 - ☑ 2026-10-04 **Menu rows, sections and navigation** `sw-menu` · SwiftUI · Menu
+- ☑ 2026-10-04 **Picker options and looks** `sw-picker` · SwiftUI · Picker
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

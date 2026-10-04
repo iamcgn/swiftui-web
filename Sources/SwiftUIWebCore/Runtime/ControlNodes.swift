@@ -44,12 +44,19 @@ package func _collectOptions(_ node: ViewNode, wrap: @MainActor (ViewNode) -> Vi
             for (entryID, entryNode) in forEach._entries { walk(entryNode, id: entryID, wrap: wrap) }
             return
         }
+        if let section = node as? any _SectionNodeProviding {
+            // A section's header and footer are not options (the pop-up's menu shows the header
+            // as a row title; `PickerNode.collectEntries`).
+            walk(section._contentNode, id: id, wrap: wrap)
+            return
+        }
         if let modifier = node as? any _UnaryLayoutModifier {
             var proxies: [ObjectIdentifier: ViewNode] = [:]
             for (target, proxy) in zip(modifier.targets, node.layoutChildren) { proxies[ObjectIdentifier(target)] = proxy }
             walk(modifier.modifiedContent, id: id) { wrap(proxies[ObjectIdentifier($0)] ?? $0) }
             return
         }
+        if node is DividerNode { return }     // a separator in the pop-up's menu, not an option
         if node.isLayoutNode {
             result.append((wrap(node), id))
             return
@@ -165,11 +172,59 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         mountChildren(force: force)
     }
 
+    /// The pop-up's menu rows in content order: options, dividers and section headers.
+    package private(set) var menuEntries: [_MenuList.Entry] = []
+
+    /// Walks the content for options (layout leaves with their tags), `Divider`s and the
+    /// headers of `Section`s, in order.
+    private func collectEntries() -> [(node: ViewNode, id: AnyHashable?, kind: _MenuList.Entry?)] {
+        var result: [(node: ViewNode, id: AnyHashable?, kind: _MenuList.Entry?)] = []
+        func walk(_ node: ViewNode, id: AnyHashable?) {
+            if let forEach = node as? any _ForEachNodeProviding {
+                for (entryID, entryNode) in forEach._entries { walk(entryNode, id: entryID) }
+                return
+            }
+            if let section = node as? any _SectionNodeProviding {
+                let title = section._headerNode.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }.joined(separator: " ")
+                if !title.isEmpty { result.append((section._headerNode, nil, .header(title))) }
+                walk(section._contentNode, id: id)
+                return
+            }
+            if let modifier = node as? any _UnaryLayoutModifier {
+                walk(modifier.modifiedContent, id: id)
+                return
+            }
+            if node is DividerNode {
+                result.append((node, nil, .divider))
+                return
+            }
+            if node.isLayoutNode {
+                result.append((node, id, nil))
+                return
+            }
+            for structural in node.structuralChildren { walk(structural, id: id) }
+        }
+        walk(content, id: nil)
+        return result
+    }
+
     private func collectOptions() -> [Option] {
-        var result = _collectOptions(content).map { entry in
+        // Options come from `_collectOptions` (proxies for modified leaves); the walk above adds
+        // the dividers and headers around them for the pop-up's menu.
+        let proxied = _collectOptions(content)
+        var result = proxied.map { entry in
             Option(node: entry.node, tag: entry.node.layoutValue(for: TagKey.self) ?? entry.id,
                    title: entry.node.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }.joined(separator: " "))
         }
+        var entries: [_MenuList.Entry] = []
+        var optionIndex = 0
+        for entry in collectEntries() {
+            if let kind = entry.kind { entries.append(kind); continue }
+            guard optionIndex < result.count else { continue }
+            entries.append(.option(title: result[optionIndex].title, index: optionIndex))
+            optionIndex += 1
+        }
+        menuEntries = entries
         if style == .radioGroup {
             for node in titles { node.unmount() }
             titles.removeAll()
@@ -177,13 +232,17 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         } else {
             while titles.count > result.count { titles.removeLast().unmount() }
             for index in result.indices {
-                let view = titleView(result[index].title, selected: result[index].tag == self.view.selected)
+                let selected = result[index].tag == self.view.selected
+                // An option with an image (an `Image` or a `Label`) shows itself; a text its title
+                // in the style's font (picker/options).
+                let hasImage = !result[index].node.descendants(where: { $0 is any _ImageNodeMarker }).isEmpty
+                let view = hasImage ? AnyView(EmptyView()) : titleView(result[index].title, selected: selected)
                 if index < titles.count {
                     titles[index].update(view: view, environment: environment, force: false)
                 } else {
                     titles.append(AnyView._makeNode(_NodeContext(view: view, parent: self, environment: environment)))
                 }
-                result[index].shown = titles[index].layoutChildren.first
+                result[index].shown = hasImage ? result[index].node : titles[index].layoutChildren.first
             }
         }
         return result
@@ -393,6 +452,14 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
                 : black(enabled ? PlatformMetrics.segmentedSelectedFill : PlatformMetrics.segmentedSelectedFill / 2)
             list.append(.fillRRect(cell, cornerRadius: min(PlatformMetrics.segmentedCornerRadius, cell.height / 2), fill))
         }
+        // Keyboard focus: an accent ring around the selected segment (approximate: the goldens
+        // come from an unfocused window).
+        if let selectedIndex, runtime.focusedIdentifier == identifier, runtime.focusVisible {
+            let ring = context.absoluteRect(options[selectedIndex].frame).insetBy(dx: -PlatformMetrics.focusRingWidth / 2, dy: -PlatformMetrics.focusRingWidth / 2)
+            list.append(.strokePath(Path(roundedRect: ring, cornerRadius: PlatformMetrics.segmentedCornerRadius + PlatformMetrics.focusRingWidth / 2, style: .circular),
+                                    style: StrokeStyle(lineWidth: PlatformMetrics.focusRingWidth),
+                                    Color.accentColor.opacity(PlatformMetrics.focusRingOpacity).resolve(in: environment)))
+        }
         // Dividers between segments, except next to the selected one (none in the iOS goldens).
         for index in options.indices.dropFirst() where index != selectedIndex && index - 1 != selectedIndex && !isIOS {
             let x = context.round(context.origin.x + options[index].frame.minX)
@@ -415,6 +482,14 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
             var path = Path()
             path.addEllipse(in: circle)
             list.append(.fillPath(path, black(fill)))
+            // Keyboard focus: the accent ring around the selected circle (approximate, as for
+            // the segmented control).
+            if selected, runtime.focusedIdentifier == identifier, runtime.focusVisible {
+                var ring = Path()
+                ring.addEllipse(in: circle.insetBy(dx: -PlatformMetrics.focusRingWidth / 2, dy: -PlatformMetrics.focusRingWidth / 2))
+                list.append(.strokePath(ring, style: StrokeStyle(lineWidth: PlatformMetrics.focusRingWidth),
+                                        Color.accentColor.opacity(PlatformMetrics.focusRingOpacity).resolve(in: environment)))
+            }
             if selected {
                 let dot = circle.insetBy(dx: (PlatformMetrics.radioSize - PlatformMetrics.radioDotSize) / 2,
                                          dy: (PlatformMetrics.radioSize - PlatformMetrics.radioDotSize) / 2)
@@ -435,11 +510,10 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         guard inside, enabled else { return }
         switch style {
         case .menu:
-            let titles = options.map(\.title)
             let selectedIndex = options.firstIndex(where: isSelected)
             let select = view.select
             let tags = options.map(\.tag)
-            let list = _MenuList(titles: titles, selected: selectedIndex, select: _MenuSelection { index in
+            let list = _MenuList(entries: menuEntries, selected: selectedIndex, select: _MenuSelection { index in
                 if let tag = tags[index] { select.select(tag) }
             })
             runtime.present(kind: .menu, view: AnyView(list), environment: environment, anchor: self) {}

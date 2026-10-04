@@ -284,6 +284,8 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("System", defaultFont))
         for string in ["Item A", "Item B", "Pick", "Detail", "Presented"] { requests.append(TextMetricRequest(string, defaultFont)) }   // nav/item, nav/path-change
         for string in ["Home", "Alerts", "Off", "Home content", "Alerts content", "Off content"] { requests.append(TextMetricRequest(string, defaultFont)) }   // tabview/tab-api
+        for string in ["Align", "Shared", "Mixed", "Size", "Fruit"] { requests.append(TextMetricRequest(string, .style("body"))) }   // picker/options labels
+        for string in ["One", "Two", "Small", "Large", "Fresh", "—"] { requests.append(TextMetricRequest(string, defaultFont)) }     // picker/options options
         requests.append(TextMetricRequest("Bold", .custom("Abel-Regular", size: 20, weight: "bold")))
         requests.append(TextMetricRequest("Italic", .custom("Abel-Regular", size: 20, italic: true)))
         requests.append(TextMetricRequest(paragraph, abel, width: 150))

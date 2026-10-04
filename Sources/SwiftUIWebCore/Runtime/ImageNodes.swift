@@ -2,8 +2,12 @@
 
 /// A named image resolved against the runtime's catalog. Rigid at its point size unless
 /// resizable; paints one `drawImage` with the variant for the paint scale.
+/// A node that shows an image (a picker treats such options as icons).
 @MainActor
-package final class ImageNode: LeafNode<Image>, _FrameSubscriber {
+package protocol _ImageNodeMarker: AnyObject {}
+
+@MainActor
+package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMarker {
     package private(set) var resource: ImageResource?
 
     override package init(_ context: _NodeContext<Image>) {

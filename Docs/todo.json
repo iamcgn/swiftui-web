@@ -611,13 +611,14 @@
       "framework": "SwiftUI",
       "area": "Picker",
       "title": "Picker options and looks",
-      "detail": "`Picker(sources:selection:)`, `tag(_:includeOptional:)`, option images, labels, dividers and sections in menus, keyboard navigation, the focused accent look of segmented and radio controls, the `palette` style, the pop-up's measured look.",
+      "detail": "Done 2026-10-04: Picker(sources:selection:) (shared value, writes to every source, mixed sources select nothing), tag(_:includeOptional:), image and Label options shown as themselves in segments and pop-ups, dividers and section headers in the pop-up's menu, the focused accent ring of the segmented control (approximate), keyboard navigation (already present); palette stays the menu style and the pop-up's open look unmeasured. macOS 26.6 changed picker sizing (stretch to the proposal, 20/22 pt controls), recorded in the doc and kept out of the goldens.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Picker.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-toolbar",

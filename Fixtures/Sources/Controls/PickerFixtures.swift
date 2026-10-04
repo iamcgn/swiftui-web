@@ -97,5 +97,66 @@ public enum PickerFixtures {
         .probe("stack")
     }
 
+    /// Options that are images or labels, dividers and sections in a pop-up's content, a
+    /// `sources:` picker over agreeing and mixed bindings, and `tag(_:includeOptional:)`. Not
+    /// in the golden set: on macOS 26.6 every picker stretches to the proposed width with a
+    /// 20 pt pop-up and 22 pt segments, unlike the 26.2 goldens the runtime matches
+    /// (Docs/elements/Picker.md, "macOS 26.6"); the unit tests cover the behaviour.
+    public static let options = Fixture("picker/options", size: CGSize(width: 360, height: 320)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker("Align", selection: .constant(1)) {
+                Image(systemName: "text.alignleft").tag(1)
+                Image(systemName: "text.aligncenter").tag(2)
+                Image(systemName: "text.alignright").tag(3)
+            }
+            .pickerStyle(.segmented)
+            .probe("iconSegments")
+            Picker("Fruit", selection: .constant(1)) {
+                Label("Apple", systemImage: "leaf").tag(1)
+                Label("Banana", systemImage: "moon").tag(2)
+            }
+            .pickerStyle(.segmented)
+            .probe("labelSegments")
+            Picker("Fruit", selection: .constant(2)) {
+                Section("Fresh") {
+                    Label("Apple", systemImage: "leaf").tag(1)
+                    Label("Banana", systemImage: "moon").tag(2)
+                }
+                Divider()
+                Text("Cherry").tag(3)
+            }
+            .probe("labelMenu")
+            #if !os(iOS)
+            Picker("Fruit", selection: .constant(1)) {
+                Label("Apple", systemImage: "leaf").tag(1).probe("radioApple")
+                Label("Banana", systemImage: "moon").tag(2).probe("radioBanana")
+            }
+            .pickerStyle(.radioGroup)
+            .probe("labelRadio")
+            #endif
+            Picker("Size", selection: .constant(Optional(2))) {
+                Text("Small").tag(1, includeOptional: true)
+                Text("Large").tag(2, includeOptional: true)
+            }
+            .probe("optionalTag")
+            Picker("Shared", sources: [PickerSource(value: .constant(1)), PickerSource(value: .constant(1))], selection: \PickerSource.value) {
+                Text("One").tag(1); Text("Two").tag(2)
+            }
+            .probe("sourcesAgree")
+            Picker("Mixed", sources: [PickerSource(value: .constant(1)), PickerSource(value: .constant(2))], selection: \PickerSource.value) {
+                Text("One").tag(1); Text("Two").tag(2)
+            }
+            .probe("sourcesMixed")
+        }
+        .probe("stack")
+    }
+
     public static let all: [Fixture] = [basic, forms, steps]
 }
+
+/// A source of a `Picker(sources:)`: an element holding a binding to its value.
+public struct PickerSource {
+    public var value: Binding<Int>
+    public init(value: Binding<Int>) { self.value = value }
+}
+

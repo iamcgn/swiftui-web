@@ -8,6 +8,18 @@ public struct Picker<Label: View, SelectionValue: Hashable, Content: View>: View
     package let label: Label
     package let selection: Binding<SelectionValue>
     package let content: Content
+    /// `Picker(sources:)`: whether the sources disagree, read in `body` so a change to any
+    /// source re-evaluates it; then no option is selected and the pop-up shows no value.
+    package var mixed: _MixedCheck?
+
+    /// The selection a mixed picker reports: matches no option.
+    package struct _MixedSelection: Hashable, Sendable { package init() {} }
+
+    /// The live check (a class so the runtime's field reflection ignores it).
+    package final class _MixedCheck {
+        package let isMixed: @MainActor () -> Bool
+        package init(_ isMixed: @escaping @MainActor () -> Bool) { self.isMixed = isMixed }
+    }
 
     /// Creates a picker that displays a custom label.
     public init(selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
@@ -22,7 +34,7 @@ public struct Picker<Label: View, SelectionValue: Hashable, Content: View>: View
     @Environment(\._inMenu) private var inMenu
 
     public var body: some View {
-        let selected = AnyHashable(selection.wrappedValue)   // read here so observation tracks it
+        let selected = mixed?.isMixed() == true ? AnyHashable(_MixedSelection()) : AnyHashable(selection.wrappedValue)   // read here so observation tracks it
         let binding = selection
         let select = _PickerSelection { if let value = $0.base as? SelectionValue { binding.wrappedValue = value } }
         if inMenu {
@@ -58,6 +70,52 @@ package final class _PickerSelection {
     package init(_ select: @escaping (AnyHashable) -> Void) { self.select = select }
 }
 
+// MARK: - Picker(sources:)
+
+extension Picker {
+    /// Creates a picker that displays a custom label and manages the selection of several
+    /// sources at once: the picker shows the value every source shares, or nothing when they
+    /// differ, and a choice writes to every source.
+    public init<C: RandomAccessCollection>(sources: C, selection: KeyPath<C.Element, Binding<SelectionValue>>,
+                                           @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
+        self.init(selection: Self.shared(sources, selection), content: content, label: label)
+    }
+
+    /// The binding over several sources: their common value (the first's when they agree), and
+    /// a write to all of them. Sources that disagree read as the first source's value with the
+    /// `_mixed` flag set, so no option is marked selected.
+    private static func shared<C: RandomAccessCollection>(_ sources: C, _ selection: KeyPath<C.Element, Binding<SelectionValue>>) -> Binding<SelectionValue> {
+        let bindings = sources.map { $0[keyPath: selection] }
+        return Binding(get: { bindings.first?.wrappedValue ?? bindings[0].wrappedValue },
+                       set: { value in for binding in bindings { binding.wrappedValue = value } })
+    }
+
+    package static func isMixed<C: RandomAccessCollection>(_ sources: C, _ selection: KeyPath<C.Element, Binding<SelectionValue>>) -> _MixedCheck {
+        let bindings = sources.map { $0[keyPath: selection] }
+        return _MixedCheck {
+            let values = bindings.map(\.wrappedValue)
+            guard let first = values.first else { return false }
+            return values.contains { $0 != first }
+        }
+    }
+}
+
+extension Picker where Label == Text {
+    /// Creates a picker that manages the selection of several sources at once, labelled by a key.
+    public init<C: RandomAccessCollection>(_ titleKey: LocalizedStringKey, sources: C, selection: KeyPath<C.Element, Binding<SelectionValue>>,
+                                           @ViewBuilder content: () -> Content) {
+        self.init(sources: sources, selection: selection, content: content) { Text(titleKey) }
+        mixed = Self.isMixed(sources, selection)
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol, C: RandomAccessCollection>(_ title: S, sources: C, selection: KeyPath<C.Element, Binding<SelectionValue>>,
+                                                               @ViewBuilder content: () -> Content) {
+        self.init(sources: sources, selection: selection, content: content) { Text(title) }
+        mixed = Self.isMixed(sources, selection)
+    }
+}
+
 /// The primitive a `Picker` resolves to (`PickerNode`).
 public struct _PickerHost: View {
     package let label: AnyView?
@@ -89,6 +147,12 @@ package struct TagKey: LayoutValueKey {
 
 extension View {
     /// Sets the unique tag value of this view (the selection value of a picker option).
+    /// Sets the unique tag value of this view, as an optional of its type too when
+    /// `includeOptional` is set (so a `Picker` with an optional selection matches it).
+    nonisolated public func tag<V: Hashable>(_ tag: V, includeOptional: Bool) -> some View {
+        layoutValue(key: TagKey.self, value: includeOptional ? AnyHashable(Optional(tag)) : AnyHashable(tag))
+    }
+
     nonisolated public func tag<V: Hashable>(_ tag: V) -> some View {
         layoutValue(key: TagKey.self, value: AnyHashable(tag))
     }
