@@ -14310,6 +14310,18 @@
       "lastBaseline": 77,
       "width": 0
     },
+    "system:13:400:default|0.0|Item A": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Item B": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
     "system:13:400:default|0.0|Kerned text": {
       "firstBaseline": 13,
       "height": 160,
@@ -14616,6 +14628,12 @@
       "lastBaseline": 77,
       "width": 0
     },
+    "system:13:400:default|0.0|Pick": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
+      "width": 0
+    },
     "system:13:400:default|0.0|Placeholder": {
       "firstBaseline": 13,
       "height": 176,
@@ -14668,6 +14686,12 @@
       "firstBaseline": 13,
       "height": 224,
       "lastBaseline": 221,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Presented": {
+      "firstBaseline": 13,
+      "height": 144,
+      "lastBaseline": 141,
       "width": 0
     },
     "system:13:400:default|0.0|Price": {
@@ -17358,6 +17382,18 @@
       "lastBaseline": 13,
       "width": 38.5
     },
+    "system:13:400:default||Item A": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 39
+    },
+    "system:13:400:default||Item B": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 39
+    },
     "system:13:400:default||Kerned text": {
       "firstBaseline": 13,
       "height": 16,
@@ -17664,6 +17700,12 @@
       "lastBaseline": 13,
       "width": 34
     },
+    "system:13:400:default||Pick": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 25.5
+    },
     "system:13:400:default||Placeholder": {
       "firstBaseline": 13,
       "height": 16,
@@ -17717,6 +17759,12 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 100
+    },
+    "system:13:400:default||Presented": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 62
     },
     "system:13:400:default||Price": {
       "firstBaseline": 13,

@@ -214,12 +214,35 @@ extension Runtime {
         if activateShortcut(in: shortcuts.presented, for: press) { return true }
         if press.key == .escape, press.modifiers.shortcutModifiers.isEmpty, dismissTopmostPresentation() { return true }
         if activateShortcut(in: shortcuts.window, for: press) { return true }
+        // ⌘[ (the macOS Back command) and Escape pop the navigation stack around the focused
+        // node, else the first stack with a pushed screen.
+        if (press.key == KeyEquivalent("[") && press.modifiers.shortcutModifiers == [.command])
+            || (press.key == .escape && press.modifiers.shortcutModifiers.isEmpty), popNavigationStack() {
+            setNeedsDisplay()
+            return true
+        }
         // ⌃⌘S toggles the sidebar of a navigation split view (the macOS View menu command).
         if press.key == KeyEquivalent("s"), press.modifiers.shortcutModifiers == [.control, .command], toggleSidebar() {
             setNeedsDisplay()
             return true
         }
         return false
+    }
+
+    /// Pops the innermost navigation stack with a pushed screen around the focused node, else
+    /// the first such stack in the tree; false when none has anything to pop.
+    private func popNavigationStack() -> Bool {
+        var candidates: [NavigationStackNode] = []
+        if let focusedIdentifier, let focused = interactiveNode(semanticsIdentifier: focusedIdentifier) {
+            var current: ViewNode? = focused
+            while let node = current {
+                if let stack = node as? NavigationStackNode { candidates.append(stack) }
+                current = node.parent
+            }
+        }
+        candidates += root.descendants(where: { $0 is NavigationStackNode }).compactMap { $0 as? NavigationStackNode }
+        guard let stack = candidates.first(where: { !$0.entries.isEmpty }) else { return false }
+        return stack.pop()
     }
 
     private func activateShortcut(in nodes: [any _ShortcutMatching], for press: KeyPress) -> Bool {

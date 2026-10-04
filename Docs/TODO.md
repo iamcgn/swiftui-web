@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 53 | 0 | 21 | 32 |
+| SwiftUI | 52 | 0 | 20 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **93** | 0 | 45 | 48 |
+| **All** | **92** | 0 | 44 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **NavigationStack gaps** `sw-navigation` · Navigation · missing  
-  `navigationDestination(item:destination:)`, the codable `NavigationPath` representation, ⌘[ and Escape, macOS's back button and push animation parity, a destination-link entry left on top after a path change removes its view. ([Navigation.md](Docs/elements/Navigation.md))
 - ☐ **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · Navigation · approximate  
   A List or ScrollView under a NavigationStack bar is laid out below the bar (the goldens' frames) rather than extending under it with a content inset, so content does not slide under the glass while it scrolls; views that ignore the safe area and representables do extend (ios/representable/safearea-*). Measure the scrolled frames and pixels on the simulator, then let extending children keep the full height with the bar as their overlap. ([Navigation.md](Docs/elements/Navigation.md), [Position.md](Docs/elements/Position.md))
 - ☐ **The Tab API, page style and badges** `sw-tabview` · TabView · missing  
@@ -225,6 +223,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

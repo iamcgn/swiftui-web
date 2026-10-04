@@ -205,6 +205,9 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
             }
         }
         let retired = valueEntries.filter { entry in !kept.contains(where: { $0 === entry }) }
+        // The views pushed above the path (destination links, presented destinations) stay on
+        // top of whatever the path becomes: nav/path-change clears the path under a presented
+        // screen and SwiftUI keeps that screen (its binding stays on).
         entries = kept + others
         return retired
     }
@@ -279,9 +282,15 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         runtime.requestLayout()
     }
 
-    /// `navigationDestination(isPresented:)` turned on: pushes its view once.
+    /// `navigationDestination(isPresented:)` turned on: pushes its view once; while it is up,
+    /// a new view (an `item` destination's next item) replaces the pushed one in place.
     package func present(_ view: AnyView, isPresented: Binding<Bool>, owner: ObjectIdentifier) {
-        guard !entries.contains(where: { if case .presented(_, let o) = $0.kind { return o == owner } else { return false } }) else { return }
+        if let existing = entries.first(where: { if case .presented(_, let o) = $0.kind { return o == owner } else { return false } }) {
+            existing.view = view
+            refresh(existing, force: false)
+            runtime.requestLayout()
+            return
+        }
         let entry = Entry(kind: .presented(isPresented, owner: owner), view: view)
         changingScreens {
             entries.append(entry)
@@ -419,12 +428,28 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         topScrollView = groups.last?.first?.descendants(where: { $0 is any _Scrollable }).first
         var bars = self.bars
         for pass in 0..<2 {
-            for (group, bar) in zip(groups, bars) {
+            // Only the root and the top screen are laid out (screens between them are not:
+            // their probes never report in nav/path-change). The frame is the top screen's
+            // size, but both centre in a box as large as the larger of the two, anchored at the
+            // frame's top-left: a 16 pt presented screen over a 44 pt root sits 14 down and the
+            // root at the frame's top; a 72 pt pushed screen holds the root 14 down.
+            let placed = groups.count > 1 ? [(groups[0], bars[0]), (groups[groups.count - 1], bars[bars.count - 1])] : Array(zip(groups, bars))
+            var box = CGSize(width: frame.width, height: frame.height)
+            for (group, bar) in placed {
                 let barHeight = bar?.height ?? 0
                 let inner = barHeight > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - barHeight) }) : proposal
                 for node in group {
                     let size = node.sizeThatFits(inner)
-                    node.place(at: CGPoint(x: (frame.width - size.width) / 2, y: barHeight + (frame.height - barHeight - size.height) / 2),
+                    box.width = max(box.width, size.width)
+                    box.height = max(box.height, size.height + barHeight)
+                }
+            }
+            for (group, bar) in placed {
+                let barHeight = bar?.height ?? 0
+                let inner = barHeight > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - barHeight) }) : proposal
+                for node in group {
+                    let size = node.sizeThatFits(inner)
+                    node.place(at: CGPoint(x: (box.width - size.width) / 2, y: barHeight + (box.height - barHeight - size.height) / 2),
                                anchor: .topLeading, proposal: inner, by: self)
                 }
             }
@@ -549,6 +574,30 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
 
     override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) }
     override package var structuralChildren: [ViewNode] { [root as ViewNode] + entries.compactMap(\.node) }
+
+    /// Preferences come from the root and the top screen when the top is a pushed view
+    /// (nav/path-change `present`: a value screen under a presented one reports no probe); the
+    /// path's own screens all report under a value on top (nav/steps `push2`, macOS 26.2).
+    override package func preferenceValue<K: PreferenceKey>(for key: K.Type) -> K.Value? {
+        var sources: [ViewNode] = [root]
+        if let top = entries.last {
+            if case .value = top.kind {
+                sources += entries.compactMap(\.node)
+            } else if let node = top.node {
+                sources.append(node)
+            }
+        }
+        var result: K.Value?
+        for child in sources {
+            guard let value = child.preferenceValue(for: key) else { continue }
+            if result == nil {
+                result = value
+            } else {
+                K.reduce(value: &result!, nextValue: { value })
+            }
+        }
+        return transformPreference(key, result)
+    }
     override package var nodeDescription: String { "NavigationStack" }
 
     override package func unmount() {

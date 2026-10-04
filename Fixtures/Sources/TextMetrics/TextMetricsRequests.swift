@@ -282,6 +282,7 @@ public enum TextMetricsRequests {
         for string in [sample, "Custom", "Abel 20", "System"] { requests.append(TextMetricRequest(string, abel)) }
         requests.append(TextMetricRequest("Abel 13", .custom("Abel-Regular", size: 13)))
         requests.append(TextMetricRequest("System", defaultFont))
+        for string in ["Item A", "Item B", "Pick", "Detail", "Presented"] { requests.append(TextMetricRequest(string, defaultFont)) }   // nav/item, nav/path-change
         requests.append(TextMetricRequest("Bold", .custom("Abel-Regular", size: 20, weight: "bold")))
         requests.append(TextMetricRequest("Italic", .custom("Abel-Regular", size: 20, italic: true)))
         requests.append(TextMetricRequest(paragraph, abel, width: 150))

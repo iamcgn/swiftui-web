@@ -1,3 +1,5 @@
+import WebFoundation
+
 /// A view that displays a root view and enables you to present additional views over the root
 /// view.
 ///
@@ -70,6 +72,61 @@ public struct NavigationPath: Equatable {
 
     /// Removes values from the end of this path.
     public mutating func removeLast(_ k: Int = 1) { elements.removeLast(Swift.min(k, elements.count)) }
+
+    // MARK: Codable representation
+
+    /// A serializable representation of a navigation path: the elements' type names and JSON,
+    /// last element first, as SwiftUI lays it out (`["Swift.Int", "2", "Swift.String", "\"a\""]`).
+    public struct CodableRepresentation: Codable, Equatable, Sendable {
+        package var items: [String]
+
+        package init(items: [String]) { self.items = items }
+
+        public init(from decoder: any Decoder) throws {
+            var container = try decoder.unkeyedContainer()
+            var items: [String] = []
+            while !container.isAtEnd { items.append(try container.decode(String.self)) }
+            self.items = items
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.unkeyedContainer()
+            for item in items { try container.encode(item) }
+        }
+    }
+
+    /// Creates a new navigation path from a serializable version: elements whose type the
+    /// program no longer declares, or whose JSON no longer decodes, end the path there.
+    public init(_ codable: CodableRepresentation) {
+        var elements: [AnyHashable] = []
+        var index = 0
+        while index + 1 < codable.items.count {
+            guard let type = _typeByName(codable.items[index]) as? any (Decodable & Hashable).Type,
+                  let value = Self.decode(type, from: codable.items[index + 1]) else { break }
+            elements.append(value)
+            index += 2
+        }
+        self.elements = elements.reversed()
+    }
+
+    /// The serializable representation of this path, nil when an element is not `Codable`.
+    public var codable: CodableRepresentation? {
+        var items: [String] = []
+        for element in elements.reversed() {
+            guard let encodable = element.base as? any Encodable, let name = _mangledTypeName(type(of: element.base)),
+                  let data = try? _TransferJSONEncoder().encode(encodable), let json = String(data: data, encoding: .utf8) else { return nil }
+            items.append(name)
+            items.append(json)
+        }
+        return CodableRepresentation(items: items)
+    }
+
+    private static func decode(_ type: any (Decodable & Hashable).Type, from json: String) -> AnyHashable? {
+        func open<T: Decodable & Hashable>(_: T.Type) -> AnyHashable? {
+            (try? _TransferJSONDecoder().decode(T.self, from: Data(json.utf8))).map { AnyHashable($0) }
+        }
+        return _openExistential(type, do: open)
+    }
 }
 
 /// Type-erased access to a navigation stack's path (a class so the runtime's field reflection
@@ -232,6 +289,29 @@ public struct _NavigationPresentedSync {
     }
 }
 
+/// A `navigationDestination(item:destination:)` modifier: pushes the destination of the bound
+/// item while it is non-nil (a new item swaps the pushed view in place), pops when it becomes
+/// nil, and sets it to nil when the user pops.
+public struct _NavigationItemDestinationModifier<Item: Hashable> {
+    package let item: Binding<Item?>
+    package let destination: (Item) -> AnyView
+    package init(item: Binding<Item?>, destination: @escaping (Item) -> AnyView) {
+        self.item = item
+        self.destination = destination
+    }
+}
+
+extension _NavigationItemDestinationModifier: ViewModifier {
+    public func body(content: Content) -> some View {
+        let current = item.wrappedValue
+        let item = item
+        return content.modifier(_NavigationPresentedSync(
+            presented: current != nil,
+            binding: Binding(get: { item.wrappedValue != nil }, set: { if !$0 { item.wrappedValue = nil } }),
+            destination: current.map(destination) ?? AnyView(EmptyView())))
+    }
+}
+
 extension _NavigationPresentedSync: ViewModifier {
     public typealias Body = Never
     public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
@@ -309,6 +389,12 @@ extension View {
 
     /// Associates a destination view with a binding that can be used to push the view onto a
     /// navigation stack.
+    /// Associates a destination view with a bound value: the destination is pushed while the
+    /// value is non-nil and popped when it becomes nil; popping sets it to nil.
+    nonisolated public func navigationDestination<D: Hashable, C: View>(item: Binding<D?>, @ViewBuilder destination: @escaping (D) -> C) -> some View {
+        modifier(_NavigationItemDestinationModifier(item: item, destination: { AnyView(destination($0)) }))
+    }
+
     nonisolated public func navigationDestination<V: View>(isPresented: Binding<Bool>, @ViewBuilder destination: () -> V) -> some View {
         modifier(_NavigationPresentedDestinationModifier(isPresented: isPresented, destination: AnyView(destination())))
     }

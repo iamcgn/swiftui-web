@@ -1,0 +1,146 @@
+{
+  "fixture" : "nav\/item",
+  "frames" : {
+    "nav" : {
+      "height" : 44,
+      "width" : 28.5,
+      "x" : 145.75,
+      "y" : 78
+    },
+    "pick" : {
+      "height" : 16,
+      "width" : 25.5,
+      "x" : 147.25,
+      "y" : 106
+    },
+    "root" : {
+      "height" : 16,
+      "width" : 28.5,
+      "x" : 145.75,
+      "y" : 78
+    },
+    "stack" : {
+      "height" : 44,
+      "width" : 28.5,
+      "x" : 145.75,
+      "y" : 78
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "detail" : {
+          "height" : 16,
+          "width" : 35,
+          "x" : 142.5,
+          "y" : 106
+        },
+        "itemA" : {
+          "height" : 16,
+          "width" : 39,
+          "x" : 140.5,
+          "y" : 78
+        },
+        "nav" : {
+          "height" : 44,
+          "width" : 39,
+          "x" : 140.5,
+          "y" : 78
+        },
+        "pick" : {
+          "height" : 16,
+          "width" : 25.5,
+          "x" : 147.25,
+          "y" : 106
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        },
+        "stack" : {
+          "height" : 44,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        }
+      },
+      "name" : "showA"
+    },
+    {
+      "frames" : {
+        "detail" : {
+          "height" : 16,
+          "width" : 35,
+          "x" : 142.5,
+          "y" : 106
+        },
+        "itemB" : {
+          "height" : 16,
+          "width" : 39,
+          "x" : 140.5,
+          "y" : 78
+        },
+        "nav" : {
+          "height" : 44,
+          "width" : 39,
+          "x" : 140.5,
+          "y" : 78
+        },
+        "pick" : {
+          "height" : 16,
+          "width" : 25.5,
+          "x" : 147.25,
+          "y" : 106
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        },
+        "stack" : {
+          "height" : 44,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        }
+      },
+      "name" : "swapB"
+    },
+    {
+      "frames" : {
+        "nav" : {
+          "height" : 44,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        },
+        "pick" : {
+          "height" : 16,
+          "width" : 25.5,
+          "x" : 147.25,
+          "y" : 106
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        },
+        "stack" : {
+          "height" : 44,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        }
+      },
+      "name" : "clear"
+    }
+  ]
+}

@@ -6,8 +6,15 @@ import FixtureKit
 
 /// Drives `nav/steps`.
 @Observable
+public final class NavigationItemModel {
+    public var item: String? = nil
+    public init() {}
+}
+
+@Observable
 public final class NavigationModel {
     public var path: [Int] = []
+    public var presented = false
     public init() {}
 }
 
@@ -97,5 +104,64 @@ public enum NavigationFixtures {
         .probe("nav")
     }
 
-    public static let all: [Fixture] = [basic, list, title, sizing, steps]
+    /// Behaviour: `navigationDestination(item:)` pushes while the item is set, swaps the view
+    /// for a new item, and pops when it clears.
+    public static let item = Fixture(
+        "nav/item", size: CGSize(width: 320, height: 200),
+        model: { NavigationItemModel() },
+        steps: [
+            FixtureStep("showA") { $0.item = "A" },
+            FixtureStep("swapB") { $0.item = "B" },
+            FixtureStep("clear") { $0.item = nil },
+        ]
+    ) { model in
+        NavigationStack {
+            VStack(spacing: 12) {
+                Text("Root").probe("root")
+                Text("Pick").probe("pick")
+            }
+            .navigationDestination(item: Binding(get: { model.item }, set: { model.item = $0 })) { item in
+                VStack(spacing: 12) {
+                    Text("Item \(item)").probe("item\(item)")
+                    Text("Detail").probe("detail")
+                }
+            }
+            .probe("stack")
+        }
+        .probe("nav")
+    }
+
+    /// Behaviour: a presented destination pushed over a path, then the path cleared: the
+    /// presented view goes with it.
+    public static let pathChange = Fixture(
+        "nav/path-change", size: CGSize(width: 320, height: 200),
+        model: { NavigationModel() },
+        steps: [
+            FixtureStep("push1") { $0.path = [1] },
+            FixtureStep("present") { $0.presented = true },
+            FixtureStep("clearPath") { $0.path = [] },
+        ]
+    ) { model in
+        NavigationStack(path: Binding(get: { model.path }, set: { model.path = $0 })) {
+            VStack(spacing: 12) {
+                Text("Root").probe("root")
+                Text("Pick").probe("pick")   // no button: its bezel moved on macOS 26.6
+            }
+            .navigationDestination(for: Int.self) { number in
+                // Taller than the root (72 against 44): which screen sizes the stack.
+                VStack(spacing: 12) {
+                    Text("Number \(number)").probe("number\(number)")
+                    Text("Detail").probe("detail")
+                    Text("Pick").probe("pick2")
+                }
+            }
+            .navigationDestination(isPresented: Binding(get: { model.presented }, set: { model.presented = $0 })) {
+                Text("Presented").probe("presented")
+            }
+            .probe("stack")
+        }
+        .probe("nav")
+    }
+
+    public static let all: [Fixture] = [basic, list, title, sizing, steps, item, pathChange]
 }

@@ -1,0 +1,152 @@
+{
+  "fixture" : "nav\/path-change",
+  "frames" : {
+    "nav" : {
+      "height" : 44,
+      "width" : 28.5,
+      "x" : 145.75,
+      "y" : 78
+    },
+    "pick" : {
+      "height" : 16,
+      "width" : 25.5,
+      "x" : 147.25,
+      "y" : 106
+    },
+    "root" : {
+      "height" : 16,
+      "width" : 28.5,
+      "x" : 145.75,
+      "y" : 78
+    },
+    "stack" : {
+      "height" : 44,
+      "width" : 28.5,
+      "x" : 145.75,
+      "y" : 78
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "detail" : {
+          "height" : 16,
+          "width" : 35,
+          "x" : 142.5,
+          "y" : 92
+        },
+        "nav" : {
+          "height" : 72,
+          "width" : 58,
+          "x" : 131,
+          "y" : 64
+        },
+        "number1" : {
+          "height" : 16,
+          "width" : 58,
+          "x" : 131,
+          "y" : 64
+        },
+        "pick" : {
+          "height" : 16,
+          "width" : 25.5,
+          "x" : 147.25,
+          "y" : 106
+        },
+        "pick2" : {
+          "height" : 16,
+          "width" : 25.5,
+          "x" : 147.25,
+          "y" : 120
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        },
+        "stack" : {
+          "height" : 44,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 78
+        }
+      },
+      "name" : "push1"
+    },
+    {
+      "frames" : {
+        "nav" : {
+          "height" : 16,
+          "width" : 62,
+          "x" : 129,
+          "y" : 92
+        },
+        "pick" : {
+          "height" : 16,
+          "width" : 25.5,
+          "x" : 147.25,
+          "y" : 120
+        },
+        "presented" : {
+          "height" : 16,
+          "width" : 62,
+          "x" : 129,
+          "y" : 106
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 92
+        },
+        "stack" : {
+          "height" : 44,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 92
+        }
+      },
+      "name" : "present"
+    },
+    {
+      "frames" : {
+        "nav" : {
+          "height" : 16,
+          "width" : 62,
+          "x" : 129,
+          "y" : 92
+        },
+        "pick" : {
+          "height" : 16,
+          "width" : 25.5,
+          "x" : 147.25,
+          "y" : 120
+        },
+        "presented" : {
+          "height" : 16,
+          "width" : 62,
+          "x" : 129,
+          "y" : 106
+        },
+        "root" : {
+          "height" : 16,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 92
+        },
+        "stack" : {
+          "height" : 44,
+          "width" : 28.5,
+          "x" : 145.75,
+          "y" : 92
+        }
+      },
+      "name" : "clearPath"
+    }
+  ]
+}

@@ -541,13 +541,14 @@
       "framework": "SwiftUI",
       "area": "Navigation",
       "title": "NavigationStack gaps",
-      "detail": "`navigationDestination(item:destination:)`, the codable `NavigationPath` representation, ⌘[ and Escape, macOS's back button and push animation parity, a destination-link entry left on top after a path change removes its view.",
+      "detail": "Done 2026-10-04: navigationDestination(item:) (push, swap in place, pop both ways), NavigationPath.CodableRepresentation with init(_:) and codable (mangled type names and JSON, last first), ⌘[ and Escape popping the stack around the focused control, and the measured stack layout (the frame is the top screen's size, screens centre in the largest screen's box; a presented screen survives a path change under it, so the entry removal the item described is not SwiftUI's behaviour). macOS back button and push animation stay open (window chrome).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Navigation.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-ios-nav-scroll",

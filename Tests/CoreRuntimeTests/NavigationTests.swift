@@ -129,3 +129,122 @@ import SwiftUIWebHeadless
 @Observable private final class _NavigationPathBox: @unchecked Sendable { var path = NavigationPath() }
 @Observable private final class _FlagBox: @unchecked Sendable { var value = false }
 #endif
+
+// MARK: - Phase 8 step 6, sw-navigation
+
+@Observable
+private final class ItemModel {
+    var item: String? = nil
+    var path: [Int] = []
+    var presented = false
+}
+
+private struct ItemStack: View {
+    let model: ItemModel
+    var body: some View {
+        NavigationStack(path: Binding(get: { model.path }, set: { model.path = $0 })) {
+            VStack {
+                Text("Root")._probe("root")
+                NavigationLink("Push", value: 1)._probe("link")
+            }
+            .navigationDestination(for: Int.self) { number in Text("Number \(number)")._probe("number\(number)") }
+            .navigationDestination(item: Binding(get: { model.item }, set: { model.item = $0 })) { item in Text("Item \(item)")._probe("item\(item)") }
+            .navigationDestination(isPresented: Binding(get: { model.presented }, set: { model.presented = $0 })) { Text("Presented")._probe("presented") }
+        }
+    }
+}
+
+/// Internal, not private: the codable representation names types by their mangled names, which
+/// `_typeByName` resolves for types without a private discriminator.
+struct NavigationPayload: Hashable, Codable {
+    var id: Int
+    var name: String
+}
+
+@Suite @MainActor struct NavigationGapTests {
+    private let size = CGSize(width: 320, height: 200)
+
+    @Test func itemDestinationPushesSwapsAndPops() {
+        let model = ItemModel()
+        let runtime = Runtime()
+        runtime.mount(ItemStack(model: model))
+        runtime.layout(in: size)
+        #expect(runtime.probeFrames["root"] != nil && runtime.probeFrames["itemA"] == nil)
+        let stack = runtime.root.descendants(where: { $0 is NavigationStackNode }).first as! NavigationStackNode
+        model.item = "A"
+        runtime.layout(in: size)
+        // Lower screens stay laid out (their probes report); the top screen is the item's.
+        #expect(runtime.probeFrames["itemA"] != nil && stack.entries.count == 1)
+        model.item = "B"
+        runtime.layout(in: size)
+        #expect(runtime.probeFrames["itemB"] != nil && runtime.probeFrames["itemA"] == nil && stack.entries.count == 1)
+        // Popping clears the item; clearing the item pops.
+        stack.pop()
+        runtime.layout(in: size)
+        #expect(model.item == nil && stack.entries.isEmpty)
+        model.item = "C"
+        runtime.layout(in: size)
+        #expect(runtime.probeFrames["itemC"] != nil && stack.entries.count == 1)
+        model.item = nil
+        runtime.layout(in: size)
+        #expect(stack.entries.isEmpty && runtime.probeFrames["itemC"] == nil)
+    }
+
+    @Test func pathChangesKeepTheViewsPushedAboveThem() {
+        // nav/path-change: a presented screen over a path stays when the path clears beneath it.
+        let model = ItemModel()
+        let runtime = Runtime()
+        runtime.mount(ItemStack(model: model))
+        runtime.layout(in: size)
+        model.path = [1]
+        runtime.layout(in: size)
+        model.presented = true
+        runtime.layout(in: size)
+        #expect(runtime.probeFrames["presented"] != nil)
+        model.path = []
+        runtime.layout(in: size)
+        let stack = runtime.root.descendants(where: { $0 is NavigationStackNode }).first as! NavigationStackNode
+        #expect(runtime.probeFrames["presented"] != nil && runtime.probeFrames["number1"] == nil && stack.entries.count == 1)
+        #expect(model.presented)
+        // Popping it turns the binding off and shows the root.
+        stack.pop()
+        runtime.layout(in: size)
+        #expect(!model.presented && stack.entries.isEmpty)
+    }
+
+    @Test func backShortcutsPopTheStack() {
+        let model = ItemModel()
+        let runtime = Runtime()
+        runtime.mount(ItemStack(model: model))
+        runtime.layout(in: size)
+        model.path = [1, 2]
+        runtime.layout(in: size)
+        #expect(runtime.keyDown(KeyEvent(key: KeyEquivalent("["), modifiers: [.command])))
+        runtime.layout(in: size)
+        #expect(model.path == [1])
+        #expect(runtime.keyDown(KeyEvent(key: .escape)))
+        runtime.layout(in: size)
+        #expect(model.path == [] && runtime.probeFrames["root"] != nil)
+        // Nothing to pop: the keys are not consumed.
+        #expect(!runtime.keyDown(KeyEvent(key: .escape)))
+    }
+
+    @Test func navigationPathRoundTripsThroughItsCodableRepresentation() throws {
+        var path = NavigationPath()
+        path.append(1)
+        path.append("two")
+        path.append(NavigationPayload(id: 3, name: "three"))
+        let codable = try #require(path.codable)
+        #expect(codable.items.count == 6 && codable.items[1] == "{\"id\":3,\"name\":\"three\"}" && codable.items[3] == "\"two\"" && codable.items[5] == "1")
+        let data = try _TransferJSONEncoder().encode(codable)
+        let decoded = try _TransferJSONDecoder().decode(NavigationPath.CodableRepresentation.self, from: data)
+        let restored = NavigationPath(decoded)
+        #expect(restored == path)
+        #expect(restored.count == 3)
+        // An element that is not Codable has no representation.
+        struct Plain: Hashable {}
+        var plain = NavigationPath()
+        plain.append(Plain())
+        #expect(plain.codable == nil)
+    }
+}
