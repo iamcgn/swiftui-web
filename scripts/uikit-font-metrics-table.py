@@ -64,7 +64,20 @@ out += ["    ]", "",
 for name in sorted(styles):
     e = styles[name]
     out.append(f'        "{name}": TextStyleMetrics(pointSize: {e["pointSize"]:g}, ascender: {e["ascender"]!r}, descender: {e["descender"]!r}, leading: {e["leading"]!r}, capHeight: {e["capHeight"]!r}, xHeight: {e["xHeight"]!r}),')
+scaled = doc.get("scaledTextStyles", {})
+for name, categories in scaled.items():
+    for category, e in categories.items(): check(f"{name}:{category}", e)
+out += ["    ]", "",
+        "    /// The text styles at every content size category (Dynamic Type), by style then category",
+        "    /// (\"XS\" … \"AXXXXL\"): each category has its own ascender, descender and leading.",
+        "    static let scaledTextStyles: [String: [String: TextStyleMetrics]] = ["]
+for name in sorted(scaled):
+    out.append(f'        "{name}": [')
+    for category in sorted(scaled[name]):
+        e = scaled[name][category]
+        out.append(f'            "{category}": TextStyleMetrics(pointSize: {e["pointSize"]:g}, ascender: {e["ascender"]!r}, descender: {e["descender"]!r}, leading: {e["leading"]!r}, capHeight: {e["capHeight"]!r}, xHeight: {e["xHeight"]!r}),')
+    out.append('        ],')
 out += ["    ]", "}", ""]
 target = root / "Packages/UIKitWeb/Sources/UIKitWebCore/Values/UIFontMetricsTable.swift"
 target.write_text("\n".join(out))
-print(f"{target.relative_to(root)}: ascender {asc}, descender {desc}, cap {cap}, {len(styles)} styles; every label height is the line rule")
+print(f"{target.relative_to(root)}: ascender {asc}, descender {desc}, cap {cap}, {len(styles)} styles, {sum(len(c) for c in scaled.values())} scaled; every label height is the line rule")

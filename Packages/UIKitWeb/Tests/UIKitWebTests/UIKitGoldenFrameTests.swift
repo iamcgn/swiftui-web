@@ -27,6 +27,12 @@ enum Goldens {
         return url.appendingPathComponent("Fixtures/Goldens")
     }()
 
+    /// The fixtures' asset catalog (Fixtures/Assets.manifest.json): the bundled fonts
+    /// `UIFont(name:size:)` resolves (uikit/label/fonts).
+    static let assets: AssetCatalog = {
+        (try? AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))) ?? .empty
+    }()
+
     static func frames(for fixture: UIKitFixture) throws -> GoldenFrames? {
         let file = root.appendingPathComponent(fixture.name).appendingPathComponent("frames.json")
         guard FileManager.default.fileExists(atPath: file.path) else { return nil }
@@ -49,7 +55,7 @@ enum Goldens {
         let fixture = try #require(AllUIKitFixtures.all.first { $0.name == name })
         let golden = try #require(try Goldens.frames(for: fixture), "missing golden for \(name); run scripts/gen-goldens-sim.sh uikit")
         let engine = try Goldens.textEngine()
-        let runner = UIKitFixtureRunner(fixture, textEngine: engine)
+        let runner = UIKitFixtureRunner(fixture, textEngine: engine, assets: Goldens.assets)
         try compare(runner.layoutFrames(), to: golden.frames, label: name)
         #expect(engine.misses.isEmpty, "\(name): no recorded text metrics for \(engine.misses)")
 
@@ -89,6 +95,7 @@ enum Goldens {
     @Test func fontsMatchRecorded() throws {
         let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: Goldens.textMetrics))
         #expect(!document.fonts.isEmpty)
+        UIKitScene.shared.assetCatalog = Goldens.assets   // the bundled fonts' metrics
         for font in UIKitTextMetricsRequests.fonts {
             let recorded = try #require(document.fonts[font.key], "no recorded metrics for \(font.key)")
             let ours = font.uiFont

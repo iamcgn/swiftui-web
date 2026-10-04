@@ -5,7 +5,33 @@ import UIKit
 import UIKitFixtureKit
 
 public enum LabelFixtures {
-    public static let all = [basic, wrapping, tabular, fitting]
+    public static let all = [basic, wrapping, tabular, fitting, fonts]
+
+    /// Italic, monospaced and bundled fonts, and text styles at other content size categories
+    /// (uk-fonts): labels sized to fit.
+    public static let fonts = UIKitFixture("uikit/label/fonts", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        @MainActor func label(_ text: String, _ font: UIKitFixtureFont, x: CGFloat, y: CGFloat, id: String) {
+            let label = UILabel()
+            label.text = text
+            label.font = font.uiFont
+            label.sizeToFit()
+            label.frame.origin = CGPoint(x: x, y: y)
+            root.addSubview(label.probe(id))
+        }
+        label("Italic 17", .italic(size: 17), x: 16, y: 16, id: "italic")
+        label("Mono 15", .monospaced(size: 15), x: 160, y: 16, id: "mono15")
+        label("Mono 17 semibold", .monospaced(size: 17, weight: "semibold"), x: 16, y: 48, id: "mono17")
+        label("Abel 20", .custom(name: "Abel-Regular", size: 20), x: 16, y: 84, id: "abel20")
+        label("Abel 13", .custom(name: "Abel-Regular", size: 13), x: 160, y: 84, id: "abel13")
+        label("Body XXXL", .scaledStyle("body", category: "XXXL"), x: 16, y: 124, id: "bodyXXXL")
+        label("Body XS", .scaledStyle("body", category: "XS"), x: 200, y: 124, id: "bodyXS")
+        label("Footnote AXM", .scaledStyle("footnote", category: "AXM"), x: 16, y: 170, id: "footnoteAXM")
+        label("Title S", .scaledStyle("title", category: "S"), x: 16, y: 220, id: "titleS")
+        label("Headline AXXXXL", .scaledStyle("headline", category: "AXXXXL"), x: 16, y: 270, id: "headlineAX5")
+        label("Scaled 16", .scaled(size: 16, style: "body", category: "XXL"), x: 16, y: 350, id: "scaled16")
+        return root
+    }
 
     /// Font scaling to fit, tightening before truncation, and attributed text with per-range
     /// fonts and colours (uk-label).

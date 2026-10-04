@@ -17,7 +17,7 @@ import WebGraphicsNative
     /// Fixtures held to three times the tolerance: text-heavy ones, where CoreText's rendering of
     /// SF on macOS differs from the simulator's in antialiasing and line pitch (`label/wrapping`:
     /// 4.6 % with identical text and breaks).
-    static let approximate: Set<String> = ["uikit/label/wrapping", "uikit/draw/text", "uikit/label/tabular", "uikit/table/selfsizing", "uikit/label/fitting"]
+    static let approximate: Set<String> = ["uikit/label/wrapping", "uikit/draw/text", "uikit/label/tabular", "uikit/table/selfsizing", "uikit/label/fitting", "uikit/label/fonts"]
     /// Fixtures compared by frames only (their look is not painted yet).
     /// The wheels date picker: a drum drawn approximately (Docs/elements/UIKit/DatePicker.md).
     static let framesOnly: Set<String> = ["uikit/datepicker/wheels", "uikit/picker/basic"]
@@ -32,8 +32,10 @@ import WebGraphicsNative
         let fixture = try #require(AllUIKitFixtures.all.first { $0.name == name })
         guard !Self.framesOnly.contains(name) else { return }
         let engine = CoreTextEngine()
-        let painter = CoreGraphicsPainter(textEngine: engine, assetBase: Goldens.root.deletingLastPathComponent())
-        let runner = UIKitFixtureRunner(fixture, textEngine: engine)
+        let assetBase = Goldens.root.deletingLastPathComponent()
+        CoreTextEngine.registerFonts(Goldens.assets, base: assetBase)   // the bundled fonts, once per process
+        let painter = CoreGraphicsPainter(textEngine: engine, assetBase: assetBase)
+        let runner = UIKitFixtureRunner(fixture, textEngine: engine, assets: Goldens.assets)
         try compare(runner, fixture: fixture, png: "image@2x.png", label: name, painter: painter)
         for (index, step) in fixture.stepNames.enumerated() {
             runner.apply(step: index)

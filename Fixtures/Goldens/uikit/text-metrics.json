@@ -1,10 +1,34 @@
 {
   "entries" : {
+    "custom:Abel-Regular:13:400|;l1|Abel 13" : {
+      "firstBaseline" : 12.7333984375,
+      "height" : 17,
+      "lastBaseline" : 12.7333984375,
+      "width" : 37.5
+    },
+    "custom:Abel-Regular:20:400|;l1|Abel 20" : {
+      "firstBaseline" : 19.58984375,
+      "height" : 25.5,
+      "lastBaseline" : 19.58984375,
+      "width" : 57
+    },
     "rich:system:17:400:default=6,system:17:600:default=5,system:17:400:default=4,system:24:400:default=3|;l1|Plain bold red big" : {
       "firstBaseline" : 22.8515625,
       "height" : 29,
       "lastBaseline" : 22.8515625,
       "width" : 142
+    },
+    "style:body:XS|;l1|Body XS" : {
+      "firstBaseline" : 15.23930123235721,
+      "height" : 20.5,
+      "lastBaseline" : 15.23930123235721,
+      "width" : 55
+    },
+    "style:body:XXXL|;l1|Body XXXL" : {
+      "firstBaseline" : 24.731688170828306,
+      "height" : 33,
+      "lastBaseline" : 24.731688170828306,
+      "width" : 113.5
     },
     "style:body|;l1|26.0" : {
       "firstBaseline" : 18.357620599453821,
@@ -486,6 +510,12 @@
       "lastBaseline" : 66.931839349453824,
       "width" : 282
     },
+    "style:footnote:AXM|;l1|Footnote AXM" : {
+      "firstBaseline" : 24.399568480973556,
+      "height" : 32.5,
+      "lastBaseline" : 24.399568480973556,
+      "width" : 143
+    },
     "style:footnote|;l1|Footnote" : {
       "firstBaseline" : 13.993718187553094,
       "height" : 19,
@@ -539,6 +569,12 @@
       "height" : 19,
       "lastBaseline" : 13.993718187553094,
       "width" : 192.5
+    },
+    "style:headline:AXXXXL|;l1|Headline AXXXXL" : {
+      "firstBaseline" : 56.229384400372354,
+      "height" : 75,
+      "lastBaseline" : 56.229384400372354,
+      "width" : 428
     },
     "style:headline|;l1|Headline" : {
       "firstBaseline" : 18.325751773774499,
@@ -665,6 +701,12 @@
       "height" : 21,
       "lastBaseline" : 15.797740091254949,
       "width" : 20
+    },
+    "style:title:S|;l1|Title S" : {
+      "firstBaseline" : 29.143455417278087,
+      "height" : 39,
+      "lastBaseline" : 29.143455417278087,
+      "width" : 69.5
     },
     "style:title|;l1|Title" : {
       "firstBaseline" : 31.303175487802068,
@@ -1092,6 +1134,12 @@
       "lastBaseline" : 14.2822265625,
       "width" : 548.5
     },
+    "system:15:400:default||Attributed" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 69
+    },
     "system:15:400:default|126.0|Padded" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -1151,6 +1199,12 @@
       "height" : 36,
       "lastBaseline" : 32.1826171875,
       "width" : 282.5
+    },
+    "system:15:400:monospaced|;l1|Mono 15" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 65
     },
     "system:15:600:default:tabular|;l1|0000" : {
       "firstBaseline" : 14.2822265625,
@@ -1217,6 +1271,12 @@
       "height" : 19.5,
       "lastBaseline" : 15.234375,
       "width" : 69.5
+    },
+    "system:17:400:default:italic|;l1|Italic 17" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 57
     },
     "system:17:400:default:tabular|;l1|0000" : {
       "firstBaseline" : 16.1865234375,
@@ -1572,11 +1632,23 @@
       "lastBaseline" : 16.1865234375,
       "width" : 46
     },
+    "system:17:400:default||Bezel border" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 97
+    },
     "system:17:400:default||Centred" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 61.5
+    },
+    "system:17:400:default||Clear" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 40
     },
     "system:17:400:default||Field" : {
       "firstBaseline" : 16.1865234375,
@@ -1589,6 +1661,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 39
+    },
+    "system:17:400:default||Line border" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 87
     },
     "system:17:400:default||Placeholder" : {
       "firstBaseline" : 16.1865234375,
@@ -1614,6 +1692,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 99.5
     },
+    "system:17:400:default||Rounded text" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 101.5
+    },
     "system:17:400:default||secret" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1625,6 +1709,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 339
+    },
+    "system:17:400:default||Views" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 45.5
     },
     "system:17:400:default|80.5|Two lines of\ntext" : {
       "firstBaseline" : 16.1865234375,
@@ -1890,11 +1980,23 @@
       "lastBaseline" : 16.1865234375,
       "width" : 10
     },
+    "system:17:600:monospaced|;l1|Mono 17 semibold" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 168.5
+    },
     "system:18:400:default|;l1|Custom" : {
       "firstBaseline" : 17.138671875,
       "height" : 21.5,
       "lastBaseline" : 17.138671875,
       "width" : 63
+    },
+    "system:19:400:default|;l1|Scaled 16" : {
+      "firstBaseline" : 18.0908203125,
+      "height" : 23,
+      "lastBaseline" : 18.0908203125,
+      "width" : 82.5
     },
     "system:20:400:default|;l1|Copy Link" : {
       "firstBaseline" : 19.04296875,
@@ -2030,6 +2132,30 @@
     }
   },
   "fonts" : {
+    "custom:Abel-Regular:13:400" : {
+      "ascender" : 12.7333984375,
+      "capHeight" : 9.1025390625,
+      "descender" : -3.833984375,
+      "leading" : 0,
+      "lineHeight" : 16.5673828125,
+      "pointSize" : 13,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 6.626953125
+    },
+    "custom:Abel-Regular:20:400" : {
+      "ascender" : 19.58984375,
+      "capHeight" : 14.00390625,
+      "descender" : -5.8984375,
+      "leading" : 0,
+      "lineHeight" : 25.48828125,
+      "pointSize" : 20,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 10.1953125
+    },
     "style:body" : {
       "ascender" : 18.357620599453821,
       "capHeight" : 11.97802734375,
@@ -2041,6 +2167,30 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 8.9482421875
+    },
+    "style:body:XS" : {
+      "ascender" : 15.23930123235721,
+      "capHeight" : 9.8642578125,
+      "descender" : -4.9222754721882431,
+      "leading" : 2.2929687500000009,
+      "lineHeight" : 20.161576704545453,
+      "pointSize" : 14,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 7.369140625
+    },
+    "style:body:XXXL" : {
+      "ascender" : 24.731688170828306,
+      "capHeight" : 16.20556640625,
+      "descender" : -7.9883047268989644,
+      "leading" : 1.5527343750000011,
+      "lineHeight" : 32.719992897727273,
+      "pointSize" : 23,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 11.814453125
     },
     "style:footnote" : {
       "ascender" : 13.993718187553094,
@@ -2054,6 +2204,18 @@
       "textToText" : 0,
       "xHeight" : 6.8427734375
     },
+    "style:footnote:AXM" : {
+      "ascender" : 24.399568480973556,
+      "capHeight" : 16.20556640625,
+      "descender" : -7.881030477359773,
+      "leading" : 1.5527343750000011,
+      "lineHeight" : 32.280598958333329,
+      "pointSize" : 23,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 11.814453125
+    },
     "style:headline" : {
       "ascender" : 18.325751773774499,
       "capHeight" : 11.97802734375,
@@ -2065,6 +2227,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 9.07275390625
+    },
+    "style:headline:AXXXXL" : {
+      "ascender" : 56.229384400372354,
+      "capHeight" : 37.34326171875,
+      "descender" : -18.291389747354934,
+      "leading" : -1.248046875000002,
+      "lineHeight" : 74.52077414772728,
+      "pointSize" : 53,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 27.431640625
     },
     "style:subheadline" : {
       "ascender" : 15.797740091254949,
@@ -2089,6 +2263,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 14.21875
+    },
+    "style:title:S" : {
+      "ascender" : 29.143455417278087,
+      "capHeight" : 18.3193359375,
+      "descender" : -9.4133000974277881,
+      "leading" : 0.97265625000000178,
+      "lineHeight" : 38.556755514705877,
+      "pointSize" : 26,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 13.2412109375
     },
     "style:title3" : {
       "ascender" : 21.063653455006595,
@@ -2270,6 +2456,18 @@
       "textToText" : 0,
       "xHeight" : 7.8955078125
     },
+    "system:15:400:monospaced" : {
+      "ascender" : 14.2822265625,
+      "capHeight" : 10.56884765625,
+      "descender" : -3.6181640625,
+      "leading" : 0,
+      "lineHeight" : 17.900390625,
+      "pointSize" : 15,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 7.93212890625
+    },
     "system:15:600:default" : {
       "ascender" : 14.2822265625,
       "capHeight" : 10.56884765625,
@@ -2330,6 +2528,18 @@
       "textToText" : 0,
       "xHeight" : 8.9482421875
     },
+    "system:17:400:default:italic" : {
+      "ascender" : 16.1865234375,
+      "capHeight" : 11.97802734375,
+      "descender" : -4.1005859375,
+      "leading" : 0,
+      "lineHeight" : 20.287109375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 8.9482421875
+    },
     "system:17:400:default:tabular" : {
       "ascender" : 16.1865234375,
       "capHeight" : 11.97802734375,
@@ -2378,6 +2588,18 @@
       "textToText" : 0,
       "xHeight" : 9.07275390625
     },
+    "system:17:600:monospaced" : {
+      "ascender" : 16.1865234375,
+      "capHeight" : 11.97802734375,
+      "descender" : -4.1005859375,
+      "leading" : 0,
+      "lineHeight" : 20.287109375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 9.07275390625
+    },
     "system:18:400:default" : {
       "ascender" : 17.138671875,
       "capHeight" : 12.6826171875,
@@ -2389,6 +2611,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 9.45703125
+    },
+    "system:19:400:default" : {
+      "ascender" : 18.0908203125,
+      "capHeight" : 13.38720703125,
+      "descender" : -4.5830078125,
+      "leading" : 0,
+      "lineHeight" : 22.673828125,
+      "pointSize" : 19,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 9.97314453125
     },
     "system:20:400:default" : {
       "ascender" : 19.04296875,

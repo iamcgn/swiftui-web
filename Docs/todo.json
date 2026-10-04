@@ -1342,13 +1342,14 @@
       "framework": "UIKit",
       "area": "Text",
       "title": "Custom, italic and monospaced fonts; Dynamic Type",
-      "detail": "`UIFont(name:size:)` from bundled files, `italicSystemFont`, `monospacedSystemFont`, `UIFontMetrics` scaling with the content size categories, `preferredContentSizeCategory` in the trait collection.",
+      "detail": "Done 2026-10-04: UIFont(name:size:) from the asset catalog's bundled files (metrics from the font tables; the UIKit harness registers Fixtures/Fonts), italicSystemFont and monospacedSystemFont measured, preferredFont(forTextStyle:compatibleWith:) at every content size category with the styles' own metrics recorded per category (font-metrics.json scaledTextStyles, keyed style:<name>:<category>), UIFontMetrics scaling (one measured point: 16 → 19 at XXL), UILabel.adjustsFontForContentSizeCategory with UIKitScene.preferredContentSizeCategory propagating trait changes; uikit/label/fonts measured. Open: reading the host's text size setting.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/UIFont.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-textfield",

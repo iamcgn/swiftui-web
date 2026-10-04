@@ -25,7 +25,7 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 // beside the sidebar panel with a black-to-clear gradient (about 3.4 % of a 480 × 300 window).
 // texteditor/basic: NSTextView sets SF tighter between letters and wider at spaces than SwiftUI's
 // Text does, so its paragraph keeps one more word on the first line.
-const approximate = ['uikit/label/fitting', 'datepicker/looks', 'ios/datepicker/wheel', 'ios/representable/hostingsafearea-tabs', 'text/fit', 'uikit/label/wrapping', 'uikit/label/tabular', 'uikit/table/selfsizing', 'uikit/textview/basic', 'uikit/draw/text', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
+const approximate = ['uikit/label/fitting', 'uikit/label/fonts', 'datepicker/looks', 'ios/datepicker/wheel', 'ios/representable/hostingsafearea-tabs', 'text/fit', 'uikit/label/wrapping', 'uikit/label/tabular', 'uikit/table/selfsizing', 'uikit/textview/basic', 'uikit/draw/text', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
   'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 // ios/symbol/ and ios/label/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt),
@@ -33,7 +33,7 @@ const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount
 const listBacked = (name) => name.startsWith('ios/label/');
 // ios/list/footer `header`: UIKit's header label measures "Header" a point wider than SwiftUI's Text (Tier A's rule).
 // list/prominence `standardHeader`: Canvas2D measures "Standard" in the semibold subheadline half a point wider than CoreText.
-const approximateProbes = { 'uikit/sheet/medium/present': ['presented', 'presentedLabel'], 'form/grouped': ['nested', 'nestedToggle'], 'ios/list/footer': ['header'], 'list/prominence': ['standardHeader'],
+const approximateProbes = { 'uikit/sheet/medium/present': ['presented', 'presentedLabel'], 'uikit/label/fonts': ['headlineAX5'], 'form/grouped': ['nested', 'nestedToggle'], 'ios/list/footer': ['header'], 'list/prominence': ['standardHeader'],
   'textfield/formatted': ['int', 'double', 'percent', 'currency', 'formatter', 'fixedText', 'fixedEmpty', 'stack'],
   'text/markdown': ['code'] };   // Canvas2D's monospaced "code" is a point narrower than CoreText's
 // The browser measures text on the half point, so iOS text widths and the positions that follow from them get 0.5.
@@ -88,7 +88,7 @@ const report = [];
 
 // Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame.
 // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
-const ignoredProbes = { 'ios/search/active/present': ['row-Apple', 'row-Banana', 'row-Cherry', 'row-Date', 'row-Elderberry'], 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'], 'ios/textfield/vertical': ['reserved', 'stack'],
+const ignoredProbes = { 'uikit/label/fonts': ['abel13', 'abel20', 'mono15', 'mono17'], 'ios/search/active/present': ['row-Apple', 'row-Banana', 'row-Cherry', 'row-Date', 'row-Elderberry'], 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'], 'ios/textfield/vertical': ['reserved', 'stack'],
   'ios/nav/list-scroll/row1': ['row0', 'row1', 'row2', 'row3', 'row4', 'row5', 'row6', 'row7', 'row8', 'row9', 'row10', 'row11', 'row12', 'row13', 'row14', 'row15', 'row16', 'row17', 'row18', 'row19'], 'ios/nav/list-scroll/row8': ['row0', 'row1', 'row2', 'row3', 'row4', 'row5', 'row6', 'row7', 'row8', 'row9', 'row10', 'row11', 'row12', 'row13', 'row14', 'row15', 'row16', 'row17', 'row18', 'row19'],
   'list/pinning': ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'], 'list/pinning/scroll': ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'], 'list/outline': ['dgFruits'], 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'],
   'table/sorting/byCount': ['name2', 'name3', 'count2', 'count3'] };

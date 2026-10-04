@@ -1529,10 +1529,11 @@
         },
         {
           "api": "UIFont",
-          "status": "partial",
-          "notes": "System fonts by size and weight, the text styles at the large content size, boldSystemFont as SF Semibold, monospacedDigitSystemFont, the metrics table measured on the simulator (ascender, descender, lineHeight, capHeight, xHeight); open: custom fonts from files, italic and monospaced system fonts, the other content size categories (Dynamic Type)",
+          "status": "full",
+          "notes": "System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; open: reading the host's text size, font descriptors (Docs/elements/UIKit/UIFont.md)",
           "fixtures": [
             "uikit/label/basic",
+            "uikit/label/fonts",
             "uikit/textview/basic"
           ]
         },

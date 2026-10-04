@@ -1,0 +1,75 @@
+{
+  "fixture" : "uikit\/label\/fonts",
+  "frames" : {
+    "abel13" : {
+      "height" : 17,
+      "width" : 37.5,
+      "x" : 160,
+      "y" : 84
+    },
+    "abel20" : {
+      "height" : 25.5,
+      "width" : 57,
+      "x" : 16,
+      "y" : 84
+    },
+    "bodyXS" : {
+      "height" : 20.5,
+      "width" : 55,
+      "x" : 200,
+      "y" : 124
+    },
+    "bodyXXXL" : {
+      "height" : 33,
+      "width" : 113.5,
+      "x" : 16,
+      "y" : 124
+    },
+    "footnoteAXM" : {
+      "height" : 32.5,
+      "width" : 143,
+      "x" : 16,
+      "y" : 170
+    },
+    "headlineAX5" : {
+      "height" : 75,
+      "width" : 428,
+      "x" : 16,
+      "y" : 270
+    },
+    "italic" : {
+      "height" : 20.5,
+      "width" : 57,
+      "x" : 16,
+      "y" : 16
+    },
+    "mono15" : {
+      "height" : 18,
+      "width" : 65,
+      "x" : 160,
+      "y" : 16
+    },
+    "mono17" : {
+      "height" : 20.5,
+      "width" : 168.5,
+      "x" : 16,
+      "y" : 48
+    },
+    "scaled16" : {
+      "height" : 23,
+      "width" : 82.5,
+      "x" : 16,
+      "y" : 350
+    },
+    "titleS" : {
+      "height" : 39,
+      "width" : 69.5,
+      "x" : 16,
+      "y" : 220
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

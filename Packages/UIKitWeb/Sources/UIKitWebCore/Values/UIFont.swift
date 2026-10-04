@@ -91,11 +91,14 @@ public final class UIFont: Hashable, @unchecked Sendable {
     public let weight: Weight
     /// The text style this font was made for, if any (`preferredFont(forTextStyle:)`).
     public let textStyle: TextStyle?
+    /// The content size category a text style font was scaled for (`adjustsFontForContentSizeCategory`).
+    let scaledCategory: UIContentSizeCategory?
 
-    init(resolved: ResolvedFont, weight: Weight, textStyle: TextStyle? = nil) {
+    init(resolved: ResolvedFont, weight: Weight, textStyle: TextStyle? = nil, scaledCategory: UIContentSizeCategory? = nil) {
         self.resolved = resolved
         self.weight = weight
         self.textStyle = textStyle
+        self.scaledCategory = scaledCategory
     }
 
     public static func == (lhs: UIFont, rhs: UIFont) -> Bool { lhs.resolved == rhs.resolved }
@@ -129,8 +132,17 @@ public final class UIFont: Hashable, @unchecked Sendable {
                       weight: m.weight, textStyle: style)
     }
 
-    public convenience init?(name: String, size: CGFloat) {
-        self.init(resolved: ResolvedFont(family: name, size: size, weight: .regular, italic: false, textStyle: nil, profile: "iOS"), weight: .regular)
+    /// A bundled font by its PostScript, full or family name (the scene's asset catalog;
+    /// `scripts/assets.py` lists the font files), or any family name the host can draw.
+    @MainActor public convenience init?(name: String, size: CGFloat) {
+        let resource = UIKitScene.shared.assetCatalog.font(named: name)
+        self.init(resolved: ResolvedFont(family: resource?.postScriptName ?? name, size: size, weight: .regular, italic: false, textStyle: nil, profile: "iOS"), weight: .regular)
+    }
+
+    /// The bundled font behind a custom family, if the catalog has it.
+    var customResource: FontResource? {
+        guard !resolved.family.hasPrefix("system") else { return nil }
+        return MainActor.assumeIsolated { UIKitScene.shared.assetCatalog.font(named: resolved.family) }
     }
 
     /// The same face at another size: a plain font, as UIKit returns (a text style's metrics
@@ -148,25 +160,49 @@ public final class UIFont: Hashable, @unchecked Sendable {
     public var familyName: String { resolved.family.hasPrefix("system") ? ".AppleSystemUIFont" : resolved.family }
     public var fontName: String { familyName }
 
-    /// A text style's measured metrics (nil for a sized font).
+    /// A text style's measured metrics (nil for a sized font or a style scaled to another category).
     private var styleMetrics: UIFontMetricsTable.TextStyleMetrics? {
-        textStyle.flatMap { UIFontMetricsTable.textStyles[$0.tableName] }
+        guard let textStyle else { return nil }
+        if let scaledCategory { return UIFontMetricsTable.scaledTextStyles[textStyle.tableName]?[scaledCategory.shortName] }
+        return UIFontMetricsTable.textStyles[textStyle.tableName]
     }
 
-    /// SF's hhea ratios of the point size for a sized font; a text style's own values.
-    public var ascender: CGFloat { styleMetrics?.ascender ?? pointSize * UIFontMetricsTable.ascender }
+    /// SF's hhea ratios of the point size for a sized font (SF Mono shares them; measured on
+    /// uikit/label/fonts); a text style's own values; a bundled font's hhea table through the
+    /// asset catalog.
+    public var ascender: CGFloat {
+        if let styleMetrics { return styleMetrics.ascender }
+        if let custom = customResource { return pointSize * custom.ascender / custom.unitsPerEm }
+        return pointSize * UIFontMetricsTable.ascender
+    }
     /// Negative, as UIKit reports it.
-    public var descender: CGFloat { styleMetrics?.descender ?? -pointSize * UIFontMetricsTable.descender }
-    public var capHeight: CGFloat { styleMetrics?.capHeight ?? pointSize * UIFontMetricsTable.capHeight }
+    public var descender: CGFloat {
+        if let styleMetrics { return styleMetrics.descender }
+        if let custom = customResource { return pointSize * custom.descender / custom.unitsPerEm }
+        return -pointSize * UIFontMetricsTable.descender
+    }
+    public var capHeight: CGFloat {
+        if let styleMetrics { return styleMetrics.capHeight }
+        if let custom = customResource { return pointSize * custom.capHeight / custom.unitsPerEm }
+        return pointSize * UIFontMetricsTable.capHeight
+    }
     /// Per weight and size: SF's optical sizes lower the x-height from 18 pt up.
     public var xHeight: CGFloat {
         if let styleMetrics { return styleMetrics.xHeight }
+        if let custom = customResource { return pointSize * custom.xHeight / custom.unitsPerEm }
+        // SF Mono's regular face has its own x-height (1083/2048 at 15 pt, uikit/label/fonts).
+        if resolved.family == "system-monospaced", weight.css == 400 { return pointSize * 1083 / 2048 }
         let table = UIFontMetricsTable.xHeight[weight.css] ?? UIFontMetricsTable.xHeight[400]!
         let index = min(max(Int(pointSize.rounded()) - 6, 0), table.count - 1)
         return pointSize * CGFloat(table[index]) / 2048
     }
-    /// Zero for a sized font; a text style's leading spaces its lines (caption2's is negative).
-    public var leading: CGFloat { styleMetrics?.leading ?? 0 }
+    /// Zero for a sized font; a text style's leading spaces its lines (caption2's is negative);
+    /// a bundled font's line gap.
+    public var leading: CGFloat {
+        if let styleMetrics { return styleMetrics.leading }
+        if let custom = customResource { return pointSize * custom.lineGap / custom.unitsPerEm }
+        return 0
+    }
     /// Ascender minus descender, unrounded, for every font.
     public var lineHeight: CGFloat { ascender - descender }
 

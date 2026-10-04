@@ -31,6 +31,12 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Tinted", .style("body"), lines: 0),
         UIKitTextRequest("Filled", .style("body"), lines: 0),
         UIKitTextRequest("Plain", .system(size: 17), lines: 0),
+        // uikit/label/fonts (uk-fonts): italic, monospaced and bundled fonts, scaled text styles.
+        UIKitTextRequest("Italic 17", .italic(size: 17)), UIKitTextRequest("Mono 15", .monospaced(size: 15)), UIKitTextRequest("Mono 17 semibold", .monospaced(size: 17, weight: "semibold")),
+        UIKitTextRequest("Abel 20", .custom(name: "Abel-Regular", size: 20)), UIKitTextRequest("Abel 13", .custom(name: "Abel-Regular", size: 13)),
+        UIKitTextRequest("Body XXXL", .scaledStyle("body", category: "XXXL")), UIKitTextRequest("Body XS", .scaledStyle("body", category: "XS")),
+        UIKitTextRequest("Footnote AXM", .scaledStyle("footnote", category: "AXM")), UIKitTextRequest("Title S", .scaledStyle("title", category: "S")),
+        UIKitTextRequest("Headline AXXXXL", .scaledStyle("headline", category: "AXXXXL")), UIKitTextRequest("Scaled 16", .scaled(size: 16, style: "body", category: "XXL")),
         // uikit/label/fitting (uk-label): the fitting label at candidate sizes, tightening, attributed runs.
         UIKitTextRequest("Adjusts the font to fit", .system(size: 17)),
         UIKitTextRequest("Adjusts the font to fit", .system(size: 16)), UIKitTextRequest("Adjusts the font to fit", .system(size: 15)),

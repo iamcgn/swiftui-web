@@ -10,7 +10,7 @@ styles, each with the height a one- and a two-line `UILabel` takes).
 
 `systemFont(ofSize:weight:)`, `italicSystemFont`, `monospacedSystemFont`,
 `monospacedDigitSystemFont` (tabular figures, below), `preferredFont(forTextStyle:)`
-at the large content size, `boldSystemFont` (SF Semibold, as iOS resolves it; `weight: .bold` is Bold), `init?(name:size:)`, `withSize(_:)` (a plain font at the new size, as
+at the large content size and `preferredFont(forTextStyle:compatibleWith:)` at any (below), `boldSystemFont` (SF Semibold, as iOS resolves it; `weight: .bold` is Bold), `init?(name:size:)`, `withSize(_:)` (a plain font at the new size, as
 UIKit returns: a text style's metrics belong to its own size), `pointSize`, `familyName`,
 `fontName`, `ascender`, `descender`, `capHeight`, `xHeight`, `leading`, `lineHeight`.
 
@@ -49,4 +49,43 @@ grows from 30 to 41.5 at 17 pt (the "0000" width); "0000" is 38.5 tabular agains
 semibold and 57 against 58 at 22 pt bold. Frames exact in every tier; pixels within the
 text-heavy tolerance.
 
-Open: custom fonts, italic and monospaced system fonts, the other content size categories.
+## Italic, monospaced and bundled fonts; Dynamic Type (2026-10-04, `uikit/label/fonts`)
+
+- `italicSystemFont(ofSize:)` keeps SF's metrics (17 pt: ascender 16.19, line 20.29); the
+  recorded key is `system:<size>:400:default:italic`. `monospacedSystemFont(ofSize:weight:)` is
+  SF Mono with the same hhea ratios as SF (15 pt: ascender 14.28, descender −3.62, line 17.90;
+  "Mono 15" 65 wide, "Mono 17 semibold" 168.5); key `system:<size>:<weight>:monospaced`.
+- `UIFont(name:size:)` resolves a bundled font through the scene's asset catalog (PostScript,
+  full or family name; `scripts/assets.py` lists the files) and takes its metrics from the
+  font's tables: Abel 20 is ascender 19.59, descender −5.90, line 25.49 (a 25.5 pt label), 13 pt
+  12.73 / −3.83 / 16.57 (17); keys `custom:<name>:<size>:400`. `familyNames` and
+  `fontNames(forFamilyName:)` list the catalog's fonts. The UIKit harness registers
+  `Fixtures/Fonts` with CoreText so the simulator measures them.
+- `preferredFont(forTextStyle:compatibleWith:)` sizes a style for the traits' content size
+  category from Apple's table (body 14 … 53 from XS to AXXXXL) and carries the style's own
+  metrics at that category, which the harness records for every style and category
+  (`font-metrics.json` `scaledTextStyles`, `UIFontMetricsTable.scaledTextStyles`): body at
+  XXXL is 23 pt with ascender 24.73, leading 1.55, line 32.72 (a 33 pt label), not the sized
+  font's 21.9; footnote at AXM 23 pt with ascender 24.40 (32.5); headline at AXXXXL 53 pt (75);
+  title at S 26 pt (39). The recorded key adds the category: `style:body:XXXL`
+  (`ResolvedFont.sizeCategory`).
+- `UIFontMetrics(forTextStyle:)`: `scaledFont(for:)`, `scaledFont(for:compatibleWith:)`, the
+  `maximumPointSize` forms and `scaledValue(for:)` scale by the style's growth between the large
+  category and the traits'; a font's scaled size rounds down to the point (16 pt with the body
+  metrics at XXL is 19: one measured point, so the rounding is provisional). `default` is the
+  body's.
+- `UILabel.adjustsFontForContentSizeCategory` re-resolves a text-style font when the label's
+  traits change category; `UIKitScene.preferredContentSizeCategory` sets the screen's and
+  propagates the trait change through the windows (`traitCollectionDidChange`). The browser
+  host does not read the user's text size yet (open).
+
+In the browser (Tier B) `uikit/label/fonts` holds the scaled styles and the italic face; the Abel
+labels are ignored (the fixture sizes them with `sizeToFit` before the bundled font has loaded,
+and frames fixed that way do not follow `UIKitScene.fontsDidLoad`, which only re-measures labels
+for their next layout) and so are the SF Mono ones (Chromium has no SF Mono; its monospace
+face advances differently, 63.5 against 65 at 15 pt).
+
+Open: reading the host's text size setting, the content size category in `traitOverrides`
+re-resolving labels above, the exact `UIFontMetrics` rounding beyond the one point measured,
+`UIFontDescriptor`, symbolic traits (bold/italic descriptors), `UIFont.Weight` on bundled
+families (one face per file).

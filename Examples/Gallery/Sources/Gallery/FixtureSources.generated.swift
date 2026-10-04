@@ -7450,7 +7450,7 @@ public static let text = UIKitFixture("uikit/draw/text", size: CGSize(width: 320
     return root
 }
 """#),
-        FixtureSource(name: "uikit/label/basic", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 56, lastLine: 82, declaration: #"""
+        FixtureSource(name: "uikit/label/basic", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 82, lastLine: 108, declaration: #"""
 /// Labels sized to fit: the default 17 pt system font, text styles, weights.
 public static let basic = UIKitFixture("uikit/label/basic", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
@@ -7479,7 +7479,7 @@ public static let basic = UIKitFixture("uikit/label/basic", size: CGSize(width: 
     return root
 }
 """#),
-        FixtureSource(name: "uikit/label/fitting", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 10, lastLine: 54, declaration: #"""
+        FixtureSource(name: "uikit/label/fitting", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 36, lastLine: 80, declaration: #"""
 /// Font scaling to fit, tightening before truncation, and attributed text with per-range
 /// fonts and colours (uk-label).
 public static let fitting = UIKitFixture("uikit/label/fitting", size: CGSize(width: 320, height: 260)) {
@@ -7526,7 +7526,34 @@ public static let fitting = UIKitFixture("uikit/label/fitting", size: CGSize(wid
     return root
 }
 """#),
-        FixtureSource(name: "uikit/label/tabular", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 105, lastLine: 128, declaration: #"""
+        FixtureSource(name: "uikit/label/fonts", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 10, lastLine: 34, declaration: #"""
+/// Italic, monospaced and bundled fonts, and text styles at other content size categories
+/// (uk-fonts): labels sized to fit.
+public static let fonts = UIKitFixture("uikit/label/fonts", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    @MainActor func label(_ text: String, _ font: UIKitFixtureFont, x: CGFloat, y: CGFloat, id: String) {
+        let label = UILabel()
+        label.text = text
+        label.font = font.uiFont
+        label.sizeToFit()
+        label.frame.origin = CGPoint(x: x, y: y)
+        root.addSubview(label.probe(id))
+    }
+    label("Italic 17", .italic(size: 17), x: 16, y: 16, id: "italic")
+    label("Mono 15", .monospaced(size: 15), x: 160, y: 16, id: "mono15")
+    label("Mono 17 semibold", .monospaced(size: 17, weight: "semibold"), x: 16, y: 48, id: "mono17")
+    label("Abel 20", .custom(name: "Abel-Regular", size: 20), x: 16, y: 84, id: "abel20")
+    label("Abel 13", .custom(name: "Abel-Regular", size: 13), x: 160, y: 84, id: "abel13")
+    label("Body XXXL", .scaledStyle("body", category: "XXXL"), x: 16, y: 124, id: "bodyXXXL")
+    label("Body XS", .scaledStyle("body", category: "XS"), x: 200, y: 124, id: "bodyXS")
+    label("Footnote AXM", .scaledStyle("footnote", category: "AXM"), x: 16, y: 170, id: "footnoteAXM")
+    label("Title S", .scaledStyle("title", category: "S"), x: 16, y: 220, id: "titleS")
+    label("Headline AXXXXL", .scaledStyle("headline", category: "AXXXXL"), x: 16, y: 270, id: "headlineAX5")
+    label("Scaled 16", .scaled(size: 16, style: "body", category: "XXL"), x: 16, y: 350, id: "scaled16")
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/label/tabular", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 131, lastLine: 154, declaration: #"""
 /// Tabular figures: the same digit strings in the proportional system font and in
 /// `monospacedDigitSystemFont`, where every digit takes the same advance.
 public static let tabular = UIKitFixture("uikit/label/tabular", size: CGSize(width: 320, height: 220)) {
@@ -7552,7 +7579,7 @@ public static let tabular = UIKitFixture("uikit/label/tabular", size: CGSize(wid
     return root
 }
 """#),
-        FixtureSource(name: "uikit/label/wrapping", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 84, lastLine: 103, declaration: #"""
+        FixtureSource(name: "uikit/label/wrapping", file: "Fixtures/UIKit/Label/LabelFixtures.swift", firstLine: 110, lastLine: 129, declaration: #"""
 /// Wrapping at a width, and truncation in a narrow one-line frame.
 public static let wrapping = UIKitFixture("uikit/label/wrapping", size: CGSize(width: 320, height: 200)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
@@ -18633,7 +18660,33 @@ import UIKit
 import UIKitFixtureKit
 
 public enum LabelFixtures {
-    public static let all = [basic, wrapping, tabular, fitting]
+    public static let all = [basic, wrapping, tabular, fitting, fonts]
+
+    /// Italic, monospaced and bundled fonts, and text styles at other content size categories
+    /// (uk-fonts): labels sized to fit.
+    public static let fonts = UIKitFixture("uikit/label/fonts", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        @MainActor func label(_ text: String, _ font: UIKitFixtureFont, x: CGFloat, y: CGFloat, id: String) {
+            let label = UILabel()
+            label.text = text
+            label.font = font.uiFont
+            label.sizeToFit()
+            label.frame.origin = CGPoint(x: x, y: y)
+            root.addSubview(label.probe(id))
+        }
+        label("Italic 17", .italic(size: 17), x: 16, y: 16, id: "italic")
+        label("Mono 15", .monospaced(size: 15), x: 160, y: 16, id: "mono15")
+        label("Mono 17 semibold", .monospaced(size: 17, weight: "semibold"), x: 16, y: 48, id: "mono17")
+        label("Abel 20", .custom(name: "Abel-Regular", size: 20), x: 16, y: 84, id: "abel20")
+        label("Abel 13", .custom(name: "Abel-Regular", size: 13), x: 160, y: 84, id: "abel13")
+        label("Body XXXL", .scaledStyle("body", category: "XXXL"), x: 16, y: 124, id: "bodyXXXL")
+        label("Body XS", .scaledStyle("body", category: "XS"), x: 200, y: 124, id: "bodyXS")
+        label("Footnote AXM", .scaledStyle("footnote", category: "AXM"), x: 16, y: 170, id: "footnoteAXM")
+        label("Title S", .scaledStyle("title", category: "S"), x: 16, y: 220, id: "titleS")
+        label("Headline AXXXXL", .scaledStyle("headline", category: "AXXXXL"), x: 16, y: 270, id: "headlineAX5")
+        label("Scaled 16", .scaled(size: 16, style: "body", category: "XXL"), x: 16, y: 350, id: "scaled16")
+        return root
+    }
 
     /// Font scaling to fit, tightening before truncation, and attributed text with per-range
     /// fonts and colours (uk-label).

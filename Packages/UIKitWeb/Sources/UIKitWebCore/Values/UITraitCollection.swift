@@ -53,6 +53,10 @@ public struct UIContentSizeCategory: Hashable, Sendable, RawRepresentable, Compa
     /// Whether the category is one of the accessibility sizes.
     public var isAccessibilityCategory: Bool { (Self.ordered.firstIndex(of: self) ?? 0) >= 7 }
 
+    /// The short names the recorded metrics use ("XS" … "AXXXXL"; the fixtures' spelling).
+    static let shortNames = ["XS", "S", "M", "L", "XL", "XXL", "XXXL", "AXM", "AXL", "AXXL", "AXXXL", "AXXXXL"]
+    var shortName: String { Self.ordered.firstIndex(of: self).map { Self.shortNames[$0] } ?? "L" }
+
     public static func < (lhs: UIContentSizeCategory, rhs: UIContentSizeCategory) -> Bool {
         (ordered.firstIndex(of: lhs) ?? -1) < (ordered.firstIndex(of: rhs) ?? -1)
     }

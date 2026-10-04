@@ -201,6 +201,20 @@ public final class UIKitScene: HostedScene {
     public var openURL: ((String) -> Void)?
 
     /// Sets the screen's size and scale (hosts do this before launching the app).
+    /// The content size category (Dynamic Type) of every trait collection; text-style fonts of
+    /// labels with `adjustsFontForContentSizeCategory` follow it.
+    public var preferredContentSizeCategory: UIContentSizeCategory {
+        get { UIScreen.main.traitCollection.preferredContentSizeCategory }
+        set {
+            guard newValue != UIScreen.main.traitCollection.preferredContentSizeCategory else { return }
+            let previous = UIScreen.main.traitCollection
+            UIScreen.main.traitCollection.preferredContentSizeCategory = newValue
+            UITraitCollection.current = UIScreen.main.traitCollection
+            for window in windows { window.propagateTraitChange(from: previous) }
+            setNeedsFrame()
+        }
+    }
+
     public func configureScreen(size: CGSize, scale: CGFloat) {
         UIScreen.main.bounds = CGRect(origin: .zero, size: size)
         UIScreen.main.scale = scale
@@ -399,6 +413,13 @@ public final class UIKitScene: HostedScene {
     }
 
     public func keyDown(_ event: KeyEvent) -> Bool { false }
+
+    /// A bundled font the host loaded is available: labels measured with a fallback face lay
+    /// out again (frames an app fixed with `sizeToFit` before the font arrived stay as they are).
+    public func fontsDidLoad() {
+        for window in windows { window.fontsDidLoadRecursively() }
+        setNeedsFrame()
+    }
     /// The cursor the hovered pointer interaction asks for (Events/Hover.swift).
     public var pointerCursor: String? { hover.cursor }
 

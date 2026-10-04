@@ -16,9 +16,13 @@ public struct ResolvedFont: Hashable, Sendable {
     /// Tabular (monospaced) figures: every digit on the same advance (`Font.monospacedDigit()`,
     /// `UIFont.monospacedDigitSystemFont`). The line metrics are the plain font's.
     public var tabularDigits: Bool
+    /// The content size category a text style was scaled for (UIKit's Dynamic Type: "XS" …
+    /// "AXXXXL"); nil for the default (large) category. Part of the key: the scaled styles
+    /// have their own metrics.
+    public var sizeCategory: String?
 
     public init(family: String, size: CGFloat, weight: FontWeight, italic: Bool,
-                textStyle: FontTextStyle?, weightOverridden: Bool = false, profile: String = "macOS", tabularDigits: Bool = false) {
+                textStyle: FontTextStyle?, weightOverridden: Bool = false, profile: String = "macOS", tabularDigits: Bool = false, sizeCategory: String? = nil) {
         self.family = family
         self.size = size
         self.weight = weight
@@ -27,6 +31,7 @@ public struct ResolvedFont: Hashable, Sendable {
         self.weightOverridden = weightOverridden
         self.profile = profile
         self.tabularDigits = tabularDigits
+        self.sizeCategory = sizeCategory
     }
 
     public var designName: String {
@@ -46,6 +51,7 @@ public struct ResolvedFont: Hashable, Sendable {
         let italicSuffix = (italic ? ":italic" : "") + (tabularDigits ? ":tabular" : "")
         if let textStyle {
             var key = "style:\(textStyle)"
+            if let sizeCategory { key += ":\(sizeCategory)" }
             if weightOverridden { key += ":w\(weight.value)" }
             if designName != "default" { key += ":\(designName)" }
             return key + italicSuffix

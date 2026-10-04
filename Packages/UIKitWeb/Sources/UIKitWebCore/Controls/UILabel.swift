@@ -82,7 +82,20 @@ open class UILabel: UIView {
     open var highlightedTextColor: UIColor?
     open var shadowColor: UIColor?
     open var shadowOffset = CGSize(width: 0, height: -1)
-    open var adjustsFontForContentSizeCategory = false
+    /// A text-style font follows the content size category of the label's traits (the scene's
+    /// `preferredContentSizeCategory`, a trait override above the label).
+    open var adjustsFontForContentSizeCategory = false { didSet { if adjustsFontForContentSizeCategory { followContentSizeCategory() } } }
+
+    private func followContentSizeCategory() {
+        guard adjustsFontForContentSizeCategory, let style = font.textStyle else { return }
+        let scaled = UIFont.preferredFont(forTextStyle: style, compatibleWith: traitCollection)
+        if scaled != font { font = scaled }
+    }
+
+    override open func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory { followContentSizeCategory() }
+    }
     open var showsExpansionTextWhenTruncated = false
     /// The width the intrinsic height wraps at (0: one line).
     open var preferredMaxLayoutWidth: CGFloat = 0 { didSet { invalidateIntrinsicContentSize() } }
@@ -248,4 +261,16 @@ open class UILabel: UIView {
 extension CGFloat {
     /// Rounded up to the pixel grid of `scale` pixels per point.
     func roundedUp(to scale: CGFloat) -> CGFloat { (self * scale).rounded(.up) / scale }
+}
+
+extension UIView {
+    /// Labels in the subtree measure again after a font loads (`UIKitScene.fontsDidLoad`).
+    func fontsDidLoadRecursively() {
+        if let label = self as? UILabel {
+            label.invalidateIntrinsicContentSize()
+            label.setNeedsDisplay()
+            label.superview?.setNeedsLayout()
+        }
+        for subview in subviews { subview.fontsDidLoadRecursively() }
+    }
 }

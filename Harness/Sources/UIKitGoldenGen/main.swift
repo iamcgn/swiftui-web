@@ -237,12 +237,22 @@ enum Generator {
         }
         var textStyles: [String: [String: Double]] = [:]
         for (name, style) in UIKitFixtureFont.styles { textStyles[name] = entry(UIFont.preferredFont(forTextStyle: style)) }
+        // The styles at every content size category (Dynamic Type), each with its own metrics.
+        var scaledTextStyles: [String: [String: [String: Double]]] = [:]
+        for (name, style) in UIKitFixtureFont.styles {
+            var byCategory: [String: [String: Double]] = [:]
+            for (short, category) in UIKitFixtureFont.categories {
+                byCategory[short] = entry(UIFont.preferredFont(forTextStyle: style, compatibleWith: UITraitCollection(preferredContentSizeCategory: category)))
+            }
+            scaledTextStyles[name] = byCategory
+        }
         let doc: [String: Any] = [
             "host": hostName,
             "macOS": osVersion,
             "scale": Double(UIScreen.main.scale),
             "systemFonts": systemFonts,
             "textStyles": textStyles,
+            "scaledTextStyles": scaledTextStyles,
         ]
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         try JSONSerialization.data(withJSONObject: doc, options: [.prettyPrinted, .sortedKeys])
@@ -298,6 +308,12 @@ enum Generator {
             dumpFonts()
             for fixture in AllUIKitFixtures.all where options.filter.map({ fixture.name.hasPrefix($0) }) ?? true { dump(fixture) }
             return 0
+        }
+        // The fixtures' bundled fonts (Fixtures/Fonts), registered as an app bundle would.
+        let fontsDirectory = options.output.deletingLastPathComponent().appendingPathComponent("Fonts")
+        for file in (try? FileManager.default.contentsOfDirectory(at: fontsDirectory, includingPropertiesForKeys: nil)) ?? []
+            where ["ttf", "otf"].contains(file.pathExtension.lowercased()) {
+            CTFontManagerRegisterFontsForURL(file as CFURL, .process, nil)
         }
         let uikitRoot = options.output.appendingPathComponent("uikit", isDirectory: true)
         if options.filter == nil || options.filter == "uikit/text/" || options.filter == "text-metrics" {
