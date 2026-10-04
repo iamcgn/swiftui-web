@@ -153,6 +153,30 @@ public enum IOSPresentationFixtures {
         .probe("tabs")
     }.platform(.iOS).capturesWindow()
 
+    /// Five tabs with badges: a count on the second, a text on the fourth (the bar's slots
+    /// narrow; badges sit on the symbols).
+    public static let tabsBadges = Fixture("ios/tabs/badges", size: phone) {
+        TabView(selection: .constant(0)) {
+            Tab("Home", systemImage: "house", value: 0) { Text("Home content").probe("home") }
+            Tab("Alerts", systemImage: "bell", value: 1) { Text("Alerts content") }.badge(3)
+            Tab("Search", systemImage: "magnifyingglass", value: 2) { Text("Search content") }
+            Tab("Mail", systemImage: "envelope", value: 3) { Text("Mail content") }.badge("New")
+            Tab("More", systemImage: "ellipsis", value: 4) { Text("More content") }
+        }
+        .probe("tabs")
+    }.platform(.iOS).capturesWindow()
+
+    /// The page style on iPhone: three pages, the page indicator at the bottom.
+    public static let tabsPage = Fixture("ios/tabs/page", size: phone) {
+        TabView(selection: .constant(1)) {
+            Color.red.frame(width: 120, height: 80).tag(0)
+            Color.blue.frame(width: 120, height: 80).probe("page1").tag(1)
+            Color.green.frame(width: 120, height: 80).tag(2)
+        }
+        .fixturePageTabStyle()
+        .probe("tabs")
+    }.platform(.iOS).capturesWindow()
+
     /// The compact date picker in a form: date, date and time, time; the tinted pills.
     public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(width: 375, height: 360)) {
         Form {
@@ -180,7 +204,7 @@ public enum IOSPresentationFixtures {
     }.platform(.iOS)
 
     public static var all: [Fixture] {
-        var fixtures = [sheet, sheetMedium, alert, dialog, tabs, tabsSecond, datePicker, listSelection]
+        var fixtures = [sheet, sheetMedium, alert, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection]
         #if canImport(UIKit)
         fixtures.append(sheetRepresentable)
         #endif

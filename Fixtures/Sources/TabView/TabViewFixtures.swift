@@ -34,5 +34,30 @@ public enum TabViewFixtures {
         .probe("tabs")
     }
 
-    public static let all: [Fixture] = [basic, sized]
+    /// The Tab API: three tabs with symbols (ignored by the macOS bar), one disabled, one with a
+    /// badge; a step selects the second.
+    public static let tabAPI = Fixture(
+        "tabview/tab-api", size: CGSize(width: 360, height: 260),
+        model: { TabModel() },
+        steps: [FixtureStep("second") { $0.selection = 1 }]
+    ) { model in
+        TabView(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+            Tab("Home", systemImage: "house", value: 0) {
+                Group { if model.selection == 0 { Text("Home content").probe("home") } else { Text("Home content") } }
+            }
+            Tab("Alerts", systemImage: "bell", value: 1) {
+                Group { if model.selection == 1 { Text("Alerts content").probe("alerts") } else { Text("Alerts content") } }
+            }
+            .badge(3)
+            Tab("Off", systemImage: "gear", value: 2) {
+                Text("Off content")
+            }
+            .disabled(true)
+        }
+        .probe("tabs")
+    }
+
+    // The page style is iOS-only in SwiftUI (`ios/tabs/page`).
+
+    public static let all: [Fixture] = [basic, sized, tabAPI]
 }

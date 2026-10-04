@@ -9,7 +9,12 @@ Apple docs: [TabView](https://developer.apple.com/documentation/swiftui/tabview)
 |---|---|
 | `TabView(content:)`, `TabView(selection:content:)`, `tabItem(_:)`, `tag(_:)` on tabs | implemented: the macOS tab view; without a binding the view keeps its own selection by index |
 | `TabViewStyle`, `.automatic`, `tabViewStyle(_:)` | accepted; only the macOS look exists |
-| `Tab(...)` (the iOS 18 tab API), `tabViewStyle(.page)`, `tabViewStyle(.sidebarAdaptable)`, badges, tab item images in the bar | missing (macOS ignores tab item images in its segments too) |
+| `Tab(_:systemImage:value:content:)`, `Tab(_:image:value:content:)`, `Tab(value:content:label:)`, the value-less forms, `TabContent`, `TabContentBuilder` | implemented (2026-10-04): a tab is a view that wraps its content in `tabItem` and `tag`; `tabview/tab-api`, `ios/tabs/badges` |
+| `badge(_:)` (count, text, key, string) | implemented: the iOS bar paints a red capsule on the symbol (`ios/tabs/badges`); the macOS bar shows none, as SwiftUI's segments do not; lists do not show badges yet |
+| `disabled` on a tab | implemented: the segment takes no press and the arrow keys skip it; the title dims by half (SwiftUI 7.6's segment keeps its full alpha: approximate) |
+| `tabViewStyle(.page)`, `PageTabViewStyle(indexDisplayMode:)`, `IndexDisplayMode` (`automatic`, `always`, `never`) | implemented (`ios/tabs/page`): the tabs are pages the tab view's size side by side, the selected one in view, a horizontal swipe past 40 pt turns the page; the indicator's dots as measured; no slide animation yet. iOS-only in SwiftUI (the macOS harness cannot measure it) |
+| `tabViewStyle(.sidebarAdaptable)`, `.tabBarOnly`, `.grouped`, `TabViewStyle._isPaged` | accepted: the platform's bar |
+| Tab item images in the macOS bar | the segments show titles only, as SwiftUI's do |
 
 ## Behaviour
 
@@ -49,7 +54,16 @@ selected tab on a 93.5 × 53.5 pill; the content fills the window less 83 at the
 and colours in `Docs/elements/iOS.md`; `TabItemNode` reads the label's first system image for
 the symbol.
 
+## The Tab API, badges and the page style (macOS 26.6 `tabview/tab-api`; iPhone SE simulator `ios/tabs/badges`, `ios/tabs/page`; 2026-10-04)
+
+| Behaviour | Value | Fixture |
+|---|---|---|
+| macOS bar with the Tab API | the same segments and content placement as the `tabItem` form ("Home content" 86 × 16 at (137, 134), exact in Tier A); SwiftUI 7.6 paints the selected segment raised in white where 7.2 (the older goldens) filled it darker, shows no badge and does not dim the disabled title | `tabview/tab-api` |
+| iOS badges | a red (255, 59, 48) capsule 20 pt tall, at least 19.5 wide ("3"), 34.5 for "New"; its left edge 7.5 right of the symbol's centre, its top 4.5 above the symbol; the text 13 pt white centred; five tabs share the bar in 54 pt slots | `ios/tabs/badges` |
+| iOS page style | the selected page centred in the window (the 120 × 80 colour at (127.5, 293.5)); three 7 pt dots 18 apart on a row 21.5 above the bottom, the current one white and the others white at 45 % (the window behind them is clear, so over a white ground they do not show) | `ios/tabs/page` |
+
 ## Not yet covered
 
-Tab item images and badges, the iOS `Tab` API and styles, disabled tabs, the bar's focus ring,
-keyboard access to the bar without focusing it, the hidden tabs' retained state.
+The page style's slide animation and the dots' background, badges on list rows, the bar's focus
+ring, keyboard access to the bar without focusing it, the hidden tabs' retained state, the
+macOS 26.6 segment look (the raised white selection; the 26.2 goldens stay).

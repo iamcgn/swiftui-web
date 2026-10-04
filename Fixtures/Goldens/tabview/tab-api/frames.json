@@ -1,0 +1,40 @@
+{
+  "fixture" : "tabview\/tab-api",
+  "frames" : {
+    "home" : {
+      "height" : 16,
+      "width" : 86,
+      "x" : 137,
+      "y" : 134
+    },
+    "tabs" : {
+      "height" : 260,
+      "width" : 360,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 360
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "alerts" : {
+          "height" : 16,
+          "width" : 85.5,
+          "x" : 137.25,
+          "y" : 134
+        },
+        "tabs" : {
+          "height" : 260,
+          "width" : 360,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "second"
+    }
+  ]
+}

@@ -283,6 +283,7 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Abel 13", .custom("Abel-Regular", size: 13)))
         requests.append(TextMetricRequest("System", defaultFont))
         for string in ["Item A", "Item B", "Pick", "Detail", "Presented"] { requests.append(TextMetricRequest(string, defaultFont)) }   // nav/item, nav/path-change
+        for string in ["Home", "Alerts", "Off", "Home content", "Alerts content", "Off content"] { requests.append(TextMetricRequest(string, defaultFont)) }   // tabview/tab-api
         requests.append(TextMetricRequest("Bold", .custom("Abel-Regular", size: 20, weight: "bold")))
         requests.append(TextMetricRequest("Italic", .custom("Abel-Regular", size: 20, italic: true)))
         requests.append(TextMetricRequest(paragraph, abel, width: 150))
@@ -648,6 +649,7 @@ extension TextMetricsRequests {
             requests.append(TextMetricRequest(fixtureFieldNote, .style("body"), width: width))
         }
         let body = ["Hello", "One", "Two", "Hg", "Enabled", "OK", "Bordered", "Prominent", "Borderless", "Disabled", "Delete", "Short", "Notes",
+                    "Home content", "Alerts content", "Search content", "Mail content", "More content",
                     "Quantity: 3", "Placeholder", "Password", "Name", "Fruit", "Apple", "Banana", "Cherry", "Size", "Small", "Medium", "Large",
                     "Wi-Fi", "Bluetooth", "Volume", "Save", "Bold", "Body", "secret", "••••••",
                     "Row 1", "Row 2", "Row 3", "Detail", "Selected"]   // ios/representable/hostingcells, hostingstate
@@ -728,8 +730,12 @@ extension TextMetricsRequests {
             requests.append(TextMetricRequest(string, seventeen))
             requests.append(TextMetricRequest(string, seventeen, width: 211))
         }
-        for string in ["Home", "Search", "Settings"] {
+        for string in ["Home", "Search", "Settings", "Alerts", "Mail", "More"] {   // ios/tabs/*
             requests.append(TextMetricRequest(string, .system(size: 10, weight: "medium", design: "default")))
+        }
+        for string in ["3", "New"] {   // ios/tabs/badges: the badge's text
+            requests.append(TextMetricRequest(string, .system(size: 13, weight: "regular", design: "default")))
+            requests.append(TextMetricRequest(string, .system(size: 13, weight: "medium", design: "default")))
         }
         for string in ["Mar 15, 2025", "11:09 AM"] { requests.append(TextMetricRequest(string, seventeen)) }
         requests.append(TextMetricRequest("UILabel in a sheet", seventeen))

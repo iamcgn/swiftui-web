@@ -437,6 +437,20 @@ extension PlatformMetrics {
     package static var textCaretWidth: CGFloat { current.textCaretWidth }
     package static var textCaretUsesAccent: Bool { current.textCaretUsesAccent }
     package static var textSelectionColor: RGBA { current.textSelectionColor }
+    package static var tabBadgeFontSize: CGFloat { current.tabBadgeFontSize }
+    package static var tabBadgeHeight: CGFloat { current.tabBadgeHeight }
+    package static var tabBadgeMinimumWidth: CGFloat { current.tabBadgeMinimumWidth }
+    package static var tabBadgePadding: CGFloat { current.tabBadgePadding }
+    package static var tabBadgeLeading: CGFloat { current.tabBadgeLeading }
+    package static var tabBadgeRise: CGFloat { current.tabBadgeRise }
+    package static var tabBadgeFill: RGBA { current.tabBadgeFill }
+    package static var pageIndicatorDotDiameter: CGFloat { current.pageIndicatorDotDiameter }
+    package static var pageIndicatorDotPitch: CGFloat { current.pageIndicatorDotPitch }
+    package static var pageIndicatorBottomInset: CGFloat { current.pageIndicatorBottomInset }
+    package static var pageIndicatorColor: RGBA { current.pageIndicatorColor }
+    package static var pageIndicatorCurrentAlpha: Double { current.pageIndicatorCurrentAlpha }
+    package static var pageIndicatorAlpha: Double { current.pageIndicatorAlpha }
+    package static var pageSwipeThreshold: CGFloat { current.pageSwipeThreshold }
     package static var scrollerThickness: CGFloat { current.scrollerThickness }
     package static var scrollerInset: CGFloat { current.scrollerInset }
     package static var scrollerEndInset: CGFloat { current.scrollerEndInset }

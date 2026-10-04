@@ -530,6 +530,28 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var textCaretUsesAccent = false                   // macOS: the text colour; iOS: the accent
     package var textSelectionColor = RGBA(r: 179, g: 215, b: 255, a: 1)   // NSColor.selectedTextBackgroundColor (approximate)
 
+    // The iOS tab bar's badges (ios/tabs/badges, 2026-10-04): a 20 pt red capsule whose left
+    // edge sits 7.5 right of the symbol's centre and whose top 4.5 above the symbol, at least
+    // 19.5 wide, its 13 pt text centred.
+    package var tabBadgeFontSize: CGFloat = 13
+    package var tabBadgeHeight: CGFloat = 20
+    package var tabBadgeMinimumWidth: CGFloat = 19.5
+    package var tabBadgePadding: CGFloat = 3.75                   // "New" at 13 pt is 27 wide in a 34.5 capsule
+    package var tabBadgeLeading: CGFloat = 7.5
+    package var tabBadgeRise: CGFloat = 4.5
+    package var tabBadgeFill = RGBA(red: 1, green: 59.0 / 255, blue: 48.0 / 255, alpha: 1)
+
+    // The page tab view style's indicator (ios/tabs/page, 2026-10-04): 7 pt dots 18 apart on a
+    // row 21.5 above the bottom, the current one white, the others white at 45 % (invisible
+    // over a white ground: the window behind them is clear).
+    package var pageIndicatorDotDiameter: CGFloat = 7
+    package var pageIndicatorDotPitch: CGFloat = 18
+    package var pageIndicatorBottomInset: CGFloat = 21.5
+    package var pageIndicatorColor = RGBA(red: 1, green: 1, blue: 1, alpha: 1)
+    package var pageIndicatorCurrentAlpha = 1.0
+    package var pageIndicatorAlpha = 0.45
+    package var pageSwipeThreshold: CGFloat = 40
+
     // Scrolling (Docs/elements/ScrollView.md). Overlay scrollers only show while scrolling, so the
     // goldens cannot show them; the knob was measured from `NSScroller.drawKnob` (2026-09-19).
     package var scrollerThickness: CGFloat = 7            // the knob's core across the track

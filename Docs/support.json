@@ -470,8 +470,11 @@
         {
           "api": "TabView (selection, own state) / tabItem / TabViewStyle (automatic)",
           "status": "partial",
-          "notes": "The macOS tab view: a segmented bar of the tab item titles (title + 24, dividers) over a bordered box, the selected content centred beneath; press and arrow keys select; no images/badges in the bar, no iOS Tab API or page style",
+          "notes": "The macOS tab view: a segmented bar of the tab item titles (title + 24, dividers) over a bordered box, the selected content centred beneath; press and arrow keys select; no images/badges in the bar, no iOS Tab API or page style; the Tab API (Tab with titles, images and values), badges (a red capsule on the iOS symbol), disabled tabs, tabViewStyle(.page) with the measured dots and a swipe to turn pages, the other styles accepted (2026-10-04: tabview/tab-api, ios/tabs/badges, ios/tabs/page)",
           "fixtures": [
+            "tabview/tab-api",
+            "ios/tabs/badges",
+            "ios/tabs/page",
             "tabview/basic",
             "tabview/sized"
           ]

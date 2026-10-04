@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "Harness",
-    platforms: [.macOS("15.0"), .macCatalyst("18.0"), .iOS("26.0")],
+    platforms: [.macOS("15.4"), .macCatalyst("18.0"), .iOS("26.0")],   // 15.4: TabContent.disabled (tabview/tab-api)
     targets: [
         .target(name: "FixtureKit"),                                     // real-SwiftUI implementation of the fixture API
         .target(name: "Fixtures", dependencies: ["FixtureKit"]),         // symlink -> ../../Fixtures/Sources

@@ -197,3 +197,14 @@ public func fixtureIntentString() -> AttributedString {
     }
     return intent("Strong", .stronglyEmphasized) + intent(" emphasized", .emphasized) + intent(" code", .code) + intent(" struck", .strikethrough)
 }
+
+extension View {
+    /// The page tab view style: iOS-only in Apple's SwiftUI (the macOS harness only compiles the fixture).
+    public func fixturePageTabStyle() -> some View {
+        #if os(iOS)
+        tabViewStyle(.page)
+        #else
+        self
+        #endif
+    }
+}

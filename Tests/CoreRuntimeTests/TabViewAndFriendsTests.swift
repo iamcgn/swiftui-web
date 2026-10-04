@@ -122,3 +122,110 @@ private final class _ShareBox: @unchecked Sendable {
     var subject: String?
 }
 #endif
+
+// MARK: - Phase 8 step 6, sw-tabview
+
+@Observable
+private final class TabAPIModel {
+    var selection = 0
+}
+
+private struct TabAPIView: View {
+    let model: TabAPIModel
+    var body: some View {
+        TabView(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+            Tab("Home", systemImage: "house", value: 0) { Text("Home content")._probe("home") }
+            Tab("Alerts", systemImage: "bell", value: 1) { Text("Alerts content")._probe("alerts") }.badge(3)
+            Tab("Off", systemImage: "gear", value: 2) { Text("Off content")._probe("off") }.disabled(true)
+        }
+        ._probe("tabs")
+    }
+}
+
+private struct PagedView: View {
+    let model: TabAPIModel
+    var body: some View {
+        TabView(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+            Color.red.frame(width: 80, height: 50)._probe("page0").tag(0)
+            Color.blue.frame(width: 80, height: 50)._probe("page1").tag(1)
+            Color.green.frame(width: 80, height: 50)._probe("page2").tag(2)
+        }
+        .tabViewStyle(.page)
+        .frame(width: 240, height: 160)
+        ._probe("tabs")
+    }
+}
+
+@Suite @MainActor struct TabAPITests {
+    private let size = CGSize(width: 360, height: 260)
+
+    @Test func tabsCarryTitlesBadgesAndDisabledState() {
+        let model = TabAPIModel()
+        let runtime = Runtime()
+        runtime.mount(TabAPIView(model: model))
+        runtime.layout(in: size)
+        let node = runtime.root.descendants(where: { $0 is TabViewNode }).first as! TabViewNode
+        #expect(node.tabs.map(\.title) == ["Home", "Alerts", "Off"])
+        #expect(node.tabs.map(\.symbol) == ["house", "bell", "gear"])
+        #expect(node.tabs.map(\.badge) == [nil, "3", nil])
+        #expect(node.tabs.map(\.isEnabled) == [true, true, false])
+        #expect(runtime.probeFrames["home"] != nil && runtime.probeFrames["alerts"] == nil)
+        // A press on the disabled segment does nothing; on the second it selects.
+        let off = node.tabs[2].segment, alerts = node.tabs[1].segment
+        let origin = runtime.probeFrames["tabs"]!.origin
+        runtime.pointerDown(at: CGPoint(x: origin.x + off.midX, y: origin.y + off.midY))
+        runtime.pointerUp(at: CGPoint(x: origin.x + off.midX, y: origin.y + off.midY))
+        #expect(model.selection == 0)
+        runtime.pointerDown(at: CGPoint(x: origin.x + alerts.midX, y: origin.y + alerts.midY))
+        runtime.pointerUp(at: CGPoint(x: origin.x + alerts.midX, y: origin.y + alerts.midY))
+        runtime.layout(in: size)
+        #expect(model.selection == 1 && runtime.probeFrames["alerts"] != nil)
+        // Arrow keys skip the disabled tab.
+        runtime.layout(in: size)
+        #expect(node.handleKey(KeyPress(phase: .down, key: .rightArrow, characters: "", modifiers: [])))
+        #expect(model.selection == 1)
+        #expect(node.handleKey(KeyPress(phase: .down, key: .leftArrow, characters: "", modifiers: [])))
+        #expect(model.selection == 0)
+    }
+
+    @Test func badgeModifiersResolveTheirText() {
+        func text<V: View>(_ view: V) -> String? {
+            let runtime = Runtime()
+            runtime.mount(view)
+            runtime.layout(in: size)
+            return (runtime.root.descendants(where: { $0 is any _TabBadgeProviding }).first as? any _TabBadgeProviding)?.badgeText
+        }
+        #expect(text(Text("a").badge(5)) == "5")
+        #expect(text(Text("a").badge(0)) == nil)
+        #expect(text(Text("a").badge("New")) == "New")
+        #expect(text(Text("a").badge(Text("Late"))) == "Late")
+        #expect(text(Text("a").badge(nil as Text?)) == nil)
+    }
+
+    @Test func pageStyleLaysPagesSideBySideAndSwipes() {
+        let model = TabAPIModel()
+        let runtime = Runtime()
+        runtime.mount(PagedView(model: model))
+        runtime.layout(in: size)
+        let tabs = runtime.probeFrames["tabs"]!
+        #expect(tabs.size == CGSize(width: 240, height: 160))
+        // The selected page is centred in the frame, the next one a frame's width to the right.
+        #expect(runtime.probeFrames["page0"] == CGRect(x: tabs.minX + 80, y: tabs.minY + 55, width: 80, height: 50))
+        #expect(runtime.probeFrames["page1"] == CGRect(x: tabs.minX + 320, y: tabs.minY + 55, width: 80, height: 50))
+        model.selection = 2
+        runtime.layout(in: size)
+        #expect(runtime.probeFrames["page2"]?.minX == tabs.minX + 80 && runtime.probeFrames["page0"]?.minX == tabs.minX - 400)
+        // A swipe to the right goes back a page; a short one does not.
+        runtime.pointerDown(at: CGPoint(x: tabs.midX, y: tabs.midY))
+        runtime.pointerMoved(to: CGPoint(x: tabs.midX + 60, y: tabs.midY))
+        runtime.pointerUp(at: CGPoint(x: tabs.midX + 60, y: tabs.midY))
+        runtime.layout(in: size)
+        #expect(model.selection == 1)
+        runtime.pointerDown(at: CGPoint(x: tabs.midX, y: tabs.midY))
+        runtime.pointerUp(at: CGPoint(x: tabs.midX + 10, y: tabs.midY))
+        #expect(model.selection == 1)
+        // The indicator: three dots, the current one darker.
+        let dots = runtime.render(scale: 2).commands.map(\.description).filter { $0.hasPrefix("fillPath") }
+        #expect(dots.count == 3)
+    }
+}

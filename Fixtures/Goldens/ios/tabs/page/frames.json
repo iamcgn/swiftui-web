@@ -1,0 +1,21 @@
+{
+  "fixture" : "ios\/tabs\/page",
+  "frames" : {
+    "page1" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 127.5,
+      "y" : 293.5
+    },
+    "tabs" : {
+      "height" : 667,
+      "width" : 375,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 667,
+    "width" : 375
+  }
+}

@@ -248,3 +248,10 @@ public func fixtureIntentString() -> AttributedString {
     }
     return intent("Strong", .stronglyEmphasized) + intent(" emphasized", .emphasized) + intent(" code", .code) + intent(" struck", .strikethrough)
 }
+
+extension View {
+    /// The page tab view style (the twin of the harness's helper).
+    public func fixturePageTabStyle() -> some View {
+        tabViewStyle(.page)
+    }
+}

@@ -1552,7 +1552,7 @@ public static let darkText = Fixture("ios/dark/text", size: CGSize(width: 320, h
     .probe("stack")
 }.platform(.iOS).colorScheme(.dark)
 """#),
-        FixtureSource(name: "ios/datepicker/compact", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 156, lastLine: 166, declaration: #"""
+        FixtureSource(name: "ios/datepicker/compact", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 180, lastLine: 190, declaration: #"""
 /// The compact date picker in a form: date, date and time, time; the tinted pills.
 public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(width: 375, height: 360)) {
     Form {
@@ -1754,7 +1754,7 @@ public static let listPlain = Fixture("ios/list/plain", size: CGSize(width: 320,
     .probe("list")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 168, lastLine: 180, declaration: #"""
+        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 192, lastLine: 204, declaration: #"""
 /// A list with a selection binding: the selected row's look after a step selects it.
 public static let listSelection = Fixture(
     "ios/list/selection", size: CGSize(width: 375, height: 360),
@@ -2704,6 +2704,20 @@ public static let symbols = Fixture("ios/symbol/basic", size: CGSize(width: 320,
     .probe("stack")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/tabs/badges", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 156, lastLine: 167, declaration: #"""
+/// Five tabs with badges: a count on the second, a text on the fourth (the bar's slots
+/// narrow; badges sit on the symbols).
+public static let tabsBadges = Fixture("ios/tabs/badges", size: phone) {
+    TabView(selection: .constant(0)) {
+        Tab("Home", systemImage: "house", value: 0) { Text("Home content").probe("home") }
+        Tab("Alerts", systemImage: "bell", value: 1) { Text("Alerts content") }.badge(3)
+        Tab("Search", systemImage: "magnifyingglass", value: 2) { Text("Search content") }
+        Tab("Mail", systemImage: "envelope", value: 3) { Text("Mail content") }.badge("New")
+        Tab("More", systemImage: "ellipsis", value: 4) { Text("More content") }
+    }
+    .probe("tabs")
+}.platform(.iOS).capturesWindow()
+"""#),
         FixtureSource(name: "ios/tabs/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 135, lastLine: 145, declaration: #"""
 /// The tab bar: three tabs with symbols, the first selected. No step selects another: a
 /// programmatic selection change leaves iOS 26's pill raised as glass for seconds, so
@@ -2714,6 +2728,18 @@ public static let tabs = Fixture("ios/tabs/basic", size: phone) {
         Text("Search content").tabItem { Label("Search", systemImage: "magnifyingglass") }.tag(1)
         Text("Settings content").tabItem { Label("Settings", systemImage: "gear") }.tag(2)
     }
+    .probe("tabs")
+}.platform(.iOS).capturesWindow()
+"""#),
+        FixtureSource(name: "ios/tabs/page", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 169, lastLine: 178, declaration: #"""
+/// The page style on iPhone: three pages, the page indicator at the bottom.
+public static let tabsPage = Fixture("ios/tabs/page", size: phone) {
+    TabView(selection: .constant(1)) {
+        Color.red.frame(width: 120, height: 80).tag(0)
+        Color.blue.frame(width: 120, height: 80).probe("page1").tag(1)
+        Color.green.frame(width: 120, height: 80).tag(2)
+    }
+    .fixturePageTabStyle()
     .probe("tabs")
 }.platform(.iOS).capturesWindow()
 """#),
@@ -5192,6 +5218,30 @@ public static let sized = Fixture("tabview/sized", size: CGSize(width: 360, heig
         Text("Beta").tabItem { Text("B") }
     }
     .frame(width: 240, height: 160)
+    .probe("tabs")
+}
+"""#),
+        FixtureSource(name: "tabview/tab-api", file: "Fixtures/Sources/TabView/TabViewFixtures.swift", firstLine: 37, lastLine: 58, declaration: #"""
+/// The Tab API: three tabs with symbols (ignored by the macOS bar), one disabled, one with a
+/// badge; a step selects the second.
+public static let tabAPI = Fixture(
+    "tabview/tab-api", size: CGSize(width: 360, height: 260),
+    model: { TabModel() },
+    steps: [FixtureStep("second") { $0.selection = 1 }]
+) { model in
+    TabView(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+        Tab("Home", systemImage: "house", value: 0) {
+            Group { if model.selection == 0 { Text("Home content").probe("home") } else { Text("Home content") } }
+        }
+        Tab("Alerts", systemImage: "bell", value: 1) {
+            Group { if model.selection == 1 { Text("Alerts content").probe("alerts") } else { Text("Alerts content") } }
+        }
+        .badge(3)
+        Tab("Off", systemImage: "gear", value: 2) {
+            Text("Off content")
+        }
+        .disabled(true)
+    }
     .probe("tabs")
 }
 """#),
@@ -13739,7 +13789,32 @@ public enum TabViewFixtures {
         .probe("tabs")
     }
 
-    public static let all: [Fixture] = [basic, sized]
+    /// The Tab API: three tabs with symbols (ignored by the macOS bar), one disabled, one with a
+    /// badge; a step selects the second.
+    public static let tabAPI = Fixture(
+        "tabview/tab-api", size: CGSize(width: 360, height: 260),
+        model: { TabModel() },
+        steps: [FixtureStep("second") { $0.selection = 1 }]
+    ) { model in
+        TabView(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+            Tab("Home", systemImage: "house", value: 0) {
+                Group { if model.selection == 0 { Text("Home content").probe("home") } else { Text("Home content") } }
+            }
+            Tab("Alerts", systemImage: "bell", value: 1) {
+                Group { if model.selection == 1 { Text("Alerts content").probe("alerts") } else { Text("Alerts content") } }
+            }
+            .badge(3)
+            Tab("Off", systemImage: "gear", value: 2) {
+                Text("Off content")
+            }
+            .disabled(true)
+        }
+        .probe("tabs")
+    }
+
+    // The page style is iOS-only in SwiftUI (`ios/tabs/page`).
+
+    public static let all: [Fixture] = [basic, sized, tabAPI]
 }
 """#,
         "Fixtures/Sources/Table/TableFixtures.swift": #"""
@@ -15798,6 +15873,30 @@ public enum IOSPresentationFixtures {
         .probe("tabs")
     }.platform(.iOS).capturesWindow()
 
+    /// Five tabs with badges: a count on the second, a text on the fourth (the bar's slots
+    /// narrow; badges sit on the symbols).
+    public static let tabsBadges = Fixture("ios/tabs/badges", size: phone) {
+        TabView(selection: .constant(0)) {
+            Tab("Home", systemImage: "house", value: 0) { Text("Home content").probe("home") }
+            Tab("Alerts", systemImage: "bell", value: 1) { Text("Alerts content") }.badge(3)
+            Tab("Search", systemImage: "magnifyingglass", value: 2) { Text("Search content") }
+            Tab("Mail", systemImage: "envelope", value: 3) { Text("Mail content") }.badge("New")
+            Tab("More", systemImage: "ellipsis", value: 4) { Text("More content") }
+        }
+        .probe("tabs")
+    }.platform(.iOS).capturesWindow()
+
+    /// The page style on iPhone: three pages, the page indicator at the bottom.
+    public static let tabsPage = Fixture("ios/tabs/page", size: phone) {
+        TabView(selection: .constant(1)) {
+            Color.red.frame(width: 120, height: 80).tag(0)
+            Color.blue.frame(width: 120, height: 80).probe("page1").tag(1)
+            Color.green.frame(width: 120, height: 80).tag(2)
+        }
+        .fixturePageTabStyle()
+        .probe("tabs")
+    }.platform(.iOS).capturesWindow()
+
     /// The compact date picker in a form: date, date and time, time; the tinted pills.
     public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(width: 375, height: 360)) {
         Form {
@@ -15825,7 +15924,7 @@ public enum IOSPresentationFixtures {
     }.platform(.iOS)
 
     public static var all: [Fixture] {
-        var fixtures = [sheet, sheetMedium, alert, dialog, tabs, tabsSecond, datePicker, listSelection]
+        var fixtures = [sheet, sheetMedium, alert, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection]
         #if canImport(UIKit)
         fixtures.append(sheetRepresentable)
         #endif

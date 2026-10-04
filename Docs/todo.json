@@ -583,13 +583,14 @@
       "framework": "SwiftUI",
       "area": "TabView",
       "title": "The Tab API, page style and badges",
-      "detail": "`Tab(...)` (iOS 18), `tabViewStyle(.page)` and `.sidebarAdaptable`, badges, images in the macOS bar, disabled tabs, the bar's focus ring; the iOS bar is measured (sw-ios-sheets), its badges and four or five tabs are not.",
+      "detail": "Done 2026-10-04: the Tab API (titles, system and catalog images, values, custom labels, TabContent), badge(_:) on tabs (the iOS red capsule measured on ios/tabs/badges with five tabs), disabled tabs (no press, skipped by the arrow keys), tabViewStyle(.page) (pages side by side, a swipe turns them, the dots measured on ios/tabs/page) and the other styles accepted; tabview/tab-api on macOS 26.6 (frames exact; the selected segment's new raised look stays open with the 26.2 goldens).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/TabView.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-menu",
