@@ -12,8 +12,12 @@ Apple docs: [ProgressView](https://developer.apple.com/documentation/swiftui/pro
 | `ProgressView(value:total:)`, `ProgressView(_ title, value:total:)`, `ProgressView(value:total:label:)`, `ProgressView(value:total:label:currentValueLabel:)`, `ProgressView(_ configuration:)` | implemented; `nil` values are indeterminate, values clamp to 0…1 |
 | `ProgressViewStyle`, `ProgressViewStyleConfiguration` (`fractionCompleted`, `label`, `currentValueLabel`), `.automatic`, `.linear`, `.circular`, `progressViewStyle(_:)` | implemented |
 | `ControlSize`, `controlSize(_:)`, `EnvironmentValues.controlSize` | implemented: spinners and rings follow it (16 small, 32 regular measured; mini 12, large 32 unverified); other controls ignore it |
-| `tint(_:)` | accepted: the measured looks are the inactive window's greys, which a tint does not change |
-| `ProgressView(timerInterval:countsDown:)`, `ProgressView(_ progress: Progress)`, the animations of the spinner and the indeterminate bar, `gaugeStyle` | missing |
+| `tint(_:)` | implemented (2026-10-04): the iOS bar's fill; on macOS the bar and ring of an active window (`Runtime.windowIsActive`, off by default: the measured looks are the inactive window's greys) |
+| `ProgressView(timerInterval:countsDown:)` (with `label`, `currentValueLabel`) | implemented: the bar follows the clock through the animation timeline (filling, or emptying when counting down); the default current value label is the time left as m:ss, refreshed four times a second |
+| `ProgressView(_ progress: Progress)` | implemented: wasm's `Progress` is `_WebProgress` (unit counts, a fraction, a description; observable); Apple platforms' Foundation `Progress` is re-read every frame (no key-value observing) |
+| The spinner's rotation, the indeterminate bar's motion | implemented, approximate: the darkest spoke steps clockwise one spoke every eighth of a second; the bar's segment crosses the track once every 1.5 s and wraps (frame subscriptions while indeterminate; the goldens' first frames stay) |
+| Animated values | implemented: a fraction changed under `withAnimation` tweens in the bar and the ring (`presentedFraction`) |
+| `gaugeStyle` | see Docs/elements/Gauge.md |
 
 ## Behaviour
 
@@ -50,5 +54,8 @@ the bar and ring commands, labels, `total`, the spinner and control sizes.
 
 ## Not yet covered
 
-The spinner and indeterminate bar animations, the active window's accent fill, `Progress`
-objects and timer intervals, `gauge`-like value labels, mini/large sizes.
+The real motion of the spinner and the indeterminate bar (unmeasured: the goldens hold their
+first frames), the active window's accent fill against an active window, key-value observing of
+Foundation's `Progress`, `gauge`-like value labels, mini/large sizes. `ProgressAnimationTests`
+cover the spinner phase, the travelling segment, animated values, timer intervals, `Progress`
+objects and tint.

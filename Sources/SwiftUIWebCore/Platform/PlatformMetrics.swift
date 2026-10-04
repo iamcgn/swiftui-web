@@ -382,6 +382,8 @@ package final class PlatformMetricsTable: @unchecked Sendable {
         }
     }
     package var spinnerSpokes = 8
+    package var spinnerPeriod = 1.0                                 // one revolution a second: the dark spoke steps every eighth (approximate)
+    package var progressIndeterminatePeriod = 1.5                   // the indeterminate bar's segment crosses the track in 1.5 s (approximate)
     package var spinnerInnerRadius: CGFloat = 6.5                     // approximate: the spinner animates
     package var spinnerOuterRadius: CGFloat = 14
     package var spinnerSpokeWidth: CGFloat = 3

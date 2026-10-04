@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 45 | 0 | 13 | 32 |
+| SwiftUI | 44 | 0 | 12 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **85** | 0 | 37 | 48 |
+| **All** | **84** | 0 | 36 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Animated progress and gauges** `sw-progress` · ProgressView · approximate  
-  The spinner's rotation and the indeterminate bar's motion (a fixed phase today), `ProgressView(timerInterval:)`, `ProgressView(_ progress:)`, `tint` (accepted), animated `Gauge` values, its marked value labels (accepted). ([ProgressView.md](Docs/elements/ProgressView.md), [Gauge.md](Docs/elements/Gauge.md))
 - ☐ **DatePicker editing and calendars** `sw-datepicker` · DatePicker · missing  
   Typing into the fields, the compact popover calendar, greying days outside the range, dragging the clock's hands, the wheel style (iOS, from the simulator), locales and other calendars, both components on one graphical row. ([DatePicker.md](Docs/elements/DatePicker.md))
 - ☐ **Disclosure animation and outlines** `sw-disclosure` · DisclosureGroup · missing  
@@ -217,6 +215,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Search suggestions, scopes and tokens** `sw-search` · SwiftUI · Toolbar
 - ☑ 2026-10-04 **Button roles, sizes and states** `sw-button-looks` · SwiftUI · Button
 - ☑ 2026-10-04 **Toggle sources, mixed state and looks** `sw-toggle` · SwiftUI · Toggle
+- ☑ 2026-10-04 **Animated progress and gauges** `sw-progress` · SwiftUI · ProgressView
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

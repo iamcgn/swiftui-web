@@ -15,7 +15,8 @@ Apple docs: [Gauge](https://developer.apple.com/documentation/swiftui/gauge),
 | `.automatic` (= `.linearCapacity` on macOS), `.linearCapacity`, `.accessoryLinear`, `.accessoryLinearCapacity`, `.accessoryCircular`, `.accessoryCircularCapacity` | implemented |
 | `tint(_:)` | the linear capacity bar's fill (green by default); the accessory styles are monochrome as on macOS |
 | `labelsHidden()` | no effect (macOS keeps the gauge's label) |
-| Animated value changes, the accessory styles' tinted variants (watchOS), `GaugeStyleConfiguration.MarkedValueLabel` | missing |
+| Animated value changes | implemented (2026-10-04): a value changed under `withAnimation` tweens the bar's fill and the ring's marker (`presentedFraction`) |
+| The accessory styles' tinted variants (watchOS), `GaugeStyleConfiguration.MarkedValueLabel` | missing (marked value labels are accepted and not drawn, as on macOS) |
 
 ## Behaviour
 
@@ -56,5 +57,5 @@ rings' arcs, trim and marker, and a custom style.
 
 ## Not yet covered
 
-Animated value changes, marked value labels, the watchOS tinted accessory looks, the exact
-marker halo radius and the sub-pixel snapping of the ring labels.
+Marked value labels, the watchOS tinted accessory looks, the exact marker halo radius and the
+sub-pixel snapping of the ring labels.

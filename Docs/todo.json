@@ -707,14 +707,15 @@
       "framework": "SwiftUI",
       "area": "ProgressView",
       "title": "Animated progress and gauges",
-      "detail": "The spinner's rotation and the indeterminate bar's motion (a fixed phase today), `ProgressView(timerInterval:)`, `ProgressView(_ progress:)`, `tint` (accepted), animated `Gauge` values, its marked value labels (accepted).",
+      "detail": "Done 2026-10-04: the spinner steps its dark spoke clockwise (one revolution a second) and the indeterminate bar's segment crosses the track every 1.5 s (frame subscriptions; approximate, the goldens keep their first frames), animated values under withAnimation for the bar, the ring and the gauges, ProgressView(timerInterval:countsDown:) through the animation timeline with an m:ss current value label, ProgressView(_ progress:) (wasm's Progress is SwiftUIWebCore's observable object; Foundation's is polled every frame), tint (the iOS fill; macOS in an active window). Marked gauge value labels stay accepted and undrawn, as on macOS.",
       "kind": "approximate",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/ProgressView.md",
         "Docs/elements/Gauge.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-datepicker",

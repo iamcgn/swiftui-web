@@ -355,7 +355,7 @@
         {
           "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:)",
           "status": "partial",
-          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic)",
+          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04)",
           "fixtures": [
             "progress/basic",
             "progress/indeterminate",
@@ -365,7 +365,7 @@
         {
           "api": "Gauge (value/bounds, label, current/minimum/maximum value labels, marked labels accepted) / GaugeStyle (automatic, linearCapacity, accessoryLinear, accessoryLinearCapacity, accessoryCircular, accessoryCircularCapacity) / gaugeStyle",
           "status": "partial",
-          "notes": "The macOS linear capacity gauge (13 pt label over a 16 pt tinted bar, value and bounds labels at the stack spacings) and the monochrome accessory styles: the 8 pt track with a knob and 17 pt semibold labels, the capsule capacity bar with a 12 pt secondary value, the 58 pt open ring (270°, trimmed 14° per end for bounds labels) with a marker and 24 pt medium value, the capacity ring; no animation or marked value labels",
+          "notes": "The macOS linear capacity gauge (13 pt label over a 16 pt tinted bar, value and bounds labels at the stack spacings) and the monochrome accessory styles: the 8 pt track with a knob and 17 pt semibold labels, the capsule capacity bar with a 12 pt secondary value, the 58 pt open ring (270°, trimmed 14° per end for bounds labels) with a marker and 24 pt medium value, the capacity ring; no animation or marked value labels; animated value changes under withAnimation (2026-10-04)",
           "fixtures": [
             "gauge/basic",
             "gauge/accessory"

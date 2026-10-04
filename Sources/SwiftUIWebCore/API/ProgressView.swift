@@ -1,3 +1,10 @@
+#if os(WASI)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
+#else
+import Foundation
+#endif
+import Observation     // `_WebProgress` is observable
+
 // ProgressView (Docs/elements/ProgressView.md): determinate bars and rings, the indeterminate
 // spinner and bar, labels and value labels, styles; `controlSize` and `tint`.
 
@@ -6,15 +13,31 @@ public struct ProgressView<Label: View, CurrentValueLabel: View>: View {
     package let fractionCompleted: Double?
     package let label: Label?
     package let currentValueLabel: CurrentValueLabel?
+    /// `ProgressView(timerInterval:)`: the bar follows the clock through the animation timeline.
+    package var timer: (interval: ClosedRange<Date>, countsDown: Bool)?
+    /// `ProgressView(_ progress: Progress)` on Apple platforms: the fraction re-read every frame.
+    package var polled: _PolledFraction?
 
     @Environment(\.progressViewStyle) private var style
 
     public var body: some View {
+        if let timer {
+            TimelineView(.animation) { context in
+                styled(Self.timerFraction(timer.interval, countsDown: timer.countsDown, at: context.date))
+            }
+        } else if let polled {
+            TimelineView(.animation(minimumInterval: 0.1)) { _ in styled(polled.read()) }
+        } else {
+            styled(fractionCompleted)
+        }
+    }
+
+    private func styled(_ fraction: Double?) -> AnyView {
         let configuration = ProgressViewStyleConfiguration(
-            fractionCompleted: fractionCompleted,
+            fractionCompleted: fraction,
             label: label.map { ProgressViewStyleConfiguration.Label(view: AnyView($0)) },
             currentValueLabel: currentValueLabel.map { ProgressViewStyleConfiguration.CurrentValueLabel(view: AnyView($0)) })
-        style.makeBodyErased(configuration)
+        return style.makeBodyErased(configuration)
     }
 }
 
@@ -93,6 +116,110 @@ extension ProgressView {
         guard total != 0 else { return 0 }
         return min(max(Double(value) / Double(total), 0), 1)
     }
+}
+
+extension ProgressView where Label == EmptyView, CurrentValueLabel == _TimerIntervalLabel {
+    /// A progress view that fills (or, counting down, empties) over `timerInterval`, its current
+    /// value label the time left as m:ss, refreshed every frame.
+    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true) {
+        fractionCompleted = Self.timerFraction(timerInterval, countsDown: countsDown, at: Date())
+        label = nil
+        currentValueLabel = _TimerIntervalLabel(interval: timerInterval, countsDown: countsDown)
+        timer = (timerInterval, countsDown)
+    }
+}
+
+extension ProgressView where CurrentValueLabel == _TimerIntervalLabel {
+    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true, @ViewBuilder label: () -> Label) {
+        fractionCompleted = Self.timerFraction(timerInterval, countsDown: countsDown, at: Date())
+        self.label = label()
+        currentValueLabel = _TimerIntervalLabel(interval: timerInterval, countsDown: countsDown)
+        timer = (timerInterval, countsDown)
+    }
+}
+
+extension ProgressView {
+    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true, @ViewBuilder label: () -> Label,
+                @ViewBuilder currentValueLabel: () -> CurrentValueLabel) {
+        fractionCompleted = Self.timerFraction(timerInterval, countsDown: countsDown, at: Date())
+        self.label = label()
+        self.currentValueLabel = currentValueLabel()
+        timer = (timerInterval, countsDown)
+    }
+
+    package static func timerFraction(_ interval: ClosedRange<Date>, countsDown: Bool, at date: Date) -> Double {
+        let total = interval.upperBound.timeIntervalSince(interval.lowerBound)
+        guard total > 0 else { return countsDown ? 0 : 1 }
+        let elapsed = min(max(date.timeIntervalSince(interval.lowerBound), 0), total)
+        return countsDown ? 1 - elapsed / total : elapsed / total
+    }
+}
+
+extension ProgressView where Label == Text, CurrentValueLabel == EmptyView {
+    /// A progress view following a `_WebProgress` (wasm's `Progress`): its fraction, or
+    /// indeterminate while the object is; the label its description.
+    public init(_ progress: _WebProgress) {
+        fractionCompleted = progress.isIndeterminate ? nil : progress.fractionCompleted
+        label = progress.localizedDescription.isEmpty ? nil : Text(progress.localizedDescription)
+        currentValueLabel = nil
+    }
+}
+
+extension ProgressView where Label == Text, CurrentValueLabel == EmptyView {
+    /// A progress view re-reading `fraction` every frame (Apple platforms' Foundation `Progress`).
+    public init(_polling fraction: @escaping @MainActor () -> Double?, description: String?) {
+        fractionCompleted = fraction()
+        label = description.flatMap { $0.isEmpty ? nil : Text($0) }
+        currentValueLabel = nil
+        polled = _PolledFraction(fraction)
+    }
+}
+
+/// A fraction re-read every frame (a class so the runtime's field reflection ignores it).
+public final class _PolledFraction {
+    package let read: @MainActor () -> Double?
+    package init(_ read: @escaping @MainActor () -> Double?) { self.read = read }
+}
+
+/// The current value label of a timer-interval progress view: the time left (or elapsed) as
+/// m:ss, re-read every frame through the animation timeline.
+public struct _TimerIntervalLabel: View {
+    package let interval: ClosedRange<Date>
+    package let countsDown: Bool
+
+    package static func text(for interval: ClosedRange<Date>, countsDown: Bool, at date: Date) -> String {
+        let total = interval.upperBound.timeIntervalSince(interval.lowerBound)
+        let elapsed = min(max(date.timeIntervalSince(interval.lowerBound), 0), max(total, 0))
+        let shown = Int((countsDown ? total - elapsed : elapsed).rounded(.up))
+        return "\(shown / 60):" + (shown % 60 < 10 ? "0" : "") + "\(shown % 60)"
+    }
+
+    public var body: some View {
+        TimelineView(.animation(minimumInterval: 0.25)) { context in
+            Text(Self.text(for: interval, countsDown: countsDown, at: context.date))
+        }
+    }
+}
+
+/// The progress object of wasm's `Progress` (the thin module names it so; Apple platforms keep
+/// Foundation's): unit counts, a fraction, a description, observable.
+@Observable
+public final class _WebProgress {
+    public var totalUnitCount: Int64
+    public var completedUnitCount: Int64 = 0
+    public var localizedDescription = ""
+    public var isCancelled = false
+
+    public init(totalUnitCount: Int64) { self.totalUnitCount = totalUnitCount }
+
+    /// Zero to one; indeterminate while the total is zero or less.
+    public var fractionCompleted: Double {
+        guard totalUnitCount > 0 else { return 0 }
+        return min(max(Double(completedUnitCount) / Double(totalUnitCount), 0), 1)
+    }
+    public var isIndeterminate: Bool { totalUnitCount <= 0 }
+    public var isFinished: Bool { totalUnitCount > 0 && completedUnitCount >= totalUnitCount }
+    public func cancel() { isCancelled = true }
 }
 
 extension ProgressView where Label == ProgressViewStyleConfiguration.Label, CurrentValueLabel == ProgressViewStyleConfiguration.CurrentValueLabel {

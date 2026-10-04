@@ -309,6 +309,8 @@ extension PlatformMetrics {
     package static var progressRingFillAlpha: Double { current.progressRingFillAlpha }
     package static func progressRingDiameter(_ size: ControlSize) -> CGFloat { current.progressRingDiameter(size) }
     package static var spinnerSpokes: Int { current.spinnerSpokes }
+    package static var spinnerPeriod: Double { current.spinnerPeriod }
+    package static var progressIndeterminatePeriod: Double { current.progressIndeterminatePeriod }
     package static var spinnerInnerRadius: CGFloat { current.spinnerInnerRadius }
     package static var spinnerOuterRadius: CGFloat { current.spinnerOuterRadius }
     package static var spinnerSpokeWidth: CGFloat { current.spinnerSpokeWidth }

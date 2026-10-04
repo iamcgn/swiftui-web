@@ -7,6 +7,15 @@
 /// primary black with a knob (a 4 pt-radius dot in an 8 pt-radius white halo) at the fraction.
 @MainActor
 package final class GaugeBarNode: LeafNode<_GaugeBar> {
+    override package func update(view: _GaugeBar, environment: EnvironmentValues, force: Bool) {
+        let previous = self.view.fraction
+        super.update(view: view, environment: environment, force: force)
+        _animateGaugeValue(self, from: previous, to: view.fraction)
+    }
+
+    /// The fraction to paint: the tween's value while animating (`withAnimation`).
+    package var presentedFraction: Double { _presentedGaugeValue(self, view.fraction) }
+
     private var height: CGFloat {
         view.kind == .capacity ? PlatformMetrics.gaugeBarHeight : PlatformMetrics.gaugeAccessoryBarHeight
     }
@@ -22,7 +31,7 @@ package final class GaugeBarNode: LeafNode<_GaugeBar> {
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
-        let fraction = CGFloat(min(max(view.fraction, 0), 1))
+        let fraction = CGFloat(min(max(presentedFraction, 0), 1))
         switch view.kind {
         case .capacity:
             let radius = PlatformMetrics.gaugeBarCornerRadius
@@ -57,6 +66,14 @@ package final class GaugeBarNode: LeafNode<_GaugeBar> {
 /// 30 % track ring under the primary arc from the top, clockwise, round-capped.
 @MainActor
 package final class GaugeRingNode: LeafNode<_GaugeRing> {
+    override package func update(view: _GaugeRing, environment: EnvironmentValues, force: Bool) {
+        let previous = self.view.fraction
+        super.update(view: view, environment: environment, force: force)
+        _animateGaugeValue(self, from: previous, to: view.fraction)
+    }
+
+    package var presentedFraction: Double { _presentedGaugeValue(self, view.fraction) }
+
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         CGSize(width: PlatformMetrics.gaugeRingDiameter, height: PlatformMetrics.gaugeRingDiameter)
     }
@@ -73,7 +90,7 @@ package final class GaugeRingNode: LeafNode<_GaugeRing> {
         let radius = PlatformMetrics.gaugeRingRadius
         let stroke = StrokeStyle(lineWidth: PlatformMetrics.gaugeRingStroke, lineCap: .round)
         let primary = RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.gaugePrimaryAlpha)
-        let fraction = min(max(view.fraction, 0), 1)
+        let fraction = min(max(presentedFraction, 0), 1)
         if view.capacity {
             var track = Path()
             track.addEllipse(in: CGRect(x: center.x - radius, y: center.y - radius, width: 2 * radius, height: 2 * radius))
@@ -95,4 +112,21 @@ package final class GaugeRingNode: LeafNode<_GaugeRing> {
             list.append(.fillRRect(CGRect(x: marker.x - dot, y: marker.y - dot, width: 2 * dot, height: 2 * dot), cornerRadius: dot, primary))
         }
     }
+}
+
+/// A gauge's value change under `withAnimation`: the painted fraction tweens through the node's
+/// `effect` presentation slot (ProgressView's bar and ring do the same).
+@MainActor
+func _animateGaugeValue(_ node: ViewNode, from previous: Double, to fraction: Double) {
+    guard previous != fraction, let animation = node.runtime.effectiveUpdateAnimation(for: node) else { return }
+    let from = node.presentation?.effect?.value(at: node.runtime.animationClock).first ?? previous
+    let presentation = node.presentation ?? NodePresentation()
+    presentation.effect = Tween(from: [from], to: [fraction], animation: animation, start: node.runtime.animationClock)
+    node.presentation = presentation
+    node.runtime.register(animating: node)
+}
+
+@MainActor
+func _presentedGaugeValue(_ node: ViewNode, _ fraction: Double) -> Double {
+    node.presentation?.effect?.value(at: node.runtime.animationClock).first ?? fraction
 }
