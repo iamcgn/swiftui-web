@@ -144,3 +144,143 @@ private final class _MenuBox: @unchecked Sendable {
     var count = 0
 }
 #endif
+
+// MARK: - Phase 8 step 6, sw-menu
+
+@Observable
+private final class MenuRowsModel {
+    var bold = false
+    var size = 1
+    var selection: Int? = 2
+    var log: [String] = []
+}
+
+private struct RowsMenu: View {
+    let model: MenuRowsModel
+    var dismissBehavior: MenuActionDismissBehavior = .automatic
+    var body: some View {
+        Menu("Options") {
+            Section("Style") {
+                Toggle("Bold", isOn: Binding(get: { model.bold }, set: { model.bold = $0 }))._probe("bold")
+            }
+            Picker("Size", selection: Binding(get: { model.size }, set: { model.size = $0 })) {
+                Text("Small").tag(0)
+                Text("Large").tag(1)
+            }
+            Button("Cut") { model.log.append("cut") }._probe("cut")
+        }
+        .menuActionDismissBehavior(dismissBehavior)
+        ._probe("menu")
+    }
+}
+
+private struct SelectableList: View {
+    let model: MenuRowsModel
+    var body: some View {
+        List(selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+            ForEach(1..<4, id: \.self) { index in Text("Row \(index)")._probe("row\(index)") }
+        }
+        .contextMenu(forSelectionType: Int.self) { ids in
+            Button("Delete \(ids.sorted().map(String.init).joined(separator: ","))") { model.log.append("delete \(ids.sorted())") }
+        }
+    }
+}
+
+@Suite @MainActor struct MenuRowsTests {
+    private let size = CGSize(width: 320, height: 240)
+
+    private func open(_ runtime: Runtime) -> PresentationNode {
+        let frame = runtime.probeFrames["menu"]!
+        runtime.pointerDown(at: CGPoint(x: frame.midX, y: frame.midY))
+        runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
+        runtime.layout(in: size)
+        return runtime.presentations.last!
+    }
+
+    private func rowLabels(_ menu: PresentationNode) -> [String] { menu.interactiveNodes.map { $0.semantics.label } }
+
+    @Test func togglesPickersAndSectionsBecomeRows() {
+        let model = MenuRowsModel()
+        let runtime = Runtime()
+        runtime.mount(RowsMenu(model: model))
+        runtime.layout(in: size)
+        let menu = open(runtime)
+        // The toggle, the two picker options and the button are the menu's rows, in order.
+        #expect(rowLabels(menu) == ["Bold", "Small", "Large", "Cut"])
+        let rows = menu.interactiveNodes
+        #expect(rows[0].semantics.role == .checkbox && rows[0].semantics.isOn == false)
+        #expect(rows[1].semantics.role == .checkbox && rows[1].semantics.isOn == false)
+        #expect(rows[2].semantics.role == .checkbox && rows[2].semantics.isOn == true)
+        // The section header is laid out as a small secondary row above the toggle.
+        let header = menu.descendants(where: { ($0 as? TextNode)?.view.resolvedString == "Style" }).first as? TextNode
+        #expect(header?.environment.font == Font.system(size: 11, weight: .semibold))
+        #expect(header.map { $0.frameInRoot.maxY <= rows[0].frameInRoot.minY } == true)
+        // Selecting an option sets the picker and closes the menu; toggling the toggle too.
+        rows[1].pressBegan(); rows[1].pressEnded(inside: true)
+        runtime.layout(in: size)
+        #expect(model.size == 0 && runtime.presentations.isEmpty)
+        let again = open(runtime)
+        again.interactiveNodes[0].pressBegan(); again.interactiveNodes[0].pressEnded(inside: true)
+        runtime.layout(in: size)
+        #expect(model.bold && runtime.presentations.isEmpty)
+    }
+
+    @Test func disabledDismissBehaviorKeepsTheMenuOpen() {
+        let model = MenuRowsModel()
+        let runtime = Runtime()
+        runtime.mount(RowsMenu(model: model, dismissBehavior: .disabled))
+        runtime.layout(in: size)
+        let menu = open(runtime)
+        let rows = menu.interactiveNodes
+        rows[0].pressBegan(); rows[0].pressEnded(inside: true)
+        runtime.layout(in: size)
+        #expect(model.bold && runtime.presentations.count == 1)
+        // The toggle's row now shows its check mark.
+        #expect(runtime.presentations.last!.interactiveNodes[0].semantics.isOn == true)
+        rows[3].pressBegan(); rows[3].pressEnded(inside: true)
+        runtime.layout(in: size)
+        #expect(model.log == ["cut"] && runtime.presentations.count == 1)
+    }
+
+    @Test func hoverHighlightsTheRowAndTheButtonShowsItsOpenLook() {
+        let model = MenuRowsModel()
+        let runtime = Runtime()
+        runtime.mount(RowsMenu(model: model))
+        runtime.layout(in: size)
+        let button = runtime.root.descendants(where: { $0 is MenuButtonNode }).first as! MenuButtonNode
+        #expect(!button.isOpen)
+        let menu = open(runtime)
+        #expect(button.isOpen)
+        let second = menu.interactiveNodes[1].frameInRoot
+        runtime.updateHover(at: CGPoint(x: second.midX, y: second.midY))
+        #expect(menu.highlightedIndex == 1)
+        runtime.updateHover(at: CGPoint(x: 5, y: 5))
+        #expect(menu.highlightedIndex == nil)
+        runtime.updateHover(at: nil)
+        menu.dismiss()
+        runtime.layout(in: size)
+        #expect(!button.isOpen)
+    }
+
+    @Test func selectionContextMenuNamesTheClickedOrSelectedRows() {
+        let model = MenuRowsModel()
+        let runtime = Runtime()
+        runtime.mount(SelectableList(model: model))
+        runtime.layout(in: size)
+        // Row 1 is not selected: the menu is for row 1 alone.
+        let row1 = runtime.probeFrames["row1"]!
+        runtime.secondaryPointerDown(at: CGPoint(x: row1.midX, y: row1.midY))
+        runtime.layout(in: size)
+        #expect(runtime.presentations.last?.interactiveNodes.map { $0.semantics.label } == ["Delete 1"])
+        runtime.dismissMenus()
+        runtime.layout(in: size)
+        // Row 2 is the selection: the menu is for it.
+        let row2 = runtime.probeFrames["row2"]!
+        runtime.secondaryPointerDown(at: CGPoint(x: row2.midX, y: row2.midY))
+        runtime.layout(in: size)
+        #expect(runtime.presentations.last?.interactiveNodes.map { $0.semantics.label } == ["Delete 2"])
+        runtime.presentations.last!.interactiveNodes[0].pressBegan()
+        runtime.presentations.last!.interactiveNodes[0].pressEnded(inside: true)
+        #expect(model.log == ["delete [2]"])
+    }
+}

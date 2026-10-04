@@ -796,3 +796,15 @@ package final class SwipeActionsNode<Content: View>: UnaryLayoutModifierNode<Con
         return super.layoutValue(for: key)
     }
 }
+
+
+extension ListContentNode: _ListRowIdentifying {
+    package func contextSelection(at point: CGPoint) -> Set<AnyHashable> {
+        let selected = Set(elements.compactMap { element -> AnyHashable? in
+            guard element.kind == .row, let id = element.id, let selection = view.selection, selection.isSelected(id) else { return nil }
+            return id
+        })
+        guard let hit = elements.first(where: { $0.kind == .row && $0.frame.contains(point) }), let id = hit.id else { return [] }
+        return selected.contains(id) ? selected : [id]
+    }
+}

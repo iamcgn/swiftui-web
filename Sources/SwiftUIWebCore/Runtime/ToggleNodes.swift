@@ -52,6 +52,8 @@ package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive {
     package func pressEnded(inside: Bool) {
         guard inside, environment.isEnabled else { return }
         view.isOn.wrappedValue.toggle()
+        // A menu row closes the menu unless `menuActionDismissBehavior(.disabled)`.
+        if environment._inMenu, environment._dismissesOnActivation, environment._menuActionDismissBehavior.dismisses { runtime.dismissMenus() }
     }
 
     package var semantics: SemanticsNode {

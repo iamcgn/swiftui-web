@@ -19,12 +19,16 @@ public struct Picker<Label: View, SelectionValue: Hashable, Content: View>: View
     @Environment(\.pickerStyle) private var style
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\._formStyle) private var formStyle
+    @Environment(\._inMenu) private var inMenu
 
     public var body: some View {
         let selected = AnyHashable(selection.wrappedValue)   // read here so observation tracks it
         let binding = selection
         let select = _PickerSelection { if let value = $0.base as? SelectionValue { binding.wrappedValue = value } }
-        if formStyle == .grouped {
+        if inMenu {
+            // Inside a menu the options are rows, the selected one checked (Docs/elements/Menu.md).
+            _MenuPickerRows(content: AnyView(content), selected: selected, select: select)
+        } else if formStyle == .grouped {
             _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
                             content: AnyView(_PickerHost(label: nil, content: AnyView(content), selected: selected, select: select, style: style._kind)),
                             mode: .grouped)

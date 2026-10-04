@@ -17,6 +17,20 @@ package final class PresentationNode: ViewNode {
     package private(set) var contentFrame: CGRect = .zero
     /// The menu row the arrow keys highlighted (an index into `interactiveNodes`).
     package private(set) var highlightedIndex: Int?
+
+    /// Hover over a menu: the row under `point` (window coordinates) is highlighted, none when
+    /// the pointer is elsewhere. Returns whether the highlight changed.
+    @discardableResult
+    package func highlightRow(at point: CGPoint?) -> Bool {
+        guard kind.isMenu else { return false }
+        var index: Int?
+        if let point, panel.contains(point) {
+            index = interactiveNodes.firstIndex { $0.frameInRoot.contains(point) }
+        }
+        guard index != highlightedIndex else { return false }
+        highlightedIndex = index
+        return true
+    }
     private var arrow: (edge: Edge, tip: CGPoint)?
 
     package init(runtime: Runtime, kind: _PresentationKind, view: AnyView, environment: EnvironmentValues, anchor: ViewNode?,

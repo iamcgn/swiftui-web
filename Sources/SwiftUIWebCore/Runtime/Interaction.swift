@@ -292,7 +292,11 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
         if inside, environment.isEnabled {
             view.action.run()
             if environment._dismissesOnActivation {
-                if environment._inMenu { runtime.dismissMenus() } else { environment.dismiss() }
+                if environment._inMenu {
+                    if environment._menuActionDismissBehavior.dismisses { runtime.dismissMenus() }
+                } else {
+                    environment.dismiss()
+                }
             }
         }
     }

@@ -530,6 +530,17 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var textCaretUsesAccent = false                   // macOS: the text colour; iOS: the accent
     package var textSelectionColor = RGBA(r: 179, g: 215, b: 255, a: 1)   // NSColor.selectedTextBackgroundColor (approximate)
 
+    // Menu rows (Docs/elements/Menu.md): the check mark in the check column, section headers.
+    // Approximate: macOS opens menus in windows the goldens cannot capture.
+    package var menuCheckSize = CGSize(width: 9, height: 8)
+    package var menuCheckStroke: CGFloat = 1.8
+    package var menuCheckInset: CGFloat = 7
+    package var menuSectionHeaderSize: CGFloat = 11
+    package var menuSectionHeaderHeight: CGFloat = 20
+    package var menuIconSize: CGFloat = 13
+    package var menuIconGap: CGFloat = 6
+    package var menuOpenFillAlpha = 0.08
+
     // The iOS tab bar's badges (ios/tabs/badges, 2026-10-04): a 20 pt red capsule whose left
     // edge sits 7.5 right of the symbol's centre and whose top 4.5 above the symbol, at least
     // 19.5 wide, its 13 pt text centred.

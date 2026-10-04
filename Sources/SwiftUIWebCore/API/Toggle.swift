@@ -16,10 +16,14 @@ public struct Toggle<Label: View>: View {
     @Environment(\.toggleStyle) private var style
     @Environment(\._formStyle) private var formStyle
     @Environment(\.labelsHidden) private var labelsHidden
+    @Environment(\._inMenu) private var inMenu
 
     public var body: some View {
         let configuration = ToggleStyleConfiguration(label: ToggleStyleConfiguration.Label(AnyView(label)), isOn: isOn)
-        if formStyle == .grouped {
+        if inMenu {
+            // A menu row with a check mark while on (Docs/elements/Menu.md).
+            _ToggleHost(isOn: isOn, content: AnyView(_MenuRowLabel(label: AnyView(label), submenu: false, checked: isOn.wrappedValue)))
+        } else if formStyle == .grouped {
             // A grouped form row: the label leading, a switch trailing (Docs/elements/Form.md).
             _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
                             content: AnyView(_ToggleHost(isOn: isOn, content: AnyView(_SwitchControl(isOn: isOn.wrappedValue, small: true)))),

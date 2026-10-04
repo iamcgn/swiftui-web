@@ -437,6 +437,14 @@ extension PlatformMetrics {
     package static var textCaretWidth: CGFloat { current.textCaretWidth }
     package static var textCaretUsesAccent: Bool { current.textCaretUsesAccent }
     package static var textSelectionColor: RGBA { current.textSelectionColor }
+    package static var menuCheckSize: CGSize { current.menuCheckSize }
+    package static var menuCheckStroke: CGFloat { current.menuCheckStroke }
+    package static var menuCheckInset: CGFloat { current.menuCheckInset }
+    package static var menuSectionHeaderSize: CGFloat { current.menuSectionHeaderSize }
+    package static var menuSectionHeaderHeight: CGFloat { current.menuSectionHeaderHeight }
+    package static var menuIconSize: CGFloat { current.menuIconSize }
+    package static var menuIconGap: CGFloat { current.menuIconGap }
+    package static var menuOpenFillAlpha: Double { current.menuOpenFillAlpha }
     package static var tabBadgeFontSize: CGFloat { current.tabBadgeFontSize }
     package static var tabBadgeHeight: CGFloat { current.tabBadgeHeight }
     package static var tabBadgeMinimumWidth: CGFloat { current.tabBadgeMinimumWidth }

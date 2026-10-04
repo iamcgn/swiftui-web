@@ -117,6 +117,12 @@ package final class MenuButtonNode: LayoutNode<_MenuHost>, _Interactive {
             list.append(.fillRRect(bounds, cornerRadius: PlatformMetrics.popUpCornerRadius,
                                    black(enabled ? PlatformMetrics.popUpFill : PlatformMetrics.popUpDisabledFill)))
         }
+        if isOpen {
+            // The active look while the menu is open: the indicator part of a split button, the
+            // whole box of a pull-down, darkened (approximate: no golden shows an open menu).
+            let active = dividerX.map { CGRect(x: bounds.minX + $0, y: bounds.minY, width: bounds.width - $0, height: bounds.height) } ?? bounds
+            list.append(.fillRRect(active, cornerRadius: PlatformMetrics.popUpCornerRadius, black(PlatformMetrics.menuOpenFillAlpha)))
+        }
         if let target { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
         let chevronAlpha = enabled ? PlatformMetrics.radioDotAlpha : PlatformMetrics.popUpDisabledTextAlpha
         if let dividerX {
@@ -156,8 +162,16 @@ package final class MenuButtonNode: LayoutNode<_MenuHost>, _Interactive {
         presentMenu()
     }
 
+    /// Whether this button's menu is open: the indicator (or the whole pull-down) darkens.
+    package private(set) var isOpen = false
+
     package func presentMenu() {
-        runtime.present(kind: .menu, view: AnyView(_MenuContent(content: view.content)), environment: environment, anchor: self) {}
+        isOpen = true
+        runtime.setNeedsDisplay()
+        runtime.present(kind: .menu, view: AnyView(_MenuContent(content: view.content)), environment: environment, anchor: self) { [weak self] in
+            self?.isOpen = false
+            self?.runtime.setNeedsDisplay()
+        }
     }
 
     package var semantics: SemanticsNode {
@@ -255,4 +269,163 @@ extension Runtime {
     package func dismissMenus() {
         for presentation in presentations.reversed() where presentation.kind.isMenu { presentation.dismiss() }
     }
+}
+
+
+// MARK: - A picker's rows in a menu
+
+/// Node for `_MenuPickerRows`: the picker's options stacked as rows the menu's width, the
+/// selected option checked; a press selects and closes the menu (unless the dismiss behaviour
+/// keeps it open). Options are the content's leaves with their tags, like a pop-up picker's.
+@MainActor
+package final class MenuPickerNode: LayoutNode<_MenuPickerRows> {
+    private var content: TypedNode<AnyView>!
+    package private(set) var rows: [MenuPickerRowNode] = []
+
+    package init(_ context: _NodeContext<_MenuPickerRows>) {
+        super.init(view: context.view, parent: context.parent, runtime: context.runtime, environment: context.environment)
+        content = AnyView._makeNode(_NodeContext(view: context.view.content, parent: self, environment: context.environment))
+        rebuildRows()
+    }
+
+    override package func update(view: _MenuPickerRows, environment: EnvironmentValues, force: Bool) {
+        self.view = view
+        self.environment = environment
+        clearNeedsUpdate()
+        content.update(view: view.content, environment: environment, force: force)
+        rebuildRows()
+    }
+
+    /// One row per option, keyed by tag; rows keep their nodes across updates.
+    private func rebuildRows() {
+        let options = _collectOptions(content)
+        var kept: [MenuPickerRowNode] = []
+        for (index, option) in options.enumerated() {
+            let tag = option.node.layoutValue(for: TagKey.self) ?? option.id ?? AnyHashable(index)
+            let row = rows.first { candidate in candidate.tag == tag && !kept.contains(where: { $0 === candidate }) }
+                ?? MenuPickerRowNode(picker: self, option: option.node, tag: tag)
+            row.option = option.node
+            row.checked = tag == view.selected
+            kept.append(row)
+        }
+        rows = kept
+    }
+
+    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        var size = CGSize.zero
+        for row in rows {
+            let rowSize = row.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+            size.width = max(size.width, rowSize.width)
+            size.height += rowSize.height
+        }
+        return size
+    }
+
+    override package func layoutContents(proposal: ProposedViewSize) {
+        var y: CGFloat = 0
+        for row in rows {
+            let rowSize = row.sizeThatFits(ProposedViewSize(width: frame.width, height: nil))
+            row.place(at: CGPoint(x: 0, y: y), anchor: .topLeading, proposal: ProposedViewSize(width: frame.width, height: rowSize.height), by: self)
+            y += rowSize.height
+        }
+    }
+
+    package func select(_ tag: AnyHashable) {
+        view.select.select(tag)
+        if environment._dismissesOnActivation, environment._menuActionDismissBehavior.dismisses { runtime.dismissMenus() }
+        runtime.requestLayout()
+    }
+
+    override package var paintedChildren: [ViewNode] { rows }
+    override package var structuralChildren: [ViewNode] { [content] + rows }
+    override package var nodeDescription: String { "MenuPicker" }
+
+    override package func unmount() {
+        content.unmount()
+        super.unmount()
+    }
+}
+
+/// One option row: the option laid out after the check column, the check painted when selected.
+@MainActor
+package final class MenuPickerRowNode: ViewNode, _Interactive {
+    private unowned let picker: MenuPickerNode
+    package var option: ViewNode
+    package let tag: AnyHashable
+    package var checked = false
+    private let identifier: Int
+
+    init(picker: MenuPickerNode, option: ViewNode, tag: AnyHashable) {
+        self.picker = picker
+        self.option = option
+        self.tag = tag
+        nextMenuIdentifier += 1
+        identifier = nextMenuIdentifier
+        super.init(parent: picker, runtime: picker.runtime, environment: picker.environment)
+    }
+
+    override package var isLayoutNode: Bool { true }
+    override package var layoutChildren: [ViewNode] { [self] }
+
+    private var insets: (leading: CGFloat, trailing: CGFloat) { (PlatformMetrics.menuCheckWidth, PlatformMetrics.menuTrailingPadding) }
+
+    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        let inner = option.sizeThatFits(.unspecified)
+        return CGSize(width: max(PlatformMetrics.menuMinimumWidth, inner.width + insets.leading + insets.trailing),
+                      height: max(PlatformMetrics.menuRowHeight, inner.height))
+    }
+
+    override package func layoutContents(proposal: ProposedViewSize) {
+        let inner = option.sizeThatFits(.unspecified)
+        option.place(at: CGPoint(x: insets.leading, y: (frame.height - inner.height) / 2), anchor: .topLeading, proposal: ProposedViewSize(inner), by: self)
+    }
+
+    override package var paintedChildren: [ViewNode] { [option] }
+    override package var structuralChildren: [ViewNode] { [] }
+    override package var nodeDescription: String { "MenuPickerRow" }
+
+    override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
+        guard checked else { return }
+        let size = PlatformMetrics.menuCheckSize
+        let rect = CGRect(x: PlatformMetrics.menuCheckInset, y: (frame.height - size.height) / 2, width: size.width, height: size.height)
+        let path = _MenuCheckMark().path(in: context.absoluteRect(rect))
+        list.append(.strokePath(path, style: StrokeStyle(lineWidth: PlatformMetrics.menuCheckStroke, lineCap: .round, lineJoin: .round),
+                                (environment.foregroundColor ?? .primary).resolve(in: environment)))
+    }
+
+    package func pressBegan() {}
+    package func pressEnded(inside: Bool) {
+        guard inside, environment.isEnabled else { return }
+        picker.select(tag)
+    }
+
+    package var semantics: SemanticsNode {
+        let label = option.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }.joined(separator: " ")
+        return SemanticsNode(role: .checkbox, label: label, frame: frameInRoot, identifier: identifier, isOn: checked)
+    }
+}
+
+// MARK: - contextMenu(forSelectionType:)
+
+/// `contextMenu(forSelectionType:menu:primaryAction:)` on a list: a secondary click on a row
+/// presents the menu for the selection (the clicked row's identifier, or the whole selection
+/// when the row is part of it); a primary action runs on a double click of a selected row.
+@MainActor
+package final class SelectionContextMenuNode<Content: View>: UnaryLayoutModifierNode<Content, _SelectionContextMenuModifier>, _ContextMenuProviding {
+    package func presentContextMenu(at point: CGPoint) {
+        guard let list = child.descendants(where: { $0 is any _ListRowIdentifying }).first as? any _ListRowIdentifying,
+              let listNode = list as? ViewNode else { return }
+        let listOrigin = listNode.frameInRoot.origin
+        let selection = list.contextSelection(at: CGPoint(x: point.x - listOrigin.x, y: point.y - listOrigin.y))
+        guard let menu = modifier.menu(selection) else { return }
+        runtime.present(kind: .menu, view: AnyView(_MenuContent(content: menu)), environment: environment, anchor: nil, at: point) {}
+    }
+}
+
+/// A list that can say which rows a point and the selection name.
+@MainActor
+package protocol _ListRowIdentifying: AnyObject {
+    /// The row identifiers a context menu applies to at `point` (the list's coordinates): the
+    /// selection when the row under the point is selected, else that row alone, else none.
+    func contextSelection(at point: CGPoint) -> Set<AnyHashable>
 }

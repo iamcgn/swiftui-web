@@ -338,7 +338,7 @@
         {
           "api": "Menu / MenuStyle / menuIndicator / contextMenu",
           "status": "partial",
-          "notes": "Pull-down and split buttons exact; menus, submenus and context menus through the presentation layer (rows, separators; no hover highlight, checked items, section headers or keyboard navigation); iOS profile: the label alone in the accent colour (ios/menu/basic)",
+          "notes": "Pull-down and split buttons exact; menus, submenus and context menus through the presentation layer (rows, separators; no hover highlight, checked items, section headers or keyboard navigation); iOS profile: the label alone in the accent colour (ios/menu/basic); toggle and picker rows with check marks, section headers, hover highlight, menuActionDismissBehavior, the split button's open look and contextMenu(forSelectionType:) on lists (2026-10-04; the open menus stay unmeasured)",
           "fixtures": [
             "menu/basic",
             "ios/menu/basic"

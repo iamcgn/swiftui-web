@@ -343,10 +343,13 @@ package struct _MenuContent: View {
 package struct _MenuRowLabel: View {
     package let label: AnyView
     package let submenu: Bool
+    /// A check mark in the check column (a `Toggle` that is on, a `Picker`'s selected option).
+    package let checked: Bool
 
-    package init(label: AnyView, submenu: Bool) {
+    package init(label: AnyView, submenu: Bool, checked: Bool = false) {
         self.label = label
         self.submenu = submenu
+        self.checked = checked
     }
 
     package var body: some View {
@@ -363,7 +366,124 @@ package struct _MenuRowLabel: View {
                         .padding(.trailing, PlatformMetrics.menuTrailingPadding)
                 }
             }
+            .overlay(alignment: .leading) {
+                if checked {
+                    _MenuCheckMark().stroke(style: StrokeStyle(lineWidth: PlatformMetrics.menuCheckStroke, lineCap: .round, lineJoin: .round))
+                        .frame(width: PlatformMetrics.menuCheckSize.width, height: PlatformMetrics.menuCheckSize.height)
+                        .padding(.leading, PlatformMetrics.menuCheckInset)
+                }
+            }
             .font(.system(size: PlatformMetrics.buttonLabelSize))
+    }
+}
+
+/// A check mark filling its rect (the stroke of two segments).
+package struct _MenuCheckMark: Sendable {
+    package init() {}
+}
+
+extension _MenuCheckMark: Shape {
+    package func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY + rect.height * 0.55))
+        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.38, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        return path
+    }
+}
+
+/// A section header in a menu: the header's text small and secondary, in the row's inset.
+package struct _MenuSectionHeader: View {
+    package let header: AnyView
+
+    package init(header: AnyView) { self.header = header }
+
+    package var body: some View {
+        header
+            .font(.system(size: PlatformMetrics.menuSectionHeaderSize, weight: .semibold))
+            .foregroundStyle(.secondary)
+            .padding(.leading, PlatformMetrics.menuCheckWidth)
+            .padding(.trailing, PlatformMetrics.menuTrailingPadding)
+            .frame(minWidth: PlatformMetrics.menuMinimumWidth, minHeight: PlatformMetrics.menuSectionHeaderHeight, alignment: .leading)
+    }
+}
+
+// MARK: - menuActionDismissBehavior
+
+/// The dismissal behavior of a menu once one of its actions runs.
+public struct MenuActionDismissBehavior: Hashable, Sendable {
+    package let dismisses: Bool
+    /// The menu dismisses (the default).
+    public static let automatic = MenuActionDismissBehavior(dismisses: true)
+    /// The menu dismisses.
+    public static let enabled = MenuActionDismissBehavior(dismisses: true)
+    /// The menu stays open after an action (toggles and pickers can be changed in a row).
+    public static let disabled = MenuActionDismissBehavior(dismisses: false)
+}
+
+package struct MenuActionDismissBehaviorKey: EnvironmentKey {
+    package static let defaultValue = MenuActionDismissBehavior.automatic
+}
+
+extension EnvironmentValues {
+    package var _menuActionDismissBehavior: MenuActionDismissBehavior {
+        get { self[MenuActionDismissBehaviorKey.self] }
+        set { self[MenuActionDismissBehaviorKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Tells a menu whether to dismiss after performing an action.
+    nonisolated public func menuActionDismissBehavior(_ behavior: MenuActionDismissBehavior) -> some View {
+        environment(\._menuActionDismissBehavior, behavior)
+    }
+}
+
+/// `contextMenu(forSelectionType:menu:primaryAction:)`: the menu for a set of identifiers,
+/// type-erased; nil when the builder returns nothing to show.
+public struct _SelectionContextMenuModifier {
+    package let menu: (Set<AnyHashable>) -> AnyView?
+    package let primaryAction: ((Set<AnyHashable>) -> Void)?
+    package init(menu: @escaping (Set<AnyHashable>) -> AnyView?, primaryAction: ((Set<AnyHashable>) -> Void)?) {
+        self.menu = menu
+        self.primaryAction = primaryAction
+    }
+}
+
+extension _SelectionContextMenuModifier: ViewModifier {
+    public typealias Body = Never
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        SelectionContextMenuNode(context)
+    }
+}
+
+extension View {
+    /// Adds an item-based context menu to a list: a secondary click on a row presents the menu
+    /// for the clicked row's identifier, or for the whole selection when that row is selected;
+    /// an empty set stands for a click on no row.
+    nonisolated public func contextMenu<I: Hashable, M: View>(forSelectionType itemType: I.Type = I.self, @ViewBuilder menu: @escaping (Set<I>) -> M,
+                                                              primaryAction: ((Set<I>) -> Void)? = nil) -> some View {
+        modifier(_SelectionContextMenuModifier(
+            menu: { ids in AnyView(menu(Set(ids.compactMap { $0.base as? I }))) },
+            primaryAction: primaryAction.map { action in { ids in action(Set(ids.compactMap { $0.base as? I })) } }))
+    }
+}
+
+/// A `Picker` inside a menu: its options as rows, the selected one checked (`MenuPickerNode`).
+public struct _MenuPickerRows: View {
+    package let content: AnyView
+    package let selected: AnyHashable
+    package let select: _PickerSelection
+
+    package init(content: AnyView, selected: AnyHashable, select: _PickerSelection) {
+        self.content = content
+        self.selected = selected
+        self.select = select
+    }
+
+    public typealias Body = Never
+    public static func _makeNode(_ context: _NodeContext<_MenuPickerRows>) -> TypedNode<_MenuPickerRows> {
+        MenuPickerNode(context)
     }
 }
 

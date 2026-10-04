@@ -597,13 +597,14 @@
       "framework": "SwiftUI",
       "area": "Menu",
       "title": "Menu rows, sections and navigation",
-      "detail": "`Toggle` and `Picker` rows with check marks, `Section` headers, `Label` icons in rows, keyboard navigation, hover highlight, `menuOrder` (accepted), `menuActionDismissBehavior`, `contextMenu(forSelectionType:)`; the split button's active look.",
+      "detail": "Done 2026-10-04 (approximate: macOS opens menus in windows the goldens cannot capture): Toggle rows with check marks, Picker options as checked rows, Section headers as small secondary rows, Label icons through the label style, hover highlight of the row under the pointer, menuOrder accepted, menuActionDismissBehavior (.disabled keeps the menu open), contextMenu(forSelectionType:) on List (the clicked row or the selection), the split button's and pull-down's open look; keyboard navigation was already in place.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Menu.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-picker",

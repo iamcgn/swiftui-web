@@ -37,6 +37,13 @@ extension Runtime {
             }
         }
         setPointerStyle(current.reversed().lazy.compactMap { ($0 as? any _PointerStyled)?.pointerStyle }.first ?? nil)
+        // The open menus highlight the row under the pointer (the topmost menu that contains it).
+        var owned = false
+        for presentation in presentations.reversed() where presentation.kind.isMenu {
+            let inside = !owned && point.map { presentation.panel.contains($0) } == true
+            if presentation.highlightRow(at: inside ? point : nil) { setNeedsDisplay() }
+            if inside { owned = true }
+        }
     }
 
     // MARK: Tooltip
