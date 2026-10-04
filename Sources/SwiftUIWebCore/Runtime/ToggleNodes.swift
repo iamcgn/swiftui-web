@@ -3,7 +3,7 @@
 
 /// Transparent layout node owning a toggle's activation and its accessibility node.
 @MainActor
-package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive {
+package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive, _FocusRingProviding {
     package private(set) var child: TypedNode<AnyView>!
     private static var nextIdentifier = 2_000_000
     private let identifier: Int
@@ -48,6 +48,11 @@ package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive {
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "Toggle" }
 
+    /// The focus ring goes around the control, not the label (approximate: unfocused goldens).
+    package var focusRingFrame: CGRect {
+        child.descendants(where: { $0 is CheckboxNode || $0 is SwitchNode }).first?.frameInRoot ?? frameInRoot
+    }
+
     package func pressBegan() {}
     package func pressEnded(inside: Bool) {
         guard inside, environment.isEnabled else { return }
@@ -63,28 +68,55 @@ package final class ToggleHostNode: LayoutNode<_ToggleHost>, _Interactive {
     }
 }
 
-/// The checkbox: a continuous rounded square, a stroked check mark when on.
+/// The checkbox: a continuous rounded square, a stroked check mark when on, a dash when mixed;
+/// in an active window (`Runtime.windowIsActive`) the on and mixed boxes fill with the tint and
+/// the mark is white (approximate).
 @MainActor
 package final class CheckboxNode: LeafNode<_CheckboxControl> {
+    private var boxSize: CGFloat {
+        switch view.size {
+        case .mini: return PlatformMetrics.checkboxMiniSize
+        case .small: return PlatformMetrics.checkboxSmallSize
+        case .large, .extraLarge: return PlatformMetrics.checkboxLargeSize
+        case .regular: return PlatformMetrics.checkboxSize
+        }
+    }
+
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        CGSize(width: PlatformMetrics.checkboxSize, height: PlatformMetrics.checkboxSize)
+        CGSize(width: boxSize, height: boxSize)
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let box = absoluteBounds(context)
         let enabled = environment.isEnabled
-        let fill = view.isOn
-            ? (enabled ? PlatformMetrics.checkboxFillOn : PlatformMetrics.checkboxDisabledFillOn)
-            : (enabled ? PlatformMetrics.checkboxFillOff : PlatformMetrics.checkboxDisabledFillOff)
-        list.append(.fillPath(Path(roundedRect: box, cornerRadius: PlatformMetrics.checkboxCornerRadius), environment._ink(fill)))
-        guard view.isOn else { return }
+        let marked = view.isOn || view.isMixed
+        let accent = marked && enabled && runtime.windowIsActive
         let s = box.width / PlatformMetrics.checkboxSize
+        if accent {
+            list.append(.fillPath(Path(roundedRect: box, cornerRadius: PlatformMetrics.checkboxCornerRadius * s),
+                                  (environment._tint ?? Color.accentColor).resolve(in: environment)))
+        } else {
+            let fill = marked
+                ? (enabled ? PlatformMetrics.checkboxFillOn : PlatformMetrics.checkboxDisabledFillOn)
+                : (enabled ? PlatformMetrics.checkboxFillOff : PlatformMetrics.checkboxDisabledFillOff)
+            list.append(.fillPath(Path(roundedRect: box, cornerRadius: PlatformMetrics.checkboxCornerRadius * s), environment._ink(fill)))
+        }
+        guard marked else { return }
         var mark = Path()
-        mark.move(to: CGPoint(x: box.minX + 4 * s, y: box.minY + 8.75 * s))
-        mark.addLine(to: CGPoint(x: box.minX + 6.75 * s, y: box.minY + 11.5 * s))
-        mark.addLine(to: CGPoint(x: box.minX + 11.75 * s, y: box.minY + 5 * s))
-        let style = StrokeStyle(lineWidth: PlatformMetrics.checkMarkWidth * s, lineCap: .round, lineJoin: .round)
-        list.append(.strokePath(mark, style: style, environment._ink(enabled ? PlatformMetrics.checkMarkAlpha : PlatformMetrics.checkMarkDisabledAlpha)))
+        if view.isMixed {
+            let inset = PlatformMetrics.checkboxMixedDashInset * s
+            mark.move(to: CGPoint(x: box.minX + inset, y: box.midY))
+            mark.addLine(to: CGPoint(x: box.maxX - inset, y: box.midY))
+        } else {
+            mark.move(to: CGPoint(x: box.minX + 4 * s, y: box.minY + 8.75 * s))
+            mark.addLine(to: CGPoint(x: box.minX + 6.75 * s, y: box.minY + 11.5 * s))
+            mark.addLine(to: CGPoint(x: box.minX + 11.75 * s, y: box.minY + 5 * s))
+        }
+        let width = (view.isMixed ? PlatformMetrics.checkboxMixedDashWidth : PlatformMetrics.checkMarkWidth) * s
+        let style = StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round)
+        let color = accent ? RGBA(r: 255, g: 255, b: 255, a: PlatformMetrics.checkboxAccentCheckAlpha)
+            : environment._ink(enabled ? PlatformMetrics.checkMarkAlpha : PlatformMetrics.checkMarkDisabledAlpha)
+        list.append(.strokePath(mark, style: style, color))
     }
 }
 
@@ -98,7 +130,17 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
             if environment._inListRow { return CGSize(width: PlatformMetrics.switchFrameSize.width, height: environment._lineHeight) }
             return PlatformMetrics.switchFrameSize
         }
-        return view.small ? PlatformMetrics.formGroupedSwitchSize : PlatformMetrics.switchSize
+        return macSizes.track
+    }
+
+    /// macOS: the track and knob for the control size (the grouped form's small switch, too).
+    private var macSizes: (track: CGSize, knob: CGSize, inset: CGFloat) {
+        if view.small { return (PlatformMetrics.formGroupedSwitchSize, PlatformMetrics.formGroupedSwitchKnobSize, 1) }
+        switch view.size {
+        case .mini: return (PlatformMetrics.switchMiniSize, PlatformMetrics.switchMiniKnobSize, 1)
+        case .small: return (PlatformMetrics.switchSmallSize, PlatformMetrics.switchSmallKnobSize, PlatformMetrics.switchKnobInset)
+        default: return (PlatformMetrics.switchSize, PlatformMetrics.switchKnobSize, PlatformMetrics.switchKnobInset)
+        }
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
@@ -107,11 +149,23 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
         let enabled = environment.isEnabled
         var fill = view.isOn ? PlatformMetrics.switchTrackOn : PlatformMetrics.switchTrackOff
         if !enabled { fill /= 2 }
-        list.append(.fillRRect(track, cornerRadius: track.height / 2, environment._ink(fill)))
-        let inset = context.round(view.small ? 1 : PlatformMetrics.switchKnobInset)
-        let knobSize = view.small ? PlatformMetrics.formGroupedSwitchKnobSize : PlatformMetrics.switchKnobSize
+        if view.isOn, enabled, runtime.windowIsActive {
+            // An active window's switch: the tint (approximate, unverified).
+            list.append(.fillRRect(track, cornerRadius: track.height / 2, (environment._tint ?? Color.accentColor).resolve(in: environment)))
+        } else {
+            list.append(.fillRRect(track, cornerRadius: track.height / 2, environment._ink(fill)))
+        }
+        let sizes = macSizes
+        let inset = context.round(sizes.inset)
+        let knobSize = sizes.knob
         let knob = CGRect(x: view.isOn ? track.maxX - inset - knobSize.width : track.minX + inset,
                           y: track.minY + inset, width: knobSize.width, height: knobSize.height)
+        // The knob's soft shadow: two rings over the track (toggle/styles pixels).
+        let spread = PlatformMetrics.switchKnobShadowRingSpread
+        for ring in [2.0, 1.0] {
+            let shadow = knob.insetBy(dx: -spread * ring, dy: -spread * ring).intersection(track)
+            list.append(.fillRRect(shadow, cornerRadius: shadow.height / 2, RGBA(r: 0, g: 0, b: 0, a: PlatformMetrics.switchKnobShadowRingAlpha * (enabled ? 1 : 0.5))))
+        }
         list.append(.fillRRect(knob, cornerRadius: knob.height / 2, environment._knob.multiplyingAlpha(by: enabled ? 1 : 0.6)))
     }
 
@@ -125,7 +179,8 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
         let enabled = environment.isEnabled
         let dim = enabled ? 1.0 : 0.5
         let offAlpha = environment._isDark ? PlatformMetrics.switchOffAlphaDark : PlatformMetrics.switchOffAlpha
-        let fill = view.isOn ? PlatformMetrics.switchOnColor.multiplyingAlpha(by: dim) : environment._ink(offAlpha * dim)
+        let onColor = environment._tint.map { $0.resolve(in: environment) } ?? PlatformMetrics.switchOnColor
+        let fill = view.isOn ? onColor.multiplyingAlpha(by: dim) : environment._ink(offAlpha * dim)
         list.append(.fillRRect(track, cornerRadius: track.height / 2, fill))
         let inset = PlatformMetrics.switchKnobInset
         let knobSize = PlatformMetrics.switchKnobSize

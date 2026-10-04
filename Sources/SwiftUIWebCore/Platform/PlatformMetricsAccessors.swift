@@ -37,6 +37,20 @@ extension PlatformMetrics {
     package static var checkboxFillOff: Double { current.checkboxFillOff }
     package static var checkboxDisabledFillOn: Double { current.checkboxDisabledFillOn }
     package static var checkboxDisabledFillOff: Double { current.checkboxDisabledFillOff }
+    package static var checkboxMiniSize: CGFloat { current.checkboxMiniSize }
+    package static var checkboxSmallSize: CGFloat { current.checkboxSmallSize }
+    package static var checkboxLargeSize: CGFloat { current.checkboxLargeSize }
+    package static var controlMiniFontSize: CGFloat { current.controlMiniFontSize }
+    package static var controlSmallFontSize: CGFloat { current.controlSmallFontSize }
+    package static var checkboxMixedDashInset: CGFloat { current.checkboxMixedDashInset }
+    package static var checkboxMixedDashWidth: CGFloat { current.checkboxMixedDashWidth }
+    package static var switchMiniSize: CGSize { current.switchMiniSize }
+    package static var switchMiniKnobSize: CGSize { current.switchMiniKnobSize }
+    package static var switchSmallSize: CGSize { current.switchSmallSize }
+    package static var switchSmallKnobSize: CGSize { current.switchSmallKnobSize }
+    package static var switchKnobShadowRingAlpha: Double { current.switchKnobShadowRingAlpha }
+    package static var switchKnobShadowRingSpread: CGFloat { current.switchKnobShadowRingSpread }
+    package static var checkboxAccentCheckAlpha: Double { current.checkboxAccentCheckAlpha }
     package static var checkMarkWidth: CGFloat { current.checkMarkWidth }
     package static var checkMarkAlpha: Double { current.checkMarkAlpha }
     package static var checkMarkDisabledAlpha: Double { current.checkMarkDisabledAlpha }

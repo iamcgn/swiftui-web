@@ -268,11 +268,18 @@ extension Runtime {
     package func paintFocusRing(into list: inout DisplayList, context: PaintContext) {
         guard focusVisible, let focusedIdentifier, focusedTextFieldIdentifier == nil,
               let node = interactiveNode(semanticsIdentifier: focusedIdentifier), !(node is any _KeyHandling) else { return }
-        let ring = context.absoluteRect(node.frameInRoot).insetBy(dx: -PlatformMetrics.focusRingWidth / 2, dy: -PlatformMetrics.focusRingWidth / 2)
+        let frame = (node as? any _FocusRingProviding)?.focusRingFrame ?? node.frameInRoot
+        let ring = context.absoluteRect(frame).insetBy(dx: -PlatformMetrics.focusRingWidth / 2, dy: -PlatformMetrics.focusRingWidth / 2)
         list.append(.strokePath(Path(roundedRect: ring, cornerRadius: PlatformMetrics.focusRingCornerRadius, style: .circular),
                                 style: StrokeStyle(lineWidth: PlatformMetrics.focusRingWidth),
                                 Color.accentColor.opacity(PlatformMetrics.focusRingOpacity).resolve(in: node.environment)))
     }
+}
+
+/// A focusable node whose ring goes around part of it (a toggle's control, not its label).
+@MainActor
+package protocol _FocusRingProviding: AnyObject {
+    var focusRingFrame: CGRect { get }
 }
 
 /// Type-erased access to shortcut nodes.

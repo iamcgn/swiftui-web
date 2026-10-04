@@ -58,6 +58,27 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var checkboxFillOff = 25.0 / 255
     package var checkboxDisabledFillOn = 18.0 / 255              // approximate
     package var checkboxDisabledFillOff = 13.0 / 255
+    // Control sizes and the mixed state (toggle/looks on macOS 26.6: 10 / 12 / 14 / 16 pt boxes for
+    // mini / small / regular / large with 9 / 11 / 13 / 13 pt labels, a 2 pt dash across the box's
+    // middle when mixed; the 26.2 goldens' 16 pt regular shifts the others; approximate).
+    package var checkboxMiniSize: CGFloat = 12
+    package var checkboxSmallSize: CGFloat = 14
+    package var checkboxLargeSize: CGFloat = 18
+    package var controlMiniFontSize: CGFloat = 9
+    package var controlSmallFontSize: CGFloat = 11
+    package var checkboxMixedDashInset: CGFloat = 4                 // the dash from 4 to 12 of a 16 pt box
+    package var checkboxMixedDashWidth: CGFloat = 2
+    // Switch sizes (toggle/looks, 26.6: the mini and small switches 15 and 18 tall with 13 and 16 pt
+    // knobs next to a 22 pt regular; the 26.2 regular is 24 with a 32 × 20 pill knob; approximate).
+    package var switchMiniSize = CGSize(width: 36, height: 16)
+    package var switchMiniKnobSize = CGSize(width: 22, height: 14)
+    package var switchSmallSize = CGSize(width: 45, height: 20)
+    package var switchSmallKnobSize = CGSize(width: 27, height: 16)
+    // The knob's soft shadow (toggle/styles pixels: the track reads 51 / 255 next to the knob and
+    // 44 two points away, over its 36): two rings around the knob.
+    package var switchKnobShadowRingAlpha = 0.045
+    package var switchKnobShadowRingSpread: CGFloat = 1
+    package var checkboxAccentCheckAlpha = 1.0                      // an active window's checkbox: the accent fill with a white check (unverified)
     package var checkMarkWidth: CGFloat = 2                       // approximate
     package var checkMarkAlpha = 222.0 / 255
     package var checkMarkDisabledAlpha = 66.0 / 255               // approximate

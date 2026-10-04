@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 46 | 0 | 14 | 32 |
+| SwiftUI | 45 | 0 | 13 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **86** | 0 | 38 | 48 |
+| **All** | **85** | 0 | 37 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Toggle sources, mixed state and looks** `sw-toggle` · Toggle · missing  
-  `Toggle(sources:isOn:)`, `isMixed`, Space activation, the focus ring, hover, `controlSize`, `tint`, the switch knob's shadow, the active-window accent checkbox. ([Toggle.md](Docs/elements/Toggle.md))
 - ☐ **Animated progress and gauges** `sw-progress` · ProgressView · approximate  
   The spinner's rotation and the indeterminate bar's motion (a fixed phase today), `ProgressView(timerInterval:)`, `ProgressView(_ progress:)`, `tint` (accepted), animated `Gauge` values, its marked value labels (accepted). ([ProgressView.md](Docs/elements/ProgressView.md), [Gauge.md](Docs/elements/Gauge.md))
 - ☐ **DatePicker editing and calendars** `sw-datepicker` · DatePicker · missing  
@@ -218,6 +216,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Picker options and looks** `sw-picker` · SwiftUI · Picker
 - ☑ 2026-10-04 **Search suggestions, scopes and tokens** `sw-search` · SwiftUI · Toolbar
 - ☑ 2026-10-04 **Button roles, sizes and states** `sw-button-looks` · SwiftUI · Button
+- ☑ 2026-10-04 **Toggle sources, mixed state and looks** `sw-toggle` · SwiftUI · Toggle
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

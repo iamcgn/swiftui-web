@@ -184,7 +184,7 @@
         {
           "api": "Toggle (isOn:label:, title, image, systemImage, configuration) / ToggleStyle / ToggleStyleConfiguration / toggleStyle",
           "status": "partial",
-          "notes": "Checkbox (default), switch and button styles measured in layout and on/off pixels; activation on release inside; checkbox semantics (aria-checked); no pressed/hover/focus looks, keyboard, mixed state or Toggle(sources:)",
+          "notes": "Checkbox (default), switch and button styles measured in layout and on/off pixels; activation on release inside; checkbox semantics (aria-checked); no pressed/hover/focus looks, keyboard, mixed state or Toggle(sources:); Toggle(sources:isOn:) with the mixed dash, Space, the focus ring on the control, controlSize (approximate from macOS 26.6), tint (the iOS switch; macOS with Runtime.windowIsActive), the switch knob's shadow (2026-10-04)",
           "fixtures": [
             "toggle/basic",
             "toggle/styles",

@@ -679,13 +679,14 @@
       "framework": "SwiftUI",
       "area": "Toggle",
       "title": "Toggle sources, mixed state and looks",
-      "detail": "`Toggle(sources:isOn:)`, `isMixed`, Space activation, the focus ring, hover, `controlSize`, `tint`, the switch knob's shadow, the active-window accent checkbox.",
+      "detail": "Done 2026-10-04: Toggle(sources:isOn:) with isMixed (a dash; a flip writes every source), Space and Return through the generic activation, the focus ring around the control only (_FocusRingProviding), controlSize checkboxes and switches (approximate: 26.6's differences shifted onto the 26.2 goldens), tint (the iOS switch's on track; macOS in an active window), the switch knob's shadow from toggle/styles pixels, the active-window accent checkbox and switch behind Runtime.windowIsActive (off by default); hover changes nothing on macOS. toggle/looks on macOS 26.6 is documented and kept out of the golden set.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Toggle.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-slider-stepper",

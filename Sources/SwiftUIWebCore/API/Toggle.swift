@@ -6,11 +6,33 @@
 public struct Toggle<Label: View>: View {
     package let isOn: Binding<Bool>
     package let label: Label
+    /// `Toggle(sources:)`: whether the sources disagree, read in `body` so a change to any
+    /// source re-evaluates it; the checkbox then shows a dash (`isMixed`).
+    package var mixed: _MixedCheck?
+
+    /// The live check (a class so the runtime's field reflection ignores it).
+    package final class _MixedCheck {
+        package let isMixed: @MainActor () -> Bool
+        package init(_ isMixed: @escaping @MainActor () -> Bool) { self.isMixed = isMixed }
+    }
 
     /// Creates a toggle that displays a custom label.
     public init(isOn: Binding<Bool>, @ViewBuilder label: () -> Label) {
         self.isOn = isOn
         self.label = label()
+    }
+
+    /// Creates a toggle representing a collection of values: on when every source is on, mixed
+    /// when they disagree; a flip writes to every source (a mixed toggle turns on).
+    public init<C: RandomAccessCollection>(sources: C, isOn: KeyPath<C.Element, Binding<Bool>>, @ViewBuilder label: () -> Label) {
+        let bindings = sources.map { $0[keyPath: isOn] }
+        self.isOn = Binding(get: { !bindings.isEmpty && bindings.allSatisfy(\.wrappedValue) },
+                            set: { value in for binding in bindings { binding.wrappedValue = value } })
+        self.label = label()
+        self.mixed = _MixedCheck {
+            let values = bindings.map(\.wrappedValue)
+            return values.contains(true) && values.contains(false)
+        }
     }
 
     @Environment(\.toggleStyle) private var style
@@ -19,7 +41,8 @@ public struct Toggle<Label: View>: View {
     @Environment(\._inMenu) private var inMenu
 
     public var body: some View {
-        let configuration = ToggleStyleConfiguration(label: ToggleStyleConfiguration.Label(AnyView(label)), isOn: isOn)
+        let isMixed = mixed?.isMixed() == true
+        let configuration = ToggleStyleConfiguration(label: ToggleStyleConfiguration.Label(AnyView(label)), isOn: isOn, isMixed: isMixed)
         if inMenu {
             // A menu row with a check mark while on (Docs/elements/Menu.md).
             _ToggleHost(isOn: isOn, content: AnyView(_MenuRowLabel(label: AnyView(label), submenu: false, checked: isOn.wrappedValue)))
@@ -44,6 +67,16 @@ extension Toggle where Label == Text {
     @_disfavoredOverload
     public init<S: StringProtocol>(_ title: S, isOn: Binding<Bool>) {
         self.init(isOn: isOn) { Text(title) }
+    }
+
+    /// A toggle over several sources, labelled by a key.
+    public init<C: RandomAccessCollection>(_ titleKey: LocalizedStringKey, sources: C, isOn: KeyPath<C.Element, Binding<Bool>>) {
+        self.init(sources: sources, isOn: isOn) { Text(titleKey) }
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol, C: RandomAccessCollection>(_ title: S, sources: C, isOn: KeyPath<C.Element, Binding<Bool>>) {
+        self.init(sources: sources, isOn: isOn) { Text(title) }
     }
 }
 
@@ -89,12 +122,13 @@ public struct ToggleStyleConfiguration {
 
     public let label: Label
     @Binding public var isOn: Bool
-    /// Whether the toggle is in a mixed state (never, until `Toggle(sources:isOn:)` exists).
+    /// Whether the toggle is in a mixed state: `Toggle(sources:isOn:)` over sources that disagree.
     public var isMixed: Bool = false
 
-    package init(label: Label, isOn: Binding<Bool>) {
+    package init(label: Label, isOn: Binding<Bool>, isMixed: Bool = false) {
         self.label = label
         self._isOn = isOn
+        self.isMixed = isMixed
     }
 }
 
@@ -211,21 +245,32 @@ extension View {
 
 // MARK: - Style bodies
 
-/// The label a control shows: hidden by `labelsHidden`, dimmed when disabled, in `.body`.
+/// The label a control shows: hidden by `labelsHidden`, dimmed when disabled, in `.body` (macOS:
+/// 9 and 11 pt for the mini and small control sizes, toggle/looks).
 package struct _ControlLabel<Content: View>: View {
     package let label: Content
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.platformProfile) private var profile
+    @Environment(\.controlSize) private var controlSize
 
     package init(label: Content) { self.label = label }
+
+    private var font: Font {
+        guard !profile.isIOS else { return .body }
+        switch controlSize {
+        case .mini: return .system(size: PlatformMetrics.controlMiniFontSize)
+        case .small: return .system(size: PlatformMetrics.controlSmallFontSize)
+        default: return .body
+        }
+    }
 
     package var body: some View {
         if !labelsHidden {
             // macOS dims a disabled control's label; an iPhone keeps a toggle's or stepper's
             // label black (ios/toggle/basic, ios/stepper/basic `disabled`).
             _IconAlignedTitle(content: label)
-                .font(.body)
+                .font(font)
                 .foregroundColor(isEnabled || profile.isIOS ? nil : Color.primary.opacity(PlatformMetrics.disabledLabelOpacity))
         }
     }
@@ -233,10 +278,11 @@ package struct _ControlLabel<Content: View>: View {
 
 struct _CheckboxToggleBody: View {
     let configuration: ToggleStyleConfiguration
+    @Environment(\.controlSize) private var controlSize
 
     var body: some View {
         HStack(alignment: ._iconCenter, spacing: PlatformMetrics.checkboxLabelSpacing) {
-            _CheckboxControl(isOn: configuration.isOn)
+            _CheckboxControl(isOn: configuration.isOn, isMixed: configuration.isMixed, size: controlSize)
             _ControlLabel(label: configuration.label)
         }
     }
@@ -244,11 +290,12 @@ struct _CheckboxToggleBody: View {
 
 struct _SwitchToggleBody: View {
     let configuration: ToggleStyleConfiguration
+    @Environment(\.controlSize) private var controlSize
 
     var body: some View {
         HStack(alignment: .center, spacing: PlatformMetrics.switchLabelSpacing) {
             _ControlLabel(label: configuration.label)
-            _SwitchControl(isOn: configuration.isOn)
+            _SwitchControl(isOn: configuration.isOn, size: controlSize)
         }
     }
 }
@@ -290,10 +337,16 @@ public struct _ToggleHost: View {
     }
 }
 
-/// The 16 × 16 macOS checkbox.
+/// The 16 × 16 macOS checkbox (12, 14 and 18 for the mini, small and large sizes).
 public struct _CheckboxControl: View {
     package let isOn: Bool
-    package init(isOn: Bool) { self.isOn = isOn }
+    package let isMixed: Bool
+    package let size: ControlSize
+    package init(isOn: Bool, isMixed: Bool = false, size: ControlSize = .regular) {
+        self.isOn = isOn
+        self.isMixed = isMixed
+        self.size = size
+    }
 
     public typealias Body = Never
 
@@ -302,13 +355,15 @@ public struct _CheckboxControl: View {
     }
 }
 
-/// The 54 × 24 macOS switch (or the small one grouped forms use).
+/// The 54 × 24 macOS switch (or the small one grouped forms use; the mini and small control sizes).
 public struct _SwitchControl: View {
     package let isOn: Bool
     package let small: Bool
-    package init(isOn: Bool, small: Bool = false) {
+    package let size: ControlSize
+    package init(isOn: Bool, small: Bool = false, size: ControlSize = .regular) {
         self.isOn = isOn
         self.small = small
+        self.size = size
     }
 
     public typealias Body = Never

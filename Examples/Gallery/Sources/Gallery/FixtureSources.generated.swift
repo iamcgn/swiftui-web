@@ -6079,6 +6079,34 @@ public static let basic = Fixture("toggle/basic", size: CGSize(width: 320, heigh
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "toggle/looks", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 80, lastLine: 105, declaration: #"""
+/// Mixed state from disagreeing sources, control sizes, tints. Out of the golden set: macOS
+/// 26.6 draws a 14 pt checkbox in a white bezel and a 22 pt switch with a round knob (the
+/// 26.2 goldens above have 16 and 24 with a pill knob), and an inactive window shows no tint;
+/// its measurements are in Docs/elements/Toggle.md ("macOS 26.6").
+public static let looks = Fixture("toggle/looks", size: CGSize(width: 320, height: 300)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Toggle("Enabled", isOn: .constant(true)).probe("on")
+        Toggle("Mixed", sources: [ToggleSource(.constant(true)), ToggleSource(.constant(false))], isOn: \.value).probe("mixed")
+        Toggle("Agree", sources: [ToggleSource(.constant(true)), ToggleSource(.constant(true))], isOn: \.value).probe("sourcesOn")
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Toggle("Mini", isOn: .constant(true)).controlSize(.mini).probe("mini")
+            Toggle("Small", isOn: .constant(true)).controlSize(.small).probe("small")
+            Toggle("Large", isOn: .constant(true)).controlSize(.large).probe("large")
+        }
+        .probe("sizes")
+        HStack(spacing: 8) {
+            Toggle("Mini", isOn: .constant(true)).toggleStyle(.switch).controlSize(.mini).probe("switchMini")
+            Toggle("Small", isOn: .constant(true)).toggleStyle(.switch).controlSize(.small).probe("switchSmall")
+        }
+        .probe("switchSizes")
+        Toggle("Large", isOn: .constant(true)).toggleStyle(.switch).controlSize(.large).probe("switchLarge")
+        Toggle("Tinted", isOn: .constant(true)).tint(.red).probe("tinted")
+        Toggle("Tinted", isOn: .constant(true)).toggleStyle(.switch).tint(.red).probe("tintedSwitch")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "toggle/steps", file: "Fixtures/Sources/Toggle/ToggleFixtures.swift", firstLine: 54, lastLine: 68, declaration: #"""
 /// Behaviour: the checkbox and a text follow the model.
 public static let steps = Fixture(
@@ -15122,6 +15150,41 @@ public enum ToggleFixtures {
     }
 
     public static let all: [Fixture] = [basic, styles, steps]
+}
+
+/// A source for `Toggle(sources:isOn:)`.
+public struct ToggleSource {
+    public var value: Binding<Bool>
+    public init(_ value: Binding<Bool>) { self.value = value }
+}
+
+extension ToggleFixtures {
+    /// Mixed state from disagreeing sources, control sizes, tints. Out of the golden set: macOS
+    /// 26.6 draws a 14 pt checkbox in a white bezel and a 22 pt switch with a round knob (the
+    /// 26.2 goldens above have 16 and 24 with a pill knob), and an inactive window shows no tint;
+    /// its measurements are in Docs/elements/Toggle.md ("macOS 26.6").
+    public static let looks = Fixture("toggle/looks", size: CGSize(width: 320, height: 300)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle("Enabled", isOn: .constant(true)).probe("on")
+            Toggle("Mixed", sources: [ToggleSource(.constant(true)), ToggleSource(.constant(false))], isOn: \.value).probe("mixed")
+            Toggle("Agree", sources: [ToggleSource(.constant(true)), ToggleSource(.constant(true))], isOn: \.value).probe("sourcesOn")
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Toggle("Mini", isOn: .constant(true)).controlSize(.mini).probe("mini")
+                Toggle("Small", isOn: .constant(true)).controlSize(.small).probe("small")
+                Toggle("Large", isOn: .constant(true)).controlSize(.large).probe("large")
+            }
+            .probe("sizes")
+            HStack(spacing: 8) {
+                Toggle("Mini", isOn: .constant(true)).toggleStyle(.switch).controlSize(.mini).probe("switchMini")
+                Toggle("Small", isOn: .constant(true)).toggleStyle(.switch).controlSize(.small).probe("switchSmall")
+            }
+            .probe("switchSizes")
+            Toggle("Large", isOn: .constant(true)).toggleStyle(.switch).controlSize(.large).probe("switchLarge")
+            Toggle("Tinted", isOn: .constant(true)).tint(.red).probe("tinted")
+            Toggle("Tinted", isOn: .constant(true)).toggleStyle(.switch).tint(.red).probe("tintedSwitch")
+        }
+        .probe("stack")
+    }
 }
 """##,
         "Fixtures/Sources/Toolbar/ToolbarFixtures.swift": #"""

@@ -83,6 +83,10 @@ public final class Runtime {
     package var toolbarVisibility: [ToolbarVisibilitySource] = []
     package var toolbar: ToolbarChromeNode?
     package var searchSources: [SearchSource] = []
+    /// Whether controls paint as in an active window: the accent-coloured checkbox and switch
+    /// track. Off by default, as the goldens come from inactive windows; a host may turn it on
+    /// (Docs/elements/Toggle.md).
+    public var windowIsActive = false
     package var searchSuggestionSources: [SearchSuggestionSource] = []
     package var searchScopeSources: [SearchScopeSource] = []
     package var _imageLoader: (any _ImageLoading)?

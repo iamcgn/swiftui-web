@@ -50,11 +50,12 @@ import SwiftUIWebHeadless
         let sw = runtime(Toggle("Enabled", isOn: .constant(true)).toggleStyle(.switch)._probe("switch"))
         #expect(sw.probeFrames["switch"] == CGRect(x: 44.5, y: 38, width: 111, height: 24))
         let commands = sw.render(scale: 2).commands
-        guard case .fillRRect(let track, _, _) = commands[1], case .fillRRect(let knob, _, let knobColor) = commands[2] else { Issue.record("unexpected \(commands)"); return }
+        // The track, the knob's two shadow rings, the knob.
+        guard case .fillRRect(let track, _, _) = commands[1], case .fillRRect(let knob, _, let knobColor) = commands[4] else { Issue.record("unexpected \(commands)"); return }
         #expect(track == CGRect(x: 101.5, y: 38, width: 54, height: 24))
         #expect(knob == CGRect(x: 121.5, y: 40, width: 32, height: 20) && knobColor == .white)
         let off = runtime(Toggle("Enabled", isOn: .constant(false)).toggleStyle(.switch).labelsHidden()).render(scale: 2).commands
-        guard case .fillRRect(let offKnob, _, _) = off[1] else { Issue.record("unexpected \(off)"); return }
+        guard case .fillRRect(let offKnob, _, _) = off[3] else { Issue.record("unexpected \(off)"); return }
         #expect(offKnob == CGRect(x: 75, y: 40, width: 32, height: 20))
         let button = runtime(Toggle("Enabled", isOn: .constant(true)).toggleStyle(.button)._probe("button"))
         #expect(button.probeFrames["button"] == CGRect(x: 63.5, y: 38, width: 73, height: 24))
