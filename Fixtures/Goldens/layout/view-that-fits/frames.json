@@ -1,0 +1,87 @@
+{
+  "fixture" : "layout\/view-that-fits",
+  "frames" : {
+    "axis" : {
+      "height" : 8,
+      "width" : 100,
+      "x" : 60,
+      "y" : 240
+    },
+    "axisStack" : {
+      "height" : 16,
+      "width" : 58,
+      "x" : 60,
+      "y" : 240
+    },
+    "narrow" : {
+      "height" : 16,
+      "width" : 60,
+      "x" : 60,
+      "y" : 80
+    },
+    "narrowFallback" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 60,
+      "y" : 80
+    },
+    "short" : {
+      "height" : 20,
+      "width" : 31,
+      "x" : 60,
+      "y" : 208
+    },
+    "shortFallback" : {
+      "height" : 16,
+      "width" : 31,
+      "x" : 60,
+      "y" : 208
+    },
+    "stack" : {
+      "height" : 236,
+      "width" : 240,
+      "x" : 40,
+      "y" : 32
+    },
+    "tall" : {
+      "height" : 60,
+      "width" : 25,
+      "x" : 60,
+      "y" : 136
+    },
+    "tallStack" : {
+      "height" : 32,
+      "width" : 25,
+      "x" : 60,
+      "y" : 136
+    },
+    "tiny" : {
+      "height" : 16,
+      "width" : 10,
+      "x" : 60,
+      "y" : 108
+    },
+    "tinyFallback" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 60,
+      "y" : 108
+    },
+    "wide" : {
+      "height" : 16,
+      "width" : 200,
+      "x" : 60,
+      "y" : 52
+    },
+    "wideStack" : {
+      "height" : 16,
+      "width" : 101.5,
+      "x" : 60,
+      "y" : 52
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

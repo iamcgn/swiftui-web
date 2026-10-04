@@ -212,7 +212,47 @@ public enum LayoutFixtures {
         .probe("column")
     }
 
-    public static let all: [Fixture] = [
+    /// ViewThatFits over a grid of widths and heights: the stack fits in 200, the fallback text
+    /// takes 60 and 10 (nothing fits: the last child); vertically the stack fits 60 and the text
+    /// takes 20; `in: .horizontal` ignores the height.
+    public static let viewThatFits = Fixture("layout/view-that-fits", size: CGSize(width: 320, height: 300)) {
+        VStack(alignment: .leading, spacing: 12) {
+            ViewThatFits {
+                HStack { Text("One"); Text("Two"); Text("Three") }.fixedSize().probe("wideStack")
+                Text("One").fixedSize().probe("wideFallback")
+            }
+            .frame(width: 200, alignment: .leading).probe("wide")
+            ViewThatFits {
+                HStack { Text("One"); Text("Two"); Text("Three") }.fixedSize().probe("narrowStack")
+                Text("One").fixedSize().probe("narrowFallback")
+            }
+            .frame(width: 60, alignment: .leading).probe("narrow")
+            ViewThatFits {
+                HStack { Text("One"); Text("Two"); Text("Three") }.fixedSize().probe("tinyStack")
+                Text("One").fixedSize().probe("tinyFallback")
+            }
+            .frame(width: 10, alignment: .leading).probe("tiny")
+            ViewThatFits(in: .vertical) {
+                VStack { Text("One"); Text("Two") }.fixedSize().probe("tallStack")
+                Text("Hello").fixedSize().probe("tallFallback")
+            }
+            .frame(height: 60, alignment: .top).probe("tall")
+            ViewThatFits(in: .vertical) {
+                VStack { Text("One"); Text("Two") }.fixedSize().probe("shortStack")
+                Text("Hello").fixedSize().probe("shortFallback")
+            }
+            .frame(height: 20, alignment: .top).probe("short")
+            ViewThatFits(in: .horizontal) {
+                HStack { Text("One"); Text("Two") }.fixedSize().probe("axisStack")
+                Text("One").fixedSize().probe("axisFallback")
+            }
+            .frame(width: 100, height: 8, alignment: .topLeading).probe("axis")
+        }
+        .padding(20)
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [viewThatFits, 
         rootCentering, paddingDefault, paddingEdges, spacingDefault, vstackSpacingDefault, divider,
         hstackDistribution, hstackPriority, spacer, spacerMinLength, vstackAlignment, hstackAlignment,
         zstack, zstackFill, frameFixed, frameFlex, fixedSize, alignmentGuide, groupModifier,

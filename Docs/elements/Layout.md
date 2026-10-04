@@ -36,5 +36,17 @@ Apple docs: [Layout](https://developer.apple.com/documentation/swiftui/layout),
 
 ## Not yet covered
 
-`layoutDirection` (RTL), `Layout.updateCache` reuse across passes, `ViewThatFits`,
-`GeometryReader`, text spacing categories (step 6).
+`layoutDirection` (RTL), `Layout.updateCache` reuse across passes, `GeometryReader`, text
+spacing categories (step 6).
+
+## ViewThatFits (macOS 26.6, `layout/view-that-fits`, 2026-10-04)
+
+`ViewThatFits(in:content:)` is `ViewThatFitsNode`: the content's layout children are the
+candidates; each is asked its ideal size (an unspecified proposal) and the first whose size
+fits the proposal on the constrained axes (both by default; an unproposed axis always fits) is
+the one laid out with the proposal, painted and reporting preferences; when none fits, the
+last. The fixture: a three-text `HStack` (101.5 wide) over a `Text("One")` fallback in frames
+200 (the stack), 60 and 10 (the fallback, overflowing the 10); `in: .vertical` a two-text
+`VStack` (32 tall) over a text in frames 60 (the stack) and 20 (the text); `in: .horizontal`
+the stack in a 100 × 8 frame (the height is not consulted). Tier A exact, Tier C 0.00 %;
+`ViewThatFitsTests` cover the choice following a changing frame and the axes.

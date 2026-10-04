@@ -819,13 +819,14 @@
       "framework": "SwiftUI",
       "area": "Layout",
       "title": "ViewThatFits",
-      "detail": "Not implemented: the first child that fits the proposal on the chosen axes, measured against goldens over a grid of widths.",
+      "detail": "Done 2026-10-04: ViewThatFits(in:content:) picks the first candidate whose ideal size fits the proposal on the constrained axes (the last otherwise), laying out, painting and probing only it; layout/view-that-fits measures a grid of widths and heights and both axis sets (Tier A exact, Tier C 0.00 %).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Layout.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-rtl",
