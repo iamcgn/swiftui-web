@@ -342,7 +342,61 @@ public enum IOSFixtures {
         .probe("nav")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
+    /// Behaviour: a `List` under a large title scrolls under the bar and collapses it.
+    public static let navigationListScroll = Fixture(
+        "ios/nav/list-scroll", size: CGSize(width: 320, height: 400),
+        model: { IOSScrollModel() },
+        steps: [
+            FixtureStep("row1") { $0.target = 1 },
+            FixtureStep("row8") { $0.target = 8 },
+        ]
+    ) { model in
+        NavigationStack {
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(0..<20, id: \.self) { index in
+                        Text("Row").probe("row\(index)").id(index)
+                    }
+                }
+                .navigationTitle("Settings")
+                .probe("list")
+                .onChange(of: model.target) { _, target in
+                    if let target { withAnimation { proxy.scrollTo(target, anchor: .top) } }
+                }
+            }
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    /// Behaviour: a scroll view ignoring the top safe area under a large title fills the whole
+    /// stack, its content starting under the bar.
+    public static let navigationIgnores = Fixture(
+        "ios/nav/ignores", size: CGSize(width: 320, height: 400),
+        model: { IOSScrollModel() },
+        steps: [FixtureStep("row8") { $0.target = 8 }]
+    ) { model in
+        NavigationStack {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(0..<20, id: \.self) { index in
+                            Text("Row").frame(maxWidth: .infinity, alignment: .leading).frame(height: 40).probe("row\(index)").id(index)
+                        }
+                    }
+                    .probe("content")
+                }
+                .ignoresSafeArea(edges: .top)
+                .navigationTitle("Settings")
+                .probe("scroll")
+                .onChange(of: model.target) { _, target in
+                    if let target { withAnimation { proxy.scrollTo(target, anchor: .top) } }
+                }
+            }
+        }
+        .probe("nav")
+    }.platform(.iOS)
+
+    public static let all: [Fixture] = [navigationListScroll, navigationIgnores, textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
                                         form, list, listPlain, navigation, navigationInline,
                                         navigationPush, navigationPushInline, navigationPushNoBack, navigationSizing, navigationScroll]
 }

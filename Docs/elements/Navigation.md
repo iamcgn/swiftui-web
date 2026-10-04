@@ -81,6 +81,8 @@ wasm js tests pass.
 
 ## Not yet covered
 
+The row a `List` under an iOS large title lands on after a programmatic scroll that collapses
+the bar (UIKit re-anchors it: Docs/elements/iOS.md, "Scroll content under the bar").
 Back button and title in macOS chrome (hosts) and the macOS push/pop animation (iOS has both,
 `Docs/elements/iOS.md`; the 26.6 goldens for new fixtures avoid buttons, whose bezel moved),
 toolbars, links that pop to the root or replace the path, restoring a codable path whose types

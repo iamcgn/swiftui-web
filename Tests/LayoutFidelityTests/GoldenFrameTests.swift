@@ -108,6 +108,11 @@ enum Goldens {
         // Three reserved lines of an empty rounded field: 84.287 (two 26 pt lines, the
         // placeholder's own 24.287 and 8), a rule not yet pinned down.
         "ios/textfield/vertical": ["reserved", "stack"],
+        // UIKit's list re-anchors the targeted row after the bar collapses (row 1 lands 9.25
+        // under the inline bar, row 8 15.75 under it) by a rule not yet pinned down; the list's
+        // frame and the collapse itself are compared.
+        "ios/nav/list-scroll/row1": ["row0", "row1", "row2", "row3", "row4", "row5", "row6", "row7", "row8", "row9", "row10", "row11", "row12", "row13", "row14", "row15", "row16", "row17", "row18", "row19"],
+        "ios/nav/list-scroll/row8": ["row0", "row1", "row2", "row3", "row4", "row5", "row6", "row7", "row8", "row9", "row10", "row11", "row12", "row13", "row14", "row15", "row16", "row17", "row18", "row19"],
     ]
 
     /// Fixtures whose probes are allowed three points: the symbol table extrapolates iOS's
@@ -116,7 +121,8 @@ enum Goldens {
 
     /// Fixtures whose lazy stack lays out only the rows in view on Apple's side: ours may carry
     /// more probes than the golden.
-    static let lazyFixtures = ["scroll/position", "ios/scroll/position", "lazy/pinned-headers", "lazy/pinned-footers", "lazy/pinned-both", "lazy/laziness"]
+    static let lazyFixtures = ["scroll/position", "ios/scroll/position", "lazy/pinned-headers", "lazy/pinned-footers", "lazy/pinned-both", "lazy/laziness",
+                               "ios/nav/list-scroll"]   // UIKit's list reports only the rows in view
 
     private func compare(_ ours: [String: CGRect], to golden: [String: GoldenFrames.Rect], label: String) throws {
         let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }

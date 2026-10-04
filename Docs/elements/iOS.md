@@ -79,6 +79,13 @@ screen is opaque: the list's ground, else the window's colour (`ios/nav/push-nob
 at the light alphas in white, the placeholder white at 25 %, the selected segment (191, 191, 204)
 at 47 % over a (117, 117, 130) 24 % fill.
 
+## Scroll content under the bar (iPhone SE simulator, iOS 26, `ios/nav/list-scroll`, `ios/nav/ignores`, 2026-10-04)
+
+| Behaviour | Value | Fixture |
+|---|---|---|
+| `ScrollView` ignoring the top safe area | its probe frame is the safe one (116.5 down, 283.5 tall; 64 and 336 once collapsed) while its content starts at the window's top (row 0 at y 0) and `scrollTo(8, anchor: .top)` lands row 8 at y 0: the collapse grows nothing and shifts no offset | `ios/nav/ignores` |
+| `List` under the large title | rows 56 apart from 132.25 (the list 116.5 down with its 15.75 inset); `scrollTo(1, anchor: .top)` collapses the bar (56 ≥ 53) and UIKit re-anchors the row: row 1 at 73.25, 9.25 under the inline bar; `scrollTo(8)` lands row 8 at 79.75, 15.75 under it (the plain scroll view's row 8 lands 52.5 under it). Ours collapses the bar and keeps the content put, so the rows sit elsewhere after a programmatic scroll; the rows in view are compared only before the steps | `ios/nav/list-scroll` |
+
 ## The navigation bar's glass (iOS 26)
 
 At rest the bar is transparent over the screen's ground (`ios/nav/basic`, `ios/nav/inline`).

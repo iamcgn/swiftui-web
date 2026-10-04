@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 52 | 0 | 20 | 32 |
+| SwiftUI | 51 | 0 | 19 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **92** | 0 | 44 | 48 |
+| **All** | **91** | 0 | 43 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · Navigation · approximate  
-  A List or ScrollView under a NavigationStack bar is laid out below the bar (the goldens' frames) rather than extending under it with a content inset, so content does not slide under the glass while it scrolls; views that ignore the safe area and representables do extend (ios/representable/safearea-*). Measure the scrolled frames and pixels on the simulator, then let extending children keep the full height with the bar as their overlap. ([Navigation.md](Docs/elements/Navigation.md), [Position.md](Docs/elements/Position.md))
 - ☐ **The Tab API, page style and badges** `sw-tabview` · TabView · missing  
   `Tab(...)` (iOS 18), `tabViewStyle(.page)` and `.sidebarAdaptable`, badges, images in the macOS bar, disabled tabs, the bar's focus ring; the iOS bar is measured (sw-ios-sheets), its badges and four or five tabs are not. ([TabView.md](Docs/elements/TabView.md))
 - ☐ **Menu rows, sections and navigation** `sw-menu` · Menu · missing  
@@ -224,6 +222,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 ## Landed
 
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
+- ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

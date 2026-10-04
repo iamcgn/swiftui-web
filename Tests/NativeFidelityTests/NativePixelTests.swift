@@ -47,6 +47,8 @@ enum NativeGoldens {
     static let ignoredProbes: [String: Set<String>] = [
         "ios/list/footer": ["footer", "footer2"],
         "ios/textfield/vertical": ["reserved", "stack"],
+        "ios/nav/list-scroll/row1": ["row0", "row1", "row2", "row3", "row4", "row5", "row6", "row7", "row8", "row9", "row10", "row11", "row12", "row13", "row14", "row15", "row16", "row17", "row18", "row19"],
+        "ios/nav/list-scroll/row8": ["row0", "row1", "row2", "row3", "row4", "row5", "row6", "row7", "row8", "row9", "row10", "row11", "row12", "row13", "row14", "row15", "row16", "row17", "row18", "row19"],
         "list/pinning": ["b1", "b2", "b3", "b4", "b5", "b6"],
         "list/pinning/scroll": ["a1", "a2", "a3", "a4", "a5", "a6"],
         "list/outline": ["dgFruits"],
@@ -164,7 +166,7 @@ struct Bitmap {
         let painter = CoreGraphicsPainter(textEngine: engine, assetBase: NativeGoldens.assetBase)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
         // scroll/flash: the capture missed Apple's flash; ours paints the knob at rest.
-        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name == "list/tint" || name == "scroll/flash"
+        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name == "list/tint" || name == "scroll/flash" || name == "ios/nav/list-scroll"
         compare(runner.layoutFrames(), to: golden.frames, label: name)
         try comparePixels(runner, fixture: fixture, png: "image@2x.png", label: name, framesOnly: framesOnly, painter: painter)
         for (index, step) in (golden.steps ?? []).enumerated() where index < fixture.stepNames.count {

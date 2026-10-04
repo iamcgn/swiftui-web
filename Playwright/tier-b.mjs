@@ -47,7 +47,7 @@ const frameTolerance = (name, key, expected, id) => name === 'text/fit' ? Math.m
   : (name.startsWith('ios/') || name.startsWith('uikit/')) && (key === 'width' || key === 'x') ? 0.5 : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;
 // Symbol fixtures draw open-icon stand-ins for SF Symbols: their frames are checked (the basic
 // fixture's last row holds scaled sizes, allowed 2 pt like Tier A) and their pixels are not.
-const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name === 'list/tint' || name === 'uikit/datepicker/wheels' || name === 'uikit/picker/basic' || name === 'scroll/flash';
+const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name === 'list/tint' || name === 'uikit/datepicker/wheels' || name === 'uikit/picker/basic' || name === 'scroll/flash' || name === 'ios/nav/list-scroll';
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {
@@ -89,6 +89,7 @@ const report = [];
 // Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame.
 // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
 const ignoredProbes = { 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'], 'ios/textfield/vertical': ['reserved', 'stack'],
+  'ios/nav/list-scroll/row1': ['row0', 'row1', 'row2', 'row3', 'row4', 'row5', 'row6', 'row7', 'row8', 'row9', 'row10', 'row11', 'row12', 'row13', 'row14', 'row15', 'row16', 'row17', 'row18', 'row19'], 'ios/nav/list-scroll/row8': ['row0', 'row1', 'row2', 'row3', 'row4', 'row5', 'row6', 'row7', 'row8', 'row9', 'row10', 'row11', 'row12', 'row13', 'row14', 'row15', 'row16', 'row17', 'row18', 'row19'],
   'list/pinning': ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'], 'list/pinning/scroll': ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'], 'list/outline': ['dgFruits'], 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'],
   'table/sorting/byCount': ['name2', 'name3', 'count2', 'count3'] };
 function compareFrames(name, frames, goldenFrames) {

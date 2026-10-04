@@ -555,14 +555,15 @@
       "framework": "SwiftUI",
       "area": "Navigation",
       "title": "Scroll content under the iOS 26 bar",
-      "detail": "A List or ScrollView under a NavigationStack bar is laid out below the bar (the goldens' frames) rather than extending under it with a content inset, so content does not slide under the glass while it scrolls; views that ignore the safe area and representables do extend (ios/representable/safearea-*). Measure the scrolled frames and pixels on the simulator, then let extending children keep the full height with the bar as their overlap.",
+      "detail": "Done 2026-10-04 (approximate): measured on the simulator with ios/nav/list-scroll and ios/nav/ignores. A scroll view ignoring the top safe area keeps its safe probe frame while its content starts at the window's top and a scrollTo lands at y 0; the collapse then shifts no offset (fixed). A List under the large title scrolls under the glass and collapses the bar like a scroll view, but UIKit re-anchors the targeted row after the collapse (row 1 at 9.25, row 8 at 15.75 under the inline bar) by a rule not pinned down: those rows are compared only before the steps.",
       "kind": "approximate",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Navigation.md",
         "Docs/elements/Position.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-splitview",

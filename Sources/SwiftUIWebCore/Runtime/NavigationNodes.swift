@@ -154,7 +154,11 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let collapse = PlatformMetrics.navigationLargeTitleCollapse
         if !collapsed, offset >= collapse {
             setCollapsed(true, on: screen)
-            _ = node.scroll(by: CGSize(width: 0, height: -collapse))
+            // The frame of a scroll view below the bar grows by the collapse, so its offset
+            // shrinks to keep the content put; one extending under the bar (`ignoresSafeArea`)
+            // keeps its frame and its offset (ios/nav/ignores: row 8 stays at the window's top).
+            let extendsUnderBar = node.frameInRoot.minY - frameInRoot.minY < bar.height - 0.5
+            if !extendsUnderBar { _ = node.scroll(by: CGSize(width: 0, height: -collapse)) }
         } else if collapsed, offset <= 0 {
             setCollapsed(false, on: screen)
         } else {
