@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 48 | 2 | 43 | 3 | 0 | 0 |
+| UIKit | 48 | 3 | 42 | 3 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **188** | 27 | 148 | 7 | 3 | 3 |
+| **All** | **188** | 28 | 147 | 7 | 3 | 3 |
 
 ## App lifecycle
 
@@ -192,7 +192,7 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `UIButton` | 🟢 partial | System, tinted, gray, filled and configured buttons sized to fit, titles and system images, UIAction / addAction, the pressed state; open: custom-type title fonts (17 pt assumed), image placement, subtitles, buttonSize, the disabled look, configuration update handlers | uikit/button/basic, ios/representable/controls |
+| `UIButton` | ✅ full | System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus; open: attributed titles, activity indicators (accepted) | uikit/button/basic, uikit/button/looks, ios/representable/controls |
 | `UISwitch` | ✅ full | 68 × 30 on iOS 26 with the 2 pt alignment inset, isOn / setOn(_:animated:), onTintColor / thumbTintColor, a tap or a pan toggles, valueChanged through UIAction, a switch in the semantics tree | uikit/controls/basic, uikit/controls/intrinsic, ios/representable/controls |
 | `UITextField` | 🟢 partial | Rounded-rect, line and bezel borders, placeholder, secure entry, keyboard and return types, delegate callbacks, editingChanged through UIAction, text through the substrate's input overlay; open: the text's vertical position against the pixels, clear button, left and right views, attributed placeholders | uikit/controls/basic, uikit/controls/intrinsic, uikit/alert/textfield |
 | `UISlider / UISegmentedControl / UIStepper / UIProgressView` | 🟢 partial | Measured looks at their intrinsic sizes, taps and drags set values and send valueChanged; open: slider min/max images, segment images and widths, momentary segments, the stepper's repeat | uikit/controls/more |

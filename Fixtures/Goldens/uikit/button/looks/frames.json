@@ -1,0 +1,81 @@
+{
+  "fixture" : "uikit\/button\/looks",
+  "frames" : {
+    "custom" : {
+      "height" : 34,
+      "width" : 63,
+      "x" : 16,
+      "y" : 16
+    },
+    "disabled" : {
+      "height" : 40.5,
+      "width" : 90.5,
+      "x" : 120,
+      "y" : 270
+    },
+    "large" : {
+      "height" : 56.5,
+      "width" : 83.5,
+      "x" : 170,
+      "y" : 200
+    },
+    "leading" : {
+      "height" : 40.5,
+      "width" : 89.5,
+      "x" : 16,
+      "y" : 60
+    },
+    "mini" : {
+      "height" : 33,
+      "width" : 48.5,
+      "x" : 16,
+      "y" : 200
+    },
+    "off" : {
+      "height" : 40.5,
+      "width" : 48.5,
+      "x" : 230,
+      "y" : 270
+    },
+    "pressed" : {
+      "height" : 40.5,
+      "width" : 86,
+      "x" : 16,
+      "y" : 270
+    },
+    "small" : {
+      "height" : 33,
+      "width" : 57.5,
+      "x" : 90,
+      "y" : 200
+    },
+    "subtitled" : {
+      "height" : 62.5,
+      "width" : 71,
+      "x" : 16,
+      "y" : 130
+    },
+    "systemImage" : {
+      "height" : 23.5,
+      "width" : 65.5,
+      "x" : 16,
+      "y" : 340
+    },
+    "top" : {
+      "height" : 66.5,
+      "width" : 55.5,
+      "x" : 224,
+      "y" : 60
+    },
+    "trailing" : {
+      "height" : 40.5,
+      "width" : 89.5,
+      "x" : 120,
+      "y" : 60
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 320
+  }
+}

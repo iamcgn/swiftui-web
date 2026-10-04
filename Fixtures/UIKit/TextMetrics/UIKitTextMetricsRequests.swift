@@ -31,6 +31,15 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Tinted", .style("body"), lines: 0),
         UIKitTextRequest("Filled", .style("body"), lines: 0),
         UIKitTextRequest("Plain", .system(size: 17), lines: 0),
+        // uikit/button/looks (uk-button): a custom button's title, images with titles, a subtitle, the sizes.
+        UIKitTextRequest("Custom", .system(size: 15)), UIKitTextRequest("Custom", .system(size: 17)), UIKitTextRequest("Custom", .system(size: 18)),
+        UIKitTextRequest("Star", .style("body"), lines: 0), UIKitTextRequest("Title", .style("body"), lines: 0), UIKitTextRequest("Subtitle", .style("body"), lines: 0),
+        UIKitTextRequest("Subtitle", .style("subheadline"), lines: 0), UIKitTextRequest("Subtitle", .style("footnote"), lines: 0), UIKitTextRequest("Subtitle", .system(size: 12), lines: 0),
+        UIKitTextRequest("Mini", .style("body"), lines: 0), UIKitTextRequest("Mini", .style("subheadline"), lines: 0), UIKitTextRequest("Mini", .style("footnote"), lines: 0), 
+        UIKitTextRequest("Small", .style("body"), lines: 0), UIKitTextRequest("Small", .style("subheadline"), lines: 0), UIKitTextRequest("Small", .style("footnote"), lines: 0),
+        UIKitTextRequest("Large", .style("body"), lines: 0), UIKitTextRequest("Large", .style("title3"), lines: 0), UIKitTextRequest("Large", .style("headline"), lines: 0),
+        UIKitTextRequest("Pressed", .style("body"), lines: 0), UIKitTextRequest("Disabled", .style("body"), lines: 0), UIKitTextRequest("Off", .style("body"), lines: 0),
+        UIKitTextRequest("Heart", .system(size: 15)),
         // uikit/stack/basic
         UIKitTextRequest("First", .system(size: 17)),
         UIKitTextRequest("Second line", .system(size: 17)),

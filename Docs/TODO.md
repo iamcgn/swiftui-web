@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 30 | 0 | 19 | 11 |
+| UIKit | 29 | 0 | 18 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **68** | 0 | 20 | 48 |
+| **All** | **67** | 0 | 19 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **UIButton images, subtitles and states** `uk-button` · Controls · missing  
-  Custom-type buttons' title font (17 pt assumed), `image` and `imagePlacement`, subtitles, `buttonSize`, the pressed and disabled looks, `UIButton.Configuration` update handlers. ([UIButton.md](Docs/elements/UIKit/UIButton.md))
 - ☐ **UILabel attributed text and fitting** `uk-label` · Text · missing  
   `attributedText` with per-range attributes, `adjustsFontSizeToFitWidth` and `minimumScaleFactor`, `allowsDefaultTighteningForTruncation`, the ink position of a text-style line verified against the simulator's pixels. ([UILabel.md](Docs/elements/UIKit/UILabel.md))
 - ☐ **Custom, italic and monospaced fonts; Dynamic Type** `uk-fonts` · Text · missing  
@@ -197,6 +195,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Interactive pop, large-title collapse, custom transitions** `uk-nav-polish` · UIKit · Navigation
 - ☑ 2026-10-04 **Sheet detents, popovers and custom presentations** `uk-sheets` · UIKit · Presentation
 - ☑ 2026-10-04 **UIMenu presentation** `uk-menus` · UIKit · Menus
+- ☑ 2026-10-04 **UIButton images, subtitles and states** `uk-button` · UIKit · Controls
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

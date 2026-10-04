@@ -1314,13 +1314,14 @@
       "framework": "UIKit",
       "area": "Controls",
       "title": "UIButton images, subtitles and states",
-      "detail": "Custom-type buttons' title font (17 pt assumed), `image` and `imagePlacement`, subtitles, `buttonSize`, the pressed and disabled looks, `UIButton.Configuration` update handlers.",
+      "detail": "Done 2026-10-04: measured on the simulator (uikit/button/looks): custom titles are 18 pt in a 34 pt button, images sit in 28 × 20 slots beside or above body titles (system buttons: 22 × 23.5 slots 2 in, 3 to a 15 pt title), subtitles are the footnote 2 under a leading-aligned title, mini and small sizes use the subheadline in 6 × 10 insets and large the body in 15 × 20, pressed fills are at 75 %, disabled ones the tertiary fill under the tertiary label, iOS 26's corners (capsules up to 20 pt, large capsules), the gray style's label-coloured title; configurationUpdateHandler, setNeedsUpdateConfiguration, updateConfiguration, Configuration.updated(for:).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/UIButton.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-label",

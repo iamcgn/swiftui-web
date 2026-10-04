@@ -1432,10 +1432,11 @@
       "entries": [
         {
           "api": "UIButton",
-          "status": "partial",
-          "notes": "System, tinted, gray, filled and configured buttons sized to fit, titles and system images, UIAction / addAction, the pressed state; open: custom-type title fonts (17 pt assumed), image placement, subtitles, buttonSize, the disabled look, configuration update handlers",
+          "status": "full",
+          "notes": "System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus; open: attributed titles, activity indicators (accepted)",
           "fixtures": [
             "uikit/button/basic",
+            "uikit/button/looks",
             "ios/representable/controls"
           ]
         },

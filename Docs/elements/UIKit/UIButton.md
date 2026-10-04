@@ -25,7 +25,27 @@ apps use `UIAction`.
 The gray fill is `secondarySystemFill` (120, 120, 128 at 16 %). The same geometry held on Mac
 Catalyst with its own text widths and a 31 pt system button (its 15 pt label is 19 tall there).
 
-Open: custom-type buttons (their title font is unmeasured; 17 pt is assumed), images and
-`imagePlacement`, subtitles, `buttonSize`, the pressed look, pointer interactions. Menus
+## Measured (iOS 26, `uikit/button/looks`, 2026-10-04)
+
+| Button | Size | Inside |
+|---|---|---|
+| custom type, "Custom" | 63 × 34 | an 18 pt title (63 wide, 21.5 tall) in a button at least 34 tall; no padding sideways |
+| gray, "Star" with a star image leading (`imagePadding` 6) | 89.5 × 40.5 | the medium 7 × 12 insets; the symbol in a 28 × 20 slot, its 23.5 × 22 glyph centred (overflowing the slot's height), then 6, then the body title (26.5 tall with its leading) |
+| the same, image trailing / on top | 89.5 × 40.5 / 55.5 × 66.5 | trailing: title, 6, slot; top: slot, 6, title, each centred |
+| filled, "Title" over "Subtitle" | 71 × 62.5 | the subtitle in the footnote (19 + 1 = 20 tall) 2 under the title, both left-aligned at the inset (the automatic alignment becomes leading with a subtitle); the width is the wider line plus 24 |
+| gray, `buttonSize` mini / small / medium / large | 48.5 × 33 / 57.5 × 33 / 65.5 × 40.5 / 83.5 × 56.5 | mini and small: the subheadline (15 pt, 21 tall) in 6 × 10 insets; medium: the body (26.5) in 7 × 12; large: the body in 15 × 20 |
+| system type, heart image + "Heart" | 65.5 × 23.5 | the symbol in a 22 × 23.5 slot 2 in (its 20.5 × 19 glyph centred), 3 to the 15 pt title; no padding above or below |
+| filled, pressed (`isHighlighted`) | 86 × 40.5 | the fill at 75 % ((64, 166, 255)); the white title stays |
+| filled and gray, disabled | 90.5 × 40.5 / 48.5 × 40.5 | the fill becomes the tertiary fill ((238, 238, 239)) under the tertiary label colour ((185, 185, 187) over it) |
+| corners | — | iOS 26: the large size is a capsule; the other sizes round to 20 at most (a 40.5 pt button is nearly a capsule, a 62.5 pt one keeps 20); the gray fill is (233, 233, 234) with the label colour on it, not the tint |
+
+`configurationUpdateHandler` runs on every state change (and `setNeedsUpdateConfiguration`),
+`automaticallyUpdatesConfiguration` turns the automatic calls off, `updateConfiguration()` is
+the overridable hook, `Configuration.updated(for:)` returns the configuration unchanged
+(UIKit's state-dependent adjustments are what the handler is for here). Pixels: `uikit/button/looks`
+within 3 % (text anti-aliasing and the symbols' strokes).
+
+Open: `UIButton.Configuration` with `attributedTitle`, `showsActivityIndicator` (accepted),
+`titleTextAttributesTransformer`, pointer interactions on buttons beyond the hand cursor. Menus
 (`menu`, `showsMenuAsPrimaryAction`, `changesSelectionAsPrimaryAction`) landed 2026-10-04:
 `Docs/elements/UIKit/Menus.md`.
