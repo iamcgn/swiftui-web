@@ -26,4 +26,6 @@ The gray fill is `secondarySystemFill` (120, 120, 128 at 16 %). The same geometr
 Catalyst with its own text widths and a 31 pt system button (its 15 pt label is 19 tall there).
 
 Open: custom-type buttons (their title font is unmeasured; 17 pt is assumed), images and
-`imagePlacement`, subtitles, `buttonSize`, the pressed look, pointer interactions, menus.
+`imagePlacement`, subtitles, `buttonSize`, the pressed look, pointer interactions. Menus
+(`menu`, `showsMenuAsPrimaryAction`, `changesSelectionAsPrimaryAction`) landed 2026-10-04:
+`Docs/elements/UIKit/Menus.md`.

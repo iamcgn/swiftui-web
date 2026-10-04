@@ -121,17 +121,6 @@ open class UIBarButtonItem: UIBarItem {
     var isSpace: Bool { systemItem == .flexibleSpace || systemItem == .fixedSpace }
 }
 
-/// A menu (accepted for bar items and buttons; not shown).
-@MainActor
-public final class UIMenu {
-    public let title: String
-    public let children: [UIAction]
-    public init(title: String = "", children: [UIAction] = []) {
-        self.title = title
-        self.children = children
-    }
-}
-
 /// An item in a tab bar.
 @MainActor
 open class UITabBarItem: UIBarItem {

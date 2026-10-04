@@ -359,6 +359,11 @@ final class PresentationContainerView: UIView {
             return
         }
         content.layer.popoverArrow = nil
+        if let menu = controller as? MenuPanelController {
+            dimming.backgroundColor = .clear
+            menu.layoutPanel(in: self)
+            return
+        }
         switch controller.modalPresentationStyle {
         case .fullScreen, .overFullScreen, .currentContext, .overCurrentContext, .custom, .none:
             dimming.backgroundColor = .clear

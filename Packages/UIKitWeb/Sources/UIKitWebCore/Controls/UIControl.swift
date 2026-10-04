@@ -2,32 +2,45 @@
 // Objective-C runtime there is no `#selector`, so actions are `UIAction`s (`addAction(_:for:)`,
 // the closure form iOS 14 added) and `addTarget(_:action:for:)` takes a closure.
 
-/// A menu element that performs its action in a closure.
+/// An item in a menu: an action, a submenu or a deferred element (Containers/Menus.swift).
 @MainActor
-public final class UIAction: Hashable {
-    public typealias Handler = (UIAction) -> Void
-
+open class UIMenuElement: Hashable {
     public var title: String
     public var image: UIImage?
+    public var subtitle: String?
+
+    public init(title: String = "", image: UIImage? = nil, subtitle: String? = nil) {
+        self.title = title
+        self.image = image
+        self.subtitle = subtitle
+    }
+
+    nonisolated public static func == (lhs: UIMenuElement, rhs: UIMenuElement) -> Bool { lhs === rhs }
+    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+
+/// A menu element that performs its action in a closure.
+@MainActor
+public final class UIAction: UIMenuElement {
+    public typealias Handler = (UIAction) -> Void
+
     public let identifier: Identifier
     public var discoverabilityTitle: String?
     public var attributes: Attributes
     public var state: State
-    public var subtitle: String?
     let handler: Handler
     /// The sender of the action (the control that fired it), for the duration of the handler.
     public private(set) weak var sender: AnyObject?
 
-    public init(title: String = "", image: UIImage? = nil, identifier: Identifier? = nil, discoverabilityTitle: String? = nil,
+    public init(title: String = "", subtitle: String? = nil, image: UIImage? = nil, identifier: Identifier? = nil, discoverabilityTitle: String? = nil,
                 attributes: Attributes = [], state: State = .off, handler: @escaping Handler) {
-        self.title = title
-        self.image = image
         self.identifier = identifier ?? Identifier(rawValue: "UIAction-\(UIAction.counter)")
         UIAction.counter += 1
         self.discoverabilityTitle = discoverabilityTitle
         self.attributes = attributes
         self.state = state
         self.handler = handler
+        super.init(title: title, image: image, subtitle: subtitle)
     }
 
     nonisolated(unsafe) private static var counter = 0
@@ -37,9 +50,6 @@ public final class UIAction: Hashable {
         handler(self)
         self.sender = nil
     }
-
-    nonisolated public static func == (lhs: UIAction, rhs: UIAction) -> Bool { lhs === rhs }
-    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 
     public struct Identifier: Hashable, Sendable, RawRepresentable {
         public let rawValue: String
@@ -159,6 +169,11 @@ open class UIControl: UIView {
     open func endTracking(_ touch: UITouch?, with event: UIEvent?) {}
     open func cancelTracking(with event: UIEvent?) {}
 
+    /// The menu a long press on the control opens (buttons and bar platters set it).
+    var longPressMenu: UIMenu? { nil }
+    private var longPressTimer: UIKitScene.Timer?
+    private var longPressStart = CGPoint.zero
+
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard isEnabled, let touch = touches.first else { return }
         isTracking = beginTracking(touch, with: event)
@@ -166,10 +181,25 @@ open class UIControl: UIView {
         isTouchInside = true
         isHighlighted = true
         sendActions(for: touch.tapCount > 1 ? [.touchDown, .touchDownRepeat] : .touchDown)
+        if let menu = longPressMenu {
+            longPressStart = touch.location(in: nil)
+            longPressTimer?.cancel()
+            longPressTimer = UIKitScene.shared.schedule(after: MenuPresenter.longPressDuration) { [weak self] in
+                guard let self, self.isTracking else { return }
+                self.isTracking = false
+                self.isHighlighted = false
+                self.isTouchInside = false
+                MenuPresenter.present(menu, from: self)
+            }
+        }
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard isTracking, let touch = touches.first else { return }
+        if longPressTimer != nil {
+            let location = touch.location(in: nil)
+            if abs(location.x - longPressStart.x) > 10 || abs(location.y - longPressStart.y) > 10 { longPressTimer?.cancel(); longPressTimer = nil }
+        }
         let inside = point(inside: touch.location(in: self), with: event)
         if inside != isTouchInside {
             isTouchInside = inside
@@ -181,6 +211,8 @@ open class UIControl: UIView {
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        longPressTimer?.cancel()
+        longPressTimer = nil
         guard isTracking, let touch = touches.first else { return }
         isTracking = false
         isHighlighted = false
@@ -195,6 +227,8 @@ open class UIControl: UIView {
     }
 
     override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        longPressTimer?.cancel()
+        longPressTimer = nil
         guard isTracking else { return }
         isTracking = false
         isHighlighted = false

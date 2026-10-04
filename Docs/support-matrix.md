@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 48 | 2 | 43 | 2 | 1 | 0 |
+| UIKit | 48 | 2 | 43 | 3 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **188** | 27 | 148 | 6 | 4 | 3 |
+| **All** | **188** | 27 | 148 | 7 | 3 | 3 |
 
 ## App lifecycle
 
@@ -239,7 +239,7 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 |---|---|---|---|
 | `UIAlertController (alerts and action sheets)` | 🟢 partial | The measured cards with titles, messages, actions in their styles and text fields, present and dismiss with the followed animations; open: the severity badge, action sheets anchored to bar items | uikit/alert/basic, uikit/alert/sheet, uikit/alert/textfield, uikit/alert/textfields |
 | `UIViewController.present / dismiss (page and form sheets, full screen, custom containers) / transitioningDelegate / UISheetPresentationController / UIPopoverPresentationController` | 🟢 partial | The page sheet card with its dimming and a tap outside dismissing, full-screen styles filling the window, appearance callbacks for presented controllers; open: detents and the grabber, popovers, custom presentation controllers and transitioning delegates; custom animators through UIViewControllerTransitioningDelegate, UIViewControllerAnimatedTransitioning and UIViewControllerContextTransitioning (interaction and presentation controllers accepted; 2026-10-04); sheet detents (medium measured, custom resolvers), the grabber and corner radius, popovers kept as arrowed cards or adapted to a sheet, action sheets anchored to a source, the adaptive delegates (2026-10-04) | uikit/alert/anchored, uikit/popover/adapted, uikit/popover/basic, uikit/sheet/medium, uikit/sheet/page |
-| `UIMenu / UIAction menus (UIButton.menu, UIBarButtonItem(menu:), UIContextMenuInteraction)` | 🟠 stub | UIMenu is a data holder: nothing shows yet (Docs/todo.json uk-menus) | — Nothing draws yet; the fixture comes with uk-menus. |
+| `UIMenu / UIAction / UIDeferredMenuElement menus (UIButton.menu, showsMenuAsPrimaryAction, changesSelectionAsPrimaryAction, UIBarButtonItem(menu:), UIContextMenuInteraction, UIEditMenuInteraction)` | 🟡 approximate | Menus open as a floating card under their source (a tap with showsMenuAsPrimaryAction, a long press otherwise, a bar platter tap), with headers, inline sections, submenus in place, states, destructive and disabled rows; context menus on a long press with the preview above the card; edit menus as a capsule bar; the iOS 26 card is unmeasured (the harness cannot open menus) (Docs/elements/UIKit/Menus.md) | — The harness cannot open a menu on the simulator (UIKit presents a button's menu or a context menu only from a real touch), so the open card has no golden; MenuTests cover the behaviour. |
 
 ## UIKit: Auto Layout
 

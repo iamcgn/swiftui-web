@@ -1727,10 +1727,10 @@
           ]
         },
         {
-          "api": "UIMenu / UIAction menus (UIButton.menu, UIBarButtonItem(menu:), UIContextMenuInteraction)",
-          "status": "stub",
-          "notes": "UIMenu is a data holder: nothing shows yet (Docs/todo.json uk-menus)",
-          "noFixture": "Nothing draws yet; the fixture comes with uk-menus."
+          "api": "UIMenu / UIAction / UIDeferredMenuElement menus (UIButton.menu, showsMenuAsPrimaryAction, changesSelectionAsPrimaryAction, UIBarButtonItem(menu:), UIContextMenuInteraction, UIEditMenuInteraction)",
+          "status": "approximate",
+          "notes": "Menus open as a floating card under their source (a tap with showsMenuAsPrimaryAction, a long press otherwise, a bar platter tap), with headers, inline sections, submenus in place, states, destructive and disabled rows; context menus on a long press with the preview above the card; edit menus as a capsule bar; the iOS 26 card is unmeasured (the harness cannot open menus) (Docs/elements/UIKit/Menus.md)",
+          "noFixture": "The harness cannot open a menu on the simulator (UIKit presents a button's menu or a context menu only from a real touch), so the open card has no golden; MenuTests cover the behaviour."
         }
       ]
     },

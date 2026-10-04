@@ -550,7 +550,16 @@ final class BarPlatterButton: UIControl {
         isEnabled = item.isEnabled
         accessibilityLabel = item.title ?? item.systemTitle ?? item.systemImageName
         if let action = item.primaryAction { addAction(action, for: .primaryActionTriggered) }
+        // An item with a menu and no primary action opens the menu on a tap; with both, a long press.
+        if item.primaryAction == nil, item.menu != nil {
+            addAction(UIAction { [weak self] _ in
+                guard let self, let menu = self.item?.menu else { return }
+                MenuPresenter.present(menu, from: self)
+            }, for: .primaryActionTriggered)
+        }
     }
+
+    override var longPressMenu: UIMenu? { item?.primaryAction != nil ? item?.menu : nil }
 
     init(kind: Kind) {
         self.kind = kind

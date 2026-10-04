@@ -1300,14 +1300,14 @@
       "framework": "UIKit",
       "area": "Menus",
       "title": "UIMenu presentation",
-      "detail": "`UIMenu` is a data holder today: `UIButton.menu` with `showsMenuAsPrimaryAction`, `UIBarButtonItem(menu:)`, `UIContextMenuInteraction` with previews, `UIEditMenuInteraction`; the iOS 26 menu card from the simulator.",
+      "detail": "Done 2026-10-04: UIMenu trees (UIMenuElement, UIAction attributes and states, UIDeferredMenuElement, inline sections, submenus opened in place) presented as a floating card by MenuPresenter for UIButton.menu (showsMenuAsPrimaryAction, changesSelectionAsPrimaryAction, long presses), UIBarButtonItem(menu:), UIContextMenuInteraction (long press, the configuration's preview above the card) and UIEditMenuInteraction (a capsule bar above the point); the card is approximate, as the harness cannot open menus on the simulator (Docs/elements/UIKit/Menus.md, MenuTests).",
       "kind": "accepted",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
-        "Docs/elements/UIKit/UIButton.md",
-        "Docs/elements/UIKit/Bars.md"
-      ]
+        "Docs/elements/UIKit/Menus.md"
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-button",

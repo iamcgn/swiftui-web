@@ -36,6 +36,7 @@ final class TouchRouter {
             view = v.superview
         }
         touch.gestureRecognizers = recognizers
+        MenuPresenter.touchBegan(touch, hit: hit)
         for recognizer in recognizers { recognizer.outcomeThisTouch = nil; recognizer.deferredState = nil }
         for recognizer in recognizers { recognizer.touchesBegan([touch], with: event) }
         Self.arbitrate(recognizers)
@@ -58,6 +59,7 @@ final class TouchRouter {
         touch.timestamp = time
         event.timestamp = time
         touch.phase = .moved
+        MenuPresenter.touchMoved(touch)
         let wasRecognized = touch.gestureRecognizers?.contains { $0.hasRecognized && $0.cancelsTouchesInView } ?? false
         for recognizer in touch.gestureRecognizers ?? [] { recognizer.touchesMoved([touch], with: event) }
         Self.arbitrate(touch.gestureRecognizers ?? [])
@@ -76,6 +78,7 @@ final class TouchRouter {
     /// view took the touch).
     func pointerUp(at point: CGPoint, time: Double, cancelled: Bool = false) {
         guard let touch = activeTouch, let event = activeEvent else { return }
+        let cancelled = cancelled || MenuPresenter.touchEnded(touch)
         touch.previousWindowLocation = touch.windowLocation
         touch.windowLocation = point
         touch.timestamp = time

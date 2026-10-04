@@ -22,6 +22,32 @@ open class UIButton: UIControl {
     open var configuration: Configuration? { didSet { configurationDidChange() } }
     open var isPointerInteractionEnabled = false
     open var role: Role = .normal
+    /// The menu a long press opens, or a tap with `showsMenuAsPrimaryAction`; with
+    /// `changesSelectionAsPrimaryAction` the chosen action becomes the button's title and state.
+    open var menu: UIMenu?
+    open var changesSelectionAsPrimaryAction = false { didSet { if changesSelectionAsPrimaryAction { showSelectedAction() } } }
+    override var longPressMenu: UIMenu? { showsMenuAsPrimaryAction ? nil : menu }
+
+    /// The action with the `on` state (a selection menu), shown as the button's title.
+    private func showSelectedAction() {
+        guard changesSelectionAsPrimaryAction, let selected = menu?.flattenedActions.first(where: { $0.state == .on }) ?? menu?.flattenedActions.first else { return }
+        setTitle(selected.title, for: .normal)
+    }
+
+    override open func sendActions(for controlEvents: Event) {
+        if controlEvents.contains(.primaryActionTriggered), showsMenuAsPrimaryAction, let menu {
+            MenuPresenter.present(menu, from: self) { [weak self] action in
+                guard let self, self.changesSelectionAsPrimaryAction else { return }
+                for other in menu.flattenedActions { other.state = other === action ? .on : .off }
+                self.showSelectedAction()
+            }
+            sendActionsIgnoringMenu(for: controlEvents.subtracting(.primaryActionTriggered))
+            return
+        }
+        sendActionsIgnoringMenu(for: controlEvents)
+    }
+
+    private func sendActionsIgnoringMenu(for controlEvents: Event) { super.sendActions(for: controlEvents) }
 
     public init(type: ButtonType) {
         buttonType = type

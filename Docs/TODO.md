@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 31 | 0 | 20 | 11 |
+| UIKit | 30 | 0 | 19 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **69** | 0 | 21 | 48 |
+| **All** | **68** | 0 | 20 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **UIMenu presentation** `uk-menus` · Menus · accepted  
-  `UIMenu` is a data holder today: `UIButton.menu` with `showsMenuAsPrimaryAction`, `UIBarButtonItem(menu:)`, `UIContextMenuInteraction` with previews, `UIEditMenuInteraction`; the iOS 26 menu card from the simulator. ([UIButton.md](Docs/elements/UIKit/UIButton.md), [Bars.md](Docs/elements/UIKit/Bars.md))
 - ☐ **UIButton images, subtitles and states** `uk-button` · Controls · missing  
   Custom-type buttons' title font (17 pt assumed), `image` and `imagePlacement`, subtitles, `buttonSize`, the pressed and disabled looks, `UIButton.Configuration` update handlers. ([UIButton.md](Docs/elements/UIKit/UIButton.md))
 - ☐ **UILabel attributed text and fitting** `uk-label` · Text · missing  
@@ -198,6 +196,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Pinch, rotation, swipe and edge pans** `uk-gestures` · UIKit · Events
 - ☑ 2026-10-04 **Interactive pop, large-title collapse, custom transitions** `uk-nav-polish` · UIKit · Navigation
 - ☑ 2026-10-04 **Sheet detents, popovers and custom presentations** `uk-sheets` · UIKit · Presentation
+- ☑ 2026-10-04 **UIMenu presentation** `uk-menus` · UIKit · Menus
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text
