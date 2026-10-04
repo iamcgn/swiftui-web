@@ -409,7 +409,8 @@ public struct GraphicsContext {
         let height = (((bounds.maxY - (start.y + dy)) / size.height).rounded(.up)) * size.height
         draw.rect = CGRect(x: start.x + dx, y: start.y + dy, width: width, height: height)
         draw.tiles = true
-        draw.pixelSize = CGSize(width: size.width * draw.scale, height: size.height * draw.scale)
+        // The painters tile at pixelSize / scale points: the shading's scale divides the file's.
+        draw.scale = draw.scale / scale
         return draw
     }
 
