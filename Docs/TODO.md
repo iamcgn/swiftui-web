@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 43 | 0 | 11 | 32 |
+| SwiftUI | 42 | 0 | 10 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **83** | 0 | 35 | 48 |
+| **All** | **82** | 0 | 34 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Disclosure animation and outlines** `sw-disclosure` · DisclosureGroup · missing  
-  The expand and collapse animation, `DisclosureGroup` inside `List` as outline rows, the exact chevron glyph. ([DisclosureGroup.md](Docs/elements/DisclosureGroup.md))
 - ☐ **Grouped form constants** `sw-form` · Form · verify  
   Section header, footer and spacing constants (unverified), the grouped picker, slider, stepper and button rows (laid out by rule, no golden), the card's fill and corners (approximate), the small switch, nested `formStyle`, `scrollContentBackground`, `GroupBox` insets inside a form. ([Form.md](Docs/elements/Form.md), [GroupBox.md](Docs/elements/GroupBox.md))
 - ☐ **ViewThatFits** `sw-viewthatfits` · Layout · missing  
@@ -215,6 +213,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Toggle sources, mixed state and looks** `sw-toggle` · SwiftUI · Toggle
 - ☑ 2026-10-04 **Animated progress and gauges** `sw-progress` · SwiftUI · ProgressView
 - ☑ 2026-10-04 **DatePicker editing and calendars** `sw-datepicker` · SwiftUI · DatePicker
+- ☑ 2026-10-04 **Disclosure animation and outlines** `sw-disclosure` · SwiftUI · DisclosureGroup
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

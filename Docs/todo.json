@@ -763,13 +763,14 @@
       "framework": "SwiftUI",
       "area": "DisclosureGroup",
       "title": "Disclosure animation and outlines",
-      "detail": "The expand and collapse animation, `DisclosureGroup` inside `List` as outline rows, the exact chevron glyph.",
+      "detail": "Done 2026-10-04: the row's press toggles under the default animation (the group's frames tween, the content fades in or out through .transition(.opacity); a binding changed outside a transaction snaps); outline rows in lists were done with sw-list-looks (2026-09-19); the chevron stays the measured stroke (Tier C 0.04 %) rather than the symbol glyph.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/DisclosureGroup.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-form",

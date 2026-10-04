@@ -9,7 +9,9 @@ Apple docs: [DisclosureGroup](https://developer.apple.com/documentation/swiftui/
 |---|---|
 | `DisclosureGroup(_ title, content:)`, `DisclosureGroup(_ title, isExpanded:content:)`, `DisclosureGroup(isExpanded:content:label:)`, `DisclosureGroup(content:label:)` | implemented; without a binding the group keeps its own state (collapsed at first) |
 | `DisclosureGroupStyle`, `DisclosureGroupStyleConfiguration` (`label`, `content`, `isExpanded` with its binding), `.automatic`, `disclosureGroupStyle(_:)` | implemented |
-| The expand/collapse animation, `DisclosureGroup` inside `List` (outline rows), `OutlineGroup` | missing |
+| The expand/collapse animation | implemented (2026-10-04): a press on the row toggles under the default animation, so the group's frames tween while the content fades in or out (`.transition(.opacity)`); a binding changed outside a transaction snaps |
+| `DisclosureGroup` inside `List` (outline rows), `OutlineGroup`, `List(_:children:)` | implemented 2026-09-19 (Docs/elements/List.md, "Outline") |
+| The chevron glyph | approximate: a 1.5 pt stroke matching the measured ink (Tier C 0.04 %); SwiftUI draws the `chevron` symbol |
 
 ## Behaviour
 
@@ -33,9 +35,11 @@ under the row (no spacing), so a text over a checkbox keeps their own 6.
 
 Tier A: `disclosure/basic` exact, expand step included. Tier B: Chromium ≤ 0.28 %, WebKit 0.04 %, Firefox ≤ 0.35 %
 with the expanded step's "Inside" in its glyph-hinting class (36 for 36.5); Tier C 0.04 %.
-`DisclosureGroupTests` cover the row, the chevron, toggling by press, own state and a custom style.
+`DisclosureGroupTests` cover the row, the chevron, toggling by press, own state and a custom style;
+`DisclosureAnimationTests` the animated press.
 
 ## Not yet covered
 
-The animation, the exact chevron glyph (approximate stroke), hover looks, outline rows in
-lists, keyboard toggling (Space works through the button).
+The animation's real curve and the content's reveal (SwiftUI clips it as the group grows; here
+it fades), the exact chevron glyph (approximate stroke), hover looks, keyboard toggling (Space
+works through the button).

@@ -449,7 +449,7 @@
         {
           "api": "DisclosureGroup (title, isExpanded:, custom label) / DisclosureGroupStyle (automatic) / disclosureGroupStyle(_:)",
           "status": "partial",
-          "notes": "A full-width 24 pt row (grey chevron, 5, label, 4 above/below) toggling the content centred below; own state without a binding; no animation, outline rows in lists or OutlineGroup",
+          "notes": "A full-width 24 pt row (grey chevron, 5, label, 4 above/below) toggling the content centred below; own state without a binding; no animation, outline rows in lists or OutlineGroup; the row's press expands and collapses under the default animation with the content fading (2026-10-04); outline rows in lists since 2026-09-19",
           "fixtures": [
             "disclosure/basic"
           ]

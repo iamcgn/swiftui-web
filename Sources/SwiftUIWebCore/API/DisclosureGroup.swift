@@ -159,7 +159,9 @@ extension AutomaticDisclosureGroupStyle: DisclosureGroupStyle {
         VStack(spacing: 0) {
             _DisclosureRow(isExpanded: configuration.$isExpanded, label: AnyView(configuration.label))
             if configuration.isExpanded {
-                VStack { configuration.content }
+                // Under the row's animation the content fades in while the group grows (and
+                // fades out as it shrinks); the chevron turns with it.
+                VStack { configuration.content }.transition(.opacity)
             }
         }
     }
@@ -178,7 +180,9 @@ package struct _DisclosureRow {
 extension _DisclosureRow: View {
     package var body: some View {
         let binding = isExpanded
-        return Button(action: { binding.wrappedValue.toggle() }) {
+        // A press expands or collapses with the default animation, as SwiftUI does; a binding
+        // changed elsewhere snaps unless its own transaction animates.
+        return Button(action: { withAnimation(PlatformMetrics.disclosureAnimation) { binding.wrappedValue.toggle() } }) {
             HStack(spacing: PlatformMetrics.disclosureChevronSpacing) {
                 _DisclosureChevron(isExpanded: binding.wrappedValue)
                 label

@@ -572,6 +572,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var disclosureRowPadding: CGFloat = 4
     package var disclosureChevronWidth: CGFloat = 6.5              // the chevron's slot before the 5 pt gap
     package var disclosureChevronHeight: CGFloat = 8
+    package var disclosureAnimation: Animation = .default                // the row's press expands or collapses with it (unverified timing)
     package var disclosureChevronSpacing: CGFloat = 5
     package var disclosureChevronSpan: CGFloat = 5.5               // approximate: the chevron's width across its arms
     package var disclosureChevronRise: CGFloat = 3

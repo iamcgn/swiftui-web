@@ -474,6 +474,7 @@ extension PlatformMetrics {
     package static var disclosureRowPadding: CGFloat { current.disclosureRowPadding }
     package static var disclosureChevronWidth: CGFloat { current.disclosureChevronWidth }
     package static var disclosureChevronHeight: CGFloat { current.disclosureChevronHeight }
+    package static var disclosureAnimation: Animation { current.disclosureAnimation }
     package static var disclosureChevronSpacing: CGFloat { current.disclosureChevronSpacing }
     package static var disclosureChevronSpan: CGFloat { current.disclosureChevronSpan }
     package static var disclosureChevronRise: CGFloat { current.disclosureChevronRise }
