@@ -11,12 +11,16 @@ Apple docs: [DatePicker](https://developer.apple.com/documentation/swiftui/datep
 | API | Notes |
 |---|---|
 | `DatePicker(selection:displayedComponents:label:)`, `DatePicker(_ title, selection:displayedComponents:)` (key and string) | implemented |
-| `in:` ranges (`ClosedRange`, `PartialRangeFrom`, `PartialRangeThrough`) on every form | implemented: stepping and the calendar clamp into the range (the calendar does not grey out days outside it) |
+| `in:` ranges (`ClosedRange`, `PartialRangeFrom`, `PartialRangeThrough`) on every form | implemented: stepping and the calendar clamp into the range; the calendar dims the days outside it (black 66/255, `datepicker/looks`) and ignores presses on them (2026-10-04) |
 | `DatePickerComponents` (`.date`, `.hourAndMinute`) | implemented |
-| `DatePickerStyle`: `.automatic`, `.compact`, `.stepperField` (all the field with a stepper on macOS), `.field`, `.graphical`; `datePickerStyle(_:)` | implemented; custom styles (`makeBody`) are not (the protocol exposes only the platform kind) |
-| `EnvironmentValues.timeZone`, `EnvironmentValues.calendar` | implemented; dates are drawn in the environment's time zone through the Gregorian calendar, in en_US (M/d/yyyy, h:mm a, English month and weekday names) |
+| `DatePickerStyle`: `.automatic`, `.compact`, `.stepperField` (all the field with a stepper on macOS), `.field`, `.graphical`, `.wheel` (iOS; the field on macOS); `datePickerStyle(_:)` | implemented; custom styles (`makeBody`) are not (the protocol exposes only the platform kind) |
+| `.compact` on macOS | implemented (2026-10-04): a press on the field opens the graphical picker in a popover under it (approximate: popovers are not capturable) |
+| `.graphical` with both components | implemented: the calendar and the clock side by side, 18 apart (`datepicker/looks` `both`: 275.5 wide) |
+| `EnvironmentValues.timeZone`, `EnvironmentValues.calendar` | implemented; dates are drawn in the environment's time zone through the Gregorian calendar |
+| `EnvironmentValues.locale` | implemented (2026-10-04): the field's order, padding, 24-hour clock and joiner follow the locale's language and region ("Locales" below); month and weekday names stay English; other calendars are not drawn |
+| Typing | implemented: digits type into the selected component (two for the month, day, hour and minute, four for the year; the selection moves on when the component is full or cannot take another digit), Delete takes a digit back, A and P set the period |
+| Dragging the clock's hands | implemented: a press beyond the hour hand's reach takes the minute hand (to the nearest minute), nearer the centre the hour hand (to the nearest hour, the period kept) |
 | `labelsHidden()`, `disabled` | implemented |
-| Typing into the field, the compact popover calendar, dragging the clock's hands, `.wheel` (iOS), locales and other calendars, `.datePickerStyle(.graphical)` for both components on one row (side by side, unverified) | missing or approximate |
 
 ## Behaviour
 
@@ -55,7 +59,31 @@ light-blue-to-grey vertical gradient over a faint inner shadow, 13 pt numerals a
 | Calendar | 138.5 × 148 after "Calendar" + 8 (241 × 188 with the padding); box 137.5 wide with a faint 1 pt border and 3 pt corners; header centre 10 down, 3 in, 13 pt bold; controls 5.5 × 7 triangles and a 7 pt dot 8 apart, 6 from the trailing edge, secondary; weekdays centre 30 down in 10 pt bold at black 66/255; day rows centred 47 + 18k down, cells 18.5 wide from 4 in, numbers 11 pt right-aligned 2 from the cell's end; the selection a 16 pt highlight of black 35/255 across the cell | pixels of `graphical` |
 | Clock | 119 × 119 after "Clock" + 8; dial centre (60.25, 61.5), radius 60; ring 54…60 from (209, 231, 237) at the top to (118, 118, 118) at the bottom; inner shadow (185) at the top fading out; face (252, 253, 254); numerals 13 pt at radius 48.5; "PM" 13 pt medium at 170 grey 17.5 under the centre; hands to 52 (minute) and about 36 (hour), cap radius 4.5 | pixels of `clock` |
 
-## Verification (2026-09-04)
+## Locales (`datepicker/locales` on macOS 26.6, out of the golden set, 2026-10-04)
+
+| Locale | Field |
+|---|---|
+| en_US (default) | 3/15/2025, 3:09 PM |
+| en_GB, fr_FR (and other `d/M/y` languages) | 15/03/2025, 15:09 |
+| de_DE (and da, nb, fi, cs, pl, ru, tr) | 15. 3.2025, 15:09 (the month slot right-aligned, so "15.  3.2025") |
+| ja_JP (and zh, ko, hu, lt) | 2025/ 3/15 15:09 (joined by a space) |
+| nl | 15-03-2025, 15:09 |
+
+macOS 26.6 drew those fields 24 tall and 137.5 wide (the 26.2 goldens: 22 and 160), so the
+fixture stays out of the golden set; `DatePickerEditingTests` hold the formats.
+
+## iOS wheel (iPhone SE simulator, iOS 26, `ios/datepicker/wheel`, 2026-10-04; approximate)
+
+A 320 × 216 picker: the selected row on a 30 pt band 9 in from both sides ((115, 115, 128) at
+8 %, 12 pt corners), its 23 pt labels in the label colour; the rows above and below sit on a
+cylinder 31, 58.5 and 76.5 from the centre, drawn at 90 / 80 / 70 % size and 35 / 33 / 19 %
+black. The date's columns: month names from 28.5, days right-aligned at 192.5, years from 230;
+the time's: hours right-aligned at 94, minutes from 142, the period from 200.5. A press on a
+neighbouring row selects it; a vertical drag turns the column a row every 31 pt. The capture
+shows the time in the simulator's own zone (the wheel ignores `environment(\.timeZone)` on
+iOS), so the time column's digits are compared loosely.
+
+## Verification (2026-09-04; 2026-10-04 for the looks)
 
 Tier A: all 5 fixtures exact, `datepicker/steps` steps included. Tier B, frames exact in
 Chromium, WebKit and Firefox; pixels `basic` ≤ 1.29 %, `styles` ≤ 1.29 %, `graphical` ≤ 1.76 %,
@@ -63,7 +91,11 @@ Chromium, WebKit and Firefox; pixels `basic` ≤ 1.29 %, `styles` ≤ 1.29 %, `g
 the calendar's sub-pixel text snapping, the clock's bezel and hands). Tier C: 1.18 / 1.07 /
 1.72 / 1.63 / ≤ 0.82 %. `DatePickerTests` cover the slot and stepper geometry, the displayed
 components, stepping and selection by press and keys, range clamping and the period, the
-calendar's grid, paging and day selection, and the clock's commands.
+calendar's grid, paging and day selection, and the clock's commands. `datepicker/looks` (the
+range calendar and both graphical components): Tier A exact, Tier B 4.0 % and Tier C 4.1 %
+(approximate: 26.6 greys the neighbouring months lighter); `ios/datepicker/wheel`: Tier A
+exact, Tier B 3.7 % and Tier C 3.7 % (approximate). `DatePickerEditingTests` cover typing,
+the compact popover, the dimmed days, the clock's hands, the wheel and the locales.
 
 ## iOS (iPhone SE simulator, `ios/datepicker/compact`, 2026-09-18)
 
@@ -74,6 +106,6 @@ open iOS's calendar popover yet (`sw-ios-presentation-rest`).
 
 ## Not yet covered
 
-Typing and editing components, the compact style's popover, dragging the clock's hands, the
-calendar's range dimming, locales and calendars other than en_US Gregorian, the exact hand
-widths and the stepper's corner radius (approximate), the graphical style with both components.
+Calendars other than the Gregorian, localised month and weekday names, the compact popover's
+real look, the wheel's inertia and its real perspective, the exact hand widths and the stepper's
+corner radius (approximate), typing on iOS.

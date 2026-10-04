@@ -65,8 +65,12 @@ public struct DatePicker<Label: View>: View {
         let content: AnyView
         if style._kind == .graphical {
             content = AnyView(_GraphicalDatePicker(date: date, binding: binding, components: components))
+        } else if style._kind == .wheel, platform.isIOS {
+            content = AnyView(_WheelDateHost(date: date, binding: binding, components: components))
         } else {
-            content = AnyView(_DateFieldHost(date: date, binding: binding, components: components, stepper: style._kind != .field))
+            // macOS's compact field opens the graphical picker in a popover on a press.
+            content = AnyView(_DateFieldHost(date: date, binding: binding, components: components, stepper: style._kind != .field,
+                                             opensPopover: style._kind == .compact && !platform.isIOS))
         }
         // A grouped form row (or any iOS list row) spans its width: the label leading, the field trailing.
         return _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)), content: content,
@@ -154,7 +158,7 @@ package final class _DateBinding {
 
 // MARK: - Styles
 
-public enum _DatePickerStyleKind: Sendable { case automatic, compact, field, stepperField, graphical }
+public enum _DatePickerStyleKind: Sendable { case automatic, compact, field, stepperField, graphical, wheel }
 
 /// A specification for the appearance and interaction of a date picker.
 public protocol DatePickerStyle {
@@ -192,6 +196,12 @@ public struct GraphicalDatePickerStyle: DatePickerStyle {
     public var _kind: _DatePickerStyleKind { .graphical }
 }
 
+/// iOS: the spinning columns (`WheelDateNode`); the field with a stepper on macOS.
+public struct WheelDatePickerStyle: DatePickerStyle {
+    public init() {}
+    public var _kind: _DatePickerStyleKind { .wheel }
+}
+
 extension DatePickerStyle where Self == DefaultDatePickerStyle {
     public static var automatic: DefaultDatePickerStyle { DefaultDatePickerStyle() }
 }
@@ -206,6 +216,9 @@ extension DatePickerStyle where Self == StepperFieldDatePickerStyle {
 }
 extension DatePickerStyle where Self == GraphicalDatePickerStyle {
     public static var graphical: GraphicalDatePickerStyle { GraphicalDatePickerStyle() }
+}
+extension DatePickerStyle where Self == WheelDatePickerStyle {
+    public static var wheel: WheelDatePickerStyle { WheelDatePickerStyle() }
 }
 
 package struct DatePickerStyleKey: EnvironmentKey {
@@ -265,12 +278,15 @@ public struct _DateFieldHost: View {
     package let binding: _DateBinding
     package let components: DatePickerComponents
     package let stepper: Bool
+    /// The compact style: a press opens the graphical picker in a popover instead of selecting a component.
+    package let opensPopover: Bool
 
-    package init(date: Date, binding: _DateBinding, components: DatePickerComponents, stepper: Bool) {
+    package init(date: Date, binding: _DateBinding, components: DatePickerComponents, stepper: Bool, opensPopover: Bool = false) {
         self.date = date
         self.binding = binding
         self.components = components
         self.stepper = stepper
+        self.opensPopover = opensPopover
     }
 
     public typealias Body = Never
@@ -289,7 +305,7 @@ package struct _GraphicalDatePicker {
 
 extension _GraphicalDatePicker: View {
     package var body: some View {
-        HStack(spacing: PlatformMetrics.defaultSpacing) {
+        HStack(spacing: PlatformMetrics.graphicalDateTimeSpacing) {
             if components.contains(.date) { _CalendarHost(date: date, binding: binding) }
             if components.contains(.hourAndMinute) { _ClockHost(date: date, binding: binding) }
         }
@@ -307,6 +323,23 @@ public struct _CalendarHost: View {
     public typealias Body = Never
     public static func _makeNode(_ context: _NodeContext<_CalendarHost>) -> TypedNode<_CalendarHost> {
         CalendarNode(context)
+    }
+}
+
+/// iOS's wheel picker (`WheelDateNode`): the month, day and year columns, or the hour, minute
+/// and period columns.
+public struct _WheelDateHost: View {
+    package let date: Date
+    package let binding: _DateBinding
+    package let components: DatePickerComponents
+    package init(date: Date, binding: _DateBinding, components: DatePickerComponents) {
+        self.date = date
+        self.binding = binding
+        self.components = components
+    }
+    public typealias Body = Never
+    public static func _makeNode(_ context: _NodeContext<_WheelDateHost>) -> TypedNode<_WheelDateHost> {
+        WheelDateNode(context)
     }
 }
 

@@ -190,6 +190,16 @@ public enum IOSPresentationFixtures {
     }.platform(.iOS)
 
     /// A list with a selection binding: the selected row's look after a step selects it.
+    /// The wheel style (iOS only): the date's three columns and the time's, captured as the window.
+    public static let dateWheel = Fixture("ios/datepicker/wheel", size: CGSize(width: 375, height: 520)) {
+        VStack(spacing: 12) {
+            DatePicker("Date", selection: .constant(fixed), displayedComponents: .date).fixtureWheelDateStyle().labelsHidden().probe("dateWheel")
+            DatePicker("Time", selection: .constant(fixed), displayedComponents: .hourAndMinute).fixtureWheelDateStyle().labelsHidden().probe("timeWheel")
+        }
+        .environment(\.timeZone, utc)
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
     public static let listSelection = Fixture(
         "ios/list/selection", size: CGSize(width: 375, height: 360),
         model: { IOSPresentationModel() },
@@ -208,6 +218,7 @@ public enum IOSPresentationFixtures {
         #if canImport(UIKit)
         fixtures.append(sheetRepresentable)
         #endif
+        fixtures.append(dateWheel)
         return fixtures
     }
 }

@@ -722,13 +722,14 @@
       "framework": "SwiftUI",
       "area": "DatePicker",
       "title": "DatePicker editing and calendars",
-      "detail": "Typing into the fields, the compact popover calendar, greying days outside the range, dragging the clock's hands, the wheel style (iOS, from the simulator), locales and other calendars, both components on one graphical row.",
+      "detail": "Done 2026-10-04: typing digits into the selected component (Delete, A/P), the compact style's popover calendar on macOS, days outside the range dimmed (datepicker/looks, 26.6 draws the calendar as 26.2 did) and inert, dragging the clock's hands, the iOS wheel style measured on the simulator (ios/datepicker/wheel: a cylinder of 23 pt rows; approximate), locale formats for the field (en_GB, de_DE, fr_FR, ja_JP, nl from datepicker/locales on 26.6, out of the golden set), both graphical components 18 apart. Other calendars and localised names stay out.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/DatePicker.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-colorpicker",

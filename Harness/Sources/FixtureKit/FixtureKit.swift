@@ -208,3 +208,14 @@ extension View {
         #endif
     }
 }
+
+extension View {
+    /// The wheel date picker style: iOS-only in Apple's SwiftUI (the macOS harness only compiles the fixture).
+    public func fixtureWheelDateStyle() -> some View {
+        #if os(iOS)
+        datePickerStyle(.wheel)
+        #else
+        self
+        #endif
+    }
+}

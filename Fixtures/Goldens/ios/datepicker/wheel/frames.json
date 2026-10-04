@@ -1,0 +1,27 @@
+{
+  "fixture" : "ios\/datepicker\/wheel",
+  "frames" : {
+    "dateWheel" : {
+      "height" : 216,
+      "width" : 320,
+      "x" : 27.5,
+      "y" : 38
+    },
+    "stack" : {
+      "height" : 444,
+      "width" : 320,
+      "x" : 27.5,
+      "y" : 38
+    },
+    "timeWheel" : {
+      "height" : 216,
+      "width" : 320,
+      "x" : 27.5,
+      "y" : 266
+    }
+  },
+  "size" : {
+    "height" : 520,
+    "width" : 375
+  }
+}

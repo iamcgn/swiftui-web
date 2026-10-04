@@ -255,3 +255,10 @@ extension View {
         tabViewStyle(.page)
     }
 }
+
+extension View {
+    /// The wheel date picker style (the twin of the harness's helper).
+    public func fixtureWheelDateStyle() -> some View {
+        datePickerStyle(.wheel)
+    }
+}

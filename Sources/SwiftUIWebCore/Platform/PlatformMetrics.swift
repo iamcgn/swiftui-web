@@ -461,6 +461,26 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var calendarWeekdaySize: CGFloat = 10                    // bold
     package var calendarDaySize: CGFloat = 11
     package var calendarMutedAlpha = 66.0 / 255                      // weekday names and the neighbouring months' days (189)
+    package var calendarOutOfRangeAlpha = 66.0 / 255                 // days outside the picker's range (datepicker/looks: 189 on 26.6, which greys the neighbouring months lighter, 230)
+    package var graphicalDateTimeSpacing: CGFloat = 18               // the calendar to the clock when both components are graphical (datepicker/looks `both`: 275.5 wide)
+    // The iOS wheel (ios/datepicker/wheel, iPhone SE simulator, iOS 26): a 320 × 216 picker whose
+    // rows sit on a cylinder (31, 58.5 and 76.5 from the centre), the 23 pt labels shrinking and
+    // fading away from the selected row, which lies on a 30 pt band 9 in from both sides.
+    package var wheelSize = CGSize(width: 320, height: 216)
+    package var wheelRowOffsets: [CGFloat] = [0, 31, 58.5, 76.5]
+    package var wheelRowScales: [CGFloat] = [1, 0.9, 0.8, 0.7]
+    package var wheelRowAlphas: [Double] = [1, 0.35, 0.33, 0.19]
+    package var wheelFontSize: CGFloat = 23
+    package var wheelBandHeight: CGFloat = 30
+    package var wheelBandInset: CGFloat = 9
+    package var wheelBandCornerRadius: CGFloat = 12
+    package var wheelBandFill = RGBA(r: 115, g: 115, b: 128, a: 0.08)
+    package var wheelMonthLeading: CGFloat = 28.5                    // the month names' left edge
+    package var wheelDayTrailing: CGFloat = 192.5                    // the day numbers' right edge
+    package var wheelYearLeading: CGFloat = 230
+    package var wheelHourTrailing: CGFloat = 94
+    package var wheelMinuteLeading: CGFloat = 142
+    package var wheelPeriodLeading: CGFloat = 200.5
     package var calendarHighlightAlpha = 35.0 / 255                  // 220
     package var calendarHighlightInset: CGFloat = 1
     package var calendarHighlightCornerRadius: CGFloat = 3           // approximate

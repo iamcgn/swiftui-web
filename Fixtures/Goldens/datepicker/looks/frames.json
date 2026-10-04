@@ -1,0 +1,27 @@
+{
+  "fixture" : "datepicker\/looks",
+  "frames" : {
+    "both" : {
+      "height" : 148,
+      "width" : 275.5,
+      "x" : 72.25,
+      "y" : 186
+    },
+    "rangeCalendar" : {
+      "height" : 148,
+      "width" : 138.5,
+      "x" : 72.25,
+      "y" : 26
+    },
+    "stack" : {
+      "height" : 348,
+      "width" : 315.5,
+      "x" : 52.25,
+      "y" : 6
+    }
+  },
+  "size" : {
+    "height" : 360,
+    "width" : 420
+  }
+}

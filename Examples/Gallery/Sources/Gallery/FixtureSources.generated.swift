@@ -511,6 +511,36 @@ public static let graphical = Fixture("datepicker/graphical", size: CGSize(width
         .probe("calendar")
 }
 """#),
+        FixtureSource(name: "datepicker/locales", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 99, lastLine: 112, declaration: #"""
+/// Fields in other locales. Out of the golden set: macOS 26.6 draws the field 24 tall and
+/// narrower than the 26.2 goldens above; the formats it showed ("15/03/2025, 15:09" for
+/// en_GB, "15.  3.2025, 15:09" for de_DE) are in Docs/elements/DatePicker.md.
+public static let locales = Fixture("datepicker/locales", size: CGSize(width: 420, height: 160)) {
+    VStack(alignment: .leading, spacing: 12) {
+        DatePicker("GB", selection: .constant(fixed)).labelsHidden().environment(\.locale, Locale(identifier: "en_GB")).probe("gb")
+        DatePicker("DE", selection: .constant(fixed)).labelsHidden().environment(\.locale, Locale(identifier: "de_DE")).probe("de")
+        DatePicker("FR", selection: .constant(fixed), displayedComponents: .date).labelsHidden().environment(\.locale, Locale(identifier: "fr_FR")).probe("fr")
+        DatePicker("JA", selection: .constant(fixed)).labelsHidden().environment(\.locale, Locale(identifier: "ja_JP")).probe("ja")
+    }
+    .padding(20)
+    .environment(\.timeZone, utc)
+    .probe("stack")
+}
+"""#),
+        FixtureSource(name: "datepicker/looks", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 86, lastLine: 97, declaration: #"""
+/// The calendar with a range (days outside it dimmed) and both components graphical on one
+/// row (macOS 26.6 draws this calendar as 26.2 did; Docs/elements/DatePicker.md).
+public static let looks = Fixture("datepicker/looks", size: CGSize(width: 420, height: 360)) {
+    VStack(alignment: .leading, spacing: 12) {
+        DatePicker("Range", selection: .constant(fixed), in: fixed.addingTimeInterval(-86400 * 5)...fixed.addingTimeInterval(86400 * 10), displayedComponents: .date)
+            .datePickerStyle(.graphical).labelsHidden().probe("rangeCalendar")
+        DatePicker("Both", selection: .constant(fixed)).datePickerStyle(.graphical).labelsHidden().probe("both")
+    }
+    .padding(20)
+    .environment(\.timeZone, utc)
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "datepicker/steps", file: "Fixtures/Sources/DatePicker/DatePickerFixtures.swift", firstLine: 69, lastLine: 84, declaration: #"""
 public static let steps = Fixture(
     "datepicker/steps", size: CGSize(width: 360, height: 120),
@@ -1621,6 +1651,18 @@ public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(wi
     .probe("form")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/datepicker/wheel", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 192, lastLine: 201, declaration: #"""
+/// A list with a selection binding: the selected row's look after a step selects it.
+/// The wheel style (iOS only): the date's three columns and the time's, captured as the window.
+public static let dateWheel = Fixture("ios/datepicker/wheel", size: CGSize(width: 375, height: 520)) {
+    VStack(spacing: 12) {
+        DatePicker("Date", selection: .constant(fixed), displayedComponents: .date).fixtureWheelDateStyle().labelsHidden().probe("dateWheel")
+        DatePicker("Time", selection: .constant(fixed), displayedComponents: .hourAndMinute).fixtureWheelDateStyle().labelsHidden().probe("timeWheel")
+    }
+    .environment(\.timeZone, utc)
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
         FixtureSource(name: "ios/dialog/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 114, lastLine: 133, declaration: #"""
 /// The confirmation dialog: a titled action sheet with three actions and a cancel button.
 public static let dialog = Fixture(
@@ -1810,8 +1852,7 @@ public static let listPlain = Fixture("ios/list/plain", size: CGSize(width: 320,
     .probe("list")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 192, lastLine: 204, declaration: #"""
-/// A list with a selection binding: the selected row's look after a step selects it.
+        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 203, lastLine: 214, declaration: #"""
 public static let listSelection = Fixture(
     "ios/list/selection", size: CGSize(width: 375, height: 360),
     model: { IOSPresentationModel() },
@@ -8860,7 +8901,35 @@ public enum DatePickerFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic, styles, graphical, clock, steps]
+    /// The calendar with a range (days outside it dimmed) and both components graphical on one
+    /// row (macOS 26.6 draws this calendar as 26.2 did; Docs/elements/DatePicker.md).
+    public static let looks = Fixture("datepicker/looks", size: CGSize(width: 420, height: 360)) {
+        VStack(alignment: .leading, spacing: 12) {
+            DatePicker("Range", selection: .constant(fixed), in: fixed.addingTimeInterval(-86400 * 5)...fixed.addingTimeInterval(86400 * 10), displayedComponents: .date)
+                .datePickerStyle(.graphical).labelsHidden().probe("rangeCalendar")
+            DatePicker("Both", selection: .constant(fixed)).datePickerStyle(.graphical).labelsHidden().probe("both")
+        }
+        .padding(20)
+        .environment(\.timeZone, utc)
+        .probe("stack")
+    }
+
+    /// Fields in other locales. Out of the golden set: macOS 26.6 draws the field 24 tall and
+    /// narrower than the 26.2 goldens above; the formats it showed ("15/03/2025, 15:09" for
+    /// en_GB, "15.  3.2025, 15:09" for de_DE) are in Docs/elements/DatePicker.md.
+    public static let locales = Fixture("datepicker/locales", size: CGSize(width: 420, height: 160)) {
+        VStack(alignment: .leading, spacing: 12) {
+            DatePicker("GB", selection: .constant(fixed)).labelsHidden().environment(\.locale, Locale(identifier: "en_GB")).probe("gb")
+            DatePicker("DE", selection: .constant(fixed)).labelsHidden().environment(\.locale, Locale(identifier: "de_DE")).probe("de")
+            DatePicker("FR", selection: .constant(fixed), displayedComponents: .date).labelsHidden().environment(\.locale, Locale(identifier: "fr_FR")).probe("fr")
+            DatePicker("JA", selection: .constant(fixed)).labelsHidden().environment(\.locale, Locale(identifier: "ja_JP")).probe("ja")
+        }
+        .padding(20)
+        .environment(\.timeZone, utc)
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic, styles, graphical, clock, steps, looks]
 }
 """##,
         "Fixtures/Sources/Demo/DemoFixtures.swift": ##"""
@@ -16245,6 +16314,16 @@ public enum IOSPresentationFixtures {
     }.platform(.iOS)
 
     /// A list with a selection binding: the selected row's look after a step selects it.
+    /// The wheel style (iOS only): the date's three columns and the time's, captured as the window.
+    public static let dateWheel = Fixture("ios/datepicker/wheel", size: CGSize(width: 375, height: 520)) {
+        VStack(spacing: 12) {
+            DatePicker("Date", selection: .constant(fixed), displayedComponents: .date).fixtureWheelDateStyle().labelsHidden().probe("dateWheel")
+            DatePicker("Time", selection: .constant(fixed), displayedComponents: .hourAndMinute).fixtureWheelDateStyle().labelsHidden().probe("timeWheel")
+        }
+        .environment(\.timeZone, utc)
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
     public static let listSelection = Fixture(
         "ios/list/selection", size: CGSize(width: 375, height: 360),
         model: { IOSPresentationModel() },
@@ -16263,6 +16342,7 @@ public enum IOSPresentationFixtures {
         #if canImport(UIKit)
         fixtures.append(sheetRepresentable)
         #endif
+        fixtures.append(dateWheel)
         return fixtures
     }
 }

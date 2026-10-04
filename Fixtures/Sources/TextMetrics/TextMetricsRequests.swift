@@ -756,6 +756,10 @@ extension TextMetricsRequests {
         // ios/list/spacing: the section headers and the rows at their width.
         for string in ["First", "Second"] { requests.append(TextMetricRequest(string, .style("body", weight: "medium"))) }
         for string in ["Apple", "Banana", "Cherry", "Carrot"] { requests.append(TextMetricRequest(string, .style("body"), width: 256)) }
+        // ios/datepicker/wheel: the 23 pt rows (the month names, days, years, minutes, periods).
+        let wheelStrings = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "AM", "PM"]
+            + (1...31).map { "\($0)" } + (2020...2030).map { "\($0)" } + (0...59).map { $0 < 10 ? "0\($0)" : "\($0)" }
+        for string in wheelStrings { requests.append(TextMetricRequest(string, .system(size: 23, weight: "regular", design: "default"))) }
         // ios/button/looks: control sizes (mini and small labels are the subheadline) and roles.
         for string in ["Regular", "Extra", "Mini"] { requests.append(TextMetricRequest(string, .style("body"))) }
         for string in ["Mini", "Small"] { requests.append(TextMetricRequest(string, .style("subheadline"))) }

@@ -382,6 +382,23 @@ extension PlatformMetrics {
     package static var calendarWeekdaySize: CGFloat { current.calendarWeekdaySize }
     package static var calendarDaySize: CGFloat { current.calendarDaySize }
     package static var calendarMutedAlpha: Double { current.calendarMutedAlpha }
+    package static var calendarOutOfRangeAlpha: Double { current.calendarOutOfRangeAlpha }
+    package static var graphicalDateTimeSpacing: CGFloat { current.graphicalDateTimeSpacing }
+    package static var wheelSize: CGSize { current.wheelSize }
+    package static var wheelRowOffsets: [CGFloat] { current.wheelRowOffsets }
+    package static var wheelRowScales: [CGFloat] { current.wheelRowScales }
+    package static var wheelRowAlphas: [Double] { current.wheelRowAlphas }
+    package static var wheelFontSize: CGFloat { current.wheelFontSize }
+    package static var wheelBandHeight: CGFloat { current.wheelBandHeight }
+    package static var wheelBandInset: CGFloat { current.wheelBandInset }
+    package static var wheelBandCornerRadius: CGFloat { current.wheelBandCornerRadius }
+    package static var wheelBandFill: RGBA { current.wheelBandFill }
+    package static var wheelMonthLeading: CGFloat { current.wheelMonthLeading }
+    package static var wheelDayTrailing: CGFloat { current.wheelDayTrailing }
+    package static var wheelYearLeading: CGFloat { current.wheelYearLeading }
+    package static var wheelHourTrailing: CGFloat { current.wheelHourTrailing }
+    package static var wheelMinuteLeading: CGFloat { current.wheelMinuteLeading }
+    package static var wheelPeriodLeading: CGFloat { current.wheelPeriodLeading }
     package static var calendarHighlightAlpha: Double { current.calendarHighlightAlpha }
     package static var calendarHighlightInset: CGFloat { current.calendarHighlightInset }
     package static var calendarHighlightCornerRadius: CGFloat { current.calendarHighlightCornerRadius }
