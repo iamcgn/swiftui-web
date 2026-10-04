@@ -46,6 +46,7 @@ struct _ToolbarBarView: View {
     let items: [_ToolbarItemData]
     let title: String?
     let search: SearchSource?
+    let scopes: SearchScopeSource?
 
     private func platters(_ group: ToolbarItemPlacement.Group) -> some View {
         ForEach(Array(items.enumerated()).filter { $0.element.placement.group == group }, id: \.offset) { entry in
@@ -54,6 +55,15 @@ struct _ToolbarBarView: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            bar
+            if let scopes {
+                _ToolbarScopeRowView(scopes: scopes)
+            }
+        }
+    }
+
+    private var bar: some View {
         HStack(spacing: 8) {
             platters(.leading)
             if let title {
@@ -64,7 +74,7 @@ struct _ToolbarBarView: View {
             Spacer(minLength: 8)
             platters(.trailing)
             if let search {
-                _SearchFieldView(text: search.text, prompt: search.prompt ?? "Search")
+                _SearchFieldView(source: search, presented: search.presented)
             }
         }
         .padding(.horizontal, 8)
@@ -101,7 +111,8 @@ package final class ToolbarChromeNode: ViewNode {
     }
 
     package func layout(in window: CGSize) {
-        frame = CGRect(x: 0, y: 0, width: window.width, height: Runtime.toolbarHeight)
+        let height = Runtime.toolbarHeight + (runtime.activeSearchScopes != nil ? Runtime.toolbarScopeRowHeight : 0)
+        frame = CGRect(x: 0, y: 0, width: window.width, height: height)
         for node in content.layoutChildren {
             node.place(at: .zero, anchor: .topLeading, proposal: ProposedViewSize(frame.size), by: self)
         }
@@ -141,6 +152,8 @@ package final class ToolbarChromeNode: ViewNode {
 extension Runtime {
     /// The unified toolbar's height (macOS 26, measured on a titled window).
     public static let toolbarHeight: CGFloat = 52
+    /// The scope bar's row under it while a search with scopes is active (unmeasured).
+    public static let toolbarScopeRowHeight: CGFloat = 30
 
     package func registerToolbar(_ node: ViewNode, items: [_ToolbarItemData]) {
         if let index = toolbarSources.firstIndex(where: { $0.node === node }) {
@@ -184,7 +197,7 @@ extension Runtime {
         }
         var environment = rootEnvironment
         environment.colorScheme = root.environment.colorScheme
-        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil, search: searchField))
+        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil, search: searchField, scopes: activeSearchScopes))
         if let toolbar {
             toolbar.update(view: view, environment: environment)
         } else {
@@ -205,73 +218,55 @@ package struct ToolbarVisibilitySource {
     var visibility: Visibility
 }
 
-/// `searchable`: transparent to layout; registers the field, and gives its content `isSearching`
-/// and `dismissSearch`.
-@MainActor
-package final class SearchableNode<Content: View>: UnaryLayoutModifierNode<Content, _SearchableModifier> {
-    override package init(_ context: _NodeContext<ModifiedContent<Content, _SearchableModifier>>) {
-        super.init(context)
-        runtime.registerSearch(self, field: SearchSource(node: self, text: modifier.text, prompt: modifier.prompt))
-        update(view: view, environment: environment, force: true)
-    }
-
-    override package func update(view: ModifiedContent<Content, _SearchableModifier>, environment: EnvironmentValues, force: Bool) {
-        var inner = environment
-        inner.isSearching = !view.modifier.text.wrappedValue.isEmpty
-        let text = view.modifier.text
-        inner.dismissSearch = DismissSearchAction { text.wrappedValue = "" }
-        super.update(view: view, environment: inner, force: force)
-        runtime.registerSearch(self, field: SearchSource(node: self, text: view.modifier.text, prompt: view.modifier.prompt))
-    }
-
-    override package func unmount() {
-        runtime.unregisterSearch(self)
-        super.unmount()
-    }
-}
-
-/// The toolbar's search field: a magnifier and a plain text field in a 36 pt capsule.
+/// The toolbar's search field: a magnifier and a plain text field in a 36 pt capsule; tokens
+/// precede the text as small grey tags (approximate: the toolbar is not capturable). The
+/// field's focus is the search's presentation.
 struct _SearchFieldView: View {
-    let text: Binding<String>
-    let prompt: String
+    let source: SearchSource
+    let presented: Bool
+    @FocusState private var focused: Bool
 
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass").font(.system(size: 13, weight: .medium)).foregroundStyle(.secondary)
-            TextField(prompt, text: text).textFieldStyle(.plain).font(.system(size: 13))
+            if let tokens = source.tokens, tokens.count() > 0 {
+                HStack(spacing: 3) {
+                    ForEach(Array(tokens.views().enumerated()), id: \.offset) { entry in
+                        entry.element
+                            .font(.system(size: 12))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 4)
+                            .frame(height: 18)
+                            .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(Color(PlatformMetrics.searchTokenFill)))
+                    }
+                }
+            }
+            TextField(source.prompt ?? "Search", text: source.text).textFieldStyle(.plain).font(.system(size: 13)).focused($focused)
         }
         .padding(.horizontal, 10)
         .frame(minWidth: 120, maxWidth: 325, minHeight: 36, maxHeight: 36)
         .background(Capsule().fill(Color(.sRGB, white: 0.5, opacity: 0.12)))
         .layoutPriority(1)
-    }
-}
-
-/// One `searchable` modifier's field.
-package struct SearchSource {
-    weak var node: ViewNode?
-    var text: Binding<String>
-    var prompt: String?
-}
-
-extension Runtime {
-    package func registerSearch(_ node: ViewNode, field: SearchSource) {
-        if let index = searchSources.firstIndex(where: { $0.node === node }) {
-            searchSources[index] = field
-        } else {
-            searchSources.append(field)
+        .onChange(of: focused) { _, now in
+            if now != presented { source.setPresented(now) }
         }
-        requestLayout()
+        .onChange(of: presented, initial: true) { _, now in
+            if focused != now { focused = now }
+        }
     }
+}
 
-    package func unregisterSearch(_ node: ViewNode) {
-        searchSources.removeAll { $0.node === node || $0.node == nil }
-        requestLayout()
+/// The scope bar under the macOS toolbar while the search is active (approximate, unmeasured:
+/// the toolbar is not capturable): a centred segmented control in a 30 pt row.
+struct _ToolbarScopeRowView: View {
+    let scopes: SearchScopeSource
+
+    var body: some View {
+        HStack {
+            Spacer(minLength: 0)
+            _SearchScopePicker(scopes: scopes).fixedSize()
+            Spacer(minLength: 0)
+        }
+        .frame(height: Runtime.toolbarScopeRowHeight)
     }
-
-    /// The first mounted `searchable`'s field.
-    package var searchField: SearchSource? { searchSources.first { $0.node?.isMounted == true } }
-
-    /// Whether a `searchable` view is mounted.
-    public var hasSearchField: Bool { searchField != nil }
 }

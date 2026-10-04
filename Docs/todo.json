@@ -638,13 +638,14 @@
       "framework": "SwiftUI",
       "area": "Toolbar",
       "title": "Search suggestions, scopes and tokens",
-      "detail": "`searchSuggestions` (accepted), `searchScopes`, `searchable(text:tokens:)`, `searchCompletion`, `searchPresentationToolbarBehavior`, `isSearching` following focus.",
+      "detail": "Done 2026-10-04: searchable(text:isPresented:) (the presentation is the field's focus), searchable(text:tokens:) with token tags, searchSuggestions shown (iOS: a plain accent-coloured list replacing the content; macOS: a menu under the toolbar's field, approximate), searchCompletion (text and token), searchScopes with activation (iOS: a 44 pt band with a 32 pt segmented control under the hidden bar; macOS: a 30 pt row under the toolbar, approximate), searchPresentationToolbarBehavior, isSearching following the presentation; iOS 26's bottom search field measured on the simulator (ios/search/basic, active, tokens: Tier A exact, Tier C about 1 %). searchToolbarBehavior(.minimize), suggestedTokens and navigationBarDrawer accepted without effect.",
       "kind": "accepted",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Toolbar.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-windows",

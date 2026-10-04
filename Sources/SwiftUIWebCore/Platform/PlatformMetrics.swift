@@ -667,6 +667,52 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var navigationPushDuration = 0.35
     package var navigationPushParallax: CGFloat = 0.3                         // the lower screen's travel, as a fraction of the width
     package var navigationPushDim = 0.1                                       // black over the lower screen at the end of a push
+    // Search (ios/search, iPhone SE simulator, iOS 26, 2026-10-04): a navigation stack's
+    // `searchable` field is a 46 pt capsule at the bottom of the screen; presented, it moves
+    // down next to a 48 pt cancel circle, the bar hides and the content starts 10 down (54 with
+    // the scope bar's band); suggestions replace the content as a plain list in the accent
+    // colour. macOS keeps the field in the window toolbar (these metrics are iOS's).
+    package var searchBandHeight: CGFloat = 76                                // the band the field takes at rest
+    package var searchPresentedBandHeight: CGFloat = 60                       // while presented (the capture has no keyboard)
+    package var searchPresentedTopInset: CGFloat = 10                         // the content's top while the bar hides
+    package var searchFieldHeight: CGFloat = 46
+    package var searchFieldInset: CGFloat = 28                                // from the window's sides at rest
+    package var searchPresentedFieldInset: CGFloat = 12
+    package var searchFieldTop: CGFloat = 1                                   // below the band's top at rest
+    package var searchPresentedFieldTop: CGFloat = 0.5
+    package var searchFieldFill = RGBA(r: 252, g: 253, b: 255, a: 0.8)        // (250, 251, 254) over the grey ground, 252 over white
+    package var searchFieldShadowAlpha = 0.08
+    package var searchFieldShadowRadius: CGFloat = 8
+    package var searchFieldShadowOffset: CGFloat = 4
+    package var searchMagnifierInset: CGFloat = 20                            // the magnifier's left edge from the capsule's
+    package var searchMagnifierSize: CGFloat = 17                             // its symbol's point size (a 16 × 16.5 glyph)
+    package var searchTextInset: CGFloat = 48                                 // the text's left edge from the capsule's
+    package var searchTextLineHeight: CGFloat = 24.5                          // the body line, centred in the capsule
+    package var searchCancelDiameter: CGFloat = 48
+    package var searchCancelGap: CGFloat = 12                                 // between the capsule and the cancel circle
+    package var searchCancelGlyphSize: CGFloat = 17
+    package var searchClearDiameter: CGFloat = 17
+    package var searchClearTrailing: CGFloat = 21                             // the clear circle's right edge from the capsule's
+    package var searchClearGlyphSize: CGFloat = 9
+    package var searchTokenHeight: CGFloat = 28.5
+    package var searchTokenPadding: CGFloat = 4.5
+    package var searchTokenGap: CGFloat = 3
+    package var searchTokenTextGap: CGFloat = 4                               // from the last token to the text
+    package var searchTokenCornerRadius: CGFloat = 6
+    package var searchTokenFill = RGBA(r: 142, g: 142, b: 147)
+    package var searchScopeBandHeight: CGFloat = 44
+    package var searchScopeBandInk = 7.0 / 255                                // (248) over white
+    package var searchScopeBarTop: CGFloat = 2
+    package var searchScopeBarHeight: CGFloat = 32
+    package var searchScopeInset: CGFloat = 16
+    package var searchScopeSelectedInset: CGFloat = 2
+    package var searchScopeFill = RGBA(r: 252, g: 252, b: 252)
+    package var searchScopeSelectedFill = RGBA(r: 234, g: 234, b: 234)
+    package var searchScopeFontSize: CGFloat = 15
+    package var searchScopeShadowAlpha = 0.08
+    package var searchScopeShadowRadius: CGFloat = 5
+    package var searchScopeShadowOffset: CGFloat = 4
+    package var searchSuggestionSeparatorInset: CGFloat = 16                  // the list's top separator, from both sides
 }
 
 /// The metrics of the profile currently laying out or painting (see `PlatformMetricsTable`).

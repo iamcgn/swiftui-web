@@ -89,6 +89,7 @@ enum Goldens {
     /// Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame
     /// (AppKit keeps the view alive without updating it).
     static let ignoredProbes: [String: Set<String>] = [
+        "ios/search/active/present": ["row-Apple", "row-Banana", "row-Cherry", "row-Date", "row-Elderberry"],   // UIKit scrolls the hidden content list while the search presents
         "tabview/basic/second": ["first"],
         // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
         "splitview/visibility": ["sidebar", "row1", "detail"],

@@ -31,6 +31,10 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// animation driven by the frame subscribers, so the page is not laid out again each frame.
     private var slide: Slide?
     private var slideTween: Tween?
+    /// iOS (ios/search): the `searchable` field at the bottom of the top screen, and the scope
+    /// bar under the hidden bar while the search is presented; laid out with the screens.
+    private var searchBar: TypedNode<AnyView>?
+    private var scopeBar: TypedNode<AnyView>?
 
     package init(_ context: _NodeContext<_NavigationStackHost>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime, environment: context.environment)
@@ -59,7 +63,10 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
 
     private func settleBarModes(force: Bool) {
         guard environment.platformProfile.isIOS else { return }
-        for (screen, bar) in zip(screens, bars) {
+        var previousLarge = false
+        for (index, screen) in screens.enumerated() {
+            let bar = bar(over: screen.nodes, index: index, previousLarge: previousLarge, hiddenBySearch: false)
+            previousLarge = bar?.large ?? false
             let actual = bar?.large ?? false
             if let entry = screen.entry {
                 if entry.largeBar != actual {
@@ -105,8 +112,11 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// The bar over screen `index` whose nodes are `nodes`, or nil when nothing shows one: an
     /// untitled root, or a pushed screen with neither a title nor a back button (ios/nav/push-noback
     /// fills the whole stack). `.automatic` inherits the previous screen's large title.
-    private func bar(over nodes: [ViewNode], index: Int, previousLarge: Bool, collapsed: Bool = false) -> Bar? {
+    private func bar(over nodes: [ViewNode], index: Int, previousLarge: Bool, collapsed: Bool = false, hiddenBySearch: Bool = true) -> Bar? {
         guard environment.platformProfile.isIOS, let top = nodes.first else { return nil }
+        // A presented search hides the bar (ios/search/active) unless the search keeps it; the
+        // content still lays out as under its bar (`settleBarModes`: the list keeps no top inset).
+        if hiddenBySearch, let search = search(over: nodes), search.isPresented, !search.searchSource.keepsBar { return nil }
         let title = (top.descendants(where: { $0 is any _NavigationTitleProviding }).first as? any _NavigationTitleProviding)?._navigationTitle
         let mode = (top.descendants(where: { $0 is any _NavigationTitleDisplayModeProviding }).first as? any _NavigationTitleDisplayModeProviding)?._titleDisplayMode ?? .automatic
         let hidesBack = (top.descendants(where: { $0 is any _NavigationBackButtonHiddenProviding }).first as? any _NavigationBackButtonHiddenProviding)?._hidesBackButton ?? false
@@ -135,6 +145,76 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         }
         return result
     }
+
+    // MARK: The search field (iOS)
+
+    /// The `searchable` in a screen's subtree: iOS 26 puts its field at the bottom of the screen.
+    private func search(over nodes: [ViewNode]) -> (any _SearchProviding)? {
+        guard environment.platformProfile.isIOS, let top = nodes.first else { return nil }
+        if let provider = top as? any _SearchProviding { return provider }
+        return top.descendants(where: { $0 is any _SearchProviding }).first as? any _SearchProviding
+    }
+
+    /// What the search takes from a screen (ios/search): a 76 pt band at the bottom for the
+    /// field at rest, 60 while presented; presented, the hidden bar leaves a 10 pt inset at the
+    /// top and an active scope bar a 44 pt band under it.
+    private struct SearchChrome {
+        var source: SearchSource
+        var presented: Bool
+        var scopes: SearchScopeSource?
+        var top: CGFloat
+        var bottom: CGFloat
+    }
+
+    private func searchChrome(over nodes: [ViewNode]) -> SearchChrome? {
+        guard let provider = search(over: nodes) else { return nil }
+        let source = provider.searchSource
+        let presented = provider.isPresented
+        let scopes = presented ? runtime.activeSearchScopes : nil
+        var top: CGFloat = presented && !source.keepsBar ? PlatformMetrics.searchPresentedTopInset : 0
+        if scopes != nil { top += PlatformMetrics.searchScopeBandHeight }
+        return SearchChrome(source: source, presented: presented, scopes: scopes, top: top,
+                            bottom: presented ? PlatformMetrics.searchPresentedBandHeight : PlatformMetrics.searchBandHeight)
+    }
+
+    /// Mounts, updates or drops the field and the scope bar for this layout pass, and places them.
+    private func layoutSearchChrome(_ chrome: SearchChrome?, barHeight: CGFloat) {
+        guard let chrome else {
+            searchBar?.unmount()
+            searchBar = nil
+            scopeBar?.unmount()
+            scopeBar = nil
+            return
+        }
+        let barView = AnyView(_IOSSearchBarView(source: chrome.source, presented: chrome.presented))
+        if let searchBar {
+            searchBar.update(view: barView, environment: environment, force: false)
+        } else {
+            searchBar = AnyView._makeNode(_NodeContext(view: barView, parent: self, environment: environment))
+        }
+        let band = CGRect(x: 0, y: frame.height - chrome.bottom, width: frame.width, height: chrome.bottom)
+        for node in searchBar?.layoutChildren ?? [] {
+            node.place(at: band.origin, anchor: .topLeading, proposal: ProposedViewSize(band.size), by: self)
+        }
+        if let scopes = chrome.scopes {
+            let scopeView = AnyView(_IOSSearchScopeBarView(scopes: scopes))
+            if let scopeBar {
+                scopeBar.update(view: scopeView, environment: environment, force: false)
+            } else {
+                scopeBar = AnyView._makeNode(_NodeContext(view: scopeView, parent: self, environment: environment))
+            }
+            let bandRect = CGRect(x: 0, y: barHeight + chrome.top - PlatformMetrics.searchScopeBandHeight, width: frame.width,
+                                  height: PlatformMetrics.searchScopeBandHeight)
+            for node in scopeBar?.layoutChildren ?? [] {
+                node.place(at: bandRect.origin, anchor: .topLeading, proposal: ProposedViewSize(bandRect.size), by: self)
+            }
+        } else {
+            scopeBar?.unmount()
+            scopeBar = nil
+        }
+    }
+
+    private var searchChromeNodes: [ViewNode] { (scopeBar?.layoutChildren ?? []) + (searchBar?.layoutChildren ?? []) }
 
     // MARK: The large title collapsing as the screen scrolls (iOS)
 
@@ -429,6 +509,9 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     }
 
     override package func layoutContents(proposal: ProposedViewSize) {
+        // A search presented since the last update hides the bar: the screens read the bar
+        // modes again before they are placed (the list under it drops its top inset).
+        settleBarModes(force: false)
         topScrollView = groups.last?.first?.descendants(where: { $0 is any _Scrollable }).first
         var bars = self.bars
         for pass in 0..<2 {
@@ -437,26 +520,33 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
             // size, but both centre in a box as large as the larger of the two, anchored at the
             // frame's top-left: a 16 pt presented screen over a 44 pt root sits 14 down and the
             // root at the frame's top; a 72 pt pushed screen holds the root 14 down.
-            let placed = groups.count > 1 ? [(groups[0], bars[0]), (groups[groups.count - 1], bars[bars.count - 1])] : Array(zip(groups, bars))
+            var placed = groups.count > 1 ? [(groups[0], bars[0]), (groups[groups.count - 1], bars[bars.count - 1])] : Array(zip(groups, bars))
+            // The top screen gives the search its bands (ios/search); a lower screen is laid
+            // out as if it had none.
+            let chrome = searchChrome(over: groups.last ?? [])
+            let chromes: [SearchChrome?] = placed.indices.map { $0 == placed.count - 1 ? chrome : nil }
+            if placed.isEmpty { placed = [] }
             var box = CGSize(width: frame.width, height: frame.height)
-            for (group, bar) in placed {
-                let barHeight = bar?.height ?? 0
-                let inner = barHeight > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - barHeight) }) : proposal
+            for ((group, bar), chrome) in zip(placed, chromes) {
+                let taken = (bar?.height ?? 0) + (chrome?.top ?? 0) + (chrome?.bottom ?? 0)
+                let inner = taken > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - taken) }) : proposal
                 for node in group {
                     let size = node.sizeThatFits(inner)
                     box.width = max(box.width, size.width)
-                    box.height = max(box.height, size.height + barHeight)
+                    box.height = max(box.height, size.height + taken)
                 }
             }
-            for (group, bar) in placed {
-                let barHeight = bar?.height ?? 0
-                let inner = barHeight > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - barHeight) }) : proposal
+            for ((group, bar), chrome) in zip(placed, chromes) {
+                let above = (bar?.height ?? 0) + (chrome?.top ?? 0)
+                let taken = above + (chrome?.bottom ?? 0)
+                let inner = taken > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - taken) }) : proposal
                 for node in group {
                     let size = node.sizeThatFits(inner)
-                    node.place(at: CGPoint(x: (box.width - size.width) / 2, y: barHeight + (box.height - barHeight - size.height) / 2),
+                    node.place(at: CGPoint(x: (box.width - size.width) / 2, y: above + (box.height - taken - size.height) / 2),
                                anchor: .topLeading, proposal: inner, by: self)
                 }
             }
+            layoutSearchChrome(chrome, barHeight: (bars.last ?? nil)?.height ?? 0)
             // Placing the content may have scrolled it (a programmatic target) past the large
             // title: the screen is placed again under the inline bar.
             guard pass == 0, collapseChanged else { break }
@@ -477,6 +567,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let bars = self.bars
         guard let (slide, progress) = activeSlide else {
             paintScreen(groups.last ?? [], bar: bars.last ?? nil, shift: 0, barOpacity: 1, into: &list, context: context)
+            for node in searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
             return
         }
         let bounds = absoluteBounds(context)
@@ -492,6 +583,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if cover > 0 { list.append(.fillRect(bounds, RGBA(r: 0, g: 0, b: 0, a: PlatformMetrics.navigationPushDim * cover))) }
         paintScreen(slide.upper, bar: upperBar, shift: width * (1 - cover), barOpacity: cover, into: &list, context: context)
         list.append(.restore)
+        for node in searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
     }
 
     /// One screen shifted sideways by `shift`: its ground (a grouped list's continues under the
@@ -576,8 +668,8 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if bar.back { backButton.paintLook(into: &list, at: bounds.origin, opacity: opacity, context: context) }
     }
 
-    override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) }
-    override package var structuralChildren: [ViewNode] { [root as ViewNode] + entries.compactMap(\.node) }
+    override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) + searchChromeNodes }
+    override package var structuralChildren: [ViewNode] { [root as ViewNode] + entries.compactMap(\.node) + [scopeBar, searchBar].compactMap { $0 } }
 
     /// Preferences come from the root and the top screen when the top is a pushed view
     /// (nav/path-change `present`: a value screen under a presented one reports no probe); the
@@ -608,6 +700,10 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         finishSlide()
         for entry in entries { entry.node?.unmount() }
         entries.removeAll()
+        searchBar?.unmount()
+        searchBar = nil
+        scopeBar?.unmount()
+        scopeBar = nil
         super.unmount()
     }
 }

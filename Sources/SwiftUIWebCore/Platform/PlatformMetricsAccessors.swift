@@ -545,4 +545,45 @@ extension PlatformMetrics {
     package static var navigationPushDuration: Double { current.navigationPushDuration }
     package static var navigationPushParallax: CGFloat { current.navigationPushParallax }
     package static var navigationPushDim: Double { current.navigationPushDim }
+    package static var searchBandHeight: CGFloat { current.searchBandHeight }
+    package static var searchPresentedBandHeight: CGFloat { current.searchPresentedBandHeight }
+    package static var searchPresentedTopInset: CGFloat { current.searchPresentedTopInset }
+    package static var searchFieldHeight: CGFloat { current.searchFieldHeight }
+    package static var searchFieldInset: CGFloat { current.searchFieldInset }
+    package static var searchPresentedFieldInset: CGFloat { current.searchPresentedFieldInset }
+    package static var searchFieldTop: CGFloat { current.searchFieldTop }
+    package static var searchPresentedFieldTop: CGFloat { current.searchPresentedFieldTop }
+    package static var searchFieldFill: RGBA { current.searchFieldFill }
+    package static var searchFieldShadowAlpha: Double { current.searchFieldShadowAlpha }
+    package static var searchFieldShadowRadius: CGFloat { current.searchFieldShadowRadius }
+    package static var searchFieldShadowOffset: CGFloat { current.searchFieldShadowOffset }
+    package static var searchMagnifierInset: CGFloat { current.searchMagnifierInset }
+    package static var searchMagnifierSize: CGFloat { current.searchMagnifierSize }
+    package static var searchTextInset: CGFloat { current.searchTextInset }
+    package static var searchTextLineHeight: CGFloat { current.searchTextLineHeight }
+    package static var searchCancelDiameter: CGFloat { current.searchCancelDiameter }
+    package static var searchCancelGap: CGFloat { current.searchCancelGap }
+    package static var searchCancelGlyphSize: CGFloat { current.searchCancelGlyphSize }
+    package static var searchClearDiameter: CGFloat { current.searchClearDiameter }
+    package static var searchClearTrailing: CGFloat { current.searchClearTrailing }
+    package static var searchClearGlyphSize: CGFloat { current.searchClearGlyphSize }
+    package static var searchTokenHeight: CGFloat { current.searchTokenHeight }
+    package static var searchTokenPadding: CGFloat { current.searchTokenPadding }
+    package static var searchTokenGap: CGFloat { current.searchTokenGap }
+    package static var searchTokenTextGap: CGFloat { current.searchTokenTextGap }
+    package static var searchTokenCornerRadius: CGFloat { current.searchTokenCornerRadius }
+    package static var searchTokenFill: RGBA { current.searchTokenFill }
+    package static var searchScopeBandHeight: CGFloat { current.searchScopeBandHeight }
+    package static var searchScopeBandInk: Double { current.searchScopeBandInk }
+    package static var searchScopeBarTop: CGFloat { current.searchScopeBarTop }
+    package static var searchScopeBarHeight: CGFloat { current.searchScopeBarHeight }
+    package static var searchScopeInset: CGFloat { current.searchScopeInset }
+    package static var searchScopeSelectedInset: CGFloat { current.searchScopeSelectedInset }
+    package static var searchScopeFill: RGBA { current.searchScopeFill }
+    package static var searchScopeSelectedFill: RGBA { current.searchScopeSelectedFill }
+    package static var searchScopeFontSize: CGFloat { current.searchScopeFontSize }
+    package static var searchScopeShadowAlpha: Double { current.searchScopeShadowAlpha }
+    package static var searchScopeShadowRadius: CGFloat { current.searchScopeShadowRadius }
+    package static var searchScopeShadowOffset: CGFloat { current.searchScopeShadowOffset }
+    package static var searchSuggestionSeparatorInset: CGFloat { current.searchSuggestionSeparatorInset }
 }

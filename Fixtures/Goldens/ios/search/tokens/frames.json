@@ -1,0 +1,51 @@
+{
+  "fixture" : "ios\/search\/tokens",
+  "frames" : {
+    "list" : {
+      "height" : 287.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 116.5
+    },
+    "nav" : {
+      "height" : 480,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "row-Apple" : {
+      "height" : 24.5,
+      "width" : 44.5,
+      "x" : 32,
+      "y" : 132.25
+    },
+    "row-Banana" : {
+      "height" : 24.5,
+      "width" : 57,
+      "x" : 32,
+      "y" : 188.25
+    },
+    "row-Cherry" : {
+      "height" : 24.5,
+      "width" : 52,
+      "x" : 32,
+      "y" : 244.25
+    },
+    "row-Date" : {
+      "height" : 24.5,
+      "width" : 36,
+      "x" : 32,
+      "y" : 300.25
+    },
+    "row-Elderberry" : {
+      "height" : 24.5,
+      "width" : 79.5,
+      "x" : 32,
+      "y" : 356.25
+    }
+  },
+  "size" : {
+    "height" : 480,
+    "width" : 320
+  }
+}

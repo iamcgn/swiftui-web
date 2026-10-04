@@ -756,6 +756,18 @@ extension TextMetricsRequests {
         // ios/list/spacing: the section headers and the rows at their width.
         for string in ["First", "Second"] { requests.append(TextMetricRequest(string, .style("body", weight: "medium"))) }
         for string in ["Apple", "Banana", "Cherry", "Carrot"] { requests.append(TextMetricRequest(string, .style("body"), width: 256)) }
+        // ios/search: the field's prompt and text, the suggestions, the scope segments and tokens.
+        requests.append(TextMetricRequest("Fruit", .style("largeTitle", weight: "bold")))
+        requests.append(TextMetricRequest("Fruit", .style("headline")))
+        for string in ["Find fruit", "Elderberry", "ch", "an", "Search", "Cancel"] { requests.append(TextMetricRequest(string, .style("body"))) }
+        for string in ["All", "Fresh", "Red"] {
+            requests.append(TextMetricRequest(string, .style("body")))
+            requests.append(TextMetricRequest(string, .style("body", weight: "medium")))
+            for size: CGFloat in [13, 15, 16] {
+                requests.append(TextMetricRequest(string, .system(size: size, weight: "regular", design: "default")))
+                requests.append(TextMetricRequest(string, .system(size: size, weight: "medium", design: "default")))
+            }
+        }
         return requests
     }()
 }

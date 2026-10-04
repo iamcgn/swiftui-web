@@ -45,6 +45,7 @@ enum NativeGoldens {
     static let pixelTolerance = 0.03
     /// Probes Apple reports but nothing reproduces (a hidden tab's stale frame), as in Tier A.
     static let ignoredProbes: [String: Set<String>] = [
+        "ios/search/active/present": ["row-Apple", "row-Banana", "row-Cherry", "row-Date", "row-Elderberry"],   // UIKit scrolls the hidden content list while the search presents
         "ios/list/footer": ["footer", "footer2"],
         "ios/textfield/vertical": ["reserved", "stack"],
         "ios/nav/list-scroll/row1": ["row0", "row1", "row2", "row3", "row4", "row5", "row6", "row7", "row8", "row9", "row10", "row11", "row12", "row13", "row14", "row15", "row16", "row17", "row18", "row19"],

@@ -718,11 +718,14 @@
           ]
         },
         {
-          "api": "searchable(text:placement:prompt:) / isSearching / dismissSearch / searchSuggestions",
+          "api": "searchable (text, isPresented, tokens, prompt) / isSearching / dismissSearch / searchSuggestions / searchCompletion / searchScopes / searchPresentationToolbarBehavior",
           "status": "partial",
-          "notes": "A search field at the trailing end of the window toolbar when the host paints chrome (a magnifier and a plain text field in a 36 pt capsule, as macOS puts it in the toolbar); the query edits the binding, isSearching follows the query, suggestions accepted without effect; no scopes or tokens (Docs/elements/Toolbar.md)",
+          "notes": "macOS: a search field at the trailing end of the window toolbar when the host paints chrome (a magnifier, token tags and a plain text field in a 36 pt capsule), an approximate scope row under the bar and a suggestion menu under the field while presented. iOS 26: the field in a 46 pt capsule at the bottom of the navigation stack; presented (the field's focus or an isPresented binding), the bar hides, a cancel circle appears, suggestions replace the content as an accent-coloured plain list and an active scope bar takes a 44 pt band at the top; tokens as grey tags; completions set the query or add a token; isSearching follows the presentation; suggestedTokens, searchToolbarBehavior(.minimize) and navigationBarDrawer accepted (Docs/elements/Toolbar.md, 2026-10-04)",
           "fixtures": [
-            "toolbar/searchable"
+            "toolbar/searchable",
+            "ios/search/basic",
+            "ios/search/active",
+            "ios/search/tokens"
           ]
         },
         {

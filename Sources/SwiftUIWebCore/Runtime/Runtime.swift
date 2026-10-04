@@ -83,6 +83,8 @@ public final class Runtime {
     package var toolbarVisibility: [ToolbarVisibilitySource] = []
     package var toolbar: ToolbarChromeNode?
     package var searchSources: [SearchSource] = []
+    package var searchSuggestionSources: [SearchSuggestionSource] = []
+    package var searchScopeSources: [SearchScopeSource] = []
     package var _imageLoader: (any _ImageLoading)?
     /// The host's rasteriser for recorded drawings (`UIImage.pngData()` inside a representable;
     /// hosted trees take it from the runtime).

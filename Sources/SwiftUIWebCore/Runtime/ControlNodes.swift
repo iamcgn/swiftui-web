@@ -122,14 +122,19 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
     }
 
     /// The text a pop-up or segment shows for an option, in the style's font and colour.
+    private var inScopeBar: Bool { environment._inSearchScopeBar }
+
     private func titleView(_ title: String, selected: Bool) -> AnyView {
         let color: Color
         var font = Font.system(size: PlatformMetrics.buttonLabelSize)
         switch style {
         case .segmented:
             let alpha = selected ? PlatformMetrics.segmentedSelectedTextAlpha : PlatformMetrics.segmentedTextAlpha
-            color = Color.black.opacity(enabled ? alpha : alpha / 2)
-            if isIOS {
+            color = inScopeBar ? .primary : Color.black.opacity(enabled ? alpha : alpha / 2)
+            if inScopeBar {
+                // A search's scope bar (ios/search/active): 15 pt regular in the label colour.
+                font = .system(size: PlatformMetrics.searchScopeFontSize)
+            } else if isIOS {
                 // iOS: 13 pt, medium; the selected segment semibold (ios/picker/basic).
                 font = .system(size: PlatformMetrics.segmentedFontSize,
                                weight: Font.Weight(selected ? PlatformMetrics.segmentedSelectedFontWeight : PlatformMetrics.segmentedFontWeight))
@@ -269,12 +274,14 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         let widest = sizes.map(\.width).max() ?? 0
         switch style {
         case .segmented where isIOS:
-            // iOS: the control fills the proposed width with equal segments (ios/picker/basic).
+            // iOS: the control fills the proposed width with equal segments (ios/picker/basic);
+            // a search's scope bar is 32 tall (ios/search/active).
             let ideal = (widest + PlatformMetrics.segmentPadding) * CGFloat(options.count)
             let width = proposal.width.flatMap { $0.isFinite ? $0 : nil }.map { max(0, $0 - labelWidth) } ?? ideal
             let segment = options.isEmpty ? width : width / CGFloat(options.count)
-            let height = max(PlatformMetrics.segmentedHeight, labelSize.height)
-            let control = CGRect(x: labelWidth, y: (height - PlatformMetrics.segmentedHeight) / 2, width: width, height: PlatformMetrics.segmentedHeight)
+            let controlHeight = inScopeBar ? PlatformMetrics.searchScopeBarHeight : PlatformMetrics.segmentedHeight
+            let height = max(controlHeight, labelSize.height)
+            let control = CGRect(x: labelWidth, y: (height - controlHeight) / 2, width: width, height: controlHeight)
             for index in options.indices {
                 options[index].frame = CGRect(x: control.minX + segment * CGFloat(index), y: control.minY, width: segment, height: control.height)
             }
@@ -441,9 +448,23 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
 
     private func paintSegmented(into list: inout DisplayList, context: PaintContext) {
         let control = context.absoluteRect(controlFrame)
+        let selectedIndex = options.firstIndex(where: isSelected)
+        if inScopeBar {
+            // A search's scope bar (ios/search/active): a near-white capsule, the selected segment
+            // a grey one 2 in, the labels in the label colour.
+            list.append(.fillRRect(control, cornerRadius: control.height / 2, PlatformMetrics.searchScopeFill))
+            if let selectedIndex {
+                let inset = PlatformMetrics.searchScopeSelectedInset
+                let cell = context.absoluteRect(options[selectedIndex].frame).insetBy(dx: inset, dy: inset)
+                list.append(.fillRRect(cell, cornerRadius: cell.height / 2, PlatformMetrics.searchScopeSelectedFill))
+            }
+            for option in options {
+                if let shown = option.shown { shown.paint(into: &list, context: context.child(at: shown.presentedFrame)) }
+            }
+            return
+        }
         list.append(.fillRRect(control, cornerRadius: PlatformMetrics.segmentedCornerRadius,
                                black(enabled ? PlatformMetrics.segmentedFill : PlatformMetrics.popUpDisabledFill)))
-        let selectedIndex = options.firstIndex(where: isSelected)
         if let selectedIndex {
             let inset = PlatformMetrics.segmentedSelectedInset
             let cell = context.absoluteRect(options[selectedIndex].frame).insetBy(dx: inset.width, dy: inset.height)

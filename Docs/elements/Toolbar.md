@@ -17,10 +17,15 @@ Apple docs: [toolbar(content:)](https://developer.apple.com/documentation/swiftu
 | `toolbar(_:for:)` with `Visibility` and `ToolbarPlacement` | implemented for the window toolbar |
 | `toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode`, `ToolbarRole`, `ToolbarTitleDisplayMode` | accepted without effect |
 | Custom `ToolbarContent` types with a `body` | implemented |
-| `searchable(text:placement:prompt:)` (`Text`, key and string prompts), `SearchFieldPlacement` | implemented: a search field at the trailing end of the bar; every placement lands there |
-| `isSearching`, `dismissSearch` environment | implemented inside the searchable view (`isSearching` is true while the query is non-empty, not while the field is focused) |
-| `searchSuggestions` | accepted without effect |
-| `searchScopes`, `searchable(text:tokens:…)`, `searchCompletion`, `searchPresentationToolbarBehavior` | missing |
+| `searchable(text:placement:prompt:)` (`Text`, key and string prompts), `SearchFieldPlacement` | implemented: a search field at the trailing end of the bar on macOS, at the bottom of an iOS navigation stack (iOS 26, "iOS" below); every placement lands there |
+| `searchable(text:isPresented:…)` | implemented (2026-10-04): the presentation is the field's focus; the binding follows and drives it |
+| `isSearching`, `dismissSearch` environment | implemented inside the searchable view: `isSearching` while the field is presented (focused) or the query is non-empty; `dismissSearch` clears the query and ends the presentation |
+| `searchSuggestions(_:)`, `searchCompletion(_ String)`, `searchCompletion(_ token:)` | implemented: the rows show while the search is presented, in place of the content on iOS (a plain list in the accent colour) and in a menu under the field on macOS (approximate); a completion row sets the query or adds the token |
+| `searchSuggestions(_:for:)`, `SearchSuggestionsPlacement` | accepted without effect |
+| `searchScopes(_:scopes:)`, `searchScopes(_:activation:scopes:)`, `SearchScopeActivation` | implemented: a segmented control of the tagged scopes; iOS shows it in a 44 pt band under the hidden bar while presented, macOS in a 30 pt row under the toolbar (approximate); `.automatic` is on text entry on iOS and on presentation on macOS |
+| `searchable(text:tokens:…)` (with `isPresented`, `suggestedTokens`), `token` builder | implemented: tokens precede the text as grey tags (iOS 26's 28.5 pt tags; small ones in the macOS field); `suggestedTokens` is accepted without effect |
+| `searchPresentationToolbarBehavior(_:)` | implemented: `.avoidHidingContent` keeps the iOS bar while presented (unmeasured); the automatic behaviour hides it |
+| `searchToolbarBehavior(.minimize)` (iOS 26), `SearchFieldPlacement.navigationBarDrawer` | accepted without effect |
 | Toolbar customisation, `ToolbarCommands`, search fields in toolbars, sheet toolbars | missing |
 
 ## Behaviour
@@ -44,12 +49,18 @@ platter (a 12 % grey standing in for the glass pill, 30 % while pressed). Groups
 their views, so each button in a group gets its own platter as on macOS. Hovering and keyboard
 focus reach the bar through `interactiveNodes`.
 
-`searchable` is `SearchableNode`, also transparent: it registers its binding and prompt
-(`Runtime.searchField`, the first mounted one) and hands its content `isSearching` and
-`dismissSearch`. The bar shows `_SearchFieldView` after the trailing items: a magnifier symbol
-and a plain-style `TextField` in a 36 pt capsule, 120–325 pt wide with layout priority over the
-spacers. Typing goes through the host's text input overlay as for any text field, into the
-binding, so the searchable view's body filters on it.
+`searchable` is `SearchableNode` (Runtime/SearchNodes.swift), also transparent: it registers
+its binding, prompt, tokens and presentation (`Runtime.searchField`, the first mounted one) and
+hands its content `isSearching` and `dismissSearch`. The presentation is the field's focus: the
+field view's `FocusState` turns it on and off, and an `isPresented` binding (read where the
+modifier is built, so observation tracks it) drives the focus. `searchSuggestions`,
+`searchScopes` and `searchCompletion` are transparent nodes registering with the runtime; the
+chrome reads them. On macOS the bar shows `_SearchFieldView` after the trailing items: a
+magnifier symbol, the token tags and a plain-style `TextField` in a 36 pt capsule, 120–325 pt
+wide with layout priority over the spacers; an active scope bar adds a 30 pt row with a centred
+segmented picker under the bar, and the suggestions open in a `.menu` presentation anchored to
+the field while it is presented. Typing goes through the host's text input overlay as for any
+text field, into the binding, so the searchable view's body filters on it.
 
 ## Measured (macOS 26.2, a titled `NSWindow` with an `NSHostingView`, 2026-09-04)
 
@@ -79,8 +90,38 @@ placement, the bar's frame and painting, the content's remaining area, hit testi
 `toolbar(.hidden)`, items disappearing with their view, and the search field's placement,
 binding and `isSearching`.
 
+## iOS (iPhone SE simulator, iOS 26, `ios/search/*`, 2026-10-04)
+
+iOS 26 puts a navigation stack's search field at the bottom of the screen. `NavigationStackNode`
+finds the `searchable` in its top screen and takes the bands from the content; the field is
+`_IOSSearchBarView` (a `TextField` in a capsule) laid out in the bottom band, and the scope bar
+`_IOSSearchScopeBarView` (a segmented `Picker` with `_inSearchScopeBar`) in its own band.
+
+| Property | Value |
+|---|---|
+| At rest (`basic`) | the content ends 76 above the window's bottom (the list 287.5 tall under the large title in 480); the field is a 46 pt capsule 28 in from both sides (264 wide in 320), 405–451, fill (250, 251, 254) over the grey ground (white at 80 %) with a soft shadow below; the magnifier 20 in (a 16 × 16.5 glyph), the 17 pt prompt 48 in in the secondary colour, its line centred |
+| Presented (`active` `present`) | the bar hides and the content starts 10 down (the list keeps no top inset); the field moves to 420.5–466.5, 12 in and 236 wide, next to a 48 pt cancel circle at (260, 420) with a 17 pt `xmark`; the caret is 26 pt tall at the text's start; the content ends 60 above the bottom |
+| Suggestions | replace the content: a plain list with a top separator 16 in from both sides, rows 56 apart with their text 16 in, in the accent colour (0, 136, 255) |
+| Scope bar (`activation: .onSearchPresentation`) | a 44 pt band (10–54, about (248) over white) holding a 288 × 32 segmented control 16 in from 12: fill (252), the selected segment (234) 2 in, 15 pt regular labels in the label colour, a soft shadow under the control; the content starts at 54 |
+| Typed (`typed`) | the suggestions filter; a 17 pt grey clear circle (142, 142, 147) with a white cross ends the text 21 before the capsule's right edge |
+| Tokens (`tokens`) | grey (142, 142, 147) tags 28.5 tall with 17 pt white text 4.5 in each side, 3 apart, starting where the text would (48 in); the text follows 4 after the last; the clear circle is nearly invisible at rest |
+| Automatic scope activation | on text entry: the bar is absent while the field is empty (`active` `present` was measured with `.onSearchPresentation`; the automatic fixture showed none) |
+
+UIKit scrolls the hidden content list while the search presents (its rows report 54 higher in
+`present`, their normal place in `typed`), so those probes are ignored in every tier.
+
+## Verification (2026-10-04)
+
+`ios/search/basic`, `ios/search/active` (`present`, `typed`) and `ios/search/tokens`: Tier A
+exact (the hidden rows ignored), Tier C 0.4–1.0 %, Tier B exact frames. `SearchTests` cover the
+band at rest, focus presenting the search (the bar hidden, the scope band, the cancel button
+ending it and clearing the text), completions setting the query or adding a token, scope
+selection, `isSearching`, `avoidHidingContent`, text-entry activation, and the macOS toolbar's
+scope row and suggestion menu.
+
 ## Not yet covered
 
-Toolbar customisation and identifiers, `ToolbarCommands`, search scopes, tokens and suggestions,
-`isSearching` following focus, toolbars of sheets and popovers, `toolbarBackground` materials,
-the sidebar toggle item, and a real `NSToolbar` in the native host.
+Toolbar customisation and identifiers, `ToolbarCommands`, toolbars of sheets and popovers,
+`toolbarBackground` materials, the sidebar toggle item, a real `NSToolbar` in the native host,
+the macOS scope row and suggestion menu's real look (uncapturable), the iOS field minimising on
+scroll (`searchToolbarBehavior`), suggested tokens, the keyboard's room under a presented search.
