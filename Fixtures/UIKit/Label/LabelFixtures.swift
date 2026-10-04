@@ -5,7 +5,53 @@ import UIKit
 import UIKitFixtureKit
 
 public enum LabelFixtures {
-    public static let all = [basic, wrapping, tabular]
+    public static let all = [basic, wrapping, tabular, fitting]
+
+    /// Font scaling to fit, tightening before truncation, and attributed text with per-range
+    /// fonts and colours (uk-label).
+    public static let fitting = UIKitFixture("uikit/label/fitting", size: CGSize(width: 320, height: 260)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 260))
+        @MainActor func add(_ label: UILabel, frame: CGRect, id: String) {
+            label.frame = frame
+            label.backgroundColor = UIColor.systemGray6
+            root.addSubview(label.probe(id))
+        }
+        let shrunk = UILabel()
+        shrunk.text = "Adjusts the font to fit"
+        shrunk.adjustsFontSizeToFitWidth = true
+        shrunk.minimumScaleFactor = 0.5
+        add(shrunk, frame: CGRect(x: 16, y: 16, width: 120, height: 24), id: "shrunk")
+        let floor = UILabel()
+        floor.text = "Adjusts the font to fit"
+        floor.adjustsFontSizeToFitWidth = true
+        floor.minimumScaleFactor = 0.9
+        add(floor, frame: CGRect(x: 160, y: 16, width: 120, height: 24), id: "floor")
+        let tightened = UILabel()
+        tightened.text = "Tightened before truncating"
+        tightened.allowsDefaultTighteningForTruncation = true
+        add(tightened, frame: CGRect(x: 16, y: 56, width: 200, height: 24), id: "tightened")
+        let truncated = UILabel()
+        truncated.text = "Tightened before truncating"
+        add(truncated, frame: CGRect(x: 16, y: 96, width: 200, height: 24), id: "truncated")
+        let attributed = UILabel()
+        let text = NSMutableAttributedString(string: "Plain ", attributes: [.font: UIFont.systemFont(ofSize: 17)])
+        text.append(NSAttributedString(string: "bold ", attributes: [.font: UIFont.systemFont(ofSize: 17, weight: .semibold)]))
+        text.append(NSAttributedString(string: "red ", attributes: [.font: UIFont.systemFont(ofSize: 17), .foregroundColor: UIColor.systemRed]))
+        text.append(NSAttributedString(string: "big", attributes: [.font: UIFont.systemFont(ofSize: 24)]))
+        attributed.attributedText = text
+        attributed.sizeToFit()
+        add(attributed, frame: CGRect(origin: CGPoint(x: 16, y: 136), size: attributed.frame.size), id: "attributed")
+        let fitted = UILabel()
+        fitted.attributedText = NSAttributedString(string: "Twenty point text", attributes: [.font: UIFont.systemFont(ofSize: 20)])
+        fitted.sizeToFit()
+        add(fitted, frame: CGRect(origin: CGPoint(x: 16, y: 190), size: fitted.frame.size), id: "fitted")
+        let wrapped = UILabel()
+        wrapped.numberOfLines = 0
+        wrapped.attributedText = NSAttributedString(string: "Wrapped attributed text in a narrow label", attributes: [.font: UIFont.systemFont(ofSize: 15)])
+        let size = wrapped.sizeThatFits(CGSize(width: 140, height: CGFloat.greatestFiniteMagnitude))
+        add(wrapped, frame: CGRect(x: 170, y: 136, width: 140, height: size.height), id: "wrapped")
+        return root
+    }
 
     /// Labels sized to fit: the default 17 pt system font, text styles, weights.
     public static let basic = UIKitFixture("uikit/label/basic", size: CGSize(width: 320, height: 300)) {

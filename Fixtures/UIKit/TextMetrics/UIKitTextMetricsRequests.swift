@@ -31,6 +31,20 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Tinted", .style("body"), lines: 0),
         UIKitTextRequest("Filled", .style("body"), lines: 0),
         UIKitTextRequest("Plain", .system(size: 17), lines: 0),
+        // uikit/label/fitting (uk-label): the fitting label at candidate sizes, tightening, attributed runs.
+        UIKitTextRequest("Adjusts the font to fit", .system(size: 17)),
+        UIKitTextRequest("Adjusts the font to fit", .system(size: 16)), UIKitTextRequest("Adjusts the font to fit", .system(size: 15)),
+        UIKitTextRequest("Adjusts the font to fit", .system(size: 14)), UIKitTextRequest("Adjusts the font to fit", .system(size: 13)),
+        UIKitTextRequest("Adjusts the font to fit", .system(size: 12)), UIKitTextRequest("Adjusts the font to fit", .system(size: 11)),
+        UIKitTextRequest("Adjusts the font to fit", .system(size: 10)), UIKitTextRequest("Adjusts the font to fit", .system(size: 9)),
+        UIKitTextRequest("Adjusts the font to fit", .system(size: 8.5)), UIKitTextRequest("Adjusts the font to fit", .system(size: 15.3)),
+        UIKitTextRequest("Adjusts the font to fit", .system(size: 17 * 120 / 159)),   // the continuous fit UIKitWeb draws at
+        UIKitTextRequest("Adjusts the font to fit", .system(size: 15.3), width: 120, lines: 1),   // truncated at the 0.9 floor
+        UIKitTextRequest("Tightened before truncating", .system(size: 17)), UIKitTextRequest("Tightened before truncating", .system(size: 17), width: 200, lines: 1),
+        UIKitTextRequest("Plain ", .system(size: 17)), UIKitTextRequest("bold ", .system(size: 17, weight: "semibold")), UIKitTextRequest("red ", .system(size: 17)), UIKitTextRequest("big", .system(size: 24)),
+        UIKitTextRequest(runs: [.init("Plain ", .system(size: 17)), .init("bold ", .system(size: 17, weight: "semibold")), .init("red ", .system(size: 17)), .init("big", .system(size: 24))]),
+        UIKitTextRequest("Twenty point text", .system(size: 20)),
+        UIKitTextRequest("Wrapped attributed text in a narrow label", .system(size: 15), width: 140, lines: 0),
         // uikit/button/looks (uk-button): a custom button's title, images with titles, a subtitle, the sizes.
         UIKitTextRequest("Custom", .system(size: 15)), UIKitTextRequest("Custom", .system(size: 17)), UIKitTextRequest("Custom", .system(size: 18)),
         UIKitTextRequest("Star", .style("body"), lines: 0), UIKitTextRequest("Title", .style("body"), lines: 0), UIKitTextRequest("Subtitle", .style("body"), lines: 0),

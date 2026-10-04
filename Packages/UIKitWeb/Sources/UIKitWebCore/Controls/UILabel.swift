@@ -1,12 +1,74 @@
 // UILabel (Docs/elements/UIKit/UILabel.md): text laid out by the scene's text engine; the block
 // is the font's line height per line plus its leading between lines, rounded up to the pixel
-// (UIFont.labelHeight), centred vertically in the bounds as UIKit does.
+// (UIFont.labelHeight), centred vertically in the bounds as UIKit does. Attributed text draws
+// its runs' fonts and colours; `adjustsFontSizeToFitWidth` scales the text to fit.
+#if !os(WASI)
+import Foundation
+#endif
 
 /// A view that displays one or more lines of informational text.
 @MainActor
 open class UILabel: UIView {
-    open var text: String? { didSet { if text != oldValue { textDidChange() } } }
+    open var text: String? {
+        didSet {
+            if text != oldValue {
+                if !settingAttributedText { storedAttributedText = nil }
+                textDidChange()
+            }
+        }
+    }
     open var font: UIFont = .systemFont(ofSize: 17) { didSet { if font != oldValue { textDidChange() } } }
+
+    /// Attributed text: its runs' fonts and colours draw as they are (`.font`,
+    /// `.foregroundColor`; a paragraph style's alignment and line break mode apply); `text` and
+    /// `font` follow the string and its first run.
+    open var attributedText: NSAttributedString? {
+        get { storedAttributedText }
+        set {
+            storedAttributedText = newValue
+            settingAttributedText = true
+            text = newValue?.string
+            settingAttributedText = false
+            if let first = newValue?.uniformAttributes {
+                if let font = first[.font] as? UIFont { self.font = font }
+                if let color = first[.foregroundColor] as? UIColor { textColor = color }
+                if let paragraph = first[.paragraphStyle] as? NSParagraphStyle {
+                    textAlignment = paragraph.alignment
+                    lineBreakMode = paragraph.lineBreakMode
+                }
+            }
+            textDidChange()
+        }
+    }
+    private var storedAttributedText: NSAttributedString?
+    private var settingAttributedText = false
+
+    /// One run of the text with its font and colour (the label's for plain text).
+    struct Run {
+        var text: String
+        var font: UIFont
+        var color: UIColor?
+    }
+
+    /// The text's runs: the attributed string's, else one in the label's font.
+    var runs: [Run] {
+        guard let attributed = storedAttributedText, attributed.length > 0 else {
+            return text.map { [Run(text: $0, font: font, color: nil)] } ?? []
+        }
+        var result: [Run] = []
+        let utf16 = Array(attributed.string.utf16)
+        attributed.enumerateAttributes(in: NSRange(location: 0, length: attributed.length), options: []) { attributes, range, _ in
+            let piece = String(decoding: utf16[range.location..<min(utf16.count, range.location + range.length)], as: UTF16.self)
+            result.append(Run(text: piece, font: attributes[.font] as? UIFont ?? font, color: attributes[.foregroundColor] as? UIColor))
+        }
+        return result
+    }
+
+    /// The font whose line box is tallest among the runs (the label's height follows it).
+    var tallestFont: UIFont { runs.map(\.font).max { $0.lineHeight < $1.lineHeight } ?? font }
+
+    /// The scale the text was last drawn at (`adjustsFontSizeToFitWidth`): 1 when it fits.
+    public private(set) var fittedScale: CGFloat = 1
     open var textColor: UIColor = .label { didSet { setNeedsDisplay() } }
     open var textAlignment: NSTextAlignment = .natural { didSet { setNeedsDisplay() } }
     open var lineBreakMode: NSLineBreakMode = .byTruncatingTail { didSet { textDidChange() } }
@@ -49,8 +111,15 @@ open class UILabel: UIView {
     // MARK: Layout
 
     /// The text engine's layout of the text within `width` (nil: unbounded).
-    func layout(width: CGFloat?) -> TextLayout? {
-        guard let text, !text.isEmpty else { return nil }
+    func layout(width: CGFloat?) -> TextLayout? { layout(width: width, fitting: false) }
+
+    /// The layout of the runs within `width`; `fitting` shrinks the fonts to fit the width
+    /// (`adjustsFontSizeToFitWidth`: UIKit scales the text continuously down to
+    /// `minimumScaleFactor` so one line fits exactly, uikit/label/fitting: 17 pt text 159 wide in
+    /// a 120 pt label draws at 12.83 pt) and lets letters tighten before truncation when allowed.
+    func layout(width: CGFloat?, fitting: Bool) -> TextLayout? {
+        let runs = runs
+        guard !runs.isEmpty, runs.contains(where: { !$0.text.isEmpty }) else { return nil }
         let engine = UIKitScene.shared.textEngine
         let limit = numberOfLines > 0 ? numberOfLines : nil
         let truncation: TextTruncationMode
@@ -59,9 +128,29 @@ open class UILabel: UIView {
         case .byTruncatingMiddle: truncation = .middle
         default: truncation = .tail
         }
-        let options = TextLayoutOptions(lineLimit: limit, truncationMode: truncation)
         let wrap = width.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
-        return engine.layout([StyledRun(text, font: font.resolved)], options: options, width: wrap)
+        var scale: CGFloat = 1
+        var tightens = false
+        if fitting, let wrap, numberOfLines == 1, adjustsFontSizeToFitWidth || allowsDefaultTighteningForTruncation {
+            let unscaled = engine.layout(runs.map { StyledRun($0.text, font: $0.font.resolved) }, options: TextLayoutOptions(lineLimit: 1, truncationMode: .tail), width: nil)
+            if unscaled.size.width > wrap {
+                if adjustsFontSizeToFitWidth, minimumScaleFactor > 0, minimumScaleFactor < 1 {
+                    scale = max(minimumScaleFactor, wrap / unscaled.size.width)
+                } else if allowsDefaultTighteningForTruncation {
+                    // UIKit tightens only when that makes the line fit (a 72nd of the size per
+                    // character at most); "Tightened before truncating" at 213 in 200 truncates plain.
+                    let characters = CGFloat(runs.reduce(0) { $0 + $1.text.count })
+                    tightens = unscaled.size.width - characters * font.pointSize / 72 <= wrap
+                }
+            }
+        }
+        let options = TextLayoutOptions(lineLimit: limit, truncationMode: truncation, allowsTightening: tightens)
+        if fitting { fittedScale = scale }
+        let styled = runs.map { StyledRun($0.text, font: (scale == 1 ? $0.font : $0.font.withSize($0.font.pointSize * scale)).resolved) }
+        // Scaled to fit exactly, the line needs no width (nothing to truncate; a width a hair
+        // under the scaled text's rounded measure would truncate it); at the floor it does.
+        let exact = scale < 1 && scale > minimumScaleFactor
+        return engine.layout(styled, options: options, width: exact ? nil : wrap)
     }
 
     /// The text's size: the layout's width (rounded up to the pixel) and the font's height for
@@ -70,6 +159,7 @@ open class UILabel: UIView {
     /// in the font's pitch.
     func textSize(fitting width: CGFloat?) -> CGSize {
         let scale = UIScreen.main.scale
+        let font = tallestFont
         guard let layout = layout(width: width) else { return CGSize(width: 0, height: font.labelHeight(lines: 1, scale: scale)) }
         let pitch = font.lineHeight + font.leading
         let lines = layout.lines.count > 1 ? layout.lines.count : max(1, Int((layout.size.height / pitch).rounded()))
@@ -111,6 +201,7 @@ open class UILabel: UIView {
     /// 28 and 34 pt system fonts' ascenders 10.47, 12.38, 16.19, 19.04, 26.66 and 32.37).
     override func textBaselines(in size: CGSize) -> (first: CGFloat, last: CGFloat) {
         guard let layout = layout(width: numberOfLines == 1 ? nil : size.width), !layout.lines.isEmpty else { return (0, size.height) }
+        let font = tallestFont
         let pitch = font.lineHeight + font.leading
         let lines = CGFloat(layout.lines.count)
         let top = textRect(forBounds: CGRect(origin: .zero, size: size), limitedToNumberOfLines: numberOfLines).minY
@@ -122,15 +213,19 @@ open class UILabel: UIView {
     // MARK: Painting
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
-        guard let layout = layout(width: bounds.width) else { return }
+        guard let layout = layout(width: bounds.width, fitting: true) else { return }
         let lines = layout.lines
         guard !lines.isEmpty else { return }
+        let runs = runs
+        let scale = fittedScale
+        // The lines share the tallest run's pitch; mixed runs sit on one baseline (the tallest
+        // font's ascender), as UIKit draws attributed text (uikit/label/fitting).
+        let font = scale == 1 ? tallestFont : tallestFont.withSize(tallestFont.pointSize * scale)
         let pitch = font.lineHeight + font.leading
         let textHeight = font.lineHeight * CGFloat(lines.count) + font.leading * CGFloat(lines.count - 1)
         // The block is centred vertically; each line's baseline sits at the ascender.
         let top = (bounds.height - textHeight) / 2
-        let color = (isEnabled ? textColor : .tertiaryLabel).rgba(for: style)
-        let displayFont = DisplayFont(font.resolved)
+        let labelColor = (isEnabled ? textColor : .tertiaryLabel).rgba(for: style)
         let alignment = textAlignment
         for (index, line) in lines.enumerated() {
             let baseline = context.origin.y + top + pitch * CGFloat(index) + font.ascender
@@ -141,7 +236,10 @@ open class UILabel: UIView {
             default: inset = 0
             }
             for fragment in line.fragments {
-                list.append(.drawText(fragment.text, displayFont, origin: CGPoint(x: context.origin.x + inset + fragment.x, y: baseline), color))
+                let run = runs.indices.contains(fragment.run) ? runs[fragment.run] : Run(text: "", font: self.font, color: nil)
+                let runFont = scale == 1 ? run.font : run.font.withSize(run.font.pointSize * scale)
+                let color = isEnabled ? (run.color?.rgba(for: style) ?? labelColor) : labelColor
+                list.append(.drawText(fragment.text, DisplayFont(runFont.resolved), origin: CGPoint(x: context.origin.x + inset + fragment.x, y: baseline), color))
             }
         }
     }

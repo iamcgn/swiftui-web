@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 48 | 3 | 42 | 3 | 0 | 0 |
+| UIKit | 48 | 4 | 41 | 3 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **188** | 28 | 147 | 7 | 3 | 3 |
+| **All** | **188** | 29 | 146 | 7 | 3 | 3 |
 
 ## App lifecycle
 
@@ -205,7 +205,7 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `UILabel` | 🟢 partial | Sizing at the system and text-style fonts, wrapping and truncation modes, numberOfLines, preferredMaxLayoutWidth, tabular figures, the tertiary colour when disabled; open: attributedText per range, adjustsFontSizeToFitWidth / minimumScaleFactor, the ink position of a text-style line against the pixels | uikit/label/basic, uikit/label/wrapping, uikit/label/tabular |
+| `UILabel` | ✅ full | Sized to fit at the system and text-style fonts, wrapping and truncation, tabular figures, attributed text with per-range fonts and colours, continuous scaling to fit with a minimum factor, tightening before truncation; the ink positions of text-style lines verified against the simulator (Docs/elements/UIKit/UILabel.md) | uikit/label/basic, uikit/label/fitting, uikit/label/tabular, uikit/label/wrapping |
 | `UITextView` | 🟢 partial | Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits; open: attributed text, links, selection handles, keyboard avoidance | uikit/textview/basic, uikit/textview/heights |
 | `UIFont` | 🟢 partial | System fonts by size and weight, the text styles at the large content size, boldSystemFont as SF Semibold, monospacedDigitSystemFont, the metrics table measured on the simulator (ascender, descender, lineHeight, capHeight, xHeight); open: custom fonts from files, italic and monospaced system fonts, the other content size categories (Dynamic Type) | uikit/label/basic, uikit/textview/basic |
 | `NSAttributedString / NSString drawing (draw(at:), draw(in:), size(withAttributes:), boundingRect)` | 🟢 partial | Whole-string attributes (font, colour, paragraph alignment) drawn and measured through the text engine; open: per-range attributes, underline and strikethrough, NSMutableAttributedString edits | uikit/draw/text |

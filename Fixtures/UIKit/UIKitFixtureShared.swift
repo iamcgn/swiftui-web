@@ -49,20 +49,42 @@ public enum UIKitFixtureFont: Hashable, Sendable {
 /// `numberOfLines` (0: as many as the text needs), `width` the width it is fitted to (nil:
 /// unbounded). A text field's text is measured with `lines: 0` (no line limit) and no width.
 public struct UIKitTextRequest: Hashable, Sendable {
-    public let string: String
-    public let font: UIKitFixtureFont
+    /// One run of an attributed request.
+    public struct Run: Hashable, Sendable {
+        public let string: String
+        public let font: UIKitFixtureFont
+        public init(_ string: String, _ font: UIKitFixtureFont) {
+            self.string = string
+            self.font = font
+        }
+    }
+
+    public let runs: [Run]
     public let width: CGFloat?
     public let lines: Int
 
     public init(_ string: String, _ font: UIKitFixtureFont, width: CGFloat? = nil, lines: Int = 1) {
-        self.string = string
-        self.font = font
+        runs = [Run(string, font)]
         self.width = width
         self.lines = lines
     }
 
+    /// An attributed string of several runs (a `UILabel`'s `attributedText`).
+    public init(runs: [Run], width: CGFloat? = nil, lines: Int = 1) {
+        self.runs = runs
+        self.width = width
+        self.lines = lines
+    }
+
+    public var string: String { runs.map(\.string).joined() }
+    public var font: UIKitFixtureFont { runs[0].font }
+
     /// `<font>|<width>[;l<lines>]|<string>`, as `TextMetricsKey` spells the request UIKitWeb's
-    /// `UILabel` makes (the width slot is empty when unbounded; a line limit of 0 adds nothing).
-    public var key: String { "\(font.key)|\(width.map { "\($0)" } ?? "")\(lines > 0 ? ";l\(lines)" : "")|\(string)" }
+    /// `UILabel` makes (the width slot is empty when unbounded; a line limit of 0 adds nothing);
+    /// several runs spell `rich:<font>=<characters>,…` in the font slot.
+    public var key: String {
+        let fontSlot = runs.count == 1 ? runs[0].font.key : "rich:" + runs.map { "\($0.font.key)=\($0.string.count)" }.joined(separator: ",")
+        return "\(fontSlot)|\(width.map { "\($0)" } ?? "")\(lines > 0 ? ";l\(lines)" : "")|\(string)"
+    }
 }
 #endif

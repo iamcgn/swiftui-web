@@ -12,8 +12,13 @@ one-line frame), exact in Tier A against UIKit on an iPhone simulator.
 `text`, `font` (17 pt system by default), `textColor` (`.label`), `textAlignment`, `lineBreakMode`
 (tail, head and middle truncation), `numberOfLines` (0 wraps freely), `isEnabled` (tertiary label
 colour when off), `preferredMaxLayoutWidth`, `sizeThatFits`, `intrinsicContentSize`,
-`textRect(forBounds:limitedToNumberOfLines:)`. Held but not applied: `adjustsFontSizeToFitWidth`,
-`minimumScaleFactor`, `highlightedTextColor`, `shadowColor`.
+`textRect(forBounds:limitedToNumberOfLines:)`. Since 2026-10-04: `attributedText` (per-range
+`.font` and `.foregroundColor`, a paragraph style's alignment and line break mode; `text` and
+`font` follow the string and its first run), `adjustsFontSizeToFitWidth` with
+`minimumScaleFactor`, `allowsDefaultTighteningForTruncation`. On wasm `NSAttributedString` and
+`NSMutableAttributedString` are stand-ins with per-range attributes (`append`, `addAttribute(s)`,
+`setAttributes`, `removeAttribute`, `replaceCharacters`, `enumerateAttributes`,
+`attributedSubstring`). Held but not applied: `highlightedTextColor`, `shadowColor`.
 
 ## Measured
 
@@ -32,5 +37,23 @@ colour when off), `preferredMaxLayoutWidth`, `sizeThatFits`, `intrinsicContentSi
 Under Auto Layout a wrapping label takes the width it is solved to and reports its wrapped
 height plus a point (`Docs/elements/UIKit/AutoLayout.md`, 2026-09-11).
 
-Open: the ink position of a text-style line (its 24.5 box holds a 24.29 line; unverified until
-UIKit pixels are compared), attributed text, font scaling to fit, letter-form adjustments.
+## Attributed text and fitting (iOS 26, `uikit/label/fitting`, 2026-10-04)
+
+- Attributed runs draw in their own fonts and colours on one baseline, the tallest run's: "Plain
+  bold red big" (17, 17 semibold, 17 red, 24) is 142 × 29 sized to fit (the runs' widths, the
+  24 pt label height), each run starting where the previous ended. The recorded metrics hold the
+  whole string as one `rich:` entry (`UIKitTextRequest(runs:)`), as the text engine keys it.
+- `adjustsFontSizeToFitWidth` scales the text continuously to the width (not in steps): 17 pt
+  text 159 wide in a 120 pt one-line label draws at 120/159 of its size (12.83 pt, 117.5 of ink);
+  a `minimumScaleFactor` the width needs more than (0.9 → 15.3 pt) leaves it truncated at that
+  size. The label's own size (`sizeThatFits`) never scales. `allowsDefaultTighteningForTruncation`
+  lets the engine close letters up a little before truncating; "Tightened before truncating"
+  (213 wide) in 200 still truncates, exactly as without it.
+- The ink of a text-style line sits where the simulator puts it: the title, headline, body,
+  footnote and 13–20 pt lines of `uikit/label/basic` match row for row (the title 0.5 pt high,
+  within the anti-aliasing); `uikit/label/basic` 2.8 % of pixels, `uikit/label/fitting` within the
+  approximate bound (glyph scaling and the attributed runs' rendering).
+
+Open: `highlightedTextColor`, `shadowColor`, attributed paragraph styles beyond alignment and
+line breaks (spacing, indents), underline and strikethrough attributes in labels, the exact
+tightening UIKit applies before truncation.

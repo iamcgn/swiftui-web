@@ -1328,13 +1328,14 @@
       "framework": "UIKit",
       "area": "Text",
       "title": "UILabel attributed text and fitting",
-      "detail": "`attributedText` with per-range attributes, `adjustsFontSizeToFitWidth` and `minimumScaleFactor`, `allowsDefaultTighteningForTruncation`, the ink position of a text-style line verified against the simulator's pixels.",
+      "detail": "Done 2026-10-04: attributedText with per-range fonts and colours on one baseline (wasm stand-ins for NSAttributedString/NSMutableAttributedString with ranges; rich entries in the recorded metrics), adjustsFontSizeToFitWidth scaling continuously to the width down to minimumScaleFactor (then truncating), allowsDefaultTighteningForTruncation through the engine, the ink position of text-style lines verified against uikit/label/basic's pixels (within half a point); uikit/label/fitting measured.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/UILabel.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-fonts",

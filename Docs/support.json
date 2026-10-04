@@ -1509,12 +1509,13 @@
       "entries": [
         {
           "api": "UILabel",
-          "status": "partial",
-          "notes": "Sizing at the system and text-style fonts, wrapping and truncation modes, numberOfLines, preferredMaxLayoutWidth, tabular figures, the tertiary colour when disabled; open: attributedText per range, adjustsFontSizeToFitWidth / minimumScaleFactor, the ink position of a text-style line against the pixels",
+          "status": "full",
+          "notes": "Sized to fit at the system and text-style fonts, wrapping and truncation, tabular figures, attributed text with per-range fonts and colours, continuous scaling to fit with a minimum factor, tightening before truncation; the ink positions of text-style lines verified against the simulator (Docs/elements/UIKit/UILabel.md)",
           "fixtures": [
             "uikit/label/basic",
-            "uikit/label/wrapping",
-            "uikit/label/tabular"
+            "uikit/label/fitting",
+            "uikit/label/tabular",
+            "uikit/label/wrapping"
           ]
         },
         {

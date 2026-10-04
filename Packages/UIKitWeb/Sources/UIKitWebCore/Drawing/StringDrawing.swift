@@ -32,29 +32,138 @@ open class NSMutableParagraphStyle: NSParagraphStyle, @unchecked Sendable {
 }
 
 #if os(WASI)
-/// Foundation's attributed string is not in FoundationEssentials: a string with one attribute
-/// dictionary (per-range attributes are not kept).
+/// Foundation's attributed string is not in FoundationEssentials: a string with attribute
+/// dictionaries per range (UTF-16 offsets, as Foundation's).
 open class NSAttributedString: @unchecked Sendable {
     public struct Key: Hashable, RawRepresentable, Sendable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
         public init(_ rawValue: String) { self.rawValue = rawValue }
     }
-    public let string: String
-    let attributes: [Key: Any]
+    public internal(set) var string: String
+    /// The attribute runs covering the string in order (adjacent, non-overlapping).
+    var runs: [(range: NSRange, attributes: [Key: Any])]
+
     public init(string: String, attributes: [Key: Any]? = nil) {
         self.string = string
-        self.attributes = attributes ?? [:]
+        runs = string.isEmpty ? [] : [(NSRange(location: 0, length: string.utf16.count), attributes ?? [:])]
     }
     public init(string: String) {
         self.string = string
-        attributes = [:]
+        runs = string.isEmpty ? [] : [(NSRange(location: 0, length: string.utf16.count), [:])]
+    }
+    public init(attributedString: NSAttributedString) {
+        string = attributedString.string
+        runs = attributedString.runs
     }
     public var length: Int { string.utf16.count }
-    public func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [Key: Any] { attributes }
-    /// The attributes of the whole string (this stand-in keeps one dictionary).
-    var uniformAttributes: [Key: Any] { attributes }
+
+    public func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [Key: Any] {
+        guard let run = runs.first(where: { location >= $0.range.location && location < $0.range.location + $0.range.length }) else { return [:] }
+        range?.pointee = run.range
+        return run.attributes
+    }
+
+    public func attribute(_ key: Key, at location: Int, effectiveRange range: NSRangePointer?) -> Any? {
+        attributes(at: location, effectiveRange: range)[key]
+    }
+
+    /// Calls `block` for each run in `range` (the stand-in's runs are already maximal).
+    public func enumerateAttributes(in range: NSRange, options: EnumerationOptions = [], using block: ([Key: Any], NSRange, UnsafeMutablePointer<Bool>) -> Void) {
+        var stop = false
+        for run in runs where run.range.location < range.location + range.length && run.range.location + run.range.length > range.location {
+            let start = max(run.range.location, range.location)
+            let end = min(run.range.location + run.range.length, range.location + range.length)
+            block(run.attributes, NSRange(location: start, length: end - start), &stop)
+            if stop { break }
+        }
+    }
+
+    public func enumerateAttribute(_ key: Key, in range: NSRange, options: EnumerationOptions = [], using block: (Any?, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
+        enumerateAttributes(in: range, options: options) { attributes, range, stop in block(attributes[key], range, stop) }
+    }
+
+    public struct EnumerationOptions: OptionSet, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let reverse = EnumerationOptions(rawValue: 1 << 1)
+        public static let longestEffectiveRangeNotRequired = EnumerationOptions(rawValue: 1 << 20)
+    }
+
+    public func attributedSubstring(from range: NSRange) -> NSAttributedString {
+        let utf16 = Array(string.utf16)
+        let piece = String(decoding: utf16[max(0, range.location)..<min(utf16.count, range.location + range.length)], as: UTF16.self)
+        let result = NSMutableAttributedString(string: "")
+        result.string = piece
+        result.runs = []
+        enumerateAttributes(in: range) { attributes, sub, _ in
+            result.runs.append((NSRange(location: sub.location - range.location, length: sub.length), attributes))
+        }
+        return result
+    }
+
+    /// The attributes at the string's start (string drawing uses one font and colour).
+    var uniformAttributes: [Key: Any] { runs.first?.attributes ?? [:] }
 }
+
+/// An attributed string whose text and attributes can change.
+open class NSMutableAttributedString: NSAttributedString, @unchecked Sendable {
+    public func append(_ attributedString: NSAttributedString) {
+        let offset = length
+        string += attributedString.string
+        runs += attributedString.runs.map { (NSRange(location: $0.range.location + offset, length: $0.range.length), $0.attributes) }
+    }
+
+    public func addAttribute(_ key: Key, value: Any, range: NSRange) { addAttributes([key: value], range: range) }
+
+    public func addAttributes(_ attributes: [Key: Any], range: NSRange) {
+        apply(range) { $0.merging(attributes) { _, new in new } }
+    }
+
+    public func setAttributes(_ attributes: [Key: Any]?, range: NSRange) {
+        apply(range) { _ in attributes ?? [:] }
+    }
+
+    public func removeAttribute(_ key: Key, range: NSRange) {
+        apply(range) { var copy = $0; copy[key] = nil; return copy }
+    }
+
+    public func replaceCharacters(in range: NSRange, with str: String) {
+        let utf16 = Array(string.utf16)
+        let head = String(decoding: utf16[0..<min(range.location, utf16.count)], as: UTF16.self)
+        let tail = String(decoding: utf16[min(utf16.count, range.location + range.length)...], as: UTF16.self)
+        let attributes = attributes(at: max(0, min(range.location, length - 1)), effectiveRange: nil)
+        string = head + str + tail
+        let delta = str.utf16.count - range.length
+        var updated: [(range: NSRange, attributes: [Key: Any])] = []
+        for run in runs {
+            let start = run.range.location, end = start + run.range.length
+            if end <= range.location { updated.append(run); continue }
+            if start >= range.location + range.length { updated.append((NSRange(location: start + delta, length: run.range.length), run.attributes)); continue }
+            // The run overlaps the replaced range: keep the parts outside it.
+            if start < range.location { updated.append((NSRange(location: start, length: range.location - start), run.attributes)) }
+            if end > range.location + range.length { updated.append((NSRange(location: range.location + str.utf16.count, length: end - (range.location + range.length)), run.attributes)) }
+        }
+        if !str.isEmpty { updated.append((NSRange(location: range.location, length: str.utf16.count), attributes)) }
+        runs = updated.sorted { $0.range.location < $1.range.location }
+    }
+
+    /// Splits the runs at `range`'s ends and transforms the attributes inside it.
+    private func apply(_ range: NSRange, _ transform: ([Key: Any]) -> [Key: Any]) {
+        var updated: [(range: NSRange, attributes: [Key: Any])] = []
+        let rangeEnd = range.location + range.length
+        for run in runs {
+            let start = run.range.location, end = start + run.range.length
+            if end <= range.location || start >= rangeEnd { updated.append(run); continue }
+            if start < range.location { updated.append((NSRange(location: start, length: range.location - start), run.attributes)) }
+            let innerStart = max(start, range.location), innerEnd = min(end, rangeEnd)
+            updated.append((NSRange(location: innerStart, length: innerEnd - innerStart), transform(run.attributes)))
+            if end > rangeEnd { updated.append((NSRange(location: rangeEnd, length: end - rangeEnd), run.attributes)) }
+        }
+        runs = updated
+    }
+}
+
 public typealias NSRangePointer = UnsafeMutablePointer<NSRange>
 public struct NSRange: Equatable, Sendable {
     public var location: Int

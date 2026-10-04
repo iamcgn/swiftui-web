@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 29 | 0 | 18 | 11 |
+| UIKit | 28 | 0 | 17 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **67** | 0 | 19 | 48 |
+| **All** | **66** | 0 | 18 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **UILabel attributed text and fitting** `uk-label` · Text · missing  
-  `attributedText` with per-range attributes, `adjustsFontSizeToFitWidth` and `minimumScaleFactor`, `allowsDefaultTighteningForTruncation`, the ink position of a text-style line verified against the simulator's pixels. ([UILabel.md](Docs/elements/UIKit/UILabel.md))
 - ☐ **Custom, italic and monospaced fonts; Dynamic Type** `uk-fonts` · Text · missing  
   `UIFont(name:size:)` from bundled files, `italicSystemFont`, `monospacedSystemFont`, `UIFontMetrics` scaling with the content size categories, `preferredContentSizeCategory` in the trait collection. ([UIFont.md](Docs/elements/UIKit/UIFont.md))
 - ☐ **UITextField borders, buttons and views** `uk-textfield` · Text · missing  
@@ -196,6 +194,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Sheet detents, popovers and custom presentations** `uk-sheets` · UIKit · Presentation
 - ☑ 2026-10-04 **UIMenu presentation** `uk-menus` · UIKit · Menus
 - ☑ 2026-10-04 **UIButton images, subtitles and states** `uk-button` · UIKit · Controls
+- ☑ 2026-10-04 **UILabel attributed text and fitting** `uk-label` · UIKit · Text
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

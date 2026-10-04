@@ -101,11 +101,18 @@ enum Generator {
     /// its lines counted from the height, the baselines at the font's ascender per line.
     static func measure(_ request: UIKitTextRequest) -> [String: Double] {
         let label = UILabel()
-        label.text = request.string
-        label.font = request.font.uiFont
+        if request.runs.count > 1 {
+            // An attributed string: each run in its font; the tallest font gives the line.
+            let text = NSMutableAttributedString()
+            for run in request.runs { text.append(NSAttributedString(string: run.string, attributes: [.font: run.font.uiFont])) }
+            label.attributedText = text
+        } else {
+            label.text = request.string
+            label.font = request.font.uiFont
+        }
         label.numberOfLines = request.lines
         let size = label.sizeThatFits(CGSize(width: request.width ?? CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
-        let font = label.font!
+        let font = request.runs.map(\.font.uiFont).max { $0.lineHeight < $1.lineHeight } ?? label.font!
         let lines = max(1, (size.height / font.lineHeight).rounded())
         return ["width": size.width, "height": size.height,
                 "firstBaseline": font.ascender, "lastBaseline": font.ascender + font.lineHeight * (lines - 1)]
