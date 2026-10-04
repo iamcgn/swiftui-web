@@ -114,9 +114,9 @@ public struct NavigationPath: Equatable {
         var items: [String] = []
         for element in elements.reversed() {
             guard let encodable = element.base as? any Encodable, let name = _mangledTypeName(type(of: element.base)),
-                  let data = try? _TransferJSONEncoder().encode(encodable), let json = String(data: data, encoding: .utf8) else { return nil }
+                  let data = try? _TransferJSONEncoder().encode(encodable) else { return nil }
             items.append(name)
-            items.append(json)
+            items.append(String(decoding: data, as: UTF8.self))
         }
         return CodableRepresentation(items: items)
     }
