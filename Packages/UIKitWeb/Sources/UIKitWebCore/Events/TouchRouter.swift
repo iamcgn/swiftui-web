@@ -36,7 +36,9 @@ final class TouchRouter {
             view = v.superview
         }
         touch.gestureRecognizers = recognizers
+        for recognizer in recognizers { recognizer.outcomeThisTouch = nil; recognizer.deferredState = nil }
         for recognizer in recognizers { recognizer.touchesBegan([touch], with: event) }
+        Self.arbitrate(recognizers)
         if !recognizers.contains(where: { $0.hasRecognized && $0.cancelsTouchesInView }) {
             hit?.touchesBegan([touch], with: event)
         }
@@ -58,6 +60,7 @@ final class TouchRouter {
         touch.phase = .moved
         let wasRecognized = touch.gestureRecognizers?.contains { $0.hasRecognized && $0.cancelsTouchesInView } ?? false
         for recognizer in touch.gestureRecognizers ?? [] { recognizer.touchesMoved([touch], with: event) }
+        Self.arbitrate(touch.gestureRecognizers ?? [])
         let recognized = touch.gestureRecognizers?.contains { $0.hasRecognized && $0.cancelsTouchesInView } ?? false
         if recognized, !wasRecognized {
             touch.phase = .cancelled
@@ -84,15 +87,50 @@ final class TouchRouter {
             if !recognized { touch.view?.touchesCancelled([touch], with: event) }
         } else {
             for recognizer in touch.gestureRecognizers ?? [] { recognizer.touchesEnded([touch], with: event) }
+            Self.arbitrate(touch.gestureRecognizers ?? [], touchEnded: true)
             let nowRecognized = touch.gestureRecognizers?.contains { $0.cancelsTouchesInView && $0.hasRecognizedThisFrame } ?? false
             if !recognized {
                 if nowRecognized { touch.view?.touchesCancelled([touch], with: event) } else { touch.view?.touchesEnded([touch], with: event) }
             }
         }
-        for recognizer in touch.gestureRecognizers ?? [] { recognizer.hasRecognizedThisFrame = false }
+        for recognizer in touch.gestureRecognizers ?? [] { recognizer.hasRecognizedThisFrame = false; recognizer.outcomeThisTouch = nil; recognizer.deferredState = nil }
         activeTouch = nil
         activeEvent = nil
         UIKitScene.shared.setNeedsFrame()
+    }
+}
+
+extension TouchRouter {
+    /// Decides between the recognizers sharing a touch after an event pass: a transition held
+    /// back by a failure requirement goes through once the required recognizers failed (or
+    /// fails when one of them recognized; at the touch's end an undecided requirement counts as
+    /// failed); then, as only one recognizer recognizes at a time, the recognizers still
+    /// possible fail when another has begun or recognized, unless a delegate lets the two
+    /// recognize simultaneously.
+    static func arbitrate(_ recognizers: [UIGestureRecognizer], touchEnded: Bool = false) {
+        var changed = true
+        var passes = 0
+        while changed, passes < 8 {
+            changed = false
+            passes += 1
+            for recognizer in recognizers where recognizer.deferredState != nil {
+                let required = recognizer.requiredToFail(among: recognizers)
+                if required.contains(where: { $0.outcomeThisTouch == .recognized || $0.hasRecognized }) {
+                    recognizer.applyTransition(to: .failed)
+                    changed = true
+                } else if touchEnded || required.allSatisfy({ $0.outcomeThisTouch == .failed }) {
+                    recognizer.applyTransition(to: recognizer.deferredState ?? .failed)
+                    changed = true
+                }
+            }
+        }
+        let winners = recognizers.filter { $0.hasRecognized || $0.hasRecognizedThisFrame }
+        guard !winners.isEmpty else { return }
+        for recognizer in recognizers where recognizer.state == .possible && recognizer.outcomeThisTouch == nil && !recognizer.hasRecognizedThisFrame {
+            if winners.contains(where: { !$0.canRecognizeSimultaneously(with: recognizer) }) {
+                recognizer.applyTransition(to: .failed)
+            }
+        }
     }
 }
 

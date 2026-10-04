@@ -136,6 +136,7 @@ open class UIScrollView: UIView {
         super.init(frame: frame)
         clipsToBounds = true
         let pan = UIPanGestureRecognizer()
+        pan.allowsSimultaneousRecognition = true
         pan.addTarget { [weak self] recognizer in self?.handlePan(recognizer as! UIPanGestureRecognizer) }
         panGestureRecognizer = pan
         addGestureRecognizer(pan)

@@ -476,6 +476,7 @@ open class UICollectionView: UIScrollView {
         layout.collectionView = self
         backgroundColor = .systemBackground
         let tap = UITapGestureRecognizer()
+        tap.allowsSimultaneousRecognition = true
         tap.addTarget { [weak self] recognizer in self?.handleTap(recognizer) }
         addGestureRecognizer(tap)
     }

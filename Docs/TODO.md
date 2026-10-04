@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 34 | 0 | 23 | 11 |
+| UIKit | 33 | 0 | 22 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **72** | 0 | 24 | 48 |
+| **All** | **71** | 0 | 23 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Pinch, rotation, swipe and edge pans** `uk-gestures` · Events · missing  
-  `UIPinchGestureRecognizer`, `UIRotationGestureRecognizer`, `UISwipeGestureRecognizer`, `UIScreenEdgePanGestureRecognizer`; the delegate's simultaneous-recognition and failure-requirement methods honoured across all recognizers. ([Events](Packages/UIKitWeb/Sources/UIKitWebCore/Events))
 - ☐ **Interactive pop, large-title collapse, custom transitions** `uk-nav-polish` · Navigation · missing  
   The edge-pan interactive pop, the large title collapsing as the content scrolls (SwiftUI's iOS profile has it), `titleView` sizing, `hidesBottomBarWhenPushed`, `UIViewControllerTransitioningDelegate` and animated transitioning, the appearance objects (accepted). ([Navigation.md](Docs/elements/UIKit/Navigation.md))
 - ☐ **Sheet detents, popovers and custom presentations** `uk-sheets` · Presentation · missing  
@@ -201,6 +199,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Simultaneous, pinch and rotate gestures** `sw-gestures` · SwiftUI · Gestures
 - ☑ 2026-10-04 **Focused values, sections and commands** `sw-focus` · SwiftUI · Focus and keyboard
 - ☑ 2026-10-04 **Custom actions, rotors and a VoiceOver session** `sw-accessibility` · SwiftUI · Accessibility
+- ☑ 2026-10-04 **Pinch, rotation, swipe and edge pans** `uk-gestures` · UIKit · Events
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

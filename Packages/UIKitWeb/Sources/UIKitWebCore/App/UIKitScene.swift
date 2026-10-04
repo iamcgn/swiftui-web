@@ -329,6 +329,32 @@ public final class UIKitScene: HostedScene {
 
     public func secondaryPointerDown(at point: CGPoint) {}
 
+    /// The pinch and rotation recognizers on the view under the pinch's centre and its
+    /// superviews, fixed when the pinch begins; both see every phase (the first to begin wins
+    /// unless a delegate lets them recognize simultaneously).
+    private var pinchRecognizers: [UIGestureRecognizer] = []
+
+    public func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double) {
+        if phase == .began {
+            guard let window = windows.last(where: { !$0.isHidden }) else { return }
+            var recognizers: [UIGestureRecognizer] = []
+            var view = window.hitTest(window.convert(point, from: nil), with: nil)
+            while let v = view {
+                recognizers += (v.gestureRecognizers ?? []).filter { $0.isEnabled && ($0 is UIPinchGestureRecognizer || $0 is UIRotationGestureRecognizer) }
+                view = v.superview
+            }
+            pinchRecognizers = recognizers
+            for recognizer in recognizers { recognizer.outcomeThisTouch = nil; recognizer.deferredState = nil; recognizer.pinchPeers = recognizers }
+        }
+        for recognizer in pinchRecognizers { recognizer.pinch(phase, scale: scale, rotation: rotation, location: point, time: time) }
+        TouchRouter.arbitrate(pinchRecognizers, touchEnded: phase == .ended || phase == .cancelled)
+        if phase == .ended || phase == .cancelled {
+            for recognizer in pinchRecognizers { recognizer.hasRecognizedThisFrame = false; recognizer.outcomeThisTouch = nil; recognizer.pinchPeers = nil }
+            pinchRecognizers = []
+        }
+        setNeedsFrame()
+    }
+
     public func scrollWheel(by delta: CGSize, at point: CGPoint) {
         guard let window = windows.last(where: { !$0.isHidden }) else { return }
         var view = window.hitTest(point, with: nil)

@@ -23,6 +23,44 @@ open class UIGestureRecognizer {
     open weak var delegate: (any UIGestureRecognizerDelegate)?
     var handlers: [(UIGestureRecognizer) -> Void] = []
     var touches: [UITouch] = []
+    /// Recognizers this one waits for (`require(toFail:)`): it recognizes only once they failed.
+    private(set) var failureRequirements: [WeakRecognizer] = []
+    /// A transition held back while a required recognizer is still undecided.
+    var deferredState: State?
+    /// How the recognizer fared on the touch in flight (nil while still possible).
+    enum Outcome { case recognized, failed }
+    var outcomeThisTouch: Outcome?
+
+    /// Makes this recognizer wait for `otherGestureRecognizer` to fail before it can recognize
+    /// (a single tap deferring to a double tap).
+    open func require(toFail otherGestureRecognizer: UIGestureRecognizer) {
+        failureRequirements.append(WeakRecognizer(recognizer: otherGestureRecognizer))
+    }
+
+    /// The recognizers this one must see fail first: its own requirements and the delegates'.
+    func requiredToFail(among others: [UIGestureRecognizer]) -> [UIGestureRecognizer] {
+        var result = failureRequirements.compactMap(\.recognizer)
+        for other in others where other !== self {
+            if delegate?.gestureRecognizer(self, shouldRequireFailureOf: other) == true
+                || other.delegate?.gestureRecognizer(other, shouldBeRequiredToFailBy: self) == true {
+                result.append(other)
+            }
+        }
+        return result
+    }
+
+    /// The framework's own recognizers (scroll views' pans, a table's swipe pan and tap) run
+    /// alongside any other, as UIKit's internal recognizers cooperate: each decides on its own
+    /// whether a drag is its (`UIScrollView.ignoringPan`, the table's delegate methods).
+    var allowsSimultaneousRecognition = false
+
+    /// Whether this recognizer and `other` may recognize at once (either delegate agreeing, or
+    /// either being one of the framework's cooperative recognizers).
+    func canRecognizeSimultaneously(with other: UIGestureRecognizer) -> Bool {
+        allowsSimultaneousRecognition || other.allowsSimultaneousRecognition
+            || (delegate?.gestureRecognizer(self, shouldRecognizeSimultaneouslyWith: other) ?? false)
+            || (other.delegate?.gestureRecognizer(other, shouldRecognizeSimultaneouslyWith: self) ?? false)
+    }
 
     public init() {}
 
@@ -49,11 +87,37 @@ open class UIGestureRecognizer {
         return touches[index].location(in: view)
     }
 
-    /// Moves to `state` and calls the handlers.
+    /// Moves to `state` and calls the handlers. Recognition (`began`, `ended`) waits while a
+    /// recognizer this one requires to fail is still undecided (`TouchRouter.arbitrate`).
     func transition(to newState: State) {
+        // A recognizer that failed stays failed until the touch sequence ends.
+        if outcomeThisTouch == .failed { return }
+        if newState == .began || newState == .ended, state == .possible {
+            let peers = touches.first?.gestureRecognizers ?? pinchPeers ?? []
+            // A required recognizer that recognized fails this one; an undecided one holds it.
+            let required = requiredToFail(among: peers)
+            if required.contains(where: { $0.outcomeThisTouch == .recognized || $0.hasRecognized }) { applyTransition(to: .failed); return }
+            if required.contains(where: { $0.outcomeThisTouch == nil && !$0.hasRecognized }) { deferredState = newState; return }
+            // Only one recognizer recognizes a touch unless a delegate allows both.
+            if peers.contains(where: { $0 !== self && ($0.hasRecognized || $0.hasRecognizedThisFrame) && !$0.canRecognizeSimultaneously(with: self) }) {
+                applyTransition(to: .failed)
+                return
+            }
+        }
+        applyTransition(to: newState)
+    }
+
+    /// The recognizers sharing a pinch (no touches carry them).
+    var pinchPeers: [UIGestureRecognizer]?
+
+    func applyTransition(to newState: State) {
+        deferredState = nil
         state = newState
         if newState == .ended { hasRecognizedThisFrame = true }
-        if newState != .possible {
+        if newState == .began || newState == .ended { outcomeThisTouch = .recognized }
+        if newState == .failed || newState == .cancelled { outcomeThisTouch = .failed }
+        // Actions see began, changed, ended and cancelled; a failure is not reported.
+        if newState != .possible, newState != .failed {
             for handler in handlers { handler(self) }
         }
         if newState == .ended || newState == .cancelled || newState == .failed {
@@ -63,6 +127,9 @@ open class UIGestureRecognizer {
             reset()
         }
     }
+
+    /// A pinch from the host (the scene feeds pinch and rotation recognizers; others ignore it).
+    func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: CGFloat, location: CGPoint, time: Double) {}
 
     open func reset() {}
 
@@ -86,18 +153,26 @@ open class UIGestureRecognizer {
     var hasRecognizedThisFrame = false
 }
 
+struct WeakRecognizer {
+    weak var recognizer: UIGestureRecognizer?
+}
+
 /// Fine-tuning of gesture recognition.
 @MainActor
 public protocol UIGestureRecognizerDelegate: AnyObject {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool
 }
 
 extension UIGestureRecognizerDelegate {
     public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool { true }
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { false }
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool { true }
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool { false }
 }
 
 /// A discrete gesture recognizer that interprets single or multiple taps.
@@ -247,5 +322,189 @@ open class UIPanGestureRecognizer: UIGestureRecognizer {
         translationOffset = .zero
         accumulated = .zero
         currentVelocity = .zero
+    }
+}
+
+/// A discrete gesture recognizer that interprets swiping gestures in one or more directions.
+@MainActor
+open class UISwipeGestureRecognizer: UIGestureRecognizer {
+    public struct Direction: OptionSet, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let right = Direction(rawValue: 1 << 0)
+        public static let left = Direction(rawValue: 1 << 1)
+        public static let up = Direction(rawValue: 1 << 2)
+        public static let down = Direction(rawValue: 1 << 3)
+    }
+
+    open var direction: Direction = .right
+    open var numberOfTouchesRequired = 1
+    private var startLocation = CGPoint.zero
+    private var startTime: Double = 0
+    private var decided = false
+
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesBegan(touches, with: event)
+        guard let touch = touches.first else { return }
+        startLocation = touch.location(in: nil)
+        startTime = event.timestamp
+        decided = false
+    }
+
+    /// Recognizes once the finger travelled 50 pt mostly along a permitted direction within
+    /// half a second; a slow or sideways move fails.
+    override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        guard let touch = touches.first, !decided else { return }
+        let location = touch.location(in: nil)
+        let dx = location.x - startLocation.x, dy = location.y - startLocation.y
+        let distance = max(abs(dx), abs(dy))
+        guard distance >= 50 else { return }
+        decided = true
+        if event.timestamp - startTime > 0.5 { transition(to: .failed); return }
+        let swiped: Direction
+        if abs(dx) >= abs(dy) { swiped = dx > 0 ? .right : .left } else { swiped = dy > 0 ? .down : .up }
+        guard min(abs(dx), abs(dy)) <= distance / 2, direction.contains(swiped), mayBegin() else { transition(to: .failed); return }
+        transition(to: .ended)
+    }
+
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        if !decided { transition(to: .failed) }
+    }
+}
+
+/// A continuous gesture recognizer that interprets panning gestures that start near an edge of
+/// the screen.
+@MainActor
+open class UIScreenEdgePanGestureRecognizer: UIPanGestureRecognizer {
+    open var edges: UIRectEdge = []
+    private var startedAtEdge = false
+    /// How far from the edge a pan may start.
+    static let edgeWidth: CGFloat = 20
+
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesBegan(touches, with: event)
+        guard let touch = touches.first, let window = touch.window else { startedAtEdge = false; return }
+        let location = touch.location(in: nil)
+        let bounds = window.bounds
+        startedAtEdge = (edges.contains(.left) && location.x <= bounds.minX + Self.edgeWidth)
+            || (edges.contains(.right) && location.x >= bounds.maxX - Self.edgeWidth)
+            || (edges.contains(.top) && location.y <= bounds.minY + Self.edgeWidth)
+            || (edges.contains(.bottom) && location.y >= bounds.maxY - Self.edgeWidth)
+        if !startedAtEdge { transition(to: .failed) }
+    }
+
+    override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        guard startedAtEdge else { return }
+        super.touchesMoved(touches, with: event)
+    }
+
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        guard startedAtEdge else { return }
+        super.touchesEnded(touches, with: event)
+    }
+}
+
+/// A continuous gesture recognizer that interprets pinching gestures (fed by the host's
+/// trackpad or two-finger pinch through `UIKitScene.pinch`).
+@MainActor
+open class UIPinchGestureRecognizer: UIGestureRecognizer {
+    open var scale: CGFloat = 1
+    open private(set) var velocity: CGFloat = 0
+    private var lastScale: CGFloat = 1
+    private var lastTime: Double = 0
+    private var centre = CGPoint.zero
+    private weak var window: UIWindow?
+
+    override open func location(in view: UIView?) -> CGPoint {
+        guard let view, let window else { return centre }
+        return window.convert(centre, to: view)
+    }
+
+    override open var numberOfTouches: Int { state == .possible ? 0 : 2 }
+
+    override func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: CGFloat, location: CGPoint, time: Double) {
+        centre = location
+        window = view?.window
+        switch phase {
+        case .began:
+            lastScale = 1
+            lastTime = time
+            velocity = 0
+            self.scale = 1
+        case .changed:
+            if time > lastTime { velocity = (scale - lastScale) / (time - lastTime) }
+            lastScale = scale
+            lastTime = time
+            self.scale = scale
+            if state == .possible {
+                // Begins once the scale has moved a hundredth.
+                guard abs(scale - 1) >= 0.01, mayBegin() else { return }
+                transition(to: .began)
+            } else {
+                transition(to: .changed)
+            }
+        case .ended:
+            self.scale = scale
+            if state == .began || state == .changed { transition(to: .ended) } else { transition(to: .failed) }
+        case .cancelled:
+            if state == .began || state == .changed { transition(to: .cancelled) } else { transition(to: .failed) }
+        }
+    }
+
+    override open func reset() {
+        scale = 1
+        velocity = 0
+    }
+}
+
+/// A continuous gesture recognizer that interprets rotation gestures involving two touches.
+@MainActor
+open class UIRotationGestureRecognizer: UIGestureRecognizer {
+    open var rotation: CGFloat = 0
+    open private(set) var velocity: CGFloat = 0
+    private var lastRotation: CGFloat = 0
+    private var lastTime: Double = 0
+    private var centre = CGPoint.zero
+    private weak var window: UIWindow?
+
+    override open func location(in view: UIView?) -> CGPoint {
+        guard let view, let window else { return centre }
+        return window.convert(centre, to: view)
+    }
+
+    override open var numberOfTouches: Int { state == .possible ? 0 : 2 }
+
+    override func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: CGFloat, location: CGPoint, time: Double) {
+        centre = location
+        window = view?.window
+        switch phase {
+        case .began:
+            lastRotation = 0
+            lastTime = time
+            velocity = 0
+            self.rotation = 0
+        case .changed:
+            if time > lastTime { velocity = (rotation - lastRotation) / (time - lastTime) }
+            lastRotation = rotation
+            lastTime = time
+            self.rotation = rotation
+            if state == .possible {
+                // Begins once the fingers turned half a degree.
+                guard abs(rotation) >= 0.5 * .pi / 180, mayBegin() else { return }
+                transition(to: .began)
+            } else {
+                transition(to: .changed)
+            }
+        case .ended:
+            self.rotation = rotation
+            if state == .began || state == .changed { transition(to: .ended) } else { transition(to: .failed) }
+        case .cancelled:
+            if state == .began || state == .changed { transition(to: .cancelled) } else { transition(to: .failed) }
+        }
+    }
+
+    override open func reset() {
+        rotation = 0
+        velocity = 0
     }
 }

@@ -1401,9 +1401,9 @@
           ]
         },
         {
-          "api": "Gesture recognizers (UITapGestureRecognizer / UILongPressGestureRecognizer / UIPanGestureRecognizer / UIHoverGestureRecognizer, delegate, closure targets)",
-          "status": "partial",
-          "notes": "Touches route through TouchRouter to the hit view's recognizers, then the view; a pan drives scroll views and switches; hover follows press-less pointer moves; open: pinch, rotation, swipe and screen-edge recognizers, the failure-requirement delegate methods",
+          "api": "Gesture recognizers (UITapGestureRecognizer / UILongPressGestureRecognizer / UIPanGestureRecognizer / UISwipeGestureRecognizer / UIScreenEdgePanGestureRecognizer / UIPinchGestureRecognizer / UIRotationGestureRecognizer / UIHoverGestureRecognizer, delegate, require(toFail:), closure targets)",
+          "status": "full",
+          "notes": "Touches route through TouchRouter to the hit view's recognizers, then the view; a pan drives scroll views and switches; hover follows press-less pointer moves; pinches and rotations come from the host's pinch; recognizers arbitrate (exclusivity, simultaneous recognition and failure requirements through the delegate; an undecided requirement counts as failed when the touch ends) (Docs/elements/UIKit/Gestures.md)",
           "fixtures": [
             "uikit/controls/basic",
             "uikit/table/editing",

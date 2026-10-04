@@ -182,12 +182,14 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
         backgroundColor = style == .plain ? .systemBackground : UIColor(light: RGBA(r: 242, g: 242, b: 247), dark: .black)
         alwaysBounceVertical = true
         let swipe = UIPanGestureRecognizer()
+        swipe.allowsSimultaneousRecognition = true
         swipe.delegate = self
         swipe.addTarget { [weak self] recognizer in self?.handleSwipe(recognizer as! UIPanGestureRecognizer) }
         addGestureRecognizer(swipe)
         swipeRecognizer = swipe
         panGestureRecognizer.delegate = self
         let tap = UITapGestureRecognizer()
+        tap.allowsSimultaneousRecognition = true
         tap.delegate = self
         tap.addTarget { [weak self] recognizer in self?.handleTap(recognizer) }
         addGestureRecognizer(tap)

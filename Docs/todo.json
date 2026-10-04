@@ -1230,13 +1230,15 @@
       "framework": "UIKit",
       "area": "Events",
       "title": "Pinch, rotation, swipe and edge pans",
-      "detail": "`UIPinchGestureRecognizer`, `UIRotationGestureRecognizer`, `UISwipeGestureRecognizer`, `UIScreenEdgePanGestureRecognizer`; the delegate's simultaneous-recognition and failure-requirement methods honoured across all recognizers.",
+      "detail": "Done 2026-10-04: UISwipeGestureRecognizer, UIScreenEdgePanGestureRecognizer, UIPinchGestureRecognizer and UIRotationGestureRecognizer (from UIKitScene.pinch), TouchRouter.arbitrate honouring the delegate's simultaneous-recognition and failure-requirement methods plus require(toFail:) across all recognizers (an undecided requirement counts as failed at the touch's end); actions no longer report failures (Docs/elements/UIKit/Gestures.md, GestureTests).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
+        "Docs/elements/UIKit/Gestures.md",
         "Packages/UIKitWeb/Sources/UIKitWebCore/Events"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-nav-polish",

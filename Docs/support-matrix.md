@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 48 | 1 | 44 | 2 | 1 | 0 |
+| UIKit | 48 | 2 | 43 | 2 | 1 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **188** | 26 | 149 | 6 | 4 | 3 |
+| **All** | **188** | 27 | 148 | 6 | 4 | 3 |
 
 ## App lifecycle
 
@@ -184,7 +184,7 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | `UIView: tree, geometry and the layout cycle` | 🟢 partial | addSubview / insertSubview / removeFromSuperview / bringSubviewToFront / sendSubviewToBack / exchangeSubview, superview / subviews / window, frame / bounds / center / transform / autoresizingMask, convert(_:to:), setNeedsLayout / layoutIfNeeded / layoutSubviews, sizeThatFits / sizeToFit / intrinsicContentSize / invalidateIntrinsicContentSize / systemLayoutSizeFitting, hugging and compression priorities, layoutMargins, safeAreaInsets (a window's, a container's bars, a hosted tree's), hitTest / point(inside:); open: pixel checks of the painted corners, borders and shadows against the simulator | uikit/view/autoresizing, uikit/view/layers, uikit/autolayout/fitting |
 | `CALayer (cornerRadius / cornerCurve / maskedCorners / border / shadow / opacity / mask / backgroundColor / sublayers / zPosition)` | 🟢 partial | Painted into the display list at the layer's frame; continuous corners as SwiftUI's; masksToBounds clips; open: layer transforms beyond translation, CAShapeLayer paths beyond fills and strokes | uikit/view/layers |
 | `Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)` | 🟢 partial | The window's style, a hosted tree's overrides (style, size classes, layout direction, content size category), traitCollectionDidChange down the tree; open: overrideUserInterfaceStyle on a view, registerForTraitChanges | uikit/dark/*, ios/representable/traits, ios/dark/representable-controls |
-| `Gesture recognizers (UITapGestureRecognizer / UILongPressGestureRecognizer / UIPanGestureRecognizer / UIHoverGestureRecognizer, delegate, closure targets)` | 🟢 partial | Touches route through TouchRouter to the hit view's recognizers, then the view; a pan drives scroll views and switches; hover follows press-less pointer moves; open: pinch, rotation, swipe and screen-edge recognizers, the failure-requirement delegate methods | uikit/controls/basic, uikit/table/editing, ios/representable/hover |
+| `Gesture recognizers (UITapGestureRecognizer / UILongPressGestureRecognizer / UIPanGestureRecognizer / UISwipeGestureRecognizer / UIScreenEdgePanGestureRecognizer / UIPinchGestureRecognizer / UIRotationGestureRecognizer / UIHoverGestureRecognizer, delegate, require(toFail:), closure targets)` | ✅ full | Touches route through TouchRouter to the hit view's recognizers, then the view; a pan drives scroll views and switches; hover follows press-less pointer moves; pinches and rotations come from the host's pinch; recognizers arbitrate (exclusivity, simultaneous recognition and failure requirements through the delegate; an undecided requirement counts as failed when the touch ends) (Docs/elements/UIKit/Gestures.md) | uikit/controls/basic, uikit/table/editing, ios/representable/hover |
 | `UIInteraction / UIPointerInteraction / UIPointerStyle / UIButton.isPointerInteractionEnabled` | 🟢 partial | Regions and styles from the delegate; beams, shapes and effects map to the cursors a browser can show; the pointer's own morphing is not drawn | ios/representable/hover |
 | `Accessibility (isAccessibilityElement, accessibilityLabel / Value / Traits / Identifier, accessibilityActivate / Increment / Decrement)` | 🟢 partial | Every view contributes to the scene's semantics tree, which the browser host mirrors into the DOM overlay and the routing by identifier drives | — The semantics tree is not pixels: the Playwright probes and HoverTests read it through the overlay. |
 
