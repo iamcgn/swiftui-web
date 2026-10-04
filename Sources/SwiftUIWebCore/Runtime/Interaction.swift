@@ -70,7 +70,10 @@ extension ViewNode {
         if capturesHitTesting, predicate(self), contains(point) { return self }
         for child in paintOrderedChildren.reversed() {
             let shift = child.hitTestOffset
-            let local = CGPoint(x: point.x - child.frame.minX - shift.x, y: point.y - child.frame.minY - shift.y)
+            var local = CGPoint(x: point.x - child.frame.minX - shift.x, y: point.y - child.frame.minY - shift.y)
+            // A transformed child is hit where it paints: the point goes back through its transform.
+            let transform = child.hitTestTransform
+            if transform != .identity, transform.a * transform.d - transform.b * transform.c != 0 { local = local.applying(transform.inverted()) }
             if child.clipsHitTesting, !child.contains(local) { continue }
             if let hit = child.hitTest(local, where: predicate) { return hit }
         }

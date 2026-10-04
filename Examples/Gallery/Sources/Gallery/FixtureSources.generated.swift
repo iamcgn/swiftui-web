@@ -6307,6 +6307,25 @@ public static let basic = Fixture("toolbar/basic", size: CGSize(width: 400, heig
         FixtureSource(name: "toolbar/searchable", file: "Fixtures/Sources/Toolbar/ToolbarFixtures.swift", firstLine: 46, lastLine: 46, declaration: #"""
 public static let searchable = Fixture("toolbar/searchable", size: CGSize(width: 400, height: 200), content: { SearchableDemo() })
 """#),
+        FixtureSource(name: "transform/3d", file: "Fixtures/Sources/Transform/TransformFixtures.swift", firstLine: 45, lastLine: 61, declaration: #"""
+/// A 3D rotation about the depth axis, a projection and a custom `GeometryEffect`. Rotations
+/// about the x and y axes are not capturable (the harness's `cacheDisplay` drops or misplaces
+/// the layers Apple turns in perspective), so they stay out and are unit-tested only.
+public static let threeD = Fixture("transform/3d", size: CGSize(width: 320, height: 200)) {
+    VStack(spacing: 30) {
+        HStack(spacing: 40) {
+            Color.green.frame(width: 40, height: 40).rotation3DEffect(.degrees(45), axis: (x: 0, y: 0, z: 1)).probe("aboutZ")
+        }
+        .probe("row1")
+        HStack(spacing: 40) {
+            Color.orange.frame(width: 40, height: 40).projectionEffect(ProjectionTransform(CGAffineTransform(a: 1, b: 0, c: 0.5, d: 1, tx: 0, ty: 0))).probe("projected")
+            Color.purple.frame(width: 40, height: 40).modifier(FixtureSkew(amount: 0.4)).probe("skewed")
+        }
+        .probe("row2")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "transform/basic", file: "Fixtures/Sources/Transform/TransformFixtures.swift", firstLine: 13, lastLine: 30, declaration: #"""
 public static let basic = Fixture("transform/basic", size: CGSize(width: 320, height: 260)) {
     VStack(spacing: 24) {
@@ -15575,7 +15594,38 @@ public enum TransformFixtures {
         .probe("row")
     }
 
-    public static let all: [Fixture] = [basic, steps]
+    /// A 3D rotation about the depth axis, a projection and a custom `GeometryEffect`. Rotations
+    /// about the x and y axes are not capturable (the harness's `cacheDisplay` drops or misplaces
+    /// the layers Apple turns in perspective), so they stay out and are unit-tested only.
+    public static let threeD = Fixture("transform/3d", size: CGSize(width: 320, height: 200)) {
+        VStack(spacing: 30) {
+            HStack(spacing: 40) {
+                Color.green.frame(width: 40, height: 40).rotation3DEffect(.degrees(45), axis: (x: 0, y: 0, z: 1)).probe("aboutZ")
+            }
+            .probe("row1")
+            HStack(spacing: 40) {
+                Color.orange.frame(width: 40, height: 40).projectionEffect(ProjectionTransform(CGAffineTransform(a: 1, b: 0, c: 0.5, d: 1, tx: 0, ty: 0))).probe("projected")
+                Color.purple.frame(width: 40, height: 40).modifier(FixtureSkew(amount: 0.4)).probe("skewed")
+            }
+            .probe("row2")
+        }
+        .probe("stack")
+    }
+
+    public static let all: [Fixture] = [basic, steps, threeD]
+}
+
+/// A custom geometry effect: a horizontal skew by `amount` of the height.
+public struct FixtureSkew: GeometryEffect {
+    public var amount: CGFloat
+    public init(amount: CGFloat) { self.amount = amount }
+    public var animatableData: CGFloat {
+        get { amount }
+        set { amount = newValue }
+    }
+    public func effectValue(size: CGSize) -> ProjectionTransform {
+        ProjectionTransform(CGAffineTransform(a: 1, b: 0, c: amount, d: 1, tx: -amount * size.height / 2, ty: 0))
+    }
 }
 """#,
         "Fixtures/Sources/Unavailable/UnavailableFixtures.swift": #"""

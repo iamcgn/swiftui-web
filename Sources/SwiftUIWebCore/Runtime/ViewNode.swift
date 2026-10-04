@@ -113,6 +113,10 @@ open class ViewNode {
     /// hit testing with it).
     package var hitTestOffset: CGPoint { .zero }
 
+    /// The transform this node paints its content through, in its own coordinates (rotation,
+    /// scale, affine and 3D effects); hit testing maps points through its inverse.
+    package var hitTestTransform: CGAffineTransform { .identity }
+
     /// Whether points outside this node's bounds cannot hit its descendants (scroll views clip;
     /// other containers let offset or transformed children be hit where they paint).
     package var clipsHitTesting: Bool { false }
@@ -248,7 +252,8 @@ open class ViewNode {
         let scale = presentedTransitionScale
         if scale != 1 {
             let size = presentedFrame.size
-            let centre = CGPoint(x: context.origin.x + size.width / 2, y: context.origin.y + size.height / 2)
+            let anchor = presentation?.transition?.effects.scaleAnchor ?? .center
+            let centre = CGPoint(x: context.origin.x + size.width * anchor.x, y: context.origin.y + size.height * anchor.y)
             list.append(.save)
             list.append(.concat(CGAffineTransform(translationX: -centre.x, y: -centre.y).concatenating(CGAffineTransform(scaleX: scale, y: scale))
                                     .concatenating(CGAffineTransform(translationX: centre.x, y: centre.y))))

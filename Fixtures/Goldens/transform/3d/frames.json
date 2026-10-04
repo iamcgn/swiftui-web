@@ -1,0 +1,45 @@
+{
+  "fixture" : "transform\/3d",
+  "frames" : {
+    "aboutZ" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 140,
+      "y" : 45
+    },
+    "projected" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 100,
+      "y" : 115
+    },
+    "row1" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 140,
+      "y" : 45
+    },
+    "row2" : {
+      "height" : 40,
+      "width" : 120,
+      "x" : 100,
+      "y" : 115
+    },
+    "skewed" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 180,
+      "y" : 115
+    },
+    "stack" : {
+      "height" : 110,
+      "width" : 120,
+      "x" : 100,
+      "y" : 45
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

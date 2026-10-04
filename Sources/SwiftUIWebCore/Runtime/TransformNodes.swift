@@ -85,6 +85,10 @@ package final class RotationNode<Content: View>: UnaryLayoutModifierNode<Content
         let transform = aboutAnchor(CGAffineTransform(rotationAngle: CGFloat(radians)), origin: context.origin, size: node.presentedFrame.size, anchor: modifier.anchor)
         paintTransformed(transform, into: &list) { list in super.paintTarget(target, in: node, into: &list, context: context) }
     }
+
+    override package var hitTestTransform: CGAffineTransform {
+        aboutAnchor(CGAffineTransform(rotationAngle: CGFloat(presentedEffect(current)[0])), origin: .zero, size: frame.size, anchor: modifier.anchor)
+    }
 }
 
 @MainActor
@@ -101,6 +105,11 @@ package final class ScaleNode<Content: View>: UnaryLayoutModifierNode<Content, _
         let v = presentedEffect(current)
         let transform = aboutAnchor(CGAffineTransform(scaleX: CGFloat(v[0]), y: CGFloat(v[1])), origin: context.origin, size: node.presentedFrame.size, anchor: modifier.anchor)
         paintTransformed(transform, into: &list) { list in super.paintTarget(target, in: node, into: &list, context: context) }
+    }
+
+    override package var hitTestTransform: CGAffineTransform {
+        let v = presentedEffect(current)
+        return aboutAnchor(CGAffineTransform(scaleX: CGFloat(v[0]), y: CGFloat(v[1])), origin: .zero, size: frame.size, anchor: modifier.anchor)
     }
 }
 
@@ -122,4 +131,96 @@ package final class TransformNode<Content: View>: UnaryLayoutModifierNode<Conten
         let transform = aboutAnchor(local, origin: context.origin, size: node.presentedFrame.size, anchor: .topLeading)
         paintTransformed(transform, into: &list) { list in super.paintTarget(target, in: node, into: &list, context: context) }
     }
+
+    override package var hitTestTransform: CGAffineTransform {
+        let v = presentedEffect(current)
+        return CGAffineTransform(a: v[0], b: v[1], c: v[2], d: v[3], tx: v[4], ty: v[5])
+    }
+}
+
+/// `rotation3DEffect`: the rotation's affine part about the anchor (Docs/elements/Transform.md).
+@MainActor
+package final class Rotation3DNode<Content: View>: UnaryLayoutModifierNode<Content, _Rotation3DEffect> {
+    override package var paintsOutsideFrame: Bool { true }
+    private var current: [Double] { [modifier.angle.radians] }
+
+    override package func update(view: ModifiedContent<Content, _Rotation3DEffect>, environment: EnvironmentValues, force: Bool) {
+        let old = presentedEffect(current)
+        super.update(view: view, environment: environment, force: force)
+        tweenEffect(from: old, to: current)
+    }
+
+    private var local: CGAffineTransform { _Rotation3DEffect.affine(radians: presentedEffect(current)[0], axis: modifier.axis) }
+
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        let transform = aboutAnchor(local, origin: context.origin, size: node.presentedFrame.size, anchor: modifier.anchor)
+        paintTransformed(transform, into: &list) { list in super.paintTarget(target, in: node, into: &list, context: context) }
+    }
+
+    override package var hitTestTransform: CGAffineTransform { aboutAnchor(local, origin: .zero, size: frame.size, anchor: modifier.anchor) }
+}
+
+/// `projectionEffect`: the projection's affine part about the view's origin.
+@MainActor
+package final class ProjectionNode<Content: View>: UnaryLayoutModifierNode<Content, _ProjectionEffect> {
+    override package var paintsOutsideFrame: Bool { true }
+    private var current: [Double] { let t = modifier.transform.affine; return [t.a, t.b, t.c, t.d, t.tx, t.ty] }
+
+    override package func update(view: ModifiedContent<Content, _ProjectionEffect>, environment: EnvironmentValues, force: Bool) {
+        let old = presentedEffect(current)
+        super.update(view: view, environment: environment, force: force)
+        tweenEffect(from: old, to: current)
+    }
+
+    private var local: CGAffineTransform { let v = presentedEffect(current); return CGAffineTransform(a: v[0], b: v[1], c: v[2], d: v[3], tx: v[4], ty: v[5]) }
+
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        let transform = aboutAnchor(local, origin: context.origin, size: node.presentedFrame.size, anchor: .topLeading)
+        paintTransformed(transform, into: &list) { list in super.paintTarget(target, in: node, into: &list, context: context) }
+    }
+
+    override package var hitTestTransform: CGAffineTransform { local }
+}
+
+/// A custom `GeometryEffect`: its projection's affine part at the view's size, about the
+/// origin; its animatable data tweens under an animation and the effect is re-evaluated at the
+/// tweened value while painting.
+@MainActor
+package final class GeometryEffectNode<Content: View, Effect: GeometryEffect>: UnaryLayoutModifierNode<Content, _GeometryEffectModifier<Effect>> {
+    override package var paintsOutsideFrame: Bool { true }
+    /// The animatable data a running tween goes from and to; the `effect` presentation slot
+    /// carries the tween's progress (0 to 1).
+    private var tweenFrom: Effect.AnimatableData?
+    private var tweenTo: Effect.AnimatableData?
+
+    override package func update(view: ModifiedContent<Content, _GeometryEffectModifier<Effect>>, environment: EnvironmentValues, force: Bool) {
+        let old = presentedData
+        let changed = (old - view.modifier.effect.animatableData).magnitudeSquared > 0
+        super.update(view: view, environment: environment, force: force)
+        if changed {
+            tweenFrom = old
+            tweenTo = view.modifier.effect.animatableData
+            tweenEffect(from: [0], to: [1])
+        }
+    }
+
+    /// The animatable data to paint with: interpolated while a tween runs.
+    private var presentedData: Effect.AnimatableData {
+        guard let tweenFrom, let tweenTo, let progress = presentation?.effect?.value(at: runtime.animationClock).first else { return modifier.effect.animatableData }
+        return tweenFrom.interpolated(towards: tweenTo, amount: progress)
+    }
+
+    /// The effect at the presented animatable data.
+    private var presentedTransform: CGAffineTransform {
+        var effect = modifier.effect
+        effect.animatableData = presentedData
+        return effect.effectValue(size: frame.size).affine
+    }
+
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        let transform = aboutAnchor(presentedTransform, origin: context.origin, size: node.presentedFrame.size, anchor: .topLeading)
+        paintTransformed(transform, into: &list) { list in super.paintTarget(target, in: node, into: &list, context: context) }
+    }
+
+    override package var hitTestTransform: CGAffineTransform { presentedTransform }
 }

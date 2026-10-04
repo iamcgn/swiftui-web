@@ -914,13 +914,14 @@
       "framework": "SwiftUI",
       "area": "Transform",
       "title": "3D and projection transforms",
-      "detail": "`rotation3DEffect`, `projectionEffect`, `GeometryEffect` conformances, hit testing through rotations and scales, anchors for scale transitions.",
+      "detail": "Done 2026-10-04: rotation3DEffect and projectionEffect paint the affine part of their matrices about the anchor (perspective accepted, not drawn), GeometryEffect conformances through View.modifier with animatable data tweened under an animation, hit testing mapped back through every effect's transform (hitTestTransform), scale transitions about their anchor; transform/3d (a depth-axis turn, a projection, a custom skew) exact, the x and y turns unit-tested because the harness cannot capture them.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Transform.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-symbols",
