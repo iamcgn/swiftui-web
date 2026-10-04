@@ -109,3 +109,29 @@ private struct Linked: View {
         #expect(Text(Image(systemName: "star")).resolvedString == "")
     }
 }
+
+@Suite struct CustomFontMetricsTests {
+    /// Abel's tables (Fixtures/Fonts/Abel-Regular.ttf): 2048 units, ascender 2006, descender −604.
+    private static let abel = FontResource(postScriptName: "Abel-Regular", family: "Abel", file: "Fonts/Abel-Regular.ttf", unitsPerEm: 2048,
+                                           ascender: 2006, descender: -604, lineGap: 0, capHeight: 1434, xHeight: 1044)
+
+    @Test func linesAreTheRoundedAscentPlusTheRoundedDescent() {
+        CustomFontRegistry.register(AssetCatalog(fonts: ["Abel-Regular": Self.abel]))
+        func metrics(_ size: CGFloat) -> SystemFontMetrics {
+            SystemFontMetricsTables.systemFontMetrics(for: ResolvedFont(family: "Abel-Regular", size: size, weight: .regular, italic: false, textStyle: nil))
+        }
+        // SwiftUI's heights at 13, 15, 20, 22, 32 and 40 pt (measured 2026-10-03).
+        #expect(metrics(13).lineHeight == 17 && metrics(13).baseline == 13)
+        #expect(metrics(15).lineHeight == 19 && metrics(15).baseline == 15)
+        #expect(metrics(20).lineHeight == 26 && metrics(20).baseline == 20)
+        #expect(metrics(22).lineHeight == 28)
+        #expect(metrics(32).lineHeight == 40)
+        #expect(metrics(40).lineHeight == 51 && metrics(40).baseline == 39)
+        #expect(abs(metrics(20).capHeight - 14.0039) < 0.001)
+        // The family name finds the same font; an unknown family falls back to the system tables.
+        #expect(SystemFontMetricsTables.systemFontMetrics(for: ResolvedFont(family: "Abel", size: 20, weight: .regular, italic: false, textStyle: nil)).lineHeight == 26)
+        #expect(SystemFontMetricsTables.systemFontMetrics(for: ResolvedFont(family: "Nowhere", size: 20, weight: .regular, italic: false, textStyle: nil)).lineHeight == 24)
+        // The key names the family so recordings and the harness agree.
+        #expect(ResolvedFont(family: "Abel-Regular", size: 20, weight: .bold, italic: true, textStyle: nil).key == "custom:Abel-Regular:20:700:italic")
+    }
+}

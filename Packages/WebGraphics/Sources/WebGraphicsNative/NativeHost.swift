@@ -76,6 +76,7 @@ public final class NativeSceneHost: NSObject, NSApplicationDelegate {
         scene.textEngine = textEngine
         if let manifest = assetManifest {
             if let catalog = try? AssetCatalog(contentsOf: manifest) {
+                CoreTextEngine.registerFonts(catalog, base: manifest.deletingLastPathComponent())
                 scene.assetCatalog = catalog
                 painter.assetBase = manifest.deletingLastPathComponent()
             } else {

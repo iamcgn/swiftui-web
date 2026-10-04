@@ -87,10 +87,13 @@ public protocol HostedScene: AnyObject {
     /// The element's caret or selection moved (UTF-16 offsets); scenes painting their own
     /// caret (`TextInputInfo.paintsCaret`) follow it.
     func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int)
+    /// A bundled font the host loaded is now available: text measured before it lays out again.
+    func fontsDidLoad()
 }
 
 extension HostedScene {
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {}
+    public func fontsDidLoad() {}
 }
 
 /// Turns a display list in a space of `size` points into PNG data at `scale` pixels per point.

@@ -65,6 +65,9 @@ func nsFont(_ font: FixtureFont) -> NSFont {
         result = NSFont.preferredFont(forTextStyle: styles[name]!)
         if let weight { result = NSFont.systemFont(ofSize: result.pointSize, weight: weights[weight]!) }
         design = d
+    case .custom(let name, let size, _, _):
+        FixtureAssets.registerFonts()
+        result = NSFont(name: name, size: size) ?? NSFont.systemFont(ofSize: size)
     }
     if let design, let systemDesign = designs[design], let descriptor = result.fontDescriptor.withDesign(systemDesign),
        let designed = NSFont(descriptor: descriptor, size: result.pointSize) {
@@ -72,6 +75,9 @@ func nsFont(_ font: FixtureFont) -> NSFont {
     }
     return result
 }
+
+// The fixtures' bundled fonts (`Font.custom`) must be registered before anything renders.
+FixtureAssets.registerFonts()
 
 let platform = GoldenPlatform(profile: "macOS", host: "AppKit", subdirectory: "", fixturePlatform: .macOS,
                               makeHost: { view, size, scheme, _ in AppKitHost(view, size: size, colorScheme: scheme) },

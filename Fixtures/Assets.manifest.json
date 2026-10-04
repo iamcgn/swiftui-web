@@ -52,6 +52,29 @@
       ]
     }
   },
+  "fonts": {
+    "Abel-Regular": {
+      "ascender": 2006,
+      "capHeight": 1434,
+      "descender": -604,
+      "family": "Abel",
+      "file": "Fonts/Abel-Regular.ttf",
+      "fullName": "Abel Regular",
+      "lineGap": 0,
+      "postScriptName": "Abel-Regular",
+      "typoAscender": 2006,
+      "typoDescender": -604,
+      "typoLineGap": 0,
+      "underlinePosition": -369,
+      "underlineThickness": 82,
+      "unitsPerEm": 2048,
+      "useTypoMetrics": false,
+      "weightClass": 400,
+      "winAscent": 2006,
+      "winDescent": 604,
+      "xHeight": 1044
+    }
+  },
   "images": {
     "Folder/nested": {
       "variants": [

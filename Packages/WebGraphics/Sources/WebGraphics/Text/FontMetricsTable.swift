@@ -104,6 +104,8 @@ public enum SystemFontMetricsTables {
     ]
 
     public static func systemFontMetrics(for font: ResolvedFont) -> SystemFontMetrics {
+        // A bundled custom font: its own tables (unknown families fall through to the system's).
+        if !font.family.hasPrefix("system"), let custom = CustomFontRegistry.metrics(for: font) { return custom }
         let iOS = font.profile == "iOS"
         let styleMetrics = iOS ? Self.iOSTextStyleMetrics : Self.macOSTextStyleMetrics
         let weightOverrides = iOS ? Self.iOSTextStyleWeightOverrides : Self.macOSTextStyleWeightOverrides

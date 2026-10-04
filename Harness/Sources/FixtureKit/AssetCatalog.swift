@@ -61,6 +61,17 @@ public enum FixtureAssets {
         guard !loaded else { return }
         loaded = true
         walk(root, prefix: "")
+        registerFonts()
+    }
+
+    /// The fixtures' bundled font files (`Fixtures/Fonts`), registered with CoreText so
+    /// `Font.custom` resolves them in the harness as it does in an app bundle.
+    public static func registerFonts() {
+        let fonts = root.deletingLastPathComponent().appendingPathComponent("Fonts")
+        guard let files = try? FileManager.default.contentsOfDirectory(at: fonts, includingPropertiesForKeys: nil) else { return }
+        for file in files where ["ttf", "otf"].contains(file.pathExtension.lowercased()) {
+            CTFontManagerRegisterFontsForURL(file as CFURL, .process, nil)
+        }
     }
 
     private static func walk(_ directory: URL, prefix: String) {

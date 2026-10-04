@@ -15,6 +15,20 @@ public final class CoreTextEngine: TextEngine {
 
     /// The AppKit font for a resolved font: the system font at the size and weight, with the
     /// rounded/serif/monospaced designs and the italic trait; custom families by name.
+    /// Registers the catalog's font files with CoreText for this process (`Font.custom` on the
+    /// native host, the pixel tier and the harness), so `NSFont(name:)` finds them.
+    public static func registerFonts(_ catalog: AssetCatalog, base: URL) {
+        for font in catalog.fonts.values {
+            let url = base.appendingPathComponent(font.file)
+            var error: Unmanaged<CFError>?
+            if !CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error), let error = error?.takeRetainedValue(),
+               CFErrorGetCode(error) != CTFontManagerError.alreadyRegistered.rawValue {
+                FileHandle.standardError.write(Data("SwiftUIWeb: could not register font \(font.file): \(error)\n".utf8))
+            }
+        }
+        CustomFontRegistry.register(catalog)
+    }
+
     public func nsFont(_ font: ResolvedFont) -> NSFont {
         if let cached = fontCache[font] { return cached }
         let weights: [Int: NSFont.Weight] = [100: .ultraLight, 200: .thin, 300: .light, 400: .regular, 500: .medium,

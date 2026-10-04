@@ -5162,6 +5162,27 @@ public static let concatenation = Fixture("text/concatenation", size: CGSize(wid
     .probe("column")
 }
 """#),
+        FixtureSource(name: "text/custom-font", file: "Fixtures/Sources/Text/TextRichFixtures.swift", firstLine: 68, lastLine: 86, declaration: #"""
+/// `Font.custom` with the bundled Abel face (Fixtures/Fonts, OFL): sizes, the bold and
+/// italic traits, a wrapped paragraph and the baseline next to the system font.
+public static let customFont = Fixture("text/custom-font", size: CGSize(width: 400, height: 300)) {
+    VStack(alignment: .leading, spacing: 4) {
+        Text(TextMetricsRequests.sample).font(.custom("Abel-Regular", size: 20)).probe("sample")
+        Text("Abel 13").font(.custom("Abel-Regular", size: 13)).probe("small")
+        Text("Abel 40").font(.custom("Abel-Regular", size: 40)).probe("large")
+        Text("Bold").font(.custom("Abel-Regular", size: 20)).bold().probe("bold")
+        Text("Italic").font(.custom("Abel-Regular", size: 20)).italic().probe("italic")
+        Text(TextMetricsRequests.paragraph).font(.custom("Abel-Regular", size: 20)).probe("paragraph").frame(width: 150, alignment: .topLeading)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("System").probe("systemBase")
+            Text("Custom").font(.custom("Abel-Regular", size: 20)).probe("customBase")
+            Text("Abel 20").font(.custom("Abel-Regular", size: 20, relativeTo: .body)).probe("relative")
+        }
+        .probe("row")
+    }
+    .probe("column")
+}
+"""#),
         FixtureSource(name: "text/dates", file: "Fixtures/Sources/Text/TextRichFixtures.swift", firstLine: 36, lastLine: 54, declaration: ##"""
 public static let dates = Fixture("text/dates", size: CGSize(width: 400, height: 200)) {
     VStack(alignment: .leading, spacing: 4) {
@@ -14006,7 +14027,27 @@ public enum TextRichFixtures {
         .probe("column")
     }
 
-    public static let all: [Fixture] = [markdown, attributed, dates, inlineImage]
+    /// `Font.custom` with the bundled Abel face (Fixtures/Fonts, OFL): sizes, the bold and
+    /// italic traits, a wrapped paragraph and the baseline next to the system font.
+    public static let customFont = Fixture("text/custom-font", size: CGSize(width: 400, height: 300)) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(TextMetricsRequests.sample).font(.custom("Abel-Regular", size: 20)).probe("sample")
+            Text("Abel 13").font(.custom("Abel-Regular", size: 13)).probe("small")
+            Text("Abel 40").font(.custom("Abel-Regular", size: 40)).probe("large")
+            Text("Bold").font(.custom("Abel-Regular", size: 20)).bold().probe("bold")
+            Text("Italic").font(.custom("Abel-Regular", size: 20)).italic().probe("italic")
+            Text(TextMetricsRequests.paragraph).font(.custom("Abel-Regular", size: 20)).probe("paragraph").frame(width: 150, alignment: .topLeading)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("System").probe("systemBase")
+                Text("Custom").font(.custom("Abel-Regular", size: 20)).probe("customBase")
+                Text("Abel 20").font(.custom("Abel-Regular", size: 20, relativeTo: .body)).probe("relative")
+            }
+            .probe("row")
+        }
+        .probe("column")
+    }
+
+    public static let all: [Fixture] = [markdown, attributed, dates, inlineImage, customFont]
 }
 """##,
         "Fixtures/Sources/TextEditor/TextEditorFixtures.swift": #"""

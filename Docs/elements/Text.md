@@ -30,6 +30,7 @@ Apple docs: [Text](https://developer.apple.com/documentation/swiftui/text),
 | `Text(_ date: Date, style:)`, `Text.DateStyle` (`date`, `time`, `relative`, `offset`, `timer`) | implemented (`text/dates`): `date` and `time` in English in the environment's time zone ("May 28, 2026", "8:26 PM" with a narrow no-break space); the live styles re-resolve every second against now (approximate wording: "2 hours", "+2 hours", "1:23:45") |
 | `Text(_:format:)` | implemented for any `FormatStyle` producing a string (numbers on wasm through `WebFoundation`; dates on Apple platforms through Foundation) |
 | `Link` inside text | implemented: a link part paints in the accent colour, shows the hand and opens through `openURL` on press (the text takes presses only where it has links) |
+| `Font.custom(_:size:)`, `custom(_:size:relativeTo:)`, `custom(_:fixedSize:)` with a bundled font file | implemented (2026-10-03, `text/custom-font`): `scripts/assets.py` reads every `*.ttf`/`*.otf` under the source into the manifest (names and vertical metrics) and copies the file; the browser loads it as a `FontFace`, CoreText registers it in the native host, the pixel tier and the harness; the layouter's line is the rounded ascent plus the rounded descent; the recorded engine keys the family (`custom:Abel-Regular:20:400`); `relativeTo` scales nothing (no dynamic type) |
 | `Text(DateInterval)`, `Text(ClosedRange<Date>)`, `Text(_: Duration)`, `textSelection` | missing (`textSelection` is accepted; `Docs/elements/TextScale.md`) |
 
 ## How Tier A stays exact
@@ -165,8 +166,33 @@ interactive (`_Interactive.isInteractive`, which the hit test honours so plain t
 takes a press from the control around it); a press on a link's fragment opens it through
 `openURL`, and hovering it shows the hand.
 
+## Custom fonts (macOS 26.6, `text/custom-font`, Abel-Regular from Fixtures/Fonts, 2026-10-03)
+
+| Behaviour | Value | Probe |
+|---|---|---|
+| Line height and baseline | the rounded ascent plus the rounded descent of the `hhea` table at the size, the baseline the rounded ascent: 13 pt 17/13, 20 pt 26/20, 40 pt 51/39 (measured at twenty sizes with `NSHostingView`: 15 pt is 19, not the unrounded sum's 20; 32 pt is 40, not 41) | `small`, `sample`, `large` |
+| Traits | `.bold()` and `.italic()` on a face without those styles keep its metrics (CoreText synthesises them) | `bold`, `italic` |
+| Baselines | a 20 pt custom text and the system body share a first-baseline row: the custom one's frame starts 7 above (its baseline 20 down against the body's 13) | `systemBase`, `customBase` |
+| `relativeTo` | the same frame as the plain size | `relative` |
+| Unregistered font | SwiftUI falls back to a face whose line equals the size: a harness that measures before registering gets 20 × 20 (the first run did; fonts register at startup since) | — |
+
+Pipeline: `scripts/assets.py` finds font files under the source, parses `head`, `hhea`, `OS/2`,
+`post` and `name` (no binary parsing at run time) and writes a `fonts` section keyed by
+PostScript name with the copied file's path; `AssetCatalog.fonts` carries it to the hosts.
+`Runtime.assetCatalog` registers the fonts' metrics (`CustomFontRegistry`) for the layouter's
+`SystemFontMetricsTables.systemFontMetrics(for:)`; the canvas host adds a `FontFace` per name
+and, when it loads, drops the engine's width cache and the runtime's layouts and lays out again
+(`fontsDidLoad`); the native host, the pixel tier and the harness register the file with
+`CTFontManager`. `ResolvedFont.key` names custom families so the recorded engine and the
+harness's `FixtureFont.custom` agree.
+
 ## Open
 
+- Custom fonts: `relativeTo` scaling with dynamic type, variable fonts and weight axes (a bold
+  request is synthesised), the width cache of the browser before the face loads (text measured
+  with the fallback face relayouts once; a page may show one frame of fallback text), fonts
+  from `UIFont(name:)` in UIKitWeb, `Font.custom` with a font not in the catalog (the system
+  face; names are not resolved against the OS's own fonts in the browser).
 - Rich text: `Text(DateInterval)` and ranges, `Duration`, per-run `kern`/`tracking` (applied to
   the whole text), `backgroundColor` attributes (not painted), non-system images in text, the
   live date wordings (SwiftUI's "in 2 hours"/"2 hours ago" forms and thresholds are unmeasured),

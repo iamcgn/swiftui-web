@@ -517,6 +517,8 @@ enum PainterScript {
         }
       }
       const measureCache = new Map();
+      // A bundled font arrived: widths measured with its fallback face are stale.
+      function forgetMeasurements() { measureCache.clear(); slotCache.clear(); }
       function measure(ctx, font, text) {
         const k = font + ' ' + text;
         let w = measureCache.get(k);
@@ -546,7 +548,7 @@ enum PainterScript {
         return canvas.toDataURL('image/png');
       }
       window.__swiftuiweb = {
-        paint: paint, rasterize: rasterize, measure: measure, imageState: imageState, version: 4,
+        paint: paint, rasterize: rasterize, measure: measure, forgetMeasurements: forgetMeasurements, imageState: imageState, version: 4,
         setImageLoadHandler: function (handler) { onImageLoad = handler; },
         overlayAdd: function (id, element) { overlay.set(id, element.style); },
         overlayRemove: function (id) { overlay.delete(id); },

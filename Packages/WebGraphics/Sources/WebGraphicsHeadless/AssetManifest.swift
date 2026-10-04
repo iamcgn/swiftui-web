@@ -34,8 +34,22 @@ extension AssetCatalog {
         struct ColorSet: Decodable {
             let variants: [ColorEntry]
         }
+        struct FontEntry: Decodable {
+            let file: String
+            let family: String
+            let postScriptName: String
+            let unitsPerEm: Double
+            let ascender: Double
+            let descender: Double
+            let lineGap: Double
+            let capHeight: Double?
+            let xHeight: Double?
+            let underlinePosition: Double?
+            let underlineThickness: Double?
+        }
         let images: [String: ImageSet]
         let colors: [String: ColorSet]
+        let fonts: [String: FontEntry]?
     }
 
     public init(manifestData data: Data) throws {
@@ -54,7 +68,14 @@ extension AssetCatalog {
                              red: $0.red, green: $0.green, blue: $0.blue, alpha: $0.alpha)
             }
         }
-        self.init(images: images, colors: colors)
+        var fonts: [String: FontResource] = [:]
+        for (name, entry) in document.fonts ?? [:] {
+            fonts[name] = FontResource(postScriptName: entry.postScriptName, family: entry.family, file: entry.file, unitsPerEm: entry.unitsPerEm,
+                                       ascender: entry.ascender, descender: entry.descender, lineGap: entry.lineGap,
+                                       capHeight: entry.capHeight ?? 0, xHeight: entry.xHeight ?? 0,
+                                       underlinePosition: entry.underlinePosition ?? 0, underlineThickness: entry.underlineThickness ?? 0)
+        }
+        self.init(images: images, colors: colors, fonts: fonts)
     }
 
     public init(contentsOf url: URL) throws {

@@ -160,6 +160,7 @@ struct Bitmap {
         let fixture = try #require(AllFixtures.all.first { $0.name == name })
         let golden = try #require(try NativeGoldens.frames(for: name), "missing golden for \(name)")
         let engine = CoreTextEngine()
+        CoreTextEngine.registerFonts(try NativeGoldens.assets(), base: NativeGoldens.assetBase)
         let painter = CoreGraphicsPainter(textEngine: engine, assetBase: NativeGoldens.assetBase)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
         // scroll/flash: the capture missed Apple's flash; ours paints the knob at rest.

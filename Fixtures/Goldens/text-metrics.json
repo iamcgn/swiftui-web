@@ -1,5 +1,107 @@
 {
   "entries": {
+    "custom:Abel-Regular:13:400|0.0|Abel 13": {
+      "firstBaseline": 13,
+      "height": 102,
+      "lastBaseline": 98,
+      "width": 0
+    },
+    "custom:Abel-Regular:13:400||Abel 13": {
+      "firstBaseline": 13,
+      "height": 17,
+      "lastBaseline": 13,
+      "width": 37.5
+    },
+    "custom:Abel-Regular:20:400:italic|0.0|Italic": {
+      "firstBaseline": 20,
+      "height": 156,
+      "lastBaseline": 150,
+      "width": 0
+    },
+    "custom:Abel-Regular:20:400:italic||Italic": {
+      "firstBaseline": 20,
+      "height": 26,
+      "lastBaseline": 20,
+      "width": 38.5
+    },
+    "custom:Abel-Regular:20:400|0.0|Abel 20": {
+      "firstBaseline": 20,
+      "height": 156,
+      "lastBaseline": 150,
+      "width": 0
+    },
+    "custom:Abel-Regular:20:400|0.0|Custom": {
+      "firstBaseline": 20,
+      "height": 156,
+      "lastBaseline": 150,
+      "width": 0
+    },
+    "custom:Abel-Regular:20:400|0.0|System": {
+      "firstBaseline": 20,
+      "height": 156,
+      "lastBaseline": 150,
+      "width": 0
+    },
+    "custom:Abel-Regular:20:400|0.0|The quick brown fox": {
+      "firstBaseline": 20,
+      "height": 416,
+      "lastBaseline": 410,
+      "width": 0
+    },
+    "custom:Abel-Regular:20:400|150.0|Layout must wrap this sentence onto several lines inside a narrow frame.": {
+      "firstBaseline": 20,
+      "height": 104,
+      "lastBaseline": 98,
+      "width": 150
+    },
+    "custom:Abel-Regular:20:400||Abel 20": {
+      "firstBaseline": 20,
+      "height": 26,
+      "lastBaseline": 20,
+      "width": 57
+    },
+    "custom:Abel-Regular:20:400||Custom": {
+      "firstBaseline": 20,
+      "height": 26,
+      "lastBaseline": 20,
+      "width": 59
+    },
+    "custom:Abel-Regular:20:400||System": {
+      "firstBaseline": 20,
+      "height": 26,
+      "lastBaseline": 20,
+      "width": 58
+    },
+    "custom:Abel-Regular:20:400||The quick brown fox": {
+      "firstBaseline": 20,
+      "height": 26,
+      "lastBaseline": 20,
+      "width": 151
+    },
+    "custom:Abel-Regular:20:700|0.0|Bold": {
+      "firstBaseline": 20,
+      "height": 104,
+      "lastBaseline": 98,
+      "width": 0
+    },
+    "custom:Abel-Regular:20:700||Bold": {
+      "firstBaseline": 20,
+      "height": 26,
+      "lastBaseline": 20,
+      "width": 33
+    },
+    "custom:Abel-Regular:40:400|0.0|Abel 40": {
+      "firstBaseline": 39,
+      "height": 306,
+      "lastBaseline": 294,
+      "width": 0
+    },
+    "custom:Abel-Regular:40:400||Abel 40": {
+      "firstBaseline": 39,
+      "height": 51,
+      "lastBaseline": 39,
+      "width": 113.5
+    },
     "rich:style:largeTitle=4,system:13:400:default=5|0.0|Big small": {
       "firstBaseline": 29,
       "height": 197,
@@ -14880,6 +14982,12 @@
       "lastBaseline": 317,
       "width": 0
     },
+    "system:13:400:default|0.0|System": {
+      "firstBaseline": 13,
+      "height": 96,
+      "lastBaseline": 93,
+      "width": 0
+    },
     "system:13:400:default|0.0|Taps: 0": {
       "firstBaseline": 13,
       "height": 96,
@@ -17922,6 +18030,12 @@
       "lastBaseline": 13,
       "width": 112
     },
+    "system:13:400:default||System": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 45
+    },
     "system:13:400:default||Taps: 0": {
       "firstBaseline": 13,
       "height": 16,
@@ -19316,6 +19430,76 @@
     }
   },
   "fonts": {
+    "custom:Abel-Regular:13:400": {
+      "capHeight": 9.1025390625,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 17,
+      "linePitch": 17,
+      "spacingAbove": 5.833984375,
+      "spacingBelow": 9.46484375,
+      "textToText": 0,
+      "underlinePosition": -2.34228515625,
+      "underlineThickness": 0.5205078125,
+      "unroundedLineHeight": 17,
+      "xHeight": 6.626953125
+    },
+    "custom:Abel-Regular:20:400": {
+      "capHeight": 14.00390625,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 26,
+      "linePitch": 26,
+      "spacingAbove": 8.8984375,
+      "spacingBelow": 14.484375,
+      "textToText": 0,
+      "underlinePosition": -3.603515625,
+      "underlineThickness": 0.80078125,
+      "unroundedLineHeight": 26,
+      "xHeight": 10.1953125
+    },
+    "custom:Abel-Regular:20:400:italic": {
+      "capHeight": 14.00390625,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 26,
+      "linePitch": 26,
+      "spacingAbove": 8.8984375,
+      "spacingBelow": 14.484375,
+      "textToText": 0,
+      "underlinePosition": -3.603515625,
+      "underlineThickness": 0.80078125,
+      "unroundedLineHeight": 26,
+      "xHeight": 10.1953125
+    },
+    "custom:Abel-Regular:20:700": {
+      "capHeight": 14.00390625,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 26,
+      "linePitch": 26,
+      "spacingAbove": 8.8984375,
+      "spacingBelow": 14.484375,
+      "textToText": 0,
+      "underlinePosition": -3.603515625,
+      "underlineThickness": 0.80078125,
+      "unroundedLineHeight": 26,
+      "xHeight": 10.1953125
+    },
+    "custom:Abel-Regular:40:400": {
+      "capHeight": 28.0078125,
+      "horizontalTextToText": 8,
+      "horizontalTrailing": 8,
+      "lineHeight": 51,
+      "linePitch": 51,
+      "spacingAbove": 17.296875,
+      "spacingBelow": 28.46875,
+      "textToText": 0,
+      "underlinePosition": -7.20703125,
+      "underlineThickness": 1.6015625,
+      "unroundedLineHeight": 51,
+      "xHeight": 20.390625
+    },
     "style:body": {
       "capHeight": 9.15966796875,
       "horizontalTextToText": 8,

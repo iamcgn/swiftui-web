@@ -84,15 +84,53 @@ public struct ColorVariant: Hashable, Sendable {
     public var rgba: RGBA { RGBA(red: red, green: green, blue: blue, alpha: alpha) }
 }
 
+/// A font file the app bundles (`Font.custom`): its names, where its file sits under the asset
+/// base, and the vertical metrics `scripts/assets.py` read from its tables, in font units.
+public struct FontResource: Hashable, Sendable {
+    public var postScriptName: String
+    public var family: String
+    public var file: String
+    public var unitsPerEm: Double
+    public var ascender: Double
+    public var descender: Double
+    public var lineGap: Double
+    public var capHeight: Double
+    public var xHeight: Double
+    public var underlinePosition: Double
+    public var underlineThickness: Double
+
+    public init(postScriptName: String, family: String, file: String, unitsPerEm: Double, ascender: Double, descender: Double, lineGap: Double,
+                capHeight: Double = 0, xHeight: Double = 0, underlinePosition: Double = 0, underlineThickness: Double = 0) {
+        self.postScriptName = postScriptName
+        self.family = family
+        self.file = file
+        self.unitsPerEm = unitsPerEm
+        self.ascender = ascender
+        self.descender = descender
+        self.lineGap = lineGap
+        self.capHeight = capHeight
+        self.xHeight = xHeight
+        self.underlinePosition = underlinePosition
+        self.underlineThickness = underlineThickness
+    }
+}
+
 /// Every image and colour set of an app's catalogs, keyed by name (`Folder/name` for
-/// namespaced folders).
+/// namespaced folders), and the font files it bundles, keyed by PostScript name.
 public struct AssetCatalog: Sendable, Equatable {
     public var images: [String: ImageResource]
     public var colors: [String: [ColorVariant]]
+    public var fonts: [String: FontResource]
 
-    public init(images: [String: ImageResource] = [:], colors: [String: [ColorVariant]] = [:]) {
+    public init(images: [String: ImageResource] = [:], colors: [String: [ColorVariant]] = [:], fonts: [String: FontResource] = [:]) {
         self.images = images
         self.colors = colors
+        self.fonts = fonts
+    }
+
+    /// The font named by `Font.custom` (its PostScript name, full name or family).
+    public func font(named name: String) -> FontResource? {
+        fonts[name] ?? fonts.values.first { $0.family == name }
     }
 
     public static let empty = AssetCatalog()

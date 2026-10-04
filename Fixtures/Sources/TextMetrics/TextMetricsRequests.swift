@@ -7,6 +7,7 @@ import SwiftUI
 public enum FixtureFont: Hashable, Sendable {
     case style(String, weight: String? = nil, design: String? = nil, italic: Bool = false)   // "body", "title", … with optional overrides
     case system(size: CGFloat, weight: String, design: String, italic: Bool = false)          // weight "regular"…"black", design "default"…
+    case custom(String, size: CGFloat, weight: String = "regular", italic: Bool = false)      // a bundled font by PostScript name (Fixtures/Fonts)
 
     public static let weights: [String: (Font.Weight, Int)] = [
         "ultraLight": (.ultraLight, 100), "thin": (.thin, 200), "light": (.light, 300), "regular": (.regular, 400),
@@ -38,6 +39,9 @@ public enum FixtureFont: Hashable, Sendable {
         case .system(let size, let weight, let design, let italic):
             let sizeText = size == size.rounded() ? "\(Int(size))" : "\(size)"
             return "system:\(sizeText):\(Self.weights[weight]!.1):\(design)" + (italic ? ":italic" : "")
+        case .custom(let name, let size, let weight, let italic):
+            let sizeText = size == size.rounded() ? "\(Int(size))" : "\(size)"
+            return "custom:\(name):\(sizeText):\(Self.weights[weight]!.1)" + (italic ? ":italic" : "")
         }
     }
 
@@ -48,6 +52,10 @@ public enum FixtureFont: Hashable, Sendable {
             return italic ? font.italic() : font
         case .system(let size, let weight, let design, let italic):
             let font = Font.system(size: size, weight: Self.weights[weight]!.0, design: Self.design(design) ?? .default)
+            return italic ? font.italic() : font
+        case .custom(let name, let size, let weight, let italic):
+            var font = Font.custom(name, size: size)
+            if weight != "regular" { font = font.weight(Self.weights[weight]!.0) }
             return italic ? font.italic() : font
         }
     }
@@ -269,6 +277,15 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest(runs: [.init("Mono ", .style("title3")), .init("code", .style("title3", design: "monospaced")), .init(" and plain", .style("title3"))]))
         requests.append(TextMetricRequest(runs: [.init("Hello ", defaultFont), .init("world", .style("title")), .init(" under up link", defaultFont)]))
         requests.append(TextMetricRequest(runs: [.init("Strong", bold), .init(" emphasized", italic), .init(" code", mono), .init(" struck", defaultFont)]))
+        // text/custom-font: the bundled Abel face at 20 and 13 pt, bold and italic traits, a wrapped paragraph.
+        let abel = FixtureFont.custom("Abel-Regular", size: 20)
+        for string in [sample, "Custom", "Abel 20", "System"] { requests.append(TextMetricRequest(string, abel)) }
+        requests.append(TextMetricRequest("Abel 13", .custom("Abel-Regular", size: 13)))
+        requests.append(TextMetricRequest("System", defaultFont))
+        requests.append(TextMetricRequest("Bold", .custom("Abel-Regular", size: 20, weight: "bold")))
+        requests.append(TextMetricRequest("Italic", .custom("Abel-Regular", size: 20, italic: true)))
+        requests.append(TextMetricRequest(paragraph, abel, width: 150))
+        requests.append(TextMetricRequest("Abel 40", .custom("Abel-Regular", size: 40)))
         // text/dates: the date and time styles at UTC (a narrow no-break space before the period).
         for string in ["May 28, 2026", "8:26\u{202F}PM"] { requests.append(TextMetricRequest(string, defaultFont)) }
         // text/fit: minimumScaleFactor and allowsTightening.

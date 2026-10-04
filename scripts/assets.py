@@ -166,6 +166,86 @@ class Catalog:
         return relative.as_posix()
 
 
+FONT_SUFFIXES = {".ttf", ".otf"}
+
+
+def font_tables(data):
+    """The table directory of a TrueType/OpenType font: tag -> (offset, length)."""
+    if len(data) < 12: return {}
+    count = struct.unpack(">H", data[4:6])[0]
+    tables = {}
+    for index in range(count):
+        record = 12 + 16 * index
+        if record + 16 > len(data): break
+        tag = data[record:record + 4].decode("latin-1")
+        offset, length = struct.unpack(">II", data[record + 8:record + 16])
+        tables[tag] = (offset, length)
+    return tables
+
+
+def font_name(data, tables, wanted):
+    """A `name` table entry (1 family, 2 subfamily, 4 full, 6 PostScript), Windows Unicode first."""
+    if "name" not in tables: return None
+    base, _ = tables["name"]
+    count, strings = struct.unpack(">HH", data[base + 2:base + 6])
+    best = None
+    for index in range(count):
+        record = base + 6 + 12 * index
+        platform, encoding, language, name_id, length, offset = struct.unpack(">HHHHHH", data[record:record + 12])
+        if name_id != wanted: continue
+        start = base + strings + offset
+        raw = data[start:start + length]
+        if platform == 3 and encoding in (0, 1) and (best is None or language == 0x409):
+            best = raw.decode("utf-16-be", "replace")
+        elif platform == 1 and best is None:
+            best = raw.decode("mac-roman", "replace")
+    return best
+
+
+def font_metrics(path):
+    """What the runtime needs from a font file: its names and the vertical metrics in font units
+    (`head`, `hhea`, `OS/2`, `post`), so no binary parsing happens in the browser."""
+    data = path.read_bytes()
+    tables = font_tables(data)
+    if "head" not in tables or "hhea" not in tables:
+        warn(f"{path.name}: not a TrueType/OpenType font")
+        return None
+    head, _ = tables["head"]
+    hhea, _ = tables["hhea"]
+    metrics = {
+        "file": None,
+        "family": font_name(data, tables, 1) or path.stem,
+        "postScriptName": font_name(data, tables, 6) or path.stem,
+        "fullName": font_name(data, tables, 4) or path.stem,
+        "unitsPerEm": struct.unpack(">H", data[head + 18:head + 20])[0],
+        "ascender": struct.unpack(">h", data[hhea + 4:hhea + 6])[0],
+        "descender": struct.unpack(">h", data[hhea + 6:hhea + 8])[0],
+        "lineGap": struct.unpack(">h", data[hhea + 8:hhea + 10])[0],
+    }
+    if "OS/2" in tables:
+        os2, length = tables["OS/2"]
+        version = struct.unpack(">H", data[os2:os2 + 2])[0]
+        metrics["weightClass"] = struct.unpack(">H", data[os2 + 4:os2 + 6])[0]
+        metrics["typoAscender"], metrics["typoDescender"], metrics["typoLineGap"] = struct.unpack(">hhh", data[os2 + 68:os2 + 74])
+        metrics["winAscent"], metrics["winDescent"] = struct.unpack(">HH", data[os2 + 74:os2 + 78])
+        metrics["useTypoMetrics"] = bool(struct.unpack(">H", data[os2 + 62:os2 + 64])[0] & 0x80)
+        if version >= 2 and length >= 90:
+            metrics["xHeight"], metrics["capHeight"] = struct.unpack(">hh", data[os2 + 86:os2 + 90])
+    if "post" in tables:
+        post, _ = tables["post"]
+        metrics["underlinePosition"], metrics["underlineThickness"] = struct.unpack(">hh", data[post + 8:post + 12])
+    return metrics
+
+
+def find_fonts(source):
+    found = []
+    for suffix in sorted(FONT_SUFFIXES):
+        for path in sorted(source.rglob("*" + suffix)):
+            if any(part in SKIPPED_DIRS for part in path.relative_to(source).parts): continue
+            found.append(path)
+    return found
+
+
 def find_catalogs(source):
     if source.suffix == ".xcassets": return [source]
     found = []
@@ -190,8 +270,22 @@ def main():
     catalog = Catalog(out)
     for path in catalogs:
         catalog.read(path)
+    # Font files anywhere under the source (an app bundles them as loose resources): keyed by
+    # PostScript name, which `Font.custom` names, with the file copied beside the images.
+    fonts = {}
+    for path in find_fonts(source):
+        metrics = font_metrics(path)
+        if metrics is None: continue
+        relative = path.relative_to(source)
+        if out:
+            target = out / "Fonts" / path.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, target)
+        metrics["file"] = ("Fonts/" + path.name) if out else relative.as_posix()
+        fonts[metrics["postScriptName"]] = metrics
     manifest = {"version": 1, "catalogs": [p.name for p in catalogs],
-                "images": dict(sorted(catalog.images.items())), "colors": dict(sorted(catalog.colors.items()))}
+                "images": dict(sorted(catalog.images.items())), "colors": dict(sorted(catalog.colors.items())),
+                "fonts": dict(sorted(fonts.items()))}
     text = json.dumps(manifest, indent=2, sort_keys=True)
     if args.json:
         Path(args.json).parent.mkdir(parents=True, exist_ok=True)
@@ -201,7 +295,7 @@ def main():
         # `base` resolves image files relative to this script's own URL, wherever the page lives.
         Path(args.js).write_text("(function(){var s=document.currentScript;var base=s&&s.src?s.src.replace(/[^/]*$/,''):'';"
                                  "var m=" + json.dumps(manifest, separators=(",", ":")) + ";m.base=base;window.__swiftuiwebAssets=m;})();\n")
-    print(f"assets: {len(catalog.images)} image set(s), {len(catalog.colors)} colour set(s) from {len(catalogs)} catalog(s)", file=sys.stderr)
+    print(f"assets: {len(catalog.images)} image set(s), {len(catalog.colors)} colour set(s) from {len(catalogs)} catalog(s), {len(fonts)} font(s)", file=sys.stderr)
 
 
 if __name__ == "__main__":

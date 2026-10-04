@@ -486,14 +486,15 @@
       "framework": "SwiftUI",
       "area": "Text",
       "title": "Custom fonts",
-      "detail": "`Font.custom` with a font file in the app bundle: metrics read from the file for layout, the face loaded by the browser and by CoreText; the recorded engine keyed by family.",
+      "detail": "Done 2026-10-03: Font.custom with a bundled font file: scripts/assets.py reads every ttf/otf under the source (names, head/hhea/OS2/post metrics) into the manifest and copies the file; the browser loads a FontFace and relayouts when it arrives, the native host, the pixel tier and the harness register the file with CoreText; the layouter's line is the rounded ascent plus the rounded descent (measured at twenty sizes); the recorded engine keys the family (custom:Name:size:weight). Fixture text/custom-font with Abel (OFL). Open: dynamic-type scaling of relativeTo, variable fonts, UIFont(name:) in UIKitWeb.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Text.md",
         "Docs/decisions/0005-text-metrics.md"
-      ]
+      ],
+      "done": "2026-10-03"
     },
     {
       "id": "sw-dynamic-type",

@@ -132,8 +132,16 @@ public final class Runtime {
         get { assetStore.catalog }
         set {
             assetStore.catalog = newValue
+            CustomFontRegistry.register(newValue)
+            textLayouts.removeAll()
             root.child?.invalidate()
         }
+    }
+
+    /// A bundled font arrived in the host: text laid out with a fallback face is measured again.
+    public func fontsDidLoad() {
+        textLayouts.removeAll()
+        requestLayout()
     }
 
     public init(environment: EnvironmentValues = EnvironmentValues()) {

@@ -87,6 +87,7 @@ public final class CanvasSceneHost {
         hasCoarsePointer = window.matchMedia?("(pointer: coarse)").object?.matches.boolean ?? false
         scene.textEngine = Canvas2DTextEngine(context: context, bridge: bridge)
         scene.assetCatalog = Self.assetCatalog(from: window.__swiftuiwebAssets)
+        loadFonts(scene.assetCatalog, base: window.__swiftuiwebAssets.object?.base.string ?? "")
         scene.onNeedsFrame = { [weak self] in self?.scheduleFrame() }
         // An image the painter had to fetch has arrived: paint the frame again (and let the
         // scene's image views move to their loaded or failed phase).
@@ -197,7 +198,51 @@ public final class CanvasSceneHost {
                 colors[name] = entries
             }
         }
-        return AssetCatalog(images: images, colors: colors)
+        var fonts: [String: FontResource] = [:]
+        if let sets = manifest.fonts.object, let names = JSObject.global.Object.function!.keys!(sets).object {
+            for index in 0..<Int(names.length.number ?? 0) {
+                guard let name = names[index].string, let entry = sets[dynamicMember: name].object, let file = entry.file.string else { continue }
+                fonts[name] = FontResource(postScriptName: entry.postScriptName.string ?? name, family: entry.family.string ?? name, file: file,
+                                           unitsPerEm: entry.unitsPerEm.number ?? 1000, ascender: entry.ascender.number ?? 0,
+                                           descender: entry.descender.number ?? 0, lineGap: entry.lineGap.number ?? 0,
+                                           capHeight: entry.capHeight.number ?? 0, xHeight: entry.xHeight.number ?? 0,
+                                           underlinePosition: entry.underlinePosition.number ?? 0, underlineThickness: entry.underlineThickness.number ?? 0)
+            }
+        }
+        return AssetCatalog(images: images, colors: colors, fonts: fonts)
+    }
+
+    /// Loads the catalog's font files as `FontFace`s under their PostScript and family names,
+    /// so Canvas2D measures and draws them; text measured before a face arrived is laid out again.
+    private func loadFonts(_ catalog: AssetCatalog, base: String) {
+        guard let fontSet = document.fonts.object, let fontFace = JSObject.global.FontFace.function else { return }
+        for font in catalog.fonts.values {
+            let source = "url(\(base)\(font.file))"
+            for name in Set([font.postScriptName, font.family]) {
+                let face = fontFace.new(name, source)
+                _ = fontSet.add?(face)
+                let loaded = JSClosure { [weak self] _ in
+                    MainActor.assumeIsolated { self?.textLayoutsNeedMeasuring() }
+                    return .undefined
+                }
+                let failed = JSClosure { _ in
+                    _ = JSObject.global.console.object?.error?("SwiftUIWeb: could not load font \(name) from \(font.file)")
+                    return .undefined
+                }
+                _ = face.load?().object?.then?(loaded, failed)
+                pendingFontLoads += 2  // the closures stay alive until the promise settles
+                fontLoadClosures += [loaded, failed]
+            }
+        }
+    }
+
+    private var pendingFontLoads = 0
+    private var fontLoadClosures: [JSClosure] = []
+
+    private func textLayoutsNeedMeasuring() {
+        (scene.textEngine as? Canvas2DTextEngine)?.forgetMeasurements()
+        scene.fontsDidLoad()
+        scheduleFrame()
     }
 
     /// The scene's content changed outside its own invalidation (a new root was mounted):

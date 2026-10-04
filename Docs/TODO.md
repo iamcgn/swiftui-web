@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 54 | 0 | 22 | 32 |
+| SwiftUI | 53 | 0 | 21 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **94** | 0 | 46 | 48 |
+| **All** | **93** | 0 | 45 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Custom fonts** `sw-custom-fonts` · Text · missing  
-  `Font.custom` with a font file in the app bundle: metrics read from the file for layout, the face loaded by the browser and by CoreText; the recorded engine keyed by family. ([Text.md](Docs/elements/Text.md), [0005-text-metrics.md](Docs/decisions/0005-text-metrics.md))
 - ☐ **NavigationStack gaps** `sw-navigation` · Navigation · missing  
   `navigationDestination(item:destination:)`, the codable `NavigationPath` representation, ⌘[ and Escape, macOS's back button and push animation parity, a destination-link entry left on top after a path change removes its view. ([Navigation.md](Docs/elements/Navigation.md))
 - ☐ **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · Navigation · approximate  
@@ -230,6 +228,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text
+- ☑ 2026-10-03 **Custom fonts** `sw-custom-fonts` · SwiftUI · Text
 - ☑ 2026-09-19 **List styles, spacing and outline forms** `sw-list-looks` · SwiftUI · List
 - ☑ 2026-09-19 **Scroll position, targets and geometry** `sw-scroll-apis` · SwiftUI · ScrollView
 - ☑ 2026-09-19 **Real laziness and pinned headers** `sw-lazy` · SwiftUI · Lazy stacks and grids

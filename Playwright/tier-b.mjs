@@ -131,12 +131,14 @@ async function comparePixels(name, shotPath, goldenPng) {
   return differing / (a.width * a.height);
 }
 
-// Catalog images load asynchronously: wait until none is pending, then for the repaint.
+// Catalog images and bundled fonts load asynchronously: wait until none is pending (a font
+// that arrives lays the text out again on the next frame), then for the repaint.
 async function settleImages() {
   const before = await frameCount();
   await page.waitForFunction(() => window.__swiftuiwebDebug.pendingImages() === 0, null, { timeout: 30000 });
+  await page.evaluate(() => document.fonts.ready);
   await page.waitForFunction(b => window.__swiftuiwebDebug.pendingImages() === 0 && window.__swiftuiwebDebug.frameCount() >= b, before, { timeout: 10000 });
-  await page.waitForTimeout(50);
+  await page.waitForTimeout(150);
 }
 
 // One comparison (the initial render, or the render after a behaviour step).

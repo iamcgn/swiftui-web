@@ -34,3 +34,13 @@ metrics differ only by rounding: CoreText ascent 12.59 / descent 3.14 for Inter 
 
 ## Consequences
 Re-check on Linux Chromium and Firefox when the browser CI job exists; record deltas here.
+
+## Addendum (2026-10-03): custom fonts
+
+`Font.custom` keys recordings by family (`custom:<PostScript name>:<size>:<weight>[:italic]`),
+so Tier A replays SwiftUI's layout of a bundled font exactly, while the layouter's own line
+metrics for the browser and native engines come from the font file's tables through the asset
+manifest (`scripts/assets.py`, `CustomFontRegistry`): the rounded ascent plus the rounded
+descent, which matched SwiftUI at every one of twenty measured sizes. The harness registers the
+fixtures' fonts with CoreText at startup (Docs/elements/Text.md, "Custom fonts").
+

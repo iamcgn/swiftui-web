@@ -10,6 +10,13 @@ public final class Canvas2DTextEngine: TextEngine {
     private let context: JSObject
     private let bridge: JSObject
     private var widthCache: [String: CGFloat] = [:]
+
+    /// A bundled font arrived: widths measured with its fallback face are stale, here and in
+    /// the painter script's own cache.
+    public func forgetMeasurements() {
+        widthCache.removeAll()
+        _ = bridge.forgetMeasurements?()
+    }
     private var cssFonts: [ResolvedFont: String] = [:]
 
     public init(context: JSObject, bridge: JSObject) {

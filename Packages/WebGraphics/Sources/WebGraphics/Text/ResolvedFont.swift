@@ -51,6 +51,8 @@ public struct ResolvedFont: Hashable, Sendable {
             return key + italicSuffix
         }
         let sizeText = size == size.rounded() ? "\(Int(size))" : "\(size)"
+        // A custom family (`Font.custom`) keys by its name; the harness's `FixtureFont.custom` matches.
+        if !family.hasPrefix("system") { return "custom:\(family):\(sizeText):\(weight.value)" + italicSuffix }
         return "system:\(sizeText):\(weight.value):\(designName)" + italicSuffix
     }
 }

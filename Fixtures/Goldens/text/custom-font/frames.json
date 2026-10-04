@@ -1,0 +1,75 @@
+{
+  "fixture" : "text\/custom-font",
+  "frames" : {
+    "bold" : {
+      "height" : 26,
+      "width" : 33,
+      "x" : 111.5,
+      "y" : 106
+    },
+    "column" : {
+      "height" : 300,
+      "width" : 177,
+      "x" : 111.5,
+      "y" : 0
+    },
+    "customBase" : {
+      "height" : 26,
+      "width" : 59,
+      "x" : 164.5,
+      "y" : 274
+    },
+    "italic" : {
+      "height" : 26,
+      "width" : 38.5,
+      "x" : 111.5,
+      "y" : 136
+    },
+    "large" : {
+      "height" : 51,
+      "width" : 113.5,
+      "x" : 111.5,
+      "y" : 51
+    },
+    "paragraph" : {
+      "height" : 104,
+      "width" : 150,
+      "x" : 111.5,
+      "y" : 166
+    },
+    "relative" : {
+      "height" : 26,
+      "width" : 57,
+      "x" : 231.5,
+      "y" : 274
+    },
+    "row" : {
+      "height" : 26,
+      "width" : 177,
+      "x" : 111.5,
+      "y" : 274
+    },
+    "sample" : {
+      "height" : 26,
+      "width" : 151,
+      "x" : 111.5,
+      "y" : 0
+    },
+    "small" : {
+      "height" : 17,
+      "width" : 37.5,
+      "x" : 111.5,
+      "y" : 30
+    },
+    "systemBase" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 111.5,
+      "y" : 281
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 400
+  }
+}

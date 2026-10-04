@@ -93,6 +93,9 @@ func uiFont(_ font: FixtureFont) -> UIFont {
         result = UIFont.preferredFont(forTextStyle: styles[name]!)
         if let weight { result = UIFont.systemFont(ofSize: result.pointSize, weight: weights[weight]!) }
         design = d
+    case .custom(let name, let size, _, _):
+        FixtureAssets.registerFonts()
+        result = UIFont(name: name, size: size) ?? UIFont.systemFont(ofSize: size)
     }
     if let design, let systemDesign = designs[design], let descriptor = result.fontDescriptor.withDesign(systemDesign) {
         result = UIFont(descriptor: descriptor, size: result.pointSize)
@@ -107,7 +110,10 @@ final class Delegate: NSObject, UIApplicationDelegate {
         #else
         let host = "iPhoneSimulator \(UIDevice.current.systemVersion) \(UIDevice.current.name)"
         #endif
-        let platform = GoldenPlatform(profile: "iOS", host: host, subdirectory: "ios", fixturePlatform: .iOS,
+        // The fixtures' bundled fonts (`Font.custom`) must be registered before anything renders.
+FixtureAssets.registerFonts()
+
+let platform = GoldenPlatform(profile: "iOS", host: host, subdirectory: "ios", fixturePlatform: .iOS,
                                       makeHost: { UIKitHost($0, size: $1, colorScheme: $2, capturesWindow: $3) },
                                       fontMetrics: { fixtureFont in
                                           let font = uiFont(fixtureFont)
