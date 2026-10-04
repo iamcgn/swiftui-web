@@ -1010,7 +1010,7 @@
         {
           "api": "onAppear / onDisappear / task(priority:) / task(id:priority:)",
           "status": "partial",
-          "notes": "Actions run through the scheduler after the update that inserts or removes the view; tasks start on appear, cancel on disappear and restart on an id change; no onReceive or scene-phase actions",
+          "notes": "Actions run through the scheduler after the update that inserts or removes the view; tasks start on appear, cancel on disappear and restart on an id change; no onReceive or scene-phase actions; onReceive over Combine-free publishers (Just, subjects, objectWillChange, $published, Timer.publish, NotificationCenter.publisher), scenePhase from the page's visibility and focus, onOpenURL from the host's URL changes, onContinueUserActivity, children appearing before parents (2026-10-04)",
           "fixtures": [
             "lifecycle/appear"
           ]

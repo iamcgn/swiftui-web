@@ -129,6 +129,27 @@ public final class CanvasSceneHost {
             _ = media.addEventListener?("change", listener)
             closures.append(listener)
         }
+        // The scene phase: the page's visibility and the window's focus; the URL's fragment at
+        // launch and later changes reach `onOpenURL`.
+        scene.hostIsVisible = document.visibilityState.string != "hidden"
+        scene.hostIsFocused = document.hasFocus.function.map { _ in document.hasFocus!().boolean ?? true } ?? true
+        on(document, "visibilitychange") { [weak self] _ in
+            guard let self else { return }
+            self.scene.hostIsVisible = self.document.visibilityState.string != "hidden"
+            self.scheduleFrame()
+        }
+        on(window, "focus") { [weak self] _ in self?.scene.hostIsFocused = true; self?.scheduleFrame() }
+        on(window, "blur") { [weak self] _ in self?.scene.hostIsFocused = false; self?.scheduleFrame() }
+        if let location = window.location.object, let href = location.href.string, let hash = location["hash"].string, !hash.isEmpty {
+            scene.handleOpenURL(href)
+        }
+        for event in ["hashchange", "popstate"] {
+            on(window, event) { [weak self] _ in
+                guard let self, let href = self.window.location.object?.href.string else { return }
+                self.scene.handleOpenURL(href)
+                self.scheduleFrame()
+            }
+        }
         // Reduce motion, now and when it changes.
         if let media = window.matchMedia?("(prefers-reduced-motion: reduce)").object {
             scene.hostReducesMotion = media.matches.boolean ?? false

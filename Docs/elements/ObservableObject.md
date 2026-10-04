@@ -20,7 +20,7 @@ module declares typealiases so `import SwiftUI` resolves to these without ambigu
 | `@StateObject(wrappedValue:)` | implemented: one instance per view identity, kept in the node's slot |
 | `@ObservedObject` (`wrappedValue:`, `initialValue:`), `$object.property` bindings | implemented (re-subscribes when the object changes) |
 | `@EnvironmentObject`, `environmentObject(_:)` | implemented (a missing object traps with Apple's message) |
-| `onReceive`, `Timer.publish`, `NotificationCenter.publisher` | missing |
+| `onReceive`, `Timer.publish`, `NotificationCenter.publisher`, `Just`, `PassthroughSubject`, `CurrentValueSubject`, `$published` as a value publisher | implemented 2026-10-04 (Docs/elements/Lifecycle.md) |
 
 ## Behaviour
 
@@ -47,6 +47,5 @@ tests pass.
 
 ## Not yet covered
 
-Combine publishers and operators, `onReceive`, `Published.Publisher` values (it only signals
-changes), `objectWillChange` on non-main threads, `@StateObject` `update()` semantics for
+Combine operators (the publishers exist without them), `objectWillChange` on non-main threads, `@StateObject` `update()` semantics for
 `wrappedValue` written before installation.

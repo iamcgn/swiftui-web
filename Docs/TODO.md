@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 37 | 0 | 5 | 32 |
+| SwiftUI | 36 | 0 | 4 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **77** | 0 | 29 | 48 |
+| **All** | **76** | 0 | 28 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **onReceive, scene phase and URLs** `sw-lifecycle` · Lifecycle · missing  
-  `onReceive` with Combine-free `Timer.publish` and `NotificationCenter.publisher`, `scenePhase` from page visibility and the app's activation, `onOpenURL`, `onContinueUserActivity`, appear ordering between siblings and parents. ([Lifecycle.md](Docs/elements/Lifecycle.md), [ObservableObject.md](Docs/elements/ObservableObject.md))
 - ☐ **The @Entry macro** `sw-entry-macro` · Environment · missing  
   `@Entry` on `EnvironmentValues`, `FocusedValues` and `Transaction` extensions, in the existing macro target. ([SwiftUIWebMacros](Sources/SwiftUIWebMacros))
 - ☐ **Simultaneous, pinch and rotate gestures** `sw-gestures` · Gestures · accepted  
@@ -209,6 +207,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Canvas images, symbols and filters** `sw-canvas` · SwiftUI · Canvas
 - ☑ 2026-10-04 **3D and projection transforms** `sw-transform3d` · SwiftUI · Transform
 - ☑ 2026-10-04 **Animation completion, blending and reduce motion** `sw-animation` · SwiftUI · Animation
+- ☑ 2026-10-04 **onReceive, scene phase and URLs** `sw-lifecycle` · SwiftUI · Lifecycle
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

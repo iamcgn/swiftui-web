@@ -11,8 +11,12 @@ Apple docs: [onAppear(perform:)](https://developer.apple.com/documentation/swift
 |---|---|
 | `onAppear(perform:)`, `onDisappear(perform:)` | implemented |
 | `task(priority:_:)`, `task(id:priority:_:)` | implemented (`Task` on the main actor; the browser host installs `JavaScriptEventLoop`) |
-| `onReceive`, `onChange` (see `ScrollView` session) | `onChange` implemented; `onReceive` missing (no Combine) |
-| Scene phase, `onOpenURL`, `onContinueUserActivity` | missing |
+| `onChange` (see `ScrollView` session) | implemented |
+| `onReceive(_:perform:)` | implemented (2026-10-04) over the Combine-free `Publisher` protocol: `Just`, `PassthroughSubject`, `CurrentValueSubject`, `objectWillChange`, `$published` values, `Timer.publish(every:tolerance:on:in:).autoconnect()` (a task on the main actor; the run loop and mode are accepted) and `NotificationCenter.publisher(for:object:)`; the subscription is made after the view mounts and cancelled when it leaves (a publisher built in the body is not re-subscribed on every update) |
+| `scenePhase` environment, `ScenePhase` | implemented: `active` while the page is visible and its window focused, `inactive` while visible without focus, `background` while hidden (the canvas host's `visibilitychange`, `focus` and `blur`; `Runtime.hostIsVisible` / `hostIsFocused`) |
+| `onOpenURL(perform:)` | implemented: every mounted handler runs, outermost first, for the URLs the host hands the runtime (`Runtime.openURL`, `handleOpenURL`): the page's URL at launch when it carries a fragment, and every `hashchange` or `popstate` after |
+| `onContinueUserActivity(_:perform:)`, `NSUserActivity` | implemented: handlers of the activity's type run for `Runtime.continueUserActivity`; no web host produces activities (wasm's `NSUserActivity` is a stand-in) |
+| Appear order | children's `onAppear` run before their parents' (a node enqueues its action after creating its children) |
 
 ## Behaviour
 
@@ -42,6 +46,7 @@ id change, cancel on removal and completion. wasm js tests pass.
 
 ## Not yet covered
 
-Appear ordering between siblings and parents (SwiftUI runs parents' actions after children's in
-some cases; ours run in tree-creation order), `onReceive`, scene-phase actions, tasks inheriting
-the view's environment (`@Environment` values inside the closure come from the enclosing body).
+Combine operators on the publishers (map, debounce, …), re-subscribing `onReceive` when the
+publisher changes, tasks inheriting the view's environment (`@Environment` values inside the
+closure come from the enclosing body), user activities from a host. `LifecycleEventsTests` cover
+the publishers, timers, the scene phase, URLs, activities and the appear order.

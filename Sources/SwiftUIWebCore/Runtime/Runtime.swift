@@ -57,6 +57,27 @@ public final class Runtime {
             requestFullLayout()
         }
     }
+    /// Whether the page is visible and focused, set by hosts; `scenePhase` follows (active while
+    /// visible and focused, inactive while visible, background while hidden).
+    public var hostIsVisible = true {
+        didSet { if hostIsVisible != oldValue { applyScenePhase() } }
+    }
+    public var hostIsFocused = true {
+        didSet { if hostIsFocused != oldValue { applyScenePhase() } }
+    }
+    public var scenePhase: ScenePhase { !hostIsVisible ? .background : (hostIsFocused ? .active : .inactive) }
+
+    private func applyScenePhase() {
+        guard rootEnvironment.scenePhase != scenePhase else { return }
+        rootEnvironment.scenePhase = scenePhase
+        root.environment = rootEnvironment
+        root.reapply?(rootEnvironment)
+        requestFullLayout()
+    }
+
+    /// The mounted `onOpenURL` and `onContinueUserActivity` handlers, in tree order.
+    package var openURLHandlers: [WeakNode] = []
+    package var activityHandlers: [WeakNode] = []
     /// Completion callbacks claimed from transactions, waiting for the next layout to start
     /// their animation's clock.
     package var pendingAnimationCompletions: [_AnimationCompletion] = []

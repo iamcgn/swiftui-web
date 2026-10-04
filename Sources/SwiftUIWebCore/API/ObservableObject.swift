@@ -101,6 +101,12 @@ public struct Published<Value> {
     /// The property's publisher (`$property`): the enclosing object's `objectWillChange` for now.
     public struct Publisher {
         package let object: AnyObject?
+        /// Reads the property's current value (set when the object is known).
+        package var read: (() -> Value)?
+        package init(object: AnyObject?, read: (() -> Value)? = nil) {
+            self.object = object
+            self.read = read
+        }
         @MainActor public func sink(receiveValue: @escaping @MainActor () -> Void) -> AnyCancellable {
             (object as? any ObservableObject)?.objectWillChange.subscribe(receiveValue) ?? AnyCancellable {}
         }
@@ -129,7 +135,10 @@ public struct Published<Value> {
         projected projectedKeyPath: ReferenceWritableKeyPath<EnclosingSelf, Publisher>,
         storage storageKeyPath: ReferenceWritableKeyPath<EnclosingSelf, Published<Value>>
     ) -> Publisher {
-        get { Publisher(object: object) }
+        get {
+            nonisolated(unsafe) let object = object
+            return Publisher(object: object, read: { object[keyPath: storageKeyPath].stored })
+        }
         set {}
     }
 }

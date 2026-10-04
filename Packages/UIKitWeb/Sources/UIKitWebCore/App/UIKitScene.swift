@@ -147,6 +147,12 @@ public final class UIKitScene: HostedScene {
     public var imageRasterizer: ImageRasterizer?
     /// Recorded (UIKit's `UIAccessibility.isReduceMotionEnabled` reads it).
     public var hostReducesMotion = false
+    /// Recorded: the application's state would follow them.
+    public var hostIsVisible = true
+    public var hostIsFocused = true
+    /// The URL a UIKit app would receive through its scene delegate (recorded only).
+    public private(set) var lastOpenedURL: String?
+    public func handleOpenURL(_ url: String) { lastOpenedURL = url }
 
     public var hostColorScheme: ColorScheme = .light {
         didSet {

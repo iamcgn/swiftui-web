@@ -28,6 +28,11 @@ public protocol HostedScene: AnyObject {
     var hostColorScheme: ColorScheme { get set }
     /// The system's reduce-motion preference, set by hosts.
     var hostReducesMotion: Bool { get set }
+    /// Whether the page is visible, and whether its window has focus (the scene phase).
+    var hostIsVisible: Bool { get set }
+    var hostIsFocused: Bool { get set }
+    /// The host's URL changed (a launch with a fragment, `hashchange`, `popstate`).
+    func handleOpenURL(_ url: String)
     /// Writes text to the system clipboard, when the host may.
     var clipboardWriter: ((String) -> Void)? { get set }
     /// Called when the scene needs a frame without the host having asked for one (a state
