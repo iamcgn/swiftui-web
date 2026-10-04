@@ -2728,6 +2728,19 @@ public static let textField = Fixture("ios/textfield/basic", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/textfield/vertical", file: "Fixtures/Sources/TextField/TextFieldFormsFixtures.swift", firstLine: 40, lastLine: 50, declaration: #"""
+/// The vertical field on iPhone: plain (the default) and rounded, wrapped and short.
+public static let iosVertical = Fixture("ios/textfield/vertical", size: CGSize(width: 375, height: 667)) {
+    VStack(alignment: .leading, spacing: 12) {
+        TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).frame(width: 300).probe("plain")
+        TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).textFieldStyle(.roundedBorder).frame(width: 300).probe("rounded")
+        TextField("Notes", text: .constant("Short"), axis: .vertical).textFieldStyle(.roundedBorder).frame(width: 300).probe("short")
+        TextField("Notes", text: .constant(""), axis: .vertical).lineLimit(3, reservesSpace: true).textFieldStyle(.roundedBorder).frame(width: 300).probe("reserved")
+    }
+    .frame(maxHeight: .infinity, alignment: .top)   // the reserved field's height is approximate: nothing sits below it
+    .probe("stack")
+}.platform(.iOS)
+"""#),
         FixtureSource(name: "ios/toggle/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 40, lastLine: 55, declaration: #"""
 /// The switch: on, off, custom label, baseline next to plain text, hidden label, disabled.
 public static let toggle = Fixture("ios/toggle/basic", size: CGSize(width: 320, height: 300)) {
@@ -5389,6 +5402,22 @@ public static let basic = Fixture("textfield/basic", size: CGSize(width: 320, he
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "textfield/formatted", file: "Fixtures/Sources/TextField/TextFieldFormsFixtures.swift", firstLine: 25, lastLine: 38, declaration: #"""
+/// Values through format styles and a formatter; `fixedSize` so the frames carry the text.
+public static let formatted = Fixture("textfield/formatted", size: CGSize(width: 300, height: 240)) {
+    VStack(alignment: .leading, spacing: 12) {
+        TextField("Age", value: .constant(1234), format: .number).fixedSize().probe("int")
+        TextField("Price", value: .constant(3.14159), format: .number).fixedSize().probe("double")
+        TextField("Share", value: .constant(0.25), format: .percent).fixedSize().probe("percent")
+        TextField("Amount", value: .constant(12.5), format: .currency(code: "USD")).fixedSize().probe("currency")
+        TextField("Count", value: .constant(42), formatter: NumberFormatter()).fixedSize().probe("formatter")
+        TextField("Placeholder", text: .constant("Hello")).fixedSize().probe("fixedText")
+        TextField("Placeholder", text: .constant("")).fixedSize().probe("fixedEmpty")
+    }
+    .textFieldStyle(.plain)
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "textfield/steps", file: "Fixtures/Sources/TextField/TextFieldFixtures.swift", firstLine: 53, lastLine: 67, declaration: #"""
 /// Behaviour: the field shows the model's text; a text next to it echoes it.
 public static let steps = Fixture(
@@ -5431,6 +5460,21 @@ public static let styles = Fixture("textfield/styles", size: CGSize(width: 320, 
     .probe("stack")
 }
 """##),
+        FixtureSource(name: "textfield/vertical", file: "Fixtures/Sources/TextField/TextFieldFormsFixtures.swift", firstLine: 11, lastLine: 23, declaration: #"""
+/// `axis: .vertical`: a wrapped note, a short one, reserved lines, a line limit and a range.
+public static let vertical = Fixture("textfield/vertical", size: CGSize(width: 300, height: 300)) {
+    VStack(alignment: .leading, spacing: 12) {
+        TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).frame(width: 200).probe("wrapped")
+        TextField("Notes", text: .constant("Short"), axis: .vertical).frame(width: 200).probe("short")
+        TextField("Notes", text: .constant(""), axis: .vertical).lineLimit(3, reservesSpace: true).frame(width: 200).probe("reserved")
+        TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).lineLimit(2).frame(width: 200).probe("capped")
+        TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).lineLimit(2...4).frame(width: 200).probe("ranged")
+        TextField("Notes", text: .constant("Short")).frame(width: 200).probe("single")
+    }
+    .textFieldStyle(.plain)
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "textscale/selection", file: "Fixtures/Sources/TextScale/TextScaleFixtures.swift", firstLine: 36, lastLine: 43, declaration: #"""
 /// Selection does not change layout; the environment value is readable.
 public static let selection = Fixture("textscale/selection", size: CGSize(width: 300, height: 100), content: {
@@ -13930,6 +13974,61 @@ public enum TextFieldFixtures {
     public static let all: [Fixture] = [basic, styles, steps]
 }
 """##,
+        "Fixtures/Sources/TextField/TextFieldFormsFixtures.swift": #"""
+// Vertical (growing) text fields and formatted values (Docs/elements/TextField.md, "Forms"). The
+// plain style keeps these goldens free of the rounded bezel, whose metrics moved on macOS 26.6
+// (21 pt tall, narrower insets) while the older text field goldens stay at 26.2.
+import SwiftUI
+import FixtureKit
+
+/// The note the vertical fields wrap.
+public let fixtureFieldNote = "A long note that wraps onto several lines in a narrow field"
+
+public enum TextFieldFormsFixtures {
+    /// `axis: .vertical`: a wrapped note, a short one, reserved lines, a line limit and a range.
+    public static let vertical = Fixture("textfield/vertical", size: CGSize(width: 300, height: 300)) {
+        VStack(alignment: .leading, spacing: 12) {
+            TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).frame(width: 200).probe("wrapped")
+            TextField("Notes", text: .constant("Short"), axis: .vertical).frame(width: 200).probe("short")
+            TextField("Notes", text: .constant(""), axis: .vertical).lineLimit(3, reservesSpace: true).frame(width: 200).probe("reserved")
+            TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).lineLimit(2).frame(width: 200).probe("capped")
+            TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).lineLimit(2...4).frame(width: 200).probe("ranged")
+            TextField("Notes", text: .constant("Short")).frame(width: 200).probe("single")
+        }
+        .textFieldStyle(.plain)
+        .probe("stack")
+    }
+
+    /// Values through format styles and a formatter; `fixedSize` so the frames carry the text.
+    public static let formatted = Fixture("textfield/formatted", size: CGSize(width: 300, height: 240)) {
+        VStack(alignment: .leading, spacing: 12) {
+            TextField("Age", value: .constant(1234), format: .number).fixedSize().probe("int")
+            TextField("Price", value: .constant(3.14159), format: .number).fixedSize().probe("double")
+            TextField("Share", value: .constant(0.25), format: .percent).fixedSize().probe("percent")
+            TextField("Amount", value: .constant(12.5), format: .currency(code: "USD")).fixedSize().probe("currency")
+            TextField("Count", value: .constant(42), formatter: NumberFormatter()).fixedSize().probe("formatter")
+            TextField("Placeholder", text: .constant("Hello")).fixedSize().probe("fixedText")
+            TextField("Placeholder", text: .constant("")).fixedSize().probe("fixedEmpty")
+        }
+        .textFieldStyle(.plain)
+        .probe("stack")
+    }
+
+    /// The vertical field on iPhone: plain (the default) and rounded, wrapped and short.
+    public static let iosVertical = Fixture("ios/textfield/vertical", size: CGSize(width: 375, height: 667)) {
+        VStack(alignment: .leading, spacing: 12) {
+            TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).frame(width: 300).probe("plain")
+            TextField("Notes", text: .constant(fixtureFieldNote), axis: .vertical).textFieldStyle(.roundedBorder).frame(width: 300).probe("rounded")
+            TextField("Notes", text: .constant("Short"), axis: .vertical).textFieldStyle(.roundedBorder).frame(width: 300).probe("short")
+            TextField("Notes", text: .constant(""), axis: .vertical).lineLimit(3, reservesSpace: true).textFieldStyle(.roundedBorder).frame(width: 300).probe("reserved")
+        }
+        .frame(maxHeight: .infinity, alignment: .top)   // the reserved field's height is approximate: nothing sits below it
+        .probe("stack")
+    }.platform(.iOS)
+
+    public static let all: [Fixture] = [vertical, formatted, iosVertical]
+}
+"""#,
         "Fixtures/Sources/TextPressure/TextPressureFixtures.swift": #"""
 // Text under height pressure: a paragraph proposed less height than its lines need keeps
 // floor(height / line pitch) lines, at least one, and truncates the last (measured 2026-09-04,

@@ -36,6 +36,8 @@ extension PlatformMetricsTable {
         t.stepperDividerAlpha = 75.0 / 255
         // TextField (ios/textfield/basic): 34 pt rounded border 0.5 pt inside, 4 pt corners; 26 pt plain.
         t.textFieldHeight = 34
+        t.textFieldMultilinePadding = 8
+        t.textFieldIdealInset = 0                                       // unmeasured
         t.textFieldHorizontalPadding = 7.5
         t.textFieldVerticalPadding = 4.75
         t.textFieldCornerRadius = 4
@@ -43,6 +45,9 @@ extension PlatformMetricsTable {
         t.textFieldBorderAlpha = 0.2
         t.textFieldBorderInside = true
         t.textFieldTextOffset = 0.25                                    // the row label's baseline: 23.5 down, not 23.25
+        t.textCaretWidth = 2                                            // unverified: UIKit's insertion point
+        t.textCaretUsesAccent = true
+        t.textSelectionColor = RGBA(r: 0, g: 122, b: 255, a: 0.2)       // unverified: the tint at 20 %
         t.textFieldPlainExtraHeight = 1.5
         t.textFieldPlainEmptyExtraHeight = 1.5                          // ios/dark/controls `emptyField`: 26 with only the placeholder, like with text
         t.textFieldPlainTextOffset = -0.75

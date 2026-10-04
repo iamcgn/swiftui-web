@@ -87,6 +87,7 @@ package final class TextEditorNode: LeafNode<_TextEditorHost>, _Interactive, _Te
         info.isMultiline = true
         info.lineHeight = linePitch
         info.firstBaseline = firstBaseline
+        info.submitsOnReturn = false
         return SemanticsNode(role: .textField, label: "", frame: absolute, identifier: identifier, textInput: info)
     }
 

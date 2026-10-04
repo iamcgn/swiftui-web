@@ -178,14 +178,6 @@ open class UITextField: UIControl {
     }
 }
 
-public enum UIKeyboardType: Int, Sendable {
-    case `default` = 0, asciiCapable, numbersAndPunctuation, URL, numberPad, phonePad, namePhonePad, emailAddress, decimalPad, twitter, webSearch, asciiCapableNumberPad
-}
-
-public enum UIReturnKeyType: Int, Sendable {
-    case `default` = 0, go, google, join, next, route, search, send, yahoo, done, emergencyCall, `continue`
-}
-
-public enum UITextAutocapitalizationType: Int, Sendable { case none = 0, words, sentences, allCharacters }
-public enum UITextAutocorrectionType: Int, Sendable { case `default` = 0, no, yes }
-public enum UITextSpellCheckingType: Int, Sendable { case `default` = 0, no, yes }
+// `UIKeyboardType`, `UIReturnKeyType`, `UITextAutocapitalizationType`, `UITextAutocorrectionType`,
+// `UITextSpellCheckingType` and `UITextContentType` live in WebGraphics (Input/TextInputTypes.swift),
+// shared with SwiftUIWeb.

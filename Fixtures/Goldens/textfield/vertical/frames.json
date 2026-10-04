@@ -1,0 +1,51 @@
+{
+  "fixture" : "textfield\/vertical",
+  "frames" : {
+    "capped" : {
+      "height" : 32,
+      "width" : 200,
+      "x" : 50,
+      "y" : 164
+    },
+    "ranged" : {
+      "height" : 32,
+      "width" : 200,
+      "x" : 50,
+      "y" : 208
+    },
+    "reserved" : {
+      "height" : 48,
+      "width" : 200,
+      "x" : 50,
+      "y" : 104
+    },
+    "short" : {
+      "height" : 16,
+      "width" : 200,
+      "x" : 50,
+      "y" : 76
+    },
+    "single" : {
+      "height" : 16,
+      "width" : 200,
+      "x" : 50,
+      "y" : 252
+    },
+    "stack" : {
+      "height" : 236,
+      "width" : 200,
+      "x" : 50,
+      "y" : 32
+    },
+    "wrapped" : {
+      "height" : 32,
+      "width" : 200,
+      "x" : 50,
+      "y" : 32
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 300
+  }
+}

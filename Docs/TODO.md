@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 57 | 0 | 25 | 32 |
+| SwiftUI | 56 | 0 | 24 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **97** | 0 | 49 | 48 |
+| **All** | **96** | 0 | 48 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **TextField forms and the painted caret** `sw-textfield` · TextField · missing  
-  `TextField(_:value:format:)` and `formatter:`, `onEditingChanged`/`onCommit`, `axis: .vertical` (a stub today), `submitLabel`, `textContentType`, `keyboardType`, `textInputAutocapitalization`, `autocorrectionDisabled` (stored) reaching the overlay input, `lineLimit` on fields; the caret and selection painted into the display list so native and browser match. ([TextField.md](Docs/elements/TextField.md))
 - ☐ **allowsTightening and minimumScaleFactor** `sw-text-fit` · Text · accepted  
   Stored environment values that never reach layout: shrink to fit measured on a grid of widths and factors. ([Text.md](Docs/elements/Text.md))
 - ☐ **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · Text · missing  
@@ -233,6 +231,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-09-19 **List styles, spacing and outline forms** `sw-list-looks` · SwiftUI · List
 - ☑ 2026-09-19 **Scroll position, targets and geometry** `sw-scroll-apis` · SwiftUI · ScrollView
 - ☑ 2026-09-19 **Real laziness and pinned headers** `sw-lazy` · SwiftUI · Lazy stacks and grids

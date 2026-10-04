@@ -39,12 +39,14 @@ enum NativeGoldens {
                                            "texteditor/basic"]   // NSTextView's tighter letters and wider spaces wrap one more word onto the first line
     /// Probes allowed two points (symbol sizes the metrics table scales to), as in Tier A.
     static let approximateProbes: [String: Set<String>] = [
+        "textfield/formatted": ["int", "double", "percent", "currency", "formatter", "fixedText", "fixedEmpty", "stack"],
         "symbol/basic": ["size24", "size40", "baselineText40", "largeSize24", "light", "black", "blue30", "chevronSemibold", "approximateRow", "stack"],
     ]
     static let pixelTolerance = 0.03
     /// Probes Apple reports but nothing reproduces (a hidden tab's stale frame), as in Tier A.
     static let ignoredProbes: [String: Set<String>] = [
         "ios/list/footer": ["footer", "footer2"],
+        "ios/textfield/vertical": ["reserved", "stack"],
         "list/pinning": ["b1", "b2", "b3", "b4", "b5", "b6"],
         "list/pinning/scroll": ["a1", "a2", "a3", "a4", "a5", "a6"],
         "list/outline": ["dgFruits"],

@@ -14,6 +14,19 @@ public struct TextInputInfo: Equatable, Sendable {
     /// top (0 for a single-line field, whose text line is the rect).
     public var lineHeight: CGFloat = 0
     public var firstBaseline: CGFloat = 0
+    /// Whether Return submits (a text field, single- or multi-line) rather than inserting a
+    /// newline (an editor).
+    public var submitsOnReturn = true
+    /// Whether the scene paints the caret and selection itself (the host hides the element's).
+    public var paintsCaret = false
+    /// The input element's attributes: `inputmode`, `type` (a single-line field's kind),
+    /// `autocomplete`, `autocapitalize`, `enterkeyhint`; `autocorrect` on or off.
+    public var inputMode: String?
+    public var inputType: String?
+    public var autocomplete: String?
+    public var autocapitalize: String?
+    public var enterKeyHint: String?
+    public var autocorrect = true
 
     public init(text: String, placeholder: String, isSecure: Bool, textRect: CGRect, font: DisplayFont, isEnabled: Bool) {
         self.text = text

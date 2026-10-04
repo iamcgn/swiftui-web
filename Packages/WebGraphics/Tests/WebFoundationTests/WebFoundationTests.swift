@@ -186,3 +186,45 @@ import Foundation
         #expect(_Base64.decode("QU JD".utf8) == nil && _Base64.decode("QU JD".utf8, ignoreUnknown: true) == [65, 66, 67])
     }
 }
+
+@Suite struct NumberFormattingTests {
+    static let doubles: [Double] = [3.14159, 1.0 / 3.0, 1234.5678, 12345.6789, 0.1, 100, 2.5, 1e7, 0.000123, 123456789.123456789, -0.5, 0, 0.5, 1.5, 2.675, 1e-7]
+    static let integers = [0, 7, 1234, -1234567, 1_000_000]
+
+    @Test func decimalPercentAndCurrencyMatchFoundation() {
+        for value in Self.doubles {
+            #expect(_NumberFormatting().format(value) == value.formatted(), "\(value)")
+            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent), "\(value) percent \(_NumberFormatting(style: .percent).format(value)) vs \(value.formatted(.percent))")
+            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD")), "\(value) usd")
+            #expect(_NumberFormatting(style: .currency("EUR")).format(value) == value.formatted(.currency(code: "EUR")), "\(value) eur")
+            var two = _NumberFormatting(); two.minimumFractionDigits = 2; two.maximumFractionDigits = 2
+            #expect(two.format(value) == value.formatted(.number.precision(.fractionLength(2))), "\(value) frac2")
+            var plain = _NumberFormatting(); plain.usesGrouping = false
+            #expect(plain.format(value) == value.formatted(.number.grouping(.never)), "\(value) nogroup")
+        }
+        for value in Self.integers {
+            #expect(_NumberFormatting().format(value) == value.formatted(), "\(value)")
+            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent), "\(value) percent")
+            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD")), "\(value) usd")
+        }
+    }
+
+    @Test func parsesLikeFoundation() {
+        let core = _NumberFormatting()
+        #expect(core.parse("1,234") == 1234)
+        #expect(core.parse("3.5") == 3.5)
+        #expect(core.parse(" 12 ") == 12)
+        #expect(core.parse("abc") == nil)
+        #expect(_NumberFormatting(style: .percent).parse("25%") == 0.25)
+        #expect(_NumberFormatting(style: .currency("USD")).parse("$12.50") == 12.5)
+    }
+
+    @Test func numberFormatterStyles() {
+        var none = _NumberFormatting(); none.usesGrouping = false; none.maximumFractionDigits = 0
+        #expect(none.format(42) == "42" && none.format(3.14159) == "3" && none.format(1234.5) == "1234")
+        var decimal = _NumberFormatting(); decimal.maximumFractionDigits = 3
+        #expect(decimal.format(1234.5678) == "1,234.568" && decimal.format(1234567) == "1,234,567")
+        var percent = _NumberFormatting(style: .percent); percent.maximumFractionDigits = 0
+        #expect(percent.format(0.256) == "26%")
+    }
+}

@@ -402,6 +402,12 @@
       "lastBaseline": 71,
       "width": 0
     },
+    "style:body:w600|0.0|Notes": {
+      "firstBaseline": 14,
+      "height": 94.5,
+      "lastBaseline": 90,
+      "width": 0
+    },
     "style:body:w600|0.0|Notifications": {
       "firstBaseline": 14,
       "height": 246.5,
@@ -504,6 +510,12 @@
       "lastBaseline": 147,
       "width": 0
     },
+    "style:body:w600|0.0|Short": {
+      "firstBaseline": 14,
+      "height": 94.5,
+      "lastBaseline": 90,
+      "width": 0
+    },
     "style:body:w600|0.0|Size": {
       "firstBaseline": 14,
       "height": 75.5,
@@ -564,7 +576,7 @@
       "lastBaseline": 109,
       "width": 0
     },
-    "style:body:w600|0.0|\u2022\u2022\u2022\u2022\u2022\u2022": {
+    "style:body:w600|0.0|••••••": {
       "firstBaseline": 14,
       "height": 113.5,
       "lastBaseline": 109,
@@ -726,6 +738,12 @@
       "lastBaseline": 14,
       "width": 37
     },
+    "style:body:w600||Notes": {
+      "firstBaseline": 14,
+      "height": 18.5,
+      "lastBaseline": 14,
+      "width": 37.5
+    },
     "style:body:w600||Notifications": {
       "firstBaseline": 14,
       "height": 18.5,
@@ -828,6 +846,12 @@
       "lastBaseline": 14,
       "width": 56
     },
+    "style:body:w600||Short": {
+      "firstBaseline": 14,
+      "height": 18.5,
+      "lastBaseline": 14,
+      "width": 35
+    },
     "style:body:w600||Size": {
       "firstBaseline": 14,
       "height": 18.5,
@@ -888,7 +912,7 @@
       "lastBaseline": 14,
       "width": 40
     },
-    "style:body:w600||\u2022\u2022\u2022\u2022\u2022\u2022": {
+    "style:body:w600||••••••": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -1014,6 +1038,12 @@
       "lastBaseline": 71,
       "width": 0
     },
+    "style:body:w700|0.0|Notes": {
+      "firstBaseline": 14,
+      "height": 94.5,
+      "lastBaseline": 90,
+      "width": 0
+    },
     "style:body:w700|0.0|OK": {
       "firstBaseline": 14,
       "height": 37.5,
@@ -1080,6 +1110,12 @@
       "lastBaseline": 147,
       "width": 0
     },
+    "style:body:w700|0.0|Short": {
+      "firstBaseline": 14,
+      "height": 94.5,
+      "lastBaseline": 90,
+      "width": 0
+    },
     "style:body:w700|0.0|Size": {
       "firstBaseline": 14,
       "height": 75.5,
@@ -1122,7 +1158,7 @@
       "lastBaseline": 109,
       "width": 0
     },
-    "style:body:w700|0.0|\u2022\u2022\u2022\u2022\u2022\u2022": {
+    "style:body:w700|0.0|••••••": {
       "firstBaseline": 14,
       "height": 113.5,
       "lastBaseline": 109,
@@ -1248,6 +1284,12 @@
       "lastBaseline": 14,
       "width": 37.5
     },
+    "style:body:w700||Notes": {
+      "firstBaseline": 14,
+      "height": 18.5,
+      "lastBaseline": 14,
+      "width": 38.5
+    },
     "style:body:w700||OK": {
       "firstBaseline": 14,
       "height": 18.5,
@@ -1314,6 +1356,12 @@
       "lastBaseline": 14,
       "width": 57
     },
+    "style:body:w700||Short": {
+      "firstBaseline": 14,
+      "height": 18.5,
+      "lastBaseline": 14,
+      "width": 36
+    },
     "style:body:w700||Size": {
       "firstBaseline": 14,
       "height": 18.5,
@@ -1356,7 +1404,7 @@
       "lastBaseline": 14,
       "width": 41.5
     },
-    "style:body:w700||\u2022\u2022\u2022\u2022\u2022\u2022": {
+    "style:body:w700||••••••": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -1438,6 +1486,12 @@
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
+      "width": 0
+    },
+    "style:body|0.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 911.5,
+      "lastBaseline": 907,
       "width": 0
     },
     "style:body|0.0|ACCOUNT": {
@@ -1644,7 +1698,7 @@
       "lastBaseline": 109,
       "width": 0
     },
-    "style:body|0.0|Delete\u2026": {
+    "style:body|0.0|Delete…": {
       "firstBaseline": 14,
       "height": 132.5,
       "lastBaseline": 128,
@@ -1842,6 +1896,12 @@
       "lastBaseline": 128,
       "width": 0
     },
+    "style:body|0.0|Notes": {
+      "firstBaseline": 14,
+      "height": 94.5,
+      "lastBaseline": 90,
+      "width": 0
+    },
     "style:body|0.0|Notifications": {
       "firstBaseline": 14,
       "height": 246.5,
@@ -1902,7 +1962,7 @@
       "lastBaseline": 128,
       "width": 0
     },
-    "style:body|0.0|Options\u2026": {
+    "style:body|0.0|Options…": {
       "firstBaseline": 14,
       "height": 151.5,
       "lastBaseline": 147,
@@ -2058,6 +2118,12 @@
       "lastBaseline": 280,
       "width": 0
     },
+    "style:body|0.0|Short": {
+      "firstBaseline": 14,
+      "height": 94.5,
+      "lastBaseline": 90,
+      "width": 0
+    },
     "style:body|0.0|Show sheet": {
       "firstBaseline": 14,
       "height": 170.5,
@@ -2202,13 +2268,13 @@
       "lastBaseline": 90,
       "width": 0
     },
-    "style:body|0.0|\u2022\u2022\u2022\u2022\u2022\u2022": {
+    "style:body|0.0|••••••": {
       "firstBaseline": 14,
       "height": 113.5,
       "lastBaseline": 109,
       "width": 0
     },
-    "style:body|0.0|\u2212": {
+    "style:body|0.0|−": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -2298,6 +2364,54 @@
       "lastBaseline": 33,
       "width": 227
     },
+    "style:body|284.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 37.5,
+      "lastBaseline": 33,
+      "width": 274.5
+    },
+    "style:body|285.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 37.5,
+      "lastBaseline": 33,
+      "width": 274.5
+    },
+    "style:body|286.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 37.5,
+      "lastBaseline": 33,
+      "width": 274.5
+    },
+    "style:body|288.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 37.5,
+      "lastBaseline": 33,
+      "width": 274.5
+    },
+    "style:body|290.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 37.5,
+      "lastBaseline": 33,
+      "width": 274.5
+    },
+    "style:body|292.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 37.5,
+      "lastBaseline": 33,
+      "width": 274.5
+    },
+    "style:body|298.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 37.5,
+      "lastBaseline": 33,
+      "width": 274.5
+    },
+    "style:body|300.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 37.5,
+      "lastBaseline": 33,
+      "width": 274.5
+    },
     "style:body|311.0|First": {
       "firstBaseline": 14,
       "height": 18.5,
@@ -2328,7 +2442,7 @@
       "lastBaseline": 14,
       "width": 36.5
     },
-    "style:body|363.0|Delete\u2026": {
+    "style:body|363.0|Delete…": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -2346,7 +2460,7 @@
       "lastBaseline": 14,
       "width": 86
     },
-    "style:body|363.0|Options\u2026": {
+    "style:body|363.0|Options…": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -2388,7 +2502,7 @@
       "lastBaseline": 14,
       "width": 36.5
     },
-    "style:body|375.0|Delete\u2026": {
+    "style:body|375.0|Delete…": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -2406,7 +2520,7 @@
       "lastBaseline": 14,
       "width": 86
     },
-    "style:body|375.0|Options\u2026": {
+    "style:body|375.0|Options…": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -2507,6 +2621,12 @@
       "height": 18.5,
       "lastBaseline": 14,
       "width": 9
+    },
+    "style:body||A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 14,
+      "height": 18.5,
+      "lastBaseline": 14,
+      "width": 346
     },
     "style:body||ACCOUNT": {
       "firstBaseline": 14,
@@ -2712,7 +2832,7 @@
       "lastBaseline": 14,
       "width": 39.5
     },
-    "style:body||Delete\u2026": {
+    "style:body||Delete…": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -2910,6 +3030,12 @@
       "lastBaseline": 14,
       "width": 51
     },
+    "style:body||Notes": {
+      "firstBaseline": 14,
+      "height": 18.5,
+      "lastBaseline": 14,
+      "width": 36
+    },
     "style:body||Notifications": {
       "firstBaseline": 14,
       "height": 18.5,
@@ -2970,7 +3096,7 @@
       "lastBaseline": 14,
       "width": 47.5
     },
-    "style:body||Options\u2026": {
+    "style:body||Options…": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -3126,6 +3252,12 @@
       "lastBaseline": 14,
       "width": 100.5
     },
+    "style:body||Short": {
+      "firstBaseline": 14,
+      "height": 18.5,
+      "lastBaseline": 14,
+      "width": 33.5
+    },
     "style:body||Show sheet": {
       "firstBaseline": 14,
       "height": 18.5,
@@ -3270,13 +3402,13 @@
       "lastBaseline": 14,
       "width": 31.5
     },
-    "style:body||\u2022\u2022\u2022\u2022\u2022\u2022": {
+    "style:body||••••••": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
       "width": 36.5
     },
-    "style:body||\u2212": {
+    "style:body||−": {
       "firstBaseline": 14,
       "height": 18.5,
       "lastBaseline": 14,
@@ -12834,6 +12966,12 @@
       "lastBaseline": 93,
       "width": 0
     },
+    "system:13:400:default|0.0|$12.50": {
+      "firstBaseline": 13,
+      "height": 96,
+      "lastBaseline": 93,
+      "width": 0
+    },
     "system:13:400:default|0.0|+": {
       "firstBaseline": 13,
       "height": 16,
@@ -12882,6 +13020,12 @@
       "lastBaseline": 13,
       "width": 0
     },
+    "system:13:400:default|0.0|1,234": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
     "system:13:400:default|0.0|10": {
       "firstBaseline": 13,
       "height": 32,
@@ -12904,6 +13048,12 @@
       "firstBaseline": 13,
       "height": 32,
       "lastBaseline": 29,
+      "width": 0
+    },
+    "system:13:400:default|0.0|1234": {
+      "firstBaseline": 13,
+      "height": 64,
+      "lastBaseline": 61,
       "width": 0
     },
     "system:13:400:default|0.0|15": {
@@ -12942,10 +13092,28 @@
       "lastBaseline": 29,
       "width": 0
     },
+    "system:13:400:default|0.0|25%": {
+      "firstBaseline": 13,
+      "height": 48,
+      "lastBaseline": 45,
+      "width": 0
+    },
     "system:13:400:default|0.0|3": {
       "firstBaseline": 13,
       "height": 16,
       "lastBaseline": 13,
+      "width": 0
+    },
+    "system:13:400:default|0.0|3.14159": {
+      "firstBaseline": 13,
+      "height": 112,
+      "lastBaseline": 109,
+      "width": 0
+    },
+    "system:13:400:default|0.0|3.142": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
       "width": 0
     },
     "system:13:400:default|0.0|30": {
@@ -12973,6 +13141,12 @@
       "width": 0
     },
     "system:13:400:default|0.0|40": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 0
+    },
+    "system:13:400:default|0.0|42": {
       "firstBaseline": 13,
       "height": 32,
       "lastBaseline": 29,
@@ -13044,6 +13218,12 @@
       "lastBaseline": 13,
       "width": 0
     },
+    "system:13:400:default|0.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 768,
+      "lastBaseline": 765,
+      "width": 0
+    },
     "system:13:400:default|0.0|A0 D0": {
       "firstBaseline": 13,
       "height": 64,
@@ -13104,6 +13284,12 @@
       "lastBaseline": 93,
       "width": 0
     },
+    "system:13:400:default|0.0|Age": {
+      "firstBaseline": 13,
+      "height": 48,
+      "lastBaseline": 45,
+      "width": 0
+    },
     "system:13:400:default|0.0|Alert": {
       "firstBaseline": 13,
       "height": 80,
@@ -13120,6 +13306,12 @@
       "firstBaseline": 13,
       "height": 80,
       "lastBaseline": 77,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Amount": {
+      "firstBaseline": 13,
+      "height": 96,
+      "lastBaseline": 93,
       "width": 0
     },
     "system:13:400:default|0.0|Apple": {
@@ -13998,6 +14190,12 @@
       "lastBaseline": 141,
       "width": 0
     },
+    "system:13:400:default|0.0|Notes": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
+      "width": 0
+    },
     "system:13:400:default|0.0|Number 1": {
       "firstBaseline": 13,
       "height": 112,
@@ -14134,6 +14332,12 @@
       "firstBaseline": 13,
       "height": 224,
       "lastBaseline": 221,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Price": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
       "width": 0
     },
     "system:13:400:default|0.0|Primary": {
@@ -14334,7 +14538,7 @@
       "lastBaseline": 77,
       "width": 0
     },
-    "system:13:400:default|0.0|Share\u2026": {
+    "system:13:400:default|0.0|Share…": {
       "firstBaseline": 13,
       "height": 96,
       "lastBaseline": 93,
@@ -14350,6 +14554,12 @@
       "firstBaseline": 13,
       "height": 192,
       "lastBaseline": 189,
+      "width": 0
+    },
+    "system:13:400:default|0.0|Short": {
+      "firstBaseline": 13,
+      "height": 80,
+      "lastBaseline": 77,
       "width": 0
     },
     "system:13:400:default|0.0|Shown": {
@@ -14664,7 +14874,7 @@
       "lastBaseline": 813,
       "width": 0
     },
-    "system:13:400:default|0.0|\u2212": {
+    "system:13:400:default|0.0|−": {
       "firstBaseline": 13,
       "height": 16,
       "lastBaseline": 13,
@@ -14843,6 +15053,54 @@
       "height": 32,
       "lastBaseline": 29,
       "width": 160
+    },
+    "system:13:400:default|188.0;l2|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 175
+    },
+    "system:13:400:default|188.0;l4;r2|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 175
+    },
+    "system:13:400:default|188.0;l4|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 175
+    },
+    "system:13:400:default|188.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 175
+    },
+    "system:13:400:default|200.0;l2|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 175
+    },
+    "system:13:400:default|200.0;l4;r2|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 175
+    },
+    "system:13:400:default|200.0;l4|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 175
+    },
+    "system:13:400:default|200.0|A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 175
     },
     "system:13:400:default|200.0|Layout must wrap this sentence onto several lines inside a narrow frame.": {
       "firstBaseline": 13,
@@ -15516,6 +15774,12 @@
       "lastBaseline": 13,
       "width": 41.5
     },
+    "system:13:400:default||$12.50": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 41.5
+    },
     "system:13:400:default||+": {
       "firstBaseline": 13,
       "height": 16,
@@ -15564,6 +15828,12 @@
       "lastBaseline": 13,
       "width": 6
     },
+    "system:13:400:default||1,234": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 33.5
+    },
     "system:13:400:default||10": {
       "firstBaseline": 13,
       "height": 16,
@@ -15587,6 +15857,12 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 14
+    },
+    "system:13:400:default||1234": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 30.5
     },
     "system:13:400:default||15": {
       "firstBaseline": 13,
@@ -15624,11 +15900,29 @@
       "lastBaseline": 13,
       "width": 16
     },
+    "system:13:400:default||25%": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 28
+    },
     "system:13:400:default||3": {
       "firstBaseline": 13,
       "height": 16,
       "lastBaseline": 13,
       "width": 8.5
+    },
+    "system:13:400:default||3.14159": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 47.5
+    },
+    "system:13:400:default||3.142": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 33.5
     },
     "system:13:400:default||30": {
       "firstBaseline": 13,
@@ -15655,6 +15949,12 @@
       "width": 8.5
     },
     "system:13:400:default||40": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 16.5
+    },
+    "system:13:400:default||42": {
       "firstBaseline": 13,
       "height": 16,
       "lastBaseline": 13,
@@ -15726,6 +16026,12 @@
       "lastBaseline": 13,
       "width": 9
     },
+    "system:13:400:default||A long note that wraps onto several lines in a narrow field": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 346
+    },
     "system:13:400:default||A0 D0": {
       "firstBaseline": 13,
       "height": 16,
@@ -15786,6 +16092,12 @@
       "lastBaseline": 13,
       "width": 39
     },
+    "system:13:400:default||Age": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 23.5
+    },
     "system:13:400:default||Alert": {
       "firstBaseline": 13,
       "height": 16,
@@ -15803,6 +16115,12 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 34.5
+    },
+    "system:13:400:default||Amount": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 47.5
     },
     "system:13:400:default||Apple": {
       "firstBaseline": 13,
@@ -16680,6 +16998,12 @@
       "lastBaseline": 13,
       "width": 64
     },
+    "system:13:400:default||Notes": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 36
+    },
     "system:13:400:default||Number 1": {
       "firstBaseline": 13,
       "height": 16,
@@ -16817,6 +17141,12 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 100
+    },
+    "system:13:400:default||Price": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 31
     },
     "system:13:400:default||Primary": {
       "firstBaseline": 13,
@@ -17016,7 +17346,7 @@
       "lastBaseline": 13,
       "width": 35
     },
-    "system:13:400:default||Share\u2026": {
+    "system:13:400:default||Share…": {
       "firstBaseline": 13,
       "height": 16,
       "lastBaseline": 13,
@@ -17033,6 +17363,12 @@
       "height": 16,
       "lastBaseline": 13,
       "width": 85.5
+    },
+    "system:13:400:default||Short": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 33.5
     },
     "system:13:400:default||Shown": {
       "firstBaseline": 13,
@@ -17346,7 +17682,7 @@
       "lastBaseline": 13,
       "width": 362
     },
-    "system:13:400:default||\u2212": {
+    "system:13:400:default||−": {
       "firstBaseline": 13,
       "height": 16,
       "lastBaseline": 13,
@@ -19797,6 +20133,7 @@
       "xHeight": 20.9375
     }
   },
+  "host": "AppKit",
   "macOS": "26.2.0",
   "platformProfile": "macOS"
 }

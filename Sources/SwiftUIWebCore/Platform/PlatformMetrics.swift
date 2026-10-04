@@ -48,6 +48,11 @@ package final class PlatformMetricsTable: @unchecked Sendable {
 
     // TextField (macOS 26.2: fixtures textfield/basic, textfield/styles; pixels sampled, Docs/elements/TextField.md)
     package var textFieldHeight: CGFloat = 24
+    /// A vertical field with several lines: the padding around its lines (textfield/vertical,
+    /// ios/textfield/vertical `rounded`).
+    package var textFieldMultilinePadding: CGFloat = 8
+    /// The ideal width adds this each side of the shown text (textfield/formatted, macOS; iOS unmeasured).
+    package var textFieldIdealInset: CGFloat = 2
     package var textFieldHorizontalPadding: CGFloat = 6
     package var textFieldVerticalPadding: CGFloat = 4
     package var textFieldCornerRadius: CGFloat = 5                // approximate: the border ramp reads 5–6 pt
@@ -518,6 +523,12 @@ package final class PlatformMetricsTable: @unchecked Sendable {
 
     // Label (macOS 26.2: fixture label/basic, Docs/elements/Label.md)
     package var labelIconSpacing: CGFloat = 8
+
+    // Text fields' caret and selection (Docs/elements/TextField.md), painted by the scene so the
+    // native and browser renders match; unverified (the goldens never focus a field).
+    package var textCaretWidth: CGFloat = 1
+    package var textCaretUsesAccent = false                   // macOS: the text colour; iOS: the accent
+    package var textSelectionColor = RGBA(r: 179, g: 215, b: 255, a: 1)   // NSColor.selectedTextBackgroundColor (approximate)
 
     // Scrolling (Docs/elements/ScrollView.md). Overlay scrollers only show while scrolling, so the
     // goldens cannot show them; the knob was measured from `NSScroller.drawKnob` (2026-09-19).

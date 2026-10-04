@@ -408,6 +408,12 @@
       "lastBaseline" : 18.5,
       "width" : 46.5
     },
+    "style:body:w600||Notes" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 47.5
+    },
     "style:body:w600||Notifications" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -515,6 +521,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 70.5
+    },
+    "style:body:w600||Short" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 44
     },
     "style:body:w600||Size" : {
       "firstBaseline" : 18.5,
@@ -732,6 +744,12 @@
       "lastBaseline" : 95,
       "width" : 0
     },
+    "style:body:w600|0.0|Notes" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
+      "width" : 0
+    },
     "style:body:w600|0.0|Notifications" : {
       "firstBaseline" : 18.5,
       "height" : 335,
@@ -838,6 +856,12 @@
       "firstBaseline" : 18.5,
       "height" : 205,
       "lastBaseline" : 199,
+      "width" : 0
+    },
+    "style:body:w600|0.0|Short" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
       "width" : 0
     },
     "style:body:w600|0.0|Size" : {
@@ -1020,6 +1044,12 @@
       "lastBaseline" : 18.5,
       "width" : 47.5
     },
+    "style:body:w700||Notes" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 48.5
+    },
     "style:body:w700||OK" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -1091,6 +1121,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 72
+    },
+    "style:body:w700||Short" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 45.5
     },
     "style:body:w700||Size" : {
       "firstBaseline" : 18.5,
@@ -1254,6 +1290,12 @@
       "lastBaseline" : 95,
       "width" : 0
     },
+    "style:body:w700|0.0|Notes" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
+      "width" : 0
+    },
     "style:body:w700|0.0|OK" : {
       "firstBaseline" : 18.5,
       "height" : 49,
@@ -1324,6 +1366,12 @@
       "firstBaseline" : 18.5,
       "height" : 205,
       "lastBaseline" : 199,
+      "width" : 0
+    },
+    "style:body:w700|0.0|Short" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
       "width" : 0
     },
     "style:body:w700|0.0|Size" : {
@@ -1451,6 +1499,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 11.5
+    },
+    "style:body||A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 433
     },
     "style:body||Above" : {
       "firstBaseline" : 18.5,
@@ -1854,6 +1908,12 @@
       "lastBaseline" : 18.5,
       "width" : 64.5
     },
+    "style:body||Notes" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 45.5
+    },
     "style:body||Notifications" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -2076,6 +2136,12 @@
       "lastBaseline" : 18.5,
       "width" : 125.5
     },
+    "style:body||Short" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 42
+    },
     "style:body||Show sheet" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -2290,6 +2356,12 @@
       "firstBaseline" : 18.5,
       "height" : 24.5,
       "lastBaseline" : 18.5,
+      "width" : 0
+    },
+    "style:body|0.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 986.5,
+      "lastBaseline" : 1006.5,
       "width" : 0
     },
     "style:body|0.0|Above" : {
@@ -2694,6 +2766,12 @@
       "lastBaseline" : 173,
       "width" : 0
     },
+    "style:body|0.0|Notes" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
+      "width" : 0
+    },
     "style:body|0.0|Notifications" : {
       "firstBaseline" : 18.5,
       "height" : 335,
@@ -2916,6 +2994,12 @@
       "lastBaseline" : 381,
       "width" : 0
     },
+    "style:body|0.0|Short" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
+      "width" : 0
+    },
     "style:body|0.0|Show sheet" : {
       "firstBaseline" : 18.5,
       "height" : 231,
@@ -3113,6 +3197,54 @@
       "height" : 76.5,
       "lastBaseline" : 70.5,
       "width" : 256
+    },
+    "style:body|284.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 50.5,
+      "lastBaseline" : 44.5,
+      "width" : 273.5
+    },
+    "style:body|285.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 50.5,
+      "lastBaseline" : 44.5,
+      "width" : 273.5
+    },
+    "style:body|286.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 50.5,
+      "lastBaseline" : 44.5,
+      "width" : 273.5
+    },
+    "style:body|288.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 50.5,
+      "lastBaseline" : 44.5,
+      "width" : 273.5
+    },
+    "style:body|290.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 50.5,
+      "lastBaseline" : 44.5,
+      "width" : 273.5
+    },
+    "style:body|292.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 50.5,
+      "lastBaseline" : 44.5,
+      "width" : 273.5
+    },
+    "style:body|298.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 50.5,
+      "lastBaseline" : 44.5,
+      "width" : 273.5
+    },
+    "style:body|300.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 18.5,
+      "height" : 50.5,
+      "lastBaseline" : 44.5,
+      "width" : 273.5
     },
     "style:body|311.0|First" : {
       "firstBaseline" : 18.5,
@@ -12870,6 +13002,12 @@
       "lastBaseline" : 12.5,
       "width" : 41.5
     },
+    "system:13:400:default||$12.50" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 41.5
+    },
     "system:13:400:default||0" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -12888,6 +13026,12 @@
       "lastBaseline" : 12.5,
       "width" : 6
     },
+    "system:13:400:default||1,234" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 33.5
+    },
     "system:13:400:default||2" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -12899,6 +13043,18 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 8.5
+    },
+    "system:13:400:default||3.142" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 33.5
+    },
+    "system:13:400:default||3.14159" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 47.5
     },
     "system:13:400:default||4" : {
       "firstBaseline" : 12.5,
@@ -12978,6 +13134,12 @@
       "lastBaseline" : 12.5,
       "width" : 16
     },
+    "system:13:400:default||25%" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 28
+    },
     "system:13:400:default||30" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -12997,6 +13159,12 @@
       "width" : 14.5
     },
     "system:13:400:default||40" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 16.5
+    },
+    "system:13:400:default||42" : {
       "firstBaseline" : 12.5,
       "height" : 16,
       "lastBaseline" : 12.5,
@@ -13032,6 +13200,12 @@
       "lastBaseline" : 12.5,
       "width" : 22.5
     },
+    "system:13:400:default||1234" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 30.5
+    },
     "system:13:400:default||2025" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -13049,6 +13223,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 9
+    },
+    "system:13:400:default||A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 346
     },
     "system:13:400:default||A0 D0" : {
       "firstBaseline" : 12.5,
@@ -13104,6 +13284,12 @@
       "lastBaseline" : 12.5,
       "width" : 39
     },
+    "system:13:400:default||Age" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 23.5
+    },
     "system:13:400:default||Alert" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -13127,6 +13313,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 20
+    },
+    "system:13:400:default||Amount" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 47.5
     },
     "system:13:400:default||Apple" : {
       "firstBaseline" : 12.5,
@@ -14016,6 +14208,12 @@
       "lastBaseline" : 12.5,
       "width" : 65.5
     },
+    "system:13:400:default||Notes" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36
+    },
     "system:13:400:default||Number 1" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -14153,6 +14351,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 100
+    },
+    "system:13:400:default||Price" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 31
     },
     "system:13:400:default||Primary" : {
       "firstBaseline" : 12.5,
@@ -14369,6 +14573,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 85.5
+    },
+    "system:13:400:default||Short" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 33.5
     },
     "system:13:400:default||Shown" : {
       "firstBaseline" : 12.5,
@@ -14916,6 +15126,12 @@
       "lastBaseline" : 90.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|$12.50" : {
+      "firstBaseline" : 12.5,
+      "height" : 93.5,
+      "lastBaseline" : 90.5,
+      "width" : 0
+    },
     "system:13:400:default|0.0|0" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -14934,6 +15150,12 @@
       "lastBaseline" : 12.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|1,234" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "system:13:400:default|0.0|2" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -14944,6 +15166,18 @@
       "firstBaseline" : 12.5,
       "height" : 16,
       "lastBaseline" : 12.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|3.142" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|3.14159" : {
+      "firstBaseline" : 12.5,
+      "height" : 109,
+      "lastBaseline" : 106,
       "width" : 0
     },
     "system:13:400:default|0.0|4" : {
@@ -15024,6 +15258,12 @@
       "lastBaseline" : 28.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|25%" : {
+      "firstBaseline" : 12.5,
+      "height" : 47,
+      "lastBaseline" : 44,
+      "width" : 0
+    },
     "system:13:400:default|0.0|30" : {
       "firstBaseline" : 12.5,
       "height" : 31.5,
@@ -15043,6 +15283,12 @@
       "width" : 0
     },
     "system:13:400:default|0.0|40" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|42" : {
       "firstBaseline" : 12.5,
       "height" : 31.5,
       "lastBaseline" : 28.5,
@@ -15078,6 +15324,12 @@
       "lastBaseline" : 44,
       "width" : 0
     },
+    "system:13:400:default|0.0|1234" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
     "system:13:400:default|0.0|2025" : {
       "firstBaseline" : 12.5,
       "height" : 62.5,
@@ -15094,6 +15346,12 @@
       "firstBaseline" : 12.5,
       "height" : 16,
       "lastBaseline" : 12.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 745,
+      "lastBaseline" : 742,
       "width" : 0
     },
     "system:13:400:default|0.0|A0 D0" : {
@@ -15150,6 +15408,12 @@
       "lastBaseline" : 90.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|Age" : {
+      "firstBaseline" : 12.5,
+      "height" : 47,
+      "lastBaseline" : 44,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Alert" : {
       "firstBaseline" : 12.5,
       "height" : 78,
@@ -15172,6 +15436,12 @@
       "firstBaseline" : 12.5,
       "height" : 31.5,
       "lastBaseline" : 28.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Amount" : {
+      "firstBaseline" : 12.5,
+      "height" : 93.5,
+      "lastBaseline" : 90.5,
       "width" : 0
     },
     "system:13:400:default|0.0|Apple" : {
@@ -16062,6 +16332,12 @@
       "lastBaseline" : 137,
       "width" : 0
     },
+    "system:13:400:default|0.0|Notes" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Number 1" : {
       "firstBaseline" : 12.5,
       "height" : 109,
@@ -16198,6 +16474,12 @@
       "firstBaseline" : 12.5,
       "height" : 217.5,
       "lastBaseline" : 214.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Price" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
       "width" : 0
     },
     "system:13:400:default|0.0|Primary" : {
@@ -16414,6 +16696,12 @@
       "firstBaseline" : 12.5,
       "height" : 186.5,
       "lastBaseline" : 183.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Short" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
       "width" : 0
     },
     "system:13:400:default|0.0|Shown" : {
@@ -16895,6 +17183,54 @@
       "height" : 31.5,
       "lastBaseline" : 28.5,
       "width" : 160
+    },
+    "system:13:400:default|188.0;l2|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 175
+    },
+    "system:13:400:default|188.0;l4;r2|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 175
+    },
+    "system:13:400:default|188.0;l4|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 175
+    },
+    "system:13:400:default|188.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 175
+    },
+    "system:13:400:default|200.0;l2|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 175
+    },
+    "system:13:400:default|200.0;l4;r2|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 175
+    },
+    "system:13:400:default|200.0;l4|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 175
+    },
+    "system:13:400:default|200.0|A long note that wraps onto several lines in a narrow field" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 175
     },
     "system:13:400:default|200.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 12.5,

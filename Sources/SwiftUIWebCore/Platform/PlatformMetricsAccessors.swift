@@ -29,6 +29,8 @@ extension PlatformMetrics {
     package static var switchTrackOff: Double { current.switchTrackOff }
     package static var disabledLabelOpacity: Double { current.disabledLabelOpacity }
     package static var textFieldHeight: CGFloat { current.textFieldHeight }
+    package static var textFieldMultilinePadding: CGFloat { current.textFieldMultilinePadding }
+    package static var textFieldIdealInset: CGFloat { current.textFieldIdealInset }
     package static var textFieldHorizontalPadding: CGFloat { current.textFieldHorizontalPadding }
     package static var textFieldVerticalPadding: CGFloat { current.textFieldVerticalPadding }
     package static var textFieldCornerRadius: CGFloat { current.textFieldCornerRadius }
@@ -432,6 +434,9 @@ extension PlatformMetrics {
     package static var groupBoxLabelInset: CGFloat { current.groupBoxLabelInset }
     package static var groupBoxLabelSpacing: CGFloat { current.groupBoxLabelSpacing }
     package static var labelIconSpacing: CGFloat { current.labelIconSpacing }
+    package static var textCaretWidth: CGFloat { current.textCaretWidth }
+    package static var textCaretUsesAccent: Bool { current.textCaretUsesAccent }
+    package static var textSelectionColor: RGBA { current.textSelectionColor }
     package static var scrollerThickness: CGFloat { current.scrollerThickness }
     package static var scrollerInset: CGFloat { current.scrollerInset }
     package static var scrollerEndInset: CGFloat { current.scrollerEndInset }

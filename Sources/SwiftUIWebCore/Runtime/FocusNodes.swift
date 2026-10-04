@@ -48,9 +48,12 @@ extension Runtime {
     /// Moves keyboard focus to a text field (or nowhere) and tells the host and the focus states.
     package func focusTextField(_ identifier: Int?) {
         guard focusedTextFieldIdentifier != identifier || focusedIdentifier != identifier else { return }
+        let previous = focusedTextFieldIdentifier
         focusedTextFieldIdentifier = identifier
         focusedIdentifier = identifier
         focusVisible = true
+        if let previous, previous != identifier { textInputNode(previous)?.focusChanged(false) }
+        if let identifier, identifier != previous { textInputNode(identifier)?.focusChanged(true) }
         notifyFocusChanged()
         setNeedsDisplay()
     }

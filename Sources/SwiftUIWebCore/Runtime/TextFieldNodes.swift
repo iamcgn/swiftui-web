@@ -1,5 +1,6 @@
-// The text field node: layout, painting of bezel, text, placeholder and bullets, focus, and the
-// text-change and submit entry points the host calls from its `<input>` element.
+// The text field node: layout (a line, or wrapped lines for `axis: .vertical`), painting of
+// bezel, text, placeholder, bullets, caret and selection, focus, and the text-change, submit
+// and selection entry points the host calls from its input element.
 
 @MainActor
 package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
@@ -12,10 +13,21 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     private static var nextIdentifier = 3_000_000
     package let identifier: Int
 
+    /// A value field's text while it is being edited (committed on submit or when focus leaves).
+    private var editBuffer: String?
+    /// The selected range in UTF-16 offsets (a caret when empty), while focused.
+    package private(set) var selection: Range<Int>?
+
     override package init(_ context: _NodeContext<_TextFieldCore>) {
         Self.nextIdentifier += 1
         identifier = Self.nextIdentifier
         super.init(context)
+    }
+
+    override package func update(view: _TextFieldCore, environment: EnvironmentValues, force: Bool) {
+        // A value written from outside while a value field is not focused shows at once.
+        if editBuffer != nil, runtime.focusedTextFieldIdentifier != identifier { editBuffer = nil }
+        super.update(view: view, environment: environment, force: force)
     }
 
     /// The style's bezel; the automatic style is plain on iOS (ios/textfield/basic `plain`).
@@ -27,6 +39,10 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         (environment.font ?? environment.platformProfile.defaultFont).resolve(profile: environment.platformProfile)
     }
     private var metrics: SystemFontMetrics { environment.platformProfile.systemFontMetrics(for: resolvedFont) }
+    private var isVertical: Bool { view.axis == .vertical }
+
+    /// The text shown: the edit buffer of a value field being typed into, else the binding's.
+    package var displayText: String { editBuffer ?? view.text.wrappedValue }
 
     /// Insets between the frame and the text line: 6 pt sideways and 4 pt vertically for a bezel,
     /// none for the plain style.
@@ -40,26 +56,66 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         return runtime.layoutText(string, font: resolvedFont, width: nil).size.width
     }
 
+    /// The wrapped lines of a vertical field for `width` (the placeholder is one line).
+    private func wrappedLayout(width: CGFloat) -> TextLayout? {
+        let text = displayText
+        guard isVertical, !text.isEmpty else { return nil }
+        return runtime.layoutText([StyledRun(text, font: resolvedFont)],
+                                  options: TextLayoutOptions(lineLimit: environment.lineLimit, minimumLines: 0), width: width)
+    }
+
+    /// The lines a vertical field shows: its wrapped text (at least one line, at least the
+    /// reserved lines, at most the limit). A recorded layout is one line whose height carries
+    /// the wrapped lines, so the count comes from the height.
+    private func lineCount(width: CGFloat) -> Int {
+        var count = 1
+        if let layout = wrappedLayout(width: width) {
+            let pitch = metrics.lineHeight
+            let fromHeight = pitch > 0 ? Int((layout.size.height / pitch).rounded()) : 1
+            count = max(layout.lines.count, fromHeight)
+        }
+        count = max(count, 1, environment.minimumLines)
+        if let limit = environment.lineLimit { count = min(count, max(1, limit)) }
+        return count
+    }
+
     /// The frame's height: the bezel's, or the line plus the plain style's extra (iOS: 26 for a
     /// 24.5 pt body line, ios/textfield/basic; 25 while only the placeholder shows,
-    /// ios/dark/controls `emptyField`).
-    private func height(lineHeight: CGFloat, insets: EdgeInsets) -> CGFloat {
-        guard bezel == .plain else { return max(lineHeight + insets.top + insets.bottom, PlatformMetrics.textFieldHeight) }
-        let extra = view.text.wrappedValue.isEmpty ? PlatformMetrics.textFieldPlainEmptyExtraHeight : PlatformMetrics.textFieldPlainExtraHeight
-        return lineHeight + extra
+    /// ios/dark/controls `emptyField`). A vertical field stacks its lines at the line height.
+    /// (`textfield/vertical`: 16 per line on macOS; `ios/textfield/vertical`: 26 per line, 52 for
+    /// two plain lines and 60 in a bezel, the plain style's extra height being each line's).
+    private func height(lineHeight: CGFloat, insets: EdgeInsets, lines: Int) -> CGFloat {
+        let extra = displayText.isEmpty ? PlatformMetrics.textFieldPlainEmptyExtraHeight : PlatformMetrics.textFieldPlainExtraHeight
+        let textHeight = linePitch * CGFloat(lines)
+        guard bezel == .plain else {
+            // Several lines: the lines at their pitch inside `textFieldMultilinePadding`
+            // (ios/textfield/vertical `rounded`: 60 for two 26 pt lines).
+            if lines > 1 { return textHeight + PlatformMetrics.textFieldMultilinePadding }
+            return max(lineHeight + insets.top + insets.bottom, PlatformMetrics.textFieldHeight)
+        }
+        return lines > 1 ? textHeight : lineHeight + extra
     }
+
+    /// The distance between a vertical field's lines: the line height plus the plain style's
+    /// extra (0 on macOS, 5.5 on iOS).
+    private var linePitch: CGFloat { metrics.lineHeight + PlatformMetrics.textFieldPlainExtraHeight }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         let insets = insets
         let lineHeight = metrics.lineHeight
-        // Flexible across the proposal; the ideal width fits the longer of text and placeholder.
-        let ideal = max(textWidth(view.text.wrappedValue), textWidth(view.placeholder)) + insets.leading + insets.trailing
+        // Flexible across the proposal; the ideal width fits the shown text (the placeholder
+        // when empty) plus `textFieldIdealInset` each side (textfield/formatted: "Hello" at
+        // 34.95, the unrounded width plus 4; our widths are rounded to the half point).
+        let shownText = displayText.isEmpty ? view.placeholder : displayText
+        let ideal = textWidth(shownText) + insets.leading + insets.trailing + 2 * PlatformMetrics.textFieldIdealInset
         if view.fitsText {
-            let shown = view.text.wrappedValue.isEmpty ? view.placeholder : view.text.wrappedValue
-            return CGSize(width: textWidth(shown) + insets.leading + insets.trailing, height: height(lineHeight: lineHeight, insets: insets))
+            let shown = displayText.isEmpty ? view.placeholder : displayText
+            let width = textWidth(shown) + insets.leading + insets.trailing
+            return CGSize(width: width, height: height(lineHeight: lineHeight, insets: insets, lines: lineCount(width: width - insets.leading - insets.trailing)))
         }
         let width = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? ideal
-        return CGSize(width: width, height: height(lineHeight: lineHeight, insets: insets))
+        let lines = isVertical ? lineCount(width: max(0, width - insets.leading - insets.trailing)) : 1
+        return CGSize(width: width, height: height(lineHeight: lineHeight, insets: insets, lines: lines))
     }
 
     /// Where the text line sits below the centred position (iOS: 0.75 down in a bezel, at the
@@ -68,19 +124,23 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
 
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let size = sizeThatFits(proposal)
-        let baseline = (size.height - metrics.lineHeight) / 2 + textOffset + metrics.baseline
+        let lines = isVertical ? lineCount(width: max(0, size.width - insets.leading - insets.trailing)) : 1
+        let top = (size.height - metrics.lineHeight * CGFloat(lines)) / 2 + textOffset
+        let first = top + metrics.baseline
         return ViewDimensions(size: size, explicit: [
-            VerticalAlignment.firstTextBaseline.key: baseline,
-            VerticalAlignment.lastTextBaseline.key: baseline,
+            VerticalAlignment.firstTextBaseline.key: first,
+            VerticalAlignment.lastTextBaseline.key: first + metrics.lineHeight * CGFloat(lines - 1),
         ])
     }
 
-    /// The text line's rectangle within the frame.
+    /// The text's rectangle within the frame: one line, or the lines of a vertical field.
     package var textRect: CGRect {
         let insets = insets
         let lineHeight = metrics.lineHeight
-        return CGRect(x: insets.leading, y: (frame.height - lineHeight) / 2 + textOffset,
-                      width: max(0, frame.width - insets.leading - insets.trailing), height: lineHeight)
+        let width = max(0, frame.width - insets.leading - insets.trailing)
+        let lines = isVertical ? lineCount(width: width) : 1
+        let height = lineHeight * CGFloat(lines)
+        return CGRect(x: insets.leading, y: (frame.height - height) / 2 + textOffset, width: width, height: height)
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
@@ -106,13 +166,17 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
                                         Color.accentColor.opacity(PlatformMetrics.focusRingOpacity).resolve(in: environment)))
             }
         }
-        let text = view.text.wrappedValue
+        let text = displayText
         let rect = context.absoluteRect(textRect)
         let font = resolvedFont
+        let lineHeight = metrics.lineHeight
         let baseline = CGPoint(x: rect.minX, y: rect.minY + metrics.baseline)
+        let focused = runtime.focusedTextFieldIdentifier == identifier && enabled
+        if focused { paintSelection(into: &list, rect: rect, text: text) }
         if text.isEmpty {
-            guard !view.placeholder.isEmpty else { return }
-            list.append(.drawText(view.placeholder, DisplayFont(font), origin: baseline, (environment._isDark ? PlatformMetrics.textFieldPlaceholderDark : PlatformMetrics.textFieldPlaceholder) ?? Color.secondary.resolve(in: environment)))
+            if !view.placeholder.isEmpty {
+                list.append(.drawText(view.placeholder, DisplayFont(font), origin: baseline, (environment._isDark ? PlatformMetrics.textFieldPlaceholderDark : PlatformMetrics.textFieldPlaceholder) ?? Color.secondary.resolve(in: environment)))
+            }
         } else if view.isSecure {
             let color = (environment.foregroundColor ?? .primary).resolve(in: environment)
             let radius = PlatformMetrics.secureBulletDiameter / 2
@@ -128,9 +192,73 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
             if !enabled { color = color.multiplyingAlpha(by: PlatformMetrics.disabledLabelOpacity) }
             list.withSavedState { list in
                 list.append(.clipRect(rect))
-                list.append(.drawText(text, DisplayFont(font), origin: baseline, color))
+                if let layout = wrappedLayout(width: rect.width) {
+                    var y = baseline.y
+                    for line in layout.lines {
+                        for fragment in line.fragments where !fragment.text.isEmpty {
+                            list.append(.drawText(fragment.text, DisplayFont(font), origin: CGPoint(x: rect.minX + fragment.x, y: y), color))
+                        }
+                        y += lineHeight
+                    }
+                } else {
+                    list.append(.drawText(text, DisplayFont(font), origin: baseline, color))
+                }
             }
         }
+        if focused { paintCaret(into: &list, rect: rect, text: text) }
+    }
+
+    // MARK: Caret and selection
+
+    /// The line index and x offset (from the text rect's leading edge) of a UTF-16 offset.
+    private func position(of offset: Int, in text: String, width: CGFloat) -> (line: Int, x: CGFloat) {
+        let utf16 = text.utf16
+        let clamped = min(max(0, offset), utf16.count)
+        if view.isSecure {
+            return (0, clamped == 0 ? 0 : PlatformMetrics.secureBulletInset + PlatformMetrics.secureBulletPitch * CGFloat(clamped))
+        }
+        if let layout = wrappedLayout(width: width) {
+            let index = utf16.index(utf16.startIndex, offsetBy: clamped)
+            for (number, line) in layout.lines.enumerated() {
+                let last = number == layout.lines.count - 1
+                if index < line.range.upperBound || last {
+                    let start = line.range.lowerBound
+                    let prefix = index >= start ? String(text[start..<max(start, index)]) : ""
+                    return (number, (line.fragments.first?.x ?? 0) + textWidth(prefix))
+                }
+            }
+            return (0, 0)
+        }
+        let index = utf16.index(utf16.startIndex, offsetBy: clamped)
+        return (0, textWidth(String(text[..<index])))
+    }
+
+    private var caretColor: RGBA {
+        PlatformMetrics.textCaretUsesAccent ? Color.accentColor.resolve(in: environment) : (environment.foregroundColor ?? .primary).resolve(in: environment)
+    }
+
+    private func paintSelection(into list: inout DisplayList, rect: CGRect, text: String) {
+        guard let selection, !selection.isEmpty, !text.isEmpty else { return }
+        let lineHeight = metrics.lineHeight
+        let start = position(of: selection.lowerBound, in: text, width: rect.width)
+        let end = position(of: selection.upperBound, in: text, width: rect.width)
+        let color = PlatformMetrics.textSelectionColor
+        for line in start.line...end.line {
+            let from = line == start.line ? start.x : 0
+            let to = line == end.line ? end.x : rect.width
+            guard to > from else { continue }
+            list.append(.fillRect(CGRect(x: rect.minX + from, y: rect.minY + lineHeight * CGFloat(line), width: to - from, height: lineHeight), color))
+        }
+    }
+
+    /// The insertion point: a `textCaretWidth` bar the line's height, in the text colour
+    /// (macOS) or the accent (iOS); unverified against the platforms (the goldens never focus).
+    private func paintCaret(into list: inout DisplayList, rect: CGRect, text: String) {
+        guard let selection, selection.isEmpty else { return }
+        let lineHeight = metrics.lineHeight
+        let caret = position(of: selection.lowerBound, in: text, width: rect.width)
+        let width = PlatformMetrics.textCaretWidth
+        list.append(.fillRect(CGRect(x: rect.minX + caret.x - width / 2, y: rect.minY + lineHeight * CGFloat(caret.line), width: width, height: lineHeight), caretColor))
     }
 
     // MARK: Interaction
@@ -144,19 +272,78 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     package var semantics: SemanticsNode {
         let absolute = frameInRoot
         let rect = textRect.offsetBy(dx: absolute.minX, dy: absolute.minY)
-        let info = TextInputInfo(text: view.text.wrappedValue, placeholder: view.placeholder, isSecure: view.isSecure,
+        var info = TextInputInfo(text: displayText, placeholder: view.placeholder, isSecure: view.isSecure,
                                  textRect: rect, font: DisplayFont(resolvedFont), isEnabled: environment.isEnabled)
+        if isVertical {
+            info.isMultiline = true
+            info.lineHeight = metrics.lineHeight
+            info.firstBaseline = metrics.baseline
+        }
+        info.paintsCaret = true
+        info.inputMode = environment._keyboardType.inputMode
+        info.inputType = view.isSecure ? "password" : Self.inputType(for: environment._keyboardType)
+        info.autocomplete = environment._textContentType?.rawValue
+        info.autocapitalize = environment._textInputAutocapitalization?.kind.token
+        info.enterKeyHint = environment._submitLabel.key.enterKeyHint
+        info.autocorrect = !environment.autocorrectionDisabled
         return SemanticsNode(role: .textField, label: view.placeholder, frame: absolute, identifier: identifier, textInput: info)
     }
 
-    /// The host's input changed: push the text into the binding.
+    /// The single-line element's `type` for a keyboard: the browser validates and styles by it.
+    private static func inputType(for keyboard: UIKeyboardType) -> String {
+        switch keyboard {
+        case .emailAddress: return "email"
+        case .URL: return "url"
+        case .phonePad, .namePhonePad: return "tel"
+        case .webSearch: return "search"
+        default: return "text"
+        }
+    }
+
+    /// The host's input changed: push the text into the binding, or hold it until the value
+    /// field commits. The caret follows the end of the text until the host says otherwise.
     package func setText(_ text: String) {
+        selection = text.utf16.count..<text.utf16.count
+        if view.commitsOnSubmit {
+            guard editBuffer != text else { return }
+            editBuffer = text
+            runtime.requestLayout()
+            return
+        }
         guard view.text.wrappedValue != text else { return }
         view.text.wrappedValue = text
     }
 
+    /// The host's selection changed (UTF-16 offsets).
+    package func setSelection(start: Int, end: Int) {
+        let range = min(start, end)..<max(start, end)
+        guard selection != range else { return }
+        selection = range
+        runtime.setNeedsDisplay()
+    }
+
+    private func commitEdit() {
+        guard let buffer = editBuffer else { return }
+        editBuffer = nil
+        if view.text.wrappedValue != buffer { view.text.wrappedValue = buffer }
+        runtime.requestLayout()
+    }
+
     package func submit() {
+        commitEdit()
+        view.onCommit?()
         environment.submitAction?.run()
+    }
+
+    package func focusChanged(_ focused: Bool) {
+        if focused {
+            if selection == nil { selection = displayText.utf16.count..<displayText.utf16.count }
+        } else {
+            commitEdit()
+            selection = nil
+        }
+        view.onEditingChanged?(focused)
+        runtime.setNeedsDisplay()
     }
 }
 
@@ -165,14 +352,27 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
 package protocol _TextInputNode: AnyObject {
     func setText(_ text: String)
     func submit()
+    /// The host's selection changed (UTF-16 offsets).
+    func setSelection(start: Int, end: Int)
+    /// Keyboard focus arrived or left.
+    func focusChanged(_ focused: Bool)
+}
+
+extension _TextInputNode {
+    package func setSelection(start: Int, end: Int) {}
+    package func focusChanged(_ focused: Bool) {}
 }
 
 extension TextFieldNode: _TextInputNode {}
 
 extension Runtime {
+    package func textInputNode(_ semanticsIdentifier: Int) -> (any _TextInputNode)? {
+        interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode
+    }
+
     /// Text typed into the field with this semantics identifier (from the host's input element).
     public func textField(_ semanticsIdentifier: Int, didChange text: String) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode else {
+        guard let node = textInputNode(semanticsIdentifier) else {
             platformTree(handling: semanticsIdentifier)?.textField(semanticsIdentifier, didChange: text)
             return
         }
@@ -181,11 +381,16 @@ extension Runtime {
 
     /// Return pressed in the field with this identifier (an editor inserts a newline).
     public func textFieldDidSubmit(_ semanticsIdentifier: Int) {
-        guard let node = interactiveNodes.first(where: { $0.semantics.identifier == semanticsIdentifier }) as? any _TextInputNode else {
+        guard let node = textInputNode(semanticsIdentifier) else {
             platformTree(handling: semanticsIdentifier)?.textFieldDidSubmit(semanticsIdentifier)
             return
         }
         node.submit()
+    }
+
+    /// The host's selection or caret moved in the field with this identifier (UTF-16 offsets).
+    public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {
+        textInputNode(semanticsIdentifier)?.setSelection(start: start, end: end)
     }
 
     /// The host's input gained or lost focus.

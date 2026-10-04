@@ -443,13 +443,14 @@
       "framework": "SwiftUI",
       "area": "TextField",
       "title": "TextField forms and the painted caret",
-      "detail": "`TextField(_:value:format:)` and `formatter:`, `onEditingChanged`/`onCommit`, `axis: .vertical` (a stub today), `submitLabel`, `textContentType`, `keyboardType`, `textInputAutocapitalization`, `autocorrectionDisabled` (stored) reaching the overlay input, `lineLimit` on fields; the caret and selection painted into the display list so native and browser match.",
+      "detail": "Done 2026-10-03: TextField(_:value:format:) and formatter: (committing on Return or blur; number/percent/currency styles and NumberFormatter on wasm through WebFoundation), onEditingChanged/onCommit, axis: .vertical (wrapping, lineLimit, reserved lines; a textarea in the browser), submitLabel, textContentType, keyboardType, textInputAutocapitalization and autocorrectionDisabled reaching the input element, the caret and selection painted into the display list; goldens textfield/vertical, textfield/formatted (plain style, macOS 26.6) and ios/textfield/vertical; the iPhone reserved-lines height stays approximate.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/TextField.md"
-      ]
+      ],
+      "done": "2026-10-03"
     },
     {
       "id": "sw-text-fit",

@@ -69,9 +69,12 @@ import SwiftUIWebHeadless
         #expect(list[4].hasSuffix("#000000@0.255)"))
         disabled.pointerDown(at: CGPoint(x: 50, y: 50)); disabled.pointerUp(at: CGPoint(x: 50, y: 50))
         #expect(disabled.focusedTextFieldIdentifier == nil)
-        // Ideal width fits the longer of text and placeholder plus the insets.
+        // Ideal width fits the shown text plus 2 each side and the insets (textfield/formatted,
+        // 2026-10-03): 31 + 4 + 12 for "Hello"; the placeholder when empty.
         let ideal = runtime(TextField("Placeholder", text: .constant("Hello")).fixedSize()._probe("field"))
-        #expect(ideal.probeFrames["field"]?.size == CGSize(width: 81.5, height: 24))
+        #expect(ideal.probeFrames["field"]?.size == CGSize(width: 47, height: 24))
+        let empty = runtime(TextField("Placeholder", text: .constant("")).fixedSize()._probe("field"))
+        #expect(empty.probeFrames["field"]?.size == CGSize(width: 85.5, height: 24))
     }
 
     @Test func hostEntryPoints() {

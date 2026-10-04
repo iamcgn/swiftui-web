@@ -246,6 +246,17 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Hello", defaultFont, options: .init(lineSpacing: 10)))
         requests.append(TextMetricRequest("Hello", defaultFont, options: .init(truncation: "head")))
         requests.append(TextMetricRequest(twoParagraphs, defaultFont))
+        // textfield/vertical (a 200 pt field: 188 inside the bezel, 200 plain) and textfield/formatted.
+        requests.append(TextMetricRequest(fixtureFieldNote, defaultFont))
+        for width: CGFloat in [188, 200] {
+            requests.append(TextMetricRequest(fixtureFieldNote, defaultFont, width: width))
+            requests.append(TextMetricRequest(fixtureFieldNote, defaultFont, width: width, options: .init(lineLimit: 2)))
+            requests.append(TextMetricRequest(fixtureFieldNote, defaultFont, width: width, options: .init(lineLimit: 4)))
+            requests.append(TextMetricRequest(fixtureFieldNote, defaultFont, width: width, options: .init(lineLimit: 4, minimumLines: 2)))
+        }
+        for string in ["Short", "Notes", "1,234", "1234", "3.14159", "3.142", "25%", "$12.50", "42", "Age", "Price", "Share", "Amount", "Count"] {
+            requests.append(TextMetricRequest(string, defaultFont))
+        }
         requests.append(TextMetricRequest(twoParagraphs, defaultFont, width: 220))
         requests.append(TextMetricRequest(newlineShort, defaultFont))
         requests.append(TextMetricRequest(longWord, defaultFont, width: 60))
@@ -575,7 +586,12 @@ extension TextMetricsRequests {
     /// there, and control labels come in the weights iOS styles use. Measured on every platform.
     static let iOSRequests: [TextMetricRequest] = {
         var requests: [TextMetricRequest] = []
-        let body = ["Hello", "One", "Two", "Hg", "Enabled", "OK", "Bordered", "Prominent", "Borderless", "Disabled", "Delete",
+        // ios/textfield/vertical: the note in a 300 pt field, plain and inside the bezel's padding.
+        requests.append(TextMetricRequest(fixtureFieldNote, .style("body")))
+        for width: CGFloat in [300, 285, 286, 288, 284, 290, 292, 298] {
+            requests.append(TextMetricRequest(fixtureFieldNote, .style("body"), width: width))
+        }
+        let body = ["Hello", "One", "Two", "Hg", "Enabled", "OK", "Bordered", "Prominent", "Borderless", "Disabled", "Delete", "Short", "Notes",
                     "Quantity: 3", "Placeholder", "Password", "Name", "Fruit", "Apple", "Banana", "Cherry", "Size", "Small", "Medium", "Large",
                     "Wi-Fi", "Bluetooth", "Volume", "Save", "Bold", "Body", "secret", "••••••",
                     "Row 1", "Row 2", "Row 3", "Detail", "Selected"]   // ios/representable/hostingcells, hostingstate

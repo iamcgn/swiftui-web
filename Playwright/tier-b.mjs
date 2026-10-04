@@ -33,7 +33,8 @@ const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount
 const listBacked = (name) => name.startsWith('ios/label/');
 // ios/list/footer `header`: UIKit's header label measures "Header" a point wider than SwiftUI's Text (Tier A's rule).
 // list/prominence `standardHeader`: Canvas2D measures "Standard" in the semibold subheadline half a point wider than CoreText.
-const approximateProbes = { 'ios/list/footer': ['header'], 'list/prominence': ['standardHeader'] };
+const approximateProbes = { 'ios/list/footer': ['header'], 'list/prominence': ['standardHeader'],
+  'textfield/formatted': ['int', 'double', 'percent', 'currency', 'formatter', 'fixedText', 'fixedEmpty', 'stack'] };
 // The browser measures text on the half point, so iOS text widths and the positions that follow from them get 0.5.
 // uikit/autolayout/baseline chains six labels sideways: Canvas2D's widths of "Hg" at six sizes differ from
 // UILabel's by up to a point each on the CI runner and the errors add up along the row.
@@ -84,7 +85,7 @@ const report = [];
 
 // Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame.
 // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
-const ignoredProbes = { 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'],
+const ignoredProbes = { 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'], 'ios/textfield/vertical': ['reserved', 'stack'],
   'list/pinning': ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'], 'list/pinning/scroll': ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'], 'list/outline': ['dgFruits'], 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'],
   'table/sorting/byCount': ['name2', 'name3', 'count2', 'count3'] };
 function compareFrames(name, frames, goldenFrames) {

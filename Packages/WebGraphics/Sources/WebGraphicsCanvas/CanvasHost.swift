@@ -576,9 +576,13 @@ public final class CanvasSceneHost {
             style.outline = .string("none")
             style.background = .string("transparent")
             style.color = .string("transparent")
-            style.caretColor = .string("black")
+            // The scene paints the caret and selection (TextInputInfo.paintsCaret): the
+            // element's stay invisible (`::selection` through the overlay's style rule).
+            style.caretColor = .string(info.paintsCaret ? "transparent" : "black")
             style.pointerEvents = .string("auto")
             style.boxSizing = .string("border-box")
+            if info.paintsCaret { _ = element.classList.object?.add?("swiftuiweb-input") }
+            installInputStyleRule()
             if info.isMultiline {
                 style.resize = .string("none")
                 style.overflow = .string("hidden")
@@ -592,14 +596,24 @@ public final class CanvasSceneHost {
             on(element, "input") { [weak self] e in
                 guard let self, let target = e.target.object else { return }
                 self.scene.textField(id, didChange: target.value.string ?? "")
+                self.reportSelection(id, target)
                 self.scheduleFrame()
             }
-            if !info.isMultiline {
-                on(element, "keydown") { [weak self] e in
-                    guard let self, e.key.string == "Enter" else { return }
-                    self.scene.textFieldDidSubmit(id)
+            // The caret and selection follow keys, the pointer and programmatic moves.
+            for event in ["select", "keyup", "mouseup", "focus"] {
+                on(element, event) { [weak self] e in
+                    guard let self, let target = e.target.object else { return }
+                    self.reportSelection(id, target)
                     self.scheduleFrame()
                 }
+            }
+            on(element, "keydown") { [weak self] e in
+                guard let self, e.key.string == "Enter" else { return }
+                // A text field submits on Return, even a multi-line one; an editor keeps the newline.
+                guard self.overlayState[id]?.textInput?.submitsOnReturn ?? true else { return }
+                if e.shiftKey.boolean != true { _ = e.preventDefault?() }
+                self.scene.textFieldDidSubmit(id)
+                self.scheduleFrame()
             }
             on(element, "focus") { [weak self] _ in
                 self?.scene.textField(id, focused: true)
@@ -619,7 +633,7 @@ public final class CanvasSceneHost {
         }
         if previous == nil || previous?.font != info.font || previous?.lineHeight != info.lineHeight
             || previous?.firstBaseline != info.firstBaseline || previous?.textRect.height != info.textRect.height
-            || previous?.isSecure != info.isSecure || previous?.isEnabled != info.isEnabled {
+            || previous?.isSecure != info.isSecure || previous?.isEnabled != info.isEnabled || previous?.inputType != info.inputType {
             let style = element.style.object!
             style.font = .string(DisplayListEncoder.cssFont(info.font))
             if info.isMultiline {
@@ -629,9 +643,20 @@ public final class CanvasSceneHost {
                 style.paddingTop = .string("\(max(0, info.firstBaseline - info.lineHeight * 0.8))px")
             } else {
                 style.lineHeight = .string("\(info.textRect.height)px")
-                element.type = .string(info.isSecure ? "password" : "text")
+                element.type = .string(info.isSecure ? "password" : (info.inputType ?? "text"))
             }
             element.disabled = .boolean(!info.isEnabled)
+        }
+        // The keyboard attributes (submitLabel, keyboardType, textContentType, autocapitalization,
+        // autocorrection) reach the element as it changes.
+        if previous == nil || previous?.inputMode != info.inputMode || previous?.autocomplete != info.autocomplete
+            || previous?.autocapitalize != info.autocapitalize || previous?.enterKeyHint != info.enterKeyHint || previous?.autocorrect != info.autocorrect {
+            setOrRemove(element, "inputmode", info.inputMode)
+            setOrRemove(element, "autocomplete", info.autocomplete ?? "off")
+            setOrRemove(element, "autocapitalize", info.autocapitalize ?? "off")
+            setOrRemove(element, "enterkeyhint", info.enterKeyHint)
+            setOrRemove(element, "autocorrect", info.autocorrect ? "on" : "off")
+            setOrRemove(element, "spellcheck", info.autocorrect ? "true" : "false")
         }
         if overlayState[node.identifier]?.label != node.label { _ = element.setAttribute!("aria-label", node.label) }
         overlayState[node.identifier] = node
@@ -640,6 +665,27 @@ public final class CanvasSceneHost {
         if scene.focusedTextFieldIdentifier == node.identifier, document.activeElement.object != element {
             _ = element.focus?()
         }
+    }
+
+    private func setOrRemove(_ element: JSObject, _ name: String, _ value: String?) {
+        if let value { _ = element.setAttribute!(name, value) } else { _ = element.removeAttribute!(name) }
+    }
+
+    /// Tells the scene where the element's caret or selection is (UTF-16 offsets).
+    private func reportSelection(_ id: Int, _ element: JSObject) {
+        guard let start = element.selectionStart.number, let end = element.selectionEnd.number else { return }
+        scene.textField(id, selectionStart: Int(start), end: Int(end))
+    }
+
+    private var installedInputStyleRule = false
+
+    /// The overlay inputs' own selection highlight is invisible: the scene paints it.
+    private func installInputStyleRule() {
+        guard !installedInputStyleRule else { return }
+        installedInputStyleRule = true
+        let style = document.createElement!("style").object!
+        style.textContent = .string(".swiftuiweb-input::selection { background: transparent; color: transparent; }")
+        _ = document.head.object?.appendChild!(style)
     }
 
     /// `window.__swiftuiwebDebug`: probe frames, display list and frame count for Tier B tests.

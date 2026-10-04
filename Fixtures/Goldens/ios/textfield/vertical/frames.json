@@ -1,0 +1,39 @@
+{
+  "fixture" : "ios\/textfield\/vertical",
+  "frames" : {
+    "plain" : {
+      "height" : 52,
+      "width" : 300,
+      "x" : 37.5,
+      "y" : 0
+    },
+    "reserved" : {
+      "height" : 84.287109375,
+      "width" : 300,
+      "x" : 37.5,
+      "y" : 182
+    },
+    "rounded" : {
+      "height" : 60,
+      "width" : 300,
+      "x" : 37.5,
+      "y" : 64
+    },
+    "short" : {
+      "height" : 34,
+      "width" : 300,
+      "x" : 37.5,
+      "y" : 136
+    },
+    "stack" : {
+      "height" : 667,
+      "width" : 300,
+      "x" : 37.5,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 667,
+    "width" : 375
+  }
+}
