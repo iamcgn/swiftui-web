@@ -34,12 +34,18 @@ public struct Button<Label: View>: View {
     }
 
     @Environment(\.buttonStyle) private var style
+    @Environment(\._primitiveButtonStyle) private var primitiveStyle
     @Environment(\._inMenu) private var inMenu
 
     public var body: some View {
         if inMenu {
             // A menu item: the label in a row, no button chrome.
             _ButtonHost(action: action, isPressed: $isPressed, label: AnyView(_MenuRowLabel(label: AnyView(label), submenu: false)))
+        } else if let primitiveStyle {
+            // A primitive style owns the interaction: its body decides when `trigger` runs.
+            let configuration = PrimitiveButtonStyleConfiguration(label: PrimitiveButtonStyleConfiguration.Label(AnyView(label)), role: role, action: action)
+            primitiveStyle.makeBodyErased(configuration)
+                .layoutValue(key: _ButtonRoleKey.self, value: role)
         } else {
             let configuration = ButtonStyleConfiguration(
                 label: ButtonStyleConfiguration.Label(AnyView(label)), isPressed: isPressed, role: role)
@@ -104,6 +110,51 @@ extension ButtonStyle {
     }
 }
 
+/// The properties of a button with a primitive style: the label, the role and `trigger()`,
+/// which runs the action.
+public struct PrimitiveButtonStyleConfiguration {
+    public struct Label: View {
+        package let content: AnyView
+        package init(_ content: AnyView) { self.content = content }
+        public var body: some View { content }
+    }
+
+    public let label: Label
+    public let role: ButtonRole?
+    package let action: _ActionBox
+
+    /// Performs the button's action.
+    @MainActor public func trigger() { action.run() }
+}
+
+/// A type that applies custom interaction behavior and a custom appearance to all buttons
+/// within a view hierarchy: its body decides when the action runs.
+@MainActor @preconcurrency
+public protocol PrimitiveButtonStyle {
+    associatedtype Body: View
+    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
+    typealias Configuration = PrimitiveButtonStyleConfiguration
+}
+
+extension PrimitiveButtonStyle {
+    @MainActor
+    package func makeBodyErased(_ configuration: Configuration) -> AnyView {
+        AnyView(makeBody(configuration: configuration))
+    }
+}
+
+package struct PrimitiveButtonStyleKey: EnvironmentKey {
+    package nonisolated(unsafe) static let defaultValue: (any PrimitiveButtonStyle)? = nil
+}
+
+extension EnvironmentValues {
+    /// The primitive style set by `buttonStyle(_:)`, taking over from the `ButtonStyle`.
+    package var _primitiveButtonStyle: (any PrimitiveButtonStyle)? {
+        get { self[PrimitiveButtonStyleKey.self] }
+        set { self[PrimitiveButtonStyleKey.self] = newValue }
+    }
+}
+
 /// The default button style, based on the button's context (bordered on macOS).
 public struct DefaultButtonStyle {
     public init() {}
@@ -137,7 +188,8 @@ struct _PlatformButtonBody: View {
             case .prominent: _MacProminentButtonBody(configuration: configuration)
             case .borderless:
                 configuration.label
-                    .foregroundStyle(Color.accentColor.opacity(configuration.isPressed ? 0.6 : 1))
+                    .foregroundStyle((_macButtonLabel(configuration.role, enabled: isEnabled, metrics: profile.metrics) ?? Color.accentColor)
+                        .opacity(configuration.isPressed ? 0.6 : 1))
             }
         }
     }
@@ -150,14 +202,57 @@ func _iosButtonTint(_ role: ButtonRole?, enabled: Bool, metrics: PlatformMetrics
     return role == .destructive ? Color(red: red.red, green: red.green, blue: red.blue) : Color.accentColor
 }
 
+/// The geometry a control size gives a bordered button (ios/button/looks; macOS approximate).
+struct _ButtonSizeMetrics {
+    var font: Font
+    var height: CGFloat
+    var horizontal: CGFloat
+    var vertical: CGFloat
+
+    init(_ size: ControlSize, metrics: PlatformMetricsTable, isIOS: Bool) {
+        func systemFont(_ size: CGFloat) -> Font { isIOS && metrics.buttonSmallUsesTextStyle ? .subheadline : .system(size: size) }
+        switch size {
+        case .mini:
+            font = systemFont(metrics.buttonMiniFontSize)
+            height = metrics.buttonMiniHeight
+            horizontal = metrics.buttonMiniHorizontalPadding
+            vertical = metrics.buttonMiniVerticalPadding
+        case .small:
+            font = systemFont(metrics.buttonSmallFontSize)
+            height = metrics.buttonSmallHeight
+            horizontal = metrics.buttonSmallHorizontalPadding
+            vertical = metrics.buttonSmallVerticalPadding
+        case .large, .extraLarge:
+            // macOS has no extra large: it is the regular; iOS gives it the large's capsule.
+            if size == .extraLarge && !isIOS {
+                font = isIOS ? .body : .system(size: metrics.buttonLabelSize)
+                height = metrics.buttonHeight
+                horizontal = metrics.buttonHorizontalPadding
+                vertical = metrics.buttonVerticalPadding
+            } else {
+                font = isIOS ? .body : .system(size: metrics.buttonLargeFontSize)
+                height = metrics.buttonLargeHeight
+                horizontal = metrics.buttonLargeHorizontalPadding
+                vertical = metrics.buttonLargeVerticalPadding
+            }
+        case .regular:
+            font = isIOS ? .body : .system(size: metrics.buttonLabelSize)
+            height = metrics.buttonHeight
+            horizontal = metrics.buttonHorizontalPadding
+            vertical = metrics.buttonVerticalPadding
+        }
+    }
+}
+
 struct _IOSBorderlessButtonBody: View {
     let configuration: ButtonStyleConfiguration
     let metrics: PlatformMetricsTable
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.controlSize) private var controlSize
 
     var body: some View {
         configuration.label
-            .font(.body)
+            .font(_ButtonSizeMetrics(controlSize, metrics: metrics, isIOS: true).font)
             .foregroundColor(_iosButtonTint(configuration.role, enabled: isEnabled, metrics: metrics).opacity(configuration.isPressed ? 0.5 : 1))
     }
 }
@@ -167,16 +262,23 @@ struct _IOSBorderedButtonBody: View {
     let metrics: PlatformMetricsTable
     let prominent: Bool
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.controlSize) private var controlSize
 
     var body: some View {
         let tint = _iosButtonTint(configuration.role, enabled: isEnabled, metrics: metrics)
+        let size = _ButtonSizeMetrics(controlSize, metrics: metrics, isIOS: true)
+        // A disabled prominent button wears the bordered fill with a faint label (ios/button/looks).
+        let label: Color = prominent ? (isEnabled ? Color.white : Color.primary.opacity(metrics.buttonProminentDisabledLabelAlpha)) : tint
+        let fill: Color = prominent
+            ? (isEnabled ? tint : (metrics.buttonProminentDisabledUsesPlainFill ? metrics.buttonFill : Color.primary.opacity(0.12)))
+            : metrics.buttonFill
         configuration.label
-            .font(.body)
-            .foregroundColor(prominent ? Color.white : tint)
-            .padding(.horizontal, metrics.buttonHorizontalPadding)
-            .padding(.vertical, metrics.buttonVerticalPadding)
-            .background(Capsule().fill(prominent ? (isEnabled ? tint : Color.primary.opacity(0.12)) : metrics.buttonFill)
-                            .opacity(configuration.isPressed ? 0.7 : 1))
+            .font(size.font)
+            .foregroundColor(label)
+            .padding(.horizontal, size.horizontal)
+            .padding(.vertical, size.vertical)
+            .frame(minHeight: size.height)
+            .background(Capsule().fill(fill).opacity(configuration.isPressed ? 0.7 : 1))
             .modifier(_PlainSpacingModifier())
     }
 }
@@ -191,32 +293,55 @@ public struct _PlainSpacingModifier: ViewModifier {
     }
 }
 
+/// macOS: the label's colour for a role and state: red for a destructive role (unverified: the
+/// inactive window of button/looks shows the label colour), dimmed when disabled.
+func _macButtonLabel(_ role: ButtonRole?, enabled: Bool, metrics: PlatformMetricsTable) -> Color? {
+    guard enabled else { return Color.primary.opacity(metrics.buttonDisabledLabelAlpha) }
+    guard role == .destructive, metrics.buttonDestructiveTintsLabel else { return nil }
+    let red = metrics.destructiveColor
+    return Color(red: red.red, green: red.green, blue: red.blue)
+}
+
 struct _MacBorderedButtonBody: View {
     let configuration: ButtonStyleConfiguration
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.controlSize) private var controlSize
+    @Environment(\.platformProfile) private var profile
+
     var body: some View {
+        let size = _ButtonSizeMetrics(controlSize, metrics: profile.metrics, isIOS: false)
+        let fill = configuration.isPressed ? PlatformMetrics.buttonPressedFill : PlatformMetrics.buttonFill
         configuration.label
-            .font(.system(size: PlatformMetrics.buttonLabelSize))
-            .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
-            .padding(.vertical, PlatformMetrics.buttonVerticalPadding)
-            .frame(minHeight: PlatformMetrics.buttonHeight)
+            .font(size.font)
+            .foregroundColor(_macButtonLabel(configuration.role, enabled: isEnabled, metrics: profile.metrics))
+            .padding(.horizontal, size.horizontal)
+            .padding(.vertical, size.vertical)
+            .frame(minHeight: size.height)
             .background(
                 RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
-                    .fill(configuration.isPressed ? PlatformMetrics.buttonPressedFill : PlatformMetrics.buttonFill))
+                    .fill(fill.opacity(isEnabled ? 1 : PlatformMetrics.buttonDisabledFillAlpha)))
     }
 }
 
 struct _MacProminentButtonBody: View {
     let configuration: ButtonStyleConfiguration
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.controlSize) private var controlSize
+    @Environment(\.platformProfile) private var profile
+
     var body: some View {
+        let size = _ButtonSizeMetrics(controlSize, metrics: profile.metrics, isIOS: false)
+        let red = profile.metrics.destructiveColor
+        let tint: Color = configuration.role == .destructive ? Color(red: red.red, green: red.green, blue: red.blue) : Color.accentColor
         configuration.label
-            .font(.system(size: PlatformMetrics.buttonLabelSize))
-            .foregroundStyle(Color.white)
-            .padding(.horizontal, PlatformMetrics.buttonHorizontalPadding)
-            .padding(.vertical, PlatformMetrics.buttonVerticalPadding)
-            .frame(minHeight: PlatformMetrics.buttonHeight)
+            .font(size.font)
+            .foregroundStyle(isEnabled ? Color.white : Color.primary.opacity(PlatformMetrics.buttonProminentDisabledLabelAlpha))
+            .padding(.horizontal, size.horizontal)
+            .padding(.vertical, size.vertical)
+            .frame(minHeight: size.height)
             .background(
                 RoundedRectangle(cornerRadius: PlatformMetrics.buttonCornerRadius, style: .circular)
-                    .fill(Color.accentColor.opacity(configuration.isPressed ? 0.8 : 1)))
+                    .fill(isEnabled ? tint.opacity(configuration.isPressed ? 0.8 : 1) : PlatformMetrics.buttonFill.opacity(PlatformMetrics.buttonDisabledFillAlpha)))
     }
 }
 
@@ -264,7 +389,17 @@ public struct PlainButtonStyle {
 
 extension PlainButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.label.opacity(configuration.isPressed ? 0.7 : 1)
+        _PlainButtonBody(configuration: configuration)
+    }
+}
+
+/// The plain style: the label, at 70 % while pressed and 50 % while disabled (ios/button/looks
+/// `disabledPlain` reads (127) for the black label; button/looks the same on macOS).
+struct _PlainButtonBody: View {
+    let configuration: ButtonStyleConfiguration
+    @Environment(\.isEnabled) private var isEnabled
+    var body: some View {
+        configuration.label.opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1 : PlatformMetrics.buttonPlainDisabledAlpha))
     }
 }
 
@@ -300,7 +435,13 @@ extension View {
     /// Sets the style for buttons within this view to a button style with a custom appearance
     /// and standard interaction behavior.
     nonisolated public func buttonStyle<S: ButtonStyle>(_ style: S) -> some View {
-        environment(\.buttonStyle, style)
+        environment(\.buttonStyle, style).environment(\._primitiveButtonStyle, nil)
+    }
+
+    /// Sets the style for buttons within this view to a primitive style, which owns the
+    /// interaction as well as the look.
+    nonisolated public func buttonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
+        environment(\._primitiveButtonStyle, style)
     }
 }
 

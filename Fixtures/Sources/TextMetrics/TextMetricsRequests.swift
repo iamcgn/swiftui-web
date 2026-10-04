@@ -756,6 +756,9 @@ extension TextMetricsRequests {
         // ios/list/spacing: the section headers and the rows at their width.
         for string in ["First", "Second"] { requests.append(TextMetricRequest(string, .style("body", weight: "medium"))) }
         for string in ["Apple", "Banana", "Cherry", "Carrot"] { requests.append(TextMetricRequest(string, .style("body"), width: 256)) }
+        // ios/button/looks: control sizes (mini and small labels are the subheadline) and roles.
+        for string in ["Regular", "Extra", "Mini"] { requests.append(TextMetricRequest(string, .style("body"))) }
+        for string in ["Mini", "Small"] { requests.append(TextMetricRequest(string, .style("subheadline"))) }
         // ios/search: the field's prompt and text, the suggestions, the scope segments and tokens.
         requests.append(TextMetricRequest("Fruit", .style("largeTitle", weight: "bold")))
         requests.append(TextMetricRequest("Fruit", .style("headline")))

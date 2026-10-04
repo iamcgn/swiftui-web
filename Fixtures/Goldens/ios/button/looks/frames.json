@@ -1,0 +1,93 @@
+{
+  "fixture" : "ios\/button\/looks",
+  "frames" : {
+    "destructiveBordered" : {
+      "height" : 38.5,
+      "width" : 73.5,
+      "x" : 58,
+      "y" : 257.25
+    },
+    "destructiveBorderless" : {
+      "height" : 24.5,
+      "width" : 49.5,
+      "x" : 58,
+      "y" : 358.25
+    },
+    "destructiveProminent" : {
+      "height" : 38.5,
+      "width" : 73.5,
+      "x" : 58,
+      "y" : 307.75
+    },
+    "disabledPlain" : {
+      "height" : 24.5,
+      "width" : 36.5,
+      "x" : 58,
+      "y" : 445.25
+    },
+    "disabledProminent" : {
+      "height" : 38.5,
+      "width" : 102,
+      "x" : 58,
+      "y" : 394.75
+    },
+    "extraLarge" : {
+      "height" : 54.5,
+      "width" : 79,
+      "x" : 58,
+      "y" : 124.25
+    },
+    "large" : {
+      "height" : 54.5,
+      "width" : 83.5,
+      "x" : 58,
+      "y" : 57.75
+    },
+    "mini" : {
+      "height" : 31,
+      "width" : 48.5,
+      "x" : 58,
+      "y" : 11.75
+    },
+    "prominentLarge" : {
+      "height" : 54.5,
+      "width" : 118,
+      "x" : 58,
+      "y" : 190.75
+    },
+    "prominentMini" : {
+      "height" : 31,
+      "width" : 48.5,
+      "x" : 58,
+      "y" : 481.75
+    },
+    "regular" : {
+      "height" : 38.5,
+      "width" : 82,
+      "x" : 180,
+      "y" : 7.25
+    },
+    "sizesRow" : {
+      "height" : 38.5,
+      "width" : 204,
+      "x" : 58,
+      "y" : 7.25
+    },
+    "small" : {
+      "height" : 31,
+      "width" : 57.5,
+      "x" : 114.5,
+      "y" : 11.75
+    },
+    "stack" : {
+      "height" : 505.5,
+      "width" : 204,
+      "x" : 58,
+      "y" : 7.25
+    }
+  },
+  "size" : {
+    "height" : 520,
+    "width" : 320
+  }
+}

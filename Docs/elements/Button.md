@@ -2,7 +2,19 @@
 
 Apple docs: [Button](https://developer.apple.com/documentation/swiftui/button),
 [ButtonStyle](https://developer.apple.com/documentation/swiftui/buttonstyle),
-[PrimitiveButtonStyle](https://developer.apple.com/documentation/swiftui/primitivebuttonstyle) (not yet).
+[PrimitiveButtonStyle](https://developer.apple.com/documentation/swiftui/primitivebuttonstyle).
+
+## API (2026-10-04, sw-button-looks)
+
+| API | Status |
+|---|---|
+| `PrimitiveButtonStyle`, `PrimitiveButtonStyleConfiguration` (`label`, `role`, `trigger()`), `buttonStyle(_: PrimitiveButtonStyle)` | implemented: the style's body replaces the button host, so the style decides when `trigger` runs (a `ButtonStyle` set later takes over again) |
+| `controlSize` on buttons | implemented: iOS from `ios/button/looks` (below); macOS approximate: mini 17 / small 20 / regular 24 / large 32 pt bezels with 10 / 11 / 13 / 15 pt labels and 8 / 10 / 12 / 12 pt side padding (shifted from macOS 26.6's 13 / 16 / 20 / 28); `.extraLarge` is the regular on macOS |
+| Destructive role | implemented: iOS measured (a red label in the bordered and borderless styles, a red capsule with a white label in the prominent one); macOS the same, unverified (an inactive window shows no tint) |
+| Disabled look | implemented: iOS measured (a prominent button wears the bordered fill with its label at 17 %, a plain one its label at 50 %; the bordered label at 24 % from `ios/button/basic`); macOS the label at 30 % (button/looks, 26.6) and the plain one at 50 %, the bezel's fill halved (unverified) |
+| Pressed look | unverified: the bordered fill darkened to 50/255, the prominent and bordered capsules at 80 / 70 %, borderless and plain labels dimmed |
+| Hover | no change, as on macOS |
+| Keyboard focus | the runtime's accent ring around the focused button (approximate, `KeyboardNodes.swift`) |
 
 ## Measured (macOS 26.2, `button/basic`, `button/styles`; frames from a hosted window since decision 0010)
 
@@ -34,7 +46,28 @@ dynamic-property installation uses `_forEachField` offsets (`DynamicPropertyFiel
 
 `disabled(_:)` stops activation (and the pressed state); the dimmed look is not drawn yet.
 
+## iOS (iPhone SE simulator, iOS 26, `ios/button/looks`, 2026-10-04)
+
+| Property | Value |
+|---|---|
+| Mini, small | a 31 pt capsule: the 15 pt subheadline label (a 21 pt line) 10 in and 5 above and below; the two sizes are the same |
+| Regular | 38.5: the body label 12 in and 7 above and below (`ios/button/basic`) |
+| Large, extra large | a 54.5 pt capsule: the body label 20 in and 15 above and below; the two sizes are the same on iPhone |
+| Prominent | the same capsules in the accent colour with a white label (large 118 wide for "Prominent", mini 48.5 for "Mini") |
+| Destructive | the label (255, 56, 60) in the bordered and borderless styles; the prominent capsule in that red with a white label |
+| Disabled prominent | the bordered fill (233, 233, 234) with the label at (194, 194, 196): black at 17 % |
+| Disabled plain | the label at (127): 50 % |
+
+## macOS 26.6 (`button/looks`, out of the golden set, 2026-10-04)
+
+A 26.6 inactive window draws every bordered button in a white 20 pt bezel with a hairline (mini
+13, small 16, large 28; extra large is the regular), the same for prominent and destructive ones
+(no accent in an inactive window: the label (38) everywhere, the borderless destructive label
+grey), the disabled labels at (191) (30 % of the label over white) and a disabled plain label at
+(147) (50 %). The runtime keeps the 26.2 goldens' 24 pt bordered geometry and shifts the other
+sizes by 26.6's differences; `ButtonLooksTests` hold the behaviour.
+
 ## Not yet covered
 
-`PrimitiveButtonStyle`, `role` appearance, the disabled look, keyboard shortcuts, `controlSize`,
-`Label(_:systemImage:)` labels, hover, focus ring.
+Keyboard shortcuts, `Label(_:systemImage:)` labels, the pressed look, the macOS control sizes
+and role colours against an active 26.2 window, `ButtonRepeatBehavior`, the glass styles.

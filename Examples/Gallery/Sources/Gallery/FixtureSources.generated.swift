@@ -175,6 +175,38 @@ public static let basic = Fixture("button/basic", size: CGSize(width: 300, heigh
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "button/looks", file: "Fixtures/Sources/Button/ButtonFixtures.swift", firstLine: 29, lastLine: 58, declaration: #"""
+/// Control sizes, roles and the disabled look. Out of the golden set: macOS 26.6 draws every
+/// bordered button 20 tall in a white bezel (mini 13, small 16, large 28) and an inactive
+/// window shows no accent, so the 26.2 goldens above would not agree; its measurements are in
+/// Docs/elements/Button.md ("macOS 26.6") and `ios/button/looks` carries the iOS ones.
+public static let looks = Fixture("button/looks", size: CGSize(width: 320, height: 300)) {
+    VStack(alignment: .leading, spacing: 12) {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Button("Mini") {}.controlSize(.mini).probe("mini")
+            Button("Small") {}.controlSize(.small).probe("small")
+            Button("Regular") {}.probe("regular")
+            Button("Large") {}.controlSize(.large).probe("large")
+            Button("Extra") {}.controlSize(.extraLarge).probe("extraLarge")
+        }
+        .probe("sizesRow")
+        HStack(spacing: 8) {
+            Button("Delete", role: .destructive) {}.probe("destructiveBordered")
+            Button("Delete", role: .destructive) {}.buttonStyle(.borderedProminent).probe("destructiveProminent")
+            Button("Delete", role: .destructive) {}.buttonStyle(.borderless).probe("destructiveBorderless")
+        }
+        .probe("rolesRow")
+        HStack(spacing: 8) {
+            Button("Bordered") {}.disabled(true).probe("disabledBordered")
+            Button("Prominent") {}.buttonStyle(.borderedProminent).disabled(true).probe("disabledProminent")
+            Button("Plain") {}.buttonStyle(.plain).disabled(true).probe("disabledPlain")
+        }
+        .probe("disabledRow")
+        Button("Large") {}.buttonStyle(.borderedProminent).controlSize(.large).probe("prominentLarge")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "button/styles", file: "Fixtures/Sources/Button/ButtonFixtures.swift", firstLine: 19, lastLine: 27, declaration: #"""
 public static let styles = Fixture("button/styles", size: CGSize(width: 300, height: 200)) {
     VStack(spacing: 12) {
@@ -1400,6 +1432,30 @@ public static let button = Fixture("ios/button/basic", size: CGSize(width: 320, 
             Text("Hg").probe("rowText")
         }
         .probe("row")
+    }
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/button/looks", file: "Fixtures/Sources/iOS/IOSControlsFixtures.swift", firstLine: 78, lastLine: 99, declaration: #"""
+/// Control sizes, roles and the disabled look of bordered and prominent buttons
+/// (Docs/elements/Button.md, "iOS").
+public static let buttonLooks = Fixture("ios/button/looks", size: CGSize(width: 320, height: 520)) {
+    VStack(alignment: .leading, spacing: 12) {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Button("Mini") {}.buttonStyle(.bordered).controlSize(.mini).probe("mini")
+            Button("Small") {}.buttonStyle(.bordered).controlSize(.small).probe("small")
+            Button("Regular") {}.buttonStyle(.bordered).probe("regular")
+        }
+        .probe("sizesRow")
+        Button("Large") {}.buttonStyle(.bordered).controlSize(.large).probe("large")
+        Button("Extra") {}.buttonStyle(.bordered).controlSize(.extraLarge).probe("extraLarge")
+        Button("Prominent") {}.buttonStyle(.borderedProminent).controlSize(.large).probe("prominentLarge")
+        Button("Delete", role: .destructive) {}.buttonStyle(.bordered).probe("destructiveBordered")
+        Button("Delete", role: .destructive) {}.buttonStyle(.borderedProminent).probe("destructiveProminent")
+        Button("Delete", role: .destructive) {}.buttonStyle(.borderless).probe("destructiveBorderless")
+        Button("Prominent") {}.buttonStyle(.borderedProminent).disabled(true).probe("disabledProminent")
+        Button("Plain") {}.buttonStyle(.plain).disabled(true).probe("disabledPlain")
+        Button("Mini") {}.buttonStyle(.borderedProminent).controlSize(.mini).probe("prominentMini")
     }
     .probe("stack")
 }.platform(.iOS)
@@ -7975,6 +8031,37 @@ public enum ButtonFixtures {
             Button("Prominent") {}.buttonStyle(.borderedProminent).probe("prominent")
             Button("Padded") {}.padding().probe("paddedOuter")
         }
+    }
+
+    /// Control sizes, roles and the disabled look. Out of the golden set: macOS 26.6 draws every
+    /// bordered button 20 tall in a white bezel (mini 13, small 16, large 28) and an inactive
+    /// window shows no accent, so the 26.2 goldens above would not agree; its measurements are in
+    /// Docs/elements/Button.md ("macOS 26.6") and `ios/button/looks` carries the iOS ones.
+    public static let looks = Fixture("button/looks", size: CGSize(width: 320, height: 300)) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Button("Mini") {}.controlSize(.mini).probe("mini")
+                Button("Small") {}.controlSize(.small).probe("small")
+                Button("Regular") {}.probe("regular")
+                Button("Large") {}.controlSize(.large).probe("large")
+                Button("Extra") {}.controlSize(.extraLarge).probe("extraLarge")
+            }
+            .probe("sizesRow")
+            HStack(spacing: 8) {
+                Button("Delete", role: .destructive) {}.probe("destructiveBordered")
+                Button("Delete", role: .destructive) {}.buttonStyle(.borderedProminent).probe("destructiveProminent")
+                Button("Delete", role: .destructive) {}.buttonStyle(.borderless).probe("destructiveBorderless")
+            }
+            .probe("rolesRow")
+            HStack(spacing: 8) {
+                Button("Bordered") {}.disabled(true).probe("disabledBordered")
+                Button("Prominent") {}.buttonStyle(.borderedProminent).disabled(true).probe("disabledProminent")
+                Button("Plain") {}.buttonStyle(.plain).disabled(true).probe("disabledPlain")
+            }
+            .probe("disabledRow")
+            Button("Large") {}.buttonStyle(.borderedProminent).controlSize(.large).probe("prominentLarge")
+        }
+        .probe("stack")
     }
 
     public static let all: [Fixture] = [basic, styles]
@@ -15231,7 +15318,30 @@ public enum IOSControlsFixtures {
         .probe("list")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [progress, boldTrait, controlSpacing, listFooter]
+    /// Control sizes, roles and the disabled look of bordered and prominent buttons
+    /// (Docs/elements/Button.md, "iOS").
+    public static let buttonLooks = Fixture("ios/button/looks", size: CGSize(width: 320, height: 520)) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Button("Mini") {}.buttonStyle(.bordered).controlSize(.mini).probe("mini")
+                Button("Small") {}.buttonStyle(.bordered).controlSize(.small).probe("small")
+                Button("Regular") {}.buttonStyle(.bordered).probe("regular")
+            }
+            .probe("sizesRow")
+            Button("Large") {}.buttonStyle(.bordered).controlSize(.large).probe("large")
+            Button("Extra") {}.buttonStyle(.bordered).controlSize(.extraLarge).probe("extraLarge")
+            Button("Prominent") {}.buttonStyle(.borderedProminent).controlSize(.large).probe("prominentLarge")
+            Button("Delete", role: .destructive) {}.buttonStyle(.bordered).probe("destructiveBordered")
+            Button("Delete", role: .destructive) {}.buttonStyle(.borderedProminent).probe("destructiveProminent")
+            Button("Delete", role: .destructive) {}.buttonStyle(.borderless).probe("destructiveBorderless")
+            Button("Prominent") {}.buttonStyle(.borderedProminent).disabled(true).probe("disabledProminent")
+            Button("Plain") {}.buttonStyle(.plain).disabled(true).probe("disabledPlain")
+            Button("Mini") {}.buttonStyle(.borderedProminent).controlSize(.mini).probe("prominentMini")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    public static let all: [Fixture] = [buttonLooks, progress, boldTrait, controlSpacing, listFooter]
 }
 """#,
         "Fixtures/Sources/iOS/IOSDarkFixtures.swift": ##"""

@@ -175,7 +175,7 @@
         {
           "api": "Button",
           "status": "partial",
-          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance",
+          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance; PrimitiveButtonStyle (the style owns the interaction), controlSize bezels (iOS measured: 31 / 38.5 / 54.5 pt capsules; macOS approximate), the destructive role's red label or capsule, the disabled looks (iOS measured; macOS 26.6's 30 % label), the pressed look unverified (2026-10-04)",
           "fixtures": [
             "button/basic",
             "button/styles"

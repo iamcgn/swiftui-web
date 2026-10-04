@@ -75,5 +75,28 @@ public enum IOSControlsFixtures {
         .probe("list")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [progress, boldTrait, controlSpacing, listFooter]
+    /// Control sizes, roles and the disabled look of bordered and prominent buttons
+    /// (Docs/elements/Button.md, "iOS").
+    public static let buttonLooks = Fixture("ios/button/looks", size: CGSize(width: 320, height: 520)) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Button("Mini") {}.buttonStyle(.bordered).controlSize(.mini).probe("mini")
+                Button("Small") {}.buttonStyle(.bordered).controlSize(.small).probe("small")
+                Button("Regular") {}.buttonStyle(.bordered).probe("regular")
+            }
+            .probe("sizesRow")
+            Button("Large") {}.buttonStyle(.bordered).controlSize(.large).probe("large")
+            Button("Extra") {}.buttonStyle(.bordered).controlSize(.extraLarge).probe("extraLarge")
+            Button("Prominent") {}.buttonStyle(.borderedProminent).controlSize(.large).probe("prominentLarge")
+            Button("Delete", role: .destructive) {}.buttonStyle(.bordered).probe("destructiveBordered")
+            Button("Delete", role: .destructive) {}.buttonStyle(.borderedProminent).probe("destructiveProminent")
+            Button("Delete", role: .destructive) {}.buttonStyle(.borderless).probe("destructiveBorderless")
+            Button("Prominent") {}.buttonStyle(.borderedProminent).disabled(true).probe("disabledProminent")
+            Button("Plain") {}.buttonStyle(.plain).disabled(true).probe("disabledPlain")
+            Button("Mini") {}.buttonStyle(.borderedProminent).controlSize(.mini).probe("prominentMini")
+        }
+        .probe("stack")
+    }.platform(.iOS)
+
+    public static let all: [Fixture] = [buttonLooks, progress, boldTrait, controlSpacing, listFooter]
 }

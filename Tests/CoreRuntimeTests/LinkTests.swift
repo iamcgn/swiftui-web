@@ -28,7 +28,7 @@ import SwiftUIWebHeadless
         // The fixed link blue (0, 104, 218), half opacity when disabled.
         #expect(r.render(scale: 2).commands.map(\.description) == ["drawText(\"Apple\" system 13 w400 at 82.5,55 #0068DA)"])
         let disabled = runtime(Link("Apple", destination: url).disabled(true))
-        #expect(disabled.render(scale: 2).commands.map(\.description).first?.hasSuffix("#0068DA@0.5)") == true)
+        #expect(disabled.render(scale: 2).commands.map(\.description).first == "beginGroup(opacity: 0.5)")
     }
 
     @Test func opensThroughTheEnvironment() {

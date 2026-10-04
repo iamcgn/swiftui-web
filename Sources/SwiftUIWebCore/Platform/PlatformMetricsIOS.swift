@@ -10,6 +10,26 @@ extension PlatformMetricsTable {
         t.buttonVerticalPadding = 7
         t.buttonHeight = 38.5
         t.buttonFill = Color(storage: .system(.controlInk), opacityMultiplier: 41.0 / 255)
+        // Control sizes and the disabled look (ios/button/looks): mini and small are 31 pt capsules
+        // of a subheadline label 10 in; large and extra large 54.5 pt capsules of a body label
+        // 20 in; a disabled prominent button wears the bordered fill with its label at 17 %,
+        // a disabled plain one its label at 50 %.
+        t.buttonMiniHeight = 31
+        t.buttonSmallHeight = 31
+        t.buttonLargeHeight = 54.5
+        t.buttonMiniFontSize = 15
+        t.buttonSmallFontSize = 15
+        t.buttonLargeFontSize = 17
+        t.buttonMiniHorizontalPadding = 10
+        t.buttonSmallHorizontalPadding = 10
+        t.buttonLargeHorizontalPadding = 20
+        t.buttonMiniVerticalPadding = 5                                  // the 21 pt subheadline line in 31
+        t.buttonSmallVerticalPadding = 5
+        t.buttonLargeVerticalPadding = 15
+        t.buttonSmallUsesTextStyle = true
+        t.buttonDisabledLabelAlpha = 0.24
+        t.buttonProminentDisabledLabelAlpha = 0.17
+        t.buttonProminentDisabledUsesPlainFill = true
         t.destructiveColor = RGBA(r: 255, g: 57, b: 59)
         t.dividerThickness = 0.5                                        // ios/layout/basics `divider`: a hairline
         // Toggle (ios/toggle/basic): iOS 26's switch fills its 66 × 30 frame at the row's trailing

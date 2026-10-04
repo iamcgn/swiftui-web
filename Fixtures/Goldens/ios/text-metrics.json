@@ -2118,6 +2118,12 @@
       "lastBaseline" : 18.5,
       "width" : 61.5
     },
+    "style:body||Extra" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 39
+    },
     "style:body||Field" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -2267,6 +2273,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 28
+    },
+    "style:body||Mini" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 31.5
     },
     "style:body||Mixed" : {
       "firstBaseline" : 18.5,
@@ -2447,6 +2459,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 30
+    },
+    "style:body||Regular" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 58
     },
     "style:body||Right" : {
       "firstBaseline" : 18.5,
@@ -3066,6 +3084,12 @@
       "lastBaseline" : 173,
       "width" : 0
     },
+    "style:body|0.0|Extra" : {
+      "firstBaseline" : 18.5,
+      "height" : 127,
+      "lastBaseline" : 121,
+      "width" : 0
+    },
     "style:body|0.0|Field" : {
       "firstBaseline" : 18.5,
       "height" : 127,
@@ -3214,6 +3238,12 @@
       "firstBaseline" : 18.5,
       "height" : 75,
       "lastBaseline" : 69,
+      "width" : 0
+    },
+    "style:body|0.0|Mini" : {
+      "firstBaseline" : 18.5,
+      "height" : 101,
+      "lastBaseline" : 95,
       "width" : 0
     },
     "style:body|0.0|Mixed" : {
@@ -3394,6 +3424,12 @@
       "firstBaseline" : 18.5,
       "height" : 75,
       "lastBaseline" : 69,
+      "width" : 0
+    },
+    "style:body|0.0|Regular" : {
+      "firstBaseline" : 18.5,
+      "height" : 179,
+      "lastBaseline" : 173,
       "width" : 0
     },
     "style:body|0.0|Right" : {
@@ -9900,6 +9936,12 @@
       "lastBaseline" : 16,
       "width" : 25
     },
+    "style:subheadline||Mini" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 28.5
+    },
     "style:subheadline||Name" : {
       "firstBaseline" : 16,
       "height" : 21,
@@ -9947,6 +9989,12 @@
       "height" : 21,
       "lastBaseline" : 16,
       "width" : 57
+    },
+    "style:subheadline||Small" : {
+      "firstBaseline" : 16,
+      "height" : 21,
+      "lastBaseline" : 16,
+      "width" : 37.5
     },
     "style:subheadline||Subheadline" : {
       "firstBaseline" : 16,
@@ -10080,6 +10128,12 @@
       "lastBaseline" : 60,
       "width" : 0
     },
+    "style:subheadline|0.0|Mini" : {
+      "firstBaseline" : 16,
+      "height" : 88,
+      "lastBaseline" : 83,
+      "width" : 0
+    },
     "style:subheadline|0.0|Name" : {
       "firstBaseline" : 16,
       "height" : 88,
@@ -10126,6 +10180,12 @@
       "firstBaseline" : 16,
       "height" : 180,
       "lastBaseline" : 175,
+      "width" : 0
+    },
+    "style:subheadline|0.0|Small" : {
+      "firstBaseline" : 16,
+      "height" : 111,
+      "lastBaseline" : 106,
       "width" : 0
     },
     "style:subheadline|0.0|Subheadline" : {

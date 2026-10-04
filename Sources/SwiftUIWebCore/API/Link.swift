@@ -11,7 +11,6 @@ public struct Link<Label: View>: View {
     package let destination: URL
     package let label: Label
     @Environment(\.openURL) private var openURL
-    @Environment(\.isEnabled) private var isEnabled
 
     /// Creates a control, consisting of a URL and a label, used to navigate to the given URL.
     public init(destination: URL, @ViewBuilder label: () -> Label) {
@@ -22,9 +21,10 @@ public struct Link<Label: View>: View {
     public var body: some View {
         let destination = destination
         let openURL = openURL
-        // The label snaps to the pixel grid like a control's (link/basic `customLabel`).
+        // The label snaps to the pixel grid like a control's (link/basic `customLabel`); the
+        // plain style dims a disabled link to 50 % (`buttonPlainDisabledAlpha`).
         return Button(action: { openURL(destination) }) {
-            label.foregroundColor(Color(storage: .system(.link)).opacity(isEnabled ? 1 : PlatformMetrics.linkDisabledOpacity))._pixelAligned()
+            label.foregroundColor(Color(storage: .system(.link)))._pixelAligned()
         }
         .buttonStyle(.plain)
     }

@@ -25,6 +25,30 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var buttonPressedFill = Color(storage: .system(.controlInk), opacityMultiplier: 50.0 / 255)   // unverified
     /// A bordered button is its label plus 4 pt above and below (32 for a 24 pt Label, label/basic).
     package var buttonVerticalPadding: CGFloat = 4
+    // Control sizes (button/looks on macOS 26.6: mini 13, small 16, regular 20, large 28 tall, so
+    // the 26.2 regular's 24 shifts by the same amounts; the fonts are AppKit's control fonts;
+    // approximate). iOS overrides measure ios/button/looks.
+    package var buttonMiniHeight: CGFloat = 17
+    package var buttonSmallHeight: CGFloat = 20
+    package var buttonLargeHeight: CGFloat = 32
+    package var buttonMiniFontSize: CGFloat = 10
+    package var buttonSmallFontSize: CGFloat = 11
+    package var buttonLargeFontSize: CGFloat = 15
+    package var buttonMiniHorizontalPadding: CGFloat = 8
+    package var buttonSmallHorizontalPadding: CGFloat = 10
+    package var buttonLargeHorizontalPadding: CGFloat = 12
+    package var buttonMiniVerticalPadding: CGFloat = 2.5             // a 12 pt line in 17
+    package var buttonSmallVerticalPadding: CGFloat = 3.5            // a 13 pt line in 20
+    package var buttonLargeVerticalPadding: CGFloat = 7              // an 18 pt line in 32
+    package var buttonSmallUsesTextStyle = false                     // iOS: mini and small labels are the subheadline
+    // The disabled look (button/looks: a 26.6 inactive window reads the label at 30 % and a
+    // plain button's at 50 %; the bezel's fill is unverified). iOS overrides measure ios/button/looks.
+    package var buttonDisabledLabelAlpha = 0.3
+    package var buttonProminentDisabledLabelAlpha = 0.3
+    package var buttonPlainDisabledAlpha = 0.5
+    package var buttonDisabledFillAlpha = 0.5
+    package var buttonProminentDisabledUsesPlainFill = false         // iOS: a disabled prominent button wears the bordered fill
+    package var buttonDestructiveTintsLabel = true                   // a destructive bordered button's red label (unverified on macOS: the inactive window shows none)
 
     // Toggle (macOS 26.2: fixtures toggle/basic, toggle/styles; pixels sampled from goldens, Docs/elements/Toggle.md)
     package var checkboxSize: CGFloat = 16
@@ -512,7 +536,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var disclosureChevronAlpha = 64.0 / 255                // 191 over white
 
     // Link (macOS 26.2: fixture link/basic, Docs/elements/Link.md)
-    package var linkDisabledOpacity = 0.5
+    package var linkDisabledOpacity = 0.5                            // a disabled link: the plain button style's 50 % (`buttonPlainDisabledAlpha`)
 
     // GroupBox (macOS 26.2: fixture groupbox/basic, Docs/elements/GroupBox.md)
     package var groupBoxPadding: CGFloat = 5

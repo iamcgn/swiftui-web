@@ -11,6 +11,25 @@ extension PlatformMetrics {
     package static var buttonFill: Color { current.buttonFill }
     package static var buttonPressedFill: Color { current.buttonPressedFill }
     package static var buttonVerticalPadding: CGFloat { current.buttonVerticalPadding }
+    package static var buttonMiniHeight: CGFloat { current.buttonMiniHeight }
+    package static var buttonSmallHeight: CGFloat { current.buttonSmallHeight }
+    package static var buttonLargeHeight: CGFloat { current.buttonLargeHeight }
+    package static var buttonMiniFontSize: CGFloat { current.buttonMiniFontSize }
+    package static var buttonSmallFontSize: CGFloat { current.buttonSmallFontSize }
+    package static var buttonLargeFontSize: CGFloat { current.buttonLargeFontSize }
+    package static var buttonMiniHorizontalPadding: CGFloat { current.buttonMiniHorizontalPadding }
+    package static var buttonSmallHorizontalPadding: CGFloat { current.buttonSmallHorizontalPadding }
+    package static var buttonLargeHorizontalPadding: CGFloat { current.buttonLargeHorizontalPadding }
+    package static var buttonMiniVerticalPadding: CGFloat { current.buttonMiniVerticalPadding }
+    package static var buttonSmallVerticalPadding: CGFloat { current.buttonSmallVerticalPadding }
+    package static var buttonLargeVerticalPadding: CGFloat { current.buttonLargeVerticalPadding }
+    package static var buttonSmallUsesTextStyle: Bool { current.buttonSmallUsesTextStyle }
+    package static var buttonDisabledLabelAlpha: Double { current.buttonDisabledLabelAlpha }
+    package static var buttonProminentDisabledLabelAlpha: Double { current.buttonProminentDisabledLabelAlpha }
+    package static var buttonPlainDisabledAlpha: Double { current.buttonPlainDisabledAlpha }
+    package static var buttonDisabledFillAlpha: Double { current.buttonDisabledFillAlpha }
+    package static var buttonProminentDisabledUsesPlainFill: Bool { current.buttonProminentDisabledUsesPlainFill }
+    package static var buttonDestructiveTintsLabel: Bool { current.buttonDestructiveTintsLabel }
     package static var checkboxSize: CGFloat { current.checkboxSize }
     package static var checkboxLabelSpacing: CGFloat { current.checkboxLabelSpacing }
     package static var checkboxCornerRadius: CGFloat { current.checkboxCornerRadius }

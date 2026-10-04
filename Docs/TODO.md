@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 47 | 0 | 15 | 32 |
+| SwiftUI | 46 | 0 | 14 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **87** | 0 | 39 | 48 |
+| **All** | **86** | 0 | 38 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Button roles, sizes and states** `sw-button-looks` · Button · missing  
-  `PrimitiveButtonStyle`, the destructive role look, the disabled look, `controlSize`, the pressed, hovered and focused looks (goldens come from an inactive window), the borderless look (approximate). ([Button.md](Docs/elements/Button.md))
 - ☐ **Toggle sources, mixed state and looks** `sw-toggle` · Toggle · missing  
   `Toggle(sources:isOn:)`, `isMixed`, Space activation, the focus ring, hover, `controlSize`, `tint`, the switch knob's shadow, the active-window accent checkbox. ([Toggle.md](Docs/elements/Toggle.md))
 - ☐ **Animated progress and gauges** `sw-progress` · ProgressView · approximate  
@@ -219,6 +217,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Menu rows, sections and navigation** `sw-menu` · SwiftUI · Menu
 - ☑ 2026-10-04 **Picker options and looks** `sw-picker` · SwiftUI · Picker
 - ☑ 2026-10-04 **Search suggestions, scopes and tokens** `sw-search` · SwiftUI · Toolbar
+- ☑ 2026-10-04 **Button roles, sizes and states** `sw-button-looks` · SwiftUI · Button
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text
