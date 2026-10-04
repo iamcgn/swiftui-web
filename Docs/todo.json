@@ -1356,13 +1356,14 @@
       "framework": "UIKit",
       "area": "Text",
       "title": "UITextField borders, buttons and views",
-      "detail": "The `line` and `bezel` borders, the clear button, `leftView`/`rightView`, attributed placeholders, the text's vertical position verified against the simulator's pixels, the keyboard types reaching the overlay input.",
+      "detail": "The `line` and `bezel` borders, the clear button, `leftView`/`rightView`, attributed placeholders, the text's vertical position verified against the simulator's pixels, the keyboard types reaching the overlay input. Done 2026-10-04: the line (30 pt, 1 pt label stroke, text 2 in) and bezel (32 pt, 1 pt black 50 % with an inner 33 % line top and left, text 7 in and 1.5 down) borders, the text baseline on the pixel grid, the 17 pt clear button 15 from the right edge with the text ending 11 before it (tapping clears through textFieldShouldClear), leftView/rightView flush to the edges and centred with their modes, attributedPlaceholder in its font and colour, keyboardType/returnKeyType/autocapitalizationType/autocorrectionType/textContentType reaching the input element (UITextView too); uikit/textfield/looks with an edit step (Tier A exact, Tier C 2.3 %).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/UITextField.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-textview",

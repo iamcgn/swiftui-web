@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 27 | 0 | 16 | 11 |
+| UIKit | 26 | 0 | 15 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **65** | 0 | 17 | 48 |
+| **All** | **64** | 0 | 16 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **UITextField borders, buttons and views** `uk-textfield` · Text · missing  
-  The `line` and `bezel` borders, the clear button, `leftView`/`rightView`, attributed placeholders, the text's vertical position verified against the simulator's pixels, the keyboard types reaching the overlay input. ([UITextField.md](Docs/elements/UIKit/UITextField.md))
 - ☐ **UITextView attributed text, selection and links** `uk-textview` · Text · missing  
   `attributedText`, `selectedRange` and a painted selection, data detectors and links, `textContainer` exclusion paths, the Helvetica 12 default font, indicators after a scroll. ([TextView.md](Docs/elements/UIKit/TextView.md))
 - ☐ **Date picker popovers, calendars and wheels** `uk-datepicker` · Controls · missing  
@@ -194,6 +192,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **UIButton images, subtitles and states** `uk-button` · UIKit · Controls
 - ☑ 2026-10-04 **UILabel attributed text and fitting** `uk-label` · UIKit · Text
 - ☑ 2026-10-04 **Custom, italic and monospaced fonts; Dynamic Type** `uk-fonts` · UIKit · Text
+- ☑ 2026-10-04 **UITextField borders, buttons and views** `uk-textfield` · UIKit · Text
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

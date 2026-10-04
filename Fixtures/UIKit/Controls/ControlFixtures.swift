@@ -4,6 +4,89 @@
 import UIKit
 import UIKitFixtureKit
 
+/// Text field looks (uk-textfield): the line and bezel borders, the clear button (shown while
+/// editing after the "edit" step, and unless editing before it), left and right views, an
+/// attributed placeholder, and a rounded field with text for its pixels.
+public enum TextFieldFixtures {
+    public static let all = [looks]
+
+    @MainActor
+    public final class LooksModel {
+        public let editing = UITextField()
+        public let unless = UITextField()
+        public let centered = UITextField()
+        public init() {}
+    }
+
+    public static let looks = UIKitFixture("uikit/textfield/looks", size: CGSize(width: 320, height: 340), model: { LooksModel() }, steps: [
+        // The simulator only paints clear buttons once a field has been edited: the modes that
+        // show one outside editing are set in the step, so the first frame shows none.
+        UIKitFixtureStep("edit") { model in
+            model.unless.clearButtonMode = .unlessEditing
+            model.centered.clearButtonMode = .always
+            model.editing.becomeFirstResponder()
+        },
+    ]) { model in
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 340))
+        @MainActor func add(_ field: UITextField, y: CGFloat, width: CGFloat? = nil, id: String) {
+            field.sizeToFit()
+            field.frame.origin = CGPoint(x: 16, y: y)
+            if let width { field.frame.size.width = width }
+            root.addSubview(field.probe(id))
+        }
+        let line = UITextField()
+        line.borderStyle = .line
+        line.text = "Line border"
+        add(line, y: 16, id: "line")
+        let bezel = UITextField()
+        bezel.borderStyle = .bezel
+        bezel.text = "Bezel border"
+        add(bezel, y: 60, id: "bezel")
+        let clear = model.editing
+        clear.borderStyle = .roundedRect
+        clear.text = "Clear"
+        clear.clearButtonMode = .whileEditing
+        add(clear, y: 104, width: 160, id: "clear")
+        let unless = model.unless
+        unless.borderStyle = .roundedRect
+        unless.text = "Unless"
+        add(unless, y: 104, width: 120, id: "unless")
+        unless.frame.origin.x = 184
+        let sides = UITextField()
+        sides.borderStyle = .roundedRect
+        sides.text = "Views"
+        let left = UIView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
+        left.backgroundColor = .systemBlue
+        sides.leftView = left
+        sides.leftViewMode = .always
+        let right = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: 12))
+        right.backgroundColor = .systemRed
+        sides.rightView = right
+        sides.rightViewMode = .always
+        add(sides, y: 148, width: 200, id: "sides")
+        _ = left.probe("leftView")
+        _ = right.probe("rightView")
+        let attributed = UITextField()
+        attributed.borderStyle = .roundedRect
+        attributed.attributedPlaceholder = NSAttributedString(string: "Attributed", attributes: [.foregroundColor: UIColor.systemRed, .font: UIFont.systemFont(ofSize: 15)])
+        add(attributed, y: 192, width: 160, id: "attributed")
+        let rounded = UITextField()
+        rounded.borderStyle = .roundedRect
+        rounded.text = "Rounded text"
+        add(rounded, y: 236, width: 200, id: "rounded")
+        let plain = UITextField()
+        plain.text = "Plain text"
+        add(plain, y: 280, width: 160, id: "plain")
+        let centered = model.centered
+        centered.borderStyle = .roundedRect
+        centered.text = "Center"
+        centered.textAlignment = .center
+        add(centered, y: 280, width: 120, id: "centered")
+        centered.frame.origin.x = 184
+        return root
+    }
+}
+
 public enum ControlFixtures {
     public static let all = [basic, intrinsic]
 

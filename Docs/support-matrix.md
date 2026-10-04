@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 48 | 5 | 40 | 3 | 0 | 0 |
+| UIKit | 48 | 6 | 39 | 3 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **188** | 30 | 145 | 7 | 3 | 3 |
+| **All** | **188** | 31 | 144 | 7 | 3 | 3 |
 
 ## App lifecycle
 
@@ -194,7 +194,7 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 |---|---|---|---|
 | `UIButton` | ✅ full | System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus; open: attributed titles, activity indicators (accepted) | uikit/button/basic, uikit/button/looks, ios/representable/controls |
 | `UISwitch` | ✅ full | 68 × 30 on iOS 26 with the 2 pt alignment inset, isOn / setOn(_:animated:), onTintColor / thumbTintColor, a tap or a pan toggles, valueChanged through UIAction, a switch in the semantics tree | uikit/controls/basic, uikit/controls/intrinsic, ios/representable/controls |
-| `UITextField` | 🟢 partial | Rounded-rect, line and bezel borders, placeholder, secure entry, keyboard and return types, delegate callbacks, editingChanged through UIAction, text through the substrate's input overlay; open: the text's vertical position against the pixels, clear button, left and right views, attributed placeholders | uikit/controls/basic, uikit/controls/intrinsic, uikit/alert/textfield |
+| `UITextField` | ✅ full | Rounded-rect, line and bezel borders measured, the text's baseline on the pixel grid, the clear button (shown by mode, clearing through the delegate), left and right views, attributed placeholders, keyboard, return, autocapitalization, autocorrection and content types reaching the input element, delegate callbacks, editingChanged through UIAction, text through the substrate's input overlay; open: multi-run attributedText, adjustsFontSizeToFitWidth | uikit/controls/basic, uikit/controls/intrinsic, uikit/alert/textfield, uikit/textfield/looks |
 | `UISlider / UISegmentedControl / UIStepper / UIProgressView` | 🟢 partial | Measured looks at their intrinsic sizes, taps and drags set values and send valueChanged; open: slider min/max images, segment images and widths, momentary segments, the stepper's repeat | uikit/controls/more |
 | `UIActivityIndicatorView` | 🟡 approximate | A still of eight fading spokes at the medium and large sizes; it does not spin (Docs/todo.json uk-spinner) | uikit/controls/more |
 | `UIPageControl` | 🟢 partial | Dots for numberOfPages with the current page filled; open: the continuous interaction style, custom indicator images | uikit/controls/more |

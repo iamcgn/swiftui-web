@@ -31,6 +31,12 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Tinted", .style("body"), lines: 0),
         UIKitTextRequest("Filled", .style("body"), lines: 0),
         UIKitTextRequest("Plain", .system(size: 17), lines: 0),
+        // uikit/textfield/looks (uk-textfield): fields measure their text without a line limit.
+        UIKitTextRequest("Line border", .system(size: 17), lines: 0), UIKitTextRequest("Bezel border", .system(size: 17), lines: 0),
+        UIKitTextRequest("Clear", .system(size: 17), lines: 0), UIKitTextRequest("Views", .system(size: 17), lines: 0),
+        UIKitTextRequest("Attributed", .system(size: 15), lines: 0), UIKitTextRequest("Rounded text", .system(size: 17), lines: 0),
+        UIKitTextRequest("Unless", .system(size: 17), lines: 0), UIKitTextRequest("Plain text", .system(size: 17), lines: 0),
+        UIKitTextRequest("Center", .system(size: 17), lines: 0),
         // uikit/label/fonts (uk-fonts): italic, monospaced and bundled fonts, scaled text styles.
         UIKitTextRequest("Italic 17", .italic(size: 17)), UIKitTextRequest("Mono 15", .monospaced(size: 15)), UIKitTextRequest("Mono 17 semibold", .monospaced(size: 17, weight: "semibold")),
         UIKitTextRequest("Abel 20", .custom(name: "Abel-Regular", size: 20)), UIKitTextRequest("Abel 13", .custom(name: "Abel-Regular", size: 13)),

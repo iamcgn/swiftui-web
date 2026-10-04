@@ -19,6 +19,17 @@ public enum UIKeyboardType: Int, Sendable {
         case .webSearch: return "search"
         }
     }
+
+    /// The single-line element's `type` for the keyboard: the browser validates and styles by it.
+    public var inputType: String {
+        switch self {
+        case .emailAddress: return "email"
+        case .URL: return "url"
+        case .phonePad, .namePhonePad: return "tel"
+        case .webSearch: return "search"
+        default: return "text"
+        }
+    }
 }
 
 public enum UIReturnKeyType: Int, Sendable {

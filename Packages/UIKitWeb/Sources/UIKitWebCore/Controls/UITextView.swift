@@ -51,7 +51,7 @@ open class UITextView: UIScrollView, HostTextInput {
     open var autocapitalizationType: UITextAutocapitalizationType = .sentences
     open var autocorrectionType: UITextAutocorrectionType = .default
     open var spellCheckingType: UITextSpellCheckingType = .default
-    open var textContentType: String?
+    open var textContentType: UITextContentType?
     /// The delegate is a text view delegate too (`UITextViewDelegate` refines the scroll
     /// view's, as in UIKit).
     open override weak var delegate: (any UIScrollViewDelegate)? {
@@ -229,6 +229,11 @@ open class UITextView: UIScrollView, HostTextInput {
         info.isMultiline = true
         info.lineHeight = linePitch
         info.firstBaseline = firstBaseline - textContainerInset.top
+        info.inputMode = keyboardType.inputMode
+        info.autocomplete = textContentType?.rawValue
+        info.autocapitalize = autocapitalizationType.token
+        info.enterKeyHint = returnKeyType.enterKeyHint
+        info.autocorrect = autocorrectionType != .no
         node.textInput = info
     }
 }

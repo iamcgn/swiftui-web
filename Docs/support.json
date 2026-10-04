@@ -1452,12 +1452,13 @@
         },
         {
           "api": "UITextField",
-          "status": "partial",
-          "notes": "Rounded-rect, line and bezel borders, placeholder, secure entry, keyboard and return types, delegate callbacks, editingChanged through UIAction, text through the substrate's input overlay; open: the text's vertical position against the pixels, clear button, left and right views, attributed placeholders",
+          "status": "full",
+          "notes": "Rounded-rect, line and bezel borders measured, the text's baseline on the pixel grid, the clear button (shown by mode, clearing through the delegate), left and right views, attributed placeholders, keyboard, return, autocapitalization, autocorrection and content types reaching the input element, delegate callbacks, editingChanged through UIAction, text through the substrate's input overlay; open: multi-run attributedText, adjustsFontSizeToFitWidth",
           "fixtures": [
             "uikit/controls/basic",
             "uikit/controls/intrinsic",
-            "uikit/alert/textfield"
+            "uikit/alert/textfield",
+            "uikit/textfield/looks"
           ]
         },
         {

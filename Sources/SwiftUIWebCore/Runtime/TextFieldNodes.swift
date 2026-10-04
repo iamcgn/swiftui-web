@@ -281,23 +281,12 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         }
         info.paintsCaret = true
         info.inputMode = environment._keyboardType.inputMode
-        info.inputType = view.isSecure ? "password" : Self.inputType(for: environment._keyboardType)
+        info.inputType = view.isSecure ? "password" : environment._keyboardType.inputType
         info.autocomplete = environment._textContentType?.rawValue
         info.autocapitalize = environment._textInputAutocapitalization?.kind.token
         info.enterKeyHint = environment._submitLabel.key.enterKeyHint
         info.autocorrect = !environment.autocorrectionDisabled
         return SemanticsNode(role: .textField, label: view.placeholder, frame: absolute, identifier: identifier, textInput: info)
-    }
-
-    /// The single-line element's `type` for a keyboard: the browser validates and styles by it.
-    private static func inputType(for keyboard: UIKeyboardType) -> String {
-        switch keyboard {
-        case .emailAddress: return "email"
-        case .URL: return "url"
-        case .phonePad, .namePhonePad: return "tel"
-        case .webSearch: return "search"
-        default: return "text"
-        }
     }
 
     /// The host's input changed: push the text into the binding, or hold it until the value

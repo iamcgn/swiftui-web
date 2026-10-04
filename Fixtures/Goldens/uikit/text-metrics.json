@@ -1638,6 +1638,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 97
     },
+    "system:17:400:default||Center" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 51.5
+    },
     "system:17:400:default||Centred" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1686,6 +1692,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 73.5
     },
+    "system:17:400:default||Plain text" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 70
+    },
     "system:17:400:default||Right aligned" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1709,6 +1721,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 339
+    },
+    "system:17:400:default||Unless" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 52
     },
     "system:17:400:default||Views" : {
       "firstBaseline" : 16.1865234375,
