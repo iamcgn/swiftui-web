@@ -25,7 +25,7 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 // beside the sidebar panel with a black-to-clear gradient (about 3.4 % of a 480 × 300 window).
 // texteditor/basic: NSTextView sets SF tighter between letters and wider at spaces than SwiftUI's
 // Text does, so its paragraph keeps one more word on the first line.
-const approximate = ['ios/representable/hostingsafearea-tabs', 'uikit/label/wrapping', 'uikit/label/tabular', 'uikit/table/selfsizing', 'uikit/textview/basic', 'uikit/draw/text', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
+const approximate = ['ios/representable/hostingsafearea-tabs', 'text/fit', 'uikit/label/wrapping', 'uikit/label/tabular', 'uikit/table/selfsizing', 'uikit/textview/basic', 'uikit/draw/text', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
   'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 // ios/symbol/ and ios/label/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt),
@@ -38,7 +38,9 @@ const approximateProbes = { 'ios/list/footer': ['header'], 'list/prominence': ['
 // The browser measures text on the half point, so iOS text widths and the positions that follow from them get 0.5.
 // uikit/autolayout/baseline chains six labels sideways: Canvas2D's widths of "Hg" at six sizes differ from
 // UILabel's by up to a point each on the CI runner and the errors add up along the row.
-const frameTolerance = (name, key, expected, id) => (approximateProbes[name] || []).includes(id) ? 2 : name.startsWith('ios/symbol/') ? 2 : listBacked(name) ? 3
+// text/fit: the scale search and the tightening are approximate (Docs/elements/Text.md, "Fitting").
+const frameTolerance = (name, key, expected, id) => name === 'text/fit' ? Math.max(3, Math.abs(expected) * 0.1)
+  : (approximateProbes[name] || []).includes(id) ? 2 : name.startsWith('ios/symbol/') ? 2 : listBacked(name) ? 3
   : name === 'uikit/autolayout/baseline' ? 2
   : name.startsWith('text/') && (key === 'width' || key === 'x') ? Math.max(0.5, Math.abs(expected) * 0.03)
   : (name.startsWith('ios/') || name.startsWith('uikit/')) && (key === 'width' || key === 'x') ? 0.5 : name === 'symbol/basic' ? 2 : name.startsWith('symbol/') ? 0.5 : 1e-6;

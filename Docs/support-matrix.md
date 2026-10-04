@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 134 | 19 | 105 | 3 | 4 | 3 |
+| SwiftUI | 134 | 19 | 105 | 4 | 3 | 3 |
 | UIKit | 48 | 1 | 44 | 2 | 1 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **187** | 20 | 154 | 5 | 5 | 3 |
+| **All** | **187** | 20 | 154 | 6 | 4 | 3 |
 
 ## App lifecycle
 
@@ -45,7 +45,7 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 |---|---|---|---|
 | `Text (verbatim/localized/interpolation, concatenation with mixed styles)` | 🟢 partial | Layout exact with recorded metrics on 17 fixtures; default font is the 13 pt system font and bold() resolves per text style (decision 0010); concatenated parts keep font/weight/traits/colour; wrapping, character wrapping, hard newlines, lineLimit (Int, ranges, reservesSpace), truncationMode head/middle/tail, multilineTextAlignment, lineSpacing; no localization tables, attributed strings; height pressure keeps floor(height / pitch) lines; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting) | text/* |
 | `lineLimit / multilineTextAlignment / truncationMode / lineSpacing (View + EnvironmentValues)` | 🟢 partial | All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure keeps floor(height / pitch) lines and truncates the last; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting) | text/line-limit, text/truncation, text/alignment, text/line-spacing |
-| `allowsTightening / minimumScaleFactor` | 🟠 stub | Environment values stored, not applied to layout | text/truncation |
+| `allowsTightening / minimumScaleFactor` | 🟡 approximate | Measured on text/fit (2026-10-03): a line that would truncate first closes its letter spacing by what it needs up to a 72nd of the font size per character (else truncates with that tightening, one character more than plain truncation), then shrinks its fonts to the largest scale down to the minimum at which nothing truncates (a five-step search; SwiftUI's fitted width also stays a little under the frame), truncating at the minimum; wrapping text is never shrunk. Tier A exact through the recorded metrics; the browser's scaled widths and the title's truncation scale differ, so Tier B and C use the looser bound | text/fit, text/truncation |
 | `VStack / HStack / ZStack` | 🟢 partial | Layout exact against the goldens: alignment, spacing (default and explicit), priorities, ideal sizes, nesting; painted as their children | layout/* |
 | `Spacer` | 🟢 partial | Layout exact: minimum length, flexible growth, the stack's leftover shared by priority | layout/spacer, layout/spacer-min-length |
 | `Button` | 🟢 partial | bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance | button/basic, button/styles |

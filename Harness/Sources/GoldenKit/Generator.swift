@@ -104,6 +104,8 @@ public enum Generator {
             .textScale(.secondary, isEnabled: options.secondaryScale)
             .lineSpacing(options.lineSpacing)
             .truncationMode(options.truncation == "head" ? .head : options.truncation == "middle" ? .middle : .tail)
+            .minimumScaleFactor(options.minimumScaleFactor)
+            .allowsTightening(options.allowsTightening)
         // The same mapping SwiftUIWeb's View.lineLimit overloads perform, inverted.
         let limited: AnyView = {
             switch (options.lineLimit, options.minimumLines) {

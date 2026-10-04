@@ -34,7 +34,73 @@ public struct TextLayouter {
         options.tracking != 0 ? options.tracking : options.kerning
     }
 
+    /// The most `allowsTightening` closes the letter spacing, as a fraction of the font size per
+    /// character: a 72nd (0.18 pt at 13 pt; `text/fit` holds one more character than plain
+    /// truncation and comes out 2.5 pt narrower).
+    public static let maximumTightening: CGFloat = 1 / 72
+    /// Halvings of the scale search (`minimumScaleFactor`): five put the fitted width a little
+    /// under the available width, as SwiftUI's own search does (`text/fit`).
+    public static let scaleSearchSteps = 5
+
+    /// The layout, tightened or shrunk to fit when the options allow it (Docs/elements/Text.md,
+    /// "Fitting"). `allowsTightening`: a single line that would be truncated closes its letter
+    /// spacing by just what it needs when that is within `maximumTightening` (a 72nd of the font
+    /// size per character), else the text is truncated with the maximum tightening (so the line
+    /// holds a little more). `minimumScaleFactor`:
+    /// a line that still does not fit shrinks its fonts to the largest scale (a five-step search
+    /// down to the minimum) at which nothing is truncated, and truncates at the minimum when even
+    /// that does not fit.
     public func layout(_ runs: [StyledRun], options: TextLayoutOptions, width maxWidth: CGFloat?) -> TextLayout {
+        guard options.minimumScaleFactor < 1 || options.allowsTightening, let maxWidth, !runs.isEmpty else {
+            return layoutBase(runs, options: options, width: maxWidth)
+        }
+        var plain = options
+        plain.minimumScaleFactor = 1
+        plain.allowsTightening = false
+        var result = layoutBase(runs, options: plain, width: maxWidth)
+        guard result.isTruncated else { return result }
+        if options.allowsTightening {
+            let size = runs[0].font.size
+            let base = Self.letterSpacing(options)
+            let count = CGFloat(runs.reduce(0) { $0 + $1.string.count })
+            let maximum = size * Self.maximumTightening
+            func tightened(_ tightening: CGFloat) -> TextLayout {
+                var tight = plain
+                tight.kerning = 0
+                tight.tracking = base - tightening
+                var layout = layoutBase(runs, options: tight, width: maxWidth)
+                layout.tightening = -tightening
+                return layout
+            }
+            if options.lineLimit == 1 || options.lineLimit == nil, count > 0 {
+                let natural = layoutBase(runs, options: plain, width: nil)
+                let needed = (natural.size.width - maxWidth) / count
+                if needed > 0, needed <= maximum {
+                    let exact = tightened(needed)
+                    if !exact.isTruncated { return exact }
+                }
+            }
+            result = tightened(maximum)
+            if !result.isTruncated { return result }
+        }
+        guard options.minimumScaleFactor < 1 else { return result }
+        func scaled(_ scale: CGFloat) -> TextLayout {
+            var layout = layoutBase(runs.map { StyledRun($0.string, font: $0.font.scaled(by: scale)) }, options: plain, width: maxWidth)
+            layout.scale = scale
+            return layout
+        }
+        var low = options.minimumScaleFactor, high: CGFloat = 1
+        var best = scaled(low)
+        if best.isTruncated { return best }
+        for _ in 0..<Self.scaleSearchSteps {
+            let mid = (low + high) / 2
+            let candidate = scaled(mid)
+            if candidate.isTruncated { high = mid } else { low = mid; best = candidate }
+        }
+        return best
+    }
+
+    private func layoutBase(_ runs: [StyledRun], options: TextLayoutOptions, width maxWidth: CGFloat?) -> TextLayout {
         // The secondary text scale measures the scaled font plus its tracking after every
         // character; line metrics stay the base font's (`ResolvedFont.secondaryScaled`).
         if options.textScale == .secondary {
@@ -46,7 +112,7 @@ public struct TextLayouter {
             }
             var plain = options
             plain.textScale = .default
-            return scaled.layout(runs, options: plain, width: maxWidth)
+            return scaled.layoutBase(runs, options: plain, width: maxWidth)
         }
         // Kerning and tracking add their value after every character, spaces and the last one
         // included (measured 2026-09-04: "Hello" 31 → 41 at 2 pt; Docs/elements/TextStyle.md).
@@ -55,7 +121,7 @@ public struct TextLayouter {
             let base = measure
             var spread = self
             spread.measure = { text, font in base(text, font) + spacing * CGFloat(text.count) }
-            return spread.layout(runs, options: options.withoutLetterSpacing, width: maxWidth)
+            return spread.layoutBase(runs, options: options.withoutLetterSpacing, width: maxWidth)
         }
         let string = runs.map(\.string).joined()
         let chars = Array(string)
@@ -285,7 +351,9 @@ public struct TextLayouter {
         }
         // Reserved (empty) lines add height but the last baseline stays on the last line of text.
         let lastText = lines.indices.last { !lines[$0].fragments.isEmpty } ?? lines.indices.last
-        return TextLayout(size: CGSize(width: widest, height: height),
-                          firstBaseline: lines.first?.baseline ?? 0, lastBaseline: lastText.map { lines[$0].baseline } ?? 0, lines: lines)
+        var layout = TextLayout(size: CGSize(width: widest, height: height),
+                                firstBaseline: lines.first?.baseline ?? 0, lastBaseline: lastText.map { lines[$0].baseline } ?? 0, lines: lines)
+        layout.isTruncated = pieces.contains(where: \.truncated)
+        return layout
     }
 }

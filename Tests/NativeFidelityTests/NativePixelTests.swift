@@ -34,7 +34,7 @@ enum NativeGoldens {
     /// fonts are real, but the bound is kept for parity with Tier B.
     /// `splitview/*`: Apple's capture drops the sidebar's rows and selection and fills the 8 pt
     /// bands beside the sidebar panel with a black-to-clear gradient (about 3.4 % of the window).
-    static let approximate: Set<String> = ["ios/representable/hostingsafearea-tabs", "text/system-fonts", "button/styles", "progress/indeterminate", "splitview/basic", "splitview/widths",
+    static let approximate: Set<String> = ["ios/representable/hostingsafearea-tabs", "text/system-fonts", "text/fit", "button/styles", "progress/indeterminate", "splitview/basic", "splitview/widths",
                                            "splitview/three", "splitview/columns", "splitview/sized", "splitview/selection", "splitview/visibility",
                                            "texteditor/basic"]   // NSTextView's tighter letters and wider spaces wrap one more word onto the first line
     /// Probes allowed two points (symbol sizes the metrics table scales to), as in Tier A.
@@ -187,10 +187,15 @@ struct Bitmap {
     private func compare(_ ours: [String: CGRect], to golden: [String: NativeGoldenFrames.Rect], label: String) {
         let approximateFixture = Self.approximatePrefixes.contains { label.hasPrefix($0) }
         let approximate = approximateFixture ? Set(golden.keys) : (NativeGoldens.approximateProbes[label] ?? [])
+        // text/fit: the scale search and tightening are approximate; CoreText's natural widths
+        // differ from SwiftUI's, so the fitted lines land a few points off (Docs/elements/Text.md).
+        let loose = label == "text/fit"
         let ignored = NativeGoldens.ignoredProbes[label] ?? []
         for (id, expected) in golden.sorted(by: { $0.key < $1.key }) where !ignored.contains(id) {
             guard let actual = ours[id] else { Issue.record("\(label): probe \(id) not recorded"); continue }
-            let tolerance = approximate.contains(id) ? (approximateFixture ? 3 : 2) + 1e-9 : 1e-9
+            let looseTolerance: Double = max(3, Double(expected.height) * 0.1, Double(expected.width) * 0.1)
+            let exactTolerance: Double = approximate.contains(id) ? (approximateFixture ? 3 : 2) : 0
+            let tolerance = (loose ? looseTolerance : exactTolerance) + 1e-9
             // Text fixtures: CoreText's truncated widths land within the half point (Tier B's rule).
             let widthTolerance = label.hasPrefix("text/") ? max(tolerance, 0.5 + 1e-9, abs(expected.width) * 0.03) : tolerance
             let close = abs(actual.minX - expected.x) < widthTolerance && abs(actual.minY - expected.y) < tolerance

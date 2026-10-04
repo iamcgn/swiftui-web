@@ -297,7 +297,7 @@ extension EnvironmentValues {
 
     package var textLayoutOptions: TextLayoutOptions {
         TextLayoutOptions(lineLimit: lineLimit, truncationMode: truncationMode, lineSpacing: lineSpacing, minimumLines: minimumLines,
-                          kerning: _kerning, tracking: _tracking, textScale: _textScale)
+                          kerning: _kerning, tracking: _tracking, textScale: _textScale, minimumScaleFactor: minimumScaleFactor, allowsTightening: allowsTightening)
     }
 
     /// The text scale of this environment (`View.textScale`).
@@ -697,13 +697,13 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled {
         }
         let inherited = (environment.foregroundColor ?? .primary)
         let resolvedColors = colors.map { ($0 ?? inherited).resolve(in: environment) }
-        let spacing = TextLayouter.letterSpacing(layoutOptions)
+        let spacing = TextLayouter.letterSpacing(layoutOptions) + layout.tightening
         let secondary = layoutOptions.textScale == .secondary
         let fonts = runs.map { run -> DisplayFont in
             if secondary, let scaled = run.font.secondaryScaled {
-                return DisplayFont(scaled.font, letterSpacing: spacing + scaled.tracking)
+                return DisplayFont(scaled.font.scaled(by: layout.scale), letterSpacing: (spacing + scaled.tracking) * layout.scale)
             }
-            return DisplayFont(run.font, letterSpacing: spacing)
+            return DisplayFont(run.font.scaled(by: layout.scale), letterSpacing: spacing * layout.scale)
         }
         let bounds = absoluteBounds(context)
         // A gradient foreground style (the text's own or the environment's) fills the runs

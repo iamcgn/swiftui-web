@@ -64,6 +64,16 @@ extension ResolvedFont {
     /// depend on the weight and fade with size: constant up to 17 pt, interpolated linearly to
     /// their 70 pt values, constant beyond; the line height stays the base font's. Serif,
     /// monospaced and custom families are not scaled.
+    /// The font at `factor` times its size (`minimumScaleFactor`); itself at 1.
+    public func scaled(by factor: CGFloat) -> ResolvedFont {
+        guard factor != 1 else { return self }
+        var copy = self
+        copy.size = size * factor
+        // The metrics follow the scaled size, not the style's line (a shrunk title is not 33 tall).
+        copy.textStyle = nil
+        return copy
+    }
+
     public var secondaryScaled: (font: ResolvedFont, tracking: CGFloat)? {
         guard family == "system" || family == "system-rounded" else { return nil }
         // (factor at ≤ 17 pt, factor at ≥ 70 pt, tracking at ≤ 17 pt) per weight.

@@ -5152,6 +5152,29 @@ public static let concatenation = Fixture("text/concatenation", size: CGSize(wid
     .probe("column")
 }
 """#),
+        FixtureSource(name: "text/fit", file: "Fixtures/Sources/Text/TextCompletenessFixtures.swift", firstLine: 113, lastLine: 133, declaration: #"""
+/// `minimumScaleFactor` and `allowsTightening`: the sample shrunk into narrowing frames at
+/// two factors, with and without a line limit, a title, and tightening alone and combined.
+public static let fit = Fixture("text/fit", size: CGSize(width: 400, height: 520)) {
+    VStack(alignment: .leading, spacing: 0) {
+        ForEach([120, 100, 80, 60, 40], id: \.self) { width in
+            Text(R.sample).lineLimit(1).minimumScaleFactor(0.5).probe("fit\(width)").frame(width: CGFloat(width), alignment: .topLeading)
+        }
+        ForEach([100, 80, 60], id: \.self) { width in
+            Text(R.sample).lineLimit(1).minimumScaleFactor(0.8).probe("fit8_\(width)").frame(width: CGFloat(width), alignment: .topLeading)
+        }
+        Text(R.sample).minimumScaleFactor(0.5).probe("wrap80").frame(width: 80, alignment: .topLeading)
+        Text(R.sample).lineLimit(2).minimumScaleFactor(0.5).probe("twoLines60").frame(width: 60, alignment: .topLeading)
+        Text(R.sample).font(.title).lineLimit(1).minimumScaleFactor(0.5).probe("title100").frame(width: 100, alignment: .topLeading)
+        ForEach([116, 112, 108, 100], id: \.self) { width in
+            Text(R.sample).lineLimit(1).allowsTightening(true).probe("tight\(width)").frame(width: CGFloat(width), alignment: .topLeading)
+        }
+        Text(R.sample).lineLimit(1).allowsTightening(true).minimumScaleFactor(0.5).probe("both100").frame(width: 100, alignment: .topLeading)
+        Text(R.paragraph).lineLimit(2).allowsTightening(true).probe("tightPara").frame(width: 150, alignment: .topLeading)
+    }
+    .probe("column")
+}
+"""#),
         FixtureSource(name: "text/hello", file: "Fixtures/Sources/Text/TextFixtures.swift", firstLine: 5, lastLine: 7, declaration: #"""
 public static let hello = Fixture("text/hello", size: CGSize(width: 200, height: 100)) {
     Text("Hello").probe("hello")
@@ -13687,7 +13710,29 @@ extension TextFixtures {
         .probe("column")
     }
 
-    public static let completeness: [Fixture] = [concatenation, lineLimit, truncation, alignment, lineSpacing, paragraphs, baselineWrapped]
+    public static let completeness: [Fixture] = [fit, concatenation, lineLimit, truncation, alignment, lineSpacing, paragraphs, baselineWrapped]
+
+    /// `minimumScaleFactor` and `allowsTightening`: the sample shrunk into narrowing frames at
+    /// two factors, with and without a line limit, a title, and tightening alone and combined.
+    public static let fit = Fixture("text/fit", size: CGSize(width: 400, height: 520)) {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach([120, 100, 80, 60, 40], id: \.self) { width in
+                Text(R.sample).lineLimit(1).minimumScaleFactor(0.5).probe("fit\(width)").frame(width: CGFloat(width), alignment: .topLeading)
+            }
+            ForEach([100, 80, 60], id: \.self) { width in
+                Text(R.sample).lineLimit(1).minimumScaleFactor(0.8).probe("fit8_\(width)").frame(width: CGFloat(width), alignment: .topLeading)
+            }
+            Text(R.sample).minimumScaleFactor(0.5).probe("wrap80").frame(width: 80, alignment: .topLeading)
+            Text(R.sample).lineLimit(2).minimumScaleFactor(0.5).probe("twoLines60").frame(width: 60, alignment: .topLeading)
+            Text(R.sample).font(.title).lineLimit(1).minimumScaleFactor(0.5).probe("title100").frame(width: 100, alignment: .topLeading)
+            ForEach([116, 112, 108, 100], id: \.self) { width in
+                Text(R.sample).lineLimit(1).allowsTightening(true).probe("tight\(width)").frame(width: CGFloat(width), alignment: .topLeading)
+            }
+            Text(R.sample).lineLimit(1).allowsTightening(true).minimumScaleFactor(0.5).probe("both100").frame(width: 100, alignment: .topLeading)
+            Text(R.paragraph).lineLimit(2).allowsTightening(true).probe("tightPara").frame(width: 150, alignment: .topLeading)
+        }
+        .probe("column")
+    }
 }
 """#,
         "Fixtures/Sources/Text/TextFixtures.swift": #"""

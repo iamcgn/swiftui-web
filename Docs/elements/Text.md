@@ -22,7 +22,7 @@ Apple docs: [Text](https://developer.apple.com/documentation/swiftui/text),
 | `View.multilineTextAlignment(_:)`, `TextAlignment` | implemented (painting only; sizes do not change) |
 | `View.truncationMode(_:)`, `Text.TruncationMode` | implemented: head, middle, tail |
 | `View.lineSpacing(_:)` | implemented |
-| `View.allowsTightening`, `minimumScaleFactor` | environment values stored, not applied |
+| `View.allowsTightening`, `minimumScaleFactor` | implemented (2026-10-03, approximate): a line that would be truncated first closes its letter spacing by what it needs up to a 72nd of the font size per character (else truncates with that tightening, holding one more character), then shrinks its fonts to the largest scale down to the minimum at which nothing is truncated, and truncates at the minimum (`text/fit`; Tier A exact through the recorded metrics, pixels within the loosened bound) |
 | `kerning`, `tracking`, `baselineOffset`, `underline`, `strikethrough`, `Text.Case` | implemented (2026-09-04, `Docs/elements/TextStyle.md`: `textstyle/*`) |
 | `AttributedString`, `Text(Date…)`, `Text(Image)`, `textSelection` | missing (`textSelection` is accepted; `Docs/elements/TextScale.md`) |
 
@@ -100,7 +100,42 @@ flexibility give the less flexible one its share first (`two-texts`, `two-texts-
 texts split evenly (`three-texts`: 32/32/32 in 100 pt); a row squeezes the same way
 (`row-tight`). 15 fixtures exact in Tier A and Tier C.
 
+## Fitting (macOS 26.6, `text/fit`, 2026-10-03)
+
+"The quick brown fox" (13 pt, 124 wide) in narrowing frames with `lineLimit(1)`.
+
+| Modifier | Frame | Result | Reading |
+|---|---|---|---|
+| `minimumScaleFactor(0.5)` | 120 | 118.5 × 15, baseline 12 | shrunk to about 0.95: the fitted width stays a little under the frame, so the scale is found by a search rather than the ratio |
+| | 100 | 100 × 13, baseline 10 | about 0.81 |
+| | 80 | 78 × 9, baseline 7 | about 0.63 |
+| | 60, 40 | 60 × 8, 38 × 8 | the minimum (6.5 pt, an 8 pt line), then truncated with an ellipsis |
+| `minimumScaleFactor(0.8)` | 100 | 99 × 13 | the minimum (10.4 pt) fits |
+| | 80, 60 | 77.5 × 13, 58 × 13 | truncated at the minimum |
+| `minimumScaleFactor(0.5)`, no limit | 80 | 63 × 32 | wraps instead of shrinking (nothing is truncated) |
+| `lineLimit(2)`, `minimumScaleFactor(0.5)` | 60 | 60 × 32 | two lines fit: no shrinking |
+| `.title`, `minimumScaleFactor(0.5)` | 100 | 96 × 17 | truncated at about 0.63, not at the minimum: SwiftUI's search gives up above it (ours truncates at the minimum, 14 tall) |
+| `allowsTightening(true)` | 116, 112, 108, 100 | 116, 108.5, 101, 91 (plain truncation: 111, 111, 103.5, 93.5) | never fits the whole text (it would need 0.42 pt per character): each line holds one more character than plain truncation and is 2.5 pt narrower, a tightening of about 0.18 pt (a 72nd of the size) per character |
+| `allowsTightening`, `minimumScaleFactor(0.5)` | 100 | 100 × 13 | shrinking takes over once tightening cannot fit |
+| paragraph, `lineLimit(2)`, `allowsTightening` | 150 | 149.5 × 32 | the truncated last line holds more ("…several li…" for "…this…") |
+
+Implementation (`TextLayouter.layout`): the plain layout first; when it truncates and tightening
+is allowed, the single-line case tries the exact tightening it needs (if ≤ 1/72 em per
+character), else the maximum tightening is applied and the line truncates; then, with a
+minimum scale below 1, a five-step bisection of the scale between the minimum and 1 keeps the
+largest layout that is not truncated (the fonts of every run scaled, the metrics of the scaled
+sizes), or the layout at the minimum, truncated. The layout carries `scale` and `tightening`
+so the painter draws the scaled fonts with the closed-up letter spacing. The recorded engine
+keys both options (`;m0.5`, `;tt`), so Tier A is exact; Tier B and C hold the fixture's frames
+to 10 % and its pixels to the looser bound: CoreText and Canvas2D measure the sample at 119.5
+where SwiftUI reports 124, so the fitted lines land a few points off (a tightened line holds
+"f…" at 108 where SwiftUI's holds "…" at 101) and the title truncates at the minimum.
+
 ## Open
+
+- The exact scale search (five bisection steps fit the three measured scales; the title case
+  shows SwiftUI stopping above the minimum where ours reaches it) and the tightening maximum
+  (a 72nd of the size per character fits the four widths within rounding).
 
 - **`textScale`**: see `Docs/elements/TextScale.md`.
 - **Height pressure with mixed fonts**: the kept-line count uses the first part's pitch; a concatenation mixing text styles under pressure is unverified.

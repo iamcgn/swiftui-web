@@ -1,0 +1,117 @@
+{
+  "fixture" : "text\/fit",
+  "frames" : {
+    "both100" : {
+      "height" : 13,
+      "width" : 100,
+      "x" : 125,
+      "y" : 356
+    },
+    "column" : {
+      "height" : 282,
+      "width" : 150,
+      "x" : 125,
+      "y" : 119
+    },
+    "fit8_60" : {
+      "height" : 13,
+      "width" : 58,
+      "x" : 125,
+      "y" : 198
+    },
+    "fit8_80" : {
+      "height" : 13,
+      "width" : 77.5,
+      "x" : 125,
+      "y" : 185
+    },
+    "fit8_100" : {
+      "height" : 13,
+      "width" : 99,
+      "x" : 125,
+      "y" : 172
+    },
+    "fit40" : {
+      "height" : 8,
+      "width" : 38,
+      "x" : 125,
+      "y" : 164
+    },
+    "fit60" : {
+      "height" : 8,
+      "width" : 60,
+      "x" : 125,
+      "y" : 156
+    },
+    "fit80" : {
+      "height" : 9,
+      "width" : 78,
+      "x" : 125,
+      "y" : 147
+    },
+    "fit100" : {
+      "height" : 13,
+      "width" : 100,
+      "x" : 125,
+      "y" : 134
+    },
+    "fit120" : {
+      "height" : 15,
+      "width" : 118.5,
+      "x" : 125,
+      "y" : 119
+    },
+    "tight100" : {
+      "height" : 16,
+      "width" : 91,
+      "x" : 125,
+      "y" : 340
+    },
+    "tight108" : {
+      "height" : 16,
+      "width" : 101,
+      "x" : 125,
+      "y" : 324
+    },
+    "tight112" : {
+      "height" : 16,
+      "width" : 108.5,
+      "x" : 125,
+      "y" : 308
+    },
+    "tight116" : {
+      "height" : 16,
+      "width" : 116,
+      "x" : 125,
+      "y" : 292
+    },
+    "tightPara" : {
+      "height" : 32,
+      "width" : 149.5,
+      "x" : 125,
+      "y" : 369
+    },
+    "title100" : {
+      "height" : 17,
+      "width" : 96,
+      "x" : 125,
+      "y" : 275
+    },
+    "twoLines60" : {
+      "height" : 32,
+      "width" : 60,
+      "x" : 125,
+      "y" : 243
+    },
+    "wrap80" : {
+      "height" : 32,
+      "width" : 63,
+      "x" : 125,
+      "y" : 211
+    }
+  },
+  "size" : {
+    "height" : 520,
+    "width" : 400
+  }
+}

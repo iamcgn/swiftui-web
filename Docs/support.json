@@ -143,9 +143,10 @@
         },
         {
           "api": "allowsTightening / minimumScaleFactor",
-          "status": "stub",
-          "notes": "Environment values stored, not applied to layout",
+          "status": "approximate",
+          "notes": "Measured on text/fit (2026-10-03): a line that would truncate first closes its letter spacing by what it needs up to a 72nd of the font size per character (else truncates with that tightening, one character more than plain truncation), then shrinks its fonts to the largest scale down to the minimum at which nothing truncates (a five-step search; SwiftUI's fitted width also stays a little under the frame), truncating at the minimum; wrapping text is never shrunk. Tier A exact through the recorded metrics; the browser's scaled widths and the title's truncation scale differ, so Tier B and C use the looser bound",
           "fixtures": [
+            "text/fit",
             "text/truncation"
           ]
         },

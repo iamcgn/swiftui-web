@@ -10836,6 +10836,12 @@
       "lastBaseline": 355,
       "width": 0
     },
+    "style:title|100.0;l1;m0.5|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 17,
+      "lastBaseline": 13,
+      "width": 96
+    },
     "style:title|300.0|Layout must wrap this sentence onto several lines inside a narrow frame.": {
       "firstBaseline": 25,
       "height": 99,
@@ -14880,6 +14886,36 @@
       "lastBaseline": 13,
       "width": 0
     },
+    "system:13:400:default|100.0;l1;m0.5;tt|The quick brown fox": {
+      "firstBaseline": 10,
+      "height": 13,
+      "lastBaseline": 10,
+      "width": 100
+    },
+    "system:13:400:default|100.0;l1;m0.5|The quick brown fox": {
+      "firstBaseline": 10,
+      "height": 13,
+      "lastBaseline": 10,
+      "width": 100
+    },
+    "system:13:400:default|100.0;l1;m0.8|The quick brown fox": {
+      "firstBaseline": 10,
+      "height": 13,
+      "lastBaseline": 10,
+      "width": 99
+    },
+    "system:13:400:default|100.0;l1;tt|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 91
+    },
+    "system:13:400:default|100.0;l1|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 93.5
+    },
     "system:13:400:default|100.0|Canvas": {
       "firstBaseline": 13,
       "height": 16,
@@ -14897,6 +14933,18 @@
       "height": 96,
       "lastBaseline": 93,
       "width": 95.5
+    },
+    "system:13:400:default|108.0;l1;tt|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 101
+    },
+    "system:13:400:default|108.0;l1|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 103.5
     },
     "system:13:400:default|110.0;l1|Layout must wrap this sentence onto several lines inside a narrow frame.": {
       "firstBaseline": 13,
@@ -14933,6 +14981,36 @@
       "height": 80,
       "lastBaseline": 77,
       "width": 110
+    },
+    "system:13:400:default|112.0;l1;tt|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 108.5
+    },
+    "system:13:400:default|112.0;l1|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 111
+    },
+    "system:13:400:default|116.0;l1;tt|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 116
+    },
+    "system:13:400:default|116.0;l1|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 16,
+      "lastBaseline": 13,
+      "width": 111
+    },
+    "system:13:400:default|120.0;l1;m0.5|The quick brown fox": {
+      "firstBaseline": 12,
+      "height": 15,
+      "lastBaseline": 12,
+      "width": 118.5
     },
     "system:13:400:default|120.0|Layout must wrap this sentence onto several lines inside a narrow frame.": {
       "firstBaseline": 13,
@@ -14981,6 +15059,12 @@
       "height": 32,
       "lastBaseline": 29,
       "width": 147
+    },
+    "system:13:400:default|150.0;l2;tt|Layout must wrap this sentence onto several lines inside a narrow frame.": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 149.5
     },
     "system:13:400:default|150.0;l2|Layout must wrap this sentence onto several lines inside a narrow frame.": {
       "firstBaseline": 13,
@@ -15552,17 +15636,59 @@
       "lastBaseline": 29,
       "width": 274
     },
+    "system:13:400:default|40.0;l1;m0.5|The quick brown fox": {
+      "firstBaseline": 6,
+      "height": 8,
+      "lastBaseline": 6,
+      "width": 38
+    },
     "system:13:400:default|400.0|Layout must wrap this sentence onto several lines inside a narrow frame.": {
       "firstBaseline": 13,
       "height": 32,
       "lastBaseline": 29,
       "width": 355.5
     },
+    "system:13:400:default|60.0;l1;m0.5|The quick brown fox": {
+      "firstBaseline": 6,
+      "height": 8,
+      "lastBaseline": 6,
+      "width": 60
+    },
+    "system:13:400:default|60.0;l1;m0.8|The quick brown fox": {
+      "firstBaseline": 10,
+      "height": 13,
+      "lastBaseline": 10,
+      "width": 58
+    },
+    "system:13:400:default|60.0;l2;m0.5|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 60
+    },
     "system:13:400:default|60.0|Supercalifragilistic": {
       "firstBaseline": 13,
       "height": 32,
       "lastBaseline": 29,
       "width": 56.5
+    },
+    "system:13:400:default|80.0;l1;m0.5|The quick brown fox": {
+      "firstBaseline": 7,
+      "height": 9,
+      "lastBaseline": 7,
+      "width": 78
+    },
+    "system:13:400:default|80.0;l1;m0.8|The quick brown fox": {
+      "firstBaseline": 10,
+      "height": 13,
+      "lastBaseline": 10,
+      "width": 77.5
+    },
+    "system:13:400:default|80.0;m0.5|The quick brown fox": {
+      "firstBaseline": 13,
+      "height": 32,
+      "lastBaseline": 29,
+      "width": 63
     },
     "system:13:400:default|;k-1.0|Hello": {
       "firstBaseline": 13,

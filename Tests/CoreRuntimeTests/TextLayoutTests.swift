@@ -180,4 +180,41 @@ private let large = ResolvedFont(family: "system", size: 26, weight: .regular, i
         #expect(texts.map(\.environment.textLayoutOptions) == [
             TextLayoutOptions(lineLimit: 3, minimumLines: 1), TextLayoutOptions(minimumLines: 2), TextLayoutOptions(lineLimit: 4)])
     }
+
+    // MARK: Fitting (minimumScaleFactor, allowsTightening)
+
+    /// Widths scale with the font size in the synthetic measurer: 10 per character at 13 pt.
+    private func scaling() -> TextLayouter {
+        TextLayouter(
+            measure: { text, font in text.reduce(0) { $0 + ($1 == "\u{2026}" ? 5 : 10) } * font.size / 13 },
+            metrics: { font in SystemFontMetrics(lineHeight: (16 * font.size / 13).rounded(), baseline: (13 * font.size / 13).rounded(), spacingBelow: 0, spacingAbove: 0, textToText: 0) })
+    }
+
+    @Test func shrinksToTheLargestFittingScale() {
+        // 110 wide at 13 pt into 80: the search settles just under 80/110.
+        let l = scaling().layout([StyledRun("Hello world", font: small)], options: TextLayoutOptions(lineLimit: 1, minimumScaleFactor: 0.5), width: 80)
+        #expect(!l.isTruncated && l.tightening == 0)
+        #expect(l.scale > 0.7 && l.scale <= 80.0 / 110)
+        #expect(l.size.width <= 80 && l.size.width > 77)
+        #expect(l.size.height == (16 * l.scale).rounded())
+        // Text that fits is not scaled; text that cannot fit at the minimum is truncated there.
+        #expect(scaling().layout([StyledRun("Hello", font: small)], options: TextLayoutOptions(lineLimit: 1, minimumScaleFactor: 0.5), width: 80).scale == 1)
+        let cut = scaling().layout([StyledRun("Hello world", font: small)], options: TextLayoutOptions(lineLimit: 1, minimumScaleFactor: 0.8), width: 60)
+        #expect(cut.scale == 0.8 && cut.isTruncated)
+    }
+
+    @Test func tightensJustEnoughElseTruncatesTightened() {
+        // 110 wide into 109: a point over 11 characters is within the maximum (13 / 72 ≈ 0.18).
+        let fit = scaling().layout([StyledRun("Hello world", font: small)], options: TextLayoutOptions(lineLimit: 1, allowsTightening: true), width: 109)
+        #expect(!fit.isTruncated && fit.size.width == 109 && abs(fit.tightening + 1.0 / 11) < 1e-9)
+        // Too far over: truncated at the maximum tightening, holding more than the plain line.
+        let cut = scaling().layout([StyledRun("Hello world", font: small)], options: TextLayoutOptions(lineLimit: 1, allowsTightening: true), width: 60)
+        #expect(cut.isTruncated && cut.tightening == -13 * TextLayouter.maximumTightening)
+        // Tightening is tried before scaling.
+        let both = scaling().layout([StyledRun("Hello world", font: small)], options: TextLayoutOptions(lineLimit: 1, minimumScaleFactor: 0.5, allowsTightening: true), width: 109)
+        #expect(both.scale == 1 && both.tightening < 0)
+        // Beyond what tightening can do, scaling takes over.
+        let shrunk = scaling().layout([StyledRun("Hello world", font: small)], options: TextLayoutOptions(lineLimit: 1, minimumScaleFactor: 0.5, allowsTightening: true), width: 80)
+        #expect(shrunk.scale < 1 && !shrunk.isTruncated && shrunk.tightening == 0)
+    }
 }

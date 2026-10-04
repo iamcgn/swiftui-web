@@ -457,13 +457,14 @@
       "framework": "SwiftUI",
       "area": "Text",
       "title": "allowsTightening and minimumScaleFactor",
-      "detail": "Stored environment values that never reach layout: shrink to fit measured on a grid of widths and factors.",
+      "detail": "Done 2026-10-03: minimumScaleFactor shrinks a line that would truncate to the largest fitting scale (a five-step search down to the minimum, then truncation at the minimum); allowsTightening closes the letter spacing up to a 72nd of the size per character before truncating; measured on text/fit (two factors, five widths, a title, tightening alone and combined, a two-line paragraph); the recorded engine keys both so Tier A is exact, pixels within the loosened bound.",
       "kind": "accepted",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Text.md"
-      ]
+      ],
+      "done": "2026-10-03"
     },
     {
       "id": "sw-attributed-text",

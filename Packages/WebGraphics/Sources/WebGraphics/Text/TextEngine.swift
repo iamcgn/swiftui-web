@@ -24,6 +24,11 @@ public struct TextLayoutOptions: Hashable, Sendable {
     public var tracking: CGFloat
     /// `textScale`: the secondary scale draws smaller glyphs on the font's own line height.
     public var textScale: TextScale
+    /// `minimumScaleFactor`: text that does not fit shrinks down to this fraction of its font
+    /// size before truncating (1: never shrinks). `allowsTightening`: letter spacing may close
+    /// up a little before truncation.
+    public var minimumScaleFactor: CGFloat
+    public var allowsTightening: Bool
 
     /// The same options with the letter spacing taken out (the layouter measures it itself).
     public var withoutLetterSpacing: TextLayoutOptions {
@@ -34,7 +39,7 @@ public struct TextLayoutOptions: Hashable, Sendable {
     }
 
     public init(lineLimit: Int? = nil, truncationMode: TextTruncationMode = .tail, lineSpacing: CGFloat = 0, minimumLines: Int = 0,
-                kerning: CGFloat = 0, tracking: CGFloat = 0, textScale: TextScale = .default) {
+                kerning: CGFloat = 0, tracking: CGFloat = 0, textScale: TextScale = .default, minimumScaleFactor: CGFloat = 1, allowsTightening: Bool = false) {
         self.lineLimit = lineLimit
         self.truncationMode = truncationMode
         self.lineSpacing = lineSpacing
@@ -42,6 +47,8 @@ public struct TextLayoutOptions: Hashable, Sendable {
         self.kerning = kerning
         self.tracking = tracking
         self.textScale = textScale
+        self.minimumScaleFactor = minimumScaleFactor
+        self.allowsTightening = allowsTightening
     }
 
     public static let `default` = TextLayoutOptions()
@@ -88,6 +95,13 @@ public struct TextLayout: Equatable, Sendable {
     public var firstBaseline: CGFloat
     public var lastBaseline: CGFloat
     public var lines: [Line]
+    /// The factor the fonts were shrunk by to fit (`minimumScaleFactor`); 1 when not shrunk.
+    /// Fragment positions and widths are already in the shrunk units.
+    public var scale: CGFloat = 1
+    /// Letter spacing closed up to fit (`allowsTightening`), in points per character (≤ 0).
+    public var tightening: CGFloat = 0
+    /// Whether a line was cut with an ellipsis.
+    public var isTruncated = false
 
     public init(size: CGSize, firstBaseline: CGFloat, lastBaseline: CGFloat, lines: [Line]) {
         self.size = size
@@ -179,6 +193,8 @@ public enum TextMetricsKey {
         if options.kerning != 0 { slot += ";k\(options.kerning)" }
         if options.tracking != 0 { slot += ";tr\(options.tracking)" }
         if options.textScale == .secondary { slot += ";sc2" }
+        if options.minimumScaleFactor < 1 { slot += ";m\(options.minimumScaleFactor)" }
+        if options.allowsTightening { slot += ";tt" }
         return slot
     }
 

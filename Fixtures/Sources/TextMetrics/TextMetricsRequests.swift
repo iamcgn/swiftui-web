@@ -67,10 +67,15 @@ public struct TextMetricOptions: Hashable, Sendable {
     public var tracking: CGFloat = 0
     /// `textScale(.secondary)`.
     public var secondaryScale = false
+    /// `minimumScaleFactor` (1 = none) and `allowsTightening`.
+    public var minimumScaleFactor: CGFloat = 1
+    public var allowsTightening = false
 
     public init(lineLimit: Int? = nil, minimumLines: Int = 0, lineSpacing: CGFloat = 0, truncation: String = "tail", kerning: CGFloat = 0, tracking: CGFloat = 0,
-                secondaryScale: Bool = false) {
+                secondaryScale: Bool = false, minimumScaleFactor: CGFloat = 1, allowsTightening: Bool = false) {
         self.secondaryScale = secondaryScale
+        self.minimumScaleFactor = minimumScaleFactor
+        self.allowsTightening = allowsTightening
         self.lineLimit = lineLimit
         self.minimumLines = minimumLines
         self.lineSpacing = lineSpacing
@@ -91,6 +96,8 @@ public struct TextMetricOptions: Hashable, Sendable {
         if kerning != 0 { suffix += ";k\(kerning)" }
         if tracking != 0 { suffix += ";tr\(tracking)" }
         if secondaryScale { suffix += ";sc2" }
+        if minimumScaleFactor < 1 { suffix += ";m\(minimumScaleFactor)" }
+        if allowsTightening { suffix += ";tt" }
         return suffix
     }
 }
@@ -246,6 +253,19 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Hello", defaultFont, options: .init(lineSpacing: 10)))
         requests.append(TextMetricRequest("Hello", defaultFont, options: .init(truncation: "head")))
         requests.append(TextMetricRequest(twoParagraphs, defaultFont))
+        // text/fit: minimumScaleFactor and allowsTightening.
+        for width: CGFloat in [120, 100, 80, 60, 40] { requests.append(TextMetricRequest(sample, defaultFont, width: width, options: .init(lineLimit: 1, minimumScaleFactor: 0.5))) }
+        for width: CGFloat in [100, 80, 60] { requests.append(TextMetricRequest(sample, defaultFont, width: width, options: .init(lineLimit: 1, minimumScaleFactor: 0.8))) }
+        requests.append(TextMetricRequest(sample, defaultFont, width: 80, options: .init(minimumScaleFactor: 0.5)))
+        requests.append(TextMetricRequest(sample, defaultFont, width: 60, options: .init(lineLimit: 2, minimumScaleFactor: 0.5)))
+        requests.append(TextMetricRequest(sample, .style("title"), width: 100, options: .init(lineLimit: 1, minimumScaleFactor: 0.5)))
+        for width: CGFloat in [116, 112, 108, 100] {
+            requests.append(TextMetricRequest(sample, defaultFont, width: width, options: .init(lineLimit: 1, allowsTightening: true)))
+            requests.append(TextMetricRequest(sample, defaultFont, width: width, options: .init(lineLimit: 1)))   // the same without tightening
+        }
+        requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: .init(lineLimit: 2)))
+        requests.append(TextMetricRequest(sample, defaultFont, width: 100, options: .init(lineLimit: 1, minimumScaleFactor: 0.5, allowsTightening: true)))
+        requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: .init(lineLimit: 2, allowsTightening: true)))
         // textfield/vertical (a 200 pt field: 188 inside the bezel, 200 plain) and textfield/formatted.
         requests.append(TextMetricRequest(fixtureFieldNote, defaultFont))
         for width: CGFloat in [188, 200] {
