@@ -129,6 +129,19 @@ public final class CanvasSceneHost {
             _ = media.addEventListener?("change", listener)
             closures.append(listener)
         }
+        // Reduce motion, now and when it changes.
+        if let media = window.matchMedia?("(prefers-reduced-motion: reduce)").object {
+            scene.hostReducesMotion = media.matches.boolean ?? false
+            let listener = JSClosure { [weak self] arguments in
+                MainActor.assumeIsolated {
+                    self?.scene.hostReducesMotion = arguments.first?.matches.boolean ?? false
+                    self?.scheduleFrame()
+                }
+                return .undefined
+            }
+            _ = media.addEventListener?("change", listener)
+            closures.append(listener)
+        }
         installEventHandlers()
         resize()
         installDebugBridge()

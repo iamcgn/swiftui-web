@@ -25,8 +25,18 @@ public struct Transaction {
     /// produces a series of values.
     public var isContinuous: Bool = false
 
+    /// Completion callbacks registered by `withAnimation(_:completionCriteria:_:completion:)`
+    /// and `addAnimationCompletion`; the runtime of the first node invalidated under the
+    /// transaction claims them and calls them when its animation completes.
+    package var _completions: [_AnimationCompletion] = []
+
     /// Creates a transaction.
     public init() {}
+
+    /// Adds a completion to run when the animations of this transaction complete.
+    public mutating func addAnimationCompletion(criteria: AnimationCompletionCriteria = .logicallyComplete, _ completion: @escaping () -> Void) {
+        _completions.append(_AnimationCompletion(criteria: criteria, completion: completion))
+    }
 
     /// Accesses the transaction value associated with a custom key.
     public subscript<K: TransactionKey>(key: K.Type) -> K.Value {
@@ -63,6 +73,46 @@ public func withAnimation<Result>(_ animation: Animation? = .default, _ body: ()
     var transaction = Transaction()
     transaction.animation = animation
     return try withTransaction(transaction, body)
+}
+
+/// Returns the result of recomputing the view's body with the provided animation, and runs the
+/// completion callback when all animations created by the changes complete (`logicallyComplete`:
+/// the animation's duration has passed; `removed`: it has ended entirely, so a repeating one
+/// never completes). Changes that animate nothing complete on the next turn.
+@MainActor
+public func withAnimation<Result>(_ animation: Animation? = .default, completionCriteria: AnimationCompletionCriteria = .logicallyComplete,
+                                  _ body: () throws -> Result, completion: @escaping () -> Void) rethrows -> Result {
+    var transaction = Transaction()
+    transaction.animation = animation
+    let entry = _AnimationCompletion(criteria: completionCriteria, completion: completion)
+    transaction._completions = [entry]
+    let result = try withTransaction(transaction, body)
+    if !entry.claimed {
+        // No node was invalidated: nothing animates, the completion runs on the next turn.
+        entry.claimed = true
+        Task { @MainActor in completion() }
+    }
+    return result
+}
+
+/// The criteria for when an animation is considered complete.
+public enum AnimationCompletionCriteria: Hashable, Sendable {
+    /// The animation has logically completed, even if it is still running (a settling spring).
+    case logicallyComplete
+    /// The animation has been removed entirely.
+    case removed
+}
+
+/// A pending completion callback (a class: claimed once, by the runtime that animates; main
+/// actor use only, as transactions are).
+public final class _AnimationCompletion {
+    package let criteria: AnimationCompletionCriteria
+    package let completion: () -> Void
+    package var claimed = false
+    package init(criteria: AnimationCompletionCriteria, completion: @escaping () -> Void) {
+        self.criteria = criteria
+        self.completion = completion
+    }
 }
 
 extension Transaction {

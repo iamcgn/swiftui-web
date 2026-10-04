@@ -11,7 +11,7 @@ public struct Animation: Equatable, Sendable {
         case linear
         case bezier(Double, Double, Double, Double)
         /// A spring towards the target from rest: natural frequency and damping ratio.
-        case spring(omega: Double, zeta: Double)
+        case spring(omega: Double, zeta: Double, velocity: Double)
     }
 
     package var curve: Curve
@@ -51,7 +51,10 @@ public struct Animation: Equatable, Sendable {
     /// `dampingFraction` the damping ratio (1 settles without bouncing).
     public static func spring(response: Double = 0.5, dampingFraction: Double = 0.825, blendDuration: Double = 0) -> Animation {
         let omega = 2 * Double.pi / max(response, 0.001)
-        return Animation(curve: .spring(omega: omega, zeta: max(dampingFraction, 0)), duration: settlingTime(omega: omega, zeta: dampingFraction))
+        // `blendDuration` is accepted: a retargeted animation already starts from the value
+        // presented at that moment, which is the blend's effect. (Not stored: a further stored
+        // property on `Animation` crashes the wasm build's list/outline page.)
+        return Animation(curve: .spring(omega: omega, zeta: max(dampingFraction, 0), velocity: 0), duration: settlingTime(omega: omega, zeta: dampingFraction))
     }
 
     /// A convenience for a spring that responds quickly to interaction.
@@ -66,14 +69,14 @@ public struct Animation: Equatable, Sendable {
     public static func interpolatingSpring(mass: Double = 1, stiffness: Double, damping: Double, initialVelocity: Double = 0) -> Animation {
         let omega = (stiffness / max(mass, 0.001)).squareRoot()
         let zeta = damping / (2 * (stiffness * max(mass, 0.001)).squareRoot())
-        return Animation(curve: .spring(omega: omega, zeta: zeta), duration: settlingTime(omega: omega, zeta: zeta))
+        return Animation(curve: .spring(omega: omega, zeta: zeta, velocity: initialVelocity), duration: settlingTime(omega: omega, zeta: zeta))
     }
 
     /// A spring described by its perceptual duration and bounce (0 = no bounce).
     public static func spring(duration: Double = 0.5, bounce: Double = 0, blendDuration: Double = 0) -> Animation {
         let zeta = bounce >= 0 ? 1 - bounce : 1 / (1 + bounce)
         let omega = 2 * Double.pi / max(duration, 0.001)
-        return Animation(curve: .spring(omega: omega, zeta: max(zeta, 0)), duration: settlingTime(omega: omega, zeta: zeta))
+        return Animation(curve: .spring(omega: omega, zeta: max(zeta, 0), velocity: 0), duration: settlingTime(omega: omega, zeta: zeta))
     }
 
     public static func smooth(duration: Double = 0.5, extraBounce: Double = 0) -> Animation { .spring(duration: duration, bounce: extraBounce) }
@@ -140,8 +143,8 @@ public struct Animation: Equatable, Sendable {
             return u
         case .bezier(let x1, let y1, let x2, let y2):
             return Self.bezier(u, x1, y1, x2, y2)
-        case .spring(let omega, let zeta):
-            return Self.spring(at: u * duration, omega: omega, zeta: zeta)
+        case .spring(let omega, let zeta, let velocity):
+            return Self.spring(at: u * duration, omega: omega, zeta: zeta, velocity: velocity)
         }
     }
 
@@ -162,20 +165,22 @@ public struct Animation: Equatable, Sendable {
         return point(t, y1, y2)
     }
 
-    /// Unit-step response of a damped spring at rest, `t` seconds in.
-    private static func spring(at t: Double, omega: Double, zeta: Double) -> Double {
+    /// Unit-step response of a damped spring starting at `velocity` (units of the travel per
+    /// second; `interpolatingSpring(initialVelocity:)`), `t` seconds in.
+    package static func spring(at t: Double, omega: Double, zeta: Double, velocity: Double = 0) -> Double {
         if t <= 0 { return 0 }
         if zeta < 1 {
             let wd = omega * (1 - zeta * zeta).squareRoot()
             let envelope = _exp(-zeta * omega * t)
-            return 1 - envelope * (_cos(wd * t) + (zeta * omega / wd) * _sin(wd * t))
+            return 1 - envelope * (_cos(wd * t) + ((zeta * omega - velocity) / wd) * _sin(wd * t))
         }
         if zeta == 1 {
-            return 1 - _exp(-omega * t) * (1 + omega * t)
+            return 1 - _exp(-omega * t) * (1 + (omega - velocity) * t)
         }
         let s = (zeta * zeta - 1).squareRoot()
         let r1 = -omega * (zeta - s), r2 = -omega * (zeta + s)
-        return 1 - (r2 * _exp(r1 * t) - r1 * _exp(r2 * t)) / (r2 - r1)
+        let b = (velocity + r1) / (r2 - r1), a = -1 - b
+        return 1 + a * _exp(r1 * t) + b * _exp(r2 * t)
     }
 }
 

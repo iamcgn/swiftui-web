@@ -982,14 +982,15 @@
       "framework": "SwiftUI",
       "area": "Animation",
       "title": "Animation completion, blending and reduce motion",
-      "detail": "`withAnimation(_:completionCriteria:_:completion:)`, `blendDuration` and initial velocity, `accessibilityReduceMotion`, ghosts inside containers that paint their own children (List, Picker, grouped Form), `contentTransition` beyond text (`interpolate`, `symbolEffect`).",
+      "detail": "Done 2026-10-04: withAnimation(_:completionCriteria:_:completion:) and Transaction.addAnimationCompletion (the runtime that animates claims and fires them by duration or by removal), springs with initialVelocity (blendDuration accepted; retargeting already starts from the presented value), accessibilityReduceMotion wired from the canvas host's prefers-reduced-motion media query (the other accessibility settings are false), exiting ghosts painted by List, Picker and grouped Form, and symbol images crossfading under contentTransition(.symbolEffect/.opacity/.interpolate).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Animation.md",
         "Docs/elements/Animator.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-lifecycle",

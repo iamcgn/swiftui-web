@@ -267,5 +267,6 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
             }
         }
         for child in paintedChildren { child.paint(into: &list, context: context.child(at: child.presentedFrame)) }
+        paintExiting(into: &list, context: context)
     }
 }

@@ -145,6 +145,9 @@ public final class UIKitScene: HostedScene {
     public var imageLoader: (any _ImageLoading)?
     /// Rasterises a recorded drawing for `UIImage.pngData()` (installed by hosts that can).
     public var imageRasterizer: ImageRasterizer?
+    /// Recorded (UIKit's `UIAccessibility.isReduceMotionEnabled` reads it).
+    public var hostReducesMotion = false
+
     public var hostColorScheme: ColorScheme = .light {
         didSet {
             guard hostColorScheme != oldValue else { return }

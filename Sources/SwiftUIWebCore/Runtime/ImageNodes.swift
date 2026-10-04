@@ -27,10 +27,31 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
     package var runningEffects: [RunningEffect] = []
     package var seenGenerations: [_SymbolEffectKind: Int] = [:]
 
+    /// A symbol replaced under an animation with a fading `contentTransition` (`.symbolEffect`,
+    /// `.opacity`, `.interpolate`): the old glyph fades out as the new one fades in.
+    package private(set) var outgoingSymbol: (glyph: SymbolGlyph, outline: SymbolGlyphOutline)?
+
     override package func update(view: Image, environment: EnvironmentValues, force: Bool) {
+        let previousSymbol = symbol
+        let previousName: String? = { if case .system(let name) = self.view.source { return name } else { return nil } }()
         super.update(view: view, environment: environment, force: force)
         resolve()
         updateSymbolEffects()
+        if case .system(let name) = view.source, let previousName, name != previousName, let previousSymbol, environment.contentTransition.fades,
+           let animation = runtime.effectiveUpdateAnimation(for: self) {
+            outgoingSymbol = previousSymbol
+            let presentation = self.presentation ?? NodePresentation()
+            presentation.opacity = Tween(from: [0], to: [1], animation: animation, start: runtime.animationClock)
+            self.presentation = presentation
+            runtime.register(animating: self)
+        }
+    }
+
+    /// Progress of the running symbol content transition (1 when none).
+    package var symbolTransitionProgress: Double {
+        guard outgoingSymbol != nil, let tween = presentation?.opacity else { outgoingSymbol = nil; return 1 }
+        if tween.isFinished(at: runtime.animationClock) { outgoingSymbol = nil; return 1 }
+        return tween.value(at: runtime.animationClock)[0]
     }
 
     override package func unmount() {
@@ -210,6 +231,16 @@ extension ImageNode {
         }
         defer { if effects.transform != .identity { list.append(.restore) } }
         let color = (environment.foregroundColor ?? .primary).resolve(in: environment)
+        let progress = symbolTransitionProgress
+        if let outgoingSymbol, progress < 1 {
+            list.append(.beginGroup(opacity: 1 - progress))
+            _SymbolPainter.paint(outgoingSymbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, into: &list)
+            list.append(.endGroup)
+            list.append(.beginGroup(opacity: progress))
+            _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, into: &list)
+            list.append(.endGroup)
+            return
+        }
         _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, into: &list)
     }
 }

@@ -12,9 +12,13 @@ Apple docs: [Animation](https://developer.apple.com/documentation/swiftui/animat
 | API | Notes |
 |---|---|
 | `Animation`: `.default`, `linear`, `easeIn`, `easeOut`, `easeInOut` (with and without `duration:`), `timingCurve` | implemented (cubic Bézier solved by bisection) |
-| `spring(response:dampingFraction:blendDuration:)`, `interactiveSpring`, `interpolatingSpring(mass:stiffness:damping:initialVelocity:)`, `spring(duration:bounce:)`, `smooth`, `snappy`, `bouncy` | implemented as damped springs from rest (`blendDuration` and `initialVelocity` ignored); a spring's duration is its settling time |
+| `spring(response:dampingFraction:blendDuration:)`, `interactiveSpring`, `interpolatingSpring(mass:stiffness:damping:initialVelocity:)`, `spring(duration:bounce:)`, `smooth`, `snappy`, `bouncy` | implemented as damped springs; `initialVelocity` starts the step response moving (2026-10-04); `blendDuration` is accepted (a retargeted animation already starts from the value presented at that moment, which is the blend's effect); a spring's duration is its settling time |
 | `delay`, `speed`, `repeatCount(_:autoreverses:)`, `repeatForever(autoreverses:)` | implemented |
-| `withAnimation(_:_:)`, `Transaction.animation`, `withTransaction` | implemented; `withAnimation(_:completionCriteria:_:completion:)` missing |
+| `withAnimation(_:_:)`, `Transaction.animation`, `withTransaction` | implemented |
+| `withAnimation(_:completionCriteria:_:completion:)`, `Transaction.addAnimationCompletion(criteria:_:)`, `AnimationCompletionCriteria` | implemented (2026-10-04): the runtime of the first node invalidated under the transaction claims the completion and runs it when its animation's duration has passed (`logicallyComplete`) or it has ended entirely (`removed`: never for `repeatForever`); without an animation it runs at the next layout, and when nothing was invalidated on the next turn |
+| `accessibilityReduceMotion` (`accessibilityReduceTransparency`, `accessibilityDifferentiateWithoutColor`, `accessibilityInvertColors`) | the first follows the host's `prefers-reduced-motion` (`Runtime.hostReducesMotion`); the others are always false (2026-10-04) |
+| Ghosts in `List`, `Picker` and grouped `Form` | implemented: containers that paint their own children paint their exiting ghosts too |
+| `contentTransition` on symbol images (`.symbolEffect`, `.opacity`, `.interpolate`) | implemented: a symbol replaced under an animation crossfades from the old glyph |
 | `animation(_:value:)`, `animation(_:)` (deprecated), `transaction(_:)` | implemented as scopes that take precedence over the transaction for their subtree (`.animation(nil, value:)` switches animation off there) |
 | What animates | every layout node's frame (position and size), `opacity(_:)`, `Color` fills, transitions; not yet: `foregroundColor`, shape fills and strokes, `rotationEffect`/`scaleEffect` (no transforms), text content, `Animatable` custom data, `animatableData` of shapes, `matchedGeometryEffect`, `phaseAnimator`, `keyframeAnimator` |
 | `AnyTransition`: `.identity`, `.opacity`, `.move(edge:)`, `.slide`, `.offset`, `.combined(with:)`, `.asymmetric(insertion:removal:)`, `.animation(_:)` | implemented; `.scale` fades for now; `transition(_:)` on the removed or inserted view (or a modifier chain inside it); the default transition is a fade |
@@ -60,7 +64,6 @@ wasm js tests pass.
 
 ## Not yet covered
 
-`.scale` transitions (they fade), animating shape and text colours, `Animatable`/`animatableData`
-interpolation for shapes, completion callbacks, animation blending (`blendDuration`) and initial
-velocity, animating `ScrollView` offsets through `withAnimation`, ghosts inside
-containers that paint their children themselves (`List`, `Picker`, grouped `Form`), reduce-motion.
+Animating shape and text colours, `Animatable`/`animatableData` interpolation for shapes,
+`blendDuration` as a real blend, animating `ScrollView` offsets through `withAnimation`,
+`contentTransition(.interpolate)` as a true interpolation (a crossfade here).

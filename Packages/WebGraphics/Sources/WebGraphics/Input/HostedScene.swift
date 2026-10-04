@@ -26,6 +26,8 @@ public protocol HostedScene: AnyObject {
     var imageRasterizer: ImageRasterizer? { get set }
     /// The system appearance, now and whenever it changes.
     var hostColorScheme: ColorScheme { get set }
+    /// The system's reduce-motion preference, set by hosts.
+    var hostReducesMotion: Bool { get set }
     /// Writes text to the system clipboard, when the host may.
     var clipboardWriter: ((String) -> Void)? { get set }
     /// Called when the scene needs a frame without the host having asked for one (a state

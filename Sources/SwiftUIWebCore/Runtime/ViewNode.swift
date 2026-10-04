@@ -71,8 +71,12 @@ open class ViewNode {
     /// any, is kept for the flush and layout that apply the change.
     package func invalidate() {
         guard isMounted else { return }
-        if let transaction = Transaction._current, !transaction.disablesAnimations, let animation = transaction.animation {
-            runtime.pendingAnimation = animation
+        if let transaction = Transaction._current {
+            if !transaction.disablesAnimations, let animation = transaction.animation { runtime.pendingAnimation = animation }
+            for entry in transaction._completions where !entry.claimed {
+                entry.claimed = true
+                runtime.pendingAnimationCompletions.append(entry)
+            }
         }
         guard !needsUpdate else { return }
         needsUpdate = true

@@ -401,6 +401,7 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
         case .segmented: paintSegmented(into: &list, context: context)
         case .radioGroup: paintRadios(into: &list, context: context)
         }
+        paintExiting(into: &list, context: context)
     }
 
     private func black(_ alpha: Double) -> RGBA { environment._ink(alpha) }

@@ -46,6 +46,21 @@ public final class Runtime {
     public var hostColorScheme: ColorScheme = .light {
         didSet { if hostColorScheme != oldValue { requestLayout() } }
     }
+    /// The system's reduce-motion setting, set by hosts (`prefers-reduced-motion`); the root
+    /// environment's `accessibilityReduceMotion` follows it.
+    public var hostReducesMotion = false {
+        didSet {
+            guard hostReducesMotion != oldValue else { return }
+            rootEnvironment.accessibilityReduceMotion = hostReducesMotion
+            root.environment = rootEnvironment
+            root.reapply?(rootEnvironment)
+            requestFullLayout()
+        }
+    }
+    /// Completion callbacks claimed from transactions, waiting for the next layout to start
+    /// their animation's clock.
+    package var pendingAnimationCompletions: [_AnimationCompletion] = []
+    package var activeAnimationCompletions: [(entry: _AnimationCompletion, animation: Animation?, start: Double)] = []
     /// The platform whose look the tree reproduces, set by hosts (the canvas host picks iOS on a
     /// touch device, macOS elsewhere; `Docs/elements/iOS.md`). A subtree can still select the
     /// other one through the `platformProfile` environment value.
@@ -335,6 +350,12 @@ public final class Runtime {
     /// the root view is proposed the full size and centred.
     public func layout(in size: CGSize) {
         updateAnimation = pendingAnimation
+        if !pendingAnimationCompletions.isEmpty {
+            // The animation of these completions starts now; without one they complete at once.
+            for entry in pendingAnimationCompletions { activeAnimationCompletions.append((entry, pendingAnimation, animationClock)) }
+            pendingAnimationCompletions.removeAll()
+            if pendingAnimation == nil { fireAnimationCompletions(now: animationClock) }
+        }
         if scheduler.hasPendingWork || size != layoutSize || pendingAnimation != nil || !animatingNodes.isEmpty { sizesInvalidated = true }
         // A frame that only scrolled moves the scrolled content and keeps every frame else.
         if !sizesInvalidated, !layoutForced, presentations.isEmpty, scrolledNodes.allSatisfy(\.canMoveContentOnly) {

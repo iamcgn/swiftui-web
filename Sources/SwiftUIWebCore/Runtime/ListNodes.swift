@@ -402,6 +402,8 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round), environment._ink(PlatformMetrics.listLinkChevronAlpha)))
             }
         }
+        // Rows removed under an animation linger as ghosts until their transition ends.
+        paintExiting(into: &list, context: context)
     }
 
     /// iOS edit mode (ios/list/editing): a red disc with a white minus at the row's leading edge

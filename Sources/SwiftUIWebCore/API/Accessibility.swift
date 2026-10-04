@@ -119,3 +119,32 @@ extension View {
     /// Creates a new accessibility element, or modifies the existing one, for the view.
     nonisolated public func accessibilityElement(children: AccessibilityChildBehavior = .ignore) -> some View { accessibility { $0.children = children } }
 }
+
+// MARK: - System accessibility settings
+
+package struct ReduceMotionKey: EnvironmentKey { package static let defaultValue = false }
+package struct ReduceTransparencyKey: EnvironmentKey { package static let defaultValue = false }
+package struct DifferentiateWithoutColorKey: EnvironmentKey { package static let defaultValue = false }
+package struct InvertColorsKey: EnvironmentKey { package static let defaultValue = false }
+
+extension EnvironmentValues {
+    /// Whether the system prefers reduced motion (`prefers-reduced-motion` on the web, set by the
+    /// host through `Runtime.hostReducesMotion`); views decide what to leave still.
+    public var accessibilityReduceMotion: Bool {
+        get { self[ReduceMotionKey.self] }
+        set { self[ReduceMotionKey.self] = newValue }
+    }
+    /// Whether the system prefers reduced transparency (never reported by the web hosts).
+    public var accessibilityReduceTransparency: Bool {
+        get { self[ReduceTransparencyKey.self] }
+        set { self[ReduceTransparencyKey.self] = newValue }
+    }
+    public var accessibilityDifferentiateWithoutColor: Bool {
+        get { self[DifferentiateWithoutColorKey.self] }
+        set { self[DifferentiateWithoutColorKey.self] = newValue }
+    }
+    public var accessibilityInvertColors: Bool {
+        get { self[InvertColorsKey.self] }
+        set { self[InvertColorsKey.self] = newValue }
+    }
+}

@@ -81,12 +81,33 @@ extension Runtime {
         let hadAnimations = !animatingNodes.isEmpty
         animatingNodes = remaining
         for onFinish in finished { onFinish() }
+        fireAnimationCompletions(now: now)
         // Repaint while animating and once more when the last animation ends, so the final frame
         // shows the settled state rather than the last interpolated one.
         if hadAnimations { setNeedsDisplay() }
         let subscribers = advanceFrameSubscribers()
         let tooltip = advanceTooltip()
-        return !remaining.isEmpty || subscribers || tooltip
+        return !remaining.isEmpty || subscribers || tooltip || !activeAnimationCompletions.isEmpty
+    }
+
+    /// Runs the completions whose animation has met its criteria by `now`.
+    package func fireAnimationCompletions(now: Double) {
+        var due: [_AnimationCompletion] = []
+        activeAnimationCompletions.removeAll { active in
+            let done: Bool
+            if let animation = active.animation {
+                let elapsed = now - active.start
+                switch active.entry.criteria {
+                case .logicallyComplete: done = elapsed >= animation.delay + animation.duration / animation.speed
+                case .removed: done = animation.isFinished(at: elapsed)
+                }
+            } else {
+                done = true
+            }
+            if done { due.append(active.entry) }
+            return done
+        }
+        for entry in due { entry.completion() }
     }
 
     package func register(animating node: ViewNode) {
