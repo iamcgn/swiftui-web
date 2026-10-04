@@ -165,7 +165,7 @@
         },
         {
           "api": "ViewThatFits",
-          "status": "done",
+          "status": "full",
           "notes": "The first child whose ideal size fits the proposal on the constrained axes, the last otherwise; only it is laid out, painted and probed (layout/view-that-fits over a grid of widths and heights, exact; 2026-10-04)",
           "fixtures": [
             "layout/view-that-fits"

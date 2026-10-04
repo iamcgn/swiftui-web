@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 41 | 0 | 9 | 32 |
+| SwiftUI | 40 | 0 | 8 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **81** | 0 | 33 | 48 |
+| **All** | **80** | 0 | 32 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **ViewThatFits** `sw-viewthatfits` · Layout · missing  
-  Not implemented: the first child that fits the proposal on the chosen axes, measured against goldens over a grid of widths. ([Layout.md](Docs/elements/Layout.md))
 - ☐ **Canvas images, symbols and filters** `sw-canvas` · Canvas · missing  
   `draw(Image)`, `resolveSymbol`, `addFilter`, `withCGContext`, `tiledImage`, the context's `blendMode`, `rendersAsynchronously`, invalidation on state read inside the renderer. ([Canvas.md](Docs/elements/Canvas.md))
 - ☐ **3D and projection transforms** `sw-transform3d` · Transform · missing  
@@ -213,6 +211,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **DatePicker editing and calendars** `sw-datepicker` · SwiftUI · DatePicker
 - ☑ 2026-10-04 **Disclosure animation and outlines** `sw-disclosure` · SwiftUI · DisclosureGroup
 - ☑ 2026-10-04 **Grouped form constants** `sw-form` · SwiftUI · Form
+- ☑ 2026-10-04 **ViewThatFits** `sw-viewthatfits` · SwiftUI · Layout
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

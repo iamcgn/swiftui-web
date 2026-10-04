@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 134 | 19 | 105 | 4 | 3 | 3 |
+| SwiftUI | 135 | 20 | 105 | 4 | 3 | 3 |
 | UIKit | 48 | 1 | 44 | 2 | 1 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **187** | 20 | 154 | 6 | 4 | 3 |
+| **All** | **188** | 21 | 154 | 6 | 4 | 3 |
 
 ## App lifecycle
 
@@ -47,6 +47,7 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | `lineLimit / multilineTextAlignment / truncationMode / lineSpacing (View + EnvironmentValues)` | 🟢 partial | All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure keeps floor(height / pitch) lines and truncates the last; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting) | text/line-limit, text/truncation, text/alignment, text/line-spacing |
 | `allowsTightening / minimumScaleFactor` | 🟡 approximate | Measured on text/fit (2026-10-03): a line that would truncate first closes its letter spacing by what it needs up to a 72nd of the font size per character (else truncates with that tightening, one character more than plain truncation), then shrinks its fonts to the largest scale down to the minimum at which nothing truncates (a five-step search; SwiftUI's fitted width also stays a little under the frame), truncating at the minimum; wrapping text is never shrunk. Tier A exact through the recorded metrics; the browser's scaled widths and the title's truncation scale differ, so Tier B and C use the looser bound | text/fit, text/truncation |
 | `VStack / HStack / ZStack` | 🟢 partial | Layout exact against the goldens: alignment, spacing (default and explicit), priorities, ideal sizes, nesting; painted as their children | layout/* |
+| `ViewThatFits` | ✅ full | The first child whose ideal size fits the proposal on the constrained axes, the last otherwise; only it is laid out, painted and probed (layout/view-that-fits over a grid of widths and heights, exact; 2026-10-04) | layout/view-that-fits |
 | `Spacer` | 🟢 partial | Layout exact: minimum length, flexible growth, the stack's leftover shared by priority | layout/spacer, layout/spacer-min-length |
 | `Button` | 🟢 partial | bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance; PrimitiveButtonStyle (the style owns the interaction), controlSize bezels (iOS measured: 31 / 38.5 / 54.5 pt capsules; macOS approximate), the destructive role's red label or capsule, the disabled looks (iOS measured; macOS 26.6's 30 % label), the pressed look unverified (2026-10-04) | button/basic, button/styles |
 | `Toggle (isOn:label:, title, image, systemImage, configuration) / ToggleStyle / ToggleStyleConfiguration / toggleStyle` | 🟢 partial | Checkbox (default), switch and button styles measured in layout and on/off pixels; activation on release inside; checkbox semantics (aria-checked); no pressed/hover/focus looks, keyboard, mixed state or Toggle(sources:); Toggle(sources:isOn:) with the mixed dash, Space, the focus ring on the control, controlSize (approximate from macOS 26.6), tint (the iOS switch; macOS with Runtime.windowIsActive), the switch knob's shadow (2026-10-04) | toggle/basic, toggle/styles, toggle/steps |
