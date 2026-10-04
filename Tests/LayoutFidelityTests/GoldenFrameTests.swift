@@ -79,6 +79,7 @@ enum Goldens {
     /// Probes allowed two points: symbol sizes the metrics table can only scale to
     /// (Docs/elements/Image.md), and the frames that contain them.
     static let approximateProbes: [String: Set<String>] = [
+        "form/grouped": ["nested", "nestedToggle"],   // macOS 26.6 draws the nested checkbox 14 wide (26.2: 16)
         // The ideal width is the unrounded text width plus 4; ours is rounded to the half point.
         "textfield/formatted": ["int", "double", "percent", "currency", "formatter", "fixedText", "fixedEmpty", "stack"],
         "symbol/basic": ["size24", "size40", "baselineText40", "largeSize24", "light", "black", "blue30", "chevronSemibold", "approximateRow", "stack"],

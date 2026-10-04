@@ -10,9 +10,12 @@ Apple docs: [Form](https://developer.apple.com/documentation/swiftui/form),
 |---|---|
 | `Form(content:)` | implemented |
 | `FormStyle`: `.automatic` (= columns on macOS in a hosted window), `.columns`, `.grouped`; `formStyle(_:)` | implemented; custom styles are not (Apple's protocol is closed) |
-| `Section` in a form | columns: transparent (header and footer are plain rows); grouped: one card per section, header above and footer below (spacing unverified) |
+| `Section` in a form | columns: transparent (header and footer are plain rows); grouped: one card per section, the header in the semibold body font 10 above the card, the footer in the 13 pt font right-aligned 10 below it, cards 10 apart and a header 30 after the previous section (`form/grouped`, 2026-10-04) |
 | Controls as rows: `TextField`, `Toggle`, `Picker`, `Slider`, `Stepper`, `Button`, `Text` | implemented (see the measured table); other views sit in the control column |
-| `LabeledContent`, `DisclosureGroup`, `GroupBox`, `formStyle` on nested forms, `scrollContentBackground`, `Form` scrolling indicators | missing (grouped forms scroll through `ScrollView`) |
+| `GroupBox` in a grouped form | implemented (2026-10-04): its content sits bare under the subheadline label (no padding, no card: 37.5 × 35 for a 16 pt text, `form/grouped` `box`) |
+| `formStyle` on nested forms | implemented: a nested columns form is a row holding the form at its natural size (`form/grouped` `nested`) |
+| `scrollContentBackground(.hidden)` | the grouped form paints no ground of its own, so what is behind shows (`form/grouped-background`) |
+| `LabeledContent`, `DisclosureGroup`, `Form` scrolling indicators | missing (grouped forms scroll through `ScrollView`) |
 
 ## Behaviour
 
@@ -46,7 +49,27 @@ control trailing, as tall as their label.
 | Grouped toggle | a small 36 × 16 switch (approximate) with its trailing edge at 330, centred on the 18.5 row (overflowing it) | pixels of `form/styles` |
 | Model changes | the toggle follows the model; an inserted text row re-lays the form out (48.5 → 72.65 tall) | `form/steps` steps |
 
-## Verification (2026-09-02)
+## Grouped constants (macOS 26.6, `form/grouped`, `form/grouped-background`, 2026-10-04)
+
+macOS 26.6 lays the grouped form out as 26.2 did (rows 39.5 apart, 30 in), so these fixtures
+join the golden set; its slider and button rows carry 26.6's 20 pt controls and were left out.
+
+| Property | Value | Probe |
+|---|---|---|
+| Header | the semibold body font ("Account" 52.5 × 18.5), 20 from the form's top, 10 above its card | `header` |
+| Footer | the 13 pt font, right-aligned under the card's trailing edge (330), 10 below it | `footer` (255, 176) |
+| Section spacing | cards 10 apart; a header 30 after the previous section's card or footer | `stepper` (260.5 after the footer at 176–192), `box` |
+| Rows | the content plus 10 above and below, no minimum (a 16 pt text makes a 36 pt row; a label line 38.5); 1 pt separators between rows | `text` (300), `box` (346) |
+| Picker row | the label leading, the value and a 12.5 × 16 chevron box ending at the trailing edge (26.6 look; unmeasured on 26.2) | `picker` |
+| Stepper row | the label's line; the mini stepper at the trailing edge | `stepper` |
+| Slider row (26.6, not in the golden) | 20 tall: the label leading, the track from 165 to 330 (55 % of the row) | — |
+| Button row (26.6, not in the golden) | the bordered button at the leading edge (20 tall on 26.6) | — |
+| GroupBox | label (subheadline) 10 in, content 3 below it, no padding or card | `box` 37.5 × 35, `boxed` |
+| Nested columns form | a row holding the form at its natural size (a 14 pt checkbox on 26.6: 62.5 wide; 64.5 with 26.2's 16, allowed 2) | `nested` |
+| Card look (26.6) | fill black 4/255 over the (246) window with a 0.5 pt hairline of black 18/255 and 10 pt corners; separators 24.5…335 (the 26.2 goldens keep 8/255, no border, 30…330) | pixels |
+| Hidden scroll background | the yellow behind the form shows everywhere outside the cards | `form/grouped-background` |
+
+## Verification (2026-09-02; 2026-10-04 for the grouped constants)
 
 Tier A: 4 fixtures exact (`form/steps` steps included). Tier B, frames exact: Chromium ≤ 0.66 %
 pixels, WebKit ≤ 0.45 %; Firefox 4/6 with the two failures the 0.5 pt narrower "Fruit" on the
@@ -54,7 +77,6 @@ picker rows (the known hinting class), pixels ≤ 0.75 %. wasm js tests pass.
 
 ## Not yet covered
 
-Grouped section headers, footers and section spacing (unverified constants), the grouped
-picker/slider/stepper/button rows (laid out by rule, no golden), `LabeledContent`,
-`DisclosureGroup`, `GroupBox`, the grouped card's exact corner radius and the small switch's
-exact size, forms in windows with a toolbar, keyboard focus order between rows.
+The grouped slider and button rows against a 26.2 golden, the grouped card's 26.2 corner radius
+and the small switch's exact size, `LabeledContent`, `DisclosureGroup`, forms in windows with a
+toolbar, keyboard focus order between rows.

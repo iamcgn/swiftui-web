@@ -227,15 +227,17 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var formSliderTrackTop: CGFloat = 1
     package var formGroupedInset: CGFloat = 20
     package var formGroupedRowPadding: CGFloat = 10
-    package var formGroupedRowMinimumHeight: CGFloat = 38.5
+    package var formGroupedRowMinimumHeight: CGFloat = 0                    // a row is its content plus the padding (form/grouped: a 16 pt text makes a 36 pt row); 38.5 for a label line
     package var formGroupedCardCornerRadius: CGFloat = 10                  // approximate
     package var formGroupedCardFill = 8.0 / 255
     package var formGroupedSeparatorAlpha = 20.0 / 255
     package var formGroupedSeparatorHeight: CGFloat = 1                     // between rows, not overlapping
     package var formGroupedSwitchSize = CGSize(width: 36, height: 16)        // approximate (form/styles pixels)
     package var formGroupedSwitchKnobSize = CGSize(width: 22, height: 14)    // approximate
-    package var formGroupedSectionSpacing: CGFloat = 20                     // unverified
-    package var formGroupedHeaderSpacing: CGFloat = 8                       // unverified
+    package var formGroupedSectionSpacing: CGFloat = 10                     // form/grouped (26.6 lays the grouped form out as 26.2): cards 10 apart, a footer 10 under its card
+    package var formGroupedHeaderSpacing: CGFloat = 10                      // a header's bottom to its card, a footer's top from its card
+    package var formGroupedHeaderTop: CGFloat = 20                          // extra room above a header that follows another section (30 from a footer or card)
+    package var formGroupedFooterTrailing = true                            // footers are right-aligned under the card, in the 13 pt font; headers body bold
 
     // Presentations (approximate: separate windows on macOS, Docs/elements/Presentation.md)
     // iOS sheets, alerts, dialogs, the tab bar, the date pills and list selection (iOS 26 on the

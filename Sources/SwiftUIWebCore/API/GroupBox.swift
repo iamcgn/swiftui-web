@@ -113,9 +113,7 @@ extension DefaultGroupBoxStyle: GroupBoxStyle {
                 configuration.label.font(.subheadline).padding(.leading, PlatformMetrics.groupBoxLabelInset)
             }
             configuration.content
-                .padding(PlatformMetrics.groupBoxPadding)
-                .background(RoundedRectangle(cornerRadius: PlatformMetrics.groupBoxCornerRadius, style: .continuous)
-                    .fill(Color.black.opacity(PlatformMetrics.groupBoxFillAlpha)))
+                .modifier(_GroupBoxCard())
         }
     }
 }
@@ -139,5 +137,23 @@ extension View {
     /// Sets the style for group boxes within this view.
     nonisolated public func groupBoxStyle<S: GroupBoxStyle>(_ style: S) -> some View {
         environment(\.groupBoxStyle, style)
+    }
+}
+
+/// The content's card: 5 pt of padding on a rounded fill; inside a grouped form's card the
+/// content sits bare under its label (form/grouped `box`: 37.5 × 35 for a 16 pt text).
+package struct _GroupBoxCard: ViewModifier {
+    @Environment(\._formStyle) private var formStyle
+    nonisolated package init() {}
+
+    package func body(content: Content) -> some View {
+        if formStyle == .grouped {
+            content
+        } else {
+            content
+                .padding(PlatformMetrics.groupBoxPadding)
+                .background(RoundedRectangle(cornerRadius: PlatformMetrics.groupBoxCornerRadius, style: .continuous)
+                    .fill(Color.black.opacity(PlatformMetrics.groupBoxFillAlpha)))
+        }
     }
 }

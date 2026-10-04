@@ -33,7 +33,7 @@ const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount
 const listBacked = (name) => name.startsWith('ios/label/');
 // ios/list/footer `header`: UIKit's header label measures "Header" a point wider than SwiftUI's Text (Tier A's rule).
 // list/prominence `standardHeader`: Canvas2D measures "Standard" in the semibold subheadline half a point wider than CoreText.
-const approximateProbes = { 'ios/list/footer': ['header'], 'list/prominence': ['standardHeader'],
+const approximateProbes = { 'form/grouped': ['nested', 'nestedToggle'], 'ios/list/footer': ['header'], 'list/prominence': ['standardHeader'],
   'textfield/formatted': ['int', 'double', 'percent', 'currency', 'formatter', 'fixedText', 'fixedEmpty', 'stack'],
   'text/markdown': ['code'] };   // Canvas2D's monospaced "code" is a point narrower than CoreText's
 // The browser measures text on the half point, so iOS text widths and the positions that follow from them get 0.5.

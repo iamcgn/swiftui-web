@@ -185,6 +185,8 @@ extension PlatformMetrics {
     package static var formGroupedSwitchKnobSize: CGSize { current.formGroupedSwitchKnobSize }
     package static var formGroupedSectionSpacing: CGFloat { current.formGroupedSectionSpacing }
     package static var formGroupedHeaderSpacing: CGFloat { current.formGroupedHeaderSpacing }
+    package static var formGroupedHeaderTop: CGFloat { current.formGroupedHeaderTop }
+    package static var formGroupedFooterTrailing: Bool { current.formGroupedFooterTrailing }
     package static var sheetsFillWindow: Bool { current.sheetsFillWindow }
     package static var sheetTopInset: CGFloat { current.sheetTopInset }
     package static var sheetCornerRadius: CGFloat { current.sheetCornerRadius }

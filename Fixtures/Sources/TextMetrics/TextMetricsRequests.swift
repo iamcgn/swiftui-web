@@ -182,7 +182,7 @@ public enum TextMetricsRequests {
     public static let richParagraphTail = "wrap this sentence onto several lines inside a narrow frame."
 
     public static let all: [TextMetricRequest] = {
-        var requests: [TextMetricRequest] = iOSRequests + [
+        var requests: [TextMetricRequest] = iOSRequests + formGroupedRequests + [
             TextMetricRequest("Hello", .style("body")),
             TextMetricRequest("One", .style("body")),
             TextMetricRequest("Two", .style("body")),
@@ -643,6 +643,34 @@ public enum TextMetricsRequests {
 extension TextMetricsRequests {
     /// The strings the `ios/…` fixtures show (IOSFixtures.swift): the default font is `.body`
     /// there, and control labels come in the weights iOS styles use. Measured on every platform.
+    /// form/grouped: section headers in the bold body font, footers and plain rows in the 13 pt
+    /// font, the group box's subheadline label, the nested form's body label.
+    static let formGroupedRequests: [TextMetricRequest] = {
+        var requests: [TextMetricRequest] = []
+        let system13 = FixtureFont.system(size: 13, weight: "regular", design: "default")
+        for string in ["Account", "Levels"] {
+            for weight in ["medium", "semibold", "bold"] {
+                requests.append(TextMetricRequest(string, .style("body", weight: weight)))
+                requests.append(TextMetricRequest(string, .style("body", weight: weight), width: 300))
+            }
+            requests.append(TextMetricRequest(string, .style("headline")))
+            requests.append(TextMetricRequest(string, .style("headline"), width: 300))
+        }
+        for string in ["Your details.", "Plain row"] {
+            requests.append(TextMetricRequest(string, system13))
+            requests.append(TextMetricRequest(string, system13, width: 300))
+        }
+        requests.append(TextMetricRequest("Pear", system13))
+        requests.append(TextMetricRequest("Boxed", system13))
+        requests.append(TextMetricRequest("Boxed", system13, width: 290))
+        requests.append(TextMetricRequest("Box", .style("subheadline")))
+        requests.append(TextMetricRequest("Box", .style("subheadline"), width: 290))
+        requests.append(TextMetricRequest("Count: 3", .style("body")))
+        requests.append(TextMetricRequest("Nested", .style("body")))
+        requests.append(TextMetricRequest("Nested", .style("body"), width: 279))
+        return requests
+    }()
+
     static let iOSRequests: [TextMetricRequest] = {
         var requests: [TextMetricRequest] = []
         // ios/textfield/vertical: the note in a 300 pt field, plain and inside the bezel's padding.

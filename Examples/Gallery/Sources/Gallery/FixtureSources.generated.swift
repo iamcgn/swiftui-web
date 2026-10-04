@@ -976,6 +976,47 @@ public static let basic = Fixture("form/basic", size: CGSize(width: 360, height:
     .probe("form")
 }
 """#),
+        FixtureSource(name: "form/grouped", file: "Fixtures/Sources/Form/FormFixtures.swift", firstLine: 93, lastLine: 119, declaration: #"""
+/// The grouped style's constants: section headers, footers and spacing, the picker, stepper
+/// and text rows, a group box inside, a nested columns form (macOS 26.6 lays the grouped form
+/// out as 26.2 did; its slider and button rows carry 26.6's 20 pt controls and are recorded in
+/// Docs/elements/Form.md instead of measured here).
+public static let grouped = Fixture("form/grouped", size: CGSize(width: 360, height: 560)) {
+    Form {
+        Section {
+            TextField("Name", text: .constant("Hello")).probe("field")
+            Toggle("Enabled", isOn: .constant(true)).probe("toggle")
+            Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Pear").tag(2) }.probe("picker")
+        } header: {
+            Text("Account").probe("header")
+        } footer: {
+            Text("Your details.").probe("footer")
+        }
+        Section("Levels") {
+            Stepper("Count: 3", value: .constant(3)).probe("stepper")
+            Text("Plain row").probe("text")
+        }
+        Section {
+            GroupBox("Box") { Text("Boxed").probe("boxed") }.probe("box")
+            Form { Toggle("Nested", isOn: .constant(false)).probe("nestedToggle") }.formStyle(.columns).probe("nested")
+        }
+    }
+    .formStyle(.grouped)
+    .probe("form")
+}
+"""#),
+        FixtureSource(name: "form/grouped-background", file: "Fixtures/Sources/Form/FormFixtures.swift", firstLine: 121, lastLine: 130, declaration: #"""
+/// The grouped style over a hidden scroll background.
+public static let groupedBackground = Fixture("form/grouped-background", size: CGSize(width: 360, height: 160)) {
+    Form {
+        Toggle("Enabled", isOn: .constant(true)).probe("toggle")
+    }
+    .formStyle(.grouped)
+    .scrollContentBackground(.hidden)
+    .background(Color.yellow)
+    .probe("form")
+}
+"""#),
         FixtureSource(name: "form/sections", file: "Fixtures/Sources/Form/FormFixtures.swift", firstLine: 29, lastLine: 48, declaration: #"""
 /// Sections with headers and footers, and a segmented picker.
 public static let sections = Fixture("form/sections", size: CGSize(width: 360, height: 360)) {
@@ -9618,7 +9659,46 @@ public enum FormFixtures {
         .probe("form")
     }
 
-    public static let all: [Fixture] = [basic, sections, styles, steps]
+    /// The grouped style's constants: section headers, footers and spacing, the picker, stepper
+    /// and text rows, a group box inside, a nested columns form (macOS 26.6 lays the grouped form
+    /// out as 26.2 did; its slider and button rows carry 26.6's 20 pt controls and are recorded in
+    /// Docs/elements/Form.md instead of measured here).
+    public static let grouped = Fixture("form/grouped", size: CGSize(width: 360, height: 560)) {
+        Form {
+            Section {
+                TextField("Name", text: .constant("Hello")).probe("field")
+                Toggle("Enabled", isOn: .constant(true)).probe("toggle")
+                Picker("Fruit", selection: .constant(1)) { Text("Apple").tag(1); Text("Pear").tag(2) }.probe("picker")
+            } header: {
+                Text("Account").probe("header")
+            } footer: {
+                Text("Your details.").probe("footer")
+            }
+            Section("Levels") {
+                Stepper("Count: 3", value: .constant(3)).probe("stepper")
+                Text("Plain row").probe("text")
+            }
+            Section {
+                GroupBox("Box") { Text("Boxed").probe("boxed") }.probe("box")
+                Form { Toggle("Nested", isOn: .constant(false)).probe("nestedToggle") }.formStyle(.columns).probe("nested")
+            }
+        }
+        .formStyle(.grouped)
+        .probe("form")
+    }
+
+    /// The grouped style over a hidden scroll background.
+    public static let groupedBackground = Fixture("form/grouped-background", size: CGSize(width: 360, height: 160)) {
+        Form {
+            Toggle("Enabled", isOn: .constant(true)).probe("toggle")
+        }
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.yellow)
+        .probe("form")
+    }
+
+    public static let all: [Fixture] = [basic, sections, styles, steps, grouped, groupedBackground]
 }
 """#,
         "Fixtures/Sources/Gauge/GaugeFixtures.swift": #"""

@@ -777,14 +777,15 @@
       "framework": "SwiftUI",
       "area": "Form",
       "title": "Grouped form constants",
-      "detail": "Section header, footer and spacing constants (unverified), the grouped picker, slider, stepper and button rows (laid out by rule, no golden), the card's fill and corners (approximate), the small switch, nested `formStyle`, `scrollContentBackground`, `GroupBox` insets inside a form.",
+      "detail": "Done 2026-10-04: the grouped form measured on macOS 26.6 (which lays it out as 26.2 did): headers in the semibold body font 10 above their card, footers in the 13 pt font right-aligned 10 below, cards 10 apart and a header 30 after a section, rows their content plus 20 with no minimum, the picker and stepper rows (form/grouped, in the golden set), a GroupBox bare inside a card, a nested columns form as a row, scrollContentBackground(.hidden) (form/grouped-background); the slider and button rows and the 26.6 card look (4/255 fill, hairline) recorded in the doc, the small switch left as measured on 26.2.",
       "kind": "verify",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Form.md",
         "Docs/elements/GroupBox.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-content-unavailable",

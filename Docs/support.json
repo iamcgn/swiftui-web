@@ -286,12 +286,14 @@
         {
           "api": "Form / FormStyle (automatic, columns, grouped) / formStyle",
           "status": "partial",
-          "notes": "Columns layout with a label column and measured control spacing (exact), grouped cards with padded rows and separators, form-aware TextField/Toggle/Picker/Slider/Stepper rows; no LabeledContent, DisclosureGroup, GroupBox; grouped section headers unverified",
+          "notes": "Columns layout with a label column and measured control spacing (exact), grouped cards with padded rows and separators, form-aware TextField/Toggle/Picker/Slider/Stepper rows; no LabeledContent, DisclosureGroup, GroupBox; grouped section headers unverified; the grouped constants measured on macOS 26.6 (form/grouped: semibold headers 10 above the card, 13 pt footers right-aligned 10 below, cards 10 apart and headers 30 after a section, rows content + 20), GroupBox bare inside a card, nested columns forms, scrollContentBackground (2026-10-04)",
           "fixtures": [
             "form/basic",
             "form/sections",
             "form/styles",
-            "form/steps"
+            "form/steps",
+            "form/grouped",
+            "form/grouped-background"
           ]
         },
         {

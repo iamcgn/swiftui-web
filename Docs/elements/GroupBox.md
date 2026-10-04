@@ -42,5 +42,5 @@ card and label geometry, widths, nesting, a custom label and a custom style.
 
 ## Not yet covered
 
-Dark appearance, the pre-macOS-26 bordered look, `GroupBox` inside `Form` (its insets there),
-labels with accessory views.
+Dark appearance, the pre-macOS-26 bordered look, labels with accessory views. Inside a grouped
+form the content sits bare under the label (`form/grouped`, Docs/elements/Form.md, 2026-10-04).

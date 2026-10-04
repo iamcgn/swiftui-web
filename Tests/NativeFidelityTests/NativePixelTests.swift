@@ -39,6 +39,7 @@ enum NativeGoldens {
                                            "texteditor/basic"]   // NSTextView's tighter letters and wider spaces wrap one more word onto the first line
     /// Probes allowed two points (symbol sizes the metrics table scales to), as in Tier A.
     static let approximateProbes: [String: Set<String>] = [
+        "form/grouped": ["nested", "nestedToggle"],   // macOS 26.6 draws the nested checkbox 14 wide (26.2: 16)
         "textfield/formatted": ["int", "double", "percent", "currency", "formatter", "fixedText", "fixedEmpty", "stack"],
         "symbol/basic": ["size24", "size40", "baselineText40", "largeSize24", "light", "black", "blue30", "chevronSemibold", "approximateRow", "stack"],
     ]

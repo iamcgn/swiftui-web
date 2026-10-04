@@ -143,14 +143,22 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
 
     package init(_ context: _NodeContext<_FormGroupedContent>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime, environment: context.environment)
-        content = AnyView._makeNode(_NodeContext(view: context.view.content, parent: self, environment: environment))
+        content = AnyView._makeNode(_NodeContext(view: context.view.content, parent: self, environment: Self.contentEnvironment(environment)))
     }
 
     override package func update(view: _FormGroupedContent, environment: EnvironmentValues, force: Bool) {
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
-        content.update(view: view.content, environment: environment, force: force)
+        content.update(view: view.content, environment: Self.contentEnvironment(environment), force: force)
+    }
+
+    /// Section headers in the semibold body font ("Account" 52.5 wide), footers in the 13 pt font
+    /// (form/grouped).
+    package static func contentEnvironment(_ environment: EnvironmentValues) -> EnvironmentValues {
+        var inner = environment
+        inner._sectionStyling = _SectionStyling(font: .body.weight(.semibold), foreground: .primary, footerFont: .system(size: PlatformMetrics.buttonLabelSize))
+        return inner
     }
 
     /// Sections become cards; loose rows share one card.
@@ -185,7 +193,11 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
         var y: CGFloat = 0
         let pad = PlatformMetrics.formGroupedRowPadding
         for index in cards.indices {
-            if index > 0 { y += PlatformMetrics.formGroupedSectionSpacing }
+            if index > 0 {
+                y += PlatformMetrics.formGroupedSectionSpacing
+                // A header after another section keeps 30 from it (form/grouped `Levels`).
+                if cards[index].header != nil { y += PlatformMetrics.formGroupedHeaderTop }
+            }
             if let header = cards[index].header {
                 let size = header.sizeThatFits(ProposedViewSize(width: width - 2 * pad, height: nil))
                 y += size.height + PlatformMetrics.formGroupedHeaderSpacing
@@ -226,12 +238,13 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
             }
             for (row, cell) in zip(card.rows, card.rowFrames) {
                 let proposal = ProposedViewSize(width: cell.width - 2 * pad, height: nil)
-                let size = row.sizeThatFits(proposal)
-                row.place(at: CGPoint(x: pad, y: cell.midY - size.height / 2), anchor: .topLeading, proposal: proposal, by: self)
+                // Content sits the padding below the row's top (form/grouped `text`: 10 down).
+                row.place(at: CGPoint(x: pad, y: cell.minY + pad), anchor: .topLeading, proposal: proposal, by: self)
             }
             if let footer = card.footer {
                 let size = footer.sizeThatFits(ProposedViewSize(width: frame.width - 2 * pad, height: nil))
-                footer.place(at: CGPoint(x: pad, y: card.frame.maxY + PlatformMetrics.formGroupedHeaderSpacing),
+                let x = PlatformMetrics.formGroupedFooterTrailing ? frame.width - pad - size.width : pad
+                footer.place(at: CGPoint(x: x, y: card.frame.maxY + PlatformMetrics.formGroupedHeaderSpacing),
                              anchor: .topLeading, proposal: ProposedViewSize(size), by: self)
             }
         }
