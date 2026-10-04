@@ -6,7 +6,7 @@ import UIKit
 import UIKitFixtureKit
 
 public enum TextViewFixtures {
-    public static let all = [basic, heights]
+    public static let all = [basic, heights, looks]
 
     public static let basic = UIKitFixture("uikit/textview/basic", size: CGSize(width: 320, height: 400)) {
         let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))

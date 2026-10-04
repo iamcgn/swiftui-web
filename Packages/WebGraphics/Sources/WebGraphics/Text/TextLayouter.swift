@@ -303,7 +303,7 @@ public struct TextLayouter {
         // second: the first line's last word moves down when that makes the two lines more
         // even in width and still fits (measured: "Layout must wrap" at 75–107 pt is
         // "Layout" / "must wrap", but "Layout wrap sentence" at 89–129 pt keeps "sentence" alone).
-        if let maxWidth {
+        if let maxWidth, options.balancesTwoLines {
             var start = 0
             var index = 0
             while index < pieces.count {

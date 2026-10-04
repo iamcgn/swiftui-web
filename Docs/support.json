@@ -1521,11 +1521,12 @@
         },
         {
           "api": "UITextView",
-          "status": "partial",
-          "notes": "Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits; open: attributed text, links, selection handles, keyboard avoidance",
+          "status": "full",
+          "notes": "Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits, attributed runs, links (attributed and detected) opening through the delegate, the selection painted while editing, exclusion paths, the Helvetica 12 default font; open: the browser's selection in selectedRange, keyboard avoidance",
           "fixtures": [
             "uikit/textview/basic",
-            "uikit/textview/heights"
+            "uikit/textview/heights",
+            "uikit/textview/looks"
           ]
         },
         {

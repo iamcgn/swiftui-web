@@ -185,6 +185,7 @@ extension NSAttributedString.Key {
     public static let underlineStyle = NSAttributedString.Key("NSUnderline")
     public static let strikethroughStyle = NSAttributedString.Key("NSStrikethrough")
     public static let kern = NSAttributedString.Key("NSKern")
+    public static let link = NSAttributedString.Key("NSLink")
 }
 
 /// What string drawing resolves from an attribute dictionary: UIKit's defaults are Helvetica 12

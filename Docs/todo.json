@@ -1370,13 +1370,14 @@
       "framework": "UIKit",
       "area": "Text",
       "title": "UITextView attributed text, selection and links",
-      "detail": "`attributedText`, `selectedRange` and a painted selection, data detectors and links, `textContainer` exclusion paths, the Helvetica 12 default font, indicators after a scroll.",
+      "detail": "`attributedText`, `selectedRange` and a painted selection, data detectors and links, `textContainer` exclusion paths, the Helvetica 12 default font, indicators after a scroll. Done 2026-10-04: attributedText runs (fonts, colours, .link) on one baseline per line without SwiftUI's two-line balancing (TextLayoutOptions.balancesTwoLines), dataDetectorTypes links opening through textView(_:shouldInteractWith:…), selectedRange painted while editing (highlight, bars and knobs), textContainer.exclusionPaths flowing lines around a path's bounds, Helvetica 12 as the default font with iOS's metrics (UIFont.installedFonts), the indicator after a drag; uikit/textview/looks with an edit step (Tier A exact, Tier C 4.6 % approximate).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/TextView.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-text-input",

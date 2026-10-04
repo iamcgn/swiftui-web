@@ -36,6 +36,9 @@ public struct TextLayoutOptions: Hashable, Sendable {
     /// up a little before truncation.
     public var minimumScaleFactor: CGFloat
     public var allowsTightening: Bool
+    /// Whether a paragraph wrapping to exactly two lines moves its first line's last word down
+    /// rather than leave one word alone (SwiftUI's text does; UIKit's text views do not).
+    public var balancesTwoLines = true
 
     /// The same options with the letter spacing taken out (the layouter measures it itself).
     public var withoutLetterSpacing: TextLayoutOptions {

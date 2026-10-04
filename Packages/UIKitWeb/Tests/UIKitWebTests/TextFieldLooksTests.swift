@@ -70,6 +70,7 @@ import UIKit
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
         let root = UIViewController()
         window.rootViewController = root
+        window.overrideUserInterfaceStyle = .light
         window.makeKeyAndVisible()
         let field = UITextField(frame: CGRect(x: 16, y: 104, width: 160, height: 34))
         field.borderStyle = .roundedRect
@@ -109,6 +110,7 @@ import UIKit
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
         let root = UIViewController()
         window.rootViewController = root
+        window.overrideUserInterfaceStyle = .light
         window.makeKeyAndVisible()
         let field = UITextField(frame: CGRect(x: 16, y: 192, width: 160, height: 34))
         field.borderStyle = .roundedRect
@@ -132,6 +134,7 @@ import UIKit
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
         let root = UIViewController()
         window.rootViewController = root
+        window.overrideUserInterfaceStyle = .light
         window.makeKeyAndVisible()
         let field = UITextField(frame: CGRect(x: 16, y: 16, width: 200, height: 34))
         field.keyboardType = .emailAddress

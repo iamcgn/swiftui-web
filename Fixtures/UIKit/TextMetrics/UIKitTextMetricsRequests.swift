@@ -31,6 +31,22 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Tinted", .style("body"), lines: 0),
         UIKitTextRequest("Filled", .style("body"), lines: 0),
         UIKitTextRequest("Plain", .system(size: 17), lines: 0),
+        // uikit/textview/looks (uk-textview): attributed runs (boldSystemFont is the semibold face), links, exclusion lines, Helvetica.
+        UIKitTextRequest(runs: [.init("Bold start, ", .system(size: 17, weight: "semibold")), .init("regular middle, ", .system(size: 17)), .init("red end, ", .system(size: 15)), .init("a link", .system(size: 17))], width: 278, lines: 0),
+        UIKitTextRequest("Visit https://example.com or www.apple.com today.", .system(size: 17), width: 278, lines: 0),
+        // Detected links split the text into runs (the same font): the rich key UIKitWeb asks for.
+        UIKitTextRequest(runs: [.init("Visit ", .system(size: 17)), .init("https://example.com", .system(size: 17)), .init(" or ", .system(size: 17)), .init("www.apple.com", .system(size: 17)), .init(" today.", .system(size: 17))], width: 278, lines: 0),
+        UIKitTextRequest("Wraps around", .system(size: 17), lines: 0), UIKitTextRequest("the box on", .system(size: 17), lines: 0), UIKitTextRequest("the left side", .system(size: 17), lines: 0),
+        UIKitTextRequest("and then", .system(size: 17), lines: 0), UIKitTextRequest("continues below", .system(size: 17), lines: 0),
+        UIKitTextRequest("Visit ", .system(size: 17), lines: 0), UIKitTextRequest("https://example.com", .system(size: 17), lines: 0), UIKitTextRequest(" or ", .system(size: 17), lines: 0),
+        UIKitTextRequest("www.apple.com", .system(size: 17), lines: 0), UIKitTextRequest(" today.", .system(size: 17), lines: 0),
+        UIKitTextRequest("Bold start, ", .system(size: 17, weight: "semibold"), lines: 0), UIKitTextRequest("regular middle, ", .system(size: 17), lines: 0),
+        UIKitTextRequest("red end, ", .system(size: 15), lines: 0), UIKitTextRequest("a link", .system(size: 17), lines: 0),
+        UIKitTextRequest("Wraps around\nthe box on\nthe left side\nand then\ncontinues below", .system(size: 17), width: 278, lines: 0),
+        UIKitTextRequest("Default font text", .custom(name: "Helvetica", size: 12), width: 278, lines: 0),
+        UIKitTextRequest("Default font text", .custom(name: "Helvetica", size: 12), lines: 0),
+        UIKitTextRequest("Select some of this text", .system(size: 17), width: 278, lines: 0),
+        UIKitTextRequest("Select ", .system(size: 17), lines: 0), UIKitTextRequest("Select some", .system(size: 17), lines: 0),
         // uikit/textfield/looks (uk-textfield): fields measure their text without a line limit.
         UIKitTextRequest("Line border", .system(size: 17), lines: 0), UIKitTextRequest("Bezel border", .system(size: 17), lines: 0),
         UIKitTextRequest("Clear", .system(size: 17), lines: 0), UIKitTextRequest("Views", .system(size: 17), lines: 0),

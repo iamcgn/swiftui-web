@@ -1,0 +1,76 @@
+{
+  "fixture" : "uikit\/textview\/looks",
+  "frames" : {
+    "attributed" : {
+      "height" : 57,
+      "width" : 288,
+      "x" : 16,
+      "y" : 16
+    },
+    "defaultFont" : {
+      "height" : 30,
+      "width" : 288,
+      "x" : 16,
+      "y" : 290
+    },
+    "excluded" : {
+      "height" : 110,
+      "width" : 288,
+      "x" : 16,
+      "y" : 168
+    },
+    "links" : {
+      "height" : 60,
+      "width" : 288,
+      "x" : 16,
+      "y" : 96
+    },
+    "selected" : {
+      "height" : 60,
+      "width" : 288,
+      "x" : 16,
+      "y" : 340
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "attributed" : {
+          "height" : 57,
+          "width" : 288,
+          "x" : 16,
+          "y" : 16
+        },
+        "defaultFont" : {
+          "height" : 30,
+          "width" : 288,
+          "x" : 16,
+          "y" : 290
+        },
+        "excluded" : {
+          "height" : 110,
+          "width" : 288,
+          "x" : 16,
+          "y" : 168
+        },
+        "links" : {
+          "height" : 60,
+          "width" : 288,
+          "x" : 16,
+          "y" : 96
+        },
+        "selected" : {
+          "height" : 60,
+          "width" : 288,
+          "x" : 16,
+          "y" : 340
+        }
+      },
+      "name" : "edit"
+    }
+  ]
+}

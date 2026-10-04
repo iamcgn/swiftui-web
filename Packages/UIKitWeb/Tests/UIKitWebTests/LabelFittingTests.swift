@@ -23,6 +23,7 @@ import UIKit
         root.view.backgroundColor = .white
         root.view.addSubview(label)
         window.rootViewController = root
+        window.overrideUserInterfaceStyle = .light   // a dark fixture test may run in between
         window.makeKeyAndVisible()
         scene.layout(in: CGSize(width: 320, height: 300))
         return scene.render(scale: 2)

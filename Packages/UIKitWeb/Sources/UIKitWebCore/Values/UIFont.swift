@@ -139,11 +139,19 @@ public final class UIFont: Hashable, @unchecked Sendable {
         self.init(resolved: ResolvedFont(family: resource?.postScriptName ?? name, size: size, weight: .regular, italic: false, textStyle: nil, profile: "iOS"), weight: .regular)
     }
 
-    /// The bundled font behind a custom family, if the catalog has it.
+    /// The bundled font behind a custom family, if the catalog has it, else a font iOS ships
+    /// whose metrics are known here.
     var customResource: FontResource? {
         guard !resolved.family.hasPrefix("system") else { return nil }
-        return MainActor.assumeIsolated { UIKitScene.shared.assetCatalog.font(named: resolved.family) }
+        return MainActor.assumeIsolated { UIKitScene.shared.assetCatalog.font(named: resolved.family) } ?? Self.installedFonts[resolved.family]
     }
+
+    /// Fonts iOS ships that the browser has too, with their iOS metrics (Helvetica 12, the
+    /// text view's default: ascender 11.04, descender 2.76, 13.8 pt lines, measured on
+    /// uikit/textview/looks; the browser draws its own Helvetica or a stand-in).
+    nonisolated static let installedFonts: [String: FontResource] = [
+        "Helvetica": FontResource(postScriptName: "Helvetica", family: "Helvetica", file: "", unitsPerEm: 2048, ascender: 1884.2, descender: -471, lineGap: 0, capHeight: 1469, xHeight: 1071),
+    ]
 
     /// The same face at another size: a plain font, as UIKit returns (a text style's metrics
     /// belong to its own size).
