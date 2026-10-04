@@ -698,10 +698,25 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             runtime.setNeedsDisplay()
             return
         }
-        // A row that is a `NavigationLink` pushes; a selectable row toggles its selection.
+        // A row that is a `NavigationLink` pushes; a selectable row toggles its selection. On
+        // macOS a multiple selection follows the modifier keys: a plain click selects the row
+        // alone, ⌘ toggles it, ⇧ extends the range from the anchor row.
         element.node.layoutValue(for: NavigationLinkActivationKey.self)?.run()
         if let selection = view.selection, let id = element.id {
-            selection.toggle(id)
+            let rows = elements.filter { $0.kind == .row && $0.id != nil }
+            let index = rows.firstIndex { $0.id == id }
+            let modifiers = runtime.pointerModifiers.shortcutModifiers
+            if !selection.isMultiple || environment.platformProfile.isIOS {
+                selection.toggle(id)
+            } else if modifiers.contains(.command) {
+                selection.toggle(id)
+                selectionAnchor = index
+            } else if modifiers.contains(.shift), let anchor = selectionAnchor, let index {
+                selection.select(rows[min(anchor, index)...max(anchor, index)].map { $0.id! })
+            } else {
+                selection.select([id])
+                selectionAnchor = index
+            }
             runtime.setNeedsDisplay()
         }
     }
@@ -718,11 +733,33 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// The row a Shift-extended range starts from (an index into the selectable rows).
     private var selectionAnchor: Int?
 
+    /// A row's text, for type-to-select.
+    private func rowText(_ element: Element) -> String {
+        element.node.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }.joined(separator: " ")
+    }
+
     /// Up/Down move the selection to the previous/next row (from the last selected one; from the
     /// ends when nothing is selected), Home/End to the first/last; Shift extends a range from the
     /// anchor row in a multiple selection.
+    /// Type-to-select: the letters typed within a second of each other.
+    private var typeAhead = ""
+    private var typeAheadTime = 0.0
+
     package func handleKey(_ press: KeyPress) -> Bool {
         guard let selection = view.selection, press.modifiers.shortcutModifiers.isSubset(of: [.shift]) else { return false }
+        // Typing selects the first row whose text starts with the letters typed so far.
+        if press.characters.count == 1, let scalar = press.characters.unicodeScalars.first, !scalar.properties.isWhitespace,
+           scalar.properties.isAlphabetic || scalar.properties.numericType != nil {
+            if runtime.lastKeyTime - typeAheadTime > 1 { typeAhead = "" }
+            typeAhead += press.characters.lowercased()
+            typeAheadTime = runtime.lastKeyTime
+            let rows = elements.filter { $0.kind == .row && $0.id != nil }
+            guard let index = rows.firstIndex(where: { rowText($0).lowercased().hasPrefix(typeAhead) }) else { return false }
+            selectionAnchor = index
+            selection.select([rows[index].id!])
+            runtime.setNeedsDisplay()
+            return true
+        }
         // Delete removes the selected rows through their `ForEach`'s `onDelete`.
         if press.key == .delete || press.key == .deleteForward {
             var deleted = false

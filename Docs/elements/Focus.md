@@ -11,7 +11,9 @@ Apple docs: [FocusState](https://developer.apple.com/documentation/swiftui/focus
 | `@FocusState` (`Bool` and optional `Hashable` forms), `FocusState.Binding` | implemented |
 | `focused(_:)`, `focused(_:equals:)` on a view containing a text field | implemented (the first text field in the modified subtree is the focus target) |
 | Tab between fields, click to focus, blur | the browser's, mirrored into the state through the host's focus/blur events |
-| `focusable()`, `FocusedValue`, `@FocusedBinding`, `focusSection`, `prefersDefaultFocus`, `defaultFocus`, focus on buttons and custom views, `onKeyPress`, `keyboardShortcut`, arrow-key navigation in lists (now in `Docs/elements/Keyboard.md`) | missing |
+| `focusable()`, focus on buttons and custom views, `onKeyPress`, `keyboardShortcut`, arrow-key navigation in lists | implemented since 2026-09-04 (`Docs/elements/Keyboard.md`) |
+| `FocusedValue`, `@FocusedBinding`, `focusedValue`, `focusedSceneValue` | implemented 2026-10-04 (below) |
+| `defaultFocus(_:_:priority:)`, `focusSection()`, `focusScope(_:)`, `prefersDefaultFocus(_:in:)`, `resetFocus` | implemented 2026-10-04 (below) |
 
 ## Behaviour
 
@@ -61,3 +63,17 @@ a writer mounts, updates or unmounts (`FocusedValueNode`, `Runtime.focusedValues
 `EntryMacroTests` cover the scene fallback, focus moving between two writers and writing through
 a focused binding. Not yet: the focused *window* when several are open (the scene values apply to
 the whole runtime).
+
+## Default focus, sections, scopes and restoration (2026-10-04)
+
+`defaultFocus($state, value)` sets the focus state once the view is mounted (an action queued
+on the scheduler, like `onAppear`) when nothing in its window or presentation has focus; an
+element already focused there keeps it. `focusSection()` keeps the focusable elements inside
+together in the Tab order: `Runtime.focusOrder` emits a section's elements where its first one
+falls in paint order. `focusScope(namespace)` with `prefersDefaultFocus(in: namespace)` makes
+focus entering the scope (Tab from outside it, or the first Tab) land on the preferring element;
+moving inside the scope stays sequential; the `resetFocus` environment action sends focus to the
+scope's preferred element. A presentation remembers the element focused when it opened and
+focuses it again when it closes, if focus was inside the presentation or nowhere
+(`PresentationNode.focusToRestore`). `FocusCommandTests` cover each; the focus ring's colour and
+width are measured now (`Docs/elements/Keyboard.md`).

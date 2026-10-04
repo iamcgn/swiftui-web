@@ -108,9 +108,13 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var secureBulletPitch: CGFloat = 8
     package var secureBulletInset: CGFloat = 1.5                  // first bullet's ink starts 7.5 pt in
     package var secureBulletBaselineOffset: CGFloat = 5           // centre 5 pt above the baseline
-    package var focusRingWidth: CGFloat = 3                       // unverified (no focused golden)
-    package var focusRingOpacity = 0.5                            // unverified
-    package var focusRingCornerRadius: CGFloat = 6                // unverified: buttons and focusable views
+    // AppKit's keyboard focus ring, measured 2026-10-04 by drawing `NSFocusRingPlacement.only`
+    // into a bitmap: a solid 3 pt band outside the shape in `keyboardFocusIndicatorColor` at
+    // 50 % ((0, 103, 244) light, (26, 169, 255) dark; Docs/elements/Keyboard.md).
+    package var focusRingWidth: CGFloat = 3
+    package var focusRingOpacity = 0.5
+    package var focusRingColor = Color(storage: .dynamic(light: RGBA(r: 0, g: 103, b: 244, a: 1), dark: RGBA(r: 26, g: 169, b: 255, a: 1)))
+    package var focusRingCornerRadius: CGFloat = 6                // unverified: the ring follows the control's own corners
     package var listFocusedSelectionAlpha = 0.25                  // unverified: the accent selection of a focused list
     package var menuHighlightAlpha = 0.1                          // unverified: the keyboard-highlighted menu row
     package var menuHighlightInset: CGFloat = 5

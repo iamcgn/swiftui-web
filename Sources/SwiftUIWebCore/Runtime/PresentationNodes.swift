@@ -13,6 +13,8 @@ package final class PresentationNode: ViewNode {
     package let anchorPoint: CGPoint?
     /// Resets the presenting binding; runs `onDismiss`.
     package let onDismissRequested: @MainActor () -> Void
+    /// The element focused when the presentation opened, focused again when it closes.
+    package var focusToRestore: (identifier: Int, keyboard: Bool)?
     package private(set) var panel: CGRect = .zero
     package private(set) var contentFrame: CGRect = .zero
     /// The menu row the arrow keys highlighted (an index into `interactiveNodes`).
@@ -388,6 +390,7 @@ extension Runtime {
                          onDismissRequested: @escaping @MainActor () -> Void) -> PresentationNode {
         let node = PresentationNode(runtime: self, kind: kind, view: view, environment: environment, anchor: anchor, anchorPoint: point,
                                     onDismissRequested: onDismissRequested)
+        node.focusToRestore = focusedIdentifier.map { ($0, focusVisible) }
         presentations.append(node)
         requestLayout()
         return node
@@ -397,6 +400,12 @@ extension Runtime {
         guard let index = presentations.firstIndex(where: { $0 === node }) else { return }
         presentations.remove(at: index)
         node.unmount()
+        // Focus goes back to the element that had it before the presentation, when focus was
+        // inside the presentation (its element is gone now) or nowhere.
+        if let restore = node.focusToRestore, focusedIdentifier.flatMap({ interactiveNode(semanticsIdentifier: $0) }) == nil,
+           interactiveNode(semanticsIdentifier: restore.identifier) != nil {
+            focus(semanticsIdentifier: restore.identifier, keyboard: restore.keyboard)
+        }
         requestLayout()
     }
 

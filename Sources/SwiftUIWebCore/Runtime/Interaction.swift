@@ -112,6 +112,9 @@ extension Runtime {
         return nil
     }
 
+    /// The modifier keys held as a pointer event arrives (`HostedScene`).
+    public func pointerModifiersChanged(_ modifiers: EventModifiers) { pointerModifiers = modifiers }
+
     /// Pointer went down at `point` (points, window coordinates). A touch also starts tracking a
     /// pan of the scroll views under it; `time` is in seconds (any monotonic clock).
     public func pointerDown(at point: CGPoint, type: PointerType = .mouse, time: Double = 0) {

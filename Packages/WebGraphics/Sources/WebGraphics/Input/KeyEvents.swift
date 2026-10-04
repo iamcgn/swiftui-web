@@ -75,11 +75,14 @@ public struct KeyEvent: Sendable {
     public var characters: String
     public var modifiers: EventModifiers
     public var isRepeat: Bool
+    /// The host's event time in seconds (type-to-select groups keys by it).
+    public var time: Double
 
-    public init(key: KeyEquivalent, characters: String = "", modifiers: EventModifiers = [], isRepeat: Bool = false) {
+    public init(key: KeyEquivalent, characters: String = "", modifiers: EventModifiers = [], isRepeat: Bool = false, time: Double = 0) {
         self.key = key
         self.characters = characters
         self.modifiers = modifiers
         self.isRepeat = isRepeat
+        self.time = time
     }
 }

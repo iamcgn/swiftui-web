@@ -13,14 +13,25 @@ package protocol _KeyHandling: AnyObject {
 @MainActor
 private var nextKeyboardIdentifier = 7_000_000
 
+/// A node that takes key releases (`onKeyPress` with the up phase).
+@MainActor
+package protocol _KeyUpHandling: AnyObject {
+    func handleKeyUp(_ press: KeyPress) -> Bool
+}
+
 /// `onKeyPress`: transparent to layout; handles presses of its keys on the way out.
 @MainActor
-package final class KeyPressNode<Content: View>: UnaryLayoutModifierNode<Content, _KeyPressModifier>, _KeyHandling {
+package final class KeyPressNode<Content: View>: UnaryLayoutModifierNode<Content, _KeyPressModifier>, _KeyHandling, _KeyUpHandling {
     package func handleKey(_ press: KeyPress) -> Bool {
         guard modifier.phases.contains(press.phase) else { return false }
         if let keys = modifier.keys, !keys.contains(press.key) { return false }
+        if let characters = modifier.characters {
+            guard !press.characters.isEmpty, press.characters.unicodeScalars.allSatisfy(characters.contains) else { return false }
+        }
         return modifier.action.action(press) == .handled
     }
+
+    package func handleKeyUp(_ press: KeyPress) -> Bool { handleKey(press) }
 }
 
 /// `onMoveCommand`/`onExitCommand`/`onDeleteCommand`: transparent to layout.
@@ -129,7 +140,8 @@ extension Runtime {
 
     /// The elements Tab moves focus through, in paint order: controls, text fields, focusable
     /// views and selectable lists (static text, images and plain groups are skipped), the
-    /// topmost presentation's alone while one is up.
+    /// topmost presentation's alone while one is up. The elements of a `focusSection` stay
+    /// together where the section's first element falls.
     public var focusOrder: [Int] {
         let nodes: [ViewNode & _Interactive]
         if let top = presentations.last, top.isModal {
@@ -137,17 +149,30 @@ extension Runtime {
         } else {
             nodes = interactiveNodes
         }
-        return nodes.compactMap { node in
+        let focusable: [(identifier: Int, section: ViewNode?)] = nodes.compactMap { node in
             let semantics = node.semantics
             switch semantics.role {
-            case .text, .heading, .image, .group, .list: return semantics.isFocusable ? semantics.identifier : nil
-            default: return semantics.identifier
+            case .text, .heading, .image, .group, .list: guard semantics.isFocusable else { return nil }
+            default: break
             }
+            return (semantics.identifier, node.nearestAncestor(where: { $0 is any _FocusSectionMarking }))
         }
+        guard focusable.contains(where: { $0.section != nil }) else { return focusable.map(\.identifier) }
+        var order: [Int] = []
+        var emitted: [ObjectIdentifier] = []
+        for entry in focusable {
+            guard let section = entry.section else { order.append(entry.identifier); continue }
+            let key = ObjectIdentifier(section)
+            guard !emitted.contains(key) else { continue }
+            emitted.append(key)
+            order += focusable.filter { $0.section === section }.map(\.identifier)
+        }
+        return order
     }
 
-    /// Moves keyboard focus to the next (or previous) element in `focusOrder`, wrapping;
-    /// returns whether anything took focus.
+    /// Moves keyboard focus to the next (or previous) element in `focusOrder`, wrapping (focus
+    /// entering a `focusScope` lands on its preferred default); returns whether anything took
+    /// focus.
     @discardableResult
     public func moveFocus(forward: Bool = true) -> Bool {
         let order = focusOrder
@@ -159,8 +184,26 @@ extension Runtime {
         } else {
             next = forward ? 0 : order.count - 1
         }
-        focus(semanticsIdentifier: order[next], keyboard: true)
+        focus(semanticsIdentifier: focusTarget(entering: order[next], from: focusedIdentifier), keyboard: true)
         return true
+    }
+
+    /// A key came up: `onKeyPress` handlers with the up phase on the focused view and its
+    /// ancestors. Returns whether one consumed it.
+    @discardableResult
+    public func keyUp(_ event: KeyEvent) -> Bool {
+        lastKeyTime = event.time
+        let press = KeyPress(phase: .up, key: event.key, characters: event.characters, modifiers: event.modifiers)
+        guard let focusedIdentifier, let focused = interactiveNode(semanticsIdentifier: focusedIdentifier) else { return false }
+        var current: ViewNode? = focused
+        while let node = current {
+            if let handler = node as? any _KeyUpHandling, handler.handleKeyUp(press) {
+                setNeedsDisplay()
+                return true
+            }
+            current = node.parent
+        }
+        return false
     }
 
     /// A key went down. Dispatch: the focused view and its ancestors (`onKeyPress`, the move/
@@ -169,6 +212,7 @@ extension Runtime {
     /// prevent the browser's default).
     @discardableResult
     public func keyDown(_ event: KeyEvent) -> Bool {
+        lastKeyTime = event.time
         let press = KeyPress(phase: event.isRepeat ? .repeat : .down, key: event.key, characters: event.characters, modifiers: event.modifiers)
         if let focusedIdentifier, let focused = interactiveNode(semanticsIdentifier: focusedIdentifier) {
             var current: ViewNode? = focused
@@ -180,7 +224,9 @@ extension Runtime {
                 current = node.parent
             }
         }
+        // The edit keys as responder commands (`onCommand`, `onCopyCommand` and the like), then
         // ⌘C / ⌘X / ⌘V for copyable, cuttable and paste destinations around the focused node.
+        if let selector = standardSelector(for: press), performCommand(selector) { return true }
         if handlePasteboardKey(press) { setNeedsDisplay(); return true }
         // An open menu takes the keys next; then Tab moves focus and Space or Return activates the
         // focused control (a consumed press keeps a browser overlay button from clicking as well).
@@ -263,8 +309,10 @@ extension Runtime {
         return (presented, window)
     }
 
-    /// The focus ring around the focused element when focus came from the keyboard: text
-    /// fields paint their own, lists show their selection in the accent colour.
+    /// The focus ring around the focused element when focus came from the keyboard: a 3 pt
+    /// band of the keyboard focus indicator colour at 50 % outside the element (measured, see
+    /// PlatformMetrics); text fields paint their own, lists show their selection in the accent
+    /// colour.
     package func paintFocusRing(into list: inout DisplayList, context: PaintContext) {
         guard focusVisible, let focusedIdentifier, focusedTextFieldIdentifier == nil,
               let node = interactiveNode(semanticsIdentifier: focusedIdentifier), !(node is any _KeyHandling) else { return }
@@ -272,7 +320,7 @@ extension Runtime {
         let ring = context.absoluteRect(frame).insetBy(dx: -PlatformMetrics.focusRingWidth / 2, dy: -PlatformMetrics.focusRingWidth / 2)
         list.append(.strokePath(Path(roundedRect: ring, cornerRadius: PlatformMetrics.focusRingCornerRadius, style: .circular),
                                 style: StrokeStyle(lineWidth: PlatformMetrics.focusRingWidth),
-                                Color.accentColor.opacity(PlatformMetrics.focusRingOpacity).resolve(in: node.environment)))
+                                PlatformMetrics.focusRingColor.opacity(PlatformMetrics.focusRingOpacity).resolve(in: node.environment)))
     }
 }
 

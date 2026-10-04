@@ -97,12 +97,23 @@ import SwiftUIWebHeadless
         #expect(!commands.contains { $0.hasPrefix("fillRect(16, 33") } && !commands.contains { $0.hasPrefix("fillRect(16, 57") })
         r.pointerDown(at: CGPoint(x: 100, y: 45)); r.pointerUp(at: CGPoint(x: 100, y: 45))
         #expect(box.value == nil)
-        // Multiple selection accumulates.
+        // A multiple selection on macOS: a plain click selects the row alone, ⌘ toggles, ⇧ extends.
         let set = _SetBox()
         let multi = runtime(List(Self.items, selection: Binding<Set<Int>>(get: { set.value }, set: { set.value = $0 })) { Text($0.name) })
         multi.pointerDown(at: CGPoint(x: 100, y: 20)); multi.pointerUp(at: CGPoint(x: 100, y: 20))
         multi.pointerDown(at: CGPoint(x: 100, y: 70)); multi.pointerUp(at: CGPoint(x: 100, y: 70))
+        #expect(set.value == [3])
+        multi.pointerModifiersChanged([.command])
+        multi.pointerDown(at: CGPoint(x: 100, y: 20)); multi.pointerUp(at: CGPoint(x: 100, y: 20))
         #expect(set.value == [1, 3])
+        multi.pointerDown(at: CGPoint(x: 100, y: 20)); multi.pointerUp(at: CGPoint(x: 100, y: 20))
+        #expect(set.value == [3])
+        multi.pointerModifiersChanged([])
+        multi.pointerDown(at: CGPoint(x: 100, y: 20)); multi.pointerUp(at: CGPoint(x: 100, y: 20))
+        multi.pointerModifiersChanged([.shift])
+        multi.pointerDown(at: CGPoint(x: 100, y: 70)); multi.pointerUp(at: CGPoint(x: 100, y: 70))
+        #expect(set.value == [1, 2, 3])
+        multi.pointerModifiersChanged([])
     }
 }
 

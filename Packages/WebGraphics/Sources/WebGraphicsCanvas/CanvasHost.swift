@@ -305,6 +305,7 @@ public final class CanvasSceneHost {
             }
             _ = self.canvas.setPointerCapture?(e.pointerId)
             if self.pointerType(of: e) == .touch, self.touchDown(e) { return }
+            self.scene.pointerModifiersChanged(self.modifiers(of: e))
             self.scene.pointerDown(at: self.point(of: e), type: self.pointerType(of: e), time: self.seconds(of: e))
             self.scheduleFrame()
         }
@@ -386,15 +387,15 @@ public final class CanvasSceneHost {
         // the open menu, keyboard shortcuts, Escape. A text field's input keeps its own keys
         // except Escape.
         on(window, "keydown") { [weak self] e in
-            guard let self, let domKey = e.key.string, let key = KeyEquivalent(domKey: domKey) else { return }
-            if let target = e.target.object, target.tagName.string == "INPUT", target.type.string != "range", key != .escape { return }
-            var modifiers: EventModifiers = []
-            if e.shiftKey.boolean == true { modifiers.insert(.shift) }
-            if e.ctrlKey.boolean == true { modifiers.insert(.control) }
-            if e.altKey.boolean == true { modifiers.insert(.option) }
-            if e.metaKey.boolean == true { modifiers.insert(.command) }
-            let event = KeyEvent(key: key, characters: domKey.count == 1 ? domKey : "", modifiers: modifiers, isRepeat: e["repeat"].boolean == true)
+            guard let self, let event = self.keyEvent(of: e) else { return }
             if self.scene.keyDown(event) {
+                _ = e.preventDefault?()
+                self.scheduleFrame()
+            }
+        }
+        on(window, "keyup") { [weak self] e in
+            guard let self, let event = self.keyEvent(of: e) else { return }
+            if self.scene.keyUp(event) {
                 _ = e.preventDefault?()
                 self.scheduleFrame()
             }
@@ -412,6 +413,23 @@ public final class CanvasSceneHost {
 
     private func point(of event: JSObject) -> CGPoint {
         CGPoint(x: event.offsetX.number ?? 0, y: event.offsetY.number ?? 0)
+    }
+
+    private func modifiers(of event: JSObject) -> EventModifiers {
+        var modifiers: EventModifiers = []
+        if event.shiftKey.boolean == true { modifiers.insert(.shift) }
+        if event.ctrlKey.boolean == true { modifiers.insert(.control) }
+        if event.altKey.boolean == true { modifiers.insert(.option) }
+        if event.metaKey.boolean == true { modifiers.insert(.command) }
+        return modifiers
+    }
+
+    /// The scene's key event for a DOM keyboard event; nil for keys the scene has no equivalent
+    /// for and for keys a text field's input keeps (all but Escape).
+    private func keyEvent(of e: JSObject) -> KeyEvent? {
+        guard let domKey = e.key.string, let key = KeyEquivalent(domKey: domKey) else { return nil }
+        if let target = e.target.object, target.tagName.string == "INPUT", target.type.string != "range", key != .escape { return nil }
+        return KeyEvent(key: key, characters: domKey.count == 1 ? domKey : "", modifiers: modifiers(of: e), isRepeat: e["repeat"].boolean == true, time: seconds(of: e))
     }
 
     /// The event's point from its client coordinates (gesture events carry no offset).

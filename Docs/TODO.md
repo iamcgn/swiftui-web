@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 34 | 0 | 2 | 32 |
+| SwiftUI | 33 | 0 | 1 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **74** | 0 | 26 | 48 |
+| **All** | **73** | 0 | 25 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Focused values, sections and commands** `sw-focus` · Focus and keyboard · missing  
-  `FocusedValue`, `@FocusedBinding`, `focusSection`, `defaultFocus`, `prefersDefaultFocus`, focus restored after a sheet closes, `onCommand`, `onCopyCommand`/`onPasteCommand`, `onKeyPress(characters:)`, key-up phases, type-to-select and Cmd ranges in lists, the real focus ring look. ([Focus.md](Docs/elements/Focus.md), [Keyboard.md](Docs/elements/Keyboard.md))
 - ☐ **Custom actions, rotors and a VoiceOver session** `sw-accessibility` · Accessibility · missing  
   `accessibilityAction`, `accessibilityAdjustableAction`, `accessibilitySortPriority`, `accessibilityRepresentation`, `accessibilityChildren`, `accessibilityFocused`, rotors, live regions, heading levels, `help` exposed to assistive technology; a VoiceOver session by hand in Safari and an IME session (spike 0.12). ([Accessibility.md](Docs/elements/Accessibility.md), [Hover.md](Docs/elements/Hover.md))
 
@@ -206,6 +204,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **onReceive, scene phase and URLs** `sw-lifecycle` · SwiftUI · Lifecycle
 - ☑ 2026-10-04 **The @Entry macro** `sw-entry-macro` · SwiftUI · Environment
 - ☑ 2026-10-04 **Simultaneous, pinch and rotate gestures** `sw-gestures` · SwiftUI · Gestures
+- ☑ 2026-10-04 **Focused values, sections and commands** `sw-focus` · SwiftUI · Focus and keyboard
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

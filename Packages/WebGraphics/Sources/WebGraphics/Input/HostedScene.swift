@@ -74,6 +74,10 @@ public protocol HostedScene: AnyObject {
     func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double)
     /// A key press; returns whether the scene consumed it.
     func keyDown(_ event: KeyEvent) -> Bool
+    /// A key release (`onKeyPress` up phases); returns whether the scene consumed it.
+    func keyUp(_ event: KeyEvent) -> Bool
+    /// The modifier keys held as a pointer event arrives (Shift and Command clicks in lists).
+    func pointerModifiersChanged(_ modifiers: EventModifiers)
     /// The CSS cursor name the pointer should show, or nil for the default.
     var pointerCursor: String? { get }
 
@@ -105,6 +109,8 @@ extension HostedScene {
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {}
     public func fontsDidLoad() {}
     public func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double) {}
+    public func keyUp(_ event: KeyEvent) -> Bool { false }
+    public func pointerModifiersChanged(_ modifiers: EventModifiers) {}
 }
 
 /// The phase of a continuous gesture a host delivers (pinches and rotations).

@@ -1,7 +1,12 @@
 // Keyboard input (Docs/elements/Keyboard.md): key equivalents and modifiers, `onKeyPress`, the
 // move/exit/delete commands, `keyboardShortcut` and `focusable`. Hosts feed key events to
-// `Runtime.keyDown`; the runtime dispatches them from the focused view outwards
-// (Runtime/KeyboardNodes.swift).
+// `Runtime.keyDown` and `keyUp`; the runtime dispatches them from the focused view outwards
+// (Runtime/KeyboardNodes.swift). The responder commands are in Commands.swift.
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
 
 /// A key press the user made while a view had focus.
 public struct KeyPress: Sendable {
@@ -97,8 +102,17 @@ package final class _MoveCommandBox {
 public struct _KeyPressModifier {
     /// The keys that trigger the action; nil for any key.
     package let keys: Set<KeyEquivalent>?
+    /// The characters that trigger the action (`onKeyPress(characters:)`); nil for any.
+    package let characters: CharacterSet?
     package let phases: KeyPress.Phases
     package let action: _KeyPressBox
+
+    package init(keys: Set<KeyEquivalent>?, characters: CharacterSet? = nil, phases: KeyPress.Phases, action: _KeyPressBox) {
+        self.keys = keys
+        self.characters = characters
+        self.phases = phases
+        self.action = action
+    }
 }
 
 extension _KeyPressModifier: ViewModifier {
@@ -169,6 +183,13 @@ extension View {
     /// Performs an action for any key press while the view has focus.
     nonisolated public func onKeyPress(action: @escaping @MainActor (KeyPress) -> KeyPress.Result) -> some View {
         modifier(_KeyPressModifier(keys: nil, phases: [.down, .repeat], action: _KeyPressBox(action)))
+    }
+
+    /// Performs an action for presses whose characters are all in `characters` while the view
+    /// has focus.
+    nonisolated public func onKeyPress(characters: CharacterSet, phases: KeyPress.Phases = [.down, .repeat],
+                                       action: @escaping @MainActor (KeyPress) -> KeyPress.Result) -> some View {
+        modifier(_KeyPressModifier(keys: nil, characters: characters, phases: phases, action: _KeyPressBox(action)))
     }
 
     /// Performs an action for presses of any of `keys` while the view has focus.

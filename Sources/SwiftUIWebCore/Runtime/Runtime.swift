@@ -75,6 +75,10 @@ public final class Runtime {
         requestFullLayout()
     }
 
+    /// The modifier keys held as the last pointer event arrived (`pointerModifiersChanged`).
+    public var pointerModifiers: EventModifiers = []
+    /// The host's time of the last key event (type-to-select groups keys within a second).
+    package var lastKeyTime: Double = 0
     /// The `simultaneousGesture` nodes above the pressed node, fed the press in flight.
     package var simultaneousPressNodes: [ViewNode & _Interactive] = []
     /// The gesture nodes taking the pinch in flight.
@@ -200,6 +204,8 @@ public final class Runtime {
         hostColorScheme = environment.colorScheme
         self.root = RootNode(runtime: self, environment: environment)
         installPasteboard()
+        rootEnvironment.resetFocus = ResetFocusAction(runtime: self)
+        root.environment = rootEnvironment
     }
 
     /// Moves the root environment to the effective scheme when it changed, re-applying the

@@ -76,6 +76,7 @@ extension PlatformMetrics {
     package static var secureBulletBaselineOffset: CGFloat { current.secureBulletBaselineOffset }
     package static var focusRingWidth: CGFloat { current.focusRingWidth }
     package static var focusRingOpacity: Double { current.focusRingOpacity }
+    package static var focusRingColor: Color { current.focusRingColor }
     package static var focusRingCornerRadius: CGFloat { current.focusRingCornerRadius }
     package static var listFocusedSelectionAlpha: Double { current.listFocusedSelectionAlpha }
     package static var menuHighlightAlpha: Double { current.menuHighlightAlpha }

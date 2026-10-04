@@ -356,9 +356,9 @@
           ]
         },
         {
-          "api": "onKeyPress / onMoveCommand / onExitCommand / onDeleteCommand / keyboardShortcut / focusable / KeyEquivalent / EventModifiers / KeyPress",
-          "status": "partial",
-          "notes": "Key presses dispatched from the focused view outwards, then menus, shortcuts and Escape; general focus with a ring for buttons and focusable views; list arrow-key selection and menu keyboard navigation (looks unverified); no key-up phases, onKeyPress(characters:), focus sections or default focus",
+          "api": "onKeyPress (keys, characters, phases) / onMoveCommand / onExitCommand / onDeleteCommand / onCommand / onCopyCommand / onCutCommand / onPasteCommand / keyboardShortcut / focusable / KeyEquivalent / EventModifiers / KeyPress",
+          "status": "full",
+          "notes": "Key presses (down, repeat and up) dispatched from the focused view outwards, then the responder commands (the edit keys as selectors; copy, cut and paste through NSItemProviders), menus, shortcuts and Escape; general focus with the measured AppKit ring; list arrow keys, Shift ranges, type-to-select and ⌘/⇧ clicks; menu keyboard navigation (highlight looks unverified)",
           "fixtures": [
             "keyboard/basic"
           ]
@@ -815,9 +815,9 @@
           ]
         },
         {
-          "api": "@FocusState (Bool, optional Hashable) / focused(_:) / focused(_:equals:)",
-          "status": "partial",
-          "notes": "Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); focus on buttons and focusable views too (Docs/elements/Keyboard.md); FocusedValues, focusedValue/focusedSceneValue, @FocusedValue and @FocusedBinding follow keyboard focus (2026-10-04)",
+          "api": "@FocusState (Bool, optional Hashable) / focused(_:) / focused(_:equals:) / defaultFocus / focusSection / focusScope / prefersDefaultFocus / resetFocus",
+          "status": "full",
+          "notes": "State and browser focus mirror each other in both directions (click, Tab, blur, programmatic); focus on buttons and focusable views too (Docs/elements/Keyboard.md); FocusedValues, focusedValue/focusedSceneValue, @FocusedValue and @FocusedBinding follow keyboard focus; defaultFocus on appearance, focus sections in the Tab order, scopes with a preferred default and resetFocus, focus restored after a presentation closes (2026-10-04)",
           "fixtures": [
             "focus/basic"
           ]

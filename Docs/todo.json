@@ -1068,14 +1068,15 @@
       "framework": "SwiftUI",
       "area": "Focus and keyboard",
       "title": "Focused values, sections and commands",
-      "detail": "`FocusedValue`, `@FocusedBinding`, `focusSection`, `defaultFocus`, `prefersDefaultFocus`, focus restored after a sheet closes, `onCommand`, `onCopyCommand`/`onPasteCommand`, `onKeyPress(characters:)`, key-up phases, type-to-select and Cmd ranges in lists, the real focus ring look.",
+      "detail": "Done 2026-10-04: FocusedValue and @FocusedBinding (with sw-entry-macro), focusSection in the Tab order, defaultFocus after mounting, focusScope/prefersDefaultFocus/resetFocus, focus restored after a presentation closes, onCommand with the edit keys as standard selectors, onCopyCommand/onCutCommand/onPasteCommand through NSItemProviders (wasm stand-ins for Selector, NSItemProvider and CharacterSet), onKeyPress(characters:), key-up phases from the host's keyup, type-to-select and ⌘/⇧ clicks in lists; the focus ring measured from AppKit (3 pt, keyboardFocusIndicatorColor at 50 %).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Focus.md",
         "Docs/elements/Keyboard.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-accessibility",
