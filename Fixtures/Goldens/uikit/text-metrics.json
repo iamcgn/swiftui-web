@@ -852,6 +852,12 @@
       "lastBaseline" : 14.2822265625,
       "width" : 60
     },
+    "system:15:400:default|;l1|Options" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 54
+    },
     "system:15:400:default|;l1|Recent" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -923,6 +929,12 @@
       "height" : 54,
       "lastBaseline" : 50.0830078125,
       "width" : 142.5
+    },
+    "system:15:400:default|184.0|Share" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 40
     },
     "system:15:400:default|190.0|Height 15" : {
       "firstBaseline" : 14.2822265625,
@@ -1218,11 +1230,23 @@
       "lastBaseline" : 16.1865234375,
       "width" : 28.5
     },
+    "system:17:400:default|;l1|Options" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 60
+    },
     "system:17:400:default|;l1|Pinned label" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 93
+    },
+    "system:17:400:default|;l1|Popover" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 63
     },
     "system:17:400:default|;l1|Presented" : {
       "firstBaseline" : 16.1865234375,

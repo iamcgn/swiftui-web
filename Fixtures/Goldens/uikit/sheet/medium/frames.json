@@ -1,0 +1,40 @@
+{
+  "fixture" : "uikit\/sheet\/medium",
+  "frames" : {
+    "behind" : {
+      "height" : 20.5,
+      "width" : 53,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 500,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "behind" : {
+          "height" : 20.5,
+          "width" : 53,
+          "x" : 16,
+          "y" : 16
+        },
+        "presented" : {
+          "height" : 287.50998000000004,
+          "width" : 310.82159999999999,
+          "x" : 4.5892000000000053,
+          "y" : 207.91069222967499
+        },
+        "presentedLabel" : {
+          "height" : 19.912008750000012,
+          "width" : 75.762765000000002,
+          "x" : 20.130280000000006,
+          "y" : 223.45177222967499
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

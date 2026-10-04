@@ -83,6 +83,19 @@ public final class UIKitScene: HostedScene {
         setNeedsFrame()
         guard animated, UIView.areAnimationsEnabled else { completion?(); return }
         container.layoutIfNeeded()
+        // A transitioning delegate's animator moves the views itself.
+        if let animator = controller.transitioningDelegate?.animationController(forPresented: controller, presenting: presenter, source: presenter) {
+            let context = TransitionContext(containerView: container, from: presenter, to: controller, presentationStyle: controller.modalPresentationStyle,
+                                            initialFrames: [ObjectIdentifier(presenter): presenter.viewIfLoaded?.frame ?? .zero],
+                                            finalFrames: [ObjectIdentifier(controller): view.frame, ObjectIdentifier(presenter): presenter.viewIfLoaded?.frame ?? .zero],
+                                            onComplete: { completed in
+                                                animator.animationEnded(completed)
+                                                completion?()
+                                            })
+            animator.animateTransition(using: context)
+            setNeedsFrame()
+            return
+        }
         container.dimming.alpha = 0
         let isAlert = controller is UIAlertController
         if isAlert {
@@ -120,6 +133,24 @@ public final class UIKitScene: HostedScene {
             return
         }
         controller.presentationContainer = nil   // no second dismissal reaches the container
+        if let animator = controller.transitioningDelegate?.animationController(forDismissed: controller) {
+            let presenter = controller.presentingViewController ?? windows.last?.rootViewController
+            let context = TransitionContext(containerView: container, from: controller, to: presenter, presentationStyle: controller.modalPresentationStyle,
+                                            initialFrames: [ObjectIdentifier(controller): view.frame],
+                                            finalFrames: [ObjectIdentifier(controller): view.frame],
+                                            onComplete: { completed in
+                                                container.removeFromSuperview()
+                                                animator.animationEnded(completed)
+                                                controller.viewIfLoaded?.removeFromSuperview()
+                                                controller.endAppearanceTransition()
+                                                controller.window = nil
+                                                self.setNeedsFrame()
+                                                completion?()
+                                            })
+            animator.animateTransition(using: context)
+            setNeedsFrame()
+            return
+        }
         let isAlert = controller is UIAlertController
         UIView.animate(withDuration: isAlert ? 0.25 : 0.4, delay: 0, options: isAlert ? .curveEaseIn : .curveEaseIn, animations: {
             container.dimming.alpha = 0

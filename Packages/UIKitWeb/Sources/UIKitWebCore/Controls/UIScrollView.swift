@@ -128,6 +128,12 @@ open class UIScrollView: UIView {
             bounds.origin = newValue
             layoutIndicators()
             delegate?.scrollViewDidScroll(self)
+            // A navigation controller above collapses or expands its large title.
+            var responder: UIResponder? = next
+            while let current = responder {
+                if let navigation = current as? UINavigationController { navigation.contentDidScroll(self); break }
+                responder = current.next
+            }
             setNeedsDisplay()
         }
     }
@@ -244,7 +250,17 @@ open class UIScrollView: UIView {
     /// Scrolls by a wheel delta; false when nothing moved (an enclosing scroll view takes it).
     func scroll(by delta: CGSize) -> Bool {
         let target = clamped(CGPoint(x: contentOffset.x + delta.width, y: contentOffset.y + delta.height))
-        guard target != contentOffset else { return false }
+        guard target != contentOffset else {
+            // At the top already and pulled further: a collapsed large title reopens.
+            if delta.height < 0, contentOffset.y <= -adjustedContentInset.top + 0.5 {
+                var responder: UIResponder? = next
+                while let current = responder {
+                    if let navigation = current as? UINavigationController { navigation.contentDidPullBeyondTop(self); return true }
+                    responder = current.next
+                }
+            }
+            return false
+        }
         contentOffset = target
         return true
     }

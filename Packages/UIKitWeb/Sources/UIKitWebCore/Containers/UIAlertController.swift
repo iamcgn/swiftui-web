@@ -36,6 +36,18 @@ open class UIAlertController: UIViewController {
     static let actionHeight: CGFloat = 48
     static let actionGap: CGFloat = 8
     static let actionInset: CGFloat = 14
+    /// An action sheet anchored to a source (its popover presentation controller's source view
+    /// or bar button item) is a 240 pt popover above it: the actions 15.5 in and 14 from the
+    /// bottom, the title 24 down in a 71 pt header, no cancel action (uikit/alert/anchored).
+    static let anchoredWidth: CGFloat = 240
+    static let anchoredActionInset: CGFloat = 15.5
+    static let anchoredBottomInset: CGFloat = 14
+
+    /// Whether the action sheet floats over its source as a popover.
+    package var isAnchored: Bool {
+        guard preferredStyle == .actionSheet, let popover = popoverPresentationController else { return false }
+        return popover.sourceView != nil || popover.barButtonItem != nil
+    }
 
     public init(title: String?, message: String?, preferredStyle: Style) {
         self.preferredStyle = preferredStyle
@@ -79,9 +91,16 @@ open class UIAlertController: UIViewController {
     func cardSize(width: CGFloat) -> CGSize {
         let card = view as? AlertCardView
         let header = card?.headerHeight ?? 0
-        let actionsHeight = actionsAreSideBySide
-            ? Self.actionHeight + 2 * Self.actionInset
-            : (actions.isEmpty ? 0 : Self.actionInset * 2 + Self.actionHeight * CGFloat(actions.count) + Self.actionGap * CGFloat(actions.count - 1))
+        let shown = orderedActions.count
+        let actionsHeight: CGFloat
+        if actionsAreSideBySide {
+            actionsHeight = Self.actionHeight + 2 * Self.actionInset
+        } else if isAnchored {
+            // The header's 26 under the title already separates the actions.
+            actionsHeight = shown == 0 ? 0 : Self.anchoredBottomInset + Self.actionHeight * CGFloat(shown) + Self.actionGap * CGFloat(shown - 1)
+        } else {
+            actionsHeight = shown == 0 ? 0 : Self.actionInset * 2 + Self.actionHeight * CGFloat(shown) + Self.actionGap * CGFloat(shown - 1)
+        }
         return CGSize(width: width, height: header + fieldsHeight + actionsHeight)
     }
 
@@ -89,10 +108,12 @@ open class UIAlertController: UIViewController {
     var actionsAreSideBySide: Bool { preferredStyle == .alert && actions.count == 2 }
 
     /// The actions in the order shown: the cancel action last (and, side by side, first on the
-    /// left as the filled button).
-    var orderedActions: [UIAlertAction] {
+    /// left as the filled button); an anchored sheet shows no cancel action (a tap outside
+    /// dismisses it).
+    package var orderedActions: [UIAlertAction] {
         let cancel = actions.filter { $0.style == .cancel }
         let others = actions.filter { $0.style != .cancel }
+        if isAnchored { return others }
         return actionsAreSideBySide ? cancel + others : others + cancel
     }
 
@@ -127,7 +148,7 @@ final class AlertCardView: UIView {
     /// The header: 21.5 above a 24.5 pt title line, 4.5 to 23 pt message lines, 10.5 below
     /// (84 for one line each); an action sheet's title alone is 15 pt, 24 down in 64.
     var headerHeight: CGFloat {
-        let width = UIAlertController.cardWidth - 56
+        let width = (controller.isAnchored ? UIAlertController.anchoredWidth : UIAlertController.cardWidth) - 56
         titleLabel.text = controller.title
         messageLabel.text = controller.message
         let hasTitle = !(controller.title ?? "").isEmpty
@@ -137,7 +158,8 @@ final class AlertCardView: UIView {
             var height: CGFloat = 24
             if hasTitle { height += max(21, messageStyleHeight(titleLabel, width: width)) }
             if hasMessage { height += (hasTitle ? 4 : 0) + max(21, messageStyleHeight(messageLabel, width: width)) }
-            return height + 19
+            // An anchored sheet's actions start 26 under the title (a 71 pt header), 19 otherwise.
+            return height + (controller.isAnchored ? 26 : 19)
         }
         guard hasTitle || hasMessage else { return 0 }
         var height: CGFloat = 21.5
@@ -205,16 +227,17 @@ final class AlertCardView: UIView {
                 return button
             }
         }
-        let top = headerHeight + controller.fieldsHeight + UIAlertController.actionInset
-        let inner = bounds.width - 2 * UIAlertController.actionInset
+        let sideInset = controller.isAnchored ? UIAlertController.anchoredActionInset : UIAlertController.actionInset
+        let top = headerHeight + controller.fieldsHeight + (controller.isAnchored ? 0 : sideInset)
+        let inner = bounds.width - 2 * sideInset
         if controller.actionsAreSideBySide {
             let each = (inner - UIAlertController.actionGap) / 2
             for (index, button) in buttons.enumerated() {
-                button.frame = CGRect(x: UIAlertController.actionInset + (each + UIAlertController.actionGap) * CGFloat(index), y: top, width: each, height: UIAlertController.actionHeight)
+                button.frame = CGRect(x: sideInset + (each + UIAlertController.actionGap) * CGFloat(index), y: top, width: each, height: UIAlertController.actionHeight)
             }
         } else {
             for (index, button) in buttons.enumerated() {
-                button.frame = CGRect(x: UIAlertController.actionInset, y: top + (UIAlertController.actionHeight + UIAlertController.actionGap) * CGFloat(index),
+                button.frame = CGRect(x: sideInset, y: top + (UIAlertController.actionHeight + UIAlertController.actionGap) * CGFloat(index),
                                       width: inner, height: UIAlertController.actionHeight)
             }
         }
@@ -224,7 +247,9 @@ final class AlertCardView: UIView {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         // The glass: white at 67 % over the dimmed screen ((238, 238, 238) over the 20 % dim on
         // white, uikit/alert/basic).
-        let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46, a: 0.9) : RGBA(r: 255, g: 255, b: 255, a: 0.67)
+        var fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46, a: 0.9) : RGBA(r: 255, g: 255, b: 255, a: 0.67)
+        // Anchored, the card floats over the undimmed screen: (244, 244, 244) on white.
+        if controller.isAnchored { fill = style == .dark ? RGBA(r: 44, g: 44, b: 46, a: 1) : RGBA(r: 244, g: 244, b: 244, a: 1) }
         list.append(.fillPath(Path(roundedRect: rect, cornerRadius: UIAlertController.cornerRadius, style: .continuous), fill))
         // Each text field's box: a white 7 pt-cornered ring 0.5 wide around the system background.
         let ring: RGBA = style == .dark ? RGBA(r: 255, g: 255, b: 255, a: 0.15) : RGBA(r: 255, g: 255, b: 255, a: 1)
@@ -294,8 +319,20 @@ final class PresentationContainerView: UIView {
         super.touchesEnded(touches, with: event)
         guard let touch = touches.first, let controller, let content = controller.viewIfLoaded else { return }
         let location = touch.location(in: self)
-        if !content.frame.contains(location), !(controller is UIAlertController), !controller.isModalInPresentation {
-            controller.dismiss(animated: true)
+        let anchoredAlert = (controller as? UIAlertController)?.isAnchored == true
+        if !content.frame.contains(location), !(controller is UIAlertController) || anchoredAlert, !controller.isModalInPresentation {
+            // The presentation controller's delegate may veto the dismissal and hears of it.
+            let adaptive = controller.presentationController?.adaptiveDelegate
+            if let presentation = controller.presentationController, let adaptive, !adaptive.presentationControllerShouldDismiss(presentation) {
+                adaptive.presentationControllerDidAttemptToDismiss(presentation)
+                return
+            }
+            if let presentation = controller.presentationController { adaptive?.presentationControllerWillDismiss(presentation) }
+            controller.dismiss(animated: true) { [weak controller] in
+                guard let controller, let presentation = controller.presentationController else { return }
+                presentation.adaptiveDelegate?.presentationControllerDidDismiss(presentation)
+                (presentation as? UIPopoverPresentationController)?.delegate?.popoverPresentationControllerDidDismissPopover(presentation as! UIPopoverPresentationController)
+            }
         }
     }
 
@@ -304,6 +341,12 @@ final class PresentationContainerView: UIView {
         guard let controller else { removeFromSuperview(); return }
         guard let content = controller.viewIfLoaded else { return }
         let size = bounds.size
+        if let alert = controller as? UIAlertController, alert.isAnchored {
+            // An anchored action sheet: a 240 pt card above its source with the arrow below it
+            // (the arrow outside the card's frame; uikit/alert/anchored).
+            layoutPopover(content, size: size, panelSize: alert.cardSize(width: UIAlertController.anchoredWidth), arrowInsideFrame: false)
+            return
+        }
         if let alert = controller as? UIAlertController {
             // The alert card: 300 wide (10 in from 320), centred.
             dimming.backgroundColor = UIColor(white: 0, alpha: 0.2)
@@ -315,20 +358,150 @@ final class PresentationContainerView: UIView {
             content.clipsToBounds = true
             return
         }
+        content.layer.popoverArrow = nil
         switch controller.modalPresentationStyle {
         case .fullScreen, .overFullScreen, .currentContext, .overCurrentContext, .custom, .none:
             dimming.backgroundColor = .clear
             content.frame = bounds
+        case .popover where controller.popoverPresentationController?.staysPopover == true:
+            var panelSize = controller.preferredContentSize
+            if panelSize.width <= 0 || panelSize.height <= 0 { panelSize = CGSize(width: 320, height: 480) }
+            layoutPopover(content, size: size, panelSize: panelSize, arrowInsideFrame: true)
         default:
-            // The page sheet: a card 29.86875 down to the bottom (measured in a 500 pt window with
-            // no status bar; uikit/sheet/page), 38 pt top corners, over a 20 % dim.
             dimming.backgroundColor = UIColor(white: 0, alpha: 0.2)
-            let top: CGFloat = 29.86875
-            content.frame = CGRect(x: 0, y: top, width: size.width, height: size.height - 30)
-            content.layer.cornerRadius = 38
-            content.layer.cornerCurve = .continuous
-            content.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-            content.clipsToBounds = true
+            let sheet = controller.sheetPresentationController
+            if sheet?.currentDetent?.identifier == .medium || sheet?.currentDetent?.resolver != nil {
+                // The medium detent (uikit/sheet/medium, a 500 pt window): a card 0.592 of the
+                // window tall ending a third of a point above the bottom, scaled by 0.971318
+                // about its centre (4.59 in from the sides and the bottom), every corner 39; a
+                // custom detent takes the height its resolver gives.
+                var height = (size.height * Self.mediumDetentHeightFraction).rounded()
+                if let resolver = sheet?.currentDetent?.resolver, let custom = resolver(size.height - Self.sheetTop) { height = custom }
+                let radius = sheet?.preferredCornerRadius ?? 39
+                content.transform = .identity
+                content.frame = CGRect(x: 0, y: size.height - height - Self.mediumDetentBottomGap, width: size.width, height: height)
+                content.transform = CGAffineTransform(scaleX: Self.mediumDetentScale, y: Self.mediumDetentScale)
+                content.layer.cornerRadius = radius
+                content.layer.cornerCurve = .continuous
+                content.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+                content.clipsToBounds = true
+            } else {
+                // The page sheet: a card 29.86875 down to the bottom (measured in a 500 pt window with
+                // no status bar; uikit/sheet/page), 38 pt top corners, over a 20 % dim.
+                content.transform = .identity
+                content.frame = CGRect(x: 0, y: Self.sheetTop, width: size.width, height: size.height - 30)
+                content.layer.cornerRadius = sheet?.preferredCornerRadius ?? 38
+                content.layer.cornerCurve = .continuous
+                content.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+                content.clipsToBounds = true
+            }
+            layoutGrabber(over: content, visible: sheet?.prefersGrabberVisible == true)
         }
+    }
+
+    static let sheetTop: CGFloat = 29.86875
+    // Fitted to uikit/sheet/medium's frames (a 500 pt window) to a hundredth of a point: the
+    // card is 296 tall (0.592 of the window) and scaled 0.9713175 about its centre.
+    static let mediumDetentHeightFraction: CGFloat = 0.592
+    static let mediumDetentBottomGap: CGFloat = 0.3343
+    static let mediumDetentScale: CGFloat = 0.9713175
+
+    /// The grabber: 34 × 5, 5.5 below the card's top, black at 25 % (uikit/sheet/medium).
+    private var grabber: GrabberView?
+
+    private func layoutGrabber(over content: UIView, visible: Bool) {
+        guard visible else { grabber?.removeFromSuperview(); grabber = nil; return }
+        let view = grabber ?? GrabberView(frame: .zero)
+        if view.superview !== self { addSubview(view) }
+        grabber = view
+        view.frame = CGRect(x: content.frame.midX - 17, y: content.frame.minY + 5.5, width: 34, height: 5)
+        bringSubviewToFront(view)
+    }
+
+    /// A popover (or an anchored action sheet): a card of `panelSize` centred on its source,
+    /// 13 above it with a 24 × 13 arrow pointing at the source's centre (below it when there is
+    /// no room above), 34 pt corners, no dim, a soft shadow (uikit/popover/basic). A presented
+    /// controller's view spans the arrow too (133 tall for a 120 pt content size); the alert
+    /// card keeps the arrow outside its frame.
+    private func layoutPopover(_ content: UIView, size: CGSize, panelSize: CGSize, arrowInsideFrame: Bool) {
+        dimming.backgroundColor = .clear
+        guard let popover = controller?.popoverPresentationController else { content.frame = bounds; return }
+        var panelSize = panelSize
+        panelSize.width = min(panelSize.width, size.width - 2 * popover.popoverLayoutMargins.left)
+        panelSize.height = min(panelSize.height, size.height - 2 * popover.popoverLayoutMargins.top)
+        let source = popover.sourceFrame(in: self) ?? CGRect(x: size.width / 2, y: size.height / 2, width: 0, height: 0)
+        let arrow = Self.popoverArrowSize
+        let fitsAbove = source.minY - arrow.height - panelSize.height >= popover.popoverLayoutMargins.top
+        let pointsDown = popover.permittedArrowDirections.contains(.down) && (fitsAbove || !popover.permittedArrowDirections.contains(.up))
+        popover.arrowDirection = pointsDown ? .down : .up
+        var x = (source.midX - panelSize.width / 2).rounded()
+        x = min(max(x, popover.popoverLayoutMargins.left), size.width - popover.popoverLayoutMargins.right - panelSize.width)
+        let cardY = pointsDown ? source.minY - arrow.height - panelSize.height : source.maxY + arrow.height
+        let arrowFrame = CGRect(x: source.midX - arrow.width / 2, y: pointsDown ? cardY + panelSize.height : cardY - arrow.height, width: arrow.width, height: arrow.height)
+        if arrowInsideFrame {
+            content.frame = CGRect(x: x, y: pointsDown ? cardY : cardY - arrow.height, width: panelSize.width, height: panelSize.height + arrow.height)
+            content.layer.popoverArrow = CGRect(x: arrowFrame.minX - content.frame.minX, y: arrowFrame.minY - content.frame.minY, width: arrow.width, height: arrow.height)
+            content.layer.popoverArrowPointsDown = pointsDown
+            content.layer.popoverCardHeight = panelSize.height
+            arrowView.isHidden = true
+        } else {
+            content.frame = CGRect(x: x, y: cardY, width: panelSize.width, height: panelSize.height)
+            arrowView.isHidden = false
+            if arrowView.superview !== self { addSubview(arrowView) }
+            arrowView.pointsDown = pointsDown
+            arrowView.frame = arrowFrame
+        }
+        content.layer.cornerRadius = Self.popoverCornerRadius
+        content.layer.cornerCurve = .continuous
+        content.clipsToBounds = true
+        // The soft shadow around a popover (the screen darkens to (236) beside the card and
+        // fades out over some 60 pt; approximated by the layer's shadow).
+        content.layer.shadowColor = RGBA(red: 0, green: 0, blue: 0, alpha: 1).cgColor
+        content.layer.shadowOpacity = 0.16
+        content.layer.shadowRadius = 30
+        content.layer.shadowOffset = CGSize(width: 0, height: 10)
+    }
+
+    static let popoverArrowSize = CGSize(width: 24, height: 13)
+    static let popoverCornerRadius: CGFloat = 34
+    private lazy var arrowView = PopoverArrowView(frame: .zero)
+}
+
+/// The sheet's grabber.
+@MainActor
+final class GrabberView: UIView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+    }
+    override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
+        let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
+        list.append(.fillRRect(rect, cornerRadius: rect.height / 2, RGBA(red: 0, green: 0, blue: 0, alpha: 0.25)))
+    }
+}
+
+/// A popover's arrow (the panel's colour).
+@MainActor
+final class PopoverArrowView: UIView {
+    var pointsDown = true { didSet { setNeedsDisplay() } }
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+    }
+    override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
+        let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
+        var path = Path()
+        if pointsDown {
+            path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        } else {
+            path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+            path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        }
+        path.closeSubpath()
+        // The alert card's arrow takes the anchored card's colour.
+        list.append(.fillPath(path, style == .dark ? RGBA(r: 44, g: 44, b: 46, a: 1) : RGBA(r: 244, g: 244, b: 244, a: 1)))
     }
 }

@@ -6370,7 +6370,29 @@ public static let steps = Fixture(
     .probe("row")
 }
 """#),
-        FixtureSource(name: "uikit/alert/basic", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 30, lastLine: 46, declaration: #"""
+        FixtureSource(name: "uikit/alert/anchored", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 74, lastLine: 93, declaration: #"""
+/// An action sheet anchored to a button (its popover presentation controller's source).
+public static let anchoredSheet = UIKitFixture("uikit/alert/anchored", size: CGSize(width: 320, height: 500),
+                                               model: { PresentationModel() },
+                                               steps: [UIKitFixtureStep("present") { model in
+                                                           guard let source = model.presenter as? SourceController else { return }
+                                                           let sheet = UIAlertController(title: "Share", message: nil, preferredStyle: .actionSheet)
+                                                           sheet.addAction(UIAlertAction(title: "Copy Link", style: .default))
+                                                           sheet.addAction(UIAlertAction(title: "Save Image", style: .default))
+                                                           sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                                           sheet.popoverPresentationController?.sourceView = source.button
+                                                           sheet.popoverPresentationController?.sourceRect = source.button.bounds
+                                                           source.present(sheet, animated: false)
+                                                           model.presented = sheet
+                                                           sheet.view.probe("sheet")
+                                                       }],
+                                               controller: { model in
+    let controller = SourceController()
+    model.presenter = controller
+    return controller
+}).capturesWindow()
+"""#),
+        FixtureSource(name: "uikit/alert/basic", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 151, lastLine: 167, declaration: #"""
 /// An alert with a title, a message, a cancel action and a destructive one.
 public static let alert = UIKitFixture("uikit/alert/basic", size: CGSize(width: 320, height: 500),
                                        model: { PresentationModel() },
@@ -6389,7 +6411,7 @@ public static let alert = UIKitFixture("uikit/alert/basic", size: CGSize(width: 
     return controller
 }).capturesWindow()
 """#),
-        FixtureSource(name: "uikit/alert/sheet", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 89, lastLine: 105, declaration: #"""
+        FixtureSource(name: "uikit/alert/sheet", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 210, lastLine: 226, declaration: #"""
 /// An action sheet with two actions and cancel.
 public static let actionSheet = UIKitFixture("uikit/alert/sheet", size: CGSize(width: 320, height: 500),
                                              model: { PresentationModel() },
@@ -6408,7 +6430,7 @@ public static let actionSheet = UIKitFixture("uikit/alert/sheet", size: CGSize(w
     return controller
 }).capturesWindow()
 """#),
-        FixtureSource(name: "uikit/alert/textfield", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 48, lastLine: 65, declaration: #"""
+        FixtureSource(name: "uikit/alert/textfield", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 169, lastLine: 186, declaration: #"""
 /// An alert with one text field (a rename prompt).
 public static let alertField = UIKitFixture("uikit/alert/textfield", size: CGSize(width: 320, height: 500),
                                             model: { PresentationModel() },
@@ -6428,7 +6450,7 @@ public static let alertField = UIKitFixture("uikit/alert/textfield", size: CGSiz
     return controller
 }).capturesWindow()
 """#),
-        FixtureSource(name: "uikit/alert/textfields", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 67, lastLine: 87, declaration: #"""
+        FixtureSource(name: "uikit/alert/textfields", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 188, lastLine: 208, declaration: #"""
 /// An alert with two text fields (a sign-in prompt), the second secure with text.
 public static let alertFields = UIKitFixture("uikit/alert/textfields", size: CGSize(width: 320, height: 500),
                                              model: { PresentationModel() },
@@ -7543,6 +7565,64 @@ public static let basic = UIKitFixture("uikit/picker/basic", size: CGSize(width:
     return root
 }
 """#),
+        FixtureSource(name: "uikit/popover/adapted", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 124, lastLine: 149, declaration: #"""
+/// A popover left to adapt on the iPhone (a sheet).
+public static let adaptedPopover = UIKitFixture("uikit/popover/adapted", size: CGSize(width: 320, height: 500),
+                                                model: { PresentationModel() },
+                                                steps: [UIKitFixtureStep("present") { model in
+                                                            guard let source = model.presenter as? SourceController else { return }
+                                                            let presented = UIViewController()
+                                                            presented.view.backgroundColor = .systemBackground
+                                                            presented.preferredContentSize = CGSize(width: 240, height: 120)
+                                                            presented.modalPresentationStyle = .popover
+                                                            let label = UILabel()
+                                                            label.text = "Popover"
+                                                            label.font = .systemFont(ofSize: 17)
+                                                            label.sizeToFit()
+                                                            label.frame.origin = CGPoint(x: 16, y: 16)
+                                                            presented.view.addSubview(label.probe("popoverLabel"))
+                                                            presented.popoverPresentationController?.sourceView = source.button
+                                                            presented.popoverPresentationController?.sourceRect = source.button.bounds
+                                                            source.present(presented, animated: false)
+                                                            model.presented = presented
+                                                            presented.view.probe("popover")
+                                                        }],
+                                                controller: { model in
+    let controller = SourceController()
+    model.presenter = controller
+    return controller
+}).capturesWindow()
+"""#),
+        FixtureSource(name: "uikit/popover/basic", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 95, lastLine: 122, declaration: #"""
+/// A popover kept a popover on the iPhone: an arrowed panel of its preferred content size.
+public static let popover = UIKitFixture("uikit/popover/basic", size: CGSize(width: 320, height: 500),
+                                         model: { PresentationModel() },
+                                         steps: [UIKitFixtureStep("present") { model in
+                                                     guard let source = model.presenter as? SourceController else { return }
+                                                     let presented = UIViewController()
+                                                     presented.view.backgroundColor = .systemBackground
+                                                     presented.preferredContentSize = CGSize(width: 240, height: 120)
+                                                     presented.modalPresentationStyle = .popover
+                                                     let label = UILabel()
+                                                     label.text = "Popover"
+                                                     label.font = .systemFont(ofSize: 17)
+                                                     label.sizeToFit()
+                                                     label.frame.origin = CGPoint(x: 16, y: 16)
+                                                     presented.view.addSubview(label.probe("popoverLabel"))
+                                                     presented.popoverPresentationController?.sourceView = source.button
+                                                     presented.popoverPresentationController?.sourceRect = source.button.bounds
+                                                     presented.popoverPresentationController?.permittedArrowDirections = .down
+                                                     presented.popoverPresentationController?.delegate = PopoverKeeper.shared
+                                                     source.present(presented, animated: false)
+                                                     model.presented = presented
+                                                     presented.view.probe("popover")
+                                                 }],
+                                         controller: { model in
+    let controller = SourceController()
+    model.presenter = controller
+    return controller
+}).capturesWindow()
+"""#),
         FixtureSource(name: "uikit/search/basic", file: "Fixtures/UIKit/Bars/BarFixtures.swift", firstLine: 75, lastLine: 102, declaration: #"""
 public static let search = UIKitFixture("uikit/search/basic", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
@@ -7600,7 +7680,34 @@ public static let scope = UIKitFixture("uikit/search/scope", size: CGSize(width:
     return root
 }
 """#),
-        FixtureSource(name: "uikit/sheet/page", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 107, lastLine: 127, declaration: #"""
+        FixtureSource(name: "uikit/sheet/medium", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 48, lastLine: 72, declaration: #"""
+/// A presented controller at the medium detent with the grabber (uk-sheets).
+public static let mediumSheet = UIKitFixture("uikit/sheet/medium", size: CGSize(width: 320, height: 500),
+                                             model: { PresentationModel() },
+                                             steps: [UIKitFixtureStep("present") { model in
+                                                         let presented = UIViewController()
+                                                         presented.view.backgroundColor = .systemGroupedBackground
+                                                         let label = UILabel()
+                                                         label.text = "Presented"
+                                                         label.font = .systemFont(ofSize: 17)
+                                                         label.sizeToFit()
+                                                         label.frame.origin = CGPoint(x: 16, y: 16)
+                                                         presented.view.addSubview(label.probe("presentedLabel"))
+                                                         if let sheet = presented.sheetPresentationController {
+                                                             sheet.detents = [.medium(), .large()]
+                                                             sheet.prefersGrabberVisible = true
+                                                         }
+                                                         model.presenter?.present(presented, animated: false)
+                                                         model.presented = presented
+                                                         presented.view.probe("presented")
+                                                     }],
+                                             controller: { model in
+    let controller = PresentingController()
+    model.presenter = controller
+    return controller
+}).capturesWindow()
+"""#),
+        FixtureSource(name: "uikit/sheet/page", file: "Fixtures/UIKit/Presentation/PresentationFixtures.swift", firstLine: 228, lastLine: 248, declaration: #"""
 /// A view controller presented as a page sheet (the iPhone default).
 public static let pageSheet = UIKitFixture("uikit/sheet/page", size: CGSize(width: 320, height: 500),
                                            model: { PresentationModel() },
@@ -18625,8 +18732,129 @@ final class PresentingController: UIViewController {
     }
 }
 
+/// A screen with a button at a known place, the source of anchored presentations.
+final class SourceController: UIViewController {
+    let button = UIButton(type: .system)
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        button.setTitle("Options", for: .normal)
+        button.frame = CGRect(x: 110, y: 300, width: 100, height: 44)
+        view.addSubview(button.probe("source"))
+    }
+}
+
+/// Lets a popover stay a popover on the iPhone (the default adapts it to a sheet).
+final class PopoverKeeper: NSObject, UIPopoverPresentationControllerDelegate {
+    static let shared = PopoverKeeper()
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle { .none }
+}
+
 public enum PresentationFixtures {
-    public static let all = [alert, actionSheet, pageSheet, alertField, alertFields]
+    public static let all = [alert, actionSheet, pageSheet, alertField, alertFields, mediumSheet, anchoredSheet, popover, adaptedPopover]
+
+    /// A presented controller at the medium detent with the grabber (uk-sheets).
+    public static let mediumSheet = UIKitFixture("uikit/sheet/medium", size: CGSize(width: 320, height: 500),
+                                                 model: { PresentationModel() },
+                                                 steps: [UIKitFixtureStep("present") { model in
+                                                             let presented = UIViewController()
+                                                             presented.view.backgroundColor = .systemGroupedBackground
+                                                             let label = UILabel()
+                                                             label.text = "Presented"
+                                                             label.font = .systemFont(ofSize: 17)
+                                                             label.sizeToFit()
+                                                             label.frame.origin = CGPoint(x: 16, y: 16)
+                                                             presented.view.addSubview(label.probe("presentedLabel"))
+                                                             if let sheet = presented.sheetPresentationController {
+                                                                 sheet.detents = [.medium(), .large()]
+                                                                 sheet.prefersGrabberVisible = true
+                                                             }
+                                                             model.presenter?.present(presented, animated: false)
+                                                             model.presented = presented
+                                                             presented.view.probe("presented")
+                                                         }],
+                                                 controller: { model in
+        let controller = PresentingController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
+
+    /// An action sheet anchored to a button (its popover presentation controller's source).
+    public static let anchoredSheet = UIKitFixture("uikit/alert/anchored", size: CGSize(width: 320, height: 500),
+                                                   model: { PresentationModel() },
+                                                   steps: [UIKitFixtureStep("present") { model in
+                                                               guard let source = model.presenter as? SourceController else { return }
+                                                               let sheet = UIAlertController(title: "Share", message: nil, preferredStyle: .actionSheet)
+                                                               sheet.addAction(UIAlertAction(title: "Copy Link", style: .default))
+                                                               sheet.addAction(UIAlertAction(title: "Save Image", style: .default))
+                                                               sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                                               sheet.popoverPresentationController?.sourceView = source.button
+                                                               sheet.popoverPresentationController?.sourceRect = source.button.bounds
+                                                               source.present(sheet, animated: false)
+                                                               model.presented = sheet
+                                                               sheet.view.probe("sheet")
+                                                           }],
+                                                   controller: { model in
+        let controller = SourceController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
+
+    /// A popover kept a popover on the iPhone: an arrowed panel of its preferred content size.
+    public static let popover = UIKitFixture("uikit/popover/basic", size: CGSize(width: 320, height: 500),
+                                             model: { PresentationModel() },
+                                             steps: [UIKitFixtureStep("present") { model in
+                                                         guard let source = model.presenter as? SourceController else { return }
+                                                         let presented = UIViewController()
+                                                         presented.view.backgroundColor = .systemBackground
+                                                         presented.preferredContentSize = CGSize(width: 240, height: 120)
+                                                         presented.modalPresentationStyle = .popover
+                                                         let label = UILabel()
+                                                         label.text = "Popover"
+                                                         label.font = .systemFont(ofSize: 17)
+                                                         label.sizeToFit()
+                                                         label.frame.origin = CGPoint(x: 16, y: 16)
+                                                         presented.view.addSubview(label.probe("popoverLabel"))
+                                                         presented.popoverPresentationController?.sourceView = source.button
+                                                         presented.popoverPresentationController?.sourceRect = source.button.bounds
+                                                         presented.popoverPresentationController?.permittedArrowDirections = .down
+                                                         presented.popoverPresentationController?.delegate = PopoverKeeper.shared
+                                                         source.present(presented, animated: false)
+                                                         model.presented = presented
+                                                         presented.view.probe("popover")
+                                                     }],
+                                             controller: { model in
+        let controller = SourceController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
+
+    /// A popover left to adapt on the iPhone (a sheet).
+    public static let adaptedPopover = UIKitFixture("uikit/popover/adapted", size: CGSize(width: 320, height: 500),
+                                                    model: { PresentationModel() },
+                                                    steps: [UIKitFixtureStep("present") { model in
+                                                                guard let source = model.presenter as? SourceController else { return }
+                                                                let presented = UIViewController()
+                                                                presented.view.backgroundColor = .systemBackground
+                                                                presented.preferredContentSize = CGSize(width: 240, height: 120)
+                                                                presented.modalPresentationStyle = .popover
+                                                                let label = UILabel()
+                                                                label.text = "Popover"
+                                                                label.font = .systemFont(ofSize: 17)
+                                                                label.sizeToFit()
+                                                                label.frame.origin = CGPoint(x: 16, y: 16)
+                                                                presented.view.addSubview(label.probe("popoverLabel"))
+                                                                presented.popoverPresentationController?.sourceView = source.button
+                                                                presented.popoverPresentationController?.sourceRect = source.button.bounds
+                                                                source.present(presented, animated: false)
+                                                                model.presented = presented
+                                                                presented.view.probe("popover")
+                                                            }],
+                                                    controller: { model in
+        let controller = SourceController()
+        model.presenter = controller
+        return controller
+    }).capturesWindow()
 
     /// An alert with a title, a message, a cancel action and a destructive one.
     public static let alert = UIKitFixture("uikit/alert/basic", size: CGSize(width: 320, height: 500),

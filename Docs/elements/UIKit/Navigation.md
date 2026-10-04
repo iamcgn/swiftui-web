@@ -55,7 +55,38 @@ on iOS 26 (`scripts/gen-goldens-sim.sh uikit --dump uikit/nav/` shows UIKit's ba
   with 10 pt medium titles. The selected child's view fills the container; its safe area's
   bottom is the band.
 
-Open: the interactive pop gesture, `titleView` sizing, large-title collapse on scroll,
-`hidesBottomBarWhenPushed`, tab bar badges and the More tab, appearance objects (accepted).
-(Toolbars and `UISearchController` in the bar landed: `Docs/elements/UIKit/Bars.md`,
+## Interactive pop, large-title collapse, title views, hidden tab bars, custom transitions (2026-10-04)
+
+- `interactivePopGestureRecognizer` is a `UIScreenEdgePanGestureRecognizer` on the left edge:
+  with more than one controller on the stack the top screen follows the finger across, the one
+  below slides in from a third of the width behind under a fading 10 % veil (the push slide's
+  geometry); releasing past half the width, or faster than 300 pt/s, completes the pop over
+  the slide's remaining time and then pops the model (the delegate hears `didShow`); a shorter,
+  slower release settles the screens back. The bar updates when the pop completes (UIKit
+  crossfades it during the drag: open).
+- The large title collapses as the content scrolls: a `UIScrollView` inside the top screen
+  reports its offset to the navigation controller through the responder chain
+  (`contentDidScroll`); scrolled past the large title's height (52.5) the bar shrinks to the
+  inline 54 pt bar and the content's safe area with it, the content under the bar staying put
+  (a scroll view with the automatic inset adjustment keeps its offset); back at the top it
+  expands again. This is SwiftUI's measured iOS behaviour (`ios/nav/scroll`, `Docs/elements/
+  Navigation.md`), applied to UIKit's bar; the intermediate states (the title shrinking with
+  the scroll) are not drawn: the bar flips between the two heights.
+- `titleView` takes its intrinsic size (else what it says fits, else its frame), at most the
+  room between the items, centred in the bar's content area and moved off centre only when it
+  would cover an item.
+- `hidesBottomBarWhenPushed` on a controller pushed above a tab's root hides the tab bar while
+  it or anything above it is on the stack (the bar does not slide away with the push: open);
+  the content's safe area bottom becomes 0.
+- Custom transitions: a `UINavigationControllerDelegate` returning an animator from
+  `navigationController(_:animationControllerFor:from:to:)` moves the screens itself through
+  `UIViewControllerContextTransitioning` (`containerView` is the navigation view, the new
+  screen is already in it under the bar, `finalFrame(for:)` the container's bounds); the
+  leaving screen is removed and the appearance transitions end when the animator calls
+  `completeTransition`. `Docs/elements/UIKit/Presentation.md` has the presentation side.
+- `NavigationPolishTests` cover each; no golden changes (the resting looks are the same).
+
+Open: the bar crossfading during an interactive pop, the title shrinking with the scroll, the
+tab bar sliding away with a push, tab bar badges and the More tab, appearance objects
+(accepted). (Toolbars and `UISearchController` in the bar landed: `Docs/elements/UIKit/Bars.md`,
 `uikit/nav/toolbar`, `uikit/nav/search`.)

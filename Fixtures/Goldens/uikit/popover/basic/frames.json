@@ -1,0 +1,40 @@
+{
+  "fixture" : "uikit\/popover\/basic",
+  "frames" : {
+    "source" : {
+      "height" : 44,
+      "width" : 100,
+      "x" : 110,
+      "y" : 300
+    }
+  },
+  "size" : {
+    "height" : 500,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "popover" : {
+          "height" : 133,
+          "width" : 240,
+          "x" : 40,
+          "y" : 167
+        },
+        "popoverLabel" : {
+          "height" : 20.5,
+          "width" : 63,
+          "x" : 56,
+          "y" : 183
+        },
+        "source" : {
+          "height" : 44,
+          "width" : 100,
+          "x" : 110,
+          "y" : 300
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

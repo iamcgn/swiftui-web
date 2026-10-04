@@ -169,6 +169,12 @@ open class CALayer {
     open var name: String?
     /// A mask layer: its alpha clips this layer's content (its own fill and shape, if any).
     open var mask: CALayer?
+    /// A popover's shape (Containers/UIAlertController.swift): the card's rounded rect over
+    /// `popoverCardHeight` with the arrow at `popoverArrow` (in the layer's bounds); the
+    /// background fills it and `masksToBounds` clips to it.
+    package var popoverArrow: CGRect? { didSet { setNeedsDisplay() } }
+    var popoverArrowPointsDown = true
+    var popoverCardHeight: CGFloat = 0
 
     // MARK: Tree
 

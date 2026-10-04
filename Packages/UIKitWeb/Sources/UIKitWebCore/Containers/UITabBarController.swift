@@ -76,11 +76,19 @@ open class UITabBarController: UIViewController {
         view.setNeedsLayout()
     }
 
+    /// Whether the selected navigation stack has a pushed controller hiding the bar.
+    var hidesTabBarForPushedController: Bool {
+        guard let navigation = selectedViewController as? UINavigationController else { return false }
+        return navigation.viewControllers.dropFirst().contains { $0.hidesBottomBarWhenPushed }
+    }
+
     open override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         guard let view = viewIfLoaded else { return }
         let height = UITabBar.barHeight + view.safeAreaInsets.bottom
         tabBar.frame = CGRect(x: 0, y: view.bounds.height - height, width: view.bounds.width, height: height)
+        // A controller pushed with `hidesBottomBarWhenPushed` (or any above it) hides the bar.
+        tabBar.isHidden = hidesTabBarForPushedController
         if let content = selectedViewController?.viewIfLoaded {
             content.frame = view.bounds
             content.containerSafeAreaInsets = UIEdgeInsets(top: 0, left: 0, bottom: tabBar.isHidden ? 0 : height, right: 0)

@@ -1245,13 +1245,15 @@
       "framework": "UIKit",
       "area": "Navigation",
       "title": "Interactive pop, large-title collapse, custom transitions",
-      "detail": "The edge-pan interactive pop, the large title collapsing as the content scrolls (SwiftUI's iOS profile has it), `titleView` sizing, `hidesBottomBarWhenPushed`, `UIViewControllerTransitioningDelegate` and animated transitioning, the appearance objects (accepted).",
+      "detail": "Done 2026-10-04: the interactive pop on a left-edge pan (the screens follow the finger; past half the width or fast completes), the large title collapsing once the top screen's scroll view passes its height and expanding back at the top (SwiftUI's iOS model), titleView sizing from its intrinsic size within the room between items, hidesBottomBarWhenPushed hiding the tab bar for pushed controllers, UIViewControllerTransitioningDelegate / UIViewControllerAnimatedTransitioning / UIViewControllerContextTransitioning for presentations and the navigation delegate's animator for pushes (NavigationPolishTests); the appearance objects stay accepted.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
-        "Docs/elements/UIKit/Navigation.md"
-      ]
+        "Docs/elements/UIKit/Navigation.md",
+        "Docs/elements/UIKit/Presentation.md"
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-tabbar",
@@ -1271,13 +1273,14 @@
       "framework": "UIKit",
       "area": "Presentation",
       "title": "Sheet detents, popovers and custom presentations",
-      "detail": "`UISheetPresentationController` with detents and the grabber, `popover` (a sheet on iPhone, an arrowed popover on iPad and Mac), the alert `severity` badge, action sheets anchored to bar items, `UIPresentationController` subclasses.",
+      "detail": "Done 2026-10-04: UISheetPresentationController (detents with medium measured on the simulator, custom resolvers, the grabber, preferredCornerRadius, animateChanges), UIPopoverPresentationController (an arrowed card above or below its source when the delegate keeps it a popover, the page sheet otherwise), action sheets anchored to a source view or bar button item, the adaptive delegates' dismissal callbacks, UIPresentationController subclasses accepted; uikit/sheet/medium (fitted to a hundredth), uikit/popover/basic, uikit/popover/adapted and uikit/alert/anchored measured. The alert severity badge is Mac Catalyst only (accepted).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Presentation.md"
-      ]
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "uk-system-sheets",

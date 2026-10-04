@@ -43,8 +43,11 @@ extension CALayer {
             groups += 1
         }
         let radius = cornerRadius > 0 && maskedCorners == .all ? min(cornerRadius, min(rect.width, rect.height) / 2) : 0
+        let popoverShape = popoverArrow.map { Self.popoverPath(rect, arrow: $0, pointsDown: popoverArrowPointsDown, cardHeight: popoverCardHeight, radius: cornerRadius) }
         if let color = background, color.alpha > 0 {
-            if cornerRadius > 0, maskedCorners != .all {
+            if let popoverShape {
+                list.append(.fillPath(popoverShape, color))
+            } else if cornerRadius > 0, maskedCorners != .all {
                 list.append(.fillPath(Self.cornerPath(rect, radius: cornerRadius, corners: maskedCorners, curve: cornerCurve), color))
             } else if radius > 0 {
                 if cornerCurve == .continuous {
@@ -58,7 +61,9 @@ extension CALayer {
         }
         if masksToBounds {
             list.append(.save)
-            if cornerRadius > 0, maskedCorners != .all {
+            if let popoverShape {
+                list.append(.clipPath(popoverShape))
+            } else if cornerRadius > 0, maskedCorners != .all {
                 list.append(.clipPath(Self.cornerPath(rect, radius: cornerRadius, corners: maskedCorners, curve: cornerCurve)))
             } else if radius > 0 {
                 list.append(cornerCurve == .continuous ? .clipPath(Path(roundedRect: rect, cornerRadius: radius, style: .continuous)) : .clipRRect(rect, cornerRadius: radius))
@@ -119,5 +124,26 @@ extension CAShapeLayer {
             list.append(.strokePath(absolute, style: StrokeStyle(lineWidth: lineWidth, lineCap: lineCap, lineJoin: lineJoin, miterLimit: miterLimit,
                                                                  dash: lineDashPattern ?? [], dashPhase: lineDashPhase), color))
         }
+    }
+}
+
+extension CALayer {
+    /// A popover's card with its arrow: the rounded card over `cardHeight` (at the top when the
+    /// arrow points down, else under the arrow) and the arrow's triangle, one path.
+    static func popoverPath(_ rect: CGRect, arrow: CGRect, pointsDown: Bool, cardHeight: CGFloat, radius: CGFloat) -> Path {
+        let card = CGRect(x: rect.minX, y: pointsDown ? rect.minY : rect.minY + (rect.height - cardHeight), width: rect.width, height: cardHeight)
+        var path = Path(roundedRect: card, cornerRadius: min(radius, min(card.width, card.height) / 2), style: .continuous)
+        let a = CGRect(x: rect.minX + arrow.minX, y: rect.minY + arrow.minY, width: arrow.width, height: arrow.height)
+        if pointsDown {
+            path.move(to: CGPoint(x: a.minX, y: a.minY - 1))
+            path.addLine(to: CGPoint(x: a.midX, y: a.maxY))
+            path.addLine(to: CGPoint(x: a.maxX, y: a.minY - 1))
+        } else {
+            path.move(to: CGPoint(x: a.minX, y: a.maxY + 1))
+            path.addLine(to: CGPoint(x: a.midX, y: a.minY))
+            path.addLine(to: CGPoint(x: a.maxX, y: a.maxY + 1))
+        }
+        path.closeSubpath()
+        return path
     }
 }

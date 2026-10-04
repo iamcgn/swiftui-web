@@ -71,7 +71,7 @@ final class Host {
     /// Lets the animations a step started finish (goldens hold end states): a sheet's spring
     /// was still 0.13 pt short of its rest after half a second.
     func settle() {
-        RunLoop.main.run(until: Date().addingTimeInterval(1.2))
+        RunLoop.main.run(until: Date().addingTimeInterval(2.5))
     }
 
     func png(scale: Int) throws -> (data: Data, width: Int, height: Int) {

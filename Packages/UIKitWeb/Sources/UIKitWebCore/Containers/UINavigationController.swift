@@ -21,7 +21,13 @@ open class UINavigationController: UIViewController {
     private weak var hostedSearchBar: UISearchBar?
     open var hidesBarsOnSwipe = false
     open var hidesBarsWhenKeyboardAppears = false
-    open var interactivePopGestureRecognizer: UIGestureRecognizer? { nil }
+    /// The edge pan that pops interactively: the top screen follows the finger, the one below
+    /// slides in behind it; releasing past half the width (or fast) completes the pop.
+    public private(set) var interactivePopGestureRecognizer: UIGestureRecognizer?
+    private var interactivePop: (top: UIView, previous: UIView, veil: UIView)?
+
+    /// The operation a push or pop performs (`UINavigationControllerDelegate`'s animator).
+    public enum Operation: Int, Sendable { case none = 0, push, pop }
 
     public init(rootViewController: UIViewController) {
         super.init(nibName: nil, bundle: nil)
@@ -46,7 +52,112 @@ open class UINavigationController: UIViewController {
         toolbar.isFloating = true
         toolbar.isHidden = isToolbarHidden
         view.addSubview(toolbar)
+        let edge = UIScreenEdgePanGestureRecognizer()
+        edge.edges = .left
+        edge.addTarget { [weak self] recognizer in self?.handleInteractivePop(recognizer as! UIScreenEdgePanGestureRecognizer) }
+        view.addGestureRecognizer(edge)
+        interactivePopGestureRecognizer = edge
         showTop()
+    }
+
+    // MARK: Interactive pop
+
+    private func handleInteractivePop(_ pan: UIScreenEdgePanGestureRecognizer) {
+        guard let view = viewIfLoaded else { return }
+        let width = view.bounds.width
+        switch pan.state {
+        case .began:
+            guard viewControllers.count > 1, let top = topViewController?.viewIfLoaded, let previous = viewControllers[viewControllers.count - 2].view else { return }
+            previous.frame = CGRect(x: -width / 3, y: 0, width: width, height: view.bounds.height)
+            view.insertSubview(previous, belowSubview: top)
+            let veil = UIView(frame: view.bounds)
+            veil.backgroundColor = UIColor(white: 0, alpha: 0.1)
+            veil.isUserInteractionEnabled = false
+            view.insertSubview(veil, aboveSubview: previous)
+            interactivePop = (top, previous, veil)
+            follow(pan)
+        case .changed:
+            follow(pan)
+        case .ended, .cancelled, .failed:
+            guard let pop = interactivePop else { return }
+            interactivePop = nil
+            let progress = min(max(pan.translation(in: view).x / width, 0), 1)
+            let completes = pan.state == .ended && (progress > 0.5 || pan.velocity(in: view).x > 300)
+            let remaining = completes ? 1 - progress : progress
+            UIView.animate(withDuration: Self.slideDuration * Double(remaining), delay: 0, options: .curveEaseOut, animations: {
+                pop.top.frame.origin.x = completes ? width : 0
+                pop.previous.frame.origin.x = completes ? 0 : -width / 3
+                pop.veil.backgroundColor = UIColor(white: 0, alpha: completes ? 0 : 0.1)
+            }, completion: { [weak self] _ in
+                pop.veil.removeFromSuperview()
+                guard let self else { return }
+                if completes {
+                    // The previous screen is in place: the model pop keeps it and drops the top.
+                    self.setViewControllers(Array(self.viewControllers.dropLast()), animated: false)
+                } else {
+                    pop.previous.removeFromSuperview()
+                    pop.previous.frame.origin.x = 0
+                }
+            })
+        default:
+            break
+        }
+    }
+
+    /// The screens follow the finger: the top one by the translation, the one below from a
+    /// third of the width behind to its place, the veil fading with it.
+    private func follow(_ pan: UIScreenEdgePanGestureRecognizer) {
+        guard let pop = interactivePop, let view = viewIfLoaded else { return }
+        let width = view.bounds.width
+        let progress = min(max(pan.translation(in: view).x / width, 0), 1)
+        pop.top.frame.origin.x = progress * width
+        pop.previous.frame.origin.x = -width / 3 * (1 - progress)
+        pop.veil.backgroundColor = UIColor(white: 0, alpha: 0.1 * (1 - progress))
+    }
+
+    // MARK: Large title collapse
+
+    /// Whether the top screen's content has scrolled the large title away.
+    private(set) var largeTitleCollapsed = false
+
+    /// A scroll view inside the stack moved (`UIScrollView.contentOffset`). Scrolled past the
+    /// large title's height the bar collapses to the inline title (SwiftUI's iOS behaviour,
+    /// `Docs/elements/Navigation.md`: the content under the bar stays put, the bar shrinks);
+    /// back at the top it expands again.
+    func contentDidScroll(_ scrollView: UIScrollView) {
+        guard !applyingCollapse, navigationBar.prefersLargeTitles, navigationBar.showsLargeTitleAtRest,
+              let top = topViewController?.viewIfLoaded, scrollView.isDescendant(of: top), let view = viewIfLoaded else { return }
+        // How far the content scrolled from its rest under the expanded bar: the collapsed bar's
+        // inset is the large title's height shorter, so the reference stays the same either way.
+        let scrolled = scrollView.contentOffset.y + scrollView.adjustedContentInset.top + (largeTitleCollapsed ? UINavigationBar.largeTitleHeight : 0)
+        // Collapsed, the content rests exactly where it collapsed (UIKit's bar reopens as the
+        // content is pulled past the top): any pull beyond it expands the bar.
+        if !largeTitleCollapsed, scrolled >= UINavigationBar.largeTitleHeight {
+            largeTitleCollapsed = true
+        } else if largeTitleCollapsed, scrolled < UINavigationBar.largeTitleHeight - 0.5 {
+            largeTitleCollapsed = false
+        } else {
+            return
+        }
+        applyingCollapse = true
+        navigationBar.isCollapsed = largeTitleCollapsed
+        navigationBar.setNeedsLayout()
+        view.setNeedsLayout()
+        applyingCollapse = false
+    }
+
+    private var applyingCollapse = false
+
+    /// A wheel scroll tried to go above the content's top (`UIScrollView.scroll(by:)`): a
+    /// collapsed bar at rest expands.
+    func contentDidPullBeyondTop(_ scrollView: UIScrollView) {
+        guard largeTitleCollapsed, !applyingCollapse, let top = topViewController?.viewIfLoaded, scrollView.isDescendant(of: top), let view = viewIfLoaded else { return }
+        largeTitleCollapsed = false
+        applyingCollapse = true
+        navigationBar.isCollapsed = false
+        navigationBar.setNeedsLayout()
+        view.setNeedsLayout()
+        applyingCollapse = false
     }
 
     open func setNavigationBarHidden(_ hidden: Bool, animated: Bool) { isNavigationBarHidden = hidden }
@@ -96,6 +207,12 @@ open class UINavigationController: UIViewController {
             addChild(controller)
             controller.didMove(toParent: self)
         }
+        if controllers.last !== oldTop {
+            largeTitleCollapsed = false
+            navigationBar.isCollapsed = false
+            // The tab bar hides or shows for `hidesBottomBarWhenPushed`.
+            tabBarController?.viewIfLoaded?.setNeedsLayout()
+        }
         if let newTop = topViewController, newTop !== oldTop {
             delegate?.navigationController(self, willShow: newTop, animated: animated)
         }
@@ -128,7 +245,24 @@ open class UINavigationController: UIViewController {
                 content.frame = view.bounds
                 content.autoresizingMask = [.flexibleWidth, .flexibleHeight]
                 if hasAppeared { top.beginAppearanceTransition(true, animated: sliding != nil) }
-                if let sliding, let leavingView {
+                if let sliding, let leavingView, let previous,
+                   let animator = delegate?.navigationController(self, animationControllerFor: sliding.push ? .push : .pop, from: previous, to: top) {
+                    // The delegate's animator moves the screens itself.
+                    view.insertSubview(content, belowSubview: navigationBar)
+                    let context = TransitionContext(containerView: view, from: previous, to: top,
+                                                    initialFrames: [ObjectIdentifier(previous): leavingView.frame],
+                                                    finalFrames: [ObjectIdentifier(top): view.bounds, ObjectIdentifier(previous): leavingView.frame],
+                                                    onComplete: { [weak self] completed in
+                                                        leavingView.removeFromSuperview()
+                                                        leavingView.frame.origin = .zero
+                                                        animator.animationEnded(completed)
+                                                        if self?.hasAppeared == true {
+                                                            previous.endAppearanceTransition()
+                                                            top.endAppearanceTransition()
+                                                        }
+                                                    })
+                    animator.animateTransition(using: context)
+                } else if let sliding, let leavingView {
                     // The slide: the pushed screen starts off the trailing edge (a popped one a third
                     // to the leading side, behind) and both move together.
                     let startX: CGFloat = sliding.push ? width : -width / 3
@@ -219,7 +353,7 @@ open class UINavigationController: UIViewController {
         if let content = topViewController?.viewIfLoaded {
             // A screen mid-slide keeps its x (the animation owns it); its size follows the container.
             if content.frame.size != view.bounds.size { content.frame.size = view.bounds.size }
-            if content.layer.animatingGroups.isEmpty, content.frame.origin != .zero { content.frame.origin = .zero }
+            if content.layer.animatingGroups.isEmpty, content.frame.origin != .zero, interactivePop == nil { content.frame.origin = .zero }
             content.containerSafeAreaInsets = UIEdgeInsets(top: contentTop, left: 0, bottom: contentBottom, right: 0)
         }
     }
@@ -230,11 +364,16 @@ open class UINavigationController: UIViewController {
 public protocol UINavigationControllerDelegate: AnyObject {
     func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool)
     func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool)
+    /// An animator for a push or pop (nil for the standard slide).
+    func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation,
+                              from fromVC: UIViewController, to toVC: UIViewController) -> (any UIViewControllerAnimatedTransitioning)?
 }
 
 extension UINavigationControllerDelegate {
     public func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {}
     public func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {}
+    public func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation,
+                                     from fromVC: UIViewController, to toVC: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? { nil }
 }
 
 /// Navigational controls in a bar along the top of the screen.
@@ -276,8 +415,14 @@ open class UINavigationBar: UIView {
         addSubview(largeTitleLabel)
     }
 
-    /// Whether the top item shows a large title.
-    var showsLargeTitle: Bool {
+    /// Set while the top screen's content has scrolled the large title away.
+    var isCollapsed = false { didSet { if isCollapsed != oldValue { setNeedsLayout(); controller?.viewIfLoaded?.setNeedsLayout() } } }
+
+    /// Whether the top item shows a large title (collapsed by scrolling: the inline one).
+    var showsLargeTitle: Bool { showsLargeTitleAtRest && !isCollapsed }
+
+    /// Whether the top item would show a large title with its content at the top.
+    var showsLargeTitleAtRest: Bool {
         guard prefersLargeTitles, let item = topItem else { return false }
         switch item.largeTitleDisplayMode {
         case .always: return true
@@ -345,9 +490,18 @@ open class UINavigationBar: UIView {
             right -= button.platterWidth + 8
         }
         if let custom = item?.titleView {
+            // The title view: its intrinsic size (or what it says fits), at most the room between
+            // the items, centred in the bar's content area; off centre only when it has to be.
             if custom.superview !== self { addSubview(custom) }
-            let size = custom.sizeThatFits(CGSize(width: bounds.width - 2 * (x + 8), height: 44))
-            custom.frame = CGRect(x: (bounds.width - size.width) / 2, y: (44 - size.height) / 2, width: size.width, height: size.height)
+            let room = CGSize(width: max(0, right - x - 8), height: 44)
+            var size = custom.intrinsicContentSize
+            if size.width <= 0 || size.height <= 0 { size = custom.sizeThatFits(room) }
+            if size.width <= 0 || size.height <= 0 { size = custom.frame.size }
+            size.width = min(size.width, room.width)
+            size.height = min(size.height, room.height)
+            var originX = (bounds.width - size.width) / 2
+            originX = min(max(originX, x + 8), right - size.width)
+            custom.frame = CGRect(x: originX, y: (44 - size.height) / 2, width: size.width, height: size.height)
         }
     }
 

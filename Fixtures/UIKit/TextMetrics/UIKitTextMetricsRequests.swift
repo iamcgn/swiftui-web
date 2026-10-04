@@ -130,6 +130,11 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Cancel", .system(size: 17)),
         UIKitTextRequest("Delete", .system(size: 17)),
         UIKitTextRequest("Share", .system(size: 15), width: 244, lines: 0),
+        // uikit/sheet/medium, uikit/alert/anchored, uikit/popover/* (uk-sheets)
+        UIKitTextRequest("Popover", .system(size: 17)),
+        UIKitTextRequest("Options", .system(size: 17)),
+        UIKitTextRequest("Options", .system(size: 15)),
+        UIKitTextRequest("Share", .system(size: 15), width: 184, lines: 0),
         // uikit/alert/textfield, uikit/alert/textfields (13 pt fields)
         UIKitTextRequest("Rename", .system(size: 17, weight: "semibold"), width: 244, lines: 0),
         UIKitTextRequest("Enter a new name for the file.", .system(size: 15), width: 244, lines: 0),

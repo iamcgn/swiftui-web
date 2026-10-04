@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 33 | 0 | 22 | 11 |
+| UIKit | 31 | 0 | 20 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **71** | 0 | 23 | 48 |
+| **All** | **69** | 0 | 21 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,10 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Interactive pop, large-title collapse, custom transitions** `uk-nav-polish` · Navigation · missing  
-  The edge-pan interactive pop, the large title collapsing as the content scrolls (SwiftUI's iOS profile has it), `titleView` sizing, `hidesBottomBarWhenPushed`, `UIViewControllerTransitioningDelegate` and animated transitioning, the appearance objects (accepted). ([Navigation.md](Docs/elements/UIKit/Navigation.md))
-- ☐ **Sheet detents, popovers and custom presentations** `uk-sheets` · Presentation · missing  
-  `UISheetPresentationController` with detents and the grabber, `popover` (a sheet on iPhone, an arrowed popover on iPad and Mac), the alert `severity` badge, action sheets anchored to bar items, `UIPresentationController` subclasses. ([Presentation.md](Docs/elements/UIKit/Presentation.md))
 - ☐ **UIMenu presentation** `uk-menus` · Menus · accepted  
   `UIMenu` is a data holder today: `UIButton.menu` with `showsMenuAsPrimaryAction`, `UIBarButtonItem(menu:)`, `UIContextMenuInteraction` with previews, `UIEditMenuInteraction`; the iOS 26 menu card from the simulator. ([UIButton.md](Docs/elements/UIKit/UIButton.md), [Bars.md](Docs/elements/UIKit/Bars.md))
 - ☐ **UIButton images, subtitles and states** `uk-button` · Controls · missing  
@@ -200,6 +196,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **Focused values, sections and commands** `sw-focus` · SwiftUI · Focus and keyboard
 - ☑ 2026-10-04 **Custom actions, rotors and a VoiceOver session** `sw-accessibility` · SwiftUI · Accessibility
 - ☑ 2026-10-04 **Pinch, rotation, swipe and edge pans** `uk-gestures` · UIKit · Events
+- ☑ 2026-10-04 **Interactive pop, large-title collapse, custom transitions** `uk-nav-polish` · UIKit · Navigation
+- ☑ 2026-10-04 **Sheet detents, popovers and custom presentations** `uk-sheets` · UIKit · Presentation
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

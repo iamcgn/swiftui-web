@@ -69,6 +69,28 @@ open class UIViewController: UIResponder, UITraitEnvironment {
     open var edgesForExtendedLayout: UIRectEdge = .all
     open var modalPresentationStyle: UIModalPresentationStyle = .automatic
     open var modalTransitionStyle: UIModalTransitionStyle = .coverVertical
+    /// Supplies custom animators for the controller's presentation and dismissal.
+    open weak var transitioningDelegate: (any UIViewControllerTransitioningDelegate)?
+
+    private var _presentationController: UIPresentationController?
+
+    /// The controller managing the presentation: a sheet controller for the sheet styles (the
+    /// iPhone's `automatic`), a popover controller for `popover` and action sheets.
+    open var presentationController: UIPresentationController? {
+        if let existing = _presentationController { return existing }
+        let created: UIPresentationController?
+        switch modalPresentationStyle {
+        case .popover: created = UIPopoverPresentationController(presentedViewController: self, presenting: presentingViewController)
+        case .pageSheet, .formSheet, .automatic: created = UISheetPresentationController(presentedViewController: self, presenting: presentingViewController)
+        case .custom where self is UIAlertController: created = UIPopoverPresentationController(presentedViewController: self, presenting: presentingViewController)
+        default: created = nil
+        }
+        _presentationController = created
+        return created
+    }
+
+    open var sheetPresentationController: UISheetPresentationController? { presentationController as? UISheetPresentationController }
+    open var popoverPresentationController: UIPopoverPresentationController? { presentationController as? UIPopoverPresentationController }
     open var isModalInPresentation = false
     open var overrideUserInterfaceStyle: UIUserInterfaceStyle = .unspecified {
         didSet { viewIfLoaded?.overrideUserInterfaceStyle = overrideUserInterfaceStyle }

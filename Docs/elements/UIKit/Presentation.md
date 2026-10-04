@@ -29,8 +29,50 @@ root controller's view), from the iPhone SE simulator on iOS 26.
   present ... which is already presenting ..." and does the same); the first stays. The
   presentation container holds its controller weakly and leaves the window if the controller
   is released while presented.
+- Custom transitions (2026-10-04, `Containers/Transitioning.swift`): a presented controller's
+  `transitioningDelegate` returning an animator from `animationController(forPresented:
+  presenting:source:)` or `animationController(forDismissed:)` drives the presentation itself:
+  `UIViewControllerAnimatedTransitioning.animateTransition(using:)` gets a
+  `UIViewControllerContextTransitioning` whose `containerView` is the presentation container
+  (its dimming is clear for the `custom` style, as the container lays out), with the
+  controllers and views by key, `initialFrame(for:)` / `finalFrame(for:)` (the presented view's
+  frame as the container laid it out) and `completeTransition`, after which `animationEnded`
+  and the presenter's `completion` run and, for a dismissal, the container leaves the window.
+  Interaction controllers and `UIPresentationController` are accepted and ignored (transitions
+  run to completion; the container still places the presented view). `NavigationPolishTests`.
+
+- Sheet detents, popovers and anchored action sheets (2026-10-04, `Containers/
+  PresentationControllers.swift`): `presentationController` is a `UISheetPresentationController`
+  for the sheet styles (`detents` with `.medium()`, `.large()` and `.custom(resolver:)`,
+  `selectedDetentIdentifier`, `prefersGrabberVisible`, `preferredCornerRadius`,
+  `animateChanges`, the delegate; `largestUndimmedDetentIdentifier` and the scrolling options
+  accepted) and a `UIPopoverPresentationController` for `popover` and action sheets
+  (`sourceView`/`sourceRect`, `barButtonItem`, `permittedArrowDirections`, `arrowDirection`,
+  the delegate). A popover adapts to the page sheet on the iPhone unless its delegate answers
+  `.none` from `adaptivePresentationStyle`; the adaptive delegate's `shouldDismiss`,
+  `willDismiss`, `didDismiss` and `didAttemptToDismiss` run for taps outside a sheet or popover.
+  `UIPresentationController` subclasses are accepted (the container lays out). The geometry is
+  measured below (`uikit/sheet/medium` approximate to a hundredth, `uikit/popover/basic`,
+  `uikit/popover/adapted`, `uikit/alert/anchored` exact). `SheetTests`. The alert `severity`
+  badge is a Mac Catalyst look (iPhone alerts show none): accepted, not drawn.
 
 ## Measured (iOS 26, iPhone SE simulator, 320 × 500 window)
+
+- Medium detent (`uikit/sheet/medium`): the card is 296 tall (0.592 of the window) ending a
+  third of a point above the bottom, scaled 0.9713175 about its centre, so it floats 4.59 in
+  from the sides and the bottom (310.82 × 287.51 at (4.59, 207.91)); every corner 39, the 20 %
+  dim behind; the grabber is 34 × 5, 5.5 below the card's top, black at 25 % over the card.
+  UIKit's medium detent sits higher than SwiftUI's floating medium sheet (`ios/sheet/medium`:
+  263 tall, 6 in); the fractional geometry is fitted to a hundredth, not derived.
+- Popover kept a popover (`uikit/popover/basic`): a card of the preferred content size (240 ×
+  120) centred on the source, 13 above it, its frame spanning the 24 × 13 arrow pointing at the
+  source's centre (133 tall), 34 pt corners, no dim, a soft shadow fading out over some 60 pt
+  (approximated by the layer's shadow), the presenting view's tint dimmed (not modelled: the
+  source's blue title stays). Without a delegate (`uikit/popover/adapted`) it is the page sheet.
+- Action sheet anchored to a source (`uikit/alert/anchored`): a 240 pt card above the source
+  with the arrow under it (outside the card's 189 pt frame), the title 15 pt 24 down in a 71 pt
+  header, the actions 48 pt capsules 15.5 in, 8 apart and 14 from the bottom, no cancel action,
+  the card (244, 244, 244) over the undimmed screen.
 
 - Both alert styles are one centred card 300 wide (10 in) with 34 pt corners over a 20 % black
   dim; the card is white at 67 % over the dim ((238, 238, 238) on white).
@@ -47,8 +89,8 @@ root controller's view), from the iPhone SE simulator on iOS 26.
   the presentation settles, in a 500 pt window without a status bar; its origin elsewhere is
   unmeasured) with 38 pt top corners over a 20 % dim; the presenting view stays as it is behind.
 
-Open: the `severity` badge, sheet detents and the grabber, `popover` on the iPhone (it becomes
-a sheet), `UIActivityViewController`, `UIDocumentPickerViewController`. (Alert text fields and
+Open: the presenting view's dimmed tint under a popover, the medium sheet's drag between
+detents, `UIActivityViewController`, `UIDocumentPickerViewController`. (Alert text fields and
 the present and dismiss animations landed: below and in the API section.)
 - Text fields (`uikit/alert/textfield`, `uikit/alert/textfields`): a block under the header,
   34 per field and 12 below (46 for one, 80 for two), each field in a white box 270 wide 15 in
