@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 135 | 20 | 105 | 4 | 3 | 3 |
+| SwiftUI | 135 | 21 | 104 | 4 | 3 | 3 |
 | UIKit | 48 | 1 | 44 | 2 | 1 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **188** | 21 | 154 | 6 | 4 | 3 |
+| **All** | **188** | 22 | 153 | 6 | 4 | 3 |
 
 ## App lifecycle
 
@@ -31,8 +31,8 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | `EmptyView / TupleView / Group / _ConditionalContent / Optional` | 🟢 partial | Structural nodes transparent to layout; Group forwards its modifiers to each child (layout/group-modifier), EmptyView takes no room | layout/group-modifier, foreach/empty |
 | `AnyView` | 🟢 partial | A type-erased node rebuilt when the wrapped type changes and updated in place otherwise (customlayout/any hosts a layout through it) | customlayout/any |
 | `ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)` | 🟢 partial | Modifier nodes with bodies, dynamic properties and the environment; layout modifiers distribute over list content (one proxy per element) | layout/group-modifier, paint/background-overlay |
-| `EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment` | 🟢 partial | @Entry macro not provided; Tier B (Chromium) within tolerance | text/styles, dark/text, ios/representable/traits |
-| `Transaction / TransactionKey / withTransaction` | 🟢 partial | animation, disablesAnimations, isContinuous and custom keys; withTransaction and withAnimation record the animation for the flush and layout that apply the change; the transaction reaches a representable's updateUIView (ios/representable, 2026-09-18) | animation/implicit, animation/frame |
+| `EnvironmentValues / EnvironmentKey / @Entry / environment(_:_:) / transformEnvironment` | ✅ full | @Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros); Tier B (Chromium) within tolerance | text/styles, dark/text, ios/representable/traits |
+| `Transaction / TransactionKey / @Entry / withTransaction` | 🟢 partial | animation, disablesAnimations, isContinuous and custom keys; withTransaction and withAnimation record the animation for the flush and layout that apply the change; the transaction reaches a representable's updateUIView (ios/representable, 2026-09-18) | animation/implicit, animation/frame |
 | `id(_:) / IDView` | 🟢 partial | Identity change rebuilds the subtree; Tier B (Chromium) within tolerance | foreach/identity, ios/representable/lifecycle |
 | `ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent` | 🟢 partial | Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) exact frames, ≤ 0.3 % pixels incl. every identity step. onDelete, onMove and the editActions binding form (2026-09-18, Docs/elements/List.md); onInsert accepted without effect. | foreach/* |
 | `Section (content/header/footer, title forms, deprecated argument orders)` | 🟢 partial | Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; inside List: styled header/footer, spacing, pinned first header (list/sections); no Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels | section/* |
@@ -118,7 +118,7 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | `@Observable / @Bindable` | 🟢 partial | Per-body withObservationTracking; only reading nodes invalidate. Bindable via ReferenceWritableKeyPath; Tier B (Chromium) within tolerance | observable/object, foreach/identity, ios/representable/update |
 | `ObservableObject / @Published / @StateObject / @ObservedObject / @EnvironmentObject` | 🟢 partial | Combine-free implementation (ObservableObjectPublisher, AnyCancellable, @Published through the enclosing-instance subscript); typealiases in the SwiftUI shim shadow Foundation's Combine re-export on macOS; no onReceive or Combine operators (Docs/elements/ObservableObject.md) | observable/object |
 | `ObservableObject / ObservableObjectPublisher / AnyCancellable / @Published / @StateObject / @ObservedObject / @EnvironmentObject / environmentObject` | 🟢 partial | Combine-free implementation: closure subscribers, enclosing-instance @Published, per-identity state objects, re-subscription on replacement; no Combine operators or onReceive | observable/object |
-| `@FocusState (Bool, optional Hashable) / focused(_:) / focused(_:equals:)` | 🟢 partial | Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); no focusable(), FocusedValue, key handling; focus on buttons and focusable views too (Docs/elements/Keyboard.md) | focus/basic |
+| `@FocusState (Bool, optional Hashable) / focused(_:) / focused(_:equals:)` | 🟢 partial | Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); focus on buttons and focusable views too (Docs/elements/Keyboard.md); FocusedValues, focusedValue/focusedSceneValue, @FocusedValue and @FocusedBinding follow keyboard focus (2026-10-04) | focus/basic |
 
 ## Modifiers
 

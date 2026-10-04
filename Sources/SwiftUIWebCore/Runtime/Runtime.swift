@@ -75,6 +75,9 @@ public final class Runtime {
         requestFullLayout()
     }
 
+    /// The mounted `focusedValue` nodes and the views reading focused values.
+    package var focusedValueNodes: [WeakNode] = []
+    package var focusedValueObservers: [WeakNode] = []
     /// The mounted `onOpenURL` and `onContinueUserActivity` handlers, in tree order.
     package var openURLHandlers: [WeakNode] = []
     package var activityHandlers: [WeakNode] = []

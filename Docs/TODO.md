@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 36 | 0 | 4 | 32 |
+| SwiftUI | 35 | 0 | 3 | 32 |
 | UIKit | 34 | 0 | 23 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **76** | 0 | 28 | 48 |
+| **All** | **75** | 0 | 27 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **The @Entry macro** `sw-entry-macro` · Environment · missing  
-  `@Entry` on `EnvironmentValues`, `FocusedValues` and `Transaction` extensions, in the existing macro target. ([SwiftUIWebMacros](Sources/SwiftUIWebMacros))
 - ☐ **Simultaneous, pinch and rotate gestures** `sw-gestures` · Gestures · accepted  
   `simultaneousGesture` as true simultaneity (one node takes a press today), `GestureMask`, the `reset` closures and gesture transactions (accepted), `MagnifyGesture`/`RotateGesture` from trackpads and touches, tap counts through `onTapGesture`. ([Gestures.md](Docs/elements/Gestures.md))
 - ☐ **Focused values, sections and commands** `sw-focus` · Focus and keyboard · missing  
@@ -208,6 +206,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-04 **3D and projection transforms** `sw-transform3d` · SwiftUI · Transform
 - ☑ 2026-10-04 **Animation completion, blending and reduce motion** `sw-animation` · SwiftUI · Animation
 - ☑ 2026-10-04 **onReceive, scene phase and URLs** `sw-lifecycle` · SwiftUI · Lifecycle
+- ☑ 2026-10-04 **The @Entry macro** `sw-entry-macro` · SwiftUI · Environment
 - ☑ 2026-10-03 **TextField forms and the painted caret** `sw-textfield` · SwiftUI · TextField
 - ☑ 2026-10-03 **allowsTightening and minimumScaleFactor** `sw-text-fit` · SwiftUI · Text
 - ☑ 2026-10-03 **AttributedString, markdown, dates and images in Text** `sw-attributed-text` · SwiftUI · Text

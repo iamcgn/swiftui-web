@@ -29,3 +29,12 @@ wasm `js test` compiles the same file through the host plugin; the gallery build
 
 Rendering previews (a gallery of `#Preview` bodies would need a macro that keeps the body), the
 `PreviewModifier` protocol, device and layout traits with effect.
+
+## @Entry (2026-10-04)
+
+The same macro target provides `@Entry`: on a `var` with an explicit type in an extension of
+`EnvironmentValues`, `FocusedValues` or `Transaction` it adds a private key type named after the
+property (`__Key_name`, an `EnvironmentKey`, `FocusedValueKey` or `TransactionKey`) and
+accessors over the container's subscript. Environment and transaction entries need a default
+value; focused entries are optional and take none. Applied anywhere else, or without a type,
+the macro reports an error. `EntryMacroTests` use all three containers.

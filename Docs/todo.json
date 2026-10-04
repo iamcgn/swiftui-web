@@ -1012,13 +1012,16 @@
       "framework": "SwiftUI",
       "area": "Environment",
       "title": "The @Entry macro",
-      "detail": "`@Entry` on `EnvironmentValues`, `FocusedValues` and `Transaction` extensions, in the existing macro target.",
+      "detail": "Done 2026-10-04: `@Entry` in SwiftUIWebMacros (an accessor and peer macro: a private key type named after the property, accessors over the container's subscript, errors outside EnvironmentValues/FocusedValues/Transaction extensions); FocusedValues built for it (FocusedValueKey, focusedValue, focusedSceneValue, @FocusedValue, @FocusedBinding, the runtime composes the focused node's ancestry under the scene values and invalidates readers when focus moves).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
-        "Sources/SwiftUIWebMacros"
-      ]
+        "Sources/SwiftUIWebMacros",
+        "Docs/elements/Preview.md",
+        "Docs/elements/Focus.md"
+      ],
+      "done": "2026-10-04"
     },
     {
       "id": "sw-timeline",

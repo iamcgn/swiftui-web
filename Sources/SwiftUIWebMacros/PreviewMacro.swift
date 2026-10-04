@@ -1,6 +1,7 @@
 // The `#Preview` macro plugin: previews are an editor feature, so the macro expands to nothing
 // and preview blocks in app sources compile without effect (Docs/elements/Preview.md).
 import SwiftCompilerPlugin
+import SwiftDiagnostics
 import SwiftSyntax
 import SwiftSyntaxMacros
 
@@ -12,5 +13,5 @@ public struct PreviewMacro: DeclarationMacro {
 
 @main
 struct SwiftUIWebMacrosPlugin: CompilerPlugin {
-    let providingMacros: [any Macro.Type] = [PreviewMacro.self]
+    let providingMacros: [any Macro.Type] = [PreviewMacro.self, EntryMacro.self]
 }

@@ -61,6 +61,7 @@ extension Runtime {
     package func notifyFocusChanged() {
         focusBoxes.removeAll { $0.box == nil }
         for entry in focusBoxes { entry.box?.focusDidChange(to: focusedIdentifier) }
+        focusedValuesDidChange()
     }
 }
 

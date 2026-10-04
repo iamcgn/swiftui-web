@@ -49,3 +49,15 @@ order across presentations, restoring focus after a sheet closes.
 Since 2026-09-04 focus is general (`Docs/elements/Keyboard.md`): `focused` works on buttons and
 `focusable` views, `Runtime.focusedIdentifier` covers every element, and the focus ring paints
 for keyboard focus on any of them.
+
+## Focused values (2026-10-04)
+
+`FocusedValues` keys (`FocusedValueKey`, or `@Entry` in an extension; the values are optional),
+`focusedValue(_:_:)` publishes from a view's subtree while keyboard focus is inside it,
+`focusedSceneValue(_:_:)` whatever has focus, and `@FocusedValue` / `@FocusedBinding` read them.
+The runtime composes the values from the scene writers first, then the focused node's ancestors
+outermost in, so the nearest writer wins; views reading them are invalidated when focus moves or
+a writer mounts, updates or unmounts (`FocusedValueNode`, `Runtime.focusedValues`).
+`EntryMacroTests` cover the scene fallback, focus moving between two writers and writing through
+a focused binding. Not yet: the focused *window* when several are open (the scene values apply to
+the whole runtime).

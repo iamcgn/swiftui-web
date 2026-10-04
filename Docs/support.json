@@ -57,9 +57,9 @@
           ]
         },
         {
-          "api": "EnvironmentValues / EnvironmentKey / environment(_:_:) / transformEnvironment",
-          "status": "partial",
-          "notes": "@Entry macro not provided; Tier B (Chromium) within tolerance",
+          "api": "EnvironmentValues / EnvironmentKey / @Entry / environment(_:_:) / transformEnvironment",
+          "status": "full",
+          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros); Tier B (Chromium) within tolerance",
           "fixtures": [
             "text/styles",
             "dark/text",
@@ -67,7 +67,7 @@
           ]
         },
         {
-          "api": "Transaction / TransactionKey / withTransaction",
+          "api": "Transaction / TransactionKey / @Entry / withTransaction",
           "status": "partial",
           "notes": "animation, disablesAnimations, isContinuous and custom keys; withTransaction and withAnimation record the animation for the flush and layout that apply the change; the transaction reaches a representable's updateUIView (ios/representable, 2026-09-18)",
           "fixtures": [
@@ -817,7 +817,7 @@
         {
           "api": "@FocusState (Bool, optional Hashable) / focused(_:) / focused(_:equals:)",
           "status": "partial",
-          "notes": "Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); no focusable(), FocusedValue, key handling; focus on buttons and focusable views too (Docs/elements/Keyboard.md)",
+          "notes": "Text fields only; state and browser focus mirror each other in both directions (click, Tab, blur, programmatic); focus on buttons and focusable views too (Docs/elements/Keyboard.md); FocusedValues, focusedValue/focusedSceneValue, @FocusedValue and @FocusedBinding follow keyboard focus (2026-10-04)",
           "fixtures": [
             "focus/basic"
           ]
