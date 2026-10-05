@@ -147,9 +147,9 @@ import Foundation
             #expect(ours.fragment == theirs.fragment, Comment(rawValue: text))
             #expect(ours.path == components.percentEncodedPath, Comment(rawValue: text))
             let reference = try pathReference(for: components, url: theirs)
-            #expect(ours.lastPathComponent == reference.url.lastPathComponent, Comment(rawValue: text))
-            #expect(ours.pathExtension == reference.url.pathExtension, Comment(rawValue: text))
-            #expect(ours.pathComponents == Array(reference.url.pathComponents.dropFirst(reference.addedRoot ? 1 : 0)), Comment(rawValue: text))
+            #expect(ours.lastPathComponent == reference.last, Comment(rawValue: text))
+            #expect(ours.pathExtension == reference.pathExtension, Comment(rawValue: text))
+            #expect(ours.pathComponents == reference.components, Comment(rawValue: text))
         }
         for bad in ["", "a b", "http://host:port/", "1abc://x", "http://\u{1}"] {
             #expect(_URLParts.parse(bad) == nil, Comment(rawValue: bad))
@@ -157,19 +157,21 @@ import Foundation
     }
 
     /// macOS 15's URL accessors hide opaque paths (mailto:, about:), whereas URLComponents
-    /// and current Swift Foundation follow RFC 3986's path-rootless production. Put that
-    /// exact encoded path under an authority for the accessor oracle, removing only the
-    /// synthetic root component. Keep percent escapes intact until Foundation decodes them.
-    private func pathReference(for components: URLComponents, url: URL) throws -> (url: URL, addedRoot: Bool) {
+    /// and current Swift Foundation follow RFC 3986's path-rootless production. Use Foundation's
+    /// NSString path utilities on the encoded path, then Foundation's percent decoder on each
+    /// component. Older URL accessors also split escaped slashes after decoding (%2F), so even
+    /// moving an opaque path under a synthetic authority would not be a portable oracle.
+    private func pathReference(for components: URLComponents, url: URL) throws -> (last: String, pathExtension: String, components: [String]) {
         let path = components.percentEncodedPath
         guard components.scheme != nil, components.host == nil, !path.hasPrefix("/") else {
-            return (url, false)
+            return (url.lastPathComponent, url.pathExtension, url.pathComponents)
         }
-        var reference = URLComponents()
-        reference.scheme = "https"
-        reference.host = "foundation-path-reference.invalid"
-        reference.percentEncodedPath = path.isEmpty ? "" : "/" + path
-        return (try #require(reference.url), !path.isEmpty)
+        let encoded = path as NSString
+        let last = try #require(encoded.lastPathComponent.removingPercentEncoding)
+        var segments = encoded.pathComponents
+        if segments.count > 1, segments.last == "/" { segments.removeLast() }
+        let decoded = try segments.map { try #require($0.removingPercentEncoding) }
+        return (last, (last as NSString).pathExtension, decoded)
     }
 
     struct RootlessPathCase: Sendable {
@@ -203,9 +205,9 @@ import Foundation
         #expect(ours.pathComponents == expected.components)
         // Check the native reference against the same explicit answers, independently of ours.
         let reference = try pathReference(for: components, url: #require(components.url))
-        #expect(reference.url.lastPathComponent == expected.last)
-        #expect(reference.url.pathExtension == expected.pathExtension)
-        #expect(Array(reference.url.pathComponents.dropFirst(reference.addedRoot ? 1 : 0)) == expected.components)
+        #expect(reference.last == expected.last)
+        #expect(reference.pathExtension == expected.pathExtension)
+        #expect(reference.components == expected.components)
     }
 
     @Test func resolutionMatchesFoundation() {

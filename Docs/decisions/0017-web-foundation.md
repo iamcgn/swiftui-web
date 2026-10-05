@@ -70,8 +70,9 @@ The wasm URL keeps RFC 3986 rootless paths: `mailto:someone@example.com` has the
 and macOS 26.6 expose these through the path accessors; macOS 15's `URL` returns empty
 path components for opaque URLs. This older behavior is not the RFC 3986 parser's contract.
 The native tests compare the encoded path with `URLComponents.percentEncodedPath`, then
-test opaque path accessors against the same encoded path under a synthetic authority,
-removing only the added root component. Hierarchical URLs retain direct `URL` comparisons.
+use Foundation's `NSString` path utilities and per-component percent decoding for opaque
+paths. Splitting before decoding also avoids macOS 15's `URL` behavior of treating `%2F`
+as a path separator. Hierarchical URLs retain direct `URL` comparisons.
 Explicit rootless-path vectors and wasm public-URL tests also check the expected components,
 extensions, percent escapes, queries and fragments; no URL cases or assertions are skipped.
 
