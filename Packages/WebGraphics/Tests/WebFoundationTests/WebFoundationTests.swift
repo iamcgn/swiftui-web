@@ -192,20 +192,22 @@ import Foundation
     static let integers = [0, 7, 1234, -1234567, 1_000_000]
 
     @Test func decimalPercentAndCurrencyMatchFoundation() {
+        // The stand-in implements en_US, independently of the machine's current locale.
+        let locale = Locale(identifier: "en_US")
         for value in Self.doubles {
-            #expect(_NumberFormatting().format(value) == value.formatted(), "\(value)")
-            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent), "\(value) percent \(_NumberFormatting(style: .percent).format(value)) vs \(value.formatted(.percent))")
-            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD")), "\(value) usd")
-            #expect(_NumberFormatting(style: .currency("EUR")).format(value) == value.formatted(.currency(code: "EUR")), "\(value) eur")
+            #expect(_NumberFormatting().format(value) == value.formatted(.number.locale(locale)), "\(value)")
+            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent.locale(locale)), "\(value) percent \(_NumberFormatting(style: .percent).format(value)) vs \(value.formatted(.percent.locale(locale)))")
+            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD").locale(locale)), "\(value) usd")
+            #expect(_NumberFormatting(style: .currency("EUR")).format(value) == value.formatted(.currency(code: "EUR").locale(locale)), "\(value) eur")
             var two = _NumberFormatting(); two.minimumFractionDigits = 2; two.maximumFractionDigits = 2
-            #expect(two.format(value) == value.formatted(.number.precision(.fractionLength(2))), "\(value) frac2")
+            #expect(two.format(value) == value.formatted(.number.precision(.fractionLength(2)).locale(locale)), "\(value) frac2")
             var plain = _NumberFormatting(); plain.usesGrouping = false
-            #expect(plain.format(value) == value.formatted(.number.grouping(.never)), "\(value) nogroup")
+            #expect(plain.format(value) == value.formatted(.number.grouping(.never).locale(locale)), "\(value) nogroup")
         }
         for value in Self.integers {
-            #expect(_NumberFormatting().format(value) == value.formatted(), "\(value)")
-            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent), "\(value) percent")
-            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD")), "\(value) usd")
+            #expect(_NumberFormatting().format(value) == value.formatted(.number.locale(locale)), "\(value)")
+            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent.locale(locale)), "\(value) percent")
+            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD").locale(locale)), "\(value) usd")
         }
     }
 

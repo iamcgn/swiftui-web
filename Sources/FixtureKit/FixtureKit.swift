@@ -161,6 +161,8 @@ public final class FixtureRunner {
     public init(_ fixture: Fixture, textEngine: (any TextEngine)? = nil, assets: AssetCatalog = .empty) {
         self.fixture = fixture
         var environment = EnvironmentValues()
+        // Match the Apple golden generator, independent of the host machine's locale.
+        environment.locale = Locale(identifier: "en_US")
         environment.colorScheme = fixture.colorScheme
         environment.platformProfile = fixture.platform == .iOS ? .iOS : .macOS
         runtime = Runtime(environment: environment)

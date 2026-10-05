@@ -23,7 +23,7 @@ private final class Source: NSObject, UIPickerViewDataSource, UIPickerViewDelega
         #if canImport(AppKit)
         scene.textEngine = CoreTextEngine()   // the drum's scaled fonts are not in the recordings
         #else
-        scene.textEngine = try! Goldens.textEngine()
+        scene.textEngine = SyntheticTextEngine()   // supports every scaled font on the drum
         #endif
         scene.configureScreen(size: CGSize(width: 320, height: 400), scale: 2)
         let root = UIViewController()

@@ -1,7 +1,8 @@
 // Stand-ins for the Foundation types the frameworks' keyboard and command API names, which
 // FoundationEssentials lacks on wasm: `CharacterSet` (predicate-based: the named sets, a set of
 // characters, unions and inversion), `Selector` (a command name, as `#selector` has no runtime
-// to resolve against) and `NSItemProvider` carrying a string. Apple platforms use Foundation's.
+// to resolve against) and `NSItemProvider` carrying a string. Linux also needs the latter two;
+// Apple platforms use Foundation's declarations.
 #if os(WASI)
 
 /// A set of Unicode scalars, by predicate.
@@ -50,6 +51,10 @@ public struct CharacterSet: @unchecked Sendable {
     public static let controlCharacters = CharacterSet { $0.properties.generalCategory == .control }
 }
 
+#endif
+
+#if !canImport(ObjectiveC)
+
 /// A command name (`onCommand`); `#selector` needs an Objective-C runtime, so commands are
 /// named by their selector string ("copy:", "selectAll:").
 public struct Selector: Hashable, Sendable, ExpressibleByStringLiteral, CustomStringConvertible {
@@ -71,6 +76,11 @@ public final class NSItemProvider: @unchecked Sendable {
         self.init()
         registerItem(object, typeIdentifier: "public.utf8-plain-text")
     }
+
+    #if !os(WASI)
+    /// Foundation clients commonly pass NSString, as Apple's NSItemProvider requires.
+    public convenience init(object: NSString) { self.init(object: object as String) }
+    #endif
 
     public convenience init(item: Any?, typeIdentifier: String?) {
         self.init()

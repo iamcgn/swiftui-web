@@ -25,10 +25,10 @@ public enum TextFieldFormsFixtures {
     /// Values through format styles and a formatter; `fixedSize` so the frames carry the text.
     public static let formatted = Fixture("textfield/formatted", size: CGSize(width: 300, height: 240)) {
         VStack(alignment: .leading, spacing: 12) {
-            TextField("Age", value: .constant(1234), format: .number).fixedSize().probe("int")
-            TextField("Price", value: .constant(3.14159), format: .number).fixedSize().probe("double")
-            TextField("Share", value: .constant(0.25), format: .percent).fixedSize().probe("percent")
-            TextField("Amount", value: .constant(12.5), format: .currency(code: "USD")).fixedSize().probe("currency")
+            TextField("Age", value: .constant(1234), format: .number.locale(Locale(identifier: "en_US"))).fixedSize().probe("int")
+            TextField("Price", value: .constant(3.14159), format: .number.locale(Locale(identifier: "en_US"))).fixedSize().probe("double")
+            TextField("Share", value: .constant(0.25), format: .percent.locale(Locale(identifier: "en_US"))).fixedSize().probe("percent")
+            TextField("Amount", value: .constant(12.5), format: .currency(code: "USD").locale(Locale(identifier: "en_US"))).fixedSize().probe("currency")
             TextField("Count", value: .constant(42), formatter: NumberFormatter()).fixedSize().probe("formatter")
             TextField("Placeholder", text: .constant("Hello")).fixedSize().probe("fixedText")
             TextField("Placeholder", text: .constant("")).fixedSize().probe("fixedEmpty")

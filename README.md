@@ -70,6 +70,22 @@ swift test                      # native runtime + layout tests (fast)
 ./scripts/serve.sh Examples/Counter        # open in a browser
 ```
 
+### Linux headless tests
+
+Use the pinned Swift 6.3.3 toolchain. The core, headless renderer, UIKitWeb and fixtures build
+on Linux; a native Linux window/painter is still future work. Run `swift test --scratch-path
+.build/native`, `(cd Packages/UIKitWeb && swift test)` and `(cd Packages/WebGraphics && swift
+test)`. Native Foundation geometry and attributed strings retain their identities; WebGraphics
+and WebFoundation supply the missing CoreGraphics and Objective-C-facing value APIs.
+
+`TextField(value:formatter:)` uses Linux's public `NumberFormatter` and `DateFormatter`
+parsers. Other Formatter subclasses leave the bound value unchanged when edited; use a
+`ParseableFormatStyle` for custom parsing.
+
+For wasm tests, use `swift package --disable-sandbox --swift-sdk swift-6.3.3-RELEASE_wasm js
+test` without a scratch-path override. JavaScriptKit's test packager requires the default
+`.build` directory, so keep native tests in `.build/native` as above.
+
 ## Layout of the repository
 
 | Path | Purpose |

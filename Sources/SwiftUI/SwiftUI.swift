@@ -18,7 +18,8 @@
 // of the bundle (decision 0017).
 @_exported import WebFoundation
 #else
-@_exported import Foundation
+// Linux: Foundation plus the missing Objective-C API value stand-ins.
+@_exported import WebFoundation
 #endif
 
 /// Marker used by the module-shadowing spike (Docs/decisions/0001-module-name.md).

@@ -23,6 +23,11 @@ from Apple's toolchain. Both must coexist on one machine.
   generated `index.js` imports bare npm specifiers and needs a bundler such as Vite).
 - `js test` runs `npm install` from inside the SwiftPM plugin sandbox, which has no network;
   run it with `--disable-sandbox`.
+- JavaScriptKit 0.58's `js test` finds its test binary only in the default `.build` directory;
+  do not pass `--scratch-path` to it. On Linux, keep native tests in `.build/native` with
+  `swift test --scratch-path .build/native`, leaving the default directory for wasm tests.
+  Passing a scratch path to `js test` can package the native ELF test binary and fail with
+  `invalidMagicNumber`, even after the wasm compilation succeeds.
 - After adding or removing a **protocol requirement** in `SwiftUIWebCore` (for example the hidden
   `View._makeNode` hook), run `swift package clean` before `swift test`. Observed 2026-09-02: the
   incremental build kept stale witness tables in the test bundle and the process died with

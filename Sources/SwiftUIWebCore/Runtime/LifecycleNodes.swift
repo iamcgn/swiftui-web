@@ -1,8 +1,4 @@
-#if os(WASI)
-import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
-#else
-import Foundation
-#endif
+import WebFoundation
 // onAppear/onDisappear and task: transparent nodes that run their actions through the scheduler
 // after the update pass that inserted them and when they are unmounted (Docs/elements/Lifecycle.md).
 

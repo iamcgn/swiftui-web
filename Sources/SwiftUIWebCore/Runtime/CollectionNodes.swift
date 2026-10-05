@@ -105,11 +105,25 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
         return CGRect(x: frame.minX - origin.x, y: frame.minY - origin.y, width: frame.width, height: frame.height)
     }
 
+    private func placeholderOverlaps(_ placeholder: LazyPlaceholderNode, visible: CGRect, contentOrigin origin: CGPoint) -> Bool {
+        let rect = placeholderRect(placeholder, contentOrigin: origin)
+        guard !rect.isNull, !visible.isEmpty else { return false }
+        func overlaps(_ lower: CGFloat, _ upper: CGFloat, _ visibleLower: CGFloat, _ visibleUpper: CGFloat) -> Bool {
+            // An empty first child can seed a zero-sized estimate for nonempty later children.
+            // Such a point estimate inside the window must be measured, not left lazy forever.
+            if lower == upper { return lower >= visibleLower && lower < visibleUpper }
+            // A positive-sized estimate that only touches the window is still outside it.
+            return upper > visibleLower && lower < visibleUpper
+        }
+        return overlaps(rect.minX, rect.maxX, visible.minX, visible.maxX)
+            && overlaps(rect.minY, rect.maxY, visible.minY, visible.maxY)
+    }
+
     package func needsMaterialization(visible: CGRect, contentOrigin origin: CGPoint) -> Bool {
         guard lazyAxis != nil else { return false }
         return entries.contains { entry in
             guard let placeholder = entry.placeholder else { return false }
-            return placeholderRect(placeholder, contentOrigin: origin).intersects(visible)
+            return placeholderOverlaps(placeholder, visible: visible, contentOrigin: origin)
         }
     }
 
@@ -120,7 +134,7 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
         for element in view.data {
             defer { index += 1 }
             guard index < entries.count, let placeholder = entries[index].placeholder,
-                  placeholderRect(placeholder, contentOrigin: origin).intersects(visible) else { continue }
+                  placeholderOverlaps(placeholder, visible: visible, contentOrigin: origin) else { continue }
             created += 1
             let node = Content._makeNode(_NodeContext(view: view.content(element), parent: self, environment: environment))
             placeholder.unmount()

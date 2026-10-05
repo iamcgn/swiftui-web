@@ -1,8 +1,11 @@
-// Geometry types (decision 0006). Apple platforms use CoreGraphics; Linux uses
-// swift-corelibs-foundation's declarations (free natively); wasm gets these declarations so the
-// core never links Foundation's 12 MB of ICU data. `CGFloat` is a typealias of `Double` here:
-// Swift already converts implicitly between the two on Apple platforms, so unmodified sources
-// keep compiling, at the cost of not being able to overload on both.
+// Geometry types (decision 0006). Apple platforms use CoreGraphics; Linux keeps Foundation's
+// CGFloat, CGPoint, CGSize and CGRect, with the missing CoreGraphics APIs supplied below.
+// wasm gets all the declarations so the core never links Foundation's 12 MB of ICU data.
+// Its CGFloat is a Double alias; native platforms retain their existing CGFloat type.
+#if !canImport(CoreGraphics) && !os(WASI)
+import Foundation
+#endif
+
 #if os(WASI)
 
 public typealias CGFloat = Double
@@ -16,10 +19,6 @@ public struct CGPoint: Equatable, Hashable, Sendable {
     public init(x: Int, y: Int) { self.x = CGFloat(x); self.y = CGFloat(y) }
 
     public static let zero = CGPoint()
-
-    public func applying(_ t: CGAffineTransform) -> CGPoint {
-        CGPoint(x: t.a * x + t.c * y + t.tx, y: t.b * x + t.d * y + t.ty)
-    }
 }
 
 public struct CGSize: Equatable, Hashable, Sendable {
@@ -31,20 +30,6 @@ public struct CGSize: Equatable, Hashable, Sendable {
     public init(width: Int, height: Int) { self.width = CGFloat(width); self.height = CGFloat(height) }
 
     public static let zero = CGSize()
-
-    public func applying(_ t: CGAffineTransform) -> CGSize {
-        CGSize(width: t.a * width + t.c * height, height: t.b * width + t.d * height)
-    }
-}
-
-public struct CGVector: Equatable, Hashable, Sendable {
-    public var dx: CGFloat
-    public var dy: CGFloat
-
-    public init() { dx = 0; dy = 0 }
-    public init(dx: CGFloat, dy: CGFloat) { self.dx = dx; self.dy = dy }
-
-    public static let zero = CGVector()
 }
 
 public struct CGRect: Equatable, Hashable, Sendable {
@@ -129,7 +114,35 @@ public struct CGRect: Equatable, Hashable, Sendable {
     public func contains(_ rect: CGRect) -> Bool {
         union(rect) == standardized
     }
+}
 
+#endif
+
+#if !canImport(CoreGraphics)
+
+public struct CGVector: Equatable, Hashable, Sendable {
+    public var dx: CGFloat
+    public var dy: CGFloat
+
+    public init() { dx = 0; dy = 0 }
+    public init(dx: CGFloat, dy: CGFloat) { self.dx = dx; self.dy = dy }
+
+    public static let zero = CGVector()
+}
+
+extension CGPoint {
+    public func applying(_ t: CGAffineTransform) -> CGPoint {
+        CGPoint(x: t.a * x + t.c * y + t.tx, y: t.b * x + t.d * y + t.ty)
+    }
+}
+
+extension CGSize {
+    public func applying(_ t: CGAffineTransform) -> CGSize {
+        CGSize(width: t.a * width + t.c * height, height: t.b * width + t.d * height)
+    }
+}
+
+extension CGRect {
     public func applying(_ t: CGAffineTransform) -> CGRect {
         if isNull { return self }
         let corners = [
@@ -151,7 +164,7 @@ public struct CGAffineTransform: Equatable, Hashable, Sendable {
     public init(translationX tx: CGFloat, y ty: CGFloat) { self.init(a: 1, b: 0, c: 0, d: 1, tx: tx, ty: ty) }
     public init(scaleX sx: CGFloat, y sy: CGFloat) { self.init(a: sx, b: 0, c: 0, d: sy, tx: 0, ty: 0) }
     public init(rotationAngle angle: CGFloat) {
-        let cs = _cos(angle), sn = _sin(angle)
+        let cs = CGFloat(_cos(Double(angle))), sn = CGFloat(_sin(Double(angle)))
         self.init(a: cs, b: sn, c: -sn, d: cs, tx: 0, ty: 0)
     }
 
@@ -182,7 +195,6 @@ public struct CGAffineTransform: Equatable, Hashable, Sendable {
     }
 }
 
-/// How the ends of an open path are drawn when stroked.
 /// A colour as CoreAnimation and UIKit name it (`layer.backgroundColor`, `UIColor.cgColor`):
 /// straight-alpha sRGB components. On Apple platforms this is CoreGraphics's class.
 public final class CGColor: @unchecked Sendable {
@@ -201,6 +213,7 @@ public final class CGColor: @unchecked Sendable {
     public var numberOfComponents: Int { components?.count ?? 0 }
 }
 
+/// How the ends of an open path are drawn when stroked.
 public enum CGLineCap: Int32, Sendable {
     case butt = 0
     case round = 1

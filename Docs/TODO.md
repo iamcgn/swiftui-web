@@ -154,7 +154,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☐ **WebFoundation's gaps against Foundation** `pf-web-foundation-gaps` · wasm · missing  
   The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Missing: `String.Encoding` and `String(data:encoding:)`, `URLComponents` and international host names, named time zones and daylight saving (`TimeZone.current` is the browser's fixed offset), calendars other than proleptic Gregorian, `DateFormatter` and `FormatStyle`, `wrappingComponents`, `Data` slices that keep their indices. Grow them as apps hit them; each FoundationEssentials type used instead costs the whole library. ([0017-web-foundation.md](Docs/decisions/0017-web-foundation.md))
 - ☐ **Linux: build, CI, painter and host** `pf-linux` · Linux · infra  
-  WebGraphics does not build on Linux (the CoreGraphics shim is `#if os(WASI)` only), so the CI job is parked; then a Skia or Cairo painter, a GTK window and the WebKitGTK host. ([ROADMAP.md](Docs/ROADMAP.md))
+  The native headless build and tests are supported on Linux with Swift 6.3.3, alongside wasm cross-compilation. Remaining: a Skia or Cairo painter, a GTK window and the WebKitGTK host. ([ROADMAP.md](Docs/ROADMAP.md))
 - ☐ **Native text selection, IME and windows** `pf-native-text` · Native macOS · missing  
   A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host. ([0012-native-painter.md](Docs/decisions/0012-native-painter.md))
 - ☐ **First frame and large lists** `pf-perf` · Performance · infra  

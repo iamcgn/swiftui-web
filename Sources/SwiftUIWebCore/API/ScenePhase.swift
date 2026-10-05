@@ -2,11 +2,7 @@
 // page's visibility and focus through the host; `onOpenURL` handlers run for the URLs the host
 // hands the runtime (`Runtime.openURL`); user activities are accepted and continued only when
 // a host passes one (`Runtime.continueUserActivity`).
-#if os(WASI)
 import WebFoundation
-#else
-import Foundation
-#endif
 
 /// The operational state of a scene: visible and focused, visible without focus, or hidden.
 public enum ScenePhase: Hashable, Comparable, Sendable {

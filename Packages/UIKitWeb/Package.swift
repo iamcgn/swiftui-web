@@ -61,7 +61,8 @@ let package = Package(
                            .product(name: "WebFoundation", package: "WebGraphics"),
                            .product(name: "WebGraphicsHeadless", package: "WebGraphics"),
                            .product(name: "WebGraphicsNative", package: "WebGraphics")],
-            swiftSettings: [.treatAllWarnings(as: .error)]
+            // Testing declares a UIKit overlay that only ships on Apple platforms.
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
     ],
     swiftLanguageModes: [.v6]

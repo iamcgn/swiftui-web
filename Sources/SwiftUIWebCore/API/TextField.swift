@@ -152,6 +152,14 @@ public struct TextField<Label: View>: View {
                 set: { text in
                     #if os(WASI)
                     if let parsed = formatter.value(from: text) as? V { value.wrappedValue = parsed }
+                    #elseif os(Linux)
+                    // corelibs Foundation does not expose Formatter.getObjectValue. Use the
+                    // concrete parsers it provides; unsupported formatters leave the value alone.
+                    let object: Any?
+                    if let number = formatter as? NumberFormatter { object = number.number(from: text) }
+                    else if let date = formatter as? DateFormatter { object = date.date(from: text) }
+                    else { object = nil }
+                    if let parsed = object as? V { value.wrappedValue = parsed }
                     #else
                     var object: AnyObject?
                     if formatter.getObjectValue(&object, for: text, errorDescription: nil), let parsed = object as? V { value.wrappedValue = parsed }

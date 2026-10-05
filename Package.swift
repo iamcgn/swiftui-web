@@ -110,29 +110,29 @@ let package = Package(
             path: "Fixtures/Sources",
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
-        // The wasm SDK's Testing module declares a `_Testing_UIKit` cross-import overlay that does not
-        // exist for wasm; with `import SwiftUI` re-exporting UIKitWeb's `UIKit`, the tests would try
-        // to load it. The overlay search is off for the wasm test builds.
+        // The Linux and wasm Testing modules declare a `_Testing_UIKit` cross-import overlay that
+        // does not exist on those platforms; with `import SwiftUI` re-exporting UIKitWeb's `UIKit`, the tests would try
+        // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
             dependencies: ["SwiftUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"],
-            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi]))]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(
             name: "LayoutFidelityTests",
             dependencies: ["SwiftUI", "SwiftUIWebHeadless", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures"],
-            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi]))]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // Tier C: the native painter against Apple's goldens (macOS only; empty elsewhere).
         .testTarget(
             name: "NativeFidelityTests",
             dependencies: ["SwiftUI", "SwiftUIWebNative", "SwiftUIWebHeadless", "FixtureKit", "SwiftUIWebFixtures"],
-            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi]))]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(
             name: "BrowserTests",
             dependencies: ["SwiftUI", "SwiftUIWebCanvas", "SwiftUIWebTestSupport"],
-            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi]))]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
     ],
     swiftLanguageModes: [.v6]
