@@ -1,7 +1,7 @@
 // The transfer JSON coder behind `CodableRepresentation`: round trips through every container
 // kind, and the same JSON Foundation's coders read and write.
 import Testing
-import Foundation
+import WebFoundation
 @testable import SwiftUIWebCore
 
 @Suite struct TransferJSONTests {
@@ -41,6 +41,7 @@ import Foundation
         #expect(decoded == Self.sample)
     }
 
+    #if !os(WASI) // The full Foundation JSON oracle is native-only; wasm exercises our coder below.
     @Test func foundationReadsOurJSON() throws {
         let data = try _TransferJSONEncoder().encode(Self.sample)
         let decoder = JSONDecoder()
@@ -56,6 +57,8 @@ import Foundation
         let data = try encoder.encode(Self.sample)
         #expect(try _TransferJSONDecoder().decode(Note.self, from: data) == Self.sample)
     }
+
+    #endif
 
     @Test func text() throws {
         struct Point: Codable { var x: Int; var y: Double; var label: String? }

@@ -16,8 +16,8 @@ private struct ValueForm: View {
     let model: Model
     var body: some View {
         VStack {
-            TextField("Age", value: Binding(get: { model.age }, set: { model.age = $0 }), format: .number)._probe("age")
-            TextField("Price", value: Binding(get: { model.price }, set: { model.price = $0 }), format: .currency(code: "USD"))._probe("price")
+            TextField("Age", value: Binding(get: { model.age }, set: { model.age = $0 }), format: .number.locale(Locale(identifier: "en_US")))._probe("age")
+            TextField("Price", value: Binding(get: { model.price }, set: { model.price = $0 }), format: .currency(code: "USD").locale(Locale(identifier: "en_US")))._probe("price")
             Text("\(model.age)")._probe("echo")
         }
     }

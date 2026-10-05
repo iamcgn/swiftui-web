@@ -63,6 +63,19 @@ worked because CoreGraphics is a C module, which Swift declarations shadow outri
   tested against Foundation's coders on macOS.
 - The 3 MB budget and the gate stay as they are; the symbol and font tables stay whole.
 
+### URL path oracle across Foundation versions (2026-10-05)
+
+The wasm URL keeps RFC 3986 rootless paths: `mailto:someone@example.com` has the path
+`someone@example.com`, and `about:blank` has the path `blank`. Current Swift Foundation
+and macOS 26.6 expose these through the path accessors; macOS 15's `URL` returns empty
+path components for opaque URLs. This older behavior is not the RFC 3986 parser's contract.
+The native tests compare the encoded path with `URLComponents.percentEncodedPath`, then
+use Foundation's `NSString` path utilities and per-component percent decoding for opaque
+paths. Splitting before decoding also avoids macOS 15's `URL` behavior of treating `%2F`
+as a path separator. Hierarchical URLs retain direct `URL` comparisons.
+Explicit rootless-path vectors and wasm public-URL tests also check the expected components,
+extensions, percent escapes, queries and fragments; no URL cases or assertions are skipped.
+
 ## Evidence (2026-09-18, `-Osize`, wasm-opt, brotli -q 11)
 
 | Bundle | before | after |

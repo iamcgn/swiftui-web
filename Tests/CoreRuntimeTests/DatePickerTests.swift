@@ -36,7 +36,7 @@ import SwiftUIWebHeadless
         add((1...31).map { ("\($0)", $0 < 10 ? 6.5 : 12.5) }, Self.regular11, height: 14, baseline: 11)
         let runtime = Runtime()
         runtime.textEngine = RecordedTextEngine(entries: entries)
-        runtime.mount(view.environment(\.timeZone, Self.utc))
+        runtime.mount(view.environment(\.timeZone, Self.utc).environment(\.locale, Locale(identifier: "en_US")))
         runtime.layout(in: size)
         return runtime
     }

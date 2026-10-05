@@ -43,20 +43,6 @@ public enum AttributeScopes {
     public var foundation: FoundationAttributes.Type { FoundationAttributes.self }
 }
 
-/// Inline styling intents of markdown and attributed text.
-public struct InlinePresentationIntent: OptionSet, Hashable, Sendable {
-    public let rawValue: UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    public static let emphasized = InlinePresentationIntent(rawValue: 1)
-    public static let stronglyEmphasized = InlinePresentationIntent(rawValue: 2)
-    public static let code = InlinePresentationIntent(rawValue: 4)
-    public static let strikethrough = InlinePresentationIntent(rawValue: 32)
-    public static let softBreak = InlinePresentationIntent(rawValue: 64)
-    public static let lineBreak = InlinePresentationIntent(rawValue: 128)
-    public static let inlineHTML = InlinePresentationIntent(rawValue: 256)
-    public static let blockHTML = InlinePresentationIntent(rawValue: 512)
-}
-
 /// Resolves `container.link`, `run.font` and the like: a key path into a scope names the key.
 @dynamicMemberLookup
 public final class AttributeDynamicLookup {
@@ -292,4 +278,38 @@ public struct AttributedSubstring: Hashable, Sendable {
 }
 
 extension AttributedString: ExpressibleByStringLiteral {}
+#endif
+
+// corelibs Foundation has AttributedString, but not the Darwin inline presentation attribute.
+// Add only that key and value on Linux, retaining Foundation's attributed-string identity.
+#if os(Linux)
+import Foundation
+
+extension AttributeScopes.FoundationAttributes {
+    public enum InlinePresentationIntentAttribute: AttributedStringKey {
+        public typealias Value = InlinePresentationIntent
+        public static let name = "NSInlinePresentationIntent"
+    }
+
+    public var inlinePresentationIntent: InlinePresentationIntentAttribute {
+        fatalError("an attribute key path, never instantiated")
+    }
+}
+#endif
+
+#if os(WASI) || os(Linux)
+/// Inline styling intents of markdown and attributed text.
+public struct InlinePresentationIntent: OptionSet, Hashable, Sendable {
+    public let rawValue: UInt
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+    public static let emphasized = InlinePresentationIntent(rawValue: 1)
+    public static let stronglyEmphasized = InlinePresentationIntent(rawValue: 2)
+    public static let code = InlinePresentationIntent(rawValue: 4)
+    public static let strikethrough = InlinePresentationIntent(rawValue: 32)
+    public static let softBreak = InlinePresentationIntent(rawValue: 64)
+    public static let lineBreak = InlinePresentationIntent(rawValue: 128)
+    public static let inlineHTML = InlinePresentationIntent(rawValue: 256)
+    public static let blockHTML = InlinePresentationIntent(rawValue: 512)
+}
+
 #endif

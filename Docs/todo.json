@@ -1726,7 +1726,7 @@
       "framework": "Platform",
       "area": "Linux",
       "title": "Linux: build, CI, painter and host",
-      "detail": "WebGraphics does not build on Linux (the CoreGraphics shim is `#if os(WASI)` only), so the CI job is parked; then a Skia or Cairo painter, a GTK window and the WebKitGTK host.",
+      "detail": "The native headless build and tests are supported on Linux with Swift 6.3.3, alongside wasm cross-compilation. Remaining: a Skia or Cairo painter, a GTK window and the WebKitGTK host.",
       "kind": "infra",
       "priority": "later",
       "status": "planned",

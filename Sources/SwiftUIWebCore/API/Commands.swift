@@ -3,11 +3,7 @@
 // selectors: ⌘C `copy:`, ⌘X `cut:`, ⌘V `paste:`, ⌘A `selectAll:`, ⌘Z `undo:`, ⇧⌘Z `redo:`;
 // hosts and tests send any through `Runtime.performCommand`); `onCopyCommand`, `onCutCommand`
 // and `onPasteCommand` exchange `NSItemProvider`s with the pasteboard.
-#if os(WASI)
 import WebFoundation
-#else
-import Foundation
-#endif
 
 /// A command handler (a class so field reflection ignores the closures).
 package final class _EditCommandBox {

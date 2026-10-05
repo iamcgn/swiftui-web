@@ -29,7 +29,7 @@ import SwiftUIWebHeadless
             entries[RecordedTextEngine.key(font: Self.wheel23, width: nil, string: word)] = .init(width: 40, height: 28, firstBaseline: 22, lastBaseline: 22)
         }
         runtime.textEngine = RecordedTextEngine(entries: entries)
-        runtime.mount(view.environment(\.timeZone, Self.utc))
+        runtime.mount(view.environment(\.timeZone, Self.utc).environment(\.locale, Locale(identifier: "en_US")))
         runtime.layout(in: CGSize(width: 400, height: 300))
         return runtime
     }

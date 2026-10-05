@@ -31,13 +31,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Native tests
-        run: swift test
+        run: swift test --scratch-path .build/native
+      - name: UIKitWeb tests
+        run: cd Packages/UIKitWeb && swift test
+      - name: WebFoundation tests
+        run: cd Packages/WebGraphics && swift test
       - name: Install wasm SDK
         run: |
           swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
             --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
       - name: wasm build
         run: swift build --swift-sdk swift-6.3.3-RELEASE_wasm --scratch-path .build/wasm --target SwiftUIWebCanvas
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
       - name: wasm tests (swift-testing under Node via PackageToJS)
         run: swift package --disable-sandbox --swift-sdk swift-6.3.3-RELEASE_wasm js test
       - name: wasm size report

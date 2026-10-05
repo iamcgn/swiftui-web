@@ -1,7 +1,7 @@
 // TabView (bar geometry, selection by press and keys, own state), ContentUnavailableView (the
 // title/description/actions column) and ShareLink (the share button and the host handler).
 // Layout against goldens is in GoldenFrameTests.
-import Foundation
+import WebFoundation
 import Testing
 import SwiftUI
 import SwiftUIWebCore

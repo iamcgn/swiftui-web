@@ -37,12 +37,12 @@ public enum TextRichFixtures {
         VStack(alignment: .leading, spacing: 4) {
             Text(instant, style: .date).probe("date")
             Text(instant, style: .time).probe("time")
-            Text(3.14159, format: .number).probe("number")
-            Text(1234, format: .number).probe("int")
-            Text(0.25, format: .percent).probe("percent")
-            Text(12.5, format: .currency(code: "USD")).probe("currency")
+            Text(3.14159, format: .number.locale(Locale(identifier: "en_US"))).probe("number")
+            Text(1234, format: .number.locale(Locale(identifier: "en_US"))).probe("int")
+            Text(0.25, format: .percent.locale(Locale(identifier: "en_US"))).probe("percent")
+            Text(12.5, format: .currency(code: "USD").locale(Locale(identifier: "en_US"))).probe("currency")
             #if !os(WASI)
-            Text(instant, format: .dateTime.year().month().day()).probe("dateTime")
+            Text(instant, format: .dateTime.year().month().day().locale(Locale(identifier: "en_US"))).probe("dateTime")
             #else
             // No `Date.FormatStyle` on wasm: the same words through the date style keep the frames.
             Text(instant, style: .date).probe("dateTime")

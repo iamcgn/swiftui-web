@@ -15,7 +15,7 @@ import WebGraphicsNative
         #if canImport(AppKit)
         scene.textEngine = CoreTextEngine()   // real line breaking; the goldens hold the placement
         #else
-        scene.textEngine = try! Goldens.textEngine()
+        scene.textEngine = SyntheticTextEngine()   // line breaking without unrecorded-text misses
         #endif
         scene.configureScreen(size: CGSize(width: 320, height: 500), scale: 2)
         let root = UIViewController()

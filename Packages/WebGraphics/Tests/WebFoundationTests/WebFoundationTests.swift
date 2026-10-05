@@ -132,10 +132,11 @@ import Foundation
         "https://example.com?q=1", "https://example.com#top", "https://example.com/.hidden", "https://example.com/dir.d/file",
         "custom-scheme+x://host/", "https://example.com/a/b/", "/relative/path", "relative/path?x#y",     ]
 
-    @Test func partsMatchFoundation() {
+    @Test func partsMatchFoundation() throws {
         for text in Self.urls {
             guard let theirs = URL(string: text) else { Issue.record("Foundation rejects \(text)"); continue }
             guard let ours = _URLParts.parse(text) else { Issue.record("we reject \(text)"); continue }
+            let components = try #require(URLComponents(string: text))
             #expect(ours.string == theirs.absoluteString, Comment(rawValue: text))
             #expect(ours.scheme == theirs.scheme, Comment(rawValue: text))
             #expect(ours.host == theirs.host, Comment(rawValue: text))
@@ -144,13 +145,69 @@ import Foundation
             #expect(ours.password == theirs.password, Comment(rawValue: text))
             #expect(ours.query == theirs.query, Comment(rawValue: text))
             #expect(ours.fragment == theirs.fragment, Comment(rawValue: text))
-            #expect(ours.lastPathComponent == theirs.lastPathComponent, Comment(rawValue: text))
-            #expect(ours.pathExtension == theirs.pathExtension, Comment(rawValue: text))
-            #expect(ours.pathComponents == theirs.pathComponents, Comment(rawValue: text))
+            #expect(ours.path == components.percentEncodedPath, Comment(rawValue: text))
+            let reference = try pathReference(for: components, url: theirs)
+            #expect(ours.lastPathComponent == reference.last, Comment(rawValue: text))
+            #expect(ours.pathExtension == reference.pathExtension, Comment(rawValue: text))
+            #expect(ours.pathComponents == reference.components, Comment(rawValue: text))
         }
         for bad in ["", "a b", "http://host:port/", "1abc://x", "http://\u{1}"] {
             #expect(_URLParts.parse(bad) == nil, Comment(rawValue: bad))
         }
+    }
+
+    /// macOS 15's URL accessors hide opaque paths (mailto:, about:), whereas URLComponents
+    /// and current Swift Foundation follow RFC 3986's path-rootless production. Use Foundation's
+    /// NSString path utilities on the encoded path, then Foundation's percent decoder on each
+    /// component. Older URL accessors also split escaped slashes after decoding (%2F), so even
+    /// moving an opaque path under a synthetic authority would not be a portable oracle.
+    private func pathReference(for components: URLComponents, url: URL) throws -> (last: String, pathExtension: String, components: [String]) {
+        let path = components.percentEncodedPath
+        guard components.scheme != nil, components.host == nil, !path.hasPrefix("/") else {
+            return (url.lastPathComponent, url.pathExtension, url.pathComponents)
+        }
+        let encoded = path as NSString
+        let last = try #require(encoded.lastPathComponent.removingPercentEncoding)
+        var segments = encoded.pathComponents
+        if segments.count > 1, segments.last == "/" { segments.removeLast() }
+        let decoded = try segments.map { try #require($0.removingPercentEncoding) }
+        return (last, (last as NSString).pathExtension, decoded)
+    }
+
+    struct RootlessPathCase: Sendable {
+        let url: String
+        let path: String
+        let last: String
+        let pathExtension: String
+        let components: [String]
+    }
+
+    static let rootlessPaths: [RootlessPathCase] = [
+        .init(url: "mailto:someone@example.com", path: "someone@example.com", last: "someone@example.com", pathExtension: "com", components: ["someone@example.com"]),
+        .init(url: "about:blank", path: "blank", last: "blank", pathExtension: "", components: ["blank"]),
+        .init(url: "custom:dir/file.txt", path: "dir/file.txt", last: "file.txt", pathExtension: "txt", components: ["dir", "file.txt"]),
+        .init(url: "custom:dir/", path: "dir/", last: "dir", pathExtension: "", components: ["dir"]),
+        .init(url: "custom:dir/a%2Fb.txt", path: "dir/a%2Fb.txt", last: "a/b.txt", pathExtension: "txt", components: ["dir", "a/b.txt"]),
+        .init(url: "mailto:someone%40example.com?subject=Hello#top", path: "someone%40example.com", last: "someone@example.com", pathExtension: "com", components: ["someone@example.com"]),
+        .init(url: "urn:isbn:978-0-00", path: "isbn:978-0-00", last: "isbn:978-0-00", pathExtension: "", components: ["isbn:978-0-00"]),
+        .init(url: "custom:?query#fragment", path: "", last: "", pathExtension: "", components: []),
+    ]
+
+    @Test(arguments: rootlessPaths)
+    func rootlessPathsHaveExplicitRFC3986Components(_ expected: RootlessPathCase) throws {
+        let ours = try #require(_URLParts.parse(expected.url))
+        let components = try #require(URLComponents(string: expected.url))
+        #expect(ours.string == expected.url)
+        #expect(ours.path == expected.path)
+        #expect(components.percentEncodedPath == expected.path)
+        #expect(ours.lastPathComponent == expected.last)
+        #expect(ours.pathExtension == expected.pathExtension)
+        #expect(ours.pathComponents == expected.components)
+        // Check the native reference against the same explicit answers, independently of ours.
+        let reference = try pathReference(for: components, url: #require(components.url))
+        #expect(reference.last == expected.last)
+        #expect(reference.pathExtension == expected.pathExtension)
+        #expect(reference.components == expected.components)
     }
 
     @Test func resolutionMatchesFoundation() {
@@ -192,20 +249,22 @@ import Foundation
     static let integers = [0, 7, 1234, -1234567, 1_000_000]
 
     @Test func decimalPercentAndCurrencyMatchFoundation() {
+        // The stand-in implements en_US, independently of the machine's current locale.
+        let locale = Locale(identifier: "en_US")
         for value in Self.doubles {
-            #expect(_NumberFormatting().format(value) == value.formatted(), "\(value)")
-            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent), "\(value) percent \(_NumberFormatting(style: .percent).format(value)) vs \(value.formatted(.percent))")
-            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD")), "\(value) usd")
-            #expect(_NumberFormatting(style: .currency("EUR")).format(value) == value.formatted(.currency(code: "EUR")), "\(value) eur")
+            #expect(_NumberFormatting().format(value) == value.formatted(.number.locale(locale)), "\(value)")
+            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent.locale(locale)), "\(value) percent \(_NumberFormatting(style: .percent).format(value)) vs \(value.formatted(.percent.locale(locale)))")
+            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD").locale(locale)), "\(value) usd")
+            #expect(_NumberFormatting(style: .currency("EUR")).format(value) == value.formatted(.currency(code: "EUR").locale(locale)), "\(value) eur")
             var two = _NumberFormatting(); two.minimumFractionDigits = 2; two.maximumFractionDigits = 2
-            #expect(two.format(value) == value.formatted(.number.precision(.fractionLength(2))), "\(value) frac2")
+            #expect(two.format(value) == value.formatted(.number.precision(.fractionLength(2)).locale(locale)), "\(value) frac2")
             var plain = _NumberFormatting(); plain.usesGrouping = false
-            #expect(plain.format(value) == value.formatted(.number.grouping(.never)), "\(value) nogroup")
+            #expect(plain.format(value) == value.formatted(.number.grouping(.never).locale(locale)), "\(value) nogroup")
         }
         for value in Self.integers {
-            #expect(_NumberFormatting().format(value) == value.formatted(), "\(value)")
-            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent), "\(value) percent")
-            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD")), "\(value) usd")
+            #expect(_NumberFormatting().format(value) == value.formatted(.number.locale(locale)), "\(value)")
+            #expect(_NumberFormatting(style: .percent).format(value) == value.formatted(.percent.locale(locale)), "\(value) percent")
+            #expect(_NumberFormatting(style: .currency("USD")).format(value) == value.formatted(.currency(code: "USD").locale(locale)), "\(value) usd")
         }
     }
 

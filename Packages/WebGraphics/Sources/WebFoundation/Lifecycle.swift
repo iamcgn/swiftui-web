@@ -1,7 +1,8 @@
 // Stand-ins for the Foundation types SwiftUI's lifecycle API names, which FoundationEssentials
 // lacks on wasm: `Timer` (publishing through the frameworks' `Timer.publish`), `RunLoop` and its
 // modes (accepted; the browser's loop is the only one), `NotificationCenter` with `Notification`
-// and `Notification.Name`, and `NSUserActivity`. Apple platforms and Linux use Foundation's.
+// and `Notification.Name`, and `NSUserActivity`. Linux also needs NSUserActivity; the other
+// declarations remain Foundation's on native platforms.
 #if os(WASI)
 
 /// A timer: the frameworks' `Timer.publish(every:tolerance:on:in:)` schedules through tasks; a
@@ -121,6 +122,10 @@ public final class NotificationToken: NSObjectProtocolToken {
     package let id: Int
     package init(id: Int) { self.id = id }
 }
+
+#endif
+
+#if !canImport(ObjectiveC)
 
 /// A user activity: the type, title, user info and web page URL the app would continue.
 public final class NSUserActivity: @unchecked Sendable {

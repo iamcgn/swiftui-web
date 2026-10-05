@@ -2,11 +2,7 @@
 // ancestors (then the tree) for a handler of the selector; the edit keys map to the standard
 // selectors; copy and cut hand `NSItemProvider` text to the pasteboard (and the host's
 // clipboard), paste offers the pasteboard's text as a provider.
-#if os(WASI)
 import WebFoundation
-#else
-import Foundation
-#endif
 
 /// A selector by name (a string literal passed to `Selector` directly is checked against the
 /// Objective-C methods the module declares, which has none).
@@ -107,7 +103,7 @@ extension Runtime {
     /// The pasteboard's text as a provider, when `types` (empty for any) include a text type.
     package func pasteboardProviders(for types: [String]) -> [NSItemProvider] {
         guard let text = pasteboardText, types.isEmpty || types.contains(where: textTypeIdentifiers.contains) else { return [] }
-        #if os(WASI)
+        #if !canImport(ObjectiveC)
         return [NSItemProvider(object: text)]
         #else
         return [NSItemProvider(object: text as NSString)]
@@ -118,7 +114,7 @@ extension Runtime {
 /// The first string the providers carry, to `completion` on the main actor.
 @MainActor
 package func _loadText(from providers: [NSItemProvider], completion: @escaping @MainActor (String?) -> Void) {
-    #if os(WASI)
+    #if !canImport(ObjectiveC)
     completion(providers.lazy.compactMap { $0._text }.first)
     #else
     guard let provider = providers.first(where: { $0.canLoadObject(ofClass: NSString.self) }) else { completion(nil); return }

@@ -9,6 +9,13 @@ import Foundation
 #if !os(WASI)
 @Observable private final class Model { var value = 0.2 }
 
+#if os(Linux)
+// corelibs Foundation exposes a read-only description; override it for the same label fixture.
+private final class NamedProgress: Progress, @unchecked Sendable {
+    override var localizedDescription: String { "Copying" }
+}
+#endif
+
 /// The values read in a body, so a change re-evaluates it.
 private struct Values: View {
     let model: Model
@@ -72,9 +79,13 @@ private struct Values: View {
         // Half the minute is left: the bar is half full, the label reads 0:30.
         #expect(abs((bar.presentedFraction ?? 0) - 0.5) < 0.02)
         #expect(runtime.root.descendants(where: { ($0 as? TextNode)?.view.resolvedString == "0:30" }).first != nil)
+        #if os(Linux)
+        let progress = NamedProgress(totalUnitCount: 10)
+        #else
         let progress = Progress(totalUnitCount: 10)
-        progress.completedUnitCount = 3
         progress.localizedDescription = "Copying"
+        #endif
+        progress.completedUnitCount = 3
         let polled = self.runtime(ProgressView(progress))
         let polledBar = polled.root.descendants(where: { $0 is ProgressBarNode }).first as! ProgressBarNode
         #expect(abs((polledBar.presentedFraction ?? 0) - 0.3) < 0.001)
