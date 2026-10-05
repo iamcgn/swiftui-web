@@ -132,10 +132,11 @@ import Foundation
         "https://example.com?q=1", "https://example.com#top", "https://example.com/.hidden", "https://example.com/dir.d/file",
         "custom-scheme+x://host/", "https://example.com/a/b/", "/relative/path", "relative/path?x#y",     ]
 
-    @Test func partsMatchFoundation() {
+    @Test func partsMatchFoundation() throws {
         for text in Self.urls {
             guard let theirs = URL(string: text) else { Issue.record("Foundation rejects \(text)"); continue }
             guard let ours = _URLParts.parse(text) else { Issue.record("we reject \(text)"); continue }
+            let components = try #require(URLComponents(string: text))
             #expect(ours.string == theirs.absoluteString, Comment(rawValue: text))
             #expect(ours.scheme == theirs.scheme, Comment(rawValue: text))
             #expect(ours.host == theirs.host, Comment(rawValue: text))
@@ -144,13 +145,67 @@ import Foundation
             #expect(ours.password == theirs.password, Comment(rawValue: text))
             #expect(ours.query == theirs.query, Comment(rawValue: text))
             #expect(ours.fragment == theirs.fragment, Comment(rawValue: text))
-            #expect(ours.lastPathComponent == theirs.lastPathComponent, Comment(rawValue: text))
-            #expect(ours.pathExtension == theirs.pathExtension, Comment(rawValue: text))
-            #expect(ours.pathComponents == theirs.pathComponents, Comment(rawValue: text))
+            #expect(ours.path == components.percentEncodedPath, Comment(rawValue: text))
+            let reference = try pathReference(for: components, url: theirs)
+            #expect(ours.lastPathComponent == reference.url.lastPathComponent, Comment(rawValue: text))
+            #expect(ours.pathExtension == reference.url.pathExtension, Comment(rawValue: text))
+            #expect(ours.pathComponents == Array(reference.url.pathComponents.dropFirst(reference.addedRoot ? 1 : 0)), Comment(rawValue: text))
         }
         for bad in ["", "a b", "http://host:port/", "1abc://x", "http://\u{1}"] {
             #expect(_URLParts.parse(bad) == nil, Comment(rawValue: bad))
         }
+    }
+
+    /// macOS 15's URL accessors hide opaque paths (mailto:, about:), whereas URLComponents
+    /// and current Swift Foundation follow RFC 3986's path-rootless production. Put that
+    /// exact encoded path under an authority for the accessor oracle, removing only the
+    /// synthetic root component. Keep percent escapes intact until Foundation decodes them.
+    private func pathReference(for components: URLComponents, url: URL) throws -> (url: URL, addedRoot: Bool) {
+        let path = components.percentEncodedPath
+        guard components.scheme != nil, components.host == nil, !path.hasPrefix("/") else {
+            return (url, false)
+        }
+        var reference = URLComponents()
+        reference.scheme = "https"
+        reference.host = "foundation-path-reference.invalid"
+        reference.percentEncodedPath = path.isEmpty ? "" : "/" + path
+        return (try #require(reference.url), !path.isEmpty)
+    }
+
+    struct RootlessPathCase: Sendable {
+        let url: String
+        let path: String
+        let last: String
+        let pathExtension: String
+        let components: [String]
+    }
+
+    static let rootlessPaths: [RootlessPathCase] = [
+        .init(url: "mailto:someone@example.com", path: "someone@example.com", last: "someone@example.com", pathExtension: "com", components: ["someone@example.com"]),
+        .init(url: "about:blank", path: "blank", last: "blank", pathExtension: "", components: ["blank"]),
+        .init(url: "custom:dir/file.txt", path: "dir/file.txt", last: "file.txt", pathExtension: "txt", components: ["dir", "file.txt"]),
+        .init(url: "custom:dir/", path: "dir/", last: "dir", pathExtension: "", components: ["dir"]),
+        .init(url: "custom:dir/a%2Fb.txt", path: "dir/a%2Fb.txt", last: "a/b.txt", pathExtension: "txt", components: ["dir", "a/b.txt"]),
+        .init(url: "mailto:someone%40example.com?subject=Hello#top", path: "someone%40example.com", last: "someone@example.com", pathExtension: "com", components: ["someone@example.com"]),
+        .init(url: "urn:isbn:978-0-00", path: "isbn:978-0-00", last: "isbn:978-0-00", pathExtension: "", components: ["isbn:978-0-00"]),
+        .init(url: "custom:?query#fragment", path: "", last: "", pathExtension: "", components: []),
+    ]
+
+    @Test(arguments: rootlessPaths)
+    func rootlessPathsHaveExplicitRFC3986Components(_ expected: RootlessPathCase) throws {
+        let ours = try #require(_URLParts.parse(expected.url))
+        let components = try #require(URLComponents(string: expected.url))
+        #expect(ours.string == expected.url)
+        #expect(ours.path == expected.path)
+        #expect(components.percentEncodedPath == expected.path)
+        #expect(ours.lastPathComponent == expected.last)
+        #expect(ours.pathExtension == expected.pathExtension)
+        #expect(ours.pathComponents == expected.components)
+        // Check the native reference against the same explicit answers, independently of ours.
+        let reference = try pathReference(for: components, url: #require(components.url))
+        #expect(reference.url.lastPathComponent == expected.last)
+        #expect(reference.url.pathExtension == expected.pathExtension)
+        #expect(Array(reference.url.pathComponents.dropFirst(reference.addedRoot ? 1 : 0)) == expected.components)
     }
 
     @Test func resolutionMatchesFoundation() {
