@@ -1700,6 +1700,15 @@
           ]
         },
         {
+          "api": "UIPageViewController",
+          "status": "partial",
+          "notes": "The scroll style's three paging slots with the data source's neighbours loaded as a drag begins, settling on the next page with the delegate's callbacks, setViewControllers, the page indicator from presentationCount and presentationIndex (a tap pages), the page-curl style as a scroll; open: the curl animation, two-page spreads, animated setViewControllers",
+          "fixtures": [
+            "uikit/page/scroll",
+            "uikit/page/curl"
+          ]
+        },
+        {
           "api": "UIToolbar and toolbars in navigation controllers",
           "status": "partial",
           "notes": "Items, spaces and the done style in the floating bar, setToolbarHidden; open: customisation, the bar's own tint and appearance objects (accepted)",

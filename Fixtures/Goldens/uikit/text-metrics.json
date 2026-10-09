@@ -2610,6 +2610,18 @@
       "lastBaseline" : 26.66015625,
       "width" : 120.5
     },
+    "system:28:600:default|;l1|Page 1" : {
+      "firstBaseline" : 26.66015625,
+      "height" : 33.5,
+      "lastBaseline" : 26.66015625,
+      "width" : 83
+    },
+    "system:28:600:default|;l1|Page 2" : {
+      "firstBaseline" : 26.66015625,
+      "height" : 33.5,
+      "lastBaseline" : 26.66015625,
+      "width" : 86.5
+    },
     "system:34:400:default|;l1|Hg" : {
       "firstBaseline" : 32.373046875,
       "height" : 41,
@@ -3223,6 +3235,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 14.21875
+    },
+    "system:28:600:default" : {
+      "ascender" : 26.66015625,
+      "capHeight" : 19.728515625,
+      "descender" : -6.75390625,
+      "leading" : 0,
+      "lineHeight" : 33.4140625,
+      "pointSize" : 28,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 14.4921875
     },
     "system:34:400:default" : {
       "ascender" : 32.373046875,

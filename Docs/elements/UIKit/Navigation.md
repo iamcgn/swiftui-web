@@ -90,3 +90,33 @@ Open: the bar crossfading during an interactive pop, the title shrinking with th
 tab bar sliding away with a push, tab bar badges and the More tab, appearance objects
 (accepted). (Toolbars and `UISearchController` in the bar landed: `Docs/elements/UIKit/Bars.md`,
 `uikit/nav/toolbar`, `uikit/nav/search`.)
+
+## UIPageViewController (`uikit/page/scroll`, `uikit/page/curl`, iPhone SE simulator, iOS 26, 2026-10-09)
+
+`Containers/UIPageViewController.swift`. `init(transitionStyle:navigationOrientation:options:)`
+(`OptionsKey.interPageSpacing`, `.spineLocation`), `transitionStyle`, `navigationOrientation`,
+`spineLocation`, `isDoubleSided` (stored), `dataSource` (`viewControllerBefore` / `After`,
+`presentationCount` / `presentationIndex` for the indicator), `delegate`
+(`willTransitionTo`, `didFinishAnimating(_:previousViewControllers:transitionCompleted:)`,
+`spineLocationFor`), `viewControllers`, `setViewControllers(_:direction:animated:completion:)`
+(one page; the delegate hears a finished transition), `gestureRecognizers` (the scroll
+view's pan).
+
+- The scroll style keeps a paging scroll view of three slots, the view widened by the
+  inter-page spacing (−10 … 330 for 20 in 320), the slots a page plus the spacing apart with
+  the current page in the middle one (its label at (24, 24)); only the current page's
+  controller is a child until a drag begins, when the data source's neighbours join the outer
+  slots and the drag settles on one of them (the page then moves to the middle and the
+  offset recentres; `didFinishAnimating` reports the previous page and whether it changed).
+  An edge without a neighbour ends the content at the current page.
+- With a data source giving `presentationCount` the indicator is a `UIPageControl` 26 tall
+  centred at the bottom (74 wide for three pages at (123, 374) in 320 × 400) and the pages are
+  374 tall above it; a tap on it pages. Without counts the pages fill the view.
+- The page-curl style shows its page edge to edge with no indicator and scrolls like the
+  scroll style between pages (the curl itself is not drawn); the vertical orientation
+  stacks the slots vertically.
+- Pixels: `scroll` 0.2 %, its `forward` step 0.2 %, `curl` 0.2 %.
+
+Open: the curl animation, two-page spreads (`spineLocation.mid`, `isDoubleSided`), the
+animated `setViewControllers` (immediate).
+

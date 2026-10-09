@@ -1480,13 +1480,14 @@
       "framework": "UIKit",
       "area": "Containers",
       "title": "UIPageViewController",
-      "detail": "Scroll and page-curl-as-scroll transition styles, the data source and delegate, the page indicator.",
+      "detail": "Scroll and page-curl-as-scroll transition styles, the data source and delegate, the page indicator. Done 2026-10-09: the scroll style's paging slots widened by the inter-page spacing (uikit/page/scroll: −10 … 330, the indicator 74 × 26 at (123, 374)), neighbours loaded as a drag begins and settled on with the delegate's callbacks, setViewControllers, the page control's taps, the page-curl style as a scroll (uikit/page/curl); Tier A exact, Tier C 0.2 %. Open: the curl animation, spreads.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
-        "Packages/UIKitWeb/Sources/UIKitWebCore/Containers"
-      ]
+        "Docs/elements/UIKit/Navigation.md"
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-splitviewcontroller",

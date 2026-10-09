@@ -1,0 +1,40 @@
+{
+  "fixture" : "uikit\/page\/scroll",
+  "frames" : {
+    "page1" : {
+      "height" : 33.5,
+      "width" : 83,
+      "x" : 24,
+      "y" : 24
+    },
+    "pager" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "page2" : {
+          "height" : 33.5,
+          "width" : 86.5,
+          "x" : 24,
+          "y" : 24
+        },
+        "pager" : {
+          "height" : 400,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "forward"
+    }
+  ]
+}

@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 49 | 12 | 34 | 3 | 0 | 0 |
+| UIKit | 50 | 12 | 35 | 3 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **189** | 37 | 139 | 7 | 3 | 3 |
+| **All** | **190** | 37 | 140 | 7 | 3 | 3 |
 
 ## App lifecycle
 
@@ -231,6 +231,7 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 |---|---|---|---|
 | `UINavigationController / UINavigationBar / UINavigationItem` | 🟢 partial | Push and pop with the measured slide, inline and large titles, back buttons, bar button items in glass platters, the bar's items following later title and button changes, the safe area a bar gives its content; the interactive edge-pan pop, the large title collapsing once the content scrolls past it (SwiftUI's iOS model, no intermediate states), titleView sizing, hidesBottomBarWhenPushed, the delegate's custom push animators (2026-10-04); appearance objects accepted | uikit/nav/basic, uikit/nav/large, uikit/nav/push, uikit/nav/items, ios/representable/hostingnav |
 | `UITabBarController / UITabBar / UITabBarItem` | 🟡 approximate | Tabs with symbol images and titles in the floating bar, selection, the safe area below; the glass pill over coloured content is opaque where iOS 26 tints what lies beneath; open: badges, the More tab, customisation | uikit/tabs/basic, ios/representable/hostingsafearea-tabs |
+| `UIPageViewController` | 🟢 partial | The scroll style's three paging slots with the data source's neighbours loaded as a drag begins, settling on the next page with the delegate's callbacks, setViewControllers, the page indicator from presentationCount and presentationIndex (a tap pages), the page-curl style as a scroll; open: the curl animation, two-page spreads, animated setViewControllers | uikit/page/scroll, uikit/page/curl |
 | `UIToolbar and toolbars in navigation controllers` | 🟢 partial | Items, spaces and the done style in the floating bar, setToolbarHidden; open: customisation, the bar's own tint and appearance objects (accepted) | uikit/toolbar/basic, uikit/nav/toolbar |
 | `UISearchBar / UISearchController` | ✅ full | The field with its placeholder, prompt, cancel, bookmark and results list buttons, the clear button while editing, the scope bar, editing through the substrate's input; in a navigation item the bar floats or hides on scroll (back on a pull), an active controller takes the bar's place with its cancel circle and shows the results controller or dims the content, the delegate and updater hear every change; open: search suggestions and tokens, the glass over results and the blurred scroll edges (uk-materials), a controller presented outside a navigation item | uikit/search/basic, uikit/search/scope, uikit/search/looks, uikit/nav/search, uikit/nav/search-results |
 

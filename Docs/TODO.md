@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 20 | 0 | 9 | 11 |
+| UIKit | 19 | 0 | 8 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **58** | 0 | 10 | 48 |
+| **All** | **57** | 0 | 9 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **UIPageViewController** `uk-pageviewcontroller` · Containers · missing  
-  Scroll and page-curl-as-scroll transition styles, the data source and delegate, the page indicator. ([Containers](Packages/UIKitWeb/Sources/UIKitWebCore/Containers))
 - ☐ **UIVisualEffectView and the glass** `uk-materials` · Views · approximate  
   Blur and vibrancy effects as a display-list filter group over what lies beneath (the painters have blur); the iOS 26 glass in bars and the scroll pocket is a tint today. The floating tab bar over coloured content is opaque where iOS 26's glass tints what lies beneath (ios/representable/hostingsafearea-tabs is approximate, 5.6 %). ([Bars.md](Docs/elements/UIKit/Bars.md), [iOS.md](Docs/elements/iOS.md))
 - ☐ **Layer corners, borders and shadows against pixels** `uk-view-pixels` · Views · verify  
@@ -156,6 +154,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling
 - ☑ 2026-10-09 **Zooming, inset adjustment and scroll-to-top** `uk-scroll-rest` · UIKit · Scrolling
+- ☑ 2026-10-09 **UIPageViewController** `uk-pageviewcontroller` · UIKit · Containers
 - ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation
