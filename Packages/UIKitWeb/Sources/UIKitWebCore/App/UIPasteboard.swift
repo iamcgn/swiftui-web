@@ -202,9 +202,9 @@ open class UIPasteboard {
 
     // MARK: Item providers
 
-    #if os(WASI)
-    /// The items as providers (each value registered under its type); the stand-in delivers
-    /// items at once, so providers set here land synchronously.
+    #if !canImport(ObjectiveC)
+    /// The items as providers (each value registered under its type); WebFoundation's stand-in
+    /// (wasm and Linux) delivers items at once, so providers set here land synchronously.
     public var itemProviders: [NSItemProvider] {
         get {
             store.map { item in
