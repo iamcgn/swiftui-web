@@ -57,7 +57,34 @@ either, so the fixture moves the content down by the control's height as an app 
   refresh is the control's height, 60.
 - Pixels: at rest 0.5 %, refreshing 1.2 %, ended 0.5 %.
 
+## Zooming, inset rules, keyboard dismissal, scroll-to-top, indicator insets (`uikit/scroll/zoom`, `uikit/nav/scroll-inset`, 2026-10-09)
+
+- Zooming: the delegate's `viewForZooming(in:)` is scaled by `zoomScale` /
+  `setZoomScale(_:animated:)` (within `minimumZoomScale` … `maximumZoomScale`) about the
+  content's origin: its transformed frame keeps its origin at zero (the 80 × 60 photo is
+  160 × 120 at 2, 40 × 30 at ½, not centred) and the content size follows it; the offset stays
+  where it was, clamped. `zoom(to:animated:)` picks the scale that fits the rectangle and puts
+  the offset at its scaled origin (a 100 × 75 rectangle at (50, 50) of a 200 × 150 view in a
+  200 × 150 scroll view: scale 2, offset (100, 100)). A pinch (`pinchGestureRecognizer`) zooms
+  about its centre, the content point under the fingers staying under them; `isZooming`,
+  `scrollViewWillBeginZooming`, `scrollViewDidZoom`, `scrollViewDidEndZooming(_:with:atScale:)`.
+  `bouncesZoom` is stored (no bounce past the limits). Pixels: `zoom` 0.2 %, `zoomOut` 0.1 %.
+- `.automatic` inset adjustment: besides the scrollable-axes rule, a view controller's first
+  scroll view takes the safe area even when its content is shorter than the view (the label
+  of a 120 pt content under a 54 pt bar sits at 80: `uikit/nav/scroll-inset`, 0.6 %); `.never`
+  leaves it at its frame.
+- `keyboardDismissMode`: `.onDrag` and `.interactive` resign the first responder as a drag
+  begins (the interactive mode's finger-tracking is not modelled).
+- Scroll-to-top: `UIKitScene.scrollToTop()` stands in for the status bar tap (the browser has
+  none): the key window's frontmost scroll view that scrolls vertically and has `scrollsToTop`
+  goes to its top, asking `scrollViewShouldScrollToTop` and telling `scrollViewDidScrollToTop`.
+- Indicator insets: `verticalScrollIndicatorInsets`, `horizontalScrollIndicatorInsets`
+  (`scrollIndicatorInsets` sets both; `automaticallyAdjustsScrollIndicatorInsets` stored) take
+  the place of the 3 pt margins on the edges they set: the bar's right edge sits 4 in with a
+  right inset of 4 (the simulator's bar: x 190 in 200). The simulator placed the top of an
+  inset bar 3 above its 10 pt inset (y 7); UIKitWeb keeps it at the inset (approximate).
+
 ## Open
 
-Zooming, `.automatic`'s extra rules inside navigation controllers, keyboard dismissal,
-scroll-to-top, the indicator insets, the pull's exact threshold and the spokes' growth and rate.
+Zoom bouncing past the limits, the interactive keyboard dismissal, the inset bar's 3 pt
+offset, the pull's exact threshold and the spokes' growth and rate.

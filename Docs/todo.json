@@ -1466,13 +1466,14 @@
       "framework": "UIKit",
       "area": "Scrolling",
       "title": "Zooming, inset adjustment and scroll-to-top",
-      "detail": "`viewForZooming` with pinch and `zoomScale`, `.automatic`'s extra rules inside navigation controllers (the safe-area adjustment is done), `keyboardDismissMode`, scroll-to-top on a status bar tap, `scrollIndicatorInsets`.",
+      "detail": "`viewForZooming` with pinch and `zoomScale`, `.automatic`'s extra rules inside navigation controllers (the safe-area adjustment is done), `keyboardDismissMode`, scroll-to-top on a status bar tap, `scrollIndicatorInsets`. Done 2026-10-09: zooming (viewForZooming scaled about the content's origin with the content size following, setZoomScale, zoom(to:), a pinch about its centre, isZooming and the zoom callbacks; uikit/scroll/zoom 0.2 %), .automatic adjusting a view controller's first scroll view even when short (uikit/nav/scroll-inset 0.6 %), keyboardDismissMode resigning on a drag, UIKitScene.scrollToTop() for the status bar tap with scrollsToTop and the delegate's say, vertical/horizontal indicator insets replacing the 3 pt margins; Tier A exact, Tier B passing.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/UIScrollView.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-pageviewcontroller",

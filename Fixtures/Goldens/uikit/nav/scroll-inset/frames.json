@@ -1,0 +1,39 @@
+{
+  "fixture" : "uikit\/nav\/scroll-inset",
+  "frames" : {
+    "bar" : {
+      "height" : 54,
+      "width" : 320,
+      "x" : 0,
+      "y" : 10
+    },
+    "label" : {
+      "height" : 20.5,
+      "width" : 104.5,
+      "x" : 16,
+      "y" : 80
+    },
+    "never" : {
+      "height" : 100,
+      "width" : 320,
+      "x" : 0,
+      "y" : 300
+    },
+    "neverLabel" : {
+      "height" : 20.5,
+      "width" : 115,
+      "x" : 16,
+      "y" : 316
+    },
+    "scroll" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

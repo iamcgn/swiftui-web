@@ -1818,6 +1818,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 46
     },
+    "system:17:400:default|;l1|Never adjusted" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 115
+    },
     "system:17:400:default|;l1|one" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1913,6 +1919,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 42
+    },
+    "system:17:400:default|;l1|Short content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 104.5
     },
     "system:17:400:default|;l1|Sign In" : {
       "firstBaseline" : 16.1865234375,
@@ -2369,6 +2381,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 66.5
+    },
+    "system:17:600:default|;l1|Short" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 44
     },
     "system:17:600:default||Bold start, " : {
       "firstBaseline" : 16.1865234375,

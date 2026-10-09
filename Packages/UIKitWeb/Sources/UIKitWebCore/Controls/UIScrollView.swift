@@ -12,6 +12,12 @@ public protocol UIScrollViewDelegate: AnyObject {
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView)
+    func viewForZooming(in scrollView: UIScrollView) -> UIView?
+    func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?)
+    func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat)
+    func scrollViewDidZoom(_ scrollView: UIScrollView)
+    func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool
+    func scrollViewDidScrollToTop(_ scrollView: UIScrollView)
 }
 
 extension UIScrollViewDelegate {
@@ -20,6 +26,12 @@ extension UIScrollViewDelegate {
     public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {}
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {}
     public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {}
+    public func viewForZooming(in scrollView: UIScrollView) -> UIView? { nil }
+    public func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {}
+    public func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {}
+    public func scrollViewDidZoom(_ scrollView: UIScrollView) {}
+    public func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool { true }
+    public func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {}
 }
 
 /// A view that allows the scrolling and zooming of its contained views.
@@ -46,7 +58,10 @@ open class UIScrollView: UIView {
         case .always:
             insets.top += safe.top; insets.bottom += safe.bottom; insets.left += safe.left; insets.right += safe.right
         case .automatic, .scrollableAxes:
-            if alwaysBounceVertical || contentSize.height + contentInset.top + contentInset.bottom > bounds.height + 0.5 {
+            // `.automatic` also adjusts a view controller's first scroll view that cannot scroll
+            // (uikit/nav/scroll-inset: short content still starts under the bar).
+            let controllersFirst = contentInsetAdjustmentBehavior == .automatic && superview?.owningViewController != nil && superview?.subviews.first === self
+            if alwaysBounceVertical || controllersFirst || contentSize.height + contentInset.top + contentInset.bottom > bounds.height + 0.5 {
                 insets.top += safe.top; insets.bottom += safe.bottom
             }
             if alwaysBounceHorizontal || contentSize.width + contentInset.left + contentInset.right > bounds.width + 0.5 {
@@ -122,10 +137,106 @@ open class UIScrollView: UIView {
     open var keyboardDismissMode: KeyboardDismissMode = .none
     open var delaysContentTouches = true
     open var canCancelContentTouches = true
+    open weak var delegate: (any UIScrollViewDelegate)?
+
+    // MARK: Zooming (uikit/scroll/zoom): the delegate's view scales about the content's origin
+    // (its frame stays at zero and the content size follows it); a pinch zooms about its centre.
+
     open var minimumZoomScale: CGFloat = 1
     open var maximumZoomScale: CGFloat = 1
-    open var zoomScale: CGFloat = 1
-    open weak var delegate: (any UIScrollViewDelegate)?
+    open var bouncesZoom = true
+    public private(set) var isZooming = false
+    public private(set) var pinchGestureRecognizer: UIPinchGestureRecognizer?
+    private var pinchStartScale: CGFloat = 1
+    private var pinchAnchor = CGPoint.zero   // the content point under the pinch's centre, unscaled
+    open var zoomScale: CGFloat {
+        get { _zoomScale }
+        set { setZoomScale(newValue, animated: false) }
+    }
+    private var _zoomScale: CGFloat = 1
+
+    private var zoomView: UIView? { delegate?.viewForZooming(in: self) }
+
+    /// Scales the zoom view to `scale` (within the limits) and sizes the content to it; the
+    /// offset stays where it is, clamped to the new content.
+    open func setZoomScale(_ scale: CGFloat, animated: Bool) {
+        let clamped = min(max(scale, minimumZoomScale), maximumZoomScale)
+        guard let view = zoomView else { _zoomScale = clamped; return }
+        guard clamped != _zoomScale || view.transform.isIdentity != (clamped == 1) else { return }
+        _zoomScale = clamped
+        applyZoom(to: view)
+        delegate?.scrollViewDidZoom(self)
+    }
+
+    private func applyZoom(to view: UIView) {
+        view.transform = CGAffineTransform(scaleX: _zoomScale, y: _zoomScale)
+        let size = CGSize(width: view.bounds.width * _zoomScale, height: view.bounds.height * _zoomScale)
+        view.center = CGPoint(x: size.width / 2, y: size.height / 2)   // the scaled frame keeps its origin at zero
+        contentSize = size
+        clampOffset()
+        setNeedsLayout()
+    }
+
+    /// Zooms so `rect` (in the zoom view's unscaled coordinates) fills the visible area, the
+    /// offset at the rectangle's scaled origin.
+    open func zoom(to rect: CGRect, animated: Bool) {
+        guard rect.width > 0, rect.height > 0 else { return }
+        let scale = min(bounds.width / rect.width, bounds.height / rect.height)
+        setZoomScale(scale, animated: animated)
+        setContentOffset(clamped(CGPoint(x: rect.minX * _zoomScale, y: rect.minY * _zoomScale)), animated: animated)
+    }
+
+    private func handlePinch(_ pinch: UIPinchGestureRecognizer) {
+        guard let view = zoomView, maximumZoomScale > minimumZoomScale else { return }
+        let centre = pinch.location(in: self)
+        switch pinch.state {
+        case .began, .changed:
+            if pinch.state == .began {
+                // The recognizer begins once the fingers have moved: its scale already counts.
+                isZooming = true
+                pinchStartScale = _zoomScale
+                pinchAnchor = CGPoint(x: (contentOffset.x + centre.x) / _zoomScale, y: (contentOffset.y + centre.y) / _zoomScale)
+                delegate?.scrollViewWillBeginZooming(self, with: view)
+            }
+            let scale = min(max(pinchStartScale * pinch.scale, minimumZoomScale), maximumZoomScale)
+            guard scale != _zoomScale else { return }
+            _zoomScale = scale
+            applyZoom(to: view)
+            // The content point under the fingers stays under them.
+            contentOffset = clamped(CGPoint(x: pinchAnchor.x * scale - centre.x, y: pinchAnchor.y * scale - centre.y))
+            delegate?.scrollViewDidZoom(self)
+        case .ended, .cancelled, .failed:
+            isZooming = false
+            delegate?.scrollViewDidEndZooming(self, with: view, atScale: _zoomScale)
+        default: break
+        }
+    }
+
+    // MARK: Scroll to top (`scrollsToTop`, a status bar tap: `UIKitScene.scrollToTop()`)
+
+    /// Scrolls to the content's top as a status bar tap does, when `scrollsToTop` and the
+    /// delegate allow it; false when nothing moved.
+    @discardableResult
+    func scrollToTop(animated: Bool = true) -> Bool {
+        guard scrollsToTop, delegate?.scrollViewShouldScrollToTop(self) ?? true else { return false }
+        let top = CGPoint(x: contentOffset.x, y: -adjustedContentInset.top)
+        guard top != contentOffset else { return false }
+        setContentOffset(top, animated: animated)
+        delegate?.scrollViewDidScrollToTop(self)
+        return true
+    }
+
+    // MARK: Indicator insets (uikit/scroll/zoom): explicit insets take the place of the 3 pt
+    // margins on their edges (the top one measured 3 less than asked, approximate).
+
+    open var verticalScrollIndicatorInsets = UIEdgeInsets.zero { didSet { setNeedsLayout() } }
+    open var horizontalScrollIndicatorInsets = UIEdgeInsets.zero { didSet { setNeedsLayout() } }
+    open var automaticallyAdjustsScrollIndicatorInsets = true
+    /// Sets both indicators' insets (UIKit's deprecated single property).
+    open var scrollIndicatorInsets: UIEdgeInsets {
+        get { verticalScrollIndicatorInsets }
+        set { verticalScrollIndicatorInsets = newValue; horizontalScrollIndicatorInsets = newValue }
+    }
     public private(set) var isDragging = false
     open var isDecelerating: Bool { momentum != nil }
     /// The velocity's factor per millisecond while decelerating.
@@ -181,6 +292,10 @@ open class UIScrollView: UIView {
         pan.addTarget { [weak self] recognizer in self?.handlePan(recognizer as! UIPanGestureRecognizer) }
         panGestureRecognizer = pan
         addGestureRecognizer(pan)
+        let pinch = UIPinchGestureRecognizer()
+        pinch.addTarget { [weak self] recognizer in self?.handlePinch(recognizer as! UIPinchGestureRecognizer) }
+        pinchGestureRecognizer = pinch
+        addGestureRecognizer(pinch)
         for indicator in [verticalIndicator, horizontalIndicator] {
             indicator.alpha = 0
             indicator.isUserInteractionEnabled = false
@@ -212,22 +327,25 @@ open class UIScrollView: UIView {
         let content = contentSize
         let vertical = content.height > visible.height + 0.5 && showsVerticalScrollIndicator
         verticalIndicator.isHidden = !vertical
+        let v = verticalScrollIndicatorInsets, h = horizontalScrollIndicatorInsets
+        let vTop = v.top > 0 ? v.top : inset, vBottom = v.bottom > 0 ? v.bottom : inset, vRight = v.right > 0 ? v.right : inset
+        let hLeft = h.left > 0 ? h.left : inset, hRight = h.right > 0 ? h.right : inset, hBottom = h.bottom > 0 ? h.bottom : inset
         if vertical {
-            let track = visible.height - 2 * inset - (content.width > visible.width ? thickness + inset : 0)
+            let track = visible.height - vTop - vBottom - (content.width > visible.width ? thickness + inset : 0)
             let length = max(Self.indicatorMinimumLength, (track * visible.height / content.height).rounded())
             let range = max(0, content.height - visible.height)
             let fraction = range > 0 ? min(1, max(0, contentOffset.y / range)) : 0
-            verticalIndicator.frame = CGRect(x: contentOffset.x + visible.width - inset - thickness, y: contentOffset.y + inset + ((track - length) * fraction).rounded(),
+            verticalIndicator.frame = CGRect(x: contentOffset.x + visible.width - vRight - thickness, y: contentOffset.y + vTop + ((track - length) * fraction).rounded(),
                                              width: thickness, height: length)
         }
         let horizontal = content.width > visible.width + 0.5 && showsHorizontalScrollIndicator
         horizontalIndicator.isHidden = !horizontal
         if horizontal {
-            let track = visible.width - 2 * inset - (vertical ? thickness + inset : 0)
+            let track = visible.width - hLeft - hRight - (vertical ? thickness + inset : 0)
             let length = max(Self.indicatorMinimumLength, (track * visible.width / content.width).rounded())
             let range = max(0, content.width - visible.width)
             let fraction = range > 0 ? min(1, max(0, contentOffset.x / range)) : 0
-            horizontalIndicator.frame = CGRect(x: contentOffset.x + inset + ((track - length) * fraction).rounded(), y: contentOffset.y + visible.height - inset - thickness,
+            horizontalIndicator.frame = CGRect(x: contentOffset.x + hLeft + ((track - length) * fraction).rounded(), y: contentOffset.y + visible.height - hBottom - thickness,
                                                width: length, height: thickness)
         }
         bringSubviewToFront(verticalIndicator)
@@ -347,6 +465,9 @@ open class UIScrollView: UIView {
             isDragging = true
             showIndicators()
             delegate?.scrollViewWillBeginDragging(self)
+            // `.onDrag` and `.interactive` dismiss the keyboard as the drag starts (the
+            // interactive mode's finger-tracking dismissal is not modelled).
+            if keyboardDismissMode != .none, let responder = UIKitScene.shared.firstResponder, responder !== self { _ = responder.resignFirstResponder() }
         case .changed:
             let translation = pan.translation(in: self)
             let raw = CGPoint(x: panStartOffset.x - translation.x, y: panStartOffset.y - translation.y)

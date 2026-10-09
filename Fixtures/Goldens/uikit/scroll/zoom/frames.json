@@ -1,0 +1,88 @@
+{
+  "fixture" : "uikit\/scroll\/zoom",
+  "frames" : {
+    "indicators" : {
+      "height" : 56,
+      "width" : 200,
+      "x" : 16,
+      "y" : 348
+    },
+    "mark" : {
+      "height" : 150,
+      "width" : 200,
+      "x" : 16,
+      "y" : 182
+    },
+    "panel" : {
+      "height" : 150,
+      "width" : 200,
+      "x" : 16,
+      "y" : 182
+    },
+    "panelView" : {
+      "height" : 300,
+      "width" : 400,
+      "x" : -84,
+      "y" : 82
+    },
+    "photo" : {
+      "height" : 150,
+      "width" : 200,
+      "x" : 16,
+      "y" : 16
+    },
+    "photoView" : {
+      "height" : 120,
+      "width" : 160,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "indicators" : {
+          "height" : 56,
+          "width" : 200,
+          "x" : 16,
+          "y" : 348
+        },
+        "mark" : {
+          "height" : 150,
+          "width" : 200,
+          "x" : 16,
+          "y" : 182
+        },
+        "panel" : {
+          "height" : 150,
+          "width" : 200,
+          "x" : 16,
+          "y" : 182
+        },
+        "panelView" : {
+          "height" : 300,
+          "width" : 400,
+          "x" : -84,
+          "y" : 82
+        },
+        "photo" : {
+          "height" : 150,
+          "width" : 200,
+          "x" : 16,
+          "y" : 16
+        },
+        "photoView" : {
+          "height" : 30,
+          "width" : 40,
+          "x" : 16,
+          "y" : 16
+        }
+      },
+      "name" : "zoomOut"
+    }
+  ]
+}

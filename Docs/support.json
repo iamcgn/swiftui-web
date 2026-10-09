@@ -1579,9 +1579,11 @@
         {
           "api": "UIScrollView",
           "status": "partial",
-          "notes": "Content size and offset, insets and the safe-area adjustment, wheel scrolling, finger pans with momentum, rubber banding and paging, the indicators, delegate callbacks, UIRefreshControl (a pull past 60 starts a refresh and sends valueChanged, the content resting under the spinner until endRefreshing; beginRefreshing, attributedTitle, tintColor); open: zooming, keyboard dismissal, scroll-to-top",
+          "notes": "Content size and offset, insets and the safe-area adjustment (a view controller's first scroll view adjusted even when short), wheel scrolling, finger pans with momentum, rubber banding and paging, the indicators and their insets, delegate callbacks, UIRefreshControl (a pull past 60 starts a refresh and sends valueChanged, the content resting under the spinner until endRefreshing; beginRefreshing, attributedTitle, tintColor), zooming (viewForZooming, zoomScale, zoom(to:), a pinch about its centre, the zoom callbacks), keyboardDismissMode on a drag, scroll-to-top through UIKitScene.scrollToTop(); open: zoom bouncing, the interactive keyboard dismissal",
           "fixtures": [
             "uikit/scroll/refresh",
+            "uikit/scroll/zoom",
+            "uikit/nav/scroll-inset",
             "uikit/textview/basic",
             "ios/representable/wheel",
             "ios/representable/safearea-scroll-ignored"

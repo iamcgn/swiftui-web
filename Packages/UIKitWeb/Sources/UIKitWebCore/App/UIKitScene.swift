@@ -224,6 +224,27 @@ public final class UIKitScene: HostedScene {
         UITraitCollection.current = UIScreen.main.traitCollection
     }
 
+    // MARK: Scroll to top
+
+    /// A status bar tap: the frontmost scroll view that scrolls vertically and allows it goes
+    /// to its top (UIKit asks the one under the status bar; the key window's deepest visible
+    /// scroll view with `scrollsToTop` stands in). Returns whether one scrolled.
+    @discardableResult
+    public func scrollToTop() -> Bool {
+        guard let window = windows.last else { return false }
+        func candidates(in view: UIView) -> [UIScrollView] {
+            var found: [UIScrollView] = []
+            for subview in view.subviews where !subview.isHidden && subview.alpha > 0 {
+                found += candidates(in: subview)
+                if let scroll = subview as? UIScrollView, scroll.scrollsToTop,
+                   scroll.contentSize.height + scroll.adjustedContentInset.top + scroll.adjustedContentInset.bottom > scroll.bounds.height + 0.5 { found.append(scroll) }
+            }
+            return found
+        }
+        for scroll in candidates(in: window).reversed() where scroll.scrollToTop() { return true }
+        return false
+    }
+
     // MARK: Frames
 
     public private(set) var needsFrame = false

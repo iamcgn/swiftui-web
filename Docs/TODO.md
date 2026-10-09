@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 21 | 0 | 10 | 11 |
+| UIKit | 20 | 0 | 9 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **59** | 0 | 11 | 48 |
+| **All** | **58** | 0 | 10 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Zooming, inset adjustment and scroll-to-top** `uk-scroll-rest` · Scrolling · missing  
-  `viewForZooming` with pinch and `zoomScale`, `.automatic`'s extra rules inside navigation controllers (the safe-area adjustment is done), `keyboardDismissMode`, scroll-to-top on a status bar tap, `scrollIndicatorInsets`. ([UIScrollView.md](Docs/elements/UIKit/UIScrollView.md))
 - ☐ **UIPageViewController** `uk-pageviewcontroller` · Containers · missing  
   Scroll and page-curl-as-scroll transition styles, the data source and delegate, the page indicator. ([Containers](Packages/UIKitWeb/Sources/UIKitWebCore/Containers))
 - ☐ **UIVisualEffectView and the glass** `uk-materials` · Views · approximate  
@@ -157,6 +155,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling
+- ☑ 2026-10-09 **Zooming, inset adjustment and scroll-to-top** `uk-scroll-rest` · UIKit · Scrolling
 - ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation
