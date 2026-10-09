@@ -88,6 +88,8 @@ final class RepresentableTree: _PlatformViewTree {
     func activate(semanticsIdentifier: Int) { hosted.activate(semanticsIdentifier: semanticsIdentifier) }
     func adjust(semanticsIdentifier: Int, increment: Bool) { hosted.adjust(semanticsIdentifier: semanticsIdentifier, increment: increment) }
     func setValue(semanticsIdentifier: Int, value: Double) { hosted.setValue(semanticsIdentifier: semanticsIdentifier, value: value) }
+    func performAccessibilityAction(semanticsIdentifier: Int, name: String) { hosted.performAccessibilityAction(semanticsIdentifier: semanticsIdentifier, name: name) }
+    func takeAccessibilityEvents() -> [AccessibilityEvent] { hosted.takeAccessibilityEvents() }
     func focus(semanticsIdentifier: Int) { hosted.focus(semanticsIdentifier: semanticsIdentifier) }
     func blur(semanticsIdentifier: Int) { hosted.blur(semanticsIdentifier: semanticsIdentifier) }
     var focusedTextFieldIdentifier: Int? { hosted.focusedTextFieldIdentifier }

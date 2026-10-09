@@ -274,9 +274,20 @@ extension Runtime {
     /// Performs a custom action of an element by name (`HostedScene`), or an action of a kind
     /// by its kind name.
     public func performAccessibilityAction(semanticsIdentifier: Int, name: String) {
-        guard let entry = semanticsEntry(for: semanticsIdentifier), let action = entry.actions.first(where: { $0.name == name }) else { return }
+        guard let entry = semanticsEntry(for: semanticsIdentifier), let action = entry.actions.first(where: { $0.name == name }) else {
+            platformTree(handling: semanticsIdentifier)?.performAccessibilityAction(semanticsIdentifier: semanticsIdentifier, name: name)
+            return
+        }
         action.run()
         requestLayout()
+    }
+
+    /// The events the platform trees' scenes posted (a hosted UIKit tree's `UIAccessibility.post`).
+    public func takeAccessibilityEvents() -> [AccessibilityEvent] {
+        // Trees sharing a scene (UIKit's) share its queue: the first one drains it.
+        var events: [AccessibilityEvent] = []
+        for entry in platformHosts { events += entry.node?.tree.takeAccessibilityEvents() ?? [] }
+        return events
     }
 
     /// Runs the element's action of `kind`, if any; returns whether it had one.

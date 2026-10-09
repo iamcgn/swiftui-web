@@ -163,7 +163,21 @@ extension UIView {
         }
         if let node = semanticsNode() {
             nodes.append(node)
-            if !(self is UIControl) { for subview in subviews { subview.collectSemantics(into: &nodes) } }
+            if !(self is UIControl) { collectChildSemantics(into: &nodes) }
+            return
+        }
+        collectChildSemantics(into: &nodes)
+    }
+
+    /// The children's elements: `accessibilityElements` in its order when set (views only),
+    /// else the subviews in paint order; a modal subview hides its siblings.
+    private func collectChildSemantics(into nodes: inout [SemanticsNode]) {
+        if let elements = accessibilityElements {
+            for case let view as UIView in elements { view.collectSemantics(into: &nodes) }
+            return
+        }
+        if let modal = subviews.last(where: { $0.accessibilityViewIsModal && !$0.isHidden }) {
+            modal.collectSemantics(into: &nodes)
             return
         }
         for subview in subviews { subview.collectSemantics(into: &nodes) }

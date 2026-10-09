@@ -71,9 +71,10 @@ open class UISwitch: UIControl {
         node.isOn = isOn
     }
 
-    override func accessibilityActivate() {
-        guard isEnabled else { return }
+    override open func accessibilityActivate() -> Bool {
+        guard isEnabled else { return false }
         isOn.toggle()
         sendActions(for: .valueChanged)
+        return true
     }
 }

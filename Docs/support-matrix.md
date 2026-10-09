@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 53 | 19 | 30 | 4 | 0 | 0 |
+| UIKit | 53 | 20 | 29 | 4 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **193** | 44 | 135 | 8 | 3 | 3 |
+| **All** | **193** | 45 | 134 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -188,7 +188,7 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | `Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)` | 🟢 partial | The window's style, a hosted tree's overrides (style, size classes, layout direction, content size category), traitCollectionDidChange down the tree; open: overrideUserInterfaceStyle on a view, registerForTraitChanges | uikit/dark/*, ios/representable/traits, ios/dark/representable-controls |
 | `Gesture recognizers (UITapGestureRecognizer / UILongPressGestureRecognizer / UIPanGestureRecognizer / UISwipeGestureRecognizer / UIScreenEdgePanGestureRecognizer / UIPinchGestureRecognizer / UIRotationGestureRecognizer / UIHoverGestureRecognizer, delegate, require(toFail:), closure targets)` | ✅ full | Touches route through TouchRouter to the hit view's recognizers, then the view; a pan drives scroll views and switches; hover follows press-less pointer moves; pinches and rotations come from the host's pinch; recognizers arbitrate (exclusivity, simultaneous recognition and failure requirements through the delegate; an undecided requirement counts as failed when the touch ends) (Docs/elements/UIKit/Gestures.md) | uikit/controls/basic, uikit/table/editing, ios/representable/hover |
 | `UIInteraction / UIPointerInteraction / UIPointerStyle / UIButton.isPointerInteractionEnabled` | 🟢 partial | Regions and styles from the delegate; beams, shapes and effects map to the cursors a browser can show; the pointer's own morphing is not drawn | ios/representable/hover |
-| `Accessibility (isAccessibilityElement, accessibilityLabel / Value / Traits / Identifier, accessibilityActivate / Increment / Decrement)` | 🟢 partial | Every view contributes to the scene's semantics tree, which the browser host mirrors into the DOM overlay and the routing by identifier drives | — The semantics tree is not pixels: the Playwright probes and HoverTests read it through the overlay. |
+| `Accessibility (isAccessibilityElement, accessibilityLabel / Value / Hint / Traits / Identifier / Frame, accessibilityElements, accessibilityViewIsModal, accessibilityCustomActions, accessibilityActivate / Increment / Decrement / PerformEscape / PerformMagicTap, UIAccessibility.post)` | ✅ full | Every view contributes to the scene's semantics tree, which the browser host mirrors into the DOM overlay (roles from the traits, aria-disabled, aria-selected, live regions, custom-action buttons) and the routing by identifier drives; a container orders its elements, a modal view hides its siblings; announcements and focus moves posted with UIAccessibility.post reach the host's live region and focus; open: accessibilityPath, a VoiceOver session by hand (pf-browser-sessions) | uikit/accessibility/basic |
 
 ## UIKit: controls
 

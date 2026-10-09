@@ -21,7 +21,9 @@ open class UISlider: UIControl {
     static let trackHeight: CGFloat = 6
 
     public override init(frame: CGRect) {
-        super.init(frame: CGRect(origin: frame.origin, size: CGSize(width: frame.width, height: Self.height)))
+        // A slider keeps the height it is given (uikit/accessibility/basic: 30 stays 30); an
+        // empty frame takes the intrinsic 34.
+        super.init(frame: CGRect(origin: frame.origin, size: CGSize(width: frame.width, height: frame.height > 0 ? frame.height : Self.height)))
         isAccessibilityElement = true
         accessibilityTraits = .adjustable
         // A slider keeps its height in a taller container (ios/representable/measure-controls: 34 in 44).
@@ -93,8 +95,8 @@ open class UISlider: UIControl {
         node.isAdjustable = true
     }
 
-    override func accessibilityIncrement() { value += (maximumValue - minimumValue) / 10; sendActions(for: .valueChanged) }
-    override func accessibilityDecrement() { value -= (maximumValue - minimumValue) / 10; sendActions(for: .valueChanged) }
+    override open func accessibilityIncrement() { value += (maximumValue - minimumValue) / 10; sendActions(for: .valueChanged) }
+    override open func accessibilityDecrement() { value -= (maximumValue - minimumValue) / 10; sendActions(for: .valueChanged) }
     override func accessibilitySetValue(_ value: Double) { self.value = minimumValue + Float(value / 100) * (maximumValue - minimumValue); sendActions(for: .valueChanged) }
 }
 
@@ -311,8 +313,8 @@ open class UIStepper: UIControl {
         node.isAdjustable = true
     }
 
-    override func accessibilityIncrement() { value += stepValue; sendActions(for: .valueChanged) }
-    override func accessibilityDecrement() { value -= stepValue; sendActions(for: .valueChanged) }
+    override open func accessibilityIncrement() { value += stepValue; sendActions(for: .valueChanged) }
+    override open func accessibilityDecrement() { value -= stepValue; sendActions(for: .valueChanged) }
 }
 
 /// A view that depicts the progress of a task over time.
@@ -531,6 +533,6 @@ open class UIPageControl: UIControl {
         node.isAdjustable = true
     }
 
-    override func accessibilityIncrement() { currentPage = min(numberOfPages - 1, currentPage + 1); sendActions(for: .valueChanged) }
-    override func accessibilityDecrement() { currentPage = max(0, currentPage - 1); sendActions(for: .valueChanged) }
+    override open func accessibilityIncrement() { currentPage = min(numberOfPages - 1, currentPage + 1); sendActions(for: .valueChanged) }
+    override open func accessibilityDecrement() { currentPage = max(0, currentPage - 1); sendActions(for: .valueChanged) }
 }

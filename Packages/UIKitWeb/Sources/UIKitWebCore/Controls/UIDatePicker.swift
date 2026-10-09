@@ -424,8 +424,8 @@ open class UIDatePicker: UIControl {
         if node.label.isEmpty { node.label = parts.joined(separator: " ") }
     }
 
-    override func accessibilityIncrement() { stepFromAssistiveTechnology(1) }
-    override func accessibilityDecrement() { stepFromAssistiveTechnology(-1) }
+    override open func accessibilityIncrement() { stepFromAssistiveTechnology(1) }
+    override open func accessibilityDecrement() { stepFromAssistiveTechnology(-1) }
 
     private func stepFromAssistiveTechnology(_ delta: Int) {
         guard datePickerStyle == .wheels, let column = wheelColumns.first else { return }

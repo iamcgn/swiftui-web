@@ -1437,10 +1437,12 @@
           ]
         },
         {
-          "api": "Accessibility (isAccessibilityElement, accessibilityLabel / Value / Traits / Identifier, accessibilityActivate / Increment / Decrement)",
-          "status": "partial",
-          "notes": "Every view contributes to the scene's semantics tree, which the browser host mirrors into the DOM overlay and the routing by identifier drives",
-          "noFixture": "The semantics tree is not pixels: the Playwright probes and HoverTests read it through the overlay."
+          "api": "Accessibility (isAccessibilityElement, accessibilityLabel / Value / Hint / Traits / Identifier / Frame, accessibilityElements, accessibilityViewIsModal, accessibilityCustomActions, accessibilityActivate / Increment / Decrement / PerformEscape / PerformMagicTap, UIAccessibility.post)",
+          "status": "full",
+          "notes": "Every view contributes to the scene's semantics tree, which the browser host mirrors into the DOM overlay (roles from the traits, aria-disabled, aria-selected, live regions, custom-action buttons) and the routing by identifier drives; a container orders its elements, a modal view hides its siblings; announcements and focus moves posted with UIAccessibility.post reach the host's live region and focus; open: accessibilityPath, a VoiceOver session by hand (pf-browser-sessions)",
+          "fixtures": [
+            "uikit/accessibility/basic"
+          ]
         }
       ]
     },

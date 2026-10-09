@@ -431,6 +431,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest(runs: [.init("Small ", .system(size: 13)), .init("and big", .system(size: 24, weight: "bold"))], lines: 0),
         UIKitTextRequest("Small ", .system(size: 13)), UIKitTextRequest("and big", .system(size: 24, weight: "bold")),
         UIKitTextRequest("Underlined words wrap in a narrow rect", .system(size: 15), width: 110, lines: 0),
+        // uikit/accessibility/basic (labels at 17 and the bold 22 title; system button titles at 15)
+        UIKitTextRequest("Inbox", .system(size: 22, weight: "bold")),
+        UIKitTextRequest("Archived: 0", .system(size: 17)), UIKitTextRequest("Archived: 1", .system(size: 17)),
+        UIKitTextRequest("Terms", .system(size: 17)), UIKitTextRequest("Secret", .system(size: 17)), UIKitTextRequest("Ready", .system(size: 17)),
+        UIKitTextRequest("Announced", .system(size: 17)), UIKitTextRequest("Modal", .system(size: 17)),
+        UIKitTextRequest("A", .system(size: 15)), UIKitTextRequest("B", .system(size: 15)), UIKitTextRequest("C", .system(size: 15)),
+        UIKitTextRequest("Selected", .system(size: 15)), UIKitTextRequest("Announce", .system(size: 15)), UIKitTextRequest("Close", .system(size: 15)),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

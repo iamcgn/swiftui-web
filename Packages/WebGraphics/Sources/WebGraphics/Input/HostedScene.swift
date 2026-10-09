@@ -90,6 +90,9 @@ public protocol HostedScene: AnyObject {
     func setValue(semanticsIdentifier: Int, value: Double)
     /// A custom action of an element (`SemanticsNode.customActions`) performed by assistive technology.
     func performAccessibilityAction(semanticsIdentifier: Int, name: String)
+    /// What the scene asks of the host's assistive layer since the last frame (announcements,
+    /// focus moves posted by the app); the host takes them after syncing its overlay.
+    func takeAccessibilityEvents() -> [AccessibilityEvent]
     /// Keyboard focus moved to an element (`keyboard` tells whether a focus ring should show).
     func focus(semanticsIdentifier: Int?, keyboard: Bool)
     func blur(semanticsIdentifier: Int)
@@ -114,6 +117,18 @@ extension HostedScene {
     public func keyUp(_ event: KeyEvent) -> Bool { false }
     public func pointerModifiersChanged(_ modifiers: EventModifiers) {}
     public func performAccessibilityAction(semanticsIdentifier: Int, name: String) {}
+    public func takeAccessibilityEvents() -> [AccessibilityEvent] { [] }
+}
+
+/// What a scene asks of the host's assistive layer: a string to announce in a live region, or
+/// assistive focus moved to an element (`UIAccessibility.post`).
+public enum AccessibilityEvent: Equatable, Sendable {
+    case announce(String)
+    case focus(Int)
+    /// The layout changed; the host re-reads its overlay (it does so every frame).
+    case layoutChanged
+    /// A new screen: the host announces nothing itself but moves focus when asked.
+    case screenChanged
 }
 
 /// The phase of a continuous gesture a host delivers (pinches and rotations).

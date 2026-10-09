@@ -518,6 +518,30 @@ public final class UIKitScene: HostedScene {
         setNeedsFrame()
     }
 
+    /// Runs an element's custom action by name (the overlay's action buttons); "escape" and
+    /// "magicTap" run the view's `accessibilityPerformEscape` / `accessibilityPerformMagicTap`.
+    public func performAccessibilityAction(semanticsIdentifier: Int, name: String) {
+        if let host = hostingView(handling: semanticsIdentifier) { host._hostedPerformAccessibilityAction(semanticsIdentifier: semanticsIdentifier, name: name); setNeedsFrame(); return }
+        guard let view = view(withSemanticsIdentifier: semanticsIdentifier) else { return }
+        switch name {
+        case "escape": _ = view.accessibilityPerformEscape()
+        case "magicTap": _ = view.accessibilityPerformMagicTap()
+        default: _ = view.performAccessibilityCustomAction(named: name)
+        }
+        setNeedsFrame()
+    }
+
+    /// What `UIAccessibility.post` queued for the host's assistive layer (announcements, focus
+    /// moves); the host takes them after it has synced the overlay for the frame.
+    public var accessibilityEvents: [AccessibilityEvent] = []
+
+    public func takeAccessibilityEvents() -> [AccessibilityEvent] {
+        var events = accessibilityEvents
+        accessibilityEvents.removeAll()
+        for entry in hostingViews { events += entry.view?._hostedTakeAccessibilityEvents() ?? [] }
+        return events
+    }
+
     public func adjust(semanticsIdentifier: Int, increment: Bool) {
         if let host = hostingView(handling: semanticsIdentifier) { host._hostedAdjust(semanticsIdentifier: semanticsIdentifier, increment: increment); setNeedsFrame(); return }
         guard let view = view(withSemanticsIdentifier: semanticsIdentifier) else { return }
@@ -593,7 +617,6 @@ extension UIView {
     /// The semantics node for this view, or nil when it is not an accessibility element.
     func semanticsNode() -> SemanticsNode? {
         guard isAccessibilityElement else { return nil }
-        let frame = convert(bounds, to: nil)
         let role: SemanticsNode.Role
         let traits = accessibilityTraits
         if traits.contains(.button) { role = .button }
@@ -604,11 +627,15 @@ extension UIView {
         else if self is UITextField { role = .textField }
         else if self is UISwitch { role = .switch }
         else { role = .text }
-        var node = SemanticsNode(role: role, label: accessibilityLabel ?? "", frame: frame, identifier: semanticsIdentifier)
+        var node = SemanticsNode(role: role, label: accessibilityLabel ?? "", frame: accessibilityFrame, identifier: semanticsIdentifier)
         node.value = accessibilityValue
         node.hint = accessibilityHint
         node.accessibilityIdentifier = accessibilityIdentifier
         node.isAdjustable = traits.contains(.adjustable)
+        node.isEnabled = !traits.contains(.notEnabled)
+        if traits.contains(.selected) { node.isSelected = true }
+        node.isLive = traits.contains(.updatesFrequently)
+        node.customActions = accessibilityCustomActions?.map { $0.name } ?? []
         decorateSemantics(&node)
         return node
     }

@@ -1,0 +1,232 @@
+{
+  "fixture" : "uikit\/accessibility\/basic",
+  "frames" : {
+    "announce" : {
+      "height" : 36,
+      "width" : 100,
+      "x" : 16,
+      "y" : 240
+    },
+    "buttonA" : {
+      "height" : 36,
+      "width" : 50,
+      "x" : 16,
+      "y" : 80
+    },
+    "buttonB" : {
+      "height" : 36,
+      "width" : 50,
+      "x" : 76,
+      "y" : 80
+    },
+    "buttonC" : {
+      "height" : 36,
+      "width" : 50,
+      "x" : 136,
+      "y" : 80
+    },
+    "close" : {
+      "height" : 36,
+      "width" : 80,
+      "x" : 56,
+      "y" : 160
+    },
+    "disabled" : {
+      "height" : 36,
+      "width" : 90,
+      "x" : 16,
+      "y" : 124
+    },
+    "hidden" : {
+      "height" : 22,
+      "width" : 80,
+      "x" : 230,
+      "y" : 174
+    },
+    "image" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 240,
+      "y" : 44
+    },
+    "link" : {
+      "height" : 36,
+      "width" : 90,
+      "x" : 216,
+      "y" : 124
+    },
+    "modal" : {
+      "height" : 120,
+      "width" : 240,
+      "x" : 40,
+      "y" : 100
+    },
+    "modalTitle" : {
+      "height" : 24,
+      "width" : 208,
+      "x" : 56,
+      "y" : 116
+    },
+    "order" : {
+      "height" : 36,
+      "width" : 288,
+      "x" : 16,
+      "y" : 80
+    },
+    "row" : {
+      "height" : 22,
+      "width" : 200,
+      "x" : 16,
+      "y" : 48
+    },
+    "selected" : {
+      "height" : 36,
+      "width" : 90,
+      "x" : 116,
+      "y" : 124
+    },
+    "slider" : {
+      "height" : 30,
+      "width" : 120,
+      "x" : 100,
+      "y" : 170
+    },
+    "status" : {
+      "height" : 22,
+      "width" : 288,
+      "x" : 16,
+      "y" : 210
+    },
+    "switch" : {
+      "height" : 30,
+      "width" : 68,
+      "x" : 16,
+      "y" : 170
+    },
+    "title" : {
+      "height" : 28,
+      "width" : 288,
+      "x" : 16,
+      "y" : 12
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "announce" : {
+          "height" : 36,
+          "width" : 100,
+          "x" : 16,
+          "y" : 240
+        },
+        "buttonA" : {
+          "height" : 36,
+          "width" : 50,
+          "x" : 16,
+          "y" : 80
+        },
+        "buttonB" : {
+          "height" : 36,
+          "width" : 50,
+          "x" : 76,
+          "y" : 80
+        },
+        "buttonC" : {
+          "height" : 36,
+          "width" : 50,
+          "x" : 136,
+          "y" : 80
+        },
+        "close" : {
+          "height" : 36,
+          "width" : 80,
+          "x" : 56,
+          "y" : 160
+        },
+        "disabled" : {
+          "height" : 36,
+          "width" : 90,
+          "x" : 16,
+          "y" : 124
+        },
+        "hidden" : {
+          "height" : 22,
+          "width" : 80,
+          "x" : 230,
+          "y" : 174
+        },
+        "image" : {
+          "height" : 30,
+          "width" : 30,
+          "x" : 240,
+          "y" : 44
+        },
+        "link" : {
+          "height" : 36,
+          "width" : 90,
+          "x" : 216,
+          "y" : 124
+        },
+        "modal" : {
+          "height" : 120,
+          "width" : 240,
+          "x" : 40,
+          "y" : 100
+        },
+        "modalTitle" : {
+          "height" : 24,
+          "width" : 208,
+          "x" : 56,
+          "y" : 116
+        },
+        "order" : {
+          "height" : 36,
+          "width" : 288,
+          "x" : 16,
+          "y" : 80
+        },
+        "row" : {
+          "height" : 22,
+          "width" : 200,
+          "x" : 16,
+          "y" : 48
+        },
+        "selected" : {
+          "height" : 36,
+          "width" : 90,
+          "x" : 116,
+          "y" : 124
+        },
+        "slider" : {
+          "height" : 30,
+          "width" : 120,
+          "x" : 100,
+          "y" : 170
+        },
+        "status" : {
+          "height" : 22,
+          "width" : 288,
+          "x" : 16,
+          "y" : 210
+        },
+        "switch" : {
+          "height" : 30,
+          "width" : 68,
+          "x" : 16,
+          "y" : 170
+        },
+        "title" : {
+          "height" : 28,
+          "width" : 288,
+          "x" : 16,
+          "y" : 12
+        }
+      },
+      "name" : "modal"
+    }
+  ]
+}

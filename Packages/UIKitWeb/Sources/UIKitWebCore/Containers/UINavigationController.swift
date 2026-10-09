@@ -492,8 +492,11 @@ open class UINavigationBar: UIView {
         super.init(frame: frame)
         titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         titleLabel.textAlignment = .center
+        // A navigation title is a heading to assistive technology (uk-accessibility).
+        titleLabel.accessibilityTraits = .header
         addSubview(titleLabel)
         largeTitleLabel.font = .systemFont(ofSize: 34, weight: .bold)
+        largeTitleLabel.accessibilityTraits = .header
         addSubview(largeTitleLabel)
     }
 

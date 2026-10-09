@@ -62,7 +62,13 @@ if (cancelled.includes('Reset settings?')) problems.push('after Cancel the alert
 await tap('About');
 const about = await texts();
 if (!about.some(t => t.startsWith('UIKitWeb runs'))) problems.push('after the tab expected the about text: ' + JSON.stringify(about));
+// An accessibility pass (uk-accessibility): the browser's own accessible tree, what a screen
+// reader is given, has the tab bar's tabs, the table's rows and the switch as named elements.
+const snapshot = JSON.stringify(await page.accessibility.snapshot({ interestingOnly: false }));
+const semantics = await page.evaluate(() => window.__swiftuiwebDebug.semantics());
+for (const label of ['Settings', 'About']) if (!snapshot.includes(`"role":"button","name":"${label}"`)) problems.push(`accessible tree lacks the "${label}" tab: ${snapshot.slice(0, 400)}`);
+if (!semantics.some(t => t.role === 'heading' && t.label === 'About')) problems.push('semantics: the navigation title is not a heading: ' + JSON.stringify(semantics.map(t => t.role + ':' + t.label)));
 if (shot) await page.screenshot({ path: shot });
 await browser.close();
 if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
-console.log('uikit settings OK: push, pop, alert and tab switch');
+console.log('uikit settings OK: push, pop, alert, tab switch and the accessible tree');

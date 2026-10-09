@@ -1362,6 +1362,12 @@
       "lastBaseline" : 14.2822265625,
       "width" : 9.5
     },
+    "system:15:400:default|;l1|A" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 10
+    },
     "system:15:400:default|;l1|Adjusts the font to fit" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -1374,17 +1380,41 @@
       "lastBaseline" : 14.2822265625,
       "width" : 17
     },
+    "system:15:400:default|;l1|Announce" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 69.5
+    },
     "system:15:400:default|;l1|Auto Layout" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 82
     },
+    "system:15:400:default|;l1|B" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 10
+    },
     "system:15:400:default|;l1|Button" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 46
+    },
+    "system:15:400:default|;l1|C" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 11
+    },
+    "system:15:400:default|;l1|Close" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 39
     },
     "system:15:400:default|;l1|Compositional" : {
       "firstBaseline" : 14.2822265625,
@@ -1421,6 +1451,12 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 48
+    },
+    "system:15:400:default|;l1|Selected" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 60.5
     },
     "system:15:400:default|;l1|Shared" : {
       "firstBaseline" : 14.2822265625,
@@ -1776,6 +1812,24 @@
       "lastBaseline" : 16.1865234375,
       "width" : 37.5
     },
+    "system:17:400:default|;l1|Announced" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 87
+    },
+    "system:17:400:default|;l1|Archived: 0" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 86.5
+    },
+    "system:17:400:default|;l1|Archived: 1" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 83.5
+    },
     "system:17:400:default|;l1|Before" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1950,6 +2004,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 46
     },
+    "system:17:400:default|;l1|Modal" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 47
+    },
     "system:17:400:default|;l1|Never adjusted" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1991,6 +2051,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 78
+    },
+    "system:17:400:default|;l1|Ready" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 47.5
     },
     "system:17:400:default|;l1|red " : {
       "firstBaseline" : 16.1865234375,
@@ -2040,6 +2106,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 151
     },
+    "system:17:400:default|;l1|Secret" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 50
+    },
     "system:17:400:default|;l1|Sep 11, 2026" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2081,6 +2153,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 91.5
+    },
+    "system:17:400:default|;l1|Terms" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 47
     },
     "system:17:400:default|;l1|The longest one" : {
       "firstBaseline" : 16.1865234375,
@@ -2741,6 +2819,12 @@
       "height" : 26.5,
       "lastBaseline" : 20.947265625,
       "width" : 58
+    },
+    "system:22:700:default|;l1|Inbox" : {
+      "firstBaseline" : 20.947265625,
+      "height" : 26.5,
+      "lastBaseline" : 20.947265625,
+      "width" : 57
     },
     "system:22:700:default|;l1|Score " : {
       "firstBaseline" : 20.947265625,

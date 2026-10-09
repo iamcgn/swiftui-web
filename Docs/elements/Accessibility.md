@@ -83,9 +83,51 @@ and list rows. `Playwright/accessibility-probe.mjs` checks the DOM overlay's rol
 range input round trip and the spinbutton keys. wasm js tests pass. VoiceOver in Safari has not
 been checked by hand yet.
 
+## UIKit (2026-10-09, `uikit/accessibility/basic`)
+
+`Packages/UIKitWeb/Sources/UIKitWebCore/Views/UIAccessibility.swift`; `AccessibilityTests`,
+`Playwright/uikit-accessibility-probe.mjs` (the overlay, the live region and Chromium's own
+accessible tree over the fixture), the UIKitSettings smoke test's accessible-tree pass.
+
+- Elements: `isAccessibilityElement`, `accessibilityLabel` / `Value` / `Hint` / `Identifier`,
+  `accessibilityTraits` (`button`, `link`, `image`, `header`, `adjustable` pick the role;
+  `notEnabled` is `aria-disabled` (the node's `isEnabled`), `selected` `aria-selected`,
+  `updatesFrequently` a polite live region), `accessibilityElementsHidden`,
+  `accessibilityFrame` (the window frame unless set), `accessibilityCustomActions`
+  (`UIAccessibilityCustomAction(name:actionHandler:)`, `attributedName`; buttons in the overlay
+  the host runs by name through `performAccessibilityAction`), `accessibilityElements` (a
+  container's children in the order given, views only, in place of its subviews),
+  `accessibilityViewIsModal` (a modal subview hides its siblings), `shouldGroupAccessibilityChildren`,
+  `accessibilityContainerType`, `accessibilityNavigationStyle`, `accessibilityLanguage`,
+  `accessibilityIgnoresInvertColors` (stored). A navigation bar's titles carry the header trait.
+- Actions: `accessibilityActivate() -> Bool` (a control sends `touchUpInside` and
+  `primaryActionTriggered`; a switch toggles), `accessibilityIncrement` / `Decrement` (open;
+  sliders, steppers, page controls, pickers and date pickers override them),
+  `accessibilityPerformEscape` / `accessibilityPerformMagicTap` (the superview by default;
+  reachable as the actions named `escape` and `magicTap`).
+- `UIAccessibility.post(notification:argument:)`: `.announcement` with a string queues an
+  announcement; `.layoutChanged` / `.screenChanged` with a view queue a focus move to its
+  element (with a string, an announcement). The scene keeps them in `accessibilityEvents` and
+  the host takes them (`HostedScene.takeAccessibilityEvents`) after syncing its overlay each
+  frame: the canvas host speaks an announcement from a `role="status"` live region beside the
+  overlay (the same text twice gets a zero-width space so it is spoken again) and moves the
+  browser's focus to the element's overlay node. A hosted UIKit tree inside SwiftUI posts
+  through the same queue, which the runtime drains from its platform trees. The settings
+  (`isVoiceOverRunning`, `isSwitchControlRunning`, the colour and text ones) are false; the
+  motion ones follow the host's reduce-motion setting.
+- Measured: the fixture's elements come in view order with the three buttons reordered C, A, B;
+  the modal step leaves "Modal" and "Close"; Chromium's accessible tree has the heading, the
+  disabled button, the switch, the slider and the custom-action buttons. The pixels (plain
+  controls) are within 1.4 %; a selected plain system button's tinted ground was measured for
+  it (iOS 26: the tint at 30 % under a white title, 4.5 pt beside and 4.25 above and below the
+  title, 5 pt continuous corners), and a slider keeps the frame height it is given.
+
 ## Not yet covered
 
 VoiceOver and IME sessions by hand (`pf-browser-sessions`), the semantics of ghosts and
 animations, rotor entries over text ranges (accepted, no target), `prepare` closures of rotor
 entries (accepted), the `magicTap`, `delete` and `showMenu` kinds reachable only through
-`performAccessibilityAction` (no web gesture maps to them).
+`performAccessibilityAction` (no web gesture maps to them); a VoiceOver pass over
+`Examples/UIKitSettings` by hand (the browser's accessible tree stands in for it in the smoke
+test); `UIAccessibility.post` in a SwiftUI app (SwiftUI's `AccessibilityNotification` is not
+modelled yet); `accessibilityPath`, `accessibilityActivationPoint`.

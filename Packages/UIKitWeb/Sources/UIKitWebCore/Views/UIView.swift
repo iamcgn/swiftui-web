@@ -573,19 +573,89 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     open var accessibilityElementsHidden = false
     /// The identifier the scene reports this view under in its semantics tree.
     lazy var semanticsIdentifier: Int = UIKitScene.nextSemanticsIdentifier()
+    /// The rest of the accessibility properties (Views/UIAccessibility.swift).
+    let accessibilityState = ViewAccessibilityState()
 
     /// Subclasses add their state to the semantics node (a switch's `isOn`, a text field's
     /// input, a slider's range).
     func decorateSemantics(_ node: inout SemanticsNode) {}
 
-    /// Assistive technology activated this element (a button press).
-    func accessibilityActivate() {
-        (self as? UIControl)?.sendActions(for: [.touchUpInside, .primaryActionTriggered])
+    /// Assistive technology activated this element (a button press); true when handled.
+    @discardableResult
+    open func accessibilityActivate() -> Bool {
+        guard let control = self as? UIControl else { return false }
+        control.sendActions(for: [.touchUpInside, .primaryActionTriggered])
+        return true
     }
 
-    func accessibilityIncrement() {}
-    func accessibilityDecrement() {}
+    /// Assistive technology adjusted this element (an adjustable's swipe up or down).
+    open func accessibilityIncrement() {}
+    open func accessibilityDecrement() {}
     func accessibilitySetValue(_ value: Double) {}
+    /// The custom actions assistive technology offers on this element.
+    open var accessibilityCustomActions: [UIAccessibilityCustomAction]? {
+        get { accessibilityState.customActions }
+        set { accessibilityState.customActions = newValue; UIKitScene.shared.setNeedsFrame() }
+    }
+
+    /// The elements this container exposes, in order, in place of its subviews' elements
+    /// (views, or anything else, which is skipped); nil walks the subviews in paint order.
+    open var accessibilityElements: [Any]? {
+        get { accessibilityState.elements }
+        set { accessibilityState.elements = newValue; UIKitScene.shared.setNeedsFrame() }
+    }
+
+    /// A modal view hides its siblings from assistive technology.
+    open var accessibilityViewIsModal: Bool {
+        get { accessibilityState.isModal }
+        set { accessibilityState.isModal = newValue; UIKitScene.shared.setNeedsFrame() }
+    }
+
+    /// The element's frame for assistive technology, in the window's coordinates (the view's
+    /// frame unless set).
+    open var accessibilityFrame: CGRect {
+        get { accessibilityState.frame ?? convert(bounds, to: nil) }
+        set { accessibilityState.frame = newValue; UIKitScene.shared.setNeedsFrame() }
+    }
+
+    open var shouldGroupAccessibilityChildren: Bool {
+        get { accessibilityState.groupsChildren }
+        set { accessibilityState.groupsChildren = newValue }
+    }
+
+    open var accessibilityContainerType: UIAccessibilityContainerType {
+        get { accessibilityState.containerType }
+        set { accessibilityState.containerType = newValue }
+    }
+
+    open var accessibilityNavigationStyle: UIAccessibilityNavigationStyle {
+        get { accessibilityState.navigationStyle }
+        set { accessibilityState.navigationStyle = newValue }
+    }
+
+    open var accessibilityIgnoresInvertColors: Bool {
+        get { accessibilityState.ignoresInvertColors }
+        set { accessibilityState.ignoresInvertColors = newValue }
+    }
+
+    open var accessibilityLanguage: String? {
+        get { accessibilityState.language }
+        set { accessibilityState.language = newValue }
+    }
+
+    /// Assistive technology asked to dismiss (the two-finger scrub): a view that handles it
+    /// returns true; the default asks the superview.
+    open func accessibilityPerformEscape() -> Bool { superview?.accessibilityPerformEscape() ?? false }
+
+    /// The two-finger double tap: a view that handles it returns true; the default asks the
+    /// superview.
+    open func accessibilityPerformMagicTap() -> Bool { superview?.accessibilityPerformMagicTap() ?? false }
+
+    /// The custom action named `name` on this element, run; true when it ran and succeeded.
+    func performAccessibilityCustomAction(named name: String) -> Bool {
+        guard let action = accessibilityCustomActions?.first(where: { $0.name == name }) else { return false }
+        return action.perform()
+    }
 
 
     // MARK: Hosting SPI (App/HostingViewSPI.swift)
@@ -601,6 +671,9 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     open func _hostedActivate(semanticsIdentifier: Int) {}
     open func _hostedAdjust(semanticsIdentifier: Int, increment: Bool) {}
     open func _hostedSetValue(semanticsIdentifier: Int, value: Double) {}
+    open func _hostedPerformAccessibilityAction(semanticsIdentifier: Int, name: String) {}
+    /// The hosted scene's queued accessibility events (announcements, focus moves).
+    open func _hostedTakeAccessibilityEvents() -> [AccessibilityEvent] { [] }
     open func _hostedFocus(semanticsIdentifier: Int?, keyboard: Bool) {}
     open func _hostedBlur(semanticsIdentifier: Int) {}
     open func _hostedTextField(_ semanticsIdentifier: Int, didChange text: String) {}

@@ -6,7 +6,7 @@ import UIKitFixtureKit
 public enum AllUIKitFixtures {
     public static let all: [UIKitFixture] = [
         LabelFixtures.all, ButtonFixtures.all, StackFixtures.all, ViewFixtures.all, ControlFixtures.all,
-        AutoLayoutFixtures.all, DrawFixtures.all, NavigationFixtures.all, TableFixtures.all, MoreControlFixtures.all, CollectionFixtures.all, PresentationFixtures.all, TextFieldFixtures.all, TextViewFixtures.all, BarFixtures.all, DatePickerFixtures.all, PickerFixtures.all, ImageFixtures.all, RefreshFixtures.all, ScrollRestFixtures.all, PageFixtures.all, MaterialFixtures.all, LookFixtures.all, TraitFixtures.all, LayerContentFixtures.all, AutoLayoutRestFixtures.all, DrawRestFixtures.all, DarkFixtures.all,
+        AutoLayoutFixtures.all, DrawFixtures.all, NavigationFixtures.all, TableFixtures.all, MoreControlFixtures.all, CollectionFixtures.all, PresentationFixtures.all, TextFieldFixtures.all, TextViewFixtures.all, BarFixtures.all, DatePickerFixtures.all, PickerFixtures.all, ImageFixtures.all, RefreshFixtures.all, ScrollRestFixtures.all, PageFixtures.all, MaterialFixtures.all, LookFixtures.all, TraitFixtures.all, LayerContentFixtures.all, AutoLayoutRestFixtures.all, DrawRestFixtures.all, AccessibilityFixtures.all, DarkFixtures.all,
     ].flatMap { $0 }
 }
 #endif

@@ -52,6 +52,10 @@ package protocol _PlatformViewTree: AnyObject {
     func activate(semanticsIdentifier: Int)
     func adjust(semanticsIdentifier: Int, increment: Bool)
     func setValue(semanticsIdentifier: Int, value: Double)
+    /// A custom action of an element inside, by name.
+    func performAccessibilityAction(semanticsIdentifier: Int, name: String)
+    /// The events the tree's scene posted for the assistive layer since the last frame.
+    func takeAccessibilityEvents() -> [AccessibilityEvent]
     func focus(semanticsIdentifier: Int)
     func blur(semanticsIdentifier: Int)
     /// The text field inside with keyboard focus.

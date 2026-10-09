@@ -102,6 +102,9 @@ open class UIButton: UIControl {
     open func titleColor(for state: State) -> UIColor? {
         if let color = titleColors[state] { return color }
         if state.contains(.disabled) { return titleColors[.disabled] ?? UIColor.tertiaryLabel }
+        if state.contains(.selected), buttonType == .system, configuration == nil, titleColors[.selected] == nil, !state.contains(.highlighted) {
+            return .white   // on the selected ground (uikit/accessibility/basic)
+        }
         if state.contains(.highlighted) {
             let normal = titleColors[.normal] ?? defaultTitleColor
             // A configured button dims its fill, not its title (a pressed filled button stays white).
@@ -364,9 +367,18 @@ open class UIButton: UIControl {
     // MARK: Painting
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
-        guard let configuration else { return }
-        let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let tint = tintColor.rgba(for: style)
+        guard let configuration else {
+            // iOS 26 marks a selected plain system button with a tinted ground around its title
+            // (uikit/accessibility/basic: the tint at 30 % under a white title, 4.5 pt beside
+            // and 4.25 pt above and below the title, 5 pt continuous corners).
+            if isSelected, buttonType == .system, let title = titleLabel, !(title.text ?? "").isEmpty {
+                let ground = context.absoluteRect(title.frame.insetBy(dx: -4.5, dy: -4.25))
+                list.append(.fillPath(Path(roundedRect: ground, cornerRadius: 5, style: .continuous), tint.multiplyingAlpha(by: 0.3)))
+            }
+            return
+        }
+        let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let fill: RGBA?
         switch configuration.style {
         case .plain: fill = nil

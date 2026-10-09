@@ -1658,13 +1658,14 @@
       "framework": "UIKit",
       "area": "Accessibility",
       "title": "Accessibility notifications and custom actions",
-      "detail": "`UIAccessibility.post`, `accessibilityCustomActions`, `accessibilityElements` ordering, `isAccessibilityElement` and traits verified against the overlay the SwiftUI walk produces; a VoiceOver pass over Examples/UIKitSettings.",
+      "detail": "`UIAccessibility.post`, `accessibilityCustomActions`, `accessibilityElements` ordering, `isAccessibilityElement` and traits verified against the overlay the SwiftUI walk produces; a VoiceOver pass over Examples/UIKitSettings. Done 2026-10-09: UIAccessibility.post (announcements through a live region the canvas host keeps, focus moves to an element's overlay node; the scene's event queue a host or the SwiftUI runtime drains), UIAccessibilityCustomAction as overlay buttons run by name, accessibilityElements order, accessibilityViewIsModal, accessibilityFrame, the enabled / selected / live states in the overlay, escape and magic-tap actions, navigation titles as headings; verified in Chromium's own accessible tree by Playwright/uikit-accessibility-probe.mjs over uikit/accessibility/basic (frames exact, pixels 1.4 %) and an accessible-tree pass in the UIKitSettings smoke test (the by-hand VoiceOver session stays with pf-browser-sessions).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Accessibility.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-pasteboard",

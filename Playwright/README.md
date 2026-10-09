@@ -19,3 +19,4 @@ Serve a built bundle first (`scripts/build-wasm.sh <pkg>` then `scripts/serve.sh
   event, 60 in-page wheel ticks with the host's layout + paint time per frame
   (`__swiftuiwebDebug.frameMillis()`), clamping at the top and the indicator fade. Measurements
   are recorded in `Docs/elements/ScrollView.md`; use a release build for numbers.
+- `uikit-accessibility-probe.mjs <gallery url>`: `uikit/accessibility/basic` — the overlay's roles, states and custom-action buttons, a posted announcement in the live region, and Chromium's accessible tree (uk-accessibility).

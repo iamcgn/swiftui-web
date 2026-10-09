@@ -39,6 +39,8 @@ public struct SemanticsNode: Equatable, Sendable {
     public var customActions: [String] = []
     /// Whether the element is selected (`isSelected`).
     public var isSelected: Bool?
+    /// Whether the element takes input (a disabled control's `notEnabled` trait: `aria-disabled`).
+    public var isEnabled = true
     /// Rotors (`accessibilityRotor`): named lists of entries pointing at other elements.
     public var rotors: [SemanticsRotor] = []
 

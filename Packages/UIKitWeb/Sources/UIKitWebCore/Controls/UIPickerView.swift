@@ -182,8 +182,8 @@ open class UIPickerView: UIView {
     }
 
     /// Assistive technology steps the first component.
-    override func accessibilityIncrement() { step(1) }
-    override func accessibilityDecrement() { step(-1) }
+    override open func accessibilityIncrement() { step(1) }
+    override open func accessibilityDecrement() { step(-1) }
 
     private func step(_ delta: Int) {
         guard numberOfComponents > 0 else { return }

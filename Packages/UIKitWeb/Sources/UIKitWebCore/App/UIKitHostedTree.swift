@@ -244,6 +244,19 @@ public final class UIKitHostedTree {
         UIKitScene.shared.setNeedsFrame()
     }
 
+    public func performAccessibilityAction(semanticsIdentifier: Int, name: String) {
+        guard let view = view(semanticsIdentifier) else { return }
+        switch name {
+        case "escape": _ = view.accessibilityPerformEscape()
+        case "magicTap": _ = view.accessibilityPerformMagicTap()
+        default: _ = view.performAccessibilityCustomAction(named: name)
+        }
+        UIKitScene.shared.setNeedsFrame()
+    }
+
+    /// The events `UIAccessibility.post` queued (the shared scene's queue serves hosted trees too).
+    public func takeAccessibilityEvents() -> [AccessibilityEvent] { UIKitScene.shared.takeAccessibilityEvents() }
+
     public func focus(semanticsIdentifier: Int) {
         guard let view = view(semanticsIdentifier), view.canBecomeFirstResponder else { return }
         _ = view.becomeFirstResponder()

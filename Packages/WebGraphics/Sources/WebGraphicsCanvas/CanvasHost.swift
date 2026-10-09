@@ -20,6 +20,8 @@ public final class CanvasSceneHost {
     private let canvas: JSObject
     private let context: JSObject
     private let overlay: JSObject
+    /// The live region announcements are spoken from.
+    private let announcer: JSObject
     private let bridge: JSObject
     private var width: Double = 0
     private var height: Double = 0
@@ -82,6 +84,17 @@ public final class CanvasSceneHost {
         overlayStyle.overflow = .string("hidden")
         _ = overlay.setAttribute!("aria-label", "SwiftUI content")
         _ = container.appendChild!(overlay)
+        // Announcements (`UIAccessibility.post(.announcement)`) are spoken from a live region.
+        announcer = document.createElement!("div").object!
+        _ = announcer.setAttribute!("aria-live", "polite")
+        _ = announcer.setAttribute!("role", "status")
+        let announcerStyle = announcer.style.object!
+        announcerStyle.position = .string("absolute")
+        announcerStyle.width = .string("1px")
+        announcerStyle.height = .string("1px")
+        announcerStyle.overflow = .string("hidden")
+        announcerStyle.clip = .string("rect(0 0 0 0)")
+        _ = container.appendChild!(announcer)
 
         requestedPlatform = Self.requestedPlatform(window: window, container: container)
         hasCoarsePointer = window.matchMedia?("(pointer: coarse)").object?.matches.boolean ?? false
@@ -756,6 +769,23 @@ public final class CanvasSceneHost {
             overlayState[id] = nil
         }
         if !moved.isEmpty { _ = bridge.overlayFrames!(JSTypedArray<Double>(moved)) }
+        deliverAccessibilityEvents()
+    }
+
+    /// Speaks the announcements the scene posted (the live region's text changes; the same text
+    /// twice gets a zero-width space so it is spoken again) and moves focus where asked.
+    private func deliverAccessibilityEvents() {
+        for event in scene.takeAccessibilityEvents() {
+            switch event {
+            case .announce(let text):
+                let previous = announcer.textContent.string ?? ""
+                announcer.textContent = .string(previous == text ? text + "\u{200B}" : text)
+            case .focus(let identifier):
+                if let element = overlayButtons[identifier] { _ = element.focus?() }
+            case .layoutChanged, .screenChanged:
+                break
+            }
+        }
     }
 
     /// The overlay element for a semantics role: real controls where the browser has them
@@ -877,6 +907,7 @@ public final class CanvasSceneHost {
         if let description = node.description { _ = element.setAttribute!("title", description) } else { _ = element.removeAttribute!("title") }
         if node.isLive { _ = element.setAttribute!("aria-live", "polite") } else { _ = element.removeAttribute!("aria-live") }
         if let selected = node.isSelected { _ = element.setAttribute!("aria-selected", selected ? "true" : "false") } else { _ = element.removeAttribute!("aria-selected") }
+        if node.isEnabled { _ = element.removeAttribute!("aria-disabled") } else { _ = element.setAttribute!("aria-disabled", "true") }
     }
 
     /// A text field's editor: a real `<input>` over the text line with transparent text (the
