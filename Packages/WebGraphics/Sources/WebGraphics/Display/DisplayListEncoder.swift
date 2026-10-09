@@ -27,6 +27,8 @@ public enum DisplayOp: Double, Sendable {
     /// bounds; the mask's commands follow until beginMasked, the content's until endGroup
     case beginMask = 21
     case beginMasked = 22
+    /// path, bounds, radius, saturation: blurs (and saturates) what lies beneath the path in place
+    case backdropBlur = 23
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -106,6 +108,7 @@ public enum DisplayListEncoder {
             case .beginMask(let bounds): out.ops.append(DisplayOp.beginMask.rawValue); rect(bounds)
             case .beginMasked: out.ops.append(DisplayOp.beginMasked.rawValue)
             case .endGroup: out.ops.append(DisplayOp.endGroup.rawValue)
+            case .backdropBlur(let p, let bounds, let radius, let saturation): out.ops.append(DisplayOp.backdropBlur.rawValue); path(p); rect(bounds); out.ops += [radius, saturation]
             case .concat(let t): out.ops += [DisplayOp.concat.rawValue, t.a, t.b, t.c, t.d, t.tx, t.ty]
             case .fillRect(let r, let c): out.ops.append(DisplayOp.fillRect.rawValue); rect(r); color(c)
             case .fillRRect(let r, let radius, let c): out.ops.append(DisplayOp.fillRRect.rawValue); rect(r); out.ops.append(radius); color(c)
@@ -210,6 +213,7 @@ public enum DisplayListDecoder {
             case .beginMask: out.append("beginMask \(f(rect()))")
             case .beginMasked: out.append("beginMasked")
             case .endGroup: out.append("endGroup")
+            case .backdropBlur: let p = path(); let bounds = f(rect()); out.append("backdropBlur \(p) \(bounds) r\(next()) sat\(next())")
             case .concat: out.append("concat \(next()),\(next()),\(next()),\(next()),\(next()),\(next())")
             case .fillGradient:
                 let p = path(); let g = gradientText(); out.append("fillGradient \(p) \(g)\(next() == 1 ? " eo" : "")")

@@ -62,6 +62,35 @@ public final class CoreGraphicsPainter {
                 bitmap.concatenate(ctm)
                 groups.append(.bitmap(parent: ctx, filter: filter, device: device, sigma: sigma))
                 ctx = bitmap
+            case .backdropBlur(let path, let bounds, let radius, let saturation):
+                // Snapshot the device box under the path (three sigma around it), blur the
+                // copy keeping its alpha, and draw it back clipped to the path.
+                let ctm = ctx.ctm
+                let scale = (ctm.a * ctm.a + ctm.b * ctm.b).squareRoot()
+                let sigma = radius * scale
+                let pad = (sigma * 3).rounded(.up)
+                let device = bounds.applying(ctm).insetBy(dx: -pad, dy: -pad).integral.intersection(CGRect(x: 0, y: 0, width: ctx.width, height: ctx.height))
+                // A wide blur works on a copy shrunk so its sigma is about four pixels, drawn
+                // back smoothly: the same look at a fraction of the taps.
+                let shrink = max(1, (sigma / 4).rounded(.down))
+                let size = CGSize(width: max(1, (device.width / shrink).rounded()), height: max(1, (device.height / shrink).rounded()))
+                guard sigma > 0, device.width >= 1, device.height >= 1, let snapshot = ctx.makeImage(),
+                      let crop = snapshot.cropping(to: CGRect(x: device.minX, y: CGFloat(ctx.height) - device.maxY, width: device.width, height: device.height)),
+                      let bitmap = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0,
+                                             space: Self.colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+                else { continue }
+                bitmap.interpolationQuality = .default
+                bitmap.draw(crop, in: CGRect(origin: .zero, size: size))
+                Self.apply(.blur(radius: radius, opaque: true), to: bitmap, sigma: sigma / shrink)
+                if saturation != 1 { Self.apply(.colorMatrix(.saturation(saturation)), to: bitmap, sigma: 0) }
+                guard let blurred = bitmap.makeImage() else { continue }
+                ctx.saveGState()
+                ctx.addPath(Self.cgPath(path))
+                ctx.clip()
+                ctx.concatenate(ctm.inverted())
+                ctx.interpolationQuality = shrink > 1 ? .default : .none
+                ctx.draw(blurred, in: device)
+                ctx.restoreGState()
             case .beginMask(let bounds):
                 let ctm = ctx.ctm
                 let device = bounds.applying(ctm).integral

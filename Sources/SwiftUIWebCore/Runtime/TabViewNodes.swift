@@ -325,6 +325,9 @@ package final class TabViewNode: LayoutNode<_TabViewPrimitive>, _Interactive, _K
         for (spread, alpha) in [(2.0, 0.035), (6.0, 0.025), (11.0, 0.018), (17.0, 0.012)] {
             list.append(.fillRRect(barRect.insetBy(dx: -spread / 2, dy: -spread / 2).offsetBy(dx: 0, dy: spread / 2), cornerRadius: radius + spread / 2, black(alpha)))
         }
+        // The glass: the content blurred under a thin white tint (the capsule fill over white;
+        // ios/representable/hostingsafearea-tabs over colour), the refraction not drawn.
+        list.append(.backdropBlur(Path(roundedRect: barRect, cornerRadius: radius), bounds: barRect, radius: PlatformMetrics.tabBarGlassSigma))
         list.append(.fillRRect(barRect, cornerRadius: radius, PlatformMetrics.tabBarCapsuleFill))
         if let selectedIndex, selectedIndex < tabs.count {
             let pill = context.absoluteRect(tabs[selectedIndex].segment)

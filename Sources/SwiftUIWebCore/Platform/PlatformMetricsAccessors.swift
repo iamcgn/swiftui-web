@@ -231,6 +231,7 @@ extension PlatformMetrics {
     package static var tabBarCapsuleBottomInset: CGFloat { current.tabBarCapsuleBottomInset }
     package static var tabBarCapsuleHeight: CGFloat { current.tabBarCapsuleHeight }
     package static var tabBarCapsuleFill: RGBA { current.tabBarCapsuleFill }
+    package static var tabBarGlassSigma: CGFloat { current.tabBarGlassSigma }
     package static var tabBarInnerPadding: CGFloat { current.tabBarInnerPadding }
     package static var tabPillSize: CGSize { current.tabPillSize }
     package static var tabPillTop: CGFloat { current.tabPillTop }

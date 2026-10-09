@@ -172,11 +172,7 @@ open class UITabBar: UIView {
     open override func sizeThatFits(_ size: CGSize) -> CGSize { CGSize(width: size.width, height: Self.barHeight) }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
-        let platter = context.absoluteRect(platterFrame)
-        let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)
-        list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.1), radius: 12, offset: CGSize(width: 0, height: 4)))
-        list.append(.fillRRect(platter, cornerRadius: platter.height / 2, fill))
-        list.append(.endGroup)
+        GlassPainter.paintPlatter(context.absoluteRect(platterFrame), style: style, shadow: 0.1, into: &list)
     }
 }
 
@@ -233,7 +229,9 @@ final class TabButton: UIControl {
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         if isSelected {
-            let lens: RGBA = style == .dark ? RGBA(r: 58, g: 58, b: 60) : RGBA(r: 233, g: 234, b: 234)
+            // The lens darkens the glass under it: 233 over the 252 platter, the content showing
+            // through over colour (ios/representable/hostingsafearea-tabs).
+            let lens: RGBA = style == .dark ? RGBA(red: 1, green: 1, blue: 1, alpha: 0.08) : RGBA(red: 0, green: 0, blue: 0, alpha: 0.075)
             list.append(.fillRRect(rect, cornerRadius: rect.height / 2, lens))
         }
         let ink = (isSelected ? tintColor ?? .tintColor : .label).rgba(for: style)

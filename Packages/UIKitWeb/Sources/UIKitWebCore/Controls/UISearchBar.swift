@@ -311,12 +311,7 @@ open class UISearchTextField: UITextField {
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
-        if showsCapsule {
-            let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)
-            list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.08), radius: 10, offset: CGSize(width: 0, height: 4)))
-            list.append(.fillRRect(rect, cornerRadius: rect.height / 2, fill))
-            list.append(.endGroup)
-        }
+        if showsCapsule { GlassPainter.paintPlatter(rect, style: style, into: &list) }
         let ink = UIColor.secondaryLabel.rgba(for: style)
         let magnifier = isInline ? CGRect(x: 13, y: 8.5, width: 20.5, height: 20) : CGRect(x: 12, y: 11.5, width: 20.5, height: 20)
         SymbolPainter.paint(name: "magnifyingglass", in: context.absoluteRect(magnifier), color: ink, weight: 500, into: &list)
@@ -341,10 +336,7 @@ final class SearchCancelButton: UIControl {
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
-        let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)
-        list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.08), radius: 10, offset: CGSize(width: 0, height: 4)))
-        list.append(.fillRRect(rect, cornerRadius: rect.height / 2, fill))
-        list.append(.endGroup)
+        GlassPainter.paintPlatter(rect, style: style, into: &list)
         if isProminent {
             // An active search's cancel: a dark 17 pt cross (uikit/nav/search-results).
             let ink: RGBA = style == .dark ? RGBA(r: 235, g: 235, b: 235) : RGBA(r: 25, g: 25, b: 25)
@@ -456,9 +448,6 @@ final class FloatingSearchPlatter: UIView {
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
-        let fill: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)
-        list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.08), radius: 10, offset: CGSize(width: 0, height: 4)))
-        list.append(.fillRRect(rect, cornerRadius: rect.height / 2, fill))
-        list.append(.endGroup)
+        GlassPainter.paintPlatter(rect, style: style, into: &list)
     }
 }

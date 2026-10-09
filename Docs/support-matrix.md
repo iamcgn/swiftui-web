@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 50 | 12 | 35 | 3 | 0 | 0 |
+| UIKit | 51 | 12 | 35 | 4 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **190** | 37 | 140 | 7 | 3 | 3 |
+| **All** | **191** | 37 | 140 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -181,6 +181,7 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
+| `UIVisualEffectView / UIBlurEffect / UIVibrancyEffect` | 🟡 approximate | Every blur style as a blur of what lies beneath under a fitted tint (the system materials and the plain light/dark styles measured over four grounds; the dark appearance's tints unmeasured), the content view over it, the layer's corners; a vibrancy view is a transparent container; the glass platters of bars share the blur; open: vibrancy blending, iOS 26's refraction and highlight rim | uikit/view/materials |
 | `UIView: tree, geometry and the layout cycle` | 🟢 partial | addSubview / insertSubview / removeFromSuperview / bringSubviewToFront / sendSubviewToBack / exchangeSubview, superview / subviews / window, frame / bounds / center / transform / autoresizingMask, convert(_:to:), setNeedsLayout / layoutIfNeeded / layoutSubviews, sizeThatFits / sizeToFit / intrinsicContentSize / invalidateIntrinsicContentSize / systemLayoutSizeFitting, hugging and compression priorities, layoutMargins, safeAreaInsets (a window's, a container's bars, a hosted tree's), hitTest / point(inside:); open: pixel checks of the painted corners, borders and shadows against the simulator | uikit/view/autoresizing, uikit/view/layers, uikit/autolayout/fitting |
 | `CALayer (cornerRadius / cornerCurve / maskedCorners / border / shadow / opacity / mask / backgroundColor / sublayers / zPosition)` | 🟢 partial | Painted into the display list at the layer's frame; continuous corners as SwiftUI's; masksToBounds clips; open: layer transforms beyond translation, CAShapeLayer paths beyond fills and strokes | uikit/view/layers |
 | `Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)` | 🟢 partial | The window's style, a hosted tree's overrides (style, size classes, layout direction, content size category), traitCollectionDidChange down the tree; open: overrideUserInterfaceStyle on a view, registerForTraitChanges | uikit/dark/*, ios/representable/traits, ios/dark/representable-controls |

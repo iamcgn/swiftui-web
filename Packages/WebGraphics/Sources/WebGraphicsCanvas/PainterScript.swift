@@ -384,6 +384,39 @@ enum PainterScript {
               ctx = o.octx;
               break;
             }
+            case 23: {
+              // Backdrop blur: copy what the current target holds, blur the path's device box
+              // keeping its alpha, and draw the copy back clipped to the path.
+              i = readPath(ctx, buf, i);
+              const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
+              const radius = buf[i++], saturation = buf[i++];
+              const target = ctx.canvas;
+              const probe = deviceBounds(ctx, x, y, rw, rh, 0, target.width, target.height);
+              const sigma = radius * probe.scale;
+              const b = deviceBounds(ctx, x, y, rw, rh, Math.ceil(sigma * 3), target.width, target.height);
+              if (sigma > 0 && b.w > 0 && b.h > 0) {
+                const copy = takeOffscreen(target.width, target.height);
+                const cctx = copy.getContext('2d');
+                cctx.setTransform(1, 0, 0, 1, 0, 0);
+                cctx.clearRect(0, 0, copy.width, copy.height);
+                cctx.drawImage(target, 0, 0);
+                const src = blurred(copy, b, sigma, true);
+                if (saturation !== 1) {
+                  // The saturation matrix (SVG's feColorMatrix convention) over the blurred box.
+                  const s = saturation, lr = 0.2126, lg = 0.7152, lb = 0.0722;
+                  applyColorMatrix(src.getContext('2d'), b, [lr + (1 - lr) * s, lg - lg * s, lb - lb * s, 0, 0,
+                                                            lr - lr * s, lg + (1 - lg) * s, lb - lb * s, 0, 0,
+                                                            lr - lr * s, lg - lg * s, lb + (1 - lb) * s, 0, 0,
+                                                            0, 0, 0, 1, 0]);
+                }
+                ctx.save();
+                ctx.clip();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.drawImage(src, b.x, b.y, b.w, b.h, b.x, b.y, b.w, b.h);
+                ctx.restore();
+              }
+              break;
+            }
             case 21: {
               const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
               const o = beginOffscreen(ctx, dpr, w, h);

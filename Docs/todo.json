@@ -1533,14 +1533,15 @@
       "framework": "UIKit",
       "area": "Views",
       "title": "UIVisualEffectView and the glass",
-      "detail": "Blur and vibrancy effects as a display-list filter group over what lies beneath (the painters have blur); the iOS 26 glass in bars and the scroll pocket is a tint today. The floating tab bar over coloured content is opaque where iOS 26's glass tints what lies beneath (ios/representable/hostingsafearea-tabs is approximate, 5.6 %).",
+      "detail": "Blur and vibrancy effects as a display-list filter group over what lies beneath (the painters have blur); the iOS 26 glass in bars and the scroll pocket is a tint today. The floating tab bar over coloured content is opaque where iOS 26's glass tints what lies beneath (ios/representable/hostingsafearea-tabs is approximate, 5.6 %). Done 2026-10-09: the substrate's backdropBlur command (a Gaussian of the painted ground within a path, saturated on request; native snapshot blur, canvas filter), UIVisualEffectView/UIBlurEffect/UIVibrancyEffect with sigmas and tints fitted to every style over four grounds (uikit/view/materials 1.1 %), the glass platters and the SwiftUI tab capsule blurring their ground under white at 31 % with the selected lens translucent (ios/representable/hostingsafearea-tabs 5.6 → 2.3 %). Open: vibrancy blending, the refraction and rim, the dark tints.",
       "kind": "approximate",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
-        "Docs/elements/UIKit/Bars.md",
-        "Docs/elements/iOS.md"
-      ]
+        "Docs/elements/UIKit/UIView.md",
+        "Docs/elements/UIKit/Bars.md"
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-view-pixels",

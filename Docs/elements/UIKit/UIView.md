@@ -53,3 +53,42 @@ maps to the cursor the host shows (`UIKitScene.pointerCursor`: `text`, `vertical
 shows the hand. The pointer's own morphing over a hover-effect view is not drawn: the browser
 has a cursor, not a pointer shape. A hosted tree (`UIKitHostedTree.hover(at:)`) hovers the same
 way from its host's pointer and reports its cursor (`ios/representable/hover`).
+
+## Materials: UIVisualEffectView (`uikit/view/materials`, iPhone SE simulator, iOS 26, 2026-10-09)
+
+`Views/UIVisualEffectView.swift`. `UIBlurEffect(style:)` (every system and plain style),
+`UIVibrancyEffect(blurEffect:style:)`, `UIVisualEffectView(effect:)` with its `contentView`
+and `effect`. The view blurs what lies beneath it and tints it: the substrate's new
+`backdropBlur` command (a Gaussian of the painted ground within the view's path, the layer's
+corners included, keeping its alpha, optionally saturated) followed by a flat tint; the
+content view draws over both. The native painter blurs a shrunken snapshot of the ground
+(the sigma about four pixels) and draws it back smoothly; the canvas host copies its target,
+blurs with the browser's filter and draws the box back clipped to the path.
+
+Fitted to the simulator's capture of each style over black, systemBlue, white and systemRed
+bands (a least-squares fit of a Gaussian of the ground mixed with a flat tint; the system
+materials within 3–5 of 255 rms, the plain styles within 5 once the ground is saturated):
+
+| Style | Sigma (pt) | Light tint (rgb @ alpha) | Ground saturation |
+|---|---|---|---|
+| `systemUltraThinMaterial` | 20 | 222, 222, 226 @ 0.44 | 1 |
+| `systemThinMaterial` | 32 | 245, 250, 252 @ 0.56 | 1 |
+| `systemMaterial` | 28 | 245, 249, 249 @ 0.78 | 1 |
+| `systemThickMaterial` | 32 | 246, 248, 249 @ 0.93 | 1 |
+| `systemChromeMaterial` | 32 | 255, 255, 255 @ 0.73 | 1 |
+| `regular`, `light` (`prominent`, `extraLight` approximate) | 24 | 239, 239, 255 @ 0.33 | 1.6 |
+| `dark` | 16 | 25, 26, 29 @ 0.73 | 1 |
+
+The `…Light` and `…Dark` material styles use the light and dark tints whatever the
+appearance; the dark appearance's tints are approximate (unmeasured). A vibrancy effect view
+is a transparent container: its content draws in its own colours (the simulator's vibrant
+label was 7/255 black over the material, the label colour). Pixels: `uikit/view/materials`
+1.1 % off the simulator (the blur kernels differ at the band edges).
+
+The glass platters (`GlassPainter`: the tab bar's pill, bar buttons, the floating toolbar and
+search field, the search cancel circle) are now that blur (sigma 20) under white at 31 %
+(the 252 the UIKit goldens measured over white; the pill over yellow in
+`ios/representable/hostingsafearea-tabs` within tolerance, 5.6 → 2.3 %), the selected tab's
+lens black at 7.5 % over it; the SwiftUI iOS tab bar's capsule takes the same blur and tint.
+iOS 26's refraction and highlight rim are not drawn (approximate).
+

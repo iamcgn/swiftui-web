@@ -1,0 +1,81 @@
+{
+  "fixture" : "uikit\/view\/materials",
+  "frames" : {
+    "chrome" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 208
+    },
+    "dark" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 358
+    },
+    "light" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 308
+    },
+    "material" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 108
+    },
+    "plainLabel" : {
+      "height" : 20.5,
+      "width" : 81,
+      "x" : 12,
+      "y" : 267
+    },
+    "regular" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 258
+    },
+    "rounded" : {
+      "height" : 24,
+      "width" : 240,
+      "x" : 40,
+      "y" : 412
+    },
+    "thick" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 158
+    },
+    "thin" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 58
+    },
+    "ultraThin" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 8
+    },
+    "vibrant" : {
+      "height" : 40,
+      "width" : 320,
+      "x" : 0,
+      "y" : 108
+    },
+    "vibrantLabel" : {
+      "height" : 20.5,
+      "width" : 100.5,
+      "x" : 12,
+      "y" : 117
+    }
+  },
+  "size" : {
+    "height" : 440,
+    "width" : 320
+  }
+}

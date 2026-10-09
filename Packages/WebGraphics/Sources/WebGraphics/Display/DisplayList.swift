@@ -96,6 +96,11 @@ public enum DisplayCommand: Equatable, Sendable {
     case beginMask(bounds: CGRect)
     case beginMasked
     case endGroup
+    /// Blurs what has been painted so far within `path` (a Gaussian whose sigma is `radius`
+    /// points; the content keeps its alpha) and saturates it by `saturation` (1 leaves it), in
+    /// place: a material's ground, which the tint drawn after it sits on. `bounds` is the
+    /// path's frame, the area the painters process.
+    case backdropBlur(Path, bounds: CGRect, radius: CGFloat, saturation: Double = 1)
     /// Multiplies the current transform (inside save/restore) for Canvas drawing and effects.
     case concat(CGAffineTransform)
     case fillRect(CGRect, RGBA)
@@ -158,6 +163,7 @@ extension DisplayCommand: CustomStringConvertible {
         case .beginMask(let bounds): return "beginMask\(r(bounds))"
         case .beginMasked: return "beginMasked"
         case .endGroup: return "endGroup"
+        case .backdropBlur(let path, let bounds, let radius, let saturation): return "backdropBlur(\(path.elements.count) elements\(r(bounds)) r=\(f(radius))\(saturation == 1 ? "" : " sat=\(f(saturation))"))"
         case .concat(let t): return "concat(\(f(t.a)), \(f(t.b)), \(f(t.c)), \(f(t.d)), \(f(t.tx)), \(f(t.ty)))"
         case .fillRect(let rect, let color): return "fillRect\(r(rect)) \(c(color))"
         case .fillRRect(let rect, let radius, let color): return "fillRRect\(r(rect)) r=\(f(radius)) \(c(color))"

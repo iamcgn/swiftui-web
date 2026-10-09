@@ -2358,6 +2358,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 44.5
     },
+    "system:17:600:default|;l1|Plain label" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 81
+    },
     "system:17:600:default|;l1|Rows" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2387,6 +2393,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 44
+    },
+    "system:17:600:default|;l1|Vibrant label" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 100.5
     },
     "system:17:600:default||Bold start, " : {
       "firstBaseline" : 16.1865234375,

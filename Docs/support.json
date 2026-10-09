@@ -1373,6 +1373,14 @@
       "framework": "UIKit",
       "entries": [
         {
+          "api": "UIVisualEffectView / UIBlurEffect / UIVibrancyEffect",
+          "status": "approximate",
+          "notes": "Every blur style as a blur of what lies beneath under a fitted tint (the system materials and the plain light/dark styles measured over four grounds; the dark appearance's tints unmeasured), the content view over it, the layer's corners; a vibrancy view is a transparent container; the glass platters of bars share the blur; open: vibrancy blending, iOS 26's refraction and highlight rim",
+          "fixtures": [
+            "uikit/view/materials"
+          ]
+        },
+        {
           "api": "UIView: tree, geometry and the layout cycle",
           "status": "partial",
           "notes": "addSubview / insertSubview / removeFromSuperview / bringSubviewToFront / sendSubviewToBack / exchangeSubview, superview / subviews / window, frame / bounds / center / transform / autoresizingMask, convert(_:to:), setNeedsLayout / layoutIfNeeded / layoutSubviews, sizeThatFits / sizeToFit / intrinsicContentSize / invalidateIntrinsicContentSize / systemLayoutSizeFitting, hugging and compression priorities, layoutMargins, safeAreaInsets (a window's, a container's bars, a hosted tree's), hitTest / point(inside:); open: pixel checks of the painted corners, borders and shadows against the simulator",

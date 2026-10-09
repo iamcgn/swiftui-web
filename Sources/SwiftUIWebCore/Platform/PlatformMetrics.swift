@@ -290,7 +290,11 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var tabBarCapsuleSideInset: CGFloat = 52.5
     package var tabBarCapsuleBottomInset: CGFloat = 23
     package var tabBarCapsuleHeight: CGFloat = 58
-    package var tabBarCapsuleFill: RGBA = RGBA(r: 251, g: 252, b: 252)
+    /// The capsule's tint over its blurred ground: white at 31 % (251 over white;
+    /// ios/representable/hostingsafearea-tabs over yellow). The glass's refraction is not drawn.
+    package var tabBarCapsuleFill: RGBA = RGBA(red: 1, green: 1, blue: 1, alpha: 0.31)
+    /// The blur under the capsule (2026-10-09: the UIKit platters' glass, Docs/elements/UIKit/UIView.md).
+    package var tabBarGlassSigma: CGFloat = 20
     package var tabBarInnerPadding: CGFloat = 5.625               // the slots share the capsule's width less this at each end
     package var tabPillSize: CGSize = CGSize(width: 93.5, height: 53.5)   // the selected tab's pill, 2 below the capsule's top
     package var tabPillTop: CGFloat = 2

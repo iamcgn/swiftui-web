@@ -695,11 +695,13 @@ final class BarPlatterButton: UIControl {
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
-        let glass: RGBA = style == .dark ? RGBA(r: 44, g: 44, b: 46) : RGBA(r: 252, g: 252, b: 252)
-        let fill = isProminent ? (tintColor ?? .systemBlue).rgba(for: style) : glass
-        list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.08), radius: 10, offset: CGSize(width: 0, height: 4)))
-        list.append(.fillRRect(rect, cornerRadius: rect.height / 2, fill))
-        list.append(.endGroup)
+        if isProminent {
+            list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.08), radius: 10, offset: CGSize(width: 0, height: 4)))
+            list.append(.fillRRect(rect, cornerRadius: rect.height / 2, (tintColor ?? .systemBlue).rgba(for: style)))
+            list.append(.endGroup)
+        } else {
+            GlassPainter.paintPlatter(rect, style: style, into: &list)
+        }
         let ink = isProminent ? UIColor.white.rgba(for: style) : (isEnabled ? UIColor.label : UIColor.tertiaryLabel).rgba(for: style)
         switch kind {
         case .image(let name):
