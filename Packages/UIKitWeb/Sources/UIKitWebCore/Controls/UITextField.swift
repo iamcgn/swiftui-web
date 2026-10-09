@@ -225,6 +225,8 @@ open class UITextField: UIControl {
     open func borderRect(forBounds bounds: CGRect) -> CGRect { bounds }
 
     /// The clear button: 17 pt, centred 15 in from the right edge and half a point below the middle.
+    /// The clear button's disc colour (a search field's is the secondary label colour).
+    var clearButtonFill: UIColor { UIColor(light: RGBA(r: 204, g: 204, b: 204), dark: RGBA(r: 92, g: 92, b: 97)) }
     static let clearButtonSize: CGFloat = 17
     static let clearButtonGap: CGFloat = 11
     open func clearButtonRect(forBounds bounds: CGRect) -> CGRect {
@@ -285,7 +287,7 @@ open class UITextField: UIControl {
         if showsClearButton {
             // A 17 pt disc at 80 % white (the dark look is unverified) with a white cross
             // 1.7 wide reaching 3.3 from the centre.
-            let fill: RGBA = style == .dark ? RGBA(r: 92, g: 92, b: 97) : RGBA(r: 204, g: 204, b: 204)
+            let fill = clearButtonFill.rgba(for: style)
             let button = context.absoluteRect(clearButtonRect(forBounds: bounds))
             list.append(.fillPath(Path(ellipseIn: button), fill))
             var cross = Path()

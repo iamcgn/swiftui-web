@@ -1,0 +1,99 @@
+{
+  "fixture" : "uikit\/nav\/search-results",
+  "frames" : {
+    "bar" : {
+      "height" : 106.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 10
+    },
+    "content" : {
+      "height" : 480,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "search" : {
+      "height" : 0,
+      "width" : 320,
+      "x" : 0,
+      "y" : 116.5
+    },
+    "table" : {
+      "height" : 480,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 480,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "bar" : {
+          "height" : 54,
+          "width" : 320,
+          "x" : 0,
+          "y" : 10
+        },
+        "content" : {
+          "height" : 480,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "search" : {
+          "height" : 0,
+          "width" : 320,
+          "x" : 0,
+          "y" : 64
+        },
+        "table" : {
+          "height" : 480,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "scroll"
+    },
+    {
+      "frames" : {
+        "bar" : {
+          "height" : 60,
+          "width" : 320,
+          "x" : 0,
+          "y" : 10
+        },
+        "content" : {
+          "height" : 480,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "resultsLabel" : {
+          "height" : 20.5,
+          "width" : 165.5,
+          "x" : 16,
+          "y" : 16
+        },
+        "search" : {
+          "height" : 60,
+          "width" : 320,
+          "x" : 0,
+          "y" : 10
+        },
+        "table" : {
+          "height" : 480,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "activate"
+    }
+  ]
+}

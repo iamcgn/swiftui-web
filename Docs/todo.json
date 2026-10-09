@@ -1424,13 +1424,14 @@
       "framework": "UIKit",
       "area": "Bars",
       "title": "Search results, clear button and hiding on scroll",
-      "detail": "`searchResultsController` presented (stored today), the clear and bookmark buttons, `hidesSearchBarWhenScrolling`, `prompt` (stored), toolbar items beside a floating search field.",
+      "detail": "`searchResultsController` presented (stored today), the clear and bookmark buttons, `hidesSearchBarWhenScrolling`, `prompt` (stored), toolbar items beside a floating search field. Done 2026-10-09: the prompt's 34 pt band, the bookmark and results list buttons with their delegate calls, the search field's clear button while editing, hidesSearchBarWhenScrolling (a 0 pt band and the toolbar's platters while the content can scroll, back on a pull), an active search controller taking the navigation bar's place (the field 16 in, a dark cancel circle) with the results controller's view under it or a dim, UISearchControllerDelegate; a scroll view's offset now follows a shrinking adjusted inset, so content rises by the large title's collapse as UIKit's table does. uikit/search/looks (Tier C 1.6 %) and uikit/nav/search-results (0.5 %, activate 0.3 %; the scroll step frames-only for the blurred edges).",
       "kind": "accepted",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Bars.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-images",

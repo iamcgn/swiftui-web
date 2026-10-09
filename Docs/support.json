@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-08",
+  "generated": "2026-10-09",
   "sections": [
     {
       "title": "App lifecycle",
@@ -1707,12 +1707,14 @@
         },
         {
           "api": "UISearchBar / UISearchController",
-          "status": "partial",
-          "notes": "The field with its placeholder, cancel button and scope bar, editing through the substrate's input, hosted in a navigation bar; open: search suggestions, tokens, the search controller's results updating",
+          "status": "full",
+          "notes": "The field with its placeholder, prompt, cancel, bookmark and results list buttons, the clear button while editing, the scope bar, editing through the substrate's input; in a navigation item the bar floats or hides on scroll (back on a pull), an active controller takes the bar's place with its cancel circle and shows the results controller or dims the content, the delegate and updater hear every change; open: search suggestions and tokens, the glass over results and the blurred scroll edges (uk-materials), a controller presented outside a navigation item",
           "fixtures": [
             "uikit/search/basic",
             "uikit/search/scope",
-            "uikit/nav/search"
+            "uikit/search/looks",
+            "uikit/nav/search",
+            "uikit/nav/search-results"
           ]
         }
       ]

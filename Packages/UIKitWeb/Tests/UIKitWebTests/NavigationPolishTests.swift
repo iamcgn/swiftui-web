@@ -85,19 +85,20 @@ import UIKit
         scene.layout(in: CGSize(width: 300, height: 400))
         #expect(navigation.navigationBar.frame.height == 106.5)
         #expect(root.view.safeAreaInsets.top == 116.5 && scroll.contentOffset.y == -116.5)
-        // Scrolling past the large title collapses the bar; the content under it stays put.
+        // Scrolling past the large title collapses the bar; the offset follows the shrunken
+        // inset, so the content rises by the collapse (uikit/nav/search-results).
         scroll.contentOffset.y += 60
         scene.layout(in: CGSize(width: 300, height: 400))
         #expect(navigation.navigationBar.frame.height == 54)
-        #expect(root.view.safeAreaInsets.top == 64 && scroll.contentOffset.y == -56.5)
-        // Scrolling back keeps it collapsed until the content is back at its expanded rest.
+        #expect(root.view.safeAreaInsets.top == 64 && scroll.contentOffset.y == -4)
+        // Scrolling back keeps it collapsed until the content is back at its rest under the bar.
         scroll.contentOffset.y -= 5
         scene.layout(in: CGSize(width: 300, height: 400))
         #expect(navigation.navigationBar.frame.height == 54)
         scroll.contentOffset.y = -64
         scene.layout(in: CGSize(width: 300, height: 400))
-        #expect(navigation.navigationBar.frame.height == 54)
-        // A wheel pull past the top reopens the bar; the content rests under the expanded bar.
+        #expect(navigation.navigationBar.frame.height == 106.5 && scroll.contentOffset.y == -116.5)
+        // A wheel pull past the top at rest changes nothing.
         scene.scrollWheel(by: CGSize(width: 0, height: -10), at: CGPoint(x: 150, y: 300))
         scene.layout(in: CGSize(width: 300, height: 400))
         #expect(navigation.navigationBar.frame.height == 106.5 && scroll.contentOffset.y == -116.5)

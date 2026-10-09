@@ -1,0 +1,88 @@
+{
+  "fixture" : "uikit\/search\/looks",
+  "frames" : {
+    "bookmark" : {
+      "height" : 64,
+      "width" : 320,
+      "x" : 0,
+      "y" : 112
+    },
+    "bookmarkField" : {
+      "height" : 44,
+      "width" : 304,
+      "x" : 8,
+      "y" : 122
+    },
+    "editing" : {
+      "height" : 64,
+      "width" : 320,
+      "x" : 0,
+      "y" : 192
+    },
+    "editingField" : {
+      "height" : 44,
+      "width" : 304,
+      "x" : 8,
+      "y" : 202
+    },
+    "prompted" : {
+      "height" : 98,
+      "width" : 320,
+      "x" : 0,
+      "y" : 8
+    },
+    "promptedField" : {
+      "height" : 44,
+      "width" : 304,
+      "x" : 8,
+      "y" : 52
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "bookmark" : {
+          "height" : 64,
+          "width" : 320,
+          "x" : 0,
+          "y" : 112
+        },
+        "bookmarkField" : {
+          "height" : 44,
+          "width" : 304,
+          "x" : 8,
+          "y" : 122
+        },
+        "editing" : {
+          "height" : 64,
+          "width" : 320,
+          "x" : 0,
+          "y" : 192
+        },
+        "editingField" : {
+          "height" : 44,
+          "width" : 304,
+          "x" : 8,
+          "y" : 202
+        },
+        "prompted" : {
+          "height" : 98,
+          "width" : 320,
+          "x" : 0,
+          "y" : 8
+        },
+        "promptedField" : {
+          "height" : 44,
+          "width" : 304,
+          "x" : 8,
+          "y" : 52
+        }
+      },
+      "name" : "edit"
+    }
+  ]
+}

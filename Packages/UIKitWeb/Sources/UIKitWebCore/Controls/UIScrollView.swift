@@ -54,8 +54,10 @@ open class UIScrollView: UIView {
         return insets
     }
     open var contentInsetAdjustmentBehavior: ContentInsetAdjustmentBehavior = .automatic { didSet { adjustedContentInsetDidChange() } }
-    /// The adjusted inset the offset was last clamped against: content resting at the top stays
-    /// at the top when the inset changes (UIKit moves the offset with the adjustment).
+    /// The adjusted inset the offset was last clamped against: the offset moves with the
+    /// adjustment, so content keeps its distance from the inset edge (at rest it stays at the
+    /// top; scrolled under a collapsing large title it rises by the collapse, as UIKit's table
+    /// does in uikit/nav/search-results).
     private var appliedAdjustedInset = UIEdgeInsets.zero
 
     /// The safe area or the behaviour changed: the offset follows the new adjusted inset.
@@ -63,8 +65,8 @@ open class UIScrollView: UIView {
         let adjusted = adjustedContentInset
         guard adjusted != appliedAdjustedInset else { return }
         var offset = contentOffset
-        if offset.y == -appliedAdjustedInset.top { offset.y = -adjusted.top }
-        if offset.x == -appliedAdjustedInset.left { offset.x = -adjusted.left }
+        offset.y += appliedAdjustedInset.top - adjusted.top
+        offset.x += appliedAdjustedInset.left - adjusted.left
         appliedAdjustedInset = adjusted
         contentOffset = clamped(offset)
         setNeedsLayout()

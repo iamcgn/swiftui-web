@@ -7,7 +7,7 @@ import UIKit
 import UIKitFixtureKit
 
 public enum BarFixtures {
-    public static let all = [toolbar, search, scope]
+    public static let all = [toolbar, search, scope, searchLooks, searchResults]
 
     public static let toolbar = UIKitFixture("uikit/toolbar/basic", size: CGSize(width: 320, height: 400)) {
         let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))

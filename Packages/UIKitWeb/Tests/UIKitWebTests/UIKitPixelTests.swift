@@ -21,6 +21,9 @@ import WebGraphicsNative
     /// Fixtures compared by frames only (their look is not painted yet).
     /// The wheels pickers: a drum drawn approximately (Docs/elements/UIKit/DatePicker.md).
     static let framesOnly: Set<String> = ["uikit/datepicker/wheels", "uikit/datepicker/countdown", "uikit/picker/basic", "uikit/picker/custom"]
+    /// Steps compared by frames only: the scrolled search fixture shows iOS 26's blurred scroll
+    /// edges under the collapsed bar and the toolbar, which are not painted (Docs/todo.json uk-materials).
+    static let stepsFramesOnly: Set<String> = ["uikit/nav/search-results/scroll"]
 
     nonisolated static var fixtureNames: [String] {
         let filter = ProcessInfo.processInfo.environment["TIER_C_FILTER"] ?? ""
@@ -45,7 +48,7 @@ import WebGraphicsNative
 
     private func compare(_ runner: UIKitFixtureRunner, fixture: UIKitFixture, png: String, label: String, painter: CoreGraphicsPainter) throws {
         let file = Goldens.root.appendingPathComponent(fixture.name).appendingPathComponent(png)
-        guard FileManager.default.fileExists(atPath: file.path) else { return }
+        guard FileManager.default.fileExists(atPath: file.path), !Self.stepsFramesOnly.contains(label) else { return }
         let ground: UInt8 = fixture.style == .dark ? 0 : 255
         let golden = try #require(UIKitBitmap.golden(file, ground: ground), "\(label): unreadable golden \(png)")
         let ours = UIKitBitmap.render(runner.render(scale: 2), size: fixture.size, scale: 2, painter: painter, ground: ground)

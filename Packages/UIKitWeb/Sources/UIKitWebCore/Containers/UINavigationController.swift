@@ -19,6 +19,11 @@ open class UINavigationController: UIViewController {
     /// The floating platter holding the top item's search field.
     private var searchPlatter: FloatingSearchPlatter?
     private weak var hostedSearchBar: UISearchBar?
+    /// A search bar that hides on scroll shows again once the content is pulled past its top.
+    private var searchBarRevealed = false
+    /// The presented search's results view (or the dimming over the content) while it is active.
+    private var searchResultsView: UIView?
+    private var searchDimming: UIView?
     open var hidesBarsOnSwipe = false
     open var hidesBarsWhenKeyboardAppears = false
     /// The edge pan that pops interactively: the top screen follows the finger, the one below
@@ -125,11 +130,21 @@ open class UINavigationController: UIViewController {
     /// `Docs/elements/Navigation.md`: the content under the bar stays put, the bar shrinks);
     /// back at the top it expands again.
     func contentDidScroll(_ scrollView: UIScrollView) {
-        guard !applyingCollapse, navigationBar.prefersLargeTitles, navigationBar.showsLargeTitleAtRest,
-              let top = topViewController?.viewIfLoaded, scrollView.isDescendant(of: top), let view = viewIfLoaded else { return }
-        // How far the content scrolled from its rest under the expanded bar: the collapsed bar's
-        // inset is the large title's height shorter, so the reference stays the same either way.
-        let scrolled = scrollView.contentOffset.y + scrollView.adjustedContentInset.top + (largeTitleCollapsed ? UINavigationBar.largeTitleHeight : 0)
+        guard !applyingCollapse, let top = topViewController?.viewIfLoaded, scrollView.isDescendant(of: top), let view = viewIfLoaded else { return }
+        if hostedSearchBar != nil, topViewController?.navigationItem.hidesSearchBarWhenScrolling == true {
+            // Pulled past the top the hidden search bar comes back; scrolled on it hides again.
+            let pulled = scrollView.contentOffset.y + scrollView.adjustedContentInset.top < -1
+            let scrolledAway = scrollView.contentOffset.y + scrollView.adjustedContentInset.top >= UINavigationBar.largeTitleHeight
+            if pulled != searchBarRevealed, pulled || scrolledAway {
+                searchBarRevealed = pulled
+                view.setNeedsLayout()
+            }
+        }
+        guard navigationBar.prefersLargeTitles, navigationBar.showsLargeTitleAtRest else { return }
+        // How far the content scrolled from its rest under the expanded bar: the offset moves
+        // with the inset when the bar collapses (UIScrollView.adjustedContentInsetDidChange), so
+        // the sum is the same either way.
+        let scrolled = scrollView.contentOffset.y + scrollView.adjustedContentInset.top
         // Collapsed, the content rests exactly where it collapsed (UIKit's bar reopens as the
         // content is pulled past the top): any pull beyond it expands the bar.
         if !largeTitleCollapsed, scrolled >= UINavigationBar.largeTitleHeight {
@@ -321,12 +336,59 @@ open class UINavigationController: UIViewController {
         searchPlatter?.removeFromSuperview()
         searchPlatter = nil
         hostedSearchBar = searchBar
+        searchBarRevealed = false
+        searchResultsView?.removeFromSuperview()
+        searchResultsView = nil
+        searchDimming?.removeFromSuperview()
+        searchDimming = nil
         guard let searchBar, let view = viewIfLoaded else { return }
         searchBar.hostsFieldExternally = true
+        controller?.navigationItem.searchController?.host = self
         view.insertSubview(searchBar, belowSubview: navigationBar)
         let platter = FloatingSearchPlatter(field: searchBar.searchTextField)
         view.addSubview(platter)
         searchPlatter = platter
+    }
+
+    /// The search controller became active or inactive, or its text changed.
+    func searchPresentationDidChange() {
+        guard let controller = topViewController?.navigationItem.searchController, let view = viewIfLoaded else { return }
+        let results = controller.searchResultsController
+        if controller.showsResults, let results {
+            if searchResultsView == nil {
+                results.willMove(toParent: self)
+                results.loadViewIfNeeded()
+                view.insertSubview(results.view, belowSubview: navigationBar)
+                searchResultsView = results.view
+            }
+        } else if let shown = searchResultsView {
+            shown.removeFromSuperview()
+            searchResultsView = nil
+        }
+        // Active without results showing: the content is dimmed when the controller obscures it
+        // (approximate: UIKit's dim is unmeasured).
+        if controller.isActive, searchResultsView == nil, controller.obscuresBackgroundDuringPresentation {
+            if searchDimming == nil {
+                let dimming = UIView(frame: view.bounds)
+                dimming.backgroundColor = UIColor(white: 0, alpha: 0.2)
+                view.insertSubview(dimming, belowSubview: navigationBar)
+                searchDimming = dimming
+            }
+        } else {
+            searchDimming?.removeFromSuperview()
+            searchDimming = nil
+        }
+        navigationBar.hostsActiveSearch = controller.isActive
+        navigationBar.setNeedsLayout()
+        view.setNeedsLayout()
+    }
+
+    /// Whether the top item's search bar hides until the content is pulled (iOS 26 hides it
+    /// while the content can scroll and the item asks for it; uikit/nav/search-results).
+    private var searchBarHidesForScrolling: Bool {
+        guard let top = topViewController, top.navigationItem.hidesSearchBarWhenScrolling, !searchBarRevealed,
+              let scrollView = top.viewIfLoaded?.firstDescendant(where: { $0 is UIScrollView }) as? UIScrollView else { return false }
+        return scrollView.contentSize.height > scrollView.bounds.height - scrollView.adjustedContentInset.top - scrollView.adjustedContentInset.bottom
     }
 
     open override func viewWillLayoutSubviews() {
@@ -336,20 +398,40 @@ open class UINavigationController: UIViewController {
         let height = navigationBar.isHidden ? 0 : navigationBar.preferredHeight
         navigationBar.frame = CGRect(x: 0, y: top + UINavigationBar.topOffset, width: view.bounds.width, height: height)
         var contentTop = navigationBar.isHidden ? 0 : navigationBar.frame.maxY
+        let searchController = topViewController?.navigationItem.searchController
+        let searchActive = searchController?.isActive == true
+        let searchHidden = searchBarHidesForScrolling && !searchActive
         if let searchBar = hostedSearchBar {
-            searchBar.frame = CGRect(x: 0, y: contentTop, width: view.bounds.width, height: UISearchBar.navigationHeight)
-            contentTop = searchBar.frame.maxY
+            if searchActive {
+                // Active: the bar takes the navigation bar's place (60 tall at 10), its field
+                // inside it with the cancel circle; the results fill the container under it.
+                searchBar.hostsFieldExternally = false
+                searchBar.isActiveLayout = true
+                if searchBar.superview !== navigationBar { navigationBar.addSubview(searchBar) }
+                searchBar.frame = CGRect(origin: .zero, size: navigationBar.bounds.size)
+                navigationBar.bringSubviewToFront(searchBar)
+            } else {
+                searchBar.isActiveLayout = false
+                searchBar.hostsFieldExternally = true
+                if searchBar.superview !== view { view.insertSubview(searchBar, belowSubview: navigationBar) }
+                searchBar.frame = CGRect(x: 0, y: contentTop, width: view.bounds.width, height: searchHidden ? 0 : UISearchBar.navigationHeight)
+                contentTop = searchBar.frame.maxY
+            }
         }
+        searchResultsView?.frame = view.bounds
+        searchDimming?.frame = view.bounds
         // The floating bar: 76 tall over the bottom safe area, the platters in its top 48.
         let floatingY = view.bounds.height - view.safeAreaInsets.bottom - UIToolbar.floatingHeight
         toolbar.frame = CGRect(x: 0, y: floatingY, width: view.bounds.width, height: UIToolbar.floatingHeight)
-        toolbar.isHidden = isToolbarHidden || (toolbar.items ?? []).isEmpty || searchPlatter != nil
+        let platterShown = searchPlatter != nil && !searchHidden && !searchActive
+        toolbar.isHidden = isToolbarHidden || (toolbar.items ?? []).isEmpty || platterShown
         if let platter = searchPlatter {
+            platter.isHidden = !platterShown
             platter.frame = CGRect(x: UIToolbar.floatingInset, y: floatingY, width: view.bounds.width - 2 * UIToolbar.floatingInset, height: UIToolbar.height)
             view.bringSubviewToFront(platter)
         }
         var contentBottom: CGFloat = 0
-        if !toolbar.isHidden || searchPlatter != nil { contentBottom = view.bounds.height - floatingY }
+        if !toolbar.isHidden || platterShown { contentBottom = view.bounds.height - floatingY }
         if let content = topViewController?.viewIfLoaded {
             // A screen mid-slide keeps its x (the animation owns it); its size follows the container.
             if content.frame.size != view.bounds.size { content.frame.size = view.bounds.size }
@@ -431,7 +513,10 @@ open class UINavigationBar: UIView {
         }
     }
 
-    var preferredHeight: CGFloat { Self.contentHeight + (showsLargeTitle ? Self.largeTitleHeight : 0) }
+    /// An active search controller's bar takes the whole bar (60 tall) and hides its content.
+    var hostsActiveSearch = false { didSet { if hostsActiveSearch != oldValue { setNeedsLayout(); controller?.viewIfLoaded?.setNeedsLayout() } } }
+
+    var preferredHeight: CGFloat { hostsActiveSearch ? UISearchBar.navigationHeight : Self.contentHeight + (showsLargeTitle ? Self.largeTitleHeight : 0) }
 
     func rebuild() {
         backButton?.removeFromSuperview()
@@ -464,10 +549,13 @@ open class UINavigationBar: UIView {
     open override func layoutSubviews() {
         super.layoutSubviews()
         let item = topItem
-        let large = showsLargeTitle
-        // The inline title: 24.5 tall at 9.75, centred (uikit/nav/basic); hidden under a large title.
+        let large = showsLargeTitle && !hostsActiveSearch
+        // The inline title: 24.5 tall at 9.75, centred (uikit/nav/basic); hidden under a large
+        // title or an active search.
         titleLabel.text = item?.title
-        titleLabel.isHidden = large || item?.titleView != nil
+        titleLabel.isHidden = large || item?.titleView != nil || hostsActiveSearch
+        backButton?.isHidden = hostsActiveSearch
+        for button in leftButtons + rightButtons { button.isHidden = hostsActiveSearch }
         let titleWidth = titleLabel.intrinsicContentSize.width
         titleLabel.frame = CGRect(x: ((bounds.width - titleWidth) / 2 * 4).rounded() / 4, y: 9.75, width: titleWidth, height: 24.5)
         // The large title: 34 pt bold at 16, 49 tall under the content area (uikit/nav/large).

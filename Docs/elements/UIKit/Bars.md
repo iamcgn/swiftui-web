@@ -3,8 +3,10 @@
 `Packages/UIKitWeb/Sources/UIKitWebCore/Containers/UIToolbar.swift`,
 `Controls/UISearchBar.swift`. Fixtures `uikit/toolbar/basic` (Cancel / Done at the top, Edit,
 plus, trash and share with a fixed space at the bottom, a bar sized to fit one item) and
-`uikit/search/basic` (a placeholder, text with a Cancel button, the minimal style), measured on
-the iPhone SE simulator (iOS 26).
+`uikit/search/basic` (a placeholder, text with a Cancel button, the minimal style),
+`uikit/search/looks` (a prompt, the bookmark button, the clear button once a bar edits) and
+`uikit/nav/search-results` (a search controller that hides on scroll, presents a results
+controller and shares the bottom with toolbar items), measured on the iPhone SE simulator (iOS 26).
 
 ## API
 
@@ -13,10 +15,12 @@ the iPhone SE simulator (iOS 26).
   `sizeThatFits`. Items are `UIBarButtonItem`s (titles, images, system items, flexible and fixed
   spaces with `width`) drawn as the navigation bar's glass platters; a `done` item is filled with
   the tint. An item's `primaryAction` fires once per tap.
-- `UISearchBar`: `text`, `placeholder`, `prompt` (stored), `searchBarStyle` (`default`,
+- `UISearchBar`: `text`, `placeholder`, `prompt`, `searchBarStyle` (`default`,
   `prominent`, `minimal`), `showsCancelButton` / `setShowsCancelButton(_:animated:)`,
+  `showsBookmarkButton`, `showsSearchResultsButton` (`isSearchResultsButtonSelected` stored),
   `searchTextField` (a `UISearchTextField`, the `UITextField` the bar edits), `delegate`
   (`textDidChange`, `searchBarSearchButtonClicked`, `searchBarCancelButtonClicked`,
+  `searchBarBookmarkButtonClicked`, `searchBarResultsListButtonClicked`,
   `should/DidBegin/EndEditing`), `becomeFirstResponder`, `barTintColor`, `returnKeyType`,
   `keyboardType`, `autocapitalizationType`. Editing goes through the substrate's text input.
   Scope bar: `scopeButtonTitles`, `showsScopeBar` / `setShowsScope(_:animated:)`,
@@ -42,12 +46,19 @@ the iPhone SE simulator (iOS 26).
   (137, 137, 141 over white). The default style draws a faint band (252) with 0.5 pt hairlines
   at the bar's top and bottom; the minimal style draws no band and no capsule. The clear button
   UIKit lays out at the field's end is not drawn in the capture and not drawn here.
+- Prompt (`uikit/search/looks`, 2026-10-09): a 34 pt band above the field (the bar 98 tall),
+  its 14 pt label 18 tall 8 down, centred, in a dark slate (43, 62, 90). The bookmark button is
+  the `book` symbol in a 22.5 × 17.5 image 38.5 before the field's end, 13 down, in the
+  secondary label colour, shown while the field holds no text (the results list button the
+  same with `list.bullet`); a tap calls the delegate. The clear button while editing is a 17 pt
+  disc of the secondary label colour in a 20.5 button 34.5 before the field's end, 11.5 down;
+  the text ends 44.5 before the capsule's edge beside it, 29.5 beside the bookmark, 7 alone.
 - Scope bar (`uikit/search/scope`, 2026-09-11): with `showsScopeBar` and titles the bar grows to
   111 (64 plus a 47 pt band) and holds a segmented control 8 in and 7 below the field (y 71),
   304 wide, its segments of equal width with 15 pt regular titles (18 tall at 7), the selected
   one under the lens; titles without `showsScopeBar` change nothing (64 tall).
-- Pixels: `uikit/toolbar/basic` 0.7 %, `uikit/search/basic` 0.6 % and `uikit/search/scope`
-  1.7 % off the simulator.
+- Pixels: `uikit/toolbar/basic` 0.7 %, `uikit/search/basic` 0.6 %, `uikit/search/scope`
+  1.7 % and `uikit/search/looks` 1.6 % (both frames) off the simulator.
 
 ## In a navigation controller (`uikit/nav/toolbar`, `uikit/nav/search`)
 
@@ -65,12 +76,31 @@ the iPhone SE simulator (iOS 26).
   (264 wide in 320): the `searchTextField` is 38 tall 5 in, its magnifier at (13, 8.5) and its
   17 pt medium placeholder 41.5 in. The toolbar hides while a search field floats there. Typing
   activates the controller and asks the updater for results; resigning deactivates it.
-- Pixels: `uikit/nav/toolbar` 0.6 % and `uikit/nav/search` 1.2 % off the simulator.
+- `hidesSearchBarWhenScrolling` (`uikit/nav/search-results`, 2026-10-09): while the top
+  screen's content can scroll, the item's search bar is a 0 pt band under the title (y 116.5
+  under a large title, 64 collapsed) with no floating field, and the toolbar's platters show
+  (the plus 28 in at the bottom); a pull past the content's top brings the 60 pt band and the
+  floating field back, scrolling away hides them again (the pull itself is unmeasured). A
+  screen that cannot scroll keeps the field floating.
+- An active search controller (`isActive`, or typing into the field): the navigation bar
+  becomes a 60 pt band at 10 holding the search bar, its field 16 in and 44 tall 8 down (233
+  wide in 320) with the clear button, and a 44 pt cancel circle 16 from the trailing edge with
+  a dark 17 pt cross; the title and items hide. The results controller's view fills the
+  container (its label at (16, 16) under the bar) while the text is not empty or
+  `showsSearchResultsController` is set; otherwise the content is dimmed 20 % when
+  `obscuresBackgroundDuringPresentation` (approximate: unmeasured). The toolbar's platters stay.
+  Cancel (or `isActive = false`) dismisses; `UISearchControllerDelegate` hears both ends and
+  the updater every change. The bar's glass over the results is not painted.
+- Scrolling under a collapsing large title: the offset follows the shrunken inset, so the
+  content rises by the collapse (52.5): rows that sat at 139.5 at rest sit at 112.5 − 342 after
+  `setContentOffset(200)` (the first `scroll` step). The blurred scroll edges under the
+  collapsed bar and the toolbar are not painted (`uk-materials`), so that step is frames-only.
+- Pixels: `uikit/nav/toolbar` 0.6 %, `uikit/nav/search` 1.2 %, `uikit/nav/search-results`
+  0.5 % and its `activate` step 0.3 % off the simulator.
 
 ## Open
 
-The search bar's prompt, the scope bar in a navigation controller's floating search,
-`hidesSearchBarWhenScrolling`, search results
-presentation (`searchResultsController` is stored, not shown), the clear and bookmark buttons,
-toolbar items next to a floating search field, dark mode samples (the dark colours are the
-platter's).
+The scope bar in a navigation controller's floating search, the pull that reveals a hidden
+search bar (unmeasured), the bar's glass over results and the blurred scroll edges
+(`uk-materials`), `hidesNavigationBarDuringPresentation = false`, a search controller
+presented outside a navigation item, dark mode samples (the dark colours are the platter's).
