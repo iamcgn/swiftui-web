@@ -1,0 +1,93 @@
+{
+  "fixture" : "uikit\/imageview\/modes",
+  "frames" : {
+    "aspectFill" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 216,
+      "y" : 10
+    },
+    "bottom" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 216,
+      "y" : 90
+    },
+    "bottomLeft" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 113,
+      "y" : 250
+    },
+    "bottomRight" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 216,
+      "y" : 250
+    },
+    "center" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 10,
+      "y" : 90
+    },
+    "fill" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 10,
+      "y" : 10
+    },
+    "fit" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 113,
+      "y" : 10
+    },
+    "left" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 10,
+      "y" : 170
+    },
+    "redraw" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 10,
+      "y" : 330
+    },
+    "right" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 113,
+      "y" : 170
+    },
+    "top" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 113,
+      "y" : 90
+    },
+    "topLeft" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 216,
+      "y" : 170
+    },
+    "topRight" : {
+      "height" : 70,
+      "width" : 100,
+      "x" : 10,
+      "y" : 250
+    },
+    "unclipped" : {
+      "height" : 8,
+      "width" : 20,
+      "x" : 153,
+      "y" : 358
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 320
+  }
+}

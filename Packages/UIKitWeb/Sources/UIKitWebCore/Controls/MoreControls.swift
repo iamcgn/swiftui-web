@@ -437,8 +437,18 @@ open class UIActivityIndicatorView: UIView {
 }
 
 /// A spinning indicator the scene advances (`UIKitScene.spinners`).
+/// A view the scene's frame loop advances while it animates (activity indicators, animated
+/// image views).
+@MainActor
+protocol ClockAnimating: AnyObject {
+    var isAnimating: Bool { get }
+    func advance(elapsed: Double)
+}
+
+extension UIActivityIndicatorView: ClockAnimating {}
+
 struct WeakActivityIndicator {
-    weak var view: UIActivityIndicatorView?
+    weak var view: (any ClockAnimating)?
 }
 
 /// A control that displays a horizontal series of dots, each of which corresponds to a page in

@@ -1438,13 +1438,14 @@
       "framework": "UIKit",
       "area": "Images",
       "title": "UIImage data, tinting and animation",
-      "detail": "`UIImage(data:)` and `pngData()`/`jpegData()` through the host, `withTintColor`, `withRenderingMode` verified on image views, `UIImage.animatedImage` and `UIImageView.animationImages`, `UIImageView` content modes verified against the simulator.",
+      "detail": "`UIImage(data:)` and `pngData()`/`jpegData()` through the host, `withTintColor`, `withRenderingMode` verified on image views, `UIImage.animatedImage` and `UIImageView.animationImages`, `UIImageView` content modes verified against the simulator. Done 2026-10-09: UIImage(data:scale:) from PNG and JPEG headers (a data URL the canvas host loads and the native painter decodes), pngData/jpegData returning the bytes, UIImage.animatedImage and UIImageView.animationImages/animationDuration/animationRepeatCount on the scene's clock (ClockAnimating shared with the spinner), rendering modes and tints and every content mode measured on the simulator (uikit/imageview/modes 0.00 %, tints 0.72 %); the real-UIKit fixture kit loads catalog images from disk (UIKitFixtureImage.named).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Drawing.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-refresh",

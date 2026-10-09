@@ -34,11 +34,11 @@ struct SupportFramework: Identifiable {
 
 enum SupportData {
     static let generated = "2026-10-09"
-    static let counts: [SupportStatus: Int] = [.full: 36, .partial: 140, .approximate: 7, .stub: 3, .missing: 3]
+    static let counts: [SupportStatus: Int] = [.full: 37, .partial: 139, .approximate: 7, .stub: 3, .missing: 3]
     static var total: Int { counts.values.reduce(0, +) }
     static let frameworks: [SupportFramework] = [
         SupportFramework(name: "SwiftUI", counts: [.full: 25, .partial: 100, .approximate: 4, .stub: 3, .missing: 3]),
-        SupportFramework(name: "UIKit", counts: [.full: 11, .partial: 35, .approximate: 3]),
+        SupportFramework(name: "UIKit", counts: [.full: 12, .partial: 34, .approximate: 3]),
         SupportFramework(name: "Interop", counts: [.partial: 5]),
     ]
 }

@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 49 | 11 | 35 | 3 | 0 | 0 |
+| UIKit | 49 | 12 | 34 | 3 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **189** | 36 | 140 | 7 | 3 | 3 |
+| **All** | **189** | 37 | 139 | 7 | 3 | 3 |
 
 ## App lifecycle
 
@@ -258,7 +258,7 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | `UIView.draw(_:), UIGraphicsGetCurrentContext, UIBezierPath, UIColor.setFill / setStroke, UIRectFill` | 🟢 partial | A recording context per frame replayed into the display list: paths, fills, strokes, clips, dashes, the blend-mode-and-alpha forms; open: blend modes, CGPath on Apple platforms | uikit/draw/basic |
 | `String and image drawing in draw(_:) (NSString.draw(at:withAttributes:), UIImage.draw(at:), draw(in:))` | 🟢 partial | Strings measured and painted through the text engine, catalog images and symbols drawn scaled; open: per-range attributes | uikit/draw/text |
 | `CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData()` | 🟢 partial | Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay; pngData rasterises through the host; open: blend modes, UIImage from pixel data | uikit/draw/gradient, ios/representable/renderedimage |
-| `UIImage / UIImageView (catalog images, symbols, rendering modes, tints, content modes)` | 🟢 partial | Catalog images by name at the paint scale, SF Symbol stand-ins with configurations, template rendering and tints, the content modes; open: symbol layers, rendered-image tinting when drawn by UIImageView | uikit/tabs/basic, uikit/draw/text, uikit/collection/grid |
+| `UIImage / UIImageView (catalog images, symbols, data, rendering modes, tints, content modes, animation)` | ✅ full | Catalog images by name at the paint scale, SF Symbol stand-ins with configurations, images from PNG or JPEG data (pngData / jpegData give the bytes back), template rendering and tints verified on image views, every content mode and clipping measured, animated images and animationImages cycling on the scene's clock with a repeat count; open: symbol layers, rendered-image tinting when drawn by UIImageView, UIImage(contentsOfFile:), orientation, cap insets on image views, formats beyond PNG and JPEG | uikit/imageview/modes, uikit/imageview/tints, uikit/tabs/basic, uikit/draw/text, uikit/collection/grid |
 
 ## UIKit: animation
 

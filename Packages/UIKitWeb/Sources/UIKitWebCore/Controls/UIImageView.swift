@@ -3,7 +3,10 @@ import WebFoundation   // never full Foundation on wasm: it links ICU (decisions
 #else
 import Foundation
 #endif
-// UIImage and UIImageView: catalog images (decision 0011) and symbols, drawn by content mode.
+// UIImage and UIImageView (Docs/elements/UIKit/Drawing.md): catalog images (decision 0011),
+// symbols, images from PNG or JPEG data (a data URL the painters load) and recorded drawings,
+// drawn by content mode (uikit/imageview/modes) with their rendering mode and tint
+// (uikit/imageview/tints); animated images step on the scene's clock.
 
 /// An object that manages image data in your app.
 public final class UIImage: Hashable, @unchecked Sendable {
@@ -20,8 +23,16 @@ public final class UIImage: Hashable, @unchecked Sendable {
     public let symbolConfiguration: SymbolConfiguration?
     /// The recording an image context made (`UIGraphicsImageRenderer`), replayed when drawn.
     public let drawing: UIImageDrawing?
+    /// The bytes an image made from data holds (PNG or JPEG), and their pixel size.
+    public let data: Data?
+    let pixelSize: CGSize
+    /// The frames of an animated image (`animatedImage(with:duration:)`) and their total duration.
+    public let images: [UIImage]?
+    public let duration: TimeInterval
 
-    init(name: String, isSystemSymbol: Bool, renderingMode: RenderingMode = .automatic, scale: CGFloat = 2, size: CGSize, tint: UIColor? = nil, symbolConfiguration: SymbolConfiguration? = nil, drawing: UIImageDrawing? = nil) {
+    init(name: String, isSystemSymbol: Bool, renderingMode: RenderingMode = .automatic, scale: CGFloat = 2, size: CGSize, tint: UIColor? = nil,
+         symbolConfiguration: SymbolConfiguration? = nil, drawing: UIImageDrawing? = nil, data: Data? = nil, pixelSize: CGSize = .zero,
+         images: [UIImage]? = nil, duration: TimeInterval = 0) {
         self.name = name
         self.isSystemSymbol = isSystemSymbol
         self.renderingMode = renderingMode
@@ -30,6 +41,53 @@ public final class UIImage: Hashable, @unchecked Sendable {
         self.tint = tint
         self.symbolConfiguration = symbolConfiguration
         self.drawing = drawing
+        self.data = data
+        self.pixelSize = pixelSize
+        self.images = images
+        self.duration = duration
+    }
+
+    /// An image from PNG or JPEG bytes at `scale` (1 by default: a 40 × 40 pixel PNG is 40
+    /// points wide); nil for bytes of another kind. The painters load it as a data URL.
+    public convenience init?(data: Data, scale: CGFloat = 1) {
+        guard let (pixels, kind) = Self.imageHeader(data) else { return nil }
+        let file = "data:image/\(kind);base64," + data.base64EncodedString()
+        self.init(name: file, isSystemSymbol: false, scale: scale, size: CGSize(width: pixels.width / scale, height: pixels.height / scale), data: data, pixelSize: pixels)
+    }
+
+    /// The pixel size and kind ("png" or "jpeg") from the file's header.
+    static func imageHeader(_ data: Data) -> (CGSize, String)? {
+        let bytes = [UInt8](data)
+        if bytes.count >= 24, bytes[0] == 0x89, bytes[1] == 0x50, bytes[2] == 0x4E, bytes[3] == 0x47 {
+            func word(_ i: Int) -> CGFloat { CGFloat(Int(bytes[i]) << 24 | Int(bytes[i + 1]) << 16 | Int(bytes[i + 2]) << 8 | Int(bytes[i + 3])) }
+            return (CGSize(width: word(16), height: word(20)), "png")
+        }
+        if bytes.count >= 4, bytes[0] == 0xFF, bytes[1] == 0xD8 {
+            // JPEG: walk the segments to the first frame header (SOFn) for its dimensions.
+            var i = 2
+            while i + 9 < bytes.count {
+                guard bytes[i] == 0xFF else { i += 1; continue }
+                let marker = bytes[i + 1]
+                if marker == 0xD8 || (0xD0...0xD7).contains(marker) || marker == 0x01 || marker == 0xFF { i += 2; continue }
+                let length = Int(bytes[i + 2]) << 8 | Int(bytes[i + 3])
+                if (0xC0...0xCF).contains(marker), marker != 0xC4, marker != 0xC8, marker != 0xCC {
+                    let height = CGFloat(Int(bytes[i + 5]) << 8 | Int(bytes[i + 6]))
+                    let width = CGFloat(Int(bytes[i + 7]) << 8 | Int(bytes[i + 8]))
+                    return (CGSize(width: width, height: height), "jpeg")
+                }
+                i += 2 + length
+            }
+            return nil
+        }
+        return nil
+    }
+
+    /// An image that cycles through `images` over `duration` seconds in an image view.
+    public static func animatedImage(with images: [UIImage], duration: TimeInterval) -> UIImage? {
+        guard let first = images.first else { return nil }
+        return UIImage(name: first.name, isSystemSymbol: first.isSystemSymbol, renderingMode: first.renderingMode, scale: first.scale, size: first.size,
+                       tint: first.tint, symbolConfiguration: first.symbolConfiguration, drawing: first.drawing, data: first.data, pixelSize: first.pixelSize,
+                       images: images, duration: duration)
     }
 
     /// An image made by an image context.
@@ -55,26 +113,32 @@ public final class UIImage: Hashable, @unchecked Sendable {
     }
 
     public func withRenderingMode(_ mode: RenderingMode) -> UIImage {
-        UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: mode, scale: scale, size: size, tint: tint, symbolConfiguration: symbolConfiguration, drawing: drawing)
+        UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: mode, scale: scale, size: size, tint: tint, symbolConfiguration: symbolConfiguration, drawing: drawing, data: data, pixelSize: pixelSize, images: images, duration: duration)
     }
 
     public func withTintColor(_ color: UIColor, renderingMode: RenderingMode = .alwaysOriginal) -> UIImage {
-        UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: renderingMode, scale: scale, size: size, tint: color, symbolConfiguration: symbolConfiguration, drawing: drawing)
+        UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: renderingMode, scale: scale, size: size, tint: color, symbolConfiguration: symbolConfiguration, drawing: drawing, data: data, pixelSize: pixelSize, images: images, duration: duration)
     }
 
-    /// The image as PNG data: a recorded drawing rasterised by the host (nil without a host
-    /// rasteriser, and for catalog images and symbols, whose files the host already has).
+    /// The image as PNG data: the bytes an image made from PNG data holds, else a recorded
+    /// drawing rasterised by the host (nil without a host rasteriser, and for catalog images
+    /// and symbols, whose files the host already has).
     @MainActor
     public func pngData() -> Data? {
+        if let data, name.hasPrefix("data:image/png") { return data }
         guard let drawing, let rasterizer = UIKitScene.shared.imageRasterizer else { return nil }
         var list = DisplayList()
         for command in drawing.commands { list.append(command) }
         return rasterizer(list, drawing.size, drawing.scale)
     }
 
-    /// JPEG is not made in this substrate: the PNG data, the quality ignored.
+    /// JPEG is not made in this substrate: an image made from JPEG data returns its bytes,
+    /// another its PNG data, the quality ignored.
     @MainActor
-    public func jpegData(compressionQuality: CGFloat) -> Data? { pngData() }
+    public func jpegData(compressionQuality: CGFloat) -> Data? {
+        if let data, name.hasPrefix("data:image/jpeg") { return data }
+        return pngData()
+    }
 
     public func withConfiguration(_ configuration: SymbolConfiguration) -> UIImage {
         let pointSize = configuration.pointSize ?? 17
@@ -83,7 +147,7 @@ public final class UIImage: Hashable, @unchecked Sendable {
     }
 
     public static func == (lhs: UIImage, rhs: UIImage) -> Bool {
-        lhs.name == rhs.name && lhs.isSystemSymbol == rhs.isSystemSymbol && lhs.renderingMode == rhs.renderingMode && lhs.size == rhs.size && lhs.tint == rhs.tint && lhs.drawing === rhs.drawing
+        lhs.name == rhs.name && lhs.isSystemSymbol == rhs.isSystemSymbol && lhs.renderingMode == rhs.renderingMode && lhs.size == rhs.size && lhs.tint == rhs.tint && lhs.drawing === rhs.drawing && lhs.images?.count == rhs.images?.count
     }
     public func hash(into hasher: inout Hasher) { hasher.combine(name) }
 
@@ -104,17 +168,81 @@ public final class UIImage: Hashable, @unchecked Sendable {
 
 /// An object that displays a single image or a sequence of animated images in your interface.
 @MainActor
-open class UIImageView: UIView {
-    open var image: UIImage? { didSet { if image != oldValue { invalidateIntrinsicContentSize(); setNeedsDisplay() } } }
+open class UIImageView: UIView, ClockAnimating {
+    open var image: UIImage? { didSet { if image != oldValue { imageDidChange() } } }
+
+    private func imageDidChange() {
+        invalidateIntrinsicContentSize()
+        setNeedsDisplay()
+        // An animated image plays on its own as UIKit plays it.
+        if let frames = image?.images, frames.count > 1, animationImages == nil { startAnimating() } else if animationImages == nil, isAnimating { stopAnimating() }
+    }
     open var highlightedImage: UIImage?
-    open var isHighlighted = false
+    open var isHighlighted = false { didSet { setNeedsDisplay() } }
     open var preferredSymbolConfiguration: UIImage.SymbolConfiguration?
+
+    // MARK: Animation (`animationImages`, or an `animatedImage`): the frames cycle over
+    // `animationDuration` (the image's duration, else a 30th of a second per frame) on the
+    // scene's clock, `animationRepeatCount` times (0 forever).
+
+    open var animationImages: [UIImage]? { didSet { if animationImages == nil, isAnimating { stopAnimating() }; setNeedsDisplay() } }
+    open var highlightedAnimationImages: [UIImage]?
+    open var animationDuration: TimeInterval = 0
+    open var animationRepeatCount = 0
+    public private(set) var isAnimating = false
+    private var clock: Double = 0
+
+    /// The frames playing: `animationImages` first, else the image's own.
+    private var frames: [UIImage]? {
+        if let animationImages, !animationImages.isEmpty { return isHighlighted ? (highlightedAnimationImages ?? animationImages) : animationImages }
+        if let frames = image?.images, frames.count > 1 { return frames }
+        return nil
+    }
+    private var frameDuration: TimeInterval {
+        guard let frames else { return 0 }
+        if animationDuration > 0 { return animationDuration }
+        if let image, image.images != nil, image.duration > 0 { return image.duration }
+        return Double(frames.count) / 30
+    }
+    /// The frame showing: the clock's position in the cycle while animating; at rest the
+    /// `image` (an animated image's first frame) as UIKit shows it.
+    var currentFrame: UIImage? {
+        guard let frames, isAnimating, frameDuration > 0 else { return animationImages?.isEmpty == false ? image : (image?.images?.first ?? image) }
+        let cycles = clock / frameDuration
+        let fraction = cycles - cycles.rounded(.down)
+        return frames[min(frames.count - 1, Int(fraction * Double(frames.count)))]
+    }
+
+    open func startAnimating() {
+        guard frames != nil, !isAnimating else { return }
+        isAnimating = true
+        clock = 0
+        UIKitScene.shared.spinners.append(WeakActivityIndicator(view: self))
+        UIKitScene.shared.setNeedsFrame()
+        setNeedsDisplay()
+    }
+
+    open func stopAnimating() {
+        guard isAnimating else { return }
+        isAnimating = false
+        UIKitScene.shared.spinners.removeAll { $0.view === self || $0.view == nil }
+        setNeedsDisplay()
+    }
+
+    func advance(elapsed: Double) {
+        let before = currentFrame
+        clock += elapsed
+        // The repeats done, the view shows its `image` again.
+        if animationRepeatCount > 0, frameDuration > 0, clock / frameDuration >= Double(animationRepeatCount) { stopAnimating() }
+        if currentFrame != before { setNeedsDisplay() }
+    }
 
     public init(image: UIImage?) {
         super.init(frame: CGRect(origin: .zero, size: image?.size ?? .zero))
         self.image = image
         isUserInteractionEnabled = false
         contentMode = .scaleToFill
+        if image != nil { imageDidChange() }
     }
 
     public override init(frame: CGRect) {
@@ -158,7 +286,7 @@ open class UIImageView: UIView {
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
-        guard let image = isHighlighted ? (highlightedImage ?? self.image) : self.image else { return }
+        guard let image = isAnimating ? currentFrame : (isHighlighted ? (highlightedImage ?? self.image?.images?.first ?? self.image) : (self.image?.images?.first ?? self.image)) else { return }
         let rect = context.absoluteRect(imageRect(for: image.size))
         let tint: RGBA? = image.renderingMode == .alwaysTemplate || (image.renderingMode == .automatic && image.isSystemSymbol)
             ? (image.tint ?? tintColor).rgba(for: style) : image.tint?.rgba(for: style)
@@ -168,6 +296,12 @@ open class UIImageView: UIView {
         }
         if image.isSystemSymbol {
             SymbolPainter.paint(name: image.name, in: rect, color: tint ?? UIColor.label.rgba(for: style), weight: image.symbolConfiguration?.weight?.css ?? 400, into: &list)
+            return
+        }
+        if image.data != nil {
+            var draw = ImageDraw(file: image.name, scale: image.scale, pixelSize: image.pixelSize, rect: rect)
+            draw.tint = tint
+            list.append(.drawImage(draw))
             return
         }
         let catalog = UIKitScene.shared.assetCatalog

@@ -184,3 +184,9 @@ public final class UIKitFixtureRunner {
         instance.steps[index].run()
     }
 }
+
+/// Named images from the fixtures' asset catalog: UIKitWeb reads the catalog manifest the
+/// scene holds, so this is `UIImage(named:)` (the real-UIKit kit loads the files from disk).
+public enum UIKitFixtureImage {
+    @MainActor public static func named(_ name: String) -> UIImage? { UIImage(named: name) }
+}

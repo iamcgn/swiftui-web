@@ -357,9 +357,16 @@ public final class CoreGraphicsPainter {
 
     private func image(for file: String) -> CGImage? {
         if let cached = images[file] { return cached }
-        guard let base = assetBase else { return nil }
-        let url = base.appendingPathComponent(file)
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil), let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
+        let source: CGImageSource?
+        if file.hasPrefix("data:") {
+            // A data URL (an image made from bytes): the base64 payload after the comma.
+            guard let comma = file.firstIndex(of: ","), let data = Data(base64Encoded: String(file[file.index(after: comma)...])) else { return nil }
+            source = CGImageSourceCreateWithData(data as CFData, nil)
+        } else {
+            guard let base = assetBase else { return nil }
+            source = CGImageSourceCreateWithURL(base.appendingPathComponent(file) as CFURL, nil)
+        }
+        guard let source, let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
         images[file] = image
         return image
     }

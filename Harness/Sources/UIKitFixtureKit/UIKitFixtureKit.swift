@@ -2,6 +2,7 @@
 // API, so the UIKit fixture sources compile unchanged against both (decision 0014).
 #if canImport(UIKit)
 import UIKit
+import ImageIO
 
 /// One mutation of a behaviour fixture's model, applied between renders.
 public struct UIKitFixtureStep<Model>: Sendable {
@@ -157,3 +158,66 @@ extension UIView {
     }
 }
 #endif
+
+// MARK: - Catalog images
+
+/// Named images from `Fixtures/Assets.xcassets` for real UIKit (decision 0011: the SwiftPM
+/// harness has no compiled catalog, so `UIImage(named:)` finds nothing): the universal 2×
+/// variant of the light appearance, decoded with `UIImage(cgImage:scale:orientation:)`, as a
+/// template when the set says so. UIKitWeb's kit answers the same call with `UIImage(named:)`.
+public enum UIKitFixtureImage {
+    static let root: URL = {
+        var url = URL(fileURLWithPath: #filePath)
+        while url.lastPathComponent != "Harness" { url.deleteLastPathComponent() }
+        url.deleteLastPathComponent()
+        return url.appendingPathComponent("Fixtures/Assets.xcassets")
+    }()
+
+    private struct Variant { let url: URL; let scale: CGFloat; let idiom: String; let appearance: String }
+    nonisolated(unsafe) private static var sets: [String: (variants: [Variant], template: Bool)] = [:]
+    nonisolated(unsafe) private static var loaded = false
+
+    private static func contents(_ directory: URL) -> [String: Any] {
+        guard let data = try? Data(contentsOf: directory.appendingPathComponent("Contents.json")),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
+        return json
+    }
+
+    private static func walk(_ directory: URL, prefix: String) {
+        let children = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
+        for child in children.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            guard (try? child.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true else { continue }
+            let name = prefix + child.deletingPathExtension().lastPathComponent
+            switch child.pathExtension {
+            case "imageset":
+                let doc = contents(child)
+                var variants: [Variant] = []
+                for entry in doc["images"] as? [[String: Any]] ?? [] {
+                    guard let filename = entry["filename"] as? String else { continue }
+                    let scaleText = (entry["scale"] as? String ?? "1x").dropLast()
+                    var appearance = "any"
+                    for item in entry["appearances"] as? [[String: Any]] ?? [] where item["appearance"] as? String == "luminosity" { appearance = item["value"] as? String ?? "any" }
+                    variants.append(Variant(url: child.appendingPathComponent(filename), scale: CGFloat(Double(scaleText) ?? 1), idiom: entry["idiom"] as? String ?? "universal", appearance: appearance))
+                }
+                let template = ((doc["properties"] as? [String: Any])?["template-rendering-intent"] as? String) == "template"
+                sets[name] = (variants, template)
+            case "":
+                let namespace = (contents(child)["properties"] as? [String: Any])?["provides-namespace"] as? Bool ?? false
+                walk(child, prefix: namespace ? name + "/" : prefix)
+            default: break
+            }
+        }
+    }
+
+    /// The catalog image named `name`, nil when there is none.
+    public static func named(_ name: String) -> UIImage? {
+        if !loaded { loaded = true; walk(root, prefix: "") }
+        guard let set = sets[name] else { return nil }
+        let universal = set.variants.filter { $0.idiom == "universal" && ($0.appearance == "any" || $0.appearance == "light") }
+        guard let variant = universal.first(where: { $0.scale == 2 }) ?? universal.max(by: { $0.scale < $1.scale }),
+              let source = CGImageSourceCreateWithURL(variant.url as CFURL, nil),
+              let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
+        let image = UIImage(cgImage: cgImage, scale: variant.scale, orientation: .up)
+        return set.template ? image.withRenderingMode(.alwaysTemplate) : image
+    }
+}

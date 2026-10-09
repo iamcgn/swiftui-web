@@ -120,3 +120,29 @@ of drawn content between frames.
 (`UIKitScene.imageRasterizer`: the canvas host paints it into a canvas of its own and reads a
 PNG data URL; the native host paints it with CoreGraphics); nil headless and for catalog
 images and symbols. `jpegData` returns the same PNG.
+
+## Images (2026-10-09, `uikit/imageview/modes`, `uikit/imageview/tints`)
+
+`Controls/UIImageView.swift`. `UIImage(data:scale:)` reads the PNG or JPEG header for the
+pixel size (a 40 × 40 PNG is 40 points at scale 1) and keeps the bytes; the painters load it as
+a `data:` URL (the canvas host's image loader takes one, the native painter decodes the
+base64 payload with ImageIO). `pngData()` returns those bytes for a PNG-made image (a
+recorded drawing is still rasterised by the host), `jpegData` the bytes of a JPEG-made one.
+`UIImage.animatedImage(with:duration:)` holds its frames; an image view given one plays it
+at once, and `animationImages` / `animationDuration` / `animationRepeatCount` /
+`startAnimating` / `stopAnimating` / `isAnimating` cycle frames on the scene's clock (a 30th
+of a second per frame without a duration; the view shows `image` again when the repeats are
+done; `highlightedAnimationImages` while highlighted).
+
+Measured on the simulator: every content mode of a clipped 100 × 70 view holding the 80 × 60
+photo and an unclipped aspect-fill view drawing past its frame (`modes`, 0.00 % off); the
+template icon in the view's tint and as original, a plain image as a template in red and
+`withTintColor(.systemGreen)`, a bold 32 pt symbol in orange, a 4 × 4 checker from PNG data
+scaled to 48 with the simulator's interpolation, the badge through `pngData()` and back, a
+view sized to its image (`tints`, 0.72 %). The real-UIKit fixture kit loads catalog images
+from disk (`UIKitFixtureImage.named`), since the SwiftPM harness has no compiled catalog.
+
+Open: `UIImage(contentsOfFile:)`, image orientation, `resizableImage` cap insets on image
+views (the drawing side has them), `preferredSymbolConfiguration` on the view, HEIC and other
+formats (the header parser knows PNG and JPEG).
+
