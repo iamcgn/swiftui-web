@@ -160,7 +160,10 @@ import WebGraphicsNative
         view.selectionBehavior = selection
         view.sizeToFit()
         #expect(view.frame.size == CGSize(width: 280, height: 288))
-        #expect(view.grid.columnWidth == 37 && view.rowHeight == 36 && view.grid.originX == 13)
+        #expect(view.grid.columnWidth == 37 && view.rowHeight == 36)
+        #if canImport(AppKit)
+        #expect(view.grid.originX == 13)   // under the first weekday label, whose width CoreText measures
+        #endif
         view.frame.origin = CGPoint(x: 0, y: 8)
         _ = host(view, scene: scene)
         tap(scene, at: CGPoint(x: 13 + 2.5 * 37, y: 8 + 90 + 0.5 * 36))   // 1 September: before the range

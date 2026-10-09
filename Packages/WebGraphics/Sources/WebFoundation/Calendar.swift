@@ -61,6 +61,38 @@ public struct TimeZone: Hashable, Sendable, Codable, CustomStringConvertible {
     public enum NameStyle: Sendable { case standard, shortStandard, daylightSaving, shortDaylightSaving, generic, shortGeneric }
 }
 
+/// Foundation's `DateInterval` (a `UICalendarView`'s `availableDateRange`): FoundationEssentials'
+/// drags its calendar formatting into the bundle (Counter grew 4 MB raw, 2026-10-08).
+public struct DateInterval: Hashable, Sendable, Codable, Comparable, CustomStringConvertible {
+    public var start: Date
+    public var duration: TimeInterval
+    public var end: Date {
+        get { start.addingTimeInterval(duration) }
+        set { duration = newValue.timeIntervalSince(start) }
+    }
+
+    public init() { start = Date(); duration = 0 }
+    public init(start: Date, end: Date) {
+        self.start = start
+        duration = max(0, end.timeIntervalSince(start))
+    }
+    public init(start: Date, duration: TimeInterval) {
+        self.start = start
+        self.duration = max(0, duration)
+    }
+
+    public func contains(_ date: Date) -> Bool { date >= start && date <= end }
+    public func intersects(_ other: DateInterval) -> Bool { contains(other.start) || contains(other.end) || other.contains(start) }
+    public func intersection(with other: DateInterval) -> DateInterval? {
+        guard intersects(other) else { return nil }
+        return DateInterval(start: max(start, other.start), end: min(end, other.end))
+    }
+    public static func < (lhs: DateInterval, rhs: DateInterval) -> Bool {
+        lhs.start < rhs.start || (lhs.start == rhs.start && lhs.duration < rhs.duration)
+    }
+    public var description: String { "\(start) to \(end)" }
+}
+
 public struct Locale: Hashable, Sendable, Codable, CustomStringConvertible {
     public let identifier: String
     public init(identifier: String) { self.identifier = identifier }
