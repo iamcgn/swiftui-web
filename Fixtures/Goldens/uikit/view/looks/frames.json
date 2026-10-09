@@ -1,0 +1,81 @@
+{
+  "fixture" : "uikit\/view\/looks",
+  "frames" : {
+    "capsule" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 16,
+      "y" : 92
+    },
+    "child" : {
+      "height" : 50,
+      "width" : 60,
+      "x" : 122,
+      "y" : 173
+    },
+    "container" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 112,
+      "y" : 168
+    },
+    "continuousBorder" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 208,
+      "y" : 168
+    },
+    "first" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : 208,
+      "y" : 92
+    },
+    "group" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 208,
+      "y" : 92
+    },
+    "hairline" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 208,
+      "y" : 16
+    },
+    "masked" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 16,
+      "y" : 168
+    },
+    "overRadius" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 112,
+      "y" : 92
+    },
+    "pathShadow" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 16,
+      "y" : 16
+    },
+    "second" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : 238,
+      "y" : 112
+    },
+    "tinted" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 112,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

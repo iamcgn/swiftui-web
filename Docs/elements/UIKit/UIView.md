@@ -35,8 +35,31 @@ Drawing: `draw(_:)`, `UIBezierPath` and the graphics context are in `Docs/elemen
 Constraints: `translatesAutoresizingMaskIntoConstraints`, anchors, `constraints`, `updateConstraints`,
 the layout guides and `systemLayoutSizeFitting` over the solver are in `Docs/elements/UIKit/AutoLayout.md`.
 
-Open: pixel comparison of the painted corners, borders, shadows and the continuous corner
-against these goldens; `draw(_:)`; animations (Phase 3).
+## Looks against pixels (`uikit/view/layers`, `uikit/view/looks`, iPhone SE simulator, iOS 26, 2026-10-09)
+
+Every painted look of `uikit/view/layers` matches the simulator within edge antialiasing (each
+element's differing pixels sit on its edges; the plain and shadowed views are exact; 0.2 %
+overall), and `uikit/view/looks` adds the rest (0.3 %):
+
+- A `shadowPath` casts the shadow instead of the layer's composite, in the layer's background
+  colour under the layer (a white view's oval path shows only where it reaches past the
+  view); a transparent layer's shadow path casts nothing (open). A shadow colour and tight
+  offset (`systemBlue` at 0.6, radius 2, offset 3) match; a container with a clear background
+  casts its rounded child's shadow.
+- Borders: a 0.5 pt hairline on a 10 pt corner, a 4 pt border on a capsule (`cornerRadius`
+  half the height) and a 3 pt border on a continuous 20 pt corner all draw inside the bounds
+  as strokes centred half the width in, with the corner radius less half the width.
+- A corner radius past half a side is not clamped: CoreAnimation lays the quarter arcs out
+  as if they fit, the edges run backwards and the nonzero fill is a lens with pointed ends
+  about 1.3 in (`cornerRadius` 40 on 80 × 60); `UIKitWeb` builds that path explicitly
+  (`CALayer.unclampedCornerPath`) for a circular corner, as the painter's rounded rectangles clamp.
+- Group opacity: a view at `alpha` 0.5 composites its overlapping children once (no double
+  blending where they overlap).
+- `layer.mask`: a `CAShapeLayer` mask (its path's alpha) clips the layer's fill, border and
+  sublayers, through the substrate's mask group.
+
+Open: `draw(_:)` (see Drawing.md); animations (Phase 3); a transparent layer's shadow path;
+masks with `contents`.
 
 ## Hover and pointer interactions (2026-09-18, `Events/Hover.swift`, `HoverTests`)
 

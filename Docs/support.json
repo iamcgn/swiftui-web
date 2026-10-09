@@ -1382,12 +1382,13 @@
         },
         {
           "api": "UIView: tree, geometry and the layout cycle",
-          "status": "partial",
-          "notes": "addSubview / insertSubview / removeFromSuperview / bringSubviewToFront / sendSubviewToBack / exchangeSubview, superview / subviews / window, frame / bounds / center / transform / autoresizingMask, convert(_:to:), setNeedsLayout / layoutIfNeeded / layoutSubviews, sizeThatFits / sizeToFit / intrinsicContentSize / invalidateIntrinsicContentSize / systemLayoutSizeFitting, hugging and compression priorities, layoutMargins, safeAreaInsets (a window's, a container's bars, a hosted tree's), hitTest / point(inside:); open: pixel checks of the painted corners, borders and shadows against the simulator",
+          "status": "full",
+          "notes": "addSubview / insertSubview / removeFromSuperview / bringSubviewToFront / sendSubviewToBack / exchangeSubview, superview / subviews / window, frame / bounds / center / transform / autoresizingMask, convert(_:to:), setNeedsLayout / layoutIfNeeded / layoutSubviews, sizeThatFits / sizeToFit / intrinsicContentSize / invalidateIntrinsicContentSize / systemLayoutSizeFitting, hugging and compression priorities, layoutMargins, safeAreaInsets (a window's, a container's bars, a hosted tree's), hitTest / point(inside:); the painted corners (continuous and unclamped past half a side), masked corners, borders, shadows (with shadowPath and colour), group opacity and layer masks verified against the simulator's pixels (uikit/view/layers, uikit/view/looks); open: a transparent layer's shadow path",
           "fixtures": [
             "uikit/view/autoresizing",
             "uikit/view/layers",
-            "uikit/autolayout/fitting"
+            "uikit/autolayout/fitting",
+            "uikit/view/looks"
           ]
         },
         {

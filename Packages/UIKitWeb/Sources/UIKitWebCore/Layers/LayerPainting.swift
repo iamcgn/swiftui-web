@@ -38,15 +38,41 @@ extension CALayer {
             list.append(.beginGroup(opacity: Double(opacity)))
             groups += 1
         }
-        if shadowOpacity > 0, let shadowColor, let color = RGBA(cgColor: shadowColor) {
-            list.append(.beginShadow(color.multiplyingAlpha(by: Double(shadowOpacity)), radius: shadowRadius, offset: CGSize(width: shadowOffset.width, height: shadowOffset.height)))
+        if let mask {
+            // The mask's alpha (its own fill and shape) clips everything the layer paints.
+            list.append(.beginMask(bounds: rect))
+            var maskContext = child
+            maskContext.origin = CGPoint(x: child.origin.x - bounds.minX, y: child.origin.y - bounds.minY)
+            mask.paint(into: &list, context: maskContext, style: effective)
+            list.append(.beginMasked)
             groups += 1
         }
-        let radius = cornerRadius > 0 && maskedCorners == .all ? min(cornerRadius, min(rect.width, rect.height) / 2) : 0
+        if shadowOpacity > 0, let shadowColor, let color = RGBA(cgColor: shadowColor) {
+            let shadow = color.multiplyingAlpha(by: Double(shadowOpacity))
+            if let shadowPath {
+                // The shadow path casts the shadow on its own, in the layer's background colour
+                // (nothing without one), under what the layer paints.
+                if let fill = background, fill.alpha > 0 {
+                    list.append(.beginShadow(shadow, radius: shadowRadius, offset: CGSize(width: shadowOffset.width, height: shadowOffset.height)))
+                    list.append(.fillPath(shadowPath.applying(CGAffineTransform(translationX: rect.minX, y: rect.minY)), fill))
+                    list.append(.endGroup)
+                }
+            } else {
+                list.append(.beginShadow(shadow, radius: shadowRadius, offset: CGSize(width: shadowOffset.width, height: shadowOffset.height)))
+                groups += 1
+            }
+        }
+        // CoreAnimation does not clamp a corner radius past half a side: the arcs cross and the
+        // nonzero fill makes a lens (uikit/view/looks `overRadius`); the painter's rounded rects
+        // clamp, so those corners take an explicit path.
+        let overRadius = cornerRadius > min(rect.width, rect.height) / 2 && maskedCorners == .all && cornerCurve == .circular
+        let radius = cornerRadius > 0 && maskedCorners == .all && !overRadius ? min(cornerRadius, min(rect.width, rect.height) / 2) : 0
         let popoverShape = popoverArrow.map { Self.popoverPath(rect, arrow: $0, pointsDown: popoverArrowPointsDown, cardHeight: popoverCardHeight, radius: cornerRadius) }
         if let color = background, color.alpha > 0 {
             if let popoverShape {
                 list.append(.fillPath(popoverShape, color))
+            } else if overRadius {
+                list.append(.fillPath(Self.unclampedCornerPath(rect, radius: cornerRadius), color))
             } else if cornerRadius > 0, maskedCorners != .all {
                 list.append(.fillPath(Self.cornerPath(rect, radius: cornerRadius, corners: maskedCorners, curve: cornerCurve), color))
             } else if radius > 0 {
@@ -63,6 +89,8 @@ extension CALayer {
             list.append(.save)
             if let popoverShape {
                 list.append(.clipPath(popoverShape))
+            } else if overRadius {
+                list.append(.clipPath(Self.unclampedCornerPath(rect, radius: cornerRadius)))
             } else if cornerRadius > 0, maskedCorners != .all {
                 list.append(.clipPath(Self.cornerPath(rect, radius: cornerRadius, corners: maskedCorners, curve: cornerCurve)))
             } else if radius > 0 {
@@ -96,6 +124,25 @@ extension CALayer {
         }
         for _ in 0..<groups { list.append(.endGroup) }
         if transformed { list.append(.restore) }
+    }
+
+    /// CoreAnimation's rounded rectangle with a radius past half a side: the quarter arcs are
+    /// laid out as if they fit, the straight edges run backwards, and the nonzero fill of the
+    /// crossing path is a lens.
+    static func unclampedCornerPath(_ rect: CGRect, radius r: CGFloat) -> Path {
+        let k: CGFloat = 0.5522847498 * r
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX + r, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - r, y: rect.minY))
+        path.addCurve(to: CGPoint(x: rect.maxX, y: rect.minY + r), control1: CGPoint(x: rect.maxX - r + k, y: rect.minY), control2: CGPoint(x: rect.maxX, y: rect.minY + r - k))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - r))
+        path.addCurve(to: CGPoint(x: rect.maxX - r, y: rect.maxY), control1: CGPoint(x: rect.maxX, y: rect.maxY - r + k), control2: CGPoint(x: rect.maxX - r + k, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX + r, y: rect.maxY))
+        path.addCurve(to: CGPoint(x: rect.minX, y: rect.maxY - r), control1: CGPoint(x: rect.minX + r - k, y: rect.maxY), control2: CGPoint(x: rect.minX, y: rect.maxY - r + k))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + r))
+        path.addCurve(to: CGPoint(x: rect.minX + r, y: rect.minY), control1: CGPoint(x: rect.minX, y: rect.minY + r - k), control2: CGPoint(x: rect.minX + r - k, y: rect.minY))
+        path.closeSubpath()
+        return path
     }
 
     /// A rectangle with only some corners rounded.

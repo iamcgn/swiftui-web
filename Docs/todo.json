@@ -1548,13 +1548,14 @@
       "framework": "UIKit",
       "area": "Views",
       "title": "Layer corners, borders and shadows against pixels",
-      "detail": "The painted corners (continuous too), borders and shadows of `uikit/view/*` compared with the simulator's pixels; the fixtures are frames-only where the look is unverified.",
+      "detail": "The painted corners (continuous too), borders and shadows of `uikit/view/*` compared with the simulator's pixels; the fixtures are frames-only where the look is unverified. Done 2026-10-09: every element of uikit/view/layers matched within edge antialiasing (0.2 %), and uikit/view/looks (0.3 %) adds shadowPath (painted in the background colour), shadow colour, hairline and thick borders on rounded and capsule corners, a continuous bordered corner, the unclamped corner lens CoreAnimation draws past half a side, group opacity, and CAShapeLayer masks through the substrate's mask group.",
       "kind": "verify",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/UIView.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-traits",

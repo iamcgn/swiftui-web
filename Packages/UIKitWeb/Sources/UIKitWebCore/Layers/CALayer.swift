@@ -165,6 +165,10 @@ open class CALayer {
     }
     open var shadowOffset = CGSize(width: 0, height: -3) { didSet { setNeedsDisplay() } }
     open var shadowRadius: CGFloat = 3 { didSet { setNeedsDisplay() } }
+    /// The shape that casts the shadow instead of the layer's composite (in the layer's
+    /// bounds). Painted as that shape in the layer's background colour under the layer, so a
+    /// transparent layer's shadow path casts nothing (open).
+    open var shadowPath: Path? { didSet { setNeedsDisplay() } }
     open var contentsScale: CGFloat = 2
     open var name: String?
     /// A mask layer: its alpha clips this layer's content (its own fill and shape, if any).
