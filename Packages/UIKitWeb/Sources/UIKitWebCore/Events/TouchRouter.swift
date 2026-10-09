@@ -8,6 +8,12 @@ final class TouchRouter {
     private var activeTouch: UITouch?
     /// Whether a press is in progress (a pointer move then drags rather than hovers).
     var isPressing: Bool { activeTouch != nil }
+
+    /// Forgets a press in flight (the windows went away under it: `UIKitScene.removeAllWindows`).
+    func dropActiveTouch() {
+        activeTouch = nil
+        activeEvent = nil
+    }
     private var activeEvent: UIEvent?
     private var lastTapTime: Double = 0
     private var lastTapLocation = CGPoint.zero

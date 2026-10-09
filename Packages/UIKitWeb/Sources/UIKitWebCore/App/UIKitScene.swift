@@ -61,6 +61,12 @@ public final class UIKitScene: HostedScene {
         timers.removeAll()
         animationGroups.removeAll()
         decelerating.removeAll()
+        displayLinks.removeAll()
+        spinners.removeAll()
+        // A press or a hover in flight belonged to the windows that just went (a test that
+        // pressed without releasing must not turn the next test's pointer moves into drags).
+        touches.dropActiveTouch()
+        hover.update(to: nil, in: nil)
         setNeedsFrame()
     }
 
