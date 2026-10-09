@@ -36,10 +36,10 @@ jobs:
     runs-on: ubuntu-24.04
     container: swift:6.3.3
     steps:
-      - name: Tools (git, python, node for PackageToJS, binaryen for wasm-opt)
+      - name: Tools (git, python, node for PackageToJS, binaryen for wasm-opt, brotli for the size gates)
         run: |
           apt-get update -q
-          DEBIAN_FRONTEND=noninteractive apt-get install -y -q git python3 nodejs binaryen ca-certificates
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -q git python3 nodejs binaryen brotli ca-certificates
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/checkout@v4
       - name: Install wasm SDK
