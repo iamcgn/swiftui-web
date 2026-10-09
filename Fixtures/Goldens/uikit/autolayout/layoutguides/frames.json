@@ -1,0 +1,69 @@
+{
+  "fixture" : "uikit\/autolayout\/layoutguides",
+  "frames" : {
+    "a" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 16,
+      "y" : 16
+    },
+    "b" : {
+      "height" : 40,
+      "width" : 80,
+      "x" : 125,
+      "y" : 16
+    },
+    "c" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : 254,
+      "y" : 16
+    },
+    "centred" : {
+      "height" : 61,
+      "width" : 101,
+      "x" : 109.5,
+      "y" : 79.5
+    },
+    "container" : {
+      "height" : 84,
+      "width" : 200,
+      "x" : 16,
+      "y" : 200
+    },
+    "dot" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 96,
+      "y" : 223
+    },
+    "inset" : {
+      "height" : 45,
+      "width" : 85,
+      "x" : 117.5,
+      "y" : 87.5
+    },
+    "owned" : {
+      "height" : 42,
+      "width" : 160,
+      "x" : 26,
+      "y" : 212
+    },
+    "spacer1" : {
+      "height" : 10,
+      "width" : 49,
+      "x" : 76,
+      "y" : 16
+    },
+    "spacer2" : {
+      "height" : 10,
+      "width" : 49,
+      "x" : 205,
+      "y" : 46
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

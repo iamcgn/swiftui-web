@@ -24,12 +24,19 @@ open class UISwitch: UIControl {
 
     open func setOn(_ on: Bool, animated: Bool) { isOn = on }
 
-    /// The iOS 26 switch is 68 × 30 (`sizeToFit` and the intrinsic size alike: uikit/controls/basic,
-    /// uikit/controls/intrinsic) with a 2 pt alignment inset on the right, so layout aligns a
-    /// 66 × 30 rectangle at the frame's origin (ios/representable/controls).
-    override open func sizeThatFits(_ size: CGSize) -> CGSize { CGSize(width: 68, height: 30) }
-    override open var intrinsicContentSize: CGSize { CGSize(width: 68, height: 30) }
+    /// The iOS 26 switch is 68 × 30 whatever frame it is given (`sizeToFit`, the fitting size
+    /// and the frame under constraints alike: uikit/controls/basic, uikit/controls/intrinsic,
+    /// uikit/autolayout/hugging): a 66 × 30 alignment rect, the intrinsic size, under a 2 pt
+    /// inset on the right (SwiftUI aligns a representable switch on it: ios/representable/controls).
+    override open func sizeThatFits(_ size: CGSize) -> CGSize { Self.size }
+    override open var intrinsicContentSize: CGSize { CGSize(width: Self.size.width - 2, height: Self.size.height) }
     override open var alignmentRectInsets: UIEdgeInsets { UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 2) }
+    static let size = CGSize(width: 68, height: 30)
+
+    override open var frame: CGRect {
+        get { super.frame }
+        set { super.frame = CGRect(origin: newValue.origin, size: Self.size) }
+    }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         let wasTracking = isTracking

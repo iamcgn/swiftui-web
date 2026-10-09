@@ -409,6 +409,21 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Text layer", .custom(name: "Helvetica", size: 20)),
         UIKitTextRequest("Centred", .custom(name: "Helvetica", size: 14)),
         UIKitTextRequest("Wrapped text layer in a narrow box", .custom(name: "Helvetica", size: 13), width: 120, lines: 0),
+        // uikit/stack/distribution and uikit/autolayout/hugging (uk-autolayout-rest)
+        UIKitTextRequest("A", .system(size: 17)),
+        UIKitTextRequest("Medium", .system(size: 17)),
+        UIKitTextRequest("The longest one", .system(size: 17)),
+        UIKitTextRequest("First overflowing", .system(size: 17)),
+        UIKitTextRequest("Second overflowing", .system(size: 17)),
+        UIKitTextRequest("Before", .system(size: 17)),
+        UIKitTextRequest("Hidden", .system(size: 17)),
+        UIKitTextRequest("After", .system(size: 17)),
+        UIKitTextRequest("Middle", .system(size: 17)),
+        UIKitTextRequest("Tall", .system(size: 28)),
+        UIKitTextRequest("small", .system(size: 12)),
+        UIKitTextRequest("Button", .system(size: 15)),
+        UIKitTextRequest("Text view", .custom(name: "Helvetica", size: 12), lines: 0),
+        UIKitTextRequest("Text view", .custom(name: "Helvetica", size: 12), width: 10, lines: 0),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 15 | 0 | 4 | 11 |
+| UIKit | 14 | 0 | 3 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **53** | 0 | 5 | 48 |
+| **All** | **52** | 0 | 4 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Layout guides, animated constraints and stacks** `uk-autolayout-rest` · Auto Layout · verify  
-  Frames of app-made `UILayoutGuide`s, constraint changes animated by `layoutIfNeeded` inside `UIView.animate`, hugging defaults per control verified, `UIStackView.fillProportionally` and overflow compression against UIKit, spacing after hidden views, solver performance on large trees. ([AutoLayout.md](Docs/elements/UIKit/AutoLayout.md), [UIStackView.md](Docs/elements/UIKit/UIStackView.md))
 - ☐ **Blend modes, attributed drawing and CGPath** `uk-drawing-rest` · Drawing · accepted  
   `setBlendMode` and `UIImage.draw` with blend modes (accepted), antialiasing switches and `clear`, per-range attributes with underline and strikethrough, `NSMutableAttributedString`, `CGPath`/`CGMutablePath` on Apple platforms, caching drawn content between frames. ([Drawing.md](Docs/elements/UIKit/Drawing.md))
 - ☐ **Accessibility notifications and custom actions** `uk-accessibility` · Accessibility · missing  
@@ -151,6 +149,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-09 **Layer corners, borders and shadows against pixels** `uk-view-pixels` · UIKit · Views
 - ☑ 2026-10-09 **Trait overrides and observation** `uk-traits` · UIKit · Views
 - ☑ 2026-10-09 **Gradient and text layers, display links, animation options** `uk-layers` · UIKit · Core Animation
+- ☑ 2026-10-09 **Layout guides, animated constraints and stacks** `uk-autolayout-rest` · UIKit · Auto Layout
 - ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation

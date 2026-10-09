@@ -83,7 +83,7 @@ public enum AutoLayoutFixtures {
         let left = label("A long label that needs room", "left")
         left.backgroundColor = .systemYellow
         left.setContentCompressionResistancePriority(UILayoutPriority(749), for: .horizontal)
-        // The row has room to spare: the label that hugs less (the right one, at UILabel's 251)
+        // The row has room to spare: the label that hugs less (the right one, at the default 250)
         // takes it; equal priorities would leave the layout ambiguous.
         left.setContentHuggingPriority(UILayoutPriority(252), for: .horizontal)
         let right = label("Short", "right")

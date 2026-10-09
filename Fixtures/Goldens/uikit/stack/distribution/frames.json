@@ -1,0 +1,225 @@
+{
+  "fixture" : "uikit\/stack\/distribution",
+  "frames" : {
+    "ca" : {
+      "height" : 24,
+      "width" : 81.5,
+      "x" : 16,
+      "y" : 136
+    },
+    "cb" : {
+      "height" : 24,
+      "width" : 151,
+      "x" : 105.5,
+      "y" : 136
+    },
+    "cc" : {
+      "height" : 24,
+      "width" : 39.5,
+      "x" : 264.5,
+      "y" : 136
+    },
+    "centering" : {
+      "height" : 24,
+      "width" : 288,
+      "x" : 16,
+      "y" : 136
+    },
+    "column" : {
+      "height" : 60,
+      "width" : 120,
+      "x" : 16,
+      "y" : 232
+    },
+    "ha" : {
+      "height" : 24,
+      "width" : 138.5,
+      "x" : 16,
+      "y" : 168
+    },
+    "hb" : {
+      "height" : 24,
+      "width" : 0,
+      "x" : 166.5,
+      "y" : 168
+    },
+    "hc" : {
+      "height" : 24,
+      "width" : 37.5,
+      "x" : 178.5,
+      "y" : 168
+    },
+    "hidden" : {
+      "height" : 24,
+      "width" : 200,
+      "x" : 16,
+      "y" : 168
+    },
+    "hiddenlast" : {
+      "height" : 24,
+      "width" : 200,
+      "x" : 16,
+      "y" : 200
+    },
+    "la" : {
+      "height" : 24,
+      "width" : 50.5,
+      "x" : 16,
+      "y" : 200
+    },
+    "lb" : {
+      "height" : 24,
+      "width" : 51.5,
+      "x" : 164.5,
+      "y" : 200
+    },
+    "lc" : {
+      "height" : 24,
+      "width" : 0,
+      "x" : 216,
+      "y" : 200
+    },
+    "oa" : {
+      "height" : 24,
+      "width" : 81.5,
+      "x" : 16,
+      "y" : 40
+    },
+    "ob" : {
+      "height" : 24,
+      "width" : 151,
+      "x" : 105.5,
+      "y" : 40
+    },
+    "oc" : {
+      "height" : 24,
+      "width" : 39.5,
+      "x" : 264.5,
+      "y" : 40
+    },
+    "overflow" : {
+      "height" : 24,
+      "width" : 288,
+      "x" : 16,
+      "y" : 40
+    },
+    "pa" : {
+      "height" : 24,
+      "width" : 15.5,
+      "x" : 16,
+      "y" : 8
+    },
+    "pb" : {
+      "height" : 24,
+      "width" : 83.5,
+      "x" : 39.5,
+      "y" : 8
+    },
+    "pc" : {
+      "height" : 24,
+      "width" : 173,
+      "x" : 131,
+      "y" : 8
+    },
+    "proportional" : {
+      "height" : 24,
+      "width" : 288,
+      "x" : 16,
+      "y" : 8
+    },
+    "sa" : {
+      "height" : 24,
+      "width" : 81.5,
+      "x" : 16,
+      "y" : 104
+    },
+    "sb" : {
+      "height" : 24,
+      "width" : 151,
+      "x" : 105.5,
+      "y" : 104
+    },
+    "sc" : {
+      "height" : 24,
+      "width" : 39.5,
+      "x" : 264.5,
+      "y" : 104
+    },
+    "spacing" : {
+      "height" : 24,
+      "width" : 288,
+      "x" : 16,
+      "y" : 104
+    },
+    "spread" : {
+      "height" : 112,
+      "width" : 120,
+      "x" : 160,
+      "y" : 180
+    },
+    "ua" : {
+      "height" : 24,
+      "width" : 126,
+      "x" : 16,
+      "y" : 72
+    },
+    "ub" : {
+      "height" : 24,
+      "width" : 106.5,
+      "x" : 150,
+      "y" : 72
+    },
+    "uc" : {
+      "height" : 24,
+      "width" : 39.5,
+      "x" : 264.5,
+      "y" : 72
+    },
+    "unequal" : {
+      "height" : 24,
+      "width" : 288,
+      "x" : 16,
+      "y" : 72
+    },
+    "va" : {
+      "height" : 26.5,
+      "width" : 40,
+      "x" : 16,
+      "y" : 232
+    },
+    "vb" : {
+      "height" : 16,
+      "width" : 28.5,
+      "x" : 16,
+      "y" : 262.5
+    },
+    "vc" : {
+      "height" : 9.5,
+      "width" : 29.5,
+      "x" : 16,
+      "y" : 282.5
+    },
+    "wa" : {
+      "height" : 49,
+      "width" : 40,
+      "x" : 160,
+      "y" : 180
+    },
+    "wb" : {
+      "height" : 30,
+      "width" : 28.5,
+      "x" : 160,
+      "y" : 233
+    },
+    "wc" : {
+      "height" : 25,
+      "width" : 29.5,
+      "x" : 160,
+      "y" : 267
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

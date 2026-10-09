@@ -398,9 +398,13 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
 
     /// The natural size of the view's content, `noIntrinsicMetric` on an axis without one.
     open var intrinsicContentSize: CGSize { CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) }
+    /// The size Auto Layout hugs and resists compressing to: the intrinsic content size, or a
+    /// container's content size where UIKit keeps it in constraints of its own (a stack view).
+    var _layoutIntrinsicSize: CGSize { intrinsicContentSize }
 
-    /// The insets from the view's frame to the rectangle layout aligns (Auto Layout and SwiftUI's
-    /// representables position and size this rectangle, not the frame). Zero by default.
+    /// The insets from the view's frame to the rectangle layout aligns (Auto Layout positions
+    /// and sizes this rectangle, not the frame; the intrinsic content size is its size). Zero
+    /// by default.
     open var alignmentRectInsets: UIEdgeInsets { .zero }
 
     open func alignmentRect(forFrame frame: CGRect) -> CGRect {
@@ -432,7 +436,12 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
 
     open func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontal: UILayoutPriority, verticalFittingPriority vertical: UILayoutPriority) -> CGSize {
         if let constrained = constrainedSizeFitting(targetSize, horizontal: horizontal, vertical: vertical) { return constrained }
-        let intrinsic = intrinsicContentSize
+        // The fitting size is a frame: the alignment rect's intrinsic size plus its insets
+        // (uikit/controls/intrinsic: a switch fits 68 wide from a 66 pt alignment rect).
+        var intrinsic = intrinsicContentSize
+        let insets = alignmentRectInsets
+        if intrinsic.width >= 0 { intrinsic.width += insets.left + insets.right }
+        if intrinsic.height >= 0 { intrinsic.height += insets.top + insets.bottom }
         let fitted = sizeThatFits(targetSize)
         let width = horizontal == .required ? targetSize.width : (intrinsic.width >= 0 ? intrinsic.width : fitted.width)
         let height = vertical == .required ? targetSize.height : (intrinsic.height >= 0 ? intrinsic.height : fitted.height)

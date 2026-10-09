@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 53 | 15 | 34 | 4 | 0 | 0 |
+| UIKit | 53 | 17 | 32 | 4 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **193** | 40 | 139 | 8 | 3 | 3 |
+| **All** | **193** | 42 | 137 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -217,7 +217,7 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `UIStackView` | 🟢 partial | Axes, spacing and custom spacing, the five distributions, alignments including baselines, layout-margins arrangement, hidden arranged subviews, intrinsic and fitting sizes, constrained arranged views; open: fillProportionally against real UIKit, compression when the content overflows | uikit/stack/basic, uikit/autolayout/stacks, ios/representable/hostingsizing |
+| `UIStackView` | ✅ full | Axes, spacing and custom spacing, the five distributions measured (fillProportionally's shares, overflow compressing the least resistant view, the spacing after hidden views and their midpoint placement), alignments including baselines, layout-margins arrangement, fitting sizes, constrained arranged views; no intrinsic content size, as UIKit's; open: baseline alignments in vertical stacks | uikit/stack/basic, uikit/stack/distribution, uikit/autolayout/stacks, ios/representable/hostingsizing |
 | `UIScrollView` | 🟢 partial | Content size and offset, insets and the safe-area adjustment (a view controller's first scroll view adjusted even when short), wheel scrolling, finger pans with momentum, rubber banding and paging, the indicators and their insets, delegate callbacks, UIRefreshControl (a pull past 60 starts a refresh and sends valueChanged, the content resting under the spinner until endRefreshing; beginRefreshing, attributedTitle, tintColor), zooming (viewForZooming, zoomScale, zoom(to:), a pinch about its centre, the zoom callbacks), keyboardDismissMode on a drag, scroll-to-top through UIKitScene.scrollToTop(); open: zoom bouncing, the interactive keyboard dismissal | uikit/scroll/refresh, uikit/scroll/zoom, uikit/nav/scroll-inset, uikit/textview/basic, ios/representable/wheel, ios/representable/safearea-scroll-ignored |
 | `UITableView (plain, grouped, inset grouped)` | 🟢 partial | The row, header and footer geometry measured on the simulator, recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView; open: the grouped (non-inset) style's exact geometry, right-to-left layouts | uikit/table/plain, uikit/table/grouped, uikit/table/subtitle, uikit/table/selection, uikit/table/selfsizing, uikit/table/indexed, uikit/table/pinned |
 | `UITableViewCell styles and content configurations (UIListContentConfiguration, contentConfiguration, configurationState, configurationUpdateHandler)` | 🟢 partial | The default, subtitle and value cell styles, accessories, list content configurations with the table's metrics, the configuration state machinery (selected, highlighted, editing) with content views reused when they support the new configuration; open: catalog images in list content, the value2 style | uikit/table/configured, uikit/table/subtitle, ios/representable/hostingcells, ios/representable/hostingstate |
@@ -249,8 +249,8 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `NSLayoutConstraint and anchors (NSLayoutAnchor, NSLayoutDimension, activate / deactivate, priorities, constant changes)` | 🟢 partial | A Cassowary solver per layout pass with UIKit's priorities as weights, anchors and the item-attribute initialiser, baselines, margins attributes; open: constraint removal mid-pass (a fresh tableau each pass), ambiguity and unsatisfiable-constraint reports | uikit/autolayout/pins, uikit/autolayout/priorities, uikit/autolayout/update, uikit/autolayout/baseline |
-| `UILayoutGuide, safeAreaLayoutGuide, layoutMarginsGuide, readableContentGuide` | 🟢 partial | Guides with anchors and layout frames, the safe-area and margins guides from the view's insets; the readable guide is the margins guide | uikit/autolayout/guides |
+| `NSLayoutConstraint and anchors (NSLayoutAnchor, NSLayoutDimension, activate / deactivate, priorities, constant changes)` | 🟢 partial | A Cassowary solver per layout pass (a column index keeps large trees linear in their constraints' occurrences: 1,000 constraints in 0.27 s debug) with UIKit's priorities as weights, anchors and the item-attribute initialiser, baselines, margins attributes, every control's hugging and compression defaults measured, intrinsic sizes as alignment rects under their insets, constraint changes animated through layoutIfNeeded in a block; open: constraint removal mid-pass (a fresh tableau each pass), ambiguity and unsatisfiable-constraint reports | uikit/autolayout/pins, uikit/autolayout/priorities, uikit/autolayout/update, uikit/autolayout/baseline, uikit/autolayout/hugging |
+| `UILayoutGuide, safeAreaLayoutGuide, layoutMarginsGuide, readableContentGuide` | ✅ full | Guides the app adds are solved like views (spacers, centred guides, guides a container owns, their layoutFrame after the pass), the safe-area and margins guides from the view's insets; the readable guide is the margins guide | uikit/autolayout/guides, uikit/autolayout/layoutguides |
 | `Visual format language (constraints(withVisualFormat:options:metrics:views:))` | 🟢 partial | The H: / V: formats with connections, sizes, priorities and metrics; open: the alignment options | uikit/autolayout/visualformat |
 | `Fitting sizes (systemLayoutSizeFitting, layoutFittingCompressedSize / ExpandedSize, self-sizing table rows)` | 🟢 partial | Constrained content's compressed and expanded fits, stack views' arranged content, table rows sized by their content view's fit | uikit/autolayout/fitting, uikit/table/selfsizing, ios/representable/hostingsizing |
 

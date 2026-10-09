@@ -1603,14 +1603,15 @@
       "framework": "UIKit",
       "area": "Auto Layout",
       "title": "Layout guides, animated constraints and stacks",
-      "detail": "Frames of app-made `UILayoutGuide`s, constraint changes animated by `layoutIfNeeded` inside `UIView.animate`, hugging defaults per control verified, `UIStackView.fillProportionally` and overflow compression against UIKit, spacing after hidden views, solver performance on large trees.",
+      "detail": "Frames of app-made `UILayoutGuide`s, constraint changes animated by `layoutIfNeeded` inside `UIView.animate`, hugging defaults per control verified, `UIStackView.fillProportionally` and overflow compression against UIKit, spacing after hidden views, solver performance on large trees. Done 2026-10-09: app-made guides solved as rectangles of their own (uikit/autolayout/layoutguides exact), every control's hugging and compression defaults read from the simulator (uikit/autolayout/hugging: UILabel is 250, not 251; switches, steppers and spinners 750 everywhere; sliders, segmented, progress and page controls hug vertically), intrinsic sizes as alignment rects under their insets (a segmented control 88 × 31 in a 32 pt frame, a switch 66 in 68), UIStackView without an intrinsic size and an empty label 0 × 0 as UIKit's, fillProportionally's shares, overflow compression and hidden-view placement measured (uikit/stack/distribution exact), animated constraints unit-tested, the solver's column index (1,000 constraints 5.6 s → 0.27 s debug).",
       "kind": "verify",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/AutoLayout.md",
         "Docs/elements/UIKit/UIStackView.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-drawing-rest",

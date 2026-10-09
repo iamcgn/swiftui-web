@@ -4,7 +4,10 @@
 // Auto Layout is Cassowary; this is what solves `NSLayoutConstraint`s (decision 0014, Phase 3).
 //
 // Constraints are added once per layout pass to a fresh solver (no removal), so the
-// implementation stays small: `add(_:)`, `solve()`, `value(of:)`.
+// implementation stays small: `add(_:)`, `solve()`, `value(of:)`. A column index (the rows each
+// symbol appears in) keeps a substitution and a pivot's ratio test to the rows that hold the
+// symbol, so a pass over a large tree costs its constraints' occurrences, not rows × adds
+// (uk-autolayout-rest: 1,000 constraints over 400 views solve in well under a second, debug).
 
 /// A quantity the solver finds a value for.
 final class LayoutVariable: Hashable {
@@ -141,6 +144,8 @@ final class CassowarySolver {
     }
 
     private var rows: [Symbol: Row] = [:]
+    /// The basic symbols of the rows each symbol has a cell in.
+    private var columns: [Symbol: Set<Symbol>] = [:]
     private var variables: [LayoutVariable: Symbol] = [:]
     private var objective = Row()
     private var artificial: Row?
@@ -159,6 +164,19 @@ final class CassowarySolver {
         let symbol = newSymbol(.external)
         variables[variable] = symbol
         return symbol
+    }
+
+    /// Stores `row` as `basic`'s and indexes its cells.
+    private func store(_ row: Row, as basic: Symbol) {
+        rows[basic] = row
+        for symbol in row.cells.keys { columns[symbol, default: []].insert(basic) }
+    }
+
+    /// Takes `basic`'s row out of the tableau and the index.
+    private func take(_ basic: Symbol) -> Row? {
+        guard let row = rows.removeValue(forKey: basic) else { return nil }
+        for symbol in row.cells.keys { columns[symbol]?.remove(basic) }
+        return row
     }
 
     /// Adds a constraint; returns false when a required constraint cannot be satisfied (the
@@ -209,7 +227,7 @@ final class CassowarySolver {
         } else {
             row.solve(for: subject)
             substitute(subject, with: row)
-            rows[subject] = row
+            store(row, as: subject)
         }
         optimize(.main)
         return true
@@ -220,7 +238,7 @@ final class CassowarySolver {
     private enum Target { case main, artificial }
 
     private func chooseSubject(_ row: Row, marker: Symbol, other: Symbol) -> Symbol {
-        for symbol in row.cells.keys.sorted(by: { $0.id < $1.id }) where symbol.kind == .external { return symbol }
+        if let external = row.cells.keys.filter({ $0.kind == .external }).min(by: { $0.id < $1.id }) { return external }
         if marker.kind == .slack || marker.kind == .error, row.coefficient(for: marker) < 0 { return marker }
         if other.kind == .slack || other.kind == .error, row.coefficient(for: other) < 0 { return other }
         return .invalid
@@ -228,28 +246,36 @@ final class CassowarySolver {
 
     private func addWithArtificialVariable(_ row: Row) -> Bool {
         let art = newSymbol(.slack)
-        rows[art] = row
+        store(row, as: art)
         artificial = row
         optimize(.artificial)
         let success = nearZero(artificial!.constant)
         artificial = nil
-        if var basic = rows.removeValue(forKey: art) {
+        if var basic = take(art) {
             if basic.cells.isEmpty { return success }
-            guard let entering = basic.cells.keys.sorted(by: { $0.id < $1.id }).first(where: { $0.kind == .slack || $0.kind == .error }) else { return false }
+            guard let entering = basic.cells.keys.filter({ $0.kind == .slack || $0.kind == .error }).min(by: { $0.id < $1.id }) else { return false }
             basic.solve(for: art, entering)
             substitute(entering, with: basic)
-            rows[entering] = basic
+            store(basic, as: entering)
         }
-        for key in Array(rows.keys) { rows[key]!.remove(art) }
+        for key in columns[art] ?? [] { rows[key]?.remove(art) }
+        columns[art] = nil
         objective.remove(art)
         return success
     }
 
+    /// Replaces `symbol` by `row` in every row that holds it (the index says which), the
+    /// objective and the artificial row.
     private func substitute(_ symbol: Symbol, with row: Row) {
-        for key in Array(rows.keys) {
+        for key in columns[symbol] ?? [] {
+            guard rows[key] != nil else { continue }
             rows[key]!.substitute(symbol, with: row)
+            for cell in row.cells.keys {
+                if rows[key]!.cells[cell] != nil { columns[cell, default: []].insert(key) } else { columns[cell]?.remove(key) }
+            }
             if key.kind != .external, rows[key]!.constant < 0 { infeasibleRows.append(key) }
         }
+        columns[symbol] = nil
         objective.substitute(symbol, with: row)
         artificial?.substitute(symbol, with: row)
     }
@@ -258,10 +284,15 @@ final class CassowarySolver {
         while true {
             // Read the row afresh each pivot: `substitute` rewrites it.
             guard let objective = target == .main ? self.objective : artificial else { return }
-            guard let entering = objective.cells.keys.sorted(by: { $0.id < $1.id }).first(where: { $0.kind != .dummy && objective.cells[$0]! < 0 }) else { return }
+            var entering = Symbol.invalid
+            for (symbol, coefficient) in objective.cells where symbol.kind != .dummy && coefficient < 0 {
+                if entering.kind == .invalid || symbol.id < entering.id { entering = symbol }
+            }
+            guard entering.kind != .invalid else { return }
             var ratio = Double.greatestFiniteMagnitude
             var leaving = Symbol.invalid
-            for (symbol, row) in rows where symbol.kind != .external {
+            for symbol in columns[entering] ?? [] where symbol.kind != .external {
+                guard let row = rows[symbol] else { continue }
                 let coefficient = row.coefficient(for: entering)
                 if coefficient < 0 {
                     let candidate = -row.constant / coefficient
@@ -271,10 +302,10 @@ final class CassowarySolver {
                     }
                 }
             }
-            guard leaving.kind != .invalid, var row = rows.removeValue(forKey: leaving) else { return }
+            guard leaving.kind != .invalid, var row = take(leaving) else { return }
             row.solve(for: leaving, entering)
             substitute(entering, with: row)
-            rows[entering] = row
+            store(row, as: entering)
         }
     }
 

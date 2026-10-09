@@ -83,10 +83,10 @@ open class UIStackView: UIView {
         // (uikit/autolayout/stacks: a 40 pt box in a centred row).
         if !view.translatesAutoresizingMaskIntoConstraints, LayoutEngine.hasConstraints(view),
            let constrained = view.constrainedSizeFitting(UIView.layoutFittingCompressedSize, horizontal: .fittingSizeLevel, vertical: .fittingSizeLevel), constrained.width > 0 || constrained.height > 0 {
-            let intrinsic = view.intrinsicContentSize
+            let intrinsic = view._layoutIntrinsicSize
             return CGSize(width: constrained.width > 0 ? constrained.width : max(0, intrinsic.width), height: constrained.height > 0 ? constrained.height : max(0, intrinsic.height))
         }
-        let intrinsic = view.intrinsicContentSize
+        let intrinsic = view._layoutIntrinsicSize
         let fitting = CGSize(width: horizontal ? CGFloat.greatestFiniteMagnitude : (across ?? CGFloat.greatestFiniteMagnitude),
                              height: horizontal ? (across ?? CGFloat.greatestFiniteMagnitude) : CGFloat.greatestFiniteMagnitude)
         let fitted = view.sizeThatFits(fitting)
@@ -119,7 +119,14 @@ open class UIStackView: UIView {
         return (ascent, descent)
     }
 
-    override open var intrinsicContentSize: CGSize {
+    /// A stack reports no intrinsic content size, as UIKit's does (uikit/autolayout/hugging);
+    /// its content's size, `_contentSize`, is what Auto Layout, a stack around it and
+    /// `systemLayoutSizeFitting` size it by (UIKit's stack holds that in its own constraints).
+    override open var intrinsicContentSize: CGSize { CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) }
+
+    override var _layoutIntrinsicSize: CGSize { _contentSize }
+
+    public var _contentSize: CGSize {
         let views = visible
         guard !views.isEmpty else { return CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) }
         let sizes = views.map { natural($0, across: nil) }
@@ -139,17 +146,11 @@ open class UIStackView: UIView {
         return CGSize(width: width, height: height)
     }
 
-    override open func sizeThatFits(_ size: CGSize) -> CGSize {
-        let intrinsic = intrinsicContentSize
-        if intrinsic.width < 0 { return .zero }
-        return intrinsic
-    }
-
     /// A stack's fitting size is its arranged content's (ios/representable/hostingsizing: a
     /// representable sized by `systemLayoutSizeFitting` of a stack holding a hosting view and a
     /// constrained view is 70 tall); a required target keeps its length.
     override open func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontal: UILayoutPriority, verticalFittingPriority vertical: UILayoutPriority) -> CGSize {
-        let intrinsic = intrinsicContentSize
+        let intrinsic = _contentSize
         if intrinsic.width < 0 { return super.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: horizontal, verticalFittingPriority: vertical) }
         return CGSize(width: horizontal == .required ? targetSize.width : intrinsic.width,
                       height: vertical == .required ? targetSize.height : intrinsic.height)
@@ -173,9 +174,14 @@ open class UIStackView: UIView {
             let each = max(0, (available - spacingTotal) / CGFloat(views.count))
             mains = Array(repeating: each, count: views.count)
         case .fillProportionally:
-            let sum = naturals.map(along).reduce(0, +)
-            let free = available - spacingTotal
-            mains = naturals.map { sum > 0 ? along($0) * free / sum : free / CGFloat(views.count) }
+            // UIKit's proportional constraints share the stack's whole length (spacing included)
+            // by the views' natural sizes against their sum plus the spacing, each rounded to
+            // the pixel; the last visible view, whose constraint has the lowest priority, takes
+            // what is left (uikit/stack/distribution: 11.5, 61.5 and 123 in 288 with 8 between
+            // give 15.5, 83.5 and 173).
+            let sum = naturals.map(along).reduce(0, +) + spacingTotal
+            mains = naturals.map { sum > 0 ? roundToPixel(along($0) * available / sum) : available / CGFloat(views.count) }
+            if let last = mains.indices.last { mains[last] = max(0, available - spacingTotal - mains.dropLast().reduce(0, +)) }
         case .fill:
             mains = naturals.map(along)
             let extra = available - spacingTotal - mains.reduce(0, +)
@@ -184,20 +190,16 @@ open class UIStackView: UIView {
                 let priorities = views.map { $0.contentHuggingPriority(for: axis) }
                 if let index = priorities.indices.min(by: { priorities[$0] < priorities[$1] }) { mains[index] += extra }
             } else if extra < 0 {
-                // The view with the lowest compression resistance shrinks.
-                let priorities = views.map { $0.contentCompressionResistancePriority(for: axis) }
-                if let index = priorities.indices.min(by: { priorities[$0] < priorities[$1] }) { mains[index] = max(0, mains[index] + extra) }
+                compress(&mains, by: -extra, views: views)
             }
-        case .equalSpacing:
+        case .equalSpacing, .equalCentering:
             mains = naturals.map(along)
             let free = available - mains.reduce(0, +)
             let gap = views.count > 1 ? max(spacing, free / CGFloat(views.count - 1)) : 0
             gaps = Array(repeating: gap, count: views.count)
-        case .equalCentering:
-            mains = naturals.map(along)
-            let free = available - mains.reduce(0, +)
-            let gap = views.count > 1 ? max(spacing, free / CGFloat(views.count - 1)) : 0
-            gaps = Array(repeating: gap, count: views.count)
+            // Too little room keeps the spacing and shrinks the least resistant view.
+            let overflow = mains.reduce(0, +) + gap * CGFloat(max(0, views.count - 1)) - available
+            if overflow > 0 { compress(&mains, by: overflow, views: views) }
         }
         var cursor = horizontal ? content.minX : content.minY
         let extent = alignsBaselines ? baselineExtent(views, sizes: naturals) : (ascent: 0, descent: 0)
@@ -227,5 +229,34 @@ open class UIStackView: UIView {
                 : CGRect(x: crossOrigin, y: cursor, width: cross, height: main)
             cursor += main + gaps[index]
         }
+        placeHidden(in: content)
+    }
+
+    /// Shrinks the view with the lowest compression resistance (the first among equals) by
+    /// `amount`, as UIKit's stack does when its content overflows.
+    private func compress(_ mains: inout [CGFloat], by amount: CGFloat, views: [UIView]) {
+        let priorities = views.map { $0.contentCompressionResistancePriority(for: axis) }
+        if let index = priorities.indices.min(by: { priorities[$0] < priorities[$1] }) { mains[index] = max(0, mains[index] - amount) }
+    }
+
+    /// A hidden arranged view takes no room; UIKit leaves it zero-length at the midpoint of the
+    /// gap between its visible neighbours (the content's end after the last one), full across.
+    private func placeHidden(in content: CGRect) {
+        let views = arrangedSubviews
+        for (index, view) in views.enumerated() where view.isHidden {
+            let before = views[..<index].last { !$0.isHidden }
+            let after = views[(index + 1)...].first { !$0.isHidden }
+            let start = before.map { horizontal ? $0.frame.maxX : $0.frame.maxY } ?? (horizontal ? content.minX : content.minY)
+            let end = after.map { horizontal ? $0.frame.minX : $0.frame.minY } ?? (horizontal ? content.maxX : content.maxY)
+            let position = (start + end) / 2
+            view.frame = horizontal
+                ? CGRect(x: position, y: content.minY, width: 0, height: content.height)
+                : CGRect(x: content.minX, y: position, width: content.width, height: 0)
+        }
+    }
+
+    private func roundToPixel(_ value: CGFloat) -> CGFloat {
+        let scale = UIScreen.main.scale
+        return (value * scale).rounded() / scale
     }
 }

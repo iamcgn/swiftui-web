@@ -1586,10 +1586,11 @@
       "entries": [
         {
           "api": "UIStackView",
-          "status": "partial",
-          "notes": "Axes, spacing and custom spacing, the five distributions, alignments including baselines, layout-margins arrangement, hidden arranged subviews, intrinsic and fitting sizes, constrained arranged views; open: fillProportionally against real UIKit, compression when the content overflows",
+          "status": "full",
+          "notes": "Axes, spacing and custom spacing, the five distributions measured (fillProportionally's shares, overflow compressing the least resistant view, the spacing after hidden views and their midpoint placement), alignments including baselines, layout-margins arrangement, fitting sizes, constrained arranged views; no intrinsic content size, as UIKit's; open: baseline alignments in vertical stacks",
           "fixtures": [
             "uikit/stack/basic",
+            "uikit/stack/distribution",
             "uikit/autolayout/stacks",
             "ios/representable/hostingsizing"
           ]
@@ -1791,20 +1792,22 @@
         {
           "api": "NSLayoutConstraint and anchors (NSLayoutAnchor, NSLayoutDimension, activate / deactivate, priorities, constant changes)",
           "status": "partial",
-          "notes": "A Cassowary solver per layout pass with UIKit's priorities as weights, anchors and the item-attribute initialiser, baselines, margins attributes; open: constraint removal mid-pass (a fresh tableau each pass), ambiguity and unsatisfiable-constraint reports",
+          "notes": "A Cassowary solver per layout pass (a column index keeps large trees linear in their constraints' occurrences: 1,000 constraints in 0.27 s debug) with UIKit's priorities as weights, anchors and the item-attribute initialiser, baselines, margins attributes, every control's hugging and compression defaults measured, intrinsic sizes as alignment rects under their insets, constraint changes animated through layoutIfNeeded in a block; open: constraint removal mid-pass (a fresh tableau each pass), ambiguity and unsatisfiable-constraint reports",
           "fixtures": [
             "uikit/autolayout/pins",
             "uikit/autolayout/priorities",
             "uikit/autolayout/update",
-            "uikit/autolayout/baseline"
+            "uikit/autolayout/baseline",
+            "uikit/autolayout/hugging"
           ]
         },
         {
           "api": "UILayoutGuide, safeAreaLayoutGuide, layoutMarginsGuide, readableContentGuide",
-          "status": "partial",
-          "notes": "Guides with anchors and layout frames, the safe-area and margins guides from the view's insets; the readable guide is the margins guide",
+          "status": "full",
+          "notes": "Guides the app adds are solved like views (spacers, centred guides, guides a container owns, their layoutFrame after the pass), the safe-area and margins guides from the view's insets; the readable guide is the margins guide",
           "fixtures": [
-            "uikit/autolayout/guides"
+            "uikit/autolayout/guides",
+            "uikit/autolayout/layoutguides"
           ]
         },
         {

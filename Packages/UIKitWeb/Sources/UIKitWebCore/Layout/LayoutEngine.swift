@@ -4,7 +4,8 @@
 // mask into constraints pins them to its frame, one that does not is placed by the solution;
 // intrinsic content sizes become hugging and compression-resistance inequalities; the
 // `NSLayoutConstraint`s held by the views relate attribute expressions in the holder's
-// coordinates; layout guides are insets of their owner. Solved frames land on the pixel grid.
+// coordinates; the system layout guides are insets of their owner and a guide the app made has
+// four variables of its own in its owner's coordinates. Solved frames land on the pixel grid.
 
 @MainActor
 final class LayoutEngine {
@@ -16,6 +17,7 @@ final class LayoutEngine {
     private let solver = CassowarySolver()
     private var variables: [ObjectIdentifier: Variables] = [:]
     private var placed: [UIView] = []
+    private var guides: [UILayoutGuide] = []
     private let scale: CGFloat
 
     /// Whether `root`'s subtree needs a solve: a constraint anywhere, or a view placed by layout.
@@ -38,14 +40,26 @@ final class LayoutEngine {
             solver.add(LayoutConstraintRow(expression: LinearExpression(rootVariables.width, constant: -root.bounds.width), relation: .equal, strength: LayoutStrength.required))
             solver.add(LayoutConstraintRow(expression: LinearExpression(rootVariables.height, constant: -root.bounds.height), relation: .equal, strength: LayoutStrength.required))
         }
+        addGuides(of: root)
         for subview in root.subviews { add(subview) }
         addConstraints(of: root)
     }
 
-    private func variables(for view: UIView) -> Variables {
-        if let existing = variables[ObjectIdentifier(view)] { return existing }
+    /// A guide the app made (`addLayoutGuide`) is a rectangle of its own in its owner's space,
+    /// placed only by the constraints on it; the system guides stay insets of their owner.
+    private func addGuides(of view: UIView) {
+        for guide in view.layoutState.guides where guide.systemInsets == nil {
+            let v = variables(for: guide)
+            solver.add(LayoutConstraintRow(expression: LinearExpression(v.width), relation: .greaterThanOrEqual, strength: LayoutStrength.required))
+            solver.add(LayoutConstraintRow(expression: LinearExpression(v.height), relation: .greaterThanOrEqual, strength: LayoutStrength.required))
+            guides.append(guide)
+        }
+    }
+
+    private func variables(for item: AnyObject) -> Variables {
+        if let existing = variables[ObjectIdentifier(item)] { return existing }
         let made = Variables(x: LayoutVariable("x"), y: LayoutVariable("y"), width: LayoutVariable("w"), height: LayoutVariable("h"))
-        variables[ObjectIdentifier(view)] = made
+        variables[ObjectIdentifier(item)] = made
         return made
     }
 
@@ -63,20 +77,24 @@ final class LayoutEngine {
             // A stack view's arranged subviews are laid out by the stack (UIKit's stack makes
             // their constraints itself); the solver sizes them but does not place them.
             if !(view.superview is UIStackView) { placed.append(view) }
-            let intrinsic = view.intrinsicContentSize
+            // The intrinsic size is the alignment rect's; the frame adds the alignment rect
+            // insets (uikit/autolayout/hugging: a segmented control's 31 pt intrinsic height
+            // under its 0.5 pt insets makes a 32 pt frame).
+            let intrinsic = view._layoutIntrinsicSize
             let insets = view.alignmentRectInsets
             if intrinsic.width >= 0 {
-                let width = intrinsic.width - insets.left - insets.right
+                let width = intrinsic.width + insets.left + insets.right
                 addIntrinsic(v.width, width, hugging: view.contentHuggingPriority(for: .horizontal), resistance: view.contentCompressionResistancePriority(for: .horizontal))
             }
             if intrinsic.height >= 0 {
-                let height = intrinsic.height - insets.top - insets.bottom
+                let height = intrinsic.height + insets.top + insets.bottom
                 addIntrinsic(v.height, height, hugging: view.contentHuggingPriority(for: .vertical), resistance: view.contentCompressionResistancePriority(for: .vertical))
             }
             // Sizes are never negative.
             solver.add(LayoutConstraintRow(expression: LinearExpression(v.width), relation: .greaterThanOrEqual, strength: LayoutStrength.required))
             solver.add(LayoutConstraintRow(expression: LinearExpression(v.height), relation: .greaterThanOrEqual, strength: LayoutStrength.required))
         }
+        addGuides(of: view)
         for subview in view.subviews { add(subview) }
         addConstraints(of: view)
     }
@@ -112,19 +130,23 @@ final class LayoutEngine {
         let view: UIView
         var insets = UIEdgeInsets.zero
         var isGuide = false
+        var ownGuide: UILayoutGuide?
         if let v = item as? UIView {
             view = v
         } else if let guide = item as? UILayoutGuide, let owner = guide.owningView {
             view = owner
             isGuide = true
-            insets = guide.systemInsets?(owner) ?? UIEdgeInsets(top: guide.layoutFrame.minY, left: guide.layoutFrame.minX,
-                                                                  bottom: owner.bounds.height - guide.layoutFrame.maxY, right: owner.bounds.width - guide.layoutFrame.maxX)
+            if let system = guide.systemInsets {
+                insets = system(owner)
+            } else {
+                ownGuide = guide
+            }
         } else {
             return nil
         }
         guard variables[ObjectIdentifier(view)] != nil || view === root || view.isDescendant(of: root) else { return nil }
-        let v = variables(for: view)
-        // The view's origin in the holder's space.
+        let v = variables(for: ownGuide ?? view)
+        // The view's origin in the holder's space (an app-made guide's own origin on top).
         var left = LinearExpression()
         var top = LinearExpression()
         if view !== holder {
@@ -137,9 +159,13 @@ final class LayoutEngine {
                 current = node.superview
             }
         }
+        if ownGuide != nil {
+            left = left + LinearExpression(v.x)
+            top = top + LinearExpression(v.y)
+        }
         var width = LinearExpression(v.width)
         var height = LinearExpression(v.height)
-        if isGuide {
+        if isGuide, ownGuide == nil {
             left = left + insets.left
             top = top + insets.top
             width = width - (insets.left + insets.right)
@@ -163,7 +189,7 @@ final class LayoutEngine {
         case .centerYWithinMargins: return top + (height + (margins.top - margins.bottom)) * 0.5
         case .firstBaseline, .lastBaseline:
             // The baseline sits where it does in the intrinsic height, moving with the centring.
-            let intrinsic = view.intrinsicContentSize
+            let intrinsic = view._layoutIntrinsicSize
             let reference = intrinsic.height >= 0 ? intrinsic.height : view.bounds.height
             let baselines = view.textBaselines(in: CGSize(width: max(view.bounds.width, intrinsic.width), height: reference))
             let offset = attribute == .firstBaseline ? baselines.first : baselines.last
@@ -182,18 +208,12 @@ final class LayoutEngine {
             let frame = CGRect(x: x, y: y, width: max(0, right - x), height: max(0, bottom - y))
             if view.frame != frame { view.frame = frame }
         }
-        for view in variables.keys.compactMap({ _ in nil as UIView? }) { _ = view }
-        updateGuides(root)
-    }
-
-    private func updateGuides(_ view: UIView) {
-        for guide in view.layoutState.guides where guide.systemInsets == nil {
-            // Guides made by the app have no variables of their own here: they take the frame the
-            // constraints on them imply through their owner (an approximation: unsolved guides keep
-            // their last frame).
-            _ = guide
+        for guide in guides {
+            let v = variables(for: guide)
+            let x = round(solver.value(of: v.x)), y = round(solver.value(of: v.y))
+            let right = round(solver.value(of: v.x) + solver.value(of: v.width)), bottom = round(solver.value(of: v.y) + solver.value(of: v.height))
+            guide.layoutFrame = CGRect(x: x, y: y, width: max(0, right - x), height: max(0, bottom - y))
         }
-        for subview in view.subviews { updateGuides(subview) }
     }
 
     /// The size the root takes when `target` is proposed at the fitting priorities.

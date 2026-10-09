@@ -106,9 +106,8 @@ open class UILabel: UIView {
         isAccessibilityElement = true
         accessibilityTraits = .staticText
         backgroundColor = nil
-        // UIKit's label priorities: hugging 251 on both axes (a hair above the default 250).
-        setContentHuggingPriority(UILayoutPriority(251), for: .horizontal)
-        setContentHuggingPriority(UILayoutPriority(251), for: .vertical)
+        // A label keeps UIView's priorities: hugging 250 and compression resistance 750 on both
+        // axes (uikit/autolayout/hugging measured them; UIKit's 251 is folklore).
     }
 
     private func textDidChange() {
@@ -179,7 +178,12 @@ open class UILabel: UIView {
         return CGSize(width: layout.size.width.roundedUp(to: scale), height: font.labelHeight(lines: lines, scale: scale))
     }
 
+    /// Whether the label has text to size: an empty label fits and measures 0 × 0
+    /// (uikit/autolayout/hugging), its text rect keeps the line height.
+    private var hasText: Bool { runs.contains { !$0.text.isEmpty } }
+
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
+        guard hasText else { return .zero }
         let width: CGFloat? = size.width > 0 && size.width < CGFloat.greatestFiniteMagnitude ? size.width : nil
         // A one-line label reports its whole width; a wrapping one fits the proposal.
         if numberOfLines == 1 { return textSize(fitting: nil) }
@@ -195,6 +199,7 @@ open class UILabel: UIView {
     /// wraps reports a point more than its fit (uikit/table/selfsizing: two 15 pt lines fit in
     /// 36 and take 37 under constraints, three 54 and 55, two 13 pt lines 31.5 and 32.5).
     override open var intrinsicContentSize: CGSize {
+        guard hasText else { return .zero }
         let width: CGFloat? = preferredMaxLayoutWidth > 0 ? preferredMaxLayoutWidth : (numberOfLines != 1 && layoutWrapWidth > 0 ? layoutWrapWidth : nil)
         var size = textSize(fitting: width)
         if width != nil, size.height > font.labelHeight(lines: 1, scale: UIScreen.main.scale) { size.height += 1 }

@@ -32,8 +32,20 @@ the row is that ascent plus descent tall (a 28, 13 and 17 pt label row is 33.5 t
 13 pt label 14 down and the 17 pt one 10.5). A filled column pinned to the edges stretches its
 labels to the width; a centred row centres a box beside a label. Frames exact, pixels 2.2 %.
 
-Open: `fillProportionally` against real UIKit, compression when the content overflows,
-spacing after hidden views, baseline alignments in vertical stacks (UIKit ignores them).
+Distributions measured (2026-10-09, `uikit/stack/distribution`, frames exact, pixels 4.6 %
+of a text-dense page, approximate): `fillProportionally` gives each view its natural length
+over the sum of the natural lengths *and the spacing* times the stack's length, rounded to
+the pixel, and the last visible view what is left (labels 11.5, 61.5 and 123 wide with 8
+between in 288 are 15.5, 83.5 and 173; a 60 pt column of 33.5, 20.5 and 14.5 pt labels with 4
+between is 26.5, 16 and 9.5; a 112 pt one 49, 30 and 25). Too little room under `fill`,
+`equalSpacing` and `equalCentering` keeps the spacing and shrinks the view with the lowest
+compression resistance, the first among equals (126, 151 and 39.5 in 288 become 81.5, 151 and
+39.5; at 749 the second becomes 106.5); room to spare under `fill` stretches the first among
+equal huggers. A hidden arranged view takes no room and loses the spacing after it, the custom
+spacing after the view before it stays (24 between "Before" and "After" with the hidden one
+between); UIKit leaves the hidden view zero-length at the midpoint of that gap (at the
+content's end when it is last), full across. Open: baseline alignments in vertical stacks
+(UIKit ignores them), `UIStackView.sizeThatFits` (UIKit's is `UIView`'s: the bounds).
 
 `systemLayoutSizeFitting` (2026-09-18): a stack's fitting size is its arranged content's
 intrinsic total (a required target keeps its length), so a representable sized by it is 70 tall

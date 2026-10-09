@@ -21,7 +21,8 @@ in `UIKitGoldenFrameTests`; `AutoLayoutTests` holds the mechanics.
   centerY/firstBaseline/lastBaselineAnchor`.
 - `UILayoutGuide` (`owningView`, `identifier`, `layoutFrame`, anchors), `UIView.addLayoutGuide`,
   `removeLayoutGuide`, `layoutGuides`, `safeAreaLayoutGuide`, `layoutMarginsGuide`,
-  `readableContentGuide` (the margins guide).
+  `readableContentGuide` (the margins guide). A guide the app adds is a rectangle of its own
+  in the tableau, placed only by the constraints on it; `layoutFrame` holds the solve.
 - `UIView`: `translatesAutoresizingMaskIntoConstraints`, `constraints`, `addConstraint(s)`,
   `removeConstraint(s)`, `constraintsAffectingLayout(for:)`, `setNeedsUpdateConstraints`,
   `needsUpdateConstraints`, `updateConstraintsIfNeeded`, `updateConstraints` (overridable),
@@ -82,11 +83,40 @@ point more than its fit (two 15 pt lines fit in 36 and take 37; three 54 and 55;
 Stack views under constraints and their baseline alignments are measured in
 `Docs/elements/UIKit/UIStackView.md` (`uikit/autolayout/stacks`).
 
-Open:
-constraints between a view and its own layout guides made with `addLayoutGuide` (their frames are
-not solved yet), `contentHuggingPriority` defaults per control (UIKit's 250/750 with UILabel's
-251 are modelled; others unverified), performance on large trees (one tableau per pass),
-animation of constraint changes.
+## The rest (2026-10-09, `uikit/autolayout/layoutguides`, `uikit/autolayout/hugging`)
+
+- Layout guides: two spacer guides of equal width between three fixed boxes in 288 take 49
+  each; a 101 × 61 guide centred on (160, 110) has its frame at (109.5, 79.5) and a view inset
+  8 in it at (117.5, 87.5, 85, 45); a guide a container owns, 10 and 30 in from its sides and
+  half its height, is (10, 12, 160, 42) in it with a 20 pt box centred on it at (80, 23). All
+  exact: a guide has four variables in its owner's coordinates like a view, and its
+  `layoutFrame` is written after the solve, rounded to the pixel grid like a frame.
+- Hugging and compression defaults, read from every control on the simulator (the probes are
+  the priorities over 4): `UIView`, `UILabel`, `UIButton`, `UITextField`, `UIImageView`,
+  `UITextView`, `UIScrollView` and `UIStackView` are 250 / 250 / 750 / 750 (horizontal and
+  vertical hugging, then compression resistance); `UISlider`, `UISegmentedControl`,
+  `UIProgressView` and `UIPageControl` hug vertically at 750; `UISwitch`, `UIStepper` and
+  `UIActivityIndicatorView` are 750 everywhere. `UILabel`'s "251" is folklore: it is 250.
+- The intrinsic content size is the alignment rect's size and the frame under constraints adds
+  `alignmentRectInsets`: a segmented control's intrinsic size is 88 × 31 for "One" / "Two"
+  (`sizeThatFits` 88 × 32) and its frame pinned by its leading and top edges is 88 × 32; a
+  switch's intrinsic width is 66 under a 2 pt inset on the right and it is 68 wide pinned,
+  fitted (`systemLayoutSizeFitting`, a frame-space size) or given any frame at all. A
+  segment is the widest title rounded up plus 19 (44 for "One", 55 for "Three"). `UIStackView`
+  reports no intrinsic content size (UIKit keeps its content size in its own constraints;
+  here `_contentSize` is what the solver, a stack around it and its fitting size use); an
+  empty `UILabel` is 0 × 0; a `UIProgressView` keeps its 4 pt whatever frame it is given.
+- Animated constraints: a constant changed before `layoutIfNeeded()` inside `UIView.animate`
+  moves the model at once and tweens the presented frame over the duration
+  (`AutoLayoutRestTests`); UIKit's `layoutIfNeeded` in a block does the same.
+- Large trees: the solver's column index keeps a substitution and a pivot to the rows holding
+  the symbol; 1,000 constraints over 400 views (a 200-row chain) build and solve in 0.27 s in a
+  debug build (5.6 s before), one tableau per pass.
+
+Open: the switch's and the segmented control's alignment rects under SwiftUI's representables
+follow the same intrinsic sizes (verified by `ios/representable/*`); a tableau per pass stays
+(no incremental edits), so a pass over thousands of constraints is still linear in their
+occurrences.
 
 ## Visual format language (2026-09-11, `uikit/autolayout/visualformat`)
 

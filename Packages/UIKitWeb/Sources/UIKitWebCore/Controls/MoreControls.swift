@@ -113,7 +113,6 @@ open class UISegmentedControl: UIControl {
     private var labels: [UILabel] = []
 
     static let height: CGFloat = 32
-    static let padding: CGFloat = 10
     /// The titles' size and whether the selected one is medium: 13 with a medium selection for
     /// a control of its own, 15 regular throughout in a search bar's scope bar (uikit/search/scope).
     var titleSize: CGFloat = 13 { didSet { setNeedsLayout() } }
@@ -122,6 +121,8 @@ open class UISegmentedControl: UIControl {
     public init(items: [Any]?) {
         super.init(frame: .zero)
         isAccessibilityElement = false
+        // A segmented control hugs its height (uikit/autolayout/hugging: 250 / 750 / 750 / 750).
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
         for item in items ?? [] {
             if let title = item as? String { titles.append(title); images.append(nil) }
             else if let image = item as? UIImage { titles.append(nil); images.append(image) }
@@ -176,23 +177,25 @@ open class UISegmentedControl: UIControl {
         setNeedsLayout()
     }
 
-    /// Every segment is as wide as the widest title plus 20 (uikit/controls/more: 55 for
-    /// "Three" at 35.5) and at least 32 (ios/representable/measure-controls: 64 for "A" and "B");
-    /// the control is 32 tall.
+    /// Every segment is as wide as the widest title rounded up plus 19 (uikit/controls/more:
+    /// 55 for "Three" at 35.5; uikit/autolayout/hugging: 44 for "One" at 25) and at least 32
+    /// (ios/representable/measure-controls: 64 for "A" and "B"); the control is 32 tall.
     static let minimumSegmentWidth: CGFloat = 32
     var segmentWidth: CGFloat {
         let widest = labels.map { $0.intrinsicContentSize.width }.max() ?? 0
-        return max(Self.minimumSegmentWidth, (widest + 2 * Self.padding).rounded(.down))
+        return max(Self.minimumSegmentWidth, widest.rounded(.up) + 19)
     }
 
-    /// SwiftUI lays the control out on a 31 pt alignment rect inside the 32 (ios/representable/measure-controls).
+    /// The intrinsic size is the 31 pt alignment rect inside the 32 pt frame: Auto Layout and
+    /// SwiftUI's representables lay the control out on it (uikit/autolayout/hugging,
+    /// ios/representable/measure-controls).
     override open var alignmentRectInsets: UIEdgeInsets { UIEdgeInsets(top: 0.5, left: 0, bottom: 0.5, right: 0) }
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
         CGSize(width: segmentWidth * CGFloat(max(1, titles.count)), height: Self.height)
     }
 
-    override open var intrinsicContentSize: CGSize { sizeThatFits(.zero) }
+    override open var intrinsicContentSize: CGSize { CGSize(width: segmentWidth * CGFloat(max(1, titles.count)), height: Self.height - 1) }
 
     override open func layoutSubviews() {
         super.layoutSubviews()
@@ -256,6 +259,9 @@ open class UIStepper: UIControl {
 
     public override init(frame: CGRect) {
         super.init(frame: CGRect(origin: frame.origin, size: Self.size))
+        // A stepper hugs on both axes (uikit/autolayout/hugging: 750 everywhere).
+        setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
         isAccessibilityElement = true
         accessibilityTraits = .adjustable
     }
@@ -336,6 +342,12 @@ open class UIProgressView: UIView {
         setContentHuggingPriority(.defaultHigh, for: .vertical)
     }
 
+    /// A frame set later keeps the 4 pt too (uikit/autolayout/hugging: 8 asked, 4 kept).
+    override open var frame: CGRect {
+        get { super.frame }
+        set { super.frame = CGRect(origin: newValue.origin, size: CGSize(width: newValue.width, height: Self.height)) }
+    }
+
     open func setProgress(_ progress: Float, animated: Bool) { self.progress = progress }
 
     override open func sizeThatFits(_ size: CGSize) -> CGSize { CGSize(width: size.width > 0 && size.width < .greatestFiniteMagnitude ? size.width : bounds.width, height: Self.height) }
@@ -373,6 +385,7 @@ open class UIActivityIndicatorView: UIView {
         self.style = style
         super.init(frame: CGRect(origin: .zero, size: Self.size(for: style)))
         isUserInteractionEnabled = false
+        hugContent()
         updateHidden()
     }
 
@@ -380,7 +393,14 @@ open class UIActivityIndicatorView: UIView {
         style = .medium
         super.init(frame: CGRect(origin: frame.origin, size: Self.size(for: .medium)))
         isUserInteractionEnabled = false
+        hugContent()
         updateHidden()
+    }
+
+    /// An indicator hugs on both axes (uikit/autolayout/hugging: 750 everywhere).
+    private func hugContent() {
+        setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
     }
 
     /// Seconds since `startAnimating`, advanced by the scene's frame loop: the spokes' pattern
@@ -471,6 +491,8 @@ open class UIPageControl: UIControl {
         super.init(frame: frame)
         isAccessibilityElement = true
         accessibilityTraits = .adjustable
+        // A page control hugs its height (uikit/autolayout/hugging: 250 / 750 / 750 / 750).
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
     }
 
     /// 14 pt margins around dots 10 wide on an 18 pt pitch (92 × 26 for four pages).
