@@ -21,6 +21,8 @@ public final class UIGraphicsRecordingContext {
         var alpha: CGFloat = 1
         var ctm = CGAffineTransform.identity
         var shadow: (color: RGBA, radius: CGFloat, offset: CGSize)?
+        /// The display list's blend mode for what follows; nil composites normally.
+        var blend: BlendMode?
     }
 
     /// The recorded commands (absolute coordinates through the origin the context was made for).
@@ -32,6 +34,10 @@ public final class UIGraphicsRecordingContext {
     private var openGroups: [Int] = []
     private var groupsInState = 0
     let scale: CGFloat
+    /// Whether anything was painted with a blend mode (or cleared): the view's own painting
+    /// then goes in a group of its own, so the modes composite against the view's background
+    /// and earlier drawing, as CoreGraphics composites in a layer's backing store.
+    private(set) var usesBlending = false
 
     init(origin: CGPoint, scale: CGFloat) {
         self.scale = scale
@@ -77,10 +83,49 @@ public final class UIGraphicsRecordingContext {
     public func setMiterLimit(_ limit: CGFloat) { state.miterLimit = limit }
     public func setLineDash(phase: CGFloat, lengths: [CGFloat]) { state.dash = lengths; state.dashPhase = phase }
     public func setAlpha(_ alpha: CGFloat) { state.alpha = alpha }
-    public func setBlendMode(_ mode: CGBlendMode) {}
+    /// The blend mode for what follows until the state is restored (`.copy`, `.sourceIn`,
+    /// `.sourceOut`, `.destinationIn`, `.destinationAtop` and `.xor` composite normally: the
+    /// display list has no group for them).
+    public func setBlendMode(_ mode: CGBlendMode) { state.blend = Self.blendMode(mode) }
+    /// Accepted: the painters always antialias.
     public func setShouldAntialias(_ flag: Bool) {}
     public func setAllowsAntialiasing(_ flag: Bool) {}
     public func interpolationQuality(_ quality: Int) {}
+
+    static func blendMode(_ mode: CGBlendMode) -> BlendMode? {
+        switch mode {
+        case .normal, .copy, .sourceIn, .sourceOut, .destinationIn, .destinationAtop, .xor: return nil
+        case .multiply: return .multiply
+        case .screen: return .screen
+        case .overlay: return .overlay
+        case .darken: return .darken
+        case .lighten: return .lighten
+        case .colorDodge: return .colorDodge
+        case .colorBurn: return .colorBurn
+        case .softLight: return .softLight
+        case .hardLight: return .hardLight
+        case .difference: return .difference
+        case .exclusion: return .exclusion
+        case .hue: return .hue
+        case .saturation: return .saturation
+        case .color: return .color
+        case .luminosity: return .luminosity
+        case .sourceAtop: return .sourceAtop
+        case .destinationOver: return .destinationOver
+        case .destinationOut, .clear: return .destinationOut
+        case .plusDarker: return .plusDarker
+        case .plusLighter: return .plusLighter
+        @unknown default: return nil
+        }
+    }
+
+    /// Runs `body` with `mode` as the blend mode (the `with:alpha:` drawing forms).
+    func withBlendMode(_ mode: CGBlendMode, _ body: () -> Void) {
+        let previous = state.blend
+        state.blend = Self.blendMode(mode)
+        body()
+        state.blend = previous
+    }
 
     /// A shadow for what follows until the state is restored.
     public func setShadow(offset: CGSize, blur: CGFloat, color: CGColor?) {
@@ -103,8 +148,10 @@ public final class UIGraphicsRecordingContext {
     public func addRect(_ rect: CGRect) { path.addRect(rect) }
     public func addRects(_ rects: [CGRect]) { path.addRects(rects) }
     public func addEllipse(in rect: CGRect) { path.addEllipse(in: rect) }
+    /// `clockwise` in CoreGraphics's sense (y up): in the view's flipped space `false` runs
+    /// through increasing angles, clockwise on screen, as `CGMutablePath.addArc` (uikit/draw/rest).
     public func addArc(center: CGPoint, radius: CGFloat, startAngle: CGFloat, endAngle: CGFloat, clockwise: Bool) {
-        path.addArc(center: center, radius: radius, startAngle: Angle(radians: Double(startAngle)), endAngle: Angle(radians: Double(endAngle)), clockwise: !clockwise)
+        path.addArc(center: center, radius: radius, startAngle: Angle(radians: Double(startAngle)), endAngle: Angle(radians: Double(endAngle)), clockwise: clockwise)
     }
     public func addArc(tangent1End: CGPoint, tangent2End: CGPoint, radius: CGFloat) { path.addArc(tangent1End: tangent1End, tangent2End: tangent2End, radius: radius) }
     public func addPath(_ other: Path) { path.addPath(other) }
@@ -158,8 +205,14 @@ public final class UIGraphicsRecordingContext {
         }
         paintStroke(segments, style: strokeStyle, alpha: 1)
     }
-    /// Clears to transparent: the view's ground shows (drawn as nothing).
-    public func clear(_ rect: CGRect) {}
+    /// Clears `rect` to transparent: what the view painted there (its background included)
+    /// goes, and what lies beneath the view shows.
+    public func clear(_ rect: CGRect) {
+        let previous = state.blend
+        state.blend = .destinationOut
+        withBlend(Path(rect).applying(state.ctm).boundingRect) { commands.append(.fillPath(Path(rect).applying(state.ctm), RGBA(red: 0, green: 0, blue: 0, alpha: 1))) }
+        state.blend = previous
+    }
 
     // MARK: Clipping
 
@@ -209,10 +262,25 @@ public final class UIGraphicsRecordingContext {
         }
     }
 
+    /// Wraps one painted operation over `bounds` (absolute) in a blend group when a blend mode
+    /// is set, the shadow group inside it.
+    private func withBlend(_ bounds: CGRect, _ body: () -> Void) {
+        if let blend = state.blend {
+            usesBlending = true
+            let shadow = state.shadow.map { max($0.radius * 3, abs($0.offset.width), abs($0.offset.height)) } ?? 0
+            commands.append(.beginBlend(blend, bounds: bounds.insetBy(dx: -shadow, dy: -shadow)))
+            withShadow(body)
+            commands.append(.endGroup)
+        } else {
+            withShadow(body)
+        }
+    }
+
     private func paintFill(_ path: Path, evenOdd: Bool, alpha: CGFloat) {
         guard !path.isEmpty else { return }
         let color = state.fill.multiplyingAlpha(by: Double(state.alpha * alpha))
-        withShadow { commands.append(.fillPath(path.applying(state.ctm), color, eoFill: evenOdd)) }
+        let absolute = path.applying(state.ctm)
+        withBlend(absolute.boundingRect) { commands.append(.fillPath(absolute, color, eoFill: evenOdd)) }
     }
 
     private func paintStroke(_ path: Path, style: StrokeStyle, alpha: CGFloat) {
@@ -224,21 +292,25 @@ public final class UIGraphicsRecordingContext {
         scaled.lineWidth = style.lineWidth * magnitude
         scaled.dash = style.dash.map { $0 * magnitude }
         scaled.dashPhase = style.dashPhase * magnitude
-        withShadow { commands.append(.strokePath(path.applying(state.ctm), style: scaled, color)) }
+        let absolute = path.applying(state.ctm)
+        let reach = scaled.lineWidth * max(1, scaled.miterLimit / 2)
+        withBlend(absolute.boundingRect.insetBy(dx: -reach, dy: -reach)) { commands.append(.strokePath(absolute, style: scaled, color)) }
     }
 
     /// The current alpha, for text and image drawing.
     var currentAlpha: CGFloat { state.alpha }
 
-    /// Records one absolute command inside the shadow group when there is one.
-    func recordShadowed(_ command: DisplayCommand) { withShadow { commands.append(command) } }
+    /// Records one absolute command over `bounds` inside the shadow (and blend) group when
+    /// there is one.
+    func recordShadowed(_ command: DisplayCommand, bounds: CGRect) { withBlend(bounds) { commands.append(command) } }
 
-    /// Records commands spelled in the context's own coordinates: between a concat of the
-    /// transform and a restore, inside the shadow group when there is one.
-    func record(_ local: [DisplayCommand]) {
+    /// Records commands spelled in the context's own coordinates over `bounds` (in those
+    /// coordinates too): between a concat of the transform and a restore, inside the shadow
+    /// (and blend) group when there is one.
+    func record(_ local: [DisplayCommand], bounds: CGRect) {
         guard !local.isEmpty else { return }
         let ctm = state.ctm
-        withShadow {
+        withBlend(bounds.applying(ctm)) {
             commands.append(.save)
             commands.append(.concat(ctm))
             commands.append(contentsOf: local)
@@ -265,10 +337,20 @@ public final class UIGraphicsRecordingContext {
 @MainActor public func UIGraphicsPushContext(_ context: UIGraphicsRecordingContext) { contextStack.append(context) }
 @MainActor public func UIGraphicsPopContext() { _ = contextStack.popLast() }
 
-/// Fills `rect` with the current fill colour.
-@MainActor public func UIRectFill(_ rect: CGRect) { UIGraphicsGetCurrentContext()?.fill(rect) }
-/// Strokes a 1 pt frame inside `rect` with the current stroke colour.
-@MainActor public func UIRectFrame(_ rect: CGRect) { UIGraphicsGetCurrentContext()?.stroke(rect.insetBy(dx: 0.5, dy: 0.5), width: 1) }
+/// Fills `rect` with the current fill colour, composited normally whatever blend mode the
+/// context has (uikit/draw/rest: UIKit's `UIRectFill` is `UIRectFillUsingBlendMode(_:.normal)`).
+@MainActor public func UIRectFill(_ rect: CGRect) { UIRectFillUsingBlendMode(rect, .normal) }
+/// Fills `rect` with the current fill colour in `blendMode`.
+@MainActor public func UIRectFillUsingBlendMode(_ rect: CGRect, _ blendMode: CGBlendMode) {
+    guard let context = UIGraphicsGetCurrentContext() else { return }
+    context.withBlendMode(blendMode) { context.fill(rect) }
+}
+/// Strokes a 1 pt frame inside `rect` with the current stroke colour, composited normally.
+@MainActor public func UIRectFrame(_ rect: CGRect) { UIRectFrameUsingBlendMode(rect, .normal) }
+@MainActor public func UIRectFrameUsingBlendMode(_ rect: CGRect, _ blendMode: CGBlendMode) {
+    guard let context = UIGraphicsGetCurrentContext() else { return }
+    context.withBlendMode(blendMode) { context.stroke(rect.insetBy(dx: 0.5, dy: 0.5), width: 1) }
+}
 @MainActor public func UIRectClip(_ rect: CGRect) { UIGraphicsGetCurrentContext()?.clip(to: rect) }
 
 @MainActor
@@ -282,14 +364,96 @@ extension UIColor {
 }
 
 extension UIView {
-    /// Runs `draw(_:)` with a recording context as the current one and appends what it drew:
-    /// a view that does not override it draws nothing and costs one empty context.
-    func drawCustomContent(into list: inout DisplayList, context: PaintContext) {
-        let recorder = UIGraphicsRecordingContext(origin: context.origin, scale: context.scale)
+    /// The drawing `draw(_:)` recorded (in the view's own coordinates), run now when nothing
+    /// is cached for this scale and appearance: a view that does not override it draws nothing
+    /// and costs one empty context once.
+    func drawingRecorded(scale: CGFloat) -> DrawingCache {
+        let style = traitCollection.userInterfaceStyle
+        if let cache = drawingCache, cache.scale == scale, cache.style == style { return cache }
+        let recorder = UIGraphicsRecordingContext(origin: .zero, scale: scale)
+        // The view's traits are current while it draws (`UIColor.label.setFill()` resolves them).
+        let traits = UITraitCollection.current
+        UITraitCollection.current = traitCollection
         UIGraphicsPushContext(recorder)
         draw(bounds)
         UIGraphicsPopContext()
+        UITraitCollection.current = traits
         recorder.finish()
-        for command in recorder.commands { list.append(command) }
+        let cache = DrawingCache(commands: recorder.commands, scale: scale, style: style, usesBlending: recorder.usesBlending)
+        drawingCache = cache
+        return cache
+    }
+
+    /// Appends the recorded drawing, translated to the layer's absolute origin (the commands
+    /// themselves move, so the list is the one an absolute recording would give).
+    func drawCustomContent(into list: inout DisplayList, context: PaintContext) {
+        let cache = drawingRecorded(scale: context.scale)
+        guard !cache.commands.isEmpty else { return }
+        for command in DrawingCache.translated(cache.commands, by: context.origin) { list.append(command) }
+    }
+}
+
+extension UIView.DrawingCache {
+    /// The commands moved by `offset`: every top-level command's geometry, and the transform of
+    /// a top-level `concat` (what follows it up to its `restore` is in that transform's space
+    /// and stays as recorded).
+    static func translated(_ commands: [DisplayCommand], by offset: CGPoint) -> [DisplayCommand] {
+        guard offset != .zero else { return commands }
+        let shift = CGAffineTransform(translationX: offset.x, y: offset.y)
+        var depth = 0
+        var result: [DisplayCommand] = []
+        result.reserveCapacity(commands.count)
+        for command in commands {
+            if depth > 0 {
+                if case .save = command { depth += 1 } else if case .restore = command { depth -= 1 }
+                result.append(command)
+                continue
+            }
+            switch command {
+            case .save, .restore, .beginGroup, .beginShadow, .beginMasked, .endGroup:
+                result.append(command)
+            case .concat(let transform):
+                // Entered by the preceding save: the block runs in this space until its restore.
+                depth = 1
+                result[result.count - 1] = .save
+                result.append(.concat(transform.concatenating(shift)))
+            case .clipRect(let rect): result.append(.clipRect(rect.offsetBy(dx: offset.x, dy: offset.y)))
+            case .clipRRect(let rect, let radius): result.append(.clipRRect(rect.offsetBy(dx: offset.x, dy: offset.y), cornerRadius: radius))
+            case .clipPath(let path, let eo): result.append(.clipPath(path.applying(shift), eoFill: eo))
+            case .beginFilter(let filter, let bounds): result.append(.beginFilter(filter, bounds: bounds.offsetBy(dx: offset.x, dy: offset.y)))
+            case .beginBlend(let mode, let bounds): result.append(.beginBlend(mode, bounds: bounds.offsetBy(dx: offset.x, dy: offset.y)))
+            case .beginMask(let bounds): result.append(.beginMask(bounds: bounds.offsetBy(dx: offset.x, dy: offset.y)))
+            case .backdropBlur(let path, let bounds, let radius, let saturation):
+                result.append(.backdropBlur(path.applying(shift), bounds: bounds.offsetBy(dx: offset.x, dy: offset.y), radius: radius, saturation: saturation))
+            case .fillRect(let rect, let color): result.append(.fillRect(rect.offsetBy(dx: offset.x, dy: offset.y), color))
+            case .fillRRect(let rect, let radius, let color): result.append(.fillRRect(rect.offsetBy(dx: offset.x, dy: offset.y), cornerRadius: radius, color))
+            case .fillPath(let path, let color, let eo): result.append(.fillPath(path.applying(shift), color, eoFill: eo))
+            case .strokePath(let path, let style, let color): result.append(.strokePath(path.applying(shift), style: style, color))
+            case .fillGradient(let path, let gradient, let eo): result.append(.fillGradient(path.applying(shift), gradient.translated(by: offset), eoFill: eo))
+            case .strokeGradient(let path, let style, let gradient): result.append(.strokeGradient(path.applying(shift), style: style, gradient.translated(by: offset)))
+            case .drawText(let text, let font, let origin, let color): result.append(.drawText(text, font, origin: CGPoint(x: origin.x + offset.x, y: origin.y + offset.y), color))
+            case .drawTextGradient(let text, let font, let origin, let gradient):
+                result.append(.drawTextGradient(text, font, origin: CGPoint(x: origin.x + offset.x, y: origin.y + offset.y), gradient.translated(by: offset)))
+            case .drawImage(var draw):
+                draw.rect = draw.rect.offsetBy(dx: offset.x, dy: offset.y)
+                result.append(.drawImage(draw))
+            }
+        }
+        return result
+    }
+}
+
+private extension DisplayGradient {
+    func translated(by offset: CGPoint) -> DisplayGradient {
+        var copy = self
+        func moved(_ point: CGPoint) -> CGPoint { CGPoint(x: point.x + offset.x, y: point.y + offset.y) }
+        switch kind {
+        case .linear(let start, let end): copy.kind = .linear(start: moved(start), end: moved(end))
+        case .radial(let center, let startRadius, let endRadius): copy.kind = .radial(center: moved(center), startRadius: startRadius, endRadius: endRadius)
+        case .focalRadial(let startCenter, let startRadius, let endCenter, let endRadius):
+            copy.kind = .focalRadial(startCenter: moved(startCenter), startRadius: startRadius, endCenter: moved(endCenter), endRadius: endRadius)
+        case .angular(let center, let startAngle): copy.kind = .angular(center: moved(center), startAngle: startAngle)
+        }
+        return copy
     }
 }

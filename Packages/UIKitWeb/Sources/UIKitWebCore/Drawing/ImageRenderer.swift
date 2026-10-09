@@ -56,9 +56,9 @@ public final class UIGraphicsImageRendererContext {
     }
 
     public func fill(_ rect: CGRect) { cgContext.fill(rect) }
-    public func fill(_ rect: CGRect, blendMode: CGBlendMode) { cgContext.fill(rect) }
+    public func fill(_ rect: CGRect, blendMode: CGBlendMode) { cgContext.withBlendMode(blendMode) { cgContext.fill(rect) } }
     public func stroke(_ rect: CGRect) { cgContext.stroke(rect) }
-    public func stroke(_ rect: CGRect, blendMode: CGBlendMode) { cgContext.stroke(rect) }
+    public func stroke(_ rect: CGRect, blendMode: CGBlendMode) { cgContext.withBlendMode(blendMode) { cgContext.stroke(rect) } }
     public func clip(to rect: CGRect) { cgContext.clip(to: rect) }
     /// What has been drawn so far, as an image.
     public var currentImage: UIImage { UIImage(drawing: UIImageDrawing(commands: cgContext.commands, size: bounds.size, scale: format.scale)) }

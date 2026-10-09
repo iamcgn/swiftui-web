@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/draw\/rest",
+  "frames" : {
+    "attributed" : {
+      "height" : 110,
+      "width" : 280,
+      "x" : 20,
+      "y" : 190
+    },
+    "blend" : {
+      "height" : 170,
+      "width" : 280,
+      "x" : 20,
+      "y" : 10
+    },
+    "paths" : {
+      "height" : 100,
+      "width" : 280,
+      "x" : 20,
+      "y" : 310
+    }
+  },
+  "size" : {
+    "height" : 420,
+    "width" : 320
+  }
+}

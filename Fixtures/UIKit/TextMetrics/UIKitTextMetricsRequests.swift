@@ -424,6 +424,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Button", .system(size: 15)),
         UIKitTextRequest("Text view", .custom(name: "Helvetica", size: 12), lines: 0),
         UIKitTextRequest("Text view", .custom(name: "Helvetica", size: 12), width: 10, lines: 0),
+        // uikit/draw/rest (attributed strings drawn with ranges, unwrapped or wrapped to 110)
+        // (the engine keys same-font runs merged, and reads each run's own unbounded width)
+        UIKitTextRequest(runs: [.init("Mixed", .system(size: 17, weight: "semibold")), .init(" runs under struck", .system(size: 17))], lines: 0),
+        UIKitTextRequest("Mixed", .system(size: 17, weight: "semibold")), UIKitTextRequest(" runs ", .system(size: 17)), UIKitTextRequest("under", .system(size: 17)), UIKitTextRequest(" struck", .system(size: 17)),
+        UIKitTextRequest(runs: [.init("Small ", .system(size: 13)), .init("and big", .system(size: 24, weight: "bold"))], lines: 0),
+        UIKitTextRequest("Small ", .system(size: 13)), UIKitTextRequest("and big", .system(size: 24, weight: "bold")),
+        UIKitTextRequest("Underlined words wrap in a narrow rect", .system(size: 15), width: 110, lines: 0),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

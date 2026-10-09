@@ -1618,13 +1618,14 @@
       "framework": "UIKit",
       "area": "Drawing",
       "title": "Blend modes, attributed drawing and CGPath",
-      "detail": "`setBlendMode` and `UIImage.draw` with blend modes (accepted), antialiasing switches and `clear`, per-range attributes with underline and strikethrough, `NSMutableAttributedString`, `CGPath`/`CGMutablePath` on Apple platforms, caching drawn content between frames.",
+      "detail": "`setBlendMode` and `UIImage.draw` with blend modes (accepted), antialiasing switches and `clear`, per-range attributes with underline and strikethrough, `NSMutableAttributedString`, `CGPath`/`CGMutablePath` on Apple platforms, caching drawn content between frames. Done 2026-10-09: blend modes on paths, images and the context state as blend groups inside a group of the view's own (uikit/draw/rest: multiply, screen, difference, plusDarker and clear exact against the simulator; UIRectFill composites normally whatever the mode, as UIKit's does), `clear`, attributed strings drawn per range with underlines and strikethroughs the way UIKit's string drawing places them (unsnapped, 1 pt minimum, the top a whole point under the baseline), NSMutableAttributedString, CGPath / CGMutablePath converted on Apple platforms and provided on wasm, and a view's drawing recorded once and replayed (translated) until setNeedsDisplay, a size change or another appearance; the antialiasing switches stay accepted (the painters always antialias).",
       "kind": "accepted",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Drawing.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-keyboard",

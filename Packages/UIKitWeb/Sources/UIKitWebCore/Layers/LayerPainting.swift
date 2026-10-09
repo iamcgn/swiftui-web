@@ -66,6 +66,12 @@ extension CALayer {
         // CoreAnimation does not clamp a corner radius past half a side: the arcs cross and the
         // nonzero fill makes a lens (uikit/view/looks `overRadius`); the painter's rounded rects
         // clamp, so those corners take an explicit path.
+        // A drawing that blends or clears composites against the view's own background and
+        // earlier drawing, as in a layer's backing store: the view's painting goes in a group.
+        if let view, view.drawingRecorded(scale: context.scale).usesBlending {
+            list.append(.beginGroup(opacity: 1))
+            groups += 1
+        }
         let overRadius = cornerRadius > min(rect.width, rect.height) / 2 && maskedCorners == .all && cornerCurve == .circular
         let radius = cornerRadius > 0 && maskedCorners == .all && !overRadius ? min(cornerRadius, min(rect.width, rect.height) / 2) : 0
         let popoverShape = popoverArrow.map { Self.popoverPath(rect, arrow: $0, pointsDown: popoverArrowPointsDown, cardHeight: popoverCardHeight, radius: cornerRadius) }

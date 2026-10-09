@@ -148,7 +148,8 @@ extension UIGraphicsRecordingContext {
     private func paintGradient(_ gradient: UIGraphicsGradient, kind: DisplayGradient.Kind, region: Path, evenOdd: Bool) {
         let alpha = Double(currentAlpha)
         let stops = alpha < 1 ? gradient.stops.map { DisplayGradient.Stop(location: $0.location, color: $0.color.multiplyingAlpha(by: alpha)) } : gradient.stops
-        recordShadowed(.fillGradient(region.applying(ctm), DisplayGradient(kind: kind, stops: stops), eoFill: evenOdd))
+        let absolute = region.applying(ctm)
+        recordShadowed(.fillGradient(absolute, DisplayGradient(kind: kind, stops: stops), eoFill: evenOdd), bounds: absolute.boundingRect)
     }
 }
 

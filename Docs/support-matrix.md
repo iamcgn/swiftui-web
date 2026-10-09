@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 53 | 17 | 32 | 4 | 0 | 0 |
+| UIKit | 53 | 19 | 30 | 4 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **193** | 42 | 137 | 8 | 3 | 3 |
+| **All** | **193** | 44 | 135 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -211,7 +211,7 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | `UILabel` | ✅ full | Sized to fit at the system and text-style fonts, wrapping and truncation, tabular figures, attributed text with per-range fonts and colours, continuous scaling to fit with a minimum factor, tightening before truncation; the ink positions of text-style lines verified against the simulator (Docs/elements/UIKit/UILabel.md) | uikit/label/basic, uikit/label/fitting, uikit/label/tabular, uikit/label/wrapping |
 | `UITextView` | ✅ full | Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits, attributed runs, links (attributed and detected) opening through the delegate, the selection painted while editing, exclusion paths, the Helvetica 12 default font; open: the browser's selection in selectedRange, keyboard avoidance | uikit/textview/basic, uikit/textview/heights, uikit/textview/looks |
 | `UIFont` | ✅ full | System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; open: reading the host's text size, font descriptors (Docs/elements/UIKit/UIFont.md) | uikit/label/basic, uikit/label/fonts, uikit/textview/basic |
-| `NSAttributedString / NSString drawing (draw(at:), draw(in:), size(withAttributes:), boundingRect)` | 🟢 partial | Whole-string attributes (font, colour, paragraph alignment) drawn and measured through the text engine; open: per-range attributes, underline and strikethrough, NSMutableAttributedString edits | uikit/draw/text |
+| `NSAttributedString / NSString drawing (draw(at:), draw(in:), size(withAttributes:), boundingRect)` | ✅ full | Per-range fonts and colours, underlines and strikethroughs in their own colours drawn as UIKit's string drawing does (unsnapped lines, a 1 pt minimum), the paragraph alignment, NSMutableAttributedString edits; measured through the text engine; open: the bold faces' line metrics (a half-point at 24 pt bold) | uikit/draw/text, uikit/draw/rest |
 
 ## UIKit: containers
 
@@ -258,9 +258,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `UIView.draw(_:), UIGraphicsGetCurrentContext, UIBezierPath, UIColor.setFill / setStroke, UIRectFill` | 🟢 partial | A recording context per frame replayed into the display list: paths, fills, strokes, clips, dashes, the blend-mode-and-alpha forms; open: blend modes, CGPath on Apple platforms | uikit/draw/basic |
-| `String and image drawing in draw(_:) (NSString.draw(at:withAttributes:), UIImage.draw(at:), draw(in:))` | 🟢 partial | Strings measured and painted through the text engine, catalog images and symbols drawn scaled; open: per-range attributes | uikit/draw/text |
-| `CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData()` | 🟢 partial | Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay; pngData rasterises through the host; open: blend modes, UIImage from pixel data | uikit/draw/gradient, ios/representable/renderedimage |
+| `UIView.draw(_:), UIGraphicsGetCurrentContext, UIBezierPath, CGPath / CGMutablePath, UIColor.setFill / setStroke, UIRectFill` | ✅ full | A recording context replayed into the display list and kept until setNeedsDisplay, a size change or another appearance: paths, fills, strokes, clips, dashes, blend modes composited against the view's own painting (clear included), CGMutablePath on both platforms; open: the antialiasing switches (always on), the copy / source-in / source-out / destination-in / destination-atop / xor modes (composited normally), stretching a cached drawing on a size change (it redraws) | uikit/draw/basic, uikit/draw/rest |
+| `String and image drawing in draw(_:) (NSString.draw(at:withAttributes:), UIImage.draw(at:), draw(in:))` | 🟢 partial | Strings measured and painted through the text engine with per-range attributes and decorations, catalog images and symbols drawn scaled, with blend modes and alpha | uikit/draw/text, uikit/draw/rest |
+| `CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData()` | 🟢 partial | Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay, the renderer context's blend-mode fills and strokes; pngData rasterises through the host; open: UIImage from pixel data | uikit/draw/gradient, ios/representable/renderedimage |
 | `UIImage / UIImageView (catalog images, symbols, data, rendering modes, tints, content modes, animation)` | ✅ full | Catalog images by name at the paint scale, SF Symbol stand-ins with configurations, images from PNG or JPEG data (pngData / jpegData give the bytes back), template rendering and tints verified on image views, every content mode and clipping measured, animated images and animationImages cycling on the scene's clock with a repeat count; open: symbol layers, rendered-image tinting when drawn by UIImageView, UIImage(contentsOfFile:), orientation, cap insets on image views, formats beyond PNG and JPEG | uikit/imageview/modes, uikit/imageview/tints, uikit/tabs/basic, uikit/draw/text, uikit/collection/grid |
 
 ## UIKit: animation

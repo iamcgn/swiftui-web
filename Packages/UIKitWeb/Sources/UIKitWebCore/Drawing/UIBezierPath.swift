@@ -72,9 +72,15 @@ public final class UIBezierPath {
     // MARK: Drawing into the current context
 
     public func fill() { UIGraphicsGetCurrentContext()?.fill(self, alpha: 1) }
-    public func fill(with blendMode: CGBlendMode, alpha: CGFloat) { UIGraphicsGetCurrentContext()?.fill(self, alpha: alpha) }
+    public func fill(with blendMode: CGBlendMode, alpha: CGFloat) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        context.withBlendMode(blendMode) { context.fill(self, alpha: alpha) }
+    }
     public func stroke() { UIGraphicsGetCurrentContext()?.stroke(self, alpha: 1) }
-    public func stroke(with blendMode: CGBlendMode, alpha: CGFloat) { UIGraphicsGetCurrentContext()?.stroke(self, alpha: alpha) }
+    public func stroke(with blendMode: CGBlendMode, alpha: CGFloat) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        context.withBlendMode(blendMode) { context.stroke(self, alpha: alpha) }
+    }
     public func addClip() { UIGraphicsGetCurrentContext()?.clip(to: cgPath, evenOdd: usesEvenOddFillRule) }
 }
 

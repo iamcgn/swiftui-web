@@ -61,6 +61,7 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
 
     /// Autoresizing to the subviews, then a layout pass.
     private func sizeDidChange(from old: CGSize) {
+        drawingCache = nil
         if autoresizesSubviews {
             for subview in subviews where !subview.autoresizingMask.isEmpty && subview.translatesAutoresizingMaskIntoConstraints {
                 subview.applyAutoresizing(from: old, to: bounds.size)
@@ -385,7 +386,11 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     /// last (Layout/NSLayoutConstraint.swift).
     open func updateConstraints() {}
 
-    open func setNeedsDisplay() { layer.setNeedsDisplay() }
+    /// Marks the view's drawing stale: `draw(_:)` runs again at the next frame.
+    open func setNeedsDisplay() {
+        drawingCache = nil
+        layer.setNeedsDisplay()
+    }
     open func setNeedsDisplay(_ rect: CGRect) { setNeedsDisplay() }
 
     /// The size that fits the view's content within `size`. The default returns the current size.
@@ -494,6 +499,19 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         drawCustomContent(into: &list, context: context)
         _hostedPaint(into: &list, context: context)
     }
+
+    /// What `draw(_:)` last recorded, kept until `setNeedsDisplay`, a size change or another
+    /// appearance (UIKit keeps the layer's backing store the same way).
+    final class DrawingCache {
+        var commands: [DisplayCommand]
+        let scale: CGFloat
+        let style: UIUserInterfaceStyle
+        let usesBlending: Bool
+        init(commands: [DisplayCommand], scale: CGFloat, style: UIUserInterfaceStyle, usesBlending: Bool) {
+            self.commands = commands; self.scale = scale; self.style = style; self.usesBlending = usesBlending
+        }
+    }
+    var drawingCache: DrawingCache?
 
     // MARK: Coordinate conversion
 

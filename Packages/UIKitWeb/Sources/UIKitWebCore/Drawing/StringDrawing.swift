@@ -184,17 +184,46 @@ extension NSAttributedString.Key {
     public static let backgroundColor = NSAttributedString.Key("NSBackgroundColor")
     public static let underlineStyle = NSAttributedString.Key("NSUnderline")
     public static let strikethroughStyle = NSAttributedString.Key("NSStrikethrough")
+    public static let underlineColor = NSAttributedString.Key("NSUnderlineColor")
+    public static let strikethroughColor = NSAttributedString.Key("NSStrikethroughColor")
     public static let kern = NSAttributedString.Key("NSKern")
     public static let link = NSAttributedString.Key("NSLink")
 }
 
+/// The underline and strikethrough styles (`NSUnderlineStyle.single.rawValue` as the
+/// attribute's value); every non-zero style draws one line here. Foundation keeps the type in
+/// UIKit and AppKit, so the module declares it everywhere.
+public struct NSUnderlineStyle: OptionSet, Sendable {
+    public let rawValue: Int
+    public init(rawValue: Int) { self.rawValue = rawValue }
+    public static let single = NSUnderlineStyle(rawValue: 1)
+    public static let thick = NSUnderlineStyle(rawValue: 2)
+    public static let double = NSUnderlineStyle(rawValue: 9)
+    public static let patternDot = NSUnderlineStyle(rawValue: 0x100)
+    public static let patternDash = NSUnderlineStyle(rawValue: 0x200)
+    public static let byWord = NSUnderlineStyle(rawValue: 0x8000)
+}
+
 /// What string drawing resolves from an attribute dictionary: UIKit's defaults are Helvetica 12
-/// (spelled as the 12 pt system font here) in black, natural alignment.
+/// (spelled as the 12 pt system font here) in black, natural alignment. An attributed string
+/// draws every range in its own font and colour, underlined or struck through where asked
+/// (`.underlineStyle` / `.strikethroughStyle` other than 0, in `.underlineColor` /
+/// `.strikethroughColor` or the text's colour); the paragraph style is read at the start.
 struct StringDrawingStyle {
+    struct Run {
+        var text: String
+        var font: UIFont
+        var color: UIColor
+        var underline: UIColor?
+        var strikethrough: UIColor?
+    }
+
     var font: UIFont = .systemFont(ofSize: 12)
     var color: UIColor = .black
     var alignment: NSTextAlignment = .natural
     var lineBreakMode: NSLineBreakMode = .byWordWrapping
+    /// The ranges of an attributed string; empty for a plain string (one run in `font`).
+    var runs: [Run] = []
 
     init(_ attributes: [NSAttributedString.Key: Any]?) {
         guard let attributes else { return }
@@ -204,6 +233,27 @@ struct StringDrawingStyle {
             alignment = paragraph.alignment
             lineBreakMode = paragraph.lineBreakMode
         }
+    }
+
+    @MainActor init(_ attributed: NSAttributedString) {
+        self.init(attributed.uniformAttributes)
+        let utf16 = Array(attributed.string.utf16)
+        attributed.enumerateAttributes(in: NSRange(location: 0, length: attributed.length), options: []) { attributes, range, _ in
+            let piece = String(decoding: utf16[range.location..<min(utf16.count, range.location + range.length)], as: UTF16.self)
+            let color = attributes[.foregroundColor] as? UIColor ?? .black
+            func line(_ style: NSAttributedString.Key, _ colorKey: NSAttributedString.Key) -> UIColor? {
+                let value = attributes[style]
+                let on = (value as? Int).map { $0 != 0 } ?? (value as? NSUnderlineStyle).map { !$0.isEmpty } ?? false
+                return on ? (attributes[colorKey] as? UIColor ?? color) : nil
+            }
+            runs.append(Run(text: piece, font: attributes[.font] as? UIFont ?? .systemFont(ofSize: 12), color: color,
+                            underline: line(.underlineStyle, .underlineColor), strikethrough: line(.strikethroughStyle, .strikethroughColor)))
+        }
+    }
+
+    /// The runs to lay out: the attributed ranges, or the whole string in one.
+    func styledRuns(for string: String) -> [Run] {
+        runs.isEmpty ? [Run(text: string, font: font, color: color, underline: nil, strikethrough: nil)] : runs
     }
 }
 
@@ -247,17 +297,17 @@ public final class NSStringDrawingContext {
 @MainActor
 extension NSAttributedString {
     public func draw(at point: CGPoint) {
-        UIGraphicsGetCurrentContext()?.drawString(string, style: StringDrawingStyle(uniformAttributes), at: point, width: nil, height: nil)
+        UIGraphicsGetCurrentContext()?.drawString(string, style: StringDrawingStyle(self), at: point, width: nil, height: nil)
     }
     public func draw(in rect: CGRect) {
-        UIGraphicsGetCurrentContext()?.drawString(string, style: StringDrawingStyle(uniformAttributes), at: rect.origin, width: rect.width, height: rect.height)
+        UIGraphicsGetCurrentContext()?.drawString(string, style: StringDrawingStyle(self), at: rect.origin, width: rect.width, height: rect.height)
     }
     public func size() -> CGSize {
-        UIGraphicsRecordingContext.measure(string, style: StringDrawingStyle(uniformAttributes), width: nil)
+        UIGraphicsRecordingContext.measure(string, style: StringDrawingStyle(self), width: nil)
     }
     public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], context: NSStringDrawingContext? = nil) -> CGRect {
         let width = size.width > 0 && size.width.isFinite ? size.width : nil
-        return CGRect(origin: .zero, size: UIGraphicsRecordingContext.measure(string, style: StringDrawingStyle(uniformAttributes), width: width))
+        return CGRect(origin: .zero, size: UIGraphicsRecordingContext.measure(string, style: StringDrawingStyle(self), width: width))
     }
 }
 
@@ -268,31 +318,41 @@ extension UIImage {
     public func draw(at point: CGPoint, blendMode: CGBlendMode, alpha: CGFloat) { draw(in: CGRect(origin: point, size: size), blendMode: blendMode, alpha: alpha) }
     /// Draws the image scaled into `rect`.
     public func draw(in rect: CGRect) { UIGraphicsGetCurrentContext()?.drawImage(self, in: rect, alpha: 1) }
-    public func draw(in rect: CGRect, blendMode: CGBlendMode, alpha: CGFloat) { UIGraphicsGetCurrentContext()?.drawImage(self, in: rect, alpha: alpha) }
+    /// Draws the image scaled into `rect`, composited with `blendMode` at `alpha`.
+    public func draw(in rect: CGRect, blendMode: CGBlendMode, alpha: CGFloat) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        context.withBlendMode(blendMode) { context.drawImage(self, in: rect, alpha: alpha) }
+    }
 }
 
 @MainActor
 extension UIGraphicsRecordingContext {
     /// The string's laid-out size: the engine's width (unbounded, or wrapped to `width`) and
-    /// the font's line pitch per line.
+    /// the tallest font's line pitch per line.
     static func measure(_ string: String, style: StringDrawingStyle, width: CGFloat?) -> CGSize {
         guard !string.isEmpty else { return .zero }
-        let layout = UIKitScene.shared.textEngine.layout([StyledRun(string, font: style.font.resolved)], options: TextLayoutOptions(), width: width)
+        let runs = style.styledRuns(for: string)
+        let layout = UIKitScene.shared.textEngine.layout(runs.map { StyledRun($0.text, font: $0.font.resolved) }, options: TextLayoutOptions(), width: width)
         let lines = max(1, layout.lines.count)
-        let pitch = style.font.lineHeight + style.font.leading
-        return CGSize(width: layout.size.width, height: pitch * CGFloat(lines) - style.font.leading)
+        let font = runs.map(\.font).max { $0.lineHeight < $1.lineHeight } ?? style.font
+        let pitch = font.lineHeight + font.leading
+        return CGSize(width: layout.size.width, height: pitch * CGFloat(lines) - font.leading)
     }
 
     /// Lays the string out (unbounded, or wrapped to `width`) and records its lines from `origin`,
-    /// aligned within `width`, dropping the lines past `height`.
+    /// aligned within `width`, dropping the lines past `height`; each fragment in its run's font
+    /// and colour, with the run's underline and strikethrough (uikit/draw/rest).
     func drawString(_ string: String, style: StringDrawingStyle, at origin: CGPoint, width: CGFloat?, height: CGFloat?) {
         guard !string.isEmpty else { return }
-        let font = style.font
-        let layout = UIKitScene.shared.textEngine.layout([StyledRun(string, font: font.resolved)], options: TextLayoutOptions(), width: width)
+        let runs = style.styledRuns(for: string)
+        let font = runs.map(\.font).max { $0.lineHeight < $1.lineHeight } ?? style.font
+        let layout = UIKitScene.shared.textEngine.layout(runs.map { StyledRun($0.text, font: $0.font.resolved) }, options: TextLayoutOptions(), width: width)
         let pitch = font.lineHeight + font.leading
-        let color = style.color.rgba(for: UITraitCollection.current.userInterfaceStyle).multiplyingAlpha(by: Double(currentAlpha))
-        let displayFont = DisplayFont(font.resolved)
+        let appearance = UITraitCollection.current.userInterfaceStyle
+        let colors = runs.map { $0.color.rgba(for: appearance).multiplyingAlpha(by: Double(currentAlpha)) }
+        let fonts = runs.map { DisplayFont($0.font.resolved) }
         var commands: [DisplayCommand] = []
+        var extent = CGRect(origin: origin, size: .zero)
         for (index, line) in layout.lines.enumerated() {
             let top = pitch * CGFloat(index)
             if let height, top + font.lineHeight > height + 0.5 { break }
@@ -304,11 +364,29 @@ extension UIGraphicsRecordingContext {
             }
             let baseline = origin.y + top + font.ascender
             for fragment in line.fragments {
-                commands.append(.drawText(fragment.text, displayFont, origin: CGPoint(x: origin.x + inset + fragment.x, y: baseline), color))
+                let run = min(max(0, fragment.run), runs.count - 1)
+                let x = origin.x + inset + fragment.x
+                commands.append(.drawText(fragment.text, fonts[run], origin: CGPoint(x: x, y: baseline), colors[run]))
+                extent = extent.union(CGRect(x: x, y: baseline - runs[run].font.ascender, width: fragment.width, height: runs[run].font.lineHeight))
+                let decorations = SystemFontMetricsTables.textDecorationMetrics(for: runs[run].font.resolved)
+                if let underline = runs[run].underline {
+                    // UIKit's string drawing draws the underline at least a point thick, its top
+                    // a whole number of points under the baseline (the table's centre less half
+                    // the thickness, rounded: 2 pt at 15 and 17 pt), antialiased, not snapped.
+                    let thickness = max(1, decorations.thickness)
+                    let top = baseline + (decorations.underlineOffset - thickness / 2).rounded()
+                    commands.append(.fillRect(CGRect(x: x, y: top, width: fragment.width, height: thickness), underline.rgba(for: appearance).multiplyingAlpha(by: Double(currentAlpha))))
+                }
+                if let strikethrough = runs[run].strikethrough {
+                    // The strikethrough centres on half the x-height above the baseline.
+                    let top = baseline - decorations.xHeight / 2 - decorations.thickness / 2
+                    commands.append(.fillRect(CGRect(x: x, y: top, width: fragment.width, height: decorations.thickness), strikethrough.rgba(for: appearance).multiplyingAlpha(by: Double(currentAlpha))))
+                }
             }
         }
-        record(commands)
+        record(commands, bounds: extent.insetBy(dx: -2, dy: -2))
     }
+
 
     /// Records the image scaled into `rect`: a symbol through the symbol painter, a catalog
     /// image as an image draw, an image context's recording replayed.
@@ -331,9 +409,9 @@ extension UIGraphicsRecordingContext {
         }
         let opacity = Double(currentAlpha * alpha)
         if opacity < 1 {
-            record([.beginGroup(opacity: opacity)] + list.commands + [.endGroup])
+            record([.beginGroup(opacity: opacity)] + list.commands + [.endGroup], bounds: rect)
         } else {
-            record(list.commands)
+            record(list.commands, bounds: rect)
         }
     }
 }

@@ -7,9 +7,9 @@ pixels against the simulator (`UIKitPixelTests`); `DrawingTests` holds the mecha
 
 ## API
 
-- `UIView.draw(_:)`: overridden by a view that draws itself; the runtime calls it every frame
-  with a recording graphics context as the current one (`setNeedsDisplay` schedules a frame; the
-  drawing is not cached).
+- `UIView.draw(_:)`: overridden by a view that draws itself; the runtime calls it with a
+  recording graphics context as the current one and keeps the recording until
+  `setNeedsDisplay`, a size change or another appearance (2026-10-09; before, every frame).
 - `UIGraphicsGetCurrentContext()`, `UIGraphicsPushContext`, `UIGraphicsPopContext`; `UIRectFill`,
   `UIRectFrame`, `UIRectClip`; `UIColor.setFill()`, `setStroke()`, `set()`.
 - `UIBezierPath`: `init()`, `init(rect:)`, `init(ovalIn:)`, `init(roundedRect:cornerRadius:)`,
@@ -27,18 +27,25 @@ pixels against the simulator (`UIKitPixelTests`); `DrawingTests` holds the mecha
   `beginPath`, `move`, `addLine(s)`, `addCurve`, `addQuadCurve`, `addRect(s)`, `addEllipse`,
   `addArc` (both forms), `addPath`, `closePath`; `fillPath` (with a fill rule), `strokePath`,
   `drawPath(using:)`, `fill`, `stroke` (with a width), `fillEllipse`, `strokeEllipse`,
-  `strokeLineSegments`; `clip` (with a rule, to a rect, to rects); transparency layers.
-  Accepted without effect: `setBlendMode`, antialiasing switches, `clear`.
+  `strokeLineSegments`; `clip` (with a rule, to a rect, to rects); transparency layers;
+  `setBlendMode` and `clear` (see "The rest"). Accepted without effect: the antialiasing
+  switches (the painters always antialias).
 
 ## How it works
 
-`UIView.drawContent` (what the built-in views override to paint) runs `draw(bounds)` for any
-other view with a recorder pushed as the current context. The recorder keeps CoreGraphics's
-state (transform, colours, line style, alpha, shadow) on a save/restore stack and emits display
-list commands in absolute coordinates: paths are transformed by the current transform when
-painted (stroke widths scale with it), clips become `save` + `clipPath` closed at the matching
-`restoreGState`, shadows wrap each fill or stroke in a shadow group. The recorder is appended to
-the layer's list after `draw(_:)` returns, so a view that draws nothing costs an empty recorder.
+`UIView.drawContent` (what the built-in views override to paint) replays the view's recording
+for any other view, running `draw(bounds)` with a recorder pushed as the current context when
+there is none (`UIView.drawingCache`: the commands in the view's coordinates, the scale and
+appearance they were made for, whether they blend). The recorder keeps CoreGraphics's state
+(transform, colours, line style, alpha, shadow, blend mode) on a save/restore stack and emits
+display list commands: paths are transformed by the current transform when painted (stroke
+widths scale with it), clips become `save` + `clipPath` closed at the matching
+`restoreGState`, shadows wrap each fill or stroke in a shadow group. At paint time the
+commands move by the layer's absolute origin (a top-level `concat`, which string and image
+drawing record under, folds the move in), so the list is the one an absolute recording gives.
+The view's traits are current while it draws (`UIColor.label.setFill()` resolves them).
+`setNeedsDisplay` (the view's, not the layer's, which only asks for a frame) drops the
+recording; a view that draws nothing costs an empty recorder once.
 
 ## Measured
 
@@ -112,14 +119,60 @@ Measured: `uikit/draw/gradient` (a linear gradient clipped to a rect, a radial o
 centres in a clipped circle, a rendered badge drawn at its size and scaled) within 0.09 % of the
 simulator's pixels. The radial highlight sits where the start centre is, as the simulator draws it.
 
-Open: blend modes, `CGPath`/`CGMutablePath` on Apple platforms (there `UIBezierPath.cgPath` is
-the substrate's `Path`, not CoreGraphics's), tinting and `pngData()` of rendered images, caching
-of drawn content between frames.
+Open: tinting of rendered images (`pngData()` works, below).
 
 `UIImage.pngData()` (2026-09-18): a recorded drawing rasterised by the host's `ImageRasterizer`
 (`UIKitScene.imageRasterizer`: the canvas host paints it into a canvas of its own and reads a
 PNG data URL; the native host paints it with CoreGraphics); nil headless and for catalog
 images and symbols. `jpegData` returns the same PNG.
+
+## The rest (2026-10-09, `uikit/draw/rest`)
+
+`Drawing/GraphicsContext.swift`, `StringDrawing.swift`, `CGPathBridge.swift`; the fixture
+renders within 0.96 % of the simulator's pixels, the blend modes and `clear` exact.
+
+- Blend modes: `setBlendMode` (the state, until the state is restored), `UIBezierPath.fill(with:alpha:)`
+  / `stroke(with:alpha:)`, `UIImage.draw(at:blendMode:alpha:)` / `draw(in:blendMode:alpha:)`,
+  `UIGraphicsImageRendererContext.fill(_:blendMode:)` / `stroke(_:blendMode:)`,
+  `UIRectFillUsingBlendMode` / `UIRectFrameUsingBlendMode`. Every painted operation with a mode
+  goes in a `beginBlend` group over its bounds (the shadow group inside), and a drawing that
+  blends or clears is painted inside a group of the view's own, opened before the view's
+  background: the modes composite against the background and the earlier drawing, as
+  CoreGraphics composites in the layer's backing store, not against what lies beneath the view
+  (a red circle multiplied over the view's half-transparent yellow ground is (255, 50, 30) on
+  the simulator and here). CoreGraphics's `.clear` is the display list's `destinationOut`;
+  `.copy`, `.sourceIn`, `.sourceOut`, `.destinationIn`, `.destinationAtop` and `.xor` composite
+  normally (the display list has no group for them), and `.plusDarker` only natively (Canvas2D
+  has no plus-darker operation: the browser composites it normally). `UIRectFill` and `UIRectFrame` composite
+  normally whatever the context's mode, as UIKit's do (the simulator's orange rectangle under
+  `setBlendMode(.multiply)` is the plain orange).
+- `clear(_:)`: a `destinationOut` fill of the rectangle inside the view's group, so the view's
+  background and drawing go and what lies beneath the view shows (the grey band behind the
+  fixture's yellow view).
+- Attributed strings draw every range in its own font and colour (the paragraph style read at
+  the start), with `.underlineStyle` and `.strikethroughStyle` (any non-zero value; the
+  `NSUnderlineStyle` option set is declared here, Foundation keeps it in UIKit and AppKit) in
+  `.underlineColor` / `.strikethroughColor` or the text's colour; `NSMutableAttributedString`'s
+  `append`, `addAttributes`, `setAttributes`, `removeAttribute`, `replaceCharacters`. Measured:
+  UIKit's string drawing does not snap the lines to pixels (they antialias at fractional
+  positions); the underline is at least a point thick (1 pt at 15 and 17 pt, the regular face's
+  CoreText thickness at 24 pt bold: 2.23) with its top a whole number of points below the
+  baseline (the table's centre less half the thickness, rounded: 2 pt at 15 and 17; 24 pt bold
+  measures 2.58 where the regular table says 2.17, a half-point residue left open); the
+  strikethrough centres on half the x-height, its thickness the table's. Unbounded entries per
+  run join the recorded metrics (the recorded engine keys same-font runs merged).
+- `CGPath` / `CGMutablePath`: on Apple platforms CoreGraphics's, converted through
+  `applyWithBlock` for `UIBezierPath(cgPath:)`, `UIBezierPath.append(_:)`, the context's
+  `addPath(_:)` and `CAShapeLayer.setPath(_:)` (`UIBezierPath.cgPath` stays the substrate's
+  `Path`); on wasm the module's own classes over a `Path` (`init(rect:transform:)`,
+  `init(ellipseIn:)`, `init(roundedRect:…)`, `move`, `addLine(s)`, `addCurve`, `addQuadCurve`,
+  `addRect(s)`, `addEllipse`, `addRoundedRect`, both `addArc`s, `addPath`, `closeSubpath`,
+  `boundingBox`, `currentPoint`, `contains`, copies). `clockwise` on a CGPath or CGContext arc
+  is CoreGraphics's (y up) sense, so in the view's flipped space `false` runs through
+  increasing angles, clockwise on screen — the opposite of `UIBezierPath.addArc`'s flag, which
+  is the screen's (measured: a `clockwise: false` arc from π to 0 bulges downward). A
+  pentagram (even-odd), an arc path filled and stroked, a rotated box with an ellipse cut out
+  match the simulator.
 
 ## Images (2026-10-09, `uikit/imageview/modes`, `uikit/imageview/tints`)
 

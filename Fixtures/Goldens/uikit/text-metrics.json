@@ -54,6 +54,12 @@
       "lastBaseline" : 18.400390625,
       "width" : 86
     },
+    "rich:system:13:400:default=6,system:24:700:default=7||Small and big" : {
+      "firstBaseline" : 22.8515625,
+      "height" : 29,
+      "lastBaseline" : 22.8515625,
+      "width" : 119
+    },
     "rich:system:17:400:default=6,system:17:400:default=19,system:17:400:default=4,system:17:400:default=13,system:17:400:default=7|278.0|Visit https:\/\/example.com or www.apple.com today." : {
       "firstBaseline" : 16.1865234375,
       "height" : 41,
@@ -65,6 +71,12 @@
       "height" : 29,
       "lastBaseline" : 22.8515625,
       "width" : 142
+    },
+    "rich:system:17:600:default=5,system:17:400:default=18||Mixed runs under struck" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 186
     },
     "rich:system:17:600:default=12,system:17:400:default=16,system:15:400:default=9,system:17:400:default=6|278.0|Bold start, regular middle, red end, a link" : {
       "firstBaseline" : 16.1865234375,
@@ -1224,6 +1236,12 @@
       "lastBaseline" : 12.3779296875,
       "width" : 31.5
     },
+    "system:13:400:default|;l1|Small " : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 37
+    },
     "system:13:400:default|;l1|Three" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -1470,6 +1488,12 @@
       "lastBaseline" : 14.2822265625,
       "width" : 61
     },
+    "system:15:400:default|110.0|Underlined words wrap in a narrow rect" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 54,
+      "lastBaseline" : 50.0830078125,
+      "width" : 110
+    },
     "system:15:400:default|126.0|Padded" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -1625,6 +1649,18 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 41.5
+    },
+    "system:17:400:default|;l1| runs " : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 42.5
+    },
+    "system:17:400:default|;l1| struck" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 52
     },
     "system:17:400:default|;l1|0000" : {
       "firstBaseline" : 16.1865234375,
@@ -2088,6 +2124,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 135.5
     },
+    "system:17:400:default|;l1|under" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 44.5
+    },
     "system:17:400:default|| or " : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2466,6 +2508,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 44.5
     },
+    "system:17:600:default|;l1|Mixed" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 48
+    },
     "system:17:600:default|;l1|Plain label" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2711,6 +2759,12 @@
       "height" : 29,
       "lastBaseline" : 22.8515625,
       "width" : 103
+    },
+    "system:24:700:default|;l1|and big" : {
+      "firstBaseline" : 22.8515625,
+      "height" : 29,
+      "lastBaseline" : 22.8515625,
+      "width" : 82.5
     },
     "system:28:400:default|;l1|Big" : {
       "firstBaseline" : 26.66015625,
@@ -3385,6 +3439,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 12.26953125
+    },
+    "system:24:700:default" : {
+      "ascender" : 22.8515625,
+      "capHeight" : 16.91015625,
+      "descender" : -5.7890625,
+      "leading" : 0,
+      "lineHeight" : 28.640625,
+      "pointSize" : 24,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 12.62109375
     },
     "system:28:400:default" : {
       "ascender" : 26.66015625,
