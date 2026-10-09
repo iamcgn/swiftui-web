@@ -1,0 +1,39 @@
+{
+  "fixture" : "uikit\/datepicker\/locales",
+  "frames" : {
+    "clamped" : {
+      "height" : 38.5,
+      "width" : 300,
+      "x" : 10,
+      "y" : 240
+    },
+    "de" : {
+      "height" : 40,
+      "width" : 300,
+      "x" : 10,
+      "y" : 72
+    },
+    "fr" : {
+      "height" : 40,
+      "width" : 300,
+      "x" : 10,
+      "y" : 128
+    },
+    "gb" : {
+      "height" : 40,
+      "width" : 300,
+      "x" : 10,
+      "y" : 16
+    },
+    "jp" : {
+      "height" : 40,
+      "width" : 300,
+      "x" : 10,
+      "y" : 184
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

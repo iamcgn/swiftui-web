@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 25 | 0 | 14 | 11 |
+| UIKit | 24 | 0 | 13 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **63** | 0 | 15 | 48 |
+| **All** | **62** | 0 | 14 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Date picker popovers, calendars and wheels** `uk-datepicker` · Controls · missing  
-  The calendar and time popovers a compact picker presents, `UICalendarView` and the inline style, the count-down timer, `minimumDate`/`maximumDate`, locales and calendars, `valueChanged` from the wheels; `UIPickerView` spinning by touch, custom row views, the drum's perspective (approximate, frames-only today). ([DatePicker.md](Docs/elements/UIKit/DatePicker.md))
 - ☐ **Search results, clear button and hiding on scroll** `uk-searchbar` · Bars · accepted  
   `searchResultsController` presented (stored today), the clear and bookmark buttons, `hidesSearchBarWhenScrolling`, `prompt` (stored), toolbar items beside a floating search field. ([Bars.md](Docs/elements/UIKit/Bars.md))
 - ☐ **UIImage data, tinting and animation** `uk-images` · Images · missing  
@@ -162,6 +160,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation
 - ☑ 2026-10-04 **The Tab API, page style and badges** `sw-tabview` · SwiftUI · TabView

@@ -1332,6 +1332,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 41.5
     },
+    "system:17:400:default|;l1|00:00" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 46
+    },
     "system:17:400:default|;l1|00:00 AM" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1350,11 +1356,41 @@
       "lastBaseline" : 16.1865234375,
       "width" : 62
     },
+    "system:17:400:default|;l1|9\/11\/26" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 55.5
+    },
+    "system:17:400:default|;l1|11 Sep 2026" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 94
+    },
+    "system:17:400:default|;l1|11 sept. 2026" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 102
+    },
+    "system:17:400:default|;l1|11:30" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 40
+    },
     "system:17:400:default|;l1|11:30 AM" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 67.5
+    },
+    "system:17:400:default|;l1|11.09.2026" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 83.5
     },
     "system:17:400:default|;l1|12:34:56" : {
       "firstBaseline" : 16.1865234375,
@@ -1367,6 +1403,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 30
+    },
+    "system:17:400:default|;l1|2026\/09\/11" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 85.5
     },
     "system:17:400:default|;l1|A long label that needs room" : {
       "firstBaseline" : 16.1865234375,
@@ -1595,6 +1637,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 98
+    },
+    "system:17:400:default|;l1|Sep 14, 2026" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 101
     },
     "system:17:400:default|;l1|Short" : {
       "firstBaseline" : 16.1865234375,

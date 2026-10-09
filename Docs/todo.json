@@ -1397,13 +1397,14 @@
       "framework": "UIKit",
       "area": "Controls",
       "title": "Date picker popovers, calendars and wheels",
-      "detail": "The calendar and time popovers a compact picker presents, `UICalendarView` and the inline style, the count-down timer, `minimumDate`/`maximumDate`, locales and calendars, `valueChanged` from the wheels; `UIPickerView` spinning by touch, custom row views, the drum's perspective (approximate, frames-only today).",
+      "detail": "The calendar and time popovers a compact picker presents, `UICalendarView` and the inline style, the count-down timer, `minimumDate`/`maximumDate`, locales and calendars, `valueChanged` from the wheels; `UIPickerView` spinning by touch, custom row views, the drum's perspective (approximate, frames-only today). Done 2026-10-08: UICalendarView (the month grid from the simulator's view trees: header buttons 43.5 wide, a weekday row of equal labels from 16 in, cells of ⌊(width − 56) / 6⌋ anchored under the first label, the selection disc of the tint at 12 %, availableDateRange, single and multi-date selection), the inline style with its time row, count-down wheels with unit labels, minimum/maximum dates clamping and greying, en_GB/de/fr/ja strings and the 24-hour clock, the numeric date a narrow compact picker falls back to, wheels and picker views spun by a drag or a tap (valueChanged, didSelectRow), custom row views on the drum, a tap on a compact picker presenting the calendar or the time wheels in a popover; six new fixtures, Tier A exact, Tier C inline 1.8 %, calendar 1.1 %, locales 1.9 %, compact 1.6 % (the drums frames-only). UIColor.label is opaque black as on iOS (every text fixture moved closer to its golden).",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/DatePicker.md"
-      ]
+      ],
+      "done": "2026-10-08"
     },
     {
       "id": "uk-controls-rest",

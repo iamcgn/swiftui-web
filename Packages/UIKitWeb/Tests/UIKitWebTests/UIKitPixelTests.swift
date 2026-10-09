@@ -19,8 +19,8 @@ import WebGraphicsNative
     /// 4.6 % with identical text and breaks).
     static let approximate: Set<String> = ["uikit/label/wrapping", "uikit/draw/text", "uikit/label/tabular", "uikit/table/selfsizing", "uikit/label/fitting", "uikit/label/fonts", "uikit/textview/looks"]
     /// Fixtures compared by frames only (their look is not painted yet).
-    /// The wheels date picker: a drum drawn approximately (Docs/elements/UIKit/DatePicker.md).
-    static let framesOnly: Set<String> = ["uikit/datepicker/wheels", "uikit/picker/basic"]
+    /// The wheels pickers: a drum drawn approximately (Docs/elements/UIKit/DatePicker.md).
+    static let framesOnly: Set<String> = ["uikit/datepicker/wheels", "uikit/datepicker/countdown", "uikit/picker/basic", "uikit/picker/custom"]
 
     nonisolated static var fixtureNames: [String] {
         let filter = ProcessInfo.processInfo.environment["TIER_C_FILTER"] ?? ""

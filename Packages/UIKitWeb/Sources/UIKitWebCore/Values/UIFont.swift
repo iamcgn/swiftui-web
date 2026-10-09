@@ -220,3 +220,17 @@ public final class UIFont: Hashable, @unchecked Sendable {
         (lineHeight * CGFloat(lines) + leading * CGFloat(lines - 1)).roundedUp(to: scale)
     }
 }
+
+/// The font descriptor's nested types apps name (`UICalendarView.fontDesign`); the descriptor
+/// itself is not modelled.
+public final class UIFontDescriptor {
+    /// A design of the system font.
+    public struct SystemDesign: Hashable, Sendable, RawRepresentable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let `default` = SystemDesign(rawValue: "default")
+        public static let rounded = SystemDesign(rawValue: "rounded")
+        public static let serif = SystemDesign(rawValue: "serif")
+        public static let monospaced = SystemDesign(rawValue: "monospaced")
+    }
+}

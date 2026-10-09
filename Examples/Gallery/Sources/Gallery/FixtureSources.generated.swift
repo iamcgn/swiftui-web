@@ -5678,12 +5678,12 @@ public static let dates = Fixture("text/dates", size: CGSize(width: 400, height:
     VStack(alignment: .leading, spacing: 4) {
         Text(instant, style: .date).probe("date")
         Text(instant, style: .time).probe("time")
-        Text(3.14159, format: .number).probe("number")
-        Text(1234, format: .number).probe("int")
-        Text(0.25, format: .percent).probe("percent")
-        Text(12.5, format: .currency(code: "USD")).probe("currency")
+        Text(3.14159, format: .number.locale(Locale(identifier: "en_US"))).probe("number")
+        Text(1234, format: .number.locale(Locale(identifier: "en_US"))).probe("int")
+        Text(0.25, format: .percent.locale(Locale(identifier: "en_US"))).probe("percent")
+        Text(12.5, format: .currency(code: "USD").locale(Locale(identifier: "en_US"))).probe("currency")
         #if !os(WASI)
-        Text(instant, format: .dateTime.year().month().day()).probe("dateTime")
+        Text(instant, format: .dateTime.year().month().day().locale(Locale(identifier: "en_US"))).probe("dateTime")
         #else
         // No `Date.FormatStyle` on wasm: the same words through the date style keep the frames.
         Text(instant, style: .date).probe("dateTime")
@@ -6002,10 +6002,10 @@ public static let basic = Fixture("textfield/basic", size: CGSize(width: 320, he
 /// Values through format styles and a formatter; `fixedSize` so the frames carry the text.
 public static let formatted = Fixture("textfield/formatted", size: CGSize(width: 300, height: 240)) {
     VStack(alignment: .leading, spacing: 12) {
-        TextField("Age", value: .constant(1234), format: .number).fixedSize().probe("int")
-        TextField("Price", value: .constant(3.14159), format: .number).fixedSize().probe("double")
-        TextField("Share", value: .constant(0.25), format: .percent).fixedSize().probe("percent")
-        TextField("Amount", value: .constant(12.5), format: .currency(code: "USD")).fixedSize().probe("currency")
+        TextField("Age", value: .constant(1234), format: .number.locale(Locale(identifier: "en_US"))).fixedSize().probe("int")
+        TextField("Price", value: .constant(3.14159), format: .number.locale(Locale(identifier: "en_US"))).fixedSize().probe("double")
+        TextField("Share", value: .constant(0.25), format: .percent.locale(Locale(identifier: "en_US"))).fixedSize().probe("percent")
+        TextField("Amount", value: .constant(12.5), format: .currency(code: "USD").locale(Locale(identifier: "en_US"))).fixedSize().probe("currency")
         TextField("Count", value: .constant(42), formatter: NumberFormatter()).fixedSize().probe("formatter")
         TextField("Placeholder", text: .constant("Hello")).fixedSize().probe("fixedText")
         TextField("Placeholder", text: .constant("")).fixedSize().probe("fixedEmpty")
@@ -7380,31 +7380,130 @@ public static let controls = UIKitFixture("uikit/controls/more", size: CGSize(wi
     return root
 }
 """#),
-        FixtureSource(name: "uikit/datepicker/compact", file: "Fixtures/UIKit/DatePicker/DatePickerFixtures.swift", firstLine: 21, lastLine: 42, declaration: #"""
+        FixtureSource(name: "uikit/datepicker/calendar", file: "Fixtures/UIKit/DatePicker/DatePickerLooksFixtures.swift", firstLine: 63, lastLine: 83, declaration: #"""
+/// A calendar view limited to 5–25 September 2026 with the 11th selected.
+public static let calendar = UIKitFixture("uikit/datepicker/calendar", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    root.backgroundColor = .white
+    let view = UICalendarView()
+    view.calendar = Calendar(identifier: .gregorian)
+    view.locale = Locale(identifier: "en_US")
+    var start = DateComponents(); start.year = 2026; start.month = 9; start.day = 5
+    var end = DateComponents(); end.year = 2026; end.month = 9; end.day = 25
+    let gregorian = Calendar(identifier: .gregorian)
+    view.availableDateRange = DateInterval(start: gregorian.date(from: start)!, end: gregorian.date(from: end)!)
+    let selection = UICalendarSelectionSingleDate(delegate: nil)
+    var selected = DateComponents(); selected.year = 2026; selected.month = 9; selected.day = 11
+    selection.selectedDate = selected
+    view.selectionBehavior = selection
+    view.visibleDateComponents = DateComponents(year: 2026, month: 9)
+    view.sizeToFit()
+    view.frame.origin = CGPoint(x: 0, y: 8)
+    root.addSubview(view.probe("calendar"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/datepicker/compact", file: "Fixtures/UIKit/DatePicker/DatePickerFixtures.swift", firstLine: 21, lastLine: 45, declaration: #"""
 public static let compact = UIKitFixture("uikit/datepicker/compact", size: CGSize(width: 320, height: 400)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
     root.backgroundColor = .white
-    // A date-only or time-only compact picker sizes its hidden capsule for the current
-    // time (a golden made at 10 PM is 10 wider than one made at 3 PM), so those get a fixed
-    // 240 pt width and their capsules right-align inside it; the date-and-time picker fits.
-    @MainActor func picker(_ mode: UIDatePicker.Mode, _ style: UIDatePickerStyle, y: CGFloat, probe: String, enabled: Bool = true) {
+    // iOS 26 sizes a compact picker's capsules for the current date and time rather than
+    // the picker's (a golden made at 10 PM is 10 wider than one made at 3 PM, one made in
+    // October 6.5 narrower than one made on the fixture's day), so every picker gets a
+    // fixed 240 pt width and its capsules right-align inside it; a 200 pt one is too narrow
+    // for "Sep 11, 2026" and shows the numeric date instead.
+    @MainActor func picker(_ mode: UIDatePicker.Mode, _ style: UIDatePickerStyle, y: CGFloat, width: CGFloat = 240, probe: String, enabled: Bool = true) {
         let picker = UIDatePicker()
         picker.preferredDatePickerStyle = style
         picker.datePickerMode = mode
         picker.date = fixedDate
         picker.isEnabled = enabled
         picker.sizeToFit()
-        picker.frame = CGRect(x: 16, y: y, width: mode == .dateAndTime ? picker.frame.width : 240, height: picker.frame.height)
+        picker.frame = CGRect(x: 16, y: y, width: width, height: picker.frame.height)
         root.addSubview(picker.probe(probe))
     }
     picker(.date, .compact, y: 16, probe: "date")
     picker(.time, .compact, y: 64, probe: "time")
     picker(.dateAndTime, .compact, y: 112, probe: "dateAndTime")
     picker(.date, .compact, y: 160, probe: "disabled", enabled: false)
+    picker(.dateAndTime, .compact, y: 208, width: 200, probe: "narrow")
     return root
 }
 """#),
-        FixtureSource(name: "uikit/datepicker/wheels", file: "Fixtures/UIKit/DatePicker/DatePickerFixtures.swift", firstLine: 44, lastLine: 57, declaration: #"""
+        FixtureSource(name: "uikit/datepicker/countdown", file: "Fixtures/UIKit/DatePicker/DatePickerLooksFixtures.swift", firstLine: 85, lastLine: 97, declaration: #"""
+/// The count-down timer: hours and minutes wheels with their unit labels.
+public static let countdown = UIKitFixture("uikit/datepicker/countdown", size: CGSize(width: 320, height: 240)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+    root.backgroundColor = .white
+    let picker = UIDatePicker()
+    picker.preferredDatePickerStyle = .wheels
+    picker.datePickerMode = .countDownTimer
+    picker.countDownDuration = 90 * 60
+    picker.sizeToFit()
+    picker.frame.origin = CGPoint(x: 0, y: 12)
+    root.addSubview(picker.probe("countdown"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/datepicker/inline", file: "Fixtures/UIKit/DatePicker/DatePickerLooksFixtures.swift", firstLine: 35, lastLine: 47, declaration: #"""
+/// The inline style for a date: a calendar with a month header, weekday row and day grid.
+public static let inline = UIKitFixture("uikit/datepicker/inline", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    root.backgroundColor = .white
+    let picker = UIDatePicker()
+    picker.preferredDatePickerStyle = .inline
+    picker.datePickerMode = .date
+    picker.date = fixedDate
+    picker.sizeToFit()
+    picker.frame.origin = CGPoint(x: 0, y: 8)
+    root.addSubview(picker.probe("inline"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/datepicker/inline-time", file: "Fixtures/UIKit/DatePicker/DatePickerLooksFixtures.swift", firstLine: 49, lastLine: 61, declaration: #"""
+/// The inline style for a date and time: the time capsule row above the calendar.
+public static let inlineTime = UIKitFixture("uikit/datepicker/inline-time", size: CGSize(width: 320, height: 440)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 440))
+    root.backgroundColor = .white
+    let picker = UIDatePicker()
+    picker.preferredDatePickerStyle = .inline
+    picker.datePickerMode = .dateAndTime
+    picker.date = fixedDate
+    picker.sizeToFit()
+    picker.frame.origin = CGPoint(x: 0, y: 8)
+    root.addSubview(picker.probe("inlineTime"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/datepicker/locales", file: "Fixtures/UIKit/DatePicker/DatePickerLooksFixtures.swift", firstLine: 99, lastLine: 124, declaration: #"""
+/// Compact date-and-time pickers in en_GB, de_DE, fr_FR and ja_JP, each 300 wide.
+public static let locales = UIKitFixture("uikit/datepicker/locales", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    root.backgroundColor = .white
+    var y: CGFloat = 16
+    for (identifier, probe) in [("en_GB", "gb"), ("de_DE", "de"), ("fr_FR", "fr"), ("ja_JP", "jp")] {
+        let picker = UIDatePicker()
+        picker.preferredDatePickerStyle = .compact
+        picker.datePickerMode = .dateAndTime
+        picker.locale = Locale(identifier: identifier)
+        picker.date = fixedDate
+        picker.sizeToFit()
+        picker.frame = CGRect(x: 10, y: y, width: 300, height: picker.frame.height)
+        root.addSubview(picker.probe(probe))
+        y += 56
+    }
+    let range = UIDatePicker()
+    range.preferredDatePickerStyle = .compact
+    range.datePickerMode = .date
+    range.minimumDate = fixedDate.addingTimeInterval(86_400 * 3)   // the date is before the minimum: clamped on display?
+    range.date = fixedDate
+    range.sizeToFit()
+    range.frame = CGRect(x: 10, y: y, width: 300, height: range.frame.height)
+    root.addSubview(range.probe("clamped"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/datepicker/wheels", file: "Fixtures/UIKit/DatePicker/DatePickerFixtures.swift", firstLine: 47, lastLine: 60, declaration: #"""
 /// The wheels style: three columns of 21 pt rows on a 32 pt pitch under a selection band.
 /// The frame is pinned; the wheel's perspective is approximated, so the pixels are not.
 public static let wheels = UIKitFixture("uikit/datepicker/wheels", size: CGSize(width: 320, height: 240)) {
@@ -7705,6 +7804,24 @@ public static let basic = UIKitFixture("uikit/picker/basic", size: CGSize(width:
     picker.selectRow(1, inComponent: 0, animated: false)
     picker.selectRow(4, inComponent: 1, animated: false)
     root.addSubview(picker.probe("picker"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/picker/custom", file: "Fixtures/UIKit/DatePicker/DatePickerLooksFixtures.swift", firstLine: 128, lastLine: 143, declaration: #"""
+/// Custom row views (coloured bold labels in a 44 pt row, 180 wide) beside plain titles.
+public static let custom = UIKitFixture("uikit/picker/custom", size: CGSize(width: 320, height: 240)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+    root.backgroundColor = .white
+    let source = CustomRowSource()
+    DatePickerFixtures.customSources.append(source)
+    let picker = UIPickerView()
+    picker.dataSource = source
+    picker.delegate = source
+    picker.sizeToFit()
+    picker.frame.origin = CGPoint(x: 0, y: 12)
+    picker.selectRow(2, inComponent: 0, animated: false)
+    picker.selectRow(3, inComponent: 1, animated: false)
+    root.addSubview(picker.probe("custom"))
     return root
 }
 """#),
@@ -15305,12 +15422,12 @@ public enum TextRichFixtures {
         VStack(alignment: .leading, spacing: 4) {
             Text(instant, style: .date).probe("date")
             Text(instant, style: .time).probe("time")
-            Text(3.14159, format: .number).probe("number")
-            Text(1234, format: .number).probe("int")
-            Text(0.25, format: .percent).probe("percent")
-            Text(12.5, format: .currency(code: "USD")).probe("currency")
+            Text(3.14159, format: .number.locale(Locale(identifier: "en_US"))).probe("number")
+            Text(1234, format: .number.locale(Locale(identifier: "en_US"))).probe("int")
+            Text(0.25, format: .percent.locale(Locale(identifier: "en_US"))).probe("percent")
+            Text(12.5, format: .currency(code: "USD").locale(Locale(identifier: "en_US"))).probe("currency")
             #if !os(WASI)
-            Text(instant, format: .dateTime.year().month().day()).probe("dateTime")
+            Text(instant, format: .dateTime.year().month().day().locale(Locale(identifier: "en_US"))).probe("dateTime")
             #else
             // No `Date.FormatStyle` on wasm: the same words through the date style keep the frames.
             Text(instant, style: .date).probe("dateTime")
@@ -15527,10 +15644,10 @@ public enum TextFieldFormsFixtures {
     /// Values through format styles and a formatter; `fixedSize` so the frames carry the text.
     public static let formatted = Fixture("textfield/formatted", size: CGSize(width: 300, height: 240)) {
         VStack(alignment: .leading, spacing: 12) {
-            TextField("Age", value: .constant(1234), format: .number).fixedSize().probe("int")
-            TextField("Price", value: .constant(3.14159), format: .number).fixedSize().probe("double")
-            TextField("Share", value: .constant(0.25), format: .percent).fixedSize().probe("percent")
-            TextField("Amount", value: .constant(12.5), format: .currency(code: "USD")).fixedSize().probe("currency")
+            TextField("Age", value: .constant(1234), format: .number.locale(Locale(identifier: "en_US"))).fixedSize().probe("int")
+            TextField("Price", value: .constant(3.14159), format: .number.locale(Locale(identifier: "en_US"))).fixedSize().probe("double")
+            TextField("Share", value: .constant(0.25), format: .percent.locale(Locale(identifier: "en_US"))).fixedSize().probe("percent")
+            TextField("Amount", value: .constant(12.5), format: .currency(code: "USD").locale(Locale(identifier: "en_US"))).fixedSize().probe("currency")
             TextField("Count", value: .constant(42), formatter: NumberFormatter()).fixedSize().probe("formatter")
             TextField("Placeholder", text: .constant("Hello")).fixedSize().probe("fixedText")
             TextField("Placeholder", text: .constant("")).fixedSize().probe("fixedEmpty")
@@ -18619,7 +18736,7 @@ import UIKit
 import UIKitFixtureKit
 
 public enum DatePickerFixtures {
-    public static let all = [compact, wheels]
+    public static let all = [compact, wheels] + looks
 
     /// 11 September 2026, 11:30 in the Gregorian calendar (the harness runs in en_US). The hour
     /// has two digits on purpose: iOS 26 sizes a compact picker's time capsule for the wider of
@@ -18634,23 +18751,26 @@ public enum DatePickerFixtures {
     public static let compact = UIKitFixture("uikit/datepicker/compact", size: CGSize(width: 320, height: 400)) {
         let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
         root.backgroundColor = .white
-        // A date-only or time-only compact picker sizes its hidden capsule for the current
-        // time (a golden made at 10 PM is 10 wider than one made at 3 PM), so those get a fixed
-        // 240 pt width and their capsules right-align inside it; the date-and-time picker fits.
-        @MainActor func picker(_ mode: UIDatePicker.Mode, _ style: UIDatePickerStyle, y: CGFloat, probe: String, enabled: Bool = true) {
+        // iOS 26 sizes a compact picker's capsules for the current date and time rather than
+        // the picker's (a golden made at 10 PM is 10 wider than one made at 3 PM, one made in
+        // October 6.5 narrower than one made on the fixture's day), so every picker gets a
+        // fixed 240 pt width and its capsules right-align inside it; a 200 pt one is too narrow
+        // for "Sep 11, 2026" and shows the numeric date instead.
+        @MainActor func picker(_ mode: UIDatePicker.Mode, _ style: UIDatePickerStyle, y: CGFloat, width: CGFloat = 240, probe: String, enabled: Bool = true) {
             let picker = UIDatePicker()
             picker.preferredDatePickerStyle = style
             picker.datePickerMode = mode
             picker.date = fixedDate
             picker.isEnabled = enabled
             picker.sizeToFit()
-            picker.frame = CGRect(x: 16, y: y, width: mode == .dateAndTime ? picker.frame.width : 240, height: picker.frame.height)
+            picker.frame = CGRect(x: 16, y: y, width: width, height: picker.frame.height)
             root.addSubview(picker.probe(probe))
         }
         picker(.date, .compact, y: 16, probe: "date")
         picker(.time, .compact, y: 64, probe: "time")
         picker(.dateAndTime, .compact, y: 112, probe: "dateAndTime")
         picker(.date, .compact, y: 160, probe: "disabled", enabled: false)
+        picker(.dateAndTime, .compact, y: 208, width: 200, probe: "narrow")
         return root
     }
 
@@ -18666,6 +18786,153 @@ public enum DatePickerFixtures {
         picker.sizeToFit()
         picker.frame.origin = CGPoint(x: 0, y: 12)
         root.addSubview(picker.probe("wheels"))
+        return root
+    }
+}
+#endif
+"""##,
+        "Fixtures/UIKit/DatePicker/DatePickerLooksFixtures.swift": ##"""
+// UIDatePicker and UICalendarView looks (uk-datepicker): the inline style (date, and date and
+// time), a calendar view with a limited range and a selection, the count-down timer wheels,
+// compact pickers in other locales, and a picker view with custom row views.
+#if canImport(UIKit)
+import UIKit
+import UIKitFixtureKit
+
+final class CustomRowSource: NSObject, UIPickerViewDataSource, UIPickerViewDelegate {
+    let colours: [(String, UIColor)] = [("Red", .systemRed), ("Green", .systemGreen), ("Blue", .systemBlue), ("Orange", .systemOrange)]
+    func numberOfComponents(in pickerView: UIPickerView) -> Int { 2 }
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { component == 0 ? colours.count : 5 }
+    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat { component == 0 ? 180 : 80 }
+    func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat { component == 0 ? 44 : 32 }
+    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
+        let label = (view as? UILabel) ?? UILabel()
+        if component == 0 {
+            label.text = colours[row].0
+            label.textColor = colours[row].1
+            label.font = .boldSystemFont(ofSize: 24)
+            label.textAlignment = .center
+        } else {
+            label.text = "\(row + 1)"
+            label.font = .systemFont(ofSize: 21)
+            label.textAlignment = .center
+        }
+        return label
+    }
+}
+
+extension DatePickerFixtures {
+    static let looks = [inline, inlineTime, calendar, countdown, locales]
+
+    @MainActor static var customSources: [CustomRowSource] = []
+
+    /// The inline style for a date: a calendar with a month header, weekday row and day grid.
+    public static let inline = UIKitFixture("uikit/datepicker/inline", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        root.backgroundColor = .white
+        let picker = UIDatePicker()
+        picker.preferredDatePickerStyle = .inline
+        picker.datePickerMode = .date
+        picker.date = fixedDate
+        picker.sizeToFit()
+        picker.frame.origin = CGPoint(x: 0, y: 8)
+        root.addSubview(picker.probe("inline"))
+        return root
+    }
+
+    /// The inline style for a date and time: the time capsule row above the calendar.
+    public static let inlineTime = UIKitFixture("uikit/datepicker/inline-time", size: CGSize(width: 320, height: 440)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 440))
+        root.backgroundColor = .white
+        let picker = UIDatePicker()
+        picker.preferredDatePickerStyle = .inline
+        picker.datePickerMode = .dateAndTime
+        picker.date = fixedDate
+        picker.sizeToFit()
+        picker.frame.origin = CGPoint(x: 0, y: 8)
+        root.addSubview(picker.probe("inlineTime"))
+        return root
+    }
+
+    /// A calendar view limited to 5–25 September 2026 with the 11th selected.
+    public static let calendar = UIKitFixture("uikit/datepicker/calendar", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        root.backgroundColor = .white
+        let view = UICalendarView()
+        view.calendar = Calendar(identifier: .gregorian)
+        view.locale = Locale(identifier: "en_US")
+        var start = DateComponents(); start.year = 2026; start.month = 9; start.day = 5
+        var end = DateComponents(); end.year = 2026; end.month = 9; end.day = 25
+        let gregorian = Calendar(identifier: .gregorian)
+        view.availableDateRange = DateInterval(start: gregorian.date(from: start)!, end: gregorian.date(from: end)!)
+        let selection = UICalendarSelectionSingleDate(delegate: nil)
+        var selected = DateComponents(); selected.year = 2026; selected.month = 9; selected.day = 11
+        selection.selectedDate = selected
+        view.selectionBehavior = selection
+        view.visibleDateComponents = DateComponents(year: 2026, month: 9)
+        view.sizeToFit()
+        view.frame.origin = CGPoint(x: 0, y: 8)
+        root.addSubview(view.probe("calendar"))
+        return root
+    }
+
+    /// The count-down timer: hours and minutes wheels with their unit labels.
+    public static let countdown = UIKitFixture("uikit/datepicker/countdown", size: CGSize(width: 320, height: 240)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        root.backgroundColor = .white
+        let picker = UIDatePicker()
+        picker.preferredDatePickerStyle = .wheels
+        picker.datePickerMode = .countDownTimer
+        picker.countDownDuration = 90 * 60
+        picker.sizeToFit()
+        picker.frame.origin = CGPoint(x: 0, y: 12)
+        root.addSubview(picker.probe("countdown"))
+        return root
+    }
+
+    /// Compact date-and-time pickers in en_GB, de_DE, fr_FR and ja_JP, each 300 wide.
+    public static let locales = UIKitFixture("uikit/datepicker/locales", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        root.backgroundColor = .white
+        var y: CGFloat = 16
+        for (identifier, probe) in [("en_GB", "gb"), ("de_DE", "de"), ("fr_FR", "fr"), ("ja_JP", "jp")] {
+            let picker = UIDatePicker()
+            picker.preferredDatePickerStyle = .compact
+            picker.datePickerMode = .dateAndTime
+            picker.locale = Locale(identifier: identifier)
+            picker.date = fixedDate
+            picker.sizeToFit()
+            picker.frame = CGRect(x: 10, y: y, width: 300, height: picker.frame.height)
+            root.addSubview(picker.probe(probe))
+            y += 56
+        }
+        let range = UIDatePicker()
+        range.preferredDatePickerStyle = .compact
+        range.datePickerMode = .date
+        range.minimumDate = fixedDate.addingTimeInterval(86_400 * 3)   // the date is before the minimum: clamped on display?
+        range.date = fixedDate
+        range.sizeToFit()
+        range.frame = CGRect(x: 10, y: y, width: 300, height: range.frame.height)
+        root.addSubview(range.probe("clamped"))
+        return root
+    }
+}
+
+extension PickerFixtures {
+    /// Custom row views (coloured bold labels in a 44 pt row, 180 wide) beside plain titles.
+    public static let custom = UIKitFixture("uikit/picker/custom", size: CGSize(width: 320, height: 240)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        root.backgroundColor = .white
+        let source = CustomRowSource()
+        DatePickerFixtures.customSources.append(source)
+        let picker = UIPickerView()
+        picker.dataSource = source
+        picker.delegate = source
+        picker.sizeToFit()
+        picker.frame.origin = CGPoint(x: 0, y: 12)
+        picker.selectRow(2, inComponent: 0, animated: false)
+        picker.selectRow(3, inComponent: 1, animated: false)
+        root.addSubview(picker.probe("custom"))
         return root
     }
 }
@@ -19174,7 +19441,7 @@ final class PickerSource: NSObject, UIPickerViewDataSource, UIPickerViewDelegate
 }
 
 public enum PickerFixtures {
-    public static let all = [basic]
+    public static let all = [basic, custom]
 
     @MainActor static var sources: [PickerSource] = []
 

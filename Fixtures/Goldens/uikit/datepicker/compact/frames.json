@@ -9,7 +9,7 @@
     },
     "dateAndTime" : {
       "height" : 40,
-      "width" : 223.5,
+      "width" : 240,
       "x" : 16,
       "y" : 112
     },
@@ -18,6 +18,12 @@
       "width" : 240,
       "x" : 16,
       "y" : 160
+    },
+    "narrow" : {
+      "height" : 40,
+      "width" : 200,
+      "x" : 16,
+      "y" : 208
     },
     "time" : {
       "height" : 40,

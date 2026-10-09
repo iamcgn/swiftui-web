@@ -14,7 +14,7 @@ final class PickerSource: NSObject, UIPickerViewDataSource, UIPickerViewDelegate
 }
 
 public enum PickerFixtures {
-    public static let all = [basic]
+    public static let all = [basic, custom]
 
     @MainActor static var sources: [PickerSource] = []
 

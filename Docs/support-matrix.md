@@ -1,6 +1,6 @@
 # Support matrix
 
-Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-progress.py`; edit the JSON, not this file. Anything not listed is not implemented. Every row that does something names the fixtures that prove it (`Fixtures/Goldens/<name>`; `demo/` and `probe/` fixtures have no golden and are checked by a probe or a test), or says why none can exist.
+Generated from `Docs/support.json` (last edited 2026-10-08) by `scripts/gen-progress.py`; edit the JSON, not this file. Anything not listed is not implemented. Every row that does something names the fixtures that prove it (`Fixtures/Goldens/<name>`; `demo/` and `probe/` fixtures have no golden and are checked by a probe or a test), or says why none can exist.
 
 | Status | Meaning |
 |---|---|
@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 48 | 7 | 38 | 3 | 0 | 0 |
+| UIKit | 49 | 10 | 36 | 3 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **188** | 32 | 143 | 7 | 3 | 3 |
+| **All** | **189** | 35 | 141 | 7 | 3 | 3 |
 
 ## App lifecycle
 
@@ -198,8 +198,9 @@ Generated from `Docs/support.json` (last edited 2026-09-18) by `scripts/gen-prog
 | `UISlider / UISegmentedControl / UIStepper / UIProgressView` | 🟢 partial | Measured looks at their intrinsic sizes, taps and drags set values and send valueChanged; open: slider min/max images, segment images and widths, momentary segments, the stepper's repeat | uikit/controls/more |
 | `UIActivityIndicatorView` | 🟡 approximate | A still of eight fading spokes at the medium and large sizes; it does not spin (Docs/todo.json uk-spinner) | uikit/controls/more |
 | `UIPageControl` | 🟢 partial | Dots for numberOfPages with the current page filled; open: the continuous interaction style, custom indicator images | uikit/controls/more |
-| `UIDatePicker` | 🟢 partial | The compact style's date and time pills and the wheels style (three columns on a 32 pt pitch), modes, minimum and maximum dates, minuteInterval; inline draws the wheels; open: the compact popover, the inline calendar, locales other than en_US | uikit/datepicker/compact, uikit/datepicker/wheels |
-| `UIPickerView` | 🟢 partial | Components and rows from a data source, row heights and widths from the delegate, selectRow; open: custom row views, the wheel's perspective (approximated) | uikit/picker/basic |
+| `UIDatePicker` | ✅ full | The compact style's date and time capsules (the numeric date when the long one does not fit) and the popovers a tap presents (the inline calendar, the time wheels), the inline style's calendar with its time row, the wheels for dates, times and the count-down timer spun by a drag or a tap with valueChanged, minimum and maximum dates clamping the date and greying the calendar, minuteInterval, en_US, en_GB, de, fr and ja strings (others approximate); open: the drum's perspective (approximate, frames-only), the month-and-year wheels behind the title, calendars other than the Gregorian | uikit/datepicker/compact, uikit/datepicker/wheels, uikit/datepicker/inline, uikit/datepicker/inline-time, uikit/datepicker/countdown, uikit/datepicker/locales |
+| `UICalendarView` | ✅ full | The month grid sized to fit (280 × 288) or to its frame, availableDateRange greying and skipping days and stopping the paging, single- and multi-date selection behaviours with their delegates, visibleDateComponents and the paging chevrons, decorations as dots (approximate); open: custom decoration views, the month-and-year wheels behind the title | uikit/datepicker/calendar |
+| `UIPickerView` | ✅ full | Components and rows from a data source, row heights and widths from the delegate (sized columns centred as a group, the drum at the tallest row), titles, attributed titles and custom row views painted on the drum, selectRow, a drag or a tap spins a component and calls didSelectRow; open: the wheel's perspective (approximated, frames-only) | uikit/picker/basic, uikit/picker/custom |
 
 ## UIKit: text
 

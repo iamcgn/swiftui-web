@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-18",
+  "generated": "2026-10-08",
   "sections": [
     {
       "title": "App lifecycle",
@@ -1487,19 +1487,32 @@
         },
         {
           "api": "UIDatePicker",
-          "status": "partial",
-          "notes": "The compact style's date and time pills and the wheels style (three columns on a 32 pt pitch), modes, minimum and maximum dates, minuteInterval; inline draws the wheels; open: the compact popover, the inline calendar, locales other than en_US",
+          "status": "full",
+          "notes": "The compact style's date and time capsules (the numeric date when the long one does not fit) and the popovers a tap presents (the inline calendar, the time wheels), the inline style's calendar with its time row, the wheels for dates, times and the count-down timer spun by a drag or a tap with valueChanged, minimum and maximum dates clamping the date and greying the calendar, minuteInterval, en_US, en_GB, de, fr and ja strings (others approximate); open: the drum's perspective (approximate, frames-only), the month-and-year wheels behind the title, calendars other than the Gregorian",
           "fixtures": [
             "uikit/datepicker/compact",
-            "uikit/datepicker/wheels"
+            "uikit/datepicker/wheels",
+            "uikit/datepicker/inline",
+            "uikit/datepicker/inline-time",
+            "uikit/datepicker/countdown",
+            "uikit/datepicker/locales"
+          ]
+        },
+        {
+          "api": "UICalendarView",
+          "status": "full",
+          "notes": "The month grid sized to fit (280 × 288) or to its frame, availableDateRange greying and skipping days and stopping the paging, single- and multi-date selection behaviours with their delegates, visibleDateComponents and the paging chevrons, decorations as dots (approximate); open: custom decoration views, the month-and-year wheels behind the title",
+          "fixtures": [
+            "uikit/datepicker/calendar"
           ]
         },
         {
           "api": "UIPickerView",
-          "status": "partial",
-          "notes": "Components and rows from a data source, row heights and widths from the delegate, selectRow; open: custom row views, the wheel's perspective (approximated)",
+          "status": "full",
+          "notes": "Components and rows from a data source, row heights and widths from the delegate (sized columns centred as a group, the drum at the tallest row), titles, attributed titles and custom row views painted on the drum, selectRow, a drag or a tap spins a component and calls didSelectRow; open: the wheel's perspective (approximated, frames-only)",
           "fixtures": [
-            "uikit/picker/basic"
+            "uikit/picker/basic",
+            "uikit/picker/custom"
           ]
         }
       ]

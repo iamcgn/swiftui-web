@@ -352,6 +352,16 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("0:00\u{202F}PM", .system(size: 17)),   // the time label's monospaced digits: every digit as wide as a zero
         UIKitTextRequest("11:30\u{202F}AM", .system(size: 17)),
         UIKitTextRequest("00:00\u{202F}AM", .system(size: 17)),
+        UIKitTextRequest("9/11/26", .system(size: 17)),   // the numeric date a narrow picker falls back to
+        // uikit/datepicker/locales (uk-datepicker): en_GB, de_DE, fr_FR and ja_JP dates, the 24-hour time
+        // (sized with zeros like the 12-hour one) and the date a minimum date clamps the picker to.
+        UIKitTextRequest("11 Sep 2026", .system(size: 17)),
+        UIKitTextRequest("11.09.2026", .system(size: 17)),
+        UIKitTextRequest("11 sept. 2026", .system(size: 17)),
+        UIKitTextRequest("2026/09/11", .system(size: 17)),
+        UIKitTextRequest("11:30", .system(size: 17)),
+        UIKitTextRequest("00:00", .system(size: 17)),
+        UIKitTextRequest("Sep 14, 2026", .system(size: 17)),
         // uikit/nav/toolbar, uikit/nav/search
         UIKitTextRequest("Files", .system(size: 17, weight: "semibold")),
         UIKitTextRequest("Items", .system(size: 17, weight: "semibold")),
