@@ -42,6 +42,7 @@ import Foundation
         view.frame = CGRect(x: 10, y: 10, width: 40, height: 40)
         let root = UIViewController()
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        window.overrideUserInterfaceStyle = .light   // the tint is checked in the light look
         window.rootViewController = root
         window.makeKeyAndVisible()
         root.view.addSubview(view)
