@@ -51,7 +51,7 @@ final class CounterViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         guard let stack else { return }
-        let size = stack.sizeThatFits(view.bounds.size)
+        let size = stack.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
         stack.frame = CGRect(x: (view.bounds.width - size.width) / 2, y: (view.bounds.height - size.height) / 2, width: size.width, height: size.height)
     }
 }
