@@ -3,7 +3,7 @@
 
 /// An object that manages a view hierarchy for your UIKit app.
 @MainActor
-open class UIViewController: UIResponder, UITraitEnvironment {
+open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     public init(nibName: String? = nil, bundle: Any? = nil) {
         super.init()
     }
@@ -111,7 +111,11 @@ open class UIViewController: UIResponder, UITraitEnvironment {
     override open var next: UIResponder? { _view?.superview ?? parent ?? window }
 
     open var traitCollection: UITraitCollection { _view?.traitCollection ?? UIScreen.main.traitCollection }
+    /// Called with the view's when the view's traits change (the window's style, an override
+    /// above it, the host's scheme or size).
     open func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {}
+    /// Observers registered with `registerForTraitChanges` (UITraitChangeObservable).
+    public var traitChangeObservers: [TraitChangeObserver] = []
 
     // MARK: Appearance
 

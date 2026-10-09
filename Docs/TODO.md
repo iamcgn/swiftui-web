@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 17 | 0 | 6 | 11 |
+| UIKit | 16 | 0 | 5 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **55** | 0 | 7 | 48 |
+| **All** | **54** | 0 | 6 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Trait overrides and observation** `uk-traits` · Views · missing  
-  `overrideUserInterfaceStyle` on a view (the window's and `traitOverrides` work), `registerForTraitChanges` and `traitCollectionDidChange` on every change, size classes from the host size, dark samples of the wheels and of presentations other than the alert. ([Dark.md](Docs/elements/UIKit/Dark.md))
 - ☐ **Gradient and text layers, display links, animation options** `uk-layers` · Core Animation · missing  
   `CAGradientLayer`, `CATextLayer`, `CADisplayLink` on the scene's clock, `CAAnimationGroup` playback, keyframes through every value, additive animations, `repeat`/`autoreverse`/`beginFromCurrentState` on `UIView.animate` (accepted), `delayFactor`, `scrubsLinearly` and spring velocity on property animators. ([Animation.md](Docs/elements/UIKit/Animation.md))
 - ☐ **Layout guides, animated constraints and stacks** `uk-autolayout-rest` · Auto Layout · verify  
@@ -153,6 +151,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-09 **UIPageViewController** `uk-pageviewcontroller` · UIKit · Containers
 - ☑ 2026-10-09 **UIVisualEffectView and the glass** `uk-materials` · UIKit · Views
 - ☑ 2026-10-09 **Layer corners, borders and shadows against pixels** `uk-view-pixels` · UIKit · Views
+- ☑ 2026-10-09 **Trait overrides and observation** `uk-traits` · UIKit · Views
 - ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation

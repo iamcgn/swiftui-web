@@ -5,7 +5,7 @@
 
 /// An object that manages the content for a rectangular area on the screen.
 @MainActor
-open class UIView: UIResponder, UITraitEnvironment {
+open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     /// The layer class this view creates (`CALayer` unless overridden).
     open class var layerClass: AnyClass { CALayer.self }
 
@@ -100,7 +100,16 @@ open class UIView: UIResponder, UITraitEnvironment {
         for subview in subviews where subview._tintColor == nil { subview.tintColorDidChange() }
     }
     open var tintAdjustmentMode: TintAdjustmentMode = .automatic
-    open var overrideUserInterfaceStyle: UIUserInterfaceStyle = .unspecified { didSet { setNeedsDisplay() } }
+    open var overrideUserInterfaceStyle: UIUserInterfaceStyle = .unspecified {
+        willSet { traitsBeforeOverrides = traitCollection }
+        didSet {
+            guard overrideUserInterfaceStyle != oldValue else { return }
+            propagateTraitChange(from: traitsBeforeOverrides)
+            setNeedsDisplay()
+        }
+    }
+    /// Observers registered with `registerForTraitChanges` (UITraitChangeObservable).
+    public var traitChangeObservers: [TraitChangeObserver] = []
     open var tag = 0
     open var accessibilityIdentifier: String?
     open var semanticContentAttribute: UISemanticContentAttribute = .unspecified
@@ -315,9 +324,15 @@ open class UIView: UIResponder, UITraitEnvironment {
         return traitOverrides.userInterfaceStyle ?? inherited
     }
 
-    /// Tells the subtree the traits changed.
+    /// Tells the subtree the traits changed: `traitCollectionDidChange`, the registered
+    /// observers, and the owning view controller's callback.
     func propagateTraitChange(from previous: UITraitCollection?) {
         traitCollectionDidChange(previous)
+        notifyTraitObservers(previous: previous)
+        if let controller = owningViewController {
+            controller.traitCollectionDidChange(previous)
+            controller.notifyTraitObservers(previous: previous)
+        }
         for subview in subviews { subview.propagateTraitChange(from: previous) }
     }
 

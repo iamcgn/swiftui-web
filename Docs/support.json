@@ -1373,11 +1373,20 @@
       "framework": "UIKit",
       "entries": [
         {
+          "api": "Traits: overrideUserInterfaceStyle, traitOverrides, traitCollectionDidChange, registerForTraitChanges, size classes",
+          "status": "full",
+          "notes": "A view's or view controller's overrideUserInterfaceStyle and traitOverrides turn a subtree dark or light (the nearest wins); every override, the window's, the host's scheme and the host's size reach traitCollectionDidChange and the iOS 17 registerForTraitChanges observers on views and view controllers; the idiom and size classes follow the host's size",
+          "fixtures": [
+            "uikit/view/traits"
+          ]
+        },
+        {
           "api": "UIVisualEffectView / UIBlurEffect / UIVibrancyEffect",
           "status": "approximate",
-          "notes": "Every blur style as a blur of what lies beneath under a fitted tint (the system materials and the plain light/dark styles measured over four grounds; the dark appearance's tints unmeasured), the content view over it, the layer's corners; a vibrancy view is a transparent container; the glass platters of bars share the blur; open: vibrancy blending, iOS 26's refraction and highlight rim",
+          "notes": "Every blur style as a blur of what lies beneath under a fitted tint (the system materials and the plain light/dark styles measured over four grounds in both appearances), the content view over it, the layer's corners; a vibrancy view is a transparent container; the glass platters of bars share the blur; open: vibrancy blending, iOS 26's refraction and highlight rim",
           "fixtures": [
-            "uikit/view/materials"
+            "uikit/view/materials",
+            "uikit/dark/materials"
           ]
         },
         {

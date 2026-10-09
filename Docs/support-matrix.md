@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 51 | 13 | 34 | 4 | 0 | 0 |
+| UIKit | 52 | 14 | 34 | 4 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **191** | 38 | 139 | 8 | 3 | 3 |
+| **All** | **192** | 39 | 139 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -181,7 +181,8 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `UIVisualEffectView / UIBlurEffect / UIVibrancyEffect` | 🟡 approximate | Every blur style as a blur of what lies beneath under a fitted tint (the system materials and the plain light/dark styles measured over four grounds; the dark appearance's tints unmeasured), the content view over it, the layer's corners; a vibrancy view is a transparent container; the glass platters of bars share the blur; open: vibrancy blending, iOS 26's refraction and highlight rim | uikit/view/materials |
+| `Traits: overrideUserInterfaceStyle, traitOverrides, traitCollectionDidChange, registerForTraitChanges, size classes` | ✅ full | A view's or view controller's overrideUserInterfaceStyle and traitOverrides turn a subtree dark or light (the nearest wins); every override, the window's, the host's scheme and the host's size reach traitCollectionDidChange and the iOS 17 registerForTraitChanges observers on views and view controllers; the idiom and size classes follow the host's size | uikit/view/traits |
+| `UIVisualEffectView / UIBlurEffect / UIVibrancyEffect` | 🟡 approximate | Every blur style as a blur of what lies beneath under a fitted tint (the system materials and the plain light/dark styles measured over four grounds in both appearances), the content view over it, the layer's corners; a vibrancy view is a transparent container; the glass platters of bars share the blur; open: vibrancy blending, iOS 26's refraction and highlight rim | uikit/view/materials, uikit/dark/materials |
 | `UIView: tree, geometry and the layout cycle` | ✅ full | addSubview / insertSubview / removeFromSuperview / bringSubviewToFront / sendSubviewToBack / exchangeSubview, superview / subviews / window, frame / bounds / center / transform / autoresizingMask, convert(_:to:), setNeedsLayout / layoutIfNeeded / layoutSubviews, sizeThatFits / sizeToFit / intrinsicContentSize / invalidateIntrinsicContentSize / systemLayoutSizeFitting, hugging and compression priorities, layoutMargins, safeAreaInsets (a window's, a container's bars, a hosted tree's), hitTest / point(inside:); the painted corners (continuous and unclamped past half a side), masked corners, borders, shadows (with shadowPath and colour), group opacity and layer masks verified against the simulator's pixels (uikit/view/layers, uikit/view/looks); open: a transparent layer's shadow path | uikit/view/autoresizing, uikit/view/layers, uikit/autolayout/fitting, uikit/view/looks |
 | `CALayer (cornerRadius / cornerCurve / maskedCorners / border / shadow / opacity / mask / backgroundColor / sublayers / zPosition)` | 🟢 partial | Painted into the display list at the layer's frame; continuous corners as SwiftUI's; masksToBounds clips; open: layer transforms beyond translation, CAShapeLayer paths beyond fills and strokes | uikit/view/layers |
 | `Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)` | 🟢 partial | The window's style, a hosted tree's overrides (style, size classes, layout direction, content size category), traitCollectionDidChange down the tree; open: overrideUserInterfaceStyle on a view, registerForTraitChanges | uikit/dark/*, ios/representable/traits, ios/dark/representable-controls |

@@ -1,0 +1,57 @@
+{
+  "fixture" : "uikit\/dark\/imagetints",
+  "frames" : {
+    "badgeTemplate" : {
+      "height" : 48,
+      "width" : 48,
+      "x" : 160,
+      "y" : 16
+    },
+    "badgeTinted" : {
+      "height" : 48,
+      "width" : 48,
+      "x" : 232,
+      "y" : 16
+    },
+    "data" : {
+      "height" : 48,
+      "width" : 48,
+      "x" : 88,
+      "y" : 96
+    },
+    "original" : {
+      "height" : 48,
+      "width" : 48,
+      "x" : 88,
+      "y" : 16
+    },
+    "roundTrip" : {
+      "height" : 48,
+      "width" : 48,
+      "x" : 160,
+      "y" : 96
+    },
+    "sized" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 232,
+      "y" : 96
+    },
+    "symbol" : {
+      "height" : 48,
+      "width" : 48,
+      "x" : 16,
+      "y" : 96
+    },
+    "template" : {
+      "height" : 48,
+      "width" : 48,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 320
+  }
+}

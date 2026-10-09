@@ -1,9 +1,9 @@
 // UIVisualEffectView (Docs/elements/UIKit/UIView.md): a blur of what lies beneath (the
 // substrate's backdropBlur) under a tint, with a content view over it. The materials' sigmas
 // and tints are fitted to the iPhone SE simulator's capture of each style over black, blue,
-// white and red bands (uikit/view/materials, 2026-10-09): a Gaussian of the ground mixed with
-// a flat tint at an alpha. UIKit's saturation boosts are not modelled, so the plain blur
-// styles are approximate; a vibrancy effect view is a transparent container (its content
+// white and red bands in both appearances (uikit/view/materials, uikit/dark/materials,
+// 2026-10-09): a Gaussian of the ground mixed with a flat tint at an alpha, the plain styles
+// with the ground saturated. A vibrancy effect view is a transparent container (its content
 // draws in its own colours).
 
 /// An object that provides a visual effect to a visual effect view.
@@ -32,15 +32,17 @@ open class UIBlurEffect: UIVisualEffect {
         let dark: RGBA
         /// The ground's saturation under the tint (the plain styles boost it by 1.6).
         var saturation: Double = 1
+        /// The dark appearance's saturation when it differs (the chrome material's 1.3).
+        var darkSaturation: Double? = nil
     }
 
     var look: Look {
         func rgba(_ r: Int, _ g: Int, _ b: Int, _ a: Double) -> RGBA { RGBA(red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, alpha: a) }
-        let ultraThin = Look(sigma: 20, light: rgba(222, 222, 226, 0.44), dark: rgba(28, 28, 30, 0.55))
-        let thin = Look(sigma: 32, light: rgba(245, 250, 252, 0.56), dark: rgba(30, 30, 32, 0.7))
-        let material = Look(sigma: 28, light: rgba(245, 249, 249, 0.78), dark: rgba(37, 37, 39, 0.82))
-        let thick = Look(sigma: 32, light: rgba(246, 248, 249, 0.93), dark: rgba(44, 44, 46, 0.93))
-        let chrome = Look(sigma: 32, light: rgba(255, 255, 255, 0.73), dark: rgba(28, 28, 30, 0.75))
+        let ultraThin = Look(sigma: 20, light: rgba(222, 222, 226, 0.44), dark: rgba(72, 77, 78, 0.46))
+        let thin = Look(sigma: 32, light: rgba(245, 250, 252, 0.56), dark: rgba(40, 41, 48, 0.57))
+        let material = Look(sigma: 28, light: rgba(245, 249, 249, 0.78), dark: rgba(36, 37, 40, 0.72))
+        let thick = Look(sigma: 32, light: rgba(246, 248, 249, 0.93), dark: rgba(31, 30, 34, 0.92))
+        let chrome = Look(sigma: 32, light: rgba(255, 255, 255, 0.73), dark: rgba(28, 29, 30, 0.61), darkSaturation: 1.3)
         switch style {
         case .systemUltraThinMaterial: return ultraThin
         case .systemThinMaterial: return thin
@@ -59,10 +61,10 @@ open class UIBlurEffect: UIVisualEffect {
         case .systemChromeMaterialDark: return Look(sigma: chrome.sigma, light: chrome.dark, dark: chrome.dark)
         // The plain styles saturate the ground by 1.6 under a thin tint (regular and light fitted;
         // extra light and prominent are approximate).
-        case .regular, .prominent: return Look(sigma: 24, light: rgba(239, 239, 255, 0.33), dark: rgba(25, 26, 29, 0.73), saturation: 1.6)
-        case .light: return Look(sigma: 24, light: rgba(239, 239, 255, 0.33), dark: rgba(239, 239, 255, 0.33), saturation: 1.6)
+        case .regular, .prominent: return Look(sigma: 24, light: rgba(239, 239, 255, 0.33), dark: rgba(27, 29, 30, 0.73), saturation: 1.6)
+        case .light: return Look(sigma: 24, light: rgba(239, 239, 255, 0.33), dark: rgba(245, 255, 255, 0.32), saturation: 1.6)
         case .extraLight: return Look(sigma: 24, light: rgba(255, 255, 255, 0.6), dark: rgba(255, 255, 255, 0.6), saturation: 1.6)
-        case .dark: return Look(sigma: 16, light: rgba(25, 26, 29, 0.73), dark: rgba(25, 26, 29, 0.73))
+        case .dark: return Look(sigma: 16, light: rgba(25, 26, 29, 0.73), dark: rgba(24, 27, 28, 0.73))
         }
     }
 }
@@ -110,7 +112,7 @@ open class UIVisualEffectView: UIView {
         let radius = min(layer.cornerRadius, min(rect.width, rect.height) / 2)
         let path = radius > 0 ? Path(roundedRect: rect, cornerRadius: radius, style: layer.cornerCurve == .continuous ? .continuous : .circular) : Path(rect)
         let look = blur.look
-        list.append(.backdropBlur(path, bounds: rect, radius: look.sigma, saturation: look.saturation))
+        list.append(.backdropBlur(path, bounds: rect, radius: look.sigma, saturation: style == .dark ? (look.darkSaturation ?? look.saturation) : look.saturation))
         list.append(.fillPath(path, style == .dark ? look.dark : look.light))
     }
 }

@@ -1176,6 +1176,12 @@
       "lastBaseline" : 12.3779296875,
       "width" : 58.5
     },
+    "system:13:400:default|;l1|Secondary" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 65
+    },
     "system:13:400:default|;l1|small" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -1799,6 +1805,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 45.5
+    },
+    "system:17:400:default|;l1|Label" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 41.5
     },
     "system:17:400:default|;l1|Mar 15, 2025" : {
       "firstBaseline" : 16.1865234375,

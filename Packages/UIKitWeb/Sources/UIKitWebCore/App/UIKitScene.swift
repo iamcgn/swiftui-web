@@ -219,9 +219,18 @@ public final class UIKitScene: HostedScene {
         UIScreen.main.bounds = CGRect(origin: .zero, size: size)
         UIScreen.main.scale = scale
         UIScreen.main.traitCollection.displayScale = scale
+        Self.applySizeClasses(for: size)
+        UITraitCollection.current = UIScreen.main.traitCollection
+    }
+
+    /// The idiom and size classes a host size gives (an iPhone in portrait is compact wide
+    /// and regular tall, in landscape compact both ways; narrower than 500 counts as a phone,
+    /// shorter than 400 as compact, so the 400 pt fixtures stay regular as the simulator's
+    /// harness holds them).
+    static func applySizeClasses(for size: CGSize) {
         UIScreen.main.traitCollection.userInterfaceIdiom = size.width < 500 ? .phone : .pad
         UIScreen.main.traitCollection.horizontalSizeClass = size.width < 500 ? .compact : .regular
-        UITraitCollection.current = UIScreen.main.traitCollection
+        UIScreen.main.traitCollection.verticalSizeClass = size.height < 400 ? .compact : .regular
     }
 
     // MARK: Scroll to top
@@ -306,6 +315,13 @@ public final class UIKitScene: HostedScene {
         if UIScreen.main.bounds.size != size {
             UIScreen.main.bounds = CGRect(origin: .zero, size: size)
             for window in windows { window.frame = UIScreen.main.bounds }
+            // The size classes follow the host's size; a change reaches every tree.
+            let previous = UIScreen.main.traitCollection
+            Self.applySizeClasses(for: size)
+            if UIScreen.main.traitCollection != previous {
+                UITraitCollection.current = UIScreen.main.traitCollection
+                for window in windows { window.propagateTraitChange(from: previous) }
+            }
         }
         for window in windows {
             window.layoutIfNeeded()

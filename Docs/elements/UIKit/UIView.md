@@ -103,7 +103,10 @@ materials within 3–5 of 255 rms, the plain styles within 5 once the ground is 
 | `dark` | 16 | 25, 26, 29 @ 0.73 | 1 |
 
 The `…Light` and `…Dark` material styles use the light and dark tints whatever the
-appearance; the dark appearance's tints are approximate (unmeasured). A vibrancy effect view
+appearance. The dark appearance's tints, fitted the same way to `uikit/dark/materials`:
+ultra thin 72, 77, 78 @ 0.46; thin 40, 41, 48 @ 0.57; material 36, 37, 40 @ 0.72; thick 31, 30,
+34 @ 0.92; chrome 28, 29, 30 @ 0.61 with the ground saturated by 1.3; regular 27, 29, 30 @
+0.73; light 245, 255, 255 @ 0.32; dark 24, 27, 28 @ 0.73 (1.6 % off). A vibrancy effect view
 is a transparent container: its content draws in its own colours (the simulator's vibrant
 label was 7/255 black over the material, the label colour). Pixels: `uikit/view/materials`
 1.1 % off the simulator (the blur kernels differ at the band edges).

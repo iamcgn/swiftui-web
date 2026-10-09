@@ -1,0 +1,15 @@
+{
+  "fixture" : "uikit\/dark\/inline",
+  "frames" : {
+    "inlineTime" : {
+      "height" : 373.5,
+      "width" : 320,
+      "x" : 0,
+      "y" : 8
+    }
+  },
+  "size" : {
+    "height" : 440,
+    "width" : 320
+  }
+}

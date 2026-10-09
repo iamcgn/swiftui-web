@@ -160,3 +160,91 @@ public struct UITraitOverrides: Hashable, Sendable {
         if let displayScale { traits.displayScale = displayScale }
     }
 }
+
+// MARK: - Trait change observation (iOS 17: `registerForTraitChanges`)
+
+/// A trait an observer registers for: the value of a trait collection's property.
+public protocol UITraitDefinition {
+    associatedtype Value: Equatable
+    static func value(in traits: UITraitCollection) -> Value
+}
+public typealias UITrait = any UITraitDefinition.Type
+
+public enum UITraitUserInterfaceStyle: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIUserInterfaceStyle { traits.userInterfaceStyle } }
+public enum UITraitHorizontalSizeClass: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIUserInterfaceSizeClass { traits.horizontalSizeClass } }
+public enum UITraitVerticalSizeClass: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIUserInterfaceSizeClass { traits.verticalSizeClass } }
+public enum UITraitUserInterfaceIdiom: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIUserInterfaceIdiom { traits.userInterfaceIdiom } }
+public enum UITraitDisplayScale: UITraitDefinition { public static func value(in traits: UITraitCollection) -> CGFloat { traits.displayScale } }
+public enum UITraitLayoutDirection: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UITraitEnvironmentLayoutDirection { traits.layoutDirection } }
+public enum UITraitPreferredContentSizeCategory: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIContentSizeCategory { traits.preferredContentSizeCategory } }
+
+extension UITraitCollection {
+    /// Whether any of `traits` differs between this collection and `other`.
+    func differs(from other: UITraitCollection?, in traits: [UITrait]) -> Bool {
+        guard let other else { return true }
+        return traits.contains { trait in Self.changed(trait, from: other, to: self) }
+    }
+
+    private static func changed(_ trait: UITrait, from a: UITraitCollection, to b: UITraitCollection) -> Bool {
+        func check<T: UITraitDefinition>(_ type: T.Type) -> Bool { T.value(in: a) != T.value(in: b) }
+        return check(trait)
+    }
+}
+
+/// The token a registration returns, for `unregisterForTraitChanges`.
+public final class UITraitChangeRegistration: Hashable, @unchecked Sendable {
+    public static func == (lhs: UITraitChangeRegistration, rhs: UITraitChangeRegistration) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+
+/// A registered observer: the traits it watches and what to call (an implementation detail
+/// `UITraitChangeObservable` stores on its adopters).
+@MainActor
+public struct TraitChangeObserver {
+    let registration: UITraitChangeRegistration
+    let traits: [UITrait]
+    let handler: @MainActor (UITraitCollection) -> Void
+}
+
+/// An object whose trait changes can be observed with handlers (views and view controllers).
+@MainActor
+public protocol UITraitChangeObservable: AnyObject {
+    var traitChangeObservers: [TraitChangeObserver] { get set }
+    var traitCollection: UITraitCollection { get }
+}
+
+extension UITraitChangeObservable {
+    /// Calls `handler` with this object and its traits whenever one of `traits` changes.
+    @discardableResult
+    public func registerForTraitChanges(_ traits: [UITrait], handler: @escaping @MainActor (Self, UITraitCollection) -> Void) -> UITraitChangeRegistration {
+        let registration = UITraitChangeRegistration()
+        traitChangeObservers.append(TraitChangeObserver(registration: registration, traits: traits) { [weak self] previous in
+            guard let self else { return }
+            handler(self, previous)
+        })
+        return registration
+    }
+
+    /// Calls `action` on `target` (or this object) whenever one of `traits` changes.
+    @discardableResult
+    public func registerForTraitChanges(_ traits: [UITrait], target: AnyObject? = nil, action: @escaping @MainActor (AnyObject, UITraitCollection) -> Void) -> UITraitChangeRegistration {
+        let registration = UITraitChangeRegistration()
+        let target = target ?? self
+        traitChangeObservers.append(TraitChangeObserver(registration: registration, traits: traits) { [weak target] previous in
+            guard let target else { return }
+            action(target, previous)
+        })
+        return registration
+    }
+
+    public func unregisterForTraitChanges(_ registration: UITraitChangeRegistration) {
+        traitChangeObservers.removeAll { $0.registration == registration }
+    }
+
+    /// Runs the observers whose traits differ from `previous`.
+    func notifyTraitObservers(previous: UITraitCollection?) {
+        guard !traitChangeObservers.isEmpty else { return }
+        let current = traitCollection
+        for observer in traitChangeObservers where current.differs(from: previous, in: observer.traits) { observer.handler(previous ?? current) }
+    }
+}

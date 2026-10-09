@@ -38,9 +38,35 @@ picker, buttons and the basic controls (`uikit/dark/textview`, `toolbar`, `searc
 `datepicker`, `buttons`, `basiccontrols`), all within tolerance without a colour change: the
 dark values already measured for the light twins' materials hold.
 
-Open: `overrideUserInterfaceStyle` on a view rather than the window; `UITraitCollection`
-`userInterfaceStyle` observation; dark samples of the pickers' wheels and presentations other
-than the alert.
+## Trait overrides and observation (2026-10-09, `uikit/view/traits`, nine more `uikit/dark/*`)
+
+- `overrideUserInterfaceStyle` on a view (and on a view controller, which sets its view's)
+  turns its subtree dark or light whatever lies above; `traitOverrides.userInterfaceStyle`
+  does the same; the nearest override wins (a light island inside a dark one). The system
+  colours, labels, cards (`secondarySystemBackground`), fills (`systemGray5`) and a switch
+  resolve per island: `uikit/view/traits` 1.2 % off the simulator.
+- A change of either override, of the window's `overrideUserInterfaceStyle`, of the host's
+  colour scheme or of the host's size reaches `traitCollectionDidChange` on every view in the
+  affected subtree and on the view controllers whose views changed, re-resolving their
+  dynamic background colours.
+- `registerForTraitChanges(_:handler:)` / `(_:target:action:)` (iOS 17) on views and view
+  controllers, with `UITraitUserInterfaceStyle`, `…HorizontalSizeClass`, `…VerticalSizeClass`,
+  `…UserInterfaceIdiom`, `…DisplayScale`, `…LayoutDirection`, `…PreferredContentSizeCategory`;
+  the handler runs when one of its traits differs from before; `unregisterForTraitChanges`.
+- Size classes from the host: narrower than 500 is a phone and compact wide, shorter than
+  400 compact tall (an iPhone in portrait is compact × regular, in landscape compact × compact;
+  the 400 pt fixtures stay regular tall as the simulator's harness holds them); a host resize
+  updates them and tells the trees.
+- Dark samples added: the inline calendar with its time row (`uikit/dark/inline` 0.1 %) and
+  the calendar view (`calendar` 0.1 %: the tint disc, weekday and unavailable colours hold),
+  the wheels (`wheels`), the page sheet (`sheet` 0.1 %, its `present` step 0.4 %), the popover
+  (`popover` 0.1 % / 0.3 %), the refresh control (`refresh` 0.6 %, refreshing 1.3 %), image
+  tints (`imagetints` 0.7 %), the layer looks (`looks` 0.3 %) and the materials (`materials`
+  1.6 %, the dark tints fitted: see UIView.md's table; the chrome material saturates its
+  ground by 1.3 in the dark).
+
+Open: `traitCollectionDidChange` for `preferredContentSizeCategory` from the host, the
+`UITraitCollection(traitsFrom:)` composition of overrides on view controllers.
 
 `traitOverrides` (2026-09-12, `UITraitOverrides`): a view's set values replace the inherited
 `userInterfaceStyle`, size classes, `layoutDirection`, `preferredContentSizeCategory`

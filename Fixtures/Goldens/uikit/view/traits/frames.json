@@ -1,0 +1,159 @@
+{
+  "fixture" : "uikit\/view\/traits",
+  "frames" : {
+    "dark" : {
+      "height" : 68,
+      "width" : 320,
+      "x" : 0,
+      "y" : 84
+    },
+    "darkCard" : {
+      "height" : 44,
+      "width" : 60,
+      "x" : 120,
+      "y" : 96
+    },
+    "darkFill" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 190,
+      "y" : 96
+    },
+    "darkLabel" : {
+      "height" : 20.5,
+      "width" : 41.5,
+      "x" : 12,
+      "y" : 96
+    },
+    "darkSecondary" : {
+      "height" : 16,
+      "width" : 65,
+      "x" : 12,
+      "y" : 124
+    },
+    "darkSwitch" : {
+      "height" : 30,
+      "width" : 68,
+      "x" : 240,
+      "y" : 103
+    },
+    "inner" : {
+      "height" : 68,
+      "width" : 304,
+      "x" : 8,
+      "y" : 240
+    },
+    "innerCard" : {
+      "height" : 44,
+      "width" : 60,
+      "x" : 128,
+      "y" : 252
+    },
+    "innerFill" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 198,
+      "y" : 252
+    },
+    "innerLabel" : {
+      "height" : 20.5,
+      "width" : 41.5,
+      "x" : 20,
+      "y" : 252
+    },
+    "innerSecondary" : {
+      "height" : 16,
+      "width" : 65,
+      "x" : 20,
+      "y" : 280
+    },
+    "innerSwitch" : {
+      "height" : 30,
+      "width" : 68,
+      "x" : 248,
+      "y" : 259
+    },
+    "outer" : {
+      "height" : 76,
+      "width" : 320,
+      "x" : 0,
+      "y" : 236
+    },
+    "overridden" : {
+      "height" : 68,
+      "width" : 320,
+      "x" : 0,
+      "y" : 160
+    },
+    "overriddenCard" : {
+      "height" : 44,
+      "width" : 60,
+      "x" : 120,
+      "y" : 172
+    },
+    "overriddenFill" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 190,
+      "y" : 172
+    },
+    "overriddenLabel" : {
+      "height" : 20.5,
+      "width" : 41.5,
+      "x" : 12,
+      "y" : 172
+    },
+    "overriddenSecondary" : {
+      "height" : 16,
+      "width" : 65,
+      "x" : 12,
+      "y" : 200
+    },
+    "overriddenSwitch" : {
+      "height" : 30,
+      "width" : 68,
+      "x" : 240,
+      "y" : 179
+    },
+    "plain" : {
+      "height" : 68,
+      "width" : 320,
+      "x" : 0,
+      "y" : 8
+    },
+    "plainCard" : {
+      "height" : 44,
+      "width" : 60,
+      "x" : 120,
+      "y" : 20
+    },
+    "plainFill" : {
+      "height" : 44,
+      "width" : 44,
+      "x" : 190,
+      "y" : 20
+    },
+    "plainLabel" : {
+      "height" : 20.5,
+      "width" : 41.5,
+      "x" : 12,
+      "y" : 20
+    },
+    "plainSecondary" : {
+      "height" : 16,
+      "width" : 65,
+      "x" : 12,
+      "y" : 48
+    },
+    "plainSwitch" : {
+      "height" : 30,
+      "width" : 68,
+      "x" : 240,
+      "y" : 27
+    }
+  },
+  "size" : {
+    "height" : 320,
+    "width" : 320
+  }
+}

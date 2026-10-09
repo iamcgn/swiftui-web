@@ -1562,13 +1562,14 @@
       "framework": "UIKit",
       "area": "Views",
       "title": "Trait overrides and observation",
-      "detail": "`overrideUserInterfaceStyle` on a view (the window's and `traitOverrides` work), `registerForTraitChanges` and `traitCollectionDidChange` on every change, size classes from the host size, dark samples of the wheels and of presentations other than the alert.",
+      "detail": "`overrideUserInterfaceStyle` on a view (the window's and `traitOverrides` work), `registerForTraitChanges` and `traitCollectionDidChange` on every change, size classes from the host size, dark samples of the wheels and of presentations other than the alert. Done 2026-10-09: overrideUserInterfaceStyle and traitOverrides on views measured (uikit/view/traits 1.2 %: dark islands on a light page, a light one inside a dark one), trait changes from every path reaching traitCollectionDidChange and registerForTraitChanges observers on views and view controllers, size classes from the host size (compact wide under 500, compact tall under 400), nine dark samples (inline calendar, calendar view, wheels, materials with their dark tints fitted, sheet, popover, refresh, image tints, looks) all within tolerance.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Dark.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-appearance",
