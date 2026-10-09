@@ -157,7 +157,6 @@ extension UIView {
         return self
     }
 }
-#endif
 
 // MARK: - Catalog images
 
@@ -221,3 +220,4 @@ public enum UIKitFixtureImage {
         return set.template ? image.withRenderingMode(.alwaysTemplate) : image
     }
 }
+#endif
