@@ -38,6 +38,8 @@ open class UIScrollView: UIView {
     /// below the bar).
     open var adjustedContentInset: UIEdgeInsets {
         var insets = contentInset
+        // A refreshing control holds the content below itself.
+        if let refreshControl, refreshControl.isRefreshing { insets.top += refreshControl.preferredHeight }
         let safe = safeAreaInsets
         switch contentInsetAdjustmentBehavior {
         case .never: break
@@ -54,6 +56,37 @@ open class UIScrollView: UIView {
         return insets
     }
     open var contentInsetAdjustmentBehavior: ContentInsetAdjustmentBehavior = .automatic { didSet { adjustedContentInsetDidChange() } }
+
+    // MARK: Pull to refresh (Controls/UIRefreshControl.swift)
+
+    /// The refresh control above the content: a subview at the content's top, 60 above it
+    /// while refreshing (uikit/scroll/refresh).
+    open var refreshControl: UIRefreshControl? {
+        didSet {
+            guard refreshControl !== oldValue else { return }
+            if let oldValue { oldValue.scrollView = nil; oldValue.removeFromSuperview() }
+            if let refreshControl {
+                refreshControl.scrollView = self
+                addSubview(refreshControl)
+            }
+            refreshStateDidChange()
+        }
+    }
+
+    /// The control began or ended refreshing: the inset follows (the offset keeps its distance
+    /// from the inset edge, so content at rest moves with the control) and the control moves.
+    func refreshStateDidChange() {
+        adjustedContentInsetDidChange()
+        setNeedsLayout()
+    }
+    /// How far a drag has pulled the content past its top (before the rubber band).
+    private var pullDistance: CGFloat = 0 {
+        didSet {
+            guard let refreshControl, !refreshControl.isRefreshing else { return }
+            refreshControl.isHidden = pullDistance <= 0
+            refreshControl.pullFraction = min(1, pullDistance / UIRefreshControl.threshold)
+        }
+    }
     /// The adjusted inset the offset was last clamped against: the offset moves with the
     /// adjustment, so content keeps its distance from the inset edge (at rest it stays at the
     /// top; scrolled under a collapsing large title it rises by the collapse, as UIKit's table
@@ -159,6 +192,13 @@ open class UIScrollView: UIView {
 
     override open func layoutSubviews() {
         super.layoutSubviews()
+        if let refreshControl {
+            let height = refreshControl.preferredHeight
+            // Refreshing (or pulled), the control sits above the content; at rest at its top, hidden.
+            let above = refreshControl.isRefreshing || pullDistance > 0
+            refreshControl.frame = CGRect(x: 0, y: above ? -height : 0, width: bounds.width, height: height)
+            if !refreshControl.isRefreshing, pullDistance <= 0 { refreshControl.isHidden = true }
+        }
         adjustedContentInsetDidChange()
         layoutIndicators()
     }
@@ -311,11 +351,22 @@ open class UIScrollView: UIView {
             let translation = pan.translation(in: self)
             let raw = CGPoint(x: panStartOffset.x - translation.x, y: panStartOffset.y - translation.y)
             contentOffset = bounced(raw)
+            if refreshControl != nil { pullDistance = max(0, -adjustedContentInset.top - raw.y) }
             showIndicators()
         case .ended, .cancelled, .failed:
             isDragging = false
             let velocity = pan.velocity(in: self)
             let resting = clamped(contentOffset)
+            if let refreshControl, !refreshControl.isRefreshing, pullDistance > 0 {
+                // A pull released past the threshold starts a refresh; the content settles under
+                // the control (or back at its top).
+                let triggered = pan.state == .ended && pullDistance >= UIRefreshControl.threshold
+                pullDistance = 0
+                delegate?.scrollViewDidEndDragging(self, willDecelerate: false)
+                if triggered { refreshControl.triggerFromPull() }
+                settle(to: clamped(contentOffset), duration: 0.4)
+                return
+            }
             if resting != contentOffset {
                 // Past an edge: spring back, no momentum.
                 delegate?.scrollViewDidEndDragging(self, willDecelerate: false)

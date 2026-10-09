@@ -37,7 +37,27 @@ scrolling from the host reaches the innermost scroll view that can move.
   content resting at the top moves with a change of it (a `UIScrollView` in a representable
   under a SwiftUI bar starts its content below the bar: `ios/representable/safearea-scroll-ignored`).
 
+## Refresh control (`uikit/scroll/refresh`, iPhone SE simulator, iOS 26, 2026-10-09)
+
+`Controls/UIRefreshControl.swift`; `UIScrollView.refreshControl` (tables included).
+`isRefreshing`, `beginRefreshing()` (sends nothing, as UIKit's does not; it does not scroll
+either, so the fixture moves the content down by the control's height as an app would),
+`endRefreshing()`, `attributedTitle` (its string in 12 pt, the attributes not applied),
+`tintColor` for the spinner, `valueChanged` / `primaryActionTriggered` when a pull releases it.
+
+- The control is a subview at the content's top, 320 × 60 (84.5 with a title: a 12 pt label
+  17.5 tall 60.75 down, 300 wide from 10, 6.25 above the bottom), hidden at rest. Refreshing it
+  moves 60 above the content and the scroll view's adjusted inset grows by its height, so the
+  content rests under it (the table's rows 60 down; the plain scroll view's content 84.5 down).
+- The spinner: eight 3.5 × 10 spokes with 1.75 pt corners, 5 to 15 from a centre 30 down in
+  the control, in the label colour; refreshing they are a fifth bigger (4.2 × 12, 6 to 18) and
+  turn (a step every 1/8 s, approximate: the simulator's spokes turned between captures too,
+  the step's pixels within 1.3 %), fading from the lead spoke. During a pull the spokes appear
+  one by one and grow with the distance (approximate: unmeasured); the pull that starts a
+  refresh is the control's height, 60.
+- Pixels: at rest 0.5 %, refreshing 1.2 %, ended 0.5 %.
+
 ## Open
 
 Zooming, `.automatic`'s extra rules inside navigation controllers, keyboard dismissal,
-scroll-to-top, the indicator insets, refresh controls.
+scroll-to-top, the indicator insets, the pull's exact threshold and the spokes' growth and rate.

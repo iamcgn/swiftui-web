@@ -1092,6 +1092,12 @@
       "lastBaseline" : 11.42578125,
       "width" : 16.5
     },
+    "system:12:400:default|;l1|Pull to refresh" : {
+      "firstBaseline" : 11.42578125,
+      "height" : 14.5,
+      "lastBaseline" : 11.42578125,
+      "width" : 79
+    },
     "system:12:400:default||Subtitle" : {
       "firstBaseline" : 11.42578125,
       "height" : 14.5,
@@ -1871,6 +1877,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 88
+    },
+    "system:17:400:default|;l1|Scroll view content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 144.5
     },
     "system:17:400:default|;l1|Search content" : {
       "firstBaseline" : 16.1865234375,

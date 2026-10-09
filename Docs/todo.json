@@ -1452,13 +1452,14 @@
       "framework": "UIKit",
       "area": "Scrolling",
       "title": "UIRefreshControl",
-      "detail": "The pull-to-refresh control on scroll views and tables, its spinner (uk-spinner) and the iOS 26 geometry from the simulator.",
+      "detail": "The pull-to-refresh control on scroll views and tables, its spinner (uk-spinner) and the iOS 26 geometry from the simulator. Done 2026-10-09: UIRefreshControl on scroll views and tables (UIScrollView.refreshControl): 60 tall (84.5 with a 12 pt title), eight 3.5 × 10 spokes of the label colour 5–15 from a centre 30 down, a fifth bigger and turning while refreshing, hidden at rest; refreshing adds the control's height to the adjusted inset so the content rests under it; a pull released past 60 begins refreshing and sends valueChanged, beginRefreshing sends nothing; uikit/scroll/refresh with refreshing and ended steps, Tier A exact, Tier C 0.5 / 1.2 / 0.5 %.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/UIScrollView.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-scroll-rest",
