@@ -3,11 +3,7 @@
 // `navigator.clipboard.writeText` takes; reading it back is asynchronous and permission-gated
 // there, so the strings read here are the app's own, and the SwiftUI runtime's when a UIKit
 // tree is hosted in one), and named pasteboards the app creates.
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation everywhere, and the NSItemProvider stand-in where ObjectiveC is absent
 
 /// Items an app copies and pastes: dictionaries of type identifier to value, as UIKit's.
 @MainActor
