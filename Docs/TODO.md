@@ -6,18 +6,13 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 12 | 0 | 1 | 11 |
+| UIKit | 11 | 0 | 0 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **50** | 0 | 2 | 48 |
+| **All** | **49** | 0 | 1 | 48 |
 
 ## Next (Phase 8, in order)
 
 ## Soon (the gap sweep)
-
-### UIKit
-
-- ☐ **UIPasteboard** `uk-pasteboard` · App · missing  
-  `UIPasteboard.general` over the runtime pasteboard and the host clipboard writer SwiftUI's `copyable` uses. ([DragDrop.md](Docs/elements/DragDrop.md))
 
 ### Platform
 
@@ -148,6 +143,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-09 **Layout guides, animated constraints and stacks** `uk-autolayout-rest` · UIKit · Auto Layout
 - ☑ 2026-10-09 **Blend modes, attributed drawing and CGPath** `uk-drawing-rest` · UIKit · Drawing
 - ☑ 2026-10-09 **Accessibility notifications and custom actions** `uk-accessibility` · UIKit · Accessibility
+- ☑ 2026-10-09 **UIPasteboard** `uk-pasteboard` · UIKit · App
 - ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation

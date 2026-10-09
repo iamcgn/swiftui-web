@@ -202,6 +202,10 @@ public final class UIKitScene: HostedScene {
         }
     }
     public var clipboardWriter: ((String) -> Void)?
+    /// A hosting runtime's pasteboard (SwiftUIWebUIKit installs these): what it holds, with the
+    /// generation its copies advance, and where `UIPasteboard.general`'s text goes.
+    public var pasteboardSource: (() -> (generation: Int, text: String?))?
+    public var pasteboardSink: ((String?) -> Void)?
     public var onNeedsFrame: (@MainActor () -> Void)?
     /// The host's link opener (`UIApplication.open`).
     public var openURL: ((String) -> Void)?

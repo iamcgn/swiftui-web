@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 53 | 20 | 29 | 4 | 0 | 0 |
+| UIKit | 54 | 20 | 30 | 4 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **193** | 45 | 134 | 8 | 3 | 3 |
+| **All** | **194** | 45 | 135 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -277,6 +277,7 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
 | `UIApplication / UIApplicationDelegate / UIWindow / UIScreen / UIKitScene (the host seam)` | 🟢 partial | An app delegate's window made key and visible on a screen the host sizes, the scene laid out and painted per frame, wheel and pointer input, the semantics tree; open: scenes and scene delegates, state restoration, multiple windows | uikit/view/autoresizing, uikit/nav/basic |
+| `UIPasteboard (general and named, strings / URLs / images / colours, items by type, change counts, item providers) and the responder edit actions (copy / cut / paste / delete / selectAll)` | 🟢 partial | The general pasteboard over the scene's store writes its text to the host's clipboard and shares it with a hosting SwiftUI runtime's pasteboard (a UIKit copy enables PasteButton, a copyable copy reads back); text views edit their selection through it, text fields their whole text; open: reading the system clipboard (the browser hands it only to paste events), changedNotification, detectPatterns, UIPasteControl | — A pasteboard is not pixels: PasteboardTests in both packages hold the behaviour. |
 | `Touches and the responder chain (UITouch, UIEvent, touchesBegan / Moved / Ended / Cancelled, first responder, becomeFirstResponder)` | 🟢 partial | One pointer as one touch routed to the hit view's recognizers then the view, cancellation when a recognizer claims it or the host scrolls, first responders for text input; open: multi-touch, the motion and press events | uikit/controls/basic, uikit/textview/basic, uikit/table/selection |
 | `UIColor (system colours, dynamic providers, the label and background palettes) and the dark appearance` | 🟢 partial | The iOS 26 palette in both appearances resolved per trait collection, dynamic colours re-resolved on trait changes, dark twins of the views, controls, lists, bars and alerts; open: dark samples of the pickers' wheels and of presentations other than the alert | uikit/dark/*, ios/representable/traits |
 

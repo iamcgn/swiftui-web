@@ -28,6 +28,14 @@ final class RepresentableTree: _PlatformViewTree {
         if scene.assetCatalog != assetCatalog { scene.assetCatalog = assetCatalog }
         if scene.imageRasterizer == nil, let rasterizer = imageRasterizer { scene.imageRasterizer = rasterizer }
     }
+
+    /// `UIPasteboard.general` reads the runtime's text when it copied more recently, and its
+    /// own writes reach the runtime's pasteboard.
+    func connectPasteboard(_ bridge: _PasteboardBridge) {
+        let scene = UIKitScene.shared
+        scene.pasteboardSource = { (bridge.generation(), bridge.text()) }
+        scene.pasteboardSink = { bridge.set($0) }
+    }
     /// The runtime's rasteriser, handed to the scene for `UIImage.pngData()`.
     var imageRasterizer: ImageRasterizer?
 

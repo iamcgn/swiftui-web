@@ -9,6 +9,16 @@ open class UIResponder {
     /// The next object in the responder chain, or nil at the end.
     open var next: UIResponder? { nil }
 
+    /// The standard edit actions (`UIResponderStandardEditActions`): the defaults do nothing;
+    /// text fields and text views act on their text and `UIPasteboard.general`
+    /// (App/UIPasteboard.swift).
+    open func copy(_ sender: Any?) {}
+    open func cut(_ sender: Any?) {}
+    open func paste(_ sender: Any?) {}
+    open func delete(_ sender: Any?) {}
+    open func select(_ sender: Any?) {}
+    open func selectAll(_ sender: Any?) {}
+
     open var canBecomeFirstResponder: Bool { false }
     open var canResignFirstResponder: Bool { true }
 

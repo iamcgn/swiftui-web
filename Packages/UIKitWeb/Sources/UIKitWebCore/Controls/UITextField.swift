@@ -142,6 +142,28 @@ open class UITextField: UIControl {
         delegate?.textFieldDidChangeSelection(self)
     }
 
+    // MARK: Edit actions (UIPasteboard.general; uk-pasteboard)
+
+    /// The host's input element keeps the field's selection, so the programmatic actions work
+    /// on the whole text: copy and cut take it all, paste appends.
+    override open func copy(_ sender: Any?) {
+        guard let text, !text.isEmpty else { return }
+        UIPasteboard.general.string = text
+    }
+
+    override open func cut(_ sender: Any?) {
+        guard isEnabled, let text, !text.isEmpty else { return }
+        UIPasteboard.general.string = text
+        self.text = ""
+        sendActions(for: .editingChanged)
+    }
+
+    override open func paste(_ sender: Any?) {
+        guard isEnabled, let string = UIPasteboard.general.string else { return }
+        text = (text ?? "") + string
+        sendActions(for: .editingChanged)
+    }
+
     /// Return was pressed in the host's input element.
     func hostDidSubmit() {
         if delegate?.textFieldShouldReturn(self) ?? true {

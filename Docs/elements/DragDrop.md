@@ -49,8 +49,42 @@ also write their text to the host's clipboard where the page is allowed to (`nav
 in the browser). `PasteButton` re-evaluates on every copy or cut and is disabled while nothing
 of its type is on the pasteboard. Covered by `PasteboardTests`.
 
+### UIPasteboard (2026-10-09, uk-pasteboard)
+
+`Packages/UIKitWeb/Sources/UIKitWebCore/App/UIPasteboard.swift`; `PasteboardTests` in both
+packages. `UIPasteboard.general` holds items as dictionaries of type identifier to value
+(`items`, `setItems`, `addItems`, `numberOfItems`, `changeCount`, `pasteboardTypes()`,
+`contains(pasteboardTypes:)`, `itemSet(withPasteboardTypes:)`, `value` / `setValue` and
+`data` / `setData` `forPasteboardType`, `values(forPasteboardType:inItemSet:)`), with the
+convenience values over the usual identifiers (`string(s)` as `public.utf8-plain-text`,
+`url(s)` as `public.url`, `image(s)` as `public.png`, `color(s)` as `com.apple.uikit.color`,
+`hasStrings` and friends, `setObjects`, `typeListString` … `typeListColor` as string arrays)
+and item providers (synchronous over the wasm stand-in; Foundation's load asynchronously on
+Apple platforms, so providers set there land once their strings arrive). Named pasteboards
+(`UIPasteboard(name:create:)`, `withUniqueName()`, `remove(withName:)`) are separate stores.
+
+Every write to the general pasteboard hands its first string to the host's clipboard writer
+(`navigator.clipboard.writeText` in the browser; reading the system clipboard back is
+asynchronous and permission-gated there, so what `string` returns is the app's own) and to a
+hosting SwiftUI runtime's pasteboard (`UIKitScene.pasteboardSink`); `string` reads the
+runtime's text instead when it copied more recently than the store was written
+(`UIKitScene.pasteboardSource`, the runtime's pasteboard generation). `SwiftUIWebUIKit`
+connects both for representables (`_PlatformViewTree.connectPasteboard(_:)`, the runtime's
+`pasteboardBridge`) and for `UIHostingController`, so a UIKit copy enables a `PasteButton` and
+a SwiftUI `copyable` copy reads back as `UIPasteboard.general.string`.
+
+The responder edit actions (`copy(_:)`, `cut(_:)`, `paste(_:)`, `delete(_:)`, `select(_:)`,
+`selectAll(_:)`) are open on `UIResponder` and do nothing by default; a text view works on
+its `selectedRange` (copy and cut the selection, paste replacing it with the caret after,
+delete, select all), a text field, whose selection the host's input element keeps, copies and
+cuts its whole text and appends on paste. Typing, the caret, selection and the browser's own
+copy and paste in text fields stay the browser's.
+
 ## Open
 
 - Cross-app drags: the browser host would need HTML5 drag events, the native host an
   `NSDraggingSession`; the payload representations are in place for it.
 - Drop indicators, snap-back animation on cancel, `List`/`ForEach` reordering.
+- `UIPasteboard`: reading the system clipboard (the browser hands it only to paste events),
+  `UIPasteboard.changedNotification`, `detectPatterns`, `UIPasteControl`, `canPerformAction`
+  with selectors, a text field's own selection for its edit actions.

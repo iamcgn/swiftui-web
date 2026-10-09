@@ -1924,6 +1924,12 @@
           ]
         },
         {
+          "api": "UIPasteboard (general and named, strings / URLs / images / colours, items by type, change counts, item providers) and the responder edit actions (copy / cut / paste / delete / selectAll)",
+          "status": "partial",
+          "notes": "The general pasteboard over the scene's store writes its text to the host's clipboard and shares it with a hosting SwiftUI runtime's pasteboard (a UIKit copy enables PasteButton, a copyable copy reads back); text views edit their selection through it, text fields their whole text; open: reading the system clipboard (the browser hands it only to paste events), changedNotification, detectPatterns, UIPasteControl",
+          "noFixture": "A pasteboard is not pixels: PasteboardTests in both packages hold the behaviour."
+        },
+        {
           "api": "Touches and the responder chain (UITouch, UIEvent, touchesBegan / Moved / Ended / Cancelled, first responder, becomeFirstResponder)",
           "status": "partial",
           "notes": "One pointer as one touch routed to the hit view's recognizers then the view, cancellation when a recognizer claims it or the host scrolls, first responders for text input; open: multi-touch, the motion and press events",

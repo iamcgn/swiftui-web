@@ -193,6 +193,12 @@ final class _UIHostingView<Content: View>: UIView {
         }
         if runtime.assetCatalog != scene.assetCatalog { runtime.assetCatalog = scene.assetCatalog }
         if runtime.imageRasterizer == nil, let rasterizer = scene.imageRasterizer { runtime.imageRasterizer = rasterizer }
+        // A SwiftUI tree inside UIKit: the app's UIPasteboard and the runtime's pasteboard are one.
+        if scene.pasteboardSource == nil {
+            let bridge = runtime.pasteboardBridge
+            scene.pasteboardSource = { (bridge.generation(), bridge.text()) }
+            scene.pasteboardSink = { bridge.set($0) }
+        }
         let scheme: ColorScheme = traitCollection.userInterfaceStyle == .dark ? .dark : .light
         if runtime.hostColorScheme != scheme { runtime.hostColorScheme = scheme }
         // The view's safe area (a container's bars) is the content's, unless ignored.

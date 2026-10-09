@@ -17,6 +17,8 @@ package protocol _PlatformViewTree: AnyObject {
     /// Gives the tree the runtime's services before it measures or paints (the text engine that
     /// answers the host's strings, the app's asset catalog).
     func prepare(textEngine: any TextEngine, assetCatalog: AssetCatalog)
+    /// The runtime's pasteboard, for the tree's own (`UIPasteboard.general` follows it).
+    func connectPasteboard(_ bridge: _PasteboardBridge)
     /// The host's rasteriser for recorded drawings, if any. Set by the node.
     var imageRasterizer: ImageRasterizer? { get set }
     /// Lays the tree out in `size`, with `safeAreaInsets` as the part of it under the host's
@@ -130,6 +132,7 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
     private func prepareTree() {
         tree.prepare(textEngine: runtime.textEngine, assetCatalog: runtime.assetCatalog)
         tree.imageRasterizer = runtime.imageRasterizer
+        tree.connectPasteboard(runtime.pasteboardBridge)
     }
 
     /// Runs the representable's update with observation tracking, as a body evaluation: the
@@ -303,4 +306,24 @@ extension Runtime {
 
 package struct WeakPlatformHost {
     package weak var node: (any _PlatformViewHosting)?
+}
+
+/// A runtime's pasteboard as a hosted tree sees it: its text and the generation its copies
+/// advance, and a way to put text on it (`UIPasteboard.general` in a hosted UIKit tree).
+public struct _PasteboardBridge {
+    public let generation: @MainActor () -> Int
+    public let text: @MainActor () -> String?
+    public let set: @MainActor (String?) -> Void
+    public init(generation: @escaping @MainActor () -> Int, text: @escaping @MainActor () -> String?, set: @escaping @MainActor (String?) -> Void) {
+        self.generation = generation; self.text = text; self.set = set
+    }
+}
+
+extension Runtime {
+    /// This runtime's pasteboard for hosted trees.
+    public var pasteboardBridge: _PasteboardBridge {
+        _PasteboardBridge(generation: { [weak self] in self?.rootEnvironment._pasteboardGeneration ?? 0 },
+                          text: { [weak self] in self?.pasteboardText },
+                          set: { [weak self] text in self?.setPasteboard(text.map { [_TransferItem($0)] } ?? []) })
+    }
 }

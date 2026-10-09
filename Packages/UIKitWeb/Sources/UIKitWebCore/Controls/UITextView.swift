@@ -195,6 +195,50 @@ open class UITextView: UIScrollView, HostTextInput {
         textViewDelegate?.textViewDidChangeSelection(self)
     }
 
+    // MARK: Edit actions (UIPasteboard.general; uk-pasteboard)
+
+    /// The selected text (UTF-16 offsets of `selectedRange`).
+    private var selectedText: String {
+        let utf16 = Array((text ?? "").utf16)
+        let start = max(0, min(selectedRange.location, utf16.count)), end = max(start, min(selectedRange.location + selectedRange.length, utf16.count))
+        return String(decoding: utf16[start..<end], as: UTF16.self)
+    }
+
+    /// Replaces the selection with `replacement` and puts the caret after it.
+    private func replaceSelection(with replacement: String) {
+        let utf16 = Array((text ?? "").utf16)
+        let start = max(0, min(selectedRange.location, utf16.count)), end = max(start, min(selectedRange.location + selectedRange.length, utf16.count))
+        let updated = String(decoding: utf16[..<start], as: UTF16.self) + replacement + String(decoding: utf16[end...], as: UTF16.self)
+        text = updated
+        selectedRange = NSRange(location: start + replacement.utf16.count, length: 0)
+        textViewDelegate?.textViewDidChange(self)
+    }
+
+    override open func copy(_ sender: Any?) {
+        guard selectedRange.length > 0 else { return }
+        UIPasteboard.general.string = selectedText
+    }
+
+    override open func cut(_ sender: Any?) {
+        guard isEditable, selectedRange.length > 0 else { return }
+        UIPasteboard.general.string = selectedText
+        replaceSelection(with: "")
+    }
+
+    override open func paste(_ sender: Any?) {
+        guard isEditable, let string = UIPasteboard.general.string else { return }
+        replaceSelection(with: string)
+    }
+
+    override open func delete(_ sender: Any?) {
+        guard isEditable, selectedRange.length > 0 else { return }
+        replaceSelection(with: "")
+    }
+
+    override open func selectAll(_ sender: Any?) {
+        selectedRange = NSRange(location: 0, length: (text ?? "").utf16.count)
+    }
+
     // MARK: Runs
 
     /// One run of the text with its font, colour and link.

@@ -1672,13 +1672,14 @@
       "framework": "UIKit",
       "area": "App",
       "title": "UIPasteboard",
-      "detail": "`UIPasteboard.general` over the runtime pasteboard and the host clipboard writer SwiftUI's `copyable` uses.",
+      "detail": "`UIPasteboard.general` over the runtime pasteboard and the host clipboard writer SwiftUI's `copyable` uses. Done 2026-10-09: UIPasteboard.general and named pasteboards (typed items, the string / URL / image / colour conveniences, change counts, item providers), every write handing its text to the host's clipboard writer and to a hosting SwiftUI runtime's pasteboard (UIKitScene.pasteboardSink / pasteboardSource, _PlatformViewTree.connectPasteboard, Runtime.pasteboardBridge; a UIKit copy enables PasteButton and a copyable copy reads back in UIKit), the responder edit actions on text views (the selection) and text fields (the whole text); the system clipboard stays write-only from the page.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/DragDrop.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-scenes",

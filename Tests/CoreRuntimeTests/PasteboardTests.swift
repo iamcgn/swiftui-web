@@ -5,6 +5,7 @@ import Testing
 import SwiftUI
 import SwiftUIWebCore
 import SwiftUIWebHeadless
+import UIKit
 
 #if !os(WASI)
 @Suite @MainActor struct PasteboardTests {
@@ -72,6 +73,54 @@ import SwiftUIWebHeadless
         r.layout(in: CGSize(width: 300, height: 300))
         click(r, r.probeFrames["button"]!)
         #expect(log.button == ["clip"])
+    }
+
+    /// A hosted UIKit view's UIPasteboard.general and the runtime's pasteboard are one
+    /// (uk-pasteboard): a UIKit copy enables the PasteButton, a SwiftUI copy reads back in UIKit.
+    struct Copier: UIViewRepresentable {
+        func makeUIView(context: Context) -> UIButton {
+            let button = UIButton(type: .system)
+            button.setTitle("Copy", for: .normal)
+            button.addAction(UIAction { _ in UIPasteboard.general.string = "from uikit" }, for: .touchUpInside)
+            return button
+        }
+        func updateUIView(_ uiView: UIButton, context: Context) {}
+    }
+
+    struct Bridged: View {
+        let log: Log
+        var body: some View {
+            VStack(spacing: 20) {
+                Copier().frame(width: 80, height: 34)._probe("copier")
+                Color.red.frame(width: 60, height: 30).copyable(["from swiftui"]).focusable()._probe("source")
+                PasteButton(payloadType: String.self) { log.button += $0 }._probe("button")
+            }
+        }
+    }
+
+    @Test func uikitPasteboardIsTheRuntimes() {
+        let log = Log()
+        let r = Runtime()
+        let font = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
+        var entries: [String: RecordedTextEngine.Entry] = [:]
+        entries[RecordedTextEngine.key(font: font, width: nil, string: "Paste")] = .init(width: 34, height: 16, firstBaseline: 13, lastBaseline: 13)
+        entries[RecordedTextEngine.key(font: ResolvedFont(family: "system", size: 15, weight: .regular, italic: false, textStyle: nil), width: nil, string: "Copy")] = .init(width: 34, height: 18, firstBaseline: 14, lastBaseline: 14)
+        r.textEngine = RecordedTextEngine(entries: entries)
+        r.clipboardWriter = { log.written.append($0) }
+        UIPasteboard.general.items = []
+        r.mount(Bridged(log: log))
+        r.layout(in: CGSize(width: 300, height: 300))
+        #expect(UIPasteboard.general.string == nil)
+        click(r, r.probeFrames["copier"]!)
+        #expect(r.pasteboardText == "from uikit" && log.written.contains("from uikit"))
+        click(r, r.probeFrames["button"]!)
+        #expect(log.button == ["from uikit"])
+        // SwiftUI copies: the UIKit side reads it.
+        click(r, r.probeFrames["source"]!)
+        _ = key(r, "c")
+        r.layout(in: CGSize(width: 300, height: 300))
+        #expect(r.pasteboardText == "from swiftui" && UIPasteboard.general.string == "from swiftui")
+        UIPasteboard.general.items = []
     }
 }
 #endif
