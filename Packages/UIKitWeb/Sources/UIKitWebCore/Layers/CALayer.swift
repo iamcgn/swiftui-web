@@ -1,6 +1,11 @@
 // CALayer (Docs/elements/UIKit/CALayer.md): the retained visual tree. Every view owns a layer;
 // the scene paints the layer tree into the display list. Geometry is CoreAnimation's: `bounds`,
 // `position` and `anchorPoint` define `frame`; the transform applies about the anchor.
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
 
 /// A 3D transform, kept to its affine part (the painter is 2D).
 public struct CATransform3D: Equatable, Sendable {
@@ -171,6 +176,10 @@ open class CALayer {
     open var shadowPath: Path? { didSet { setNeedsDisplay() } }
     open var contentsScale: CGFloat = 2
     open var name: String?
+    /// Whether the layer has been painted: a standalone layer's property changes animate
+    /// implicitly only once it has a presentation, as in Core Animation (a layer added and
+    /// configured in the same transaction shows its values at once).
+    var isCommitted = false
     /// A mask layer: its alpha clips this layer's content (its own fill and shape, if any).
     open var mask: CALayer?
     /// A popover's shape (Containers/UIAlertController.swift): the card's rounded rect over
@@ -344,4 +353,139 @@ public struct CAShapeLayerFillRule: Hashable, Sendable, RawRepresentable {
     public init(rawValue: String) { self.rawValue = rawValue }
     public static let nonZero = CAShapeLayerFillRule(rawValue: "non-zero")
     public static let evenOdd = CAShapeLayerFillRule(rawValue: "even-odd")
+}
+
+// MARK: - Gradient and text layers (uikit/layer/content)
+
+public struct CAGradientLayerType: Hashable, Sendable, RawRepresentable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let axial = CAGradientLayerType(rawValue: "axial")
+    public static let radial = CAGradientLayerType(rawValue: "radial")
+    public static let conic = CAGradientLayerType(rawValue: "conic")
+}
+
+/// A layer that draws a colour gradient over its bounds: axial between `startPoint` and
+/// `endPoint` (unit coordinates), radial as the ellipse centred on the start whose radii reach
+/// the end point, conic around the start beginning in the end point's direction.
+@MainActor
+open class CAGradientLayer: CALayer {
+    open var colors: [CGColor]? { didSet { setNeedsDisplay() } }
+    /// The stops' positions (0…1), as doubles: a literal array works on both platforms.
+    open var locations: [Double]? { didSet { setNeedsDisplay() } }
+    open var startPoint = CGPoint(x: 0.5, y: 0) { didSet { setNeedsDisplay() } }
+    open var endPoint = CGPoint(x: 0.5, y: 1) { didSet { setNeedsDisplay() } }
+    open var type: CAGradientLayerType = .axial { didSet { setNeedsDisplay() } }
+
+    public required init() { super.init() }
+    public override init(layer: Any) { super.init(layer: layer) }
+
+    /// The stops: the colours at their locations, evenly spread without any.
+    var stops: [DisplayGradient.Stop] {
+        let colors = (self.colors ?? []).compactMap { RGBA(cgColor: $0) }
+        guard !colors.isEmpty else { return [] }
+        let locations = self.locations
+        return colors.enumerated().map { index, color in
+            let location = locations?.indices.contains(index) == true ? locations![index] : (colors.count > 1 ? Double(index) / Double(colors.count - 1) : 0)
+            return DisplayGradient.Stop(location: location, color: color)
+        }
+    }
+
+    func paintGradient(into list: inout DisplayList, context: PaintContext) {
+        let stops = self.stops
+        guard !stops.isEmpty else { return }
+        let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
+        let start = CGPoint(x: rect.minX + startPoint.x * rect.width, y: rect.minY + startPoint.y * rect.height)
+        let end = CGPoint(x: rect.minX + endPoint.x * rect.width, y: rect.minY + endPoint.y * rect.height)
+        switch type {
+        case .radial:
+            // An ellipse with the end point's offsets as radii: a circle drawn under a scale.
+            let rx = max(0.5, abs(end.x - start.x)), ry = max(0.5, abs(end.y - start.y))
+            let scaleY = ry / rx
+            list.append(.save)
+            list.append(.concat(CGAffineTransform(translationX: 0, y: start.y).scaledBy(x: 1, y: scaleY).translatedBy(x: 0, y: -start.y)))
+            let region = Path(CGRect(x: rect.minX, y: start.y + (rect.minY - start.y) / scaleY, width: rect.width, height: rect.height / scaleY))
+            list.append(.fillGradient(region, DisplayGradient(kind: .radial(center: start, startRadius: 0, endRadius: rx), stops: stops)))
+            list.append(.restore)
+        case .conic:
+            let angle = Double(_atan2(end.y - start.y, end.x - start.x))
+            list.append(.fillGradient(Path(rect), DisplayGradient(kind: .angular(center: start, startAngle: angle), stops: stops)))
+        default:
+            list.append(.fillGradient(Path(rect), DisplayGradient(kind: .linear(start: start, end: end), stops: stops)))
+        }
+    }
+}
+
+public struct CATextLayerAlignmentMode: Hashable, Sendable, RawRepresentable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let natural = CATextLayerAlignmentMode(rawValue: "natural")
+    public static let left = CATextLayerAlignmentMode(rawValue: "left")
+    public static let right = CATextLayerAlignmentMode(rawValue: "right")
+    public static let center = CATextLayerAlignmentMode(rawValue: "center")
+    public static let justified = CATextLayerAlignmentMode(rawValue: "justified")
+}
+
+public struct CATextLayerTruncationMode: Hashable, Sendable, RawRepresentable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let none = CATextLayerTruncationMode(rawValue: "none")
+    public static let start = CATextLayerTruncationMode(rawValue: "start")
+    public static let end = CATextLayerTruncationMode(rawValue: "end")
+    public static let middle = CATextLayerTruncationMode(rawValue: "middle")
+}
+
+/// A layer that draws a string from its top edge in Helvetica (Core Animation's default
+/// font), wrapped when asked, aligned by `alignmentMode`.
+@MainActor
+open class CATextLayer: CALayer {
+    open var string: Any? { didSet { setNeedsDisplay() } }
+    /// A `UIFont` or a font name; nil draws Helvetica at `fontSize`.
+    open var font: Any? { didSet { setNeedsDisplay() } }
+    open var fontSize: CGFloat = 36 { didSet { setNeedsDisplay() } }
+    open var foregroundColor: CGColor? = CGColor(red: 0, green: 0, blue: 0, alpha: 1) { didSet { setNeedsDisplay() } }
+    open var isWrapped = false { didSet { setNeedsDisplay() } }
+    open var alignmentMode: CATextLayerAlignmentMode = .natural { didSet { setNeedsDisplay() } }
+    open var truncationMode: CATextLayerTruncationMode = .none { didSet { setNeedsDisplay() } }
+    open var allowsFontSubpixelQuantization = false
+
+    public required init() { super.init() }
+    public override init(layer: Any) { super.init(layer: layer) }
+
+    var text: String {
+        if let string = string as? String { return string }
+        if let attributed = string as? NSAttributedString { return attributed.string }
+        return string.map { "\($0)" } ?? ""
+    }
+
+    var resolvedFont: UIFont {
+        if let font = font as? UIFont { return font.withSize(fontSize) }
+        if let name = font as? String, let named = UIFont(name: name, size: fontSize) { return named }
+        return UIFont(name: "Helvetica", size: fontSize) ?? .systemFont(ofSize: fontSize)
+    }
+
+    func paintText(into list: inout DisplayList, context: PaintContext) {
+        let text = self.text
+        guard !text.isEmpty, let color = foregroundColor.flatMap({ RGBA(cgColor: $0) }) else { return }
+        let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
+        let font = resolvedFont
+        let truncation: TextTruncationMode = truncationMode == .start ? .head : truncationMode == .middle ? .middle : .tail
+        let options = TextLayoutOptions(lineLimit: isWrapped ? nil : 1, truncationMode: truncation)
+        let layout = UIKitScene.shared.textEngine.layout([StyledRun(text, font: font.resolved)], options: options, width: isWrapped ? bounds.width : nil)
+        let displayFont = DisplayFont(font.resolved)
+        var y = rect.minY + font.ascender
+        for line in layout.lines {
+            let width = line.inkWidth
+            let x: CGFloat
+            switch alignmentMode {
+            case .center: x = rect.midX - width / 2
+            case .right: x = rect.maxX - width
+            default: x = rect.minX
+            }
+            for fragment in line.fragments {
+                list.append(.drawText(fragment.text, displayFont, origin: CGPoint(x: x + fragment.x, y: y), color))
+            }
+            y += font.lineHeight
+        }
+    }
 }

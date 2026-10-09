@@ -84,9 +84,9 @@ enum AnimationCurve {
 /// One `UIView.animate` block: its timing and the layer changes recorded inside it.
 @MainActor
 final class UIViewAnimationGroup {
-    let duration: Double
+    private(set) var duration: Double
     let delay: Double
-    let curve: AnimationCurve
+    private(set) var curve: AnimationCurve
     var completion: ((Bool) -> Void)?
     private(set) var elapsed: Double = 0
     /// Core Animation timing: how many times the animation plays (`.infinity` for ever) and
@@ -103,8 +103,22 @@ final class UIViewAnimationGroup {
         let property: AnimatableProperty
         var from: AnimatableValue
         var to: AnimatableValue
+        /// The entry's window as fractions of the group's cycle (a grouped child's own
+        /// beginTime and duration; an animator block added with a delay factor).
+        var start: Double = 0
+        var end: Double = 1
+        /// The entry's own curve, when it differs from the group's (a grouped child's).
+        var curve: AnimationCurve? = nil
+        /// Keyframes (time 0…1, value) interpolated piecewise instead of `from` → `to`;
+        /// `discrete` holds each value until the next time.
+        var keyframes: [(Double, AnimatableValue)]? = nil
+        var discrete = false
+        /// An additive animation: the interpolated value is added to the model's.
+        var additive = false
     }
     private(set) var entries: [Entry] = []
+    /// Scrubbing linearly (`UIViewPropertyAnimator.scrubsLinearly`): the curve is skipped.
+    var scrubsLinearly = false
 
     init(duration: Double, delay: Double, curve: AnimationCurve) {
         self.duration = duration
@@ -114,14 +128,17 @@ final class UIViewAnimationGroup {
 
     /// The eased progress now (0 before the delay ends, 1 when done); a repeating animation
     /// cycles, an autoreversing one goes back each odd cycle.
-    var progress: Double {
+    var progress: Double { scrubsLinearly ? cycleFraction : curve.value(at: cycleFraction) }
+
+    /// The linear position in the current cycle (0…1; back from 1 on an autoreversing odd cycle).
+    var cycleFraction: Double {
         guard duration > 0 else { return elapsed >= delay ? 1 : 0 }
         let time = max(0, elapsed - delay)
         if isFinished { return autoreverses ? 0 : 1 }
         let cycle = time / duration
         var fraction = cycle - cycle.rounded(.down)
         if autoreverses, Int(cycle.rounded(.down)) % 2 == 1 { fraction = 1 - fraction }
-        return curve.value(at: min(1, max(0, fraction)))
+        return min(1, max(0, fraction))
     }
 
     /// The whole run: the duration times the repeats (twice each when autoreversing).
@@ -132,13 +149,29 @@ final class UIViewAnimationGroup {
 
     var isFinished: Bool { elapsed >= delay + totalDuration }
 
+    /// `UIView.animate`'s `.beginFromCurrentState`: a property already animating starts from
+    /// its presented value rather than the model's.
+    var beginsFromCurrentState = false
+    /// Where entries recorded from now on start (an animator block added with a delay factor).
+    var entryStart: Double = 0
+
     func record(_ layer: CALayer, _ property: AnimatableProperty, from: AnimatableValue, to: AnimatableValue) {
         if let index = entries.firstIndex(where: { $0.layer === layer && $0.property == property }) {
             entries[index].to = to
         } else {
-            entries.append(Entry(layer: layer, property: property, from: from, to: to))
+            var start = from
+            if beginsFromCurrentState, let running = layer.animatingGroups.last(where: { $0 !== self }), let presented = running.presented(layer, property, model: from) { start = presented }
+            var entry = Entry(layer: layer, property: property, from: start, to: to)
+            entry.start = entryStart
+            entries.append(entry)
         }
         layer.animatingGroups.append(self)
+    }
+
+    /// Adds an entry with its own timing (a grouped Core Animation's child).
+    func add(_ entry: Entry) {
+        entries.append(entry)
+        entry.layer?.animatingGroups.append(self)
     }
 
     /// Moves the clock; returns whether the group still runs. A finished group leaves its
@@ -176,21 +209,58 @@ final class UIViewAnimationGroup {
         setFraction(1 - played)
     }
 
+    /// Continues from the presented values with a new curve over `duration` seconds
+    /// (`UIViewPropertyAnimator.continueAnimation`): the entries restart from where they show.
+    func restart(curve: AnimationCurve, duration: Double) {
+        for index in entries.indices {
+            guard let layer = entries[index].layer, let value = presented(layer, entries[index].property, model: entries[index].additive ? layer.modelValue(entries[index].property) : nil) else { continue }
+            entries[index].from = value
+            entries[index].keyframes = nil
+            entries[index].start = 0
+            entries[index].end = 1
+            entries[index].curve = nil
+        }
+        self.curve = curve
+        self.duration = max(0.001, duration)
+        elapsed = delay
+        scrubsLinearly = false
+    }
+
     /// Writes the presented values into the layers' models (a stopped animator holds where it is).
     func applyPresentedToModels() {
         let previous = UIViewAnimationContext.disabled
         UIViewAnimationContext.disabled = true
         defer { UIViewAnimationContext.disabled = previous }
         for entry in entries {
-            guard let layer = entry.layer, let value = presented(layer, entry.property) else { continue }
+            guard let layer = entry.layer, let value = presented(layer, entry.property, model: entry.additive ? layer.modelValue(entry.property) : nil) else { continue }
             layer.apply(entry.property, value)
         }
     }
 
-    /// The presented value of a layer's property, if this group animates it.
-    func presented(_ layer: CALayer, _ property: AnimatableProperty) -> AnimatableValue? {
+    /// The presented value of a layer's property, if this group animates it (`model` is the
+    /// layer's own value, which an additive entry adds to).
+    func presented(_ layer: CALayer, _ property: AnimatableProperty, model: AnimatableValue? = nil) -> AnimatableValue? {
         guard let entry = entries.first(where: { $0.layer === layer && $0.property == property }) else { return nil }
-        return entry.from.interpolated(to: entry.to, progress)
+        // The entry's own window of the cycle, eased by its curve (or the group's).
+        let cycle = cycleFraction
+        let local = entry.end > entry.start ? min(1, max(0, (cycle - entry.start) / (entry.end - entry.start))) : 1
+        let eased = scrubsLinearly ? local : (entry.curve ?? curve).value(at: local)
+        let value: AnimatableValue
+        if let keyframes = entry.keyframes, let first = keyframes.first, let last = keyframes.last {
+            if local <= first.0 { value = first.1 } else if local >= last.0 { value = last.1 } else {
+                var result = last.1
+                for index in 1..<keyframes.count where local < keyframes[index].0 {
+                    let (t0, v0) = keyframes[index - 1], (t1, v1) = keyframes[index]
+                    result = entry.discrete ? v0 : v0.interpolated(to: v1, t1 > t0 ? (local - t0) / (t1 - t0) : 1)
+                    break
+                }
+                value = result
+            }
+        } else {
+            value = entry.from.interpolated(to: entry.to, eased)
+        }
+        if entry.additive, let model { return model.adding(value) }
+        return value
     }
 }
 
@@ -207,7 +277,7 @@ enum UIViewAnimationContext {
         guard !disabled else { return }
         if let group = current {
             group.record(layer, property, from: from, to: to)
-        } else if layer.view == nil, let group = CATransaction.implicitGroup() {
+        } else if layer.view == nil, layer.isCommitted, let group = CATransaction.implicitGroup() {
             group.record(layer, property, from: from, to: to)
         }
     }
@@ -219,7 +289,7 @@ extension CALayer {
         guard !animatingGroups.isEmpty else { return model }
         // The most recent group animating the property wins.
         for group in animatingGroups.reversed() {
-            if let value = group.presented(self, property) { return value }
+            if let value = group.presented(self, property, model: model) { return value }
         }
         return model
     }

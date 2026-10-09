@@ -32,7 +32,7 @@ public enum UIViewAnimatingState: Int, Sendable { case inactive = 0, active, sto
 @MainActor
 open class UIViewPropertyAnimator {
     public let duration: Double
-    public let timingParameters: (any UITimingCurveProvider)?
+    public private(set) var timingParameters: (any UITimingCurveProvider)?
     open var delay: Double = 0
     open var isUserInteractionEnabled = true
     open var isManualHitTestingEnabled = false
@@ -78,19 +78,28 @@ open class UIViewPropertyAnimator {
     }
 
     open func addAnimations(_ animation: @escaping () -> Void, delayFactor: CGFloat = 0) {
-        animations.append(animation)
-        // Added while running: the block joins the group from where it is.
-        if let group, state == .active { record(animation, into: group) }
+        let factor = Double(min(1, max(0, delayFactor)))
+        if factor > 0 { delayed.append((animation, factor)) } else { animations.append(animation) }
+        // Added while running: the block joins the group from where it is, a delay factor
+        // starting it that fraction of the remaining run later.
+        if let group, state == .active {
+            let start = group.fraction + factor * (1 - group.fraction)
+            record(animation, into: group, from: start)
+        }
     }
+    /// Blocks added with a delay factor before the start: they begin that fraction of the way in.
+    private var delayed: [(() -> Void, Double)] = []
 
     open func addCompletion(_ completion: @escaping (UIViewAnimatingPosition) -> Void) { completions.append(completion) }
 
-    /// The linear fraction of the run played (0 at the start, 1 at the end); settable while paused.
+    /// The linear fraction of the run played (0 at the start, 1 at the end); settable while
+    /// paused, when `scrubsLinearly` shows the values without the curve until it runs again.
     open var fractionComplete: CGFloat {
         get { CGFloat(group?.fraction ?? 0) }
         set {
             if group == nil { makeGroup() }
             group?.setFraction(Double(newValue))
+            group?.scrubsLinearly = scrubsLinearly && !isRunning
             UIKitScene.shared.setNeedsFrame()
         }
     }
@@ -115,7 +124,20 @@ open class UIViewPropertyAnimator {
         guard let group else { return }
         state = .active
         isRunning = true
+        group.scrubsLinearly = false
         if !UIKitScene.shared.animationGroups.contains(where: { $0 === group }) { UIKitScene.shared.add(group) }
+    }
+
+    /// Continues a paused run with new timing (a spring with the finger's velocity, say) over
+    /// `durationFactor` times the full duration (the remaining time when 0), from where it shows.
+    open func continueAnimation(withTimingParameters parameters: (any UITimingCurveProvider)?, durationFactor: CGFloat) {
+        guard state != .stopped else { return }
+        if group == nil { makeGroup() }
+        guard let group else { return }
+        let remaining = durationFactor > 0 ? duration * Double(durationFactor) : max(0.001, duration * (1 - group.fraction))
+        group.restart(curve: parameters?.animationCurve.curve ?? group.curve, duration: remaining)
+        if let parameters { timingParameters = parameters }
+        startAnimation()
     }
 
     /// Pausing keeps the presented values on screen; `startAnimation` resumes.
@@ -177,14 +199,17 @@ open class UIViewPropertyAnimator {
         let group = UIViewAnimationGroup(duration: duration, delay: delay, curve: curve)
         group.completion = { [weak self] _ in self?.didFinish() }
         for animation in animations { record(animation, into: group) }
+        for (animation, factor) in delayed { record(animation, into: group, from: factor) }
         if reversed { group.reverse() }
         self.group = group
     }
 
-    private func record(_ animation: () -> Void, into group: UIViewAnimationGroup) {
+    private func record(_ animation: () -> Void, into group: UIViewAnimationGroup, from start: Double = 0) {
         let outer = UIViewAnimationContext.current
         UIViewAnimationContext.current = group
+        group.entryStart = start
         animation()
+        group.entryStart = 0
         UIViewAnimationContext.current = outer
     }
 
@@ -215,6 +240,21 @@ extension UIView.AnimationCurve {
 }
 
 extension CALayer {
+    /// An animatable property's model value.
+    func modelValue(_ property: AnimatableProperty) -> AnimatableValue {
+        switch property {
+        case .opacity: return .scalar(Double(opacity))
+        case .position: return .point(position)
+        case .bounds: return .rect(bounds)
+        case .transform: return .transform(transform.affine)
+        case .cornerRadius: return .scalar(Double(cornerRadius))
+        case .borderWidth: return .scalar(Double(borderWidth))
+        case .backgroundColor: return .color(backgroundColor.flatMap { RGBA(cgColor: $0) })
+        case .borderColor: return .color(borderColor.flatMap { RGBA(cgColor: $0) })
+        case .shadowOpacity: return .scalar(Double(shadowOpacity))
+        }
+    }
+
     /// Writes an animatable property's value into the model.
     func apply(_ property: AnimatableProperty, _ value: AnimatableValue) {
         switch property {

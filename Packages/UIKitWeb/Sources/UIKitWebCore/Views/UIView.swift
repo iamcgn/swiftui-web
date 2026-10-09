@@ -634,7 +634,7 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     /// takes the new values at once and painting interpolates. `completion` runs when the
     /// animation ends (at once when nothing animated).
     open class func animate(withDuration duration: Double, delay: Double = 0, options: AnimationOptions = [], animations: @escaping () -> Void, completion: ((Bool) -> Void)? = nil) {
-        run(duration: duration, delay: delay, curve: options.curve, animations: animations, completion: completion)
+        run(duration: duration, delay: delay, curve: options.curve, options: options, animations: animations, completion: completion)
     }
 
     open class func animate(withDuration duration: Double, animations: @escaping () -> Void) {
@@ -643,7 +643,7 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
 
     open class func animate(withDuration duration: Double, delay: Double, usingSpringWithDamping damping: CGFloat, initialSpringVelocity velocity: CGFloat,
                             options: AnimationOptions = [], animations: @escaping () -> Void, completion: ((Bool) -> Void)? = nil) {
-        run(duration: duration, delay: delay, curve: .spring(damping: Double(damping), velocity: Double(velocity)), animations: animations, completion: completion)
+        run(duration: duration, delay: delay, curve: .spring(damping: Double(damping), velocity: Double(velocity)), options: options, animations: animations, completion: completion)
     }
 
     /// A transition (cross dissolve, flips): the changes apply at once; `completion` runs when
@@ -663,7 +663,7 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         UIViewAnimationContext.disabled = previous
     }
 
-    private class func run(duration: Double, delay: Double, curve: UIKitWebCore.AnimationCurve, animations: () -> Void, completion: ((Bool) -> Void)?) {
+    private class func run(duration: Double, delay: Double, curve: UIKitWebCore.AnimationCurve, options: AnimationOptions = [], animations: () -> Void, completion: ((Bool) -> Void)?) {
         guard areAnimationsEnabled, !UIViewAnimationContext.disabled, duration + delay > 0 else {
             animations()
             completion?(true)
@@ -671,6 +671,11 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         }
         let group = UIViewAnimationGroup(duration: duration, delay: delay, curve: curve)
         group.completion = completion
+        // `.repeat` plays for ever (its completion never comes), `.autoreverse` plays back each
+        // odd cycle, `.beginFromCurrentState` starts a running property from where it shows.
+        if options.contains(.repeat) { group.repeatCount = .infinity }
+        group.autoreverses = options.contains(.autoreverse)
+        group.beginsFromCurrentState = options.contains(.beginFromCurrentState)
         let outer = UIViewAnimationContext.current
         UIViewAnimationContext.current = group
         animations()

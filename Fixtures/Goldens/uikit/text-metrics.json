@@ -24,6 +24,24 @@
       "lastBaseline" : 11.040234375000001,
       "width" : 84.5
     },
+    "custom:Helvetica:13:400|120.0|Wrapped text layer in a narrow box" : {
+      "firstBaseline" : 11.960253906249999,
+      "height" : 30,
+      "lastBaseline" : 26.910253906249999,
+      "width" : 112.5
+    },
+    "custom:Helvetica:14:400|;l1|Centred" : {
+      "firstBaseline" : 12.8802734375,
+      "height" : 16.5,
+      "lastBaseline" : 12.8802734375,
+      "width" : 50
+    },
+    "custom:Helvetica:20:400|;l1|Text layer" : {
+      "firstBaseline" : 18.400390625,
+      "height" : 23,
+      "lastBaseline" : 18.400390625,
+      "width" : 86
+    },
     "rich:system:17:400:default=6,system:17:400:default=19,system:17:400:default=4,system:17:400:default=13,system:17:400:default=7|278.0|Visit https:\/\/example.com or www.apple.com today." : {
       "firstBaseline" : 16.1865234375,
       "height" : 41,
@@ -2707,6 +2725,42 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 6.275390625
+    },
+    "custom:Helvetica:13:400" : {
+      "ascender" : 11.960253906249999,
+      "capHeight" : 9.32470703125,
+      "descender" : -2.98974609375,
+      "leading" : 0,
+      "lineHeight" : 14.949999999999999,
+      "pointSize" : 13,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 6.79833984375
+    },
+    "custom:Helvetica:14:400" : {
+      "ascender" : 12.8802734375,
+      "capHeight" : 10.0419921875,
+      "descender" : -3.2197265625,
+      "leading" : 0,
+      "lineHeight" : 16.100000000000001,
+      "pointSize" : 14,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 7.3212890625
+    },
+    "custom:Helvetica:20:400" : {
+      "ascender" : 18.400390625,
+      "capHeight" : 14.345703125,
+      "descender" : -4.599609375,
+      "leading" : 0,
+      "lineHeight" : 23,
+      "pointSize" : 20,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 10.458984375
     },
     "style:body" : {
       "ascender" : 18.357620599453821,

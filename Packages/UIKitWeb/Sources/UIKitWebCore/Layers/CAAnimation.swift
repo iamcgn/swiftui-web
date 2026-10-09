@@ -77,7 +77,17 @@ open class CAAnimation {
     public init() {}
 
     /// The group that plays this animation on `layer` (nil when nothing animates).
-    func makeGroup(for layer: CALayer) -> UIViewAnimationGroup? { nil }
+    func makeGroup(for layer: CALayer) -> UIViewAnimationGroup? {
+        let entries = self.entries(for: layer, window: 0...1)
+        guard !entries.isEmpty else { return nil }
+        let group = UIViewAnimationGroup(duration: duration, delay: max(0, beginTime), curve: curve)
+        configure(group)
+        for entry in entries { group.add(entry) }
+        return group
+    }
+
+    /// The entries this animation contributes, timed within `window` (its share of a group's cycle).
+    func entries(for layer: CALayer, window: ClosedRange<Double>) -> [UIViewAnimationGroup.Entry] { [] }
 
     /// The curve: the timing function's, else Core Animation's default.
     var curve: AnimationCurve { timingFunction?.curve.curve ?? .cubic(0.25, 0.1, 0.25, 1) }
@@ -110,21 +120,26 @@ open class CABasicAnimation: CAPropertyAnimation {
     open var toValue: Any?
     open var byValue: Any?
 
-    override func makeGroup(for layer: CALayer) -> UIViewAnimationGroup? {
-        guard let keyPath, let property = LayerKeyPath(keyPath) else { return nil }
+    override func entries(for layer: CALayer, window: ClosedRange<Double>) -> [UIViewAnimationGroup.Entry] {
+        guard let keyPath, let property = LayerKeyPath(keyPath) else { return [] }
         let model = property.value(of: layer)
-        let from = fromValue.flatMap { property.value(from: $0, model: model) } ?? property.current(of: layer)
-        var to = toValue.flatMap { property.value(from: $0, model: model) } ?? model
-        if toValue == nil, let by = byValue.flatMap({ property.value(from: $0, model: model) }) { to = from.adding(by) }
-        let group = UIViewAnimationGroup(duration: duration, delay: max(0, beginTime), curve: curve)
-        configure(group)
-        group.record(layer, property.property, from: from, to: to)
-        return group
+        // Additive: the values are deltas from zero added to the model while it plays.
+        let zero = model.zero
+        let from = fromValue.flatMap { property.value(from: $0, model: isAdditive ? zero : model) } ?? (isAdditive ? zero : property.current(of: layer))
+        var to = toValue.flatMap { property.value(from: $0, model: isAdditive ? zero : model) } ?? (isAdditive ? zero : model)
+        if toValue == nil, let by = byValue.flatMap({ property.value(from: $0, model: isAdditive ? zero : model) }) { to = from.adding(by) }
+        var entry = UIViewAnimationGroup.Entry(layer: layer, property: property.property, from: from, to: to)
+        entry.start = window.lowerBound
+        entry.end = window.upperBound
+        entry.curve = window == 0...1 ? nil : curve
+        entry.additive = isAdditive
+        return [entry]
     }
 }
 
-/// An animation through a series of values (approximate: the presented value runs from the
-/// first to the last over the duration).
+/// An animation through a series of values at `keyTimes` (evenly spread without any),
+/// interpolated piecewise (`calculationMode` linear and cubic; discrete holds each value);
+/// `path` is stored.
 @MainActor
 open class CAKeyframeAnimation: CAPropertyAnimation {
     open var values: [Any]?
@@ -132,21 +147,39 @@ open class CAKeyframeAnimation: CAPropertyAnimation {
     open var path: Path?
     open var calculationMode = "linear"
 
-    override func makeGroup(for layer: CALayer) -> UIViewAnimationGroup? {
-        guard let keyPath, let property = LayerKeyPath(keyPath), let values, let first = values.first, let last = values.last else { return nil }
+    override func entries(for layer: CALayer, window: ClosedRange<Double>) -> [UIViewAnimationGroup.Entry] {
+        guard let keyPath, let property = LayerKeyPath(keyPath), let values, !values.isEmpty else { return [] }
         let model = property.value(of: layer)
-        guard let from = property.value(from: first, model: model), let to = property.value(from: last, model: model) else { return nil }
-        let group = UIViewAnimationGroup(duration: duration, delay: max(0, beginTime), curve: curve)
-        configure(group)
-        group.record(layer, property.property, from: from, to: to)
-        return group
+        let base = isAdditive ? model.zero : model
+        let converted = values.compactMap { property.value(from: $0, model: base) }
+        guard let first = converted.first, let last = converted.last else { return [] }
+        let times: [Double] = keyTimes?.count == converted.count ? keyTimes! : converted.indices.map { converted.count > 1 ? Double($0) / Double(converted.count - 1) : 0 }
+        var entry = UIViewAnimationGroup.Entry(layer: layer, property: property.property, from: first, to: last)
+        entry.start = window.lowerBound
+        entry.end = window.upperBound
+        entry.curve = window == 0...1 ? nil : curve
+        entry.keyframes = Array(zip(times, converted))
+        entry.discrete = calculationMode == "discrete"
+        entry.additive = isAdditive
+        return [entry]
     }
 }
 
-/// Several animations played together.
+/// Several animations played together over the group's duration: each child runs in its own
+/// window (its `beginTime` and `duration` as fractions of the group's), with its own curve.
 @MainActor
 open class CAAnimationGroup: CAAnimation {
     open var animations: [CAAnimation]?
+
+    override func entries(for layer: CALayer, window: ClosedRange<Double>) -> [UIViewAnimationGroup.Entry] {
+        guard duration > 0 else { return [] }
+        let span = window.upperBound - window.lowerBound
+        return (animations ?? []).flatMap { child -> [UIViewAnimationGroup.Entry] in
+            let start = window.lowerBound + span * min(1, max(0, child.beginTime / duration))
+            let end = window.lowerBound + span * min(1, max(0, (child.beginTime + child.duration) / duration))
+            return child.entries(for: layer, window: start...max(start, end))
+        }
+    }
 }
 
 /// A layer property an animation names: `opacity`, `position`, `position.x` / `.y`, `bounds`,
@@ -250,13 +283,28 @@ extension LayerKeyPath {
 }
 
 extension AnimatableValue {
-    /// `byValue`: the sum with another value of the same kind.
+    /// `byValue`: the sum with another value of the same kind (transforms concatenate, a
+    /// colour's components add).
     func adding(_ other: AnimatableValue) -> AnimatableValue {
         switch (self, other) {
         case (.scalar(let a), .scalar(let b)): return .scalar(a + b)
         case (.point(let a), .point(let b)): return .point(CGPoint(x: a.x + b.x, y: a.y + b.y))
         case (.rect(let a), .rect(let b)): return .rect(CGRect(x: a.minX + b.minX, y: a.minY + b.minY, width: a.width + b.width, height: a.height + b.height))
+        case (.transform(let a), .transform(let b)): return .transform(a.concatenating(b))
+        case (.color(let a?), .color(let b?)): return .color(RGBA(red: min(1, a.red + b.red), green: min(1, a.green + b.green), blue: min(1, a.blue + b.blue), alpha: min(1, a.alpha + b.alpha)))
         default: return other
+        }
+    }
+
+    /// The additive identity of this value's kind (a zero scalar, point or rect, the identity
+    /// transform, a clear colour).
+    var zero: AnimatableValue {
+        switch self {
+        case .scalar: return .scalar(0)
+        case .point: return .point(.zero)
+        case .rect: return .rect(.zero)
+        case .transform: return .transform(.identity)
+        case .color: return .color(RGBA(red: 0, green: 0, blue: 0, alpha: 0))
         }
     }
 }

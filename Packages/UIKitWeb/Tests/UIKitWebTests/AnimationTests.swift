@@ -164,6 +164,7 @@ import UIKit
         let shape = CAShapeLayer()
         shape.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
         box.layer.addSublayer(shape)
+        _ = scene.render(scale: 2)   // the first commit: a layer configured before it shows its values at once
         var completed = false
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.4)

@@ -11,8 +11,9 @@
 `transition(with:duration:options:animations:completion:)` (the changes apply at once; the
 completion runs after the duration), `performWithoutAnimation`, `setAnimationsEnabled`,
 `areAnimationsEnabled`. The `curveEaseInOut` (default), `curveEaseIn`, `curveEaseOut` and
-`curveLinear` options; `repeat`, `autoreverse` and `beginFromCurrentState` are accepted without
-effect.
+`curveLinear` options; `repeat` (the group cycles until its layers' animations are removed),
+`autoreverse` and `beginFromCurrentState` (a new block on a running property starts from the
+presented value) since 2026-10-09.
 
 ## How it works
 
@@ -29,17 +30,16 @@ the innermost. Curves: CSS's cubic-bezier for ease in-out (0.42, 0, 0.58, 1), ea
 (0.42, 0, 1, 1), ease out (0, 0, 0.58, 1); the spring is a damped oscillator settling at the
 end of the duration (ζ = damping, ω = 6.9 / ζ, the initial velocity as UIKit scales it).
 
-Open: `repeat`/`autoreverse`, `beginFromCurrentState` (a new block on a running property
-starts from the model's value, not the presented one), `UIViewPropertyAnimator`, `CATransaction`,
-`CABasicAnimation`/`CAKeyframeAnimation` added to layers, `layoutIfNeeded` inside a block
-animating Auto Layout changes (it does: the constraint pass sets frames inside the block),
-hit testing during an animation (the model's frame).
+Without `beginFromCurrentState` a new block on a running property starts from the model's
+value, as UIKit's does. Open: `layoutIfNeeded` inside a block animating Auto Layout changes
+(it does: the constraint pass sets frames inside the block), hit testing during an animation
+(the model's frame), the transition options' flips and cross-dissolves.
 
 ## Core Animation (2026-09-11)
 
-`Layers/CAAnimation.swift`. `CABasicAnimation(keyPath:)` (`fromValue`, `toValue`, `byValue`),
-`CAKeyframeAnimation` (`values`, approximate: first to last), `CAAnimationGroup` (stored),
-`duration`, `beginTime` (a delay), `timingFunction` (`CAMediaTimingFunction` named or by
+`Layers/CAAnimation.swift`. `CABasicAnimation(keyPath:)` (`fromValue`, `toValue`, `byValue`,
+`isAdditive`), `CAKeyframeAnimation` (`values`, `keyTimes`, `calculationMode`),
+`CAAnimationGroup` (`animations`), `duration`, `beginTime` (a delay), `timingFunction` (`CAMediaTimingFunction` named or by
 control points), `repeatCount`, `repeatDuration`, `autoreverses`, `fillMode`,
 `isRemovedOnCompletion`, `delegate` (`animationDidStart`, `animationDidStop(_:finished:)`);
 `CALayer.add(_:forKey:)`, `removeAnimation(forKey:)`, `removeAllAnimations`,
@@ -53,8 +53,43 @@ removed. `CATransaction` (`begin`, `commit`, `setAnimationDuration`, `setDisable
 `setAnimationTimingFunction`, `setCompletionBlock`, `flush`): a standalone layer's property
 changes animate implicitly over the transaction's duration (0.25 s by default); a view's
 backing layer animates only inside `UIView.animate`, as in UIKit. Changes made outside any
-transaction join an implicit one the scene commits at its next frame. Open: `CAAnimationGroup`
-playback, keyframe interpolation through every value, additive animations, `CADisplayLink`.
+transaction join an implicit one the scene commits at its next frame. A standalone layer
+animates implicitly only once it has been painted (committed): one added and configured in the
+same transaction shows its values at once, as Core Animation's does (2026-10-09).
+
+Each animation becomes entries in a scene group, every entry with its own window of the
+group's cycle, curve and optional keyframes (2026-10-09). A keyframe animation passes through
+every value: `keyTimes` place them (evenly spaced without), `linear` interpolates between
+neighbours and `discrete` holds each until the next. An additive animation's values are deltas
+added to the layer's model at paint time, so the model may move underneath. A
+`CAAnimationGroup` plays its children windowed by their `beginTime` and `duration` within the
+group's duration, each with its own timing function. Open: cubic keyframe paths, rotation
+modes, `removedOnCompletion` semantics for a group's children, timing functions beyond the
+four names and control points.
+
+## CAGradientLayer and CATextLayer (2026-10-09)
+
+`Layers/CALayer.swift`; measured on the simulator in `uikit/layer/content` (Tier A exact, Tier C
+2.7 %). `CAGradientLayer`: `colors`, `locations` (evenly spaced without), `startPoint` (0.5, 0)
+and `endPoint` (0.5, 1) in unit coordinates, `type` (`axial`, `radial`, `conic`). The radial
+gradient is an ellipse centred on the start point whose radii are the end point's x and y
+offsets (drawn as a circle under a vertical scale); the conic one starts toward the end point
+and sweeps clockwise. `CATextLayer`: `string` (a `String` or an attributed string's text),
+`font` (a `UIFont` or a font name), `fontSize` (36), `foregroundColor` (black), `isWrapped`,
+`alignmentMode`, `truncationMode`. The text draws from the layer's top edge in Helvetica, the
+default Core Animation font, lines `lineHeight` apart; `Fixtures/UIKit/TextMetrics` records
+the strings. Open: attributed runs beyond their plain text, `allowsFontSubpixelQuantization`.
+
+## CADisplayLink (2026-10-09)
+
+`Layers/CADisplayLink.swift`. `CADisplayLink(target:handler:)` and `CADisplayLink(handler:)`
+(no Objective-C selectors on the web; the handler gets the link and runs while the target
+lives), `add(to:forMode:)`, `remove(from:forMode:)`, `invalidate`, `isPaused`, `timestamp`,
+`targetTimestamp`, `duration`, `preferredFramesPerSecond`, `preferredFrameRateRange`
+(`CAFrameRateRange`). An added link keeps the scene animating; the scene ticks it from its
+frame clock in `advanceFrame(elapsed:)` (and a hosted tree's `advanceTimers`) before the
+animation groups and painting, with the frame's elapsed time as `duration`. The host's requestAnimationFrame cadence is the rate; the
+preferred rates are stored. Open: run loop modes, rate throttling.
 
 ## UIViewPropertyAnimator (2026-09-11)
 
@@ -69,4 +104,10 @@ pausing takes the group off the clock and keeps the presented values, reversing 
 group's ends and mirrors its clock, stopping writes the presented values into the models
 (`withoutFinishing` leaves the animator stopped for `finishAnimation(at:)`, which puts the views
 at the start, the end or where they are), and completions get the position the run ended at.
-Open: `delayFactor`, `scrubsLinearly`, interactive spring velocity.
+`addAnimations(_:delayFactor:)` records a block that starts at the factor of the remaining
+duration (recorded now with its own window when the animator runs, else when it starts);
+`scrubsLinearly` shows the values without the curve while paused or scrubbed, the curve
+returning when the animator runs; `continueAnimation(withTimingParameters:durationFactor:)`
+restarts the group from the presented values over the factor of the duration with the new
+curve (a spring's initial velocity carries) (2026-10-09). Open: `isManualHitTestingEnabled`,
+`isInterruptible`, `isUserInteractionEnabled` during a run.

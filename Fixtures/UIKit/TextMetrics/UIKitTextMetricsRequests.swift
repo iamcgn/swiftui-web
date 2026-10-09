@@ -405,6 +405,10 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Height 20", .system(size: 20), width: 190, lines: 0),
         UIKitTextRequest("Height 24", .system(size: 24), width: 190, lines: 0),
         UIKitTextRequest("Height 28", .system(size: 28), width: 190, lines: 0),
+        // uikit/layer/content (CATextLayer draws Helvetica; the wrapped one fits 120)
+        UIKitTextRequest("Text layer", .custom(name: "Helvetica", size: 20)),
+        UIKitTextRequest("Centred", .custom(name: "Helvetica", size: 14)),
+        UIKitTextRequest("Wrapped text layer in a narrow box", .custom(name: "Helvetica", size: 13), width: 120, lines: 0),
     ]
 
     /// The fonts whose metrics the harness records (every font a request uses).

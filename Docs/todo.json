@@ -1589,13 +1589,14 @@
       "framework": "UIKit",
       "area": "Core Animation",
       "title": "Gradient and text layers, display links, animation options",
-      "detail": "`CAGradientLayer`, `CATextLayer`, `CADisplayLink` on the scene's clock, `CAAnimationGroup` playback, keyframes through every value, additive animations, `repeat`/`autoreverse`/`beginFromCurrentState` on `UIView.animate` (accepted), `delayFactor`, `scrubsLinearly` and spring velocity on property animators.",
+      "detail": "`CAGradientLayer`, `CATextLayer`, `CADisplayLink` on the scene's clock, `CAAnimationGroup` playback, keyframes through every value, additive animations, `repeat`/`autoreverse`/`beginFromCurrentState` on `UIView.animate` (accepted), `delayFactor`, `scrubsLinearly` and spring velocity on property animators. Done 2026-10-09: gradient and text layers measured on the simulator (uikit/layer/content 2.7 %: the radial gradient is an ellipse with the end point's offsets as radii, the conic starts toward the end point, CATextLayer draws Helvetica from its top edge), keyframes with keyTimes and the discrete mode, additive deltas over a moving model, groups windowing their children, repeat / autoreverse / beginFromCurrentState, display links with timestamps and pausing that keep the scene animating, delayFactor, scrubsLinearly and spring continuation on animators; a standalone layer now animates implicitly only once committed, as Core Animation does.",
       "kind": "missing",
       "priority": "soon",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Animation.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "uk-autolayout-rest",

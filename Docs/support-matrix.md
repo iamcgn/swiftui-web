@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
-| UIKit | 52 | 14 | 34 | 4 | 0 | 0 |
+| UIKit | 53 | 15 | 34 | 4 | 0 | 0 |
 | Interop | 5 | 0 | 5 | 0 | 0 | 0 |
-| **All** | **192** | 39 | 139 | 8 | 3 | 3 |
+| **All** | **193** | 40 | 139 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -267,9 +267,10 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 
 | API | Status | Notes | Fixtures |
 |---|---|---|---|
-| `UIView.animate (durations, delays, curves, springs, transition(with:), performWithoutAnimation)` | 🟢 partial | Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; open: repeat / autoreverse / beginFromCurrentState (accepted), the transition options' flips and cross-dissolves | — Motion is not a still: AnimationTests and RepresentableTests hold the curves on the headless clock; the table batch-update goldens hold the end states. |
-| `Core Animation (CABasicAnimation, CAKeyframeAnimation, CATransaction, layer implicit animations)` | 🟢 partial | Explicit animations on layer properties joined to the scene's implicit transaction; open: CAAnimationGroup, timing functions beyond the four curves and cubic points, removedOnCompletion semantics | — Motion is not a still: AnimationTests hold the interpolation on the headless clock. |
-| `UIViewPropertyAnimator` | 🟢 partial | Start, pause, scrub by fractionComplete, reverse, continue with a timing and completion; open: delayFactor, scrubsLinearly, interactive spring velocity | — Motion is not a still: AnimationTests hold the animator's states on the headless clock. |
+| `UIView.animate (durations, delays, curves, springs, options, transition(with:), performWithoutAnimation)` | 🟢 partial | Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; repeat, autoreverse and beginFromCurrentState honoured; open: the transition options' flips and cross-dissolves | — Motion is not a still: AnimationTests and RepresentableTests hold the curves on the headless clock; the table batch-update goldens hold the end states. |
+| `Core Animation (CABasicAnimation, CAKeyframeAnimation, CAAnimationGroup, CATransaction, CADisplayLink, layer implicit animations)` | 🟢 partial | Explicit animations on layer properties joined to the scene's implicit transaction (a layer animates implicitly only once committed, as in Core Animation), keyframes through every value with keyTimes and the discrete mode, additive animations over a moving model, groups playing their children in their own windows with their own curves, display links ticking on the scene's clock with timestamps and frame rate ranges; open: timing functions beyond the four curves and cubic points, removedOnCompletion semantics, cubic keyframe paths, rotation modes | — Motion is not a still: AnimationTests and LayerAnimationRestTests hold the interpolation on the headless clock. |
+| `CAGradientLayer / CATextLayer` | ✅ full | Axial, radial (the end point's offsets as the ellipse's radii) and conic (starting toward the end point) gradients with colours and locations in unit coordinates; text layers draw Helvetica by default from the top edge, wrapped, aligned and truncated; open: CATextLayer's attributed strings beyond their plain text, allowsFontSubpixelQuantization | uikit/layer/content |
+| `UIViewPropertyAnimator` | 🟢 partial | Start, pause, scrub by fractionComplete (linearly when scrubsLinearly asks), reverse, continue with a timing (springs carry their initial velocity) and completion, blocks added with a delayFactor; open: pausesOnCompletion, isManualHitTestingEnabled | — Motion is not a still: AnimationTests and LayerAnimationRestTests hold the animator's states on the headless clock. |
 
 ## UIKit: app, scene and events
 

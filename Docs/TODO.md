@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
-| UIKit | 16 | 0 | 5 | 11 |
+| UIKit | 15 | 0 | 4 | 11 |
 | Platform | 5 | 0 | 1 | 4 |
-| **All** | **54** | 0 | 6 | 48 |
+| **All** | **53** | 0 | 5 | 48 |
 
 ## Next (Phase 8, in order)
 
@@ -16,8 +16,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Gradient and text layers, display links, animation options** `uk-layers` · Core Animation · missing  
-  `CAGradientLayer`, `CATextLayer`, `CADisplayLink` on the scene's clock, `CAAnimationGroup` playback, keyframes through every value, additive animations, `repeat`/`autoreverse`/`beginFromCurrentState` on `UIView.animate` (accepted), `delayFactor`, `scrubsLinearly` and spring velocity on property animators. ([Animation.md](Docs/elements/UIKit/Animation.md))
 - ☐ **Layout guides, animated constraints and stacks** `uk-autolayout-rest` · Auto Layout · verify  
   Frames of app-made `UILayoutGuide`s, constraint changes animated by `layoutIfNeeded` inside `UIView.animate`, hugging defaults per control verified, `UIStackView.fillProportionally` and overflow compression against UIKit, spacing after hidden views, solver performance on large trees. ([AutoLayout.md](Docs/elements/UIKit/AutoLayout.md), [UIStackView.md](Docs/elements/UIKit/UIStackView.md))
 - ☐ **Blend modes, attributed drawing and CGPath** `uk-drawing-rest` · Drawing · accepted  
@@ -152,6 +150,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-09 **UIVisualEffectView and the glass** `uk-materials` · UIKit · Views
 - ☑ 2026-10-09 **Layer corners, borders and shadows against pixels** `uk-view-pixels` · UIKit · Views
 - ☑ 2026-10-09 **Trait overrides and observation** `uk-traits` · UIKit · Views
+- ☑ 2026-10-09 **Gradient and text layers, display links, animation options** `uk-layers` · UIKit · Core Animation
 - ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation

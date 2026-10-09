@@ -1,0 +1,51 @@
+{
+  "fixture" : "uikit\/layer\/content",
+  "frames" : {
+    "axial" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 16,
+      "y" : 16
+    },
+    "centred" : {
+      "height" : 24,
+      "width" : 140,
+      "x" : 16,
+      "y" : 246
+    },
+    "conic" : {
+      "height" : 80,
+      "width" : 152,
+      "x" : 152,
+      "y" : 112
+    },
+    "radial" : {
+      "height" : 80,
+      "width" : 120,
+      "x" : 16,
+      "y" : 112
+    },
+    "text" : {
+      "height" : 30,
+      "width" : 140,
+      "x" : 16,
+      "y" : 208
+    },
+    "vertical" : {
+      "height" : 80,
+      "width" : 152,
+      "x" : 152,
+      "y" : 16
+    },
+    "wrapped" : {
+      "height" : 60,
+      "width" : 120,
+      "x" : 172,
+      "y" : 208
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

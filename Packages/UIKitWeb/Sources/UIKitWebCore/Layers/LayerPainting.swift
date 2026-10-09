@@ -18,6 +18,7 @@ extension CALayer {
         let shadowOpacity = animating ? Float(presented(.shadowOpacity, model: .scalar(Double(self.shadowOpacity))).scalar) : self.shadowOpacity
         let background: RGBA? = animating ? presented(.backgroundColor, model: .color(backgroundColor.flatMap { RGBA(cgColor: $0) })).color : backgroundColor.flatMap { RGBA(cgColor: $0) }
         let border: RGBA? = animating ? presented(.borderColor, model: .color(borderColor.flatMap { RGBA(cgColor: $0) })).color : borderColor.flatMap { RGBA(cgColor: $0) }
+        isCommitted = true
         guard !isHidden, opacity > 0 else { return }
         let effective = view?.effectiveStyle(style) ?? style
         // The layer's origin in the superlayer's space, without the transform.
@@ -103,6 +104,10 @@ extension CALayer {
         child.origin = CGPoint(x: child.origin.x - bounds.minX, y: child.origin.y - bounds.minY)
         if let shape = self as? CAShapeLayer {
             shape.paintShape(into: &list, context: child)
+        } else if let gradient = self as? CAGradientLayer {
+            gradient.paintGradient(into: &list, context: child)
+        } else if let text = self as? CATextLayer {
+            text.paintText(into: &list, context: child)
         }
         view?.drawContent(into: &list, context: child, style: effective)
         for layer in (sublayers ?? []).sorted(by: { $0.zPosition < $1.zPosition }) {
