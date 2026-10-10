@@ -76,6 +76,49 @@ as a path separator. Hierarchical URLs retain direct `URL` comparisons.
 Explicit rootless-path vectors and wasm public-URL tests also check the expected components,
 extensions, percent escapes, queries and fragments; no URL cases or assertions are skipped.
 
+### The gaps closed (2026-10-09, `pf-web-foundation-gaps`, Phase 9 item 1)
+
+The differences listed above are now mostly gone; every new core is platform-neutral and
+held to Foundation on macOS (`Packages/WebGraphics/Tests/WebFoundationTests`), the public
+types under Node (`Tests/CoreRuntimeTests/WasmFoundationTests.swift`):
+
+- `Data` slices keep their indices (`_Data.startIndex`); `range(of:)`; bytes compare alone.
+- `String(data:encoding:)`, `String(bytes:encoding:)`, `data(using:)` over this module's `Data`
+  (`_TextEncoding`: UTF-8, ASCII, ISO Latin 1, Windows-1252, UTF-16/32 with byte-order marks).
+  `String.Encoding` stays FoundationEssentials' (a redeclaration is ambiguous even inside the
+  module: extension members are not shadowed the way top-level types are). For the same
+  reason `text.data(using:)` is ambiguous unless the result is typed as `Data` — the
+  FoundationEssentials member returns its own `Data` — and `date.formatted(.iso8601)` resolves
+  through a concrete overload; `Date.ISO8601FormatStyle` names FoundationEssentials' type
+  (which would pull its calendar in), `Date.ISO8601Style` and `.iso8601` this module's.
+- `URLComponents`, `URLQueryItem`, Punycoded hosts (`_Punycode`; lower-cased, Cherokee folded
+  to capitals; no UTS #46 mapping beyond that), Foundation's percent-encoding sets, the query
+  item split and composition, `URLComponents(string:)`'s repair of stray characters.
+- Named time zones through the host: `TimeZone._hostOffset`, `_hostName`, `_hostIdentifier`,
+  `_hostKnownIdentifiers` (the canvas host installs `Intl.DateTimeFormat` with
+  `timeZoneName: longOffset` and the name styles; `_ZoneCache` learns a zone a year at a time,
+  bisecting each change to the second). `TimeZone.current` is the browser's tz name;
+  `Locale.current` and `preferredLanguages` come from `navigator.language(s)`.
+  `daylightSavingTimeOffset` is the difference from the smaller of the January and July
+  offsets, so Casablanca's negative saving reads as none (tz's raw offsets are not visible).
+- `Calendar` over `_CalendarSystem`: Buddhist, Japanese (Meiji on, Foundation's era numbers
+  232–236), Minguo, Islamic civil and tabular (`islamic` and `islamicUmmAlQura` use the civil
+  tabular form), Persian (ICU's arithmetic), Hebrew (Foundation's 13 month slots, Adar I only
+  in leap years), Coptic, Ethiopic (both eras), Indian; `chinese` reports Gregorian fields. The
+  arithmetic follows the zone's daylight saving (the wall clock holds across a change; a time in
+  the spring gap moves forward, one in the autumn overlap is its first occurrence), and
+  `wrappingComponents` wraps every unit (weekOfMonth pinned as ICU pins it).
+- `Date.FormatStyle` (styles and symbols as `en` patterns: CLDR's availableFormats with ICU's
+  width rules, `, ` after a numeric date and ` at ` after a month name, the `hmsz` quirk kept),
+  `Date.VerbatimFormatStyle`, `Date.FormatString`, `Date.ParseStrategy`, the ISO 8601 style,
+  `Date.RelativeFormatStyle` (rounded units), `DateFormatter` (styles, patterns, templates,
+  parsing), `RelativeDateTimeFormatter` (whole units); all over `_DatePattern`. Symbols are
+  English in every locale; `Date.FormatStyle.locale(_:)` is kept for the API.
+- Nothing here may call `_StringProcessing` (`String.replacing`, `contains(String)`,
+  `split(separator: String)`): the first such call links the Regex engine, 1.5 MB raw. Counter
+  measured 9,713,868 raw / 2,506,191 brotli after this step (2,443,715 before; the gate is
+  3,145,728).
+
 ## Evidence (2026-09-18, `-Osize`, wasm-opt, brotli -q 11)
 
 | Bundle | before | after |

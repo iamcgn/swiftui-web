@@ -1,10 +1,12 @@
-// The Gregorian arithmetic behind `Calendar` on wasm (decision 0017), platform-neutral so the
+// The calendar arithmetic behind `Calendar` on wasm (decision 0017), platform-neutral so the
 // tests can hold it to Foundation's calendar. Time values are seconds since 1970 (UTC); the
-// calendar is proleptic Gregorian (Foundation switches to Julian before 1582; nothing here
-// asks about those years) and the offset is a fixed number of seconds from GMT.
+// civil calendar is proleptic Gregorian (Foundation switches to Julian before 1582; nothing
+// here asks about those years), the zone is a `_ZoneRule` (fixed, or named with daylight
+// saving), and the other calendar systems (`_CalendarSystem`) convert day counts.
 
 /// The fields of an instant in a fixed-offset zone.
 package struct _DateFields: Hashable, Sendable {
+    package var era: Int
     package var year: Int, month: Int, day: Int
     package var hour: Int, minute: Int, second: Int, nanosecond: Int
     /// 1 = Sunday … 7 = Saturday.
@@ -60,68 +62,145 @@ package enum _Gregorian {
 }
 
 package struct _CalendarMath: Hashable, Sendable {
-    /// Seconds east of GMT.
-    package var offset: Int
+    /// The zone whose wall clock the fields follow.
+    package var zone: _ZoneRule
+    /// The calendar system the year, month and day fields belong to.
+    package var system: _CalendarSystem
     /// 1 = Sunday.
     package var firstWeekday: Int
     package var minimumDaysInFirstWeek: Int
 
-    package init(offset: Int, firstWeekday: Int = 1, minimumDaysInFirstWeek: Int = 1) {
-        self.offset = offset
+    package init(zone: _ZoneRule, system: _CalendarSystem = .gregorian, firstWeekday: Int = 1, minimumDaysInFirstWeek: Int = 1) {
+        self.zone = zone
+        self.system = system
         self.firstWeekday = firstWeekday
         self.minimumDaysInFirstWeek = minimumDaysInFirstWeek
+    }
+
+    /// A fixed offset in seconds east of GMT.
+    package init(offset: Int, firstWeekday: Int = 1, minimumDaysInFirstWeek: Int = 1) {
+        self.init(zone: .fixed(offset), firstWeekday: firstWeekday, minimumDaysInFirstWeek: minimumDaysInFirstWeek)
     }
 
     /// The local day count and second of day of an instant.
     package func split(_ time: Double) -> (days: Int, secondOfDay: Int, nanosecond: Int) {
         let whole = time.rounded(.down)
         let nanosecond = Int(((time - whole) * 1e9).rounded())
-        let local = Int(whole) + offset
+        let local = Int(whole) + zone.offset(at: time)
         let days = _Gregorian.floorDiv(local, 86400)
         return (days, local - days * 86400, nanosecond)
     }
 
     package func fields(_ time: Double) -> _DateFields {
         let (days, secondOfDay, nanosecond) = split(time)
-        let civil = _Gregorian.civil(days: days)
-        return _DateFields(year: civil.year, month: civil.month, day: civil.day,
+        let date = system.date(days: days)
+        let era = system.era(days: days)
+        return _DateFields(era: era, year: date.year, month: date.month, day: date.day,
                            hour: secondOfDay / 3600, minute: secondOfDay % 3600 / 60, second: secondOfDay % 60, nanosecond: nanosecond,
                            weekday: _Gregorian.weekday(days: days),
-                           dayOfYear: days - _Gregorian.days(year: civil.year, month: 1, day: 1) + 1)
+                           dayOfYear: days - system.days(year: date.year, month: 1, day: 1, era: era) + 1)
     }
 
+    /// The era of an instant (`_CalendarSystem.era`).
+    package func era(_ time: Double) -> Int { system.era(days: split(time).days) }
+
     /// The instant of civil fields; months, days and times past their range carry over.
-    package func time(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, nanosecond: Int = 0) -> Double {
-        let monthIndex = month - 1
-        let normalizedYear = year + _Gregorian.floorDiv(monthIndex, 12)
-        let normalizedMonth = _Gregorian.floorMod(monthIndex, 12) + 1
-        let days = _Gregorian.days(year: normalizedYear, month: normalizedMonth, day: 1) + day - 1
-        let seconds = days * 86400 + hour * 3600 + minute * 60 + second - offset
-        return Double(seconds) + Double(nanosecond) / 1e9
+    package func time(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, nanosecond: Int = 0, era: Int? = nil) -> Double {
+        let days = system.days(year: year, month: month, day: day, era: era)
+        let local = days * 86400 + hour * 3600 + minute * 60 + second
+        return zone.utc(forLocal: Double(local)) + Double(nanosecond) / 1e9
     }
 
     /// The instant at the start of the day holding `time`.
-    package func startOfDay(_ time: Double) -> Double { Double(split(time).days * 86400 - offset) }
+    package func startOfDay(_ time: Double) -> Double { zone.utc(forLocal: Double(split(time).days * 86400)) }
 
-    /// `time` plus `value` units; months and years clamp the day to the target month's length.
+    /// The instant with the same wall clock as `time` on local day `days`.
+    private func sameClock(_ time: Double, onDay days: Int) -> Double {
+        let (_, secondOfDay, _) = split(time)
+        let fraction = time - time.rounded(.down)
+        return zone.utc(forLocal: Double(days * 86400 + secondOfDay)) + fraction
+    }
+
+    /// `time` plus `value` units; months and years clamp the day to the target month's
+    /// length, and days and weeks keep the wall clock across daylight-saving changes.
     package func adding(_ unit: _CalendarUnit, _ value: Int, to time: Double) -> Double {
         let f = fields(time)
         let fraction = time - time.rounded(.down)
         switch unit {
         case .era: return time
         case .year, .month, .quarter:
-            let months = unit == .year ? value * 12 : unit == .quarter ? value * 3 : value
-            let index = f.month - 1 + months
-            let year = f.year + _Gregorian.floorDiv(index, 12)
-            let month = _Gregorian.floorMod(index, 12) + 1
-            let day = min(f.day, _Gregorian.daysInMonth(year: year, month: month))
-            return self.time(year: year, month: month, day: day, hour: f.hour, minute: f.minute, second: f.second) + fraction
-        case .day, .weekday, .dayOfYear: return time + Double(value * 86400)
-        case .weekOfYear, .weekOfMonth, .weekdayOrdinal, .yearForWeekOfYear: return time + Double(value * 7 * 86400)
+            let months = unit == .year ? 0 : unit == .quarter ? value * 3 : value
+            if system.isGregorianDerived {
+                // Civil years, so a step across an era boundary counts on.
+                let civil = _CalendarSystem.gregorian.monthsAfter(year: system.civilYear(year: f.year, era: f.era) + (unit == .year ? value : 0), month: f.month, count: months)
+                let day = min(f.day, _Gregorian.daysInMonth(year: civil.year, month: civil.month))
+                let local = Double((_Gregorian.days(year: civil.year, month: civil.month, day: day)) * 86400 + f.hour * 3600 + f.minute * 60 + f.second)
+                return zone.utc(forLocal: local) + fraction
+            }
+            let (year, month) = unit == .year ? (f.year + value, f.month) : system.monthsAfter(year: f.year, month: f.month, count: months)
+            let day = min(f.day, system.daysInMonth(year: year, month: month, era: f.era))
+            return self.time(year: year, month: month, day: day, hour: f.hour, minute: f.minute, second: f.second, era: f.era) + fraction
+        case .day, .weekday, .dayOfYear: return sameClock(time, onDay: split(time).days + value)
+        case .weekOfYear, .weekOfMonth, .weekdayOrdinal, .yearForWeekOfYear: return sameClock(time, onDay: split(time).days + value * 7)
         case .hour: return time + Double(value * 3600)
         case .minute: return time + Double(value * 60)
         case .second: return time + Double(value)
         case .nanosecond: return time + Double(value) / 1e9
+        }
+    }
+
+    /// `time` plus `value` units with the unit wrapping inside the next larger one (Foundation's
+    /// `wrappingComponents`): 23:00 plus two hours is 01:00 the same day, the 31st plus a day
+    /// is the 1st of the same month, December plus a month is January of the same year.
+    package func addingWrapped(_ unit: _CalendarUnit, _ value: Int, to time: Double) -> Double {
+        let f = fields(time)
+        let (days, secondOfDay, _) = split(time)
+        let fraction = time - time.rounded(.down)
+        func clock(hour: Int, minute: Int, second: Int) -> Double {
+            zone.utc(forLocal: Double(days * 86400 + hour * 3600 + minute * 60 + second)) + fraction
+        }
+        switch unit {
+        case .era, .year, .yearForWeekOfYear: return adding(unit, value, to: time)
+        case .month, .quarter:
+            let months = system.monthsInYear(f.year)
+            let month = _Gregorian.floorMod(f.month - 1 + (unit == .quarter ? value * 3 : value), months) + 1
+            let day = min(f.day, system.daysInMonth(year: f.year, month: month, era: f.era))
+            return self.time(year: f.year, month: month, day: day, hour: f.hour, minute: f.minute, second: f.second, era: f.era) + fraction
+        case .day:
+            let count = system.daysInMonth(year: f.year, month: f.month, era: f.era)
+            let day = _Gregorian.floorMod(f.day - 1 + value, count) + 1
+            return sameClock(time, onDay: days + day - f.day)
+        case .dayOfYear:
+            let count = system.daysInYear(f.year, era: f.era)
+            let day = _Gregorian.floorMod(f.dayOfYear - 1 + value, count) + 1
+            return sameClock(time, onDay: days + day - f.dayOfYear)
+        case .weekday:
+            let start = weekStart(days)
+            return sameClock(time, onDay: start + _Gregorian.floorMod(days - start + value, 7))
+        case .weekdayOrdinal:
+            let count = (system.daysInMonth(year: f.year, month: f.month, era: f.era) - f.day) / 7 + (f.day - 1) / 7 + 1
+            let ordinal = _Gregorian.floorMod((f.day - 1) / 7 + value, count)
+            return sameClock(time, onDay: days + (ordinal - (f.day - 1) / 7) * 7)
+        case .weekOfMonth:
+            // The week wraps inside the month; a weekday the target week lacks pins to the
+            // month's first or last day, as ICU pins it.
+            let weeks = weeksInMonth(time)
+            let week = weeksInMonthIndex(time)
+            let target = weeks.lowerBound + _Gregorian.floorMod(week - weeks.lowerBound + value, weeks.count)
+            let first = system.days(year: f.year, month: f.month, day: 1, era: f.era)
+            let last = first + system.daysInMonth(year: f.year, month: f.month, era: f.era) - 1
+            return sameClock(time, onDay: min(max(days + (target - week) * 7, first), last))
+        case .weekOfYear:
+            let weeks = weeksInYear(time)
+            let week = weekOfYear(time).week
+            let target = weeks.lowerBound + _Gregorian.floorMod(week - weeks.lowerBound + value, weeks.count)
+            return sameClock(time, onDay: days + (target - week) * 7)
+        case .hour: return clock(hour: _Gregorian.floorMod(f.hour + value, 24), minute: f.minute, second: f.second)
+        case .minute: return clock(hour: f.hour, minute: _Gregorian.floorMod(f.minute + value, 60), second: f.second)
+        case .second: return clock(hour: f.hour, minute: f.minute, second: _Gregorian.floorMod(secondOfDay % 60 + value, 60))
+        case .nanosecond:
+            let nanos = _Gregorian.floorMod(f.nanosecond + value, 1_000_000_000)
+            return time.rounded(.down) + Double(nanos) / 1e9
         }
     }
 
@@ -138,50 +217,54 @@ package struct _CalendarMath: Hashable, Sendable {
     /// `yearForWeekOfYear` under `firstWeekday` and `minimumDaysInFirstWeek`.
     package func weekOfYear(_ time: Double) -> (week: Int, year: Int) {
         let days = split(time).days
-        let civil = _Gregorian.civil(days: days)
-        var year = civil.year
-        var start = firstWeekStart(period: _Gregorian.days(year: year, month: 1, day: 1))
+        let era = system.era(days: days)
+        var year = system.date(days: days).year
+        var start = firstWeekStart(period: system.days(year: year, month: 1, day: 1, era: era))
         if days < start {
             year -= 1
-            start = firstWeekStart(period: _Gregorian.days(year: year, month: 1, day: 1))
+            start = firstWeekStart(period: system.days(year: year, month: 1, day: 1, era: era))
         } else {
-            let next = firstWeekStart(period: _Gregorian.days(year: year + 1, month: 1, day: 1))
+            let next = firstWeekStart(period: system.days(year: year + 1, month: 1, day: 1, era: era))
             if days >= next { year += 1; start = next }
         }
         return ((days - start) / 7 + 1, year)
     }
 
-    package func weekOfMonth(_ time: Double) -> Int {
+    private func weeksInMonthIndex(_ time: Double) -> Int {
         let days = split(time).days
-        let civil = _Gregorian.civil(days: days)
-        let start = firstWeekStart(period: _Gregorian.days(year: civil.year, month: civil.month, day: 1))
+        let date = system.date(days: days)
+        let start = firstWeekStart(period: system.days(year: date.year, month: date.month, day: 1, era: system.era(days: days)))
         return _Gregorian.floorDiv(days - start, 7) + 1
     }
 
+    package func weekOfMonth(_ time: Double) -> Int { weeksInMonthIndex(time) }
+
     /// How many weeks the month holding `time` spans (its `weekOfMonth` range).
     package func weeksInMonth(_ time: Double) -> Range<Int> {
-        let civil = _Gregorian.civil(days: split(time).days)
-        let first = _Gregorian.days(year: civil.year, month: civil.month, day: 1)
-        let last = first + _Gregorian.daysInMonth(year: civil.year, month: civil.month) - 1
+        let days = split(time).days
+        let date = system.date(days: days), era = system.era(days: days)
+        let first = system.days(year: date.year, month: date.month, day: 1, era: era)
+        let last = first + system.daysInMonth(year: date.year, month: date.month, era: era) - 1
         let start = firstWeekStart(period: first)
         let low = first < start ? 0 : 1
         return low..<(_Gregorian.floorDiv(last - start, 7) + 2)
     }
 
     package func weeksInYear(_ time: Double) -> Range<Int> {
-        let year = _Gregorian.civil(days: split(time).days).year
-        let start = firstWeekStart(period: _Gregorian.days(year: year, month: 1, day: 1))
-        let next = firstWeekStart(period: _Gregorian.days(year: year + 1, month: 1, day: 1))
+        let days = split(time).days
+        let year = system.date(days: days).year, era = system.era(days: days)
+        let start = firstWeekStart(period: system.days(year: year, month: 1, day: 1, era: era))
+        let next = firstWeekStart(period: system.days(year: year + 1, month: 1, day: 1, era: era))
         return 1..<((next - start) / 7 + 1)
     }
 
     package func range(of smaller: _CalendarUnit, in larger: _CalendarUnit, for time: Double) -> Range<Int>? {
         let f = fields(time)
         switch (smaller, larger) {
-        case (.day, .month): return 1..<(_Gregorian.daysInMonth(year: f.year, month: f.month) + 1)
-        case (.day, .year), (.dayOfYear, .year): return 1..<((_Gregorian.isLeap(f.year) ? 366 : 365) + 1)
+        case (.day, .month): return 1..<(system.daysInMonth(year: f.year, month: f.month, era: f.era) + 1)
+        case (.day, .year), (.dayOfYear, .year): return 1..<(system.daysInYear(f.year, era: f.era) + 1)
         case (.day, .weekOfYear), (.day, .weekOfMonth), (.weekday, .weekOfYear), (.weekday, .weekOfMonth), (.weekday, .month), (.weekday, .year): return 1..<8
-        case (.month, .year): return 1..<13
+        case (.month, .year): return 1..<(system.monthsInYear(f.year) + 1)
         case (.month, .quarter): return 1..<4
         case (.quarter, .year): return 1..<5
         case (.hour, .day): return 0..<24
@@ -193,7 +276,7 @@ package struct _CalendarMath: Hashable, Sendable {
         case (.nanosecond, .second): return 0..<1_000_000_000
         case (.weekOfMonth, .month): return weeksInMonth(time)
         case (.weekOfYear, .year), (.weekOfYear, .yearForWeekOfYear): return weeksInYear(time)
-        case (.weekdayOrdinal, .month): return 1..<((_Gregorian.daysInMonth(year: f.year, month: f.month) + 6) / 7 + 1)
+        case (.weekdayOrdinal, .month): return 1..<((system.daysInMonth(year: f.year, month: f.month, era: f.era) + 6) / 7 + 1)
         case (.year, .era): return 1..<144684
         default: return nil
         }

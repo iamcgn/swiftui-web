@@ -448,6 +448,7 @@ painter and a GTK window. `pf-browser-sessions` stays open until a person runs t
 
 | Item | Status |
 |---|---|
+| 1 `pf-web-foundation-gaps` | 2026-10-09: `Data` slices keep their indices; `String(data:encoding:)` and `data(using:)` (UTF-8/16/32, ASCII, Latin 1, Windows-1252); `URLComponents`, `URLQueryItem`, Punycoded host names; named time zones with daylight saving answered by the browser's `Intl` (offsets learnt a year at a time, transitions bisected), `TimeZone.current` and `Locale.current` from the browser; the arithmetical calendars (Buddhist, Japanese, Minguo, Islamic civil and tabular, Persian, Hebrew, Coptic, Ethiopic, Indian, ISO 8601) and `wrappingComponents`; `Date.FormatStyle` with its styles and symbols, ISO 8601, relative and verbatim styles, parse strategies, `DateFormatter`, `RelativeDateTimeFormatter` — every core held to Foundation's output on macOS (34 WebFoundation tests), the public types under Node (`WasmFoundationTests`), the bridge read in Chromium (`foundation-probe.mjs`). Counter 2,443,715 → 2,506,191 brotli; `_StringProcessing` calls link the Regex engine (1.5 MB) and are kept out. Remaining differences in decision 0017. |
 
 ## Risk register
 

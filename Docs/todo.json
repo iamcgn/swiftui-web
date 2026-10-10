@@ -1160,13 +1160,14 @@
       "framework": "Platform",
       "area": "wasm",
       "title": "WebFoundation's gaps against Foundation",
-      "detail": "The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Missing: `String.Encoding` and `String(data:encoding:)`, `URLComponents` and international host names, named time zones and daylight saving (`TimeZone.current` is the browser's fixed offset), calendars other than proleptic Gregorian, `DateFormatter` and `FormatStyle`, `wrappingComponents`, `Data` slices that keep their indices. Grow them as apps hit them; each FoundationEssentials type used instead costs the whole library.",
+      "detail": "The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Done 2026-10-09 (Phase 9, item 1): `String(data:encoding:)` and `data(using:)` over WebFoundation's Data (UTF-8/16/32, ASCII, Latin 1, Windows-1252), `URLComponents` and `URLQueryItem`, Punycoded international host names, named time zones with daylight saving answered by the browser's Intl, Locale.current from the browser, the arithmetical calendars (Buddhist, Japanese, Minguo, Islamic civil and tabular, Persian, Hebrew, Coptic, Ethiopic, Indian, ISO 8601), `wrappingComponents`, `Date.FormatStyle` with its styles and symbols, ISO 8601, relative and verbatim styles, parse strategies, `DateFormatter` and `RelativeDateTimeFormatter`, `Data` slices that keep their indices; every core held to Foundation on macOS. Still different: English symbols in every locale, the Chinese calendar (Gregorian fields) and Umm al-Qura (tabular), UTS #46 mapping beyond case, lossy ASCII transliteration, `text.data(using:)` needing a typed result.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/decisions/0017-web-foundation.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "sw-rtl",

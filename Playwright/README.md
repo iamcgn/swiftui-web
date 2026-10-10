@@ -20,3 +20,4 @@ Serve a built bundle first (`scripts/build-wasm.sh <pkg>` then `scripts/serve.sh
   (`__swiftuiwebDebug.frameMillis()`), clamping at the top and the indicator fade. Measurements
   are recorded in `Docs/elements/ScrollView.md`; use a release build for numbers.
 - `uikit-accessibility-probe.mjs <gallery url>`: `uikit/accessibility/basic` — the overlay's roles, states and custom-action buttons, a posted announcement in the live region, and Chromium's accessible tree (uk-accessibility).
+- `foundation-probe.mjs <counter url>`: WebFoundation through the browser's `Intl` (pf-web-foundation-gaps): the page in New York with a German language, `__swiftuiwebDebug.foundation(time)` reports the tz name, the summer and winter offsets and abbreviations, the locale, the known zones, Europe/Berlin on request and a formatted date.

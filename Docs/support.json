@@ -1949,6 +1949,54 @@
           ]
         }
       ]
+    },
+    {
+      "title": "WebFoundation on wasm (decision 0017, pf-web-foundation-gaps)",
+      "framework": "Interop",
+      "entries": [
+        {
+          "api": "Data (slices, base64, ranges)",
+          "status": "partial",
+          "notes": "A byte array with Foundation's surface; a slice keeps its indices (data[2..<4].startIndex is 2, Data(slice) starts at zero), range(of:), base64 with line options; bytes compare and hash alone (2026-10-09)",
+          "noFixture": "Bytes are not a screen; WasmFoundationTests holds the slices under Node."
+        },
+        {
+          "api": "String.Encoding / String(data:encoding:) / data(using:)",
+          "status": "partial",
+          "notes": "FoundationEssentials' String.Encoding with conversions over WebFoundation's Data: UTF-8, ASCII, ISO Latin 1, Windows-1252, UTF-16 and UTF-32 in both byte orders and with a byte-order mark, lossy conversion as question marks (Foundation's ASCII form also strips Latin diacritics; not carried); Shift JIS, EUC, ISO 2022 and the Mac encodings give nil; `text.data(using:)` needs its result typed as Data, because FoundationEssentials declares the same member over its own Data (2026-10-09)",
+          "noFixture": "TextEncodingTests holds the core to Foundation on macOS; WasmFoundationTests the public forms."
+        },
+        {
+          "api": "URL (international host names) / URLComponents / URLQueryItem",
+          "status": "partial",
+          "notes": "Hosts are Punycoded and lower-cased (RFC 3492; Cherokee folds to capitals; UTS #46 compatibility mapping and normalisation are not carried), URLComponents reads and writes every component decoded and percent-encoded with Foundation's allowed sets, queryItems split and compose as Foundation's (`+` kept, `&`, `=`, `#` encoded), url(relativeTo:), appending(queryItems:), a string with stray characters repaired as URLComponents(string:) repairs it (2026-10-09)",
+          "noFixture": "PunycodeTests and URLComponentsCoreTests hold the cores to Foundation on macOS; WasmFoundationTests the public type."
+        },
+        {
+          "api": "TimeZone (named zones, daylight saving) / Locale.current",
+          "status": "partial",
+          "notes": "Named zones are answered by the browser's Intl through the canvas host (offsets learnt a year at a time, transitions bisected to the second, names in Intl's styles, knownTimeZoneIdentifiers from supportedValuesOf); TimeZone.current is the browser's tz name, Locale.current and preferredLanguages the browser's languages; daylightSavingTimeOffset is the difference from the smaller of the January and July offsets (Casablanca's negative saving reads as none); fixed-offset zones as before (2026-10-09)",
+          "noFixture": "ZoneRuleTests holds the rule to Foundation's zones on macOS; Playwright/foundation-probe.mjs reads the bridge in Chromium."
+        },
+        {
+          "api": "Calendar (identifiers, wrappingComponents, daylight saving)",
+          "status": "partial",
+          "notes": "Gregorian, ISO 8601, Buddhist, Japanese (Meiji on, Foundation's era numbers), Minguo, Islamic civil and tabular, Persian, Hebrew (Foundation's month slots), Coptic, Ethiopic (both eras) and Indian calendars held to Foundation's fields, lengths, eras and month steps; `islamic` and `islamicUmmAlQura` use the tabular civil calendar (astronomical tables not carried), `chinese` reports Gregorian fields; wrappingComponents wraps every unit (weekOfMonth pinned as ICU pins it); the wall clock holds across daylight-saving changes, a time in the spring gap moves forward, one in the autumn overlap is its first occurrence (2026-10-09)",
+          "noFixture": "CalendarSystemTests and ZoneRuleTests hold the arithmetic to Foundation on macOS; WasmFoundationTests the public calendar."
+        },
+        {
+          "api": "Date.FormatStyle / Date.VerbatimFormatStyle / Date.RelativeFormatStyle / Date.ParseStrategy / Date.FormatString / .iso8601",
+          "status": "partial",
+          "notes": "The date and time styles (numeric, abbreviated, long, complete; shortened, standard, complete) and every field symbol as en patterns (CLDR en availableFormats with ICU's width rules, ', ' after a numeric date and ' at ' after a month name, the hmsz quirk included), parsing back through the pattern, ISO 8601 with its separators and fractional seconds, relative dates rounded as Date.RelativeFormatStyle rounds them ('yesterday', 'in 2 hours'), FormatString interpolation; English symbols in every locale (Locale is an identifier); `Date.ISO8601FormatStyle` names FoundationEssentials' type, `.iso8601` and `Date.ISO8601Style` this module's (2026-10-09)",
+          "noFixture": "DateFormattingTests holds the pattern core to Foundation's en_US output on macOS; WasmFoundationTests the public styles."
+        },
+        {
+          "api": "DateFormatter / RelativeDateTimeFormatter",
+          "status": "partial",
+          "notes": "dateStyle and timeStyle (short 'M/d/yy', medium, long, full with ' at ' from medium on), dateFormat patterns with every LDML letter and quoting, setLocalizedDateFormatFromTemplate and dateFormat(fromTemplate:), date(from:) through the pattern, the symbol arrays; RelativeDateTimeFormatter in whole units (full, spellOut, short, abbreviated) with named days, weeks, months and years (2026-10-09)",
+          "noFixture": "DateFormattingTests holds the patterns to Foundation on macOS; WasmFoundationTests the classes."
+        }
+      ]
     }
   ]
 }

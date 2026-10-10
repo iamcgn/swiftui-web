@@ -7,8 +7,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 32 | 0 | 0 | 32 |
 | UIKit | 11 | 0 | 0 | 11 |
-| Platform | 5 | 0 | 1 | 4 |
-| **All** | **49** | 0 | 1 | 48 |
+| Platform | 4 | 0 | 1 | 3 |
+| **All** | **48** | 0 | 1 | 47 |
 
 ## Next (Phase 8, in order)
 
@@ -120,8 +120,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Platform
 
-- ☐ **WebFoundation's gaps against Foundation** `pf-web-foundation-gaps` · wasm · missing  
-  The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Missing: `String.Encoding` and `String(data:encoding:)`, `URLComponents` and international host names, named time zones and daylight saving (`TimeZone.current` is the browser's fixed offset), calendars other than proleptic Gregorian, `DateFormatter` and `FormatStyle`, `wrappingComponents`, `Data` slices that keep their indices. Grow them as apps hit them; each FoundationEssentials type used instead costs the whole library. ([0017-web-foundation.md](Docs/decisions/0017-web-foundation.md))
 - ☐ **First frame and large lists** `pf-perf` · Performance · infra  
   The gallery and progress bundles' first frame on a slow connection, laziness in lists and lazy stacks (sw-lazy, sw-list-looks), a frame budget probe in CI over Examples/Landing. ([landing-perf.mjs](Playwright/landing-perf.mjs))
 - ☐ **Native text selection, IME and windows** `pf-native-text` · Native macOS · missing  
@@ -144,6 +142,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-09 **Blend modes, attributed drawing and CGPath** `uk-drawing-rest` · UIKit · Drawing
 - ☑ 2026-10-09 **Accessibility notifications and custom actions** `uk-accessibility` · UIKit · Accessibility
 - ☑ 2026-10-09 **UIPasteboard** `uk-pasteboard` · UIKit · App
+- ☑ 2026-10-09 **WebFoundation's gaps against Foundation** `pf-web-foundation-gaps` · Platform · wasm
 - ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation

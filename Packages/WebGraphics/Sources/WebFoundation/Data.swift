@@ -1,7 +1,7 @@
-// Foundation's `Data` on wasm (decision 0017): a byte array with the surface the frameworks
-// and ordinary apps use. Differences from Foundation: a slice is a fresh `Data` indexed from
-// zero, and there is no `String.Encoding` (`String(decoding:as:)` and `Data(text.utf8)` are
-// the conversions).
+// Foundation's `Data` on wasm (decision 0017, pf-web-foundation-gaps): a byte array with the
+// surface the frameworks and ordinary apps use. A slice keeps its indices, as Foundation's
+// does (`data[2..<4].startIndex` is 2; `Data(slice)` starts a fresh value at zero);
+// `String.Encoding` lives in StringEncoding.swift.
 #if os(WASI)
 public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, CustomDebugStringConvertible,
                     RandomAccessCollection, MutableCollection, RangeReplaceableCollection {
@@ -9,11 +9,17 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
     public typealias Element = UInt8
     public typealias SubSequence = Data
 
-    /// The bytes, as an array.
+    /// The bytes, as an array (a slice's own bytes, from its `startIndex`).
     public var bytes: [UInt8]
+    /// The index of the first byte: zero, or where a slice began in its source.
+    public private(set) var startIndex: Int = 0
 
     public init() { bytes = [] }
     public init(_ bytes: [UInt8]) { self.bytes = bytes }
+    private init(bytes: [UInt8], startIndex: Int) {
+        self.bytes = bytes
+        self.startIndex = startIndex
+    }
     public init<S: Sequence>(_ elements: S) where S.Element == UInt8 { bytes = Array(elements) }
     public init(repeating value: UInt8, count: Int) { bytes = Array(repeating: value, count: count) }
     public init(capacity: Int) { bytes = []; bytes.reserveCapacity(capacity) }
@@ -24,23 +30,23 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
     public init(buffer: UnsafeMutableBufferPointer<UInt8>) { bytes = Array(buffer) }
     public init(_ buffer: UnsafeRawBufferPointer) { bytes = Array(buffer) }
 
-    public var startIndex: Int { 0 }
-    public var endIndex: Int { bytes.count }
+    public var endIndex: Int { startIndex + bytes.count }
     public var count: Int { bytes.count }
     public func index(after i: Int) -> Int { i + 1 }
     public func index(before i: Int) -> Int { i - 1 }
 
     public subscript(position: Int) -> UInt8 {
-        get { bytes[position] }
-        set { bytes[position] = newValue }
+        get { bytes[position - startIndex] }
+        set { bytes[position - startIndex] = newValue }
     }
+    /// A slice sharing this value's indices.
     public subscript(bounds: Range<Int>) -> Data {
-        get { Data(bytes[bounds]) }
-        set { bytes.replaceSubrange(bounds, with: newValue.bytes) }
+        get { Data(bytes: Array(bytes[(bounds.lowerBound - startIndex)..<(bounds.upperBound - startIndex)]), startIndex: bounds.lowerBound) }
+        set { bytes.replaceSubrange((bounds.lowerBound - startIndex)..<(bounds.upperBound - startIndex), with: newValue.bytes) }
     }
 
     public mutating func replaceSubrange<C: Collection>(_ subrange: Range<Int>, with newElements: C) where C.Element == UInt8 {
-        bytes.replaceSubrange(subrange, with: newElements)
+        bytes.replaceSubrange((subrange.lowerBound - startIndex)..<(subrange.upperBound - startIndex), with: newElements)
     }
     public mutating func append(_ other: Data) { bytes.append(contentsOf: other.bytes) }
     public mutating func append(_ byte: UInt8) { bytes.append(byte) }
@@ -50,9 +56,10 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
     }
     public mutating func reserveCapacity(_ minimumCapacity: Int) { bytes.reserveCapacity(minimumCapacity) }
     public mutating func resetBytes(in range: Range<Int>) {
-        for i in range { bytes[i] = 0 }
+        for i in range { bytes[i - startIndex] = 0 }
     }
-    public func subdata(in range: Range<Int>) -> Data { Data(bytes[range]) }
+    /// The bytes in `range` (this value's indices) as a fresh value indexed from zero.
+    public func subdata(in range: Range<Int>) -> Data { Data(bytes[(range.lowerBound - startIndex)..<(range.upperBound - startIndex)]) }
     public static func += (lhs: inout Data, rhs: Data) { lhs.append(rhs) }
 
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
@@ -65,8 +72,29 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
         for i in 0..<Swift.min(count, bytes.count) { pointer[i] = bytes[i] }
     }
     public func copyBytes(to pointer: UnsafeMutablePointer<UInt8>, from range: Range<Int>) {
-        for (offset, i) in range.enumerated() { pointer[offset] = bytes[i] }
+        for (offset, i) in range.enumerated() { pointer[offset] = bytes[i - startIndex] }
     }
+    /// Foundation's `firstRange(of:)`: where `other` first occurs, in this value's indices.
+    public func range(of other: Data, options: SearchOptions = [], in range: Range<Int>? = nil) -> Range<Int>? {
+        let bounds = range ?? startIndex..<endIndex
+        let needle = other.bytes
+        guard !needle.isEmpty, bounds.count >= needle.count else { return nil }
+        let indices = Array(bounds.lowerBound...(bounds.upperBound - needle.count))
+        for start in options.contains(.backwards) ? indices.reversed() : indices {
+            if bytes[(start - startIndex)..<(start - startIndex + needle.count)].elementsEqual(needle) { return start..<(start + needle.count) }
+        }
+        return nil
+    }
+    public struct SearchOptions: OptionSet, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let backwards = SearchOptions(rawValue: 1)
+        public static let anchored = SearchOptions(rawValue: 2)
+    }
+
+    // Foundation compares and hashes the bytes alone, whatever a slice's indices.
+    public static func == (lhs: Data, rhs: Data) -> Bool { lhs.bytes == rhs.bytes }
+    public func hash(into hasher: inout Hasher) { hasher.combine(bytes) }
     @discardableResult
     public func copyBytes(to buffer: UnsafeMutableBufferPointer<UInt8>) -> Int {
         let count = Swift.min(buffer.count, bytes.count)

@@ -77,12 +77,17 @@ package struct _URLParts: Hashable, Sendable {
                 parts.host = String(hostPort)
             }
             if parts.host == "" { parts.host = nil }
+            // An international host name goes on the wire Punycoded, lower-cased (IDNA).
+            if let host = parts.host, host.contains("%" as Character) {
+                guard let encoded = _Punycode.encodedHost(percentDecoded(host)) else { return nil }
+                parts.host = encoded
+            }
         }
         parts.path = String(rest)
         return parts
     }
 
-    private static func hex(_ byte: UInt8) -> String {
+    package static func hex(_ byte: UInt8) -> String {
         let digits = Array("0123456789ABCDEF")
         return String(digits[Int(byte >> 4)]) + String(digits[Int(byte & 15)])
     }
@@ -205,7 +210,7 @@ package struct _URLParts: Hashable, Sendable {
         return String(decoding: bytes, as: UTF8.self)
     }
 
-    private static func hexValue(_ byte: UInt8) -> UInt8? {
+    package static func hexValue(_ byte: UInt8) -> UInt8? {
         switch byte {
         case UInt8(ascii: "0")...UInt8(ascii: "9"): return byte - UInt8(ascii: "0")
         case UInt8(ascii: "a")...UInt8(ascii: "f"): return byte - UInt8(ascii: "a") + 10

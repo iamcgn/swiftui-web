@@ -49,10 +49,12 @@ public final class CanvasSceneHost {
     public init(scene: any HostedScene) {
         self.scene = scene
         window = JSObject.global
-        // The browser's zone is the app's `TimeZone.current` (WebFoundation has no tz database).
+        // The browser's zone is the app's `TimeZone.current` (WebFoundation has no tz database;
+        // `Intl` answers for named zones and the browser's language is `Locale.current`).
         if let minutes = JSObject.global.Date.function?.new().getTimezoneOffset?().number {
             TimeZone._hostSecondsFromGMT = -Int(minutes) * 60
         }
+        IntlBridge.install()
         document = window.document.object!
         if window.__swiftuiweb.isUndefined {
             let script = document.createElement!("script").object!
@@ -1083,7 +1085,28 @@ public final class CanvasSceneHost {
             }
             return .object(array)
         }
-        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics]
+        // WebFoundation as the host wired it: the zone `Intl` named, its offsets on a date, the
+        // locale, a formatted date (Playwright/foundation-probe.mjs reads them).
+        let foundation = JSClosure { arguments in
+            let object = JSObject.global.Object.function!.new()
+            let zone = TimeZone.current
+            let date = arguments.first?.number.map { Date(timeIntervalSince1970: $0) } ?? Date()
+            object.timeZone = .string(zone.identifier)
+            object.secondsFromGMT = .number(Double(zone.secondsFromGMT(for: date)))
+            object.isDaylightSavingTime = .boolean(zone.isDaylightSavingTime(for: date))
+            object.abbreviation = .string(zone.abbreviation(for: date) ?? "")
+            object.zoneName = .string(zone.localizedName(for: .standard, locale: nil) ?? "")
+            object.locale = .string(Locale.current.identifier)
+            object.knownZones = .number(Double(TimeZone.knownTimeZoneIdentifiers.count))
+            object.formatted = .string(date.formatted(date: .complete, time: .complete))
+            if let berlin = TimeZone(identifier: "Europe/Berlin") {
+                object.berlinOffset = .number(Double(berlin.secondsFromGMT(for: date)))
+                object.berlinName = .string(berlin.abbreviation(for: date) ?? "")
+            }
+            return .object(object)
+        }
+        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics, foundation]
+        debug.foundation = .object(foundation)
         debug.framePhases = .object(framePhases)
         debug.animating = .object(animating)
         debug.semantics = .object(semantics)
@@ -1107,6 +1130,68 @@ final class CanvasImageLoader: _ImageLoading {
         if let text = state.string { return text == "failed" ? .failed : .loading }
         guard let array = state.object, let width = array[0].number, let height = array[1].number else { return .loading }
         return .loaded(pixelSize: CGSize(width: width, height: height))
+    }
+}
+
+
+/// The browser's `Intl` behind WebFoundation's named time zones and the current locale.
+enum IntlBridge {
+    /// One `Intl.DateTimeFormat` per zone and name style, made on first use.
+    nonisolated(unsafe) private static var formatters: [String: JSObject] = [:]
+
+    static func install() {
+        let intl = JSObject.global.Intl
+        guard let dateTimeFormat = intl.DateTimeFormat.function else { return }
+        if let zone = dateTimeFormat.new().resolvedOptions?().timeZone.string, !zone.isEmpty { TimeZone._hostIdentifier = zone }
+        TimeZone._hostOffset = { identifier, time in
+            guard let parts = formatParts(identifier, style: "longOffset", time: time) else { return nil }
+            return parseOffset(parts)
+        }
+        TimeZone._hostName = { identifier, time, style in formatParts(identifier, style: style, time: time) }
+        TimeZone._hostKnownIdentifiers = {
+            guard let values = JSObject.global.Intl.supportedValuesOf.function?("timeZone").object else { return ["GMT"] }
+            let count = Int(values.length.number ?? 0)
+            return (0..<count).compactMap { values[$0].string }
+        }
+        let navigator = JSObject.global.navigator
+        if let language = navigator.language.string, !language.isEmpty { Locale._hostIdentifier = language }
+        if let languages = navigator.languages.object {
+            let count = Int(languages.length.number ?? 0)
+            let list = (0..<count).compactMap { languages[$0].string }
+            if !list.isEmpty { Locale._hostPreferredLanguages = list }
+        }
+    }
+
+    /// The `timeZoneName` part of a format in the given style, nil for a zone `Intl` rejects.
+    private static func formatParts(_ identifier: String, style: String, time: Double) -> String? {
+        let key = identifier + "|" + style
+        let formatter: JSObject
+        if let known = formatters[key] {
+            formatter = known
+        } else {
+            guard let constructor = JSObject.global.Intl.DateTimeFormat.function else { return nil }
+            let options = JSObject.global.Object.function!.new()
+            options.timeZone = .string(identifier)
+            options.timeZoneName = .string(style)
+            guard let made = try? JSThrowingFunction(constructor).new("en-US", options) else { return nil }
+            formatters[key] = made
+            formatter = made
+        }
+        guard let parts = formatter.formatToParts?(time * 1000).object else { return nil }
+        let count = Int(parts.length.number ?? 0)
+        for index in 0..<count where parts[index].type.string == "timeZoneName" { return parts[index].value.string }
+        return nil
+    }
+
+    /// Seconds east of GMT from "GMT", "GMT+2", "GMT-04:00" or "GMT+05:45".
+    private static func parseOffset(_ text: String) -> Int? {
+        let body = text.hasPrefix("GMT") ? text.dropFirst(3) : text.hasPrefix("UTC") ? text.dropFirst(3) : Substring(text)
+        if body.isEmpty { return 0 }
+        guard let sign = body.first, sign == "+" || sign == "-" || sign == "\u{2212}" else { return nil }
+        let pieces = body.dropFirst().split(separator: ":")
+        guard let hours = pieces.first.flatMap({ Int($0) }) else { return nil }
+        let minutes = pieces.count > 1 ? Int(pieces[1]) ?? 0 : 0
+        return (hours * 3600 + minutes * 60) * (sign == "+" ? 1 : -1)
     }
 }
 
