@@ -28,106 +28,106 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **iOS presentations and bars: the rest** `sw-ios-presentation-rest` · iOS profile · approximate  
-  After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection. ([iOS.md](Docs/elements/iOS.md))
-- ☐ **Measure the macOS presentation looks** `sw-mac-presentation-looks` · Presentation · approximate  
-  The sheet, popover, alert and menu looks on macOS are by eye (separate windows the golden harness cannot capture). A window-list capture (CGWindowListCreateImage over the app's windows after a step presents) in the AppKit golden host would pin the panel geometry, materials and shadows the way `capturesWindow` does on iOS. ([Presentation.md](Docs/elements/Presentation.md))
-- ☐ **List editing: the rest** `sw-list-editing-rest` · List · approximate  
-  The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop. ([List.md](Docs/elements/List.md))
-- ☐ **List looks: the rest** `sw-list-looks-rest` · List · approximate  
-  The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron. ([List.md](Docs/elements/List.md))
-- ☐ **Dynamic Type** `sw-dynamic-type` · Text · missing  
-  `dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting. ([Text.md](Docs/elements/Text.md), [iOS.md](Docs/elements/iOS.md))
-- ☐ **TextEditor: selection, find, long content** `sw-texteditor` · TextEditor · missing  
-  A selection binding, `findNavigator`/`findDisabled`/`replaceDisabled`, `lineLimit` on editors, scrolling of long content, and the NSTextView wrapping parity (texteditor/basic is approximate). ([TextEditor.md](Docs/elements/TextEditor.md))
-- ☐ **Selecting text** `sw-text-selection` · Text · accepted  
-  `textSelection(.enabled)` only sets the I-beam: drag selection over painted text, copy, the selection highlight in the display list, on both hosts. ([TextScale.md](Docs/elements/TextScale.md))
-- ☐ **NavigationSplitView chrome** `sw-splitview` · Navigation · approximate  
-  The sidebar's material and toolbar, dragging the divider, collapsing by drag, the styles (accepted), `preferredCompactColumn` in the iOS profile; the splitview/ fixtures out of the 9 % approximate bound. ([NavigationSplitView.md](Docs/elements/NavigationSplitView.md))
-- ☐ **Toolbar modifiers with an effect** `sw-toolbar` · Toolbar · accepted  
-  `toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode` (accepted today), `toolbar(id:)` customisation, `ToolbarCommands`, sheet toolbars, a real `NSToolbar` in the native host. ([Toolbar.md](Docs/elements/Toolbar.md))
-- ☐ **Window commands, dragging and documents** `sw-windows` · Windows · missing  
-  `commands` on scenes and a menu bar in the native host, dragging and resizing the in-host windows, per-window focus and keyboard routing, `DocumentGroup`, restoration, the accepted scene modifiers (`windowResizability`, `windowStyle`, `defaultPosition`). ([Windows.md](Docs/elements/Windows.md))
-- ☐ **Slider styles and stepper repeat** `sw-slider-stepper` · Slider and Stepper · missing  
-  `sliderStyle`, tick labels, vertical sliders, the knob shadow; the stepper's press-and-hold repeat and its `formatter`/`format` forms. ([Slider.md](Docs/elements/Slider.md), [Stepper.md](Docs/elements/Stepper.md))
-- ☐ **A real colour panel** `sw-colorpicker` · ColorPicker · approximate  
-  The browser's `<input type=color>` and the native colour panel behind the well (the preset popover stands in, unverified), a `CGColor` binding, keyboard activation, dropping colours. ([ColorPicker.md](Docs/elements/ColorPicker.md))
-- ☐ **Context-dependent labels and formatted values** `sw-label-forms` · Label · missing  
-  `Label`'s automatic style by context (icon only in toolbars), multi-line titles, `LabeledContent(_:value:format:)`, the secondary value colour in grouped forms (unmeasured). ([Label.md](Docs/elements/Label.md), [LabeledContent.md](Docs/elements/LabeledContent.md))
-- ☐ **ContentUnavailableView in containers** `sw-content-unavailable` · ContentUnavailableView · verify  
-  Inside lists and navigation, the iOS vertical centring, the symbol above the title on other platforms. ([ContentUnavailableView.md](Docs/elements/ContentUnavailableView.md))
-- ☐ **ShareLink items and previews** `sw-sharelink` · ShareLink · missing  
-  `Transferable` items, `SharePreview`, `message`; the browser's `navigator.share` and the native sharing service picker behind it; hover looks for `Link`. ([ShareLink.md](Docs/elements/ShareLink.md), [Link.md](Docs/elements/Link.md))
 - ☐ **Right-to-left layout direction** `sw-rtl` · Layout · missing  
   `layoutDirection` through stacks, grids, custom layouts, `layoutDirectionBehavior` on shapes, alignment guides and the text layouter; goldens from a right-to-left locale. ([Layout.md](Docs/elements/Layout.md), [CustomLayout.md](Docs/elements/CustomLayout.md))
+- ☐ **Dynamic Type** `sw-dynamic-type` · Text · missing  
+  `dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting. ([Text.md](Docs/elements/Text.md), [iOS.md](Docs/elements/iOS.md))
+- ☐ **Subviews-based ForEach and Group** `sw-subviews` · View composition · missing  
+  `ForEach(subviews:)`, `ForEach(sections:)`, `Group(subviews:)`, `containerValues`; the iOS 18 container APIs. ([ForEach.md](Docs/elements/ForEach.md))
 - ☐ **Layout protocol corners** `sw-custom-layout` · Layout · missing  
   `Layout.Animatable` (animating layout parameters), `updateCache` reuse across passes and invalidation on environment changes, `GridLayout` as a `Layout` value, rows with more cells than the widest earlier row combined with spans. ([CustomLayout.md](Docs/elements/CustomLayout.md), [Grid.md](Docs/elements/Grid.md))
+- ☐ **Safe area corners** `sw-safe-area` · Position · missing  
+  `GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. `ignoresSafeArea` on a view whose safe-area modifier hugs it on every edge extends on every edge by the geometric rule (PositionTests): a consequence, not a measurement. ([Position.md](Docs/elements/Position.md))
 - ☐ **Shape corners: strokedPath, container shapes, roles** `sw-shapes` · Shape · approximate  
   `Path.strokedPath` as the offset outline (polygons per segment today), `ContainerRelativeShape` following its container, `Shape.role` (stub), `Path(cgPath:)` on Apple platforms. ([Shape.md](Docs/elements/Shape.md))
 - ☐ **Elliptical and mesh gradients** `sw-gradients` · Gradient · missing  
   `EllipticalGradient`, `MeshGradient`, `ShapeStyle.in(_:)`, gradient `opacity`, repeat and mirror options (accepted), gradients on images and symbols, the hierarchical fade levels (approximate). ([Gradient.md](Docs/elements/Gradient.md))
 - ☐ **Animated effects and drawing groups** `sw-effects` · Effects · accepted  
   Effect values under animation, `drawingGroup(opaque:colorMode:)` (accepted), filtering of content painted outside its frame, `drawingGroup`'s rasterisation semantics. ([Effects.md](Docs/elements/Effects.md))
-- ☐ **SF Symbols fidelity** `sw-symbols` · Image · approximate  
-  Lucide stands in for every glyph: rendering modes (accepted), multicolour and hierarchical layers, `variableValue`, sizes and names beyond the 240 measured (a full metrics table from the catalog goldens), symbol effects by layer; decision needed on a symbol source with a licence that allows shipping. ([Image.md](Docs/elements/Image.md), [SymbolEffect.md](Docs/elements/SymbolEffect.md))
 - ☐ **Image catalog forms and rendering** `sw-images` · Image · missing  
   PDF and SVG catalog sets, slicing metadata, dark-appearance image variants, Display P3 (used as sRGB), `Image(size:label:renderer:)`, `luminanceToAlpha` and `colorMultiply` on images, redaction placeholders for catalog images (approximate). ([Image.md](Docs/elements/Image.md), [Redaction.md](Docs/elements/Redaction.md))
+- ☐ **SF Symbols fidelity** `sw-symbols` · Image · approximate  
+  Lucide stands in for every glyph: rendering modes (accepted), multicolour and hierarchical layers, `variableValue`, sizes and names beyond the 240 measured (a full metrics table from the catalog goldens), symbol effects by layer; decision needed on a symbol source with a licence that allows shipping. ([Image.md](Docs/elements/Image.md), [SymbolEffect.md](Docs/elements/SymbolEffect.md))
 - ☐ **AsyncImage caching and transactions** `sw-asyncimage` · AsyncImage · accepted  
   Cancellation on unmount, a cache keyed by URL, the phase transaction (accepted), the default placeholder colour (approximate). ([AsyncImage.md](Docs/elements/AsyncImage.md))
-- ☐ **Safe area corners** `sw-safe-area` · Position · missing  
-  `GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. `ignoresSafeArea` on a view whose safe-area modifier hugs it on every edge extends on every edge by the geometric rule (PositionTests): a consequence, not a measurement. ([Position.md](Docs/elements/Position.md))
+- ☐ **Selecting text** `sw-text-selection` · Text · accepted  
+  `textSelection(.enabled)` only sets the I-beam: drag selection over painted text, copy, the selection highlight in the display list, on both hosts. ([TextScale.md](Docs/elements/TextScale.md))
+- ☐ **TextEditor: selection, find, long content** `sw-texteditor` · TextEditor · missing  
+  A selection binding, `findNavigator`/`findDisabled`/`replaceDisabled`, `lineLimit` on editors, scrolling of long content, and the NSTextView wrapping parity (texteditor/basic is approximate). ([TextEditor.md](Docs/elements/TextEditor.md))
+- ☐ **Context-dependent labels and formatted values** `sw-label-forms` · Label · missing  
+  `Label`'s automatic style by context (icon only in toolbars), multi-line titles, `LabeledContent(_:value:format:)`, the secondary value colour in grouped forms (unmeasured). ([Label.md](Docs/elements/Label.md), [LabeledContent.md](Docs/elements/LabeledContent.md))
+- ☐ **ContentUnavailableView in containers** `sw-content-unavailable` · ContentUnavailableView · verify  
+  Inside lists and navigation, the iOS vertical centring, the symbol above the title on other platforms. ([ContentUnavailableView.md](Docs/elements/ContentUnavailableView.md))
+- ☐ **Slider styles and stepper repeat** `sw-slider-stepper` · Slider and Stepper · missing  
+  `sliderStyle`, tick labels, vertical sliders, the knob shadow; the stepper's press-and-hold repeat and its `formatter`/`format` forms. ([Slider.md](Docs/elements/Slider.md), [Stepper.md](Docs/elements/Stepper.md))
+- ☐ **A real colour panel** `sw-colorpicker` · ColorPicker · approximate  
+  The browser's `<input type=color>` and the native colour panel behind the well (the preset popover stands in, unverified), a `CGColor` binding, keyboard activation, dropping colours. ([ColorPicker.md](Docs/elements/ColorPicker.md))
+- ☐ **Hover effects on controls** `sw-hover-looks` · Hover · missing  
+  `hoverEffect` and the hovered looks of macOS controls (none change today), the tooltip's measured look. ([Hover.md](Docs/elements/Hover.md))
+- ☐ **Contrast and per-presentation schemes** `sw-dark` · Dark mode · missing  
+  `colorSchemeContrast`, `preferredColorScheme` per presentation, gauge and date picker chrome verified in dark, the focus ring in dark. ([DarkMode.md](Docs/elements/DarkMode.md))
 - ☐ **Timeline modes and pausing** `sw-timeline` · TimelineView · accepted  
   `lowFrequency` (accepted), pausing when the page is hidden, content reading the environment's calendar and time zone. ([TimelineView.md](Docs/elements/TimelineView.md))
 - ☐ **Rendering previews** `sw-previews` · Preview · accepted  
   A macro that keeps the `#Preview` body so the gallery can show an app's previews, `PreviewModifier`, `previewLayout`, `previewDisplayName`; the traits are stubs today. ([Preview.md](Docs/elements/Preview.md))
-- ☐ **Contrast and per-presentation schemes** `sw-dark` · Dark mode · missing  
-  `colorSchemeContrast`, `preferredColorScheme` per presentation, gauge and date picker chrome verified in dark, the focus ring in dark. ([DarkMode.md](Docs/elements/DarkMode.md))
-- ☐ **Hover effects on controls** `sw-hover-looks` · Hover · missing  
-  `hoverEffect` and the hovered looks of macOS controls (none change today), the tooltip's measured look. ([Hover.md](Docs/elements/Hover.md))
-- ☐ **Drags across the app boundary** `sw-dragdrop-os` · Drag and drop · missing  
-  Drags to and from the browser page (`DataTransfer`) and other native apps (`NSDraggingSession`), `FileRepresentation`, `dropDestination` on `List` rows with insertion indices, `exportableToServices`, `importsItemProviders`. ([DragDrop.md](Docs/elements/DragDrop.md))
+- ☐ **ShareLink items and previews** `sw-sharelink` · ShareLink · missing  
+  `Transferable` items, `SharePreview`, `message`; the browser's `navigator.share` and the native sharing service picker behind it; hover looks for `Link`. ([ShareLink.md](Docs/elements/ShareLink.md), [Link.md](Docs/elements/Link.md))
+- ☐ **Toolbar modifiers with an effect** `sw-toolbar` · Toolbar · accepted  
+  `toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode` (accepted today), `toolbar(id:)` customisation, `ToolbarCommands`, sheet toolbars, a real `NSToolbar` in the native host. ([Toolbar.md](Docs/elements/Toolbar.md))
+- ☐ **NavigationSplitView chrome** `sw-splitview` · Navigation · approximate  
+  The sidebar's material and toolbar, dragging the divider, collapsing by drag, the styles (accepted), `preferredCompactColumn` in the iOS profile; the splitview/ fixtures out of the 9 % approximate bound. ([NavigationSplitView.md](Docs/elements/NavigationSplitView.md))
+- ☐ **Window commands, dragging and documents** `sw-windows` · Windows · missing  
+  `commands` on scenes and a menu bar in the native host, dragging and resizing the in-host windows, per-window focus and keyboard routing, `DocumentGroup`, restoration, the accepted scene modifiers (`windowResizability`, `windowStyle`, `defaultPosition`). ([Windows.md](Docs/elements/Windows.md))
 - ☐ **Table columns, styles and interaction** `sw-table` · Table · missing  
   `TableColumnForEach`, column groups, `TableRow` builders, `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, disclosure rows, column resizing by drag, row context menus, horizontal scrolling of overflowing columns, scrolling rows; the band look (approximate). ([Table.md](Docs/elements/Table.md))
-- ☐ **Subviews-based ForEach and Group** `sw-subviews` · View composition · missing  
-  `ForEach(subviews:)`, `ForEach(sections:)`, `Group(subviews:)`, `containerValues`; the iOS 18 container APIs. ([ForEach.md](Docs/elements/ForEach.md))
+- ☐ **Drags across the app boundary** `sw-dragdrop-os` · Drag and drop · missing  
+  Drags to and from the browser page (`DataTransfer`) and other native apps (`NSDraggingSession`), `FileRepresentation`, `dropDestination` on `List` rows with insertion indices, `exportableToServices`, `importsItemProviders`. ([DragDrop.md](Docs/elements/DragDrop.md))
+- ☐ **List editing: the rest** `sw-list-editing-rest` · List · approximate  
+  The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop. ([List.md](Docs/elements/List.md))
+- ☐ **List looks: the rest** `sw-list-looks-rest` · List · approximate  
+  The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron. ([List.md](Docs/elements/List.md))
+- ☐ **iOS presentations and bars: the rest** `sw-ios-presentation-rest` · iOS profile · approximate  
+  After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection. ([iOS.md](Docs/elements/iOS.md))
+- ☐ **Measure the macOS presentation looks** `sw-mac-presentation-looks` · Presentation · approximate  
+  The sheet, popover, alert and menu looks on macOS are by eye (separate windows the golden harness cannot capture). A window-list capture (CGWindowListCreateImage over the app's windows after a step presents) in the AppKit golden host would pin the panel geometry, materials and shadows the way `capturesWindow` does on iOS. ([Presentation.md](Docs/elements/Presentation.md))
 - ☐ **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · Other frameworks · missing  
   Separate Apple frameworks. `Charts` is the one apps reach for most and could be a package of its own over the display list; `Map` would need a tile source; `VideoPlayer` and `WebView` need DOM elements under the canvas. Decision needed before any of them starts. ([support.json](Docs/support.json))
 
 ### UIKit
 
-- ☐ **Tab bar badges and the More tab** `uk-tabbar` · Navigation · missing  
-  `UITabBarItem.badgeValue`, the More tab past five items, `UITabBarAppearance` (accepted), tab bar customisation. ([Navigation.md](Docs/elements/UIKit/Navigation.md))
-- ☐ **Share and document pickers** `uk-system-sheets` · Presentation · missing  
-  `UIActivityViewController` over `navigator.share` and the native sharing picker; `UIDocumentPickerViewController` over the browser's file input and `NSOpenPanel`; `UIImagePickerController` likewise. What the host cannot offer is documented per host. ([Presentation.md](Docs/elements/UIKit/Presentation.md))
+- ☐ **UIAppearance proxies** `uk-appearance` · Views · missing  
+  `appearance()` and `appearance(whenContainedInInstancesOf:)` applied when a view enters a window. ([Views](Packages/UIKitWeb/Sources/UIKitWebCore/Views))
+- ☐ **Scenes and app lifecycle** `uk-scenes` · App · missing  
+  `UIWindowScene`, `UISceneDelegate` and `UIApplication` lifecycle notifications from page visibility and activation; several windows in the host; `UIFeedbackGenerator` as no-ops. ([App](Packages/UIKitWeb/Sources/UIKitWebCore/App))
+- ☐ **Hardware keyboard and the focus system** `uk-keyboard` · Events · missing  
+  `UIKeyCommand` on responders, `pressesBegan`/`pressesEnded`, `UIFocusSystem` with the focus ring for keyboard navigation across controls, table and collection cells. ([Events](Packages/UIKitWeb/Sources/UIKitWebCore/Events))
 - ☐ **UITextInput for custom text views** `uk-text-input` · Text · missing  
   The `UITextInput` protocol and `UITextInteraction` so an app's own text view can take input through the host overlay; `UIKeyInput` for the simple form. ([TextView.md](Docs/elements/UIKit/TextView.md))
 - ☐ **Slider images, segment images, stepper repeat** `uk-controls-rest` · Controls · missing  
   `UISlider` minimum and maximum images, `UISegmentedControl` images and per-segment widths, `UIStepper.autorepeat` (accepted), `UIPageControl` taps and continuous interaction. ([Controls.md](Docs/elements/UIKit/Controls.md))
-- ☐ **UISplitViewController** `uk-splitviewcontroller` · Containers · missing  
-  The column styles, display modes and the compact collapse; the iPad geometry from a simulator of that idiom. ([Containers](Packages/UIKitWeb/Sources/UIKitWebCore/Containers))
+- ☐ **Tab bar badges and the More tab** `uk-tabbar` · Navigation · missing  
+  `UITabBarItem.badgeValue`, the More tab past five items, `UITabBarAppearance` (accepted), tab bar customisation. ([Navigation.md](Docs/elements/UIKit/Navigation.md))
 - ☐ **Table view corners** `uk-table-rest` · Table view · approximate  
   The grouped (non-inset) style's geometry, the `RowAnimation` kinds (every animation fades and slides today), swipe button widths and fonts, the lifted row's shadow, the tracking background while touched, `imageProperties`, catalog images in list content (the UIKit harness has no asset catalog), sidebar and `plainHeader` appearances, right-to-left. ([TableView.md](Docs/elements/UIKit/TableView.md))
 - ☐ **Collection view corners** `uk-collection-rest` · Collection view · missing  
   Estimated dimensions in compositional layouts, item supplementary items, `groupPagingCentered`, `visibleItemsInvalidationHandler`, decorations in orthogonal sections, pinned footers, the scroll pocket blur, drag reordering, `UICollectionViewLayout` animation hooks, the diffable move detection when an item also changes section, outline disclosure options and reordering, the sidebar appearance. ([CollectionView.md](Docs/elements/UIKit/CollectionView.md))
-- ☐ **UIAppearance proxies** `uk-appearance` · Views · missing  
-  `appearance()` and `appearance(whenContainedInInstancesOf:)` applied when a view enters a window. ([Views](Packages/UIKitWeb/Sources/UIKitWebCore/Views))
-- ☐ **Hardware keyboard and the focus system** `uk-keyboard` · Events · missing  
-  `UIKeyCommand` on responders, `pressesBegan`/`pressesEnded`, `UIFocusSystem` with the focus ring for keyboard navigation across controls, table and collection cells. ([Events](Packages/UIKitWeb/Sources/UIKitWebCore/Events))
 - ☐ **Drag and drop interactions** `uk-dragdrop` · Events · missing  
   `UIDragInteraction`/`UIDropInteraction`, the table and collection drag and drop delegates over the runtime's drag session (SwiftUI's `draggable` shares it). ([DragDrop.md](Docs/elements/DragDrop.md))
-- ☐ **Scenes and app lifecycle** `uk-scenes` · App · missing  
-  `UIWindowScene`, `UISceneDelegate` and `UIApplication` lifecycle notifications from page visibility and activation; several windows in the host; `UIFeedbackGenerator` as no-ops. ([App](Packages/UIKitWeb/Sources/UIKitWebCore/App))
+- ☐ **UISplitViewController** `uk-splitviewcontroller` · Containers · missing  
+  The column styles, display modes and the compact collapse; the iPad geometry from a simulator of that idiom. ([Containers](Packages/UIKitWeb/Sources/UIKitWebCore/Containers))
+- ☐ **Share and document pickers** `uk-system-sheets` · Presentation · missing  
+  `UIActivityViewController` over `navigator.share` and the native sharing picker; `UIDocumentPickerViewController` over the browser's file input and `NSOpenPanel`; `UIImagePickerController` likewise. What the host cannot offer is documented per host. ([Presentation.md](Docs/elements/UIKit/Presentation.md))
 
 ### Platform
 
 - ☐ **WebFoundation's gaps against Foundation** `pf-web-foundation-gaps` · wasm · missing  
   The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Missing: `String.Encoding` and `String(data:encoding:)`, `URLComponents` and international host names, named time zones and daylight saving (`TimeZone.current` is the browser's fixed offset), calendars other than proleptic Gregorian, `DateFormatter` and `FormatStyle`, `wrappingComponents`, `Data` slices that keep their indices. Grow them as apps hit them; each FoundationEssentials type used instead costs the whole library. ([0017-web-foundation.md](Docs/decisions/0017-web-foundation.md))
-- ☐ **Linux: build, CI, painter and host** `pf-linux` · Linux · infra  
-  The native headless build and tests are supported on Linux with Swift 6.3.3, alongside wasm cross-compilation. Remaining: a Skia or Cairo painter, a GTK window and the WebKitGTK host. ([ROADMAP.md](Docs/ROADMAP.md))
-- ☐ **Native text selection, IME and windows** `pf-native-text` · Native macOS · missing  
-  A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host. ([0012-native-painter.md](Docs/decisions/0012-native-painter.md))
 - ☐ **First frame and large lists** `pf-perf` · Performance · infra  
   The gallery and progress bundles' first frame on a slow connection, laziness in lists and lazy stacks (sw-lazy, sw-list-looks), a frame budget probe in CI over Examples/Landing. ([landing-perf.mjs](Playwright/landing-perf.mjs))
+- ☐ **Native text selection, IME and windows** `pf-native-text` · Native macOS · missing  
+  A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host. ([0012-native-painter.md](Docs/decisions/0012-native-painter.md))
+- ☐ **Linux: build, CI, painter and host** `pf-linux` · Linux · infra  
+  The native headless build and tests are supported on Linux with Swift 6.3.3, alongside wasm cross-compilation. Remaining: a Skia or Cairo painter, a GTK window and the WebKitGTK host. ([ROADMAP.md](Docs/ROADMAP.md))
 
 ## Landed
 

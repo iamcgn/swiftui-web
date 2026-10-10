@@ -1,5 +1,5 @@
 {
-  "about": "The work that remains, one item per gap, in the order it is planned (decision 0016). Rendered into Docs/TODO.md and the progress page by scripts/gen-progress.py; edit this file, never the outputs. `priority`: next (Phase 8, in order) | soon (the gap sweep after it: what ordinary apps hit) | later (needs a decision, a new subsystem or a platform that does not exist yet). `status`: planned | in-progress | done (with the date) | wontfix (a documented non-goal, with the reason in `detail`). `kind`: missing (no API) | accepted (API compiles, no behaviour) | approximate (behaves, pixels or motion differ) | verify (behaves, never measured against Apple) | infra (tooling, docs, site). Move an item to done when its support row changes; keep it here so the page shows what landed.",
+  "about": "The work that remains, one item per gap, in the order it is planned (decision 0016). Rendered into Docs/TODO.md and the progress page by scripts/gen-progress.py; edit this file, never the outputs. `priority`: next (Phase 8, in order) | soon (the gap sweep after it: what ordinary apps hit) | later (needs a decision, a new subsystem or a platform that does not exist yet; Phase 9 works them in the file's order, decision 0018). `status`: planned | in-progress | done (with the date) | wontfix (a documented non-goal, with the reason in `detail`). `kind`: missing (no API) | accepted (API compiles, no behaviour) | approximate (behaves, pixels or motion differ) | verify (behaves, never measured against Apple) | infra (tooling, docs, site). Move an item to done when its support row changes; keep it here so the page shows what landed.",
   "items": [
     {
       "id": "st-tracking",
@@ -288,19 +288,6 @@
       "done": "2026-09-18"
     },
     {
-      "id": "ix-appkit",
-      "framework": "Interop",
-      "area": "AppKit",
-      "title": "NSViewRepresentable and NSViewControllerRepresentable",
-      "detail": "Apps written for the macOS profile reach for AppKit representables; there is no AppKitWeb to host them. Out of scope until a decision says whether an AppKitWeb is worth building or the API should compile as an empty view; recorded here so the choice is visible.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/decisions/0014-uikitweb.md"
-      ]
-    },
-    {
       "id": "sw-ios-sheets",
       "framework": "SwiftUI",
       "area": "iOS profile",
@@ -316,19 +303,6 @@
       "done": "2026-09-18"
     },
     {
-      "id": "sw-ios-presentation-rest",
-      "framework": "SwiftUI",
-      "area": "iOS profile",
-      "title": "iOS presentations and bars: the rest",
-      "detail": "After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/iOS.md"
-      ]
-    },
-    {
       "id": "sw-presentations",
       "framework": "SwiftUI",
       "area": "Presentation",
@@ -341,19 +315,6 @@
         "Docs/elements/Presentation.md"
       ],
       "done": "2026-09-18"
-    },
-    {
-      "id": "sw-mac-presentation-looks",
-      "framework": "SwiftUI",
-      "area": "Presentation",
-      "title": "Measure the macOS presentation looks",
-      "detail": "The sheet, popover, alert and menu looks on macOS are by eye (separate windows the golden harness cannot capture). A window-list capture (CGWindowListCreateImage over the app's windows after a step presents) in the AppKit golden host would pin the panel geometry, materials and shadows the way `capturesWindow` does on iOS.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Presentation.md"
-      ]
     },
     {
       "id": "sw-list-editing",
@@ -371,19 +332,6 @@
       "done": "2026-09-18"
     },
     {
-      "id": "sw-list-editing-rest",
-      "framework": "SwiftUI",
-      "area": "List",
-      "title": "List editing: the rest",
-      "detail": "The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/List.md"
-      ]
-    },
-    {
       "id": "sw-list-looks",
       "framework": "SwiftUI",
       "area": "List",
@@ -396,19 +344,6 @@
         "Docs/elements/List.md"
       ],
       "done": "2026-09-19"
-    },
-    {
-      "id": "sw-list-looks-rest",
-      "framework": "SwiftUI",
-      "area": "List",
-      "title": "List looks: the rest",
-      "detail": "The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/List.md"
-      ]
     },
     {
       "id": "sw-scroll-apis",
@@ -497,46 +432,6 @@
       "done": "2026-10-03"
     },
     {
-      "id": "sw-dynamic-type",
-      "framework": "SwiftUI",
-      "area": "Text",
-      "title": "Dynamic Type",
-      "detail": "`dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Text.md",
-        "Docs/elements/iOS.md"
-      ]
-    },
-    {
-      "id": "sw-texteditor",
-      "framework": "SwiftUI",
-      "area": "TextEditor",
-      "title": "TextEditor: selection, find, long content",
-      "detail": "A selection binding, `findNavigator`/`findDisabled`/`replaceDisabled`, `lineLimit` on editors, scrolling of long content, and the NSTextView wrapping parity (texteditor/basic is approximate).",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/TextEditor.md"
-      ]
-    },
-    {
-      "id": "sw-text-selection",
-      "framework": "SwiftUI",
-      "area": "Text",
-      "title": "Selecting text",
-      "detail": "`textSelection(.enabled)` only sets the I-beam: drag selection over painted text, copy, the selection highlight in the display list, on both hosts.",
-      "kind": "accepted",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/TextScale.md"
-      ]
-    },
-    {
       "id": "sw-navigation",
       "framework": "SwiftUI",
       "area": "Navigation",
@@ -564,19 +459,6 @@
         "Docs/elements/Position.md"
       ],
       "done": "2026-10-04"
-    },
-    {
-      "id": "sw-splitview",
-      "framework": "SwiftUI",
-      "area": "Navigation",
-      "title": "NavigationSplitView chrome",
-      "detail": "The sidebar's material and toolbar, dragging the divider, collapsing by drag, the styles (accepted), `preferredCompactColumn` in the iOS profile; the splitview/ fixtures out of the 9 % approximate bound.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/NavigationSplitView.md"
-      ]
     },
     {
       "id": "sw-tabview",
@@ -621,19 +503,6 @@
       "done": "2026-10-04"
     },
     {
-      "id": "sw-toolbar",
-      "framework": "SwiftUI",
-      "area": "Toolbar",
-      "title": "Toolbar modifiers with an effect",
-      "detail": "`toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode` (accepted today), `toolbar(id:)` customisation, `ToolbarCommands`, sheet toolbars, a real `NSToolbar` in the native host.",
-      "kind": "accepted",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Toolbar.md"
-      ]
-    },
-    {
       "id": "sw-search",
       "framework": "SwiftUI",
       "area": "Toolbar",
@@ -646,19 +515,6 @@
         "Docs/elements/Toolbar.md"
       ],
       "done": "2026-10-04"
-    },
-    {
-      "id": "sw-windows",
-      "framework": "SwiftUI",
-      "area": "Windows",
-      "title": "Window commands, dragging and documents",
-      "detail": "`commands` on scenes and a menu bar in the native host, dragging and resizing the in-host windows, per-window focus and keyboard routing, `DocumentGroup`, restoration, the accepted scene modifiers (`windowResizability`, `windowStyle`, `defaultPosition`).",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Windows.md"
-      ]
     },
     {
       "id": "sw-button-looks",
@@ -687,20 +543,6 @@
         "Docs/elements/Toggle.md"
       ],
       "done": "2026-10-04"
-    },
-    {
-      "id": "sw-slider-stepper",
-      "framework": "SwiftUI",
-      "area": "Slider and Stepper",
-      "title": "Slider styles and stepper repeat",
-      "detail": "`sliderStyle`, tick labels, vertical sliders, the knob shadow; the stepper's press-and-hold repeat and its `formatter`/`format` forms.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Slider.md",
-        "Docs/elements/Stepper.md"
-      ]
     },
     {
       "id": "sw-progress",
@@ -732,33 +574,6 @@
       "done": "2026-10-04"
     },
     {
-      "id": "sw-colorpicker",
-      "framework": "SwiftUI",
-      "area": "ColorPicker",
-      "title": "A real colour panel",
-      "detail": "The browser's `<input type=color>` and the native colour panel behind the well (the preset popover stands in, unverified), a `CGColor` binding, keyboard activation, dropping colours.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/ColorPicker.md"
-      ]
-    },
-    {
-      "id": "sw-label-forms",
-      "framework": "SwiftUI",
-      "area": "Label",
-      "title": "Context-dependent labels and formatted values",
-      "detail": "`Label`'s automatic style by context (icon only in toolbars), multi-line titles, `LabeledContent(_:value:format:)`, the secondary value colour in grouped forms (unmeasured).",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Label.md",
-        "Docs/elements/LabeledContent.md"
-      ]
-    },
-    {
       "id": "sw-disclosure",
       "framework": "SwiftUI",
       "area": "DisclosureGroup",
@@ -788,33 +603,6 @@
       "done": "2026-10-04"
     },
     {
-      "id": "sw-content-unavailable",
-      "framework": "SwiftUI",
-      "area": "ContentUnavailableView",
-      "title": "ContentUnavailableView in containers",
-      "detail": "Inside lists and navigation, the iOS vertical centring, the symbol above the title on other platforms.",
-      "kind": "verify",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/ContentUnavailableView.md"
-      ]
-    },
-    {
-      "id": "sw-sharelink",
-      "framework": "SwiftUI",
-      "area": "ShareLink",
-      "title": "ShareLink items and previews",
-      "detail": "`Transferable` items, `SharePreview`, `message`; the browser's `navigator.share` and the native sharing service picker behind it; hover looks for `Link`.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/ShareLink.md",
-        "Docs/elements/Link.md"
-      ]
-    },
-    {
       "id": "sw-viewthatfits",
       "framework": "SwiftUI",
       "area": "Layout",
@@ -827,47 +615,6 @@
         "Docs/elements/Layout.md"
       ],
       "done": "2026-10-04"
-    },
-    {
-      "id": "sw-rtl",
-      "framework": "SwiftUI",
-      "area": "Layout",
-      "title": "Right-to-left layout direction",
-      "detail": "`layoutDirection` through stacks, grids, custom layouts, `layoutDirectionBehavior` on shapes, alignment guides and the text layouter; goldens from a right-to-left locale.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Layout.md",
-        "Docs/elements/CustomLayout.md"
-      ]
-    },
-    {
-      "id": "sw-custom-layout",
-      "framework": "SwiftUI",
-      "area": "Layout",
-      "title": "Layout protocol corners",
-      "detail": "`Layout.Animatable` (animating layout parameters), `updateCache` reuse across passes and invalidation on environment changes, `GridLayout` as a `Layout` value, rows with more cells than the widest earlier row combined with spans.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/CustomLayout.md",
-        "Docs/elements/Grid.md"
-      ]
-    },
-    {
-      "id": "sw-shapes",
-      "framework": "SwiftUI",
-      "area": "Shape",
-      "title": "Shape corners: strokedPath, container shapes, roles",
-      "detail": "`Path.strokedPath` as the offset outline (polygons per segment today), `ContainerRelativeShape` following its container, `Shape.role` (stub), `Path(cgPath:)` on Apple platforms.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Shape.md"
-      ]
     },
     {
       "id": "sw-canvas",
@@ -884,32 +631,6 @@
       "done": "2026-10-04"
     },
     {
-      "id": "sw-gradients",
-      "framework": "SwiftUI",
-      "area": "Gradient",
-      "title": "Elliptical and mesh gradients",
-      "detail": "`EllipticalGradient`, `MeshGradient`, `ShapeStyle.in(_:)`, gradient `opacity`, repeat and mirror options (accepted), gradients on images and symbols, the hierarchical fade levels (approximate).",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Gradient.md"
-      ]
-    },
-    {
-      "id": "sw-effects",
-      "framework": "SwiftUI",
-      "area": "Effects",
-      "title": "Animated effects and drawing groups",
-      "detail": "Effect values under animation, `drawingGroup(opaque:colorMode:)` (accepted), filtering of content painted outside its frame, `drawingGroup`'s rasterisation semantics.",
-      "kind": "accepted",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Effects.md"
-      ]
-    },
-    {
       "id": "sw-transform3d",
       "framework": "SwiftUI",
       "area": "Transform",
@@ -922,60 +643,6 @@
         "Docs/elements/Transform.md"
       ],
       "done": "2026-10-04"
-    },
-    {
-      "id": "sw-symbols",
-      "framework": "SwiftUI",
-      "area": "Image",
-      "title": "SF Symbols fidelity",
-      "detail": "Lucide stands in for every glyph: rendering modes (accepted), multicolour and hierarchical layers, `variableValue`, sizes and names beyond the 240 measured (a full metrics table from the catalog goldens), symbol effects by layer; decision needed on a symbol source with a licence that allows shipping.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Image.md",
-        "Docs/elements/SymbolEffect.md"
-      ]
-    },
-    {
-      "id": "sw-images",
-      "framework": "SwiftUI",
-      "area": "Image",
-      "title": "Image catalog forms and rendering",
-      "detail": "PDF and SVG catalog sets, slicing metadata, dark-appearance image variants, Display P3 (used as sRGB), `Image(size:label:renderer:)`, `luminanceToAlpha` and `colorMultiply` on images, redaction placeholders for catalog images (approximate).",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Image.md",
-        "Docs/elements/Redaction.md"
-      ]
-    },
-    {
-      "id": "sw-asyncimage",
-      "framework": "SwiftUI",
-      "area": "AsyncImage",
-      "title": "AsyncImage caching and transactions",
-      "detail": "Cancellation on unmount, a cache keyed by URL, the phase transaction (accepted), the default placeholder colour (approximate).",
-      "kind": "accepted",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/AsyncImage.md"
-      ]
-    },
-    {
-      "id": "sw-safe-area",
-      "framework": "SwiftUI",
-      "area": "Position",
-      "title": "Safe area corners",
-      "detail": "`GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. `ignoresSafeArea` on a view whose safe-area modifier hugs it on every edge extends on every edge by the geometric rule (PositionTests): a consequence, not a measurement.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Position.md"
-      ]
     },
     {
       "id": "sw-animation",
@@ -1024,32 +691,6 @@
       "done": "2026-10-04"
     },
     {
-      "id": "sw-timeline",
-      "framework": "SwiftUI",
-      "area": "TimelineView",
-      "title": "Timeline modes and pausing",
-      "detail": "`lowFrequency` (accepted), pausing when the page is hidden, content reading the environment's calendar and time zone.",
-      "kind": "accepted",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/TimelineView.md"
-      ]
-    },
-    {
-      "id": "sw-previews",
-      "framework": "SwiftUI",
-      "area": "Preview",
-      "title": "Rendering previews",
-      "detail": "A macro that keeps the `#Preview` body so the gallery can show an app's previews, `PreviewModifier`, `previewLayout`, `previewDisplayName`; the traits are stubs today.",
-      "kind": "accepted",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Preview.md"
-      ]
-    },
-    {
       "id": "sw-gestures",
       "framework": "SwiftUI",
       "area": "Gestures",
@@ -1092,84 +733,6 @@
         "Docs/elements/Hover.md"
       ],
       "done": "2026-10-04"
-    },
-    {
-      "id": "sw-dark",
-      "framework": "SwiftUI",
-      "area": "Dark mode",
-      "title": "Contrast and per-presentation schemes",
-      "detail": "`colorSchemeContrast`, `preferredColorScheme` per presentation, gauge and date picker chrome verified in dark, the focus ring in dark.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/DarkMode.md"
-      ]
-    },
-    {
-      "id": "sw-hover-looks",
-      "framework": "SwiftUI",
-      "area": "Hover",
-      "title": "Hover effects on controls",
-      "detail": "`hoverEffect` and the hovered looks of macOS controls (none change today), the tooltip's measured look.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Hover.md"
-      ]
-    },
-    {
-      "id": "sw-dragdrop-os",
-      "framework": "SwiftUI",
-      "area": "Drag and drop",
-      "title": "Drags across the app boundary",
-      "detail": "Drags to and from the browser page (`DataTransfer`) and other native apps (`NSDraggingSession`), `FileRepresentation`, `dropDestination` on `List` rows with insertion indices, `exportableToServices`, `importsItemProviders`.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/DragDrop.md"
-      ]
-    },
-    {
-      "id": "sw-table",
-      "framework": "SwiftUI",
-      "area": "Table",
-      "title": "Table columns, styles and interaction",
-      "detail": "`TableColumnForEach`, column groups, `TableRow` builders, `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, disclosure rows, column resizing by drag, row context menus, horizontal scrolling of overflowing columns, scrolling rows; the band look (approximate).",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/Table.md"
-      ]
-    },
-    {
-      "id": "sw-subviews",
-      "framework": "SwiftUI",
-      "area": "View composition",
-      "title": "Subviews-based ForEach and Group",
-      "detail": "`ForEach(subviews:)`, `ForEach(sections:)`, `Group(subviews:)`, `containerValues`; the iOS 18 container APIs.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/ForEach.md"
-      ]
-    },
-    {
-      "id": "sw-frameworks",
-      "framework": "SwiftUI",
-      "area": "Other frameworks",
-      "title": "Charts, Map, VideoPlayer, WebView",
-      "detail": "Separate Apple frameworks. `Charts` is the one apps reach for most and could be a package of its own over the display list; `Map` would need a tile source; `VideoPlayer` and `WebView` need DOM elements under the canvas. Decision needed before any of them starts.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/support.json"
-      ]
     },
     {
       "id": "sw-nsimage",
@@ -1256,19 +819,6 @@
       "done": "2026-10-04"
     },
     {
-      "id": "uk-tabbar",
-      "framework": "UIKit",
-      "area": "Navigation",
-      "title": "Tab bar badges and the More tab",
-      "detail": "`UITabBarItem.badgeValue`, the More tab past five items, `UITabBarAppearance` (accepted), tab bar customisation.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/UIKit/Navigation.md"
-      ]
-    },
-    {
       "id": "uk-sheets",
       "framework": "UIKit",
       "area": "Presentation",
@@ -1281,19 +831,6 @@
         "Docs/elements/UIKit/Presentation.md"
       ],
       "done": "2026-10-04"
-    },
-    {
-      "id": "uk-system-sheets",
-      "framework": "UIKit",
-      "area": "Presentation",
-      "title": "Share and document pickers",
-      "detail": "`UIActivityViewController` over `navigator.share` and the native sharing picker; `UIDocumentPickerViewController` over the browser's file input and `NSOpenPanel`; `UIImagePickerController` likewise. What the host cannot offer is documented per host.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/UIKit/Presentation.md"
-      ]
     },
     {
       "id": "uk-menus",
@@ -1380,19 +917,6 @@
       "done": "2026-10-04"
     },
     {
-      "id": "uk-text-input",
-      "framework": "UIKit",
-      "area": "Text",
-      "title": "UITextInput for custom text views",
-      "detail": "The `UITextInput` protocol and `UITextInteraction` so an app's own text view can take input through the host overlay; `UIKeyInput` for the simple form.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/UIKit/TextView.md"
-      ]
-    },
-    {
       "id": "uk-datepicker",
       "framework": "UIKit",
       "area": "Controls",
@@ -1405,19 +929,6 @@
         "Docs/elements/UIKit/DatePicker.md"
       ],
       "done": "2026-10-08"
-    },
-    {
-      "id": "uk-controls-rest",
-      "framework": "UIKit",
-      "area": "Controls",
-      "title": "Slider images, segment images, stepper repeat",
-      "detail": "`UISlider` minimum and maximum images, `UISegmentedControl` images and per-segment widths, `UIStepper.autorepeat` (accepted), `UIPageControl` taps and continuous interaction.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/UIKit/Controls.md"
-      ]
     },
     {
       "id": "uk-searchbar",
@@ -1490,45 +1001,6 @@
       "done": "2026-10-09"
     },
     {
-      "id": "uk-splitviewcontroller",
-      "framework": "UIKit",
-      "area": "Containers",
-      "title": "UISplitViewController",
-      "detail": "The column styles, display modes and the compact collapse; the iPad geometry from a simulator of that idiom.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Packages/UIKitWeb/Sources/UIKitWebCore/Containers"
-      ]
-    },
-    {
-      "id": "uk-table-rest",
-      "framework": "UIKit",
-      "area": "Table view",
-      "title": "Table view corners",
-      "detail": "The grouped (non-inset) style's geometry, the `RowAnimation` kinds (every animation fades and slides today), swipe button widths and fonts, the lifted row's shadow, the tracking background while touched, `imageProperties`, catalog images in list content (the UIKit harness has no asset catalog), sidebar and `plainHeader` appearances, right-to-left.",
-      "kind": "approximate",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/UIKit/TableView.md"
-      ]
-    },
-    {
-      "id": "uk-collection-rest",
-      "framework": "UIKit",
-      "area": "Collection view",
-      "title": "Collection view corners",
-      "detail": "Estimated dimensions in compositional layouts, item supplementary items, `groupPagingCentered`, `visibleItemsInvalidationHandler`, decorations in orthogonal sections, pinned footers, the scroll pocket blur, drag reordering, `UICollectionViewLayout` animation hooks, the diffable move detection when an item also changes section, outline disclosure options and reordering, the sidebar appearance.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/UIKit/CollectionView.md"
-      ]
-    },
-    {
       "id": "uk-materials",
       "framework": "UIKit",
       "area": "Views",
@@ -1570,19 +1042,6 @@
         "Docs/elements/UIKit/Dark.md"
       ],
       "done": "2026-10-09"
-    },
-    {
-      "id": "uk-appearance",
-      "framework": "UIKit",
-      "area": "Views",
-      "title": "UIAppearance proxies",
-      "detail": "`appearance()` and `appearance(whenContainedInInstancesOf:)` applied when a view enters a window.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Packages/UIKitWeb/Sources/UIKitWebCore/Views"
-      ]
     },
     {
       "id": "uk-layers",
@@ -1628,32 +1087,6 @@
       "done": "2026-10-09"
     },
     {
-      "id": "uk-keyboard",
-      "framework": "UIKit",
-      "area": "Events",
-      "title": "Hardware keyboard and the focus system",
-      "detail": "`UIKeyCommand` on responders, `pressesBegan`/`pressesEnded`, `UIFocusSystem` with the focus ring for keyboard navigation across controls, table and collection cells.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Packages/UIKitWeb/Sources/UIKitWebCore/Events"
-      ]
-    },
-    {
-      "id": "uk-dragdrop",
-      "framework": "UIKit",
-      "area": "Events",
-      "title": "Drag and drop interactions",
-      "detail": "`UIDragInteraction`/`UIDropInteraction`, the table and collection drag and drop delegates over the runtime's drag session (SwiftUI's `draggable` shares it).",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/elements/DragDrop.md"
-      ]
-    },
-    {
       "id": "uk-accessibility",
       "framework": "UIKit",
       "area": "Accessibility",
@@ -1682,19 +1115,6 @@
       "done": "2026-10-09"
     },
     {
-      "id": "uk-scenes",
-      "framework": "UIKit",
-      "area": "App",
-      "title": "Scenes and app lifecycle",
-      "detail": "`UIWindowScene`, `UISceneDelegate` and `UIApplication` lifecycle notifications from page visibility and activation; several windows in the host; `UIFeedbackGenerator` as no-ops.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Packages/UIKitWeb/Sources/UIKitWebCore/App"
-      ]
-    },
-    {
       "id": "uk-size",
       "framework": "UIKit",
       "area": "Size",
@@ -1710,19 +1130,6 @@
       "done": "2026-09-18"
     },
     {
-      "id": "pf-web-foundation-gaps",
-      "framework": "Platform",
-      "area": "wasm",
-      "title": "WebFoundation's gaps against Foundation",
-      "detail": "The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Missing: `String.Encoding` and `String(data:encoding:)`, `URLComponents` and international host names, named time zones and daylight saving (`TimeZone.current` is the browser's fixed offset), calendars other than proleptic Gregorian, `DateFormatter` and `FormatStyle`, `wrappingComponents`, `Data` slices that keep their indices. Grow them as apps hit them; each FoundationEssentials type used instead costs the whole library.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/decisions/0017-web-foundation.md"
-      ]
-    },
-    {
       "id": "uk-storyboards",
       "framework": "UIKit",
       "area": "App",
@@ -1733,32 +1140,6 @@
       "status": "wontfix",
       "refs": [
         "Docs/decisions/0014-uikitweb.md"
-      ]
-    },
-    {
-      "id": "pf-linux",
-      "framework": "Platform",
-      "area": "Linux",
-      "title": "Linux: build, CI, painter and host",
-      "detail": "The native headless build and tests are supported on Linux with Swift 6.3.3, alongside wasm cross-compilation. Remaining: a Skia or Cairo painter, a GTK window and the WebKitGTK host.",
-      "kind": "infra",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/ROADMAP.md"
-      ]
-    },
-    {
-      "id": "pf-native-text",
-      "framework": "Platform",
-      "area": "Native macOS",
-      "title": "Native text selection, IME and windows",
-      "detail": "A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host.",
-      "kind": "missing",
-      "priority": "later",
-      "status": "planned",
-      "refs": [
-        "Docs/decisions/0012-native-painter.md"
       ]
     },
     {
@@ -1775,6 +1156,573 @@
       ]
     },
     {
+      "id": "pf-web-foundation-gaps",
+      "framework": "Platform",
+      "area": "wasm",
+      "title": "WebFoundation's gaps against Foundation",
+      "detail": "The wasm stand-ins (decision 0017) cover what the frameworks and ordinary apps call. Missing: `String.Encoding` and `String(data:encoding:)`, `URLComponents` and international host names, named time zones and daylight saving (`TimeZone.current` is the browser's fixed offset), calendars other than proleptic Gregorian, `DateFormatter` and `FormatStyle`, `wrappingComponents`, `Data` slices that keep their indices. Grow them as apps hit them; each FoundationEssentials type used instead costs the whole library.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/decisions/0017-web-foundation.md"
+      ]
+    },
+    {
+      "id": "sw-rtl",
+      "framework": "SwiftUI",
+      "area": "Layout",
+      "title": "Right-to-left layout direction",
+      "detail": "`layoutDirection` through stacks, grids, custom layouts, `layoutDirectionBehavior` on shapes, alignment guides and the text layouter; goldens from a right-to-left locale.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Layout.md",
+        "Docs/elements/CustomLayout.md"
+      ]
+    },
+    {
+      "id": "sw-dynamic-type",
+      "framework": "SwiftUI",
+      "area": "Text",
+      "title": "Dynamic Type",
+      "detail": "`dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Text.md",
+        "Docs/elements/iOS.md"
+      ]
+    },
+    {
+      "id": "sw-subviews",
+      "framework": "SwiftUI",
+      "area": "View composition",
+      "title": "Subviews-based ForEach and Group",
+      "detail": "`ForEach(subviews:)`, `ForEach(sections:)`, `Group(subviews:)`, `containerValues`; the iOS 18 container APIs.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/ForEach.md"
+      ]
+    },
+    {
+      "id": "sw-custom-layout",
+      "framework": "SwiftUI",
+      "area": "Layout",
+      "title": "Layout protocol corners",
+      "detail": "`Layout.Animatable` (animating layout parameters), `updateCache` reuse across passes and invalidation on environment changes, `GridLayout` as a `Layout` value, rows with more cells than the widest earlier row combined with spans.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/CustomLayout.md",
+        "Docs/elements/Grid.md"
+      ]
+    },
+    {
+      "id": "sw-safe-area",
+      "framework": "SwiftUI",
+      "area": "Position",
+      "title": "Safe area corners",
+      "detail": "`GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. `ignoresSafeArea` on a view whose safe-area modifier hugs it on every edge extends on every edge by the geometric rule (PositionTests): a consequence, not a measurement.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Position.md"
+      ]
+    },
+    {
+      "id": "sw-shapes",
+      "framework": "SwiftUI",
+      "area": "Shape",
+      "title": "Shape corners: strokedPath, container shapes, roles",
+      "detail": "`Path.strokedPath` as the offset outline (polygons per segment today), `ContainerRelativeShape` following its container, `Shape.role` (stub), `Path(cgPath:)` on Apple platforms.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Shape.md"
+      ]
+    },
+    {
+      "id": "sw-gradients",
+      "framework": "SwiftUI",
+      "area": "Gradient",
+      "title": "Elliptical and mesh gradients",
+      "detail": "`EllipticalGradient`, `MeshGradient`, `ShapeStyle.in(_:)`, gradient `opacity`, repeat and mirror options (accepted), gradients on images and symbols, the hierarchical fade levels (approximate).",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Gradient.md"
+      ]
+    },
+    {
+      "id": "sw-effects",
+      "framework": "SwiftUI",
+      "area": "Effects",
+      "title": "Animated effects and drawing groups",
+      "detail": "Effect values under animation, `drawingGroup(opaque:colorMode:)` (accepted), filtering of content painted outside its frame, `drawingGroup`'s rasterisation semantics.",
+      "kind": "accepted",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Effects.md"
+      ]
+    },
+    {
+      "id": "sw-images",
+      "framework": "SwiftUI",
+      "area": "Image",
+      "title": "Image catalog forms and rendering",
+      "detail": "PDF and SVG catalog sets, slicing metadata, dark-appearance image variants, Display P3 (used as sRGB), `Image(size:label:renderer:)`, `luminanceToAlpha` and `colorMultiply` on images, redaction placeholders for catalog images (approximate).",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Image.md",
+        "Docs/elements/Redaction.md"
+      ]
+    },
+    {
+      "id": "sw-symbols",
+      "framework": "SwiftUI",
+      "area": "Image",
+      "title": "SF Symbols fidelity",
+      "detail": "Lucide stands in for every glyph: rendering modes (accepted), multicolour and hierarchical layers, `variableValue`, sizes and names beyond the 240 measured (a full metrics table from the catalog goldens), symbol effects by layer; decision needed on a symbol source with a licence that allows shipping.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Image.md",
+        "Docs/elements/SymbolEffect.md"
+      ]
+    },
+    {
+      "id": "sw-asyncimage",
+      "framework": "SwiftUI",
+      "area": "AsyncImage",
+      "title": "AsyncImage caching and transactions",
+      "detail": "Cancellation on unmount, a cache keyed by URL, the phase transaction (accepted), the default placeholder colour (approximate).",
+      "kind": "accepted",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/AsyncImage.md"
+      ]
+    },
+    {
+      "id": "sw-text-selection",
+      "framework": "SwiftUI",
+      "area": "Text",
+      "title": "Selecting text",
+      "detail": "`textSelection(.enabled)` only sets the I-beam: drag selection over painted text, copy, the selection highlight in the display list, on both hosts.",
+      "kind": "accepted",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/TextScale.md"
+      ]
+    },
+    {
+      "id": "sw-texteditor",
+      "framework": "SwiftUI",
+      "area": "TextEditor",
+      "title": "TextEditor: selection, find, long content",
+      "detail": "A selection binding, `findNavigator`/`findDisabled`/`replaceDisabled`, `lineLimit` on editors, scrolling of long content, and the NSTextView wrapping parity (texteditor/basic is approximate).",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/TextEditor.md"
+      ]
+    },
+    {
+      "id": "sw-label-forms",
+      "framework": "SwiftUI",
+      "area": "Label",
+      "title": "Context-dependent labels and formatted values",
+      "detail": "`Label`'s automatic style by context (icon only in toolbars), multi-line titles, `LabeledContent(_:value:format:)`, the secondary value colour in grouped forms (unmeasured).",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Label.md",
+        "Docs/elements/LabeledContent.md"
+      ]
+    },
+    {
+      "id": "sw-content-unavailable",
+      "framework": "SwiftUI",
+      "area": "ContentUnavailableView",
+      "title": "ContentUnavailableView in containers",
+      "detail": "Inside lists and navigation, the iOS vertical centring, the symbol above the title on other platforms.",
+      "kind": "verify",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/ContentUnavailableView.md"
+      ]
+    },
+    {
+      "id": "sw-slider-stepper",
+      "framework": "SwiftUI",
+      "area": "Slider and Stepper",
+      "title": "Slider styles and stepper repeat",
+      "detail": "`sliderStyle`, tick labels, vertical sliders, the knob shadow; the stepper's press-and-hold repeat and its `formatter`/`format` forms.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Slider.md",
+        "Docs/elements/Stepper.md"
+      ]
+    },
+    {
+      "id": "sw-colorpicker",
+      "framework": "SwiftUI",
+      "area": "ColorPicker",
+      "title": "A real colour panel",
+      "detail": "The browser's `<input type=color>` and the native colour panel behind the well (the preset popover stands in, unverified), a `CGColor` binding, keyboard activation, dropping colours.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/ColorPicker.md"
+      ]
+    },
+    {
+      "id": "sw-hover-looks",
+      "framework": "SwiftUI",
+      "area": "Hover",
+      "title": "Hover effects on controls",
+      "detail": "`hoverEffect` and the hovered looks of macOS controls (none change today), the tooltip's measured look.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Hover.md"
+      ]
+    },
+    {
+      "id": "sw-dark",
+      "framework": "SwiftUI",
+      "area": "Dark mode",
+      "title": "Contrast and per-presentation schemes",
+      "detail": "`colorSchemeContrast`, `preferredColorScheme` per presentation, gauge and date picker chrome verified in dark, the focus ring in dark.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/DarkMode.md"
+      ]
+    },
+    {
+      "id": "sw-timeline",
+      "framework": "SwiftUI",
+      "area": "TimelineView",
+      "title": "Timeline modes and pausing",
+      "detail": "`lowFrequency` (accepted), pausing when the page is hidden, content reading the environment's calendar and time zone.",
+      "kind": "accepted",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/TimelineView.md"
+      ]
+    },
+    {
+      "id": "sw-previews",
+      "framework": "SwiftUI",
+      "area": "Preview",
+      "title": "Rendering previews",
+      "detail": "A macro that keeps the `#Preview` body so the gallery can show an app's previews, `PreviewModifier`, `previewLayout`, `previewDisplayName`; the traits are stubs today.",
+      "kind": "accepted",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Preview.md"
+      ]
+    },
+    {
+      "id": "sw-sharelink",
+      "framework": "SwiftUI",
+      "area": "ShareLink",
+      "title": "ShareLink items and previews",
+      "detail": "`Transferable` items, `SharePreview`, `message`; the browser's `navigator.share` and the native sharing service picker behind it; hover looks for `Link`.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/ShareLink.md",
+        "Docs/elements/Link.md"
+      ]
+    },
+    {
+      "id": "sw-toolbar",
+      "framework": "SwiftUI",
+      "area": "Toolbar",
+      "title": "Toolbar modifiers with an effect",
+      "detail": "`toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode` (accepted today), `toolbar(id:)` customisation, `ToolbarCommands`, sheet toolbars, a real `NSToolbar` in the native host.",
+      "kind": "accepted",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Toolbar.md"
+      ]
+    },
+    {
+      "id": "sw-splitview",
+      "framework": "SwiftUI",
+      "area": "Navigation",
+      "title": "NavigationSplitView chrome",
+      "detail": "The sidebar's material and toolbar, dragging the divider, collapsing by drag, the styles (accepted), `preferredCompactColumn` in the iOS profile; the splitview/ fixtures out of the 9 % approximate bound.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/NavigationSplitView.md"
+      ]
+    },
+    {
+      "id": "sw-windows",
+      "framework": "SwiftUI",
+      "area": "Windows",
+      "title": "Window commands, dragging and documents",
+      "detail": "`commands` on scenes and a menu bar in the native host, dragging and resizing the in-host windows, per-window focus and keyboard routing, `DocumentGroup`, restoration, the accepted scene modifiers (`windowResizability`, `windowStyle`, `defaultPosition`).",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Windows.md"
+      ]
+    },
+    {
+      "id": "sw-table",
+      "framework": "SwiftUI",
+      "area": "Table",
+      "title": "Table columns, styles and interaction",
+      "detail": "`TableColumnForEach`, column groups, `TableRow` builders, `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, disclosure rows, column resizing by drag, row context menus, horizontal scrolling of overflowing columns, scrolling rows; the band look (approximate).",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Table.md"
+      ]
+    },
+    {
+      "id": "sw-dragdrop-os",
+      "framework": "SwiftUI",
+      "area": "Drag and drop",
+      "title": "Drags across the app boundary",
+      "detail": "Drags to and from the browser page (`DataTransfer`) and other native apps (`NSDraggingSession`), `FileRepresentation`, `dropDestination` on `List` rows with insertion indices, `exportableToServices`, `importsItemProviders`.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/DragDrop.md"
+      ]
+    },
+    {
+      "id": "sw-list-editing-rest",
+      "framework": "SwiftUI",
+      "area": "List",
+      "title": "List editing: the rest",
+      "detail": "The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/List.md"
+      ]
+    },
+    {
+      "id": "sw-list-looks-rest",
+      "framework": "SwiftUI",
+      "area": "List",
+      "title": "List looks: the rest",
+      "detail": "The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/List.md"
+      ]
+    },
+    {
+      "id": "sw-ios-presentation-rest",
+      "framework": "SwiftUI",
+      "area": "iOS profile",
+      "title": "iOS presentations and bars: the rest",
+      "detail": "After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/iOS.md"
+      ]
+    },
+    {
+      "id": "sw-mac-presentation-looks",
+      "framework": "SwiftUI",
+      "area": "Presentation",
+      "title": "Measure the macOS presentation looks",
+      "detail": "The sheet, popover, alert and menu looks on macOS are by eye (separate windows the golden harness cannot capture). A window-list capture (CGWindowListCreateImage over the app's windows after a step presents) in the AppKit golden host would pin the panel geometry, materials and shadows the way `capturesWindow` does on iOS.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/Presentation.md"
+      ]
+    },
+    {
+      "id": "uk-appearance",
+      "framework": "UIKit",
+      "area": "Views",
+      "title": "UIAppearance proxies",
+      "detail": "`appearance()` and `appearance(whenContainedInInstancesOf:)` applied when a view enters a window.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/Views"
+      ]
+    },
+    {
+      "id": "uk-scenes",
+      "framework": "UIKit",
+      "area": "App",
+      "title": "Scenes and app lifecycle",
+      "detail": "`UIWindowScene`, `UISceneDelegate` and `UIApplication` lifecycle notifications from page visibility and activation; several windows in the host; `UIFeedbackGenerator` as no-ops.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/App"
+      ]
+    },
+    {
+      "id": "uk-keyboard",
+      "framework": "UIKit",
+      "area": "Events",
+      "title": "Hardware keyboard and the focus system",
+      "detail": "`UIKeyCommand` on responders, `pressesBegan`/`pressesEnded`, `UIFocusSystem` with the focus ring for keyboard navigation across controls, table and collection cells.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/Events"
+      ]
+    },
+    {
+      "id": "uk-text-input",
+      "framework": "UIKit",
+      "area": "Text",
+      "title": "UITextInput for custom text views",
+      "detail": "The `UITextInput` protocol and `UITextInteraction` so an app's own text view can take input through the host overlay; `UIKeyInput` for the simple form.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/UIKit/TextView.md"
+      ]
+    },
+    {
+      "id": "uk-controls-rest",
+      "framework": "UIKit",
+      "area": "Controls",
+      "title": "Slider images, segment images, stepper repeat",
+      "detail": "`UISlider` minimum and maximum images, `UISegmentedControl` images and per-segment widths, `UIStepper.autorepeat` (accepted), `UIPageControl` taps and continuous interaction.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/UIKit/Controls.md"
+      ]
+    },
+    {
+      "id": "uk-tabbar",
+      "framework": "UIKit",
+      "area": "Navigation",
+      "title": "Tab bar badges and the More tab",
+      "detail": "`UITabBarItem.badgeValue`, the More tab past five items, `UITabBarAppearance` (accepted), tab bar customisation.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/UIKit/Navigation.md"
+      ]
+    },
+    {
+      "id": "uk-table-rest",
+      "framework": "UIKit",
+      "area": "Table view",
+      "title": "Table view corners",
+      "detail": "The grouped (non-inset) style's geometry, the `RowAnimation` kinds (every animation fades and slides today), swipe button widths and fonts, the lifted row's shadow, the tracking background while touched, `imageProperties`, catalog images in list content (the UIKit harness has no asset catalog), sidebar and `plainHeader` appearances, right-to-left.",
+      "kind": "approximate",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/UIKit/TableView.md"
+      ]
+    },
+    {
+      "id": "uk-collection-rest",
+      "framework": "UIKit",
+      "area": "Collection view",
+      "title": "Collection view corners",
+      "detail": "Estimated dimensions in compositional layouts, item supplementary items, `groupPagingCentered`, `visibleItemsInvalidationHandler`, decorations in orthogonal sections, pinned footers, the scroll pocket blur, drag reordering, `UICollectionViewLayout` animation hooks, the diffable move detection when an item also changes section, outline disclosure options and reordering, the sidebar appearance.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/UIKit/CollectionView.md"
+      ]
+    },
+    {
+      "id": "uk-dragdrop",
+      "framework": "UIKit",
+      "area": "Events",
+      "title": "Drag and drop interactions",
+      "detail": "`UIDragInteraction`/`UIDropInteraction`, the table and collection drag and drop delegates over the runtime's drag session (SwiftUI's `draggable` shares it).",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/DragDrop.md"
+      ]
+    },
+    {
+      "id": "uk-splitviewcontroller",
+      "framework": "UIKit",
+      "area": "Containers",
+      "title": "UISplitViewController",
+      "detail": "The column styles, display modes and the compact collapse; the iPad geometry from a simulator of that idiom.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Packages/UIKitWeb/Sources/UIKitWebCore/Containers"
+      ]
+    },
+    {
+      "id": "uk-system-sheets",
+      "framework": "UIKit",
+      "area": "Presentation",
+      "title": "Share and document pickers",
+      "detail": "`UIActivityViewController` over `navigator.share` and the native sharing picker; `UIDocumentPickerViewController` over the browser's file input and `NSOpenPanel`; `UIImagePickerController` likewise. What the host cannot offer is documented per host.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/elements/UIKit/Presentation.md"
+      ]
+    },
+    {
       "id": "pf-perf",
       "framework": "Platform",
       "area": "Performance",
@@ -1785,6 +1733,58 @@
       "status": "planned",
       "refs": [
         "Playwright/landing-perf.mjs"
+      ]
+    },
+    {
+      "id": "ix-appkit",
+      "framework": "Interop",
+      "area": "AppKit",
+      "title": "NSViewRepresentable and NSViewControllerRepresentable",
+      "detail": "Apps written for the macOS profile reach for AppKit representables; there is no AppKitWeb to host them. Out of scope until a decision says whether an AppKitWeb is worth building or the API should compile as an empty view; recorded here so the choice is visible.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/decisions/0014-uikitweb.md"
+      ]
+    },
+    {
+      "id": "pf-native-text",
+      "framework": "Platform",
+      "area": "Native macOS",
+      "title": "Native text selection, IME and windows",
+      "detail": "A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/decisions/0012-native-painter.md"
+      ]
+    },
+    {
+      "id": "pf-linux",
+      "framework": "Platform",
+      "area": "Linux",
+      "title": "Linux: build, CI, painter and host",
+      "detail": "The native headless build and tests are supported on Linux with Swift 6.3.3, alongside wasm cross-compilation. Remaining: a Skia or Cairo painter, a GTK window and the WebKitGTK host.",
+      "kind": "infra",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/ROADMAP.md"
+      ]
+    },
+    {
+      "id": "sw-frameworks",
+      "framework": "SwiftUI",
+      "area": "Other frameworks",
+      "title": "Charts, Map, VideoPlayer, WebView",
+      "detail": "Separate Apple frameworks. `Charts` is the one apps reach for most and could be a package of its own over the display list; `Map` would need a tile source; `VideoPlayer` and `WebView` need DOM elements under the canvas. Decision needed before any of them starts.",
+      "kind": "missing",
+      "priority": "later",
+      "status": "planned",
+      "refs": [
+        "Docs/support.json"
       ]
     }
   ]
