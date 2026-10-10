@@ -220,9 +220,6 @@ open class ViewNode {
     /// say no.
     package var mirrorsPlacements: Bool { environment.layoutDirection == .rightToLeft }
 
-    /// The x coordinate of a point in this node's local space as its children see it: the same
-    /// in a left-to-right node, mirrored in a right-to-left one (hit tests, anchors).
-    package func mirroredX(_ x: CGFloat) -> CGFloat { mirrorsPlacements ? frame.width - x : x }
 
     /// This node's frame in the root's coordinate space, following the chain of placers.
     package var frameInRoot: CGRect {
