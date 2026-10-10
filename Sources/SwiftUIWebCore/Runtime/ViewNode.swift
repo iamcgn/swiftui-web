@@ -192,8 +192,13 @@ open class ViewNode {
         let previous = hasBeenPlaced ? presentedFrame : nil
         let oldTarget = frame
         layoutParent = placer
-        frame = CGRect(x: position.x - size.width * anchor.x, y: position.y - size.height * anchor.y,
-                       width: size.width, height: size.height)
+        var origin = CGPoint(x: position.x - size.width * anchor.x, y: position.y - size.height * anchor.y)
+        // A right-to-left container mirrors every placement inside its bounds (sw-rtl): the
+        // layout math stays left-to-right and the flip happens here, once per level, so leading
+        // alignment, leading padding, stacks, grids, custom layouts, offsets and positions all
+        // come out mirrored, and a left-to-right island inside stays as written.
+        if placer.mirrorsPlacements { origin.x = placer.frame.width - origin.x - size.width }
+        frame = CGRect(origin: origin, size: size)
         if let previous, frame != oldTarget {
             if let animation = runtime.effectiveLayoutAnimation(for: self) {
                 beginFrameTween(from: previous, animation: animation)
@@ -209,6 +214,15 @@ open class ViewNode {
     /// Lays out children inside `CGRect(origin: .zero, size: frame.size)`. Layout nodes with
     /// children override this.
     package func layoutContents(proposal: ProposedViewSize) {}
+
+    /// Whether this node's placements are mirrored (`layoutDirection == .rightToLeft`). Nodes
+    /// that place in window coordinates computed from measured frames (the root, presenters)
+    /// say no.
+    package var mirrorsPlacements: Bool { environment.layoutDirection == .rightToLeft }
+
+    /// The x coordinate of a point in this node's local space as its children see it: the same
+    /// in a left-to-right node, mirrored in a right-to-left one (hit tests, anchors).
+    package func mirroredX(_ x: CGFloat) -> CGFloat { mirrorsPlacements ? frame.width - x : x }
 
     /// This node's frame in the root's coordinate space, following the chain of placers.
     package var frameInRoot: CGRect {

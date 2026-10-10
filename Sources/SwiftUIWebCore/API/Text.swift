@@ -255,6 +255,19 @@ extension Text: View {
 package struct LineLimitKey: EnvironmentKey { package static let defaultValue: Int? = nil }
 package struct MinimumLinesKey: EnvironmentKey { package static let defaultValue = 0 }
 package struct MultilineTextAlignmentKey: EnvironmentKey { package static let defaultValue = TextAlignment.leading }
+
+extension EnvironmentValues {
+    /// Where lines sit in a text's frame, 0 at the left and 1 at the right: `leading` and
+    /// `trailing` follow the layout direction (sw-rtl, `layout/rtl-text`).
+    package var _resolvedTextAlignment: CGFloat {
+        let rightToLeft = layoutDirection == .rightToLeft
+        switch multilineTextAlignment {
+        case .leading: return rightToLeft ? 1 : 0
+        case .center: return 0.5
+        case .trailing: return rightToLeft ? 0 : 1
+        }
+    }
+}
 package struct TruncationModeKey: EnvironmentKey { package static let defaultValue = Text.TruncationMode.tail }
 package struct LineSpacingKey: EnvironmentKey { package static let defaultValue: CGFloat = 0 }
 package struct AllowsTighteningKey: EnvironmentKey { package static let defaultValue = false }
@@ -550,12 +563,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         guard parts.contains(where: { $0.modifiers.link != nil }) else { return nil }
         let (runs, _) = styledRuns
         let layout = textLayout(width: frame.width, height: frame.height)
-        let alignment: CGFloat
-        switch environment.multilineTextAlignment {
-        case .leading: alignment = 0
-        case .center: alignment = 0.5
-        case .trailing: alignment = 1
-        }
+        let alignment = environment._resolvedTextAlignment
         let shiftUp = baselineShift.up
         for line in layout.lines {
             let font = runs.indices.contains(line.fragments.first?.run ?? 0) ? runs[line.fragments.first?.run ?? 0].font : resolvedFont
@@ -765,12 +773,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
     /// Redaction: one bar per line over the line's ink, on the baseline (`_Placeholder`).
     private func paintPlaceholders(_ layout: TextLayout, runs: [StyledRun], into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
-        let alignment: CGFloat
-        switch environment.multilineTextAlignment {
-        case .leading: alignment = 0
-        case .center: alignment = 0.5
-        case .trailing: alignment = 1
-        }
+        let alignment = environment._resolvedTextAlignment
         let color = environment._placeholderColor
         let shiftUp = baselineShift.up
         // A placeholder layout stretches every wrapped line's bar to the frame; the last line
@@ -876,12 +879,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         // without a colour of their own.
         let runGradients = runGradients
         let inheritedGradient = environment.foregroundGradient?._resolveGradient(in: bounds, environment: environment)
-        let alignment: CGFloat
-        switch environment.multilineTextAlignment {
-        case .leading: alignment = 0
-        case .center: alignment = 0.5
-        case .trailing: alignment = 1
-        }
+        let alignment = environment._resolvedTextAlignment
         let offsets = baselineOffsets
         let shiftUp = baselineShift.up
         for line in layout.lines {

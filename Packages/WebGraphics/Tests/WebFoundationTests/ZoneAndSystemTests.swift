@@ -121,6 +121,9 @@ private func withFoundationZones<R>(_ body: () throws -> R) rethrows -> R {
     }
 
     @Test(arguments: systems) func fieldsAndDayCountsMatchFoundation(_ pair: (Calendar.Identifier, _CalendarSystem)) {
+        // macOS 15's ICU reports Gregorian fields for Amete Alem and a 385-day year 5806 in the
+        // Hebrew calendar; macOS 26 agrees with the arithmetic, which is the reference.
+        if !foundationIsCurrent, pair.1 == .ethiopicAmeteAlem || pair.1 == .hebrew { return }
         var calendar = Calendar(identifier: pair.0)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         calendar.locale = Locale(identifier: "en_US")

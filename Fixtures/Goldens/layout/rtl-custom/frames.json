@@ -1,0 +1,45 @@
+{
+  "fixture" : "layout\/rtl-custom",
+  "frames" : {
+    "c0" : {
+      "height" : 20,
+      "width" : 60,
+      "x" : 190,
+      "y" : 37
+    },
+    "c1" : {
+      "height" : 20,
+      "width" : 90,
+      "x" : 92,
+      "y" : 37
+    },
+    "c2" : {
+      "height" : 20,
+      "width" : 50,
+      "x" : 200,
+      "y" : 63
+    },
+    "c3" : {
+      "height" : 20,
+      "width" : 70,
+      "x" : 122,
+      "y" : 63
+    },
+    "c4" : {
+      "height" : 20,
+      "width" : 40,
+      "x" : 74,
+      "y" : 63
+    },
+    "flow" : {
+      "height" : 46,
+      "width" : 200,
+      "x" : 50,
+      "y" : 37
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 300
+  }
+}

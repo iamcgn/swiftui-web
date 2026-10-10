@@ -1,0 +1,57 @@
+{
+  "fixture" : "layout\/rtl-scroll",
+  "frames" : {
+    "content" : {
+      "height" : 40,
+      "width" : 350,
+      "x" : -160,
+      "y" : 20
+    },
+    "s0" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : 140,
+      "y" : 20
+    },
+    "s1" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : 80,
+      "y" : 20
+    },
+    "s2" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : 20,
+      "y" : 20
+    },
+    "s3" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : -40,
+      "y" : 20
+    },
+    "s4" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : -100,
+      "y" : 20
+    },
+    "s5" : {
+      "height" : 40,
+      "width" : 50,
+      "x" : -160,
+      "y" : 20
+    },
+    "scroll" : {
+      "height" : 60,
+      "width" : 180,
+      "x" : 10,
+      "y" : 10
+    }
+  },
+  "size" : {
+    "height" : 80,
+    "width" : 200
+  }
+}

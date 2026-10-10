@@ -5,6 +5,17 @@ import Testing
 import Foundation
 @testable import WebFoundation
 
+/// Foundation on macOS 26 (and Linux's swift-foundation) is the reference; macOS 15's ICU
+/// writes the zero localized GMT offset as a bare "GMT" (CLDR's zero format, which newer ICU
+/// no longer uses), so those patterns are compared only on current systems.
+let foundationIsCurrent: Bool = {
+    #if os(macOS)
+    return ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26
+    #else
+    return true
+    #endif
+}()
+
 @Suite struct DateFormattingTests {
     static let zone = TimeZone(secondsFromGMT: 0)!
     static let locale = Locale(identifier: "en_US")
@@ -109,6 +120,7 @@ import Foundation
             }
             for pattern in ["yyyy-MM-dd'T'HH:mm:ssZ", "EEEE, d MMMM yyyy", "h 'o''clock' a", "yyyy.MM.dd G 'at' HH:mm:ss zzz", "EEE, MMM d, ''yy", "hh:mm:ss a, zzzz", "K:mm a, z", "yyyyy.MMMMM.dd GGG hh:mm aaa",
                             "D/w/W F", "QQQQ yyyy", "u-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "xx x xxx", "ZZZZ ZZZZZ", "OOOO O", "e ee c cc EEEEEE", "L LL LLL LLLL", "k kk", "A"] {
+                if !foundationIsCurrent, pattern.contains("O") || pattern.contains("ZZZZ") { continue }   // older ICU: a bare "GMT" at zero
                 formatter.dateFormat = pattern
                 if (pattern.contains("z") || pattern.contains("v")), date.timeIntervalSince1970 < 0 { continue }
                 #expect(_DatePattern.format(pattern, Self.input(date)) == formatter.string(from: date), "\(pattern) at \(date.timeIntervalSince1970)")
@@ -161,9 +173,11 @@ import Foundation
                                  5, 59, 60, 3600, 7200, 86400, 172800, 604800, 2_592_000, 31_536_000, 63_072_000, 0]
         var calendar = Self.calendar
         calendar.timeZone = Self.zone
+        #if canImport(ObjectiveC)
         let formatter = RelativeDateTimeFormatter()
         formatter.locale = Self.locale
         formatter.calendar = calendar
+        #endif
         for offset in offsets {
             // The style measures from the current time; the reference is taken just before each call.
             for (presentation, theirPresentation) in [(_RelativeDateText.Presentation.numeric, Date.RelativeFormatStyle.Presentation.numeric), (.named, .named)] {
@@ -177,6 +191,7 @@ import Foundation
                     #expect(ours == theirs, "\(offset) \(presentation) \(units)")
                 }
             }
+            #if canImport(ObjectiveC)   // corelibs Foundation has no RelativeDateTimeFormatter
             // The formatter keeps whole units (no rounding) and maps full and spellOut to the style's,
             // short to abbreviated, abbreviated to narrow.
             let now = Date(timeIntervalSince1970: 1_775_000_000)
@@ -189,6 +204,7 @@ import Foundation
                 let ours = _RelativeDateText.text(seconds: offset, presentation: .numeric, unitsStyle: units, calendarDays: days, calendarMonths: months, rounding: false)
                 #expect(ours == formatter.localizedString(for: date, relativeTo: now), "formatter \(offset) \(theirUnits)")
             }
+            #endif
         }
     }
 }

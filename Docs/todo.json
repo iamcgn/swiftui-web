@@ -1174,14 +1174,15 @@
       "framework": "SwiftUI",
       "area": "Layout",
       "title": "Right-to-left layout direction",
-      "detail": "`layoutDirection` through stacks, grids, custom layouts, `layoutDirectionBehavior` on shapes, alignment guides and the text layouter; goldens from a right-to-left locale.",
+      "detail": "`layoutDirection` through stacks, grids, custom layouts, `layoutDirectionBehavior` on shapes, alignment guides and the text layouter; goldens from a right-to-left environment. Done 2026-10-09 (Phase 9, item 2): every container mirrors its placements once per level (ViewNode.place; the root and presenters excepted), so stacks, Spacer, leading padding and alignment, ZStack, Grid, LazyVGrid, a custom Layout, alignment guides, offset and position all mirror and a left-to-right island stays as written (layout/rtl-stacks, rtl-grid, rtl-custom exact); text alignment follows the direction (rtl-text); `Shape.layoutDirectionBehavior` (.mirrors by default, .fixed) and `flipsForRightToLeftLayoutDirection` (images do not flip by default; rtl-shapes); a horizontal ScrollView starts at its trailing end with natural swipes (rtl-scroll); progress bars, sliders and switches mirror their parts (RTLTests). Not mirrored, as measured: UnitPoints and gradients. Open: the ellipsis of a truncated right-aligned line, bidirectional text itself (the layouter has no bidi), the iOS navigation chrome in RTL.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Layout.md",
         "Docs/elements/CustomLayout.md"
-      ]
+      ],
+      "done": "2026-10-09"
     },
     {
       "id": "sw-dynamic-type",

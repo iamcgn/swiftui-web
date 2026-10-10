@@ -1,0 +1,39 @@
+{
+  "fixture" : "layout\/rtl-text",
+  "frames" : {
+    "center" : {
+      "height" : 64,
+      "width" : 150,
+      "x" : 55,
+      "y" : 165.9600830078125
+    },
+    "framedText" : {
+      "height" : 16,
+      "width" : 100,
+      "x" : 105,
+      "y" : 262.0399169921875
+    },
+    "label" : {
+      "height" : 16.079833984375,
+      "width" : 49.5,
+      "x" : 155.5,
+      "y" : 237.9600830078125
+    },
+    "leading" : {
+      "height" : 64,
+      "width" : 150,
+      "x" : 55,
+      "y" : 21.9600830078125
+    },
+    "trailing" : {
+      "height" : 64,
+      "width" : 150,
+      "x" : 55,
+      "y" : 93.9600830078125
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 260
+  }
+}

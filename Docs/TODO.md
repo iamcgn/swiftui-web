@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 32 | 0 | 0 | 32 |
+| SwiftUI | 31 | 0 | 0 | 31 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **48** | 0 | 1 | 47 |
+| **All** | **47** | 0 | 1 | 46 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Right-to-left layout direction** `sw-rtl` · Layout · missing  
-  `layoutDirection` through stacks, grids, custom layouts, `layoutDirectionBehavior` on shapes, alignment guides and the text layouter; goldens from a right-to-left locale. ([Layout.md](Docs/elements/Layout.md), [CustomLayout.md](Docs/elements/CustomLayout.md))
 - ☐ **Dynamic Type** `sw-dynamic-type` · Text · missing  
   `dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting. ([Text.md](Docs/elements/Text.md), [iOS.md](Docs/elements/iOS.md))
 - ☐ **Subviews-based ForEach and Group** `sw-subviews` · View composition · missing  
@@ -143,6 +141,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-09 **Accessibility notifications and custom actions** `uk-accessibility` · UIKit · Accessibility
 - ☑ 2026-10-09 **UIPasteboard** `uk-pasteboard` · UIKit · App
 - ☑ 2026-10-09 **WebFoundation's gaps against Foundation** `pf-web-foundation-gaps` · Platform · wasm
+- ☑ 2026-10-09 **Right-to-left layout direction** `sw-rtl` · SwiftUI · Layout
 - ☑ 2026-10-08 **Date picker popovers, calendars and wheels** `uk-datepicker` · UIKit · Controls
 - ☑ 2026-10-04 **NavigationStack gaps** `sw-navigation` · SwiftUI · Navigation
 - ☑ 2026-10-04 **Scroll content under the iOS 26 bar** `sw-ios-nav-scroll` · SwiftUI · Navigation

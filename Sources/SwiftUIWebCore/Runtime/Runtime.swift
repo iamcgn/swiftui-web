@@ -456,6 +456,9 @@ public final class Runtime {
 /// The parentless node at the top of the tree. Holds the mounted root view's node.
 @MainActor
 package final class RootNode: ViewNode {
+    /// Presenters place sheets, popovers and menus through the root in window coordinates
+    /// computed from measured frames; the root never mirrors them.
+    override package var mirrorsPlacements: Bool { false }
     package private(set) var child: ViewNode?
     /// Re-applies the mounted view under a new root environment (a colour scheme change).
     package private(set) var reapply: ((EnvironmentValues) -> Void)?

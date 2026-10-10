@@ -267,7 +267,7 @@ package final class HiddenNode<Content: View>: UnaryLayoutModifierNode<Content, 
 package final class ClipNode<Content: View, S: Shape>: UnaryLayoutModifierNode<Content, _ClipEffect<S>> {
     override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
         list.append(.save)
-        list.append(_clipCommand(modifier.shape, in: context.absoluteRect(CGRect(origin: .zero, size: node.frame.size)), fillStyle: modifier.style))
+        list.append(_clipCommand(modifier.shape, in: context.absoluteRect(CGRect(origin: .zero, size: node.frame.size)), fillStyle: modifier.style, direction: node.environment.layoutDirection))
         super.paintTarget(target, in: node, into: &list, context: context)
         list.append(.restore)
     }

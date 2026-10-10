@@ -82,6 +82,24 @@ extension View {
     nonisolated public func transformEffect(_ transform: CGAffineTransform) -> some View {
         modifier(_TransformEffect(transform: transform))
     }
+
+    /// Mirrors the view's rendered output horizontally when the layout direction is right to
+    /// left (images are not mirrored by default; `layout/rtl-shapes`).
+    public func flipsForRightToLeftLayoutDirection(_ enabled: Bool) -> some View {
+        _FlipsForRightToLeft(enabled: enabled, content: self)
+    }
+}
+
+/// `flipsForRightToLeftLayoutDirection`: a horizontal scale of −1 about the centre in a
+/// right-to-left environment, nothing otherwise.
+struct _FlipsForRightToLeft<Content: View>: View {
+    var enabled: Bool
+    var content: Content
+    @Environment(\.layoutDirection) private var layoutDirection
+
+    var body: some View {
+        content.scaleEffect(x: enabled && layoutDirection == .rightToLeft ? -1 : 1, y: 1)
+    }
 }
 
 // MARK: - 3D rotation, projection, GeometryEffect

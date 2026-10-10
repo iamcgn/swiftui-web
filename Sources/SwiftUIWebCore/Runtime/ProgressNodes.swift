@@ -72,10 +72,14 @@ package final class ProgressBarNode: LeafNode<_ProgressBar>, _FrameSubscriber {
         let track = CGRect(x: bounds.minX, y: bounds.midY - height / 2, width: bounds.width, height: height)
         list.append(.fillRRect(track, cornerRadius: height / 2, PlatformMetrics.progressTrackColor ?? environment._ink(PlatformMetrics.progressTrackAlpha)))
         let fill = fillColor
+        // Right to left: the bar fills from the trailing (right) end (sw-rtl, measured on
+        // `layout/rtl-controls`).
+        let rightToLeft = environment.layoutDirection == .rightToLeft
         if let fraction = presentedFraction {
             let fillWidth = (track.width * CGFloat(fraction)).rounded()
             guard fillWidth > 0 else { return }
-            list.append(.fillRRect(CGRect(x: track.minX, y: track.minY, width: max(fillWidth, height), height: height), cornerRadius: height / 2, fill))
+            let width = max(fillWidth, height)
+            list.append(.fillRRect(CGRect(x: rightToLeft ? track.maxX - width : track.minX, y: track.minY, width: width, height: height), cornerRadius: height / 2, fill))
         } else {
             // The segment starts at the leading edge (the goldens' first frame) and crosses the
             // track once a period, wrapping (approximate: the real motion is unmeasured).
@@ -85,7 +89,7 @@ package final class ProgressBarNode: LeafNode<_ProgressBar>, _FrameSubscriber {
             let elapsed = runtime.animationClock - (indeterminateStart ?? runtime.animationClock)
             let phase = PlatformMetrics.progressIndeterminatePeriod > 0
                 ? (elapsed / PlatformMetrics.progressIndeterminatePeriod).truncatingRemainder(dividingBy: 1) : 0
-            let x = track.minX + (track.width - segment) * CGFloat(phase)
+            let x = rightToLeft ? track.maxX - segment - (track.width - segment) * CGFloat(phase) : track.minX + (track.width - segment) * CGFloat(phase)
             list.append(.fillRRect(CGRect(x: x, y: track.minY, width: segment, height: height), cornerRadius: height / 2, fill))
         }
     }

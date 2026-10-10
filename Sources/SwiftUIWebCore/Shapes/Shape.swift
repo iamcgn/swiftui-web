@@ -9,6 +9,10 @@ public protocol Shape: Animatable, View {
 
     /// An indication of how to style a shape.
     static var role: ShapeRole { get }
+
+    /// Whether the shape's path mirrors with the layout direction (`.mirrors` by default:
+    /// a right-to-left layout flips it, `layout/rtl-shapes`).
+    nonisolated var layoutDirectionBehavior: LayoutDirectionBehavior { get }
 }
 
 /// Ways of styling shapes.
@@ -53,6 +57,7 @@ public struct FillStyle: Equatable, Sendable {
 
 extension Shape {
     public static var role: ShapeRole { .fill }
+    nonisolated public var layoutDirectionBehavior: LayoutDirectionBehavior { .mirrors }
 
     nonisolated public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         proposal.replacingUnspecifiedDimensions()
@@ -259,12 +264,12 @@ extension _ShapeView: ShapeView, _ShapePainting {
 
     package func _paintShape(in bounds: CGRect, environment: EnvironmentValues, into list: inout DisplayList) {
         if let gradient = style as? any _GradientStyle {
-            list.append(.fillGradient(_localPath(shape, in: bounds), gradient._resolveGradient(in: bounds, environment: environment)))
+            list.append(.fillGradient(_localPath(shape, in: bounds, direction: environment.layoutDirection), gradient._resolveGradient(in: bounds, environment: environment)))
             return
         }
         let color = style.resolveColor(in: environment)
         guard color.alpha > 0 else { return }
-        list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: FillStyle()))
+        list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: FillStyle(), direction: environment.layoutDirection))
     }
 }
 
@@ -292,12 +297,12 @@ extension FillShapeView: ShapeView, _ShapePainting {
     package func _paintShape(in bounds: CGRect, environment: EnvironmentValues, into list: inout DisplayList) {
         _paintBackground(background, in: bounds, environment: environment, into: &list)
         if let gradient = style as? any _GradientStyle {
-            list.append(.fillGradient(_localPath(shape, in: bounds), gradient._resolveGradient(in: bounds, environment: environment), eoFill: fillStyle.isEOFilled))
+            list.append(.fillGradient(_localPath(shape, in: bounds, direction: environment.layoutDirection), gradient._resolveGradient(in: bounds, environment: environment), eoFill: fillStyle.isEOFilled))
             return
         }
         let color = style.resolveColor(in: environment)
         guard color.alpha > 0 else { return }
-        list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: fillStyle))
+        list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: fillStyle, direction: environment.layoutDirection))
     }
 }
 
@@ -328,12 +333,12 @@ extension StrokeShapeView: ShapeView, _ShapePainting {
         _paintBackground(background, in: bounds, environment: environment, into: &list)
         guard strokeStyle.lineWidth > 0 else { return }
         if let gradient = style as? any _GradientStyle {
-            list.append(.strokeGradient(_localPath(shape, in: bounds), style: strokeStyle, gradient._resolveGradient(in: bounds, environment: environment)))
+            list.append(.strokeGradient(_localPath(shape, in: bounds, direction: environment.layoutDirection), style: strokeStyle, gradient._resolveGradient(in: bounds, environment: environment)))
             return
         }
         let color = style.resolveColor(in: environment)
         guard color.alpha > 0 else { return }
-        list.append(.strokePath(_localPath(shape, in: bounds), style: strokeStyle, color))
+        list.append(.strokePath(_localPath(shape, in: bounds, direction: environment.layoutDirection), style: strokeStyle, color))
     }
 }
 
@@ -366,20 +371,25 @@ extension StrokeBorderShapeView: ShapeView, _ShapePainting {
         _paintBackground(background, in: bounds, environment: environment, into: &list)
         guard strokeStyle.lineWidth > 0 else { return }
         if let gradient = style as? any _GradientStyle {
-            list.append(.strokeGradient(_localPath(shape.inset(by: strokeStyle.lineWidth / 2), in: bounds), style: strokeStyle, gradient._resolveGradient(in: bounds, environment: environment)))
+            list.append(.strokeGradient(_localPath(shape.inset(by: strokeStyle.lineWidth / 2), in: bounds, direction: environment.layoutDirection), style: strokeStyle, gradient._resolveGradient(in: bounds, environment: environment)))
             return
         }
         let color = style.resolveColor(in: environment)
         guard color.alpha > 0 else { return }
-        list.append(.strokePath(_localPath(shape.inset(by: strokeStyle.lineWidth / 2), in: bounds), style: strokeStyle, color))
+        list.append(.strokePath(_localPath(shape.inset(by: strokeStyle.lineWidth / 2), in: bounds, direction: environment.layoutDirection), style: strokeStyle, color))
     }
 }
 
 /// The path of `shape` for a view whose frame is `bounds`: SwiftUI asks shapes for a rect at the
-/// origin of the view's own space (a `Path` is in local coordinates), then places the result.
+/// origin of the view's own space (a `Path` is in local coordinates), then places the result,
+/// mirrored when the shape's `layoutDirectionBehavior` says so for `direction` (sw-rtl).
 @MainActor
-package func _localPath<S: Shape>(_ shape: S, in bounds: CGRect) -> Path {
-    shape.path(in: CGRect(origin: .zero, size: bounds.size)).offsetBy(dx: bounds.minX, dy: bounds.minY)
+package func _localPath<S: Shape>(_ shape: S, in bounds: CGRect, direction: LayoutDirection = .leftToRight) -> Path {
+    var path = shape.path(in: CGRect(origin: .zero, size: bounds.size))
+    if shape.layoutDirectionBehavior.flips(in: direction) {
+        path = path.applying(CGAffineTransform(a: -1, b: 0, c: 0, d: 1, tx: bounds.width, ty: 0))
+    }
+    return path.offsetBy(dx: bounds.minX, dy: bounds.minY)
 }
 
 /// A shape that is the stroked outline of another; painters stroke the base natively.
@@ -390,7 +400,7 @@ package protocol _StrokeOutline {
 
 /// The cheapest command that fills `shape` in `bounds`.
 @MainActor
-package func _fillCommand<S: Shape>(_ shape: S, in bounds: CGRect, color: RGBA, fillStyle: FillStyle = FillStyle()) -> DisplayCommand {
+package func _fillCommand<S: Shape>(_ shape: S, in bounds: CGRect, color: RGBA, fillStyle: FillStyle = FillStyle(), direction: LayoutDirection = .leftToRight) -> DisplayCommand {
     if let outline = shape as? any _StrokeOutline {
         return .strokePath(outline._basePath(in: CGRect(origin: .zero, size: bounds.size)).offsetBy(dx: bounds.minX, dy: bounds.minY),
                            style: outline._strokeStyle, color)
@@ -406,11 +416,11 @@ package func _fillCommand<S: Shape>(_ shape: S, in bounds: CGRect, color: RGBA, 
             return .fillRRect(bounds, cornerRadius: min(bounds.width, bounds.height) / 2, color)
         }
     }
-    return .fillPath(_localPath(shape, in: bounds), color, eoFill: fillStyle.isEOFilled)
+    return .fillPath(_localPath(shape, in: bounds, direction: direction), color, eoFill: fillStyle.isEOFilled)
 }
 
 @MainActor
-package func _clipCommand<S: Shape>(_ shape: S, in bounds: CGRect, fillStyle: FillStyle = FillStyle()) -> DisplayCommand {
+package func _clipCommand<S: Shape>(_ shape: S, in bounds: CGRect, fillStyle: FillStyle = FillStyle(), direction: LayoutDirection = .leftToRight) -> DisplayCommand {
     if !fillStyle.isEOFilled {
         if S.self == Rectangle.self {
             return .clipRect(bounds)
@@ -419,5 +429,5 @@ package func _clipCommand<S: Shape>(_ shape: S, in bounds: CGRect, fillStyle: Fi
             return .clipRRect(bounds, cornerRadius: rounded.cornerSize.width)
         }
     }
-    return .clipPath(_localPath(shape, in: bounds), eoFill: fillStyle.isEOFilled)
+    return .clipPath(_localPath(shape, in: bounds, direction: direction), eoFill: fillStyle.isEOFilled)
 }

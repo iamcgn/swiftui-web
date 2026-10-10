@@ -1,0 +1,63 @@
+{
+  "fixture" : "layout\/rtl-shapes",
+  "frames" : {
+    "arrow" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 190,
+      "y" : 30
+    },
+    "fixedArrow" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 140,
+      "y" : 30
+    },
+    "flippedImage" : {
+      "height" : 12,
+      "width" : 15,
+      "x" : 90,
+      "y" : 39
+    },
+    "gradient" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 110,
+      "y" : 70
+    },
+    "image" : {
+      "height" : 12,
+      "width" : 15,
+      "x" : 115,
+      "y" : 39
+    },
+    "offset" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 210,
+      "y" : 150
+    },
+    "positionBox" : {
+      "height" : 40,
+      "width" : 160,
+      "x" : 70,
+      "y" : 100
+    },
+    "positioned" : {
+      "height" : 40,
+      "width" : 160,
+      "x" : 70,
+      "y" : 100
+    },
+    "row" : {
+      "height" : 30,
+      "width" : 140,
+      "x" : 90,
+      "y" : 30
+    }
+  },
+  "size" : {
+    "height" : 200,
+    "width" : 300
+  }
+}

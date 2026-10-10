@@ -603,13 +603,17 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
     }
     override package var layoutSpacing: ViewSpacing { PlatformMetrics.controlsUsePlainSpacing ? ViewSpacing() : .plainControl }
 
-    /// Where the knob's centre sits for the current value, in local coordinates.
+    /// Where the knob's centre sits for the current value, in local coordinates; the value runs
+    /// from the trailing end in a right-to-left layout (sw-rtl).
     private var knobCenterX: CGFloat {
         let travel = max(0, frame.width - 2 * PlatformMetrics.sliderKnobInset)
         let span = view.range.upperBound - view.range.lowerBound
         let t = span > 0 ? (view.value.get() - view.range.lowerBound) / span : 0
-        return PlatformMetrics.sliderKnobInset + travel * CGFloat(min(max(t, 0), 1))
+        let fraction = CGFloat(min(max(t, 0), 1))
+        return PlatformMetrics.sliderKnobInset + travel * (rightToLeft ? 1 - fraction : fraction)
     }
+
+    private var rightToLeft: Bool { environment.layoutDirection == .rightToLeft }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
@@ -619,7 +623,9 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
         let ink = environment; let black = { (alpha: Double) in ink._ink(alpha) }
         list.append(.fillRRect(track, cornerRadius: track.height / 2, black(PlatformMetrics.sliderTrackAlpha)))
         let knobX = bounds.minX + knobCenterX
-        let filled = CGRect(x: track.minX, y: track.minY, width: max(0, knobX - track.minX), height: track.height)
+        let filled = rightToLeft
+            ? CGRect(x: knobX, y: track.minY, width: max(0, track.maxX - knobX), height: track.height)
+            : CGRect(x: track.minX, y: track.minY, width: max(0, knobX - track.minX), height: track.height)
         if PlatformMetrics.sliderFillsWithAccent {
             // iOS: the accent fill, a white round knob with a soft shadow (ios/slider/basic; the
             // Catalyst goldens draw a Mac-shaped knob there, Docs/elements/iOS.md).
@@ -658,7 +664,8 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
 
     private func value(at point: CGPoint) -> Double {
         let travel = max(1, frame.width - 2 * PlatformMetrics.sliderKnobInset)
-        let t = min(max((point.x - PlatformMetrics.sliderKnobInset) / travel, 0), 1)
+        var t = min(max((point.x - PlatformMetrics.sliderKnobInset) / travel, 0), 1)
+        if rightToLeft { t = 1 - t }
         var value = view.range.lowerBound + Double(t) * (view.range.upperBound - view.range.lowerBound)
         if let step = view.step, step > 0 {
             value = view.range.lowerBound + ((value - view.range.lowerBound) / step).rounded() * step

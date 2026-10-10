@@ -162,6 +162,22 @@ public enum LayoutDirection: Hashable, CaseIterable, Sendable {
     case rightToLeft
 }
 
+/// How a view's drawing responds to the layout direction (`Shape.layoutDirectionBehavior`).
+public enum LayoutDirectionBehavior: Hashable, Sendable {
+    /// Drawn the same way in both directions.
+    case fixed
+    /// Mirrored horizontally when the layout direction is `direction`.
+    case mirrors(in: LayoutDirection)
+    /// Mirrored in a right-to-left layout (the default for shapes).
+    public static var mirrors: LayoutDirectionBehavior { .mirrors(in: .rightToLeft) }
+
+    /// Whether drawing mirrors in `direction`.
+    package func flips(in direction: LayoutDirection) -> Bool {
+        if case .mirrors(let flipped) = self { return flipped == direction }
+        return false
+    }
+}
+
 /// The view produced by calling a `Layout` as a function.
 public struct _LayoutView<L: Layout, Content: View> {
     public var layout: L

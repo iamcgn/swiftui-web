@@ -541,6 +541,9 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     /// (fixture `scroll/scroll-to`).
     private func offset(scrollingTo rect: CGRect, anchor: UnitPoint?) -> CGPoint {
         var offset = contentOffset
+        // Mirrored content: measure the target from the trailing end, where offset 0 lies.
+        var rect = rect
+        if mirrorsPlacements { rect.origin.x = contentSize.width - rect.maxX }
         for axis in Axis.allCases where axes.contains(Axis.Set(axis)) {
             let viewport = frame.size[axis]
             let start = rect.origin[axis], length = rect.size[axis]
@@ -568,6 +571,11 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     package func scroll(by delta: CGSize) -> CGSize {
         guard isScrollEnabled else { return delta }
+        // Right-to-left: offset 0 is the trailing end (the content is placed mirrored), so a
+        // leftward swipe lowers the offset.
+        let mirrored = mirrorsPlacements
+        var delta = delta
+        if mirrored { delta.width = -delta.width }
         var remaining = delta
         var offset = contentOffset
         let maximum = maximumOffset
@@ -577,6 +585,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
             remaining[axis] = target - clampedValue
             offset[axis] = clampedValue
         }
+        if mirrored { remaining.width = -remaining.width }
         if offset != contentOffset {
             contentOffset = offset
             runtime.noteScrolled(self)

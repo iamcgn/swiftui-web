@@ -1,0 +1,99 @@
+{
+  "fixture" : "layout\/rtl-stacks",
+  "frames" : {
+    "a" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 270,
+      "y" : 17
+    },
+    "b" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 202,
+      "y" : 17
+    },
+    "c" : {
+      "height" : 30,
+      "width" : 30,
+      "x" : 10,
+      "y" : 17
+    },
+    "framed" : {
+      "height" : 20,
+      "width" : 120,
+      "x" : 190,
+      "y" : 87
+    },
+    "guided" : {
+      "height" : 20,
+      "width" : 30,
+      "x" : 270,
+      "y" : 223
+    },
+    "hstack" : {
+      "height" : 30,
+      "width" : 300,
+      "x" : 10,
+      "y" : 17
+    },
+    "island" : {
+      "height" : 20,
+      "width" : 68,
+      "x" : 242,
+      "y" : 167
+    },
+    "ltrA" : {
+      "height" : 20,
+      "width" : 30,
+      "x" : 242,
+      "y" : 167
+    },
+    "ltrB" : {
+      "height" : 20,
+      "width" : 30,
+      "x" : 280,
+      "y" : 167
+    },
+    "padded" : {
+      "height" : 20,
+      "width" : 80,
+      "x" : 230,
+      "y" : 57
+    },
+    "text" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 285,
+      "y" : 197
+    },
+    "vstack" : {
+      "height" : 226,
+      "width" : 300,
+      "x" : 10,
+      "y" : 17
+    },
+    "zback" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 210,
+      "y" : 117
+    },
+    "zfront" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 290,
+      "y" : 117
+    },
+    "zstack" : {
+      "height" : 40,
+      "width" : 100,
+      "x" : 210,
+      "y" : 117
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

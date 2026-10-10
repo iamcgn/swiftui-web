@@ -158,7 +158,10 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
         let sizes = macSizes
         let inset = context.round(sizes.inset)
         let knobSize = sizes.knob
-        let knob = CGRect(x: view.isOn ? track.maxX - inset - knobSize.width : track.minX + inset,
+        // The on end is the trailing one: the right in a left-to-right layout, the left in a
+        // right-to-left one (sw-rtl).
+        let onEnd = view.isOn != (environment.layoutDirection == .rightToLeft)
+        let knob = CGRect(x: onEnd ? track.maxX - inset - knobSize.width : track.minX + inset,
                           y: track.minY + inset, width: knobSize.width, height: knobSize.height)
         // The knob's soft shadow: two rings over the track (toggle/styles pixels).
         let spread = PlatformMetrics.switchKnobShadowRingSpread
@@ -185,8 +188,15 @@ package final class SwitchNode: LeafNode<_SwitchControl> {
         let inset = PlatformMetrics.switchKnobInset
         let knobSize = PlatformMetrics.switchKnobSize
         // The knob sits 2 pt nearer the on end than the off one (measured 0.5 and 2.5 in).
-        let knob = CGRect(x: view.isOn ? track.maxX - max(0.5, inset - 2) - knobSize.width : track.minX + inset,
-                          y: track.midY - knobSize.height / 2, width: knobSize.width, height: knobSize.height)
+        let rightToLeft = environment.layoutDirection == .rightToLeft
+        let knobX: CGFloat
+        switch (view.isOn, rightToLeft) {
+        case (true, false): knobX = track.maxX - max(0.5, inset - 2) - knobSize.width
+        case (false, false): knobX = track.minX + inset
+        case (true, true): knobX = track.minX + max(0.5, inset - 2)
+        case (false, true): knobX = track.maxX - inset - knobSize.width
+        }
+        let knob = CGRect(x: knobX, y: track.midY - knobSize.height / 2, width: knobSize.width, height: knobSize.height)
         list.append(.fillRRect(knob.offsetBy(dx: 0, dy: 1).insetBy(dx: -0.5, dy: -0.5), cornerRadius: knob.height / 2 + 0.5,
                                RGBA(r: 0, g: 0, b: 0, a: PlatformMetrics.switchKnobShadowAlpha * dim)))
         list.append(.fillRRect(knob, cornerRadius: knob.height / 2, RGBA(r: 255, g: 255, b: 255, a: 1)))

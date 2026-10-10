@@ -138,12 +138,13 @@
         {
           "api": "lineLimit / multilineTextAlignment / truncationMode / lineSpacing (View + EnvironmentValues)",
           "status": "partial",
-          "notes": "All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure keeps floor(height / pitch) lines and truncates the last; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting)",
+          "notes": "All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure keeps floor(height / pitch) lines and truncates the last; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting) Right-to-left (2026-10-09): leading and trailing alignment follow the layout direction (layout/rtl-text; the ellipsis of a truncated right-aligned line sits as in a left-to-right one, approximate).",
           "fixtures": [
             "text/line-limit",
             "text/truncation",
             "text/alignment",
-            "text/line-spacing"
+            "text/line-spacing",
+            "layout/rtl-text"
           ]
         },
         {
@@ -158,9 +159,10 @@
         {
           "api": "VStack / HStack / ZStack",
           "status": "partial",
-          "notes": "Layout exact against the goldens: alignment, spacing (default and explicit), priorities, ideal sizes, nesting; painted as their children",
+          "notes": "Layout exact against the goldens: alignment, spacing (default and explicit), priorities, ideal sizes, nesting; painted as their children Right-to-left (2026-10-09, layout/rtl-*): every container mirrors its placements under layoutDirection == .rightToLeft (leading alignment, leading padding, Spacer, ZStack, frame alignment, alignment guides, a left-to-right island inside stays as written).",
           "fixtures": [
-            "layout/*"
+            "layout/*",
+            "layout/rtl-stacks"
           ]
         },
         {
@@ -192,7 +194,7 @@
         {
           "api": "Toggle (isOn:label:, title, image, systemImage, configuration) / ToggleStyle / ToggleStyleConfiguration / toggleStyle",
           "status": "partial",
-          "notes": "Checkbox (default), switch and button styles measured in layout and on/off pixels; activation on release inside; checkbox semantics (aria-checked); no pressed/hover/focus looks, keyboard, mixed state or Toggle(sources:); Toggle(sources:isOn:) with the mixed dash, Space, the focus ring on the control, controlSize (approximate from macOS 26.6), tint (the iOS switch; macOS with Runtime.windowIsActive), the switch knob's shadow (2026-10-04)",
+          "notes": "Checkbox (default), switch and button styles measured in layout and on/off pixels; activation on release inside; checkbox semantics (aria-checked); no pressed/hover/focus looks, keyboard, mixed state or Toggle(sources:); Toggle(sources:isOn:) with the mixed dash, Space, the focus ring on the control, controlSize (approximate from macOS 26.6), tint (the iOS switch; macOS with Runtime.windowIsActive), the switch knob's shadow (2026-10-04) Right-to-left (2026-10-09): the switch sits left of its label with the on knob at its left end (RTLTests).",
           "fixtures": [
             "toggle/basic",
             "toggle/styles",
@@ -276,7 +278,7 @@
         {
           "api": "Slider (value, range, step, label, min/max value labels, onEditingChanged)",
           "status": "partial",
-          "notes": "16 pt flexible track with a 22 × 16 knob, ticks when stepped, body label and footnote value labels pixel-aligned; presses jump and drags follow; no keyboard control or vertical sliders",
+          "notes": "16 pt flexible track with a 22 × 16 knob, ticks when stepped, body label and footnote value labels pixel-aligned; presses jump and drags follow; no keyboard control or vertical sliders Right-to-left (2026-10-09): the value runs from the trailing end and the fill follows the knob to the right (RTLTests; measured on a macOS 26.6 golden whose control sizes are not modelled).",
           "fixtures": [
             "slider/basic",
             "slider/steps"
@@ -307,24 +309,26 @@
         {
           "api": "Layout protocol (custom layouts, caches, LayoutSubviews/LayoutSubview, LayoutValueKey) / AnyLayout / HStackLayout / VStackLayout / ZStackLayout",
           "status": "partial",
-          "notes": "Custom layouts written on the public API match Apple's frames exactly; AnyLayout switches layouts keeping subview state; no Animatable layout parameters or right-to-left direction",
+          "notes": "Custom layouts written on the public API match Apple's frames exactly; AnyLayout switches layouts keeping subview state; no Animatable layout parameters or right-to-left direction Right-to-left (2026-10-09): a custom layout's placements are mirrored by the system, as SwiftUI mirrors them (layout/rtl-custom).",
           "fixtures": [
             "customlayout/flow",
             "customlayout/radial",
             "customlayout/values",
-            "customlayout/any"
+            "customlayout/any",
+            "layout/rtl-custom"
           ]
         },
         {
           "api": "Grid / GridRow / gridCellColumns / gridColumnAlignment / gridCellAnchor / gridCellUnsizedAxes",
           "status": "partial",
-          "notes": "Column sizing, spans, flexible sharing, spacing from cell preferences, alignment and anchors match Apple's frames exactly; no GridLayout value or lazy grids",
+          "notes": "Column sizing, spans, flexible sharing, spacing from cell preferences, alignment and anchors match Apple's frames exactly; no GridLayout value or lazy grids Right-to-left (2026-10-09): columns run from the right, spans with them (layout/rtl-grid).",
           "fixtures": [
             "grid/basic",
             "grid/spacing",
             "grid/modifiers",
             "grid/alignment",
-            "grid/flexible"
+            "grid/flexible",
+            "layout/rtl-grid"
           ]
         },
         {
@@ -366,7 +370,7 @@
         {
           "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:)",
           "status": "partial",
-          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04)",
+          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04) Right-to-left (2026-10-09): the bar fills from the trailing end (RTLTests).",
           "fixtures": [
             "progress/basic",
             "progress/indeterminate",
@@ -468,7 +472,7 @@
         {
           "api": "LazyVStack / LazyHStack / LazyVGrid / LazyHGrid / GridItem (fixed, flexible, adaptive) / PinnedScrollableViews",
           "status": "partial",
-          "notes": "Stacks fill their cross axis; grids resolve fixed/flexible (clamped, no redistribution)/adaptive tracks and flow cells line by line, the tracks placed by the grid's alignment and cells aligned by their item's; section headers and footers take a line of their own in grids; inside a scroll view a ForEach creates its elements as they come within a viewport of the visible region (placeholders sized by the created ones keep the content's extent; scrollTo creates the element it targets), and pinnedViews pins section headers and footers to the scroll view's edges (2026-09-19, lazy/pinned-*, lazy/laziness, lazy/grid-*); created elements are kept rather than released",
+          "notes": "Stacks fill their cross axis; grids resolve fixed/flexible (clamped, no redistribution)/adaptive tracks and flow cells line by line, the tracks placed by the grid's alignment and cells aligned by their item's; section headers and footers take a line of their own in grids; inside a scroll view a ForEach creates its elements as they come within a viewport of the visible region (placeholders sized by the created ones keep the content's extent; scrollTo creates the element it targets), and pinnedViews pins section headers and footers to the scroll view's edges (2026-09-19, lazy/pinned-*, lazy/laziness, lazy/grid-*); created elements are kept rather than released Right-to-left (2026-10-09): LazyVGrid columns run from the right (layout/rtl-grid).",
           "fixtures": [
             "lazy/stacks",
             "lazy/grids",
@@ -477,7 +481,8 @@
             "lazy/pinned-both",
             "lazy/laziness",
             "lazy/grid-sections",
-            "lazy/grid-alignment"
+            "lazy/grid-alignment",
+            "layout/rtl-grid"
           ]
         },
         {
@@ -565,11 +570,12 @@
         {
           "api": "Rectangle / RoundedRectangle (circular, continuous) / UnevenRoundedRectangle / Circle / Ellipse / Capsule",
           "status": "full",
-          "notes": "Paths identical to Apple's element for element (74 recorded paths, PathGoldenTests): continuous corner curves, radius limits, start points; Tier B pixels ≤ 0.24 % Chromium, ≤ 0.11 % WebKit",
+          "notes": "Paths identical to Apple's element for element (74 recorded paths, PathGoldenTests): continuous corner curves, radius limits, start points; Tier B pixels ≤ 0.24 % Chromium, ≤ 0.11 % WebKit Shape.layoutDirectionBehavior (2026-10-09): .mirrors by default, a shape's path flips in a right-to-left layout; .fixed keeps it (layout/rtl-shapes).",
           "fixtures": [
             "shape/builtin",
             "shape/layout",
-            "paint/shapes"
+            "paint/shapes",
+            "layout/rtl-shapes"
           ]
         },
         {
@@ -655,9 +661,10 @@
         {
           "api": "ScrollView (axes, showsIndicators) / ScrollViewReader / ScrollViewProxy.scrollTo",
           "status": "partial",
-          "notes": "Fills the proposal along its axes and is exactly content-sized across them, implicit VStack content, clipping, defaultScrollAnchor and its sizeChanges/alignment roles, scrollTo with/without anchor resolved at layout; wheel scrolling with chaining, touch pan + momentum (0.998/ms), overlay indicators while scrolling (the knob measured from NSScroller.drawKnob 2026-09-19; hold and fade approximate), scrollIndicatorsFlash; scrollPosition (id and ScrollPosition bindings: writes scroll, the positioned identity is written back as the user scrolls, the initial value does not scroll), scrollTargetLayout, scrollTargetBehavior (paging, viewAligned with limits, custom behaviours; the content eases to the target when a pan ends or a wheel goes quiet), contentMargins (content and indicator placements), onScrollGeometryChange, onScrollPhaseChange, scrollDismissesKeyboard on iOS (2026-09-19, six macOS goldens and two simulator twins); no bounce or keyboard scrolling, no animated scrollTo",
+          "notes": "Fills the proposal along its axes and is exactly content-sized across them, implicit VStack content, clipping, defaultScrollAnchor and its sizeChanges/alignment roles, scrollTo with/without anchor resolved at layout; wheel scrolling with chaining, touch pan + momentum (0.998/ms), overlay indicators while scrolling (the knob measured from NSScroller.drawKnob 2026-09-19; hold and fade approximate), scrollIndicatorsFlash; scrollPosition (id and ScrollPosition bindings: writes scroll, the positioned identity is written back as the user scrolls, the initial value does not scroll), scrollTargetLayout, scrollTargetBehavior (paging, viewAligned with limits, custom behaviours; the content eases to the target when a pan ends or a wheel goes quiet), contentMargins (content and indicator placements), onScrollGeometryChange, onScrollPhaseChange, scrollDismissesKeyboard on iOS (2026-09-19, six macOS goldens and two simulator twins); no bounce or keyboard scrolling, no animated scrollTo Right-to-left (2026-10-09): a horizontal scroll view starts at its trailing end, a leftward swipe lowers the offset, scrollTo measures from the trailing end (layout/rtl-scroll, RTLTests).",
           "fixtures": [
-            "scroll/*"
+            "scroll/*",
+            "layout/rtl-scroll"
           ]
         },
         {
@@ -683,10 +690,11 @@
         {
           "api": "Image(systemName:) / Image.Scale / imageScale(_:) / View.fontWeight / View.bold",
           "status": "partial",
-          "notes": "Measured SF Symbol layout (240 symbols at the text-style sizes, 13 pt weights and image scales; scaled elsewhere) with Lucide icons (ISC) standing in for the glyphs, 1551 names; no rendering modes, variants or effects",
+          "notes": "Measured SF Symbol layout (240 symbols at the text-style sizes, 13 pt weights and image scales; scaled elsewhere) with Lucide icons (ISC) standing in for the glyphs, 1551 names; no rendering modes, variants or effects flipsForRightToLeftLayoutDirection (2026-10-09): symbols are not mirrored unless asked (layout/rtl-shapes).",
           "fixtures": [
             "symbol/basic",
-            "symbol/catalog-13"
+            "symbol/catalog-13",
+            "layout/rtl-shapes"
           ]
         },
         {
@@ -1053,11 +1061,12 @@
         {
           "api": "offset / rotationEffect / scaleEffect / transformEffect / AnyTransition.scale",
           "status": "partial",
-          "notes": "Painted through the display list's concat op about their anchors, parameters animate, offsets move hit testing; no hit testing through rotation/scale, no GeometryEffect or 3D; rotation3DEffect and projectionEffect (the affine part; perspective not drawn), GeometryEffect conformances with animated data, hit testing through every effect, scale transitions about their anchor (transform/3d exact; 2026-10-04)",
+          "notes": "Painted through the display list's concat op about their anchors, parameters animate, offsets move hit testing; no hit testing through rotation/scale, no GeometryEffect or 3D; rotation3DEffect and projectionEffect (the affine part; perspective not drawn), GeometryEffect conformances with animated data, hit testing through every effect, scale transitions about their anchor (transform/3d exact; 2026-10-04) Right-to-left (2026-10-09): offset(x:) and position(x:) mirror with the layout (layout/rtl-shapes); UnitPoints and gradients do not.",
           "fixtures": [
             "transform/basic",
             "transform/steps",
-            "transform/3d"
+            "transform/3d",
+            "layout/rtl-shapes"
           ]
         },
         {
