@@ -1,7 +1,9 @@
 // Colour well node (Docs/elements/ColorPicker.md): 48 × 24, a 230-grey rounded rect (radius 11)
 // with the colour in a concentric swatch inset 3 pt over a black/white diagonal ground, a 10 %
 // inner stroke and a darker top edge; half opacity when disabled; the label's baseline 1.5 pt
-// above the bottom. A press opens the preset panel as a popover below the well.
+// above the bottom. A press asks the host for its system colour chooser (the browser's colour
+// input, NSColorPanel) and, without one, opens the preset panel as a popover below the well;
+// while a chooser targets the well its frame is the focus blue (macOS 27). Dropped colours set it.
 #if os(WASI)
 import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
 #else
@@ -12,10 +14,15 @@ import Foundation
 private var nextColorWellIdentifier = 9_900_000
 
 @MainActor
-package final class ColorWellNode: LeafNode<_ColorWellHost>, _Interactive {
+package final class ColorWellNode: LeafNode<_ColorWellHost>, _Interactive, _DropTarget {
     private let identifier: Int
     private weak var panel: PresentationNode?
     private var pressed = false
+    /// Whether a colour chooser (the host's or the preset popover) targets the well.
+    private(set) var active = false
+    private var targeted = false
+
+    package var wellIdentifier: Int { identifier }
 
     override package init(_ context: _NodeContext<_ColorWellHost>) {
         nextColorWellIdentifier += 1
@@ -40,7 +47,11 @@ package final class ColorWellNode: LeafNode<_ColorWellHost>, _Interactive {
         let bounds = absoluteBounds(context)
         let opacity = environment.isEnabled ? 1 : PlatformMetrics.colorWellDisabledOpacity
         let well = Path(roundedRect: bounds, cornerRadius: PlatformMetrics.colorWellCornerRadius, style: .continuous)
-        list.append(.fillPath(well, RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.colorWellAlpha * opacity)))
+        if active || targeted {
+            list.append(.fillPath(well, PlatformMetrics.colorWellActiveColor.resolve(in: environment).multiplyingAlpha(by: opacity)))
+        } else {
+            list.append(.fillPath(well, RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.colorWellAlpha * opacity)))
+        }
         let inset = PlatformMetrics.colorWellSwatchInset
         Self.paintSwatch(in: bounds.insetBy(dx: inset, dy: inset), cornerRadius: PlatformMetrics.colorWellCornerRadius - inset,
                          color: view.color.resolve(in: environment), opacity: opacity, into: &list)
@@ -73,6 +84,8 @@ package final class ColorWellNode: LeafNode<_ColorWellHost>, _Interactive {
 
     package func pressBegan() { pressed = true }
 
+    /// A press (or Space / Return on the focused well) opens a chooser: the host's when it has
+    /// one, else the preset popover. A press while the popover is open closes it.
     package func pressEnded(inside: Bool) {
         pressed = false
         guard inside, environment.isEnabled else { return }
@@ -81,11 +94,53 @@ package final class ColorWellNode: LeafNode<_ColorWellHost>, _Interactive {
             self.panel = nil
             return
         }
+        let request = ColorPanelRequest(identifier: identifier, color: view.color.resolve(in: environment), supportsOpacity: view.supportsOpacity, anchor: frameInRoot)
+        if runtime.colorPanelHandler?(request) == true {
+            active = true
+            runtime.setNeedsDisplay()
+            return
+        }
         let selection = view.selection, supportsOpacity = view.supportsOpacity
         weak let weakSelf = self
         let content = _ColorPanel(selection: selection, supportsOpacity: supportsOpacity) { weakSelf?.panel?.dismiss(); weakSelf?.panel = nil }
-        panel = runtime.present(kind: .popover(arrowEdge: .top, anchor: .rect(.bounds)), view: AnyView(content), environment: environment, anchor: self) { weakSelf?.panel = nil }
+        panel = runtime.present(kind: .popover(arrowEdge: .top, anchor: .rect(.bounds)), view: AnyView(content), environment: environment, anchor: self) {
+            weakSelf?.panel = nil
+            weakSelf?.panelDidClose()
+        }
+        active = true
         runtime.setNeedsDisplay()
+    }
+
+    /// The host's chooser picked: the binding follows (the alpha stays 1 without opacity support).
+    package func panelDidPick(_ color: RGBA) {
+        let alpha = view.supportsOpacity ? Double(color.alpha) : 1
+        view.selection.binding.wrappedValue = Color(red: Double(color.red), green: Double(color.green), blue: Double(color.blue), opacity: alpha)
+        runtime.setNeedsDisplay()
+    }
+
+    package func panelDidClose() {
+        guard active else { return }
+        active = false
+        runtime.setNeedsDisplay()
+    }
+
+    // MARK: Drops
+
+    /// A dragged `Color` (or anything exporting one) lands in the well as its selection.
+    package func accepts(_ item: _TransferItem) -> Bool { environment.isEnabled && item.load(as: Color.self) != nil }
+
+    package func setTargeted(_ targeted: Bool) {
+        guard targeted != self.targeted else { return }
+        self.targeted = targeted
+        runtime.setNeedsDisplay()
+    }
+
+    package func perform(_ item: _TransferItem, at point: CGPoint) -> Bool {
+        guard let color = item.load(as: Color.self) else { return false }
+        let dropped = color.resolve(in: environment)
+        view.selection.binding.wrappedValue = view.supportsOpacity ? color : Color(red: Double(dropped.red), green: Double(dropped.green), blue: Double(dropped.blue))
+        runtime.setNeedsDisplay()
+        return true
     }
 
     package var semantics: SemanticsNode {

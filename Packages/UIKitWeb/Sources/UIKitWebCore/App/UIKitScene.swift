@@ -493,6 +493,8 @@ public final class UIKitScene: HostedScene {
     /// out again (frames an app fixed with `sizeToFit` before the font arrived stay as they are).
     /// UIKit's symbols take their sizes from the built-in table (the SwiftUI runtime loads the full one).
     public var onNeedsSymbolMetrics: (() -> Void)?
+    /// A UIKit scene has no colour wells; the hook is for SwiftUI runtimes.
+    public var colorPanelHandler: ((ColorPanelRequest) -> Bool)?
     public func symbolMetricsDidLoad(_ table: [String: [Double]]) {}
 
     public func fontsDidLoad() {

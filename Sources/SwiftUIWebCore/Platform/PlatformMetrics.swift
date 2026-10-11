@@ -564,6 +564,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var colorWellSize = CGSize(width: 48, height: 24)
     package var colorWellCornerRadius: CGFloat = 11
     package var colorWellAlpha = 25.0 / 255                          // the well's grey (230)
+    package var colorWellActiveColor = Color(storage: .dynamic(light: RGBA(r: 71, g: 145, b: 248, a: 1), dark: RGBA(r: 26, g: 169, b: 255, a: 1)))   // the 3 pt frame while the colour panel targets the well (macOS 27, probed 2026-10-11; dark unverified)
     package var colorWellSwatchInset: CGFloat = 3                    // 42 × 18, concentric corners
     package var colorWellStrokeAlpha = 0.1                           // the 0.5 pt inner stroke
     package var colorWellTopShadeAlpha = 0.15                        // the extra shade along the swatch's top

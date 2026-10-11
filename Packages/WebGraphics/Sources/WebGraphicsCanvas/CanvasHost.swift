@@ -157,6 +157,10 @@ public final class CanvasSceneHost {
         if let navigator = JSObject.global.navigator.object, let clipboard = navigator.clipboard.object, clipboard.writeText.function != nil {
             scene.clipboardWriter = { text in _ = clipboard.writeText!(text) }
         }
+        // A colour well opens the browser's colour chooser (sw-colorpicker): a colour input kept
+        // under the well, opened inside the press's gesture; `input` events feed the well while
+        // the chooser is open, `change` ends it. The input has no alpha: the well's stays.
+        scene.colorPanelHandler = { [weak self] request in self?.showColorInput(request) ?? false }
         // The system appearance, now and when it changes.
         if let media = window.matchMedia?("(prefers-color-scheme: dark)").object {
             scene.hostColorScheme = (media.matches.boolean ?? false) ? .dark : .light
@@ -699,6 +703,73 @@ public final class CanvasSceneHost {
 
     /// The most recently painted display list and the number of frames painted (debug bridge).
     private var symbolMetricsClosures: [JSClosure] = []
+    private var colorInput: JSObject?
+    private var colorInputRequest: ColorPanelRequest?
+
+    /// Shows the browser's colour chooser for a well (`HostedScene.colorPanelHandler`).
+    private func showColorInput(_ request: ColorPanelRequest) -> Bool {
+        let input: JSObject
+        if let existing = colorInput {
+            input = existing
+        } else {
+            guard let created = document.createElement!("input").object else { return false }
+            input = created
+            _ = input.setAttribute!("type", "color")
+            _ = input.setAttribute!("aria-hidden", "true")
+            _ = input.setAttribute!("tabindex", "-1")
+            let style = input.style.object!
+            style.position = .string("absolute")
+            style.opacity = .string("0")
+            style.pointerEvents = .string("none")
+            style.width = .string("1px")
+            style.height = .string("1px")
+            style.border = .string("0")
+            style.padding = .string("0")
+            on(input, "input") { [weak self] e in
+                guard let self, let request = self.colorInputRequest, let hex = e.target.object?.value.string else { return }
+                self.scene.colorPanel(request.identifier, didPick: Self.color(fromHex: hex, alpha: request.color.alpha))
+                self.scheduleFrame()
+            }
+            on(input, "change") { [weak self] e in
+                guard let self, let request = self.colorInputRequest else { return }
+                if let hex = e.target.object?.value.string { self.scene.colorPanel(request.identifier, didPick: Self.color(fromHex: hex, alpha: request.color.alpha)) }
+                self.scene.colorPanelDidClose(request.identifier)
+                self.colorInputRequest = nil
+                self.scheduleFrame()
+            }
+            _ = overlay.appendChild!(input)
+            colorInput = input
+        }
+        if let previous = colorInputRequest, previous.identifier != request.identifier { scene.colorPanelDidClose(previous.identifier) }
+        colorInputRequest = request
+        let style = input.style.object!
+        style.left = .string("\(request.anchor.minX)px")
+        style.top = .string("\(request.anchor.maxY)px")
+        input.value = .string(Self.hex(request.color))
+        if input.showPicker.function != nil {
+            _ = input.showPicker!()
+        } else {
+            _ = input.click!()
+        }
+        return true
+    }
+
+    /// `#rrggbb` for a colour input (no alpha).
+    private static func hex(_ color: RGBA) -> String {
+        func channel(_ value: Double) -> String {
+            let byte = Int((min(max(value, 0), 1) * 255).rounded())
+            let digits = String(byte, radix: 16)
+            return digits.count == 1 ? "0" + digits : digits
+        }
+        return "#" + channel(color.red) + channel(color.green) + channel(color.blue)
+    }
+
+    private static func color(fromHex hex: String, alpha: Double) -> RGBA {
+        var digits = Substring(hex)
+        if digits.hasPrefix("#") { digits = digits.dropFirst() }
+        guard digits.count == 6, let value = Int(digits, radix: 16) else { return RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        return RGBA(red: Double((value >> 16) & 255) / 255, green: Double((value >> 8) & 255) / 255, blue: Double(value & 255) / 255, alpha: alpha)
+    }
     public private(set) var lastDisplayList = DisplayList()
     public private(set) var frameCount = 0
 

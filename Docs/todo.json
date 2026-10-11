@@ -1405,13 +1405,14 @@
       "framework": "SwiftUI",
       "area": "ColorPicker",
       "title": "A real colour panel",
-      "detail": "The browser's `<input type=color>` and the native colour panel behind the well (the preset popover stands in, unverified), a `CGColor` binding, keyboard activation, dropping colours.",
+      "detail": "The browser's `<input type=color>` and the native colour panel behind the well (the preset popover stands in, unverified), a `CGColor` binding, keyboard activation, dropping colours. Done 2026-10-11 (Phase 9, item 18): macOS 27 probed (the well opens NSColorPanel directly, the active well's frame is the focus blue); `HostedScene.colorPanelHandler` with the browser's `<input type=color>` and `NSColorPanel` behind it, the popover as the fallback; `CGColor` bindings, `Color(cgColor:)`/`cgColor`; Space activation; `Color: Transferable` and drops onto the well; `colorpicker-probe.mjs`.",
       "kind": "approximate",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/ColorPicker.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-hover-looks",

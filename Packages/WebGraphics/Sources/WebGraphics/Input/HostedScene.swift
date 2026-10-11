@@ -119,9 +119,36 @@ public protocol HostedScene: AnyObject {
     /// full table do so once and hand it over parsed (`SystemSymbolMetricsTable.parse`).
     var onNeedsSymbolMetrics: (() -> Void)? { get set }
     func symbolMetricsDidLoad(_ table: [String: [Double]])
+    /// A colour well was pressed: hosts with a system colour chooser (the browser's
+    /// `<input type="color">`, `NSColorPanel`) install a handler that shows it and return true;
+    /// the scene shows its own preset panel otherwise (sw-colorpicker).
+    var colorPanelHandler: ((ColorPanelRequest) -> Bool)? { get set }
+    /// The host's chooser picked a colour for the well (continuously while it is open).
+    func colorPanel(_ identifier: Int, didPick color: RGBA)
+    /// The host's chooser closed, or moved to another well.
+    func colorPanelDidClose(_ identifier: Int)
+}
+
+/// What a scene asks a host's colour chooser to show: the well's semantics identifier (the
+/// callbacks name it), its current colour, whether opacity may change, and the well's frame in
+/// the scene (points) for a chooser that anchors itself.
+public struct ColorPanelRequest: Equatable, Sendable {
+    public let identifier: Int
+    public let color: RGBA
+    public let supportsOpacity: Bool
+    public let anchor: CGRect
+
+    public init(identifier: Int, color: RGBA, supportsOpacity: Bool, anchor: CGRect) {
+        self.identifier = identifier
+        self.color = color
+        self.supportsOpacity = supportsOpacity
+        self.anchor = anchor
+    }
 }
 
 extension HostedScene {
+    public func colorPanel(_ identifier: Int, didPick color: RGBA) {}
+    public func colorPanelDidClose(_ identifier: Int) {}
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {}
     public func textField(_ semanticsIdentifier: Int, scrolledTo offset: CGFloat) {}
     public func fontsDidLoad() {}

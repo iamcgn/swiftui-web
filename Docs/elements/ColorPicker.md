@@ -10,8 +10,12 @@ Apple docs: [ColorPicker](https://developer.apple.com/documentation/swiftui/colo
 | `ColorPicker(_:selection:supportsOpacity:)` (`LocalizedStringKey` and `StringProtocol` titles), `ColorPicker(selection:supportsOpacity:label:)` | implemented |
 | `labelsHidden`, `disabled` | implemented (the hidden label leaves the bare well; disabled paints at half opacity) |
 | Form rows | implemented: the label on the well's baseline in a columns form, trailing well in a grouped form |
-| The panel | a press opens a popover of 16 preset swatches (the system colours, black, gray, white, clear) and, with `supportsOpacity`, an opacity slider; choosing a swatch keeps the current opacity. Apple opens the system colour panel (a separate window fixtures cannot capture), so the panel's look is unverified |
-| `CGColor` selection binding, `tint`, `controlSize`, the host's native colour panel or `<input type="color">`, keyboard activation, drag and drop of colours | missing |
+| The panel | implemented 2026-10-11: a press asks the host for its system colour chooser (`HostedScene.colorPanelHandler`): the browser host opens its `<input type="color">` (kept under the well, opened inside the press; `input` events feed the well, `change` closes it; the input has no alpha, so the well's opacity stays), the AppKit host the shared `NSColorPanel` (continuous, `showsAlpha` from `supportsOpacity`, closing deactivates). Apple opens `NSColorPanel` straight from the well (probed on macOS 27: a 266 × 454 panel with the wheel, opacity slider and favourites). Without a host chooser (headless, a host without one) the popover of 16 preset swatches and the opacity slider stands in |
+| The active well | implemented 2026-10-11: while a chooser targets the well its 3 pt frame is the keyboard-focus blue (71, 145, 248; probed) instead of the grey; a targeted drop shows the same |
+| `CGColor` selection binding (`ColorPicker(_:selection: Binding<CGColor>)` ×2, `ColorPicker(selection:supportsOpacity:label:)`), `Color(cgColor:)`, `Color.cgColor` (nil for system, named and dynamic colours, as SwiftUI's) | implemented 2026-10-11 |
+| Keyboard activation | implemented: Space or Return on the focused well asks for the chooser as a press does (`ColorPickerTests`, `colorpicker-probe.mjs`) |
+| Drag and drop of colours | implemented 2026-10-11: `Color: Transferable` (the payload itself; the data form is the sRGB components as text under `UTType.color`); a dragged colour dropped on an enabled well becomes its selection (the opacity kept to 1 without opacity support) |
+| `tint`, `controlSize` | missing |
 
 ## Behaviour
 
@@ -54,8 +58,24 @@ quarter point (the known hinting class). Pixels ≤ 0.96 % (Chromium), ≤ 0.90 
 ≤ 0.96 % (Firefox); Tier C ≤ 0.90 %. `ColorPickerTests` cover the sizes, the painted layers and
 their disabled opacity, translucent colours, form rows, semantics, and the preset panel.
 
+## The chooser (macOS 27, probed 2026-10-11, Phase 9 item 18)
+
+A synthesized click on the well of an `NSHostingView` opened `NSColorPanel` directly (no
+popover: a 266 × 454 panel with `NSColorPickerWheelView`, the HDR and opacity sliders and the
+favourites list); setting the panel's colour programmatically changed the binding at once (the
+panel is continuous). While the panel targets the well, the well's 3 pt frame is painted in
+the keyboard-focus blue (71, 145, 248) instead of the 25/255 grey (rows through the frame
+before and after, over white: 255 → 71,145,248 for the full 3 pt; the swatch unchanged).
+
+The runtime asks its host (`HostedScene.colorPanelHandler`, `ColorPanelRequest` with the
+well's identifier, colour, opacity support and frame); the host answers `colorPanel(_:didPick:)`
+while the chooser is open and `colorPanelDidClose(_:)` when it closes or another well takes it.
+`Playwright/colorpicker-probe.mjs` drives the browser host: the input is created on the first
+press with the well's colour (`#ff383c`) under the well, an `input` event recolours the swatch,
+`change` restores the grey frame, Tab then Space activates the well again.
+
 ## Not yet covered
 
-The system colour panel (a separate window: the preset popover stands in, unverified), the host's
-native colour inputs, keyboard activation, the exact corner curve (continuous radius 11 fits the
-profile within the pixel tolerance), `CGColor` bindings, `controlSize`.
+The exact corner curve (continuous radius 11 fits the profile within the pixel tolerance),
+`controlSize`, `tint`; the dark appearance's active frame colour (the focus ring's dark blue is
+used, unverified); the panel's own look is the host's.

@@ -224,6 +224,8 @@ public final class Runtime {
     /// Set by a host that can fetch the full symbol layout table; called once, on the first
     /// symbol outside the built-in set (`ImageNode` sizes it like the star until then).
     public var onNeedsSymbolMetrics: (() -> Void)?
+    /// The host's system colour chooser, when it has one (`HostedScene.colorPanelHandler`).
+    public var colorPanelHandler: ((ColorPanelRequest) -> Bool)?
     private var requestedSymbolMetrics = false
     /// The full catalog's layout sizes once loaded (`SystemSymbolMetricsTable.parse`), this
     /// scene's own so tests and scenes never share mutable state.

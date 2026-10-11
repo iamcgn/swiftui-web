@@ -103,7 +103,67 @@ import SwiftUIWebHeadless
         press(disabled, CGPoint(x: disabledWell.frame.midX, y: disabledWell.frame.midY))
         #expect(!disabled.hasPresentations)
     }
+
+    /// sw-colorpicker: a host with a system colour chooser takes the press (no popover), the
+    /// well's frame turns the focus blue while the chooser targets it, picks flow into the
+    /// binding (the alpha kept to the well's when the chooser has none), closing restores the
+    /// grey; Space on the focused well asks too; `CGColor` bindings and dropped colours.
+    @Test func hostPanelKeyboardAndDrops() {
+        let box = _ColorBox()
+        let r = runtime(ColorPicker("Accent", selection: Binding(get: { box.color }, set: { box.color = $0 }))._probe("picker"), size: CGSize(width: 320, height: 200))
+        var requests: [ColorPanelRequest] = []
+        r.colorPanelHandler = { requests.append($0); return true }
+        let well = r.semanticsTree().first { $0.role == .button }!
+        press(r, CGPoint(x: well.frame.midX, y: well.frame.midY))
+        #expect(requests.count == 1 && requests[0].identifier == well.identifier && requests[0].supportsOpacity && requests[0].anchor == well.frame)
+        #expect(requests[0].color == RGBA(r: 255, g: 56, b: 60, a: 1))
+        #expect(!r.hasPresentations)
+        // The active frame: the 3 pt ring is the focus blue (71, 145, 248) instead of 25/255 black.
+        func frameFill() -> String? { commands(r).first { $0.hasPrefix("fillPath") } }
+        #expect(frameFill()?.contains("#4791F8") == true, "\(frameFill() as Any)")
+        r.colorPanel(well.identifier, didPick: RGBA(red: 0, green: 0.5, blue: 1, alpha: 0.5))
+        #expect(box.color == Color(red: 0, green: 0.5, blue: 1, opacity: 0.5))
+        r.colorPanelDidClose(well.identifier)
+        #expect(frameFill()?.contains("#000000@0.098") == true, "\(frameFill() as Any)")
+        // Space on the focused well asks the host again.
+        r.focus(semanticsIdentifier: well.identifier)
+        _ = r.keyDown(KeyEvent(key: .space))
+        #expect(requests.count == 2)
+        // Without opacity support a pick keeps alpha 1.
+        let opaqueBox = _ColorBox()
+        let opaque = runtime(ColorPicker("Tint", selection: Binding(get: { opaqueBox.color }, set: { opaqueBox.color = $0 }), supportsOpacity: false))
+        opaque.colorPanelHandler = { _ in true }
+        let opaqueWell = opaque.semanticsTree().first { $0.role == .button }!
+        press(opaque, CGPoint(x: opaqueWell.frame.midX, y: opaqueWell.frame.midY))
+        opaque.colorPanel(opaqueWell.identifier, didPick: RGBA(red: 0, green: 0.5, blue: 1, alpha: 0.5))
+        #expect(opaqueBox.color == Color(red: 0, green: 0.5, blue: 1))
+        // A CGColor binding reads and writes through the picker.
+        let cgBox = _CGColorBox()
+        let cg = runtime(ColorPicker("Accent", selection: Binding(get: { cgBox.color }, set: { cgBox.color = $0 })))
+        #expect(cg.semanticsTree().first { $0.role == .button }?.value == "Color")
+        cg.colorPanelHandler = { _ in true }
+        let cgWell = cg.semanticsTree().first { $0.role == .button }!
+        press(cg, CGPoint(x: cgWell.frame.midX, y: cgWell.frame.midY))
+        cg.colorPanel(cgWell.identifier, didPick: RGBA(red: 1, green: 0, blue: 0, alpha: 1))
+        #expect(RGBA(cgColor: cgBox.color) == RGBA(red: 1, green: 0, blue: 0, alpha: 1))
+        #expect(Color(cgColor: cgBox.color).cgColor.flatMap(RGBA.init(cgColor:)) == RGBA(red: 1, green: 0, blue: 0, alpha: 1) && Color.red.cgColor == nil)
+        // A dragged colour dropped on the well becomes its selection (the well highlights while targeted).
+        let dropBox = _ColorBox()
+        let d = runtime(HStack(spacing: 40) {
+            Color.green.frame(width: 40, height: 40).draggable(Color.green)._probe("source")
+            ColorPicker("Accent", selection: Binding(get: { dropBox.color }, set: { dropBox.color = $0 }))._probe("picker")
+        }, size: CGSize(width: 320, height: 200))
+        let source = d.probeFrames["source"]!, target = d.semanticsTree().first { $0.role == .button }!.frame
+        d.pointerDown(at: CGPoint(x: source.midX, y: source.midY))
+        d.pointerMoved(to: CGPoint(x: source.midX + 10, y: source.midY))
+        d.pointerMoved(to: CGPoint(x: target.midX, y: target.midY))
+        #expect(d.render(scale: 2).commands.map(\.description).contains { $0.hasPrefix("fillPath") && $0.contains("#4791F8") })
+        d.pointerUp(at: CGPoint(x: target.midX, y: target.midY))
+        #expect(dropBox.color == .green)
+    }
 }
+
+@MainActor final class _CGColorBox { var color: CGColor = RGBA(red: 0, green: 0, blue: 1, alpha: 1).cgColor }
 
 @Observable @MainActor final class _ColorBox { var color: Color = .red }
 #endif

@@ -187,3 +187,67 @@ public struct _ColorSwatchHost: View {
         ColorSwatchNode(context)
     }
 }
+
+// MARK: - CGColor selections (sw-colorpicker)
+
+extension ColorPicker where Label == Text {
+    /// Creates a colour picker with a text label and a Core Graphics colour selection.
+    public init(_ titleKey: LocalizedStringKey, selection: Binding<CGColor>, supportsOpacity: Bool = true) {
+        self.init(titleKey, selection: Self._colorBinding(selection), supportsOpacity: supportsOpacity)
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol>(_ title: S, selection: Binding<CGColor>, supportsOpacity: Bool = true) {
+        self.init(title, selection: Self._colorBinding(selection), supportsOpacity: supportsOpacity)
+    }
+}
+
+extension ColorPicker {
+    /// Creates a colour picker with a Core Graphics colour selection and a custom label.
+    public init(selection: Binding<CGColor>, supportsOpacity: Bool = true, @ViewBuilder label: () -> Label) {
+        self.init(selection: Self._colorBinding(selection), supportsOpacity: supportsOpacity, label: label)
+    }
+
+    /// A `CGColor` binding seen as a `Color` one: reads convert the components, writes resolve
+    /// the colour in the default (light) environment.
+    package static func _colorBinding(_ binding: Binding<CGColor>) -> Binding<Color> {
+        Binding(get: { Color(cgColor: binding.wrappedValue) },
+                set: { binding.wrappedValue = $0.cgColor ?? $0.resolve(in: EnvironmentValues()).cgColor })
+    }
+}
+
+extension Color {
+    /// Creates a colour from a Core Graphics colour (sRGB components; an unreadable colour
+    /// space gives black).
+    public init(cgColor: CGColor) {
+        let rgba = RGBA(cgColor: cgColor) ?? RGBA(red: 0, green: 0, blue: 0, alpha: 1)
+        self.init(red: Double(rgba.red), green: Double(rgba.green), blue: Double(rgba.blue), opacity: Double(rgba.alpha))
+    }
+
+    /// The colour as a Core Graphics colour when it was made from components; nil for the
+    /// system, named and dynamic colours, which resolve per environment (as SwiftUI's).
+    public var cgColor: CGColor? {
+        guard case .rgba(let r, let g, let b, let a) = storage else { return nil }
+        return RGBA(red: r, green: g, blue: b, alpha: a * opacityMultiplier).cgColor
+    }
+}
+
+extension UTType {
+    /// A colour on the pasteboard (AppKit's `NSPasteboard.PasteboardType.color`).
+    public static let color = UTType("com.apple.cocoa.pasteboard.color")
+}
+
+/// Colours drag and drop (`draggable`, `dropDestination(for: Color.self)`, a colour well): the
+/// payload travels as itself; the data form is the sRGB components as text.
+extension Color: Transferable {
+    public static var transferRepresentation: some TransferRepresentation<Color> {
+        DataRepresentation(contentType: .color, exporting: { color in
+            let rgba = color.resolve(in: EnvironmentValues())
+            return Data("\(rgba.red) \(rgba.green) \(rgba.blue) \(rgba.alpha)".utf8)
+        }, importing: { data in
+            let parts = String(decoding: data, as: UTF8.self).split(separator: " ").compactMap { Double($0) }
+            guard parts.count == 4 else { return .black }
+            return Color(red: parts[0], green: parts[1], blue: parts[2], opacity: parts[3])
+        })
+    }
+}

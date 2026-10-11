@@ -467,6 +467,7 @@ extension PlatformMetrics {
     package static var colorWellSize: CGSize { current.colorWellSize }
     package static var colorWellCornerRadius: CGFloat { current.colorWellCornerRadius }
     package static var colorWellAlpha: Double { current.colorWellAlpha }
+    package static var colorWellActiveColor: Color { current.colorWellActiveColor }
     package static var colorWellSwatchInset: CGFloat { current.colorWellSwatchInset }
     package static var colorWellStrokeAlpha: Double { current.colorWellStrokeAlpha }
     package static var colorWellTopShadeAlpha: Double { current.colorWellTopShadeAlpha }

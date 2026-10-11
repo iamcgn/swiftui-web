@@ -32,4 +32,19 @@ extension Runtime: HostedScene {
 
     /// The pointer style of the deepest hovered `pointerStyle` view, as a CSS cursor name.
     public var pointerCursor: String? { pointerStyle?.css }
+
+    /// The host's colour chooser picked for a well: the well sets its binding.
+    public func colorPanel(_ identifier: Int, didPick color: RGBA) {
+        guard let well = colorWell(identifier) else { return }
+        well.panelDidPick(color)
+    }
+
+    /// The host's colour chooser closed: the well is no longer active.
+    public func colorPanelDidClose(_ identifier: Int) {
+        colorWell(identifier)?.panelDidClose()
+    }
+
+    private func colorWell(_ identifier: Int) -> ColorWellNode? {
+        root.descendants(where: { ($0 as? ColorWellNode)?.wellIdentifier == identifier }).first as? ColorWellNode
+    }
 }

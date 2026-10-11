@@ -442,9 +442,9 @@
           ]
         },
         {
-          "api": "ColorPicker(_:selection:supportsOpacity:) / ColorPicker(selection:label:)",
+          "api": "ColorPicker(_:selection:supportsOpacity:) / ColorPicker(selection:label:) (Color and CGColor selections)",
           "status": "partial",
-          "notes": "The macOS colour well: 48 × 24 grey rounded rect with the colour in a concentric swatch over a black/white diagonal (translucent and clear colours show it), inner stroke, half opacity disabled; body label centred in stacks, on the well's baseline in forms; a press opens a preset popover (16 swatches, opacity slider) standing in for the system colour panel; no native colour inputs, keyboard activation or CGColor bindings",
+          "notes": "The macOS colour well: 48 × 24 grey rounded rect with the colour in a concentric swatch over a black/white diagonal (translucent and clear colours show it), inner stroke, half opacity disabled; body label centred in stacks, on the well's baseline in forms; a press (or Space) opens the host's system colour chooser (the browser's <input type=color>, NSColorPanel natively; the preset popover without one) and the well's frame turns the focus blue while it targets the well (2026-10-11); dropped colours set it (Color: Transferable); no tint or controlSize",
           "fixtures": [
             "colorpicker/basic",
             "colorpicker/labels",

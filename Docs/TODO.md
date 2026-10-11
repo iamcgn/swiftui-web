@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 16 | 0 | 0 | 16 |
+| SwiftUI | 15 | 0 | 0 | 15 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **32** | 0 | 1 | 31 |
+| **All** | **31** | 0 | 1 | 30 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **A real colour panel** `sw-colorpicker` · ColorPicker · approximate  
-  The browser's `<input type=color>` and the native colour panel behind the well (the preset popover stands in, unverified), a `CGColor` binding, keyboard activation, dropping colours. ([ColorPicker.md](Docs/elements/ColorPicker.md))
 - ☐ **Hover effects on controls** `sw-hover-looks` · Hover · missing  
   `hoverEffect` and the hovered looks of macOS controls (none change today), the tooltip's measured look. ([Hover.md](Docs/elements/Hover.md))
 - ☐ **Contrast and per-presentation schemes** `sw-dark` · Dark mode · missing  
@@ -112,6 +110,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Context-dependent labels and formatted values** `sw-label-forms` · SwiftUI · Label
 - ☑ 2026-10-11 **ContentUnavailableView in containers** `sw-content-unavailable` · SwiftUI · ContentUnavailableView
 - ☑ 2026-10-11 **Slider styles and stepper repeat** `sw-slider-stepper` · SwiftUI · Slider and Stepper
+- ☑ 2026-10-11 **A real colour panel** `sw-colorpicker` · SwiftUI · ColorPicker
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

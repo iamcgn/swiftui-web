@@ -86,8 +86,45 @@ public final class NativeSceneHost: NSObject, NSApplicationDelegate {
         let view = RuntimeView(frame: NSRect(origin: .zero, size: size), host: self)
         self.view = view
         scene.onNeedsFrame = { [weak view] in view?.needsDisplay = true }
+        // A colour well opens the shared colour panel, which targets the well until it closes
+        // or another well takes it (sw-colorpicker; the panel's changes are continuous).
+        scene.colorPanelHandler = { [weak self] request in self?.showColorPanel(request) ?? false }
         prepare?()
         return view
+    }
+
+    private var colorPanelRequest: ColorPanelRequest?
+    private var colorPanelObserver: NSObjectProtocol?
+
+    /// Shows `NSColorPanel` for a well (`HostedScene.colorPanelHandler`).
+    private func showColorPanel(_ request: ColorPanelRequest) -> Bool {
+        if let previous = colorPanelRequest, previous.identifier != request.identifier { scene.colorPanelDidClose(previous.identifier) }
+        colorPanelRequest = request
+        let panel = NSColorPanel.shared
+        panel.showsAlpha = request.supportsOpacity
+        panel.isContinuous = true
+        panel.color = NSColor(srgbRed: request.color.red, green: request.color.green, blue: request.color.blue, alpha: request.color.alpha)
+        panel.setTarget(self)
+        panel.setAction(#selector(colorPanelDidChange(_:)))
+        if colorPanelObserver == nil {
+            colorPanelObserver = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: panel, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    guard let self, let request = self.colorPanelRequest else { return }
+                    self.colorPanelRequest = nil
+                    self.scene.colorPanelDidClose(request.identifier)
+                    self.view?.needsDisplay = true
+                }
+            }
+        }
+        panel.orderFront(nil)
+        return true
+    }
+
+    @objc private func colorPanelDidChange(_ sender: Any?) {
+        guard let request = colorPanelRequest, let color = NSColorPanel.shared.color.usingColorSpace(.sRGB) else { return }
+        scene.colorPanel(request.identifier, didPick: RGBA(red: color.redComponent, green: color.greenComponent, blue: color.blueComponent,
+                                                            alpha: request.supportsOpacity ? color.alphaComponent : 1))
+        view?.needsDisplay = true
     }
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
