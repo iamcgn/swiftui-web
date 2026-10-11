@@ -36,12 +36,14 @@ enum Goldens {
 
     /// The fixtures' asset catalog as `scripts/assets.py` reads it (Fixtures/Assets.manifest.json).
     static func assets() throws -> AssetCatalog {
-        // The full symbol layout table too, as a browser host fetches it (symbol/extended).
-        if !SystemSymbolMetricsTable.isExtended {
-            SystemSymbolMetricsTable.load(text: try String(contentsOf: root.appendingPathComponent("symbol/metrics-full.txt"), encoding: .utf8))
-        }
-        return try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
+        try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
     }
+
+    /// The full symbol layout table, as a browser host fetches it (symbol/extended), parsed once.
+    static let symbolMetrics: [String: [Double]] = {
+        guard let text = try? String(contentsOf: root.appendingPathComponent("symbol/metrics-full.txt"), encoding: .utf8) else { return [:] }
+        return SystemSymbolMetricsTable.parse(text)
+    }()
 
     /// The platform's recorded text metrics: iOS fixtures use the simulator run's file. The
     /// representable fixtures also show strings in UIKit labels, which measure differently from
@@ -67,6 +69,7 @@ enum Goldens {
         let golden = try #require(try Goldens.frames(for: fixture), "missing golden for \(name); run scripts/gen-goldens.sh")
         let engine = try Goldens.textEngine(for: fixture)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try Goldens.assets())
+        runner.runtime.symbolMetricsDidLoad(Goldens.symbolMetrics)
         try compare(runner.layoutFrames(), to: golden.frames, label: name)
         #expect(engine.misses.isEmpty, "\(name): no recorded text metrics for \(engine.misses)")
 

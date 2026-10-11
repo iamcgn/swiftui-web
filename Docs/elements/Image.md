@@ -86,9 +86,9 @@ SF Symbols are never shipped (`Docs/ROADMAP.md`). A symbol image has two parts:
   scales. `scripts/symbol-metrics-table.py` builds the 240 common symbols (the `symbol/catalog-*`
   fixtures' names, whose goldens check the table) into `SystemSymbolMetricsTable`; the full file
   ships as the `symbol-metrics.txt` asset, which the browser host fetches on the first symbol
-  outside the built-in set (`Runtime.onNeedsSymbolMetrics` → `SystemSymbolMetricsTable.load` →
-  `symbolMetricsDidLoad` lays out again; such a symbol takes the star's size until then, and
-  the native tests load the file up front). OS generations: macOS 27 lays several sizes out a
+  outside the built-in set (`Runtime.onNeedsSymbolMetrics` → `SystemSymbolMetricsTable.parse` →
+  `symbolMetricsDidLoad(_:)` gives the scene its own table and lays out again; such a symbol
+  takes the star's size until then, and the fidelity tests hand each runner the parsed file). OS generations: macOS 27 lays several sizes out a
   point taller than macOS 26.2 / iOS 26 (a 10 pt star is 13 × 12.5 against 13 × 11.5), so the
   built-in table also keeps the OS 26 values (`legacySizes`, `metrics-26.txt`) and the iOS
   profile uses them, matching the iOS 26 simulator goldens. `SystemSymbolMetrics.size` returns the measured triple at those

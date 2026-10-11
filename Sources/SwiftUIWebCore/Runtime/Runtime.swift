@@ -225,16 +225,26 @@ public final class Runtime {
     /// symbol outside the built-in set (`ImageNode` sizes it like the star until then).
     public var onNeedsSymbolMetrics: (() -> Void)?
     private var requestedSymbolMetrics = false
+    /// The full catalog's layout sizes once loaded (`SystemSymbolMetricsTable.parse`), this
+    /// scene's own so tests and scenes never share mutable state.
+    public private(set) var extendedSymbolMetrics: [String: [Double]] = [:]
+    package var isSymbolMetricsExtended: Bool { !extendedSymbolMetrics.isEmpty }
 
     package func requestSymbolMetrics() {
-        guard !requestedSymbolMetrics, !SystemSymbolMetricsTable.isExtended, let onNeedsSymbolMetrics else { return }
+        guard !requestedSymbolMetrics, !isSymbolMetricsExtended, let onNeedsSymbolMetrics else { return }
         requestedSymbolMetrics = true
         onNeedsSymbolMetrics()
     }
 
     /// The full table arrived: symbols laid out with the fallback size measure again.
-    public func symbolMetricsDidLoad() {
-        root.child?.invalidate()
+    public func symbolMetricsDidLoad(_ table: [String: [Double]]) {
+        extendedSymbolMetrics = table
+        // The symbol images resolve again (their sizes were the star's); a tree not yet laid
+        // out keeps its lifecycle counts (`ios/representable/lifecycle`) and lays out once.
+        for node in root.descendants(where: { $0 is ImageNode }) { (node as? ImageNode)?.symbolMetricsDidLoad() }
+        sizesInvalidated = true
+        layoutGeneration += 1
+        guard fullLayoutCount > 0 else { return }
         requestLayout()
     }
 

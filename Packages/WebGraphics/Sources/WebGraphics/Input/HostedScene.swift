@@ -116,16 +116,16 @@ public protocol HostedScene: AnyObject {
     /// A bundled font the host loaded is now available: text measured before it lays out again.
     func fontsDidLoad()
     /// The scene laid out a symbol outside the built-in layout table: hosts that can load the
-    /// full table (`SystemSymbolMetricsTable.load(text:)`) do so once and call `symbolMetricsDidLoad`.
+    /// full table do so once and hand it over parsed (`SystemSymbolMetricsTable.parse`).
     var onNeedsSymbolMetrics: (() -> Void)? { get set }
-    func symbolMetricsDidLoad()
+    func symbolMetricsDidLoad(_ table: [String: [Double]])
 }
 
 extension HostedScene {
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {}
     public func textField(_ semanticsIdentifier: Int, scrolledTo offset: CGFloat) {}
     public func fontsDidLoad() {}
-    public func symbolMetricsDidLoad() {}
+    public func symbolMetricsDidLoad(_ table: [String: [Double]]) {}
     public func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double) {}
     public func keyUp(_ event: KeyEvent) -> Bool { false }
     public func pointerModifiersChanged(_ modifiers: EventModifiers) {}

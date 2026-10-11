@@ -71,12 +71,14 @@ enum NativeGoldens {
     }
 
     static func assets() throws -> AssetCatalog {
-        // The full symbol layout table too, as a browser host fetches it (symbol/extended).
-        if !SystemSymbolMetricsTable.isExtended {
-            SystemSymbolMetricsTable.load(text: try String(contentsOf: root.appendingPathComponent("symbol/metrics-full.txt"), encoding: .utf8))
-        }
-        return try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
+        try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
     }
+
+    /// The full symbol layout table, as a browser host fetches it (symbol/extended), parsed once.
+    static let symbolMetrics: [String: [Double]] = {
+        guard let text = try? String(contentsOf: root.appendingPathComponent("symbol/metrics-full.txt"), encoding: .utf8) else { return [:] }
+        return SystemSymbolMetricsTable.parse(text)
+    }()
 
     static var assetBase: URL { root.deletingLastPathComponent() }
 }
@@ -174,6 +176,7 @@ struct Bitmap {
         CoreTextEngine.registerFonts(try NativeGoldens.assets(), base: NativeGoldens.assetBase)
         let painter = CoreGraphicsPainter(textEngine: engine, assetBase: NativeGoldens.assetBase)
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
+        runner.runtime.symbolMetricsDidLoad(NativeGoldens.symbolMetrics)
         // scroll/flash: the capture missed Apple's flash; ours paints the knob at rest.
         let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name == "list/tint" || name == "scroll/flash" || name == "ios/nav/list-scroll"
         compare(runner.layoutFrames(), to: golden.frames, label: name)

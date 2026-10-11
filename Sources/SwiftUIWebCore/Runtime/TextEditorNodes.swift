@@ -21,11 +21,6 @@ package final class TextEditorNode: LeafNode<_TextEditorHost>, _Interactive, _Te
         super.init(context)
     }
 
-    override package func update(view: _TextEditorHost, environment: EnvironmentValues, force: Bool) {
-        super.update(view: view, environment: environment, force: force)
-        clampOffset()
-    }
-
     private var resolvedFont: ResolvedFont {
         (environment.font ?? environment.platformProfile.defaultFont).resolve(in: environment)
     }
@@ -113,6 +108,7 @@ package final class TextEditorNode: LeafNode<_TextEditorHost>, _Interactive, _Te
         let color = environment.foregroundColor?.resolve(in: environment) ?? PlatformMetrics.textEditorTextColor
         let font = DisplayFont(resolvedFont)
         let pitch = linePitch
+        clampOffset()
         var baseline = rect.minY + firstBaseline - contentOffset.y
         let metrics = environment.platformProfile.systemFontMetrics(for: resolvedFont)
         let text = view.value

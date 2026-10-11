@@ -17,10 +17,6 @@ import SwiftUIWebHeadless
 
     private func size<V: View>(_ view: V) -> CGSize? { runtime(view._probe("s")).probeFrames["s"]?.size }
 
-    /// The fidelity tests load the full catalog into the shared table; these expect the built-in
-    /// set alone (they reload it when they next run).
-    init() { SystemSymbolMetricsTable.load(text: "") }
-
     @Test func measuredSizes() {
         // 13 pt regular is measured exactly, as are the text-style sizes, 13 pt weights and scales
         // (macOS 27: the title and 10 pt stars are 1 pt taller than on OS 26, `legacySizes`).
@@ -72,10 +68,9 @@ import SwiftUIWebHeadless
         #expect(r.probeFrames["archery"]?.size == CGSize(width: 16.5, height: 16))   // pending: the star's size
         let file = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Fixtures/Goldens/symbol/metrics-full.txt")
-        SystemSymbolMetricsTable.load(text: try String(contentsOf: file, encoding: .utf8))
-        defer { SystemSymbolMetricsTable.load(text: "") }
-        #expect(SystemSymbolMetricsTable.isExtended && SystemSymbolMetricsTable.extended.count > 9000)
-        r.symbolMetricsDidLoad()
+        let table = SystemSymbolMetricsTable.parse(try String(contentsOf: file, encoding: .utf8))
+        #expect(table.count > 9000)
+        r.symbolMetricsDidLoad(table)
         r.layout(in: CGSize(width: 300, height: 100))
         #expect(r.probeFrames["rain"]?.size == CGSize(width: 24.5, height: 13), "\(r.probeFrames["rain"] as Any)")
         #expect(r.probeFrames["archery"]?.size == CGSize(width: 16, height: 17.5), "\(r.probeFrames["archery"] as Any)")

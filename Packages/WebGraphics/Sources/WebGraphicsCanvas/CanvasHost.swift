@@ -127,8 +127,7 @@ public final class CanvasSceneHost {
             let loaded = JSClosure { [weak self] arguments in
                 MainActor.assumeIsolated {
                     if let text = arguments.first?.string {
-                        SystemSymbolMetricsTable.load(text: text)
-                        self?.scene.symbolMetricsDidLoad()
+                        self?.scene.symbolMetricsDidLoad(SystemSymbolMetricsTable.parse(text))
                         self?.scheduleFrame()
                     }
                 }

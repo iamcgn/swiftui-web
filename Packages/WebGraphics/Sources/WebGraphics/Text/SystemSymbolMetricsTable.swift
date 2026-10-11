@@ -5,7 +5,7 @@
 // (how far the frame's bottom sits below the text baseline) triples at
 // the point sizes [10, 11, 12, 13, 15, 17, 22, 26] (regular weight, medium image scale), then at 13 pt semibold,
 // 13 pt bold, 13 pt with the small image scale and 13 pt with the large image scale. Every other
-// symbol of the catalog is in the `symbol-metrics.txt` asset (`extended`, loaded by the hosts).
+// symbol of the catalog is in the `symbol-metrics.txt` asset (loaded by the hosts into their scene).
 
 public enum SystemSymbolMetricsTable {
     public static let pointSizes: [Double] = [10, 11, 12, 13, 15, 17, 22, 26]
@@ -20,22 +20,14 @@ public enum SystemSymbolMetricsTable {
     /// shorter than on OS 27.
     public static let legacySizes: [String: [Double]] = parse(legacyBlob)
 
-    /// The full catalog's sizes once a host has loaded the asset (`load(text:)`).
-    nonisolated(unsafe) public private(set) static var extended: [String: [Double]] = [:]
-    public static var isExtended: Bool { !extended.isEmpty }
-
-    /// Loads the full-catalog text (one symbol per line: name, then the values).
-    public static func load(text: String) {
-        extended = parse(text)
-    }
-
-    /// The values for `name`: the built-in table first (the OS 26 one when `legacy`), then the
-    /// loaded catalog (OS 27 sizes).
-    public static func values(named name: String, legacy: Bool = false) -> [Double]? {
+    /// The values for `name`: the built-in table first (the OS 26 one when `legacy`), then a
+    /// loaded full catalog (OS 27 sizes; a scene's, `Runtime.extendedSymbolMetrics`).
+    public static func values(named name: String, legacy: Bool = false, extended: [String: [Double]] = [:]) -> [Double]? {
         (legacy ? legacySizes[name] : nil) ?? sizes[name] ?? extended[name]
     }
 
-    static func parse(_ text: String) -> [String: [Double]] {
+    /// Parses the full-catalog text (one symbol per line: name, then the values).
+    public static func parse(_ text: String) -> [String: [Double]] {
         var sizes: [String: [Double]] = [:]
         for line in text.split(separator: "\n") {
             let parts = line.split(separator: " ")

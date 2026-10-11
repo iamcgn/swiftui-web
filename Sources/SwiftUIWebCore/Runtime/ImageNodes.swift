@@ -47,6 +47,12 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
         }
     }
 
+    /// The full symbol table arrived: a symbol resolves its size again.
+    package func symbolMetricsDidLoad() {
+        guard case .system = view.source else { return }
+        resolve()
+    }
+
     /// Progress of the running symbol content transition (1 when none).
     package var symbolTransitionProgress: Double {
         guard outgoingSymbol != nil, let tween = presentation?.opacity else { outgoingSymbol = nil; return 1 }
@@ -87,7 +93,7 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
             let candidates = environment.symbolVariants.names(for: base)
             // The iOS profile follows the iOS 26 simulator's sizes (the OS 26 generation); macOS the 27 table.
             func measure(_ name: String) -> SystemSymbolMetrics.Size? {
-                SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale, legacy: environment.platformProfile.isIOS)
+                SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale, legacy: environment.platformProfile.isIOS, extended: runtime.extendedSymbolMetrics)
             }
             let name = candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil && measure($0) != nil }
                 ?? candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil }
@@ -97,7 +103,7 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
             // pending: sized like the star and drawn as the dashed square. Once the table is in
             // (or no host loads it), a catalog symbol without a stand-in glyph of its own draws
             // the dashed square and an unknown name nothing (sw-symbols).
-            let pending = measured == nil && runtime.onNeedsSymbolMetrics != nil && !SystemSymbolMetricsTable.isExtended
+            let pending = measured == nil && runtime.onNeedsSymbolMetrics != nil && !runtime.isSymbolMetricsExtended
             if pending { runtime.requestSymbolMetrics() }
             symbol = SystemSymbolGlyphs.glyph(named: name) ?? (measured != nil || pending ? SystemSymbolGlyphs.glyph(named: "square.dashed") : nil)
             if let measured {

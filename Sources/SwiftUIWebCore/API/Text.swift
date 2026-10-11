@@ -821,7 +821,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         let candidates = environment.symbolVariants.names(for: base)
         let legacy = environment.platformProfile.isIOS
         func measure(_ name: String) -> SystemSymbolMetrics.Size? {
-            SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale, legacy: legacy)
+            SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale, legacy: legacy, extended: runtime.extendedSymbolMetrics)
         }
         let name = candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil && measure($0) != nil }
             ?? candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil } ?? candidates.first { measure($0) != nil } ?? base
