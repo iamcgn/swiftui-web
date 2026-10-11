@@ -246,7 +246,14 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     private func placeContent(proposal: ProposedViewSize) {
-        child.place(at: contentOrigin, anchor: .topLeading, proposal: proposal, by: self)
+        var origin = contentOrigin
+        if environment._scrollContentSnapsToPixels {
+            // On the window's half-point grid (a table view's rows never sit at a quarter point).
+            let absolute = frameInRoot.origin
+            origin.x = ((absolute.x + origin.x) * 2).rounded() / 2 - absolute.x
+            origin.y = ((absolute.y + origin.y) * 2).rounded() / 2 - absolute.y
+        }
+        child.place(at: origin, anchor: .topLeading, proposal: proposal, by: self)
     }
 
     // MARK: Lazy content (Runtime/LazyNodes.swift)

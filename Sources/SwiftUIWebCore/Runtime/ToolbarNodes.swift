@@ -101,11 +101,15 @@ package final class ToolbarChromeNode: ViewNode {
     package private(set) var content: TypedNode<AnyView>!
 
     package init(runtime: Runtime, view: AnyView, environment: EnvironmentValues) {
+        var environment = environment
+        environment._automaticLabelContext = .toolbar
         super.init(parent: runtime.root, runtime: runtime, environment: environment)
         content = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: environment))
     }
 
     package func update(view: AnyView, environment: EnvironmentValues) {
+        var environment = environment
+        environment._automaticLabelContext = .toolbar
         self.environment = environment
         content.update(view: view, environment: environment, force: false)
     }

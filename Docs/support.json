@@ -214,10 +214,11 @@
         },
         {
           "api": "Label (title:icon:, image, systemImage) / LabelStyle (automatic, titleAndIcon, titleOnly, iconOnly) / labelStyle",
-          "status": "partial",
-          "notes": "Icon centred on half the cap height above the title's baseline, 8 pt spacing (measured); systemImage is the stub symbol; the automatic style is not context sensitive; iOS profile: list rows draw the icon at the large scale in a 24 pt slot, 16 to the title (ios/label/list)",
+          "status": "full",
+          "notes": "Icon centred on half the cap height above the title's baseline, 8 pt spacing (measured); systemImage is the stand-in symbol; a multi-line title aligns the icon with its first line and a text icon by its own cap (label/corners, 2026-10-11); the automatic style shows the icon alone in a toolbar (the title as help; Apple's rule, chrome is outside the goldens); iOS profile: list rows draw the icon at the large scale in a 24 pt slot, 16 to the title (ios/label/list)",
           "fixtures": [
             "label/basic",
+            "label/corners",
             "ios/label/basic",
             "ios/label/list"
           ]
@@ -462,11 +463,12 @@
         },
         {
           "api": "LabeledContent (content:label:, title, value:) / LabeledContentStyle (automatic) / labeledContentStyle(_:)",
-          "status": "partial",
-          "notes": "Label (body font) + 8 + content centred, the form's label column inside a Form; no FormatStyle values",
+          "status": "full",
+          "notes": "Label (body font) + 8 + content centred, the form's label column inside a Form; LabeledContent(_:value:format:) through Text(_:format:); in a grouped form the value draws in the secondary colour at the trailing edge, a control inside stays itself (a checkbox, a pop-up) and the row is as tall as the taller of the two, on the window's half-point grid (label/corners, 2026-10-11)",
           "fixtures": [
             "labeledcontent/basic",
-            "labeledcontent/form"
+            "labeledcontent/form",
+            "label/corners"
           ]
         },
         {

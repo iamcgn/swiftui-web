@@ -12,7 +12,7 @@ Apple docs: [Label](https://developer.apple.com/documentation/swiftui/label),
 | `Label(_:systemImage:)` | implemented: the symbol's measured size, centred half a cap height (to the half point) above its baseline, drawn with a stand-in glyph (`Docs/elements/Image.md`) |
 | `LabelStyle`, `LabelStyleConfiguration` (`title`, `icon`), `labelStyle(_:)` | implemented |
 | `.automatic` / `DefaultLabelStyle` (= title and icon), `.titleAndIcon`, `.iconOnly`, `.titleOnly` | implemented |
-| Context-dependent automatic style (icon only in toolbars, etc.) | missing: always title and icon |
+| Context-dependent automatic style | implemented 2026-10-11: a label in a toolbar item shows its icon alone with the title as its help (`_AutomaticLabelContext.toolbar`, set by the toolbar chrome node; Apple's documented rule, the chrome lies outside the goldens); everywhere else title and icon |
 
 ## Measured layout rules (macOS 26.2, `label/basic`, 2026-09-02)
 
@@ -36,7 +36,20 @@ point), so `Label("Star label", systemImage: "star")` is 16.08 tall at 13 pt (`s
 
 Tier A exact; Tier B frames exact, pixels ≤ 0.08 % in all three browsers.
 
+## Corners (sw-label-forms, macOS 27, `label/corners`, 2026-10-11)
+
+| Rule | Probe |
+|---|---|
+| A two-line title in a 180 pt label: the text wraps at 155.5 (180 − 16.5 − 8) to 148.5 wide, the pair (16.5 + 8 + 148.5 = 173) centres in the 180, the icon's centre half a cap above the first line's baseline | `wrapped`, `wrappedIcon`, `wrappedTitle` |
+| A `Text` icon ("→", 12 × 16) sits at the same top as its title (its own baseline less half a cap aligns with the title's), 8 pt before the title: 56 × 16 | `textIcon`, `textIconTitle`, `textIconLabel` |
+| `LabeledContent("Price", value: 12.5, format: .number)` in a grouped form: an 18.5 row, "12.5" in the secondary colour at the trailing edge; `.percent` gives "25%" | `number`, `percent` |
+| A `Toggle` or `Picker` as the content stays a bare control at the trailing edge; the row is as tall as the taller of label and control (macOS 27 draws the checkbox 14 and the pop-up 57 × 20, which the runtime's 26.2 controls do not: those probes are ignored) | `toggle`, `toggleContent`, `picker`, `pickerContent` |
+| The grouped form's rows sit on the window's half-point grid (a form at y 106.04 has its first row at 136) | `form`, `number` |
+
+Tier A exact (the control sizes aside), Tier B 1.0 %, Tier C within tolerance; `ToolbarTests`
+check the toolbar's icon-only label.
+
 ## Not yet covered
 
-SF Symbol glyphs (stand-ins), the automatic style's context sensitivity, `Label` in `Menu`/toolbars,
-multi-line titles (the guide uses the first line), `Text`-only icons.
+SF Symbol glyphs (stand-ins), `Label` in `Menu` items (title and icon, unmeasured), macOS 27's
+smaller controls inside grouped forms.

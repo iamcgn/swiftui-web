@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 19 | 0 | 0 | 19 |
+| SwiftUI | 18 | 0 | 0 | 18 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **35** | 0 | 1 | 34 |
+| **All** | **34** | 0 | 1 | 33 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Context-dependent labels and formatted values** `sw-label-forms` · Label · missing  
-  `Label`'s automatic style by context (icon only in toolbars), multi-line titles, `LabeledContent(_:value:format:)`, the secondary value colour in grouped forms (unmeasured). ([Label.md](Docs/elements/Label.md), [LabeledContent.md](Docs/elements/LabeledContent.md))
 - ☐ **ContentUnavailableView in containers** `sw-content-unavailable` · ContentUnavailableView · verify  
   Inside lists and navigation, the iOS vertical centring, the symbol above the title on other platforms. ([ContentUnavailableView.md](Docs/elements/ContentUnavailableView.md))
 - ☐ **Slider styles and stepper repeat** `sw-slider-stepper` · Slider and Stepper · missing  
@@ -115,6 +113,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **AsyncImage caching and transactions** `sw-asyncimage` · SwiftUI · AsyncImage
 - ☑ 2026-10-11 **Selecting text** `sw-text-selection` · SwiftUI · Text
 - ☑ 2026-10-11 **TextEditor: selection, find, long content** `sw-texteditor` · SwiftUI · TextEditor
+- ☑ 2026-10-11 **Context-dependent labels and formatted values** `sw-label-forms` · SwiftUI · Label
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

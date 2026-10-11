@@ -99,6 +99,8 @@ enum Goldens {
     static let ignoredProbes: [String: Set<String>] = [
         // A macOS 27 button is 20 × 109 (26.2: 24.08 × 117); the control model follows 26.2.
         "symbol/basic": ["button"],
+        // macOS 27 draws a grouped form's checkbox 14 and pop-up 57 × 20 (26.2: 16, 72.5 × 24).
+        "label/corners": ["toggleContent", "pickerContent", "picker", "plain"],   // `plain` sits under the 20 pt pop-up row
         "ios/search/active/present": ["row-Apple", "row-Banana", "row-Cherry", "row-Date", "row-Elderberry"],   // UIKit scrolls the hidden content list while the search presents
         "tabview/basic/second": ["first"],
         // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.

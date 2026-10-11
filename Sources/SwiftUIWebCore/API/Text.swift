@@ -971,6 +971,9 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         return ViewDimensions(size: CGSize(width: layout.size.width, height: layout.size.height + shift.up + shift.down), explicit: [
             VerticalAlignment.firstTextBaseline.key: layout.firstBaseline + shift.up,
             VerticalAlignment.lastTextBaseline.key: layout.lastBaseline + shift.up,
+            // A text as a label's icon aligns half a cap height above its baseline, like the
+            // title (label/corners `textIcon`: the same top as the title, not its centre).
+            VerticalAlignment._iconCenter.key: layout.firstBaseline + shift.up - environment._halfCapHeight,
         ])
     }
 

@@ -2064,11 +2064,23 @@
       "lastBaseline" : 14,
       "width" : 8
     },
+    "style:body||12.5" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 25
+    },
     "style:body||25" : {
       "firstBaseline" : 14,
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 16
+    },
+    "style:body||25%" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 28
     },
     "style:body||50" : {
       "firstBaseline" : 14,
@@ -2502,6 +2514,12 @@
       "lastBaseline" : 14,
       "width" : 31
     },
+    "style:body||Kind" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 27.5
+    },
     "style:body||Label" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -2712,6 +2730,12 @@
       "lastBaseline" : 14,
       "width" : 90.5
     },
+    "style:body||Price" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 31
+    },
     "style:body||Prominent" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -2849,6 +2873,12 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 100.5
+    },
+    "style:body||Share" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 35
     },
     "style:body||Shared" : {
       "firstBaseline" : 14,
@@ -3054,10 +3084,22 @@
       "lastBaseline" : 14,
       "width" : 0
     },
+    "style:body|0.0|12.5" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
     "style:body|0.0|25" : {
       "firstBaseline" : 14,
       "height" : 37.5,
       "lastBaseline" : 33,
+      "width" : 0
+    },
+    "style:body|0.0|25%" : {
+      "firstBaseline" : 14,
+      "height" : 56.5,
+      "lastBaseline" : 52,
       "width" : 0
     },
     "style:body|0.0|50" : {
@@ -3492,6 +3534,12 @@
       "lastBaseline" : 90,
       "width" : 0
     },
+    "style:body|0.0|Kind" : {
+      "firstBaseline" : 14,
+      "height" : 75.5,
+      "lastBaseline" : 71,
+      "width" : 0
+    },
     "style:body|0.0|Label" : {
       "firstBaseline" : 14,
       "height" : 94.5,
@@ -3702,6 +3750,12 @@
       "lastBaseline" : 204,
       "width" : 0
     },
+    "style:body|0.0|Price" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
+      "width" : 0
+    },
     "style:body|0.0|Prominent" : {
       "firstBaseline" : 14,
       "height" : 170.5,
@@ -3838,6 +3892,12 @@
       "firstBaseline" : 14,
       "height" : 284.5,
       "lastBaseline" : 280,
+      "width" : 0
+    },
+    "style:body|0.0|Share" : {
+      "firstBaseline" : 14,
+      "height" : 94.5,
+      "lastBaseline" : 90,
       "width" : 0
     },
     "style:body|0.0|Shared" : {
@@ -14286,6 +14346,12 @@
       "lastBaseline" : 13,
       "width" : 4
     },
+    "system:13:400:default||→" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 12
+    },
     "system:13:400:default||+" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -14424,6 +14490,12 @@
       "lastBaseline" : 13,
       "width" : 14
     },
+    "system:13:400:default||12.5" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 25
+    },
     "system:13:400:default||15" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -14543,6 +14615,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 346
+    },
+    "system:13:400:default||A title that wraps onto a second line here" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 248
     },
     "system:13:400:default||A0 D0" : {
       "firstBaseline" : 13,
@@ -14669,6 +14747,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 69
+    },
+    "system:13:400:default||Arrow" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 36
     },
     "system:13:400:default||B" : {
       "firstBaseline" : 13,
@@ -15407,6 +15491,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 70
+    },
+    "system:13:400:default||Kind" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 27.5
     },
     "system:13:400:default||Label" : {
       "firstBaseline" : 13,
@@ -16698,6 +16788,12 @@
       "lastBaseline" : 13,
       "width" : 0
     },
+    "system:13:400:default|0.0|→" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 0
+    },
     "system:13:400:default|0.0|+" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -16836,6 +16932,12 @@
       "lastBaseline" : 29,
       "width" : 0
     },
+    "system:13:400:default|0.0|12.5" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
+      "width" : 0
+    },
     "system:13:400:default|0.0|15" : {
       "firstBaseline" : 13,
       "height" : 32,
@@ -16954,6 +17056,12 @@
       "firstBaseline" : 13,
       "height" : 768,
       "lastBaseline" : 765,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|A title that wraps onto a second line here" : {
+      "firstBaseline" : 13,
+      "height" : 544,
+      "lastBaseline" : 541,
       "width" : 0
     },
     "system:13:400:default|0.0|A0 D0" : {
@@ -17080,6 +17188,12 @@
       "firstBaseline" : 13,
       "height" : 160,
       "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Arrow" : {
+      "firstBaseline" : 13,
+      "height" : 80,
+      "lastBaseline" : 77,
       "width" : 0
     },
     "system:13:400:default|0.0|B" : {
@@ -17818,6 +17932,12 @@
       "firstBaseline" : 13,
       "height" : 160,
       "lastBaseline" : 157,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Kind" : {
+      "firstBaseline" : 13,
+      "height" : 64,
+      "lastBaseline" : 61,
       "width" : 0
     },
     "system:13:400:default|0.0|Label" : {
@@ -19020,6 +19140,12 @@
       "lastBaseline" : 61,
       "width" : 134
     },
+    "system:13:400:default|148.5|A title that wraps onto a second line here" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 148.5
+    },
     "system:13:400:default|150.0;l1;thead|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -19121,6 +19247,12 @@
       "height" : 32,
       "lastBaseline" : 29,
       "width" : 139
+    },
+    "system:13:400:default|155.5|A title that wraps onto a second line here" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 148.5
     },
     "system:13:400:default|160.0;k2.0|Wrapped kerned words fill the line" : {
       "firstBaseline" : 13,

@@ -86,7 +86,39 @@ extension LabelStyle {
 public struct DefaultLabelStyle: LabelStyle {
     nonisolated public init() {}
     public func makeBody(configuration: Configuration) -> some View {
-        TitleAndIconLabelStyle().makeBody(configuration: configuration)
+        _AutomaticLabelBody(configuration: configuration)
+    }
+}
+
+/// The automatic style resolved by context: a label in a toolbar shows its icon alone (the
+/// title is its help), anywhere else the title and icon (Apple's documented behaviour; a
+/// toolbar is window chrome outside the goldens).
+struct _AutomaticLabelBody: View {
+    let configuration: LabelStyleConfiguration
+    @Environment(\._automaticLabelContext) private var context
+
+    var body: some View {
+        if context == .toolbar {
+            if let title = (configuration.title.content.storage as? AnyViewStorage<Text>)?.view {
+                configuration.icon.help(title)
+            } else {
+                configuration.icon
+            }
+        } else {
+            TitleAndIconLabelStyle().makeBody(configuration: configuration)
+        }
+    }
+}
+
+/// Where a label sits, for the automatic style.
+package enum _AutomaticLabelContext: Sendable { case toolbar }
+
+package struct AutomaticLabelContextKey: EnvironmentKey { package static let defaultValue: _AutomaticLabelContext? = nil }
+
+extension EnvironmentValues {
+    package var _automaticLabelContext: _AutomaticLabelContext? {
+        get { self[AutomaticLabelContextKey.self] }
+        set { self[AutomaticLabelContextKey.self] = newValue }
     }
 }
 

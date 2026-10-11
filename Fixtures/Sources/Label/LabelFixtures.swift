@@ -23,5 +23,27 @@ public enum LabelFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic]
+    /// Corners (sw-label-forms): a two-line title (the icon aligns with the first line), a
+    /// text-only icon, a label in a menu's label, and labelled content with formatted values and
+    /// controls in a grouped form.
+    public static let corners = Fixture("label/corners", size: CGSize(width: 360, height: 320)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Label { Text("A title that wraps onto a second line here").probe("wrappedTitle") } icon: { Image(systemName: "star").probe("wrappedIcon") }
+                .frame(width: 180).probe("wrapped")
+            Label { Text("Arrow").probe("textIconTitle") } icon: { Text("→").probe("textIcon") }.probe("textIconLabel")
+            Form {
+                LabeledContent("Price", value: 12.5, format: .number).probe("number")
+                LabeledContent("Share", value: 0.25, format: .percent).probe("percent")
+                LabeledContent("Enabled") { Toggle("", isOn: .constant(true)).labelsHidden().probe("toggleContent") }.probe("toggle")
+                LabeledContent("Kind") { Picker("", selection: .constant(1)) { Text("One").tag(1); Text("Two").tag(2) }.labelsHidden().probe("pickerContent") }.probe("picker")
+                LabeledContent("Plain", value: "Value").probe("plain")
+            }
+            .formStyle(.grouped)
+            .frame(height: 190)
+            .probe("form")
+        }
+        .padding(.top, 10)
+    }
+
+    public static let all: [Fixture] = [basic, corners]
 }

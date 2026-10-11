@@ -477,6 +477,15 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(text, defaultFont))
             requests.append(TextMetricRequest(text, defaultFont, width: 290))
         }
+        // label/corners: a text icon and its title, a wrapping title, the grouped form's labels
+        // and formatted values (body style).
+        for word in ["Arrow", "→"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        for width: CGFloat in [155.5, 148.5] { requests.append(TextMetricRequest("A title that wraps onto a second line here", defaultFont, width: width)) }
+        requests.append(TextMetricRequest("A title that wraps onto a second line here", defaultFont))
+        for word in ["Price", "Share", "Enabled", "Kind", "Plain", "12.5", "25%", "Value", "One", "Two"] {
+            requests.append(TextMetricRequest(word, .style("body")))
+            requests.append(TextMetricRequest(word, defaultFont))
+        }
         // Table fixtures: headers (bold when sorted), cells.
         for word in ["Name", "Color", "Count"] {
             requests.append(TextMetricRequest(word, defaultFont))

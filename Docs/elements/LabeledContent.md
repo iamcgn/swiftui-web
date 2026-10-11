@@ -10,7 +10,7 @@ Apple docs: [LabeledContent](https://developer.apple.com/documentation/swiftui/l
 | `LabeledContent(content:label:)`, `LabeledContent(_ title, content:)`, `LabeledContent(_ title, value: String)`, `LabeledContent(_ configuration:)` | implemented |
 | `LabeledContentStyle`, `LabeledContentStyleConfiguration` (`label`, `content`), `.automatic`, `labeledContentStyle(_:)` | implemented |
 | `labelsHidden()` | implemented: the content alone |
-| `LabeledContent(_:value:format:)` (`FormatStyle` values) | missing |
+| `LabeledContent(_:value:format:)` (`FormatStyle` values) | implemented 2026-10-11 through `Text(_:format:)` (`label/corners` `number`, `percent`) |
 
 ## Behaviour
 
@@ -35,7 +35,13 @@ form the label leads and the content trails.
 Tier A: both fixtures exact. Tier B: ≤ 0.43 % Chromium, ≤ 0.18 % WebKit, ≤ 0.51 % Firefox; Tier C ≤ 0.18 %. `LabeledContentTests` cover
 the row, the value initializer, hidden labels, widths, a custom style and the form column.
 
+## Grouped forms (`label/corners`, macOS 27, 2026-10-11)
+
+In a grouped form a labeled row is the body-styled label (an 18.5 line) with its content at
+the trailing edge: a text value in the secondary colour, a `Toggle` or `Picker` as the bare
+control (not a form row of its own), the row as tall as the taller of the two. The rows sit on
+the window's half-point grid (Docs/elements/Label.md).
+
 ## Not yet covered
 
-`FormatStyle` values, the secondary colour of values in grouped forms (unmeasured), `Toggle`
-and `Picker` inside `LabeledContent` in forms.
+macOS 27's smaller controls inside grouped forms (the checkbox 14, the pop-up 57 × 20).

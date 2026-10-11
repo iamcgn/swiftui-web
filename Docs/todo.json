@@ -1361,14 +1361,15 @@
       "framework": "SwiftUI",
       "area": "Label",
       "title": "Context-dependent labels and formatted values",
-      "detail": "`Label`'s automatic style by context (icon only in toolbars), multi-line titles, `LabeledContent(_:value:format:)`, the secondary value colour in grouped forms (unmeasured).",
+      "detail": "`Label`'s automatic style by context (icon only in toolbars), multi-line titles, `LabeledContent(_:value:format:)`, the secondary value colour in grouped forms (unmeasured). Done 2026-10-11 (Phase 9, item 15): multi-line titles and text icons measured (`label/corners`), the automatic style icon-only in toolbars (Apple's rule), `LabeledContent(_:value:format:)`, grouped-form rows with secondary values, bare controls and half-point snapping.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Label.md",
         "Docs/elements/LabeledContent.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-content-unavailable",

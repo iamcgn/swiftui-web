@@ -128,5 +128,23 @@ import SwiftUIWebHeadless
         // Accepted modifiers change nothing.
         _ = Color.red.toolbarBackground(.hidden, for: .windowToolbar).toolbarRole(.editor).toolbarTitleDisplayMode(.inline)
     }
+
+    /// sw-label-forms: a label in a toolbar shows its icon alone with the title as help; the
+    /// same label in the content shows title and icon.
+    @Test func labelsInToolbarsShowTheIconAlone() {
+        let runtime = Runtime()
+        runtime.textEngine = MonospaceTextEngine()
+        runtime.paintsWindowChrome = true
+        runtime.mount(VStack {
+            Label("Add", systemImage: "plus")._probe("content")
+        }.toolbar {
+            ToolbarItem(placement: .primaryAction) { Button(action: {}) { Label("Add", systemImage: "plus") } }
+        })
+        runtime.layout(in: CGSize(width: 400, height: 200))
+        let commands = runtime.render(scale: 2).commands.map(\.description)
+        #expect(commands.filter { $0.hasPrefix("drawText(\"Add\"") }.count == 1, "\(commands)")
+        #expect(runtime.probeFrames["content"]?.width == 16.5 + 8 + 15)   // the plus glyph, 8, "Add" at 5 a character
+        #expect(runtime.semanticsTree().contains { $0.role == .button })
+    }
 }
 #endif

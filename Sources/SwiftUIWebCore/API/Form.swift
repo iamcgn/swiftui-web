@@ -34,11 +34,24 @@ struct _MacForm<Content: View>: View {
         case .columns:
             _FormColumnsLayout { content.environment(\._formStyle, .columns) }
         case .grouped:
+            // The table view behind a grouped form keeps its rows on the half-point grid of the
+            // window (label/corners: a form at y 106.04 has its first row at 136).
             ScrollView(.vertical) {
                 _FormGroupedContent(content: AnyView(content.environment(\._formStyle, .grouped)))
                     .padding(PlatformMetrics.formGroupedInset)
             }
+            .environment(\._scrollContentSnapsToPixels, true)
         }
+    }
+}
+
+package struct ScrollContentSnapsKey: EnvironmentKey { package static let defaultValue = false }
+
+extension EnvironmentValues {
+    /// Whether a scroll view places its content on the window's half-point grid (grouped forms).
+    package var _scrollContentSnapsToPixels: Bool {
+        get { self[ScrollContentSnapsKey.self] }
+        set { self[ScrollContentSnapsKey.self] = newValue }
     }
 }
 

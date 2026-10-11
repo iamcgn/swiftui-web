@@ -1,3 +1,8 @@
+#if os(WASI)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
+#else
+import Foundation
+#endif
 // LabeledContent (Docs/elements/LabeledContent.md): a label and a value side by side; in a
 // columns form the label takes the label column.
 
@@ -43,6 +48,17 @@ extension LabeledContent where Label == Text, Content == Text {
     @_disfavoredOverload
     public init<S1: StringProtocol, S2: StringProtocol>(_ title: S1, value: S2) {
         self.init(content: { Text(value) }) { Text(title) }
+    }
+
+    /// Creates a labeled view with a title and a value formatted by `format` (a number, a
+    /// percent, a date: `Text(_:format:)`).
+    public init<F: FormatStyle>(_ titleKey: LocalizedStringKey, value: F.FormatInput, format: F) where F.FormatOutput == String {
+        self.init(content: { Text(value, format: format) }) { Text(titleKey) }
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol, F: FormatStyle>(_ title: S, value: F.FormatInput, format: F) where F.FormatOutput == String {
+        self.init(content: { Text(value, format: format) }) { Text(title) }
     }
 }
 
@@ -127,7 +143,12 @@ extension _LabeledContentRow: View {
         if formStyle == .columns {
             _FormLabeledRow(label: labelsHidden ? nil : AnyView(configuration.label), content: AnyView(configuration.content), mode: .firstTextBaseline)
         } else if formStyle == .grouped {
-            _FormLabeledRow(label: labelsHidden ? nil : AnyView(configuration.label), content: AnyView(configuration.content), mode: .grouped)
+            // A grouped form row: the body-styled label (an 18.5 line), the value in the
+            // secondary colour at the trailing edge, a control (a checkbox, a pop-up) as itself
+            // rather than a form row of its own; the row as tall as the taller of the two
+            // (measured 2026-10-11, `label/corners`).
+            _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: configuration.label)),
+                            content: AnyView(configuration.content.foregroundStyle(.secondary).environment(\._formStyle, nil)), mode: .groupedFull)
         } else if labelsHidden {
             configuration.content
         } else {
