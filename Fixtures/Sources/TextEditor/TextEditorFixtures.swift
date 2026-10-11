@@ -84,10 +84,16 @@ public enum TextEditorFixtures {
 /// on an editor; older harness targets show the plain editor).
 struct FindableEditor: View {
     var body: some View {
+        // The macOS 26 SDK knows the editor's find navigator; older SDKs (CI's macOS 15) do not
+        // and build the plain editor (the golden comes from the newer OS).
+        #if canImport(SwiftUI, _version: 7.0) || !os(macOS)
         if #available(macOS 26.0, iOS 16.0, *) {
             TextEditor(text: .constant("Find me here")).findNavigator(isPresented: .constant(true))
         } else {
             TextEditor(text: .constant("Find me here"))
         }
+        #else
+        TextEditor(text: .constant("Find me here"))
+        #endif
     }
 }
