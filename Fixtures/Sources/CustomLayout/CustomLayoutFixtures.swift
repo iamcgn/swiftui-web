@@ -168,5 +168,35 @@ public enum CustomLayoutFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [flow, radial, values, any]
+    /// `GridLayout` as a layout value against the `Grid` view of the same rows (sw-custom-layout).
+    public static let gridLayout = Fixture("customlayout/grid-layout", size: CGSize(width: 320, height: 220)) {
+        VStack(spacing: 12) {
+            AnyLayout(GridLayout(horizontalSpacing: 10, verticalSpacing: 6)) {
+                GridRow {
+                    Color.red.frame(width: 40, height: 20).probe("a")
+                    Color.blue.frame(width: 60, height: 30).probe("b")
+                }
+                GridRow(alignment: .top) {
+                    Text("One").probe("one")
+                    Color.green.frame(width: 30, height: 40).probe("c")
+                }
+                Color.orange.frame(height: 8).probe("wide")
+            }
+            .probe("layout")
+            Grid(horizontalSpacing: 10, verticalSpacing: 6) {
+                GridRow {
+                    Color.red.frame(width: 40, height: 20).probe("a2")
+                    Color.blue.frame(width: 60, height: 30).probe("b2")
+                }
+                GridRow(alignment: .top) {
+                    Text("One").probe("one2")
+                    Color.green.frame(width: 30, height: 40).probe("c2")
+                }
+                Color.orange.frame(height: 8).probe("wide2")
+            }
+            .probe("grid")
+        }
+    }
+
+    public static let all: [Fixture] = [flow, radial, values, any, gridLayout]
 }

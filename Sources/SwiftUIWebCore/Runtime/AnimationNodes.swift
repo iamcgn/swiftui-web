@@ -66,8 +66,11 @@ extension Runtime {
         let now = animationClock
         var remaining: [WeakNode] = []
         var finished: [@MainActor () -> Void] = []
+        var relayout = false
         for entry in animatingNodes {
             guard let node = entry.node, let presentation = node.presentation else { continue }
+            // A layout whose parameters tween lays out again each frame (and once settled).
+            if node is any _RelayoutWhileAnimating, presentation.effect != nil { relayout = true }
             if let tween = presentation.frame, tween.isFinished(at: now) { presentation.frame = nil }
             if let tween = presentation.opacity, tween.isFinished(at: now) { presentation.opacity = nil }
             if let tween = presentation.color, tween.isFinished(at: now) { presentation.color = nil }
@@ -85,6 +88,7 @@ extension Runtime {
         // Repaint while animating and once more when the last animation ends, so the final frame
         // shows the settled state rather than the last interpolated one.
         if hadAnimations { setNeedsDisplay() }
+        if relayout { requestLayout(invalidatingSizes: true) }
         let subscribers = advanceFrameSubscribers()
         let tooltip = advanceTooltip()
         return !remaining.isEmpty || subscribers || tooltip || !activeAnimationCompletions.isEmpty

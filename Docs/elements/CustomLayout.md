@@ -43,8 +43,28 @@ Tier A: 4 fixtures exact (`customlayout/any` steps included). Tier B 6/6 renders
 (≤ 0.23 %), WebKit and Firefox. `CustomLayoutTests` cover state survival across `AnyLayout`
 switches and the subview proxies' priority, layout value and spacing. wasm js tests pass.
 
+## Corners (sw-custom-layout, macOS 26.6, `customlayout/grid-layout`, `grid/growing-spans`, 2026-10-11)
+
+- **Animatable parameters**: a layout's `animatableData` tweens under `withAnimation` from the
+  presented value to the new one, and the tree lays out again every frame of the tween
+  (`LayoutContainerNode`, `_RelayoutWhileAnimating`); a change without a transaction snaps
+  (`LayoutAnimationTests`). SwiftUI's own stack layouts expose no animatable data; `GridLayout`
+  animates its two spacings (a `nil` spacing stays `nil`).
+- **Caches**: one cache per layout node, made by `makeCache` on the first pass and kept; a new
+  view value or a changed subview count runs `updateCache`; a new `AnyLayout` type remakes it
+  (`LayoutAnimationTests`, `CustomLayoutTests`). SwiftUI's environment-change invalidation is not
+  separately modelled: a changed environment re-applies the view, which updates the cache.
+- **`GridLayout`** is the grid as a `Layout` value: `AnyLayout(GridLayout(horizontalSpacing:
+  verticalSpacing:))` lays its rows out exactly as the `Grid` view does (`customlayout/grid-layout`:
+  identical frames for the same rows, a lone view spanning both columns and widening them); the
+  rows come from the `GridRow` each subview sits in, a subview outside any row being a row of
+  its own. Both share `_GridPlanner`.
+- **Rows growing past the widest earlier row, with spans** (`grid/growing-spans`): a span of two
+  in row one over 30- and 20-point columns, four single cells in row two, a span of three in row
+  three; the measured columns are 30 / 20 / 30 / 20 with 10 gaps, the grid 130 wide, every cell
+  centred in its span — the existing algorithm matched without change.
+- Right-to-left: a custom layout's placements mirror (sw-rtl, `layout/rtl-custom`).
+
 ## Not yet covered
 
-Animating a layout's parameters (`Animatable` conformance), right-to-left layout direction,
-`LayoutSubview.dimensions` for custom alignment guides in layouts other than the stacks,
-`Layout` cache invalidation on environment changes, `GridLayout`.
+`LayoutSubview.dimensions` for custom alignment guides in layouts other than the stacks.

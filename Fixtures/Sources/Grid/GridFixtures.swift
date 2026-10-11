@@ -110,5 +110,26 @@ public enum GridFixtures {
         .probe("grid")
     }
 
-    public static let all: [Fixture] = [basic, spacing, modifiers, alignment, flexible]
+    /// Rows with more cells than the widest earlier row, combined with spans (sw-custom-layout).
+    public static let growingSpans = Fixture("grid/growing-spans", size: CGSize(width: 320, height: 200)) {
+        Grid(horizontalSpacing: 10, verticalSpacing: 10) {
+            GridRow {
+                Color.red.frame(width: 50, height: 20).gridCellColumns(2).probe("r1a")
+                Color.blue.frame(width: 30, height: 20).probe("r1b")
+            }
+            GridRow {
+                Color.green.frame(width: 20, height: 20).probe("r2a")
+                Color.orange.frame(width: 20, height: 20).probe("r2b")
+                Color.purple.frame(width: 20, height: 20).probe("r2c")
+                Color.gray.frame(width: 20, height: 20).probe("r2d")
+            }
+            GridRow {
+                Color.cyan.frame(width: 30, height: 20).probe("r3a")
+                Color.black.frame(width: 90, height: 20).gridCellColumns(3).probe("r3b")
+            }
+        }
+        .probe("grid")
+    }
+
+    public static let all: [Fixture] = [basic, spacing, modifiers, alignment, flexible, growingSpans]
 }

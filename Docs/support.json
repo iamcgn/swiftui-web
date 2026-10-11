@@ -320,26 +320,29 @@
         {
           "api": "Layout protocol (custom layouts, caches, LayoutSubviews/LayoutSubview, LayoutValueKey) / AnyLayout / HStackLayout / VStackLayout / ZStackLayout",
           "status": "partial",
-          "notes": "Custom layouts written on the public API match Apple's frames exactly; AnyLayout switches layouts keeping subview state; no Animatable layout parameters or right-to-left direction Right-to-left (2026-10-09): a custom layout's placements are mirrored by the system, as SwiftUI mirrors them (layout/rtl-custom).",
+          "notes": "Custom layouts written on the public API match Apple's frames exactly; AnyLayout switches layouts keeping subview state; no Animatable layout parameters or right-to-left direction Right-to-left (2026-10-09): a custom layout's placements are mirrored by the system, as SwiftUI mirrors them (layout/rtl-custom). Corners (2026-10-11): a layout's animatable parameters tween under withAnimation with a layout pass every frame, caches are made once and updated on changes (remade for a new AnyLayout type), GridLayout as a Layout value lays out as Grid does (customlayout/grid-layout), rows growing past the widest earlier row with spans (grid/growing-spans).",
           "fixtures": [
             "customlayout/flow",
             "customlayout/radial",
             "customlayout/values",
             "customlayout/any",
-            "layout/rtl-custom"
+            "layout/rtl-custom",
+            "customlayout/grid-layout",
+            "grid/growing-spans"
           ]
         },
         {
           "api": "Grid / GridRow / gridCellColumns / gridColumnAlignment / gridCellAnchor / gridCellUnsizedAxes",
           "status": "partial",
-          "notes": "Column sizing, spans, flexible sharing, spacing from cell preferences, alignment and anchors match Apple's frames exactly; no GridLayout value or lazy grids Right-to-left (2026-10-09): columns run from the right, spans with them (layout/rtl-grid).",
+          "notes": "Column sizing, spans, flexible sharing, spacing from cell preferences, alignment and anchors match Apple's frames exactly; no GridLayout value or lazy grids Right-to-left (2026-10-09): columns run from the right, spans with them (layout/rtl-grid). GridLayout as a Layout value and rows with more cells than the widest earlier row combined with spans measured (2026-10-11, grid/growing-spans, customlayout/grid-layout).",
           "fixtures": [
             "grid/basic",
             "grid/spacing",
             "grid/modifiers",
             "grid/alignment",
             "grid/flexible",
-            "layout/rtl-grid"
+            "layout/rtl-grid",
+            "grid/growing-spans"
           ]
         },
         {

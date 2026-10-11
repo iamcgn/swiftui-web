@@ -410,6 +410,37 @@ public static let flow = Fixture("customlayout/flow", size: CGSize(width: 320, h
     .probe("flow")
 }
 """#),
+        FixtureSource(name: "customlayout/grid-layout", file: "Fixtures/Sources/CustomLayout/CustomLayoutFixtures.swift", firstLine: 171, lastLine: 199, declaration: #"""
+/// `GridLayout` as a layout value against the `Grid` view of the same rows (sw-custom-layout).
+public static let gridLayout = Fixture("customlayout/grid-layout", size: CGSize(width: 320, height: 220)) {
+    VStack(spacing: 12) {
+        AnyLayout(GridLayout(horizontalSpacing: 10, verticalSpacing: 6)) {
+            GridRow {
+                Color.red.frame(width: 40, height: 20).probe("a")
+                Color.blue.frame(width: 60, height: 30).probe("b")
+            }
+            GridRow(alignment: .top) {
+                Text("One").probe("one")
+                Color.green.frame(width: 30, height: 40).probe("c")
+            }
+            Color.orange.frame(height: 8).probe("wide")
+        }
+        .probe("layout")
+        Grid(horizontalSpacing: 10, verticalSpacing: 6) {
+            GridRow {
+                Color.red.frame(width: 40, height: 20).probe("a2")
+                Color.blue.frame(width: 60, height: 30).probe("b2")
+            }
+            GridRow(alignment: .top) {
+                Text("One").probe("one2")
+                Color.green.frame(width: 30, height: 40).probe("c2")
+            }
+            Color.orange.frame(height: 8).probe("wide2")
+        }
+        .probe("grid")
+    }
+}
+"""#),
         FixtureSource(name: "customlayout/radial", file: "Fixtures/Sources/CustomLayout/CustomLayoutFixtures.swift", firstLine: 135, lastLine: 145, declaration: #"""
 public static let radial = Fixture("customlayout/radial", size: CGSize(width: 240, height: 240)) {
     RadialLayout {
@@ -1352,6 +1383,28 @@ public static let flexible = Fixture("grid/flexible", size: CGSize(width: 320, h
         }
     }
     .frame(width: 280)
+    .probe("grid")
+}
+"""#),
+        FixtureSource(name: "grid/growing-spans", file: "Fixtures/Sources/Grid/GridFixtures.swift", firstLine: 113, lastLine: 132, declaration: #"""
+/// Rows with more cells than the widest earlier row, combined with spans (sw-custom-layout).
+public static let growingSpans = Fixture("grid/growing-spans", size: CGSize(width: 320, height: 200)) {
+    Grid(horizontalSpacing: 10, verticalSpacing: 10) {
+        GridRow {
+            Color.red.frame(width: 50, height: 20).gridCellColumns(2).probe("r1a")
+            Color.blue.frame(width: 30, height: 20).probe("r1b")
+        }
+        GridRow {
+            Color.green.frame(width: 20, height: 20).probe("r2a")
+            Color.orange.frame(width: 20, height: 20).probe("r2b")
+            Color.purple.frame(width: 20, height: 20).probe("r2c")
+            Color.gray.frame(width: 20, height: 20).probe("r2d")
+        }
+        GridRow {
+            Color.cyan.frame(width: 30, height: 20).probe("r3a")
+            Color.black.frame(width: 90, height: 20).gridCellColumns(3).probe("r3b")
+        }
+    }
     .probe("grid")
 }
 """#),
@@ -10529,7 +10582,37 @@ public enum CustomLayoutFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [flow, radial, values, any]
+    /// `GridLayout` as a layout value against the `Grid` view of the same rows (sw-custom-layout).
+    public static let gridLayout = Fixture("customlayout/grid-layout", size: CGSize(width: 320, height: 220)) {
+        VStack(spacing: 12) {
+            AnyLayout(GridLayout(horizontalSpacing: 10, verticalSpacing: 6)) {
+                GridRow {
+                    Color.red.frame(width: 40, height: 20).probe("a")
+                    Color.blue.frame(width: 60, height: 30).probe("b")
+                }
+                GridRow(alignment: .top) {
+                    Text("One").probe("one")
+                    Color.green.frame(width: 30, height: 40).probe("c")
+                }
+                Color.orange.frame(height: 8).probe("wide")
+            }
+            .probe("layout")
+            Grid(horizontalSpacing: 10, verticalSpacing: 6) {
+                GridRow {
+                    Color.red.frame(width: 40, height: 20).probe("a2")
+                    Color.blue.frame(width: 60, height: 30).probe("b2")
+                }
+                GridRow(alignment: .top) {
+                    Text("One").probe("one2")
+                    Color.green.frame(width: 30, height: 40).probe("c2")
+                }
+                Color.orange.frame(height: 8).probe("wide2")
+            }
+            .probe("grid")
+        }
+    }
+
+    public static let all: [Fixture] = [flow, radial, values, any, gridLayout]
 }
 """#,
         "Fixtures/Sources/Dark/DarkFixtures.swift": #"""
@@ -11887,7 +11970,28 @@ public enum GridFixtures {
         .probe("grid")
     }
 
-    public static let all: [Fixture] = [basic, spacing, modifiers, alignment, flexible]
+    /// Rows with more cells than the widest earlier row, combined with spans (sw-custom-layout).
+    public static let growingSpans = Fixture("grid/growing-spans", size: CGSize(width: 320, height: 200)) {
+        Grid(horizontalSpacing: 10, verticalSpacing: 10) {
+            GridRow {
+                Color.red.frame(width: 50, height: 20).gridCellColumns(2).probe("r1a")
+                Color.blue.frame(width: 30, height: 20).probe("r1b")
+            }
+            GridRow {
+                Color.green.frame(width: 20, height: 20).probe("r2a")
+                Color.orange.frame(width: 20, height: 20).probe("r2b")
+                Color.purple.frame(width: 20, height: 20).probe("r2c")
+                Color.gray.frame(width: 20, height: 20).probe("r2d")
+            }
+            GridRow {
+                Color.cyan.frame(width: 30, height: 20).probe("r3a")
+                Color.black.frame(width: 90, height: 20).gridCellColumns(3).probe("r3b")
+            }
+        }
+        .probe("grid")
+    }
+
+    public static let all: [Fixture] = [basic, spacing, modifiers, alignment, flexible, growingSpans]
 }
 """#,
         "Fixtures/Sources/GroupBox/GroupBoxFixtures.swift": #"""

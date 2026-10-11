@@ -1218,14 +1218,15 @@
       "framework": "SwiftUI",
       "area": "Layout",
       "title": "Layout protocol corners",
-      "detail": "`Layout.Animatable` (animating layout parameters), `updateCache` reuse across passes and invalidation on environment changes, `GridLayout` as a `Layout` value, rows with more cells than the widest earlier row combined with spans.",
+      "detail": "`Layout.Animatable` (animating layout parameters), `updateCache` reuse across passes and invalidation on environment changes, `GridLayout` as a `Layout` value, rows with more cells than the widest earlier row combined with spans. Done 2026-10-11 (Phase 9, item 5): a layout's animatable data tweens with a layout pass per frame, one cache per node updated on changes (remade for a new AnyLayout type), `GridLayout` over the shared `_GridPlanner` (`customlayout/grid-layout` identical to `Grid`), the growing-rows-with-spans case measured and matching (`grid/growing-spans`); `LayoutAnimationTests`. Open: `LayoutSubview.dimensions` guides in non-stack layouts.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/CustomLayout.md",
         "Docs/elements/Grid.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-safe-area",

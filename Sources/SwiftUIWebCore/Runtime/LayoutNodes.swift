@@ -42,15 +42,40 @@ package final class LayoutContainerNode<V: View, L: Layout, Content: View>: Layo
                                                environment: context.environment))
     }
 
-    package var layout: L { view[keyPath: layoutPath] }
+    /// The layout to size and place with: the view's, its animatable data interpolated while a
+    /// tween of the layout's parameters runs (`Layout: Animatable`, sw-custom-layout).
+    package var layout: L {
+        var layout = view[keyPath: layoutPath]
+        if let tweenFrom, let tweenTo, let progress = presentation?.effect?.value(at: runtime.animationClock).first {
+            layout.animatableData = tweenFrom.interpolated(towards: tweenTo, amount: progress)
+        }
+        return layout
+    }
+    /// The animatable data a running tween goes from and to; the `effect` presentation slot
+    /// carries the tween's progress (0 to 1), and the frame loop lays out again while it runs.
+    private var tweenFrom: L.AnimatableData?
+    private var tweenTo: L.AnimatableData?
+    /// Whether the subviews changed since the cache was made (the cache is then updated, not remade).
+    private var cachedSubviewCount: Int?
 
     override package func update(view: V, environment: EnvironmentValues, force: Bool) {
+        let old = layout.animatableData
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
-        cache = nil
+        let new = view[keyPath: layoutPath].animatableData
+        if (old - new).magnitudeSquared > 0 {
+            tweenFrom = old
+            tweenTo = new
+            tweenEffect(from: [0], to: [1])
+            if presentation?.effect == nil { tweenFrom = nil; tweenTo = nil }
+        }
+        // The cache lives on: `updateCache` runs on the next pass (SwiftUI remakes it only for a
+        // new layout value type).
+        cacheNeedsUpdate = true
         child.update(view: view[keyPath: contentPath], environment: environment, force: force)
     }
+    private var cacheNeedsUpdate = false
 
     package var subviews: LayoutSubviews {
         let orientation = L.layoutProperties.stackOrientation
@@ -60,7 +85,18 @@ package final class LayoutContainerNode<V: View, L: Layout, Content: View>: Layo
     }
 
     private func withCache<R>(_ subviews: LayoutSubviews, _ body: (inout L.Cache) -> R) -> R {
-        var current = cache ?? layout.makeCache(subviews: subviews)
+        var current: L.Cache
+        if var existing = cache {
+            if cacheNeedsUpdate || cachedSubviewCount != subviews.count {
+                layout.updateCache(&existing, subviews: subviews)
+                cacheNeedsUpdate = false
+            }
+            current = existing
+        } else {
+            current = layout.makeCache(subviews: subviews)
+            cacheNeedsUpdate = false
+        }
+        cachedSubviewCount = subviews.count
         let result = body(&current)
         cache = current
         return result
@@ -105,6 +141,12 @@ package final class LayoutContainerNode<V: View, L: Layout, Content: View>: Layo
     override package var structuralChildren: [ViewNode] { [child] }
     override package var nodeDescription: String { "Layout<\(_shortTypeName(L.self))>" }
 }
+
+extension LayoutContainerNode: _RelayoutWhileAnimating {}
+
+/// Nodes whose geometry follows an `effect` tween: the frame loop lays the tree out again every
+/// frame the tween runs (a `Layout`'s animatable parameters).
+@MainActor package protocol _RelayoutWhileAnimating: AnyObject {}
 
 // MARK: - Unary layout modifiers
 

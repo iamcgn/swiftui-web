@@ -1,0 +1,81 @@
+{
+  "fixture" : "customlayout\/grid-layout",
+  "frames" : {
+    "a" : {
+      "height" : 20,
+      "width" : 40,
+      "x" : 52.5,
+      "y" : 19
+    },
+    "a2" : {
+      "height" : 20,
+      "width" : 40,
+      "x" : 52.5,
+      "y" : 121
+    },
+    "b" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 207.5,
+      "y" : 14
+    },
+    "b2" : {
+      "height" : 30,
+      "width" : 60,
+      "x" : 207.5,
+      "y" : 116
+    },
+    "c" : {
+      "height" : 40,
+      "width" : 30,
+      "x" : 222.5,
+      "y" : 50
+    },
+    "c2" : {
+      "height" : 40,
+      "width" : 30,
+      "x" : 222.5,
+      "y" : 152
+    },
+    "grid" : {
+      "height" : 90,
+      "width" : 320,
+      "x" : 0,
+      "y" : 116
+    },
+    "layout" : {
+      "height" : 90,
+      "width" : 320,
+      "x" : 0,
+      "y" : 14
+    },
+    "one" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 60,
+      "y" : 50
+    },
+    "one2" : {
+      "height" : 16,
+      "width" : 25,
+      "x" : 60,
+      "y" : 152
+    },
+    "wide" : {
+      "height" : 8,
+      "width" : 320,
+      "x" : 0,
+      "y" : 96
+    },
+    "wide2" : {
+      "height" : 8,
+      "width" : 320,
+      "x" : 0,
+      "y" : 198
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 320
+  }
+}

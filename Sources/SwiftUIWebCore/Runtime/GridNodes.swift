@@ -35,23 +35,8 @@ package final class GridRowNode<Content: View>: TypedNode<GridRow<Content>>, _Gr
 package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
     package private(set) var child: TypedNode<Content>!
 
-    package struct Cell {
-        package let node: ViewNode
-        package let column: Int
-        package let span: Int
-        package let ideal: CGSize
-        package let flexibleWidth: Bool
-        package let sizedHorizontally: Bool
-        package let sizedVertically: Bool
-        package var frame: CGRect = .zero
-    }
-
-    package struct Row {
-        package var cells: [Cell]
-        package let alignment: VerticalAlignment?
-        package var y: CGFloat = 0
-        package var height: CGFloat = 0
-    }
+    package typealias Cell = _GridPlanner.Cell
+    package typealias Row = _GridPlanner.Row
 
     package private(set) var rows: [Row] = []
 
@@ -72,13 +57,7 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
     /// Rows of cells: a `GridRow`'s cells, or a lone layout child as a row spanning every column.
     private func collect() -> ([Row], columns: Int) {
         var rows: [Row] = []
-        func makeCell(_ node: ViewNode, column: Int, span: Int) -> Cell {
-            let unsized = node.layoutValue(for: GridCellUnsizedAxesKey.self)
-            let ideal = node.sizeThatFits(.unspecified)
-            let wide = node.sizeThatFits(ProposedViewSize(width: ideal.width + 1000, height: nil)).width
-            return Cell(node: node, column: column, span: span, ideal: ideal, flexibleWidth: wide > ideal.width + 0.5,
-                        sizedHorizontally: !unsized.contains(.horizontal), sizedVertically: !unsized.contains(.vertical))
-        }
+        func makeCell(_ node: ViewNode, column: Int, span: Int) -> Cell { _GridPlanner.makeCell(node, column: column, span: span) }
         func walk(_ node: ViewNode, wrap: @MainActor (ViewNode) -> ViewNode) {
             if let row = node as? any _GridRowProviding {
                 var cells: [Cell] = []
@@ -111,6 +90,93 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
             for structural in node.structuralChildren { walk(structural, wrap: wrap) }
         }
         walk(child) { $0 }
+        let columns = _GridPlanner.resolveColumns(&rows)
+        return (rows, columns)
+    }
+
+    // MARK: Planning
+
+    private var planner: _GridPlanner { _GridPlanner(alignment: view.alignment, horizontalSpacing: view.horizontalSpacing, verticalSpacing: view.verticalSpacing) }
+
+    private func plan(proposal: ProposedViewSize) -> _GridPlanner.Plan {
+        let (rows, columns) = collect()
+        return planner.plan(rows: rows, columns: columns, proposal: proposal)
+    }
+    // MARK: Layout
+
+    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { plan(proposal: proposal).size }
+
+    override package func layoutContents(proposal: ProposedViewSize) {
+        let plan = plan(proposal: ProposedViewSize(width: frame.width, height: proposal.height))
+        rows = plan.rows
+        for row in rows {
+            for cell in row.cells {
+                cell.node.place(at: cell.frame.origin, anchor: .topLeading, proposal: ProposedViewSize(cell.frame.size), by: self)
+            }
+        }
+    }
+
+    override package var paintedChildren: [ViewNode] { rows.flatMap { $0.cells.map(\.node) } }
+    override package var structuralChildren: [ViewNode] { [child] }
+    override package var nodeDescription: String { "Grid" }
+}
+
+/// The grid arithmetic shared by `Grid` and `GridLayout` (Docs/elements/Grid.md): rows of cells
+/// over nodes, column widths from rigid and flexible cells, spans, gaps, alignment guides.
+@MainActor
+package struct _GridPlanner {
+    package let alignment: Alignment
+    package let horizontalSpacing: CGFloat?
+    package let verticalSpacing: CGFloat?
+
+    package init(alignment: Alignment, horizontalSpacing: CGFloat?, verticalSpacing: CGFloat?) {
+        self.alignment = alignment
+        self.horizontalSpacing = horizontalSpacing
+        self.verticalSpacing = verticalSpacing
+    }
+
+    package struct Cell {
+        package let node: ViewNode
+        package let column: Int
+        package let span: Int
+        package let ideal: CGSize
+        package let flexibleWidth: Bool
+        package let sizedHorizontally: Bool
+        package let sizedVertically: Bool
+        package var frame: CGRect = .zero
+
+        package init(node: ViewNode, column: Int, span: Int, ideal: CGSize, flexibleWidth: Bool, sizedHorizontally: Bool, sizedVertically: Bool) {
+            self.node = node; self.column = column; self.span = span; self.ideal = ideal
+            self.flexibleWidth = flexibleWidth; self.sizedHorizontally = sizedHorizontally; self.sizedVertically = sizedVertically
+        }
+    }
+
+    package struct Row {
+        package var cells: [Cell]
+        package let alignment: VerticalAlignment?
+        package var y: CGFloat = 0
+        package var height: CGFloat = 0
+        package init(cells: [Cell], alignment: VerticalAlignment?) { self.cells = cells; self.alignment = alignment }
+    }
+
+    package struct Plan {
+        package var rows: [Row]
+        package var columnWidths: [CGFloat]
+        package var columnGaps: [CGFloat]
+        package var size: CGSize
+    }
+
+    /// A cell for a node: its ideal size, whether it stretches, which axes size it.
+    package static func makeCell(_ node: ViewNode, column: Int, span: Int) -> Cell {
+        let unsized = node.layoutValue(for: GridCellUnsizedAxesKey.self)
+        let ideal = node.sizeThatFits(.unspecified)
+        let wide = node.sizeThatFits(ProposedViewSize(width: ideal.width + 1000, height: nil)).width
+        return Cell(node: node, column: column, span: span, ideal: ideal, flexibleWidth: wide > ideal.width + 0.5,
+                    sizedHorizontally: !unsized.contains(.horizontal), sizedVertically: !unsized.contains(.vertical))
+    }
+
+    /// The column count of rows whose span-0 cells (a lone view as a row) are then widened to it.
+    package static func resolveColumns(_ rows: inout [Row]) -> Int {
         let columns = max(1, rows.map { $0.cells.reduce(0) { $0 + max($1.span, 1) } }.max() ?? 1)
         for index in rows.indices {
             for cellIndex in rows[index].cells.indices where rows[index].cells[cellIndex].span == 0 {
@@ -119,25 +185,16 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
                                                     sizedHorizontally: cell.sizedHorizontally, sizedVertically: cell.sizedVertically)
             }
         }
-        return (rows, columns)
+        return columns
     }
 
-    // MARK: Planning
-
-    private struct Plan {
-        var rows: [Row]
-        var columnWidths: [CGFloat]
-        var columnGaps: [CGFloat]
-        var size: CGSize
-    }
-
-    private func plan(proposal: ProposedViewSize) -> Plan {
-        var (rows, columns) = collect()
+    package func plan(rows: [Row], columns: Int, proposal: ProposedViewSize) -> Plan {
+        var rows = rows
         guard !rows.isEmpty else { return Plan(rows: [], columnWidths: [], columnGaps: [], size: .zero) }
 
         // Column gaps: explicit, else the widest horizontal spacing distance between neighbours.
-        var gaps = Array(repeating: view.horizontalSpacing ?? PlatformMetrics.defaultSpacing, count: max(columns - 1, 0))
-        if view.horizontalSpacing == nil {
+        var gaps = Array(repeating: horizontalSpacing ?? PlatformMetrics.defaultSpacing, count: max(columns - 1, 0))
+        if horizontalSpacing == nil {
             for row in rows {
                 for (a, b) in zip(row.cells, row.cells.dropFirst()) where a.column + a.span - 1 < columns - 1 {
                     let gap = a.column + a.span - 1
@@ -200,7 +257,7 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
         // Rows: cell sizes for their column widths, heights and vertical guides.
         var y: CGFloat = 0
         for index in rows.indices {
-            let guide = (rows[index].alignment ?? view.alignment.vertical).key
+            let guide = (rows[index].alignment ?? alignment.vertical).key
             var rowGuide: CGFloat = 0
             var dims: [ViewDimensions] = []
             var cellWidths: [CGFloat] = []
@@ -217,7 +274,7 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
             }
             if index > 0 {
                 let gap: CGFloat
-                if let explicit = view.verticalSpacing {
+                if let explicit = verticalSpacing {
                     gap = explicit
                 } else {
                     // The widest spacing distance between the cells stacked in each column.
@@ -242,7 +299,7 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
                     x = columnX[cell.column] + (cellWidth - size.width) * anchor.x
                     cellY = y + (height - size.height) * anchor.y
                 } else {
-                    let horizontal = (cell.span == 1 ? columnAlignment(for: cell.column, in: rows) : nil) ?? view.alignment.horizontal
+                    let horizontal = (cell.span == 1 ? columnAlignment(for: cell.column, in: rows) : nil) ?? alignment.horizontal
                     x = columnX[cell.column] + cellWidth * Self.fraction(of: horizontal) - d[horizontal.key]
                     cellY = y + rowGuide - d[guide]
                 }
@@ -254,7 +311,7 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
     }
 
     /// A `gridColumnAlignment` set on any cell of the column.
-    private func columnAlignment(for column: Int, in rows: [Row]) -> HorizontalAlignment? {
+    package func columnAlignment(for column: Int, in rows: [Row]) -> HorizontalAlignment? {
         for row in rows {
             for cell in row.cells where cell.column == column && cell.span == 1 {
                 if let alignment = cell.node.layoutValue(for: GridColumnAlignmentKey.self) { return alignment }
@@ -264,27 +321,10 @@ package final class GridNode<Content: View>: LayoutNode<Grid<Content>> {
     }
 
     /// Where a horizontal alignment sits across a width (leading 0, centre ½, trailing 1).
-    private static func fraction(of alignment: HorizontalAlignment) -> CGFloat {
+    package static func fraction(of alignment: HorizontalAlignment) -> CGFloat {
         if alignment == .leading { return 0 }
         if alignment == .trailing { return 1 }
         return 0.5
     }
 
-    // MARK: Layout
-
-    override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { plan(proposal: proposal).size }
-
-    override package func layoutContents(proposal: ProposedViewSize) {
-        let plan = plan(proposal: ProposedViewSize(width: frame.width, height: proposal.height))
-        rows = plan.rows
-        for row in rows {
-            for cell in row.cells {
-                cell.node.place(at: cell.frame.origin, anchor: .topLeading, proposal: ProposedViewSize(cell.frame.size), by: self)
-            }
-        }
-    }
-
-    override package var paintedChildren: [ViewNode] { rows.flatMap { $0.cells.map(\.node) } }
-    override package var structuralChildren: [ViewNode] { [child] }
-    override package var nodeDescription: String { "Grid" }
 }
