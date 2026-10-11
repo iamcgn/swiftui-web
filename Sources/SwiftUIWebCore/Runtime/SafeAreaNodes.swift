@@ -69,15 +69,17 @@ package class SafeAreaNode<Content: View, Modifier: ViewModifier>: UnaryLayoutMo
         if extends(target) {
             target.place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(bounds.size), by: placer)
         } else {
+            // A plain child is centred in the safe region when it is smaller (a 50 pt stack under
+            // a bottom inset sits at (82 − 50) / 2, measured on `position/zz` probes, 2026-10-11).
             let inner = CGRect(x: bounds.minX + insets.leading, y: bounds.minY + insets.top,
                                width: max(0, bounds.width - insets.leading - insets.trailing), height: max(0, bounds.height - insets.top - insets.bottom))
-            target.place(at: inner.origin, anchor: .topLeading, proposal: ProposedViewSize(inner.size), by: placer)
+            target.place(at: CGPoint(x: inner.midX, y: inner.midY), anchor: .center, proposal: ProposedViewSize(inner.size), by: placer)
         }
-        placeInset(in: bounds, by: placer)
+        placeInset(for: target, in: bounds, by: placer)
     }
 
-    /// Places the inset view (if any) along its edge.
-    package func placeInset(in bounds: CGRect, by placer: ViewNode) {}
+    /// Places the inset view (if any) for a target along its edge.
+    package func placeInset(for target: ViewNode, in bounds: CGRect, by placer: ViewNode) {}
 
     package static func reduce(_ proposal: ProposedViewSize, by insets: EdgeInsets) -> ProposedViewSize {
         ProposedViewSize(width: proposal.width.map { max(0, $0 - insets.leading - insets.trailing) },
@@ -86,23 +88,45 @@ package class SafeAreaNode<Content: View, Modifier: ViewModifier>: UnaryLayoutMo
 }
 
 /// `safeAreaInset`: the inset view sits at its edge over the safe area it creates (its length
-/// plus the spacing, default 8).
+/// plus the spacing, default 8). On a list (a `ForEach`) every element gets an inset view of its
+/// own (`position/safe-area-elements`).
 @MainActor
 package final class SafeAreaInsetNode<Content: View, Inset: View>: SafeAreaNode<Content, _SafeAreaInsetModifier<Inset>> {
-    private var inset: TypedNode<Inset>!
+    /// One inset view per target, made as targets are placed.
+    private var insets: [ObjectIdentifier: TypedNode<Inset>] = [:]
+    private var insetOrder: [ObjectIdentifier] = []
 
     override package init(_ context: _NodeContext<ModifiedContent<Content, _SafeAreaInsetModifier<Inset>>>) {
         super.init(context)
-        inset = Inset._makeNode(_NodeContext(view: context.view.modifier.inset, parent: self, environment: environment))
+    }
+
+    private func insetNode(for target: ViewNode) -> TypedNode<Inset> {
+        let key = ObjectIdentifier(target)
+        if let existing = insets[key] { return existing }
+        let node = Inset._makeNode(_NodeContext(view: modifier.inset, parent: self, environment: environment))
+        insets[key] = node
+        insetOrder.append(key)
+        return node
+    }
+
+    /// The inset views in target order, dropping those of targets that went away.
+    private var insetNodes: [TypedNode<Inset>] {
+        let live = Set(targets.map(ObjectIdentifier.init))
+        for key in insetOrder where !live.contains(key) {
+            insets[key]?.unmount()
+            insets[key] = nil
+        }
+        insetOrder.removeAll { !live.contains($0) }
+        return insetOrder.compactMap { insets[$0] }
     }
 
     override package func update(view: ModifiedContent<Content, _SafeAreaInsetModifier<Inset>>, environment: EnvironmentValues, force: Bool) {
         super.update(view: view, environment: environment, force: force)
-        inset.update(view: view.modifier.inset, environment: environment, force: force)
+        for node in insetNodes { node.update(view: view.modifier.inset, environment: environment, force: force) }
     }
 
     override package func unmount() {
-        inset.unmount()
+        for node in insets.values { node.unmount() }
         super.unmount()
     }
 
@@ -115,7 +139,8 @@ package final class SafeAreaInsetNode<Content: View, Inset: View>: SafeAreaNode<
     }
 
     private func insetLength(for proposal: ProposedViewSize) -> CGFloat {
-        let sizes = inset.layoutChildren.map { $0.sizeThatFits(insetProposal(proposal)) }
+        let node = insetNode(for: targets.first ?? self)
+        let sizes = node.layoutChildren.map { $0.sizeThatFits(insetProposal(proposal)) }
         return sizes.map { isVertical ? $0.height : $0.width }.max() ?? 0
     }
 
@@ -129,9 +154,9 @@ package final class SafeAreaInsetNode<Content: View, Inset: View>: SafeAreaNode<
         }
     }
 
-    override package func placeInset(in bounds: CGRect, by placer: ViewNode) {
+    override package func placeInset(for target: ViewNode, in bounds: CGRect, by placer: ViewNode) {
         let proposal = insetProposal(ProposedViewSize(bounds.size))
-        for node in inset.layoutChildren {
+        for node in insetNode(for: target).layoutChildren {
             let dims = node.dimensions(in: proposal)
             var origin: CGPoint
             switch modifier.edge {
@@ -151,9 +176,11 @@ package final class SafeAreaInsetNode<Content: View, Inset: View>: SafeAreaNode<
         }
     }
 
-    override package var structuralChildren: [ViewNode] { [child, inset] }
-    /// The inset view paints (and is hit tested) over the content.
-    override package var paintedChildren: [ViewNode] { super.paintedChildren + inset.layoutChildren }
+    override package var structuralChildren: [ViewNode] { [child] + insetNodes }
+    /// Each target's inset view paints (and is hit tested) over it.
+    override package func paintedChildren(of target: ViewNode) -> [ViewNode] {
+        super.paintedChildren(of: target) + insetNode(for: target).layoutChildren
+    }
 
     override package var nodeDescription: String { "SafeAreaInset" }
 }
@@ -203,10 +230,18 @@ package final class IgnoresSafeAreaNode<Content: View>: UnaryLayoutModifierNode<
         return size
     }
 
+    /// A child no larger than the safe frame is centred in it; a larger one spreads into the
+    /// extension in proportion to the depth on each side (a filling child covers it all).
+    /// Measured 2026-10-11: a 50 pt stack under a bottom inset sits at the safe frame's top.
     override package func childOrigin(_ child: ViewDimensions, in size: CGSize) -> CGPoint {
         let insets = ignored
-        let extended = CGSize(width: size.width + insets.leading + insets.trailing, height: size.height + insets.top + insets.bottom)
-        return CGPoint(x: -insets.leading + (extended.width - child.width) / 2, y: -insets.top + (extended.height - child.height) / 2)
+        func offset(_ childLength: CGFloat, _ length: CGFloat, _ before: CGFloat, _ after: CGFloat) -> CGFloat {
+            if childLength <= length + 1e-9 { return (length - childLength) / 2 }
+            let total = before + after
+            return total > 0 ? -before * min(1, (childLength - length) / total) : (length - childLength) / 2
+        }
+        return CGPoint(x: offset(child.width, size.width, insets.leading, insets.trailing),
+                       y: offset(child.height, size.height, insets.top, insets.bottom))
     }
 
     override package func assignSafeArea(to child: ViewNode) {

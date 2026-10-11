@@ -4555,6 +4555,56 @@ public static let safeArea = Fixture("position/safe-area", size: CGSize(width: 4
     .probe("row")
 })
 """#),
+        FixtureSource(name: "position/safe-area-elements", file: "Fixtures/Sources/Position/PositionFixtures.swift", firstLine: 107, lastLine: 125, declaration: #"""
+/// A safe-area inset on a `ForEach` gives every element its own inset view (sw-safe-area),
+/// and content ignoring the safe area under insets on every edge extends on every edge.
+public static let safeAreaElements = Fixture("position/safe-area-elements", size: CGSize(width: 320, height: 220), content: {
+    HStack(alignment: .top, spacing: 20) {
+        VStack(spacing: 0) {
+            ForEach(["Apple", "Banana"], id: \.self) { Text($0).probe($0.lowercased()) }
+                .safeAreaInset(edge: .bottom, spacing: 2) { Color.red.frame(height: 6) }
+        }
+        .frame(width: 100)
+        .probe("stack")
+        Color.blue.ignoresSafeArea().probe("blue")
+            .safeAreaInset(edge: .top) { Color.red.frame(height: 10) }
+            .safeAreaInset(edge: .bottom) { Color.red.frame(height: 10) }
+            .safeAreaInset(edge: .leading) { Color.red.frame(width: 10) }
+            .safeAreaInset(edge: .trailing) { Color.red.frame(width: 10) }
+            .frame(width: 100, height: 100)
+            .probe("edges")
+    }
+})
+"""#),
+        FixtureSource(name: "position/safe-area-geometry", file: "Fixtures/Sources/Position/PositionFixtures.swift", firstLine: 79, lastLine: 105, declaration: #"""
+/// `GeometryProxy.safeAreaInsets` (sw-safe-area): a reader ignoring the safe area reports the
+/// inset below it, one inside the safe area reports none; the red bars are as tall as the
+/// reported bottom insets.
+public static let safeAreaGeometry = Fixture("position/safe-area-geometry", size: CGSize(width: 320, height: 240), content: {
+    HStack(spacing: 20) {
+        GeometryReader { proxy in
+            Color.red.frame(width: 40, height: max(1, proxy.safeAreaInsets.bottom)).probe("ignoringBar")
+        }
+        .ignoresSafeArea()
+        .safeAreaInset(edge: .bottom) { Color.blue.frame(height: 30).probe("bar1") }
+        .frame(width: 100, height: 200)
+        .probe("ignoring")
+        GeometryReader { proxy in
+            Color.red.frame(width: 40, height: max(1, proxy.safeAreaInsets.bottom)).probe("insideBar")
+        }
+        .safeAreaInset(edge: .bottom) { Color.blue.frame(height: 30).probe("bar2") }
+        .frame(width: 100, height: 200)
+        .probe("inside")
+        GeometryReader { proxy in
+            Color.red.frame(width: max(1, proxy.safeAreaInsets.leading), height: 40).probe("topBar")
+        }
+        .ignoresSafeArea()
+        .safeAreaInset(edge: .leading) { Color.blue.frame(width: 20).probe("bar3") }
+        .frame(width: 60, height: 200)
+        .probe("leading")
+    }
+})
+"""#),
         FixtureSource(name: "position/safe-area-padding", file: "Fixtures/Sources/Position/PositionFixtures.swift", firstLine: 63, lastLine: 77, declaration: #"""
 public static let safeAreaPadding = Fixture("position/safe-area-padding", size: CGSize(width: 320, height: 200), content: {
     HStack(spacing: 20) {
@@ -13867,7 +13917,55 @@ public enum PositionFixtures {
         .probe("row")
     })
 
-    public static let all: [Fixture] = [position, safeArea, safeAreaPadding]
+    /// `GeometryProxy.safeAreaInsets` (sw-safe-area): a reader ignoring the safe area reports the
+    /// inset below it, one inside the safe area reports none; the red bars are as tall as the
+    /// reported bottom insets.
+    public static let safeAreaGeometry = Fixture("position/safe-area-geometry", size: CGSize(width: 320, height: 240), content: {
+        HStack(spacing: 20) {
+            GeometryReader { proxy in
+                Color.red.frame(width: 40, height: max(1, proxy.safeAreaInsets.bottom)).probe("ignoringBar")
+            }
+            .ignoresSafeArea()
+            .safeAreaInset(edge: .bottom) { Color.blue.frame(height: 30).probe("bar1") }
+            .frame(width: 100, height: 200)
+            .probe("ignoring")
+            GeometryReader { proxy in
+                Color.red.frame(width: 40, height: max(1, proxy.safeAreaInsets.bottom)).probe("insideBar")
+            }
+            .safeAreaInset(edge: .bottom) { Color.blue.frame(height: 30).probe("bar2") }
+            .frame(width: 100, height: 200)
+            .probe("inside")
+            GeometryReader { proxy in
+                Color.red.frame(width: max(1, proxy.safeAreaInsets.leading), height: 40).probe("topBar")
+            }
+            .ignoresSafeArea()
+            .safeAreaInset(edge: .leading) { Color.blue.frame(width: 20).probe("bar3") }
+            .frame(width: 60, height: 200)
+            .probe("leading")
+        }
+    })
+
+    /// A safe-area inset on a `ForEach` gives every element its own inset view (sw-safe-area),
+    /// and content ignoring the safe area under insets on every edge extends on every edge.
+    public static let safeAreaElements = Fixture("position/safe-area-elements", size: CGSize(width: 320, height: 220), content: {
+        HStack(alignment: .top, spacing: 20) {
+            VStack(spacing: 0) {
+                ForEach(["Apple", "Banana"], id: \.self) { Text($0).probe($0.lowercased()) }
+                    .safeAreaInset(edge: .bottom, spacing: 2) { Color.red.frame(height: 6) }
+            }
+            .frame(width: 100)
+            .probe("stack")
+            Color.blue.ignoresSafeArea().probe("blue")
+                .safeAreaInset(edge: .top) { Color.red.frame(height: 10) }
+                .safeAreaInset(edge: .bottom) { Color.red.frame(height: 10) }
+                .safeAreaInset(edge: .leading) { Color.red.frame(width: 10) }
+                .safeAreaInset(edge: .trailing) { Color.red.frame(width: 10) }
+                .frame(width: 100, height: 100)
+                .probe("edges")
+        }
+    })
+
+    public static let all: [Fixture] = [position, safeArea, safeAreaPadding, safeAreaGeometry, safeAreaElements]
 }
 """#,
         "Fixtures/Sources/Presentation/PresentationFixtures.swift": #"""

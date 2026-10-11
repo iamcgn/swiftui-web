@@ -168,6 +168,9 @@ package protocol _UnaryLayoutModifier: AnyObject {
     /// Whether the modifier changes its child's size (frames, padding).
     var changesChildSize: Bool { get }
     func layoutValue<K: LayoutValueKey>(of target: ViewNode, for key: K.Type) -> K.Value
+    /// The nodes painted (and hit tested) for one target: the target itself unless hidden, plus
+    /// any per-target views of the modifier (`safeAreaInset` on a list).
+    func paintedChildren(of target: ViewNode) -> [ViewNode]
     func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext)
 }
 
@@ -301,8 +304,10 @@ open class UnaryLayoutModifierNode<Content: View, Modifier: ViewModifier>:
 
     override package var paintedChildren: [ViewNode] {
         let targets = targets
-        return targets.count == 1 && !hidesTargets ? targets : []
+        return targets.count == 1 ? paintedChildren(of: targets[0]) : []
     }
+
+    package func paintedChildren(of target: ViewNode) -> [ViewNode] { hidesTargets ? [] : [target] }
 
     override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
         for target in paintedChildren { paintTarget(target, in: self, into: &list, context: context) }
@@ -348,9 +353,9 @@ package final class LayoutModifierProxy: ViewNode {
     override package var layoutSpacing: ViewSpacing { owner.spacing(of: target) }
     override package var zIndex: Double { owner.zIndex(of: target) }
     override package var extendsIntoSafeArea: Bool { !owner.changesChildSize && target.extendsIntoSafeArea }
-    override package var paintedChildren: [ViewNode] { owner.hidesTargets ? [] : [target] }
+    override package var paintedChildren: [ViewNode] { owner.paintedChildren(of: target) }
     override package func paintChildren(into list: inout DisplayList, context: PaintContext) {
-        owner.paintTarget(target, in: self, into: &list, context: context)
+        for node in paintedChildren { owner.paintTarget(node, in: self, into: &list, context: context) }
     }
     override package var nodeDescription: String { "Proxy" }
 }

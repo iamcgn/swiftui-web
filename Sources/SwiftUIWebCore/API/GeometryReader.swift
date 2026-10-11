@@ -49,8 +49,9 @@ public struct GeometryProxy {
         self.size = size
     }
 
-    /// The safe area inset of the container view.
-    public var safeAreaInsets: EdgeInsets { EdgeInsets() }
+    /// The safe area inset of the container view: how much of the reader's frame lies under a
+    /// bar or a `safeAreaInset`; none inside `ignoresSafeArea` (`position/safe-area-geometry`).
+    @MainActor public var safeAreaInsets: EdgeInsets { node.safeAreaOverlap }
 
     /// Returns the container view's bounds rectangle, converted to a defined coordinate space.
     @MainActor

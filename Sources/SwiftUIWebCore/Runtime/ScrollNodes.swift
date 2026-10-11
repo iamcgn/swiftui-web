@@ -768,10 +768,12 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         let thickness = PlatformMetrics.scrollerThickness, inset = PlatformMetrics.scrollerInset, endInset = PlatformMetrics.scrollerEndInset
         let halo = PlatformMetrics.scrollerHaloWidth
         let margins = environment._contentMargins.indicators
+        // The track stops at the safe area (a bar or `safeAreaInset` the content runs under).
+        let safe = safeAreaOverlap
         for axis in Axis.allCases where axis == .horizontal ? shows.horizontal : shows.vertical {
             let viewport = frame.size[axis], content = contentSize[axis] + insetsAlong(axis)
-            let leadingMargin = axis == .horizontal ? margins.leading : margins.top
-            let trailingMargin = axis == .horizontal ? margins.trailing : margins.bottom
+            let leadingMargin = (axis == .horizontal ? margins.leading : margins.top) + (axis == .horizontal ? safe.leading : safe.top)
+            let trailingMargin = (axis == .horizontal ? margins.trailing : margins.bottom) + (axis == .horizontal ? safe.trailing : safe.bottom)
             let track = viewport - 2 * endInset - leadingMargin - trailingMargin
             guard content > viewport, track > 0 else { continue }
             let knob = min(track, max(PlatformMetrics.scrollerMinimumKnobLength, track * viewport / content))

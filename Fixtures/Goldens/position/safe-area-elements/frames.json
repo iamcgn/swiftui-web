@@ -1,0 +1,39 @@
+{
+  "fixture" : "position\/safe-area-elements",
+  "frames" : {
+    "apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 82.5,
+      "y" : 60
+    },
+    "banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 77.5,
+      "y" : 84
+    },
+    "blue" : {
+      "height" : 64,
+      "width" : 64,
+      "x" : 188,
+      "y" : 78
+    },
+    "edges" : {
+      "height" : 100,
+      "width" : 100,
+      "x" : 170,
+      "y" : 60
+    },
+    "stack" : {
+      "height" : 48,
+      "width" : 100,
+      "x" : 50,
+      "y" : 60
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 320
+  }
+}

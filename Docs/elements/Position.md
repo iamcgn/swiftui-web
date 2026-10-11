@@ -72,8 +72,24 @@ spellings, `ignoresSafeArea` (and the older spelling), the geometric rule throug
 padding and stacks, the host's safe area, and unproposed sizes (2026-09-12: the earlier
 assumption that a frame stops the safe area was refuted by `ios/representable/safearea-rule`).
 
-## Not yet covered
+## Corners (sw-safe-area, macOS 26.6, 2026-10-11)
 
-`GeometryProxy.safeAreaInsets`, the keyboard region, `safeAreaInset` on a list content (the inset
-is one view for the modifier, not one per element), and scroll indicators that should stop at the
-inset.
+| Property | Value | Probe |
+|---|---|---|
+| `GeometryReader` under `safeAreaInset(edge: .bottom)` (30 pt bar) in a 100 × 200 box | the reader fills the 200 (it extends into the safe area like a scroll view) and `proxy.safeAreaInsets.bottom` is 38 (bar + spacing); its content starts at the safe region's origin | `inside`, `insideBar` |
+| the same reader with `ignoresSafeArea()` | fills the 200, reports 0 | `ignoring`, `ignoringBar` |
+| a leading inset of 20 under an ignoring reader | reports 0 (the ignored edge has no safe area) | `leading`, `topBar` |
+| `safeAreaInset(edge: .bottom, spacing: 2)` on a `ForEach` of two texts (6 pt bar) in a VStack | every element gets a bar of its own: the stack is 48 tall (2 × (16 + 6 + 2)), the rows 24 apart, two bars painted | `stack`, `apple`, `banana` |
+| `Color.ignoresSafeArea()` under 10 pt insets on all four edges, in a 100 × 100 frame | the ignoring node keeps the safe frame (64 × 64 at the centre); its colour extends under every bar (pixels) | `edges`, `blue` |
+| a vertical scroll view under a bottom inset of 38 | the indicator track stops at the inset: 200 − 8 − 38 = 154, the knob 154 × 200 / 638 (to the half point) | `SafeAreaTests` |
+| the keyboard region | none: a browser has no keyboard safe area (the page's viewport shrinks instead) | — |
+
+The reader's node (`GeometryReaderNode.extendsIntoSafeArea`) keeps the full bounds under a
+safe-area modifier and proposes its content the bounds less the overlap, placed at the safe
+origin; `GeometryProxy.safeAreaInsets` reads the node's overlap. `SafeAreaInsetNode` makes one
+inset view per target as the targets are placed (a list modifier applies to every element) and
+paints each over its element (`paintedChildren(of:)` on the proxies); dropped targets drop their
+views. `ScrollNode`'s indicator margins add the overlap.
+
+Tier A exact, Tier C `position/safe-area-geometry` 0.00 %, `position/safe-area-elements` within
+tolerance (text), Tier B Chromium 5/5 with exact frames.

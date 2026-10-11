@@ -1,0 +1,63 @@
+{
+  "fixture" : "position\/safe-area-geometry",
+  "frames" : {
+    "bar1" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 10,
+      "y" : 190
+    },
+    "bar2" : {
+      "height" : 30,
+      "width" : 100,
+      "x" : 130,
+      "y" : 190
+    },
+    "bar3" : {
+      "height" : 200,
+      "width" : 20,
+      "x" : 250,
+      "y" : 20
+    },
+    "ignoring" : {
+      "height" : 200,
+      "width" : 100,
+      "x" : 10,
+      "y" : 20
+    },
+    "ignoringBar" : {
+      "height" : 1,
+      "width" : 40,
+      "x" : 10,
+      "y" : 20
+    },
+    "inside" : {
+      "height" : 200,
+      "width" : 100,
+      "x" : 130,
+      "y" : 20
+    },
+    "insideBar" : {
+      "height" : 38,
+      "width" : 40,
+      "x" : 130,
+      "y" : 20
+    },
+    "leading" : {
+      "height" : 200,
+      "width" : 60,
+      "x" : 250,
+      "y" : 20
+    },
+    "topBar" : {
+      "height" : 40,
+      "width" : 1,
+      "x" : 250,
+      "y" : 20
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

@@ -1233,13 +1233,14 @@
       "framework": "SwiftUI",
       "area": "Position",
       "title": "Safe area corners",
-      "detail": "`GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. `ignoresSafeArea` on a view whose safe-area modifier hugs it on every edge extends on every edge by the geometric rule (PositionTests): a consequence, not a measurement.",
+      "detail": "`GeometryProxy.safeAreaInsets`, `safeAreaInset` applied per list element, scroll indicators stopping at the inset; the keyboard region is a documented non-region in a browser. `ignoresSafeArea` on a view whose safe-area modifier hugs it on every edge extends on every edge by the geometric rule (PositionTests): a consequence, not a measurement. Done 2026-10-11 (Phase 9, item 6): a `GeometryReader` extends into the safe area it sits under and `proxy.safeAreaInsets` reports it (zero when ignoring), `safeAreaInset` on a list makes one inset view per element painted over it, indicator tracks stop at the inset, the keyboard region is documented as none in a browser (`position/safe-area-geometry`, `position/safe-area-elements`, `SafeAreaTests`).",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Position.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-shapes",

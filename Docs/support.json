@@ -680,11 +680,12 @@
           ]
         },
         {
-          "api": "GeometryReader / GeometryProxy (size, frame(in:), bounds(of:))",
+          "api": "GeometryReader / GeometryProxy (size, frame(in:), bounds(of:), safeAreaInsets)",
           "status": "partial",
-          "notes": "No safe area or anchors; Tier B (Chromium) within tolerance",
+          "notes": "The reader extends into a safe area it sits under and safeAreaInsets reports the inset (zero when it ignores the safe area, zero in a browser window); no anchors; Tier B (Chromium) within tolerance",
           "fixtures": [
             "position/basic",
+            "position/safe-area-geometry",
             "scroll/scroll-to",
             "layout/alignment-guide"
           ]
@@ -1172,11 +1173,13 @@
         },
         {
           "api": "safeAreaInset / safeAreaPadding / ignoresSafeArea / edgesIgnoringSafeArea",
-          "status": "partial",
-          "notes": "The modifiers create a safe area: plain content is laid out inside it (inset length + 8 pt spacing), scroll views keep their frame and inset their content, ignoresSafeArea extends where the view's edge touches the safe boundary (through frames and padding on other edges, by geometry: ios/representable/safearea-rule); an iOS navigation bar and a UIHostingController's bars are safe areas too. A browser window has none and GeometryProxy.safeAreaInsets stays zero",
+          "status": "full",
+          "notes": "The modifiers create a safe area: plain content is laid out inside it (inset length + 8 pt spacing), scroll views keep their frame, inset their content and stop their indicators at the inset, ignoresSafeArea extends where the view's edge touches the safe boundary (through frames and padding on other edges, by geometry: ios/representable/safearea-rule); on a list every element gets an inset view of its own; an iOS navigation bar and a UIHostingController's bars are safe areas too. A browser window has none, and no keyboard region (the viewport shrinks instead)",
           "fixtures": [
             "position/safe-area",
             "position/safe-area-padding",
+            "position/safe-area-geometry",
+            "position/safe-area-elements",
             "ios/representable/safearea-color",
             "ios/representable/safearea-rule"
           ]

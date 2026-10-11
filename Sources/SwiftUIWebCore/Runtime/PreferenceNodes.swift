@@ -96,6 +96,9 @@ package final class CoordinateSpaceNode<Content: View, Name: Hashable>:
 @MainActor
 package final class GeometryReaderNode<Content: View>: LayoutNode<GeometryReader<Content>> {
     override package var readsGeometry: Bool { true }
+    /// A reader takes the whole frame under a safe-area inset and reports the inset
+    /// (`proxy.safeAreaInsets`), placing its content in the safe part (`position/safe-area-geometry`).
+    override package var extendsIntoSafeArea: Bool { true }
     package private(set) var child: TypedNode<Content>?
 
     package init(_ context: _NodeContext<GeometryReader<Content>>) {
@@ -114,9 +117,10 @@ package final class GeometryReaderNode<Content: View>: LayoutNode<GeometryReader
         } else {
             child = Content._makeNode(_NodeContext(view: content, parent: self, environment: environment))
         }
-        let childProposal = ProposedViewSize(frame.size)
+        let safe = safeAreaOverlap
+        let childProposal = ProposedViewSize(width: max(0, frame.width - safe.leading - safe.trailing), height: max(0, frame.height - safe.top - safe.bottom))
         for node in child!.layoutChildren {
-            node.place(at: .zero, anchor: .topLeading, proposal: childProposal, by: self)
+            node.place(at: CGPoint(x: safe.leading, y: safe.top), anchor: .topLeading, proposal: childProposal, by: self)
         }
     }
 
