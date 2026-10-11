@@ -1,3 +1,13 @@
+/// A range of UTF-16 offsets in an input's text.
+public struct TextRange: Equatable, Sendable {
+    public var start: Int
+    public var end: Int
+    public init(start: Int, end: Int) {
+        self.start = start
+        self.end = end
+    }
+}
+
 /// What a host needs to place and drive a real input element over a text field.
 public struct TextInputInfo: Equatable, Sendable {
     /// The field's text and placeholder.
@@ -27,6 +37,10 @@ public struct TextInputInfo: Equatable, Sendable {
     public var autocapitalize: String?
     public var enterKeyHint: String?
     public var autocorrect = true
+    /// A selection the scene sets programmatically (UTF-16 offsets); the host applies it once.
+    public var selection: TextRange?
+    /// How far a multi-line editor's content is scrolled (the host's textarea follows).
+    public var scrollOffset: CGFloat = 0
 
     public init(text: String, placeholder: String, isSecure: Bool, textRect: CGRect, font: DisplayFont, isEnabled: Bool) {
         self.text = text

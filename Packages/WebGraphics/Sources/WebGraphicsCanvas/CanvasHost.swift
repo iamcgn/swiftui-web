@@ -1012,6 +1012,14 @@ public final class CanvasSceneHost {
                 self?.scene.textField(id, focused: true)
                 self?.scheduleFrame()
             }
+            if info.isMultiline {
+                // The editor's own scrolling: the scene paints its text at the same offset.
+                on(element, "scroll") { [weak self] _ in
+                    guard let self, let top = element.scrollTop.number else { return }
+                    self.scene.textField(id, scrolledTo: CGFloat(top))
+                    self.scheduleFrame()
+                }
+            }
             on(element, "blur") { [weak self] _ in
                 self?.scene.textField(id, focused: false)
                 self?.scheduleFrame()
@@ -1054,6 +1062,13 @@ public final class CanvasSceneHost {
         if overlayState[node.identifier]?.label != node.label { _ = element.setAttribute!("aria-label", node.label) }
         overlayState[node.identifier] = node
         if element.value.string != info.text { element.value = .string(info.text) }
+        // A selection the scene set (a selection binding) and an editor scrolled by the wheel.
+        if let selection = info.selection, previous?.selection != info.selection {
+            _ = element.setSelectionRange?(selection.start, selection.end)
+        }
+        if info.isMultiline, previous?.scrollOffset != info.scrollOffset, abs((element.scrollTop.number ?? 0) - info.scrollOffset) > 0.5 {
+            element.scrollTop = .number(info.scrollOffset)
+        }
         // A field the scene focused (a canvas press) takes the browser focus too.
         if scene.focusedTextFieldIdentifier == node.identifier, document.activeElement.object != element {
             _ = element.focus?()

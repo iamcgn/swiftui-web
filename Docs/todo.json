@@ -1347,13 +1347,14 @@
       "framework": "SwiftUI",
       "area": "TextEditor",
       "title": "TextEditor: selection, find, long content",
-      "detail": "A selection binding, `findNavigator`/`findDisabled`/`replaceDisabled`, `lineLimit` on editors, scrolling of long content, and the NSTextView wrapping parity (texteditor/basic is approximate).",
+      "detail": "A selection binding, `findNavigator`/`findDisabled`/`replaceDisabled`, `lineLimit` on editors, scrolling of long content, and the NSTextView wrapping parity (texteditor/basic is approximate). Done 2026-10-11 (Phase 9, item 14): `TextEditor(text:selection:)` with `TextSelection`, `findNavigator`/`findDisabled`/`replaceDisabled` (a measured 32 pt bar, approximate control looks, highlighted matches), wheel and host scrolling of long content, `lineLimit` measured as no effect (`texteditor/corners`, `TextEditorTests`); the NSTextView wrapping parity stays approximate.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/TextEditor.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-label-forms",

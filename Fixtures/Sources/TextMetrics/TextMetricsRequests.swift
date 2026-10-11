@@ -467,6 +467,16 @@ public enum TextMetricsRequests {
         requests.append(TextMetricRequest("Hello\nWorld", defaultFont, width: 270))
         requests.append(TextMetricRequest("Left", defaultFont, width: 270))
         for word in ["Empty", "Filled"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        // texteditor/corners: the find bar's field prompt, Done button (its 17 pt frame), the
+        // Replace checkbox, the editors' lines.
+        requests.append(TextMetricRequest("Find", defaultFont))
+        requests.append(TextMetricRequest("Done", defaultFont, width: 17.5))
+        requests.append(TextMetricRequest("Done", defaultFont, width: 17.5, options: TextMetricOptions(lineLimit: 1)))
+        for width: CGFloat? in [nil, 0, 279] { requests.append(TextMetricRequest("Replace", .style("body"), width: width)) }
+        for text in ["Find me here", "One\nTwo\nThree\nFour", (1...20).map { "Line \($0)" }.joined(separator: "\n")] {
+            requests.append(TextMetricRequest(text, defaultFont))
+            requests.append(TextMetricRequest(text, defaultFont, width: 290))
+        }
         // Table fixtures: headers (bold when sorted), cells.
         for word in ["Name", "Color", "Count"] {
             requests.append(TextMetricRequest(word, defaultFont))

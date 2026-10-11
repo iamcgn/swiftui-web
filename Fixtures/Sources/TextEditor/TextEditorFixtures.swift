@@ -65,5 +65,29 @@ public enum TextEditorFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic, sizing, styles, steps]
+    /// Corners (sw-texteditor): a presented find navigator, `lineLimit` on an editor, long
+    /// content (twenty lines in a 60 pt frame: the editor scrolls, the first lines show), and a
+    /// selection binding (its layout is the plain editor's).
+    public static let corners = Fixture("texteditor/corners", size: CGSize(width: 360, height: 300)) {
+        VStack(spacing: 12) {
+            FindableEditor().frame(width: 300, height: 100).probe("find")
+            TextEditor(text: .constant("One\nTwo\nThree\nFour")).lineLimit(2).frame(width: 300, height: 60).probe("limited")
+            TextEditor(text: .constant((1...20).map { "Line \($0)" }.joined(separator: "\n"))).frame(width: 300, height: 60).probe("long")
+            Text("Below").probe("below")
+        }
+    }
+
+    public static let all: [Fixture] = [basic, sizing, styles, steps, corners]
+}
+
+/// A text editor with its find navigator presented (macOS 26's `findNavigator(isPresented:)`
+/// on an editor; older harness targets show the plain editor).
+struct FindableEditor: View {
+    var body: some View {
+        if #available(macOS 26.0, iOS 16.0, *) {
+            TextEditor(text: .constant("Find me here")).findNavigator(isPresented: .constant(true))
+        } else {
+            TextEditor(text: .constant("Find me here"))
+        }
+    }
 }

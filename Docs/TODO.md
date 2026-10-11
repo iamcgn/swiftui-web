@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 20 | 0 | 0 | 20 |
+| SwiftUI | 19 | 0 | 0 | 19 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **36** | 0 | 1 | 35 |
+| **All** | **35** | 0 | 1 | 34 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **TextEditor: selection, find, long content** `sw-texteditor` · TextEditor · missing  
-  A selection binding, `findNavigator`/`findDisabled`/`replaceDisabled`, `lineLimit` on editors, scrolling of long content, and the NSTextView wrapping parity (texteditor/basic is approximate). ([TextEditor.md](Docs/elements/TextEditor.md))
 - ☐ **Context-dependent labels and formatted values** `sw-label-forms` · Label · missing  
   `Label`'s automatic style by context (icon only in toolbars), multi-line titles, `LabeledContent(_:value:format:)`, the secondary value colour in grouped forms (unmeasured). ([Label.md](Docs/elements/Label.md), [LabeledContent.md](Docs/elements/LabeledContent.md))
 - ☐ **ContentUnavailableView in containers** `sw-content-unavailable` · ContentUnavailableView · verify  
@@ -116,6 +114,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **SF Symbols fidelity** `sw-symbols` · SwiftUI · Image
 - ☑ 2026-10-11 **AsyncImage caching and transactions** `sw-asyncimage` · SwiftUI · AsyncImage
 - ☑ 2026-10-11 **Selecting text** `sw-text-selection` · SwiftUI · Text
+- ☑ 2026-10-11 **TextEditor: selection, find, long content** `sw-texteditor` · SwiftUI · TextEditor
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

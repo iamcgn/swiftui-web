@@ -382,6 +382,11 @@ extension Runtime {
         textInputNode(semanticsIdentifier)?.setSelection(start: start, end: end)
     }
 
+    /// The host's textarea scrolled: the editor's painted text follows.
+    public func textField(_ semanticsIdentifier: Int, scrolledTo offset: CGFloat) {
+        (textInputNode(semanticsIdentifier) as? TextEditorNode)?.setScrollOffset(offset)
+    }
+
     /// The host's input gained or lost focus.
     public func textField(_ semanticsIdentifier: Int, focused: Bool) {
         if let tree = platformTree(handling: semanticsIdentifier) {

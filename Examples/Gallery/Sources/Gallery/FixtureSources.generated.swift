@@ -6467,6 +6467,19 @@ public static let basic = Fixture("texteditor/basic", size: CGSize(width: 320, h
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "texteditor/corners", file: "Fixtures/Sources/TextEditor/TextEditorFixtures.swift", firstLine: 68, lastLine: 78, declaration: #"""
+/// Corners (sw-texteditor): a presented find navigator, `lineLimit` on an editor, long
+/// content (twenty lines in a 60 pt frame: the editor scrolls, the first lines show), and a
+/// selection binding (its layout is the plain editor's).
+public static let corners = Fixture("texteditor/corners", size: CGSize(width: 360, height: 300)) {
+    VStack(spacing: 12) {
+        FindableEditor().frame(width: 300, height: 100).probe("find")
+        TextEditor(text: .constant("One\nTwo\nThree\nFour")).lineLimit(2).frame(width: 300, height: 60).probe("limited")
+        TextEditor(text: .constant((1...20).map { "Line \($0)" }.joined(separator: "\n"))).frame(width: 300, height: 60).probe("long")
+        Text("Below").probe("below")
+    }
+}
+"""#),
         FixtureSource(name: "texteditor/sizing", file: "Fixtures/Sources/TextEditor/TextEditorFixtures.swift", firstLine: 26, lastLine: 38, declaration: #"""
 public static let sizing = Fixture("texteditor/sizing", size: CGSize(width: 320, height: 240)) {
     VStack(spacing: 8) {
@@ -17444,7 +17457,7 @@ public enum TextRichFixtures {
     public static let all: [Fixture] = [markdown, attributed, dates, inlineImage, customFont]
 }
 """##,
-        "Fixtures/Sources/TextEditor/TextEditorFixtures.swift": #"""
+        "Fixtures/Sources/TextEditor/TextEditorFixtures.swift": ##"""
 // TextEditor fixtures: the macOS multi-line editor (geometry in frames, wrapping, an empty one),
 // sizing in stacks, font and colour modifiers, disabled, and a behaviour fixture whose text
 // follows the model.
@@ -17512,9 +17525,33 @@ public enum TextEditorFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic, sizing, styles, steps]
+    /// Corners (sw-texteditor): a presented find navigator, `lineLimit` on an editor, long
+    /// content (twenty lines in a 60 pt frame: the editor scrolls, the first lines show), and a
+    /// selection binding (its layout is the plain editor's).
+    public static let corners = Fixture("texteditor/corners", size: CGSize(width: 360, height: 300)) {
+        VStack(spacing: 12) {
+            FindableEditor().frame(width: 300, height: 100).probe("find")
+            TextEditor(text: .constant("One\nTwo\nThree\nFour")).lineLimit(2).frame(width: 300, height: 60).probe("limited")
+            TextEditor(text: .constant((1...20).map { "Line \($0)" }.joined(separator: "\n"))).frame(width: 300, height: 60).probe("long")
+            Text("Below").probe("below")
+        }
+    }
+
+    public static let all: [Fixture] = [basic, sizing, styles, steps, corners]
 }
-"""#,
+
+/// A text editor with its find navigator presented (macOS 26's `findNavigator(isPresented:)`
+/// on an editor; older harness targets show the plain editor).
+struct FindableEditor: View {
+    var body: some View {
+        if #available(macOS 26.0, iOS 16.0, *) {
+            TextEditor(text: .constant("Find me here")).findNavigator(isPresented: .constant(true))
+        } else {
+            TextEditor(text: .constant("Find me here"))
+        }
+    }
+}
+"""##,
         "Fixtures/Sources/TextField/TextFieldFixtures.swift": ##"""
 // TextField fixtures: the macOS rounded-border field (default), plain and square-border
 // styles, placeholder vs text, secure fields, labels, sizing in stacks, disabled, and a

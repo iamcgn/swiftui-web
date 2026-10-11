@@ -111,6 +111,8 @@ public protocol HostedScene: AnyObject {
     /// The element's caret or selection moved (UTF-16 offsets); scenes painting their own
     /// caret (`TextInputInfo.paintsCaret`) follow it.
     func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int)
+    /// The element's content scrolled (a multi-line editor's textarea), in points.
+    func textField(_ semanticsIdentifier: Int, scrolledTo offset: CGFloat)
     /// A bundled font the host loaded is now available: text measured before it lays out again.
     func fontsDidLoad()
     /// The scene laid out a symbol outside the built-in layout table: hosts that can load the
@@ -121,6 +123,7 @@ public protocol HostedScene: AnyObject {
 
 extension HostedScene {
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {}
+    public func textField(_ semanticsIdentifier: Int, scrolledTo offset: CGFloat) {}
     public func fontsDidLoad() {}
     public func symbolMetricsDidLoad() {}
     public func pinch(_ phase: ContinuousGesturePhase, scale: CGFloat, rotation: Double, at point: CGPoint, time: Double) {}
