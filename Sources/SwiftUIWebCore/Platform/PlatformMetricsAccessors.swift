@@ -152,10 +152,14 @@ extension PlatformMetrics {
     package static var sliderTrackAlpha: Double { current.sliderTrackAlpha }
     package static var sliderDisabledFilledAlpha: Double { current.sliderDisabledFilledAlpha }
     package static var sliderKnobShadowAlpha: Double { current.sliderKnobShadowAlpha }
+    package static var sliderKnobShadowRadius: CGFloat { current.sliderKnobShadowRadius }
+    package static var sliderKnobShadowOffset: CGFloat { current.sliderKnobShadowOffset }
     package static var sliderTickSize: CGFloat { current.sliderTickSize }
     package static var sliderTickTop: CGFloat { current.sliderTickTop }
     package static var sliderIdealWidth: CGFloat { current.sliderIdealWidth }
     package static var stepperSize: CGSize { current.stepperSize }
+    package static var stepperRepeatDelay: Double { current.stepperRepeatDelay }
+    package static var stepperRepeatInterval: Double { current.stepperRepeatInterval }
     package static var stepperCornerRadius: CGFloat { current.stepperCornerRadius }
     package static var stepperFill: Double { current.stepperFill }
     package static var stepperDisabledFill: Double { current.stepperDisabledFill }

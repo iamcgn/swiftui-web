@@ -57,9 +57,11 @@ import SwiftUIWebHeadless
         let frame = slider.probeFrames["slider"]!
         let ltr = commands(ltrRuntime(Slider(value: .constant(0.3)).frame(width: 200)))
         let rtl = commands(slider)
-        let ltrKnobCenter = x(ltr.last!) + width(ltr.last!) / 2
-        let rtlKnobCenter = x(rtl.last!) + width(rtl.last!) / 2
-        #expect(abs(rtlKnobCenter - (frame.minX + frame.maxX - ltrKnobCenter)) < 1e-9, "\(ltr.last!) vs \(rtl.last!)")
+        // The knob is the last fill (inside its shadow group).
+        let ltrKnob = ltr.last { $0.hasPrefix("fillRRect") }!, rtlKnob = rtl.last { $0.hasPrefix("fillRRect") }!
+        let ltrKnobCenter = x(ltrKnob) + width(ltrKnob) / 2
+        let rtlKnobCenter = x(rtlKnob) + width(rtlKnob) / 2
+        #expect(abs(rtlKnobCenter - (frame.minX + frame.maxX - ltrKnobCenter)) < 1e-9, "\(ltrKnob) vs \(rtlKnob)")
         #expect(abs(x(rtl[1]) - rtlKnobCenter) < 1e-9 && abs(x(rtl[1]) + width(rtl[1]) - frame.maxX) < 1e-9, "fill \(rtl[1])")
         // The value grows leftward: a press near the right end is near the minimum.
         var value = 0.3

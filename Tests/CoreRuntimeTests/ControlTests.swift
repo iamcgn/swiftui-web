@@ -85,8 +85,9 @@ import SwiftUIWebHeadless
         r.pointerUp(at: CGPoint(x: slider.minX - 50, y: slider.midY))
         #expect(edits == [true, false])
         let painted = commands(r)
-        // Track, filled part, 11 ticks, knob shadow and knob.
-        #expect(painted.filter { $0.hasPrefix("fillRRect") }.count == 2 + 11 + 2)
+        // Track, filled part, 11 ticks and the knob (inside its shadow group).
+        #expect(painted.filter { $0.hasPrefix("fillRRect") }.count == 2 + 11 + 1)
+        #expect(painted.contains { $0.hasPrefix("beginShadow(#000000@0.098") && $0.contains("r=2 dx=0 dy=1") }, "\(painted.filter { $0.hasPrefix("beginShadow") })")
         // Labels: body label, footnote value labels, pixel-aligned in an 18.5 pt row.
         let labelled = runtime(Slider(value: .constant(0.5)) { Text("Volume") } minimumValueLabel: { Text("Min")._probe("min") } maximumValueLabel: { Text("Max")._probe("max") }
             ._probe("row"), size: CGSize(width: 320, height: 118.5))
@@ -114,6 +115,37 @@ import SwiftUIWebHeadless
         let s = closures.probeFrames["s"]!
         closures.pointerDown(at: CGPoint(x: s.maxX - 10, y: s.minY + 6)); closures.pointerUp(at: CGPoint(x: s.maxX - 10, y: s.minY + 6))
         #expect(increments == 0)
+    }
+
+    /// sw-slider-stepper: a stepper steps on the press itself (NSStepper), reports its editing
+    /// state, and held repeats after half a second, ten times a second, until released.
+    @Test func stepperHoldRepeats() {
+        let box = _IntBox(0)
+        var edits: [Bool] = []
+        let r = runtime(Stepper("Count", value: Binding(get: { box.value }, set: { box.value = $0 }), in: 0...100, onEditingChanged: { edits.append($0) })._probe("stepper"))
+        let stepper = r.probeFrames["stepper"]!
+        let upper = CGPoint(x: stepper.maxX - 10, y: stepper.minY + 6)
+        r.pointerDown(at: upper)
+        #expect(box.value == 1 && edits == [true])
+        // Within the delay nothing more happens; at the delay one step, then one per 0.1 s.
+        r.advanceAnimations(elapsed: 0.3)
+        #expect(box.value == 1)
+        r.advanceAnimations(elapsed: 0.2)
+        #expect(box.value == 2)
+        r.advanceAnimations(elapsed: 0.05)
+        #expect(box.value == 2)
+        for _ in 0..<5 { r.advanceAnimations(elapsed: 0.1) }
+        #expect(box.value == 7)
+        r.pointerUp(at: upper)
+        #expect(edits == [true, false])
+        r.advanceAnimations(elapsed: 1)
+        #expect(box.value == 7)
+        // The formatted forms step the bound value the same way.
+        let formatted = _DoubleBox(1.5)
+        let f = runtime(Stepper("Count", value: Binding(get: { formatted.value }, set: { formatted.value = $0 }), in: 0...10, step: 0.5, format: .number)._probe("s"))
+        let s = f.probeFrames["s"]!
+        f.pointerDown(at: CGPoint(x: s.maxX - 10, y: s.maxY - 6)); f.pointerUp(at: CGPoint(x: s.maxX - 10, y: s.maxY - 6))
+        #expect(formatted.value == 1.0)
     }
 }
 

@@ -11,7 +11,9 @@ Apple docs: [Slider](https://developer.apple.com/documentation/swiftui/slider).
 | `Slider(value:in:label:minimumValueLabel:maximumValueLabel:…)` and the stepped form | implemented |
 | `onEditingChanged` | implemented: `true` when a press starts, `false` when it ends |
 | `labelsHidden()`, `disabled(_:)` | implemented |
-| Keyboard control, `sliderStyle`, tick labels, vertical sliders | missing |
+| Knob shadow | implemented (2026-10-11): a blurred shadow, black 25/255, radius 2, 1 pt down (measured below) |
+| `sliderStyle`, tick labels, vertical sliders | not SwiftUI API: SwiftUI has no `sliderStyle`, tick labels or vertical sliders on any platform (those are `NSSlider`/`UISlider` features); nothing to implement |
+| Keyboard control | missing |
 
 ## Behaviour
 
@@ -31,7 +33,7 @@ slider instead of becoming a pan (`dragAxes`, see ScrollView.md, 2026-09-05).
 |---|---|---|
 | Row | 16 pt tall, flexible width (fills 320, a `frame(width: 120)`, the rest of an `HStack`); 18.5 tall with a body label | `half`, `narrow`, `rowSlider`, `labelled` |
 | Track | 5 pt tall, centred (y + 5.5), round ends, full width; black 25/255, the part before the knob 58/255 (disabled 42/255) | pixels rows 33…38 of `half` |
-| Knob | a 22 × 16 white pill whose centre travels from 11 to width − 11 (148…172 at 0.5 of 320, 0…22 at 0, 298…320 at 1), with a soft shadow (Apple's is a blur; ours a 1 pt ring at 12/255) | pixels of `half`, `zero`, `full`, `slider/steps` |
+| Knob | a 22 × 16 white pill whose centre travels from 11 to width − 11 (148…172 at 0.5 of 320, 0…22 at 0, 298…320 at 1), with a blurred shadow (below) | pixels of `half`, `zero`, `full`, `slider/steps` |
 | Ticks | 2 pt dots at y + 14, one per step from the first to the last knob position (21 for 0…100 by 5, 14.9 apart) | pixels of `stepped` |
 | Label | body font, 8 pt before the track ("Volume" 45: the track starts at 53) | `labelled`, `minMax` |
 | Value labels | footnote font (10 pt, 15 line) in the secondary colour, 8 pt from the track on each side; "Min" 17.5 × 15 at (53, 172) in a row at 170: 1.75 down, pixel-aligned to 2 | `min`, `max` |
@@ -44,8 +46,28 @@ Tier A: 2 fixtures exact (`slider/steps` steps included). Tier B, frames exact i
 browsers: Chromium ≤ 1.36 % pixels, WebKit ≤ 1.25 %, Firefox ≤ 1.38 % (`slider/basic`, the
 knob shadow approximation). wasm js tests pass.
 
+## Knob shadow (macOS 27, 2026-10-11, Phase 9 item 17)
+
+The knob's shadow was a 1 pt ring; Apple's is a blur. Scanning an `NSHostingView` of a
+`Slider(value: .constant(0.5))` over white (`cacheDisplay`, alpha printed) gives this darkening
+profile below and above the knob, in 255ths per pixel at 2 ×:
+
+| | row 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|
+| Apple, below the knob | 17 | 14 | 11 | 9 | 6 | 4 | 3 | 2 | 1 |
+| Ours (`beginShadow`, black 25/255, σ 2, +1) | 16 | 14 | 11 | 9 | 6 | 5 | 3 | 2 | 1 |
+| Apple, above the knob | 0 | 1 | 2 | 3 | 4 | 6 | | | |
+| Ours | 0 | 1 | 2 | 3 | 5 | 6 | | | |
+
+`SliderTrackNode` paints the knob inside a shadow group (`beginShadow`/`endGroup`,
+`PlatformMetrics.sliderKnobShadow{Alpha,Radius,Offset}`); the disabled knob has no shadow.
+Tier C `slider/basic` 1.25 %, `slider/steps` ≤ 0.90 %; Tier B Chromium ≤ 1.36 %.
+
+`sliderStyle`, tick labels and vertical sliders were listed as missing: SwiftUI has none of them
+(there is no `SliderStyle` protocol; ticks and vertical orientation are `NSSlider`/`UISlider`
+features reached through representables), so the row is closed as not applicable.
+
 ## Not yet covered
 
-The focused (accent) fill, the knob's blurred shadow, keyboard control, `onEditingChanged`
-for keyboard changes, vertical sliders, `sliderStyle`, ideal width without a proposal (100,
-unverified).
+The focused (accent) fill, keyboard control and `onEditingChanged` for keyboard changes, ideal
+width without a proposal (100, unverified).

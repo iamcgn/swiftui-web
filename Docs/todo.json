@@ -1390,14 +1390,15 @@
       "framework": "SwiftUI",
       "area": "Slider and Stepper",
       "title": "Slider styles and stepper repeat",
-      "detail": "`sliderStyle`, tick labels, vertical sliders, the knob shadow; the stepper's press-and-hold repeat and its `formatter`/`format` forms.",
+      "detail": "`sliderStyle`, tick labels, vertical sliders, the knob shadow; the stepper's press-and-hold repeat and its `formatter`/`format` forms. Done 2026-10-11 (Phase 9, item 17): the knob's blurred shadow measured on macOS 27 (black 25/255, radius 2, 1 pt down) and painted in a shadow group; the stepper steps on the press and repeats after 0.5 s every 0.1 s on the animation clock; `format:` initialisers added; `sliderStyle`, tick labels, vertical sliders and `formatter:` are not SwiftUI API and are documented as such.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Slider.md",
         "Docs/elements/Stepper.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-colorpicker",

@@ -10,15 +10,23 @@ Apple docs: [Stepper](https://developer.apple.com/documentation/swiftui/stepper)
 | `Stepper(_ title:onIncrement:onDecrement:onEditingChanged:)`, `Stepper(onIncrement:onDecrement:onEditingChanged:label:)` | implemented (`nil` closures do nothing) |
 | `onEditingChanged` | implemented: `true` then `false` around each press |
 | `labelsHidden()`, `disabled(_:)` | implemented |
-| Press-and-hold repeat, keyboard control, `formatter`/`format` forms | missing |
+| Press-and-hold repeat | implemented (2026-10-11): the press steps at once, then after 0.5 s repeats every 0.1 s until released |
+| `Stepper(_:value:step:format:)`, `Stepper(_:value:in:step:format:)` (`F: ParseableFormatStyle`) | implemented (2026-10-11): the format is accepted for source compatibility; the stepper itself shows no value, so it changes nothing |
+| `Stepper(…formatter:)` | not SwiftUI API (there is no `formatter:` form; `format:` is the only formatted initialiser) |
+| Keyboard control | missing |
 
 ## Behaviour
 
 `Stepper` is a composite: the label (`_ControlLabel`, body font, dimmed when disabled) and the
 `_StepperControl` primitive 8 pt apart in an `HStack`, each `_pixelAligned`. The stepper is its
 natural size (a `frame(width: 200)` centres it). `StepperControlNode` is a 20 × 26 leaf that
-paints the button pair and, on a press released inside, runs the increment action for the top
-half and the decrement action for the bottom half.
+paints the button pair and, when a press begins, runs the increment action for the top half or
+the decrement action for the bottom half (NSStepper steps on mouse down, not on release).
+Held, it repeats as `NSStepper` does with `autorepeat`: a `_FrameSubscriber` steps once more
+`PlatformMetrics.stepperRepeatDelay` (0.5 s) after the press and then every
+`stepperRepeatInterval` (0.1 s) on the animation clock until the pointer lifts;
+`onEditingChanged` is `true` at the press and `false` at the release (2026-10-11, Phase 9
+item 17, `ControlTests.stepperHoldRepeats`).
 
 ## Measured (macOS 26.2, `stepper/basic`, `stepper/steps`, 2026-09-02)
 
@@ -39,4 +47,4 @@ browsers: Chromium ≤ 0.50 % pixels, WebKit ≤ 0.38 %, Firefox ≤ 0.63 %. was
 
 ## Not yet covered
 
-Press-and-hold repeat, the pressed look of a half, keyboard control, formatted value forms.
+The pressed look of a half, keyboard control.

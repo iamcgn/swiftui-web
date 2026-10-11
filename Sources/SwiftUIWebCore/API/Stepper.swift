@@ -1,3 +1,8 @@
+#if os(WASI)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
+#else
+import Foundation
+#endif
 /// A control that performs increment and decrement actions.
 ///
 /// macOS geometry measured in `Docs/elements/Stepper.md`: a 20 × 26 button pair (up and down
@@ -96,6 +101,34 @@ extension Stepper where Label == Text {
     @_disfavoredOverload
     public init<S: StringProtocol, V: Strideable>(_ title: S, value: Binding<V>, in bounds: ClosedRange<V>, step: V.Stride = 1,
                                                   onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, in: bounds, step: step, label: { Text(title) }, onEditingChanged: onEditingChanged)
+    }
+
+    /// The formatted forms: the format describes the value for assistive technology (a stepper
+    /// shows no value of its own); the layout and stepping are the plain forms'.
+    public init<F: ParseableFormatStyle>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F,
+                                         onEditingChanged: @escaping (Bool) -> Void = { _ in })
+    where F.FormatInput: Strideable, F.FormatOutput == String {
+        self.init(value: value, step: step, label: { Text(titleKey) }, onEditingChanged: onEditingChanged)
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol, F: ParseableFormatStyle>(_ title: S, value: Binding<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F,
+                                                            onEditingChanged: @escaping (Bool) -> Void = { _ in })
+    where F.FormatInput: Strideable, F.FormatOutput == String {
+        self.init(value: value, step: step, label: { Text(title) }, onEditingChanged: onEditingChanged)
+    }
+
+    public init<F: ParseableFormatStyle>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput>, in bounds: ClosedRange<F.FormatInput>,
+                                         step: F.FormatInput.Stride = 1, format: F, onEditingChanged: @escaping (Bool) -> Void = { _ in })
+    where F.FormatInput: Strideable, F.FormatOutput == String {
+        self.init(value: value, in: bounds, step: step, label: { Text(titleKey) }, onEditingChanged: onEditingChanged)
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol, F: ParseableFormatStyle>(_ title: S, value: Binding<F.FormatInput>, in bounds: ClosedRange<F.FormatInput>,
+                                                            step: F.FormatInput.Stride = 1, format: F, onEditingChanged: @escaping (Bool) -> Void = { _ in })
+    where F.FormatInput: Strideable, F.FormatOutput == String {
         self.init(value: value, in: bounds, step: step, label: { Text(title) }, onEditingChanged: onEditingChanged)
     }
 }

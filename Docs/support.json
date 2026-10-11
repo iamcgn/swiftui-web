@@ -290,16 +290,16 @@
         {
           "api": "Slider (value, range, step, label, min/max value labels, onEditingChanged)",
           "status": "partial",
-          "notes": "16 pt flexible track with a 22 × 16 knob, ticks when stepped, body label and footnote value labels pixel-aligned; presses jump and drags follow; no keyboard control or vertical sliders Right-to-left (2026-10-09): the value runs from the trailing end and the fill follows the knob to the right (RTLTests; measured on a macOS 26.6 golden whose control sizes are not modelled).",
+          "notes": "16 pt flexible track with a 22 × 16 knob under a measured blurred shadow (black 25/255, radius 2, 1 pt down; 2026-10-11), ticks when stepped, body label and footnote value labels pixel-aligned; presses jump and drags follow; no keyboard control (sliderStyle, tick labels and vertical sliders are not SwiftUI API). Right-to-left (2026-10-09): the value runs from the trailing end and the fill follows the knob to the right (RTLTests; measured on a macOS 26.6 golden whose control sizes are not modelled).",
           "fixtures": [
             "slider/basic",
             "slider/steps"
           ]
         },
         {
-          "api": "Stepper (value/step/bounds and closure forms, onEditingChanged)",
+          "api": "Stepper (value/step/bounds, closure and format forms, onEditingChanged)",
           "status": "partial",
-          "notes": "20 × 26 chevron button pair 8 pt after the body label; top half increments, bottom half decrements within bounds; no press-and-hold repeat or keyboard control",
+          "notes": "20 × 26 chevron button pair 8 pt after the body label; top half increments, bottom half decrements within bounds on the press, held repeats after 0.5 s every 0.1 s (2026-10-11); the format: forms are accepted; no keyboard control",
           "fixtures": [
             "stepper/basic",
             "stepper/steps"

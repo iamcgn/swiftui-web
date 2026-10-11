@@ -198,13 +198,18 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var sliderFilledAlpha = 58.0 / 255
     package var sliderTrackAlpha = 25.0 / 255
     package var sliderDisabledFilledAlpha = 42.0 / 255
-    package var sliderKnobShadowAlpha = 12.0 / 255                       // approximate (Apple's is a blur)
+    package var sliderKnobShadowAlpha = 25.0 / 255                       // the knob's blurred shadow (sw-slider-stepper, measured)
+    package var sliderKnobShadowRadius: CGFloat = 2
+    package var sliderKnobShadowOffset: CGFloat = 1
     package var sliderTickSize: CGFloat = 2
     package var sliderTickTop: CGFloat = 14
     package var sliderIdealWidth: CGFloat = 100                          // unverified
 
     // Stepper (fixtures stepper/*)
     package var stepperSize = CGSize(width: 20, height: 26)
+    /// A held stepper repeats after the delay, once per interval (NSStepper's autorepeat).
+    package var stepperRepeatDelay: Double = 0.5
+    package var stepperRepeatInterval: Double = 0.1
     package var stepperCornerRadius: CGFloat = 5
     package var stepperFill = 20.0 / 255
     package var stepperDisabledFill = 10.0 / 255

@@ -655,9 +655,15 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
         let knobSize = PlatformMetrics.sliderKnobSize
         let knob = CGRect(x: knobX - knobSize.width / 2, y: bounds.minY + (bounds.height - knobSize.height) / 2, width: knobSize.width, height: knobSize.height)
         if enabled {
-            list.append(.fillRRect(knob.insetBy(dx: -1, dy: -1), cornerRadius: knob.height / 2 + 1, black(PlatformMetrics.sliderKnobShadowAlpha)))
+            // The knob's blurred shadow (slider/basic pixels: 17/255 at the bottom edge fading
+            // over 4.5 pt, 6/255 at the top: black at a tenth, sigma 2, a point down).
+            list.append(.beginShadow(black(PlatformMetrics.sliderKnobShadowAlpha), radius: PlatformMetrics.sliderKnobShadowRadius,
+                                     offset: CGSize(width: 0, height: PlatformMetrics.sliderKnobShadowOffset)))
+            list.append(.fillRRect(knob, cornerRadius: knob.height / 2, environment._knob))
+            list.append(.endGroup)
+        } else {
+            list.append(.fillRRect(knob, cornerRadius: knob.height / 2, environment._knob))
         }
-        list.append(.fillRRect(knob, cornerRadius: knob.height / 2, environment._knob))
     }
 
     // MARK: Interaction
@@ -726,8 +732,10 @@ extension SliderTrackNode: _Adjustable {
 // MARK: - Stepper
 
 @MainActor
-package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive {
+package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive, _FrameSubscriber {
     private let identifier: Int
+    /// A held press: which half, when it began, and when it last stepped (the animation clock).
+    private var held: (increments: Bool, start: Double, last: Double)?
 
     override package init(_ context: _NodeContext<_StepperControl>) {
         nextControlIdentifier += 1
@@ -783,15 +791,42 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive 
     }
 
     package func pressBegan() {}
-    package func pressEnded(inside: Bool) {}
-    package func pressEnded(inside: Bool, at point: CGPoint) {
-        guard inside, environment.isEnabled else { return }
+    /// A press steps at once and, held, repeats: after the initial delay, once per interval
+    /// (NSStepper's autorepeat: half a second, then ten a second).
+    package func pressBegan(at point: CGPoint) {
+        guard environment.isEnabled else { return }
         view.onEditingChanged.run(true)
         // macOS stacks the arrows (up increments); iOS puts − left and + right.
         let increments = environment.platformProfile.isIOS ? point.x >= frame.width / 2 : point.y < frame.height / 2
         if increments { view.increment.run() } else { view.decrement.run() }
+        held = (increments, runtime.animationClock, runtime.animationClock)
+        runtime.subscribeFrames(self)
+        runtime.setNeedsDisplay()
+    }
+    package func pressEnded(inside: Bool) { endPress() }
+    package func pressEnded(inside: Bool, at point: CGPoint) { endPress() }
+
+    private func endPress() {
+        guard held != nil else { return }
+        held = nil
+        runtime.unsubscribeFrames(self)
         view.onEditingChanged.run(false)
         runtime.setNeedsDisplay()
+    }
+
+    package func frameDidAdvance() {
+        guard let press = held else { runtime.unsubscribeFrames(self); return }
+        let now = runtime.animationClock
+        // A millisecond of slack: the clock accumulates frame times, which never land exactly.
+        guard now - press.start >= PlatformMetrics.stepperRepeatDelay - 0.001, now - press.last >= PlatformMetrics.stepperRepeatInterval - 0.001 else { return }
+        held = (press.increments, press.start, now)
+        if press.increments { view.increment.run() } else { view.decrement.run() }
+        runtime.setNeedsDisplay()
+    }
+
+    override package func unmount() {
+        runtime.unsubscribeFrames(self)
+        super.unmount()
     }
 
     package var semantics: SemanticsNode {
