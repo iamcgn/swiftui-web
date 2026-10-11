@@ -51,6 +51,40 @@ public struct Path: Equatable, Sendable {
         callback(&self)
     }
 
+#if canImport(CoreGraphics)
+    /// The path with the elements of a CoreGraphics path (Apple platforms only; there is no
+    /// CoreGraphics on wasm).
+    public init(_ cgPath: CGPath) {
+        self.init()
+        cgPath.applyWithBlock { element in
+            let points = element.pointee.points
+            switch element.pointee.type {
+            case .moveToPoint: move(to: points[0])
+            case .addLineToPoint: addLine(to: points[0])
+            case .addQuadCurveToPoint: addQuadCurve(to: points[1], control: points[0])
+            case .addCurveToPoint: addCurve(to: points[2], control1: points[0], control2: points[1])
+            case .closeSubpath: closeSubpath()
+            @unknown default: break
+            }
+        }
+    }
+
+    /// An immutable CoreGraphics path with this path's elements.
+    public var cgPath: CGPath {
+        let result = CGMutablePath()
+        for element in elements {
+            switch element {
+            case .move(let p): result.move(to: p)
+            case .line(let p): result.addLine(to: p)
+            case .quadCurve(let p, let c): result.addQuadCurve(to: p, control: c)
+            case .curve(let p, let c1, let c2): result.addCurve(to: p, control1: c1, control2: c2)
+            case .closeSubpath: result.closeSubpath()
+            }
+        }
+        return result
+    }
+#endif
+
     /// Parses the format `description` writes: postfix operators `m l q c h` after their
     /// coordinates. Returns `nil` for any other token; trailing coordinates without an operator
     /// are ignored.
@@ -86,7 +120,8 @@ public struct Path: Equatable, Sendable {
 
     public var isEmpty: Bool { elements.isEmpty }
 
-    /// The bounding rectangle of the path's control points (`CGRect.null` for an empty path).
+    /// The tight bounding rectangle of the path (curves by their extrema, as SwiftUI's;
+    /// `CGRect.null` for an empty path).
     public var boundingRect: CGRect { bounds }
 
     public var currentPoint: CGPoint? { current }
@@ -111,18 +146,45 @@ public struct Path: Equatable, Sendable {
     }
 
     public mutating func addQuadCurve(to point: CGPoint, control: CGPoint) {
+        let from = current ?? start ?? point
         elements.append(.quadCurve(to: point, control: control))
         current = point
         include(point)
-        include(control)
+        includeExtrema(from, CGPoint(x: from.x + 2 * (control.x - from.x) / 3, y: from.y + 2 * (control.y - from.y) / 3),
+                       CGPoint(x: point.x + 2 * (control.x - point.x) / 3, y: point.y + 2 * (control.y - point.y) / 3), point)
     }
 
     public mutating func addCurve(to point: CGPoint, control1: CGPoint, control2: CGPoint) {
+        let from = current ?? start ?? point
         elements.append(.curve(to: point, control1: control1, control2: control2))
         current = point
         include(point)
-        include(control1)
-        include(control2)
+        includeExtrema(from, control1, control2, point)
+    }
+
+    /// Includes the cubic's interior extrema in the bounds (where the derivative crosses zero).
+    private mutating func includeExtrema(_ p0: CGPoint, _ c1: CGPoint, _ c2: CGPoint, _ p3: CGPoint) {
+        func roots(_ a0: CGFloat, _ a1: CGFloat, _ a2: CGFloat, _ a3: CGFloat) -> [CGFloat] {
+            // Derivative coefficients of the cubic along one axis.
+            let a = -a0 + 3 * a1 - 3 * a2 + a3
+            let b = 2 * (a0 - 2 * a1 + a2)
+            let c = a1 - a0
+            if abs(a) < 1e-12 {
+                return abs(b) < 1e-12 ? [] : [-c / b]
+            }
+            let discriminant = b * b - 4 * a * c
+            guard discriminant >= 0 else { return [] }
+            let root = discriminant.squareRoot()
+            return [(-b + root) / (2 * a), (-b - root) / (2 * a)]
+        }
+        func point(at t: CGFloat) -> CGPoint {
+            let u = 1 - t
+            let a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t
+            return CGPoint(x: a * p0.x + b * c1.x + c * c2.x + d * p3.x, y: a * p0.y + b * c1.y + c * c2.y + d * p3.y)
+        }
+        for t in roots(p0.x, c1.x, c2.x, p3.x) + roots(p0.y, c1.y, c2.y, p3.y) where t > 0 && t < 1 {
+            include(point(at: t))
+        }
     }
 
     public mutating func closeSubpath() {

@@ -246,5 +246,55 @@ public enum ShapeFixtures {
         .probe("row")
     }
 
-    public static let all: [Fixture] = [builtin, stroke, path, modifiers, border, layout, steps]
+    /// Corners (sw-shapes): `ContainerRelativeShape` inside a `containerShape` (uniform padding
+    /// shrinks the radius, horizontal-only padding keeps it, no container gives a rectangle, a
+    /// nested container wins, a clip shape resolves too), a stroke of a stroked shape as a double
+    /// outline, and the separator role drawing a hierarchical level at the primary level.
+    public static let corners = Fixture("shape/corners", size: CGSize(width: 360, height: 220)) {
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                ZStack {
+                    Color.gray.opacity(0.3)
+                    ContainerRelativeShape().fill(Color.red).padding(10).probe("uniform")
+                }
+                .frame(width: 80, height: 80)
+                .containerShape(RoundedRectangle(cornerRadius: 30))
+                ZStack {
+                    Color.gray.opacity(0.3)
+                    ContainerRelativeShape().fill(Color.red).padding(.horizontal, 10).probe("horizontal")
+                }
+                .frame(width: 80, height: 80)
+                .containerShape(RoundedRectangle(cornerRadius: 30))
+                ZStack {
+                    Color.gray.opacity(0.3)
+                    ContainerRelativeShape().fill(Color.red).padding(10).probe("plain")
+                }
+                .frame(width: 80, height: 80)
+                ZStack {
+                    Color.gray.opacity(0.3)
+                    Color.blue.clipShape(ContainerRelativeShape()).padding(10).probe("clipped")
+                }
+                .frame(width: 80, height: 80)
+                .containerShape(Circle())
+                .padding(10)
+                .containerShape(RoundedRectangle(cornerRadius: 30))
+            }
+            .probe("row1")
+            HStack(spacing: 10) {
+                Rectangle().stroke(lineWidth: 8).stroke(Color.blue, lineWidth: 2).frame(width: 80, height: 50).probe("double")
+                Circle().stroke(lineWidth: 6).stroke(Color.green, lineWidth: 1).frame(width: 50, height: 50).probe("rings")
+                SeparatorShape().fill(.tertiary).frame(width: 60, height: 50).probe("separatorTertiary")
+                Rectangle().fill(.tertiary).frame(width: 60, height: 50).probe("tertiary")
+            }
+            .probe("row2")
+        }
+    }
+
+    public static let all: [Fixture] = [builtin, stroke, path, modifiers, border, layout, steps, corners]
+}
+
+/// A rectangle used as a separator (`Shape.role`).
+struct SeparatorShape: Shape {
+    static var role: ShapeRole { .separator }
+    func path(in rect: CGRect) -> Path { Path(rect) }
 }

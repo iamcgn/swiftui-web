@@ -1,0 +1,69 @@
+{
+  "fixture" : "shape\/corners",
+  "frames" : {
+    "clipped" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 275,
+      "y" : 40
+    },
+    "double" : {
+      "height" : 50,
+      "width" : 80,
+      "x" : 40,
+      "y" : 140
+    },
+    "horizontal" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 85,
+      "y" : 40
+    },
+    "plain" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : 175,
+      "y" : 40
+    },
+    "rings" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 130,
+      "y" : 140
+    },
+    "row1" : {
+      "height" : 100,
+      "width" : 370,
+      "x" : -5,
+      "y" : 30
+    },
+    "row2" : {
+      "height" : 50,
+      "width" : 280,
+      "x" : 40,
+      "y" : 140
+    },
+    "separatorTertiary" : {
+      "height" : 50,
+      "width" : 60,
+      "x" : 190,
+      "y" : 140
+    },
+    "tertiary" : {
+      "height" : 50,
+      "width" : 60,
+      "x" : 260,
+      "y" : 140
+    },
+    "uniform" : {
+      "height" : 80,
+      "width" : 80,
+      "x" : -5,
+      "y" : 40
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 360
+  }
+}

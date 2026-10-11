@@ -18,17 +18,17 @@ lists 74 paths that `scripts/gen-goldens.sh shape/` records from real SwiftUI in
 
 | API | Notes |
 |---|---|
-| `Shape` (`path(in:)`, `sizeThatFits(_:)`, `role`), `ShapeRole` | implemented; `layoutDirectionBehavior` missing |
+| `Shape` (`path(in:)`, `sizeThatFits(_:)`, `role`, `layoutDirectionBehavior`), `ShapeRole` | implemented |
 | `Rectangle`, `RoundedRectangle(cornerRadius:style:)`, `RoundedRectangle(cornerSize:style:)`, `RoundedCornerStyle` (`.circular`, `.continuous`, the default) | implemented, paths identical to Apple's |
 | `UnevenRoundedRectangle(cornerRadii:style:)`, `UnevenRoundedRectangle(topLeadingRadius:…)`, `RectangleCornerRadii` | implemented, incl. the per-corner radius limit |
 | `Circle`, `Ellipse`, `Capsule(style:)` | implemented |
-| `ContainerRelativeShape` | approximate: a rectangle (no container shapes) |
+| `ContainerRelativeShape`, `View.containerShape(_:)` | implemented: the container's shape inset by the smallest edge distance between the view and the container, drawn in the view's rect; a rectangle without a container (`shape/corners`) |
 | `AnyShape` | implemented |
-| `Path`: `init()`, `init(_ rect:)`, `init(roundedRect:cornerRadius:style:)`, `init(roundedRect:cornerSize:style:)`, `init(roundedRect:cornerRadii:style:)`, `init(ellipseIn:)`, `init(_ callback:)`, `init?(_ string:)` | implemented; `init(_ cgPath:)`, `cgPath` missing (no CoreGraphics on wasm) |
+| `Path`: `init()`, `init(_ rect:)`, `init(roundedRect:cornerRadius:style:)`, `init(roundedRect:cornerSize:style:)`, `init(roundedRect:cornerRadii:style:)`, `init(ellipseIn:)`, `init(_ callback:)`, `init?(_ string:)` | implemented; `init(_ cgPath:)` and `cgPath` on Apple platforms only (no CoreGraphics on wasm) |
 | `Path`: `move`, `addLine`, `addQuadCurve`, `addCurve`, `closeSubpath`, `addRect(_:transform:)`, `addRects`, `addLines`, `addEllipse(in:transform:)`, `addRoundedRect(in:cornerSize:style:transform:)`, `addRoundedRect(in:cornerRadii:style:transform:)`, `addArc(center:radius:startAngle:endAngle:clockwise:transform:)`, `addRelativeArc`, `addPath(_:transform:)` | implemented, element for element as Apple |
 | `Path.addArc(tangent1End:tangent2End:radius:transform:)` | implemented from `CGPathAddArcToPoint`'s definition, not verified against SwiftUI |
-| `Path`: `isEmpty`, `boundingRect`, `currentPoint`, `description`, `forEach`, `applying(_:)`, `offsetBy(dx:dy:)`, `contains(_:eoFill:)`, `trimmedPath(from:to:)` | implemented |
-| `Path.strokedPath(_:)` | approximate: oriented polygons per segment, join and cap that a nonzero fill unions (Apple computes the offset outline); dashes honoured |
+| `Path`: `isEmpty`, `boundingRect` (tight: curves by their extrema), `currentPoint`, `description`, `forEach`, `applying(_:)`, `offsetBy(dx:dy:)`, `contains(_:eoFill:)`, `trimmedPath(from:to:)` | implemented |
+| `Path.strokedPath(_:)` | implemented: the offset outline as CoreGraphics builds it, element for element on lines (curves flattened first); dashes honoured |
 | `Path: Shape` (a `Path` is a view in local coordinates), `Path: LosslessStringConvertible` | implemented |
 | `Shape.fill(_:style:)` → `FillShapeView`, `fill(style:)`, `stroke(_:style:antialiased:)` / `stroke(_:lineWidth:antialiased:)` → `StrokeShapeView`, `stroke(style:)` / `stroke(lineWidth:)` → `_StrokedShape` (a `Shape`) | implemented; `antialiased` stored, no effect (canvas always antialiases) |
 | `ShapeView` chaining: `.fill`, `.stroke`, `.strokeBorder` on a shape view draw over the earlier view | implemented (`shape/stroke` `fillStroke`, `strokeFill`) |
@@ -38,7 +38,7 @@ lists 74 paths that `scripts/gen-goldens.sh shape/` records from real SwiftUI in
 | `Shape.union`, `intersection`, `subtracting`, `symmetricDifference`, `lineIntersection`, `lineSubtraction` (iOS 17 boolean operations) | implemented (flattened geometry, pixel-identical on `shapebool/*`) |
 | `View.border(_:width:)` | implemented: an inset rectangle stroke overlaid on the content |
 | `Angle` (`radians`, `degrees`, `.zero`, `Comparable`, `Animatable`) | implemented |
-| `Shape.role`, `.separator` / `.stroke` roles affecting styles | stub (no effect) |
+| `Shape.role`, `.separator` / `.stroke` roles affecting styles | implemented: a separator draws a bare hierarchical level at the primary level; the stroke role (a `_StrokedShape`) changes nothing (measured) |
 
 ## Corner geometry (from Apple's paths, macOS 26.2, 2026-09-02)
 
@@ -85,8 +85,8 @@ same way. Rectangles start top-leading.
   significant digits like `%g`.
 - Stroking: painters stroke the base path natively (`strokePath` carries the full `StrokeStyle`,
   Canvas2D `lineCap`/`lineJoin`/`miterLimit`/`setLineDash`/`lineDashOffset`); `strokeBorder`
-  strokes the shape inset by half the width. `Path.strokedPath` and a `_StrokedShape` used for
-  clipping or `contains` get the polygon approximation.
+  strokes the shape inset by half the width. `Path.strokedPath` (a `_StrokedShape` used for
+  clipping, `contains`, or stroked again) builds the offset outline: see Corners below.
 
 ## Measured layout rules (macOS 26.2, `shape/*` fixtures, 2026-09-02)
 
@@ -130,9 +130,42 @@ A circle against an offset square, filled and stroked, in all six operations
 Limits: curved boundaries are polygons at 1/16 of a curve; coincident edges are kept once from
 the first shape; two pieces that touch at a corner may chain into one loop.
 
+## Corners (sw-shapes, macOS 26.6, 2026-10-11)
+
+`Path.strokedPath` follows `CGPath.copy(strokingWithWidth:…)` element for element (`ShapeTests`
+compare an L, a dashed line, a sharp V against both miter limits, a rectangle and a round-joined
+triangle): curves are flattened, then every open piece (a subpath or a dash) becomes one loop,
+the left side forward, the end cap, the right side back and the start cap, closed with an
+explicit line back to the start (butt and square caps) or the cap's last arc (round); a closed
+subpath becomes two loops of opposite winding. Only the outer side of a corner gets the join
+(a miter tip within the limit, a bevel line, or a round join as a single cubic whatever its
+angle); the inner side is bridged straight across, the small bow-tie resolved by the nonzero
+fill, as CoreGraphics does. Round caps are two quarter cubics; a lone point draws a disc or a
+square. The vertices of a flattened curve (turns under 15°) are bridged on both sides so a
+stroked circle has no miter spikes. A stroke of a stroke therefore draws the double outline
+(`shape/corners` `double`, `rings`, with the inner joins' diagonals visible like SwiftUI's).
+`Path.boundingRect` is tight (curve extrema), as SwiftUI's.
+
+`ContainerRelativeShape` inside `containerShape(_:)` is the container's shape inset by the
+smallest distance between the view's edges and the container's, drawn in the view's own rect:
+a 30 pt rounded container with a view padded 10 gives a 20 pt radius, padded horizontally only
+it keeps the 30 (the top corners sweep the whole width), a 60 × 60 view in the top-leading corner
+gets 20 on all four corners, a nested `containerShape` wins, without one the shape is a
+rectangle, and `clipShape(ContainerRelativeShape())` resolves the same way (pixel scans of
+`NSHostingView` renders, then `shape/corners`). The runtime keeps the container's node in the
+environment (`_ContainerShapeContext`) and resolves the shape around each node's path requests
+(`_withContainerShape`), so every wrapper (`inset`, `fill`, `clipShape`) sees it.
+
+`Shape.role`: a `.separator` shape filled with a bare hierarchical level (`.secondary` …
+`.quinary`) draws at the primary level when no foreground colour is set (0.847 like `.primary`;
+with `foregroundStyle(.red)` it is red at 0.5 like any shape; a colour fill is itself); the
+`.stroke` role (`_StrokedShape`) changes nothing. `Path(_ cgPath:)` and `Path.cgPath` exist on
+Apple platforms.
+
+Tier A exact, Tier C 2.5 %, Tier B Chromium exact frames, pixels 0.14 %.
+
 ## Not yet covered
 
-`strokedPath` as a true offset outline, `addArc(tangent1End:…)`
-verification, `ContainerRelativeShape` inside container shapes, `layoutDirectionBehavior`,
-gradients and materials as shape styles, `contentShape`/hit testing on shapes, animated shape
-data (`Animatable` is declared, nothing interpolates yet), `Path(cgPath:)`.
+`addArc(tangent1End:…)` verification, gradients and materials as shape styles,
+`contentShape`/hit testing on shapes, animated shape data (`Animatable` is declared, nothing
+interpolates yet), curve offsetting in `strokedPath` (curves are flattened at up to 96 chords).

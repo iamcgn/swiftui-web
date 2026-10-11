@@ -1,7 +1,8 @@
 // Path algorithms: flattening, hit testing, trimming by arc length, dashing and stroking.
-// Stroking produces overlapping polygons with one orientation (a nonzero fill unions them), not
-// the true offset outline SwiftUI computes; painters stroke natively, this is for clipping and
-// hit testing (`Docs/elements/Shape.md`).
+// Stroking builds the offset outline the way CoreGraphics does (one loop per open piece, an
+// outer and an inner loop per closed one, inner joins bridged straight across so a nonzero fill
+// resolves the overlap); painters stroke natively, this serves clipping, hit testing, strokes of
+// strokes and `Path.strokedPath` (`Docs/elements/Shape.md`).
 
 /// A flattened subpath.
 public struct _Polyline {
@@ -254,7 +255,11 @@ extension Path {
         return result
     }
 
-    /// The outline of the path stroked with `style`, as polygons that a nonzero fill unions.
+    /// The outline of the path stroked with `style`: curves are flattened, each open piece (a
+    /// subpath or a dash) becomes one loop (the left side forward, the end cap, the right side
+    /// back, the start cap), each closed subpath two loops of opposite winding, with the join
+    /// geometry on the outer side of every corner and a straight bridge on the inner side, as
+    /// `CGPath.copy(strokingWithWidth:…)` emits them (measured element for element, 2026-10-11).
     public func strokedPath(_ style: StrokeStyle) -> Path {
         var result = Path()
         let halfWidth = max(0, style.lineWidth / 2)
@@ -325,87 +330,129 @@ extension Path {
         for p in polyline.points where points.last.map({ $0.distance(to: p) > 1e-9 }) ?? true { points.append(p) }
         if polyline.closed, points.count > 1, points.first!.distance(to: points.last!) <= 1e-9 { points.removeLast() }
         guard let first = points.first else { return }
-        func polygon(_ vertices: [CGPoint]) {
-            guard vertices.count >= 3 else { return }
-            var area: CGFloat = 0
-            for i in 0..<vertices.count {
-                let a = vertices[i], b = vertices[(i + 1) % vertices.count]
-                area += a.x * b.y - b.x * a.y
-            }
-            guard abs(area) > 1e-12 else { return }
-            let ordered = area > 0 ? vertices : vertices.reversed()
-            result.move(to: ordered[0])
-            for v in ordered.dropFirst() { result.addLine(to: v) }
-            result.closeSubpath()
-        }
-        func disc(_ center: CGPoint) {
-            result.addEllipse(in: CGRect(x: center.x - halfWidth, y: center.y - halfWidth, width: 2 * halfWidth, height: 2 * halfWidth))
-        }
         if points.count == 1 {
             switch style.lineCap {
-            case .round: disc(first)
+            case .round: result.addEllipse(in: CGRect(x: first.x - halfWidth, y: first.y - halfWidth, width: 2 * halfWidth, height: 2 * halfWidth))
             case .square: result.addRect(CGRect(x: first.x - halfWidth, y: first.y - halfWidth, width: 2 * halfWidth, height: 2 * halfWidth))
             default: break
             }
             return
         }
         let closed = polyline.closed && points.count > 2
-        let segmentCount = closed ? points.count : points.count - 1
+        let count = points.count
+        let segmentCount = closed ? count : count - 1
         var directions: [CGPoint] = []
         for i in 0..<segmentCount {
-            let a = points[i], b = points[(i + 1) % points.count]
-            let d = b - a
-            let u = d * (1 / d.length)
-            directions.append(u)
-            let n = CGPoint(x: -u.y, y: u.x) * halfWidth
-            polygon([a + n, b + n, b - n, a - n])
+            let d = points[(i + 1) % count] - points[i]
+            directions.append(d * (1 / d.length))
         }
-        // Joins.
-        let joinRange = closed ? 0..<points.count : 1..<(points.count - 1)
-        for i in joinRange {
-            let vertex = points[i]
-            let dIn = directions[(i - 1 + segmentCount) % segmentCount], dOut = directions[i % segmentCount]
+        /// The offset of segment `i`'s side (+1 on the left of its direction on screen, −1 on the right).
+        func normal(_ i: Int) -> CGPoint { CGPoint(x: -directions[i].y, y: directions[i].x) * halfWidth }
+
+        /// A circular arc about `center` from the direction of `from` to that of `to`, the short
+        /// way round (or by `sweep`) in `pieces` cubics ending exactly at `to`: CoreGraphics draws
+        /// a round join as one cubic whatever its angle and a round cap as two quarters.
+        func arc(about center: CGPoint, from: CGPoint, to: CGPoint, sweep given: CGFloat? = nil, pieces: Int, into result: inout Path) {
+            let start = _atan2(from.y - center.y, from.x - center.x)
+            var sweep = given ?? _atan2(to.y - center.y, to.x - center.x) - start
+            if given == nil {
+                while sweep > .pi { sweep -= 2 * .pi }
+                while sweep <= -.pi { sweep += 2 * .pi }
+            }
+            let step = sweep / CGFloat(pieces)
+            let k = 4.0 / 3.0 * _tan(step / 4)
+            var angle = start
+            var p0 = from
+            for piece in 0..<pieces {
+                let next = angle + step
+                func snapped(_ v: CGFloat) -> CGFloat { (v * 1e9).rounded() / 1e9 }   // no trigonometric residue
+                let p3 = piece == pieces - 1 ? to : CGPoint(x: snapped(center.x + halfWidth * _cos(next)), y: snapped(center.y + halfWidth * _sin(next)))
+                let c1 = CGPoint(x: snapped(p0.x - k * halfWidth * _sin(angle)), y: snapped(p0.y + k * halfWidth * _cos(angle)))
+                let c2 = CGPoint(x: snapped(p3.x + k * halfWidth * _sin(next)), y: snapped(p3.y - k * halfWidth * _cos(next)))
+                result.addCurve(to: p3, control1: c1, control2: c2)
+                angle = next
+                p0 = p3
+            }
+        }
+
+        /// The join at `vertex` between the incoming direction `dIn` and the outgoing `dOut`,
+        /// travelling from the offset point `p` to `q` on side `side`: the join's geometry on the
+        /// outer side of the turn, a straight bridge on the inner side.
+        func join(at vertex: CGPoint, dIn: CGPoint, dOut: CGPoint, from p: CGPoint, to q: CGPoint, side: CGFloat, into result: inout Path) {
+            guard p.distance(to: q) > 1e-9 else { return }
             let cross = dIn.x * dOut.y - dIn.y * dOut.x
             let dot = dIn.x * dOut.x + dIn.y * dOut.y
-            guard abs(cross) > 1e-9 || dot < 0 else { continue }
-            if style.lineJoin == .round { disc(vertex); continue }
-            // Outer side: opposite the turn direction.
-            let sign: CGFloat = cross > 0 ? -1 : 1
-            let nIn = CGPoint(x: -dIn.y, y: dIn.x) * (halfWidth * sign)
-            let nOut = CGPoint(x: -dOut.y, y: dOut.x) * (halfWidth * sign)
-            let a = vertex + nIn, b = vertex + nOut
-            if style.lineJoin == .miter {
+            // The inner side, and the vertices of a flattened curve (turns under 15°, where the
+            // offset outline is smooth), are bridged straight across.
+            let outer = cross * side < -1e-12 && (dot < 0 || abs(cross) > 0.2588)
+            guard outer else { result.addLine(to: q); return }
+            switch style.lineJoin {
+            case .round:
+                arc(about: vertex, from: p, to: q, pieces: 1, into: &result)
+            case .miter:
                 // Miter length ratio 1 / sin(θ/2), θ the angle between the segments.
                 let cosTheta = max(-1, min(1, -dot))
-                let halfTheta = _acos(cosTheta) / 2
-                let sinHalf = _sin(halfTheta)
-                if sinHalf > 1e-9, 1 / sinHalf <= style.miterLimit {
-                    let bisector = nIn + nOut
-                    let bl = bisector.length
-                    if bl > 1e-9 {
-                        let tip = vertex + bisector * (halfWidth / sinHalf / bl)
-                        polygon([vertex, a, tip, b])
-                        continue
-                    }
+                let sinHalf = _sin(_acos(cosTheta) / 2)
+                let bisector = (p - vertex) + (q - vertex)
+                if sinHalf > 1e-9, 1 / sinHalf <= style.miterLimit, bisector.length > 1e-9 {
+                    result.addLine(to: vertex + bisector * (halfWidth / sinHalf / bisector.length))
+                }
+                result.addLine(to: q)
+            default:
+                result.addLine(to: q)
+            }
+        }
+
+        /// The cap at `point` from the offset `from` to `to`, bulging along `direction`.
+        func cap(at point: CGPoint, from: CGPoint, to: CGPoint, direction: CGPoint, into result: inout Path) {
+            switch style.lineCap {
+            case .round:
+                arc(about: point, from: from, to: to, sweep: -.pi, pieces: 2, into: &result)
+            case .square:
+                let out = direction * halfWidth
+                result.addLine(to: from + out)
+                result.addLine(to: to + out)
+                result.addLine(to: to)
+            default:
+                result.addLine(to: to)
+            }
+        }
+
+        let last = points[count - 1]
+        // The left side, forward.
+        result.move(to: first + normal(0))
+        for i in 0..<segmentCount {
+            let vertex = points[i]
+            if i > 0 {
+                join(at: vertex, dIn: directions[i - 1], dOut: directions[i], from: vertex + normal(i - 1), to: vertex + normal(i), side: 1, into: &result)
+            }
+            result.addLine(to: points[(i + 1) % count] + normal(i))
+        }
+        if closed {
+            join(at: first, dIn: directions[segmentCount - 1], dOut: directions[0], from: first + normal(segmentCount - 1), to: first + normal(0), side: 1, into: &result)
+            result.closeSubpath()
+            // The right side, back the other way.
+            result.move(to: first - normal(0))
+            join(at: first, dIn: directions[segmentCount - 1], dOut: directions[0], from: first - normal(0), to: first - normal(segmentCount - 1), side: -1, into: &result)
+            for i in stride(from: segmentCount - 1, through: 0, by: -1) {
+                let vertex = points[i]
+                result.addLine(to: vertex - normal(i))
+                if i > 0 {
+                    join(at: vertex, dIn: directions[i - 1], dOut: directions[i], from: vertex - normal(i), to: vertex - normal(i - 1), side: -1, into: &result)
                 }
             }
-            polygon([vertex, a, b])
+            result.closeSubpath()
+            return
         }
-        // Caps.
-        guard !closed else { return }
-        let last = points[points.count - 1]
-        switch style.lineCap {
-        case .round:
-            disc(first)
-            disc(last)
-        case .square:
-            let dStart = directions[0], dEnd = directions[segmentCount - 1]
-            let nStart = CGPoint(x: -dStart.y, y: dStart.x) * halfWidth, nEnd = CGPoint(x: -dEnd.y, y: dEnd.x) * halfWidth
-            let backStart = first - dStart * halfWidth, forwardEnd = last + dEnd * halfWidth
-            polygon([first + nStart, backStart + nStart, backStart - nStart, first - nStart])
-            polygon([last + nEnd, forwardEnd + nEnd, forwardEnd - nEnd, last - nEnd])
-        default:
-            break
+        cap(at: last, from: last + normal(segmentCount - 1), to: last - normal(segmentCount - 1), direction: directions[segmentCount - 1], into: &result)
+        for i in stride(from: segmentCount - 1, through: 0, by: -1) {
+            let vertex = points[i]
+            result.addLine(to: vertex - normal(i))
+            if i > 0 {
+                join(at: vertex, dIn: directions[i - 1], dOut: directions[i], from: vertex - normal(i), to: vertex - normal(i - 1), side: -1, into: &result)
+            }
         }
+        cap(at: first, from: first - normal(0), to: first + normal(0), direction: directions[0] * -1, into: &result)
+        result.closeSubpath()
     }
 }

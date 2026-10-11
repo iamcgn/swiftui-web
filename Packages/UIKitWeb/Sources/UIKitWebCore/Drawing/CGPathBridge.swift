@@ -9,22 +9,8 @@
 import CoreGraphics
 
 extension Path {
-    /// The substrate path with the elements of a CoreGraphics path.
-    public init(cgPath: CGPath) {
-        var path = Path()
-        cgPath.applyWithBlock { element in
-            let points = element.pointee.points
-            switch element.pointee.type {
-            case .moveToPoint: path.move(to: points[0])
-            case .addLineToPoint: path.addLine(to: points[0])
-            case .addQuadCurveToPoint: path.addQuadCurve(to: points[1], control: points[0])
-            case .addCurveToPoint: path.addCurve(to: points[2], control1: points[0], control2: points[1])
-            case .closeSubpath: path.closeSubpath()
-            @unknown default: break
-            }
-        }
-        self = path
-    }
+    /// The substrate path with the elements of a CoreGraphics path (`Path(_:)` in WebGraphics).
+    public init(cgPath: CGPath) { self.init(cgPath) }
 }
 
 extension UIBezierPath {

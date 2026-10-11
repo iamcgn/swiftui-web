@@ -224,7 +224,7 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
         #expect(abs(mitered.minX - apple.minX) < 0.01 && abs(mitered.minY - apple.minY) < 0.01)
         #expect(abs(mitered.maxX - apple.maxX) < 0.01 && abs(mitered.maxY - apple.maxY) < 0.01)
         let rounded = tri.strokedPath(StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)).boundingRect
-        #expect(abs(rounded.minX + 2) < 0.01 && abs(rounded.maxX - 102) < 0.01 && abs(rounded.maxY - 62) < 0.01)
+        #expect(abs(rounded.minX + 2) < 0.01 && abs(rounded.maxX - 102) < 0.01 && abs(rounded.maxY - 62) < 0.01, "\(rounded)")
         // The union of the stroke polygons contains points on the outline and not far away.
         let outline = tri.strokedPath(StrokeStyle(lineWidth: 4))
         #expect(outline.contains(CGPoint(x: 50, y: 1)))
@@ -240,6 +240,54 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
         #expect(dashed.contains(CGPoint(x: 5, y: 0)) && !dashed.contains(CGPoint(x: 9, y: 0)) && dashed.contains(CGPoint(x: 15, y: 0)))
         #expect(dashed.contains(CGPoint(x: 45, y: 0)) && !dashed.contains(CGPoint(x: 40, y: 0)))
         #expect(Path().strokedPath(StrokeStyle()).isEmpty)
+    }
+
+    /// The outline element for element against `CGPath.copy(strokingWithWidth:…)` (macOS 26.6,
+    /// 2026-10-11): one loop per open piece, two per closed subpath, joins on the outer side only.
+    @Test func strokedOutlinesMatchCoreGraphics() {
+        var l = Path()
+        l.move(to: .zero); l.addLine(to: CGPoint(x: 40, y: 0)); l.addLine(to: CGPoint(x: 40, y: 30))
+        #expect(l.strokedPath(StrokeStyle(lineWidth: 10)).description == "0 5 m 40 5 l 35 0 l 35 30 l 45 30 l 45 0 l 45 -5 l 40 -5 l 0 -5 l 0 5 l h")
+        #expect(l.strokedPath(StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round)).description
+                == "0 5 m 40 5 l 35 0 l 35 30 l 35 32.7614 37.2386 35 40 35 c 42.7614 35 45 32.7614 45 30 c 45 0 l 45 -2.76142 42.7614 -5 40 -5 c 0 -5 l -2.76142 -5 -5 -2.76142 -5 0 c -5 2.76142 -2.76142 5 0 5 c h")
+        #expect(l.strokedPath(StrokeStyle(lineWidth: 10, lineCap: .square, lineJoin: .bevel)).description
+                == "0 5 m 40 5 l 35 0 l 35 30 l 35 35 l 45 35 l 45 30 l 45 0 l 40 -5 l 0 -5 l -5 -5 l -5 5 l 0 5 l h")
+        let rect = Path(CGRect(x: 0, y: 0, width: 40, height: 30))
+        #expect(rect.strokedPath(StrokeStyle(lineWidth: 4)).description
+                == "0 2 m 40 2 l 38 0 l 38 30 l 40 28 l 0 28 l 2 30 l 2 0 l 0 2 l h 0 -2 m -2 -2 l -2 0 l -2 30 l -2 32 l 0 32 l 40 32 l 42 32 l 42 30 l 42 0 l 42 -2 l 40 -2 l 0 -2 l h")
+        #expect(rect.strokedPath(StrokeStyle(lineWidth: 4, lineJoin: .round)).description
+                == "0 2 m 40 2 l 38 0 l 38 30 l 40 28 l 0 28 l 2 30 l 2 0 l 0 2 l h 0 -2 m -1.10457 -2 -2 -1.10457 -2 0 c -2 30 l -2 31.1046 -1.10457 32 0 32 c 40 32 l 41.1046 32 42 31.1046 42 30 c 42 0 l 42 -1.10457 41.1046 -2 40 -2 c 0 -2 l h")
+        var line = Path()
+        line.move(to: .zero); line.addLine(to: CGPoint(x: 30, y: 0))
+        #expect(line.strokedPath(StrokeStyle(lineWidth: 2, dash: [8, 4])).description
+                == "0 1 m 8 1 l 8 -1 l 0 -1 l 0 1 l h 12 1 m 20 1 l 20 -1 l 12 -1 l 12 1 l h 24 1 m 30 1 l 30 -1 l 24 -1 l 24 1 l h")
+        // A sharp V: the miter exceeds the default limit (bevel) and fits a limit of 100.
+        var v = Path()
+        v.move(to: .zero); v.addLine(to: CGPoint(x: 40, y: 2)); v.addLine(to: CGPoint(x: 0, y: 4))
+        #expect(v.strokedPath(StrokeStyle(lineWidth: 4)).description
+                == "-0.0998752 1.9975 m 39.9001 3.9975 l 39.9001 0.00249532 l -0.0998752 2.0025 l 0.0998752 5.9975 l 40.0999 3.9975 l 40.0999 0.00249532 l 0.0998752 -1.9975 l -0.0998752 1.9975 l h")
+        #expect(v.strokedPath(StrokeStyle(lineWidth: 4, miterLimit: 100)).description
+                == "-0.0998752 1.9975 m 39.9001 3.9975 l 39.9001 0.00249532 l -0.0998752 2.0025 l 0.0998752 5.9975 l 40.0999 3.9975 l 80.05 2 l 40.0999 0.00249532 l 0.0998752 -1.9975 l -0.0998752 1.9975 l h")
+        // A stroke of a stroke is a double outline: the circle's inner and outer rings.
+        let ring = Path(ellipseIn: CGRect(x: 0, y: 0, width: 20, height: 20)).strokedPath(StrokeStyle(lineWidth: 2))
+        #expect(ring.contains(CGPoint(x: 10, y: 0.5)) && !ring.contains(CGPoint(x: 10, y: 10)) && !ring.contains(CGPoint(x: 10, y: -1.5)))
+        let ringBounds = ring.strokedPath(StrokeStyle(lineWidth: 1)).boundingRect
+        #expect(abs(ringBounds.minX + 1.5) < 0.01 && abs(ringBounds.maxX - 21.5) < 0.01, "\(ringBounds)")   // the flattened circle's vertices are bridged, no miter spikes
+        var point = Path()
+        point.move(to: CGPoint(x: 5, y: 5)); point.addLine(to: CGPoint(x: 5, y: 5))
+        #expect(point.strokedPath(StrokeStyle(lineWidth: 4)).isEmpty)
+        #expect(point.strokedPath(StrokeStyle(lineWidth: 4, lineCap: .round)).boundingRect == CGRect(x: 3, y: 3, width: 4, height: 4))
+        // A round join is one cubic whatever its angle (the triangle's 130° corner).
+        var tri = Path()
+        tri.move(to: .zero); tri.addLine(to: CGPoint(x: 100, y: 0)); tri.addLine(to: CGPoint(x: 50, y: 60)); tri.closeSubpath()
+        #expect(tri.strokedPath(StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)).description
+                == "0 2 m 100 2 l 98.4636 -1.28037 l 48.4636 58.7196 l 51.5364 58.7196 l 1.53644 -1.28037 l 0 2 l h 0 -2 m -1.69568 -2 -2.62199 -0.022285 -1.53644 1.28037 c 48.4636 61.2804 l 49.2631 62.2399 50.7369 62.2399 51.5364 61.2804 c 101.536 1.28037 l 102.622 -0.022285 101.696 -2 100 -2 c 0 -2 l h")
+        // Bounds are tight: a curve by its extrema, not its control points (SwiftUI reports 15.24
+        // for this 15-high arch, a conservative bound; the control box would be 20).
+        var curve = Path()
+        curve.move(to: .zero)
+        curve.addCurve(to: CGPoint(x: 10, y: 0), control1: CGPoint(x: 0, y: 20), control2: CGPoint(x: 10, y: 20))
+        #expect(abs(curve.boundingRect.height - 15) < 1e-9 && curve.boundingRect.width == 10)
     }
 }
 
@@ -339,6 +387,48 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
             "fillPath M0.0,0.0 L10.0,0.0 L10.0,10.0 L0.0,10.0 Z rgb(255,0,0) eo",
             "clipPath M0.0,0.0 L10.0,0.0 L10.0,10.0 L0.0,10.0 Z eo",
         ])
+    }
+
+    struct Separator: Shape {
+        static var role: ShapeRole { .separator }
+        nonisolated func path(in rect: CGRect) -> Path { Path(rect) }
+    }
+
+    /// `ContainerRelativeShape` is the container's shape inset by the smallest edge distance,
+    /// drawn in the view's rect; a nested container wins; without one it is a rectangle; a clip
+    /// shape resolves the same way (`shape/corners`, 2026-10-11).
+    @Test func containerRelativeShapes() {
+        func path<V: View>(_ view: V, size: CGSize = CGSize(width: 80, height: 80)) -> String {
+            let runtime = Runtime()
+            runtime.mount(view)
+            runtime.layout(in: size)
+            let list = runtime.render(scale: 1)
+            return DisplayListDecoder.decode(DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)).first { $0.hasPrefix("fillPath") || $0.hasPrefix("clipPath") || $0.hasPrefix("fillRRect") } ?? ""
+        }
+        let uniform = path(ContainerRelativeShape().fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(RoundedRectangle(cornerRadius: 30, style: .circular)))
+        #expect(uniform == path(Path(roundedRect: CGRect(x: 10, y: 10, width: 60, height: 60), cornerRadius: 20, style: .circular).fill(Color.red)))
+        let horizontal = path(ContainerRelativeShape().fill(Color.red).padding(.horizontal, 10).frame(width: 80, height: 80).containerShape(RoundedRectangle(cornerRadius: 30, style: .circular)))
+        #expect(horizontal == path(Path(roundedRect: CGRect(x: 10, y: 0, width: 60, height: 80), cornerRadius: 30, style: .circular).fill(Color.red)))
+        let nested = path(ContainerRelativeShape().fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(Circle()).padding(10).containerShape(RoundedRectangle(cornerRadius: 30)), size: CGSize(width: 100, height: 100))
+        #expect(nested == path(Path(ellipseIn: CGRect(x: 20, y: 20, width: 60, height: 60)).fill(Color.red), size: CGSize(width: 100, height: 100)))
+        #expect(path(ContainerRelativeShape().fill(Color.red).padding(10).frame(width: 80, height: 80)) == "fillPath M10.0,10.0 L70.0,10.0 L70.0,70.0 L10.0,70.0 Z rgb(255,56,60)")
+        let clipped = path(Color.blue.clipShape(ContainerRelativeShape()).padding(10).frame(width: 80, height: 80).containerShape(RoundedRectangle(cornerRadius: 30, style: .circular)))
+        #expect(clipped.hasPrefix("clipPath") && uniform.hasPrefix("fillPath " + clipped.dropFirst(9)), "\(clipped)")
+        // Outside any node the shape is a plain rectangle.
+        #expect(ContainerRelativeShape().path(in: CGRect(x: 0, y: 0, width: 10, height: 10)).description == "0 0 m 10 0 l 10 10 l 0 10 l h")
+    }
+
+    /// The separator role draws a bare hierarchical level at the primary level when no foreground
+    /// colour is set; a colour, a set foreground or the stroke role change nothing (measured
+    /// 2026-10-11, `shape/corners`).
+    @Test func separatorRoleResolvesHierarchyAtThePrimaryLevel() {
+        func color(_ commands: [String]) -> String { commands.first { $0.hasPrefix("fillRect") || $0.hasPrefix("fillPath") }.map { String($0.split(separator: " ").last!) } ?? "" }
+        let primary = color(render(Rectangle().fill(.primary)))
+        #expect(color(render(Separator().fill(.tertiary))) == primary && color(render(Separator().fill(.secondary))) == primary)
+        #expect(color(render(Rectangle().fill(.tertiary))) != primary)
+        #expect(color(render(Separator().fill(.tertiary).foregroundStyle(.red))) == color(render(Rectangle().fill(.tertiary).foregroundStyle(.red))))
+        #expect(color(render(Separator().fill(Color.red))) == color(render(Rectangle().fill(Color.red))))
+        #expect(_StrokedShape<Rectangle>.role == .stroke && Separator.role == .separator && Rectangle.role == .fill)
     }
 }
 #endif

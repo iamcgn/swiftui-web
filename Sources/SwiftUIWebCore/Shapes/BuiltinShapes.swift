@@ -189,17 +189,116 @@ extension Capsule: InsettableShape, _InsetPathProviding {
 
 // MARK: - ContainerRelativeShape, AnyShape
 
-/// A shape that is replaced by an inset version of the current container shape. Without a
-/// container shape it is a rectangle (approximate: SwiftUI containers are not modelled).
+/// A shape that is replaced by an inset version of the current container shape (`containerShape`):
+/// the container's shape inset by the smallest distance between the view's edges and the
+/// container's, drawn in the view's rect (a 30 pt rounded container with a view padded 10 gives
+/// a 20 pt rounded rect; a view padded horizontally only keeps the 30; measured 2026-10-11).
+/// Without a container shape it is a rectangle.
 @frozen
 public struct ContainerRelativeShape: Sendable {
     @inlinable nonisolated public init() {}
+
+    /// The container shape in force while a node resolves its paths (`_withContainerShape`).
+    nonisolated(unsafe) package static var _resolution: (path: (CGRect, CGFloat) -> Path, inset: CGFloat)?
 }
 
 extension ContainerRelativeShape: InsettableShape, _InsetPathProviding {
-    nonisolated public func path(in rect: CGRect) -> Path { Path(rect) }
+    nonisolated public func path(in rect: CGRect) -> Path { _insetPath(in: rect, by: 0) }
+    nonisolated public func _insetPath(in rect: CGRect, by amount: CGFloat) -> Path {
+        guard let resolution = Self._resolution else { return Path(rect.insetBy(dx: amount, dy: amount)) }
+        return resolution.path(rect, resolution.inset + amount)
+    }
     nonisolated public func inset(by amount: CGFloat) -> _InsetShape<ContainerRelativeShape> { _InsetShape(shape: self, amount: amount) }
     public typealias AnimatableData = EmptyAnimatableData
+}
+
+/// The container shape a `containerShape` modifier sets for its subtree, with the node whose
+/// frame is the container's.
+@MainActor
+package final class _ContainerShapeContext {
+    package var path: (CGRect, CGFloat) -> Path
+    package weak var node: ViewNode?
+
+    package init<S: InsettableShape>(_ shape: S) {
+        path = Self.path(of: shape)
+    }
+
+    package func set<S: InsettableShape>(_ shape: S) {
+        path = Self.path(of: shape)
+    }
+
+    /// The shape inset by the amount but drawn in `rect` itself (the view's rect already sits
+    /// that far inside the container): a rounded rectangle keeps its size and loses radius.
+    private static func path<S: InsettableShape>(of shape: S) -> (CGRect, CGFloat) -> Path {
+        { rect, inset in shape.inset(by: inset).path(in: rect.insetBy(dx: -inset, dy: -inset)) }
+    }
+
+    /// The inset a view whose frame (in root space) is `frame` takes from the container.
+    package func inset(for frame: CGRect) -> CGFloat {
+        guard let container = node?.frameInRoot else { return 0 }
+        return min(frame.minX - container.minX, frame.minY - container.minY, container.maxX - frame.maxX, container.maxY - frame.maxY)
+    }
+}
+
+package struct ContainerShapeKey: EnvironmentKey { package static let defaultValue: _ContainerShapeContext? = nil }
+
+extension EnvironmentValues {
+    package var _containerShape: _ContainerShapeContext? {
+        get { self[ContainerShapeKey.self] }
+        set { self[ContainerShapeKey.self] = newValue }
+    }
+}
+
+/// Runs `body` with `ContainerRelativeShape` resolving against `node`'s container, if any.
+@MainActor
+package func _withContainerShape<R>(for node: ViewNode, _ body: () -> R) -> R {
+    guard let context = node.environment._containerShape else { return body() }
+    ContainerRelativeShape._resolution = (context.path, context.inset(for: node.frameInRoot))
+    defer { ContainerRelativeShape._resolution = nil }
+    return body()
+}
+
+/// Sets the container shape for the modified view's subtree. Produced by `View.containerShape(_:)`.
+public struct _ContainerShapeModifier<S: InsettableShape> {
+    public var shape: S
+    public init(shape: S) { self.shape = shape }
+}
+
+extension _ContainerShapeModifier: ViewModifier {
+    public typealias Body = Never
+
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        ContainerShapeNode(context)
+    }
+}
+
+extension View {
+    /// Sets the container shape `ContainerRelativeShape` resolves to inside this view.
+    nonisolated public func containerShape<T: InsettableShape>(_ shape: T) -> some View {
+        modifier(_ContainerShapeModifier(shape: shape))
+    }
+}
+
+@MainActor
+package final class ContainerShapeNode<Content: View, S: InsettableShape>: UnaryLayoutModifierNode<Content, _ContainerShapeModifier<S>> {
+    private let shapeContext: _ContainerShapeContext
+
+    override package init(_ context: _NodeContext<ModifiedContent<Content, _ContainerShapeModifier<S>>>) {
+        shapeContext = _ContainerShapeContext(context.view.modifier.shape)
+        var environment = context.environment
+        environment._containerShape = shapeContext
+        super.init(_NodeContext(view: context.view, parent: context.parent, environment: environment))
+        shapeContext.node = self
+    }
+
+    override package func update(view: ModifiedContent<Content, _ContainerShapeModifier<S>>, environment: EnvironmentValues, force: Bool) {
+        shapeContext.set(view.modifier.shape)
+        var environment = environment
+        environment._containerShape = shapeContext
+        super.update(view: view, environment: environment, force: force)
+    }
+
+    override package var nodeDescription: String { "ContainerShape" }
 }
 
 /// A type-erased shape value.

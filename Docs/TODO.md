@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 27 | 0 | 0 | 27 |
+| SwiftUI | 26 | 0 | 0 | 26 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **43** | 0 | 1 | 42 |
+| **All** | **42** | 0 | 1 | 41 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Shape corners: strokedPath, container shapes, roles** `sw-shapes` · Shape · approximate  
-  `Path.strokedPath` as the offset outline (polygons per segment today), `ContainerRelativeShape` following its container, `Shape.role` (stub), `Path(cgPath:)` on Apple platforms. ([Shape.md](Docs/elements/Shape.md))
 - ☐ **Elliptical and mesh gradients** `sw-gradients` · Gradient · missing  
   `EllipticalGradient`, `MeshGradient`, `ShapeStyle.in(_:)`, gradient `opacity`, repeat and mirror options (accepted), gradients on images and symbols, the hierarchical fade levels (approximate). ([Gradient.md](Docs/elements/Gradient.md))
 - ☐ **Animated effects and drawing groups** `sw-effects` · Effects · accepted  
@@ -123,6 +121,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout
 - ☑ 2026-10-11 **Safe area corners** `sw-safe-area` · SwiftUI · Position
+- ☑ 2026-10-11 **Shape corners: strokedPath, container shapes, roles** `sw-shapes` · SwiftUI · Shape
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

@@ -267,7 +267,7 @@ extension _ShapeView: ShapeView, _ShapePainting {
             list.append(.fillGradient(_localPath(shape, in: bounds, direction: environment.layoutDirection), gradient._resolveGradient(in: bounds, environment: environment)))
             return
         }
-        let color = style.resolveColor(in: environment)
+        let color = _resolveFillColor(style, role: Content.role, in: environment)
         guard color.alpha > 0 else { return }
         list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: FillStyle(), direction: environment.layoutDirection))
     }
@@ -300,7 +300,7 @@ extension FillShapeView: ShapeView, _ShapePainting {
             list.append(.fillGradient(_localPath(shape, in: bounds, direction: environment.layoutDirection), gradient._resolveGradient(in: bounds, environment: environment), eoFill: fillStyle.isEOFilled))
             return
         }
-        let color = style.resolveColor(in: environment)
+        let color = _resolveFillColor(style, role: Content.role, in: environment)
         guard color.alpha > 0 else { return }
         list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: fillStyle, direction: environment.layoutDirection))
     }
@@ -378,6 +378,18 @@ extension StrokeBorderShapeView: ShapeView, _ShapePainting {
         guard color.alpha > 0 else { return }
         list.append(.strokePath(_localPath(shape.inset(by: strokeStyle.lineWidth / 2), in: bounds, direction: environment.layoutDirection), style: strokeStyle, color))
     }
+}
+
+/// The fill colour of a shape with `role`: a shape used as a separator draws a bare
+/// hierarchical level (`.secondary` … `.quinary`) at the primary level when no foreground colour
+/// is set (measured 2026-10-11: `Sep().fill(.tertiary)` is the label colour at 0.847, with
+/// `foregroundStyle(.red)` it is red at 0.5 like any shape; the stroke role changes nothing).
+@MainActor
+package func _resolveFillColor<S: ShapeStyle>(_ style: S, role: ShapeRole, in environment: EnvironmentValues) -> RGBA {
+    if role == .separator, style is HierarchicalShapeStyle, environment.foregroundColor == nil {
+        return HierarchicalShapeStyle.primary.resolveColor(in: environment)
+    }
+    return style.resolveColor(in: environment)
 }
 
 /// The path of `shape` for a view whose frame is `bounds`: SwiftUI asks shapes for a rect at the

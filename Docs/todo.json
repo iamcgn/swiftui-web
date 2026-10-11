@@ -1247,13 +1247,14 @@
       "framework": "SwiftUI",
       "area": "Shape",
       "title": "Shape corners: strokedPath, container shapes, roles",
-      "detail": "`Path.strokedPath` as the offset outline (polygons per segment today), `ContainerRelativeShape` following its container, `Shape.role` (stub), `Path(cgPath:)` on Apple platforms.",
+      "detail": "`Path.strokedPath` as the offset outline (polygons per segment today), `ContainerRelativeShape` following its container, `Shape.role` (stub), `Path(cgPath:)` on Apple platforms. Done 2026-10-11 (Phase 9, item 7): `strokedPath` is the CoreGraphics offset outline element for element on lines (curves flattened), `Path.boundingRect` tight, `ContainerRelativeShape` resolves through `containerShape` by the smallest edge inset drawn in the view's rect, the separator role draws hierarchical levels at the primary level, `Path(_ cgPath:)`/`cgPath` on Apple platforms (`shape/corners`, `ShapeTests`).",
       "kind": "approximate",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Shape.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-gradients",
