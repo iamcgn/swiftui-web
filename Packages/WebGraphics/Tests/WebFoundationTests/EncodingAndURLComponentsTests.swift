@@ -19,7 +19,8 @@ import Foundation
             #expect(ours == theirs, "\(pair.1) encode \(text)")
             // Lossy conversion writes a question mark per UTF-16 unit; Foundation's ASCII form also
             // transliterates Latin letters (not carried), so ASCII is compared on the other strings.
-            if pair.1 != .ascii || text.unicodeScalars.allSatisfy({ $0.value < 0xC0 || $0.value > 0x24F }) {
+            // Linux's corelibs Foundation writes 0xFF instead (its own difference from Darwin).
+            if foundationIsCurrent, pair.1 != .ascii || text.unicodeScalars.allSatisfy({ $0.value < 0xC0 || $0.value > 0x24F }) {
                 let lossy = _TextEncoding.encode(text, as: pair.0, lossy: true)
                 let theirLossy = text.data(using: pair.1, allowLossyConversion: true).map { Array($0) }
                 #expect(lossy == theirLossy, "\(pair.1) lossy \(text)")
@@ -88,6 +89,8 @@ import Foundation
     }
 
     @Test func percentEncodingSetsMatchFoundation() {
+        // Darwin's `urlPathAllowed` admits `;`; corelibs Foundation's does not: the Darwin sets are the reference.
+        guard foundationIsCurrent else { return }
         let text = "aZ09-._~!$&'()*+,;=:@/?#[]%<> \"`{}|\\^ü日"
         let sets: [(_URLParts.Allowed, CharacterSet)] = [(.user, .urlUserAllowed), (.password, .urlPasswordAllowed), (.host, .urlHostAllowed), (.path, .urlPathAllowed), (.query, .urlQueryAllowed), (.fragment, .urlFragmentAllowed)]
         for (ours, theirs) in sets {
