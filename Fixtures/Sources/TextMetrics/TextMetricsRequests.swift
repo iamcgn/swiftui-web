@@ -5,7 +5,10 @@ import SwiftUI
 
 /// A font spelled in a toolchain-neutral way. `key` must match `ResolvedFont.key` in SwiftUIWebCore.
 public enum FixtureFont: Hashable, Sendable {
-    case style(String, weight: String? = nil, design: String? = nil, italic: Bool = false)   // "body", "title", … with optional overrides
+    /// "body", "title", … with optional overrides; `category` is a Dynamic Type size ("XS", "S", "M",
+    /// "L", "XL", "XXL", "XXXL", "AXM", "AXL", "AXXL", "AXXXL", "AXXXXL": UIKit's short names) the
+    /// text is measured at, nil for the environment's (sw-dynamic-type).
+    case style(String, weight: String? = nil, design: String? = nil, italic: Bool = false, category: String? = nil)
     case system(size: CGFloat, weight: String, design: String, italic: Bool = false)          // weight "regular"…"black", design "default"…
     case custom(String, size: CGFloat, weight: String = "regular", italic: Bool = false)      // a bundled font by PostScript name (Fixtures/Fonts)
 
@@ -29,10 +32,23 @@ public enum FixtureFont: Hashable, Sendable {
         }
     }
 
+    /// The Dynamic Type sizes by UIKit's short category names.
+    public static let categories: [String: DynamicTypeSize] = [
+        "XS": .xSmall, "S": .small, "M": .medium, "L": .large, "XL": .xLarge, "XXL": .xxLarge, "XXXL": .xxxLarge,
+        "AXM": .accessibility1, "AXL": .accessibility2, "AXXL": .accessibility3, "AXXXL": .accessibility4, "AXXXXL": .accessibility5,
+    ]
+
+    /// The Dynamic Type size a style font is measured at, nil for the environment's.
+    public var dynamicTypeSize: DynamicTypeSize? {
+        if case .style(_, _, _, _, let category?) = self { return Self.categories[category]! }
+        return nil
+    }
+
     public var key: String {
         switch self {
-        case .style(let name, let weight, let design, let italic):
+        case .style(let name, let weight, let design, let italic, let category):
             var key = "style:\(name)"
+            if let category { key += ":\(category)" }
             if let weight { key += ":w\(Self.weights[weight]!.1)" }
             if let design, design != "default" { key += ":\(design)" }
             return key + (italic ? ":italic" : "")
@@ -47,7 +63,7 @@ public enum FixtureFont: Hashable, Sendable {
 
     public var font: Font {
         switch self {
-        case .style(let name, let weight, let design, let italic):
+        case .style(let name, let weight, let design, let italic, _):
             let font = Font.system(Self.styles[name]!, design: Self.design(design), weight: weight.map { Self.weights[$0]!.0 })
             return italic ? font.italic() : font
         case .system(let size, let weight, let design, let italic):
@@ -674,8 +690,32 @@ extension TextMetricsRequests {
         return requests
     }()
 
-    static let iOSRequests: [TextMetricRequest] = {
+    /// The strings `ios/text/dynamic-type` shows, at the categories it sets (sw-dynamic-type).
+    static let dynamicTypeRequests: [TextMetricRequest] = {
         var requests: [TextMetricRequest] = []
+        for category in ["XS", "XXXL", "AXXXL"] {
+            for (string, style) in [("Large Title", "largeTitle"), ("Title", "title"), ("Headline", "headline"), ("Body", "body"), ("Footnote", "footnote"), ("Caption 2", "caption2")] {
+                requests.append(TextMetricRequest(string, .style(style, category: category)))
+            }
+            requests.append(TextMetricRequest("Bold", .style("body", weight: "semibold", category: category)))
+            requests.append(TextMetricRequest(paragraph, .style("body", category: category), width: 300))
+            // The fixture's stack is under height pressure at the large categories: the paragraph
+            // keeps floor(room / pitch) lines (two in the goldens).
+            for limit in [1, 2, 3] {
+                requests.append(TextMetricRequest(paragraph, .style("body", category: category), width: 300, options: TextMetricOptions(lineLimit: limit)))
+            }
+        }
+        // dynamicTypeSize(...xLarge) clamps the accessibility size to xLarge.
+        requests.append(TextMetricRequest("Clamped", .style("body", category: "XL")))
+        requests.append(TextMetricRequest("Clamped", .style("body", category: "XS")))
+        // text/dynamic-type on macOS: the body style under the modifiers.
+        requests.append(TextMetricRequest("Body", .style("body", category: "AXXXXL")))
+        requests.append(TextMetricRequest("Body", .style("body", category: "XS")))
+        return requests
+    }()
+
+    static let iOSRequests: [TextMetricRequest] = {
+        var requests: [TextMetricRequest] = dynamicTypeRequests
         // ios/textfield/vertical: the note in a 300 pt field, plain and inside the bezel's padding.
         requests.append(TextMetricRequest(fixtureFieldNote, .style("body")))
         for width: CGFloat in [300, 285, 286, 288, 284, 290, 292, 298] {

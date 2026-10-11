@@ -653,7 +653,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
 
     package func resolveFont(_ modifiers: Text.Modifiers) -> ResolvedFont {
         let font = modifiers.font ?? environment.font ?? environment.platformProfile.defaultFont
-        var resolved = font.resolve(profile: environment.platformProfile)
+        var resolved = font.resolve(in: environment)
         if let weight = modifiers.weight {
             resolved.weight = weight; resolved.weightOverridden = true
         } else if modifiers.bold {
@@ -737,10 +737,21 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         let natural = textLayout(width: width)
         guard let height, height.isFinite, height >= 0, width.map({ $0 > 0 }) ?? true,
               natural.size.height > height + 0.001, let font = styledRuns.runs.first?.font else { return natural }
-        let pitch = environment.platformProfile.systemFontMetrics(for: font).fontMetrics.lineHeight + layoutOptions.lineSpacing
-        guard pitch > 0 else { return natural }
-        let lines = Int((natural.size.height / pitch).rounded())
-        let kept = max(1, Int(((height + 0.001) / pitch).rounded(.down)))
+        // The first line is the line height, each further one the line pitch (they differ where a
+        // style's pitch exceeds its line: iOS body at xSmall is 20.5 on a 22.5 pitch, measured on
+        // `ios/text/dynamic-xsmall`, whose paragraph keeps one line in 41.5).
+        let metrics = environment.platformProfile.systemFontMetrics(for: font)
+        let first = metrics.lineHeight
+        let pitch = (metrics.linePitch > 0 ? metrics.linePitch : metrics.lineHeight) + layoutOptions.lineSpacing
+        guard pitch > 0, first > 0 else { return natural }
+        // A multi-line height is the unrounded line plus the pitches, rounded up to the half point,
+        // as SwiftUI reports it (two lines of iOS body at xxxLarge are 67: 32.71 + 34.25 → 67, not
+        // 33 + 34.25), so a text proposed its own two-line height keeps two lines.
+        let unrounded = font.sizeCategory != nil && metrics.unroundedLineHeight > 0 ? metrics.unroundedLineHeight : first
+        func heightOf(_ count: Int) -> CGFloat { count == 1 ? first : ((unrounded + CGFloat(count - 1) * pitch) * 2 - 1e-9).rounded(.up) / 2 }
+        let lines = 1 + Int(((natural.size.height - first) / pitch).rounded())
+        var kept = 1
+        while kept < lines, heightOf(kept + 1) <= height + 0.001 { kept += 1 }
         guard lines > 1, kept < lines else { return natural }
         if height == 0 || environment._usesPlaceholderLayout {
             var trimmed = natural
@@ -987,7 +998,7 @@ extension EnvironmentValues {
 
     /// The environment's font with its weight overrides applied (text and symbol images).
     package var _resolvedFont: ResolvedFont {
-        var resolved = (font ?? platformProfile.defaultFont).resolve(profile: platformProfile)
+        var resolved = (font ?? platformProfile.defaultFont).resolve(profile: platformProfile, dynamicTypeSize: dynamicTypeSize)
         if let weight = _fontWeight {
             resolved.weight = weight; resolved.weightOverridden = true
         } else if _boldTrait {

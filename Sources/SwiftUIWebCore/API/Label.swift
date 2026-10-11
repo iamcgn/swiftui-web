@@ -210,7 +210,7 @@ extension VerticalAlignment {
 extension EnvironmentValues {
     /// Half the cap height of the environment's font (the fallback 0.7046 em is SF's ratio).
     package var _halfCapHeight: CGFloat {
-        let resolved = (font ?? platformProfile.defaultFont).resolve(profile: platformProfile)
+        let resolved = (font ?? platformProfile.defaultFont).resolve(in: self)
         let capHeight = platformProfile.systemFontMetrics(for: resolved).capHeight
         return (capHeight > 0 ? capHeight : resolved.size * 0.7046) / 2
     }

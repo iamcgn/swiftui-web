@@ -102,13 +102,22 @@ public struct Font: Hashable, Sendable {
 }
 
 extension Font {
-    /// Resolves the font for the platform profile (text style sizes/weights are per platform).
-    package func resolve(profile: PlatformProfile) -> ResolvedFont {
+    /// Resolves the font in an environment: the platform profile's text styles at the
+    /// environment's Dynamic Type size (sw-dynamic-type).
+    package func resolve(in environment: EnvironmentValues) -> ResolvedFont {
+        resolve(profile: environment.platformProfile, dynamicTypeSize: environment.dynamicTypeSize)
+    }
+
+    /// Resolves the font for the platform profile (text style sizes/weights are per platform); a
+    /// text style takes its point size at `dynamicTypeSize` in the iOS profile and keys its
+    /// metrics by the category (`ResolvedFont.sizeCategory`).
+    package func resolve(profile: PlatformProfile, dynamicTypeSize: DynamicTypeSize = .large) -> ResolvedFont {
         var family = "system"
         var size: CGFloat
         var weight = Font.Weight.regular
         var textStyle: Font.TextStyle?
         var weightOverridden = false
+        var sizeCategory: String?
         func familyName(_ design: Design?) -> String {
             switch design {
             case nil, .default?: return "system"
@@ -121,6 +130,10 @@ extension Font {
         case .textStyle(let style, let design, let styleWeight):
             let metrics = profile.textStyle(style)
             size = metrics.size
+            if let scaled = profile._dynamicTypePointSize(for: style, size: dynamicTypeSize) {
+                size = scaled
+                sizeCategory = dynamicTypeSize._categoryName
+            }
             weight = styleWeight ?? metrics.weight
             weightOverridden = styleWeight != nil
             family = familyName(design)
@@ -141,7 +154,7 @@ extension Font {
         if modifiers.monospaced { family = "system-monospaced" }
         return ResolvedFont(family: family, size: size, weight: weight, italic: modifiers.italic,
                             textStyle: textStyle, weightOverridden: weightOverridden, profile: profile.name,
-                            tabularDigits: modifiers.monospacedDigit)
+                            tabularDigits: modifiers.monospacedDigit, sizeCategory: sizeCategory)
     }
 }
 

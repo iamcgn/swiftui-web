@@ -17,7 +17,7 @@ package final class TextEditorNode: LeafNode<_TextEditorHost>, _Interactive, _Te
     }
 
     private var resolvedFont: ResolvedFont {
-        (environment.font ?? environment.platformProfile.defaultFont).resolve(profile: environment.platformProfile)
+        (environment.font ?? environment.platformProfile.defaultFont).resolve(in: environment)
     }
 
     /// The distance between baselines: the text view's line height for the font, plus the

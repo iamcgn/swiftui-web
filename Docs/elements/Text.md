@@ -186,8 +186,52 @@ and, when it loads, drops the engine's width cache and the runtime's layouts and
 `CTFontManager`. `ResolvedFont.key` names custom families so the recorded engine and the
 harness's `FixtureFont.custom` agree.
 
+## Dynamic Type (iPhone simulator, iOS 26, `ios/text/dynamic-*`; macOS 26.6, `text/dynamic-type`; 2026-10-11)
+
+Apple docs: [dynamicTypeSize(_:)](https://developer.apple.com/documentation/swiftui/view/dynamictypesize(_:)-26aj0),
+[DynamicTypeSize](https://developer.apple.com/documentation/swiftui/dynamictypesize),
+[ScaledMetric](https://developer.apple.com/documentation/swiftui/scaledmetric).
+
+- **macOS has no Dynamic Type**: `Text("Body").font(.body)` is 31 × 16 under `.xSmall`, `.large`
+  and `.accessibility5` alike, and a `@ScaledMetric` of 20 stays 20 (`text/dynamic-type`). The
+  macOS profile ignores `dynamicTypeSize`; the environment value still flows to hosted UIKit
+  views as their trait.
+- **iOS text styles take the category's point size** (the HIG table, measured on the simulator
+  by `uk-fonts` and generated into `SystemFontMetricsTables.iOSDynamicTypeSizes` by
+  `scripts/dynamic-type-table.py`): body 14 / 15 / 16 / 17 / 19 / 21 / 23 / 28 / 33 / 40 / 47 / 53
+  from xSmall to accessibility5; caption2 stays 11 from xSmall to large. Each (style, category)
+  has its own line (`style:body:XXXL` in `Fixtures/Goldens/ios/text-metrics.json`,
+  `iOSScaledTextStyleMetrics`): body at xxxLarge is 33 on a 34.25 pitch, at accessibility4 66.5
+  on a 66.17 pitch (the pitch below the line). `Font.resolve(in:)` keys the resolved font by the
+  category (`ResolvedFont.sizeCategory`), so the recorded engine answers from the category's
+  entries; `.bold()` keeps the category (`style:body:XXXL:w600`).
+- **Multi-line heights at another category** are the unrounded line plus the pitches, rounded up
+  to the half point: two lines of body at xxxLarge are 32.71 + 34.25 → 67 (not 33 + 34.25), the
+  second baseline 24.5 + 34.25 → 59; at accessibility4 66.17 + 66.17 → 132.5. Height pressure
+  keeps the lines whose rounded height fits (the xxxLarge paragraph keeps two lines in 90, the
+  xSmall one keeps one line in 41.5: 20.5 on a 22.46 pitch). The rule is applied to scaled
+  styles only; a bundled font's lines stay its rounded line times the count (`text/custom-font`).
+- **`@ScaledMetric(relativeTo:)`** multiplies by the ratio of the style's line heights
+  (ascender − descender + leading, `UIFont.lineHeight`) at the category and at large, then rounds
+  to the display scale: 20 relative to body is 17.5 at xSmall, 22 at xLarge, 26.5 at xxxLarge,
+  51 at accessibility4; relative to largeTitle 18.5 / 21 / 23.5 / 32; relative to caption2 20 up
+  to large (its line does not change) then 27.5 / 34 / 63. Not the point-size ratio (that would
+  give 16.5 / 22.35 / 27.06 / 55.3).
+- **`dynamicTypeSize(_ range:)`** clamps the environment's size into the range
+  (`...xLarge` under `.accessibility4` lays out at xLarge; a nested `.xSmall` inside wins), as
+  `ios/text/dynamic-clamped` shows: "Clamped" 76 × 27.5, the scaled square 22.
+- **The host's text size**: iOS Safari exposes the user's setting through the CSS keyword
+  `-apple-system-body`; the canvas host reads a hidden span's computed size (17 at large) and
+  maps the body table back to a category (`Runtime.hostDynamicTypeSize`, `UIKitScene`'s
+  `preferredContentSizeCategory` follows too). Browsers without the keyword leave the style
+  empty and the size stays large. `displayScale` in the environment is the host's pixel ratio.
+
 ## Open
 
+- Dynamic Type: the navigation bar's titles, list rows and controls at other categories (iOS
+  lays controls out taller; unmeasured), `Font.custom(_:size:relativeTo:)` scaling, the
+  general multi-line rounding rule for unscaled fonts, Safari's `-apple-system-body` read only
+  at launch (no change event).
 - Custom fonts: `relativeTo` scaling with dynamic type, variable fonts and weight axes (a bold
   request is synthesised), the width cache of the browser before the face loads (text measured
   with the fallback face relayouts once; a page may show one frame of fallback text), fonts

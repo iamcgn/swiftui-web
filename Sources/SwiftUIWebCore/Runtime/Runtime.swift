@@ -57,6 +57,28 @@ public final class Runtime {
             requestFullLayout()
         }
     }
+    /// The user's text size (a content size category short name), set by hosts; the root
+    /// environment's `dynamicTypeSize` follows it (sw-dynamic-type).
+    public var hostDynamicTypeSize: String? {
+        didSet {
+            guard hostDynamicTypeSize != oldValue else { return }
+            rootEnvironment.dynamicTypeSize = hostDynamicTypeSize.flatMap { DynamicTypeSize(_categoryName: $0) } ?? .large
+            root.environment = rootEnvironment
+            root.reapply?(rootEnvironment)
+            sizesInvalidated = true
+            requestFullLayout()
+        }
+    }
+    /// The host's pixels per point, set by hosts; the root environment's `displayScale`.
+    public var hostDisplayScale: CGFloat = 2 {
+        didSet {
+            guard hostDisplayScale != oldValue, hostDisplayScale > 0 else { return }
+            rootEnvironment.displayScale = hostDisplayScale
+            root.environment = rootEnvironment
+            root.reapply?(rootEnvironment)
+            requestFullLayout()
+        }
+    }
     /// Whether the page is visible and focused, set by hosts; `scenePhase` follows (active while
     /// visible and focused, inactive while visible, background while hidden).
     public var hostIsVisible = true {

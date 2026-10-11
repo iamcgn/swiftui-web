@@ -1189,14 +1189,15 @@
       "framework": "SwiftUI",
       "area": "Text",
       "title": "Dynamic Type",
-      "detail": "`dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting.",
+      "detail": "`dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting. Done 2026-10-11 (Phase 9, item 3): the iOS profile's text styles take the category's point size and line (`iOSDynamicTypeSizes`, `iOSScaledTextStyleMetrics`; `ios/text/dynamic-xsmall`, `-xxxlarge`, `-ax4` exact in Tier A, B and C), multi-line heights at a category round up from the unrounded line, `@ScaledMetric` scales by the style's line-height ratio to the display scale, `dynamicTypeSize(_ range:)` clamps (`-clamped`), macOS ignores Dynamic Type (`text/dynamic-type`), iOS Safari's `-apple-system-body` sets the root size and UIKit's category. Open: controls, bars and list rows at other categories, `Font.custom(relativeTo:)`, the multi-line rounding rule for unscaled fonts.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Text.md",
         "Docs/elements/iOS.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-subviews",

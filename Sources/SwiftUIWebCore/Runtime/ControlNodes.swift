@@ -11,7 +11,7 @@ extension EnvironmentValues {
     /// The line height of the environment's font (the body line, 24.5, on iOS): the height a
     /// control takes in an iOS list row, where the cell draws the control beside the label.
     package var _lineHeight: CGFloat {
-        platformProfile.systemFontMetrics(for: (font ?? platformProfile.defaultFont).resolve(profile: platformProfile)).lineHeight
+        platformProfile.systemFontMetrics(for: (font ?? platformProfile.defaultFont).resolve(in: self)).lineHeight
     }
 }
 

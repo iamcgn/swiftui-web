@@ -2999,6 +2999,35 @@ public static let boldTrait = Fixture("ios/text/bold-trait", size: CGSize(width:
     .probe("stack")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/text/dynamic-ax4", file: "Fixtures/Sources/iOS/IOSDynamicTypeFixtures.swift", firstLine: 39, lastLine: 41, declaration: #"""
+public static let accessibility4 = Fixture("ios/text/dynamic-ax4", size: CGSize(width: 340, height: 760)) {
+    styles(.accessibility4, width: 320).probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/text/dynamic-clamped", file: "Fixtures/Sources/iOS/IOSDynamicTypeFixtures.swift", firstLine: 55, lastLine: 66, declaration: #"""
+/// `dynamicTypeSize(...xLarge)` under an accessibility size clamps to xLarge; a nested
+/// `.xSmall` wins over the range.
+public static let clamped = Fixture("ios/text/dynamic-clamped", size: CGSize(width: 320, height: 160)) {
+    VStack(alignment: .leading, spacing: 8) {
+        Text("Clamped").probe("clamped")
+        ScaledBox().probe("scaled")
+        Text("Clamped").dynamicTypeSize(.xSmall).probe("small")
+    }
+    .dynamicTypeSize(...DynamicTypeSize.xLarge)
+    .dynamicTypeSize(.accessibility4)
+    .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/text/dynamic-xsmall", file: "Fixtures/Sources/iOS/IOSDynamicTypeFixtures.swift", firstLine: 31, lastLine: 33, declaration: #"""
+public static let xSmall = Fixture("ios/text/dynamic-xsmall", size: CGSize(width: 320, height: 300)) {
+    styles(.xSmall, width: 300).probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/text/dynamic-xxxlarge", file: "Fixtures/Sources/iOS/IOSDynamicTypeFixtures.swift", firstLine: 35, lastLine: 37, declaration: #"""
+public static let xxxLarge = Fixture("ios/text/dynamic-xxxlarge", size: CGSize(width: 320, height: 440)) {
+    styles(.xxxLarge, width: 300).probe("stack")
+}.platform(.iOS)
+"""#),
         FixtureSource(name: "ios/text/styles", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 8, lastLine: 26, declaration: #"""
 /// Every text style, the default font and the bold trait.
 public static let textStyles = Fixture("ios/text/styles", size: CGSize(width: 400, height: 460)) {
@@ -5821,6 +5850,19 @@ public static let dates = Fixture("text/dates", size: CGSize(width: 400, height:
     .probe("column")
 }
 """##),
+        FixtureSource(name: "text/dynamic-type", file: "Fixtures/Sources/iOS/IOSDynamicTypeFixtures.swift", firstLine: 43, lastLine: 53, declaration: #"""
+/// macOS has no Dynamic Type: the same modifiers on the Mac (what happens is measured here).
+public static let mac = Fixture("text/dynamic-type", size: CGSize(width: 320, height: 240)) {
+    VStack(alignment: .leading, spacing: 8) {
+        Text("Body").font(.body).probe("large")
+        Text("Body").font(.body).dynamicTypeSize(.accessibility5).probe("ax5")
+        Text("Body").font(.body).dynamicTypeSize(.xSmall).probe("xsmall")
+        ScaledBox().probe("scaledLarge")
+        ScaledBox().dynamicTypeSize(.accessibility5).probe("scaledAX5")
+    }
+    .probe("stack")
+}
+"""#),
         FixtureSource(name: "text/fit", file: "Fixtures/Sources/Text/TextCompletenessFixtures.swift", firstLine: 113, lastLine: 133, declaration: #"""
 /// `minimumScaleFactor` and `allowsTightening`: the sample shrunk into narrowing frames at
 /// two factors, with and without a line limit, a title, and tightening alone and combined.
@@ -17608,6 +17650,77 @@ public enum IOSDarkFixtures {
     public static let all: [Fixture] = [systemColors, darkSystemColors, darkText, darkControls, darkList, darkListPlain, darkForm, darkNavigation]
 }
 """##,
+        "Fixtures/Sources/iOS/IOSDynamicTypeFixtures.swift": #"""
+// Dynamic Type (sw-dynamic-type, Docs/elements/Text.md): the text styles at other content size
+// categories set through `dynamicTypeSize`, a `@ScaledMetric` following the body style, and the
+// range form clamping an accessibility size. Measured on the iPhone simulator; the macOS twin
+// (`text/dynamic-type`) shows what macOS does with the same modifiers.
+import SwiftUI
+import FixtureKit
+
+/// A square whose side scales with the body text style.
+struct ScaledBox: View {
+    @ScaledMetric(relativeTo: .body) var side: CGFloat = 20
+    var body: some View { Color.red.frame(width: side, height: side) }
+}
+
+public enum IOSDynamicTypeFixtures {
+    @MainActor static func styles(_ size: DynamicTypeSize, width: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Large Title").font(.largeTitle).probe("largeTitle")
+            Text("Title").font(.title).probe("title")
+            Text("Headline").font(.headline).probe("headline")
+            Text("Body").probe("body")
+            Text("Footnote").font(.footnote).probe("footnote")
+            Text("Caption 2").font(.caption2).probe("caption2")
+            Text("Bold").bold().probe("bold")
+            Text(TextMetricsRequests.paragraph).frame(width: 300, alignment: .leading).probe("paragraph")
+            ScaledBox().probe("scaled")
+        }
+        .frame(width: width, alignment: .leading)
+        .dynamicTypeSize(size)
+    }
+
+    public static let xSmall = Fixture("ios/text/dynamic-xsmall", size: CGSize(width: 320, height: 300)) {
+        styles(.xSmall, width: 300).probe("stack")
+    }.platform(.iOS)
+
+    public static let xxxLarge = Fixture("ios/text/dynamic-xxxlarge", size: CGSize(width: 320, height: 440)) {
+        styles(.xxxLarge, width: 300).probe("stack")
+    }.platform(.iOS)
+
+    public static let accessibility4 = Fixture("ios/text/dynamic-ax4", size: CGSize(width: 340, height: 760)) {
+        styles(.accessibility4, width: 320).probe("stack")
+    }.platform(.iOS)
+
+    /// macOS has no Dynamic Type: the same modifiers on the Mac (what happens is measured here).
+    public static let mac = Fixture("text/dynamic-type", size: CGSize(width: 320, height: 240)) {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Body").font(.body).probe("large")
+            Text("Body").font(.body).dynamicTypeSize(.accessibility5).probe("ax5")
+            Text("Body").font(.body).dynamicTypeSize(.xSmall).probe("xsmall")
+            ScaledBox().probe("scaledLarge")
+            ScaledBox().dynamicTypeSize(.accessibility5).probe("scaledAX5")
+        }
+        .probe("stack")
+    }
+
+    /// `dynamicTypeSize(...xLarge)` under an accessibility size clamps to xLarge; a nested
+    /// `.xSmall` wins over the range.
+    public static let clamped = Fixture("ios/text/dynamic-clamped", size: CGSize(width: 320, height: 160)) {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Clamped").probe("clamped")
+            ScaledBox().probe("scaled")
+            Text("Clamped").dynamicTypeSize(.xSmall).probe("small")
+        }
+        .dynamicTypeSize(...DynamicTypeSize.xLarge)
+        .dynamicTypeSize(.accessibility4)
+        .probe("stack")
+    }.platform(.iOS)
+
+    public static let all: [Fixture] = [xSmall, xxxLarge, accessibility4, clamped, mac]
+}
+"""#,
         "Fixtures/Sources/iOS/IOSFixtures.swift": ##"""
 // iOS fixtures (`ios/…`): rendered by Apple's SwiftUI in a UIKit window on Mac Catalyst
 // (scripts/gen-goldens-ios.sh, decision 0013) and reproduced by the runtime's iOS platform

@@ -184,6 +184,15 @@ public final class UIKitScene: HostedScene {
     public var imageRasterizer: ImageRasterizer?
     /// Recorded (UIKit's `UIAccessibility.isReduceMotionEnabled` reads it).
     public var hostReducesMotion = false
+    /// The user's text size from the host (a category short name): the screen's preferred
+    /// content size category follows it (sw-dynamic-type).
+    public var hostDynamicTypeSize: String? {
+        didSet {
+            guard hostDynamicTypeSize != oldValue else { return }
+            let category = hostDynamicTypeSize.flatMap { name in UIContentSizeCategory.ordered.first { $0.shortName == name } } ?? .large
+            preferredContentSizeCategory = category
+        }
+    }
     /// Recorded: the application's state would follow them.
     public var hostIsVisible = true
     public var hostIsFocused = true

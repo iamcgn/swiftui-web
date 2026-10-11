@@ -61,7 +61,7 @@ func nsFont(_ font: FixtureFont) -> NSFont {
     case .system(let size, let weight, let d, _):
         result = NSFont.systemFont(ofSize: size, weight: weights[weight]!)
         design = d
-    case .style(let name, let weight, let d, _):
+    case .style(let name, let weight, let d, _, _):
         result = NSFont.preferredFont(forTextStyle: styles[name]!)
         if let weight { result = NSFont.systemFont(ofSize: result.pointSize, weight: weights[weight]!) }
         design = d

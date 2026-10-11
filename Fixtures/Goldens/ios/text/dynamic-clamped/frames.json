@@ -1,0 +1,33 @@
+{
+  "fixture" : "ios\/text\/dynamic-clamped",
+  "frames" : {
+    "clamped" : {
+      "height" : 27.5,
+      "width" : 76,
+      "x" : 122,
+      "y" : 37
+    },
+    "scaled" : {
+      "height" : 22,
+      "width" : 22,
+      "x" : 122,
+      "y" : 72.5
+    },
+    "small" : {
+      "height" : 20.5,
+      "width" : 58,
+      "x" : 122,
+      "y" : 102.5
+    },
+    "stack" : {
+      "height" : 86,
+      "width" : 76,
+      "x" : 122,
+      "y" : 37
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 320
+  }
+}

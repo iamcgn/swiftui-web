@@ -109,8 +109,14 @@ public enum SystemFontMetricsTables {
         let iOS = font.profile == "iOS"
         let styleMetrics = iOS ? Self.iOSTextStyleMetrics : Self.macOSTextStyleMetrics
         let weightOverrides = iOS ? Self.iOSTextStyleWeightOverrides : Self.macOSTextStyleWeightOverrides
-        if let style = font.textStyle, var metrics = styleMetrics[style] {
-            if font.weightOverridden, let face = weightOverrides[style]?[font.weight.value] {
+        // A text style at another Dynamic Type category: the category's measured line (iOS only;
+        // an unmeasured category lays out by its point size).
+        let styleEntry: SystemFontMetrics? = font.textStyle.flatMap { style in
+            if let category = font.sizeCategory { return iOS ? Self.iOSScaledTextStyleMetrics[style]?[category] : nil }
+            return styleMetrics[style]
+        }
+        if let style = font.textStyle, var metrics = styleEntry {
+            if font.sizeCategory == nil, font.weightOverridden, let face = weightOverrides[style]?[font.weight.value] {
                 metrics.lineHeight = face.lineHeight
                 metrics.baseline = face.baseline
                 metrics.linePitch = face.lineHeight.rounded(.up)

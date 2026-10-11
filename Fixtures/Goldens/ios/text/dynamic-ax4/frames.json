@@ -1,0 +1,69 @@
+{
+  "fixture" : "ios\/text\/dynamic-ax4",
+  "frames" : {
+    "body" : {
+      "height" : 66.5,
+      "width" : 104,
+      "x" : 10,
+      "y" : 273.5
+    },
+    "bold" : {
+      "height" : 66.5,
+      "width" : 95.5,
+      "x" : 10,
+      "y" : 468
+    },
+    "caption2" : {
+      "height" : 50.5,
+      "width" : 142,
+      "x" : 10,
+      "y" : 409.5
+    },
+    "footnote" : {
+      "height" : 53.5,
+      "width" : 145,
+      "x" : 10,
+      "y" : 348
+    },
+    "headline" : {
+      "height" : 65.5,
+      "width" : 187.5,
+      "x" : 10,
+      "y" : 200
+    },
+    "largeTitle" : {
+      "height" : 80,
+      "width" : 247.5,
+      "x" : 10,
+      "y" : 26
+    },
+    "paragraph" : {
+      "height" : 132.5,
+      "width" : 300,
+      "x" : 10,
+      "y" : 542.5
+    },
+    "scaled" : {
+      "height" : 51,
+      "width" : 51,
+      "x" : 10,
+      "y" : 683
+    },
+    "stack" : {
+      "height" : 708,
+      "width" : 320,
+      "x" : 10,
+      "y" : 26
+    },
+    "title" : {
+      "height" : 78,
+      "width" : 96,
+      "x" : 10,
+      "y" : 114
+    }
+  },
+  "size" : {
+    "height" : 760,
+    "width" : 340
+  }
+}

@@ -100,7 +100,9 @@ public enum Generator {
     @ViewBuilder
     static func requestView(_ request: TextMetricRequest, id: String) -> some View {
         let options = request.options
+        // A style font with a Dynamic Type category is measured at that size (sw-dynamic-type).
         let base = requestText(request).kerning(options.kerning).tracking(options.tracking).probe(id)
+            .dynamicTypeSize(request.runs[0].font.dynamicTypeSize ?? .large)
             .textScale(.secondary, isEnabled: options.secondaryScale)
             .lineSpacing(options.lineSpacing)
             .truncationMode(options.truncation == "head" ? .head : options.truncation == "middle" ? .middle : .tail)
@@ -150,6 +152,10 @@ public enum Generator {
     /// below and above, and to another text run of the same font below; line pitch and the
     /// unrounded line height; the platform's font metrics (cap height, decorations).
     static func measureFontSpacing(_ font: FixtureFont) -> [String: Double] {
+        measureFontSpacing(font, size: font.dynamicTypeSize ?? .large)
+    }
+
+    static func measureFontSpacing(_ font: FixtureFont, size dynamicTypeSize: DynamicTypeSize) -> [String: Double] {
         let canvas = CGSize(width: 2000, height: 2000)
         let view = HStack(alignment: .top, spacing: 50) {
             VStack(spacing: nil) {
@@ -176,6 +182,7 @@ public enum Generator {
             Text(Array(repeating: "Hg", count: 13).joined(separator: "\n")).font(font.font).lineSpacing(50).probe("manySpaced")
         }
         .frame(width: canvas.width, height: canvas.height, alignment: .topLeading)
+        .dynamicTypeSize(dynamicTypeSize)
         let f = collectFrames(view, size: canvas)
         let lineHeight: Double = f["t1"]!.height
         let manyHeight: Double = f["many"]!.height, manySpacedHeight: Double = f["manySpaced"]!.height

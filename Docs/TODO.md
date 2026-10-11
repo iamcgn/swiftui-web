@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 31 | 0 | 0 | 31 |
+| SwiftUI | 30 | 0 | 0 | 30 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **47** | 0 | 1 | 46 |
+| **All** | **46** | 0 | 1 | 45 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Dynamic Type** `sw-dynamic-type` · Text · missing  
-  `dynamicTypeSize` and the content size categories: the text-style tables at every category (measured on the simulator), `ScaledMetric`, the environment from the host's setting. ([Text.md](Docs/elements/Text.md), [iOS.md](Docs/elements/iOS.md))
 - ☐ **Subviews-based ForEach and Group** `sw-subviews` · View composition · missing  
   `ForEach(subviews:)`, `ForEach(sections:)`, `Group(subviews:)`, `containerValues`; the iOS 18 container APIs. ([ForEach.md](Docs/elements/ForEach.md))
 - ☐ **Layout protocol corners** `sw-custom-layout` · Layout · missing  
@@ -127,6 +125,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

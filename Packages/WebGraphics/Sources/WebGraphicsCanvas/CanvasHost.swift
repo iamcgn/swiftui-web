@@ -55,6 +55,7 @@ public final class CanvasSceneHost {
             TimeZone._hostSecondsFromGMT = -Int(minutes) * 60
         }
         IntlBridge.install()
+        scene.hostDisplayScale = JSObject.global.devicePixelRatio.number.map { CGFloat($0) } ?? 1
         document = window.document.object!
         if window.__swiftuiweb.isUndefined {
             let script = document.createElement!("script").object!
@@ -63,6 +64,10 @@ public final class CanvasSceneHost {
         }
         bridge = window.__swiftuiweb.object!
         container = document.getElementById!("app").object ?? document.body.object!
+        // iOS Safari exposes the user's text size through the `-apple-system-body` font keyword:
+        // the computed size of a probe span is the body style's point size at the current
+        // category (17 at Large). Browsers without the keyword leave the style empty.
+        scene.hostDynamicTypeSize = Self.dynamicTypeSize(in: document)
         let containerStyle = container.style.object!
         if (containerStyle.position.string ?? "").isEmpty {
             containerStyle.position = .string("relative")
@@ -1039,6 +1044,26 @@ public final class CanvasSceneHost {
         let style = document.createElement!("style").object!
         style.textContent = .string(".swiftuiweb-input::selection { background: transparent; color: transparent; }")
         _ = document.head.object?.appendChild!(style)
+    }
+
+    /// The content size category short name the body point size of `-apple-system-body` maps to,
+    /// nil when the browser does not know the keyword or the size is not one of the table's.
+    static func dynamicTypeSize(in document: JSObject) -> String? {
+        guard let span = document.createElement!("span").object, let body = document.body.object else { return nil }
+        span.style.object!.font = .string("-apple-system-body")
+        guard let font = span.style.object!.font.string, !font.isEmpty else { return nil }
+        span.style.object!.position = .string("absolute")
+        span.style.object!.visibility = .string("hidden")
+        _ = body.appendChild!(span)
+        defer { _ = body.removeChild!(span) }
+        guard let text = JSObject.global.getComputedStyle!(span).object?.fontSize.string, let size = Double(text.prefix { $0 != "p" }) else { return nil }
+        return categoryName(forBodySize: size)
+    }
+
+    /// The body text style's point size at each content size category (the HIG table).
+    static func categoryName(forBodySize size: Double) -> String? {
+        let sizes: [(Double, String)] = [(14, "XS"), (15, "S"), (16, "M"), (17, "L"), (19, "XL"), (21, "XXL"), (23, "XXXL"), (28, "AXM"), (33, "AXL"), (40, "AXXL"), (47, "AXXXL"), (53, "AXXXXL")]
+        return sizes.first { abs($0.0 - size) < 0.5 }?.1
     }
 
     /// `window.__swiftuiwebDebug`: probe frames, display list and frame count for Tier B tests.

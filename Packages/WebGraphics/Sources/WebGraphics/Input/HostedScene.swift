@@ -28,6 +28,11 @@ public protocol HostedScene: AnyObject {
     var hostColorScheme: ColorScheme { get set }
     /// The system's reduce-motion preference, set by hosts.
     var hostReducesMotion: Bool { get set }
+    /// The user's text size as a content size category short name ("XS" … "AXXXXL"), nil when
+    /// the host has none (sw-dynamic-type: iOS Safari exposes it through `-apple-system-body`).
+    var hostDynamicTypeSize: String? { get set }
+    /// The host's pixels per point, for values rounded to the display (`@ScaledMetric`).
+    var hostDisplayScale: CGFloat { get set }
     /// Whether the page is visible, and whether its window has focus (the scene phase).
     var hostIsVisible: Bool { get set }
     var hostIsFocused: Bool { get set }
@@ -138,3 +143,15 @@ public enum ContinuousGesturePhase: Sendable {
 
 /// Turns a display list in a space of `size` points into PNG data at `scale` pixels per point.
 public typealias ImageRasterizer = @MainActor (_ list: DisplayList, _ size: CGSize, _ scale: CGFloat) -> Data?
+
+extension HostedScene {
+    /// Scenes without Dynamic Type ignore the setting.
+    public var hostDynamicTypeSize: String? {
+        get { nil }
+        set {}
+    }
+    public var hostDisplayScale: CGFloat {
+        get { 2 }
+        set {}
+    }
+}

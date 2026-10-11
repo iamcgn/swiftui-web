@@ -336,24 +336,33 @@ public struct TextLayouter {
             }
         }
 
-        // Vertical placement: each line takes the tallest font on it.
+        // Vertical placement: each line takes the tallest font on it. For a text style at another
+        // Dynamic Type category the lines after the first sit a pitch below the one before,
+        // unrounded, and their baselines and the total height are rounded up to the half point,
+        // as SwiftUI reports them (two lines of iOS body at xxxLarge: 32.71 + 34.25 = 66.96 → 67,
+        // the second baseline 24.5 + 34.25 = 58.75 → 59; at accessibility4 66.17 + 66.17 → 132.5;
+        // measured on `ios/text/dynamic-*`). Other fonts keep their rounded line (a bundled font's
+        // four lines are four times its 26, `text/custom-font`); the general rule is unmeasured.
         var lines: [TextLayout.Line] = []
         var top: CGFloat = 0
         var widest: CGFloat = 0
         var height: CGFloat = 0
+        func halfUp(_ value: CGFloat) -> CGFloat { (value * 2 - 1e-9).rounded(.up) / 2 }
         for (index, piece) in pieces.enumerated() {
             let lineFonts = piece.runsShown.map { fonts.indices.contains($0) ? fonts[$0] : firstFont }
             let lineMetrics = lineFonts.map(metrics)
             let inlineHeight = piece.runsShown.compactMap { runs.indices.contains($0) ? runs[$0].inlineHeight : nil }.max() ?? 0
             let lineHeight = max(lineMetrics.map(\.lineHeight).max() ?? 0, inlineHeight)
+            let scaledStyle = lineFonts.contains { $0.sizeCategory != nil }
+            let unroundedHeight = scaledStyle ? max(lineMetrics.map { $0.unroundedLineHeight > 0 ? $0.unroundedLineHeight : $0.lineHeight }.max() ?? 0, inlineHeight) : lineHeight
             let baseline = lineMetrics.map(\.baseline).max() ?? 0
             let pitch = lineMetrics.map { $0.pitch(lineSpacing: options.lineSpacing) }.max() ?? 0
             let start = string.index(string.startIndex, offsetBy: piece.lo)
             let end = string.index(string.startIndex, offsetBy: piece.hi)
             lines.append(TextLayout.Line(range: start..<end, width: piece.width, inkWidth: piece.inkWidth,
-                                         baseline: top + baseline, fragments: piece.fragments))
+                                         baseline: index == 0 || !scaledStyle ? top + baseline : halfUp(top + baseline), fragments: piece.fragments))
             widest = max(widest, piece.width)
-            height = top + lineHeight
+            height = index == 0 || !scaledStyle ? top + lineHeight : halfUp(top + unroundedHeight)
             if index < pieces.count - 1 { top += pitch }
         }
         // Reserved (empty) lines add height but the last baseline stays on the last line of text.

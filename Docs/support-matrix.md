@@ -1,6 +1,6 @@
 # Support matrix
 
-Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-progress.py`; edit the JSON, not this file. Anything not listed is not implemented. Every row that does something names the fixtures that prove it (`Fixtures/Goldens/<name>`; `demo/` and `probe/` fixtures have no golden and are checked by a probe or a test), or says why none can exist.
+Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-progress.py`; edit the JSON, not this file. Anything not listed is not implemented. Every row that does something names the fixtures that prove it (`Fixtures/Goldens/<name>`; `demo/` and `probe/` fixtures have no golden and are checked by a probe or a test), or says why none can exist.
 
 | Status | Meaning |
 |---|---|
@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 135 | 25 | 100 | 4 | 3 | 3 |
+| SwiftUI | 136 | 25 | 101 | 4 | 3 | 3 |
 | UIKit | 54 | 20 | 30 | 4 | 0 | 0 |
 | Interop | 12 | 0 | 12 | 0 | 0 | 0 |
-| **All** | **201** | 45 | 142 | 8 | 3 | 3 |
+| **All** | **202** | 45 | 143 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -31,7 +31,7 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | `EmptyView / TupleView / Group / _ConditionalContent / Optional` | 🟢 partial | Structural nodes transparent to layout; Group forwards its modifiers to each child (layout/group-modifier), EmptyView takes no room | layout/group-modifier, foreach/empty |
 | `AnyView` | 🟢 partial | A type-erased node rebuilt when the wrapped type changes and updated in place otherwise (customlayout/any hosts a layout through it) | customlayout/any |
 | `ViewModifier / ModifiedContent / EmptyModifier / modifier(_:)` | 🟢 partial | Modifier nodes with bodies, dynamic properties and the environment; layout modifiers distribute over list content (one proxy per element) | layout/group-modifier, paint/background-overlay |
-| `EnvironmentValues / EnvironmentKey / @Entry / environment(_:_:) / transformEnvironment` | ✅ full | @Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros); Tier B (Chromium) within tolerance | text/styles, dark/text, ios/representable/traits |
+| `EnvironmentValues / EnvironmentKey / @Entry / environment(_:_:) / transformEnvironment` | ✅ full | @Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros); Tier B (Chromium) within tolerance dynamicTypeSize and displayScale follow the host (iOS Safari's -apple-system-body, devicePixelRatio; 2026-10-11). | text/styles, dark/text, ios/representable/traits |
 | `Transaction / TransactionKey / @Entry / withTransaction` | 🟢 partial | animation, disablesAnimations, isContinuous and custom keys; withTransaction and withAnimation record the animation for the flush and layout that apply the change; the transaction reaches a representable's updateUIView (ios/representable, 2026-09-18) | animation/implicit, animation/frame |
 | `id(_:) / IDView` | 🟢 partial | Identity change rebuilds the subtree; Tier B (Chromium) within tolerance | foreach/identity, ios/representable/lifecycle |
 | `ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent` | 🟢 partial | Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) exact frames, ≤ 0.3 % pixels incl. every identity step. onDelete, onMove and the editActions binding form (2026-09-18, Docs/elements/List.md); onInsert accepted without effect. | foreach/* |
@@ -84,7 +84,8 @@ Generated from `Docs/support.json` (last edited 2026-10-09) by `scripts/gen-prog
 | `Divider` | 🟢 partial | Layout exact (1 pt across the stack's axis); painted as a hairline in the separator colour | layout/divider |
 | `Color (as a view)` | 🟢 partial | macOS light system colour table; painting via display list; Tier B (Chromium) within tolerance | paint/system-colors |
 | `Layout protocol / custom layouts / layoutValue` | 🟢 partial | sizeThatFits, placeSubviews, spacing, explicitAlignment, cache; no RTL; Tier B (Chromium) within tolerance | customlayout/flow, customlayout/radial, customlayout/values |
-| `Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced/monospacedDigit)` | 🟢 partial | macOS text-style table; bold() is a per-style trait; italic keys; monospacedDigit() gives tabular figures (CoreText's number-spacing feature natively, fixed digit slots in Canvas2D; measured on UIKit's monospacedDigitSystemFont, Docs/elements/UIKit/UIFont.md); Tier B (Chromium) within tolerance | text/styles, text/system-fonts, text/modifiers |
+| `Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced/monospacedDigit)` | 🟢 partial | macOS text-style table; bold() is a per-style trait; italic keys; monospacedDigit() gives tabular figures (CoreText's number-spacing feature natively, fixed digit slots in Canvas2D; measured on UIKit's monospacedDigitSystemFont, Docs/elements/UIKit/UIFont.md); Tier B (Chromium) within tolerance Dynamic Type (2026-10-11): the iOS profile's text styles take the category's point size and line (ios/text/dynamic-xsmall, -xxxlarge, -ax4 exact; multi-line heights rounded up to the half point from the unrounded line), dynamicTypeSize ranges clamp (ios/text/dynamic-clamped), macOS ignores Dynamic Type (text/dynamic-type). | text/styles, text/system-fonts, text/modifiers, ios/text/dynamic-xsmall, ios/text/dynamic-xxxlarge, ios/text/dynamic-ax4, ios/text/dynamic-clamped, text/dynamic-type |
+| `@ScaledMetric / DynamicTypeSize / dynamicTypeSize(_:) (size and range forms)` | 🟢 partial | ScaledMetric scales by the ratio of the style's line heights at the category and at large, rounded to the display scale (20 relative to body: 17.5 xSmall, 22 xLarge, 26.5 xxxLarge, 51 accessibility4; measured 2026-10-11); the range form clamps the environment; macOS leaves values unchanged; the host's text size (iOS Safari) sets the root size. Open: controls and bars at other categories, Font.custom(relativeTo:). | ios/text/dynamic-xsmall, ios/text/dynamic-xxxlarge, ios/text/dynamic-ax4, ios/text/dynamic-clamped, text/dynamic-type |
 | `Rectangle / RoundedRectangle (circular, continuous) / UnevenRoundedRectangle / Circle / Ellipse / Capsule` | ✅ full | Paths identical to Apple's element for element (74 recorded paths, PathGoldenTests): continuous corner curves, radius limits, start points; Tier B pixels ≤ 0.24 % Chromium, ≤ 0.11 % WebKit Shape.layoutDirectionBehavior (2026-10-09): .mirrors by default, a shape's path flips in a right-to-left layout; .fixed keeps it (layout/rtl-shapes). | shape/builtin, shape/layout, paint/shapes, layout/rtl-shapes |
 | `Path (move/line/curves, addArc/addRelativeArc, rects, ellipses, rounded rects, description and init?(_:), applying, contains, trimmedPath, forEach)` | ✅ full | Element order, arc sweep rules and trimming match Apple; addArc(tangent1End:…) implemented from CGPath's definition, unverified; no cgPath | shape/path, shape/modifiers |
 | `Path.strokedPath(_:)` | 🟡 approximate | Oriented polygons per segment, join and cap (a nonzero fill unions them), dashes honoured; Apple computes the offset outline. Painters stroke natively, so this only affects clipping and hit testing with a stroked shape | shape/modifiers |

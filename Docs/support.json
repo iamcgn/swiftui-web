@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-09",
+  "generated": "2026-10-11",
   "sections": [
     {
       "title": "App lifecycle",
@@ -59,7 +59,7 @@
         {
           "api": "EnvironmentValues / EnvironmentKey / @Entry / environment(_:_:) / transformEnvironment",
           "status": "full",
-          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros); Tier B (Chromium) within tolerance",
+          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros); Tier B (Chromium) within tolerance dynamicTypeSize and displayScale follow the host (iOS Safari's -apple-system-body, devicePixelRatio; 2026-10-11).",
           "fixtures": [
             "text/styles",
             "dark/text",
@@ -560,11 +560,28 @@
         {
           "api": "Font (text styles, system(size:weight:design:), bold/weight/italic/monospaced/monospacedDigit)",
           "status": "partial",
-          "notes": "macOS text-style table; bold() is a per-style trait; italic keys; monospacedDigit() gives tabular figures (CoreText's number-spacing feature natively, fixed digit slots in Canvas2D; measured on UIKit's monospacedDigitSystemFont, Docs/elements/UIKit/UIFont.md); Tier B (Chromium) within tolerance",
+          "notes": "macOS text-style table; bold() is a per-style trait; italic keys; monospacedDigit() gives tabular figures (CoreText's number-spacing feature natively, fixed digit slots in Canvas2D; measured on UIKit's monospacedDigitSystemFont, Docs/elements/UIKit/UIFont.md); Tier B (Chromium) within tolerance Dynamic Type (2026-10-11): the iOS profile's text styles take the category's point size and line (ios/text/dynamic-xsmall, -xxxlarge, -ax4 exact; multi-line heights rounded up to the half point from the unrounded line), dynamicTypeSize ranges clamp (ios/text/dynamic-clamped), macOS ignores Dynamic Type (text/dynamic-type).",
           "fixtures": [
             "text/styles",
             "text/system-fonts",
-            "text/modifiers"
+            "text/modifiers",
+            "ios/text/dynamic-xsmall",
+            "ios/text/dynamic-xxxlarge",
+            "ios/text/dynamic-ax4",
+            "ios/text/dynamic-clamped",
+            "text/dynamic-type"
+          ]
+        },
+        {
+          "api": "@ScaledMetric / DynamicTypeSize / dynamicTypeSize(_:) (size and range forms)",
+          "status": "partial",
+          "notes": "ScaledMetric scales by the ratio of the style's line heights at the category and at large, rounded to the display scale (20 relative to body: 17.5 xSmall, 22 xLarge, 26.5 xxxLarge, 51 accessibility4; measured 2026-10-11); the range form clamps the environment; macOS leaves values unchanged; the host's text size (iOS Safari) sets the root size. Open: controls and bars at other categories, Font.custom(relativeTo:).",
+          "fixtures": [
+            "ios/text/dynamic-xsmall",
+            "ios/text/dynamic-xxxlarge",
+            "ios/text/dynamic-ax4",
+            "ios/text/dynamic-clamped",
+            "text/dynamic-type"
           ]
         },
         {

@@ -298,7 +298,7 @@ public struct GraphicsContext {
         let parts = text.parts()
         let runs = parts.map { part -> StyledRun in
             let font = part.modifiers.font ?? environment.font ?? environment.platformProfile.defaultFont
-            var resolved = font.resolve(profile: environment.platformProfile)
+            var resolved = font.resolve(in: environment)
             if let weight = part.modifiers.weight { resolved.weight = weight; resolved.weightOverridden = true }
             else if part.modifiers.bold { resolved.weight = environment.platformProfile.boldTraitWeight(for: resolved.textStyle); resolved.weightOverridden = true }
             if part.modifiers.italic { resolved.italic = true }

@@ -75,6 +75,12 @@ final class UIKitHost: GoldenHost {
     }
 }
 
+/// UIKit's content size categories by the short names the fixtures use.
+let contentSizeCategories: [String: UIContentSizeCategory] = [
+    "XS": .extraSmall, "S": .small, "M": .medium, "L": .large, "XL": .extraLarge, "XXL": .extraExtraLarge, "XXXL": .extraExtraExtraLarge,
+    "AXM": .accessibilityMedium, "AXL": .accessibilityLarge, "AXXL": .accessibilityExtraLarge, "AXXXL": .accessibilityExtraExtraLarge, "AXXXXL": .accessibilityExtraExtraExtraLarge,
+]
+
 /// The UIKit font behind a fixture font, for metrics layout cannot reveal.
 func uiFont(_ font: FixtureFont) -> UIFont {
     let weights: [String: UIFont.Weight] = ["ultraLight": .ultraLight, "thin": .thin, "light": .light, "regular": .regular, "medium": .medium,
@@ -89,8 +95,10 @@ func uiFont(_ font: FixtureFont) -> UIFont {
     case .system(let size, let weight, let d, _):
         result = UIFont.systemFont(ofSize: size, weight: weights[weight]!)
         design = d
-    case .style(let name, let weight, let d, _):
-        result = UIFont.preferredFont(forTextStyle: styles[name]!)
+    case .style(let name, let weight, let d, _, let category):
+        // A Dynamic Type category: the preferred font at that content size (sw-dynamic-type).
+        let traits = category.map { UITraitCollection(preferredContentSizeCategory: contentSizeCategories[$0]!) }
+        result = UIFont.preferredFont(forTextStyle: styles[name]!, compatibleWith: traits)
         if let weight { result = UIFont.systemFont(ofSize: result.pointSize, weight: weights[weight]!) }
         design = d
     case .custom(let name, let size, _, _):

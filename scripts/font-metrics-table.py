@@ -35,7 +35,38 @@ lines = [
 for s in styles:
     f = fonts[f"style:{s}"]
     lines.append(f"        .{s}: .init(lineHeight: {fmt(f['lineHeight'])}, baseline: {fmt(baseline(f'style:{s}'))}, spacingBelow: {fmt(f['spacingBelow'])}, spacingAbove: {fmt(f['spacingAbove'])}, textToText: {fmt(f['textToText'])}, linePitch: {fmt(f['linePitch'])}, unroundedLineHeight: {fmt(f['unroundedLineHeight'])}, capHeight: {fmt(f.get('capHeight', 0))}, xHeight: {fmt(f.get('xHeight', 0))}, underlineOffset: {fmt(-f.get('underlinePosition', 0))}, underlineThickness: {fmt(f.get('underlineThickness', 0))}),")
-lines += ["    ]", "",
+if ios:
+    # The text styles at the other Dynamic Type categories (sw-dynamic-type), where measured:
+    # keys `style:<name>:<CATEGORY>` in the simulator's text-metrics.json.
+    categories = ["XS", "S", "M", "XL", "XXL", "XXXL", "AXM", "AXL", "AXXL", "AXXXL", "AXXXXL"]
+    lines += ["    ]", "",
+              "    /// The text styles at the other Dynamic Type categories, where the simulator measured them",
+              "    /// (`ios/text/dynamic-*`); a category not here falls back to the font's own line metrics.",
+              f"    public static let {prefix}ScaledTextStyleMetrics: [FontTextStyle: [String: SystemFontMetrics]] = ["]
+    for s in styles:
+        rows = []
+        for c in categories:
+            key = f"style:{s}:{c}"
+            if key not in fonts: continue
+            f = fonts[key]
+            try:
+                b = baseline(key)
+            except SystemExit:
+                continue
+            rows.append(f'"{c}": .init(lineHeight: {fmt(f["lineHeight"])}, baseline: {fmt(b)}, spacingBelow: {fmt(f["spacingBelow"])}, spacingAbove: {fmt(f["spacingAbove"])}, textToText: {fmt(f["textToText"])}, linePitch: {fmt(f["linePitch"])}, unroundedLineHeight: {fmt(f["unroundedLineHeight"])}, capHeight: {fmt(f.get("capHeight", 0))}, xHeight: {fmt(f.get("xHeight", 0))}, underlineOffset: {fmt(-f.get("underlinePosition", 0))}, underlineThickness: {fmt(f.get("underlineThickness", 0))})')
+        if rows:
+            lines.append(f"        .{s}: [{', '.join(rows)}],")
+    if lines[-1].endswith("= ["):
+        lines[-1] = lines[-1][:-1] + "[:]"
+        lines.append("    // (no categories measured yet: run scripts/gen-goldens-sim.sh ios text-metrics)")
+        lines += ["", "    /// (style, weight) faces whose line differs from the style's regular face.",
+                  f"    public static let {prefix}TextStyleWeightOverrides: [FontTextStyle: [Int: (lineHeight: CGFloat, baseline: CGFloat)]] = ["]
+    else:
+        lines += ["    ]", "",
+                  "    /// (style, weight) faces whose line differs from the style's regular face.",
+                  f"    public static let {prefix}TextStyleWeightOverrides: [FontTextStyle: [Int: (lineHeight: CGFloat, baseline: CGFloat)]] = ["]
+else:
+    lines += ["    ]", "",
           "    /// (style, weight) faces whose line differs from the style's regular face.",
           f"    public static let {prefix}TextStyleWeightOverrides: [FontTextStyle: [Int: (lineHeight: CGFloat, baseline: CGFloat)]] = ["]
 for s in styles:

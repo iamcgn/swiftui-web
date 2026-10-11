@@ -36,7 +36,7 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         return view.style._bezel
     }
     private var resolvedFont: ResolvedFont {
-        (environment.font ?? environment.platformProfile.defaultFont).resolve(profile: environment.platformProfile)
+        (environment.font ?? environment.platformProfile.defaultFont).resolve(in: environment)
     }
     private var metrics: SystemFontMetrics { environment.platformProfile.systemFontMetrics(for: resolvedFont) }
     private var isVertical: Bool { view.axis == .vertical }

@@ -1,0 +1,69 @@
+{
+  "fixture" : "ios\/text\/dynamic-xsmall",
+  "frames" : {
+    "body" : {
+      "height" : 20.5,
+      "width" : 33.5,
+      "x" : 10,
+      "y" : 137
+    },
+    "bold" : {
+      "height" : 20.5,
+      "width" : 30.5,
+      "x" : 10,
+      "y" : 215
+    },
+    "caption2" : {
+      "height" : 16.5,
+      "width" : 51,
+      "x" : 10,
+      "y" : 190.5
+    },
+    "footnote" : {
+      "height" : 17,
+      "width" : 51,
+      "x" : 10,
+      "y" : 165.5
+    },
+    "headline" : {
+      "height" : 20.5,
+      "width" : 59.5,
+      "x" : 10,
+      "y" : 108.5
+    },
+    "largeTitle" : {
+      "height" : 44.5,
+      "width" : 139.5,
+      "x" : 10,
+      "y" : 10.5
+    },
+    "paragraph" : {
+      "height" : 20.5,
+      "width" : 300,
+      "x" : 10,
+      "y" : 243.5
+    },
+    "scaled" : {
+      "height" : 17.5,
+      "width" : 17.5,
+      "x" : 10,
+      "y" : 272
+    },
+    "stack" : {
+      "height" : 279,
+      "width" : 300,
+      "x" : 10,
+      "y" : 10.5
+    },
+    "title" : {
+      "height" : 37.5,
+      "width" : 46.5,
+      "x" : 10,
+      "y" : 63
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}
