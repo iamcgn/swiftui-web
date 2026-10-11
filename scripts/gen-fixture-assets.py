@@ -138,6 +138,44 @@ subprocess.run(["sips", "-s", "format", "jpeg", "-s", "formatOptions", "90", str
 tmp.unlink()
 contents(directory, {"images": [{"filename": "photo@2x.jpg", "idiom": "universal", "scale": "2x"}], "info": INFO})
 
+# vector sets (sw-images): an SVG drawn by the browser at any scale and a PDF actool would
+# rasterise (assets.py does, with sips), both 40 × 30 points, asymmetric.
+directory = catalog / "vector.imageset"
+write(directory / "vector.svg", b"""<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30" viewBox="0 0 40 30">
+<rect width="40" height="30" fill="#e64d33"/><circle cx="15" cy="15" r="11" fill="#1a66e6"/><rect x="30" y="4" width="6" height="22" fill="#ffd21f"/>
+</svg>
+""")
+contents(directory, {"images": [{"filename": "vector.svg", "idiom": "universal"}], "info": INFO,
+                     "properties": {"preserves-vector-representation": True}})
+directory = catalog / "document.imageset"
+pdf_source = directory / "document.pdf"
+# A hand-written single-page PDF (a 40 × 30 media box, the same drawing as the SVG).
+content = b"0.9 0.3 0.2 rg 0 0 40 30 re f 0.1 0.4 0.9 rg 4 4 m 4 10.07 8.93 15 15 15 c 21.07 15 26 10.07 26 4 c 26 -2.07 21.07 -7 15 -7 c 8.93 -7 4 -2.07 4 4 c f 1 0.82 0.12 rg 30 4 6 22 re f"
+# The circle above is drawn with its centre at (15, 4) in PDF space (y up); shift it to sit at y = 15 from the top.
+content = b"0.9 0.3 0.2 rg 0 0 40 30 re f 0.1 0.4 0.9 rg 4 15 m 4 21.07 8.93 26 15 26 c 21.07 26 26 21.07 26 15 c 26 8.93 21.07 4 15 4 c 8.93 4 4 8.93 4 15 c f 1 0.82 0.12 rg 30 4 6 22 re f"
+objects = [b"<< /Type /Catalog /Pages 2 0 R >>", b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+           b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 40 30] /Contents 4 0 R >>",
+           b"<< /Length " + str(len(content)).encode() + b" >>\nstream\n" + content + b"\nendstream"]
+pdf = bytearray(b"%PDF-1.4\n")
+offsets = []
+for i, obj in enumerate(objects):
+    offsets.append(len(pdf))
+    pdf += f"{i + 1} 0 obj\n".encode() + obj + b"\nendobj\n"
+xref = len(pdf)
+pdf += f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n".encode()
+for offset in offsets: pdf += f"{offset:010d} 00000 n \n".encode()
+pdf += f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+write(pdf_source, bytes(pdf))
+contents(directory, {"images": [{"filename": "document.pdf", "idiom": "universal"}], "info": INFO})
+
+# sliced 40×40 with catalog slicing metadata: 8 pt caps, the centre stretched.
+directory = catalog / "sliced.imageset"
+write(directory / "sliced.png", png(40, 40, lambda x, y: (40, 90, 220, 255) if 8 <= x < 32 and 8 <= y < 32 else (220, 40, 40, 255)))
+write(directory / "sliced@2x.png", png(80, 80, lambda x, y: (40, 90, 220, 255) if 16 <= x < 64 and 16 <= y < 64 else (220, 40, 40, 255)))
+contents(directory, {"images": [{"filename": "sliced.png", "idiom": "universal", "scale": "1x"}, {"filename": "sliced@2x.png", "idiom": "universal", "scale": "2x"}],
+                     "info": INFO, "properties": {"resizing": {"mode": "9-part", "center": {"mode": "stretch", "width": 24, "height": 24},
+                                                                "cap-insets": {"top": 8, "left": 8, "bottom": 8, "right": 8}}}})
+
 # Colour sets, in the three component spellings Xcode writes.
 colorset("Accent", ("0.000", "0.533", "1.000", "1.000"))
 colorset("Panel", ("0xF2", "0xF2", "0xF7", "1.000"), dark=("0x1C", "0x1C", "0x1E", "1.000"))

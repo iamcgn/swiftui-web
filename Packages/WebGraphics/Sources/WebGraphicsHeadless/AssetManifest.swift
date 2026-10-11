@@ -13,14 +13,23 @@ extension AssetCatalog {
         struct Variant: Decodable {
             let file: String
             let scale: Double
-            let width: Int
-            let height: Int
+            let width: Double
+            let height: Double
             let idiom: String?
             let appearance: String?
+            let vector: Bool?
+        }
+        struct Insets: Decodable {
+            let top: Double
+            let leading: Double
+            let bottom: Double
+            let trailing: Double
         }
         struct ImageSet: Decodable {
             let template: Bool?
             let variants: [Variant]
+            let capInsets: Insets?
+            let tilesCenter: Bool?
         }
         struct ColorEntry: Decodable {
             let idiom: String?
@@ -57,9 +66,10 @@ extension AssetCatalog {
         var images: [String: ImageResource] = [:]
         for (name, set) in document.images {
             images[name] = ImageResource(name: name, isTemplate: set.template ?? false, variants: set.variants.map {
-                ImageVariant(file: $0.file, scale: CGFloat($0.scale), pixelWidth: $0.width, pixelHeight: $0.height,
-                             idiom: $0.idiom ?? "universal", appearance: $0.appearance ?? "any")
-            })
+                ImageVariant(file: $0.file, scale: CGFloat($0.scale), pixelWidth: Int($0.width.rounded()), pixelHeight: Int($0.height.rounded()),
+                             idiom: $0.idiom ?? "universal", appearance: $0.appearance ?? "any", isVector: $0.vector ?? false)
+            }, capInsets: set.capInsets.map { EdgeInsets(top: $0.top, leading: $0.leading, bottom: $0.bottom, trailing: $0.trailing) },
+            tilesCenter: set.tilesCenter ?? false)
         }
         var colors: [String: [ColorVariant]] = [:]
         for (name, set) in document.colors {

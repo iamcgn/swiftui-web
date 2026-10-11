@@ -704,12 +704,14 @@
         },
         {
           "api": "Image(_:bundle:) / Image(decorative:bundle:) / Image(_:bundle:label:) from asset catalogs",
-          "status": "partial",
-          "notes": "scripts/assets.py reads *.xcassets into a manifest (decision 0011): image sets with 1x/2x/3x, mac/universal idiom, light/dark appearance, folder namespaces, template intent; PNG/JPEG/GIF. Rigid at pixels ÷ scale; missing name is 0 × 0. Tier A exact; Tier B exact frames in Chromium, WebKit and Firefox. Open: PDF/SVG sets, slicing metadata, dark-appearance goldens, bundle: ignored (absent on wasm)",
+          "status": "full",
+          "notes": "scripts/assets.py reads *.xcassets into a manifest (decision 0011): image sets with 1x/2x/3x, mac/universal idiom, light/dark appearance, folder namespaces, template intent; PNG/JPEG/GIF; SVG sets drawn as vectors and PDF sets rasterised with sips at 1x/2x/3x; slicing metadata applied to resizable images (2026-10-11). Rigid at pixels ÷ scale; missing name is 0 × 0. Tier A exact; Tier B exact frames in Chromium, WebKit and Firefox; dark variants in dark/images. Open: Display P3 as sRGB, symbol sets and sprite atlases, bundle: ignored (absent on wasm)",
           "fixtures": [
             "image/intrinsic",
             "image/stack-spacing",
-            "image/swap"
+            "image/swap",
+            "image/corners",
+            "dark/images"
           ]
         },
         {
@@ -741,9 +743,12 @@
           ]
         },
         {
-          "api": "Image(nsImage:) / Image(cgImage...) / Image(size:label:renderer:)",
-          "status": "missing",
-          "notes": "No CGImage/NSImage on wasm"
+          "api": "Image(size:label:renderer:) / Image(nsImage:) / Image(cgImage...)",
+          "status": "partial",
+          "notes": "Image(size:label:renderer:) draws its GraphicsContext closure at paint time scaled into the frame, a template takes the foreground colour (image/corners, 2026-10-11); no CGImage/NSImage on wasm",
+          "fixtures": [
+            "image/corners"
+          ]
         },
         {
           "api": "Color(_:bundle:) from asset catalog colour sets",

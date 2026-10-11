@@ -393,9 +393,24 @@ public final class CoreGraphicsPainter {
         images[url] = image
     }
 
-    private func image(for file: String) -> CGImage? {
+    private func image(for file: String, pixelSize: CGSize? = nil) -> CGImage? {
         if let cached = images[file] { return cached }
         let source: CGImageSource?
+        #if canImport(AppKit)
+        if file.lowercased().hasSuffix(".svg"), let base = assetBase, let pixelSize, pixelSize.width > 0, pixelSize.height > 0 {
+            // A vector file: AppKit rasterises it at the pixel size of this draw (not cached).
+            guard let vector = NSImage(contentsOf: base.appendingPathComponent(file)) else { return nil }
+            let rect = CGRect(origin: .zero, size: pixelSize)
+            let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(pixelSize.width), pixelsHigh: Int(pixelSize.height), bitsPerSample: 8,
+                                          samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
+            guard let bitmap, let context = NSGraphicsContext(bitmapImageRep: bitmap) else { return nil }
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = context
+            vector.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1)
+            NSGraphicsContext.restoreGraphicsState()
+            return bitmap.cgImage
+        }
+        #endif
         if file.hasPrefix("data:") {
             // A data URL (an image made from bytes): the base64 payload after the comma.
             guard let comma = file.firstIndex(of: ","), let data = Data(base64Encoded: String(file[file.index(after: comma)...])) else { return nil }
@@ -440,7 +455,8 @@ public final class CoreGraphicsPainter {
     }
 
     private func drawImage(_ draw: ImageDraw, in ctx: CGContext) {
-        guard let image = image(for: draw.file) else { return }
+        let pixels = CGSize(width: (draw.rect.width * ctx.ctm.a).rounded(.up), height: (draw.rect.height * abs(ctx.ctm.d)).rounded(.up))
+        guard let image = image(for: draw.file, pixelSize: pixels) else { return }
         ctx.saveGState()
         ctx.interpolationQuality = draw.smoothing ? .default : .none
         if draw.tint != nil {

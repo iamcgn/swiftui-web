@@ -8,6 +8,9 @@ import SwiftUIWebHeadless
 @Suite @MainActor struct ImageTests {
     static let catalog = AssetCatalog(
         images: [
+            "sliced": ImageResource(name: "sliced", variants: [ImageVariant(file: "sliced@2x.png", scale: 2, pixelWidth: 80, pixelHeight: 80)],
+                                    capInsets: EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8), tilesCenter: true),
+            "vector": ImageResource(name: "vector", variants: [ImageVariant(file: "vector.svg", scale: 1, pixelWidth: 40, pixelHeight: 30, isVector: true)]),
             "swatch": ImageResource(name: "swatch", variants: [
                 ImageVariant(file: "swatch.png", scale: 1, pixelWidth: 64, pixelHeight: 40),
                 ImageVariant(file: "swatch@2x.png", scale: 2, pixelWidth: 128, pixelHeight: 80),
@@ -124,6 +127,29 @@ import SwiftUIWebHeadless
         dark.colorScheme = .dark
         #expect(render(Color("Panel").frame(width: 10, height: 10), environment: dark).commands == ["fillRect(95, 45, 10, 10) #1A1A1F"])
         #expect(render(Image("dual")._probe("i"), environment: dark).commands == ["drawImage(dual-dark@2x.png @2x (76, 38, 48, 24))"])
+    }
+
+    /// sw-images: a catalog's slicing applies to a resizable image unless the view slices itself,
+    /// a vector set lays out at its point size and draws its file at scale 1 (the painters scale
+    /// it sharply), and `Image(size:label:renderer:)` draws its closure scaled into the frame.
+    @Test func slicingVectorsAndRenderedImages() {
+        let sliced = render(Image("sliced").resizable().frame(width: 120, height: 80)._probe("image"))
+        #expect(sliced.commands == ["drawImage(sliced@2x.png @2x (40, 10, 120, 80) insets=8,8,8,8 tile)"], "\(sliced.commands)")
+        let own = render(Image("sliced").resizable(capInsets: EdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)).frame(width: 120, height: 80))
+        #expect(own.commands == ["drawImage(sliced@2x.png @2x (40, 10, 120, 80) insets=4,4,4,4)"], "\(own.commands)")
+        #expect(render(Image("sliced").frame(width: 120, height: 80)).commands == ["drawImage(sliced@2x.png @2x (80, 30, 40, 40))"])
+        let vector = render(Image("vector")._probe("image"))
+        #expect(vector.frames["image"]?.size == CGSize(width: 40, height: 30) && vector.commands == ["drawImage(vector.svg @1x (80, 35, 40, 30))"], "\(vector.commands)")
+        #expect(render(Image("vector").resizable().frame(width: 80, height: 60)).commands == ["drawImage(vector.svg @1x (60, 20, 80, 60))"])
+        let drawn = render(Image(size: CGSize(width: 40, height: 30)) { context in
+            context.fill(Path(CGRect(x: 0, y: 0, width: 40, height: 30)), with: .color(.red))
+        }._probe("image"))
+        #expect(drawn.frames["image"]?.size == CGSize(width: 40, height: 30))
+        #expect(drawn.commands == ["save", "clipRect(80, 35, 40, 30)", "save", "concat(1, 0, 0, 1, 80, 35)", "fillPath(5 elements) #FF383C", "restore", "restore"], "\(drawn.commands)")
+        let big = render(Image(size: CGSize(width: 40, height: 30)) { context in
+            context.fill(Path(CGRect(x: 0, y: 0, width: 40, height: 30)), with: .color(.red))
+        }.resizable().renderingMode(.template).foregroundStyle(.green).frame(width: 80, height: 60))
+        #expect(big.commands.contains("concat(2, 0, 0, 2, 60, 20)") && big.commands.contains("fillPath(5 elements) #34C759"), "\(big.commands)")
     }
 
     @Test func replacingTheCatalogReEvaluates() {

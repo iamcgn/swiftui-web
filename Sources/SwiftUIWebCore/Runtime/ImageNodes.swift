@@ -70,7 +70,7 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
             resource = environment.assetCatalog.image(named: name)
             symbol = nil
             symbolSize = nil
-        case .drawing:
+        case .drawing, .renderer:
             resource = nil
             symbol = nil
             symbolSize = nil
@@ -115,6 +115,7 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
         }
         if let symbolSize { return CGSize(width: symbolSize.width, height: symbolSize.height) }
         if case .drawing(let drawing) = view.source { return drawing.size }
+        if case .renderer(let renderer) = view.source { return renderer.size }
         return resource?.pointSize(scheme: environment.colorScheme, idiom: environment.assetIdiom) ?? .zero
     }
 
@@ -180,6 +181,24 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
             for command in drawing.commands(in: bounds, tint: tint) { list.append(command) }
             return
         }
+        if case .renderer(let renderer) = view.source {
+            // The closure draws into a context of the image's size, scaled into the frame (a
+            // template takes the foreground colour like a recording).
+            let bounds = absoluteBounds(context)
+            guard bounds.width > 0, bounds.height > 0, renderer.size.width > 0, renderer.size.height > 0 else { return }
+            let recorder = _GraphicsRecorder(environment: environment, textEngine: runtime.textEngine, scale: context.scale)
+            recorder.node = self
+            var graphics = GraphicsContext(recorder: recorder)
+            renderer.draw(&graphics)
+            guard !recorder.list.commands.isEmpty else { return }
+            let tint: RGBA? = isTemplate ? (environment.foregroundColor ?? .primary).resolve(in: environment) : nil
+            let drawing = _ImageDrawing(commands: recorder.list.commands, size: renderer.size, scale: context.scale)
+            list.append(.save)
+            list.append(.clipRect(bounds))
+            for command in drawing.commands(in: bounds, tint: tint) { list.append(command) }
+            list.append(.restore)
+            return
+        }
         guard let resource,
               let variant = resource.variant(scale: context.scale, scheme: environment.colorScheme, idiom: environment.assetIdiom)
         else { return }
@@ -188,8 +207,14 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
         var draw = ImageDraw(file: variant.file, scale: variant.scale,
                              pixelSize: CGSize(width: variant.pixelWidth, height: variant.pixelHeight), rect: bounds)
         if let resizing = view.resizing {
-            draw.capInsets = resizing.capInsets
-            draw.tiles = resizing.mode == .tile
+            // The catalog's slicing applies to a resizable image unless the view slices itself.
+            if resizing.capInsets == EdgeInsets(), let catalogInsets = resource.capInsets {
+                draw.capInsets = catalogInsets
+                draw.tiles = resource.tilesCenter || resizing.mode == .tile
+            } else {
+                draw.capInsets = resizing.capInsets
+                draw.tiles = resizing.mode == .tile
+            }
         }
         draw.smoothing = view.interpolation != .none
         if isTemplate {

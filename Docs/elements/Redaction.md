@@ -13,7 +13,7 @@ Apple docs: [redacted(reason:)](https://developer.apple.com/documentation/swiftu
 | `privacySensitive(_:)` | implemented |
 | `unredacted()` | implemented |
 | Placeholders for text and system symbols | implemented (measured) |
-| Placeholders for catalog images | approximate: the image's frame filled with the placeholder ink (not measured) |
+| Placeholders for catalog images | implemented: the image's frame filled with the placeholder ink (measured 2026-10-11, `image/corners` `placeholder`: black at 13.7 %; the dark ink in `dark/images`) |
 | Custom placeholder shapes, `RedactionReasons.invalidated` styling, shimmering | missing |
 
 ## Behaviour
@@ -64,6 +64,5 @@ frames and squares.
 
 ## Not yet covered
 
-Catalog image placeholders (not measured), the exact corner radius, dark-mode ink (assumed the
-inverse), `privacySensitive` on images and controls, and whether SwiftUI's placeholder advance
-follows custom fonts.
+The exact corner radius, `privacySensitive` on images and controls, and whether SwiftUI's
+placeholder advance follows custom fonts.

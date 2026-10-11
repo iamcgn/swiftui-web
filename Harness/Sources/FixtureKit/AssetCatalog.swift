@@ -129,8 +129,49 @@ public enum FixtureAssets {
         return byAppearance.first { scale($0) == wanted } ?? byAppearance.max { scale($0) < scale($1) }
     }
 
+    /// A vector file (PDF or SVG) rasterised at 2× the way actool rasterises a catalog's vector
+    /// sets (sw-images): the PDF's first page through CoreGraphics, the SVG through AppKit.
+    private static func rasterizedVector(_ url: URL, scale: CGFloat) -> CGImage? {
+        #if os(iOS)
+        return nil
+        #else
+        let pointSize: CGSize
+        let draw: (CGContext) -> Void
+        if url.pathExtension.lowercased() == "pdf" {
+            guard let document = CGPDFDocument(url as CFURL), let page = document.page(at: 1) else { return nil }
+            let box = page.getBoxRect(.mediaBox)
+            pointSize = box.size
+            draw = { context in
+                context.translateBy(x: -box.minX * scale, y: -box.minY * scale)
+                context.scaleBy(x: scale, y: scale)
+                context.drawPDFPage(page)
+            }
+        } else {
+            guard let image = NSImage(contentsOf: url) else { return nil }
+            pointSize = image.size
+            draw = { context in
+                NSGraphicsContext.saveGraphicsState()
+                NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
+                image.draw(in: CGRect(x: 0, y: 0, width: pointSize.width * scale, height: pointSize.height * scale), from: .zero, operation: .sourceOver, fraction: 1)
+                NSGraphicsContext.restoreGraphicsState()
+            }
+        }
+        let width = Int((pointSize.width * scale).rounded()), height = Int((pointSize.height * scale).rounded())
+        guard width > 0, height > 0,
+              let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                                      space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        draw(context)
+        return context.makeImage()
+        #endif
+    }
+
     static func image(named name: String) -> Image {
         load()
+        if let set = images[name], let variant = set.variants.first, ["pdf", "svg"].contains(variant.url.pathExtension.lowercased()),
+           let cgImage = rasterizedVector(variant.url, scale: 2) {
+            let image = Image(decorative: cgImage, scale: 2)
+            return set.template ? image.renderingMode(.template) : image
+        }
         guard let set = images[name],
               let variant = select(set.variants, idiom: \.idiom, appearance: \.appearance, scale: \.scale, wanted: 2),
               let source = CGImageSourceCreateWithURL(variant.url as CFURL, nil),

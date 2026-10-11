@@ -1,0 +1,87 @@
+{
+  "fixture" : "image\/corners",
+  "frames" : {
+    "desaturated" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 204,
+      "y" : 126
+    },
+    "drawn" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 288,
+      "y" : 54
+    },
+    "drawnBig" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 340,
+      "y" : 54
+    },
+    "drawnTemplate" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 0,
+      "y" : 126
+    },
+    "luminance" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 128,
+      "y" : 126
+    },
+    "multiplied" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 52,
+      "y" : 126
+    },
+    "pdf" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 144,
+      "y" : 54
+    },
+    "pdfBig" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 196,
+      "y" : 54
+    },
+    "placeholder" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 280,
+      "y" : 126
+    },
+    "row1" : {
+      "height" : 60,
+      "width" : 420,
+      "x" : 0,
+      "y" : 54
+    },
+    "row2" : {
+      "height" : 40,
+      "width" : 344,
+      "x" : 0,
+      "y" : 126
+    },
+    "svg" : {
+      "height" : 30,
+      "width" : 40,
+      "x" : 0,
+      "y" : 54
+    },
+    "svgBig" : {
+      "height" : 60,
+      "width" : 80,
+      "x" : 52,
+      "y" : 54
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 420
+  }
+}

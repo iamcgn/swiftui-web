@@ -166,5 +166,42 @@ public enum ImageFixtures {
         .probe("row")
     }
 
-    public static let all: [Fixture] = [intrinsic, resizable, aspectRatio, template, stackSpacing, tiling, swap]
+    /// Corners (sw-images): vector sets (an SVG and a PDF, 40 × 30 points: natural size and
+    /// resized), an image drawn by a `GraphicsContext` closure (natural, resized, as a template),
+    /// colour effects on a catalog image, and the placeholder of a redacted catalog image.
+    public static let corners = Fixture("image/corners", size: CGSize(width: 420, height: 220)) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                Image("vector").probe("svg")
+                Image("vector").resizable().frame(width: 80, height: 60).probe("svgBig")
+                Image("document").probe("pdf")
+                Image("document").resizable().frame(width: 80, height: 60).probe("pdfBig")
+                Image(size: CGSize(width: 40, height: 30)) { context in
+                    context.fill(Path(CGRect(x: 0, y: 0, width: 40, height: 30)), with: .color(.orange))
+                    context.fill(Path(ellipseIn: CGRect(x: 4, y: 4, width: 22, height: 22)), with: .color(.blue))
+                    context.stroke(Path(CGRect(x: 30, y: 4, width: 6, height: 22)), with: .color(.black), lineWidth: 2)
+                }
+                .probe("drawn")
+                Image(size: CGSize(width: 40, height: 30)) { context in
+                    context.fill(Path(CGRect(x: 0, y: 0, width: 40, height: 30)), with: .color(.orange))
+                    context.fill(Path(ellipseIn: CGRect(x: 4, y: 4, width: 22, height: 22)), with: .color(.blue))
+                }
+                .resizable().frame(width: 80, height: 60).probe("drawnBig")
+            }
+            .probe("row1")
+            HStack(alignment: .top, spacing: 12) {
+                Image(size: CGSize(width: 40, height: 30)) { context in
+                    context.fill(Path(ellipseIn: CGRect(x: 4, y: 4, width: 22, height: 22)), with: .color(.blue))
+                }
+                .renderingMode(.template).foregroundStyle(.green).probe("drawnTemplate")
+                Image("swatch").colorMultiply(.red).probe("multiplied")
+                Image("swatch").luminanceToAlpha().probe("luminance")
+                Image("swatch").saturation(0).probe("desaturated")
+                Image("swatch").redacted(reason: .placeholder).probe("placeholder")
+            }
+            .probe("row2")
+        }
+    }.rasterized()
+
+    public static let all: [Fixture] = [intrinsic, resizable, aspectRatio, template, stackSpacing, tiling, swap, corners]
 }

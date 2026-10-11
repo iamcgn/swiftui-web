@@ -10,10 +10,13 @@ Outputs (all optional): --json <file> the manifest as JSON; --js <file> the same
 `window.__swiftuiwebAssets = …` for a <script> tag; --out <dir> the referenced files, laid out as
 <catalog>/<set>.imageset/<file> so names never collide. File paths in the manifest are relative to
 --out. Names follow the catalog: a folder with `provides-namespace` prefixes its contents
-("Folder/nested"), any other folder is transparent. Unsupported: PDF/SVG images (Xcode rasterises
-them), symbol sets, sprite atlases, slicing metadata, high-contrast and Display P3 variants (recorded
-but ignored by the runtime), data sets, app icons. Each is reported on stderr."""
-import argparse, json, shutil, struct, sys
+("Folder/nested"), any other folder is transparent. Vector images: an SVG is copied as it is (the
+browser draws it at any scale; its point size comes from its width/height or viewBox) and a PDF
+is rasterised at 1×, 2× and 3× with `sips` as Xcode's actool does (skipped with a warning where
+`sips` is missing). Slicing metadata (`resizing`) becomes `capInsets` and `tilesCenter` on the set.
+Unsupported: symbol sets, sprite atlases, high-contrast and Display P3 variants (recorded but
+ignored by the runtime), data sets, app icons. Each is reported on stderr."""
+import argparse, json, re, shutil, struct, subprocess, sys
 from pathlib import Path
 
 SKIPPED_DIRS = {".build", "node_modules", ".git", ".swiftpm"}
@@ -53,6 +56,39 @@ def image_size(path):
                 return (width, height)
             i += 2 + length
     return None
+
+
+def svg_size(path):
+    """(width, height) in points from an SVG's width/height (px or unitless) or its viewBox."""
+    head = path.read_text(errors="replace")[:4000]
+    match = re.search(r"<svg\b[^>]*>", head, re.S)
+    if not match: return None
+    tag = match.group(0)
+    def attribute(name):
+        found = re.search(r'\b' + name + r'\s*=\s*["\']([^"\']*)["\']', tag)
+        return found.group(1).strip() if found else None
+    def length(text):
+        if text is None: return None
+        found = re.match(r"([0-9.]+)\s*(px)?$", text)
+        return float(found.group(1)) if found else None
+    width, height = length(attribute("width")), length(attribute("height"))
+    if width and height: return (width, height)
+    box = attribute("viewBox")
+    if box:
+        parts = box.replace(",", " ").split()
+        if len(parts) == 4:
+            try: return (float(parts[2]), float(parts[3]))
+            except ValueError: pass
+    return None
+
+
+def pdf_size(path):
+    """(width, height) in points of the first page's MediaBox."""
+    data = path.read_bytes()
+    match = re.search(rb"/MediaBox\s*\[\s*([-0-9.]+)\s+([-0-9.]+)\s+([-0-9.]+)\s+([-0-9.]+)\s*\]", data)
+    if not match: return None
+    x0, y0, x1, y1 = (float(v) for v in match.groups())
+    return (abs(x1 - x0), abs(y1 - y0))
 
 
 def appearance(entry):
@@ -104,8 +140,39 @@ class Catalog:
             path = directory / filename
             if not path.exists():
                 warn(f"{name}: missing file {filename}"); continue
-            if path.suffix.lower() in (".pdf", ".svg"):
-                warn(f"{name}: vector asset {filename} is not supported"); continue
+            idiom = entry.get("idiom", "universal")
+            if idiom not in IDIOMS:
+                warn(f"{name}: unknown idiom {idiom!r} for {filename}")
+            luminosity, contrast = appearance(entry)
+            def record(file, scale, size, vector=False):
+                variant = {"file": file, "scale": scale, "width": size[0], "height": size[1],
+                           "idiom": idiom, "appearance": luminosity}
+                if vector: variant["vector"] = True
+                if contrast: variant["contrast"] = contrast
+                if entry.get("display-gamut"): variant["gamut"] = entry["display-gamut"]
+                if entry.get("subtype"): variant["subtype"] = entry["subtype"]
+                variants.append(variant)
+            suffix = path.suffix.lower()
+            if suffix == ".svg":
+                size = svg_size(path)
+                if size is None:
+                    warn(f"{name}: cannot read the size of {filename}"); continue
+                size = tuple(int(v) if v == int(v) else v for v in size)
+                record(self.copy(path), 1, size, vector=True)
+                continue
+            if suffix == ".pdf":
+                size = pdf_size(path)
+                if size is None:
+                    warn(f"{name}: cannot read the size of {filename}"); continue
+                if shutil.which("sips") is None:
+                    warn(f"{name}: {filename} needs sips to rasterise (not found)"); continue
+                for scale in (1, 2, 3):
+                    pixels = (int(round(size[0] * scale)), int(round(size[1] * scale)))
+                    rendered = self.rasterize(path, pixels, scale)
+                    if rendered is None:
+                        warn(f"{name}: sips could not rasterise {filename} at {scale}x"); break
+                    record(rendered, scale, pixels)
+                continue
             size = image_size(path)
             if size is None:
                 warn(f"{name}: cannot read the size of {filename}"); continue
@@ -114,16 +181,7 @@ class Catalog:
                 scale = int(scale_text.rstrip("x"))
             except ValueError:
                 warn(f"{name}: unknown scale {scale_text!r} for {filename}"); continue
-            idiom = entry.get("idiom", "universal")
-            if idiom not in IDIOMS:
-                warn(f"{name}: unknown idiom {idiom!r} for {filename}")
-            luminosity, contrast = appearance(entry)
-            variant = {"file": self.copy(path), "scale": scale, "width": size[0], "height": size[1],
-                       "idiom": idiom, "appearance": luminosity}
-            if contrast: variant["contrast"] = contrast
-            if entry.get("display-gamut"): variant["gamut"] = entry["display-gamut"]
-            if entry.get("subtype"): variant["subtype"] = entry["subtype"]
-            variants.append(variant)
+            record(self.copy(path), scale, size)
         if not variants:
             warn(f"{name}: no usable image"); return
         if name in self.images: warn(f"{name}: defined twice; the later one wins")
@@ -132,7 +190,16 @@ class Catalog:
         intent = properties.get("template-rendering-intent")
         if intent == "template": image["template"] = True
         if intent == "original": image["template"] = False
-        if properties.get("resizing"): warn(f"{name}: slicing metadata is ignored")
+        resizing = properties.get("resizing")
+        if resizing:
+            # Xcode's slicing: the centre's rect in points of the 1× image; the caps are the rest.
+            mode = resizing.get("mode", "9-part")
+            caps = resizing.get("cap-insets", {})
+            insets = {"top": caps.get("top", 0), "leading": caps.get("left", 0), "bottom": caps.get("bottom", 0), "trailing": caps.get("right", 0)}
+            if mode == "3-part-horizontal": insets["top"] = insets["bottom"] = 0
+            if mode == "3-part-vertical": insets["leading"] = insets["trailing"] = 0
+            image["capInsets"] = insets
+            if resizing.get("center", {}).get("mode") == "tile": image["tilesCenter"] = True
         self.images[name] = image
 
     def colorset(self, directory, name):
@@ -156,6 +223,17 @@ class Catalog:
         if not variants:
             warn(f"{name}: no usable colour"); return
         self.colors[name] = {"variants": variants}
+
+    def rasterize(self, path, pixels, scale):
+        """Rasterises a PDF page at `pixels` as <set>/<stem>@<scale>x.png in the output layout (or
+        next to the PDF when only a manifest is written, so the manifest's files exist)."""
+        relative = path.relative_to(self.root.parent).with_name(f"{path.stem}{'' if scale == 1 else f'@{scale}x'}.png")
+        destination = (self.out / relative) if self.out else (self.root.parent / relative)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(["sips", "-s", "format", "png", "-z", str(pixels[1]), str(pixels[0]), str(path), "--out", str(destination)],
+                                capture_output=True)
+        if result.returncode != 0 or not destination.exists(): return None
+        return relative.as_posix()
 
     def copy(self, path):
         relative = path.relative_to(self.root.parent)

@@ -13,29 +13,39 @@ public struct ImageVariant: Hashable, Sendable {
     public var idiom: String
     /// `any`, `light` or `dark`.
     public var appearance: String
+    /// A vector file (an SVG) the painters scale sharply: `pixelWidth`/`pixelHeight` are its
+    /// points at scale 1.
+    public var isVector: Bool
 
-    public init(file: String, scale: CGFloat, pixelWidth: Int, pixelHeight: Int, idiom: String = "universal", appearance: String = "any") {
+    public init(file: String, scale: CGFloat, pixelWidth: Int, pixelHeight: Int, idiom: String = "universal", appearance: String = "any", isVector: Bool = false) {
         self.file = file
         self.scale = scale
         self.pixelWidth = pixelWidth
         self.pixelHeight = pixelHeight
         self.idiom = idiom
         self.appearance = appearance
+        self.isVector = isVector
     }
 
     public var pointSize: CGSize { CGSize(width: CGFloat(pixelWidth) / scale, height: CGFloat(pixelHeight) / scale) }
 }
 
-/// An image set: its variants and whether the catalog marks it as a template.
+/// An image set: its variants, whether the catalog marks it as a template, and its slicing.
 public struct ImageResource: Hashable, Sendable {
     public var name: String
     public var isTemplate: Bool
     public var variants: [ImageVariant]
+    /// The catalog's slicing (`resizing`): the rigid caps in points, and whether the centre
+    /// tiles; a resizable image draws nine-part with them unless the view gives its own.
+    public var capInsets: EdgeInsets?
+    public var tilesCenter: Bool
 
-    public init(name: String, isTemplate: Bool = false, variants: [ImageVariant]) {
+    public init(name: String, isTemplate: Bool = false, variants: [ImageVariant], capInsets: EdgeInsets? = nil, tilesCenter: Bool = false) {
         self.name = name
         self.isTemplate = isTemplate
         self.variants = variants
+        self.capInsets = capInsets
+        self.tilesCenter = tilesCenter
     }
 
     /// The variants for a platform and colour scheme: the platform's idiom before `universal`,

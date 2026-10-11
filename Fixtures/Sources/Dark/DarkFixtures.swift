@@ -79,5 +79,18 @@ public enum DarkFixtures {
         .probe("list")
     }.colorScheme(.dark)
 
-    public static let all: [Fixture] = [systemColors, text, controls, list]
+    /// Dark appearance image variants (sw-images): `dual` has a dark file (dark grey with an
+    /// orange mark), a set without one keeps its file, a template takes the dark primary, and
+    /// the placeholder ink of a redacted catalog image is the dark one.
+    public static let images = Fixture("dark/images", size: CGSize(width: 320, height: 120)) {
+        HStack(spacing: 12) {
+            Image("dual").probe("dual")
+            Image("swatch").probe("swatch")
+            Image("icon").probe("template")
+            Image("swatch").redacted(reason: .placeholder).probe("placeholder")
+        }
+        .probe("row")
+    }.colorScheme(.dark)
+
+    public static let all: [Fixture] = [systemColors, text, controls, list, images]
 }

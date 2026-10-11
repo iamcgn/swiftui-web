@@ -1289,14 +1289,15 @@
       "framework": "SwiftUI",
       "area": "Image",
       "title": "Image catalog forms and rendering",
-      "detail": "PDF and SVG catalog sets, slicing metadata, dark-appearance image variants, Display P3 (used as sRGB), `Image(size:label:renderer:)`, `luminanceToAlpha` and `colorMultiply` on images, redaction placeholders for catalog images (approximate).",
+      "detail": "PDF and SVG catalog sets, slicing metadata, dark-appearance image variants, Display P3 (used as sRGB), `Image(size:label:renderer:)`, `luminanceToAlpha` and `colorMultiply` on images, redaction placeholders for catalog images (approximate). Done 2026-10-11 (Phase 9, item 10): SVG sets drawn as vectors and PDF sets rasterised with sips (assets.py), catalog slicing on resizable images, dark variants in `dark/images`, `Image(size:label:renderer:)`, image colour effects and the measured catalog placeholder ink (`image/corners`, `ImageTests`); Display P3 stays sRGB.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Image.md",
         "Docs/elements/Redaction.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-symbols",

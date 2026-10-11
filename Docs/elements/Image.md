@@ -22,7 +22,8 @@ the painter loads it. Fixtures draw from `Fixtures/Assets.xcassets` (generated b
 | `Image(_ name: String, bundle: Bundle? = nil)`, `Image(decorative:bundle:)`, `Image(_:bundle:label:)` | implemented; the bundle is ignored (the manifest is the search path) and absent on wasm |
 | `Image(systemName:)`, `Image(systemName:variableValue:)` | implemented, approximate: the symbol's measured SF Symbol layout size and baseline, drawn with a Lucide icon standing in for the glyph (see Symbols below); the variable value has no effect |
 | `Image(_:variableValue:bundle:)` | missing |
-| `Image(nsImage:)`, `Image(_ cgImage:scale:orientation:label:)`, `Image(decorative:scale:orientation:)`, `Image(size:label:opaque:colorMode:renderer:)` | missing (no `CGImage`/`NSImage` on wasm) |
+| `Image(size:label:opaque:colorMode:renderer:)` | implemented 2026-10-11: the closure draws into a `GraphicsContext` of the image's size at paint time, scaled into the frame (rigid at `size`, resizable like any image, a template takes the foreground colour); `opaque`/`colorMode` accepted |
+| `Image(nsImage:)`, `Image(_ cgImage:scale:orientation:label:)`, `Image(decorative:scale:orientation:)` | missing (no `CGImage`/`NSImage` on wasm) |
 | `resizable(capInsets:resizingMode:)`, `Image.ResizingMode` (`stretch`, `tile`) | implemented: stretch, nine-part stretch, tile, nine-part tile |
 | `renderingMode(_:)`, `Image.TemplateRenderingMode` (`template`, `original`) | implemented; `nil` restores the catalog's intent; the last call wins |
 | `interpolation(_:)`, `Image.Interpolation`; `antialiased(_:)` | implemented as a smoothing on/off flag (`none` vs the rest); `antialiased` stored, no effect |
@@ -131,9 +132,36 @@ WebKit and Firefox; pixels 0 % for pixel-aligned draws, ≤ 0.5 % where an image
 Gallery) and `index.html` includes `assets/manifest.js` before the module script; SwiftPM itself
 ignores an undeclared `.xcassets` and copies a declared one verbatim, so either is fine.
 
+## Corners (sw-images, 2026-10-11)
+
+- Vector sets: `scripts/assets.py` copies an SVG as it is (`vector: true`, its point size from
+  `width`/`height` or the `viewBox`) and rasterises a PDF at 1×, 2× and 3× with `sips` as
+  actool does (next to the PDF when only a manifest is written, so the manifest's files exist;
+  skipped with a warning where `sips` is missing). The runtime lays both out at their point size
+  (40 × 30 for the fixture's sets); the browser draws the SVG through `drawImage`, which scales a
+  vector sharply at any frame, and the CoreGraphics painter rasterises it through AppKit at the
+  draw's pixel size. The harness (decision 0011, no actool) rasterises a set's PDF or SVG at 2×
+  the way actool would, so `image/corners` pins the point sizes and the drawings (Tier C 0.17 %,
+  Tier B 0.22 %).
+- Slicing: a set's `resizing` becomes `capInsets` (9-part, or the one axis of a 3-part mode) and
+  `tilesCenter` on the resource; a `resizable()` image draws nine-part with them unless the view
+  passes its own `capInsets` (`ImageTests`). SwiftUI's handling of a compiled sliced set cannot
+  be measured without actool (and `Image(nsImage:)` ignores `NSImage.capInsets`, measured), so
+  the rule follows Apple's documentation; the geometry itself is the measured `image/tiling` one.
+- Dark variants: `dark/images` (a dark window): `dual` draws its dark file, a set without one its
+  only file, a template the dark primary, and a redacted catalog image the dark placeholder ink
+  (Tier C 0.00 %).
+- `colorMultiply`, `luminanceToAlpha` and `saturation` on a catalog image filter its pixels like
+  any view's (the colour-matrix groups; `image/corners` `multiplied`, `luminance`, `desaturated`
+  through SwiftUI's rasteriser).
+- A redacted catalog image is its frame in the placeholder ink: black at 13.7 % (`image/corners`
+  `placeholder`, the same ink as text's; measured).
+- Display P3 components stay used as sRGB (`display-gamut` is recorded, nothing reads it).
+
 ## Not yet covered
 
 SF Symbol glyphs themselves (stand-ins only), symbols beyond the 240 measured (sizes fall back to
-the star's), `symbolEffect`, true multicolour and hierarchical layers (the stand-ins have one), PDF/SVG sets, slicing
-metadata in the catalog, dark-appearance goldens, `AsyncImage`, `Image` from `CGImage`/`NSImage`,
-`Color("name")` for a missing name (assumed clear), `luminanceToAlpha`, `colorMultiply`.
+the star's), true multicolour and hierarchical layers (the stand-ins have one), `Image` from
+`CGImage`/`NSImage`, `Color("name")` for a missing name (assumed clear), Display P3 as a wider
+gamut, a PDF set's vector data at scales beyond 3× (rasterised), symbol sets and sprite atlases
+in a catalog.

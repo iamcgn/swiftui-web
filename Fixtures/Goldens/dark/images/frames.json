@@ -1,0 +1,39 @@
+{
+  "fixture" : "dark\/images",
+  "frames" : {
+    "dual" : {
+      "height" : 24,
+      "width" : 48,
+      "x" : 42,
+      "y" : 48
+    },
+    "placeholder" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 214,
+      "y" : 40
+    },
+    "row" : {
+      "height" : 40,
+      "width" : 236,
+      "x" : 42,
+      "y" : 40
+    },
+    "swatch" : {
+      "height" : 40,
+      "width" : 64,
+      "x" : 102,
+      "y" : 40
+    },
+    "template" : {
+      "height" : 24,
+      "width" : 24,
+      "x" : 178,
+      "y" : 48
+    }
+  },
+  "size" : {
+    "height" : 120,
+    "width" : 320
+  }
+}

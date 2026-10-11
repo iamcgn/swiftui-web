@@ -18,6 +18,9 @@ public struct Image: Equatable, Sendable {
         /// A drawing recorded by a platform image context (`Image(uiImage:)` of a
         /// `UIGraphicsImageRenderer` image): replayed scaled into the image's frame.
         case drawing(_ImageDrawing)
+        /// An image drawn by a `GraphicsContext` closure (`Image(size:label:renderer:)`): the
+        /// closure runs at paint time into a context of the image's size, scaled into the frame.
+        case renderer(_ImageRenderer)
     }
 
     /// How a resizable image fills its frame.
@@ -62,7 +65,7 @@ public struct Image: Equatable, Sendable {
         switch source {
         case .named(let name): return name
         case .system(let name): return name
-        case .url, .drawing: return ""
+        case .url, .drawing, .renderer: return ""
         }
     }
     package var resizing: Resizing?
@@ -238,6 +241,30 @@ extension View {
     /// Scales this view to fill its parent.
     nonisolated public func scaledToFill() -> some View {
         aspectRatio(nil, contentMode: .fill)
+    }
+}
+
+/// The closure of `Image(size:label:renderer:)`, with the image's size; equal by identity.
+public final class _ImageRenderer: Equatable, @unchecked Sendable {
+    public let size: CGSize
+    public let opaque: Bool
+    public let draw: (inout GraphicsContext) -> Void
+
+    public init(size: CGSize, opaque: Bool, draw: @escaping (inout GraphicsContext) -> Void) {
+        self.size = size
+        self.opaque = opaque
+        self.draw = draw
+    }
+
+    public static func == (lhs: _ImageRenderer, rhs: _ImageRenderer) -> Bool { lhs === rhs }
+}
+
+extension Image {
+    /// An image of `size` points drawn by `renderer` into a graphics context (its own
+    /// coordinates), laid out at that size and scaled into a resizable frame; `opaque` and
+    /// `colorMode` are accepted (the context draws as a `Canvas` does).
+    public init(size: CGSize, label: Text? = nil, opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear, renderer: @escaping (inout GraphicsContext) -> Void) {
+        self.init(source: .renderer(_ImageRenderer(size: size, opaque: opaque, draw: renderer)), label: label?._plainString)
     }
 }
 

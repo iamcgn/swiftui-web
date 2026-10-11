@@ -225,12 +225,16 @@ public final class CanvasSceneHost {
                 guard let name = names[index].string, let set = sets[dynamicMember: name].object,
                       let variants = set.variants.object else { continue }
                 var resource = ImageResource(name: name, isTemplate: set.template.boolean ?? false, variants: [])
+                if let insets = set.capInsets.object {
+                    resource.capInsets = EdgeInsets(top: insets.top.number ?? 0, leading: insets.leading.number ?? 0, bottom: insets.bottom.number ?? 0, trailing: insets.trailing.number ?? 0)
+                }
+                resource.tilesCenter = set.tilesCenter.boolean ?? false
                 for v in 0..<Int(variants.length.number ?? 0) {
                     guard let variant = variants[v].object, let file = variant.file.string else { continue }
                     resource.variants.append(ImageVariant(
                         file: file, scale: CGFloat(variant.scale.number ?? 1),
-                        pixelWidth: Int(variant.width.number ?? 0), pixelHeight: Int(variant.height.number ?? 0),
-                        idiom: variant.idiom.string ?? "universal", appearance: variant.appearance.string ?? "any"))
+                        pixelWidth: Int((variant.width.number ?? 0).rounded()), pixelHeight: Int((variant.height.number ?? 0).rounded()),
+                        idiom: variant.idiom.string ?? "universal", appearance: variant.appearance.string ?? "any", isVector: variant.vector.boolean ?? false))
                 }
                 images[name] = resource
             }

@@ -116,6 +116,34 @@
         }
       ]
     },
+    "document": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/document.imageset/document.png",
+          "height": 30,
+          "idiom": "universal",
+          "scale": 1,
+          "width": 40
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/document.imageset/document@2x.png",
+          "height": 60,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 80
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/document.imageset/document@3x.png",
+          "height": 90,
+          "idiom": "universal",
+          "scale": 3,
+          "width": 120
+        }
+      ]
+    },
     "dual": {
       "variants": [
         {
@@ -209,6 +237,32 @@
         }
       ]
     },
+    "sliced": {
+      "capInsets": {
+        "bottom": 8,
+        "leading": 8,
+        "top": 8,
+        "trailing": 8
+      },
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/sliced.imageset/sliced.png",
+          "height": 40,
+          "idiom": "universal",
+          "scale": 1,
+          "width": 40
+        },
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/sliced.imageset/sliced@2x.png",
+          "height": 80,
+          "idiom": "universal",
+          "scale": 2,
+          "width": 80
+        }
+      ]
+    },
     "swatch": {
       "variants": [
         {
@@ -237,6 +291,19 @@
           "height": 128,
           "idiom": "universal",
           "scale": 2,
+          "width": 40
+        }
+      ]
+    },
+    "vector": {
+      "variants": [
+        {
+          "appearance": "any",
+          "file": "Assets.xcassets/vector.imageset/vector.svg",
+          "height": 30,
+          "idiom": "universal",
+          "scale": 1,
+          "vector": true,
           "width": 40
         }
       ]

@@ -1,0 +1,34 @@
+{
+  "images": [
+    {
+      "filename": "sliced.png",
+      "idiom": "universal",
+      "scale": "1x"
+    },
+    {
+      "filename": "sliced@2x.png",
+      "idiom": "universal",
+      "scale": "2x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  },
+  "properties": {
+    "resizing": {
+      "cap-insets": {
+        "bottom": 8,
+        "left": 8,
+        "right": 8,
+        "top": 8
+      },
+      "center": {
+        "height": 24,
+        "mode": "stretch",
+        "width": 24
+      },
+      "mode": "9-part"
+    }
+  }
+}
