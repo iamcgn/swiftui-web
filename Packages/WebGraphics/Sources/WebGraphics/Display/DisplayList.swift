@@ -146,6 +146,27 @@ public struct DisplayList: Equatable, Sendable {
         commands.append(command)
     }
 
+    /// The box the commands from `start` on paint into: fills and clips by their geometry,
+    /// strokes padded by their width, images and bitmaps by their rects; text is left to the
+    /// caller's frame (its ink is not known here). `CGRect.null` when nothing paints geometry.
+    public func paintedExtent(from start: Int = 0) -> CGRect {
+        var extent = CGRect.null
+        func add(_ rect: CGRect) { if !rect.isNull, !rect.isEmpty || !extent.isNull { extent = extent.union(rect) } }
+        for command in commands[min(start, commands.count)...] {
+            switch command {
+            case .fillRect(let rect, _), .fillRRect(let rect, _, _): add(rect)
+            case .fillPath(let path, _, _), .fillGradient(let path, _, _): add(path.boundingRect)
+            case .strokePath(let path, let style, _), .strokeGradient(let path, let style, _):
+                add(path.strokedPath(style).boundingRect)
+            case .drawImage(let draw): add(draw.rect)
+            case .drawBitmap(_, let rect): add(rect)
+            case .backdropBlur(_, let bounds, _, _): add(bounds)
+            default: break
+            }
+        }
+        return extent
+    }
+
     /// Runs `body` between `save` and `restore`.
     public mutating func withSavedState(_ body: (inout DisplayList) -> Void) {
         commands.append(.save)

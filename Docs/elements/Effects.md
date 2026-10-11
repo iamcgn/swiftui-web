@@ -25,11 +25,11 @@ Apple docs: [shadow(color:radius:x:y:)](https://developer.apple.com/documentatio
 | `Color(_:red:green:blue:opacity:)`, `Color(_:white:opacity:)` with `Color.RGBColorSpace` | implemented; linear components go through the sRGB transfer function, Display P3 components are used as sRGB |
 | `zIndex(_:)` | implemented (paint order and hit testing among the siblings of one container) |
 | `hidden()` | implemented (layout kept; not painted, hit tested or in the semantics tree) |
-| `brightness`, `contrast`, `saturation`, `grayscale`, `hueRotation`, `colorInvert`, `colorMultiply`, `luminanceToAlpha` | implemented (colour-matrix filter groups; not animated) |
-| `blur(radius:opaque:)` | implemented (Gaussian, sigma = radius; `opaque` keeps the edges) |
+| `brightness`, `contrast`, `saturation`, `grayscale`, `hueRotation`, `colorInvert`, `colorMultiply`, `luminanceToAlpha` | implemented (colour-matrix filter groups; the values animate, 2026-10-11) |
+| `blur(radius:opaque:)` | implemented (Gaussian, sigma = radius; `opaque` keeps the edges; the radius animates) |
 | `blendMode(_:)` with every `BlendMode` | implemented (`plusDarker` is composited by hand in the browser) |
 | `mask(alignment:_:)`, `mask(_:)` | implemented (the mask's alpha; laid out like an overlay) |
-| `compositingGroup()`, `drawingGroup(opaque:colorMode:)` | implemented (one group for the distributed effects; `opaque`/`colorMode` accepted without effect) |
+| `compositingGroup()`, `drawingGroup(opaque:colorMode:)` | implemented (one group for the distributed effects; `opaque`/`colorMode` accepted: measured without visible effect, see Corners) |
 | `position` | missing |
 
 ## Behaviour
@@ -57,10 +57,12 @@ bounds:)` … `endGroup` (op 19), where `m` is a 4 × 5 matrix over straight-alp
 (`ColorMatrix`, the SVG `feColorMatrix` convention: red, green, blue and alpha rows of four factors
 and an offset; results clamp to 0…1). `blur` is `BlurNode` with `.beginFilter(.blur(radius:opaque:),
 bounds:)`; a soft blur reports `paintsOutsideFrame`. `blendMode` is `BlendModeNode` with
-`.beginBlend(mode, bounds:)` (op 20). `bounds` is the target's absolute frame: the painters filter
-only that box (a soft blur pads it by three sigma), so content a child paints outside its frame is
-not filtered. Identity matrices, a zero radius and `.normal` paint no group. The values are
-resolved once per paint; the effects do not animate yet.
+`.beginBlend(mode, bounds:)` (op 20). `bounds` is the target's absolute frame grown to what it
+paints (`PaintContext.withEffects` paints the body first and unions `DisplayList.paintedExtent`:
+fills and clips by their geometry, strokes by their outline, images and bitmaps by their rects),
+so a stroke wider than its frame is filtered whole; the painters filter that box (a soft blur
+pads it by three sigma). Identity matrices, a zero radius and `.normal` paint no group. The
+values tween under `withAnimation` (below).
 
 The browser painter renders the group into an offscreen canvas and, at `endGroup`, applies the
 matrix to the box's `ImageData` (un-premultiplied components, rounded per channel), or blurs with
@@ -169,10 +171,31 @@ the colour spaces, z-ordering with ties and hit testing, hidden views, every col
 the measured pixels, the filter and blend groups (identity cases, chaining, layout untouched),
 their encoding and the Gaussian blur.
 
+## Corners (sw-effects, macOS 26.6, `effects/corners`, 2026-10-11)
+
+| Property | Value | Probe |
+|---|---|---|
+| `saturation(0)` on a 20 pt stroke of a 40 pt frame | the whole 60 pt stroke is grey, inside and outside the frame | `overflowSaturation` |
+| `shadow(radius: 0, x: 30)` on the same stroke | the shadow is the stroke's full outline shifted, the overflow included | `overflowShadow` |
+| `blur(radius: 2)` on the same stroke | the whole stroke blurs | `overflowBlur` |
+| `drawingGroup(opaque: true, colorMode: .linear)` on a red circle | the corners stay transparent (no black backing), the circle's edge and colour unchanged; `.linear` and `.extendedLinear` leave a gradient's and an opacity's pixels as `.nonLinear` does (`NSHostingView` scans) | `opaqueGroup` |
+| step `changed`: `saturation` 1 → 0, `blur` 0 → 6, `shadow` radius 0 → 8, `brightness` 0 → 0.4 | the grey, blurred, soft-shadowed and brightened squares; under `withAnimation` the runtime tweens the amounts, the angle, a multiplied colour's components, the blur radius and the shadow's colour, radius and offset per frame (`EffectsTests.effectValuesAnimate`: half way, saturation 0.5, blur 2, shadow 4; a change of kind snaps) | `saturation`, `blur`, `shadow`, `brightness` |
+
+A gradient rendered inside a `drawingGroup` blends a few units differently from one outside it
+(red → blue at a quarter: (215, 100, 122) against (214, 88, 119)); both lie within Oklab's
+tolerance and the runtime keeps one blend.
+
+The effect nodes keep their tween in `presentation.effect` (`ViewNode._tweenEffect`, the slot
+layouts use for animatable data): `ColorMatrixNode` tweens `_ColorMatrixEffect.values` when the
+kind stays the same, `BlurNode` the radius, `ShadowNode` the colour, radius and offset;
+`OpacityNode` had its own.
+
+Tier A exact, Tier C 0.00 % (step 1.56 %), Tier B Chromium 0.02 % (step 1.88 %).
+
 ## Not yet covered
 
-`position`, animated effect values, a Canvas context's `blendMode`, filtering of content painted
-outside its frame, `drawingGroup`'s rasterisation semantics (text stays vector, platform views stay),
-masks of content inside a transformed ancestor, and shadows of views inside a transformed or clipped
-ancestor (the group is composited in the ancestor's space, as Apple does; the clip then also clips
-the shadow).
+`position` (Docs/elements/Position.md), a Canvas context's `blendMode`, text ink in the filter box
+(text is boxed by its frame), `drawingGroup`'s rasterisation semantics (text stays vector,
+platform views stay), masks of content inside a transformed ancestor, and shadows of views
+inside a transformed or clipped ancestor (the group is composited in the ancestor's space, as
+Apple does; the clip then also clips the shadow).

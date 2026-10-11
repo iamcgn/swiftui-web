@@ -1,0 +1,136 @@
+{
+  "fixture" : "effects\/corners",
+  "frames" : {
+    "blur" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 105,
+      "y" : 125
+    },
+    "brightness" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 285,
+      "y" : 125
+    },
+    "opaqueGroup" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 285,
+      "y" : 35
+    },
+    "overflowBlur" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 195,
+      "y" : 45
+    },
+    "overflowSaturation" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 15,
+      "y" : 45
+    },
+    "overflowShadow" : {
+      "height" : 40,
+      "width" : 40,
+      "x" : 105,
+      "y" : 45
+    },
+    "row1" : {
+      "height" : 60,
+      "width" : 330,
+      "x" : 15,
+      "y" : 35
+    },
+    "row2" : {
+      "height" : 60,
+      "width" : 330,
+      "x" : 15,
+      "y" : 125
+    },
+    "saturation" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 15,
+      "y" : 125
+    },
+    "shadow" : {
+      "height" : 60,
+      "width" : 60,
+      "x" : 195,
+      "y" : 125
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 360
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "blur" : {
+          "height" : 60,
+          "width" : 60,
+          "x" : 105,
+          "y" : 125
+        },
+        "brightness" : {
+          "height" : 60,
+          "width" : 60,
+          "x" : 285,
+          "y" : 125
+        },
+        "opaqueGroup" : {
+          "height" : 60,
+          "width" : 60,
+          "x" : 285,
+          "y" : 35
+        },
+        "overflowBlur" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 195,
+          "y" : 45
+        },
+        "overflowSaturation" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 15,
+          "y" : 45
+        },
+        "overflowShadow" : {
+          "height" : 40,
+          "width" : 40,
+          "x" : 105,
+          "y" : 45
+        },
+        "row1" : {
+          "height" : 60,
+          "width" : 330,
+          "x" : 15,
+          "y" : 35
+        },
+        "row2" : {
+          "height" : 60,
+          "width" : 330,
+          "x" : 15,
+          "y" : 125
+        },
+        "saturation" : {
+          "height" : 60,
+          "width" : 60,
+          "x" : 15,
+          "y" : 125
+        },
+        "shadow" : {
+          "height" : 60,
+          "width" : 60,
+          "x" : 195,
+          "y" : 125
+        }
+      },
+      "name" : "changed"
+    }
+  ]
+}

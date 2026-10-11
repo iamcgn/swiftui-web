@@ -1116,8 +1116,8 @@
         },
         {
           "api": "brightness / contrast / saturation / grayscale / hueRotation / colorInvert / colorMultiply / luminanceToAlpha",
-          "status": "partial",
-          "notes": "Colour-matrix filter groups measured against SwiftUI's rasteriser (Tier C pixel-identical); the browser applies the matrix to the group's pixels, CoreGraphics to a bitmap layer. Not animated; only the view's frame is filtered (Docs/elements/Effects.md)",
+          "status": "full",
+          "notes": "Colour-matrix filter groups measured against SwiftUI's rasteriser (Tier C pixel-identical); the browser applies the matrix to the group's pixels, CoreGraphics to a bitmap layer. The amounts, angle and multiplied colour tween under withAnimation, and the filter box covers what the view paints outside its frame (effects/corners, 2026-10-11)",
           "fixtures": [
             "effects/brightness",
             "effects/saturation",
@@ -1160,10 +1160,11 @@
         },
         {
           "api": "compositingGroup / drawingGroup / per-element effects",
-          "status": "partial",
-          "notes": "opacity, shadow, colour effects, blur and blendMode apply to every element of a view as SwiftUI does; compositingGroup and drawingGroup collect them into one group first. drawingGroup's opaque/colorMode are accepted without effect and nothing is rasterised",
+          "status": "full",
+          "notes": "opacity, shadow, colour effects, blur and blendMode apply to every element of a view as SwiftUI does; compositingGroup and drawingGroup collect them into one group first. drawingGroup's opaque and colorMode are accepted: measured 2026-10-11, opaque leaves transparent pixels transparent and no colour mode changes a gradient's or an opacity's pixels, so nothing is rasterised (a gradient under a drawing group blends a few units differently from one outside, within Oklab's tolerance)",
           "fixtures": [
-            "effects/compositing"
+            "effects/compositing",
+            "effects/corners"
           ]
         },
         {

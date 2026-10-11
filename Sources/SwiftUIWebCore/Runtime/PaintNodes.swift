@@ -178,15 +178,52 @@ package final class OpacityNode<Content: View>: UnaryLayoutModifierNode<Content,
 package final class ShadowNode<Content: View>: UnaryLayoutModifierNode<Content, _ShadowEffect> {
     override package var paintsOutsideFrame: Bool { true }
 
+    private func values(_ modifier: _ShadowEffect, in environment: EnvironmentValues) -> [Double] {
+        let c = modifier.color.resolve(in: environment)
+        return [c.red, c.green, c.blue, c.alpha, max(0, modifier.radius), modifier.offset.width, modifier.offset.height]
+    }
+
+    override package func update(view: ModifiedContent<Content, _ShadowEffect>, environment: EnvironmentValues, force: Bool) {
+        let old = presentedValues
+        let new = values(view.modifier, in: environment)
+        super.update(view: view, environment: environment, force: force)
+        _tweenEffect(from: old, to: new)
+    }
+
+    /// The shadow's colour, radius and offset: the tween's values while animating.
+    private var presentedValues: [Double] {
+        presentation?.effect?.value(at: runtime.animationClock) ?? values(modifier, in: environment)
+    }
+
     override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
-        let color = modifier.color.resolve(in: environment)
+        let v = presentedValues
+        let color = RGBA(red: v[0], green: v[1], blue: v[2], alpha: v[3])
         guard color.alpha > 0 else {
             super.paintTarget(target, in: node, into: &list, context: context)
             return
         }
         var context = context
-        context.effects.append(.shadow(color, radius: max(0, modifier.radius), offset: modifier.offset))
+        context.effects.append(.shadow(color, radius: v[4], offset: CGSize(width: v[5], height: v[6])))
         super.paintTarget(target, in: node, into: &list, context: context)
+    }
+}
+
+extension ViewNode {
+    /// Starts (or drops) a tween of an effect's values on a change under an animation
+    /// (`presentation.effect`, the slot layouts use for their animatable data).
+    package func _tweenEffect(from old: [Double], to new: [Double]) {
+        guard old.count == new.count, old != new else {
+            if old.count != new.count { presentation?.effect = nil }
+            return
+        }
+        if let animation = runtime.effectiveUpdateAnimation(for: self) {
+            let presentation = self.presentation ?? NodePresentation()
+            presentation.effect = Tween(from: old, to: new, animation: animation, start: runtime.animationClock)
+            self.presentation = presentation
+            runtime.register(animating: self)
+        } else {
+            presentation?.effect = nil
+        }
     }
 }
 
@@ -194,8 +231,23 @@ package final class ShadowNode<Content: View>: UnaryLayoutModifierNode<Content, 
 /// matrix over the target's frame before compositing it.
 @MainActor
 package final class ColorMatrixNode<Content: View>: UnaryLayoutModifierNode<Content, _ColorMatrixEffect> {
+    override package func update(view: ModifiedContent<Content, _ColorMatrixEffect>, environment: EnvironmentValues, force: Bool) {
+        let old = presentedValues
+        let sameKind = modifier.sameKind(as: view.modifier)
+        super.update(view: view, environment: environment, force: force)
+        if sameKind {
+            _tweenEffect(from: old, to: view.modifier.values(in: environment))
+        } else {
+            presentation?.effect = nil
+        }
+    }
+
+    private var presentedValues: [Double] {
+        presentation?.effect?.value(at: runtime.animationClock) ?? modifier.values(in: environment)
+    }
+
     override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
-        let matrix = modifier.matrix(in: environment)
+        let matrix = _ColorMatrixEffect.matrix(kind: modifier.kind, values: presentedValues)
         guard matrix != .identity else {
             super.paintTarget(target, in: node, into: &list, context: context)
             return
@@ -212,13 +264,24 @@ package final class ColorMatrixNode<Content: View>: UnaryLayoutModifierNode<Cont
 package final class BlurNode<Content: View>: UnaryLayoutModifierNode<Content, _BlurEffect> {
     override package var paintsOutsideFrame: Bool { !modifier.isOpaque }
 
+    override package func update(view: ModifiedContent<Content, _BlurEffect>, environment: EnvironmentValues, force: Bool) {
+        let old = presentedRadius
+        super.update(view: view, environment: environment, force: force)
+        _tweenEffect(from: [old], to: [view.modifier.radius])
+    }
+
+    private var presentedRadius: CGFloat {
+        presentation?.effect?.value(at: runtime.animationClock).first ?? modifier.radius
+    }
+
     override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
-        guard modifier.radius > 0 else {
+        let radius = presentedRadius
+        guard radius > 0 else {
             super.paintTarget(target, in: node, into: &list, context: context)
             return
         }
         var context = context
-        context.effects.append(.filter(.blur(radius: modifier.radius, opaque: modifier.isOpaque)))
+        context.effects.append(.filter(.blur(radius: radius, opaque: modifier.isOpaque)))
         super.paintTarget(target, in: node, into: &list, context: context)
     }
 }

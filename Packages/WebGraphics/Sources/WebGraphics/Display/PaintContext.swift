@@ -45,14 +45,18 @@ public struct PaintContext {
             body(&list)
             return
         }
+        // The body paints first so the groups can cover what it paints outside `bounds` (a
+        // stroke wider than its frame is filtered whole, as SwiftUI filters a view's rendering).
         let mark = list.commands.count
-        for effect in effects { list.append(effect.begin(bounds: bounds)) }
         body(&list)
-        if list.commands.count == mark + effects.count {
-            list.commands.removeLast(effects.count)
-        } else {
-            for _ in effects { list.append(.endGroup) }
-        }
+        guard list.commands.count > mark else { return }
+        let painted = list.paintedExtent(from: mark)
+        let box = painted.isNull ? bounds : bounds.union(painted)
+        let inner = Array(list.commands[mark...])
+        list.commands.removeSubrange(mark...)
+        for effect in effects { list.append(effect.begin(bounds: box)) }
+        list.commands += inner
+        for _ in effects { list.append(.endGroup) }
     }
 }
 

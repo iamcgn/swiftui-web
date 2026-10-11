@@ -214,6 +214,63 @@ import SwiftUIWebHeadless
         #expect(DisplayListDecoder.decode(DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)) == ["beginMask 1.0,2.0,3.0,4.0", "beginMasked", "endGroup"])
     }
 
+    @Observable final class EffectModel {
+        var saturation = 1.0
+        var blur: CGFloat = 0
+        var radius: CGFloat = 0
+        var invert = false
+    }
+
+    struct Effected: View {
+        let model: EffectModel
+        var body: some View {
+            HStack(spacing: 10) {
+                Color.blue.frame(width: 20, height: 20).saturation(model.saturation)
+                Color.blue.frame(width: 20, height: 20).blur(radius: model.blur)
+                Color.blue.frame(width: 20, height: 20).shadow(color: .black, radius: model.radius, x: 2, y: 2)
+                Group { if model.invert { Color.blue.frame(width: 20, height: 20).colorInvert() } else { Color.blue.frame(width: 20, height: 20).saturation(0.5) } }
+            }
+        }
+    }
+
+    /// Effect values tween under `withAnimation` (sw-effects, `effects/corners` steps): the
+    /// colour effect's amount, the blur radius and the shadow's radius interpolate per frame.
+    @Test func effectValuesAnimate() {
+        let model = EffectModel()
+        let r = Runtime()
+        r.mount(Effected(model: model))
+        r.layout(in: CGSize(width: 200, height: 100))
+        func groups() -> [String] { r.render(scale: 2).commands.map(\.description).filter { $0.hasPrefix("beginFilter") || $0.hasPrefix("beginShadow") } }
+        #expect(groups().count == 2)   // the offset shadow and the half saturation
+        withAnimation(.linear(duration: 1)) { model.saturation = 0; model.blur = 4; model.radius = 8 }
+        r.layout(in: CGSize(width: 200, height: 100))
+        #expect(r.isAnimating)
+        r.advanceAnimations(elapsed: 0.5)
+        r.layout(in: CGSize(width: 200, height: 100))
+        let half = groups()
+        // Half way: saturation 0.5 (the same matrix as the fourth square's), blur 2, shadow 4.
+        #expect(half.count == 4, "\(half)")
+        #expect(half.first { $0.contains("blur") }?.contains("blur(2") == true, "\(half)")
+        #expect(half.first { $0.hasPrefix("beginShadow") }?.contains("r=4") == true || half.first { $0.hasPrefix("beginShadow") }?.contains("radius: 4") == true || half.first { $0.hasPrefix("beginShadow") }?.contains(" 4") == true, "\(half)")
+        #expect(half[0].prefix(60) == half[3].prefix(60), "\(half)")
+        r.advanceAnimations(elapsed: 0.5)
+        r.layout(in: CGSize(width: 200, height: 100))
+        #expect(!r.isAnimating && groups().first { $0.contains("blur") }?.contains("blur(4") == true)
+        // A change of kind snaps.
+        withAnimation(.linear(duration: 1)) { model.invert = true }
+        r.layout(in: CGSize(width: 200, height: 100))
+        #expect(groups().count == 4)
+    }
+
+    /// Effects cover what a view paints outside its frame: the filter box of a 20 pt stroke on
+    /// a 40 pt frame is the stroke's 60 pt extent (`effects/corners` `overflowSaturation`).
+    @Test func effectsCoverContentPaintedOutsideTheFrame() {
+        let commands = render(Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).saturation(0), size: CGSize(width: 100, height: 100))
+        #expect(commands.first?.hasPrefix("beginFilter") == true && commands.first?.contains("(20, 20, 60, 60)") == true, "\(commands)")
+        let blurred = render(Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).blur(radius: 2), size: CGSize(width: 100, height: 100))
+        #expect(blurred.first?.contains("(20, 20, 60, 60)") == true, "\(blurred)")
+    }
+
     @Test func hiddenKeepsLayoutAndDrawsNothing() {
         let commands = render(VStack(spacing: 0) {
             Color.red.frame(width: 20, height: 10)

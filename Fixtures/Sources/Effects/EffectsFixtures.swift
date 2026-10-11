@@ -3,6 +3,16 @@
 import SwiftUI
 import FixtureKit
 
+/// Drives `effects/corners`.
+@Observable
+public final class EffectStepsModel {
+    public var saturation: Double = 1
+    public var blur: CGFloat = 0
+    public var shadowRadius: CGFloat = 0
+    public var brightness: Double = 0
+    public init() {}
+}
+
 public enum EffectsFixtures {
     public static let shadow = Fixture("effects/shadow", size: CGSize(width: 360, height: 260)) {
         VStack(spacing: 50) {
@@ -290,5 +300,34 @@ public enum EffectsFixtures {
         .probe("zstack")
     }).rasterized()
 
-    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden, brightness, saturation, colorMap, colorText, blur, blend, mask, compositing]
+    /// Corners (sw-effects): effects cover what a view paints outside its frame (a 20 pt stroke on
+    /// a 40 pt frame under `saturation(0)`, a shadow, a blur and a blend), `drawingGroup`'s
+    /// options, and the effect values animating (`effects/corners` steps: a colour effect, a blur
+    /// radius and a shadow tween to new values).
+    public static let corners = Fixture(
+        "effects/corners", size: CGSize(width: 360, height: 220),
+        model: { EffectStepsModel() },
+        steps: [
+            FixtureStep("changed") { $0.saturation = 0; $0.blur = 6; $0.shadowRadius = 8; $0.brightness = 0.4 },
+        ]
+    ) { model in
+        VStack(spacing: 30) {
+            HStack(spacing: 50) {
+                Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).saturation(0).probe("overflowSaturation")
+                Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).shadow(color: .black, radius: 0, x: 30, y: 0).probe("overflowShadow")
+                Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).blur(radius: 2).probe("overflowBlur")
+                Circle().fill(Color.red).drawingGroup(opaque: true, colorMode: .linear).frame(width: 60, height: 60).probe("opaqueGroup")
+            }
+            .probe("row1")
+            HStack(spacing: 30) {
+                Color.blue.frame(width: 60, height: 60).saturation(model.saturation).probe("saturation")
+                Color.blue.frame(width: 60, height: 60).blur(radius: model.blur).probe("blur")
+                Color.blue.frame(width: 60, height: 60).shadow(color: .black, radius: model.shadowRadius, x: 4, y: 4).probe("shadow")
+                Color.blue.frame(width: 60, height: 60).brightness(model.brightness).probe("brightness")
+            }
+            .probe("row2")
+        }
+    }.rasterized()
+
+    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden, brightness, saturation, colorMap, colorText, blur, blend, mask, compositing, corners]
 }

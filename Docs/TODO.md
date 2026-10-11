@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 25 | 0 | 0 | 25 |
+| SwiftUI | 24 | 0 | 0 | 24 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **41** | 0 | 1 | 40 |
+| **All** | **40** | 0 | 1 | 39 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Animated effects and drawing groups** `sw-effects` · Effects · accepted  
-  Effect values under animation, `drawingGroup(opaque:colorMode:)` (accepted), filtering of content painted outside its frame, `drawingGroup`'s rasterisation semantics. ([Effects.md](Docs/elements/Effects.md))
 - ☐ **Image catalog forms and rendering** `sw-images` · Image · missing  
   PDF and SVG catalog sets, slicing metadata, dark-appearance image variants, Display P3 (used as sRGB), `Image(size:label:renderer:)`, `luminanceToAlpha` and `colorMultiply` on images, redaction placeholders for catalog images (approximate). ([Image.md](Docs/elements/Image.md), [Redaction.md](Docs/elements/Redaction.md))
 - ☐ **SF Symbols fidelity** `sw-symbols` · Image · approximate  
@@ -121,6 +119,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Safe area corners** `sw-safe-area` · SwiftUI · Position
 - ☑ 2026-10-11 **Shape corners: strokedPath, container shapes, roles** `sw-shapes` · SwiftUI · Shape
 - ☑ 2026-10-11 **Elliptical and mesh gradients** `sw-gradients` · SwiftUI · Gradient
+- ☑ 2026-10-11 **Animated effects and drawing groups** `sw-effects` · SwiftUI · Effects
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

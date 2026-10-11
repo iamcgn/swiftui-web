@@ -1275,13 +1275,14 @@
       "framework": "SwiftUI",
       "area": "Effects",
       "title": "Animated effects and drawing groups",
-      "detail": "Effect values under animation, `drawingGroup(opaque:colorMode:)` (accepted), filtering of content painted outside its frame, `drawingGroup`'s rasterisation semantics.",
+      "detail": "Effect values under animation, `drawingGroup(opaque:colorMode:)` (accepted), filtering of content painted outside its frame, `drawingGroup`'s rasterisation semantics. Done 2026-10-11 (Phase 9, item 9): colour-effect amounts, blur radii and shadows tween under withAnimation, filter and blend boxes cover what a view paints outside its frame (the painted extent, strokes by their outline), drawingGroup's opaque and colorMode measured as no visible change (`effects/corners`, `EffectsTests`).",
       "kind": "accepted",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Effects.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-images",

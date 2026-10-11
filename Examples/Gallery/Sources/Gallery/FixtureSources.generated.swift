@@ -700,7 +700,7 @@ public static let basic = Fixture("dragdrop/basic", size: CGSize(width: 300, hei
     .probe("row")
 })
 """#),
-        FixtureSource(name: "effects/blend", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 200, lastLine: 224, declaration: #"""
+        FixtureSource(name: "effects/blend", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 210, lastLine: 234, declaration: #"""
 public static let blend = Fixture("effects/blend", size: CGSize(width: 380, height: 220), content: {
     ZStack {
         HStack(spacing: 0) {
@@ -727,7 +727,7 @@ public static let blend = Fixture("effects/blend", size: CGSize(width: 380, heig
     .probe("zstack")
 }).rasterized()
 """#),
-        FixtureSource(name: "effects/blur", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 169, lastLine: 190, declaration: #"""
+        FixtureSource(name: "effects/blur", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 179, lastLine: 200, declaration: #"""
 /// Gaussian blur: the edge profile of a square, `opaque`, text, and the frame it keeps.
 public static let blur = Fixture("effects/blur", size: CGSize(width: 360, height: 200), content: {
     VStack(spacing: 30) {
@@ -751,7 +751,7 @@ public static let blur = Fixture("effects/blur", size: CGSize(width: 360, height
     .probe("stack")
 }).rasterized()
 """#),
-        FixtureSource(name: "effects/color-text", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 144, lastLine: 167, declaration: #"""
+        FixtureSource(name: "effects/color-text", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 154, lastLine: 177, declaration: #"""
 /// Effects over a coloured background and on text: the alpha-changing filters composite
 /// with what is behind, and text keeps its layout.
 public static let colorText = Fixture("effects/color-text", size: CGSize(width: 360, height: 200), content: {
@@ -777,7 +777,7 @@ public static let colorText = Fixture("effects/color-text", size: CGSize(width: 
     .probe("zstack")
 }).rasterized()
 """#),
-        FixtureSource(name: "effects/compositing", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 262, lastLine: 291, declaration: #"""
+        FixtureSource(name: "effects/compositing", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 272, lastLine: 301, declaration: #"""
 public static let compositing = Fixture("effects/compositing", size: CGSize(width: 420, height: 300), content: {
     ZStack {
         Color(red: 0.9, green: 0.9, blue: 0.6).frame(width: 400, height: 280)
@@ -809,7 +809,37 @@ public static let compositing = Fixture("effects/compositing", size: CGSize(widt
     .probe("zstack")
 }).rasterized()
 """#),
-        FixtureSource(name: "effects/hidden", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 66, lastLine: 79, declaration: #"""
+        FixtureSource(name: "effects/corners", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 303, lastLine: 330, declaration: #"""
+/// Corners (sw-effects): effects cover what a view paints outside its frame (a 20 pt stroke on
+/// a 40 pt frame under `saturation(0)`, a shadow, a blur and a blend), `drawingGroup`'s
+/// options, and the effect values animating (`effects/corners` steps: a colour effect, a blur
+/// radius and a shadow tween to new values).
+public static let corners = Fixture(
+    "effects/corners", size: CGSize(width: 360, height: 220),
+    model: { EffectStepsModel() },
+    steps: [
+        FixtureStep("changed") { $0.saturation = 0; $0.blur = 6; $0.shadowRadius = 8; $0.brightness = 0.4 },
+    ]
+) { model in
+    VStack(spacing: 30) {
+        HStack(spacing: 50) {
+            Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).saturation(0).probe("overflowSaturation")
+            Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).shadow(color: .black, radius: 0, x: 30, y: 0).probe("overflowShadow")
+            Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).blur(radius: 2).probe("overflowBlur")
+            Circle().fill(Color.red).drawingGroup(opaque: true, colorMode: .linear).frame(width: 60, height: 60).probe("opaqueGroup")
+        }
+        .probe("row1")
+        HStack(spacing: 30) {
+            Color.blue.frame(width: 60, height: 60).saturation(model.saturation).probe("saturation")
+            Color.blue.frame(width: 60, height: 60).blur(radius: model.blur).probe("blur")
+            Color.blue.frame(width: 60, height: 60).shadow(color: .black, radius: model.shadowRadius, x: 4, y: 4).probe("shadow")
+            Color.blue.frame(width: 60, height: 60).brightness(model.brightness).probe("brightness")
+        }
+        .probe("row2")
+    }
+}.rasterized()
+"""#),
+        FixtureSource(name: "effects/hidden", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 76, lastLine: 89, declaration: #"""
 public static let hidden = Fixture("effects/hidden", size: CGSize(width: 240, height: 200)) {
     VStack(spacing: 10) {
         Text("Above").probe("above")
@@ -825,7 +855,7 @@ public static let hidden = Fixture("effects/hidden", size: CGSize(width: 240, he
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "effects/mask", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 228, lastLine: 250, declaration: #"""
+        FixtureSource(name: "effects/mask", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 238, lastLine: 260, declaration: #"""
 /// `mask`: the content shows through the mask's alpha; the mask is laid out like an overlay.
 public static let mask = Fixture("effects/mask", size: CGSize(width: 400, height: 220), content: {
     VStack(spacing: 30) {
@@ -850,7 +880,7 @@ public static let mask = Fixture("effects/mask", size: CGSize(width: 400, height
     .probe("stack")
 }).rasterized()
 """#),
-        FixtureSource(name: "effects/shadow", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 7, lastLine: 23, declaration: #"""
+        FixtureSource(name: "effects/shadow", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 17, lastLine: 33, declaration: #"""
 public static let shadow = Fixture("effects/shadow", size: CGSize(width: 360, height: 260)) {
     VStack(spacing: 50) {
         HStack(spacing: 60) {
@@ -869,7 +899,7 @@ public static let shadow = Fixture("effects/shadow", size: CGSize(width: 360, he
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "effects/shadow-offset", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 36, lastLine: 45, declaration: #"""
+        FixtureSource(name: "effects/shadow-offset", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 46, lastLine: 55, declaration: #"""
 /// Vertical offsets. The harness's offscreen window draws them upwards (a CoreGraphics
 /// base-space offset), unlike a window on screen, so this fixture's pixels are not compared.
 public static let shadowOffset = Fixture("effects/shadow-offset", size: CGSize(width: 360, height: 160)) {
@@ -881,7 +911,7 @@ public static let shadowOffset = Fixture("effects/shadow-offset", size: CGSize(w
     .probe("row")
 }
 """#),
-        FixtureSource(name: "effects/shadow-profile", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 25, lastLine: 34, declaration: #"""
+        FixtureSource(name: "effects/shadow-profile", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 35, lastLine: 44, declaration: #"""
 /// Black squares on a transparent background: the golden's alpha across each edge gives
 /// the blur profile (Docs/elements/Effects.md).
 public static let shadowProfile = Fixture("effects/shadow-profile", size: CGSize(width: 360, height: 160)) {
@@ -893,7 +923,7 @@ public static let shadowProfile = Fixture("effects/shadow-profile", size: CGSize
     .probe("row")
 }
 """#),
-        FixtureSource(name: "effects/zindex", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 47, lastLine: 64, declaration: #"""
+        FixtureSource(name: "effects/zindex", file: "Fixtures/Sources/Effects/EffectsFixtures.swift", firstLine: 57, lastLine: 74, declaration: #"""
 public static let zIndex = Fixture("effects/zindex", size: CGSize(width: 320, height: 240)) {
     VStack(spacing: 30) {
         ZStack {
@@ -11043,6 +11073,16 @@ public enum DragDropFixtures {
 import SwiftUI
 import FixtureKit
 
+/// Drives `effects/corners`.
+@Observable
+public final class EffectStepsModel {
+    public var saturation: Double = 1
+    public var blur: CGFloat = 0
+    public var shadowRadius: CGFloat = 0
+    public var brightness: Double = 0
+    public init() {}
+}
+
 public enum EffectsFixtures {
     public static let shadow = Fixture("effects/shadow", size: CGSize(width: 360, height: 260)) {
         VStack(spacing: 50) {
@@ -11330,7 +11370,36 @@ public enum EffectsFixtures {
         .probe("zstack")
     }).rasterized()
 
-    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden, brightness, saturation, colorMap, colorText, blur, blend, mask, compositing]
+    /// Corners (sw-effects): effects cover what a view paints outside its frame (a 20 pt stroke on
+    /// a 40 pt frame under `saturation(0)`, a shadow, a blur and a blend), `drawingGroup`'s
+    /// options, and the effect values animating (`effects/corners` steps: a colour effect, a blur
+    /// radius and a shadow tween to new values).
+    public static let corners = Fixture(
+        "effects/corners", size: CGSize(width: 360, height: 220),
+        model: { EffectStepsModel() },
+        steps: [
+            FixtureStep("changed") { $0.saturation = 0; $0.blur = 6; $0.shadowRadius = 8; $0.brightness = 0.4 },
+        ]
+    ) { model in
+        VStack(spacing: 30) {
+            HStack(spacing: 50) {
+                Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).saturation(0).probe("overflowSaturation")
+                Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).shadow(color: .black, radius: 0, x: 30, y: 0).probe("overflowShadow")
+                Rectangle().stroke(Color.red, lineWidth: 20).frame(width: 40, height: 40).blur(radius: 2).probe("overflowBlur")
+                Circle().fill(Color.red).drawingGroup(opaque: true, colorMode: .linear).frame(width: 60, height: 60).probe("opaqueGroup")
+            }
+            .probe("row1")
+            HStack(spacing: 30) {
+                Color.blue.frame(width: 60, height: 60).saturation(model.saturation).probe("saturation")
+                Color.blue.frame(width: 60, height: 60).blur(radius: model.blur).probe("blur")
+                Color.blue.frame(width: 60, height: 60).shadow(color: .black, radius: model.shadowRadius, x: 4, y: 4).probe("shadow")
+                Color.blue.frame(width: 60, height: 60).brightness(model.brightness).probe("brightness")
+            }
+            .probe("row2")
+        }
+    }.rasterized()
+
+    public static let all: [Fixture] = [shadow, shadowProfile, shadowOffset, zIndex, hidden, brightness, saturation, colorMap, colorText, blur, blend, mask, compositing, corners]
 }
 """#,
         "Fixtures/Sources/Focus/FocusFixtures.swift": #"""

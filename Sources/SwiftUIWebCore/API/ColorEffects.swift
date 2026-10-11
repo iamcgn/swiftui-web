@@ -14,14 +14,40 @@ public struct _ColorMatrixEffect: Equatable {
 
     /// The matrix for the kind, colours resolved in `environment`.
     package func matrix(in environment: EnvironmentValues) -> ColorMatrix {
+        Self.matrix(kind: kind, values: values(in: environment))
+    }
+
+    /// The kind's parameters as numbers that tween under an animation (an amount, an angle in
+    /// radians, a multiplied colour's components); empty for the fixed kinds.
+    package func values(in environment: EnvironmentValues) -> [Double] {
         switch kind {
-        case .brightness(let amount): return .brightness(amount)
-        case .contrast(let amount): return .contrast(amount)
-        case .saturation(let amount): return .saturation(amount)
-        case .grayscale(let amount): return .saturation(1 - amount)
-        case .hueRotation(let angle): return .hueRotation(angle)
+        case .brightness(let amount), .contrast(let amount), .saturation(let amount), .grayscale(let amount): return [amount]
+        case .hueRotation(let angle): return [angle.radians]
+        case .colorMultiply(let color):
+            let c = color.resolve(in: environment)
+            return [c.red, c.green, c.blue, c.alpha]
+        case .colorInvert, .luminanceToAlpha: return []
+        }
+    }
+
+    /// Whether two kinds share a parameterisation (an animation tweens between them).
+    package func sameKind(as other: _ColorMatrixEffect) -> Bool {
+        switch (kind, other.kind) {
+        case (.brightness, .brightness), (.contrast, .contrast), (.saturation, .saturation), (.grayscale, .grayscale), (.hueRotation, .hueRotation), (.colorMultiply, .colorMultiply): return true
+        default: return false
+        }
+    }
+
+    /// The matrix for `kind` with `values` in place of its parameters.
+    package static func matrix(kind: Kind, values: [Double]) -> ColorMatrix {
+        switch kind {
+        case .brightness: return .brightness(values[0])
+        case .contrast: return .contrast(values[0])
+        case .saturation: return .saturation(values[0])
+        case .grayscale: return .saturation(1 - values[0])
+        case .hueRotation: return .hueRotation(.radians(values[0]))
         case .colorInvert: return .invert
-        case .colorMultiply(let color): return .multiply(color.resolve(in: environment))
+        case .colorMultiply: return .multiply(RGBA(red: values[0], green: values[1], blue: values[2], alpha: values[3]))
         case .luminanceToAlpha: return .luminanceToAlpha
         }
     }
