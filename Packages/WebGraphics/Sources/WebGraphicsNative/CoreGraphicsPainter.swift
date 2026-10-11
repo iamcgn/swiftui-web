@@ -218,6 +218,8 @@ public final class CoreGraphicsPainter {
                 drawText(text, font: font, at: origin, color: .black, gradient: gradient, in: ctx)
             case .drawImage(let draw):
                 drawImage(draw, in: ctx)
+            case .drawBitmap(let bitmap, let rect):
+                if let image = Self.image(bitmap) { draw(image, in: rect, ctx: ctx) }
             }
         }
         ctx.restoreGState()
@@ -321,6 +323,13 @@ public final class CoreGraphicsPainter {
             ctx.drawRadialGradient(cgGradient, startCenter: center, startRadius: r0, endCenter: center, endRadius: r1, options: options)
         case .focalRadial(let start, let r0, let end, let r1):
             ctx.drawRadialGradient(cgGradient, startCenter: start, startRadius: r0, endCenter: end, endRadius: r1, options: options)
+        case .elliptical(let center, let r0, let r1, let aspect):
+            // A circle in a space squashed about the centre.
+            ctx.saveGState()
+            ctx.translateBy(x: center.x, y: center.y)
+            ctx.scaleBy(x: 1, y: max(aspect, 1e-6))
+            ctx.drawRadialGradient(cgGradient, startCenter: .zero, startRadius: r0, endCenter: .zero, endRadius: r1, options: options)
+            ctx.restoreGState()
         case .angular(let center, let startAngle):
             let box = ctx.boundingBoxOfClipPath
             let corners = [box.origin, CGPoint(x: box.maxX, y: box.minY), CGPoint(x: box.minX, y: box.maxY), CGPoint(x: box.maxX, y: box.maxY)]
@@ -421,6 +430,15 @@ public final class CoreGraphicsPainter {
         ctx.restoreGState()
     }
 
+    /// A CGImage over a bitmap's straight-alpha RGBA pixels.
+    static func image(_ bitmap: DisplayBitmap) -> CGImage? {
+        guard bitmap.width > 0, bitmap.height > 0, bitmap.pixels.count == bitmap.width * bitmap.height * 4,
+              let provider = CGDataProvider(data: Data(bitmap.pixels) as CFData) else { return nil }
+        return CGImage(width: bitmap.width, height: bitmap.height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: bitmap.width * 4,
+                       space: colorSpace, bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue), provider: provider,
+                       decode: nil, shouldInterpolate: true, intent: .defaultIntent)
+    }
+
     private func drawImage(_ draw: ImageDraw, in ctx: CGContext) {
         guard let image = image(for: draw.file) else { return }
         ctx.saveGState()
@@ -455,8 +473,13 @@ public final class CoreGraphicsPainter {
         }
         if let tint = draw.tint {
             ctx.setBlendMode(.sourceIn)
-            ctx.setFillColor(Self.cgColor(tint))
-            ctx.fill(draw.rect)
+            if let gradient = draw.tintGradient {
+                ctx.clip(to: draw.rect)
+                Self.draw(gradient, in: ctx)
+            } else {
+                ctx.setFillColor(Self.cgColor(tint))
+                ctx.fill(draw.rect)
+            }
             ctx.endTransparencyLayer()
         }
         ctx.restoreGState()

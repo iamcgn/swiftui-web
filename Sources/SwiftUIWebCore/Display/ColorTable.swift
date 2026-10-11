@@ -162,6 +162,12 @@ extension ShapeStyle {
         if let color = self as? Color {
             return color.resolve(in: environment)
         }
+        if let erased = self as? AnyShapeStyle {
+            return erased.base.resolveColor(in: environment)
+        }
+        if let modified = self as? any _ModifiedStyle {
+            return modified._resolveBaseColor(in: environment).multiplyingAlpha(by: modified._alpha)
+        }
         if let level = self as? HierarchicalShapeStyle, level.level > 0 {
             return level.color(foreground: environment.foregroundColor, isIOS: environment.platformProfile.isIOS).resolve(in: environment)
         }

@@ -1,0 +1,75 @@
+{
+  "fixture" : "gradient\/corners",
+  "frames" : {
+    "elliptical" : {
+      "height" : 60,
+      "width" : 110,
+      "x" : 5,
+      "y" : 30
+    },
+    "ellipticalCorner" : {
+      "height" : 60,
+      "width" : 110,
+      "x" : 125,
+      "y" : 30
+    },
+    "inRect" : {
+      "height" : 60,
+      "width" : 110,
+      "x" : 245,
+      "y" : 30
+    },
+    "mesh" : {
+      "height" : 110,
+      "width" : 110,
+      "x" : 5,
+      "y" : 100
+    },
+    "meshFlat" : {
+      "height" : 110,
+      "width" : 110,
+      "x" : 125,
+      "y" : 100
+    },
+    "opacity" : {
+      "height" : 24,
+      "width" : 110,
+      "x" : 245,
+      "y" : 100
+    },
+    "row1" : {
+      "height" : 60,
+      "width" : 350,
+      "x" : 5,
+      "y" : 30
+    },
+    "row2" : {
+      "height" : 110,
+      "width" : 350,
+      "x" : 5,
+      "y" : 100
+    },
+    "secondary" : {
+      "height" : 24,
+      "width" : 110,
+      "x" : 245,
+      "y" : 130
+    },
+    "symbol" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 247,
+      "y" : 160
+    },
+    "template" : {
+      "height" : 50,
+      "width" : 50,
+      "x" : 303,
+      "y" : 160
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 360
+  }
+}

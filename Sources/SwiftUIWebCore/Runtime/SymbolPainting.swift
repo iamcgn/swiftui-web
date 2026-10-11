@@ -4,7 +4,7 @@
 package enum _SymbolPainter {
     /// Draws `symbol` fitted into `bounds` (absolute coordinates) in `color`, stroked at a width
     /// that follows the font weight.
-    package static func paint(_ symbol: (glyph: SymbolGlyph, outline: SymbolGlyphOutline), in bounds: CGRect, weight: Int, color: RGBA, into list: inout DisplayList) {
+    package static func paint(_ symbol: (glyph: SymbolGlyph, outline: SymbolGlyphOutline), in bounds: CGRect, weight: Int, color: RGBA, gradient: DisplayGradient? = nil, into list: inout DisplayList) {
         guard bounds.width > 0, bounds.height > 0 else { return }
         let (x0, y0, x1, y1) = symbol.outline.bounds
         let outlineWidth = CGFloat(x1 - x0), outlineHeight = CGFloat(y1 - y0)
@@ -33,20 +33,23 @@ package enum _SymbolPainter {
         let weightFactor: CGFloat = weight >= 700 ? 1.2 : weight >= 600 ? 1.0 : weight < 400 ? 0.6 : 0.8
         let style = StrokeStyle(lineWidth: 2 * scale * weightFactor, lineCap: .round, lineJoin: .round)
         let knockout = RGBA(red: 1, green: 1, blue: 1, alpha: 1)
+        // A foreground gradient spans the symbol's frame (as a text's spans its frame).
+        func fill(_ path: Path) -> DisplayCommand { gradient.map { .fillGradient(path, $0) } ?? .fillPath(path, color, eoFill: false) }
+        func stroke(_ path: Path) -> DisplayCommand { gradient.map { .strokeGradient(path, style: style, $0) } ?? .strokePath(path, style: style, color) }
         switch symbol.glyph.mode {
         case 1:
             let whole = path(0..<ops.count)
-            list.append(.fillPath(whole, color, eoFill: false))
-            list.append(.strokePath(whole, style: style, color))
+            list.append(fill(whole))
+            list.append(stroke(whole))
         case 2:
             let first = path(0..<min(symbol.outline.firstElement, ops.count))
-            list.append(.fillPath(first, color, eoFill: false))
-            list.append(.strokePath(first, style: style, color))
+            list.append(fill(first))
+            list.append(stroke(first))
             if symbol.outline.firstElement < ops.count {
                 list.append(.strokePath(path(symbol.outline.firstElement..<ops.count), style: style, knockout))
             }
         default:
-            list.append(.strokePath(path(0..<ops.count), style: style, color))
+            list.append(stroke(path(0..<ops.count)))
         }
     }
 }

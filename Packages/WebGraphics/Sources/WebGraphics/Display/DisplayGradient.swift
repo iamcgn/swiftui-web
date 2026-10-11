@@ -7,6 +7,10 @@ public struct DisplayGradient: Equatable, Sendable {
         /// `drawRadialGradient`, Canvas2D's `createRadialGradient`).
         case focalRadial(startCenter: CGPoint, startRadius: CGFloat, endCenter: CGPoint, endRadius: CGFloat)
         case angular(center: CGPoint, startAngle: Double)
+        /// A radial gradient stretched to an ellipse: the radii are horizontal, `aspect` scales
+        /// them vertically (SwiftUI's `EllipticalGradient`). Painters fill it inside a clip with
+        /// the vertical scale applied about the centre.
+        case elliptical(center: CGPoint, startRadius: CGFloat, endRadius: CGFloat, aspect: CGFloat)
     }
 
     public struct Stop: Equatable, Sendable {

@@ -105,8 +105,16 @@ enum PainterScript {
         octx.imageSmoothingEnabled = smoothing;
         octx.drawImage(img, sx, sy, sw, sh, 0, 0, pw, ph);
         octx.globalCompositeOperation = 'source-in';
-        octx.fillStyle = tint;
-        octx.fillRect(0, 0, pw, ph);
+        if (tint.gradient) {
+          // The gradient was made in point space at the image's frame: map the offscreen onto it.
+          octx.scale(dpr, dpr);
+          octx.translate(-tint.x, -tint.y);
+          octx.fillStyle = tint.gradient.style;
+          octx.fillRect(tint.x, tint.y, pw / dpr, ph / dpr);
+        } else {
+          octx.fillStyle = tint;
+          octx.fillRect(0, 0, pw, ph);
+        }
         return off;
       }
       // One part of a draw: source rect in image pixels, destination in points, stretched or tiled.
@@ -158,10 +166,46 @@ enum PainterScript {
         if (kind === 0) style = ctx.createLinearGradient(buf[i++], buf[i++], buf[i++], buf[i++]);
         else if (kind === 1) { const cx = buf[i++], cy = buf[i++], r0 = buf[i++], r1 = buf[i++]; style = ctx.createRadialGradient(cx, cy, r0, cx, cy, r1); }
         else if (kind === 2) { const cx = buf[i++], cy = buf[i++], angle = buf[i++]; style = ctx.createConicGradient(angle, cx, cy); }
-        else { const x0 = buf[i++], y0 = buf[i++], r0 = buf[i++], x1 = buf[i++], y1 = buf[i++], r1 = buf[i++]; style = ctx.createRadialGradient(x0, y0, r0, x1, y1, r1); }
+        else if (kind === 3) { const x0 = buf[i++], y0 = buf[i++], r0 = buf[i++], x1 = buf[i++], y1 = buf[i++], r1 = buf[i++]; style = ctx.createRadialGradient(x0, y0, r0, x1, y1, r1); }
+        else {
+          // Elliptical: a circle in a space squashed about the centre; fills clip and fill a
+          // rectangle in that space (strokes and text take the circle of the horizontal radius).
+          const cx = buf[i++], cy = buf[i++], r0 = buf[i++], r1 = buf[i++], aspect = buf[i++];
+          style = ctx.createRadialGradient(cx, cy, r0, cx, cy, r1);
+          const squashed = ctx.createRadialGradient(0, 0, r0, 0, 0, r1);   // about the origin of the squashed space
+          const count = buf[i++];
+          for (let k = 0; k < count; k++) {
+            const loc = Math.min(Math.max(buf[i++], 0), 1), c = color(buf[i++], buf[i++], buf[i++], buf[i++]);
+            style.addColorStop(loc, c);
+            squashed.addColorStop(loc, c);
+          }
+          return { style, i, squash: { cx, cy, aspect, style: squashed } };
+        }
         const count = buf[i++];
         for (let k = 0; k < count; k++) { const loc = buf[i++]; style.addColorStop(Math.min(Math.max(loc, 0), 1), color(buf[i++], buf[i++], buf[i++], buf[i++])); }
         return { style, i };
+      }
+      // Fills the current path with a gradient, squashing an elliptical one about its centre.
+      function fillGradient(ctx, g, rule) {
+        if (!g.squash) { ctx.fillStyle = g.style; ctx.fill(rule); return; }
+        const { cx, cy, aspect } = g.squash;
+        ctx.save();
+        ctx.clip(rule);
+        ctx.translate(cx, cy);
+        ctx.scale(1, aspect);
+        ctx.fillStyle = g.squash.style;
+        const reach = 1e5;
+        ctx.fillRect(-reach, -reach / aspect, 2 * reach, 2 * reach / aspect);
+        ctx.restore();
+      }
+      // A bitmap by value, drawn through an offscreen canvas so clips and transforms apply.
+      function drawBitmap(ctx, bitmap, x, y, w, h) {
+        if (!bitmap.canvas) {
+          const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+          canvas.getContext('2d').putImageData(new ImageData(bitmap.pixels, bitmap.width, bitmap.height), 0, 0);
+          bitmap.canvas = canvas;
+        }
+        ctx.drawImage(bitmap.canvas, x, y, w, h);
       }
       const blendOps = ['source-over', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'soft-light', 'hard-light',
         'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity', 'source-atop', 'destination-over', 'destination-out', 'plus-darker', 'lighter'];
@@ -306,7 +350,7 @@ enum PainterScript {
         octx.textBaseline = 'alphabetic';
         return { off: off, octx: octx };
       }
-      function paint(rootCtx, buf, strings, dpr, w, h) {
+      function paint(rootCtx, buf, strings, dpr, w, h, bitmaps) {
         poolUsed = 0;
         rootCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         rootCtx.clearRect(0, 0, w, h);
@@ -504,17 +548,26 @@ enum PainterScript {
               const file = strings[buf[i++]], scale = buf[i++], pw = buf[i++], ph = buf[i++];
               const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
               const tile = buf[i++] === 1, top = buf[i++], leading = buf[i++], bottom = buf[i++], trailing = buf[i++];
-              const smoothing = buf[i++] === 1, hasTint = buf[i++] === 1;
-              const tint = color(buf[i++], buf[i++], buf[i++], buf[i++]);
-              drawImage(ctx, dpr, file, scale, pw, ph, x, y, rw, rh, tile, top, leading, bottom, trailing, smoothing, hasTint ? tint : null);
+              const smoothing = buf[i++] === 1, tintKind = buf[i++];
+              let tint = color(buf[i++], buf[i++], buf[i++], buf[i++]);
+              if (tintKind === 2) {
+                // A gradient tint: the gradient in the image's own space (its frame).
+                const g = readGradient(ctx, buf, i); i = g.i;
+                tint = { gradient: g, x, y };
+              }
+              drawImage(ctx, dpr, file, scale, pw, ph, x, y, rw, rh, tile, top, leading, bottom, trailing, smoothing, tintKind > 0 ? tint : null);
               break;
             }
             case 14: { const a = buf[i++], b = buf[i++], c = buf[i++], d = buf[i++], e = buf[i++], f = buf[i++]; ctx.transform(a, b, c, d, e, f); break; }
             case 15: {
               i = readPath(ctx, buf, i);
               const g = readGradient(ctx, buf, i); i = g.i;
-              ctx.fillStyle = g.style;
-              ctx.fill(buf[i++] === 1 ? 'evenodd' : 'nonzero');
+              fillGradient(ctx, g, buf[i++] === 1 ? 'evenodd' : 'nonzero');
+              break;
+            }
+            case 24: {
+              const bitmap = (bitmaps || [])[buf[i++]];
+              drawBitmap(ctx, bitmap, buf[i++], buf[i++], buf[i++], buf[i++]);
               break;
             }
             case 16: {
@@ -577,7 +630,7 @@ enum PainterScript {
         const canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(w * dpr));
         canvas.height = Math.max(1, Math.round(h * dpr));
-        paint(canvas.getContext('2d'), buf, strings, dpr, w, h);
+        paint(canvas.getContext('2d'), buf, strings, dpr, w, h, []);
         return canvas.toDataURL('image/png');
       }
       window.__swiftuiweb = {

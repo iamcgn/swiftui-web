@@ -437,6 +437,7 @@ extension UIView.DrawingCache {
             case .drawImage(var draw):
                 draw.rect = draw.rect.offsetBy(dx: offset.x, dy: offset.y)
                 result.append(.drawImage(draw))
+            case .drawBitmap(let bitmap, let rect): result.append(.drawBitmap(bitmap, rect: rect.offsetBy(dx: offset.x, dy: offset.y)))
             }
         }
         return result
@@ -453,6 +454,8 @@ private extension DisplayGradient {
         case .focalRadial(let startCenter, let startRadius, let endCenter, let endRadius):
             copy.kind = .focalRadial(startCenter: moved(startCenter), startRadius: startRadius, endCenter: moved(endCenter), endRadius: endRadius)
         case .angular(let center, let startAngle): copy.kind = .angular(center: moved(center), startAngle: startAngle)
+        case .elliptical(let center, let startRadius, let endRadius, let aspect):
+            copy.kind = .elliptical(center: moved(center), startRadius: startRadius, endRadius: endRadius, aspect: aspect)
         }
         return copy
     }

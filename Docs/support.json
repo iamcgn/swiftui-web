@@ -356,12 +356,13 @@
           ]
         },
         {
-          "api": "Gradient / LinearGradient / RadialGradient / AngularGradient / HierarchicalShapeStyle (fills, strokes, backgrounds, text, Canvas shading)",
-          "status": "partial",
-          "notes": "Display-list gradient ops painted by Canvas2D, stops blended in Oklab (≤ 0.08 % pixels); text foreground gradients through an offscreen mask; Canvas gradient shadings; .primary keeps the inherited style; no elliptical or mesh gradients, image gradients",
+          "api": "Gradient / LinearGradient / RadialGradient / AngularGradient / EllipticalGradient / MeshGradient / HierarchicalShapeStyle / AnyShapeStyle, ShapeStyle.in / opacity / levels (fills, strokes, backgrounds, text, symbols, template images, Canvas shading)",
+          "status": "full",
+          "notes": "Display-list gradient ops painted by Canvas2D, stops blended in Oklab (≤ 0.08 % pixels); text foreground gradients through an offscreen mask; Canvas gradient shadings; .primary keeps the inherited style. Elliptical gradients (radii as fractions of the bounds), mesh gradients rasterised into a bitmap at the paint scale (bicubic patches, device or perceptual colours; ≤ 0.84 % against SwiftUI), in(_:), opacity and the hierarchical levels (0.5 / 0.25 / 0.18 / 0.18) on gradients, gradients on symbols and template images (2026-10-11). Open: animating a mesh, Bézier control points, a mesh in text",
           "fixtures": [
             "gradient/basic",
-            "gradient/text"
+            "gradient/text",
+            "gradient/corners"
           ]
         },
         {

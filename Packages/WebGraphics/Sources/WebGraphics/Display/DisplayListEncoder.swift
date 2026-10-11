@@ -9,12 +9,14 @@ public enum DisplayOp: Double, Sendable {
     /// fillPath: path, colour, eoFill. strokePath: path, width, cap, join, miter limit, dash count, dashes, phase, colour
     case fillRect = 8, fillRRect = 9, fillPath = 10, strokePath = 11
     case drawText = 12
-    /// file, scale, pixel w/h, rect, tile, insets (top, leading, bottom, trailing), smoothing, hasTint, colour
+    /// file, scale, pixel w/h, rect, tile, insets (top, leading, bottom, trailing), smoothing, hasTint (0 none, 1 colour,
+    /// 2 colour then gradient), colour, [gradient]
     case drawImage = 13
     /// a, b, c, d, tx, ty
     case concat = 14
     /// fillGradient: path, gradient, eoFill. strokeGradient: path, stroke style (as strokePath), gradient.
-    /// A gradient is: kind (0 linear x0,y0,x1,y1; 1 radial cx,cy,r0,r1; 2 angular cx,cy,angle), stop count, stops (location, colour).
+    /// A gradient is: kind (0 linear x0,y0,x1,y1; 1 radial cx,cy,r0,r1; 2 angular cx,cy,angle; 3 focal radial
+    /// x0,y0,r0,x1,y1,r1; 4 elliptical cx,cy,r0,r1,aspect), stop count, stops (location, colour).
     case fillGradient = 15, strokeGradient = 16
     /// text, font, origin, gradient
     case drawTextGradient = 17
@@ -29,6 +31,8 @@ public enum DisplayOp: Double, Sendable {
     case beginMasked = 22
     /// path, bounds, radius, saturation: blurs (and saturates) what lies beneath the path in place
     case backdropBlur = 23
+    /// bitmap index (into the side table), rect
+    case drawBitmap = 24
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -40,6 +44,8 @@ public struct EncodedDisplayList: Equatable, Sendable {
     public var ops: [Double] = []
     /// Interned strings: text runs and CSS font strings.
     public var strings: [String] = []
+    /// Bitmaps drawn by value, indexed by `drawBitmap` ops.
+    public var bitmaps: [DisplayBitmap] = []
 
     public init() {}
 }
@@ -76,6 +82,7 @@ public enum DisplayListEncoder {
             case .radial(let center, let r0, let r1): out.ops += [1, center.x, center.y, r0, r1]
             case .angular(let center, let angle): out.ops += [2, center.x, center.y, angle]
             case .focalRadial(let start, let r0, let end, let r1): out.ops += [3, start.x, start.y, r0, end.x, end.y, r1]
+            case .elliptical(let center, let r0, let r1, let aspect): out.ops += [4, center.x, center.y, r0, r1, aspect]
             }
             out.ops.append(Double(g.stops.count))
             for stop in g.stops { out.ops.append(stop.location); color(stop.color) }
@@ -130,8 +137,13 @@ public enum DisplayListEncoder {
                 out.ops += [DisplayOp.drawImage.rawValue, intern(draw.file), draw.scale, draw.pixelSize.width, draw.pixelSize.height]
                 rect(draw.rect)
                 out.ops += [draw.tiles ? 1 : 0, draw.capInsets.top, draw.capInsets.leading, draw.capInsets.bottom, draw.capInsets.trailing,
-                            draw.smoothing ? 1 : 0, draw.tint == nil ? 0 : 1]
+                            draw.smoothing ? 1 : 0, draw.tint == nil ? 0 : draw.tintGradient == nil ? 1 : 2]
                 color(draw.tint ?? .clear)
+                if draw.tint != nil, let tintGradient = draw.tintGradient { gradient(tintGradient) }
+            case .drawBitmap(let bitmap, let r):
+                out.ops += [DisplayOp.drawBitmap.rawValue, Double(out.bitmaps.count)]
+                out.bitmaps.append(bitmap)
+                rect(r)
             }
         }
         return out
@@ -186,11 +198,11 @@ public enum DisplayListDecoder {
         func f(_ r: CGRect) -> String { "\(r.minX),\(r.minY),\(r.width),\(r.height)" }
         func gradientText() -> String {
             let kind = Int(next())
-            let params = [4, 4, 3, 6][kind]
+            let params = [4, 4, 3, 6, 5][kind]
             let numbers = (0..<params).map { _ in next() }
             let count = Int(next())
             let stops = (0..<count).map { _ in "\(next()):\(color())" }
-            return "\(["linear", "radial", "angular", "focalRadial"][kind]) \(numbers) [\(stops.joined(separator: " "))]"
+            return "\(["linear", "radial", "angular", "focalRadial", "elliptical"][kind]) \(numbers) [\(stops.joined(separator: " "))]"
         }
         while i < ops.count {
             switch DisplayOp(rawValue: next())! {
@@ -247,9 +259,13 @@ public enum DisplayListDecoder {
                 let r = rect()
                 let tile = next() == 1
                 let insets = "\(next()),\(next()),\(next()),\(next())"
-                let smoothing = next() == 1, hasTint = next() == 1
-                let tint = color()
-                out.append("drawImage \(file) @\(scale)x \(Int(pw))x\(Int(ph)) \(f(r))\(tile ? " tile" : "") insets \(insets)\(smoothing ? "" : " nearest")\(hasTint ? " tint " + tint : "")")
+                let smoothing = next() == 1, tintKind = Int(next())
+                var tint = color()
+                if tintKind == 2 { tint = gradientText() }
+                out.append("drawImage \(file) @\(scale)x \(Int(pw))x\(Int(ph)) \(f(r))\(tile ? " tile" : "") insets \(insets)\(smoothing ? "" : " nearest")\(tintKind > 0 ? " tint " + tint : "")")
+            case .drawBitmap:
+                let bitmap = encoded.bitmaps[Int(next())]
+                out.append("drawBitmap \(bitmap.width)x\(bitmap.height) \(f(rect()))")
             }
         }
         return out

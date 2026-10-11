@@ -1261,13 +1261,14 @@
       "framework": "SwiftUI",
       "area": "Gradient",
       "title": "Elliptical and mesh gradients",
-      "detail": "`EllipticalGradient`, `MeshGradient`, `ShapeStyle.in(_:)`, gradient `opacity`, repeat and mirror options (accepted), gradients on images and symbols, the hierarchical fade levels (approximate).",
+      "detail": "`EllipticalGradient`, `MeshGradient`, `ShapeStyle.in(_:)`, gradient `opacity`, repeat and mirror options (accepted), gradients on images and symbols, the hierarchical fade levels (approximate). Done 2026-10-11 (Phase 9, item 8): EllipticalGradient (display kind elliptical), MeshGradient rasterised into a bitmap (display op drawBitmap with a pixel side table to the Canvas2D painter), ShapeStyle.in / opacity / levels on gradients and AnyShapeStyle, gradients on symbols and template images; measured on NSHostingView renders (`gradient/corners`, `GradientTests`). Open: mesh animation and Bézier control points.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Gradient.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-effects",

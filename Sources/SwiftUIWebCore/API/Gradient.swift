@@ -30,6 +30,121 @@ public struct Gradient: Equatable, Sendable {
 @MainActor
 package protocol _GradientStyle: ShapeStyle {
     func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient
+    /// Fills `path` (absolute) with the style resolved over `bounds`; a mesh clips and draws a
+    /// bitmap instead of a gradient op.
+    func _fill(_ path: Path, in bounds: CGRect, eoFill: Bool, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList)
+    func _stroke(_ path: Path, style: StrokeStyle, in bounds: CGRect, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList)
+}
+
+extension _GradientStyle {
+    package func _fill(_ path: Path, in bounds: CGRect, eoFill: Bool, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        list.append(.fillGradient(path, _resolveGradient(in: bounds, environment: environment), eoFill: eoFill))
+    }
+
+    package func _stroke(_ path: Path, style: StrokeStyle, in bounds: CGRect, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        list.append(.strokeGradient(path, style: style, _resolveGradient(in: bounds, environment: environment)))
+    }
+}
+
+/// A gradient style modified by `opacity`, a hierarchical level or `in(_:)`: the stops' alpha is
+/// multiplied, the frame replaced by the rect (in the view's space). Measured 2026-10-11:
+/// `.secondary` … `.quinary` on a gradient multiply alpha by 0.5, 0.25, 0.18 and 0.18.
+public struct _ModifiedGradientStyle<Base: ShapeStyle>: ShapeStyle, _ModifiedStyle {
+    package var base: Base
+    package var alpha: Double = 1
+    package var rect: CGRect?
+
+    package var _alpha: Double { alpha }
+    package func _resolveBaseColor(in environment: EnvironmentValues) -> RGBA { base.resolveColor(in: environment) }
+}
+
+/// A style wrapping another with an alpha (`resolveColor` unwraps it).
+package protocol _ModifiedStyle {
+    var _alpha: Double { get }
+    func _resolveBaseColor(in environment: EnvironmentValues) -> RGBA
+}
+
+extension _ModifiedGradientStyle: _GradientStyle {
+    package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
+        var gradient = (base as? any _GradientStyle)?._resolveGradient(in: frame(in: bounds), environment: environment)
+            ?? DisplayGradient(kind: .linear(start: bounds.origin, end: bounds.origin), stops: [DisplayGradient.Stop(location: 0, color: base.resolveColor(in: environment))])
+        if alpha != 1 { gradient.stops = gradient.stops.map { DisplayGradient.Stop(location: $0.location, color: $0.color.multiplyingAlpha(by: alpha)) } }
+        return gradient
+    }
+
+    package func _fill(_ path: Path, in bounds: CGRect, eoFill: Bool, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        guard let mesh = base as? MeshGradient else {
+            list.append(.fillGradient(path, _resolveGradient(in: bounds, environment: environment), eoFill: eoFill))
+            return
+        }
+        mesh._fill(path, in: frame(in: bounds), eoFill: eoFill, environment: environment, scale: scale, alpha: alpha, into: &list)
+    }
+
+    package func _stroke(_ path: Path, style: StrokeStyle, in bounds: CGRect, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        guard let mesh = base as? MeshGradient else {
+            list.append(.strokeGradient(path, style: style, _resolveGradient(in: bounds, environment: environment)))
+            return
+        }
+        mesh._stroke(path, style: style, in: frame(in: bounds), environment: environment, scale: scale, alpha: alpha, into: &list)
+    }
+
+    private func frame(in bounds: CGRect) -> CGRect {
+        guard let rect else { return bounds }
+        return rect.offsetBy(dx: bounds.minX, dy: bounds.minY)
+    }
+}
+
+extension ShapeStyle {
+    /// The style at an opacity (a colour's own `opacity` returns a colour).
+    nonisolated public func opacity(_ opacity: Double) -> _ModifiedGradientStyle<Self> {
+        _ModifiedGradientStyle(base: self, alpha: opacity)
+    }
+
+    /// The style resolved against `rect` (in the view's coordinate space) instead of the view's frame.
+    nonisolated public func `in`(_ rect: CGRect) -> _ModifiedGradientStyle<Self> {
+        _ModifiedGradientStyle(base: self, rect: rect)
+    }
+
+    nonisolated public var secondary: _ModifiedGradientStyle<Self> { _ModifiedGradientStyle(base: self, alpha: 0.5) }
+    nonisolated public var tertiary: _ModifiedGradientStyle<Self> { _ModifiedGradientStyle(base: self, alpha: 0.25) }
+    nonisolated public var quaternary: _ModifiedGradientStyle<Self> { _ModifiedGradientStyle(base: self, alpha: 0.18) }
+    nonisolated public var quinary: _ModifiedGradientStyle<Self> { _ModifiedGradientStyle(base: self, alpha: 0.18) }
+}
+
+extension _ModifiedGradientStyle {
+    nonisolated public func opacity(_ opacity: Double) -> _ModifiedGradientStyle<Base> { _ModifiedGradientStyle(base: base, alpha: alpha * opacity, rect: rect) }
+    nonisolated public func `in`(_ rect: CGRect) -> _ModifiedGradientStyle<Base> { _ModifiedGradientStyle(base: base, alpha: alpha, rect: rect) }
+    nonisolated public var secondary: _ModifiedGradientStyle<Base> { opacity(0.5) }
+    nonisolated public var tertiary: _ModifiedGradientStyle<Base> { opacity(0.25) }
+    nonisolated public var quaternary: _ModifiedGradientStyle<Base> { opacity(0.18) }
+    nonisolated public var quinary: _ModifiedGradientStyle<Base> { opacity(0.18) }
+}
+
+/// A type-erased shape style.
+public struct AnyShapeStyle: ShapeStyle {
+    package let base: any ShapeStyle
+    public init<S: ShapeStyle>(_ style: S) { base = style }
+}
+
+extension AnyShapeStyle: _GradientStyle {
+    package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
+        (base as? any _GradientStyle)?._resolveGradient(in: bounds, environment: environment)
+            ?? DisplayGradient(kind: .linear(start: bounds.origin, end: bounds.origin), stops: [DisplayGradient.Stop(location: 0, color: base.resolveColor(in: environment))])
+    }
+    package func _fill(_ path: Path, in bounds: CGRect, eoFill: Bool, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        if let gradient = base as? any _GradientStyle {
+            gradient._fill(path, in: bounds, eoFill: eoFill, environment: environment, scale: scale, into: &list)
+        } else {
+            list.append(.fillPath(path, base.resolveColor(in: environment), eoFill: eoFill))
+        }
+    }
+    package func _stroke(_ path: Path, style: StrokeStyle, in bounds: CGRect, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        if let gradient = base as? any _GradientStyle {
+            gradient._stroke(path, style: style, in: bounds, environment: environment, scale: scale, into: &list)
+        } else {
+            list.append(.strokePath(path, style: style, base.resolveColor(in: environment)))
+        }
+    }
 }
 
 extension Gradient {
@@ -58,47 +173,6 @@ extension Gradient {
     }
 
     package static let subdivisions = 8
-}
-
-/// A colour in Oklab, for perceptual blending.
-package struct _Oklab {
-    package var L: Double, a: Double, b: Double
-
-    package init(L: Double, a: Double, b: Double) { self.L = L; self.a = a; self.b = b }
-
-    package init(_ color: RGBA) {
-        let r = Self.linear(color.red), g = Self.linear(color.green), bl = Self.linear(color.blue)
-        let l = _cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * bl)
-        let m = _cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * bl)
-        let s = _cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * bl)
-        L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s
-        a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s
-        b = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
-    }
-
-    package func mixed(with other: _Oklab, t: Double) -> _Oklab {
-        _Oklab(L: L + (other.L - L) * t, a: a + (other.a - a) * t, b: b + (other.b - b) * t)
-    }
-
-    package func rgba(alpha: Double) -> RGBA {
-        let l_ = L + 0.3963377774 * a + 0.2158037573 * b
-        let m_ = L - 0.1055613458 * a - 0.0638541728 * b
-        let s_ = L - 0.0894841775 * a - 1.2914855480 * b
-        let l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_
-        let r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
-        let g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
-        let bl = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
-        return RGBA(red: Self.encoded(r), green: Self.encoded(g), blue: Self.encoded(bl), alpha: alpha)
-    }
-
-    private static func linear(_ c: Double) -> Double {
-        c <= 0.04045 ? c / 12.92 : _pow((c + 0.055) / 1.055, 2.4)
-    }
-
-    private static func encoded(_ c: Double) -> Double {
-        let v = min(max(c, 0), 1)
-        return v <= 0.0031308 ? v * 12.92 : 1.055 * _pow(v, 1 / 2.4) - 0.055
-    }
 }
 
 /// A linear gradient: colors along an axis from a start point to an end point of the bounds.
@@ -157,6 +231,54 @@ extension RadialGradient: _GradientStyle {
     package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
         let c = CGPoint(x: bounds.minX + bounds.width * center.x, y: bounds.minY + bounds.height * center.y)
         return DisplayGradient(kind: .radial(center: c, startRadius: startRadius, endRadius: endRadius), stops: gradient.resolvedStops(in: environment))
+    }
+}
+
+/// An elliptical gradient: a radial gradient whose radii are fractions of the bounds' width and
+/// height (an end fraction of 0.5 touches all four edges; measured 2026-10-11).
+public struct EllipticalGradient: ShapeStyle, Sendable {
+    package let gradient: Gradient
+    package let center: UnitPoint
+    package let startRadiusFraction: CGFloat
+    package let endRadiusFraction: CGFloat
+
+    public init(gradient: Gradient, center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) {
+        self.gradient = gradient
+        self.center = center
+        self.startRadiusFraction = startRadiusFraction
+        self.endRadiusFraction = endRadiusFraction
+    }
+
+    public init(colors: [Color], center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) {
+        self.init(gradient: Gradient(colors: colors), center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
+    }
+
+    public init(stops: [Gradient.Stop], center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) {
+        self.init(gradient: Gradient(stops: stops), center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
+    }
+}
+
+extension EllipticalGradient: _GradientStyle {
+    package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
+        let c = CGPoint(x: bounds.minX + bounds.width * center.x, y: bounds.minY + bounds.height * center.y)
+        let stops = gradient.resolvedStops(in: environment)
+        guard bounds.width > 0, bounds.height > 0, bounds.width != bounds.height else {
+            return DisplayGradient(kind: .radial(center: c, startRadius: bounds.width * startRadiusFraction, endRadius: bounds.width * endRadiusFraction), stops: stops)
+        }
+        return DisplayGradient(kind: .elliptical(center: c, startRadius: bounds.width * startRadiusFraction, endRadius: bounds.width * endRadiusFraction,
+                                                 aspect: bounds.height / bounds.width), stops: stops)
+    }
+}
+
+extension ShapeStyle where Self == EllipticalGradient {
+    public static func ellipticalGradient(_ gradient: Gradient, center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) -> EllipticalGradient {
+        EllipticalGradient(gradient: gradient, center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
+    }
+    public static func ellipticalGradient(colors: [Color], center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) -> EllipticalGradient {
+        EllipticalGradient(colors: colors, center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
+    }
+    public static func ellipticalGradient(stops: [Gradient.Stop], center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) -> EllipticalGradient {
+        EllipticalGradient(stops: stops, center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
     }
 }
 
@@ -250,4 +372,146 @@ extension RadialGradient: View {
 
 extension AngularGradient: View {
     public var body: some View { Rectangle().fill(self) }
+}
+
+extension EllipticalGradient: View {
+    public var body: some View { Rectangle().fill(self) }
+}
+
+extension MeshGradient: View {
+    public var body: some View { Rectangle().fill(self) }
+}
+
+extension Gradient {
+    /// The space gradients blend in: `device` (sRGB components, a mesh's default) or
+    /// `perceptual` (Oklab; linear, radial, angular and elliptical gradients always blend so).
+    public struct ColorSpace: Hashable, Sendable {
+        package let perceptual: Bool
+        public static let device = ColorSpace(perceptual: false)
+        public static let perceptual = ColorSpace(perceptual: true)
+    }
+}
+
+/// A two-dimensional gradient: a grid of positioned colours joined by smooth patches
+/// (`MeshRasterizer`, Docs/elements/Gradient.md). Rasterised into a bitmap at the paint scale.
+public struct MeshGradient: ShapeStyle, Sendable {
+    /// A grid point with its Bézier control points (the mesh's edges leave and enter it along them).
+    public struct BezierPoint: Equatable, Sendable {
+        public var position: SIMD2<Float>
+        public var leadingControlPoint: SIMD2<Float>
+        public var topControlPoint: SIMD2<Float>
+        public var trailingControlPoint: SIMD2<Float>
+        public var bottomControlPoint: SIMD2<Float>
+        public var topLeadingControlPoint: SIMD2<Float>
+        public var topTrailingControlPoint: SIMD2<Float>
+        public var bottomLeadingControlPoint: SIMD2<Float>
+        public var bottomTrailingControlPoint: SIMD2<Float>
+
+        public init(position: SIMD2<Float>, leadingControlPoint: SIMD2<Float>, topControlPoint: SIMD2<Float>, trailingControlPoint: SIMD2<Float>, bottomControlPoint: SIMD2<Float>,
+                    topLeadingControlPoint: SIMD2<Float>, topTrailingControlPoint: SIMD2<Float>, bottomLeadingControlPoint: SIMD2<Float>, bottomTrailingControlPoint: SIMD2<Float>) {
+            self.position = position
+            self.leadingControlPoint = leadingControlPoint
+            self.topControlPoint = topControlPoint
+            self.trailingControlPoint = trailingControlPoint
+            self.bottomControlPoint = bottomControlPoint
+            self.topLeadingControlPoint = topLeadingControlPoint
+            self.topTrailingControlPoint = topTrailingControlPoint
+            self.bottomLeadingControlPoint = bottomLeadingControlPoint
+            self.bottomTrailingControlPoint = bottomTrailingControlPoint
+        }
+    }
+
+    /// The grid's locations: plain points (control points derived from the neighbours) or Bézier points.
+    public struct Locations: Equatable, Sendable {
+        package let points: [SIMD2<Float>]
+        public static func points(_ points: [SIMD2<Float>]) -> Locations { Locations(points: points) }
+        /// Bézier points: the positions are used, the control points derived (approximate).
+        public static func bezierPoints(_ points: [BezierPoint]) -> Locations { Locations(points: points.map(\.position)) }
+    }
+
+    /// The grid's colours.
+    public struct Colors: Equatable, Sendable {
+        package let colors: [Color]
+        public static func colors(_ colors: [Color]) -> Colors { Colors(colors: colors) }
+    }
+
+    public var width: Int
+    public var height: Int
+    public var locations: Locations
+    public var colors: Colors
+    public var background: Color
+    public var smoothsColors: Bool
+    public var colorSpace: Gradient.ColorSpace
+
+    public init(width: Int, height: Int, locations: Locations, colors: Colors, background: Color = .clear, smoothsColors: Bool = true, colorSpace: Gradient.ColorSpace = .device) {
+        self.width = width
+        self.height = height
+        self.locations = locations
+        self.colors = colors
+        self.background = background
+        self.smoothsColors = smoothsColors
+        self.colorSpace = colorSpace
+    }
+
+    public init(width: Int, height: Int, points: [SIMD2<Float>], colors: [Color], background: Color = .clear, smoothsColors: Bool = true, colorSpace: Gradient.ColorSpace = .device) {
+        self.init(width: width, height: height, locations: .points(points), colors: .colors(colors), background: background, smoothsColors: smoothsColors, colorSpace: colorSpace)
+    }
+
+    public init(width: Int, height: Int, bezierPoints: [BezierPoint], colors: [Color], background: Color = .clear, smoothsColors: Bool = true, colorSpace: Gradient.ColorSpace = .device) {
+        self.init(width: width, height: height, locations: .bezierPoints(bezierPoints), colors: .colors(colors), background: background, smoothsColors: smoothsColors, colorSpace: colorSpace)
+    }
+}
+
+extension MeshGradient: _GradientStyle {
+    @MainActor package func description(in environment: EnvironmentValues, alpha: Double) -> MeshDescription {
+        MeshDescription(width: width, height: height,
+                        points: locations.points.map { CGPoint(x: CGFloat($0.x), y: CGFloat($0.y)) },
+                        colors: colors.colors.map { $0.resolve(in: environment).multiplyingAlpha(by: alpha) },
+                        background: background.resolve(in: environment).multiplyingAlpha(by: alpha),
+                        smoothsColors: smoothsColors, perceptual: colorSpace.perceptual)
+    }
+
+    /// Text and canvas shadings take a linear gradient of the first row's colours (approximate).
+    package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
+        let row = Array(colors.colors.prefix(max(width, 1)))
+        return LinearGradient(colors: row.isEmpty ? [.clear] : row, startPoint: .leading, endPoint: .trailing)._resolveGradient(in: bounds, environment: environment)
+    }
+
+    package func _fill(_ path: Path, in bounds: CGRect, eoFill: Bool, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        _fill(path, in: bounds, eoFill: eoFill, environment: environment, scale: scale, alpha: 1, into: &list)
+    }
+
+    package func _stroke(_ path: Path, style: StrokeStyle, in bounds: CGRect, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        _stroke(path, style: style, in: bounds, environment: environment, scale: scale, alpha: 1, into: &list)
+    }
+
+    @MainActor package func _fill(_ path: Path, in bounds: CGRect, eoFill: Bool, environment: EnvironmentValues, scale: CGFloat, alpha: Double, into list: inout DisplayList) {
+        guard bounds.width > 0, bounds.height > 0 else { return }
+        let bitmap = _MeshCache.bitmap(description(in: environment, alpha: alpha), size: bounds.size, scale: scale)
+        list.append(.save)
+        list.append(.clipPath(path, eoFill: eoFill))
+        list.append(.drawBitmap(bitmap, rect: bounds))
+        list.append(.restore)
+    }
+
+    /// A stroke clips to the stroked outline.
+    @MainActor package func _stroke(_ path: Path, style: StrokeStyle, in bounds: CGRect, environment: EnvironmentValues, scale: CGFloat, alpha: Double, into list: inout DisplayList) {
+        let outline = path.strokedPath(style)
+        let reach = bounds.union(outline.boundingRect)
+        _fill(outline, in: reach, eoFill: false, environment: environment, scale: scale, alpha: alpha, into: &list)
+    }
+}
+
+/// The last few rasterised meshes: an animated mesh re-rasterises every frame, a still one once.
+@MainActor
+package enum _MeshCache {
+    private static var entries: [(key: MeshDescription, size: CGSize, scale: CGFloat, bitmap: DisplayBitmap)] = []
+
+    package static func bitmap(_ mesh: MeshDescription, size: CGSize, scale: CGFloat) -> DisplayBitmap {
+        if let hit = entries.first(where: { $0.key == mesh && $0.size == size && $0.scale == scale }) { return hit.bitmap }
+        let bitmap = MeshRasterizer.rasterize(mesh, size: size, scale: scale)
+        entries.append((mesh, size, scale, bitmap))
+        if entries.count > 8 { entries.removeFirst() }
+        return bitmap
+    }
 }

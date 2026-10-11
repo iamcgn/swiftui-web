@@ -49,6 +49,20 @@ public struct DisplayFont: Hashable, Sendable {
     }
 }
 
+/// A bitmap drawn by value: `width × height` straight-alpha RGBA pixels, row-major (a mesh
+/// gradient rasterised at the paint scale). Equality compares the pixels.
+public struct DisplayBitmap: Equatable, Sendable {
+    public let width: Int
+    public let height: Int
+    public let pixels: [UInt8]
+
+    public init(width: Int, height: Int, pixels: [UInt8]) {
+        self.width = width
+        self.height = height
+        self.pixels = pixels
+    }
+}
+
 /// One image draw: a catalog file scaled (or tiled, or nine-part stretched) into `rect`.
 public struct ImageDraw: Equatable, Sendable {
     /// Path of the variant, relative to the manifest base.
@@ -65,6 +79,9 @@ public struct ImageDraw: Equatable, Sendable {
     public var smoothing = true
     /// Fill the image's alpha with this colour (template rendering).
     public var tint: RGBA?
+    /// Fill the image's alpha with this gradient instead (a template image under a gradient
+    /// foreground style); `tint` must be set too.
+    public var tintGradient: DisplayGradient?
 
     public init(file: String, scale: CGFloat, pixelSize: CGSize, rect: CGRect) {
         self.file = file
@@ -115,6 +132,8 @@ public enum DisplayCommand: Equatable, Sendable {
     /// Draws one line of text filled with a gradient (absolute coordinates).
     case drawTextGradient(String, DisplayFont, origin: CGPoint, DisplayGradient)
     case drawImage(ImageDraw)
+    /// Draws a bitmap by value stretched into `rect` (absolute coordinates).
+    case drawBitmap(DisplayBitmap, rect: CGRect)
 }
 
 /// The flat command list a painter consumes for one frame (decision 0002).
@@ -187,7 +206,10 @@ extension DisplayCommand: CustomStringConvertible {
             if draw.tiles { text += " tile" }
             if !draw.smoothing { text += " nearest" }
             if let tint = draw.tint { text += " tint=\(c(tint))" }
+            if let gradient = draw.tintGradient { text += " tint=\(gradient.summary)" }
             return text + ")"
+        case .drawBitmap(let bitmap, let rect):
+            return "drawBitmap(\(bitmap.width)x\(bitmap.height) \(r(rect)))"
         }
     }
 }
@@ -208,6 +230,7 @@ extension DisplayGradient {
         case .radial(let center, let r0, let r1): kindText = "radial \(p(center)) r\(r0)→\(r1)"
         case .focalRadial(let start, let r0, let end, let r1): kindText = "radial \(p(start)) r\(r0)→\(p(end)) r\(r1)"
         case .angular(let center, let angle): kindText = "angular \(p(center)) a\(angle)"
+        case .elliptical(let center, let r0, let r1, let aspect): kindText = "elliptical \(p(center)) r\(r0)→\(r1) ×\(aspect)"
         }
         func hex(_ value: Double) -> String {
             let byte = Int((value * 255).rounded())

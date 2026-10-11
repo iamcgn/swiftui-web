@@ -681,7 +681,15 @@ public final class CanvasSceneHost {
         let buffer = JSTypedArray<Double>(encoded.ops)
         let strings = JSObject.global.Array.function!.new()
         for s in encoded.strings { _ = strings.push!(s) }
-        _ = bridge.paint!(context, buffer, strings, dpr, width, height)
+        let bitmaps = JSObject.global.Array.function!.new()
+        for bitmap in encoded.bitmaps {
+            let object = JSObject.global.Object.function!.new()
+            object.width = .number(Double(bitmap.width))
+            object.height = .number(Double(bitmap.height))
+            object.pixels = .object(JSObject.global.Uint8ClampedArray.function!.new(JSTypedArray<UInt8>(bitmap.pixels).jsValue))
+            _ = bitmaps.push!(object)
+        }
+        _ = bridge.paint!(context, buffer, strings, dpr, width, height, bitmaps)
     }
 
     private func updateOverlay() {

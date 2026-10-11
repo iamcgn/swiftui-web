@@ -194,6 +194,7 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
         draw.smoothing = view.interpolation != .none
         if isTemplate {
             draw.tint = (environment.foregroundColor ?? .primary).resolve(in: environment)
+            draw.tintGradient = environment.foregroundGradient?._resolveGradient(in: bounds, environment: environment)
         }
         list.append(.drawImage(draw))
     }
@@ -231,17 +232,18 @@ extension ImageNode {
         }
         defer { if effects.transform != .identity { list.append(.restore) } }
         let color = (environment.foregroundColor ?? .primary).resolve(in: environment)
+        let gradient = environment.foregroundGradient?._resolveGradient(in: bounds, environment: environment)
         let progress = symbolTransitionProgress
         if let outgoingSymbol, progress < 1 {
             list.append(.beginGroup(opacity: 1 - progress))
-            _SymbolPainter.paint(outgoingSymbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, into: &list)
+            _SymbolPainter.paint(outgoingSymbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, gradient: gradient, into: &list)
             list.append(.endGroup)
             list.append(.beginGroup(opacity: progress))
-            _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, into: &list)
+            _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, gradient: gradient, into: &list)
             list.append(.endGroup)
             return
         }
-        _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, into: &list)
+        _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, gradient: gradient, into: &list)
     }
 }
 

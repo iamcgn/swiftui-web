@@ -92,5 +92,58 @@ import SwiftUIWebHeadless
         #expect(canvas[4].hasPrefix("fillGradient(") && canvas[4].contains("angular 25.0,20.0"))
         #expect(canvas[5].hasPrefix("fillPath(") && canvas[5].hasSuffix("#34C759"))
     }
+
+    /// The corners (sw-gradients, `gradient/corners`, measured 2026-10-11): an elliptical
+    /// gradient's radii are fractions of the width and height, `in(_:)` pins the frame, `opacity`
+    /// and the hierarchical levels multiply the stops' alpha (0.5 / 0.25 / 0.18 / 0.18), a mesh
+    /// clips and draws a bitmap, and gradients reach symbols and template images.
+    @Test func ellipticalMeshAndModifiedGradients() {
+        func render<V: View>(_ view: V) -> [String] { commands(view).map(\.description) }
+        let elliptical = render(Rectangle().fill(EllipticalGradient(colors: [.red, .blue])).frame(width: 100, height: 50))
+        #expect(elliptical.first?.contains("elliptical 100.0,50.0 r0.0→50.0 ×0.5") == true, "\(elliptical)")
+        // A square frame is a plain radial gradient.
+        #expect(render(Rectangle().fill(EllipticalGradient(colors: [.red, .blue])).frame(width: 50, height: 50)).first?.contains("radial 100.0,50.0 r0.0→25.0") == true)
+        let linear = LinearGradient(colors: [.red, .blue], startPoint: .leading, endPoint: .trailing)
+        let pinned = render(Rectangle().fill(linear.in(CGRect(x: 30, y: 0, width: 50, height: 50))).frame(width: 100, height: 50))
+        #expect(pinned.first?.contains("linear 80.0,50.0→130.0,50.0") == true, "\(pinned)")
+        let faded = commands(Rectangle().fill(linear.opacity(0.5)).frame(width: 100, height: 50))
+        if case .fillGradient(_, let gradient, _) = faded[0] {
+            #expect(gradient.stops.allSatisfy { $0.color.alpha == 0.5 })
+        } else { Issue.record("\(faded)") }
+        for (style, alpha) in [(linear.secondary, 0.5), (linear.tertiary, 0.25), (linear.quaternary, 0.18), (linear.quinary, 0.18), (linear.secondary.opacity(0.5), 0.25)] {
+            if case .fillGradient(_, let gradient, _) = commands(Rectangle().fill(style).frame(width: 100, height: 50))[0] {
+                #expect(gradient.stops.allSatisfy { abs($0.color.alpha - alpha) < 1e-9 }, "\(alpha)")
+            } else { Issue.record("no gradient at \(alpha)") }
+        }
+        // A mesh: save, clip to the shape, a bitmap at the paint scale, restore.
+        let mesh = MeshGradient(width: 2, height: 2, points: [[0, 0], [1, 0], [0, 1], [1, 1]], colors: [.red, .blue, .yellow, .green])
+        let meshed = render(Circle().fill(mesh).frame(width: 50, height: 50))
+        #expect(meshed == ["save", "clipPath(6 elements)", "drawBitmap(100x100 (75, 25, 50, 50))", "restore"], "\(meshed)")
+        // The bitmap's corners carry the corner colours (device space: sRGB components).
+        if case .drawBitmap(let bitmap, _) = commands(Rectangle().fill(mesh).frame(width: 50, height: 50))[2] {
+            let red = Array(bitmap.pixels[0..<4]), green = Array(bitmap.pixels[(bitmap.pixels.count - 4)...])
+            #expect(red[0] == 254 && red[3] == 255 && green[1] == 199 && green[0] == 53, "\(red) \(green)")
+            // The centre of a flat 2 × 2 red/blue/yellow/green mesh averages the four in sRGB.
+            let centre = (50 * 100 + 50) * 4
+            let c = Array(bitmap.pixels[centre..<(centre + 4)])
+            #expect(abs(Int(c[0]) - 140) < 4 && abs(Int(c[1]) - 149) < 4 && abs(Int(c[2]) - 101) < 4, "\(c)")
+        } else { Issue.record("no bitmap") }
+        // A stroke clips to the stroked outline; a mesh in text falls back to a linear gradient.
+        #expect(render(Circle().stroke(mesh, lineWidth: 4).frame(width: 50, height: 50))[1].hasPrefix("clipPath("))
+        #expect(mesh._resolveGradient(in: CGRect(x: 0, y: 0, width: 10, height: 10), environment: EnvironmentValues()).summary.hasPrefix("linear 0.0,5.0→10.0,5.0"))
+        // Symbols and template images take the gradient over their frame.
+        let symbol = render(Image(systemName: "star.fill").resizable().foregroundStyle(linear).frame(width: 40, height: 40))
+        #expect(symbol.allSatisfy { $0.contains("linear 80.0,50.0→120.0,50.0") }, "\(symbol)")
+        let catalog = AssetCatalog(images: ["icon": ImageResource(name: "icon", isTemplate: true, variants: [ImageVariant(file: "icon@2x.png", scale: 2, pixelWidth: 48, pixelHeight: 48)])])
+        let runtime = Runtime()
+        runtime.assetCatalog = catalog
+        runtime.mount(Image("icon").resizable().foregroundStyle(linear).frame(width: 40, height: 40))
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        let template = runtime.render(scale: 2).commands.map(\.description)
+        #expect(template.first?.contains("tint=linear 80.0,50.0→120.0,50.0") == true, "\(template)")
+        // The erased style forwards.
+        #expect(render(Rectangle().fill(AnyShapeStyle(linear)).frame(width: 100, height: 50)).first?.hasPrefix("fillGradient") == true)
+        #expect(render(Rectangle().fill(AnyShapeStyle(Color.red)).frame(width: 100, height: 50)).first?.hasSuffix("#FF383C") == true)
+    }
 }
 #endif

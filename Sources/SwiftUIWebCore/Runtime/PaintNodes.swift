@@ -9,7 +9,7 @@ package final class ShapeNode<V: _ShapePainting>: LeafNode<V> {
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
-        _withContainerShape(for: self) { view._paintShape(in: absoluteBounds(context), environment: environment, into: &list) }
+        _withContainerShape(for: self) { view._paintShape(in: absoluteBounds(context), environment: environment, scale: context.scale, into: &list) }
     }
 }
 
