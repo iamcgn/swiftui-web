@@ -144,11 +144,12 @@ extension _LabeledContentRow: View {
             _FormLabeledRow(label: labelsHidden ? nil : AnyView(configuration.label), content: AnyView(configuration.content), mode: .firstTextBaseline)
         } else if formStyle == .grouped {
             // A grouped form row: the body-styled label (an 18.5 line), the value in the
-            // secondary colour at the trailing edge, a control (a checkbox, a pop-up) as itself
-            // rather than a form row of its own; the row as tall as the taller of the two
-            // (measured 2026-10-11, `label/corners`).
+            // secondary colour at the trailing edge on the label's baseline, a control (a
+            // checkbox, a pop-up) as itself rather than a form row of its own; the row 0.125
+            // lower than other rows (measured 2026-10-11, `label/corners`, macOS 27).
             _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: configuration.label)),
-                            content: AnyView(configuration.content.foregroundStyle(.secondary).environment(\._formStyle, nil)), mode: .groupedFull)
+                            content: AnyView(configuration.content.foregroundStyle(.secondary).environment(\._formStyle, nil)), mode: .groupedBaseline)
+                .alignmentGuide(VerticalAlignment._formRowTop) { _ in -PlatformMetrics.formLabeledContentRowOffset }
         } else if labelsHidden {
             configuration.content
         } else {

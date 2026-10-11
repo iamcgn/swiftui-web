@@ -1,6 +1,7 @@
-// ContentUnavailableView (Docs/elements/ContentUnavailableView.md): the label's symbol above
+// ContentUnavailableView (Docs/elements/ContentUnavailableView.md): the label's icon above
 // its title (title3 bold, secondary), a description (title3, secondary) and actions, top-aligned
-// in the space the view fills (macOS 27 and iOS; a NavigationStack centres it at its own height).
+// in the space the view fills (macOS 27 and iOS; a NavigationStack centres it at its own
+// height); the icon goes when the column does not fit the height on offer.
 
 /// An interface, consisting of a label and additional content, that you display when the
 /// content of your app is unavailable to users.
@@ -17,68 +18,60 @@ public struct ContentUnavailableView<Label: View, Description: View, Actions: Vi
         self.actions = actions()
     }
 
-    @Environment(\._navigationContext) private var navigation
-    @Environment(\.platformProfile) private var profile
-
     public var body: some View {
-        let column = VStack(spacing: 0) {
-            label.labelStyle(_UnavailableLabelStyle())
+        // The column is its own height, centred by whatever holds it (a 175 pt frame puts the
+        // tray 22.75 down; stacks centre a run of them). When it does not fit the height on
+        // offer, the title-only column fills it from the top (`unavailable/corners` `plain`: a
+        // 190 pt frame drops the tray; a 169 pt one too, 169.5 keeps it).
+        ViewThatFits(in: .vertical) {
+            _UnavailableColumn(label: label, description: description, actions: actions, showsIcon: true)
+            _UnavailableColumn(label: label, description: description, actions: actions, showsIcon: false)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// The unavailable view's column: the label (with or without its icon), the description 6
+/// below it and 12 above what follows, the actions 6 below, 20 above everything and 26 beneath
+/// (20 when there are actions).
+struct _UnavailableColumn<Label: View, Description: View, Actions: View>: View {
+    let label: Label
+    let description: Description
+    let actions: Actions
+    let showsIcon: Bool
+
+    var body: some View {
+        let hasActions = Actions.self != EmptyView.self
+        VStack(spacing: 0) {
+            label.labelStyle(_UnavailableLabelStyle(showsIcon: showsIcon))
             if Description.self != EmptyView.self {
-                description.font(.title3).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.top, PlatformMetrics.unavailableDescriptionGap)
+                description.font(.title3).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    .padding(.top, PlatformMetrics.unavailableDescriptionGap).padding(.bottom, PlatformMetrics.unavailableDescriptionBottom)
             }
-            if Actions.self != EmptyView.self {
+            if hasActions {
                 HStack { actions }.padding(.top, PlatformMetrics.unavailableActionsGap)
             }
         }
         .padding(.top, PlatformMetrics.unavailableTopPadding)
-        .padding(.bottom, PlatformMetrics.unavailableBottomPadding)
+        .padding(.bottom, hasActions ? PlatformMetrics.unavailableActionsBottomPadding : PlatformMetrics.unavailableBottomPadding)
         .fixedSize(horizontal: false, vertical: true)   // keeps its lines in a short cell (iOS `search` wraps to two)
-        // Inside a NavigationStack the view keeps its own height and the stack centres it
-        // (measured on macOS 27: 129.5 for a symbol and a title in a 190 pt stack). An iPhone
-        // centres the column in the space it fills; a Mac keeps it at the top.
-        if navigation != nil {
-            column.frame(maxWidth: .infinity)
-        } else {
-            column.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: profile.isIOS ? .center : .top)
-        }
     }
 }
 
-/// The unavailable view's label: the symbol (36 pt, the tertiary colour) above the title
-/// (title3 bold, secondary), 24 apart, both centred. A catalog image icon does not show (the
-/// harness's `Label(_:image:)` measured a title-only label, `unavailable/basic` `customLabel`).
+/// The unavailable view's label: the icon (a symbol at 36 pt, the tertiary colour) above the
+/// title (title3 bold, secondary), 24 apart, both centred; without the icon when the column
+/// does not fit (`ViewThatFits` above).
 struct _UnavailableLabelStyle: LabelStyle {
+    let showsIcon: Bool
+
     func makeBody(configuration: Configuration) -> some View {
         VStack(spacing: PlatformMetrics.unavailableIconGap) {
-            if configuration.icon.content._isSystemSymbol {
+            if showsIcon {
                 configuration.icon.font(.system(size: PlatformMetrics.unavailableIconSize)).foregroundStyle(.tertiary)
             }
             configuration.title.font(.title3).fontWeight(.bold).foregroundStyle(.secondary).multilineTextAlignment(.center)
         }
-    }
-}
-
-extension AnyView {
-    /// Whether the erased view is a system symbol image (`Image(systemName:)`), possibly probed.
-    @MainActor package var _isSystemSymbol: Bool {
-        if let image = (storage as? AnyViewStorage<Image>)?.view, case .system = image.source { return true }
-        var visitor = _SymbolFinder()
-        return storage.visit(&visitor)
-    }
-}
-
-/// Finds a system symbol under modifiers (the fixture probe's background, a frame): the
-/// `content` of each `ModifiedContent` in turn.
-private struct _SymbolFinder: _AnyViewVisitor {
-    @MainActor mutating func visit<V: View>(_ view: V) -> Bool {
-        var current: Any = view
-        for _ in 0..<8 {
-            if let image = current as? Image { if case .system = image.source { return true } else { return false } }
-            if let erased = current as? AnyView { return erased._isSystemSymbol }
-            guard let inner = Mirror(reflecting: current).children.first(where: { $0.label == "content" })?.value else { return false }
-            current = inner
-        }
-        return false
     }
 }
 

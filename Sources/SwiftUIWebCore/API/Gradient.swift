@@ -196,10 +196,18 @@ public struct LinearGradient: ShapeStyle, Sendable {
     }
 }
 
+extension UnitPoint {
+    /// The point in `bounds`; a right-to-left layout mirrors it (`.leading` is the right edge:
+    /// `layout/rtl-shapes`, macOS 27).
+    package func _resolve(in bounds: CGRect, environment: EnvironmentValues) -> CGPoint {
+        let fx = environment.layoutDirection == .rightToLeft ? 1 - x : x
+        return CGPoint(x: bounds.minX + bounds.width * fx, y: bounds.minY + bounds.height * y)
+    }
+}
+
 extension LinearGradient: _GradientStyle {
     package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
-        DisplayGradient(kind: .linear(start: CGPoint(x: bounds.minX + bounds.width * startPoint.x, y: bounds.minY + bounds.height * startPoint.y),
-                                      end: CGPoint(x: bounds.minX + bounds.width * endPoint.x, y: bounds.minY + bounds.height * endPoint.y)),
+        DisplayGradient(kind: .linear(start: startPoint._resolve(in: bounds, environment: environment), end: endPoint._resolve(in: bounds, environment: environment)),
                         stops: gradient.resolvedStops(in: environment))
     }
 }
@@ -229,7 +237,7 @@ public struct RadialGradient: ShapeStyle, Sendable {
 
 extension RadialGradient: _GradientStyle {
     package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
-        let c = CGPoint(x: bounds.minX + bounds.width * center.x, y: bounds.minY + bounds.height * center.y)
+        let c = center._resolve(in: bounds, environment: environment)
         return DisplayGradient(kind: .radial(center: c, startRadius: startRadius, endRadius: endRadius), stops: gradient.resolvedStops(in: environment))
     }
 }
@@ -260,7 +268,7 @@ public struct EllipticalGradient: ShapeStyle, Sendable {
 
 extension EllipticalGradient: _GradientStyle {
     package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
-        let c = CGPoint(x: bounds.minX + bounds.width * center.x, y: bounds.minY + bounds.height * center.y)
+        let c = center._resolve(in: bounds, environment: environment)
         let stops = gradient.resolvedStops(in: environment)
         guard bounds.width > 0, bounds.height > 0, bounds.width != bounds.height else {
             return DisplayGradient(kind: .radial(center: c, startRadius: bounds.width * startRadiusFraction, endRadius: bounds.width * endRadiusFraction), stops: stops)
@@ -316,7 +324,7 @@ public struct AngularGradient: ShapeStyle, Sendable {
 
 extension AngularGradient: _GradientStyle {
     package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
-        let c = CGPoint(x: bounds.minX + bounds.width * center.x, y: bounds.minY + bounds.height * center.y)
+        let c = center._resolve(in: bounds, environment: environment)
         // A partial sweep compresses the stops into its angular range and leaves the rest at the end colour.
         let sweep = (endAngle.radians - startAngle.radians) / (2 * Double.pi)
         var stops = gradient.resolvedStops(in: environment)

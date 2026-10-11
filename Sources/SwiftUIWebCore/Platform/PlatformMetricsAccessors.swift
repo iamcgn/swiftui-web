@@ -186,6 +186,10 @@ extension PlatformMetrics {
     package static var formGroupedCardFill: Double { current.formGroupedCardFill }
     package static var formGroupedSeparatorAlpha: Double { current.formGroupedSeparatorAlpha }
     package static var formGroupedSeparatorHeight: CGFloat { current.formGroupedSeparatorHeight }
+    package static var formLabeledContentRowOffset: CGFloat { current.formLabeledContentRowOffset }
+    package static var stepperBaseline: CGFloat { current.stepperBaseline }
+    package static var popUpBaseline: CGFloat { current.popUpBaseline }
+    package static var checkboxBaseline: CGFloat { current.checkboxBaseline }
     package static var formGroupedSwitchSize: CGSize { current.formGroupedSwitchSize }
     package static var formGroupedSwitchKnobSize: CGSize { current.formGroupedSwitchKnobSize }
     package static var formGroupedSectionSpacing: CGFloat { current.formGroupedSectionSpacing }
@@ -483,6 +487,8 @@ extension PlatformMetrics {
     package static var unavailableDescriptionGap: CGFloat { current.unavailableDescriptionGap }
     package static var unavailableActionsGap: CGFloat { current.unavailableActionsGap }
     package static var unavailableBottomPadding: CGFloat { current.unavailableBottomPadding }
+    package static var unavailableDescriptionBottom: CGFloat { current.unavailableDescriptionBottom }
+    package static var unavailableActionsBottomPadding: CGFloat { current.unavailableActionsBottomPadding }
     package static var gridItemSpacing: CGFloat { current.gridItemSpacing }
     package static var disclosureRowPadding: CGFloat { current.disclosureRowPadding }
     package static var disclosureChevronWidth: CGFloat { current.disclosureChevronWidth }

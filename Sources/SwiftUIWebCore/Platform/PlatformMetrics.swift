@@ -52,6 +52,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
 
     // Toggle (macOS 26.2: fixtures toggle/basic, toggle/styles; pixels sampled from goldens, Docs/elements/Toggle.md)
     package var checkboxSize: CGFloat = 16
+    package var checkboxBaseline: CGFloat = 13                   // a bare checkbox's first text baseline (a LabeledContent row puts it 1 below the label's top, label/corners)
     package var checkboxLabelSpacing: CGFloat = 5
     package var checkboxCornerRadius: CGFloat = 5                // from the corner ramp at 2×, approximate
     package var checkboxFillOn = 36.0 / 255
@@ -160,6 +161,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
 
     // Picker: pop-up button (fixtures picker/*)
     package var popUpHeight: CGFloat = 24
+    package var popUpBaseline: CGFloat = 16.75                          // the pop-up's first text baseline (a LabeledContent row puts it 2.75 above an 18.5 label line, label/corners)
     package var popUpTextInset: CGFloat = 12
     package var popUpChevronGap: CGFloat = 18                           // widest option to chevron
     package var popUpChevronWidth: CGFloat = 7
@@ -207,6 +209,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
 
     // Stepper (fixtures stepper/*)
     package var stepperSize = CGSize(width: 20, height: 26)
+    package var stepperBaseline: CGFloat = 18.5                             // the control's first text baseline: a grouped form row aligns its label on it, the control 4.5 above the label (form/grouped, macOS 27)
     /// A held stepper repeats after the delay, once per interval (NSStepper's autorepeat).
     package var stepperRepeatDelay: Double = 0.5
     package var stepperRepeatInterval: Double = 0.1
@@ -241,12 +244,13 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var formGroupedCardFill = 8.0 / 255
     package var formGroupedSeparatorAlpha = 20.0 / 255
     package var formGroupedSeparatorHeight: CGFloat = 1                     // between rows, not overlapping
+    package var formLabeledContentRowOffset: CGFloat = 0.125                // a LabeledContent row sits this much lower in its cell (label/corners, macOS 27)
     package var formGroupedSwitchSize = CGSize(width: 36, height: 16)        // approximate (form/styles pixels)
     package var formGroupedSwitchKnobSize = CGSize(width: 22, height: 14)    // approximate
     package var formGroupedSectionSpacing: CGFloat = 10                     // form/grouped (26.6 lays the grouped form out as 26.2): cards 10 apart, a footer 10 under its card
     package var formGroupedHeaderSpacing: CGFloat = 10                      // a header's bottom to its card, a footer's top from its card
     package var formGroupedHeaderTop: CGFloat = 20                          // extra room above a header that follows another section (30 from a footer or card)
-    package var formGroupedFooterTrailing = true                            // footers are right-aligned under the card, in the 13 pt font; headers body bold
+    package var formGroupedFooterTrailing = false                           // macOS 27: footers sit at the leading edge under the card in the subheadline font, secondary (26.2: right-aligned, 13 pt); headers body bold
 
     // Presentations (approximate: separate windows on macOS, Docs/elements/Presentation.md)
     // iOS sheets, alerts, dialogs, the tab bar, the date pills and list selection (iOS 26 on the
@@ -579,14 +583,18 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     // ContentUnavailableView (macOS 26.2: fixture unavailable/basic, Docs/elements/ContentUnavailableView.md)
     package var unavailableSpacing: CGFloat = 12
     package var unavailableTopPadding: CGFloat = 20
-    /// macOS 27 / iOS (unavailable/corners): the symbol's size (36 pt: the tray is 50 × 37.5
-    /// against Apple's 50.5 × 36.5) and its gap to the title, the gaps before the description and
-    /// the actions, the bottom padding of the view's own height.
+    /// macOS 27 / iOS (unavailable/corners, probed 2026-10-11): the symbol's size (36 pt: the
+    /// tray is 50 × 37.5 against Apple's 50.5 × 36.5) and its gap to the title; the description
+    /// 6 below the label and 12 above what follows; the actions 6 below; the bottom padding of
+    /// the view's own height, 20 when there are actions (label 129.5, + description 169.5,
+    /// + actions 153.5, all three 193.5).
     package var unavailableIconSize: CGFloat = 36
     package var unavailableIconGap: CGFloat = 24
     package var unavailableDescriptionGap: CGFloat = 6
-    package var unavailableActionsGap: CGFloat = 18
+    package var unavailableDescriptionBottom: CGFloat = 12
+    package var unavailableActionsGap: CGFloat = 6
     package var unavailableBottomPadding: CGFloat = 26
+    package var unavailableActionsBottomPadding: CGFloat = 20
 
     // Lazy grids (macOS 26.2: fixture lazy/grids, Docs/elements/Lazy.md)
     package var gridItemSpacing: CGFloat = 8

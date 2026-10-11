@@ -61,11 +61,11 @@ import SwiftUIWebHeadless
             Toggle("Above", isOn: .constant(true))._probe("toggle")
         })
         // In a form the label sits on the well's baseline (1.5 pt above its bottom): 27 pt rows,
-        // 8.15 apart, a checkbox row 6 below.
+        // 8.15 apart, a checkbox row 8.15 below too (macOS 27; 26.2 put it 6 below).
         let accent = r.probeFrames["accent"]!, tint = r.probeFrames["tint"]!, toggle = r.probeFrames["toggle"]!
         #expect(accent.height == 27 && tint.height == 27)
         #expect(abs(tint.minY - accent.maxY - 8.15) < 0.01)
-        #expect(toggle.minY == tint.maxY + 6)
+        #expect(abs(toggle.minY - tint.maxY - 8.15) < 0.01)
         // Labels share the form's label column (right-aligned).
         #expect(tint.minX == accent.minX + 42.5 - 23.5)
     }

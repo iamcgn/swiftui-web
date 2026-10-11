@@ -75,6 +75,17 @@ package final class FormLabeledRowNode: LayoutNode<_FormLabeledRow> {
                         labelOrigin: CGPoint(x: 0, y: PlatformMetrics.formSliderLabelTop),
                         contentOrigin: CGPoint(x: labelWidth, y: PlatformMetrics.formSliderTrackTop),
                         size: CGSize(width: labelWidth + contentSize.width, height: PlatformMetrics.formSliderRowHeight))
+        case .groupedBaseline:
+            // The content's first text baseline on the label's; content taller above the baseline
+            // rises above the row, which stays as tall as the lower of the two bottoms needs.
+            let width = proposal.width ?? labelWidth + contentSize.width
+            let labelBaseline = labelTarget?.dimensions(in: .unspecified)[VerticalAlignment.firstTextBaseline] ?? labelSize.height
+            let contentBaseline = contentTarget?.dimensions(in: contentProposal)[VerticalAlignment.firstTextBaseline] ?? contentSize.height
+            let contentY = labelTarget == nil ? 0 : labelBaseline - contentBaseline
+            let height = max(labelSize.height, contentY + contentSize.height)
+            return Plan(labelSize: labelSize, contentSize: contentSize, contentProposal: contentProposal,
+                        labelOrigin: .zero, contentOrigin: CGPoint(x: width - contentSize.width, y: contentY),
+                        size: CGSize(width: width, height: height))
         case .grouped, .groupedFull:
             // The row is as tall as its label; the control is centred on it (a switch overflows).
             // `groupedFull`: as tall as the taller of the two (the date pills).
@@ -92,7 +103,7 @@ package final class FormLabeledRowNode: LayoutNode<_FormLabeledRow> {
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let plan = plan(proposal)
         var dims = ViewDimensions(size: plan.size)
-        dims.explicit[HorizontalAlignment._formControlColumn.key] = view.mode == .grouped || view.mode == .groupedFull ? 0 : plan.contentOrigin.x
+        dims.explicit[HorizontalAlignment._formControlColumn.key] = view.mode == .grouped || view.mode == .groupedFull || view.mode == .groupedBaseline ? 0 : plan.contentOrigin.x
         if let baseline = labelTarget?.dimensions(in: .unspecified)[explicit: VerticalAlignment.firstTextBaseline] ?? labelTarget.map({ _ in plan.labelSize.height }) {
             dims.explicit[VerticalAlignment.firstTextBaseline.key] = plan.labelOrigin.y + baseline
         }
@@ -153,11 +164,12 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
         content.update(view: view.content, environment: Self.contentEnvironment(environment), force: force)
     }
 
-    /// Section headers in the semibold body font ("Account" 52.5 wide), footers in the 13 pt font
-    /// (form/grouped).
+    /// Section headers in the semibold body font ("Account" 52.5 wide), footers in the
+    /// subheadline font (11 pt, a 16 pt line) in the secondary colour at the leading edge
+    /// (form/grouped, macOS 27; 26.2 set them in the 13 pt font at the trailing edge).
     package static func contentEnvironment(_ environment: EnvironmentValues) -> EnvironmentValues {
         var inner = environment
-        inner._sectionStyling = _SectionStyling(font: .body.weight(.semibold), foreground: .primary, footerFont: .system(size: PlatformMetrics.buttonLabelSize))
+        inner._sectionStyling = _SectionStyling(font: .body.weight(.semibold), foreground: .primary, footerFont: .subheadline, footerForeground: .secondary)
         return inner
     }
 
@@ -238,8 +250,10 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
             }
             for (row, cell) in zip(card.rows, card.rowFrames) {
                 let proposal = ProposedViewSize(width: cell.width - 2 * pad, height: nil)
-                // Content sits the padding below the row's top (form/grouped `text`: 10 down).
-                row.place(at: CGPoint(x: pad, y: cell.minY + pad), anchor: .topLeading, proposal: proposal, by: self)
+                // Content sits the padding below the row's top (form/grouped `text`: 10 down); a
+                // row's `_formRowTop` guide moves it (a `LabeledContent` row sits 0.125 lower).
+                let rowTop = row.dimensions(in: proposal)[explicit: VerticalAlignment._formRowTop] ?? 0
+                row.place(at: CGPoint(x: pad, y: cell.minY + pad - rowTop), anchor: .topLeading, proposal: proposal, by: self)
             }
             if let footer = card.footer {
                 let size = footer.sizeThatFits(ProposedViewSize(width: frame.width - 2 * pad, height: nil))

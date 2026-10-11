@@ -244,7 +244,7 @@ package final class SectionNode<Parent: View, Content: View, Footer: View>:
         guard let styling = environment._sectionStyling else { return environment }
         var styled = environment
         styled.font = footer ? styling.footerFont ?? styling.font : styling.font
-        styled.foregroundColor = styling.foreground
+        styled.foregroundColor = footer ? styling.footerForeground ?? styling.foreground : styling.foreground
         styled._sectionStyling = nil
         return styled
     }

@@ -10,7 +10,7 @@ Apple docs: [Form](https://developer.apple.com/documentation/swiftui/form),
 |---|---|
 | `Form(content:)` | implemented |
 | `FormStyle`: `.automatic` (= columns on macOS in a hosted window), `.columns`, `.grouped`; `formStyle(_:)` | implemented; custom styles are not (Apple's protocol is closed) |
-| `Section` in a form | columns: transparent (header and footer are plain rows); grouped: one card per section, the header in the semibold body font 10 above the card, the footer in the 13 pt font right-aligned 10 below it, cards 10 apart and a header 30 after the previous section (`form/grouped`, 2026-10-04) |
+| `Section` in a form | columns: transparent (header and footer are plain rows); grouped: one card per section, the header in the semibold body font 10 above the card, the footer in the subheadline font and the secondary colour at the leading edge 10 below it (macOS 27, 2026-10-11; 26.2 set it in the 13 pt font at the trailing edge), cards 10 apart and a header 30 after the previous section (`form/grouped`, 2026-10-04) |
 | Controls as rows: `TextField`, `Toggle`, `Picker`, `Slider`, `Stepper`, `Button`, `Text` | implemented (see the measured table); other views sit in the control column |
 | `GroupBox` in a grouped form | implemented (2026-10-04): its content sits bare under the subheadline label (no padding, no card: 37.5 × 35 for a 16 pt text, `form/grouped` `box`) |
 | `formStyle` on nested forms | implemented: a nested columns form is a row holding the form at its natural size (`form/grouped` `nested`) |
@@ -57,11 +57,11 @@ join the golden set; its slider and button rows carry 26.6's 20 pt controls and 
 | Property | Value | Probe |
 |---|---|---|
 | Header | the semibold body font ("Account" 52.5 × 18.5), 20 from the form's top, 10 above its card | `header` |
-| Footer | the 13 pt font, right-aligned under the card's trailing edge (330), 10 below it | `footer` (255, 176) |
+| Footer | the subheadline font (11 pt, a 16 line; "Your details." 65 wide) in the secondary colour at the card's leading edge (30), 10 below it (macOS 27, regenerated 2026-10-11; 26.2: the 13 pt font right-aligned at 330) | `footer` (30, 176) |
 | Section spacing | cards 10 apart; a header 30 after the previous section's card or footer | `stepper` (260.5 after the footer at 176–192), `box` |
 | Rows | the content plus 10 above and below, no minimum (a 16 pt text makes a 36 pt row; a label line 38.5); 1 pt separators between rows | `text` (300), `box` (346) |
 | Picker row | the label leading, the value and a 12.5 × 16 chevron box ending at the trailing edge (26.6 look; unmeasured on 26.2) | `picker` |
-| Stepper row | the label's line; the mini stepper at the trailing edge | `stepper` |
+| Stepper row | 21.5 tall (macOS 27): the label's line with the 26 pt stepper at the trailing edge on its baseline (the control 4.5 above the label's top, its bottom the row's; `_FormRowMode.groupedBaseline`, the stepper's baseline 18.5); 26.2 centred the control on the 18.5 line | `stepper` (260.5, 21.5) |
 | Slider row (26.6, not in the golden) | 20 tall: the label leading, the track from 165 to 330 (55 % of the row) | — |
 | Button row (26.6, not in the golden) | the bordered button at the leading edge (20 tall on 26.6) | — |
 | GroupBox | label (subheadline) 10 in, content 3 below it, no padding or card | `box` 37.5 × 35, `boxed` |

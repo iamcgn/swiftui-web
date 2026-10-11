@@ -5842,7 +5842,7 @@ public static let steps = Fixture(
     .probe("row")
 }
 """#),
-        FixtureSource(name: "symbol/basic", file: "Fixtures/Sources/Symbol/SymbolFixtures.swift", firstLine: 70, lastLine: 143, declaration: #"""
+        FixtureSource(name: "symbol/basic", file: "Fixtures/Sources/Symbol/SymbolFixtures.swift", firstLine: 70, lastLine: 142, declaration: #"""
 /// The rules; rows whose sizes are measured come first, the last row holds sizes the table
 /// can only scale to (Tier A allows them half a point).
 public static let basic = Fixture("symbol/basic", size: CGSize(width: 400, height: 420)) {
@@ -5910,15 +5910,14 @@ public static let basic = Fixture("symbol/basic", size: CGSize(width: 400, heigh
             Image(systemName: "chevron.right").font(.system(size: 30, weight: .semibold)).probe("chevronSemibold")
         }
         .probe("approximateRow")
-        // Last: a macOS 27 button is 20 pt tall (a 26.2 one 24.08), a control change the
-        // runtime does not model yet; the probe is ignored in Tier A and C.
+        // Last: a button under the approximate row (its position follows that row's height).
         Button { } label: { Label("Star button", systemImage: "star") }.probe("button")
     }
     .frame(maxHeight: .infinity, alignment: .top)
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "symbol/extended", file: "Fixtures/Sources/Symbol/SymbolFixtures.swift", firstLine: 177, lastLine: 196, declaration: #"""
+        FixtureSource(name: "symbol/extended", file: "Fixtures/Sources/Symbol/SymbolFixtures.swift", firstLine: 176, lastLine: 195, declaration: #"""
 /// Symbols outside the built-in table (sw-symbols): their sizes come from the full catalog
 /// (`symbol-metrics.txt`, fetched by the browser host on first use); a symbol without a
 /// stand-in glyph draws the dashed square; a legacy alias (`doc`) lays out like its new name.
@@ -5940,7 +5939,7 @@ public static let extended = Fixture("symbol/extended", size: CGSize(width: 420,
     }
 }
 """#),
-        FixtureSource(name: "symbol/variants", file: "Fixtures/Sources/Symbol/SymbolFixtures.swift", firstLine: 145, lastLine: 175, declaration: #"""
+        FixtureSource(name: "symbol/variants", file: "Fixtures/Sources/Symbol/SymbolFixtures.swift", firstLine: 144, lastLine: 174, declaration: #"""
 /// `symbolVariant` and `symbolRenderingMode`: variants resolve to the named symbols; rendering
 /// modes on single-layer stand-ins keep the first colour.
 public static let variants = Fixture("symbol/variants", size: CGSize(width: 400, height: 200), content: {
@@ -9912,8 +9911,9 @@ public static let overrides = UIKitFixture("uikit/view/traits", size: CGSize(wid
     return root
 }
 """#),
-        FixtureSource(name: "unavailable/basic", file: "Fixtures/Sources/Unavailable/UnavailableFixtures.swift", firstLine: 6, lastLine: 13, declaration: #"""
-public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, height: 400)) {
+        FixtureSource(name: "unavailable/basic", file: "Fixtures/Sources/Unavailable/UnavailableFixtures.swift", firstLine: 6, lastLine: 14, declaration: #"""
+/// 640 tall: each view gets 208, enough for its icon (at 128 each, every icon went).
+public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, height: 640)) {
     VStack(spacing: 8) {
         ContentUnavailableView("No Mail", systemImage: "tray", description: Text("Try again later.")).probe("titled")
         ContentUnavailableView { Label("No Results", image: "icon").probe("customLabel") } description: { Text("Search again.").probe("description") } actions: { Button("Retry") {}.probe("action") }.probe("custom")
@@ -9922,7 +9922,7 @@ public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, 
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "unavailable/corners", file: "Fixtures/Sources/Unavailable/UnavailableFixtures.swift", firstLine: 15, lastLine: 48, declaration: #"""
+        FixtureSource(name: "unavailable/corners", file: "Fixtures/Sources/Unavailable/UnavailableFixtures.swift", firstLine: 16, lastLine: 49, declaration: #"""
 /// Corners (sw-content-unavailable): inside a list (the view fills the list's space) and
 /// inside a navigation stack with a title.
 public static let corners = Fixture("unavailable/corners", size: CGSize(width: 360, height: 600)) {
@@ -16914,8 +16914,7 @@ public enum SymbolFixtures {
                 Image(systemName: "chevron.right").font(.system(size: 30, weight: .semibold)).probe("chevronSemibold")
             }
             .probe("approximateRow")
-            // Last: a macOS 27 button is 20 pt tall (a 26.2 one 24.08), a control change the
-            // runtime does not model yet; the probe is ignored in Tier A and C.
+            // Last: a button under the approximate row (its position follows that row's height).
             Button { } label: { Label("Star button", systemImage: "star") }.probe("button")
         }
         .frame(maxHeight: .infinity, alignment: .top)
@@ -18320,7 +18319,8 @@ import SwiftUI
 import FixtureKit
 
 public enum UnavailableFixtures {
-    public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, height: 400)) {
+    /// 640 tall: each view gets 208, enough for its icon (at 128 each, every icon went).
+    public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, height: 640)) {
         VStack(spacing: 8) {
             ContentUnavailableView("No Mail", systemImage: "tray", description: Text("Try again later.")).probe("titled")
             ContentUnavailableView { Label("No Results", image: "icon").probe("customLabel") } description: { Text("Search again.").probe("description") } actions: { Button("Retry") {}.probe("action") }.probe("custom")

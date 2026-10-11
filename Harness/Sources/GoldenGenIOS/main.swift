@@ -29,7 +29,14 @@ final class UIKitHost: GoldenHost {
         controller = UIHostingController(rootView: Self.root(view, collector: collector, colorScheme: colorScheme))
         controller.safeAreaRegions = []
         controller.view.backgroundColor = .clear
-        window = UIWindow(frame: CGRect(origin: .zero, size: size))
+        // iOS 27 insists on the scene lifecycle for an app linked against its SDK: windows
+        // belong to the connected scene (SceneDelegate); Catalyst's older linkage has none.
+        if let scene = SceneDelegate.scene {
+            window = UIWindow(windowScene: scene)
+            window.frame = CGRect(origin: .zero, size: size)
+        } else {
+            window = UIWindow(frame: CGRect(origin: .zero, size: size))
+        }
         window.overrideUserInterfaceStyle = colorScheme == .dark ? .dark : .light
         // A window under 415 pt tall would get the compact vertical size class (a landscape
         // phone), which drops large titles and shortens bars; fixtures are portrait screens.
@@ -111,29 +118,49 @@ func uiFont(_ font: FixtureFont) -> UIFont {
     return result
 }
 
+/// Runs the generator (once a scene is connected on iOS 27, at launch under Catalyst).
+@MainActor
+func runGenerator() {
+    #if targetEnvironment(macCatalyst)
+    let host = "macCatalyst"
+    #else
+    let host = "iPhoneSimulator \(UIDevice.current.systemVersion) \(UIDevice.current.name)"
+    #endif
+    // The fixtures' bundled fonts (`Font.custom`) must be registered before anything renders.
+    FixtureAssets.registerFonts()
+
+    let platform = GoldenPlatform(profile: "iOS", host: host, subdirectory: "ios", fixturePlatform: .iOS,
+                                  makeHost: { UIKitHost($0, size: $1, colorScheme: $2, capturesWindow: $3) },
+                                  fontMetrics: { fixtureFont in
+                                      let font = uiFont(fixtureFont)
+                                      let ct = CTFontCreateWithFontDescriptor(font.fontDescriptor as CTFontDescriptor, font.pointSize, nil)
+                                      return ["capHeight": Double(font.capHeight), "xHeight": Double(font.xHeight),
+                                              "underlinePosition": Double(CTFontGetUnderlinePosition(ct)), "underlineThickness": Double(CTFontGetUnderlineThickness(ct))]
+                                  })
+    let options = GoldenOptions(arguments: CommandLine.arguments)
+    DispatchQueue.main.async {
+        exit(Generator.run(options, platform: platform) == 0 ? 0 : 1)
+    }
+}
+
 final class Delegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        #if targetEnvironment(macCatalyst)
-        let host = "macCatalyst"
-        #else
-        let host = "iPhoneSimulator \(UIDevice.current.systemVersion) \(UIDevice.current.name)"
-        #endif
-        // The fixtures' bundled fonts (`Font.custom`) must be registered before anything renders.
-FixtureAssets.registerFonts()
-
-let platform = GoldenPlatform(profile: "iOS", host: host, subdirectory: "ios", fixturePlatform: .iOS,
-                                      makeHost: { UIKitHost($0, size: $1, colorScheme: $2, capturesWindow: $3) },
-                                      fontMetrics: { fixtureFont in
-                                          let font = uiFont(fixtureFont)
-                                          let ct = CTFontCreateWithFontDescriptor(font.fontDescriptor as CTFontDescriptor, font.pointSize, nil)
-                                          return ["capHeight": Double(font.capHeight), "xHeight": Double(font.xHeight),
-                                                  "underlinePosition": Double(CTFontGetUnderlinePosition(ct)), "underlineThickness": Double(CTFontGetUnderlineThickness(ct))]
-                                      })
-        let options = GoldenOptions(arguments: CommandLine.arguments)
-        DispatchQueue.main.async {
-            exit(Generator.run(options, platform: platform) == 0 ? 0 : 1)
-        }
+        // Without a scene manifest (Catalyst) the generator starts here; with one, when the
+        // scene connects.
+        if Bundle.main.object(forInfoDictionaryKey: "UIApplicationSceneManifest") == nil { runGenerator() }
         return true
+    }
+}
+
+/// The one window scene of the simulator app (gen-goldens-sim.sh's Info.plist names this class).
+@objc(SceneDelegate)
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    @MainActor static var scene: UIWindowScene?
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        Self.scene = windowScene
+        runGenerator()
     }
 }
 

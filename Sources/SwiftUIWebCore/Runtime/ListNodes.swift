@@ -797,6 +797,8 @@ package struct _SectionStyling: Equatable {
     package var font: Font
     package var foreground: Color
     package var footerFont: Font? = nil
+    /// The footer's colour when it differs from the header's (a grouped form: secondary).
+    package var footerForeground: Color? = nil
 }
 
 package struct SectionStylingKey: EnvironmentKey {

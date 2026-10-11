@@ -343,11 +343,16 @@ package final class PickerNode: LayoutNode<_PickerHost>, _Interactive, _KeyHandl
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { plan(proposal: proposal).size }
 
-    /// In a columns form the control column starts where the control does.
+    /// In a columns form the control column starts where the control does; a pop-up's text
+    /// baseline is 16.75 down its 24 (a grouped `LabeledContent` row aligns its label on it).
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let plan = plan(proposal: proposal)
         var dims = ViewDimensions(size: plan.size)
         dims.explicit[HorizontalAlignment._formControlColumn.key] = plan.control.minX
+        if view.style == .menu, !environment.platformProfile.isIOS {
+            dims.explicit[VerticalAlignment.firstTextBaseline.key] = plan.control.minY + PlatformMetrics.popUpBaseline
+            dims.explicit[VerticalAlignment.lastTextBaseline.key] = plan.control.minY + PlatformMetrics.popUpBaseline
+        }
         return dims
     }
 
@@ -749,6 +754,13 @@ package final class StepperControlNode: LeafNode<_StepperControl>, _Interactive,
         return PlatformMetrics.stepperSize
     }
     override package var layoutSpacing: ViewSpacing { PlatformMetrics.controlsUsePlainSpacing ? ViewSpacing() : .textLikeControl }
+
+    /// The macOS control's text baseline, 18.5 down (a grouped form row aligns its label on it).
+    override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
+        let size = sizeThatFits(proposal)
+        guard !environment.platformProfile.isIOS else { return ViewDimensions(size: size) }
+        return ViewDimensions(size: size, explicit: [VerticalAlignment.firstTextBaseline.key: PlatformMetrics.stepperBaseline, VerticalAlignment.lastTextBaseline.key: PlatformMetrics.stepperBaseline])
+    }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)

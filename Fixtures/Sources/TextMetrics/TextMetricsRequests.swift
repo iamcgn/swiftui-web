@@ -706,6 +706,9 @@ extension TextMetricsRequests {
             requests.append(TextMetricRequest(string, system13))
             requests.append(TextMetricRequest(string, system13, width: 300))
         }
+        // macOS 27 grouped form footers: the subheadline font (form/grouped).
+        requests.append(TextMetricRequest("Your details.", .style("subheadline")))
+        requests.append(TextMetricRequest("Your details.", .style("subheadline"), width: 300))
         requests.append(TextMetricRequest("Pear", system13))
         requests.append(TextMetricRequest("Boxed", system13))
         requests.append(TextMetricRequest("Boxed", system13, width: 290))

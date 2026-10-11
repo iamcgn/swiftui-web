@@ -136,6 +136,16 @@ extension HorizontalAlignment {
     package static let _formControlColumn = HorizontalAlignment(_FormControlColumn.self)
 }
 
+extension VerticalAlignment {
+    package enum _FormRowTop: AlignmentID {
+        package static func defaultValue(in context: ViewDimensions) -> CGFloat { 0 }
+    }
+
+    /// Where a grouped form's cell puts a row's top: a `LabeledContent` row reports −0.125, so
+    /// the card places it that much lower (`FormGroupedNode`).
+    package static let _formRowTop = VerticalAlignment(_FormRowTop.self)
+}
+
 /// The columns form: every row's `_formControlColumn` guide meets at the widest label + gap; a
 /// row is proposed its own guide plus the control column's width and placed so the guides align.
 public struct _FormColumnsLayout: Layout {
@@ -203,6 +213,11 @@ public enum _FormRowMode: Sendable {
     /// A grouped row as tall as the taller of label and control, the control at the trailing
     /// edge (the compact date picker's pills on iOS).
     case groupedFull
+    /// A grouped row with the label at the leading edge and the control at the trailing edge on
+    /// the label's first text baseline (a pop-up rises 2.75 above the row, a checkbox sits 1
+    /// down, a stepper rises 4.5): `LabeledContent` and `Stepper` rows (`label/corners`,
+    /// `form/grouped`, macOS 27).
+    case groupedBaseline
     /// The macOS form slider row: a 16 pt label 7 pt down, the track 1 pt down, 23 pt tall.
     case sliderColumns
     /// A grouped form row: the label at the leading edge, the control at the trailing edge.

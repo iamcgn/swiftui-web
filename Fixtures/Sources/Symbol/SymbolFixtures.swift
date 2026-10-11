@@ -134,8 +134,7 @@ public enum SymbolFixtures {
                 Image(systemName: "chevron.right").font(.system(size: 30, weight: .semibold)).probe("chevronSemibold")
             }
             .probe("approximateRow")
-            // Last: a macOS 27 button is 20 pt tall (a 26.2 one 24.08), a control change the
-            // runtime does not model yet; the probe is ignored in Tier A and C.
+            // Last: a button under the approximate row (its position follows that row's height).
             Button { } label: { Label("Star button", systemImage: "star") }.probe("button")
         }
         .frame(maxHeight: .infinity, alignment: .top)

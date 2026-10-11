@@ -11,31 +11,31 @@
       "height" : 18.5,
       "width" : 300,
       "x" : 30,
-      "y" : 136
+      "y" : 136.125
     },
     "percent" : {
       "height" : 18.5,
       "width" : 300,
       "x" : 30,
-      "y" : 175.5
+      "y" : 175.625
     },
     "picker" : {
-      "height" : 20,
+      "height" : 21.25,
       "width" : 300,
       "x" : 30,
-      "y" : 254.5
+      "y" : 254.625
     },
     "pickerContent" : {
-      "height" : 20,
-      "width" : 57,
-      "x" : 273,
-      "y" : 254.5
+      "height" : 24,
+      "width" : 72.5,
+      "x" : 257.5,
+      "y" : 251.875
     },
     "plain" : {
       "height" : 18.5,
       "width" : 300,
       "x" : 30,
-      "y" : 295.5
+      "y" : 296.875
     },
     "textIcon" : {
       "height" : 16,
@@ -59,13 +59,13 @@
       "height" : 18.5,
       "width" : 300,
       "x" : 30,
-      "y" : 215
+      "y" : 215.125
     },
     "toggleContent" : {
-      "height" : 14,
-      "width" : 14,
-      "x" : 316,
-      "y" : 215
+      "height" : 16,
+      "width" : 16,
+      "x" : 314,
+      "y" : 216.125
     },
     "wrapped" : {
       "height" : 32.079833984375,

@@ -43,8 +43,11 @@ xcrun simctl bootstatus "$UDID" -b >/dev/null
 
 SDK="$(xcrun --sdk iphonesimulator --show-sdk-path)"
 cd "$ROOT/Harness"
+# `-Xclang-linker -isysroot`: Swift 6.4 links with `--sysroot`, which leaves clang stamping the
+# deployment target (26.0) as the SDK version, and the OS treats the harness as an iOS 26 app
+# (gen-goldens.sh, decision 0019).
 /usr/bin/swift build -c release --product "$PRODUCT" --triple arm64-apple-ios26.0-simulator --scratch-path .build/sim \
-  -Xswiftc -sdk -Xswiftc "$SDK" -Xcc -isysroot -Xcc "$SDK"
+  -Xswiftc -sdk -Xswiftc "$SDK" -Xcc -isysroot -Xcc "$SDK" -Xswiftc -Xclang-linker -Xswiftc -isysroot -Xswiftc -Xclang-linker -Xswiftc "$SDK"
 APP=".build/sim/$PRODUCT.app"
 rm -rf "$APP"
 BIN="$(find .build/sim -type f -perm +111 -name "$PRODUCT" -not -path "*.app/*" | head -1)"
@@ -69,6 +72,12 @@ cat > "$APP/Info.plist" <<PLIST
 <key>UILaunchScreen</key><dict/>
 <key>UIRequiresFullScreen</key><true/>
 <key>UIStatusBarHidden</key><true/>
+<key>UIApplicationSceneManifest</key><dict>
+<key>UIApplicationSupportsMultipleScenes</key><false/>
+<key>UISceneConfigurations</key><dict><key>UIWindowSceneSessionRoleApplication</key><array><dict>
+<key>UISceneConfigurationName</key><string>Default</string>
+<key>UISceneDelegateClassName</key><string>SceneDelegate</string>
+</dict></array></dict></dict>
 <key>UIViewControllerBasedStatusBarAppearance</key><false/>
 </dict></plist>
 PLIST

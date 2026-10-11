@@ -43,8 +43,8 @@ Tier A exact; Tier B frames exact, pixels ≤ 0.08 % in all three browsers.
 | A two-line title in a 180 pt label: the text wraps at 155.5 (180 − 16.5 − 8) to 148.5 wide, the pair (16.5 + 8 + 148.5 = 173) centres in the 180, the icon's centre half a cap above the first line's baseline | `wrapped`, `wrappedIcon`, `wrappedTitle` |
 | A `Text` icon ("→", 12 × 16) sits at the same top as its title (its own baseline less half a cap aligns with the title's), 8 pt before the title: 56 × 16 | `textIcon`, `textIconTitle`, `textIconLabel` |
 | `LabeledContent("Price", value: 12.5, format: .number)` in a grouped form: an 18.5 row, "12.5" in the secondary colour at the trailing edge; `.percent` gives "25%" | `number`, `percent` |
-| A `Toggle` or `Picker` as the content stays a bare control at the trailing edge; the row is as tall as the taller of label and control (macOS 27 draws the checkbox 14 and the pop-up 57 × 20, which the runtime's 26.2 controls do not: those probes are ignored) | `toggle`, `toggleContent`, `picker`, `pickerContent` |
-| The grouped form's rows sit on the window's half-point grid (a form at y 106.04 has its first row at 136) | `form`, `number` |
+| A `Toggle` or `Picker` as the content stays a bare control at the trailing edge on the label's first text baseline: the 16 pt checkbox 1 below the row's top, the 24 pt pop-up 2.75 above it (the row 21.25 tall, from the label's top to the pop-up's bottom) | `toggle`, `toggleContent`, `picker`, `pickerContent` |
+| The grouped form's content sits on the window's half-point grid and every `LabeledContent` row 0.125 lower in its cell (a form at y 106.04 has its first row at 136.125; probed at twelve offsets: round to the half point, then + 0.125) | `form`, `number`, `percent` |
 
 Tier A exact (the control sizes aside), Tier B 1.0 %, Tier C within tolerance; `ToolbarTests`
 check the toolbar's icon-only label.

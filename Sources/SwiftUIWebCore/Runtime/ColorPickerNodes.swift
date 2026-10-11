@@ -24,10 +24,10 @@ package final class ColorWellNode: LeafNode<_ColorWellHost>, _Interactive {
     }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize { PlatformMetrics.colorWellSize }
-    /// Rows of wells sit 8.15 apart and a checkbox row 6 below one (form fixture): the well
-    /// asks 8.15 above itself and only 4.74 below, so a checkbox's own 6 wins there.
+    /// Rows of wells sit 8.15 apart and so does a checkbox row below one (`colorpicker/form` on
+    /// macOS 27; 26.2 put the checkbox 6 below): the well asks 8.15 on every side.
     override package var layoutSpacing: ViewSpacing {
-        .control(top: PlatformMetrics.controlSpacingBelow, bottom: PlatformMetrics.controlSpacingAbove,
+        .control(top: PlatformMetrics.controlSpacingBelow, bottom: PlatformMetrics.controlSpacingBelow,
                  belowText: PlatformMetrics.controlSpacingBelow, aboveText: PlatformMetrics.controlSpacingBelow)
     }
 

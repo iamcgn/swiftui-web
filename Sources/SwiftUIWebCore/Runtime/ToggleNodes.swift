@@ -86,6 +86,13 @@ package final class CheckboxNode: LeafNode<_CheckboxControl> {
         CGSize(width: boxSize, height: boxSize)
     }
 
+    /// The regular box's text baseline sits 13 down (a grouped `LabeledContent` row puts the
+    /// box 1 below its label's top); smaller boxes scale it.
+    override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
+        let baseline = PlatformMetrics.checkboxBaseline * boxSize / PlatformMetrics.checkboxSize
+        return ViewDimensions(size: sizeThatFits(proposal), explicit: [VerticalAlignment.firstTextBaseline.key: baseline, VerticalAlignment.lastTextBaseline.key: baseline])
+    }
+
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let box = absoluteBounds(context)
         let enabled = environment.isEnabled

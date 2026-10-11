@@ -26,8 +26,8 @@ wider frame the label and well stay together, centred. The well is 48 × 24: a 2
 slope −½, black, then the colour with its own opacity, so translucent and clear colours show
 the split; a 0.5 pt inner stroke at 10 % black and a 0.5 pt 15 % shade along the top finish it.
 Disabled, every layer paints at half opacity (the grey becomes 242, red 249/149/151). The well
-asks 8.15 pt above itself and 4.74 below (rows of pickers sit 8.15 apart; a checkbox row 6
-below). Its semantics are a button labelled "<title>, color" whose value names the colour.
+asks 8.15 pt on every side (rows of pickers sit 8.15 apart and a checkbox row 8.15 below one on
+macOS 27; 26.2 put the checkbox 6 below). Its semantics are a button labelled "<title>, color" whose value names the colour.
 
 ## Measured (macOS 26.2, fixtures `colorpicker/*`, 2026-09-04)
 
@@ -40,7 +40,7 @@ below). Its semantics are a button labelled "<title>, color" whose value names t
 | Clear | black / white halves, no colour | `steps/clear` |
 | Disabled | grey 242, red (249, 149, 151): each layer at 50 % | pixels of `disabled` |
 | Sizing | `frame(width: 240)` centres the 98.5 pt row; a `Spacer` beside it leaves it 98.5 | `wide`, `leading`, `spaced` |
-| Form | rows 27 tall (the well at the top, the label's baseline at 22.5), 8.15 apart; a checkbox row 6 below; labels right-aligned in the label column | `form/accent`, `tint`, `toggle` |
+| Form | rows 27 tall (the well at the top, the label's baseline at 22.5), 8.15 apart; a checkbox row 8.15 below too (macOS 27, regenerated 2026-10-11; 26.2: 6); labels right-aligned in the label column | `form/accent`, `tint`, `toggle` |
 | Model changes | the swatch repaints (red → blue → clear) | `colorpicker/steps` |
 
 A label narrower than its text (`frame(width: 60)`) wraps Apple's label character by character

@@ -38,10 +38,14 @@ the row, the value initializer, hidden labels, widths, a custom style and the fo
 ## Grouped forms (`label/corners`, macOS 27, 2026-10-11)
 
 In a grouped form a labeled row is the body-styled label (an 18.5 line) with its content at
-the trailing edge: a text value in the secondary colour, a `Toggle` or `Picker` as the bare
-control (not a form row of its own), the row as tall as the taller of the two. The rows sit on
-the window's half-point grid (Docs/elements/Label.md).
+the trailing edge on the label's first text baseline (`_FormRowMode.groupedBaseline`): a text
+value in the secondary colour, a `Toggle` or `Picker` as the bare control (not a form row of its
+own; the 16 pt checkbox 1 down, the 24 pt pop-up 2.75 up and the row 21.25 tall to its bottom).
+The form's content sits on the window's half-point grid and each of these rows 0.125 lower in
+its cell than other rows (`_formRowTop`; Docs/elements/Label.md). The 2026-10-11 measurement
+first came from a harness drawn with macOS's pre-26 controls (decision 0019); the golden was
+regenerated and the model corrected the same day.
 
 ## Not yet covered
 
-macOS 27's smaller controls inside grouped forms (the checkbox 14, the pop-up 57 × 20).
+Nothing known.

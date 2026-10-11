@@ -34,7 +34,11 @@ fixture in a representable: `scripts/tier-b.sh --filter uikit/`), docs in
    when strings or fonts were added, then `scripts/font-metrics-table.py`); commit
    `Fixtures/Goldens/<Element>/`. Frames and pixels come from a hosted key window (decision
    0010); behaviour fixtures get `frames.json["steps"]` and `step-N@2x.png` per step. Never
-   regenerate in CI. Record macOS/SwiftUI versions (`meta.json` does this).
+   regenerate in CI. Record macOS/SwiftUI versions (`meta.json` does this). When a regenerated
+   golden shows controls of another era (20 pt buttons, 14 pt checkboxes, a 44 × 23 colour
+   well), check the harness binary's `LC_BUILD_VERSION` `sdk` field (`otool -l`) before
+   believing the OS changed: an SDK stamp below 26 makes macOS draw the pre-26 controls
+   (decision 0019; the scripts link with `-isysroot` so the stamp is the SDK's).
 4. **Implement** in `Sources/SwiftUIWebCore/API/...` plus runtime/layout/paint pieces.
 5. **Verify**: `swift test --filter GoldenFrameTests` (Tier A exact, steps included), wasm build
    and `js test` in a worktree, `scripts/tier-b.sh --filter <Element>/` within tolerance (each step

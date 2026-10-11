@@ -10590,6 +10590,12 @@
       "lastBaseline" : 12,
       "width" : 27
     },
+    "style:subheadline||Your details." : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 65
+    },
     "style:subheadline|0.0;sc2|Hello" : {
       "firstBaseline" : 12,
       "height" : 84,
@@ -10788,11 +10794,23 @@
       "lastBaseline" : 63,
       "width" : 0
     },
+    "style:subheadline|0.0|Your details." : {
+      "firstBaseline" : 12,
+      "height" : 203,
+      "lastBaseline" : 199,
+      "width" : 0
+    },
     "style:subheadline|290.0|Box" : {
       "firstBaseline" : 12,
       "height" : 16,
       "lastBaseline" : 12,
       "width" : 19.5
+    },
+    "style:subheadline|300.0|Your details." : {
+      "firstBaseline" : 12,
+      "height" : 16,
+      "lastBaseline" : 12,
+      "width" : 65
     },
     "style:title:AXXXL||Title" : {
       "firstBaseline" : 25,

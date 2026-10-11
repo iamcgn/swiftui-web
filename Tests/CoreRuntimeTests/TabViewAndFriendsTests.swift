@@ -97,12 +97,21 @@ import SwiftUIWebHeadless
 
     @Test func unavailableColumn() {
         let r = runtime(ContentUnavailableView { Label("No Mail", systemImage: "tray")._probe("label") } description: { Text("Try again.")._probe("description") } actions: { Button("Retry") {}._probe("action") }._probe("view"))
-        // Fills the space; the column starts 20 down (macOS 27): the 36 pt symbol (the tray is
-        // 50 × 37.5), 24, the title3 bold title (23), 6, the description (22), 18, the actions.
-        #expect(r.probeFrames["view"] == CGRect(x: 0, y: 0, width: 300, height: 200))
-        #expect(r.probeFrames["label"] == CGRect(x: 122.75, y: 20, width: 54.5, height: 37.5 + 24 + 23), "\(r.probeFrames["label"] as Any)")
-        #expect(r.probeFrames["description"] == CGRect(x: 120, y: 20 + 84.5 + 6, width: 60, height: 22), "\(r.probeFrames["description"] as Any)")
-        #expect(r.probeFrames["action"]?.minY == 20 + 84.5 + 6 + 22 + 18)
+        // Its own height, centred in the 200 (macOS 27, probed 2026-10-11): 20, the 36 pt symbol
+        // (the tray is 50 × 37.5), 24, the title3 bold title (23), 6, the description (22), 12,
+        // 6, the actions (24 with the recorded engine's button), 20 = 194.5 → 2.75 down.
+        let view = r.probeFrames["view"]!
+        #expect(view == CGRect(x: 0, y: 2.75, width: 300, height: 194.5), "\(view)")
+        #expect(r.probeFrames["label"] == CGRect(x: 122.75, y: view.minY + 20, width: 54.5, height: 37.5 + 24 + 23), "\(r.probeFrames["label"] as Any)")
+        #expect(r.probeFrames["description"] == CGRect(x: 120, y: view.minY + 20 + 84.5 + 6, width: 60, height: 22), "\(r.probeFrames["description"] as Any)")
+        #expect(r.probeFrames["action"]?.minY == view.minY + 20 + 84.5 + 6 + 22 + 12 + 6)
+        // Too short for the symbol (a 100 pt frame): the title-only column, top-aligned.
+        let short = runtime(ContentUnavailableView { Label("No Mail", systemImage: "tray")._probe("label") } description: { Text("Try again.")._probe("description") }.frame(height: 100)._probe("view"))
+        #expect(short.probeFrames["label"] == CGRect(x: 122.75, y: 50 + 20, width: 54.5, height: 23), "\(short.probeFrames["label"] as Any)")
+        #expect(abs((short.probeFrames["description"]?.minY ?? 0) - (50 + 20 + 23 + 6)) < 0.01, "\(short.probeFrames["description"] as Any)")
+        // Label alone: 129.5 (20 + 83.5 + 26); with a description 169.5 (+ 6 + 22 + 12).
+        let alone = runtime(VStack(spacing: 0) { ContentUnavailableView { Label("No Mail", systemImage: "tray") }._probe("a"); ContentUnavailableView { Label("No Mail", systemImage: "tray") } description: { Text("Try again.") }._probe("b") }.frame(height: 400))
+        #expect(alone.probeFrames["a"]?.height == 130.5 && alone.probeFrames["b"]?.height == 170.5, "\(alone.probeFrames["a"] as Any) \(alone.probeFrames["b"] as Any)")   // the stand-in tray is a point taller
         let commands = r.render(scale: 2).commands.map(\.description)
         // Secondary colour on the title and description; the symbol's stand-in strokes in the tertiary colour.
         #expect(commands.contains { $0.hasPrefix("drawText(\"No Mail\" system 15 w700") && $0.hasSuffix("#000000@0.5)") }, "\(commands)")

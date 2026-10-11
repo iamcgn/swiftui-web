@@ -56,12 +56,12 @@ composing the mirrors down the tree gives the measured result. The root and the 
 | `Shape` (default `layoutDirectionBehavior = .mirrors`) | The path is mirrored horizontally in its frame | `layout/rtl-shapes` |
 | `Shape` with `.fixed` | Drawn as in left-to-right | `layout/rtl-shapes` |
 | `Image(systemName:)` | Not mirrored; `flipsForRightToLeftLayoutDirection(true)` mirrors it | `layout/rtl-shapes` |
-| `LinearGradient(startPoint: .leading, …)` | Not mirrored: `UnitPoint.leading` stays the left | `layout/rtl-shapes` |
+| `LinearGradient(startPoint: .leading, …)` and the other gradients' `UnitPoint`s | Mirrored: `.leading` is the right edge, x becomes 1 − x (macOS 27, 2026-10-11; the 2026-10-09 golden came from a harness macOS drew with its pre-26 behaviour, decision 0019) | `layout/rtl-shapes` |
 | `.offset(x: 40)`, `.position(x: 30, …)` | Mirrored (the offset moves left, the position counts from the right) | `layout/rtl-shapes` |
 | Horizontal `ScrollView` | Starts at its trailing end (content x = viewport − content); a leftward swipe lowers the offset | `layout/rtl-scroll`, `RTLTests` |
 | `ProgressView`, `Slider`, `Toggle` | The bar fills from the right, the slider's value grows leftward, the switch sits left of its label with the on knob at the left (measured on a 26.6 golden whose control sizes differ from the modelled 26.2 ones; held by `RTLTests`) | — |
 
-Not mirrored, as SwiftUI does not: `UnitPoint`s in gradients and anchors, `GeometryReader`
+Not mirrored, as SwiftUI does not: `UnitPoint` anchors (unverified), `GeometryReader`
 coordinates. Open: the ellipsis of a truncated right-aligned line (placed as in left-to-right,
 within 2 pt), bidirectional text (the layouter has no bidi; Arabic and Hebrew strings lay out
 as given), the iOS navigation chrome in a right-to-left locale.

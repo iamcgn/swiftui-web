@@ -65,7 +65,7 @@ public struct Stepper<Label: View>: View {
         } else {
             _FormLabeledRow(label: labelsHidden ? nil : AnyView(_ControlLabel(label: label)),
                             content: AnyView(control),
-                            mode: formStyle == .grouped ? .grouped : .centered)
+                            mode: formStyle == .grouped ? .groupedBaseline : .centered)
         }
     }
 }

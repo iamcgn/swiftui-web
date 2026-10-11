@@ -2,50 +2,50 @@
   "fixture" : "unavailable\/basic",
   "frames" : {
     "action" : {
-      "height" : 20,
-      "width" : 48.5,
-      "x" : 155.75,
-      "y" : 225
+      "height" : 24,
+      "width" : 56.5,
+      "x" : 151.75,
+      "y" : 364.25
     },
     "custom" : {
-      "height" : 128,
+      "height" : 181,
       "width" : 360,
       "x" : 0,
-      "y" : 136
+      "y" : 227.25
     },
     "customLabel" : {
-      "height" : 23,
+      "height" : 71,
       "width" : 78.5,
       "x" : 140.75,
-      "y" : 156
+      "y" : 247.25
     },
     "description" : {
       "height" : 22,
       "width" : 93,
       "x" : 133.5,
-      "y" : 185
+      "y" : 324.25
     },
     "search" : {
-      "height" : 128,
+      "height" : 174,
       "width" : 360,
       "x" : 0,
-      "y" : 272
+      "y" : 416.25
     },
     "stack" : {
-      "height" : 400,
+      "height" : 540.5,
       "width" : 360,
       "x" : 0,
-      "y" : 0
+      "y" : 49.75
     },
     "titled" : {
-      "height" : 128,
+      "height" : 169.5,
       "width" : 360,
       "x" : 0,
-      "y" : 0
+      "y" : 49.75
     }
   },
   "size" : {
-    "height" : 400,
+    "height" : 640,
     "width" : 360
   }
 }
