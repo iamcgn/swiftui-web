@@ -1191,6 +1191,10 @@ final class CanvasImageLoader: _ImageLoading {
         guard let array = state.object, let width = array[0].number, let height = array[1].number else { return .loading }
         return .loaded(pixelSize: CGSize(width: width, height: height))
     }
+
+    func cancel(_ url: String) {
+        _ = bridge.imageCancel?(url)
+    }
 }
 
 

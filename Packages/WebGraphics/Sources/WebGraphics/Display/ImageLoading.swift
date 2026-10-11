@@ -10,4 +10,11 @@ public enum _ImageLoadState: Equatable, Sendable {
 @MainActor
 public protocol _ImageLoading: AnyObject {
     func state(for url: String) -> _ImageLoadState
+    /// Stops a load no view needs any more (the last `AsyncImage` of the URL unmounted while
+    /// it was loading); a later request starts it again.
+    func cancel(_ url: String)
+}
+
+extension _ImageLoading {
+    public func cancel(_ url: String) {}
 }

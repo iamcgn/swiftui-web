@@ -39,6 +39,8 @@ public struct AsyncImageLoadingError: Error, Sendable {
 public struct AsyncImage<Content: View>: View {
     package let url: URL?
     package let scale: CGFloat
+    /// The transaction a phase change applies with (`transaction:`), its animation included.
+    package var transaction: Transaction = Transaction()
     package let content: @MainActor (AsyncImagePhase) -> Content
 
     /// Loads and displays an image from the URL; a placeholder while it loads.
@@ -63,6 +65,7 @@ public struct AsyncImage<Content: View>: View {
     public init(url: URL?, scale: CGFloat = 1, transaction: Transaction = Transaction(), @ViewBuilder content: @escaping @MainActor (AsyncImagePhase) -> Content) {
         self.url = url
         self.scale = scale
+        self.transaction = transaction
         self.content = content
     }
 
@@ -72,15 +75,26 @@ public struct AsyncImage<Content: View>: View {
     }
 }
 
-/// The default content: the image, else a light placeholder (SwiftUI shows a grey fill).
+/// The default content: the image, else the placeholder ink (measured 2026-10-11: black at
+/// 13.7 %, white at 13.7 % in the dark appearance, filling the proposal; the ink of
+/// `redacted(reason: .placeholder)`).
 public struct _AsyncImageDefaultContent: View {
     let phase: AsyncImagePhase
     public var body: some View {
         if let image = phase.image {
             image
         } else {
-            Color(.sRGB, white: 0.5, opacity: 0.2)
+            _PlaceholderInk()
         }
+    }
+}
+
+/// A flexible fill in the environment's placeholder ink.
+package struct _PlaceholderInk: View {
+    @Environment(\.self) private var environment
+    package var body: some View {
+        let ink = environment._placeholderColor
+        Color(red: ink.red, green: ink.green, blue: ink.blue, opacity: ink.alpha)
     }
 }
 
@@ -100,6 +114,22 @@ extension Runtime {
 
     package func register(asyncImage node: any _AsyncImageReloading) {
         if !asyncImageNodes.contains(where: { $0.node === node }) { asyncImageNodes.append(WeakAsyncImageNode(node: node)) }
+    }
+
+    /// Views sharing a URL share its load (the loader caches by URL); the last one to unmount
+    /// while it is still loading cancels it.
+    package func retainImageLoad(_ url: String) {
+        imageLoadUses[url, default: 0] += 1
+    }
+
+    package func releaseImageLoad(_ url: String) {
+        guard let count = imageLoadUses[url] else { return }
+        if count <= 1 {
+            imageLoadUses[url] = nil
+            if case .loading = imageLoader?.state(for: url) { imageLoader?.cancel(url) }
+        } else {
+            imageLoadUses[url] = count - 1
+        }
     }
 }
 

@@ -137,7 +137,7 @@ public static let phase = Fixture("animator/phase", size: CGSize(width: 300, hei
     .probe("row")
 })
 """#),
-        FixtureSource(name: "asyncimage/phases", file: "Fixtures/Sources/AsyncImage/AsyncImageFixtures.swift", firstLine: 10, lastLine: 37, declaration: #"""
+        FixtureSource(name: "asyncimage/phases", file: "Fixtures/Sources/AsyncImage/AsyncImageFixtures.swift", firstLine: 10, lastLine: 39, declaration: #"""
 public static let phases = Fixture("asyncimage/phases", size: CGSize(width: 360, height: 220), content: {
     VStack(alignment: .leading, spacing: 12) {
         HStack(spacing: 12) {
@@ -162,6 +162,8 @@ public static let phases = Fixture("asyncimage/phases", size: CGSize(width: 360,
             .probe("nilPhase")
         }
         .probe("row")
+        // The default content's placeholder: the placeholder ink filling the frame (sw-asyncimage).
+        AsyncImage(url: missing).frame(width: 60, height: 40).probe("defaultPlaceholder")
         Text("Below").probe("below")
     }
     .probe("stack")
@@ -4851,7 +4853,7 @@ public static let twoTextsSwapped = Fixture("pressure/two-texts-swapped", size: 
     .probe("stack")
 })
 """#),
-        FixtureSource(name: "probe/asyncimage", file: "Fixtures/Sources/AsyncImage/AsyncImageFixtures.swift", firstLine: 43, lastLine: 51, declaration: #"""
+        FixtureSource(name: "probe/asyncimage", file: "Fixtures/Sources/AsyncImage/AsyncImageFixtures.swift", firstLine: 45, lastLine: 53, declaration: #"""
 public static let live = Fixture("probe/asyncimage", size: CGSize(width: 360, height: 200), content: {
     HStack(spacing: 20) {
         AsyncImage(url: URL(string: served), scale: 2) { image in image.probe("loaded") } placeholder: { Text("Loading").probe("loadingLive") }
@@ -10110,6 +10112,8 @@ public enum AsyncImageFixtures {
                 .probe("nilPhase")
             }
             .probe("row")
+            // The default content's placeholder: the placeholder ink filling the frame (sw-asyncimage).
+            AsyncImage(url: missing).frame(width: 60, height: 40).probe("defaultPlaceholder")
             Text("Below").probe("below")
         }
         .probe("stack")

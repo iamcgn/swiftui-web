@@ -89,6 +89,16 @@ enum PainterScript {
         img.src = /^([a-z]+:)?\/\//i.test(file) || file.startsWith('data:') || file.startsWith('/') ? file : base + file;
         return null;
       }
+      // AsyncImage: a load no view needs any more is dropped (the element's source cleared), so
+      // a later request starts over.
+      function imageCancel(url) {
+        const entry = images.get(url);
+        if (!entry || entry.ready || entry.failed) return;
+        entry.img.onload = null;
+        entry.img.onerror = null;
+        entry.img.src = '';
+        images.delete(url);
+      }
       // AsyncImage: starts loading `url` if needed; 'loading', 'failed', or [width, height].
       function imageState(url) {
         const entry = images.get(url);
@@ -634,7 +644,7 @@ enum PainterScript {
         return canvas.toDataURL('image/png');
       }
       window.__swiftuiweb = {
-        paint: paint, rasterize: rasterize, measure: measure, forgetMeasurements: forgetMeasurements, imageState: imageState, version: 4,
+        paint: paint, rasterize: rasterize, measure: measure, forgetMeasurements: forgetMeasurements, imageState: imageState, imageCancel: imageCancel, version: 4,
         setImageLoadHandler: function (handler) { onImageLoad = handler; },
         overlayAdd: function (id, element) { overlay.set(id, element.style); },
         overlayRemove: function (id) { overlay.delete(id); },

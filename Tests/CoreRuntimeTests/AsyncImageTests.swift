@@ -9,10 +9,12 @@ import Foundation
 @MainActor private final class FakeLoader: _ImageLoading {
     var states: [String: _ImageLoadState] = [:]
     var asked: [String] = []
+    var cancelled: [String] = []
     func state(for url: String) -> _ImageLoadState {
         asked.append(url)
         return states[url] ?? .loading
     }
+    func cancel(_ url: String) { cancelled.append(url) }
 }
 
 @Suite @MainActor struct AsyncImageTests {
@@ -61,13 +63,70 @@ import Foundation
         none.mount(AsyncImage(url: nil)._probe("default"))
         none.layout(in: CGSize(width: 200, height: 100))
         #expect(loader.asked.isEmpty || !loader.asked.contains("nil"))
-        #expect(commands(none).contains { $0.hasPrefix("fillRect(0, 0, 200, 100) #808080@0.2") })
+        // The placeholder ink (measured: black at 13.7 %, filling the proposal).
+        #expect(commands(none).contains { $0.hasPrefix("fillRect(0, 0, 200, 100) #000000@0.137") }, "\(commands(none))")
         // Without a host loader the phase stays empty rather than failing.
         let bare = Runtime()
         bare.mount(AsyncImage(url: url) { phase in phase.error == nil ? Color.green._probe("empty") : Color.red._probe("failed") })
         bare.layout(in: CGSize(width: 200, height: 100))
         #expect(bare.probeFrames["empty"] != nil)
         #expect(AsyncImagePhase.failure(AsyncImageLoadingError(url: nil)).error != nil && AsyncImagePhase.empty.image == nil)
+    }
+
+    @Observable final class Model { var shown = true; var url = URL(string: "https://example.test/a.png")! }
+
+    struct Pair: View {
+        let model: Model
+        var body: some View {
+            HStack {
+                if model.shown { AsyncImage(url: model.url) { phase in phase.image ?? Image(systemName: "star") } }
+                AsyncImage(url: URL(string: "https://example.test/a.png")) { phase in phase.image ?? Image(systemName: "star") }
+            }
+        }
+    }
+
+    /// sw-asyncimage: views sharing a URL share its load and the last one to unmount while it
+    /// is still loading cancels it; a loaded URL is never cancelled; a URL change releases the
+    /// old one; the phase change applies with the view's transaction (its animation).
+    @Test func sharedLoadsCancelOnTheLastUnmountAndPhasesAnimate() {
+        let loader = FakeLoader()
+        let runtime = Runtime()
+        runtime.textEngine = RecordedTextEngine(entries: [:])
+        runtime.imageLoader = loader
+        let model = Model()
+        runtime.mount(Pair(model: model))
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        #expect(runtime.imageLoadUses["https://example.test/a.png"] == 2)
+        model.shown = false
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        #expect(runtime.imageLoadUses["https://example.test/a.png"] == 1 && loader.cancelled.isEmpty)
+        model.shown = true
+        model.url = URL(string: "https://example.test/b.png")!
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        #expect(runtime.imageLoadUses["https://example.test/b.png"] == 1)
+        model.url = URL(string: "https://example.test/c.png")!
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        #expect(loader.cancelled == ["https://example.test/b.png"] && runtime.imageLoadUses["https://example.test/b.png"] == nil)
+        // A loaded URL is not cancelled when its last view goes.
+        loader.states["https://example.test/c.png"] = .loaded(pixelSize: CGSize(width: 10, height: 10))
+        runtime.imageLoadDidFinish()
+        model.shown = false
+        runtime.layout(in: CGSize(width: 200, height: 100))
+        #expect(loader.cancelled == ["https://example.test/b.png"])
+        // The transaction: a load under `.linear(duration: 1)` fades the new phase's content in.
+        let animated = Runtime()
+        animated.imageLoader = loader
+        var transaction = Transaction()
+        transaction.animation = .linear(duration: 1)
+        let url = URL(string: "https://example.test/t.png")!
+        animated.mount(AsyncImage(url: url, transaction: transaction) { phase in
+            if phase.image != nil { Color.red.frame(width: 10, height: 10)._probe("image") } else { Color.gray.frame(width: 10, height: 10) }
+        })
+        animated.layout(in: CGSize(width: 200, height: 100))
+        loader.states[url.absoluteString] = .loaded(pixelSize: CGSize(width: 40, height: 30))
+        animated.imageLoadDidFinish()
+        animated.layout(in: CGSize(width: 200, height: 100))
+        #expect(animated.isAnimating && animated.probeFrames["image"] != nil)
     }
 }
 #endif

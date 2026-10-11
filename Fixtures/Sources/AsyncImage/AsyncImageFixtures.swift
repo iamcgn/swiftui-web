@@ -31,6 +31,8 @@ public enum AsyncImageFixtures {
                 .probe("nilPhase")
             }
             .probe("row")
+            // The default content's placeholder: the placeholder ink filling the frame (sw-asyncimage).
+            AsyncImage(url: missing).frame(width: 60, height: 40).probe("defaultPlaceholder")
             Text("Below").probe("below")
         }
         .probe("stack")

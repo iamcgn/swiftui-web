@@ -159,6 +159,8 @@ public final class Runtime {
     package var searchSuggestionSources: [SearchSuggestionSource] = []
     package var searchScopeSources: [SearchScopeSource] = []
     package var _imageLoader: (any _ImageLoading)?
+    /// `AsyncImage` views per URL still mounted (cancellation on the last unmount).
+    package var imageLoadUses: [String: Int] = [:]
     /// The host's rasteriser for recorded drawings (`UIImage.pngData()` inside a representable;
     /// hosted trees take it from the runtime).
     public var imageRasterizer: ImageRasterizer?

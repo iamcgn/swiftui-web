@@ -5,49 +5,55 @@
       "height" : 16,
       "width" : 36.5,
       "x" : 93.75,
-      "y" : 128
+      "y" : 154
+    },
+    "defaultPlaceholder" : {
+      "height" : 40,
+      "width" : 60,
+      "x" : 93.75,
+      "y" : 102
     },
     "loading" : {
       "height" : 16,
       "width" : 48.5,
       "x" : 165.75,
-      "y" : 88
+      "y" : 62
     },
     "nilPhase" : {
       "height" : 40,
       "width" : 40,
       "x" : 226.25,
-      "y" : 76
+      "y" : 50
     },
     "phases" : {
       "height" : 16,
       "width" : 48.5,
       "x" : 165.75,
-      "y" : 88
+      "y" : 62
     },
     "placeholder" : {
       "height" : 40,
       "width" : 60,
       "x" : 93.75,
-      "y" : 76
+      "y" : 50
     },
     "row" : {
       "height" : 40,
       "width" : 172.5,
       "x" : 93.75,
-      "y" : 76
+      "y" : 50
     },
     "stack" : {
-      "height" : 68,
+      "height" : 120,
       "width" : 172.5,
       "x" : 93.75,
-      "y" : 76
+      "y" : 50
     },
     "withPlaceholder" : {
       "height" : 40,
       "width" : 60,
       "x" : 93.75,
-      "y" : 76
+      "y" : 50
     }
   },
   "size" : {

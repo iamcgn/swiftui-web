@@ -1319,13 +1319,14 @@
       "framework": "SwiftUI",
       "area": "AsyncImage",
       "title": "AsyncImage caching and transactions",
-      "detail": "Cancellation on unmount, a cache keyed by URL, the phase transaction (accepted), the default placeholder colour (approximate).",
+      "detail": "Cancellation on unmount, a cache keyed by URL, the phase transaction (accepted), the default placeholder colour (approximate). Done 2026-10-11 (Phase 9, item 12): the default placeholder measured (the placeholder ink at 13.7 %), the transaction's animation applied to phase changes, loads shared by URL and cancelled on the last unmount (`_ImageLoading.cancel`, the browser clears the element's source); `AsyncImageTests`, `asyncimage/phases` regenerated.",
       "kind": "accepted",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/AsyncImage.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-text-selection",

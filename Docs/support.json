@@ -736,9 +736,9 @@
           ]
         },
         {
-          "api": "AsyncImage (url:scale:, content/placeholder, phases)",
-          "status": "partial",
-          "notes": "Loads through the host (browser Image elements, native Data(contentsOf:)); phases from the runtime's loader, re-evaluated when a load finishes; nil URLs stay empty as measured; no cancellation or phase animation (Docs/elements/AsyncImage.md)",
+          "api": "AsyncImage (url:scale:, content/placeholder, transaction, phases)",
+          "status": "full",
+          "notes": "Loads through the host (browser Image elements, native Data(contentsOf:)); phases from the runtime's loader, re-evaluated when a load finishes; nil URLs stay empty as measured; the default placeholder is the measured placeholder ink; views of one URL share the load and the last to unmount cancels it; a phase change applies with the transaction's animation (2026-10-11, Docs/elements/AsyncImage.md). Open: URLSession configuration",
           "fixtures": [
             "asyncimage/phases"
           ]
