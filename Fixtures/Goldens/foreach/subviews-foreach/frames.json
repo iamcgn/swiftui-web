@@ -1,0 +1,51 @@
+{
+  "fixture" : "foreach\/subviews-foreach",
+  "frames" : {
+    "alpha" : {
+      "height" : 16,
+      "width" : 34.5,
+      "x" : 205.25,
+      "y" : 75
+    },
+    "apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 10,
+      "y" : 75
+    },
+    "banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 70,
+      "y" : 75
+    },
+    "beta" : {
+      "height" : 16,
+      "width" : 28,
+      "x" : 276.5,
+      "y" : 75
+    },
+    "cherry" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 136.75,
+      "y" : 75
+    },
+    "gamma" : {
+      "height" : 16,
+      "width" : 46.5,
+      "x" : 332.25,
+      "y" : 75
+    },
+    "row" : {
+      "height" : 22,
+      "width" : 380,
+      "x" : 0,
+      "y" : 69
+    }
+  },
+  "size" : {
+    "height" : 160,
+    "width" : 380
+  }
+}

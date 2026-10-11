@@ -1204,13 +1204,14 @@
       "framework": "SwiftUI",
       "area": "View composition",
       "title": "Subviews-based ForEach and Group",
-      "detail": "`ForEach(subviews:)`, `ForEach(sections:)`, `Group(subviews:)`, `containerValues`; the iOS 18 container APIs.",
+      "detail": "`ForEach(subviews:)`, `ForEach(sections:)`, `Group(subviews:)`, `containerValues`; the iOS 18 container APIs. Done 2026-10-11 (Phase 9, item 4): the children are resolved from the view value (tuples, ForEach with ids, conditionals, optionals, groups, AnyView, sections, modifiers on a container applied to each child, custom views through a multi-child body), `ContainerValues` with `@Entry`, `containerValue(_:_:)` and `tag(_:)`, `SubviewsCollection` slices as views; four macOS goldens exact (`foreach/subviews`, `-foreach`, `foreach/sections`, `foreach/container-values`), `SubviewsTests`. Open: lazy containers resolve eagerly; `List` and `Picker` do not read container values.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/ForEach.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-custom-layout",

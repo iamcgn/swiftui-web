@@ -1,0 +1,69 @@
+{
+  "fixture" : "foreach\/sections",
+  "frames" : {
+    "apple" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 117,
+      "y" : 75
+    },
+    "banana" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 158,
+      "y" : 75
+    },
+    "bottom" : {
+      "height" : 16,
+      "width" : 44.5,
+      "x" : 145.5,
+      "y" : 123
+    },
+    "carrot" : {
+      "height" : 16,
+      "width" : 38.5,
+      "x" : 117,
+      "y" : 171
+    },
+    "count" : {
+      "height" : 10,
+      "width" : 60,
+      "x" : 113,
+      "y" : 197
+    },
+    "footer" : {
+      "height" : 16,
+      "width" : 39.5,
+      "x" : 117,
+      "y" : 93
+    },
+    "fruits" : {
+      "height" : 16,
+      "width" : 34.5,
+      "x" : 117,
+      "y" : 57
+    },
+    "group" : {
+      "height" : 154,
+      "width" : 94,
+      "x" : 113,
+      "y" : 53
+    },
+    "leek" : {
+      "height" : 16,
+      "width" : 29,
+      "x" : 161.5,
+      "y" : 171
+    },
+    "top" : {
+      "height" : 16,
+      "width" : 22.5,
+      "x" : 117,
+      "y" : 123
+    }
+  },
+  "size" : {
+    "height" : 260,
+    "width" : 320
+  }
+}

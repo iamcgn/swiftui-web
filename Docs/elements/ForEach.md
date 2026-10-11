@@ -53,10 +53,36 @@ them through the existing proxy mechanism.
 | Modifier on a `Section` | applies to header, each content view and footer separately (`section/modifier` stack = 48 + 48 + 30 + 30 = 156) | `section/modifier` |
 | Default-font text→text spacing in a `VStack` | 0 (the 13 pt system font's `textToText` value), so rows pack at their 16 pt line height | all of the above |
 
+## Subviews and sections (sw-subviews; macOS 26.6, `foreach/subviews`, `foreach/subviews-foreach`, `foreach/sections`, `foreach/container-values`; 2026-10-11)
+
+Apple docs: [Group(subviews:transform:)](https://developer.apple.com/documentation/swiftui/group/init(subviews:transform:)),
+[ForEach(subviews:content:)](https://developer.apple.com/documentation/swiftui/foreach/init(subviews:content:)),
+[SectionCollection](https://developer.apple.com/documentation/swiftui/sectioncollection),
+[ContainerValues](https://developer.apple.com/documentation/swiftui/containervalues).
+
+The container forms resolve a view value's structural children before any node exists
+(`API/Subviews.swift`, `_Subviews.structure`): a tuple's elements, a `ForEach`'s elements (with
+their identities), a conditional's branch, an optional's value, a `Group`'s children, an
+`AnyView`'s content, a `Section` (its content for the `subviews:` forms; header, content and
+footer for `sections:`), and a modifier on a container applied to each child (`Group { … }
+.padding(.leading, 6)` is two padded subviews; measured: `subviews.count` is 6 for a tuple of a
+text, a two-element `ForEach`, an `if`, and such a group). A custom view resolves through its
+body when the body is a container holding several children; a view whose body comes to one
+piece (`Button`) stays itself with its state and style. Identities: a `ForEach` element's id, an
+`id(_:)`, else the index. Loose views between sections form a section of their own without a
+header (`Top` and `Bottom` make the second of three sections). `ContainerValues` are set per
+child by `containerValue(_:_:)` (declared with `@Entry` in an extension, the fourth container
+the macro accepts) and `tag(_:)` (`containerValues.tag(for:)`, `hasTag`); on a group they reach
+every child, an outer tag replacing an inner one. `SubviewsCollection` and its slices are views
+(each subview in turn) and random-access collections.
+
+Open: `containerValues` read by `List`/`Picker` for their own purposes, `SubviewsCollection`
+inside lazy containers (resolved eagerly), the `ForEach(sections:)` form inside `List`.
+
 ## Open
 
 - `Section` header styling inside `Form`, `Picker` (`List` is done: `Docs/elements/List.md`).
-- Duplicate-id warning; `onInsert` by drop; `Subviews`-based `ForEach`.
+- Duplicate-id warning; `onInsert` by drop.
 - Tier B: Chromium and WebKit exact frames on all 14 fixtures (every identity step included);
   Firefox measures "Vegetables" 0.5 pt wider, which shifts the leading-aligned column of
   `section/title` and `section/foreach` by 0.25 pt (text-width class, not a ForEach/Section issue).

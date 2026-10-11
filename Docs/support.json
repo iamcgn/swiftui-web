@@ -93,6 +93,17 @@
           ]
         },
         {
+          "api": "Group(subviews:) / Group(sections:) / ForEach(subviews:) / ForEach(sections:) / SubviewsCollection / SectionCollection / ContainerValues / containerValue(_:_:) / @Entry on ContainerValues",
+          "status": "partial",
+          "notes": "A view's structural children resolved from the value (tuples, ForEach elements with their ids, conditionals, optionals, groups, AnyView, sections, modifiers on a container applied to each child, custom views through a multi-child body); container values and tags per child; slices as views (2026-10-11). Open: lazy containers resolve eagerly, List/Picker do not read container values.",
+          "fixtures": [
+            "foreach/subviews",
+            "foreach/subviews-foreach",
+            "foreach/sections",
+            "foreach/container-values"
+          ]
+        },
+        {
           "api": "Section (content/header/footer, title forms, deprecated argument orders)",
           "status": "partial",
           "notes": "Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; inside List: styled header/footer, spacing, pinned first header (list/sections); no Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels",

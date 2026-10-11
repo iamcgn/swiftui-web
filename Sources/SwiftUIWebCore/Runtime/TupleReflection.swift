@@ -8,6 +8,8 @@ package struct TupleElement<T> {
     package let viewType: Any.Type
     package let make: (T, ViewNode, EnvironmentValues) -> ViewNode
     package let update: (ViewNode, T, EnvironmentValues) -> Void
+    /// The element's structural children (sw-subviews).
+    package let structure: @MainActor (T) -> [_Structural]
 
     package static var all: [TupleElement<T>] {
         let key = ObjectIdentifier(T.self)
@@ -35,7 +37,8 @@ package struct TupleElement<T> {
                 },
                 update: { node, tuple, environment in
                     (node as! TypedNode<E>).update(view: tuple[keyPath: typed], environment: environment)
-                })
+                },
+                structure: { tuple in _Subviews.structure(of: tuple[keyPath: typed]) })
         }
         return open(viewType)
     }

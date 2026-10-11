@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 136 | 25 | 101 | 4 | 3 | 3 |
+| SwiftUI | 137 | 25 | 102 | 4 | 3 | 3 |
 | UIKit | 54 | 20 | 30 | 4 | 0 | 0 |
 | Interop | 12 | 0 | 12 | 0 | 0 | 0 |
-| **All** | **202** | 45 | 143 | 8 | 3 | 3 |
+| **All** | **203** | 45 | 144 | 8 | 3 | 3 |
 
 ## App lifecycle
 
@@ -35,6 +35,7 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 | `Transaction / TransactionKey / @Entry / withTransaction` | 🟢 partial | animation, disablesAnimations, isContinuous and custom keys; withTransaction and withAnimation record the animation for the flush and layout that apply the change; the transaction reaches a representable's updateUIView (ios/representable, 2026-09-18) | animation/implicit, animation/frame |
 | `id(_:) / IDView` | 🟢 partial | Identity change rebuilds the subtree; Tier B (Chromium) within tolerance | foreach/identity, ios/representable/lifecycle |
 | `ForEach (Identifiable, id:, Range<Int>, Binding collections) / DynamicViewContent` | 🟢 partial | Keyed reconciliation: state follows ids across insert/mutate/reorder/remove (foreach/identity, 4 steps); modifiers distribute per element; no editActions, onDelete/onMove, or Subviews-based forms; Tier B (Chromium) exact frames, ≤ 0.3 % pixels incl. every identity step. onDelete, onMove and the editActions binding form (2026-09-18, Docs/elements/List.md); onInsert accepted without effect. | foreach/* |
+| `Group(subviews:) / Group(sections:) / ForEach(subviews:) / ForEach(sections:) / SubviewsCollection / SectionCollection / ContainerValues / containerValue(_:_:) / @Entry on ContainerValues` | 🟢 partial | A view's structural children resolved from the value (tuples, ForEach elements with their ids, conditionals, optionals, groups, AnyView, sections, modifiers on a container applied to each child, custom views through a multi-child body); container values and tags per child; slices as views (2026-10-11). Open: lazy containers resolve eagerly, List/Picker do not read container values. | foreach/subviews, foreach/subviews-foreach, foreach/sections, foreach/container-values |
 | `Section (content/header/footer, title forms, deprecated argument orders)` | 🟢 partial | Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; inside List: styled header/footer, spacing, pinned first header (list/sections); no Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels | section/* |
 | `DynamicProperty (custom, nested)` | 🟢 partial | update() and nested installation; Tier B (Chromium) within tolerance | observable/object, focus/basic |
 | `#Preview / PreviewTrait / PreviewProvider` | 🟠 stub | The macro expands to nothing (SwiftUIWebMacros, prebuilt swift-syntax) so preview blocks compile; nothing renders previews | — A preview body is not a screen: the macro plugin's expansion is held by PreviewTests, not a golden. |

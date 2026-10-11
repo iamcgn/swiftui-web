@@ -1,5 +1,5 @@
 // The `@Entry` macro: on a stored property declared in an extension of `EnvironmentValues`,
-// `FocusedValues` or `Transaction`, it adds the key type the container needs and turns the
+// `FocusedValues`, `Transaction` or `ContainerValues`, it adds the key type the container needs and turns the
 // property into accessors over the container's subscript (Docs/elements/Environment.md).
 import SwiftDiagnostics
 import SwiftSyntax
@@ -15,6 +15,7 @@ public struct EntryMacro: AccessorMacro, PeerMacro {
             case "EnvironmentValues": return (name, "EnvironmentKey", false)
             case "FocusedValues": return (name, "FocusedValueKey", true)
             case "Transaction": return (name, "TransactionKey", false)
+            case "ContainerValues": return (name, "ContainerValueKey", false)
             default: return nil
             }
         }
@@ -38,7 +39,7 @@ public struct EntryMacro: AccessorMacro, PeerMacro {
                                  in context: some MacroExpansionContext) throws -> [AccessorDeclSyntax] {
         guard let property = try property(of: declaration, in: context) else { return [] }
         guard container(in: context) != nil else {
-            context.diagnose(Diagnostic(node: Syntax(node), message: EntryMessage("'@Entry' can only be applied inside an extension of EnvironmentValues, FocusedValues or Transaction")))
+            context.diagnose(Diagnostic(node: Syntax(node), message: EntryMessage("'@Entry' can only be applied inside an extension of EnvironmentValues, FocusedValues, Transaction or ContainerValues")))
             return []
         }
         let key = "__Key_\(property.name)"

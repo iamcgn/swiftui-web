@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 30 | 0 | 0 | 30 |
+| SwiftUI | 29 | 0 | 0 | 29 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **46** | 0 | 1 | 45 |
+| **All** | **45** | 0 | 1 | 44 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Subviews-based ForEach and Group** `sw-subviews` · View composition · missing  
-  `ForEach(subviews:)`, `ForEach(sections:)`, `Group(subviews:)`, `containerValues`; the iOS 18 container APIs. ([ForEach.md](Docs/elements/ForEach.md))
 - ☐ **Layout protocol corners** `sw-custom-layout` · Layout · missing  
   `Layout.Animatable` (animating layout parameters), `updateCache` reuse across passes and invalidation on environment changes, `GridLayout` as a `Layout` value, rows with more cells than the widest earlier row combined with spans. ([CustomLayout.md](Docs/elements/CustomLayout.md), [Grid.md](Docs/elements/Grid.md))
 - ☐ **Safe area corners** `sw-safe-area` · Position · missing  
@@ -126,6 +124,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 ## Landed
 
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
+- ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling
