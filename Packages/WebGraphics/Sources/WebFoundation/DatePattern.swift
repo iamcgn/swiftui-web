@@ -502,54 +502,69 @@ package enum _RelativeDateText {
     package enum Presentation: Hashable, Sendable { case numeric, named }
     package enum UnitsStyle: Hashable, Sendable { case wide, abbreviated, narrow, spellOut }
 
+    /// The whole calendar units between the reference and the date, largest first, as
+    /// `Calendar.dateComponents(from:to:)` splits them (all the same sign).
+    package struct Components: Hashable, Sendable {
+        package var years = 0, months = 0, weeks = 0, days = 0, hours = 0, minutes = 0, seconds = 0
+        package init(years: Int = 0, months: Int = 0, weeks: Int = 0, days: Int = 0, hours: Int = 0, minutes: Int = 0, seconds: Int = 0) {
+            self.years = years; self.months = months; self.weeks = weeks; self.days = days
+            self.hours = hours; self.minutes = minutes; self.seconds = seconds
+        }
+        /// The split of two instants in a calendar.
+        package init(from start: Double, to end: Double, math: _CalendarMath) {
+            let difference = math.difference(from: start, to: end, units: [.year, .month, .weekOfYear, .day, .hour, .minute, .second])
+            years = difference[.year] ?? 0; months = difference[.month] ?? 0; weeks = difference[.weekOfYear] ?? 0
+            days = difference[.day] ?? 0; hours = difference[.hour] ?? 0; minutes = difference[.minute] ?? 0; seconds = difference[.second] ?? 0
+        }
+        var isZero: Bool { years == 0 && months == 0 && weeks == 0 && days == 0 && hours == 0 && minutes == 0 && seconds == 0 }
+        var isFuture: Bool { [years, months, weeks, days, hours, minutes, seconds].first { $0 != 0 }.map { $0 > 0 } ?? true }
+    }
+
     /// "2 hours ago", "in 3 days", "yesterday", "now": Foundation's `en` relative forms for the
-    /// largest whole unit between the reference and the date (days by calendar day).
-    /// `Date.RelativeFormatStyle` rounds to the nearest unit and promotes a count that rounds
-    /// up to the next (59 min 59 s is "1 hour"; 59 s stays "59 seconds"); `RelativeDateTimeFormatter`
-    /// keeps whole units, with `calendarMonths` deciding months and years.
-    package static func text(seconds difference: Double, presentation: Presentation, unitsStyle: UnitsStyle, calendarDays: Int?,
-                             calendarMonths: Int? = nil, rounding: Bool = true) -> String {
-        let magnitude = abs(difference)
-        let future = difference >= 0
-        if presentation == .named, difference == 0 { return "now" }
-        let units: [(Double, String, String, String)] = [
-            (31_536_000, "year", "yr.", "y"), (2_592_000, "month", "mo.", "mo"), (604_800, "week", "wk.", "w"), (86_400, "day", "day", "d"),
-            (3600, "hour", "hr.", "h"), (60, "minute", "min.", "m"), (1, "second", "sec.", "s"),
-        ]
-        var index = units.firstIndex { magnitude >= $0.0 } ?? units.count - 1
-        if rounding {
-            while index > 0, (magnitude / units[index].0).rounded() * units[index].0 >= units[index - 1].0 { index -= 1 }
-        } else if let calendarMonths {
-            // Whole calendar months decide the two largest units; weeks and below come from the seconds.
-            if abs(calendarMonths) >= 12 { index = 0 } else if abs(calendarMonths) >= 1 { index = 1 } else { index = max(index, 2) }
+    /// largest whole unit. `Date.RelativeFormatStyle` rounds that unit by the next smaller one
+    /// and promotes a count that reaches the unit above (59 min 59 s is "1 hour", 23 h 59 min
+    /// "1 day"; 59 s stays "59 seconds"); `RelativeDateTimeFormatter` keeps whole units.
+    package static func text(_ components: Components, presentation: Presentation, unitsStyle: UnitsStyle, rounding: Bool = true) -> String {
+        let future = components.isFuture
+        if presentation == .named, components.isZero { return "now" }
+        // (count, next smaller count, the next smaller unit's size in this unit's terms)
+        var values = [abs(components.years), abs(components.months), abs(components.weeks), abs(components.days), abs(components.hours), abs(components.minutes), abs(components.seconds)]
+        let names = ["year", "month", "week", "day", "hour", "minute", "second"]
+        let abbreviations = ["yr.", "mo.", "wk.", "day", "hr.", "min.", "sec."]
+        let narrows = ["y", "mo", "w", "d", "h", "m", "s"]
+        // How many of unit i + 1 make one of unit i; weeks never make a month (the calendar
+        // decides months: thirty days from October 11 is "4 weeks", from September 11 "1 month").
+        let sizes = [12, Int.max, 7, 24, 60, 60]
+        var index = values.firstIndex { $0 != 0 } ?? 6
+        if rounding, index < 6 {
+            // Round by the next smaller unit, promoting on reaching the unit above.
+            // (a month rounds up from three weeks: the half of its four-and-a-bit; approximate)
+            let half = sizes[index] == Int.max ? 5 : sizes[index]
+            if values[index + 1] * 2 >= half { values[index] += 1 }
+            while index > 0, values[index] >= sizes[index - 1] { values[index - 1] += 1; index -= 1 }
         }
-        for (length, wide, abbreviated, narrow) in units[index...] {
-            var count = rounding ? Int((magnitude / length).rounded()) : Int(magnitude / length)
-            if !rounding, let calendarMonths, length >= 2_592_000 { count = length == 31_536_000 ? abs(calendarMonths) / 12 : abs(calendarMonths) }
-            if rounding, length == 86_400, let calendarDays, abs(calendarDays) >= 1 { count = abs(calendarDays) }
-            if presentation == .named, count == 1 {
-                switch wide {
-                case "day": return future ? "tomorrow" : "yesterday"
-                case "week", "month", "year":
-                    let name = unitsStyle == .wide || unitsStyle == .spellOut ? wide : abbreviated
-                    return (future ? "next " : "last ") + name
-                default: break
-                }
-            }
-            let number = unitsStyle == .spellOut ? spelled(count) : String(count)
-            switch unitsStyle {
-            case .wide, .spellOut:
-                let name = count == 1 ? wide : wide + "s"
-                return future ? "in \(number) \(name)" : "\(number) \(name) ago"
-            case .abbreviated:
-                // "1 day ago" keeps the word; the others abbreviate with a period and no plural.
-                let name = wide == "day" ? (count == 1 ? "day" : "days") : abbreviated
-                return future ? "in \(number) \(name)" : "\(number) \(name) ago"
-            case .narrow:
-                return future ? "in \(number)\(narrow)" : "\(number)\(narrow) ago"
+        let count = values[index]
+        if presentation == .named, count == 1 {
+            switch names[index] {
+            case "day": return future ? "tomorrow" : "yesterday"
+            case "week", "month", "year":
+                let name = unitsStyle == .wide || unitsStyle == .spellOut ? names[index] : abbreviations[index]
+                return (future ? "next " : "last ") + name
+            default: break
             }
         }
-        return future ? "in 0 seconds" : "0 seconds ago"
+        let number = unitsStyle == .spellOut ? spelled(count) : String(count)
+        switch unitsStyle {
+        case .wide, .spellOut:
+            let name = count == 1 ? names[index] : names[index] + "s"
+            return future ? "in \(number) \(name)" : "\(number) \(name) ago"
+        case .abbreviated:
+            // "1 day ago" keeps the word; the others abbreviate with a period and no plural.
+            let name = names[index] == "day" ? (count == 1 ? "day" : "days") : abbreviations[index]
+            return future ? "in \(number) \(name)" : "\(number) \(name) ago"
+        case .narrow:
+            return future ? "in \(number)\(narrows[index])" : "\(number)\(narrows[index]) ago"
+        }
     }
 
     private static func spelled(_ value: Int) -> String {

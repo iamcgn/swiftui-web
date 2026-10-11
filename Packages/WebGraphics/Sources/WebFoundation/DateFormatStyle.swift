@@ -332,15 +332,8 @@ extension Date {
         public func format(_ value: Date) -> String {
             let now = _reference ?? Date()
             let math = Date.math(calendar: calendar, timeZone: calendar.timeZone)
-            let days = math.split(value.timeIntervalSince1970).days - math.split(now.timeIntervalSince1970).days
-            let style: _RelativeDateText.UnitsStyle
-            switch unitsStyle {
-            case .wide: style = .wide
-            case .spellOut: style = .spellOut
-            case .abbreviated: style = .abbreviated
-            case .narrow: style = .narrow
-            }
-            return _RelativeDateText.text(seconds: value.timeIntervalSince(now), presentation: presentation == .named ? .named : .numeric, unitsStyle: style, calendarDays: days)
+            let components = _RelativeDateText.Components(from: now.timeIntervalSince1970, to: value.timeIntervalSince1970, math: math)
+            return _RelativeDateText.text(components, presentation: presentation == .named ? .named : .numeric, unitsStyle: _RelativeDateText.UnitsStyle(unitsStyle))
         }
         public func locale(_ locale: Locale) -> Self { var copy = self; copy.locale = locale; return copy }
     }
@@ -353,6 +346,17 @@ extension Date {
     /// FoundationEssentials has an ISO 8601 style and a generic `formatted` of its own; this
     /// concrete overload makes `date.formatted(.iso8601)` this module's.
     public func formatted(_ style: _ISO8601DateFormatStyle) -> String { style.format(self) }
+}
+
+extension _RelativeDateText.UnitsStyle {
+    init(_ style: Date.RelativeFormatStyle.UnitsStyle) {
+        switch style {
+        case .wide: self = .wide
+        case .spellOut: self = .spellOut
+        case .abbreviated: self = .abbreviated
+        case .narrow: self = .narrow
+        }
+    }
 }
 
 extension FormatStyle where Self == Date.FormatStyle {
@@ -572,17 +576,9 @@ open class RelativeDateTimeFormatter: Formatter {
         let style = self.style
         let calendar = self.calendar ?? .current
         let math = _CalendarMath(zone: calendar.timeZone.rule, system: calendar.system, firstWeekday: calendar.firstWeekday, minimumDaysInFirstWeek: calendar.minimumDaysInFirstWeek)
-        let days = math.split(date.timeIntervalSince1970).days - math.split(referenceDate.timeIntervalSince1970).days
-        let months = math.difference(from: referenceDate.timeIntervalSince1970, to: date.timeIntervalSince1970, units: [.month])[.month] ?? 0
-        let units: _RelativeDateText.UnitsStyle
-        switch style.unitsStyle {
-        case .wide: units = .wide
-        case .spellOut: units = .spellOut
-        case .abbreviated: units = .abbreviated
-        case .narrow: units = .narrow
-        }
-        return _RelativeDateText.text(seconds: date.timeIntervalSince(referenceDate), presentation: style.presentation == .named ? .named : .numeric,
-                                      unitsStyle: units, calendarDays: days, calendarMonths: months, rounding: false)
+        let components = _RelativeDateText.Components(from: referenceDate.timeIntervalSince1970, to: date.timeIntervalSince1970, math: math)
+        return _RelativeDateText.text(components, presentation: style.presentation == .named ? .named : .numeric,
+                                      unitsStyle: _RelativeDateText.UnitsStyle(style.unitsStyle), rounding: false)
     }
 
     open func localizedString(fromTimeInterval timeInterval: TimeInterval) -> String {

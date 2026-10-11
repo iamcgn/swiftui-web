@@ -5,14 +5,15 @@ import Testing
 import Foundation
 @testable import WebFoundation
 
-/// Foundation on macOS 26 (and Linux's swift-foundation) is the reference; macOS 15's ICU
-/// writes the zero localized GMT offset as a bare "GMT" (CLDR's zero format, which newer ICU
-/// no longer uses), so those patterns are compared only on current systems.
+/// Foundation on macOS 26 is the reference (its ICU made the goldens). macOS 15's and Linux's
+/// swift-foundation ICU differ in a few places — the zero localized GMT offset as a bare "GMT"
+/// (CLDR's zero format), the hour without its period padded to two digits, Amete Alem reported
+/// as Gregorian, a 385-day Hebrew 5806 — so those comparisons run only on current systems.
 let foundationIsCurrent: Bool = {
     #if os(macOS)
     return ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26
     #else
-    return true
+    return false
     #endif
 }()
 
@@ -95,6 +96,8 @@ let foundationIsCurrent: Bool = {
         for date in Self.samples.prefix(40) {
             for (skeleton, build) in Self.symbolCases {
                 if skeleton.contains("z"), date.timeIntervalSince1970 < 0 { continue }
+                // Older ICU pads the hour without its period ("J") and names the zero offset "GMT".
+                if !foundationIsCurrent, skeleton.contains("J") || skeleton.contains("z") || skeleton.contains("O") { continue }
                 let theirs = build(base).format(date)
                 let ours = _DatePattern.format(_DatePattern.pattern(forSkeleton: skeleton), Self.input(date))
                 #expect(ours == theirs, "\(skeleton) → \(_DatePattern.pattern(forSkeleton: skeleton)) at \(date.timeIntervalSince1970)")
@@ -184,10 +187,10 @@ let foundationIsCurrent: Bool = {
                 for (units, theirUnits) in [(_RelativeDateText.UnitsStyle.wide, Date.RelativeFormatStyle.UnitsStyle.wide), (.abbreviated, .abbreviated), (.narrow, .narrow), (.spellOut, .spellOut)] {
                     let now = Date()
                     let date = now.addingTimeInterval(offset)
-                    let days = Self.math.split(date.timeIntervalSince1970).days - Self.math.split(now.timeIntervalSince1970).days
                     let style = Date.RelativeFormatStyle(presentation: theirPresentation, unitsStyle: theirUnits, locale: Self.locale, calendar: calendar)
                     let theirs = style.format(date)
-                    let ours = _RelativeDateText.text(seconds: offset, presentation: presentation, unitsStyle: units, calendarDays: days)
+                    let components = _RelativeDateText.Components(from: now.timeIntervalSince1970, to: date.timeIntervalSince1970, math: Self.math)
+                    let ours = _RelativeDateText.text(components, presentation: presentation, unitsStyle: units)
                     #expect(ours == theirs, "\(offset) \(presentation) \(units)")
                 }
             }
@@ -196,15 +199,25 @@ let foundationIsCurrent: Bool = {
             // short to abbreviated, abbreviated to narrow.
             let now = Date(timeIntervalSince1970: 1_775_000_000)
             let date = now.addingTimeInterval(offset)
-            let days = Self.math.split(date.timeIntervalSince1970).days - Self.math.split(now.timeIntervalSince1970).days
-            let months = Self.math.difference(from: now.timeIntervalSince1970, to: date.timeIntervalSince1970, units: [.month])[.month] ?? 0
+            let components = _RelativeDateText.Components(from: now.timeIntervalSince1970, to: date.timeIntervalSince1970, math: Self.math)
             for (theirUnits, units) in [(RelativeDateTimeFormatter.UnitsStyle.full, _RelativeDateText.UnitsStyle.wide), (.spellOut, .spellOut), (.short, .abbreviated), (.abbreviated, .narrow)] {
                 formatter.unitsStyle = theirUnits
                 formatter.dateTimeStyle = .numeric
-                let ours = _RelativeDateText.text(seconds: offset, presentation: .numeric, unitsStyle: units, calendarDays: days, calendarMonths: months, rounding: false)
+                let ours = _RelativeDateText.text(components, presentation: .numeric, unitsStyle: units, rounding: false)
                 #expect(ours == formatter.localizedString(for: date, relativeTo: now), "formatter \(offset) \(theirUnits)")
             }
             #endif
         }
+        // Calendar months, not thirty-day spans: a month after the 15th is the 15th (one month),
+        // thirty days after the 11th of October is the 10th of November (four weeks).
+        let october = Date(timeIntervalSince1970: 1_791_763_200)   // 2026-10-11 00:00Z
+        let thirtyDays = _RelativeDateText.Components(from: october.timeIntervalSince1970, to: october.timeIntervalSince1970 + 2_592_000, math: Self.math)
+        #expect(_RelativeDateText.text(thirtyDays, presentation: .numeric, unitsStyle: .wide) == "in 4 weeks")
+        let september = Date(timeIntervalSince1970: 1_789_171_200)   // 2026-09-11 00:00Z
+        let thirtyFromSeptember = _RelativeDateText.Components(from: september.timeIntervalSince1970, to: september.timeIntervalSince1970 + 2_592_000, math: Self.math)
+        #expect(_RelativeDateText.text(thirtyFromSeptember, presentation: .numeric, unitsStyle: .wide) == "in 1 month")
+        #expect(_RelativeDateText.text(.init(minutes: 59, seconds: 59), presentation: .numeric, unitsStyle: .wide) == "in 1 hour")
+        #expect(_RelativeDateText.text(.init(hours: -23, minutes: -59), presentation: .named, unitsStyle: .wide) == "yesterday")
+        #expect(_RelativeDateText.text(.init(years: 1, months: 11), presentation: .numeric, unitsStyle: .wide) == "in 2 years")
     }
 }
