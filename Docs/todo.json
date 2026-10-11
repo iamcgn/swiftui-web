@@ -1333,13 +1333,14 @@
       "framework": "SwiftUI",
       "area": "Text",
       "title": "Selecting text",
-      "detail": "`textSelection(.enabled)` only sets the I-beam: drag selection over painted text, copy, the selection highlight in the display list, on both hosts.",
+      "detail": "`textSelection(.enabled)` only sets the I-beam: drag selection over painted text, copy, the selection highlight in the display list, on both hosts. Done 2026-10-11 (Phase 9, item 13): drag selection anchored at the nearest character boundary (prefix widths from the engine), a per-line highlight under the glyphs, one selection owner per runtime cleared by any other press, ⌘C through the pasteboard and the host clipboard; `TextSelectionTests` with a monospace engine, `Playwright/text-selection-probe.mjs`. Open: word/line selection by double/triple click, keyboard extension.",
       "kind": "accepted",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/TextScale.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-texteditor",

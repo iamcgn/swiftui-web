@@ -128,7 +128,10 @@ extension Runtime {
         // A touch that stopped a decelerating scroll view belongs to it, not to a control.
         if pan?.active == true { return }
         pendingDrag = dragSource(at: point).map { ($0, point) }
-        guard let node = interactiveNode(at: point) else { return }
+        let node = interactiveNode(at: point)
+        // A press anywhere but on the selected text clears its selection.
+        if let owner = textSelectionOwner, owner !== node { textSelectionOwner = nil }
+        guard let node else { return }
         pressedNode = node
         node.pressBegan(at: local(point, in: node))
         // `simultaneousGesture` ancestors see the press the subview took.

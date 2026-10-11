@@ -336,6 +336,10 @@ public final class Runtime {
 
     /// The interactive node a pointer is currently pressing, and the last pointer position.
     package var pressedNode: (ViewNode & _Interactive)?
+    /// The text whose selection is showing (`textSelection(.enabled)`): a press elsewhere clears it.
+    package weak var textSelectionOwner: TextNode? {
+        didSet { if let old = oldValue, old !== textSelectionOwner { old.clearSelection() } }
+    }
 
     /// The text field with keyboard focus (its semantics identifier), for the focus ring.
     public internal(set) var focusedTextFieldIdentifier: Int?

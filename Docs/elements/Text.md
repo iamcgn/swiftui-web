@@ -31,7 +31,8 @@ Apple docs: [Text](https://developer.apple.com/documentation/swiftui/text),
 | `Text(_:format:)` | implemented for any `FormatStyle` producing a string (numbers on wasm through `WebFoundation`; dates on Apple platforms through Foundation) |
 | `Link` inside text | implemented: a link part paints in the accent colour, shows the hand and opens through `openURL` on press (the text takes presses only where it has links) |
 | `Font.custom(_:size:)`, `custom(_:size:relativeTo:)`, `custom(_:fixedSize:)` with a bundled font file | implemented (2026-10-03, `text/custom-font`): `scripts/assets.py` reads every `*.ttf`/`*.otf` under the source into the manifest (names and vertical metrics) and copies the file; the browser loads it as a `FontFace`, CoreText registers it in the native host, the pixel tier and the harness; the layouter's line is the rounded ascent plus the rounded descent; the recorded engine keys the family (`custom:Abel-Regular:20:400`); `relativeTo` scales nothing (no dynamic type) |
-| `Text(DateInterval)`, `Text(ClosedRange<Date>)`, `Text(_: Duration)`, `textSelection` | missing (`textSelection` is accepted; `Docs/elements/TextScale.md`) |
+| `Text(DateInterval)`, `Text(ClosedRange<Date>)`, `Text(_: Duration)` | missing |
+| `textSelection` | implemented: drag selection, highlight, ⌘C (`Docs/elements/TextScale.md`) |
 
 ## How Tier A stays exact
 

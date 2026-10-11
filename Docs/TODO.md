@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 21 | 0 | 0 | 21 |
+| SwiftUI | 20 | 0 | 0 | 20 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **37** | 0 | 1 | 36 |
+| **All** | **36** | 0 | 1 | 35 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Selecting text** `sw-text-selection` · Text · accepted  
-  `textSelection(.enabled)` only sets the I-beam: drag selection over painted text, copy, the selection highlight in the display list, on both hosts. ([TextScale.md](Docs/elements/TextScale.md))
 - ☐ **TextEditor: selection, find, long content** `sw-texteditor` · TextEditor · missing  
   A selection binding, `findNavigator`/`findDisabled`/`replaceDisabled`, `lineLimit` on editors, scrolling of long content, and the NSTextView wrapping parity (texteditor/basic is approximate). ([TextEditor.md](Docs/elements/TextEditor.md))
 - ☐ **Context-dependent labels and formatted values** `sw-label-forms` · Label · missing  
@@ -117,6 +115,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Image catalog forms and rendering** `sw-images` · SwiftUI · Image
 - ☑ 2026-10-11 **SF Symbols fidelity** `sw-symbols` · SwiftUI · Image
 - ☑ 2026-10-11 **AsyncImage caching and transactions** `sw-asyncimage` · SwiftUI · AsyncImage
+- ☑ 2026-10-11 **Selecting text** `sw-text-selection` · SwiftUI · Text
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

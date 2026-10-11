@@ -76,6 +76,11 @@ extension Runtime {
         guard press.modifiers.shortcutModifiers == [.command] else { return false }
         switch press.key {
         case KeyEquivalent("c"):
+            // Selected text copies before the focused chain's copy handlers.
+            if let owner = textSelectionOwner, let text = owner.selectedText {
+                setPasteboard([_TransferItem(text)])
+                return true
+            }
             guard let handler = pasteboardHandler((any _CopyHandling).self) else { return false }
             let items = handler.copyItems()
             guard !items.isEmpty else { return false }

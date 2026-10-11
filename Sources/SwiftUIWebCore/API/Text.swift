@@ -550,9 +550,122 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
 
     // MARK: Links (markdown `[text](url)`, the `link` attribute)
 
-    /// Whether any part is a link: only then does the text take presses.
+    /// Whether any part is a link: links and selectable text take presses.
     package var hasLinks: Bool { view.parts(context: textContext).contains { $0.modifiers.link != nil } }
-    package var isInteractive: Bool { hasLinks }
+    package var isInteractive: Bool { hasLinks || environment._textSelectionEnabled }
+
+    // MARK: Selection (`textSelection(.enabled)`, sw-text-selection)
+
+    /// The selected characters of the joined string, dragged out with the pointer.
+    package private(set) var selection: Range<String.Index>?
+    private var selectionAnchor: String.Index?
+
+    /// The joined string the layout's line ranges index.
+    package var joinedString: String { styledRuns.runs.map(\.string).joined() }
+
+    /// The selected text, if any.
+    package var selectedText: String? {
+        guard let selection, !selection.isEmpty else { return nil }
+        let joined = joinedString
+        guard selection.upperBound <= joined.endIndex else { return nil }
+        return String(joined[selection])
+    }
+
+    package func clearSelection() {
+        guard selection != nil || selectionAnchor != nil else { return }
+        selection = nil
+        selectionAnchor = nil
+        runtime.setNeedsDisplay()
+    }
+
+    /// The width of `prefix` in the run's font (the engine's layout at the text's scale). A
+    /// layout drops a final line's trailing spaces, so a prefix ending in one is measured with a
+    /// sentinel after it.
+    private func prefixWidth(_ prefix: Substring, run: Int, runs: [StyledRun], scale: CGFloat) -> CGFloat {
+        guard !prefix.isEmpty else { return 0 }
+        let font = runs.indices.contains(run) ? runs[run].font : resolvedFont
+        func width(_ text: String) -> CGFloat { runtime.textEngine.layout(text, font: font, width: nil).size.width }
+        guard prefix.last == " " else { return width(String(prefix)) * scale }
+        return (width(String(prefix) + "|") - width("|")) * scale
+    }
+
+    /// The character boundary nearest `point` (the node's coordinates): the line under the
+    /// point (the first above it, the last below), then the boundary whose x is closest.
+    package func characterIndex(at point: CGPoint) -> String.Index {
+        let joined = joinedString
+        let (runs, _) = styledRuns
+        let layout = textLayout(width: frame.width, height: frame.height)
+        guard let first = layout.lines.first else { return joined.startIndex }
+        let alignment = environment._resolvedTextAlignment
+        let shiftUp = baselineShift.up
+        var chosen = first
+        for line in layout.lines {
+            let font = runs.indices.contains(line.fragments.first?.run ?? 0) ? runs[line.fragments.first?.run ?? 0].font : resolvedFont
+            let metrics = environment.platformProfile.systemFontMetrics(for: font)
+            let top = line.baseline + shiftUp - metrics.baseline
+            chosen = line
+            if point.y < top + metrics.lineHeight { break }
+        }
+        let line = chosen
+        let lineX = (frame.width - line.inkWidth) * alignment
+        guard line.range.upperBound <= joined.endIndex, line.range.lowerBound <= line.range.upperBound else { return joined.startIndex }
+        let x = point.x - lineX
+        if x <= 0 { return line.range.lowerBound }
+        // Walk the line's characters by their prefix widths (one run per fragment).
+        var index = line.range.lowerBound
+        var fragmentStart = line.range.lowerBound
+        for fragment in line.fragments {
+            let fragmentEnd = joined.index(fragmentStart, offsetBy: fragment.text.count, limitedBy: line.range.upperBound) ?? line.range.upperBound
+            if x >= fragment.x + fragment.width {
+                index = fragmentEnd
+                fragmentStart = fragmentEnd
+                continue
+            }
+            var previousEdge = fragment.x
+            var cursor = fragmentStart
+            while cursor < fragmentEnd {
+                let next = joined.index(after: cursor)
+                let edge = fragment.x + prefixWidth(joined[fragmentStart..<next], run: fragment.run, runs: runs, scale: layout.scale)
+                if x < (previousEdge + edge) / 2 { return cursor }
+                previousEdge = edge
+                cursor = next
+            }
+            return fragmentEnd
+        }
+        return index
+    }
+
+    /// The selection's highlight rects, per line (the node's coordinates).
+    package func selectionRects() -> [CGRect] {
+        guard let selection, !selection.isEmpty else { return [] }
+        let joined = joinedString
+        let (runs, _) = styledRuns
+        let layout = textLayout(width: frame.width, height: frame.height)
+        let alignment = environment._resolvedTextAlignment
+        let shiftUp = baselineShift.up
+        var rects: [CGRect] = []
+        for line in layout.lines where line.range.upperBound <= joined.endIndex {
+            let start = max(selection.lowerBound, line.range.lowerBound), end = min(selection.upperBound, line.range.upperBound)
+            guard start < end else { continue }
+            let font = runs.indices.contains(line.fragments.first?.run ?? 0) ? runs[line.fragments.first?.run ?? 0].font : resolvedFont
+            let metrics = environment.platformProfile.systemFontMetrics(for: font)
+            let top = line.baseline + shiftUp - metrics.baseline
+            let lineX = (frame.width - line.inkWidth) * alignment
+            func xOf(_ index: String.Index) -> CGFloat {
+                var fragmentStart = line.range.lowerBound
+                for fragment in line.fragments {
+                    let fragmentEnd = joined.index(fragmentStart, offsetBy: fragment.text.count, limitedBy: line.range.upperBound) ?? line.range.upperBound
+                    if index <= fragmentEnd {
+                        return fragment.x + prefixWidth(joined[fragmentStart..<max(fragmentStart, index)], run: fragment.run, runs: runs, scale: layout.scale)
+                    }
+                    fragmentStart = fragmentEnd
+                }
+                return line.fragments.last.map { $0.x + $0.width } ?? 0
+            }
+            rects.append(CGRect(x: lineX + xOf(start), y: top, width: xOf(end) - xOf(start), height: metrics.lineHeight))
+        }
+        return rects
+    }
 
     /// What the text resolves its parts against (dates in the environment's time zone).
     package var textContext: _TextContext { _TextContext(timeZone: environment.timeZone, calendar: environment.calendar) }
@@ -580,10 +693,25 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
 
     private var pressedLink: URL?
     package func pressBegan() {}
-    package func pressBegan(at point: CGPoint) { pressedLink = link(at: point) }
-    package func pressEnded(inside: Bool) { pressedLink = nil }
+    package func pressBegan(at point: CGPoint) {
+        pressedLink = link(at: point)
+        guard environment._textSelectionEnabled, pressedLink == nil else { return }
+        // A press starts a new selection here (any other text's selection goes).
+        runtime.textSelectionOwner = self
+        selectionAnchor = characterIndex(at: point)
+        if selection != nil { selection = nil; runtime.setNeedsDisplay() }
+    }
+    package func pressMoved(to point: CGPoint) {
+        guard let anchor = selectionAnchor else { return }
+        let focus = characterIndex(at: point)
+        let range = min(anchor, focus)..<max(anchor, focus)
+        guard range != selection else { return }
+        selection = range
+        runtime.setNeedsDisplay()
+    }
+    package func pressEnded(inside: Bool) { pressedLink = nil; selectionAnchor = nil }
     package func pressEnded(inside: Bool, at point: CGPoint) {
-        defer { pressedLink = nil }
+        defer { pressedLink = nil; selectionAnchor = nil }
         guard inside, environment.isEnabled, let pressed = pressedLink, link(at: point) == pressed else { return }
         environment.openURL(pressed)
     }
@@ -887,6 +1015,10 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
             return DisplayFont(run.font.scaled(by: layout.scale), letterSpacing: spacing * layout.scale)
         }
         let bounds = absoluteBounds(context)
+        // The selection's highlight under the glyphs (the field's selection colour).
+        for rect in selectionRects() {
+            list.append(.fillRect(context.absoluteRect(rect), PlatformMetrics.textSelectionColor))
+        }
         // A gradient foreground style (the text's own or the environment's) fills the runs
         // without a colour of their own.
         let runGradients = runGradients

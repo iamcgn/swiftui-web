@@ -10,7 +10,7 @@ Apple docs: [textScale(_:isEnabled:)](https://developer.apple.com/documentation/
 | API | Notes |
 |---|---|
 | `textScale(_:isEnabled:)`, `Text.Scale` (`default`, `secondary`) | implemented (measured) |
-| `textSelection(_:)`, `TextSelectability` (`enabled`, `disabled`) | implemented: the environment value and an I-beam pointer over selectable text; no selection, copy or drag yet |
+| `textSelection(_:)`, `TextSelectability` (`enabled`, `disabled`) | implemented: the environment value, an I-beam pointer, and (2026-10-11) drag selection over the painted text with its highlight, ⌘C copying the selection, a press elsewhere clearing it, on both hosts |
 
 ## Measured (2026-09-05, macOS 26)
 
@@ -58,4 +58,15 @@ frames match in Chromium and WebKit (Firefox measures the 8 pt scaled caption 0.
 - The weight bump is spread as spacing; a browser cannot set `wght` on a canvas font, so
   scaled glyphs are thinner than SwiftUI's.
 - Thin and black tracking above 20 pt, rounded designs at other weights: unmeasured.
-- Text selection itself (highlight, copy, drag) is not implemented.
+- Selection (sw-text-selection, 2026-10-11): a press on selectable text anchors a selection
+  at the character boundary nearest the point (the line under the point, then the nearest
+  boundary by the prefix widths the text engine measures, a sentinel after a trailing space),
+  dragging extends it (`TextNode.pressMoved`), and `TextNode.selectionRects` paints one
+  highlight rect per line under the glyphs in the text field's selection colour before the text.
+  The runtime keeps one `textSelectionOwner`: a press anywhere else clears it, ⌘C puts the
+  selected characters on the pasteboard (`setPasteboard`, the browser's clipboard through the
+  host) ahead of the focused chain's copy handlers. Text with links keeps its link presses.
+  `TextSelectionTests` (a monospace engine: "llo wo" from a 36 pt drag, a wrapped selection
+  across two lines, clamping past the ends) and `Playwright/text-selection-probe.mjs` (the
+  highlight in the gallery's display list, the clipboard text, clearing). Open: word and line
+  selection by double and triple click, keyboard extension (⇧ arrows), a selection drag source.
