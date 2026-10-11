@@ -1771,8 +1771,7 @@ public static let alert = Fixture(
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/button/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 57, lastLine: 73, declaration: #"""
-/// Button styles: the plain default, bordered, prominent, borderless, disabled, destructive.
+        FixtureSource(name: "ios/button/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 72, lastLine: 87, declaration: #"""
 public static let button = Fixture("ios/button/basic", size: CGSize(width: 320, height: 320)) {
     VStack(alignment: .leading, spacing: 12) {
         Button("OK") {}.probe("plain")
@@ -1820,7 +1819,7 @@ public static let systemColors = Fixture("ios/color/system", size: CGSize(width:
     systemColorGrid()
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/controls/settings", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 146, lastLine: 165, declaration: #"""
+        FixtureSource(name: "ios/controls/settings", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 160, lastLine: 179, declaration: #"""
 /// A settings screen: the controls the landing page demonstrates in the iOS look.
 public static let settings = Fixture("ios/controls/settings", size: CGSize(width: 320, height: 480)) {
     VStack(alignment: .leading, spacing: 16) {
@@ -2009,7 +2008,7 @@ public static let dialog = Fixture(
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/form/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 167, lastLine: 185, declaration: #"""
+        FixtureSource(name: "ios/form/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 181, lastLine: 199, declaration: #"""
 /// A grouped form: sections with headers, the rows the settings screen uses.
 public static let form = Fixture("ios/form/basic", size: CGSize(width: 320, height: 520)) {
     Form {
@@ -2085,7 +2084,7 @@ public static let controlSpacing = Fixture("ios/layout/controls", size: CGSize(w
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/list/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 187, lastLine: 198, declaration: #"""
+        FixtureSource(name: "ios/list/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 201, lastLine: 212, declaration: #"""
 /// A list: plain rows, a section with a header, a row with a detail on the right.
 public static let list = Fixture("ios/list/basic", size: CGSize(width: 320, height: 400)) {
     List {
@@ -2164,7 +2163,7 @@ public static let listFooterHeader = Fixture("ios/list/footer-header", size: CGS
     .probe("list")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/list/plain", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 200, lastLine: 209, declaration: #"""
+        FixtureSource(name: "ios/list/plain", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 214, lastLine: 223, declaration: #"""
 /// The same rows in the plain list style.
 public static let listPlain = Fixture("ios/list/plain", size: CGSize(width: 320, height: 300)) {
     List {
@@ -2224,7 +2223,7 @@ public static let menu = Fixture("ios/menu/basic", size: CGSize(width: 320, heig
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/nav/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 211, lastLine: 222, declaration: #"""
+        FixtureSource(name: "ios/nav/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 225, lastLine: 236, declaration: #"""
 /// A navigation stack with a large title over a list.
 public static let navigation = Fixture("ios/nav/basic", size: CGSize(width: 320, height: 480)) {
     NavigationStack {
@@ -2238,7 +2237,7 @@ public static let navigation = Fixture("ios/nav/basic", size: CGSize(width: 320,
     .probe("nav")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/nav/ignores", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 371, lastLine: 397, declaration: #"""
+        FixtureSource(name: "ios/nav/ignores", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 385, lastLine: 411, declaration: #"""
 /// Behaviour: a scroll view ignoring the top safe area under a large title fills the whole
 /// stack, its content starting under the bar.
 public static let navigationIgnores = Fixture(
@@ -2267,7 +2266,7 @@ public static let navigationIgnores = Fixture(
     .probe("nav")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/nav/inline", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 224, lastLine: 235, declaration: ##"""
+        FixtureSource(name: "ios/nav/inline", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 238, lastLine: 249, declaration: ##"""
 /// The same with an inline title.
 public static let navigationInline = Fixture("ios/nav/inline", size: CGSize(width: 320, height: 300)) {
     NavigationStack {
@@ -2281,7 +2280,7 @@ public static let navigationInline = Fixture("ios/nav/inline", size: CGSize(widt
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/nav/list-scroll", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 345, lastLine: 369, declaration: #"""
+        FixtureSource(name: "ios/nav/list-scroll", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 359, lastLine: 383, declaration: #"""
 /// Behaviour: a `List` under a large title scrolls under the bar and collapses it.
 public static let navigationListScroll = Fixture(
     "ios/nav/list-scroll", size: CGSize(width: 320, height: 400),
@@ -2308,7 +2307,7 @@ public static let navigationListScroll = Fixture(
     .probe("nav")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/nav/push", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 237, lastLine: 258, declaration: #"""
+        FixtureSource(name: "ios/nav/push", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 251, lastLine: 272, declaration: #"""
 /// Behaviour: a push through the path binding shows the detail under its own bar with a
 /// back button carrying the previous title; a pop returns to the root.
 public static let navigationPush = Fixture(
@@ -2332,7 +2331,7 @@ public static let navigationPush = Fixture(
     .probe("nav")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/nav/push-inline", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 260, lastLine: 283, declaration: ##"""
+        FixtureSource(name: "ios/nav/push-inline", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 274, lastLine: 297, declaration: ##"""
 /// The pushed screen with an inline title over plain content.
 public static let navigationPushInline = Fixture(
     "ios/nav/push-inline", size: CGSize(width: 320, height: 480),
@@ -2358,7 +2357,7 @@ public static let navigationPushInline = Fixture(
     .probe("nav")
 }.platform(.iOS)
 """##),
-        FixtureSource(name: "ios/nav/push-noback", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 285, lastLine: 305, declaration: #"""
+        FixtureSource(name: "ios/nav/push-noback", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 299, lastLine: 319, declaration: #"""
 /// The pushed screen hides its back button and has no title of its own.
 public static let navigationPushNoBack = Fixture(
     "ios/nav/push-noback", size: CGSize(width: 320, height: 480),
@@ -2381,7 +2380,7 @@ public static let navigationPushNoBack = Fixture(
     .probe("nav")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/nav/scroll", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 316, lastLine: 343, declaration: #"""
+        FixtureSource(name: "ios/nav/scroll", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 330, lastLine: 357, declaration: #"""
 /// Behaviour: scrolling under a large title collapses the bar (a plain scroll view of rows).
 public static let navigationScroll = Fixture(
     "ios/nav/scroll", size: CGSize(width: 320, height: 400),
@@ -2411,7 +2410,7 @@ public static let navigationScroll = Fixture(
     .probe("nav")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/nav/sizing", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 307, lastLine: 314, declaration: #"""
+        FixtureSource(name: "ios/nav/sizing", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 321, lastLine: 328, declaration: #"""
 /// Sizing: a stack with a small root and no title, next to plain text.
 public static let navigationSizing = Fixture("ios/nav/sizing", size: CGSize(width: 320, height: 300)) {
     VStack(spacing: 8) {
@@ -2421,7 +2420,7 @@ public static let navigationSizing = Fixture("ios/nav/sizing", size: CGSize(widt
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/picker/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 119, lastLine: 144, declaration: #"""
+        FixtureSource(name: "ios/picker/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 133, lastLine: 158, declaration: #"""
 /// Picker: the menu default, segmented, hidden label.
 public static let picker = Fixture("ios/picker/basic", size: CGSize(width: 320, height: 240)) {
     VStack(alignment: .leading, spacing: 12) {
@@ -3114,7 +3113,7 @@ public static let sheetMedium = Fixture(
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/slider/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 75, lastLine: 86, declaration: #"""
+        FixtureSource(name: "ios/slider/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 89, lastLine: 100, declaration: #"""
 /// Slider: plain, with a label, stepped, disabled.
 public static let slider = Fixture("ios/slider/basic", size: CGSize(width: 320, height: 220)) {
     VStack(alignment: .leading, spacing: 12) {
@@ -3128,7 +3127,7 @@ public static let slider = Fixture("ios/slider/basic", size: CGSize(width: 320, 
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/stepper/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 88, lastLine: 101, declaration: #"""
+        FixtureSource(name: "ios/stepper/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 102, lastLine: 115, declaration: #"""
 /// Stepper: labelled, hidden label, disabled, next to text.
 public static let stepper = Fixture("ios/stepper/basic", size: CGSize(width: 320, height: 200)) {
     VStack(alignment: .leading, spacing: 12) {
@@ -3290,7 +3289,7 @@ public static let textStyles = Fixture("ios/text/styles", size: CGSize(width: 40
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/textfield/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 103, lastLine: 117, declaration: #"""
+        FixtureSource(name: "ios/textfield/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 117, lastLine: 131, declaration: #"""
 /// TextField: the plain default, rounded border, empty with placeholder, secure, in a row.
 public static let textField = Fixture("ios/textfield/basic", size: CGSize(width: 320, height: 240)) {
     VStack(alignment: .leading, spacing: 12) {
@@ -3336,6 +3335,22 @@ public static let toggle = Fixture("ios/toggle/basic", size: CGSize(width: 320, 
         Toggle("Enabled", isOn: .constant(true)).disabled(true).probe("disabled")
     }
     .probe("stack")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/unavailable/basic", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 57, lastLine: 70, declaration: #"""
+/// Button styles: the plain default, bordered, prominent, borderless, disabled, destructive.
+/// ContentUnavailableView on an iPhone (sw-content-unavailable): the symbol above the
+/// title, the column centred vertically; inside a list and a navigation stack too.
+public static let unavailable = Fixture("ios/unavailable/basic", size: CGSize(width: 320, height: 568)) {
+    VStack(spacing: 0) {
+        ContentUnavailableView("No Mail", systemImage: "tray", description: Text("Try again later.")).frame(height: 260).probe("titled")
+        List {
+            ContentUnavailableView("No Items", systemImage: "tray").probe("inList")
+        }
+        .frame(height: 150)
+        .probe("list")
+        ContentUnavailableView.search.frame(height: 158).probe("search")
+    }
 }.platform(.iOS)
 """#),
         FixtureSource(name: "keyboard/basic", file: "Fixtures/Sources/Keyboard/KeyboardFixtures.swift", firstLine: 34, lastLine: 72, declaration: ##"""
@@ -9905,6 +9920,42 @@ public static let basic = Fixture("unavailable/basic", size: CGSize(width: 360, 
         ContentUnavailableView.search.probe("search")
     }
     .probe("stack")
+}
+"""#),
+        FixtureSource(name: "unavailable/corners", file: "Fixtures/Sources/Unavailable/UnavailableFixtures.swift", firstLine: 15, lastLine: 48, declaration: #"""
+/// Corners (sw-content-unavailable): inside a list (the view fills the list's space) and
+/// inside a navigation stack with a title.
+public static let corners = Fixture("unavailable/corners", size: CGSize(width: 360, height: 600)) {
+    VStack(spacing: 8) {
+        List {
+            ContentUnavailableView {
+                Label { Text("No Items").probe("listTitle") } icon: { Image(systemName: "tray").probe("listIcon") }.probe("listLabel")
+            } description: {
+                Text("Add one.").probe("listDescription")
+            }
+            .probe("inList")
+        }
+        .frame(height: 190)
+        .probe("list")
+        NavigationStack {
+            ContentUnavailableView {
+                Label { Text("Nothing Here").probe("navTitle") } icon: { Image(systemName: "tray").probe("navIcon") }.probe("navLabel")
+            }
+            .probe("inNav")
+            .navigationTitle("Items")
+        }
+        .frame(height: 190)
+        .probe("nav")
+        ContentUnavailableView {
+            Label { Text("No Mail").probe("plainTitle") } icon: { Image(systemName: "tray").probe("plainIcon") }.probe("plainLabel")
+        } description: {
+            Text("Try again later.").probe("plainDescription")
+        } actions: {
+            Button("Retry") {}.probe("plainAction")
+        }
+        .frame(height: 190)
+        .probe("plain")
+    }
 }
 """#),
     ]
@@ -17589,11 +17640,17 @@ public enum TextEditorFixtures {
 /// on an editor; older harness targets show the plain editor).
 struct FindableEditor: View {
     var body: some View {
+        // The macOS 26 SDK (Xcode 27, Swift 6.3) knows the editor's find navigator; CI's macOS
+        // 15 toolchain does not and builds the plain editor (the golden comes from the newer OS).
+        #if compiler(>=6.2)
         if #available(macOS 26.0, iOS 16.0, *) {
             TextEditor(text: .constant("Find me here")).findNavigator(isPresented: .constant(true))
         } else {
             TextEditor(text: .constant("Find me here"))
         }
+        #else
+        TextEditor(text: .constant("Find me here"))
+        #endif
     }
 }
 """##,
@@ -18272,7 +18329,42 @@ public enum UnavailableFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic]
+    /// Corners (sw-content-unavailable): inside a list (the view fills the list's space) and
+    /// inside a navigation stack with a title.
+    public static let corners = Fixture("unavailable/corners", size: CGSize(width: 360, height: 600)) {
+        VStack(spacing: 8) {
+            List {
+                ContentUnavailableView {
+                    Label { Text("No Items").probe("listTitle") } icon: { Image(systemName: "tray").probe("listIcon") }.probe("listLabel")
+                } description: {
+                    Text("Add one.").probe("listDescription")
+                }
+                .probe("inList")
+            }
+            .frame(height: 190)
+            .probe("list")
+            NavigationStack {
+                ContentUnavailableView {
+                    Label { Text("Nothing Here").probe("navTitle") } icon: { Image(systemName: "tray").probe("navIcon") }.probe("navLabel")
+                }
+                .probe("inNav")
+                .navigationTitle("Items")
+            }
+            .frame(height: 190)
+            .probe("nav")
+            ContentUnavailableView {
+                Label { Text("No Mail").probe("plainTitle") } icon: { Image(systemName: "tray").probe("plainIcon") }.probe("plainLabel")
+            } description: {
+                Text("Try again later.").probe("plainDescription")
+            } actions: {
+                Button("Retry") {}.probe("plainAction")
+            }
+            .frame(height: 190)
+            .probe("plain")
+        }
+    }
+
+    public static let all: [Fixture] = [basic, corners]
 }
 """#,
         "Fixtures/Sources/iOS/IOSControlsFixtures.swift": #"""
@@ -18648,6 +18740,20 @@ public enum IOSFixtures {
     }.platform(.iOS)
 
     /// Button styles: the plain default, bordered, prominent, borderless, disabled, destructive.
+    /// ContentUnavailableView on an iPhone (sw-content-unavailable): the symbol above the
+    /// title, the column centred vertically; inside a list and a navigation stack too.
+    public static let unavailable = Fixture("ios/unavailable/basic", size: CGSize(width: 320, height: 568)) {
+        VStack(spacing: 0) {
+            ContentUnavailableView("No Mail", systemImage: "tray", description: Text("Try again later.")).frame(height: 260).probe("titled")
+            List {
+                ContentUnavailableView("No Items", systemImage: "tray").probe("inList")
+            }
+            .frame(height: 150)
+            .probe("list")
+            ContentUnavailableView.search.frame(height: 158).probe("search")
+        }
+    }.platform(.iOS)
+
     public static let button = Fixture("ios/button/basic", size: CGSize(width: 320, height: 320)) {
         VStack(alignment: .leading, spacing: 12) {
             Button("OK") {}.probe("plain")
@@ -18989,7 +19095,7 @@ public enum IOSFixtures {
         .probe("nav")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [navigationListScroll, navigationIgnores, textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
+    public static let all: [Fixture] = [unavailable, navigationListScroll, navigationIgnores, textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
                                         form, list, listPlain, navigation, navigationInline,
                                         navigationPush, navigationPushInline, navigationPushNoBack, navigationSizing, navigationScroll]
 }

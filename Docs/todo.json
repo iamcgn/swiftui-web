@@ -1376,13 +1376,14 @@
       "framework": "SwiftUI",
       "area": "ContentUnavailableView",
       "title": "ContentUnavailableView in containers",
-      "detail": "Inside lists and navigation, the iOS vertical centring, the symbol above the title on other platforms.",
+      "detail": "Inside lists and navigation, the iOS vertical centring, the symbol above the title on other platforms. Done 2026-10-11 (Phase 9, item 16): measured on macOS 27 (`unavailable/corners`, `unavailable/basic` regenerated) and the iOS 27 simulator (`ios/unavailable/basic`): the symbol above a title3 bold title, iOS centring, a NavigationStack centring the view's own height, list rows filling; the simulator script takes IOS_RUNTIME.",
       "kind": "verify",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/ContentUnavailableView.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-slider-stepper",

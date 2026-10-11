@@ -517,9 +517,11 @@
         },
         {
           "api": "ContentUnavailableView (label/description/actions, title+image, .search)",
-          "status": "partial",
-          "notes": "Large bold secondary title (title only, as the macOS 26 golden shows), body description, actions; top-aligned in the space it fills",
+          "status": "full",
+          "notes": "macOS 27 / iOS design (2026-10-11): the symbol (36 pt, tertiary) above the title3 bold title, the title3 description 6 below, actions 18 below, 20 at the top; top-aligned on a Mac, centred on an iPhone, its own height centred inside a NavigationStack, filling a list row; a catalog-image icon does not show. Open: macOS 27 list insets and buttons",
           "fixtures": [
+            "unavailable/corners",
+            "ios/unavailable/basic",
             "unavailable/basic"
           ]
         },

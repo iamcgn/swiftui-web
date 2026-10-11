@@ -486,6 +486,16 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(word, .style("body")))
             requests.append(TextMetricRequest(word, defaultFont))
         }
+        // ContentUnavailableView on macOS 27 (unavailable/basic, unavailable/corners): the title
+        // is the bold title3 style (a 23 line), the description title3 (22).
+        for word in ["No Mail", "No Items", "Nothing Here", "No Results"] {
+            requests.append(TextMetricRequest(word, .style("title3", weight: "bold")))
+        }
+        for word in ["Try again later.", "Add one.", "Search again.", "Check the spelling or try a new search."] {
+            requests.append(TextMetricRequest(word, .style("title3")))
+            requests.append(TextMetricRequest(word, .style("title3"), width: 320))
+            requests.append(TextMetricRequest(word, .style("title3"), width: 328))
+        }
         // Table fixtures: headers (bold when sorted), cells.
         for word in ["Name", "Color", "Count"] {
             requests.append(TextMetricRequest(word, defaultFont))

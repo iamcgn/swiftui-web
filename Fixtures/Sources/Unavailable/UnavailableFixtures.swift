@@ -12,5 +12,40 @@ public enum UnavailableFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic]
+    /// Corners (sw-content-unavailable): inside a list (the view fills the list's space) and
+    /// inside a navigation stack with a title.
+    public static let corners = Fixture("unavailable/corners", size: CGSize(width: 360, height: 600)) {
+        VStack(spacing: 8) {
+            List {
+                ContentUnavailableView {
+                    Label { Text("No Items").probe("listTitle") } icon: { Image(systemName: "tray").probe("listIcon") }.probe("listLabel")
+                } description: {
+                    Text("Add one.").probe("listDescription")
+                }
+                .probe("inList")
+            }
+            .frame(height: 190)
+            .probe("list")
+            NavigationStack {
+                ContentUnavailableView {
+                    Label { Text("Nothing Here").probe("navTitle") } icon: { Image(systemName: "tray").probe("navIcon") }.probe("navLabel")
+                }
+                .probe("inNav")
+                .navigationTitle("Items")
+            }
+            .frame(height: 190)
+            .probe("nav")
+            ContentUnavailableView {
+                Label { Text("No Mail").probe("plainTitle") } icon: { Image(systemName: "tray").probe("plainIcon") }.probe("plainLabel")
+            } description: {
+                Text("Try again later.").probe("plainDescription")
+            } actions: {
+                Button("Retry") {}.probe("plainAction")
+            }
+            .frame(height: 190)
+            .probe("plain")
+        }
+    }
+
+    public static let all: [Fixture] = [basic, corners]
 }

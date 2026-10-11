@@ -22,9 +22,12 @@ esac
 DUMP=; if [[ "${1:-}" == "--dump" ]]; then DUMP=--dump; shift; fi
 FILTER="${1:-}"
 
-DEVICE_NAME="SwiftUIWeb SE"
 DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation"
-RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-26-0"
+# The harness built with Xcode 27's SDK no longer loads on the iOS 26.0 runtime (a SwiftUI
+# conformance it references is missing there); IOS_RUNTIME selects another installed runtime,
+# e.g. IOS_RUNTIME=com.apple.CoreSimulator.SimRuntime.iOS-27-0 (the golden's meta.json records the host).
+RUNTIME="${IOS_RUNTIME:-com.apple.CoreSimulator.SimRuntime.iOS-26-0}"
+DEVICE_NAME="SwiftUIWeb SE${IOS_RUNTIME:+ ${IOS_RUNTIME##*.}}"
 UDID="$(xcrun simctl list devices -j | python3 -c '
 import json, sys
 name, runtime = sys.argv[1], sys.argv[2]

@@ -1,5 +1,6 @@
-// ContentUnavailableView (Docs/elements/ContentUnavailableView.md): a large secondary title,
-// a description and actions, top-aligned in the space the view fills.
+// ContentUnavailableView (Docs/elements/ContentUnavailableView.md): the label's symbol above
+// its title (title3 bold, secondary), a description (title3, secondary) and actions, top-aligned
+// in the space the view fills (macOS 27 and iOS; a NavigationStack centres it at its own height).
 
 /// An interface, consisting of a label and additional content, that you display when the
 /// content of your app is unavailable to users.
@@ -16,14 +17,68 @@ public struct ContentUnavailableView<Label: View, Description: View, Actions: Vi
         self.actions = actions()
     }
 
+    @Environment(\._navigationContext) private var navigation
+    @Environment(\.platformProfile) private var profile
+
     public var body: some View {
-        VStack(spacing: PlatformMetrics.unavailableSpacing) {
-            label.labelStyle(.titleOnly).font(.largeTitle).fontWeight(.bold).foregroundStyle(.secondary)
-            description.font(.body).foregroundStyle(.secondary)
-            HStack { actions }
+        let column = VStack(spacing: 0) {
+            label.labelStyle(_UnavailableLabelStyle())
+            if Description.self != EmptyView.self {
+                description.font(.title3).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.top, PlatformMetrics.unavailableDescriptionGap)
+            }
+            if Actions.self != EmptyView.self {
+                HStack { actions }.padding(.top, PlatformMetrics.unavailableActionsGap)
+            }
         }
         .padding(.top, PlatformMetrics.unavailableTopPadding)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.bottom, PlatformMetrics.unavailableBottomPadding)
+        .fixedSize(horizontal: false, vertical: true)   // keeps its lines in a short cell (iOS `search` wraps to two)
+        // Inside a NavigationStack the view keeps its own height and the stack centres it
+        // (measured on macOS 27: 129.5 for a symbol and a title in a 190 pt stack). An iPhone
+        // centres the column in the space it fills; a Mac keeps it at the top.
+        if navigation != nil {
+            column.frame(maxWidth: .infinity)
+        } else {
+            column.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: profile.isIOS ? .center : .top)
+        }
+    }
+}
+
+/// The unavailable view's label: the symbol (36 pt, the tertiary colour) above the title
+/// (title3 bold, secondary), 24 apart, both centred. A catalog image icon does not show (the
+/// harness's `Label(_:image:)` measured a title-only label, `unavailable/basic` `customLabel`).
+struct _UnavailableLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(spacing: PlatformMetrics.unavailableIconGap) {
+            if configuration.icon.content._isSystemSymbol {
+                configuration.icon.font(.system(size: PlatformMetrics.unavailableIconSize)).foregroundStyle(.tertiary)
+            }
+            configuration.title.font(.title3).fontWeight(.bold).foregroundStyle(.secondary).multilineTextAlignment(.center)
+        }
+    }
+}
+
+extension AnyView {
+    /// Whether the erased view is a system symbol image (`Image(systemName:)`), possibly probed.
+    @MainActor package var _isSystemSymbol: Bool {
+        if let image = (storage as? AnyViewStorage<Image>)?.view, case .system = image.source { return true }
+        var visitor = _SymbolFinder()
+        return storage.visit(&visitor)
+    }
+}
+
+/// Finds a system symbol under modifiers (the fixture probe's background, a frame): the
+/// `content` of each `ModifiedContent` in turn.
+private struct _SymbolFinder: _AnyViewVisitor {
+    @MainActor mutating func visit<V: View>(_ view: V) -> Bool {
+        var current: Any = view
+        for _ in 0..<8 {
+            if let image = current as? Image { if case .system = image.source { return true } else { return false } }
+            if let erased = current as? AnyView { return erased._isSystemSymbol }
+            guard let inner = Mirror(reflecting: current).children.first(where: { $0.label == "content" })?.value else { return false }
+            current = inner
+        }
+        return false
     }
 }
 

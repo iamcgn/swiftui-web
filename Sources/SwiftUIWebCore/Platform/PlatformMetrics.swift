@@ -574,6 +574,14 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     // ContentUnavailableView (macOS 26.2: fixture unavailable/basic, Docs/elements/ContentUnavailableView.md)
     package var unavailableSpacing: CGFloat = 12
     package var unavailableTopPadding: CGFloat = 20
+    /// macOS 27 / iOS (unavailable/corners): the symbol's size (36 pt: the tray is 50 × 37.5
+    /// against Apple's 50.5 × 36.5) and its gap to the title, the gaps before the description and
+    /// the actions, the bottom padding of the view's own height.
+    package var unavailableIconSize: CGFloat = 36
+    package var unavailableIconGap: CGFloat = 24
+    package var unavailableDescriptionGap: CGFloat = 6
+    package var unavailableActionsGap: CGFloat = 18
+    package var unavailableBottomPadding: CGFloat = 26
 
     // Lazy grids (macOS 26.2: fixture lazy/grids, Docs/elements/Lazy.md)
     package var gridItemSpacing: CGFloat = 8

@@ -474,6 +474,11 @@ extension PlatformMetrics {
     package static var splitDividerAlpha: Double { current.splitDividerAlpha }
     package static var unavailableSpacing: CGFloat { current.unavailableSpacing }
     package static var unavailableTopPadding: CGFloat { current.unavailableTopPadding }
+    package static var unavailableIconSize: CGFloat { current.unavailableIconSize }
+    package static var unavailableIconGap: CGFloat { current.unavailableIconGap }
+    package static var unavailableDescriptionGap: CGFloat { current.unavailableDescriptionGap }
+    package static var unavailableActionsGap: CGFloat { current.unavailableActionsGap }
+    package static var unavailableBottomPadding: CGFloat { current.unavailableBottomPadding }
     package static var gridItemSpacing: CGFloat { current.gridItemSpacing }
     package static var disclosureRowPadding: CGFloat { current.disclosureRowPadding }
     package static var disclosureChevronWidth: CGFloat { current.disclosureChevronWidth }

@@ -76,8 +76,15 @@ import SwiftUIWebHeadless
 
     private func runtime<V: View>(_ view: V) -> Runtime {
         var entries: [String: RecordedTextEngine.Entry] = [:]
-        entries[RecordedTextEngine.key(font: Self.large, width: nil, string: "No Mail")] = .init(width: 90, height: 38, firstBaseline: 29, lastBaseline: 29)
-        entries[RecordedTextEngine.key(font: Self.body, width: nil, string: "Try again.")] = .init(width: 60, height: 18.5, firstBaseline: 14, lastBaseline: 14)
+        // The unavailable view's title3 bold (a 23 line) and title3 (22) texts, as measured on macOS 27.
+        let title3Bold = ResolvedFont(family: "system", size: 15, weight: .bold, italic: false, textStyle: .title3, weightOverridden: true)
+        let title3 = ResolvedFont(family: "system", size: 15, weight: .regular, italic: false, textStyle: .title3)
+        entries[RecordedTextEngine.key(font: title3Bold, width: nil, string: "No Mail")] = .init(width: 54.5, height: 23, firstBaseline: 17, lastBaseline: 17)
+        entries[RecordedTextEngine.key(font: title3, width: nil, string: "Try again.")] = .init(width: 60, height: 22, firstBaseline: 17, lastBaseline: 17)
+        for width: Double in [300, 54.5, 60] {
+            entries[RecordedTextEngine.key(font: title3Bold, width: width, string: "No Mail")] = .init(width: 54.5, height: 23, firstBaseline: 17, lastBaseline: 17)
+            entries[RecordedTextEngine.key(font: title3, width: width, string: "Try again.")] = .init(width: 60, height: 22, firstBaseline: 17, lastBaseline: 17)
+        }
         for (word, width) in [("Share…", 45.5), ("Retry", 32.5)] {
             entries[RecordedTextEngine.key(font: Self.system13, width: nil, string: word)] = .init(width: width, height: 16, firstBaseline: 13, lastBaseline: 13)
         }
@@ -90,15 +97,16 @@ import SwiftUIWebHeadless
 
     @Test func unavailableColumn() {
         let r = runtime(ContentUnavailableView { Label("No Mail", systemImage: "tray")._probe("label") } description: { Text("Try again.")._probe("description") } actions: { Button("Retry") {}._probe("action") }._probe("view"))
-        // Fills the space; the column starts 20 down: title (large bold, title only), 12, description, 12, actions.
+        // Fills the space; the column starts 20 down (macOS 27): the 36 pt symbol (the tray is
+        // 50 × 37.5), 24, the title3 bold title (23), 6, the description (22), 18, the actions.
         #expect(r.probeFrames["view"] == CGRect(x: 0, y: 0, width: 300, height: 200))
-        #expect(r.probeFrames["label"] == CGRect(x: 105, y: 20, width: 90, height: 38))
-        #expect(r.probeFrames["description"] == CGRect(x: 120, y: 70, width: 60, height: 18.5))
-        #expect(r.probeFrames["action"]?.minY == 100.5)
+        #expect(r.probeFrames["label"] == CGRect(x: 122.75, y: 20, width: 54.5, height: 37.5 + 24 + 23), "\(r.probeFrames["label"] as Any)")
+        #expect(r.probeFrames["description"] == CGRect(x: 120, y: 20 + 84.5 + 6, width: 60, height: 22), "\(r.probeFrames["description"] as Any)")
+        #expect(r.probeFrames["action"]?.minY == 20 + 84.5 + 6 + 22 + 18)
         let commands = r.render(scale: 2).commands.map(\.description)
-        // Secondary colour on the title and description, and no icon for the label.
-        #expect(commands.contains { $0.hasPrefix("drawText(\"No Mail\" system 26 w700") && $0.hasSuffix("#000000@0.5)") })
-        #expect(!commands.contains { $0.hasPrefix("strokePath") && !$0.contains("w=1") })
+        // Secondary colour on the title and description; the symbol's stand-in strokes in the tertiary colour.
+        #expect(commands.contains { $0.hasPrefix("drawText(\"No Mail\" system 15 w700") && $0.hasSuffix("#000000@0.5)") }, "\(commands)")
+        #expect(commands.contains { $0.hasPrefix("strokePath") && $0.hasSuffix("@0.2975") })
         #expect(ContentUnavailableView.search.description?.resolvedString == "Check the spelling or try a new search.")
     }
 

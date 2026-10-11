@@ -55,6 +55,20 @@ public enum IOSFixtures {
     }.platform(.iOS)
 
     /// Button styles: the plain default, bordered, prominent, borderless, disabled, destructive.
+    /// ContentUnavailableView on an iPhone (sw-content-unavailable): the symbol above the
+    /// title, the column centred vertically; inside a list and a navigation stack too.
+    public static let unavailable = Fixture("ios/unavailable/basic", size: CGSize(width: 320, height: 568)) {
+        VStack(spacing: 0) {
+            ContentUnavailableView("No Mail", systemImage: "tray", description: Text("Try again later.")).frame(height: 260).probe("titled")
+            List {
+                ContentUnavailableView("No Items", systemImage: "tray").probe("inList")
+            }
+            .frame(height: 150)
+            .probe("list")
+            ContentUnavailableView.search.frame(height: 158).probe("search")
+        }
+    }.platform(.iOS)
+
     public static let button = Fixture("ios/button/basic", size: CGSize(width: 320, height: 320)) {
         VStack(alignment: .leading, spacing: 12) {
             Button("OK") {}.probe("plain")
@@ -396,7 +410,7 @@ public enum IOSFixtures {
         .probe("nav")
     }.platform(.iOS)
 
-    public static let all: [Fixture] = [navigationListScroll, navigationIgnores, textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
+    public static let all: [Fixture] = [unavailable, navigationListScroll, navigationIgnores, textStyles, layoutBasics, toggle, button, slider, stepper, textField, picker, settings,
                                         form, list, listPlain, navigation, navigationInline,
                                         navigationPush, navigationPushInline, navigationPushNoBack, navigationSizing, navigationScroll]
 }

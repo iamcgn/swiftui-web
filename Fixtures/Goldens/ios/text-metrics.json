@@ -2064,11 +2064,23 @@
       "lastBaseline" : 18.5,
       "width" : 10
     },
+    "style:body||12.5" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 31.5
+    },
     "style:body||25" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 20
+    },
+    "style:body||25%" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 35.5
     },
     "style:body||50" : {
       "firstBaseline" : 18.5,
@@ -2502,6 +2514,12 @@
       "lastBaseline" : 18.5,
       "width" : 38.5
     },
+    "style:body||Kind" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 34.5
+    },
     "style:body||Label" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -2712,6 +2730,12 @@
       "lastBaseline" : 18.5,
       "width" : 114.5
     },
+    "style:body||Price" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 39
+    },
     "style:body||Prominent" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -2753,6 +2777,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 58
+    },
+    "style:body||Replace" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 61
     },
     "style:body||Right" : {
       "firstBaseline" : 18.5,
@@ -2843,6 +2873,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 125.5
+    },
+    "style:body||Share" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 44
     },
     "style:body||Shared" : {
       "firstBaseline" : 18.5,
@@ -3048,10 +3084,22 @@
       "lastBaseline" : 18.5,
       "width" : 0
     },
+    "style:body|0.0|12.5" : {
+      "firstBaseline" : 18.5,
+      "height" : 102.5,
+      "lastBaseline" : 96.5,
+      "width" : 0
+    },
     "style:body|0.0|25" : {
       "firstBaseline" : 18.5,
       "height" : 49,
       "lastBaseline" : 43,
+      "width" : 0
+    },
+    "style:body|0.0|25%" : {
+      "firstBaseline" : 18.5,
+      "height" : 76.5,
+      "lastBaseline" : 70.5,
       "width" : 0
     },
     "style:body|0.0|50" : {
@@ -3486,6 +3534,12 @@
       "lastBaseline" : 121,
       "width" : 0
     },
+    "style:body|0.0|Kind" : {
+      "firstBaseline" : 18.5,
+      "height" : 102.5,
+      "lastBaseline" : 96.5,
+      "width" : 0
+    },
     "style:body|0.0|Label" : {
       "firstBaseline" : 18.5,
       "height" : 127,
@@ -3696,6 +3750,12 @@
       "lastBaseline" : 277,
       "width" : 0
     },
+    "style:body|0.0|Price" : {
+      "firstBaseline" : 18.5,
+      "height" : 128.5,
+      "lastBaseline" : 122.5,
+      "width" : 0
+    },
     "style:body|0.0|Prominent" : {
       "firstBaseline" : 18.5,
       "height" : 231,
@@ -3736,6 +3796,12 @@
       "firstBaseline" : 18.5,
       "height" : 179,
       "lastBaseline" : 173,
+      "width" : 0
+    },
+    "style:body|0.0|Replace" : {
+      "firstBaseline" : 18.5,
+      "height" : 180.5,
+      "lastBaseline" : 174.5,
       "width" : 0
     },
     "style:body|0.0|Right" : {
@@ -3826,6 +3892,12 @@
       "firstBaseline" : 18.5,
       "height" : 387,
       "lastBaseline" : 381,
+      "width" : 0
+    },
+    "style:body|0.0|Share" : {
+      "firstBaseline" : 18.5,
+      "height" : 128.5,
+      "lastBaseline" : 122.5,
       "width" : 0
     },
     "style:body|0.0|Shared" : {
@@ -4049,6 +4121,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 55
+    },
+    "style:body|279.0|Replace" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 61
     },
     "style:body|284.0|A long note that wraps onto several lines in a narrow field" : {
       "firstBaseline" : 18.5,
@@ -11964,6 +12042,30 @@
       "lastBaseline" : 21,
       "width" : 55
     },
+    "style:title3:w700||No Items" : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 84
+    },
+    "style:title3:w700||No Mail" : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 70
+    },
+    "style:title3:w700||No Results" : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 101
+    },
+    "style:title3:w700||Nothing Here" : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 125
+    },
     "style:title3:w700||Options" : {
       "firstBaseline" : 21,
       "height" : 28,
@@ -12042,6 +12144,30 @@
       "lastBaseline" : 107,
       "width" : 0
     },
+    "style:title3:w700|0.0|No Items" : {
+      "firstBaseline" : 21,
+      "height" : 202,
+      "lastBaseline" : 195,
+      "width" : 0
+    },
+    "style:title3:w700|0.0|No Mail" : {
+      "firstBaseline" : 21,
+      "height" : 173,
+      "lastBaseline" : 166,
+      "width" : 0
+    },
+    "style:title3:w700|0.0|No Results" : {
+      "firstBaseline" : 21,
+      "height" : 260,
+      "lastBaseline" : 253,
+      "width" : 0
+    },
+    "style:title3:w700|0.0|Nothing Here" : {
+      "firstBaseline" : 21,
+      "height" : 318,
+      "lastBaseline" : 311,
+      "width" : 0
+    },
     "style:title3:w700|0.0|Options" : {
       "firstBaseline" : 21,
       "height" : 201,
@@ -12107,6 +12233,18 @@
       "height" : 28,
       "lastBaseline" : 21,
       "width" : 73
+    },
+    "style:title3||Add one." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 78.5
+    },
+    "style:title3||Check the spelling or try a new search." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 338
     },
     "style:title3||Count" : {
       "firstBaseline" : 21,
@@ -12174,6 +12312,12 @@
       "lastBaseline" : 21,
       "width" : 43
     },
+    "style:title3||Search again." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 118.5
+    },
     "style:title3||The quick brown fox" : {
       "firstBaseline" : 21,
       "height" : 28,
@@ -12185,6 +12329,12 @@
       "height" : 28,
       "lastBaseline" : 21,
       "width" : 54.5
+    },
+    "style:title3||Try again later." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 127
     },
     "style:title3||Volume" : {
       "firstBaseline" : 21,
@@ -12214,6 +12364,18 @@
       "firstBaseline" : 21,
       "height" : 201,
       "lastBaseline" : 194,
+      "width" : 0
+    },
+    "style:title3|0.0|Add one." : {
+      "firstBaseline" : 21,
+      "height" : 202,
+      "lastBaseline" : 195,
+      "width" : 0
+    },
+    "style:title3|0.0|Check the spelling or try a new search." : {
+      "firstBaseline" : 21,
+      "height" : 927,
+      "lastBaseline" : 920,
       "width" : 0
     },
     "style:title3|0.0|Count" : {
@@ -12282,6 +12444,12 @@
       "lastBaseline" : 107,
       "width" : 0
     },
+    "style:title3|0.0|Search again." : {
+      "firstBaseline" : 21,
+      "height" : 347,
+      "lastBaseline" : 340,
+      "width" : 0
+    },
     "style:title3|0.0|The quick brown fox" : {
       "firstBaseline" : 21,
       "height" : 462,
@@ -12294,11 +12462,65 @@
       "lastBaseline" : 165,
       "width" : 0
     },
+    "style:title3|0.0|Try again later." : {
+      "firstBaseline" : 21,
+      "height" : 405,
+      "lastBaseline" : 398,
+      "width" : 0
+    },
     "style:title3|0.0|Volume" : {
       "firstBaseline" : 21,
       "height" : 172,
       "lastBaseline" : 165,
       "width" : 0
+    },
+    "style:title3|320.0|Add one." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 78.5
+    },
+    "style:title3|320.0|Check the spelling or try a new search." : {
+      "firstBaseline" : 21,
+      "height" : 57,
+      "lastBaseline" : 50,
+      "width" : 233
+    },
+    "style:title3|320.0|Search again." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 118.5
+    },
+    "style:title3|320.0|Try again later." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 127
+    },
+    "style:title3|328.0|Add one." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 78.5
+    },
+    "style:title3|328.0|Check the spelling or try a new search." : {
+      "firstBaseline" : 21,
+      "height" : 57,
+      "lastBaseline" : 50,
+      "width" : 233
+    },
+    "style:title3|328.0|Search again." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 118.5
+    },
+    "style:title3|328.0|Try again later." : {
+      "firstBaseline" : 21,
+      "height" : 28,
+      "lastBaseline" : 21,
+      "width" : 127
     },
     "system:10:400:default||Apple" : {
       "firstBaseline" : 9.5,
@@ -14268,6 +14490,12 @@
       "lastBaseline" : 12.5,
       "width" : 4
     },
+    "system:13:400:default||→" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 12
+    },
     "system:13:400:default||+" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -14406,6 +14634,12 @@
       "lastBaseline" : 12.5,
       "width" : 14
     },
+    "system:13:400:default||12.5" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 25
+    },
     "system:13:400:default||15" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -14525,6 +14759,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 346
+    },
+    "system:13:400:default||A title that wraps onto a second line here" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 248
     },
     "system:13:400:default||A0 D0" : {
       "firstBaseline" : 12.5,
@@ -14651,6 +14891,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 69
+    },
+    "system:13:400:default||Arrow" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 36
     },
     "system:13:400:default||B" : {
       "firstBaseline" : 12.5,
@@ -15090,6 +15336,18 @@
       "lastBaseline" : 12.5,
       "width" : 32.5
     },
+    "system:13:400:default||Find" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 26
+    },
+    "system:13:400:default||Find me here" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 79
+    },
     "system:13:400:default||First" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -15378,6 +15636,12 @@
       "lastBaseline" : 12.5,
       "width" : 70
     },
+    "system:13:400:default||Kind" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 27.5
+    },
     "system:13:400:default||Label" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -15437,6 +15701,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 47
+    },
+    "system:13:400:default||Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10\nLine 11\nLine 12\nLine 13\nLine 14\nLine 15\nLine 16\nLine 17\nLine 18\nLine 19\nLine 20" : {
+      "firstBaseline" : 12.5,
+      "height" : 310.5,
+      "lastBaseline" : 307.5,
+      "width" : 45
     },
     "system:13:400:default||Link" : {
       "firstBaseline" : 12.5,
@@ -15653,6 +15923,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 25
+    },
+    "system:13:400:default||One\nTwo\nThree\nFour" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 35.5
     },
     "system:13:400:default||Open site" : {
       "firstBaseline" : 12.5,
@@ -16656,6 +16932,12 @@
       "lastBaseline" : 12.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|→" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 0
+    },
     "system:13:400:default|0.0|+" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -16794,6 +17076,12 @@
       "lastBaseline" : 28.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|12.5" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
     "system:13:400:default|0.0|15" : {
       "firstBaseline" : 12.5,
       "height" : 31.5,
@@ -16912,6 +17200,12 @@
       "firstBaseline" : 12.5,
       "height" : 745,
       "lastBaseline" : 742,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|A title that wraps onto a second line here" : {
+      "firstBaseline" : 12.5,
+      "height" : 527.5,
+      "lastBaseline" : 524.5,
       "width" : 0
     },
     "system:13:400:default|0.0|A0 D0" : {
@@ -17038,6 +17332,12 @@
       "firstBaseline" : 12.5,
       "height" : 155.5,
       "lastBaseline" : 152.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Arrow" : {
+      "firstBaseline" : 12.5,
+      "height" : 78,
+      "lastBaseline" : 75,
       "width" : 0
     },
     "system:13:400:default|0.0|B" : {
@@ -17478,6 +17778,18 @@
       "lastBaseline" : 90.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|Find" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Find me here" : {
+      "firstBaseline" : 12.5,
+      "height" : 155.5,
+      "lastBaseline" : 152.5,
+      "width" : 0
+    },
     "system:13:400:default|0.0|First" : {
       "firstBaseline" : 12.5,
       "height" : 78,
@@ -17766,6 +18078,12 @@
       "lastBaseline" : 152.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|Kind" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Label" : {
       "firstBaseline" : 12.5,
       "height" : 78,
@@ -17824,6 +18142,12 @@
       "firstBaseline" : 12.5,
       "height" : 109,
       "lastBaseline" : 106,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10\nLine 11\nLine 12\nLine 13\nLine 14\nLine 15\nLine 16\nLine 17\nLine 18\nLine 19\nLine 20" : {
+      "firstBaseline" : 12.5,
+      "height" : 993,
+      "lastBaseline" : 990,
       "width" : 0
     },
     "system:13:400:default|0.0|Link" : {
@@ -18040,6 +18364,12 @@
       "firstBaseline" : 12.5,
       "height" : 47,
       "lastBaseline" : 44,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|One\nTwo\nThree\nFour" : {
+      "firstBaseline" : 12.5,
+      "height" : 233,
+      "lastBaseline" : 230,
       "width" : 0
     },
     "system:13:400:default|0.0|Open site" : {
@@ -18756,6 +19086,18 @@
       "lastBaseline" : 183.5,
       "width" : 0
     },
+    "system:13:400:default|17.5;l1|Done" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 10.5
+    },
+    "system:13:400:default|17.5|Done" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 17
+    },
     "system:13:400:default|40.0;l1;m0.5|The quick brown fox" : {
       "firstBaseline" : 6,
       "height" : 8,
@@ -18942,6 +19284,12 @@
       "lastBaseline" : 59.5,
       "width" : 134
     },
+    "system:13:400:default|148.5|A title that wraps onto a second line here" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 148.5
+    },
     "system:13:400:default|150.0;l1;thead|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -19043,6 +19391,12 @@
       "height" : 31.5,
       "lastBaseline" : 28.5,
       "width" : 139
+    },
+    "system:13:400:default|155.5|A title that wraps onto a second line here" : {
+      "firstBaseline" : 12.5,
+      "height" : 31.5,
+      "lastBaseline" : 28.5,
+      "width" : 148.5
     },
     "system:13:400:default|160.0;k2.0|Wrapped kerned words fill the line" : {
       "firstBaseline" : 12.5,
@@ -19553,6 +19907,24 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 37.5
+    },
+    "system:13:400:default|290.0|Find me here" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 79
+    },
+    "system:13:400:default|290.0|Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10\nLine 11\nLine 12\nLine 13\nLine 14\nLine 15\nLine 16\nLine 17\nLine 18\nLine 19\nLine 20" : {
+      "firstBaseline" : 12.5,
+      "height" : 310.5,
+      "lastBaseline" : 307.5,
+      "width" : 45
+    },
+    "system:13:400:default|290.0|One\nTwo\nThree\nFour" : {
+      "firstBaseline" : 12.5,
+      "height" : 62.5,
+      "lastBaseline" : 59.5,
+      "width" : 35.5
     },
     "system:13:400:default|300.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 12.5,

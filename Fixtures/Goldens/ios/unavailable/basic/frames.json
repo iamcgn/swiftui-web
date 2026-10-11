@@ -1,0 +1,33 @@
+{
+  "fixture" : "ios\/unavailable\/basic",
+  "frames" : {
+    "inList" : {
+      "height" : 123.5,
+      "width" : 256,
+      "x" : 32,
+      "y" : 310
+    },
+    "list" : {
+      "height" : 150,
+      "width" : 320,
+      "x" : 0,
+      "y" : 260
+    },
+    "search" : {
+      "height" : 158,
+      "width" : 320,
+      "x" : 0,
+      "y" : 410
+    },
+    "titled" : {
+      "height" : 260,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 568,
+    "width" : 320
+  }
+}

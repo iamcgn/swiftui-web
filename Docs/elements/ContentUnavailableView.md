@@ -7,34 +7,43 @@ Apple docs: [ContentUnavailableView](https://developer.apple.com/documentation/s
 | API | Notes |
 |---|---|
 | `ContentUnavailableView(label:description:actions:)` (description and actions optional), `ContentUnavailableView(_ title, image:description:)`, `ContentUnavailableView(_ title, systemImage:description:)`, `.search`, `.search(text:)` | implemented |
-| The large symbol above the title | not shown: the macOS 26 golden shows the label's title only (`labelStyle(.titleOnly)`), so the image is dropped here too |
+| The symbol above the title | implemented 2026-10-11 (macOS 27 and iOS): a 36 pt symbol in the tertiary colour, 24 above the title; a catalog-image icon does not show (measured through the harness's `Label(_:image:)`) |
 
-## Behaviour
+## Behaviour (macOS 27 / iOS, 2026-10-11)
 
-A `VStack` with 12 pt spacing: the label in the large title font, bold, the secondary colour and
-the title-only label style; the description in the body font and the secondary colour; the
-actions in an `HStack`. The column is padded 20 at the top and top-aligned in a frame that fills
-whatever it is offered (so three of them in a 400 pt stack are 128 each). `search` is "No
-Results" with "Check the spelling or try a new search."; `search(text:)` quotes the text.
+A column: the label in `_UnavailableLabelStyle` (the symbol, then 24, then the title in the
+bold `title3` style and the secondary colour), the description in `title3` and the secondary
+colour 6 below, the actions in an `HStack` 18 below; 20 above and 26 below. On a Mac the column
+sits at the top of the space the view fills, on an iPhone it is centred; inside a
+`NavigationStack` the view keeps its own height and the stack centres it. The column keeps its
+lines in a short cell (`fixedSize` vertically: the iOS `search` preset wraps to two lines).
+`search` is "No Results" with "Check the spelling or try a new search."; `search(text:)` quotes
+the text.
 
-## Measured (macOS 26.2, `unavailable/basic`, 2026-09-04)
+## Measured (macOS 27.0.1, `unavailable/basic`, `unavailable/corners`; iOS 27.0, `ios/unavailable/basic`; 2026-10-11)
 
 | Property | Value | Probe |
 |---|---|---|
-| Frame | fills the space: 360 wide, a third of 400 (128) each in the fixture's stack | `titled`, `custom`, `search` |
-| Title | large title bold (26 pt, 38 line, "No Mail" 90 wide), colour 128 = secondary; top at 20 | `customLabel` (130.5 × 38 at y + 20), pixels |
-| Description | body (18.5 line), secondary; 12 under the title | `description` (y + 70) |
-| Actions | a bordered button 12 under the description | `action` (24 tall at y + 100.5) |
-| Icon | none (the `tray` symbol and the `icon` image do not appear) | pixels |
+| Frame | fills the space: a third of 400 (128) each in the basic fixture's stack; 190 in a 190 pt cell | `titled`, `custom`, `search`, `plain` |
+| Symbol | the `tray` 50.5 × 36.5 (the runtime's 36 pt stand-in is 50 × 37.5), 20 below the top, centred; colour (189, 189, 189) | `plainIcon`, `listIcon`, `navIcon` |
+| Title | `title3` bold (15 pt, a 23 line; "No Mail" 54.5 wide), secondary (128); 24 below the symbol | `plainTitle`, `listTitle`, `navTitle`, `customLabel` (23 tall: title only for a catalog image) |
+| Description | `title3` (a 22 line; "Try again later." 100.5 wide), secondary; 6 below the title | `plainDescription`, `listDescription`, `description` |
+| Actions | 18 below the description (a macOS 27 button is 20 tall and 48.5 wide, ignored: the control model is 26.2's) | `plainAction`, `action` |
+| In a `List` | the row fills the list's content (328 × 169.5 in a 360 × 190 list, 14 above and 6.5 below: macOS 27 list insets, ignored) with the same column | `inList` |
+| In a `NavigationStack` | 129.5 tall (20 + 36.5 + 24 + 23 + 26) centred in the 190 stack | `inNav` |
+| iPhone | the column centred vertically in its space; the search preset's description wraps to two lines in a 158 pt cell; a list row 123.5 tall (iOS 27 list insets, ignored) | `titled`, `search`, `inList` |
 
-## Verification (2026-09-04)
+The 26.2 look (a large-title text alone, top-aligned) is gone: macOS 27 draws the design iOS had.
 
-Tier A: `unavailable/basic` exact. Tier B: Chromium 0.33 %, WebKit 0.32 %, Firefox with its
-hinting-class shift of the "No Results" title (130 wide at 115 against 130.5 at 114.75). Tier C:
-0.50 %.
-`UnavailableAndShareTests` cover the column, the colours, the missing icon and the search preset.
+## Verification (2026-10-11)
+
+Tier A: `unavailable/basic`, `unavailable/corners` and `ios/unavailable/basic` exact (the
+symbol-driven probes within 2 pt, the macOS 27 button and list-inset probes ignored). Tier B:
+Chromium 3.5 % / 1.5 % / 5.3 % (the stand-in symbols; the fixtures are approximate). Tier C the
+same. `TabViewAndFriendsTests.unavailableColumn` covers the column's metrics, the colours and the
+search preset.
 
 ## Not yet covered
 
-The symbol above the title on other platforms, vertical centring on iOS, `ContentUnavailableView`
-inside lists and navigation.
+macOS 27's list insets and 20 pt buttons (the 26.2 control model), the SF Symbol glyphs
+themselves (stand-ins).
