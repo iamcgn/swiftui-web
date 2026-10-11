@@ -69,6 +69,8 @@ public struct Image: Equatable, Sendable {
         }
     }
     package var resizing: Resizing?
+    /// A variable symbol's value (0…1): the stand-in glyph fills up to it (approximate).
+    package var variableValue: Double?
     package var renderingMode: TemplateRenderingMode?
     package var interpolation: Interpolation = .high
     package var isAntialiased = true
@@ -130,9 +132,12 @@ public struct Image: Equatable, Sendable {
         self.init(source: .system(systemName), label: systemName)
     }
 
-    /// Creates a system symbol image with a variable value (the value has no effect here).
+    /// Creates a system symbol image with a variable value: SF Symbols light their layers up to
+    /// it and dim the rest to 30 % (measured); the single-layer stand-in draws its leading
+    /// fraction at full opacity over the whole glyph at 30 %.
     public init(systemName: String, variableValue: Double?) {
         self.init(source: .system(systemName), label: systemName)
+        self.variableValue = variableValue.map { min(max($0, 0), 1) }
     }
 
     /// Sets the mode by which SwiftUI resizes an image to fit its space.

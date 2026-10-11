@@ -491,6 +491,9 @@ public final class UIKitScene: HostedScene {
 
     /// A bundled font the host loaded is available: labels measured with a fallback face lay
     /// out again (frames an app fixed with `sizeToFit` before the font arrived stay as they are).
+    /// UIKit's symbols take their sizes from the built-in table (the SwiftUI runtime loads the full one).
+    public var onNeedsSymbolMetrics: (() -> Void)?
+
     public func fontsDidLoad() {
         for window in windows { window.fontsDidLoadRecursively() }
         setNeedsFrame()

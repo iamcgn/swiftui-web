@@ -1,7 +1,8 @@
 {
-  "generated" : "2026-09-04T01:12:55Z",
-  "macOS" : "26.2.0",
+  "generated" : "2026-10-11T19:07:06Z",
+  "host" : "AppKit",
+  "macOS" : "27.0.1",
   "platformProfile" : "macOS",
   "scale" : 2,
-  "swiftUI" : "7.2.5.1.401"
+  "swiftUI" : "8.0.84.1.406"
 }

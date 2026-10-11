@@ -24,8 +24,8 @@ package enum SystemSymbolMetrics {
     /// The size of `name` at `pointSize`, `weight` and `scale`, or nil when the symbol was not
     /// measured. Exact at the measured variants; other sizes scale the nearest measured size at
     /// or below linearly, other weights and scales apply the 13 pt ratios, all to the half point.
-    package static func size(named name: String, pointSize: CGFloat, weight: Font.Weight, scale: Image.Scale) -> Size? {
-        guard let values = SystemSymbolMetricsTable.sizes[name], values.count >= 36 else { return nil }
+    package static func size(named name: String, pointSize: CGFloat, weight: Font.Weight, scale: Image.Scale, legacy: Bool = false) -> Size? {
+        guard let values = SystemSymbolMetricsTable.values(named: name, legacy: legacy), values.count >= 36 else { return nil }
         return size(values: values, pointSize: pointSize, weight: weight, scale: scale)
     }
 

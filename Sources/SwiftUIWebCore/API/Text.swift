@@ -691,14 +691,15 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
     package func inlineSymbol(for image: Image, font: ResolvedFont) -> (glyph: (glyph: SymbolGlyph, outline: SymbolGlyphOutline)?, size: SystemSymbolMetrics.Size)? {
         guard case .system(let base) = image.source else { return nil }
         let candidates = environment.symbolVariants.names(for: base)
+        let legacy = environment.platformProfile.isIOS
         func measure(_ name: String) -> SystemSymbolMetrics.Size? {
-            SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale)
+            SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale, legacy: legacy)
         }
         let name = candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil && measure($0) != nil }
-            ?? candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil } ?? base
-        let glyph = SystemSymbolGlyphs.glyph(named: name)
+            ?? candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil } ?? candidates.first { measure($0) != nil } ?? base
+        let glyph = SystemSymbolGlyphs.glyph(named: name) ?? (measure(name) != nil ? SystemSymbolGlyphs.glyph(named: "square.dashed") : nil)
         if let size = measure(name) { return (glyph, size) }
-        let star = SystemSymbolMetricsTable.sizes["star"] ?? []
+        let star = SystemSymbolMetricsTable.values(named: "star", legacy: legacy) ?? []
         let size = star.count >= 36 ? SystemSymbolMetrics.size(values: star, pointSize: font.size, weight: font.weight, scale: environment.imageScale) : SystemSymbolMetrics.fallback
         return (glyph, size)
     }

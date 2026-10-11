@@ -1304,14 +1304,15 @@
       "framework": "SwiftUI",
       "area": "Image",
       "title": "SF Symbols fidelity",
-      "detail": "Lucide stands in for every glyph: rendering modes (accepted), multicolour and hierarchical layers, `variableValue`, sizes and names beyond the 240 measured (a full metrics table from the catalog goldens), symbol effects by layer; decision needed on a symbol source with a licence that allows shipping.",
+      "detail": "Lucide stands in for every glyph: rendering modes (accepted), multicolour and hierarchical layers, `variableValue`, sizes and names beyond the 240 measured (a full metrics table from the catalog goldens), symbol effects by layer; decision needed on a symbol source with a licence that allows shipping. Done 2026-10-11 (Phase 9, item 11): the whole catalog measured (`scripts/symbol-metrics-full.swift`, 9388 names incl. legacy aliases, macOS 27.0.1) and fetched by the browser host on demand (`symbol-metrics.txt`), the OS 26 generation kept for the iOS profile, a dashed-square stand-in for symbols without a Lucide glyph, variableValue as a 30 % dim with the leading fraction lit (measured), rendering modes measured and documented as accepted (one layer); Lucide stays the source (decision 0018). `symbol/extended` golden; the symbol goldens regenerated on macOS 27.",
       "kind": "approximate",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Image.md",
         "Docs/elements/SymbolEffect.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-asyncimage",

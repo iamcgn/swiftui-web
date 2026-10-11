@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 23 | 0 | 0 | 23 |
+| SwiftUI | 22 | 0 | 0 | 22 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **39** | 0 | 1 | 38 |
+| **All** | **38** | 0 | 1 | 37 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **SF Symbols fidelity** `sw-symbols` · Image · approximate  
-  Lucide stands in for every glyph: rendering modes (accepted), multicolour and hierarchical layers, `variableValue`, sizes and names beyond the 240 measured (a full metrics table from the catalog goldens), symbol effects by layer; decision needed on a symbol source with a licence that allows shipping. ([Image.md](Docs/elements/Image.md), [SymbolEffect.md](Docs/elements/SymbolEffect.md))
 - ☐ **AsyncImage caching and transactions** `sw-asyncimage` · AsyncImage · accepted  
   Cancellation on unmount, a cache keyed by URL, the phase transaction (accepted), the default placeholder colour (approximate). ([AsyncImage.md](Docs/elements/AsyncImage.md))
 - ☐ **Selecting text** `sw-text-selection` · Text · accepted  
@@ -119,6 +117,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Elliptical and mesh gradients** `sw-gradients` · SwiftUI · Gradient
 - ☑ 2026-10-11 **Animated effects and drawing groups** `sw-effects` · SwiftUI · Effects
 - ☑ 2026-10-11 **Image catalog forms and rendering** `sw-images` · SwiftUI · Image
+- ☑ 2026-10-11 **SF Symbols fidelity** `sw-symbols` · SwiftUI · Image
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

@@ -14,16 +14,16 @@
       "y" : 32
     },
     "row" : {
-      "height" : 26,
+      "height" : 27,
       "width" : 150,
       "x" : 45,
-      "y" : 27
+      "y" : 26.5
     },
     "scale" : {
-      "height" : 26,
+      "height" : 27,
       "width" : 28.5,
       "x" : 126,
-      "y" : 27
+      "y" : 26.5
     },
     "variable" : {
       "height" : 16,

@@ -26,7 +26,7 @@ const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox'
 // texteditor/basic: NSTextView sets SF tighter between letters and wider at spaces than SwiftUI's
 // Text does, so its paragraph keeps one more word on the first line.
 const approximate = ['uikit/label/fitting', 'uikit/stack/distribution', 'uikit/label/fonts', 'uikit/textview/looks', 'datepicker/looks', 'ios/datepicker/wheel', 'ios/representable/hostingsafearea-tabs', 'text/fit', 'uikit/label/wrapping', 'uikit/label/tabular', 'uikit/table/selfsizing', 'uikit/textview/basic', 'uikit/draw/text', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
-  'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic'];
+  'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic', 'symboleffect/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 // ios/symbol/ and ios/label/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt),
 // and a label row grows to its icon (Tier A's rule).
@@ -91,7 +91,8 @@ const report = [];
 
 // Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame.
 // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
-const ignoredProbes = { 'uikit/label/fonts': ['abel13', 'abel20', 'mono15', 'mono17'], 'ios/search/active/present': ['row-Apple', 'row-Banana', 'row-Cherry', 'row-Date', 'row-Elderberry'], 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'], 'ios/textfield/vertical': ['reserved', 'stack'],
+// symbol/basic: a macOS 27 button is 20 × 109 (26.2: 24.08 × 117); the control model follows 26.2.
+const ignoredProbes = { 'symbol/basic': ['button'], 'uikit/label/fonts': ['abel13', 'abel20', 'mono15', 'mono17'], 'ios/search/active/present': ['row-Apple', 'row-Banana', 'row-Cherry', 'row-Date', 'row-Elderberry'], 'ios/list/footer': ['footer', 'footer2'], 'ios/list/footer-header': ['footer'], 'ios/textfield/vertical': ['reserved', 'stack'],
   'ios/nav/list-scroll/row1': ['row0', 'row1', 'row2', 'row3', 'row4', 'row5', 'row6', 'row7', 'row8', 'row9', 'row10', 'row11', 'row12', 'row13', 'row14', 'row15', 'row16', 'row17', 'row18', 'row19'], 'ios/nav/list-scroll/row8': ['row0', 'row1', 'row2', 'row3', 'row4', 'row5', 'row6', 'row7', 'row8', 'row9', 'row10', 'row11', 'row12', 'row13', 'row14', 'row15', 'row16', 'row17', 'row18', 'row19'],
   'list/pinning': ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'], 'list/pinning/scroll': ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'], 'list/outline': ['dgFruits'], 'tabview/basic/second': ['first'], 'splitview/visibility': ['sidebar', 'row1', 'detail'], 'splitview/visibility/detailOnly': ['sidebar', 'row1', 'detail'],
   'table/sorting/byCount': ['name2', 'name3', 'count2', 'count3'] };

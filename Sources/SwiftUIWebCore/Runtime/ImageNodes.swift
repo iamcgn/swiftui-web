@@ -85,18 +85,26 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
             // glyph and a measured size, else the first with a glyph (sized like the star).
             let font = environment._resolvedFont
             let candidates = environment.symbolVariants.names(for: base)
+            // The iOS profile follows the iOS 26 simulator's sizes (the OS 26 generation); macOS the 27 table.
             func measure(_ name: String) -> SystemSymbolMetrics.Size? {
-                SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale)
+                SystemSymbolMetrics.size(named: name, pointSize: font.size, weight: font.weight, scale: environment.imageScale, legacy: environment.platformProfile.isIOS)
             }
             let name = candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil && measure($0) != nil }
-                ?? candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil } ?? base
-            symbol = SystemSymbolGlyphs.glyph(named: name)
+                ?? candidates.first { SystemSymbolGlyphs.glyph(named: $0) != nil }
+                ?? candidates.first { measure($0) != nil } ?? base
             let measured = measure(name)
+            // Until a host that can load the full table has, a name outside the built-in set is
+            // pending: sized like the star and drawn as the dashed square. Once the table is in
+            // (or no host loads it), a catalog symbol without a stand-in glyph of its own draws
+            // the dashed square and an unknown name nothing (sw-symbols).
+            let pending = measured == nil && runtime.onNeedsSymbolMetrics != nil && !SystemSymbolMetricsTable.isExtended
+            if pending { runtime.requestSymbolMetrics() }
+            symbol = SystemSymbolGlyphs.glyph(named: name) ?? (measured != nil || pending ? SystemSymbolGlyphs.glyph(named: "square.dashed") : nil)
             if let measured {
                 symbolSize = measured
             } else if symbol != nil {
                 // A symbol with a glyph but no measurement takes the star's size at this font.
-                let star = SystemSymbolMetricsTable.sizes["star"] ?? []
+                let star = SystemSymbolMetricsTable.values(named: "star", legacy: environment.platformProfile.isIOS) ?? []
                 symbolSize = star.count >= 36 ? SystemSymbolMetrics.size(values: star, pointSize: font.size, weight: font.weight, scale: environment.imageScale)
                     : SystemSymbolMetrics.fallback
             } else {
@@ -266,6 +274,19 @@ extension ImageNode {
             list.append(.beginGroup(opacity: progress))
             _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, gradient: gradient, into: &list)
             list.append(.endGroup)
+            return
+        }
+        if let value = view.variableValue, value < 1 {
+            // The whole glyph dimmed to 30 %, its leading `value` of the width lit (measured:
+            // SF Symbols dim their inactive layers to 30 %).
+            list.append(.beginGroup(opacity: 0.3))
+            _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, gradient: gradient, into: &list)
+            list.append(.endGroup)
+            guard value > 0 else { return }
+            list.append(.save)
+            list.append(.clipRect(CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width * value, height: bounds.height)))
+            _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, gradient: gradient, into: &list)
+            list.append(.restore)
             return
         }
         _SymbolPainter.paint(symbol, in: bounds, weight: environment._resolvedFont.weight.value, color: color, gradient: gradient, into: &list)

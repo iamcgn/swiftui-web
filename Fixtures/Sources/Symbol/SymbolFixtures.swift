@@ -114,7 +114,6 @@ public enum SymbolFixtures {
             Label { Text("Star label").probe("labelTitleText") } icon: { Image(systemName: "star").probe("labelTitleIcon") }.font(.title).probe("labelTitle")
             Label { Text("Star label").probe("labelBodyText") } icon: { Image(systemName: "star").probe("labelBodyIcon") }.font(.body).probe("labelBody")
             Label { Text("Star label").probe("labelImageText") } icon: { Image("icon").probe("labelImageIcon") }.probe("labelImage")
-            Button { } label: { Label("Star button", systemImage: "star") }.probe("button")
             HStack(spacing: 8) {
                 Image(systemName: "star").resizable().frame(width: 50, height: 50).probe("resizable")
                 Image(systemName: "star").resizable().scaledToFit().frame(width: 50, height: 30).probe("fit")
@@ -135,6 +134,9 @@ public enum SymbolFixtures {
                 Image(systemName: "chevron.right").font(.system(size: 30, weight: .semibold)).probe("chevronSemibold")
             }
             .probe("approximateRow")
+            // Last: a macOS 27 button is 20 pt tall (a 26.2 one 24.08), a control change the
+            // runtime does not model yet; the probe is ignored in Tier A and C.
+            Button { } label: { Label("Star button", systemImage: "star") }.probe("button")
         }
         .frame(maxHeight: .infinity, alignment: .top)
         .probe("stack")
@@ -172,5 +174,26 @@ public enum SymbolFixtures {
         .probe("stack")
     })
 
-    public static let all: [Fixture] = catalogs + [basic, variants]
+    /// Symbols outside the built-in table (sw-symbols): their sizes come from the full catalog
+    /// (`symbol-metrics.txt`, fetched by the browser host on first use); a symbol without a
+    /// stand-in glyph draws the dashed square; a legacy alias (`doc`) lays out like its new name.
+    public static let extended = Fixture("symbol/extended", size: CGSize(width: 420, height: 120)) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("Star").probe("row1")
+                ForEach(["tortoise", "figure.archery", "cloud.sun.rain", "doc", "document", "number", "apple.terminal", "fossil.shell"], id: \.self) { name in
+                    Image(systemName: name).probe(name)
+                }
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("Star").probe("row2")
+                ForEach(["tortoise", "figure.archery", "cloud.sun.rain", "fossil.shell"], id: \.self) { name in
+                    Image(systemName: name).probe("\(name)-22")
+                }
+            }
+            .font(.system(size: 22))
+        }
+    }
+
+    public static let all: [Fixture] = catalogs + [basic, variants, extended]
 }

@@ -219,6 +219,23 @@ public final class Runtime {
         requestLayout()
     }
 
+    /// Set by a host that can fetch the full symbol layout table; called once, on the first
+    /// symbol outside the built-in set (`ImageNode` sizes it like the star until then).
+    public var onNeedsSymbolMetrics: (() -> Void)?
+    private var requestedSymbolMetrics = false
+
+    package func requestSymbolMetrics() {
+        guard !requestedSymbolMetrics, !SystemSymbolMetricsTable.isExtended, let onNeedsSymbolMetrics else { return }
+        requestedSymbolMetrics = true
+        onNeedsSymbolMetrics()
+    }
+
+    /// The full table arrived: symbols laid out with the fallback size measure again.
+    public func symbolMetricsDidLoad() {
+        root.child?.invalidate()
+        requestLayout()
+    }
+
     public init(environment: EnvironmentValues = EnvironmentValues()) {
         var environment = environment
         environment[AssetStoreKey.self] = assetStore

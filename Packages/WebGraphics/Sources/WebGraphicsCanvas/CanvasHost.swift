@@ -119,6 +119,28 @@ public final class CanvasSceneHost {
             return .undefined
         }
         scene.imageLoader = CanvasImageLoader(bridge: bridge)
+        // The full SF Symbol layout table (`assets/symbol-metrics.txt`, sw-symbols) is fetched
+        // on the first symbol outside the built-in set and the scene lays out again.
+        let assetBase = window.__swiftuiwebAssets.object?.base.string ?? "assets/"
+        scene.onNeedsSymbolMetrics = { [weak self] in
+            guard let self else { return }
+            let loaded = JSClosure { [weak self] arguments in
+                MainActor.assumeIsolated {
+                    if let text = arguments.first?.string {
+                        SystemSymbolMetricsTable.load(text: text)
+                        self?.scene.symbolMetricsDidLoad()
+                        self?.scheduleFrame()
+                    }
+                }
+                return .undefined
+            }
+            let toText = JSClosure { arguments in
+                guard let response = arguments.first?.object, let ok = response.ok.boolean, ok else { return .undefined }
+                return response.text?() ?? .undefined
+            }
+            symbolMetricsClosures = [loaded, toText]
+            _ = JSObject.global.fetch?(assetBase + "symbol-metrics.txt").object?.then?(toText).object?.then?(loaded)
+        }
         // A recorded drawing becomes PNG data through a canvas of its own (`UIImage.pngData()`).
         let painterBridge = bridge
         scene.imageRasterizer = { list, size, scale in
@@ -677,6 +699,7 @@ public final class CanvasSceneHost {
     private var semanticsMillis: Double = 0
 
     /// The most recently painted display list and the number of frames painted (debug bridge).
+    private var symbolMetricsClosures: [JSClosure] = []
     public private(set) var lastDisplayList = DisplayList()
     public private(set) var frameCount = 0
 

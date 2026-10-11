@@ -2,1594 +2,1594 @@
   "fixture" : "symbol\/catalog-17",
   "frames" : {
     "airplane" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 21,
       "x" : 361.5,
-      "y" : 394.75
+      "y" : 391
     },
     "ant" : {
-      "height" : 22,
+      "height" : 23,
       "width" : 18.5,
       "x" : 160.5,
-      "y" : 544.25
+      "y" : 545
     },
     "antenna.radiowaves.left.and.right" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 21,
       "x" : 226.75,
-      "y" : 571.25
+      "y" : 573
     },
     "archivebox" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 21,
       "x" : 358.25,
-      "y" : 624.75
+      "y" : 628.5
     },
     "arrow.clockwise" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 18,
       "x" : 248.25,
-      "y" : 419.75
+      "y" : 417
     },
     "arrow.counterclockwise" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 18,
       "x" : 274.25,
-      "y" : 419.75
+      "y" : 417
     },
     "arrow.down" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 17,
       "x" : 390.75,
-      "y" : 271.75
+      "y" : 264.5
     },
     "arrow.down.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 163,
-      "y" : 445.25
+      "y" : 443
     },
     "arrow.down.left" : {
-      "height" : 14.5,
+      "height" : 15.5,
       "width" : 16.5,
-      "x" : 388.25,
-      "y" : 737.75
+      "x" : 388.5,
+      "y" : 745.5
     },
     "arrow.down.to.line" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 17,
       "x" : 192,
-      "y" : 518.75
+      "y" : 518.5
     },
     "arrow.left" : {
-      "height" : 15,
+      "height" : 16,
       "width" : 19.5,
       "x" : 338.25,
-      "y" : 273.25
+      "y" : 266
     },
     "arrow.left.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 247,
-      "y" : 445.25
+      "y" : 443
     },
     "arrow.right" : {
-      "height" : 15,
+      "height" : 16,
       "width" : 19.5,
       "x" : 310.75,
-      "y" : 273.25
+      "y" : 266
     },
     "arrow.right.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 219,
-      "y" : 445.25
+      "y" : 443
     },
     "arrow.turn.up.left" : {
-      "height" : 15.5,
+      "height" : 16.5,
       "width" : 20,
-      "x" : 412.75,
-      "y" : 737.25
+      "x" : 413,
+      "y" : 745
     },
     "arrow.up" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 17,
       "x" : 365.75,
-      "y" : 271.75
+      "y" : 264.5
     },
     "arrow.up.and.down.and.arrow.left.and.right" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 22.5,
       "x" : 297.5,
-      "y" : 706.75
+      "y" : 713.5
     },
     "arrow.up.arrow.down" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 24,
       "x" : 300.25,
-      "y" : 421.25
+      "y" : 418.5
     },
     "arrow.up.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 191,
-      "y" : 445.25
+      "y" : 443
     },
     "arrow.up.left.and.arrow.down.right" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 20,
       "x" : 328,
-      "y" : 708.75
+      "y" : 715.5
     },
     "arrow.up.right" : {
-      "height" : 14.5,
+      "height" : 15.5,
       "width" : 16.5,
-      "x" : 363.75,
-      "y" : 737.75
+      "x" : 364,
+      "y" : 745.5
     },
     "arrow.up.to.line" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 17,
       "x" : 217,
-      "y" : 518.75
+      "y" : 518.5
     },
     "arrow.uturn.left" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 20,
       "x" : 332.25,
-      "y" : 422.25
+      "y" : 419.5
     },
     "at" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 20.5,
       "x" : 319.5,
-      "y" : 468.75
+      "y" : 467.5
     },
     "backward.end.fill" : {
-      "height" : 15,
+      "height" : 16,
       "width" : 19.5,
       "x" : 362.75,
-      "y" : 761.75
+      "y" : 770
     },
     "backward.fill" : {
-      "height" : 15,
+      "height" : 16,
       "width" : 25.5,
       "x" : 214.75,
-      "y" : 761.75
+      "y" : 770
     },
     "battery.100" : {
-      "height" : 13.5,
+      "height" : 14.5,
       "width" : 29,
       "x" : 189.75,
-      "y" : 573.75
+      "y" : 575.5
     },
     "bell" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 20,
-      "x" : 389.75,
-      "y" : 244.25
+      "x" : 389.5,
+      "y" : 236
     },
     "bell.badge" : {
-      "height" : 20.5,
-      "width" : 19.5,
-      "x" : 306.25,
-      "y" : 734.25
+      "height" : 21.5,
+      "width" : 20,
+      "x" : 306,
+      "y" : 742
     },
     "bell.fill" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 20,
-      "x" : 417.75,
-      "y" : 244.25
+      "x" : 417.5,
+      "y" : 236
     },
     "bell.slash" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 19,
       "x" : 162.75,
-      "y" : 570.75
+      "y" : 572.5
     },
     "bicycle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 31,
       "x" : 301.25,
-      "y" : 597.25
+      "y" : 600
     },
     "bold" : {
-      "height" : 14,
+      "height" : 15,
       "width" : 14,
       "x" : 168,
-      "y" : 495.75
+      "y" : 495
     },
     "bolt" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 17,
-      "x" : 250,
-      "y" : 368.25
+      "x" : 249.75,
+      "y" : 363.5
     },
     "book" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 22.5,
       "x" : 235.25,
-      "y" : 652.75
+      "y" : 657.5
     },
     "book.closed" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 18,
       "x" : 265.75,
-      "y" : 651.75
+      "y" : 656.5
     },
     "bookmark" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 17.5,
       "x" : 414.75,
-      "y" : 294.75
+      "y" : 288
     },
     "briefcase" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 23.5,
       "x" : 173.25,
-      "y" : 597.25
+      "y" : 600
     },
     "bubble.left" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 22.5,
       "x" : 187.5,
-      "y" : 394.75
+      "y" : 391
     },
     "building.2" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 20.5,
       "x" : 204.75,
-      "y" : 595.75
+      "y" : 598.5
     },
     "bus" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 22.5,
       "x" : 340.25,
-      "y" : 595.75
+      "y" : 598.5
     },
     "calendar" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 21,
       "x" : 197.25,
-      "y" : 271.75
+      "y" : 264.5
     },
     "camera" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 24.5,
       "x" : 336.75,
-      "y" : 295.25
+      "y" : 288.5
     },
     "car" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 24,
       "x" : 329.5,
-      "y" : 395.25
+      "y" : 391.5
     },
     "cart" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 23,
       "x" : 267.25,
-      "y" : 320.75
+      "y" : 315
     },
     "cat" : {
-      "height" : 22,
+      "height" : 23,
       "width" : 27,
-      "x" : 265,
-      "y" : 679.75
+      "x" : 265.25,
+      "y" : 685.5
     },
     "chart.bar" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 25.5,
       "x" : 158.25,
-      "y" : 421.75
+      "y" : 419
     },
     "chart.line.uptrend.xyaxis" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 22,
       "x" : 354.75,
-      "y" : 571.75
+      "y" : 573.5
     },
     "chart.pie" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 384.75,
-      "y" : 571.25
+      "y" : 573
     },
     "checklist" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 23,
       "x" : 378,
-      "y" : 493.25
+      "y" : 492.5
     },
     "checkmark" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 18.5,
       "x" : 289.75,
-      "y" : 197.25
+      "y" : 187
     },
     "checkmark.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 190.75,
-      "y" : 344.75
+      "y" : 339.5
     },
     "checkmark.circle.fill" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 218.75,
-      "y" : 344.75
+      "y" : 339.5
     },
     "checkmark.square" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
       "x" : 303,
-      "y" : 445.75
+      "y" : 443.5
     },
     "chevron.down" : {
-      "height" : 10.5,
+      "height" : 11.5,
       "width" : 18.5,
-      "x" : 163.75,
-      "y" : 225.25
+      "x" : 163.25,
+      "y" : 215.5
     },
     "chevron.left" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 12.5,
       "x" : 414.25,
-      "y" : 196.75
+      "y" : 186.5
     },
     "chevron.left.forwardslash.chevron.right" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 27.5,
       "x" : 187,
-      "y" : 546.25
+      "y" : 547
     },
     "chevron.right" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 12.5,
       "x" : 393.75,
-      "y" : 196.75
+      "y" : 186.5
     },
     "chevron.right.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 275,
-      "y" : 445.25
+      "y" : 443
     },
     "chevron.up" : {
-      "height" : 10.5,
+      "height" : 11.5,
       "width" : 18.5,
-      "x" : 190.25,
-      "y" : 224.25
+      "x" : 189.75,
+      "y" : 214.5
     },
     "circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 193.75,
-      "y" : 295.25
+      "y" : 288.5
     },
     "circle.fill" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 221.75,
-      "y" : 295.25
+      "y" : 288.5
     },
     "clock" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 226.25,
-      "y" : 271.25
+      "y" : 264
     },
     "cloud" : {
-      "height" : 15.5,
+      "height" : 16.5,
       "width" : 22.5,
-      "x" : 219.5,
-      "y" : 371.25
+      "x" : 219.25,
+      "y" : 366.5
     },
     "creditcard" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 24,
       "x" : 418.5,
-      "y" : 395.75
+      "y" : 392
     },
     "crop" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 22.5,
       "x" : 356,
-      "y" : 707.75
+      "y" : 714.5
     },
     "crown" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 25.5,
       "x" : 426.75,
-      "y" : 596.75
+      "y" : 599.5
     },
     "cursorarrow" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 14,
       "x" : 275.5,
-      "y" : 707.75
+      "y" : 714.5
     },
     "cylinder" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 18.5,
       "x" : 254.5,
-      "y" : 545.25
+      "y" : 546
     },
     "desktopcomputer" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 24,
       "x" : 281,
-      "y" : 545.75
+      "y" : 546.5
     },
     "doc" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 18,
-      "x" : 192.75,
-      "y" : 244.25
+      "x" : 193,
+      "y" : 236
     },
     "doc.badge.plus" : {
-      "height" : 22.5,
+      "height" : 23.5,
       "width" : 18.5,
       "x" : 208.75,
-      "y" : 651.75
+      "y" : 656.5
     },
     "doc.on.clipboard" : {
-      "height" : 23,
+      "height" : 24,
       "width" : 21,
       "x" : 271,
-      "y" : 517.25
+      "y" : 517
     },
     "doc.on.doc" : {
-      "height" : 23,
+      "height" : 24,
       "width" : 21,
       "x" : 242,
-      "y" : 517.25
+      "y" : 517
     },
     "doc.text" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 18,
-      "x" : 218.75,
-      "y" : 244.25
+      "x" : 219,
+      "y" : 236
     },
     "dog" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 27.5,
-      "x" : 229.5,
-      "y" : 679.75
+      "x" : 229.75,
+      "y" : 685.5
     },
     "dollarsign.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 375.5,
-      "y" : 469.25
+      "y" : 468
     },
     "drop" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 15,
       "x" : 255.75,
-      "y" : 571.25
+      "y" : 573
     },
     "ellipsis" : {
-      "height" : 5.5,
+      "height" : 6.5,
       "width" : 18.5,
       "x" : 167.25,
-      "y" : 301.75
+      "y" : 295
     },
     "ellipsis.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 421.25,
-      "y" : 421.25
+      "y" : 418.5
     },
     "envelope" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 24.5,
       "x" : 164.75,
-      "y" : 272.25
+      "y" : 265
     },
     "eraser" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 20.5,
       "x" : 188.5,
-      "y" : 784.75
+      "y" : 794
     },
     "exclamationmark" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 6.5,
       "x" : 278,
-      "y" : 469.75
+      "y" : 468.5
     },
     "exclamationmark.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 172.5,
-      "y" : 469.25
+      "y" : 468
     },
     "exclamationmark.circle.fill" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 200.5,
-      "y" : 469.25
+      "y" : 468
     },
     "exclamationmark.triangle" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 20.5,
       "x" : 282.25,
-      "y" : 271.75
+      "y" : 264.5
     },
     "eye" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 26,
       "x" : 385.75,
-      "y" : 320.75
+      "y" : 315
     },
     "eye.slash" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 26,
       "x" : 419.75,
-      "y" : 318.75
+      "y" : 313
     },
     "eyedropper" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 21.5,
       "x" : 246.5,
-      "y" : 784.75
+      "y" : 794
     },
     "face.smiling" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 191,
-      "y" : 708.25
+      "y" : 715
     },
     "flag" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 19.5,
       "x" : 246,
-      "y" : 394.75
+      "y" : 391
     },
     "flame" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 17,
-      "x" : 275,
-      "y" : 368.25
+      "x" : 274.75,
+      "y" : 363.5
     },
     "folder" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 23,
-      "x" : 412.75,
-      "y" : 221.25
+      "x" : 413.25,
+      "y" : 211.5
     },
     "folder.badge.plus" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 23,
       "x" : 177.75,
-      "y" : 651.25
+      "y" : 656
     },
     "folder.fill" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 23,
-      "x" : 161.75,
-      "y" : 245.25
+      "x" : 162,
+      "y" : 237
     },
     "forward.end.fill" : {
-      "height" : 15,
+      "height" : 16,
       "width" : 19.5,
       "x" : 335.25,
-      "y" : 761.75
+      "y" : 770
     },
     "forward.fill" : {
-      "height" : 15,
+      "height" : 16,
       "width" : 25.5,
       "x" : 248.25,
-      "y" : 761.75
+      "y" : 770
     },
     "gamecontroller" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 28,
       "x" : 422.75,
-      "y" : 652.75
+      "y" : 657.5
     },
     "gear" : {
-      "height" : 20.5,
-      "width" : 21.5,
-      "x" : 216.75,
-      "y" : 219.75
+      "height" : 22.5,
+      "width" : 22.5,
+      "x" : 216.25,
+      "y" : 209.5
     },
     "gearshape" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 21,
-      "x" : 246.25,
-      "y" : 220.25
+      "x" : 246.75,
+      "y" : 210.5
     },
     "gearshape.fill" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 20.5,
-      "x" : 275.25,
-      "y" : 220.25
+      "x" : 275.75,
+      "y" : 210.5
     },
     "gift" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 20,
       "x" : 390.5,
-      "y" : 393.75
+      "y" : 390
     },
     "globe" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 327.75,
-      "y" : 319.75
+      "y" : 314
     },
     "graduationcap" : {
-      "height" : 22.5,
+      "height" : 23.5,
       "width" : 27,
       "x" : 322.75,
-      "y" : 652.25
+      "y" : 657
     },
     "grid" : {
-      "height" : 610.5,
-      "width" : 373,
-      "x" : 93.5,
-      "y" : 194.75
+      "height" : 631,
+      "width" : 372.5,
+      "x" : 93.75,
+      "y" : 184.5
     },
     "hammer" : {
-      "height" : 23,
+      "height" : 24,
       "width" : 25,
-      "x" : 406,
-      "y" : 679.25
+      "x" : 405.75,
+      "y" : 685
     },
     "hand.raised" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 20.5,
       "x" : 219,
-      "y" : 706.75
+      "y" : 713.5
     },
     "hand.thumbsdown" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 20,
       "x" : 247.5,
-      "y" : 707.25
+      "y" : 714
     },
     "hand.thumbsup" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 20,
       "x" : 218,
-      "y" : 393.75
+      "y" : 390
     },
     "headphones" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 21,
       "x" : 338,
-      "y" : 545.25
+      "y" : 546
     },
     "heart" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 20.5,
       "x" : 232.75,
-      "y" : 196.75
+      "y" : 186.5
     },
     "heart.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 393,
-      "y" : 785.25
+      "y" : 794.5
     },
     "heart.fill" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 20.5,
       "x" : 261.25,
-      "y" : 196.75
+      "y" : 186.5
     },
     "hexagon" : {
-      "height" : 21,
+      "height" : 22,
       "width" : 21,
       "x" : 276,
-      "y" : 784.25
+      "y" : 793.5
     },
     "highlighter" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 21.5,
       "x" : 217,
-      "y" : 784.75
+      "y" : 794
     },
     "house" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 24,
-      "x" : 325.75,
-      "y" : 244.25
+      "x" : 325.5,
+      "y" : 236
     },
     "house.fill" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 24,
-      "x" : 357.75,
-      "y" : 244.25
+      "x" : 357.5,
+      "y" : 236
     },
     "info.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 254.25,
-      "y" : 271.25
+      "y" : 264
     },
     "info.circle.fill" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 228.5,
-      "y" : 469.25
+      "y" : 468
     },
     "iphone" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 17,
       "x" : 313,
-      "y" : 545.25
+      "y" : 546
     },
     "italic" : {
-      "height" : 14,
+      "height" : 15,
       "width" : 13,
       "x" : 190,
-      "y" : 495.75
+      "y" : 495
     },
     "key" : {
-      "height" : 23,
+      "height" : 24,
       "width" : 15.5,
       "x" : 393,
-      "y" : 517.25
+      "y" : 517
     },
     "leaf" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 21,
-      "x" : 300,
-      "y" : 370.25
+      "x" : 299.75,
+      "y" : 365.5
     },
     "lightbulb" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 15.5,
       "x" : 306.75,
-      "y" : 622.75
+      "y" : 626.5
     },
     "line.3.horizontal" : {
-      "height" : 10.5,
+      "height" : 11.5,
       "width" : 21,
       "x" : 386.75,
-      "y" : 349.25
+      "y" : 344
     },
     "link" : {
-      "height" : 21,
+      "height" : 22,
       "width" : 22,
       "x" : 355.75,
-      "y" : 318.75
+      "y" : 313
     },
     "link.badge.plus" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 22,
       "x" : 158.5,
-      "y" : 783.75
+      "y" : 793
     },
     "list.bullet" : {
-      "height" : 14.5,
+      "height" : 15.5,
       "width" : 21,
       "x" : 415.75,
-      "y" : 346.75
+      "y" : 341.5
     },
     "list.number" : {
-      "height" : 16,
+      "height" : 17,
       "width" : 21,
       "x" : 349,
-      "y" : 494.75
+      "y" : 494
     },
     "location" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 20,
       "x" : 301.5,
-      "y" : 395.25
+      "y" : 391.5
     },
     "lock" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 16.5,
       "x" : 184.25,
-      "y" : 319.75
+      "y" : 314
     },
     "lock.open" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 21.5,
       "x" : 208.75,
-      "y" : 319.75
+      "y" : 314
     },
     "magnifyingglass" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 20.5,
-      "x" : 303.75,
-      "y" : 220.75
+      "x" : 304.25,
+      "y" : 211
     },
     "map" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 21.5,
       "x" : 298.25,
-      "y" : 319.75
+      "y" : 314
     },
     "message" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 22.5,
       "x" : 157,
-      "y" : 394.25
+      "y" : 390.5
     },
     "mic" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 17,
-      "x" : 391.5,
-      "y" : 368.75
+      "x" : 391.75,
+      "y" : 364
     },
     "mic.slash" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 17,
       "x" : 422,
-      "y" : 544.75
+      "y" : 545.5
     },
     "minus" : {
-      "height" : 3.5,
+      "height" : 4.5,
       "width" : 18,
       "x" : 367.75,
-      "y" : 203.75
+      "y" : 193.5
     },
     "minus.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 358.75,
-      "y" : 344.75
+      "y" : 339.5
     },
     "minus.magnifyingglass" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 20.5,
       "x" : 415,
-      "y" : 708.25
+      "y" : 715
     },
     "minus.square" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
-      "x" : 278.75,
-      "y" : 736.25
+      "x" : 278.5,
+      "y" : 744
     },
     "moon" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
-      "x" : 191.5,
-      "y" : 369.75
+      "x" : 191.25,
+      "y" : 365
     },
     "mountain.2" : {
-      "height" : 17,
+      "height" : 18,
       "width" : 33,
-      "x" : 333.5,
-      "y" : 682.25
+      "x" : 333.75,
+      "y" : 688
     },
     "music.note" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 14.5,
       "x" : 367,
-      "y" : 545.75
+      "y" : 546.5
     },
     "newspaper" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 23,
       "x" : 291.75,
-      "y" : 651.75
+      "y" : 656.5
     },
     "number" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 19,
       "x" : 292.5,
-      "y" : 469.25
+      "y" : 468
     },
     "paintbrush" : {
-      "height" : 22.5,
+      "height" : 23.5,
       "width" : 21.5,
       "x" : 216.75,
-      "y" : 622.25
+      "y" : 626
     },
     "paintpalette" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 23,
       "x" : 185.75,
-      "y" : 623.75
+      "y" : 627.5
     },
     "paperclip" : {
-      "height" : 21,
+      "height" : 22,
       "width" : 20,
       "x" : 365,
-      "y" : 518.25
+      "y" : 518
     },
     "paperplane" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 21,
       "x" : 238.25,
-      "y" : 319.75
+      "y" : 314
     },
     "pause.fill" : {
-      "height" : 16,
+      "height" : 17,
       "width" : 14.5,
       "x" : 392.25,
-      "y" : 296.75
+      "y" : 290
     },
     "pencil" : {
-      "height" : 15.5,
+      "height" : 16.5,
       "width" : 17.5,
-      "x" : 387.25,
-      "y" : 222.25
+      "x" : 387.75,
+      "y" : 212.5
     },
     "pentagon" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 22.5,
       "x" : 305,
-      "y" : 784.75
+      "y" : 794
     },
     "percent" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 19.5,
       "x" : 348,
-      "y" : 469.25
+      "y" : 468
     },
     "person" : {
-      "height" : 17.5,
-      "width" : 19,
-      "x" : 244.75,
-      "y" : 245.25
+      "height" : 18.5,
+      "width" : 18.5,
+      "x" : 245,
+      "y" : 237
     },
     "person.2" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 27.5,
-      "x" : 439,
-      "y" : 681.75
+      "x" : 438.75,
+      "y" : 687.5
     },
     "person.badge.plus" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 19,
       "x" : 164,
-      "y" : 708.75
+      "y" : 715.5
     },
     "person.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
-      "x" : 297.75,
-      "y" : 244.75
+      "x" : 297.5,
+      "y" : 236.5
     },
     "person.fill" : {
-      "height" : 17,
+      "height" : 18,
       "width" : 18,
-      "x" : 271.75,
-      "y" : 245.75
+      "x" : 271.5,
+      "y" : 237.5
     },
     "phone" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 20.5,
-      "x" : 416.5,
-      "y" : 369.75
+      "x" : 416.75,
+      "y" : 365
     },
     "photo" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 24,
       "x" : 304.75,
-      "y" : 295.75
+      "y" : 289
     },
     "pills" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 24,
-      "x" : 197.5,
-      "y" : 680.75
+      "x" : 197.75,
+      "y" : 686.5
     },
     "pin" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 20,
       "x" : 273.5,
-      "y" : 393.75
+      "y" : 390
     },
     "play.fill" : {
-      "height" : 16,
+      "height" : 17,
       "width" : 15,
       "x" : 369.25,
-      "y" : 296.75
+      "y" : 290
     },
     "plus" : {
-      "height" : 16,
+      "height" : 17,
       "width" : 18,
       "x" : 341.75,
-      "y" : 197.25
+      "y" : 187
     },
     "plus.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 302.75,
-      "y" : 344.75
+      "y" : 339.5
     },
     "plus.circle.fill" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 330.75,
-      "y" : 344.75
+      "y" : 339.5
     },
     "plus.magnifyingglass" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 20.5,
       "x" : 386.5,
-      "y" : 708.25
+      "y" : 715
     },
     "plus.square" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
-      "x" : 251.25,
-      "y" : 736.25
+      "x" : 251,
+      "y" : 744
     },
     "power" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 20,
       "x" : 330.25,
-      "y" : 623.75
+      "y" : 627.5
     },
     "printer" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 23,
       "x" : 300,
-      "y" : 518.75
+      "y" : 518.5
     },
     "puzzlepiece" : {
-      "height" : 18.5,
+      "height" : 19.5,
       "width" : 28.5,
-      "x" : 133,
-      "y" : 681.25
+      "x" : 133.25,
+      "y" : 687
     },
     "qrcode" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
-      "x" : 166.75,
-      "y" : 736.25
+      "x" : 166.5,
+      "y" : 744
     },
     "questionmark" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 13.5,
       "x" : 256.5,
-      "y" : 469.75
+      "y" : 468.5
     },
     "questionmark.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 162.75,
-      "y" : 344.75
+      "y" : 339.5
     },
     "quote.opening" : {
-      "height" : 14,
+      "height" : 14.5,
       "width" : 22.5,
       "x" : 409,
-      "y" : 495.75
+      "y" : 495.5
     },
     "radio" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 24,
       "x" : 390.75,
-      "y" : 648.75
+      "y" : 653.5
     },
     "rectangle" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 24,
       "x" : 358,
-      "y" : 445.75
+      "y" : 443.5
     },
     "rectangle.portrait" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 18,
       "x" : 390,
-      "y" : 444.75
+      "y" : 442.5
     },
     "rectangle.split.3x1" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 24,
       "x" : 422.25,
-      "y" : 760.25
+      "y" : 768.5
     },
     "repeat" : {
-      "height" : 17,
+      "height" : 18,
       "width" : 22,
       "x" : 153.25,
-      "y" : 760.75
+      "y" : 769
     },
     "row0" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 133.25,
-      "y" : 195.25
+      "y" : 185.5
     },
     "row10" : {
       "height" : 20,
       "width" : 31.5,
-      "x" : 124.25,
-      "y" : 220.25
+      "x" : 123.75,
+      "y" : 211
     },
     "row20" : {
       "height" : 20,
       "width" : 31.5,
-      "x" : 122.25,
-      "y" : 244.25
+      "x" : 122.5,
+      "y" : 236.5
     },
     "row30" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 125.25,
-      "y" : 270.75
+      "y" : 264
     },
     "row40" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 127.75,
-      "y" : 294.75
+      "y" : 288.5
     },
     "row50" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 114.25,
-      "y" : 319.25
+      "y" : 314
     },
     "row60" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 123.25,
-      "y" : 344.25
+      "y" : 339.5
     },
     "row70" : {
       "height" : 20,
       "width" : 31.5,
-      "x" : 123,
-      "y" : 369.25
+      "x" : 122.75,
+      "y" : 365
     },
     "row80" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 117.5,
-      "y" : 394.25
+      "y" : 391
     },
     "row90" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 118.75,
-      "y" : 420.75
+      "y" : 418.5
     },
     "row100" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 123.5,
-      "y" : 444.75
+      "y" : 443
     },
     "row110" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 133,
-      "y" : 468.75
+      "y" : 468
     },
     "row120" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 128.5,
-      "y" : 492.75
+      "y" : 492.5
     },
     "row130" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 125.5,
-      "y" : 518.75
+      "y" : 519
     },
     "row140" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 121,
-      "y" : 545.25
+      "y" : 546.5
     },
     "row150" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 123.25,
-      "y" : 570.75
+      "y" : 573
     },
     "row160" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 107.75,
-      "y" : 596.75
+      "y" : 600
     },
     "row170" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 119.75,
-      "y" : 623.75
+      "y" : 628
     },
     "row180" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 109.25,
-      "y" : 651.75
+      "y" : 657
     },
     "row190" : {
       "height" : 20,
       "width" : 31.5,
-      "x" : 93.5,
-      "y" : 680.75
+      "x" : 93.75,
+      "y" : 687
     },
     "row200" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 124.5,
-      "y" : 707.75
+      "y" : 715
     },
     "row210" : {
       "height" : 20,
       "width" : 31.5,
-      "x" : 127.25,
-      "y" : 735.25
+      "x" : 127,
+      "y" : 743.5
     },
     "row220" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 113.75,
-      "y" : 759.25
+      "y" : 768
     },
     "row230" : {
       "height" : 20,
       "width" : 31.5,
       "x" : 119,
-      "y" : 784.75
+      "y" : 794.5
     },
     "ruler" : {
-      "height" : 11,
+      "height" : 12,
       "width" : 24.5,
       "x" : 246.25,
-      "y" : 628.25
+      "y" : 632
     },
     "safari" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 278.75,
-      "y" : 624.25
+      "y" : 628
     },
     "scissors" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 26,
       "x" : 331,
-      "y" : 519.75
+      "y" : 519.5
     },
     "seal" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 21.5,
       "x" : 335.5,
-      "y" : 783.75
+      "y" : 793
     },
     "shield" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 18,
       "x" : 416.5,
-      "y" : 519.25
+      "y" : 519
     },
     "shippingbox" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 21,
       "x" : 419.25,
-      "y" : 623.25
+      "y" : 627
     },
     "shuffle" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 23.5,
       "x" : 183.25,
-      "y" : 760.25
+      "y" : 768.5
     },
     "sidebar.left" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 24,
       "x" : 360.25,
-      "y" : 421.75
+      "y" : 419
     },
     "sidebar.right" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 24,
       "x" : 390.25,
-      "y" : 760.25
+      "y" : 768.5
     },
     "slider.horizontal.3" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 21,
       "x" : 219.25,
-      "y" : 422.25
+      "y" : 419.5
     },
     "snowflake" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 18,
       "x" : 307.75,
-      "y" : 571.25
+      "y" : 573
     },
     "sparkles" : {
-      "height" : 21,
+      "height" : 22,
       "width" : 18.5,
       "x" : 159.25,
-      "y" : 622.25
+      "y" : 626
     },
     "speaker.slash" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 17.5,
       "x" : 281.75,
-      "y" : 759.75
+      "y" : 768
     },
     "speaker.wave.1" : {
-      "height" : 17,
+      "height" : 18,
       "width" : 20,
       "x" : 307.25,
-      "y" : 760.75
+      "y" : 769
     },
     "speaker.wave.2" : {
-      "height" : 17,
+      "height" : 18,
       "width" : 24,
-      "x" : 359.5,
-      "y" : 370.75
+      "x" : 359.75,
+      "y" : 366
     },
     "square" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
       "x" : 249.75,
-      "y" : 295.75
+      "y" : 289
     },
     "square.3.layers.3d" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 21,
       "x" : 148.75,
-      "y" : 651.75
+      "y" : 656.5
     },
     "square.and.arrow.down" : {
-      "height" : 21.5,
+      "height" : 22.5,
       "width" : 19,
       "x" : 165,
-      "y" : 516.75
+      "y" : 516.5
     },
     "square.and.arrow.up" : {
-      "height" : 22,
+      "height" : 23,
       "width" : 19,
       "x" : 415.75,
-      "y" : 268.25
+      "y" : 261
     },
     "square.and.pencil" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 21,
       "x" : 392.25,
-      "y" : 419.25
+      "y" : 416.5
     },
     "square.dashed" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
       "x" : 330.5,
-      "y" : 445.75
+      "y" : 443.5
     },
     "square.fill" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
       "x" : 277.25,
-      "y" : 295.75
+      "y" : 289
     },
     "square.grid.2x2" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
       "x" : 191.75,
-      "y" : 421.75
+      "y" : 419
     },
     "star" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 22,
       "x" : 172.75,
-      "y" : 194.75
+      "y" : 184.5
     },
     "star.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 365,
-      "y" : 785.25
+      "y" : 794.5
     },
     "star.fill" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 22,
       "x" : 202.75,
-      "y" : 194.75
+      "y" : 184.5
     },
     "star.leadinghalf.filled" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 22,
-      "x" : 333.75,
-      "y" : 734.75
+      "x" : 334,
+      "y" : 742.5
     },
     "storefront" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 23.5,
       "x" : 233.25,
-      "y" : 596.25
+      "y" : 599
     },
     "sun.max" : {
-      "height" : 20.5,
+      "height" : 21,
       "width" : 21,
-      "x" : 162.5,
-      "y" : 368.75
+      "x" : 162.25,
+      "y" : 364.5
     },
     "tablecells" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 24,
       "x" : 412.75,
-      "y" : 571.75
+      "y" : 573.5
     },
     "tag" : {
-      "height" : 21,
+      "height" : 22,
       "width" : 22.5,
       "x" : 153.75,
-      "y" : 319.25
+      "y" : 313.5
     },
     "terminal" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 24,
       "x" : 222.5,
-      "y" : 546.25
+      "y" : 547
     },
     "text.aligncenter" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 21,
       "x" : 262,
-      "y" : 494.25
+      "y" : 493.5
     },
     "text.alignleft" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 21,
       "x" : 233,
-      "y" : 494.25
+      "y" : 493.5
     },
     "text.alignright" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 21,
       "x" : 291,
-      "y" : 494.25
+      "y" : 493.5
     },
     "text.justify" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 21,
       "x" : 320,
-      "y" : 494.25
+      "y" : 493.5
     },
     "textformat" : {
-      "height" : 14.5,
+      "height" : 15.5,
       "width" : 23.5,
       "x" : 403.5,
-      "y" : 471.25
+      "y" : 470
     },
     "thermometer" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 13,
       "x" : 333.75,
-      "y" : 570.25
+      "y" : 572
     },
     "touchid" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 21.5,
-      "x" : 194.25,
-      "y" : 734.75
+      "x" : 194,
+      "y" : 742.5
     },
     "tram" : {
-      "height" : 23,
+      "height" : 24,
       "width" : 19.5,
       "x" : 370.75,
-      "y" : 595.25
+      "y" : 598
     },
     "trash" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 19.5,
-      "x" : 332.25,
-      "y" : 219.25
+      "x" : 332.75,
+      "y" : 209.5
     },
     "trash.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 421,
-      "y" : 785.25
+      "y" : 794.5
     },
     "trash.fill" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 19.5,
-      "x" : 359.75,
-      "y" : 219.25
+      "x" : 360.25,
+      "y" : 209.5
     },
     "tray" : {
-      "height" : 16.5,
+      "height" : 17.5,
       "width" : 24,
       "x" : 387.25,
-      "y" : 625.25
+      "y" : 629
     },
     "tree" : {
-      "height" : 24,
+      "height" : 25,
       "width" : 25.5,
-      "x" : 300,
-      "y" : 678.75
+      "x" : 300.25,
+      "y" : 684.5
     },
     "triangle" : {
-      "height" : 18,
+      "height" : 19,
       "width" : 20.5,
       "x" : 416,
-      "y" : 445.75
+      "y" : 443.5
     },
     "trophy" : {
-      "height" : 20.5,
+      "height" : 21.5,
       "width" : 20.5,
       "x" : 398.25,
-      "y" : 596.25
+      "y" : 599
     },
     "truck.box" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 28.5,
       "x" : 264.75,
-      "y" : 596.75
+      "y" : 599.5
     },
     "tv" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 25,
       "x" : 357.75,
-      "y" : 652.25
+      "y" : 657
     },
     "underline" : {
-      "height" : 17,
+      "height" : 18,
       "width" : 14,
       "x" : 211,
-      "y" : 495.25
+      "y" : 494.5
     },
     "video" : {
-      "height" : 16,
+      "height" : 17,
       "width" : 24.5,
       "x" : 389.5,
-      "y" : 547.25
+      "y" : 548
     },
     "wallet.pass" : {
-      "height" : 20,
+      "height" : 21,
       "width" : 18,
       "x" : 147.25,
-      "y" : 596.75
+      "y" : 599.5
     },
     "waveform.path.ecg" : {
-      "height" : 19.5,
+      "height" : 20.5,
       "width" : 20,
-      "x" : 169.5,
-      "y" : 681.25
+      "x" : 169.75,
+      "y" : 687
     },
     "wifi" : {
-      "height" : 16,
-      "width" : 22.5,
-      "x" : 329,
-      "y" : 371.25
+      "height" : 17,
+      "width" : 23,
+      "x" : 328.75,
+      "y" : 366.5
     },
     "wind" : {
-      "height" : 17,
+      "height" : 18,
       "width" : 21,
       "x" : 278.75,
-      "y" : 572.25
+      "y" : 574
     },
     "wrench" : {
-      "height" : 23,
-      "width" : 23.5,
-      "x" : 374.5,
-      "y" : 679.25
+      "height" : 24,
+      "width" : 23,
+      "x" : 374.75,
+      "y" : 685
     },
     "xmark" : {
-      "height" : 15.5,
+      "height" : 16.5,
       "width" : 17.5,
       "x" : 316.25,
-      "y" : 197.25
+      "y" : 187
     },
     "xmark.circle" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 246.75,
-      "y" : 344.75
+      "y" : 339.5
     },
     "xmark.circle.fill" : {
-      "height" : 19,
+      "height" : 20,
       "width" : 20,
       "x" : 274.75,
-      "y" : 344.75
+      "y" : 339.5
     },
     "xmark.square" : {
-      "height" : 17.5,
+      "height" : 18.5,
       "width" : 19.5,
-      "x" : 223.75,
-      "y" : 736.25
+      "x" : 223.5,
+      "y" : 744
     }
   },
   "size" : {

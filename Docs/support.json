@@ -725,12 +725,13 @@
           ]
         },
         {
-          "api": "Image(systemName:) / Image.Scale / imageScale(_:) / View.fontWeight / View.bold",
+          "api": "Image(systemName:) / Image(systemName:variableValue:) / Image.Scale / imageScale(_:) / View.fontWeight / View.bold",
           "status": "partial",
-          "notes": "Measured SF Symbol layout (240 symbols at the text-style sizes, 13 pt weights and image scales; scaled elsewhere) with Lucide icons (ISC) standing in for the glyphs, 1551 names; no rendering modes, variants or effects flipsForRightToLeftLayoutDirection (2026-10-09): symbols are not mirrored unless asked (layout/rtl-shapes).",
+          "notes": "Measured SF Symbol layout for the whole catalog (9388 names at the text-style sizes, 13 pt weights and image scales; scaled elsewhere): 240 built in, the rest fetched by the browser host on first use (symbol-metrics.txt, symbol/extended); OS 26 sizes kept for the iOS profile. Lucide icons (ISC) stand in for the glyphs (1551 names), the dashed square for the others; a variable value dims the stand-in to 30 % and lights its leading fraction; rendering modes accepted (one layer). flipsForRightToLeftLayoutDirection (2026-10-09): symbols are not mirrored unless asked (layout/rtl-shapes).",
           "fixtures": [
             "symbol/basic",
             "symbol/catalog-13",
+            "symbol/extended",
             "layout/rtl-shapes"
           ]
         },

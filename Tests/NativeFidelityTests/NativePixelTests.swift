@@ -36,7 +36,8 @@ enum NativeGoldens {
     /// bands beside the sidebar panel with a black-to-clear gradient (about 3.4 % of the window).
     static let approximate: Set<String> = ["datepicker/looks", "ios/datepicker/wheel", "ios/representable/hostingsafearea-tabs", "text/system-fonts", "text/fit", "button/styles", "progress/indeterminate", "splitview/basic", "splitview/widths",
                                            "splitview/three", "splitview/columns", "splitview/sized", "splitview/selection", "splitview/visibility",
-                                           "texteditor/basic"]   // NSTextView's tighter letters and wider spaces wrap one more word onto the first line
+                                           "texteditor/basic",   // NSTextView's tighter letters and wider spaces wrap one more word onto the first line
+                                           "symboleffect/basic"]   // four 26 pt stand-in glyphs against SF Symbols (3.2 %)
     /// Probes allowed two points (symbol sizes the metrics table scales to), as in Tier A.
     static let approximateProbes: [String: Set<String>] = [
         "form/grouped": ["nested", "nestedToggle"],   // macOS 26.6 draws the nested checkbox 14 wide (26.2: 16)
@@ -46,6 +47,8 @@ enum NativeGoldens {
     static let pixelTolerance = 0.03
     /// Probes Apple reports but nothing reproduces (a hidden tab's stale frame), as in Tier A.
     static let ignoredProbes: [String: Set<String>] = [
+        // A macOS 27 button is 20 × 109 (26.2: 24.08 × 117); the control model follows 26.2.
+        "symbol/basic": ["button"],
         "ios/search/active/present": ["row-Apple", "row-Banana", "row-Cherry", "row-Date", "row-Elderberry"],   // UIKit scrolls the hidden content list while the search presents
         "ios/list/footer": ["footer", "footer2"],
         "ios/textfield/vertical": ["reserved", "stack"],
@@ -68,7 +71,11 @@ enum NativeGoldens {
     }
 
     static func assets() throws -> AssetCatalog {
-        try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
+        // The full symbol layout table too, as a browser host fetches it (symbol/extended).
+        if !SystemSymbolMetricsTable.isExtended {
+            SystemSymbolMetricsTable.load(text: try String(contentsOf: root.appendingPathComponent("symbol/metrics-full.txt"), encoding: .utf8))
+        }
+        return try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
     }
 
     static var assetBase: URL { root.deletingLastPathComponent() }

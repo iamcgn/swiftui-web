@@ -20,7 +20,7 @@ the painter loads it. Fixtures draw from `Fixtures/Assets.xcassets` (generated b
 | API | Notes |
 |---|---|
 | `Image(_ name: String, bundle: Bundle? = nil)`, `Image(decorative:bundle:)`, `Image(_:bundle:label:)` | implemented; the bundle is ignored (the manifest is the search path) and absent on wasm |
-| `Image(systemName:)`, `Image(systemName:variableValue:)` | implemented, approximate: the symbol's measured SF Symbol layout size and baseline, drawn with a Lucide icon standing in for the glyph (see Symbols below); the variable value has no effect |
+| `Image(systemName:)`, `Image(systemName:variableValue:)` | implemented, approximate: the symbol's measured SF Symbol layout size and baseline (the whole catalog, 9388 names, 2026-10-11), drawn with a Lucide icon standing in for the glyph (see Symbols below); a variable value dims the stand-in to 30 % and lights its leading fraction (SF Symbols dim inactive layers to 30 %, measured) |
 | `Image(_:variableValue:bundle:)` | missing |
 | `Image(size:label:opaque:colorMode:renderer:)` | implemented 2026-10-11: the closure draws into a `GraphicsContext` of the image's size at paint time, scaled into the frame (rigid at `size`, resizable like any image, a template takes the foreground colour); `opaque`/`colorMode` accepted |
 | `Image(nsImage:)`, `Image(_ cgImage:scale:orientation:label:)`, `Image(decorative:scale:orientation:)` | missing (no `CGImage`/`NSImage` on wasm) |
@@ -30,7 +30,7 @@ the painter loads it. Fixtures draw from `Fixtures/Assets.xcassets` (generated b
 | `Image.Scale`, `View.imageScale(_:)`, `EnvironmentValues.imageScale` | implemented for symbols (measured at 13 pt, scaled elsewhere) |
 | `View.fontWeight(_:)`, `View.bold(_:)` | implemented: weigh text and symbols in the environment |
 | `symbolVariant(_:)`, `SymbolVariants` (`none`, `circle`, `square`, `rectangle`, `fill`, `slash`, combinable), `symbolVariants` environment | implemented: variants accumulate through ancestors (`.none` resets) and resolve to the named variant symbol, most specific first (`bell.slash.circle.fill`, then without the fill, the shape, the slash), preferring a candidate with a glyph and a measured size, else the base name |
-| `symbolRenderingMode(_:)` on views and images, `SymbolRenderingMode`, `foregroundStyle(_:_:)` and `(_:_:_:)` | accepted: the single-layer stand-ins draw with the first foreground colour under every mode |
+| `symbolRenderingMode(_:)` on views and images, `SymbolRenderingMode`, `foregroundStyle(_:_:)` and `(_:_:_:)` | accepted: the single-layer stand-ins draw with the first foreground colour under every mode (measured 2026-10-11: `.hierarchical` draws a symbol's secondary layer at 50 %, `.palette` the layers in the given colours, `.multicolor` the symbol's own; the stand-ins have one layer) |
 | `symbolEffect` | missing |
 | `View.aspectRatio(_ ratio: CGFloat?, contentMode:)`, `aspectRatio(_ size: CGSize, contentMode:)`, `scaledToFit()`, `scaledToFill()`, `ContentMode` | implemented |
 | `Color(_ name: String, bundle: Bundle? = nil)` | implemented from colour sets (sRGB and extended sRGB; Display P3 components are used as sRGB and flagged approximate) |
@@ -77,11 +77,21 @@ the painter loads it. Fixtures draw from `Fixtures/Assets.xcassets` (generated b
 
 SF Symbols are never shipped (`Docs/ROADMAP.md`). A symbol image has two parts:
 
-- **Layout** is measured. `scripts/symbol-metrics-table.py` reads the `symbol/catalog-*`
-  goldens (240 common symbols in baseline-aligned rows) into `SystemSymbolMetricsTable`: the
-  width, height and descent below the baseline of every symbol at the macOS text-style sizes
-  10, 11, 12, 13, 15, 17, 22 and 26 pt, at 13 pt semibold and bold, and at 13 pt with the small
-  and large image scales. `SystemSymbolMetrics.size` returns the measured triple at those
+- **Layout** is measured. `scripts/symbol-metrics-full.swift` lays every symbol of the system
+  catalog (CoreGlyphs's `symbol_order.plist`, 8526 names, plus 862 legacy aliases such as
+  `doc`) out through SwiftUI in baseline-aligned rows and writes
+  `Fixtures/Goldens/symbol/metrics-full.txt` (macOS 27.0.1, 2026-10-11): the width, height and
+  descent below the baseline of every symbol at the macOS text-style sizes 10, 11, 12, 13, 15,
+  17, 22 and 26 pt, at 13 pt semibold and bold, and at 13 pt with the small and large image
+  scales. `scripts/symbol-metrics-table.py` builds the 240 common symbols (the `symbol/catalog-*`
+  fixtures' names, whose goldens check the table) into `SystemSymbolMetricsTable`; the full file
+  ships as the `symbol-metrics.txt` asset, which the browser host fetches on the first symbol
+  outside the built-in set (`Runtime.onNeedsSymbolMetrics` → `SystemSymbolMetricsTable.load` →
+  `symbolMetricsDidLoad` lays out again; such a symbol takes the star's size until then, and
+  the native tests load the file up front). OS generations: macOS 27 lays several sizes out a
+  point taller than macOS 26.2 / iOS 26 (a 10 pt star is 13 × 12.5 against 13 × 11.5), so the
+  built-in table also keeps the OS 26 values (`legacySizes`, `metrics-26.txt`) and the iOS
+  profile uses them, matching the iOS 26 simulator goldens. `SystemSymbolMetrics.size` returns the measured triple at those
   variants; other point sizes scale the nearest measured size at or below linearly, other
   weights and scales apply the 13 pt ratios (light weights the inverse of semibold), all to the
   half point. Symbol frames are glyph bounds, so a 40 pt star (Apple 51.5 × 47) can come out a
@@ -93,9 +103,12 @@ SF Symbols are never shipped (`Docs/ROADMAP.md`). A symbol image has two parts:
   literals of that size compiled into 80 MB of wasm). The outline is scaled uniformly to fit the
   frame and stroked with round caps and joins in the foreground colour, 2 grid units × 0.8 for
   regular weights (1.0 semibold, 1.2 bold and up, 0.6 light); `.fill` names fill and stroke,
-  `.circle.fill`-style names fill their first element and stroke the rest in white. A symbol
-  with a glyph but no measurement takes the star's size; a name without a glyph is 0 × 0 and
-  draws nothing, as Apple does for an unknown name.
+  `.circle.fill`-style names fill their first element and stroke the rest in white. A catalog
+  symbol without a stand-in of its own draws the dashed square (`square.dashed`) at its measured
+  size, so every one of the 9388 names lays out right and shows something; a name outside the
+  catalog is 0 × 0 and draws nothing, as Apple does for an unknown name (while the full table is
+  still loading, an unknown name is pending: the star's size and the dashed square).
+  Decision 0018 keeps Lucide as the glyph source (ISC; SF Symbols' licence forbids shipping them).
 
 | Rule | Probe |
 |---|---|

@@ -22,4 +22,7 @@ BUNDLE=".build/wasm/plugins/PackageToJS/outputs/Package"
 case "$PKG" in *Gallery|*Gallery/) ASSETS="$ROOT/Fixtures";; *) ASSETS=".";; esac
 rm -rf "$BUNDLE/assets"
 python3 "$ROOT/scripts/assets.py" "$ASSETS" --js "$BUNDLE/assets/manifest.js" --out "$BUNDLE/assets"
+# The full SF Symbol layout table (sw-symbols): fetched by the host on the first symbol outside
+# the built-in set.
+cp "$ROOT/Fixtures/Goldens/symbol/metrics-full.txt" "$BUNDLE/assets/symbol-metrics.txt"
 echo "Bundle: $PKG/$BUNDLE"

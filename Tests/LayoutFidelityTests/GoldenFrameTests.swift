@@ -36,7 +36,11 @@ enum Goldens {
 
     /// The fixtures' asset catalog as `scripts/assets.py` reads it (Fixtures/Assets.manifest.json).
     static func assets() throws -> AssetCatalog {
-        try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
+        // The full symbol layout table too, as a browser host fetches it (symbol/extended).
+        if !SystemSymbolMetricsTable.isExtended {
+            SystemSymbolMetricsTable.load(text: try String(contentsOf: root.appendingPathComponent("symbol/metrics-full.txt"), encoding: .utf8))
+        }
+        return try AssetCatalog(contentsOf: root.deletingLastPathComponent().appendingPathComponent("Assets.manifest.json"))
     }
 
     /// The platform's recorded text metrics: iOS fixtures use the simulator run's file. The
@@ -90,6 +94,8 @@ enum Goldens {
     /// Probes Apple reports but nothing reproduces: a hidden tab's content keeps its stale frame
     /// (AppKit keeps the view alive without updating it).
     static let ignoredProbes: [String: Set<String>] = [
+        // A macOS 27 button is 20 × 109 (26.2: 24.08 × 117); the control model follows 26.2.
+        "symbol/basic": ["button"],
         "ios/search/active/present": ["row-Apple", "row-Banana", "row-Cherry", "row-Date", "row-Elderberry"],   // UIKit scrolls the hidden content list while the search presents
         "tabview/basic/second": ["first"],
         // A collapsed sidebar in Apple's offscreen window keeps its frame and the detail its place.
