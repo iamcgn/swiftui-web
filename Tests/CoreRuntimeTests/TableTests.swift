@@ -11,6 +11,8 @@ import SwiftUIWebHeadless
 @Suite @MainActor struct TableTests {
     static let system13 = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
     static let bold13 = ResolvedFont(family: "system", size: 13, weight: .bold, italic: false, textStyle: nil)
+    static let system11 = ResolvedFont(family: "system", size: 11, weight: .regular, italic: false, textStyle: nil)
+    static let bold11 = ResolvedFont(family: "system", size: 11, weight: .bold, italic: false, textStyle: nil)
 
     struct Fruit: Identifiable, Sendable { let id: Int; let name: String; let color: String; let count: Int }
     static let fruits = [Fruit(id: 1, name: "Apple", color: "Red", count: 3), Fruit(id: 2, name: "Banana", color: "Yellow", count: 12),
@@ -19,9 +21,11 @@ import SwiftUIWebHeadless
     private func runtime<V: View>(_ view: V, size: CGSize = CGSize(width: 360, height: 220)) -> Runtime {
         var entries: [String: RecordedTextEngine.Entry] = [:]
         for (word, width) in [("Apple", 35.0), ("Banana", 45.0), ("Cherry", 41.5), ("Red", 23.5), ("Yellow", 38.5), ("3", 8.5), ("12", 14.0), ("40", 16.5),
-                              ("Name", 35.5), ("Color", 33.0), ("Count", 36.0)] {
+                              ("Name", 35.5), ("Color", 33.0), ("Count", 36.0), ("Fruit", 30.0), ("1", 8.0), ("2", 8.0), ("11", 14.0), ("12", 14.0)] {
             entries[RecordedTextEngine.key(font: Self.system13, width: nil, string: word)] = .init(width: width, height: 16, firstBaseline: 13, lastBaseline: 13)
             entries[RecordedTextEngine.key(font: Self.bold13, width: nil, string: word)] = .init(width: width + 2, height: 16, firstBaseline: 13, lastBaseline: 13)
+            entries[RecordedTextEngine.key(font: Self.system11, width: nil, string: word)] = .init(width: width - 4, height: 13, firstBaseline: 10.5, lastBaseline: 10.5)
+            entries[RecordedTextEngine.key(font: Self.bold11, width: nil, string: word)] = .init(width: width - 2, height: 13, firstBaseline: 10.5, lastBaseline: 10.5)
         }
         let runtime = Runtime()
         runtime.textEngine = RecordedTextEngine(entries: entries)
@@ -30,7 +34,7 @@ import SwiftUIWebHeadless
         return runtime
     }
 
-    private func relayout(_ r: Runtime) { r.layout(in: CGSize(width: 360, height: 220)) }
+    private func relayout(_ r: Runtime, height: CGFloat = 220) { r.layout(in: CGSize(width: 360, height: height)) }
     private func commands(_ r: Runtime) -> [String] { r.render(scale: 2).commands.map(\.description) }
     private func press(_ r: Runtime, _ point: CGPoint) { r.pointerDown(at: point); r.pointerUp(at: point) }
 
@@ -82,7 +86,7 @@ import SwiftUIWebHeadless
         // White ground, the header's bottom line at 27, dividers at the end of each 3 pt gap
         // (the last column's too: the shrunk columns leave room), alternating bands 10 pt in.
         #expect(painted.contains { $0.hasPrefix("fillRect(0, 0, 360, 220) #FFFFFF") })
-        #expect(painted.contains { $0.hasPrefix("fillRect(0, 27, 360, 1) #000000") })
+        #expect(painted.contains { $0.hasPrefix("fillRect(0, 27, 360, 1.5) #000000") })
         for x in [119, 231, 340] {
             #expect(painted.contains { $0.hasPrefix("fillRect(\(x), 6, 1, 16) #000000") }, "divider at \(x)")
         }
@@ -135,6 +139,98 @@ import SwiftUIWebHeadless
         #expect(m.keyDown(KeyEvent(key: .upArrow)) && set.selection == [2])
     }
 
+    /// The corners: hidden headers start the rows 5 down; the bordered style runs its columns
+    /// between 1 pt margins (the surplus to all but the last column), draws its border, a 1.5 pt
+    /// line under the header and row separators, and no bands; `Table(of:rows:)` shows the rows
+    /// it is given.
+    @Test func hiddenHeadersBorderedAndRows() {
+        let r = runtime(VStack(spacing: 8) {
+            Table(Self.fruits) {
+                TableColumn("Name") { Text($0.name)._probe("hiddenName\($0.id)") }
+                TableColumn("Count") { Text("\($0.count)") }
+            }
+            .tableColumnHeaders(.hidden)
+            .frame(height: 100)
+            Table(Self.fruits) {
+                TableColumn("Name", value: \.name)
+                Group {
+                    TableColumn("Color", value: \Fruit.color)
+                    TableColumn("Count") { (fruit: Fruit) in Text("\(fruit.count)")._probe("count\(fruit.id)") }
+                }
+            }
+            .alternatingRowBackgrounds(.disabled)
+            .tableStyle(.bordered)
+            .frame(height: 100)
+            ._probe("bordered")
+            Table(of: Fruit.self) {
+                TableColumn("Name") { Text($0.name)._probe("rowName\($0.id)") }
+            } rows: {
+                TableRow(Self.fruits[0])
+                TableRow(Self.fruits[2])
+            }
+            ._probe("rows")
+        }, size: CGSize(width: 360, height: 316))
+        #expect(r.probeFrames["hiddenName1"] == CGRect(x: 16, y: 9, width: 35, height: 16))
+        #expect(r.probeFrames["count1"]?.minX == 250 && r.probeFrames["count1"]?.minY == 108 + 29 + 4)
+        #expect(r.probeFrames["rowName1"]?.minY == 216 + 37 && r.probeFrames["rowName3"]?.minY == 216 + 61)
+        #expect(r.probeFrames["rowName2"] == nil)
+        let bordered = TableNode.columnFrames([column(), column(), column()], width: 360, options: _TableOptions(bordered: true))
+        #expect(bordered.map(\.minX) == [1, 122, 242] && bordered.map(\.width) == [118, 117, 114])
+        let painted = commands(r)
+        #expect(painted.contains { $0.hasPrefix("fillRect(0, 108, 360, 1) #000000") }, "the top border")
+        #expect(painted.contains { $0.hasPrefix("fillRect(359, 108, 1, 100) #000000") }, "the trailing border")
+        #expect(painted.contains { $0.hasPrefix("fillRect(0, 136, 360, 1.5) #000000") }, "the header line under the bordered header")
+        #expect(painted.contains { $0.hasPrefix("fillRect(0, 160, 360, 1) #000000") }, "the first row's separator")
+        #expect(!painted.contains { $0.hasPrefix("fillRRect(10, 161, 340, 24)") }, "no bands in the bordered table")
+        #expect(painted.contains { $0.hasPrefix("fillRRect(10, 29, 340, 24) r=6") }, "the hidden-header table's second band")
+    }
+
+    /// An outline table indents its first column, draws a chevron on rows with children, and
+    /// expands them by a press on the chevron or the right arrow; its rows scroll by the wheel
+    /// and follow the keyboard selection; header dividers drag the columns; a secondary press
+    /// names the row for a context menu.
+    @Test func outlineScrollingDragsAndContextRows() {
+        let model = _TableSelectionBox()
+        let r = runtime(_OutlineTable(model: model), size: CGSize(width: 360, height: 100))
+        #expect(r.probeFrames["name1"]?.minX == 25 && r.probeFrames["name2"]?.minY == 61)
+        var painted = commands(r)
+        #expect(painted.filter { $0.hasPrefix("strokePath") }.count == 1, "one chevron: the group")
+        // The chevron's press expands the group: the children follow at a level's indent.
+        press(r, CGPoint(x: 19, y: 45))
+        relayout(r, height: 100)
+        #expect(r.probeFrames["name11"]?.minX == 41 && r.probeFrames["name11"]?.minY == 61 && r.probeFrames["name2"]?.minY == 109)
+        let table = r.root.descendants(where: { $0 is TableNode }).first as! TableNode
+        // Four rows do not fit 100 pt: the wheel scrolls them, bounded by the content.
+        #expect(r.root.descendants(where: { $0 is TableNode }).first.map { ($0 as! TableNode).contentOffset } == .zero)
+        r.scrollWheel(by: CGSize(width: 0, height: 20), at: CGPoint(x: 100, y: 60))
+        relayout(r, height: 100)
+        #expect(table.contentOffset.y == 20 && r.probeFrames["name2"]?.minY == 89)
+        r.scrollWheel(by: CGSize(width: 0, height: 500), at: CGPoint(x: 100, y: 60))
+        relayout(r, height: 100)
+        #expect(table.contentOffset.y == 29, "33 + 4 rows of 24, less the 100 pt frame")
+        // The keyboard selection scrolls back to the top; the left arrow collapses the group.
+        press(r, CGPoint(x: 100, y: 90))
+        #expect(model.selection == 2)
+        for _ in 0..<4 { _ = r.keyDown(KeyEvent(key: .upArrow)) }
+        relayout(r, height: 100)
+        #expect(model.selection == 1 && table.contentOffset.y == 0)
+        _ = r.keyDown(KeyEvent(key: .leftArrow))
+        relayout(r, height: 100)
+        #expect(r.probeFrames["name11"] == nil && r.probeFrames["name2"]?.minY == 61)
+        // Dragging the first header divider (at 180 + 2 = 182 - 1) widens the column by 30.
+        r.pointerDown(at: CGPoint(x: 181, y: 14))
+        r.pointerMoved(to: CGPoint(x: 211, y: 14))
+        r.pointerUp(at: CGPoint(x: 211, y: 14))
+        relayout(r, height: 100)
+        #expect(table.columnFrames.map(\.minX) == [8, 211], "the pitch 172.5 + 30, rounded")
+        #expect(model.selection == 1, "a drag does not change the selection")
+        // A context press names the row under it, or the selection when the row is selected.
+        #expect(table.contextSelection(at: CGPoint(x: 100, y: 70)) == [2])
+        #expect(table.contextSelection(at: CGPoint(x: 100, y: 45)) == [1])
+        painted = commands(r)
+        #expect(painted.contains { $0.hasPrefix("drawText(\"Name\"") && $0.contains(" at 27,") }, "the title is indented too")
+    }
+
     @Test func sortingByHeaderPresses() {
         let model = _TableSortBox()
         let r = runtime(_SortedFruits(model: model))
@@ -177,4 +273,18 @@ struct _SortedFruits: View {
 @Observable @MainActor final class _TableSelectionBox { var selection: Int? }
 @Observable @MainActor final class _TableSetBox { var selection: Set<Int> = [] }
 @Observable @MainActor final class _TableSortBox { var order = [KeyPathComparator(\TableTests.Fruit.name)] }
+
+/// An outline table over a tree with a selection.
+struct _OutlineTable: View {
+    struct Node: Identifiable { let id: Int; let name: String; let children: [Node]? }
+    static let tree = [Node(id: 1, name: "Fruit", children: [Node(id: 11, name: "Apple", children: nil), Node(id: 12, name: "Banana", children: nil)]),
+                       Node(id: 2, name: "Cherry", children: nil)]
+    let model: _TableSelectionBox
+    var body: some View {
+        Table(Self.tree, children: \.children, selection: Binding(get: { model.selection }, set: { model.selection = $0 })) {
+            TableColumn("Name") { Text($0.name)._probe("name\($0.id)") }
+            TableColumn("ID") { Text("\($0.id)") }
+        }
+    }
+}
 #endif

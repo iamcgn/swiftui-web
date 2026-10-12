@@ -499,12 +499,14 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(word, .style("title3"), width: 320))
             requests.append(TextMetricRequest(word, .style("title3"), width: 328))
         }
-        // Table fixtures: headers (bold when sorted), cells.
-        for word in ["Name", "Color", "Count"] {
+        // Table fixtures: headers (11 pt, bold when sorted), cells.
+        for word in ["Name", "Color", "Count", "Empty", "ID"] {
             requests.append(TextMetricRequest(word, defaultFont))
             requests.append(TextMetricRequest(word, defaultFont(weight: "bold")))
+            requests.append(TextMetricRequest(word, .system(size: 11, weight: "regular", design: "default")))
+            requests.append(TextMetricRequest(word, .system(size: 11, weight: "bold", design: "default")))
         }
-        requests.append(TextMetricRequest("Empty", defaultFont(weight: "bold")))
+        for word in ["Fruit", "Cherry", "1", "2", "3", "12"] { requests.append(TextMetricRequest(word, defaultFont)) }
         // ColorPicker fixtures: labels.
         for word in ["Accent", "Tint"] {
             requests.append(TextMetricRequest(word, defaultFont))

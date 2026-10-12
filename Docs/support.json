@@ -429,16 +429,18 @@
           ]
         },
         {
-          "api": "Table(_:columns:) / selection (single, set) / sortOrder / TableColumn (key path, custom content) / width(_:) / width(min:ideal:max:) / KeyPathComparator",
+          "api": "Table(_:columns:) / selection (single, set) / sortOrder / TableColumn (key path, custom content) / width(_:) / width(min:ideal:max:) / KeyPathComparator / Table(of:columns:rows:) with TableRow / Table(_:children:columns:) / TableColumnForEach / Group of columns / tableStyle / tableColumnHeaders / alternatingRowBackgrounds",
           "status": "partial",
-          "notes": "The macOS table: 28 pt header with dividers, sorted title bold with a chevron, 24 pt rows with alternating rounded bands and the selection band, cells 8 pt into their columns; NSTableView's column distribution measured (117 pt automatic pitch, grow/shrink/overflow regimes, fixed and flexible widths); selection by press and arrow keys (Shift extends), sorting by header presses; no row scrolling, column resizing, TableRow builders, table styles or hidden headers",
+          "notes": "The macOS table: 28 pt header with dividers (11 pt titles, a 1.5 pt line), sorted title bold with a chevron, 24 pt rows with alternating rounded bands and the selection band, cells 8 pt into their columns; NSTableView's column distribution measured (117 pt automatic pitch, grow/shrink/overflow regimes, fixed and flexible widths); selection by press and arrow keys (Shift extends), sorting by header presses; hidden headers (rows from 5), the bordered style (1 pt border and margins, the surplus to all but the last column, 1 pt row separators, no bands), TableRow builders, outline rows with disclosure chevrons (a press or Left/Right toggles), rows scrolling by the wheel and the keyboard selection, overflowing columns scrolling sideways, column resizing by header-divider drags (the column-resize pointer), contextMenu(forSelectionType:) on rows; the accent selection of a focused table is not painted",
           "fixtures": [
             "table/basic",
             "table/widths",
             "table/sized",
             "table/selection",
             "table/sorting",
-            "table/regimes"
+            "table/regimes",
+            "table/corners",
+            "table/outline"
           ]
         },
         {

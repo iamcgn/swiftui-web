@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 7 | 0 | 0 | 7 |
+| SwiftUI | 6 | 0 | 0 | 6 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **23** | 0 | 1 | 22 |
+| **All** | **22** | 0 | 1 | 21 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Table columns, styles and interaction** `sw-table` · Table · missing  
-  `TableColumnForEach`, column groups, `TableRow` builders, `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, disclosure rows, column resizing by drag, row context menus, horizontal scrolling of overflowing columns, scrolling rows; the band look (approximate). ([Table.md](Docs/elements/Table.md))
 - ☐ **Drags across the app boundary** `sw-dragdrop-os` · Drag and drop · missing  
   Drags to and from the browser page (`DataTransfer`) and other native apps (`NSDraggingSession`), `FileRepresentation`, `dropDestination` on `List` rows with insertion indices, `exportableToServices`, `importsItemProviders`. ([DragDrop.md](Docs/elements/DragDrop.md))
 - ☐ **List editing: the rest** `sw-list-editing-rest` · List · approximate  
@@ -103,6 +101,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Toolbar modifiers with an effect** `sw-toolbar` · SwiftUI · Toolbar
 - ☑ 2026-10-11 **NavigationSplitView chrome** `sw-splitview` · SwiftUI · Navigation
 - ☑ 2026-10-11 **Window commands, dragging and documents** `sw-windows` · SwiftUI · Windows
+- ☑ 2026-10-11 **Table columns, styles and interaction** `sw-table` · SwiftUI · Table
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

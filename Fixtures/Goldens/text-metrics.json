@@ -13182,11 +13182,29 @@
       "lastBaseline" : 11,
       "width" : 36
     },
+    "system:11:400:default||Color" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 28.5
+    },
+    "system:11:400:default||Count" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 32
+    },
     "system:11:400:default||D" : {
       "firstBaseline" : 11,
       "height" : 14,
       "lastBaseline" : 11,
       "width" : 8.5
+    },
+    "system:11:400:default||Empty" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 33.5
     },
     "system:11:400:default||Footer" : {
       "firstBaseline" : 11,
@@ -13206,6 +13224,12 @@
       "lastBaseline" : 11,
       "width" : 30
     },
+    "system:11:400:default||ID" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 11.5
+    },
     "system:11:400:default||Max" : {
       "firstBaseline" : 11,
       "height" : 14,
@@ -13217,6 +13241,12 @@
       "height" : 14,
       "lastBaseline" : 11,
       "width" : 19
+    },
+    "system:11:400:default||Name" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 30.5
     },
     "system:11:400:default||Star" : {
       "firstBaseline" : 11,
@@ -13476,10 +13506,28 @@
       "lastBaseline" : 81,
       "width" : 0
     },
+    "system:11:400:default|0.0|Color" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Count" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
     "system:11:400:default|0.0|D" : {
       "firstBaseline" : 11,
       "height" : 14,
       "lastBaseline" : 11,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Empty" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
       "width" : 0
     },
     "system:11:400:default|0.0|Footer" : {
@@ -13500,6 +13548,12 @@
       "lastBaseline" : 81,
       "width" : 0
     },
+    "system:11:400:default|0.0|ID" : {
+      "firstBaseline" : 11,
+      "height" : 28,
+      "lastBaseline" : 25,
+      "width" : 0
+    },
     "system:11:400:default|0.0|Max" : {
       "firstBaseline" : 11,
       "height" : 42,
@@ -13510,6 +13564,12 @@
       "firstBaseline" : 11,
       "height" : 42,
       "lastBaseline" : 39,
+      "width" : 0
+    },
+    "system:11:400:default|0.0|Name" : {
+      "firstBaseline" : 11,
+      "height" : 56,
+      "lastBaseline" : 53,
       "width" : 0
     },
     "system:11:400:default|0.0|Star" : {
@@ -13746,6 +13806,24 @@
       "lastBaseline" : 137,
       "width" : 0
     },
+    "system:11:700:default||Color" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 30.5
+    },
+    "system:11:700:default||Count" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 34
+    },
+    "system:11:700:default||Empty" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 36
+    },
     "system:11:700:default||Footer" : {
       "firstBaseline" : 11,
       "height" : 14,
@@ -13758,11 +13836,41 @@
       "lastBaseline" : 11,
       "width" : 33
     },
+    "system:11:700:default||ID" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 12
+    },
+    "system:11:700:default||Name" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 32.5
+    },
     "system:11:700:default||Vegetables" : {
       "firstBaseline" : 11,
       "height" : 14,
       "lastBaseline" : 11,
       "width" : 63
+    },
+    "system:11:700:default|0.0|Color" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "system:11:700:default|0.0|Count" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
+    },
+    "system:11:700:default|0.0|Empty" : {
+      "firstBaseline" : 11,
+      "height" : 70,
+      "lastBaseline" : 67,
+      "width" : 0
     },
     "system:11:700:default|0.0|Footer" : {
       "firstBaseline" : 11,
@@ -13774,6 +13882,18 @@
       "firstBaseline" : 11,
       "height" : 84,
       "lastBaseline" : 81,
+      "width" : 0
+    },
+    "system:11:700:default|0.0|ID" : {
+      "firstBaseline" : 11,
+      "height" : 28,
+      "lastBaseline" : 25,
+      "width" : 0
+    },
+    "system:11:700:default|0.0|Name" : {
+      "firstBaseline" : 11,
+      "height" : 56,
+      "lastBaseline" : 53,
       "width" : 0
     },
     "system:11:700:default|0.0|Vegetables" : {
@@ -15587,6 +15707,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 24.5
+    },
+    "system:13:400:default||ID" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 13
     },
     "system:13:400:default||Idle" : {
       "firstBaseline" : 13,
@@ -18030,6 +18156,12 @@
       "lastBaseline" : 45,
       "width" : 0
     },
+    "system:13:400:default|0.0|ID" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Idle" : {
       "firstBaseline" : 13,
       "height" : 64,
@@ -20430,6 +20562,12 @@
       "lastBaseline" : 13,
       "width" : 41
     },
+    "system:13:700:default||ID" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 14
+    },
     "system:13:700:default||Jan 2026" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -20542,6 +20680,12 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:700:default|0.0|ID" : {
+      "firstBaseline" : 13,
+      "height" : 32,
+      "lastBaseline" : 29,
       "width" : 0
     },
     "system:13:700:default|0.0|Jan 2026" : {

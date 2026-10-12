@@ -578,6 +578,21 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var tableChevronTrailing: CGFloat = 8                    // from the header cell's end (the next column, or the last column's content end)
     package var tableChevronStroke: CGFloat = 1.5
     package var tableIdealSize = CGSize(width: 300, height: 200)     // unverified
+    // sw-table (macOS 27, table/corners and table/outline, 2026-10-11)
+    package var tableHiddenHeadersRowsTop: CGFloat = 5               // without headers the rows start 5 down
+    package var tableBorderAlpha = 63.0 / 255                        // the bordered style's 1 pt border (192)
+    package var tableBorderedMargin: CGFloat = 1                     // its columns run from the border to the border
+    package var tableBorderedHeaderTitleOffset: CGFloat = 1          // its titles a point lower
+    package var tableHeaderFontSize: CGFloat = 11                    // the titles (26.2 too; drawn at 13 before sw-table)
+    package var tableHeaderLineThickness: CGFloat = 1.5              // macOS 27: the header line is 1.5 pt (26.2: 1), from 27; from 28 in the bordered style
+    package var tableBorderedFirstColumnIndent: CGFloat = -2         // its first column's title and cells 2 pt less in (9 and 7 from the edge)
+    package var tableBorderedRowsTop: CGFloat = 1                    // its rows start 29 down, under a 1 pt line at 28
+    package var tableSeparatorAlpha = 25.0 / 255                     // the bordered style's row separators (230)
+    package var tableOutlineIndent: CGFloat = 9                      // an outline table's first column: title and cells 9 further in
+    package var tableOutlineLevelIndent: CGFloat = 16                // each level of children (unmeasured: the harness cannot expand a row)
+    package var tableOutlineChevronOffset: CGFloat = 8.5             // the disclosure chevron's outer edge from the first column's (16.5 to 21.5)
+    package var tableOutlineChevronSize = CGSize(width: 5, height: 8)
+    package var tableOutlineChevronAlpha = 0.5
 
     // Painting: a scroll view skips subtrees further than this outside its viewport.
     package var scrollCullMargin: CGFloat = 256

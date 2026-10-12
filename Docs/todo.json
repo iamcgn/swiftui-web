@@ -1532,13 +1532,14 @@
       "framework": "SwiftUI",
       "area": "Table",
       "title": "Table columns, styles and interaction",
-      "detail": "`TableColumnForEach`, column groups, `TableRow` builders, `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, disclosure rows, column resizing by drag, row context menus, horizontal scrolling of overflowing columns, scrolling rows; the band look (approximate).",
+      "detail": "`TableColumnForEach`, column groups, `TableRow` builders, `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, disclosure rows, column resizing by drag, row context menus, horizontal scrolling of overflowing columns, scrolling rows; the band look (approximate). Done 2026-10-11 (Phase 9, item 27): `TableRow` builders, `TableColumnForEach`, column `Group`s, `tableStyle` (bordered measured), `tableColumnHeaders(.hidden)`, `alternatingRowBackgrounds`, outline rows with disclosure chevrons, column resizing by header-divider drags, row context menus, row and column scrolling; the 11 pt header titles and 1.5 pt header line measured.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Table.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-dragdrop-os",

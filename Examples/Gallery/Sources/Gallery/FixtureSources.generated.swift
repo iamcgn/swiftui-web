@@ -6016,6 +6016,48 @@ public static let basic = Fixture("table/basic", size: CGSize(width: 360, height
     .probe("table")
 }
 """#),
+        FixtureSource(name: "table/corners", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 133, lastLine: 162, declaration: #"""
+/// Corners (sw-table, macOS 27): hidden headers, no alternating bands, the bordered style,
+/// `TableRow` builders and a group of columns, all in one window.
+public static let corners = Fixture("table/corners", size: CGSize(width: 360, height: 360)) {
+    VStack(spacing: 8) {
+        Table(fruits) {
+            TableColumn("Name") { Text($0.name).probe("hiddenName\($0.id)") }
+            TableColumn("Count") { Text("\($0.count)") }
+        }
+        .tableColumnHeaders(.hidden)
+        .probe("hidden")
+        Table(fruits) {
+            TableColumn("Name", value: \.name)
+            Group {
+                TableColumn("Color", value: \TableFruit.color)
+                TableColumn("Count") { (fruit: TableFruit) in Text("\(fruit.count)").probe("count\(fruit.id)") }
+            }
+        }
+        .alternatingRowBackgrounds(.disabled)
+        .tableStyle(.bordered)
+        .probe("bordered")
+        Table(of: TableFruit.self) {
+            TableColumn("Name") { Text($0.name).probe("rowName\($0.id)") }
+            TableColumn("Color", value: \.color)
+        } rows: {
+            TableRow(fruits[0])
+            TableRow(fruits[2])
+        }
+        .probe("rows")
+    }
+}
+"""#),
+        FixtureSource(name: "table/outline", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 164, lastLine: 171, declaration: #"""
+/// Outline rows: a tree with disclosure triangles, the first group expanded by a step.
+public static let outline = Fixture("table/outline", size: CGSize(width: 360, height: 160)) {
+    Table(tree, children: \.children) {
+        TableColumn("Name", value: \.name)
+        TableColumn("ID") { Text("\($0.id)").probe("id\($0.id)") }
+    }
+    .probe("outline")
+}
+"""#),
         FixtureSource(name: "table/regimes", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 99, lastLine: 118, declaration: #"""
 /// The other two width regimes: two automatic columns that do not fit 200 pt keep their
 /// 117 pt pitch and overflow; four columns in 600 pt grow into it by half points.
@@ -17249,7 +17291,60 @@ public enum TableFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic, widths, sized, selection, sorting, regimes]
+    /// A tree for the outline table (`Table(_:children:columns:)`).
+    public struct Node: Identifiable, Sendable {
+        public let id: Int
+        public let name: String
+        public let children: [Node]?
+        public init(id: Int, name: String, children: [Node]? = nil) { self.id = id; self.name = name; self.children = children }
+    }
+
+    public static let tree = [
+        Node(id: 1, name: "Fruit", children: [Node(id: 11, name: "Apple"), Node(id: 12, name: "Banana")]),
+        Node(id: 2, name: "Cherry"),
+    ]
+
+    /// Corners (sw-table, macOS 27): hidden headers, no alternating bands, the bordered style,
+    /// `TableRow` builders and a group of columns, all in one window.
+    public static let corners = Fixture("table/corners", size: CGSize(width: 360, height: 360)) {
+        VStack(spacing: 8) {
+            Table(fruits) {
+                TableColumn("Name") { Text($0.name).probe("hiddenName\($0.id)") }
+                TableColumn("Count") { Text("\($0.count)") }
+            }
+            .tableColumnHeaders(.hidden)
+            .probe("hidden")
+            Table(fruits) {
+                TableColumn("Name", value: \.name)
+                Group {
+                    TableColumn("Color", value: \TableFruit.color)
+                    TableColumn("Count") { (fruit: TableFruit) in Text("\(fruit.count)").probe("count\(fruit.id)") }
+                }
+            }
+            .alternatingRowBackgrounds(.disabled)
+            .tableStyle(.bordered)
+            .probe("bordered")
+            Table(of: TableFruit.self) {
+                TableColumn("Name") { Text($0.name).probe("rowName\($0.id)") }
+                TableColumn("Color", value: \.color)
+            } rows: {
+                TableRow(fruits[0])
+                TableRow(fruits[2])
+            }
+            .probe("rows")
+        }
+    }
+
+    /// Outline rows: a tree with disclosure triangles, the first group expanded by a step.
+    public static let outline = Fixture("table/outline", size: CGSize(width: 360, height: 160)) {
+        Table(tree, children: \.children) {
+            TableColumn("Name", value: \.name)
+            TableColumn("ID") { Text("\($0.id)").probe("id\($0.id)") }
+        }
+        .probe("outline")
+    }
+
+    public static let all: [Fixture] = [basic, widths, sized, selection, sorting, regimes, corners, outline]
 }
 """#,
         "Fixtures/Sources/Text/TextCompletenessFixtures.swift": #"""

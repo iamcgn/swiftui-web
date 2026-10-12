@@ -12,11 +12,19 @@ Apple docs: [Table](https://developer.apple.com/documentation/swiftui/table),
 | `Table(_:columns:)`, `Table(_:selection:columns:)` (single and set), `Table(_:sortOrder:columns:)`, both combined | implemented for `RandomAccessCollection`s of `Identifiable` rows |
 | `TableColumn(_:value:)` (string key path), `TableColumn(_:value:content:)`, `TableColumn(_:content:)`; `LocalizedStringKey` and `StringProtocol` titles | implemented; a column with a `value:` key path is sortable |
 | `TableColumn.width(_:)`, `width(min:ideal:max:)` | implemented (the measured NSTableView distribution below) |
-| `TableColumnBuilder` | blocks, optionals and either branches; `TableColumnForEach`, `Group` of columns are missing |
+| `TableColumnBuilder` | blocks, optionals and either branches, `TableColumnForEach`, `Group` of columns |
 | `KeyPathComparator`, `SortOrder`, `sorted(using:)` | Foundation's on Apple platforms; on wasm `SortOrder`, `SortComparator` and `sorted(using:)` are WebFoundation's (decision 0017) and `API/SortComparators.swift` defines `KeyPathComparator` (key path, `order`, the comparator form, `Hashable`) |
 | Selection | a press toggles a row and focuses the table; Up/Down/Home/End move it, Shift extends a set selection from the anchor |
 | Sorting | a press on a sortable header sets `sortOrder` to that column forward, again reverses; the app sorts its data (as with Apple's table) |
-| `TableRow`, `TableRowContent` builders (`Table(of:columns:rows:)`), `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, `disclosureGroup` rows, column customisation and resizing by drag, context menus on rows, horizontal scrolling of overflowing columns, scrolling rows | missing |
+| `Table(of:columns:rows:)` with `TableRow` and `TableRowBuilder` (with and without a selection) | implemented: the rows are the ones built |
+| `Table(_:children:columns:)` (outline rows, with and without a selection) | implemented: rows with children show a disclosure chevron; a press on the chevron (or the indent before it), Right and Left on the selected row expand and collapse; children follow at a level's indent |
+| `tableStyle(.automatic / .inset / .bordered)`, `.inset(alternatesRowBackgrounds:)`, `.bordered(alternatesRowBackgrounds:)` | implemented: automatic and inset are the measured default; bordered measured below |
+| `tableColumnHeaders(.hidden)` | implemented: no header, rows from 5 |
+| `alternatingRowBackgrounds(.enabled / .disabled / .automatic)` | implemented: the bands on or off (automatic follows the style) |
+| Row scrolling, horizontal scrolling | implemented: the wheel scrolls rows that do not fit and overflowing columns sideways (`_Scrollable`); the keyboard selection scrolls its row into view |
+| Column resizing | implemented: the 8 pt zone around a header divider shows the column-resize pointer and drags the pitch (whole points, the column's minimum); the dragged column keeps it |
+| `contextMenu(forSelectionType:)` on a table | implemented (`_ListRowIdentifying`): the row under a secondary press, or the selection when it is selected |
+| Column customisation (`TableColumnCustomization`), the focused table's accent selection, `disclosureGroup`'s expansion binding, `tableColumnHeaders` on iOS | missing |
 
 ## Behaviour
 
@@ -24,9 +32,9 @@ Apple docs: [Table](https://developer.apple.com/documentation/swiftui/table),
 cell) and hands `_TableHost` the rows, column descriptors (title, width, sortable, current sort)
 and a sort action; `TableNode` keeps one node per cell keyed by row identity and column. The node
 fills its proposal (300 × 200 unproposed, unverified). It paints a white ground, the 28 pt header
-(titles 10 pt into their columns in the 13 pt system font, bold for the sorted column, whose
+(titles 10 pt into their columns in the 11 pt system font, bold for the sorted column, whose
 chevron sits 8 pt before the header cell's end; 1 pt dividers at 26/255 from 6 to 22 down; a
-bottom line at 27), then 24 pt rows from 33 down: every second row a 244-grey band with 6 pt
+1.5 pt bottom line from 27 — macOS 27; 26.2 drew 1 pt), then 24 pt rows from 33 down: every second row a 244-grey band with 6 pt
 corners inset 10 pt from both sides (running to the bottom whether or not rows are there), the
 selected rows a 220-grey band (the inactive window's selection; a focused table's accent
 selection is not painted yet). Cells are placed 8 pt into their column and 4 pt into the row,
@@ -68,7 +76,28 @@ columns in 380 pt: pitches 121.5 leave 0.5 pt and draw it; in 370 pt pitches 118
 | Fixed and flexible | `width(80)` + `width(min: 40, ideal: 60, max: 100)` + automatic in 360 → 8, 105, 209 (the fixed column keeps 97, the others grow 27 each); a flexible column grows to its `max`; `width(min: 150, ideal: 200)` + automatic → 8, 230.5 | `widths`, throwaway fixtures |
 | Sorting | pressing "Count" sorts forward, again reverse; rows follow the re-sorted data | `sorting/byCount` (Apple's re-created cells report no probes: `name2`, `name3`, `count2`, `count3` are ignored) |
 
-## Verification (2026-09-04)
+### The corners (sw-table, macOS 27, `table/corners` and `table/outline`, 2026-10-11)
+
+The table's SwiftUI frame keeps its fractions (three in a 344 pt stack are 114.667 each) while
+AppKit aligns the hosted scroll view inside it to the pixel: `TableNode.aligned` rounds the
+frame's root edges to the display scale and everything is drawn from them (the middle of the
+three tables is 115 tall from 122.5, the others 114.5).
+
+| Property | Value | Probe |
+|---|---|---|
+| Hidden headers | no header; rows from y = 5 (cells at 9) | `hiddenName1` (16, 9) |
+| Bordered style | a 1 pt 192-grey border; columns from 1 to 359 (margins 1), the surplus shared by all but the last column in whole points, the remainder to the first (three automatic columns in 360: pitches 121, 120, 117); the first column's title and cells 2 pt less in (9 and 7 from the edge); titles a point lower; the 1.5 pt header line from 28; rows from 29 with a 1 pt 230-grey separator at each row's last point; no bands | `count1` (250, 155.5), pixels |
+| `TableRow` builders | the rows built, in order | `rowName1`, `rowName3`; no `rowName2` |
+| Outline | the first column's title and cells 9 pt further in; a 5 × 8 chevron (1.5 pt strokes, half-black) 8.5 pt into the column pointing right while collapsed, down expanded; children 16 pt further per level (unmeasured: the harness cannot expand a row) | `id1`, `id2`, pixels |
+
+## Verification (2026-09-04; macOS 27 goldens and the corners 2026-10-11)
+
+2026-10-11: the twelve `table/` renders are pixel-exact in Tier C (the 0.5 % of 2026-09-04 was
+the header drawn at 13 pt) and ≤ 0.42 % in Tier B (Chromium). `TableTests.hiddenHeadersBorderedAndRows`
+and `outlineScrollingDragsAndContextRows` cover the corners, outline rows, the wheel and the
+keyboard scrolling, header-divider drags and `contextSelection(at:)`.
+
+
 
 Tier A: all 6 fixtures exact, the `selection` (3 steps) and `sorting` (1 step) steps included.
 Tier B: frames exact in Chromium and WebKit; Firefox's hinting shifts "Above" in `table/sized`
@@ -78,6 +107,5 @@ by press and keys, and sorting by header presses.
 
 ## Not yet covered
 
-Row scrolling and horizontal scrolling of overflowing columns, the focused (accent) selection,
-column resizing by drag, `TableRow` builders, table styles, hidden headers, `TableColumnForEach`,
-the unverified ideal size and automatic minimum width (10 assumed).
+The focused (accent) selection, column customisation, the level indent of expanded outline
+rows (16 assumed), the unverified ideal size and automatic minimum width (10 assumed).

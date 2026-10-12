@@ -1,0 +1,75 @@
+{
+  "fixture" : "table\/corners",
+  "frames" : {
+    "bordered" : {
+      "height" : 114.66666666666664,
+      "width" : 360,
+      "x" : 0,
+      "y" : 122.66666666666667
+    },
+    "count1" : {
+      "height" : 16,
+      "width" : 8.5,
+      "x" : 250,
+      "y" : 155.5
+    },
+    "count2" : {
+      "height" : 16,
+      "width" : 14,
+      "x" : 250,
+      "y" : 179.5
+    },
+    "count3" : {
+      "height" : 16,
+      "width" : 16.5,
+      "x" : 250,
+      "y" : 203.5
+    },
+    "hidden" : {
+      "height" : 114.66666666666667,
+      "width" : 360,
+      "x" : 0,
+      "y" : 0
+    },
+    "hiddenName1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 9
+    },
+    "hiddenName2" : {
+      "height" : 16,
+      "width" : 45,
+      "x" : 16,
+      "y" : 33
+    },
+    "hiddenName3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 57
+    },
+    "rowName1" : {
+      "height" : 16,
+      "width" : 35,
+      "x" : 16,
+      "y" : 282.5
+    },
+    "rowName3" : {
+      "height" : 16,
+      "width" : 41.5,
+      "x" : 16,
+      "y" : 306.5
+    },
+    "rows" : {
+      "height" : 114.66666666666669,
+      "width" : 360,
+      "x" : 0,
+      "y" : 245.33333333333331
+    }
+  },
+  "size" : {
+    "height" : 360,
+    "width" : 360
+  }
+}

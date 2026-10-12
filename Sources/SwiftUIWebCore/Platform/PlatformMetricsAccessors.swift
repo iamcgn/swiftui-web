@@ -484,6 +484,20 @@ extension PlatformMetrics {
     package static var tableChevronTrailing: CGFloat { current.tableChevronTrailing }
     package static var tableChevronStroke: CGFloat { current.tableChevronStroke }
     package static var tableIdealSize: CGSize { current.tableIdealSize }
+    package static var tableHiddenHeadersRowsTop: CGFloat { current.tableHiddenHeadersRowsTop }
+    package static var tableBorderAlpha: Double { current.tableBorderAlpha }
+    package static var tableBorderedMargin: CGFloat { current.tableBorderedMargin }
+    package static var tableBorderedHeaderTitleOffset: CGFloat { current.tableBorderedHeaderTitleOffset }
+    package static var tableHeaderFontSize: CGFloat { current.tableHeaderFontSize }
+    package static var tableHeaderLineThickness: CGFloat { current.tableHeaderLineThickness }
+    package static var tableBorderedFirstColumnIndent: CGFloat { current.tableBorderedFirstColumnIndent }
+    package static var tableBorderedRowsTop: CGFloat { current.tableBorderedRowsTop }
+    package static var tableSeparatorAlpha: Double { current.tableSeparatorAlpha }
+    package static var tableOutlineIndent: CGFloat { current.tableOutlineIndent }
+    package static var tableOutlineLevelIndent: CGFloat { current.tableOutlineLevelIndent }
+    package static var tableOutlineChevronOffset: CGFloat { current.tableOutlineChevronOffset }
+    package static var tableOutlineChevronSize: CGSize { current.tableOutlineChevronSize }
+    package static var tableOutlineChevronAlpha: Double { current.tableOutlineChevronAlpha }
     package static var scrollCullMargin: CGFloat { current.scrollCullMargin }
     package static var colorWellSize: CGSize { current.colorWellSize }
     package static var colorWellCornerRadius: CGFloat { current.colorWellCornerRadius }
