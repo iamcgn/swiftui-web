@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
-| UIKit | 6 | 0 | 0 | 6 |
+| UIKit | 5 | 0 | 0 | 5 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **12** | 0 | 1 | 11 |
+| **All** | **11** | 0 | 1 | 10 |
 
 ## Next (Phase 8, in order)
 
@@ -33,8 +33,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Tab bar badges and the More tab** `uk-tabbar` · Navigation · missing  
-  `UITabBarItem.badgeValue`, the More tab past five items, `UITabBarAppearance` (accepted), tab bar customisation. ([Navigation.md](Docs/elements/UIKit/Navigation.md))
 - ☐ **Table view corners** `uk-table-rest` · Table view · approximate  
   The grouped (non-inset) style's geometry, the `RowAnimation` kinds (every animation fades and slides today), swipe button widths and fonts, the lifted row's shadow, the tracking background while touched, `imageProperties`, catalog images in list content (the UIKit harness has no asset catalog), sidebar and `plainHeader` appearances, right-to-left. ([TableView.md](Docs/elements/UIKit/TableView.md))
 - ☐ **Collection view corners** `uk-collection-rest` · Collection view · missing  
@@ -63,6 +61,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Hardware keyboard and the focus system** `uk-keyboard` · UIKit · Events
 - ☑ 2026-10-12 **UITextInput for custom text views** `uk-text-input` · UIKit · Text
 - ☑ 2026-10-12 **Slider images, segment images, stepper repeat** `uk-controls-rest` · UIKit · Controls
+- ☑ 2026-10-12 **Tab bar badges and the More tab** `uk-tabbar` · UIKit · Navigation
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

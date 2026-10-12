@@ -120,3 +120,24 @@ view's pan).
 Open: the curl animation, two-page spreads (`spineLocation.mid`, `isDoubleSided`), the
 animated `setViewControllers` (immediate).
 
+## Tab bar badges and the More tab (uk-tabbar, `uikit/tabs/more` on the iOS 27 simulator, 2026-10-12)
+
+- The bar shows at most five tabs: with six or more controllers the first four get tabs and
+  the fifth is More (an ellipsis symbol, the title "More"), whose `moreNavigationController`
+  lists the rest (`_MoreListController`: a plain table of their tab items' images and titles
+  with disclosure chevrons; a row pushes the controller onto More's stack).
+  `selectedViewController = controller` for one of them selects More with it pushed.
+  `customizableViewControllers` is accepted (no Edit screen).
+- The platter keeps 21 pt margins (278 wide in 320): when 94 + 86 × (n − 1) + 8 would exceed
+  the width less 42, the buttons shrink and their overlap grows by half the shrink — five tabs
+  are 70 × 54 at a 50 pt pitch (the dump's `_UITabButton`s at 4, 54, 104, 154, 204).
+- Badges (`UITabBarItem.badgeValue`, `badgeColor`): a system-red capsule 21.5 tall (corner
+  10.75) whose centre sits 5.5 past the trailing edge of the 28 pt image box, 6 from the
+  button's top, a 12 pt medium white label 4 in and 2 down; a count is round (21.5), text widens
+  it (34 for "New"). The badge is the button's accessibility value.
+- `UITabBarAppearance` stays accepted without effect (the glass platter is drawn as it is).
+
+Tier A exact, UIKit Tier C 1.75 %, Tier B within tolerance. `NavigationPolishTests.moreTabAndBadges`.
+Open: the Edit screen for reordering tabs, `UITabBarAppearance`'s colours, the badge in the
+compact (landscape) bar.
+

@@ -1044,11 +1044,35 @@
       "lastBaseline" : 9.521484375,
       "width" : 102
     },
+    "system:10:500:default|;l1|Alerts" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 29.5
+    },
+    "system:10:500:default|;l1|Files" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 23
+    },
     "system:10:500:default|;l1|Home" : {
       "firstBaseline" : 9.521484375,
       "height" : 12,
       "lastBaseline" : 9.521484375,
       "width" : 29
+    },
+    "system:10:500:default|;l1|Mail" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 20.5
+    },
+    "system:10:500:default|;l1|More" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 25.5
     },
     "system:10:500:default|;l1|Search" : {
       "firstBaseline" : 9.521484375,
@@ -1056,11 +1080,35 @@
       "lastBaseline" : 9.521484375,
       "width" : 34.5
     },
+    "system:10:600:default|;l1|Alerts" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 30.5
+    },
+    "system:10:600:default|;l1|Files" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 23.5
+    },
     "system:10:600:default|;l1|Home" : {
       "firstBaseline" : 9.521484375,
       "height" : 12,
       "lastBaseline" : 9.521484375,
       "width" : 29.5
+    },
+    "system:10:600:default|;l1|Mail" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 21
+    },
+    "system:10:600:default|;l1|More" : {
+      "firstBaseline" : 9.521484375,
+      "height" : 12,
+      "lastBaseline" : 9.521484375,
+      "width" : 25.5
     },
     "system:10:600:default|;l1|Search" : {
       "firstBaseline" : 9.521484375,
@@ -1157,6 +1205,18 @@
       "height" : 14.5,
       "lastBaseline" : 11.42578125,
       "width" : 54
+    },
+    "system:12:500:default|;l1|3" : {
+      "firstBaseline" : 11.42578125,
+      "height" : 14.5,
+      "lastBaseline" : 11.42578125,
+      "width" : 8
+    },
+    "system:12:500:default|;l1|New" : {
+      "firstBaseline" : 11.42578125,
+      "height" : 14.5,
+      "lastBaseline" : 11.42578125,
+      "width" : 26
     },
     "system:12.830188679245284:400:default|;l1|Adjusts the font to fit" : {
       "firstBaseline" : 12.216244103773585,
@@ -1836,6 +1896,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 37.5
     },
+    "system:17:400:default|;l1|Alerts content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 107.5
+    },
     "system:17:400:default|;l1|Announced" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1926,6 +1992,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 106.5
     },
+    "system:17:400:default|;l1|Files content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 97.5
+    },
     "system:17:400:default|;l1|First" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -1998,6 +2070,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 41.5
     },
+    "system:17:400:default|;l1|Mail content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 94
+    },
     "system:17:400:default|;l1|Mar 15, 2025" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2033,6 +2111,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 47
+    },
+    "system:17:400:default|;l1|Music content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 108
     },
     "system:17:400:default|;l1|Never adjusted" : {
       "firstBaseline" : 16.1865234375,
@@ -2147,6 +2231,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 101
+    },
+    "system:17:400:default|;l1|Settings content" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 125.5
     },
     "system:17:400:default|;l1|Short" : {
       "firstBaseline" : 16.1865234375,
@@ -3235,6 +3325,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 6.31640625
+    },
+    "system:12:500:default" : {
+      "ascender" : 11.42578125,
+      "capHeight" : 8.455078125,
+      "descender" : -2.89453125,
+      "leading" : 0,
+      "lineHeight" : 14.3203125,
+      "pointSize" : 12,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 6.36328125
     },
     "system:12.830188679245284:400:default" : {
       "ascender" : 12.216244103773585,

@@ -1686,13 +1686,14 @@
       "framework": "UIKit",
       "area": "Navigation",
       "title": "Tab bar badges and the More tab",
-      "detail": "`UITabBarItem.badgeValue`, the More tab past five items, `UITabBarAppearance` (accepted), tab bar customisation.",
+      "detail": "`UITabBarItem.badgeValue`, the More tab past five items, `UITabBarAppearance` (accepted), tab bar customisation. Done 2026-10-12 (Phase 9, item 38): badges, the More tab past five items with its list (moreNavigationController), compressed buttons measured on the iOS 27 simulator (uikit/tabs/more), customizableViewControllers accepted.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Navigation.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-table-rest",

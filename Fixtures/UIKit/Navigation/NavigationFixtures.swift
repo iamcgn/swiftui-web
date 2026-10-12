@@ -36,7 +36,7 @@ final class ScreenController: UIViewController {
 }
 
 public enum NavigationFixtures {
-    public static let all = [basic, large, push, items, tabs, toolbar, search]
+    public static let all = [basic, large, push, items, tabs, tabsMore, toolbar, search]
 
     /// An inline title bar over a screen.
     public static let basic = UIKitFixture("uikit/nav/basic", size: CGSize(width: 320, height: 400)) {
@@ -98,6 +98,24 @@ public enum NavigationFixtures {
         home.view.probe("content")
         return tabs
     }
+    /// Badges and the More tab (uk-tabbar): six tabs, a count badge on the second and a text
+    /// badge on the third; UIKit shows four and a More tab holding the rest.
+    public static let tabsMore = UIKitFixture("uikit/tabs/more", size: CGSize(width: 320, height: 400)) {
+        let names = [("Home", "house"), ("Alerts", "bell"), ("Mail", "envelope"), ("Files", "folder"), ("Music", "music.note"), ("Settings", "gear")]
+        let controllers = names.enumerated().map { index, pair -> UIViewController in
+            let controller = ScreenController.make(title: pair.0, text: "\(pair.0) content", probe: index == 0 ? "label" : "label\(index)")
+            controller.tabBarItem = UITabBarItem(title: pair.0, image: UIImage(systemName: pair.1), tag: index)
+            return controller
+        }
+        controllers[1].tabBarItem.badgeValue = "3"
+        controllers[2].tabBarItem.badgeValue = "New"
+        let tabs = UITabBarController()
+        tabs.viewControllers = controllers
+        tabs.tabBar.probe("tabBar")
+        controllers[0].view.probe("content")
+        return tabs
+    }
+
     /// A navigation controller's toolbar under the screen (`toolbarItems`, `isToolbarHidden`).
     public static let toolbar = UIKitFixture("uikit/nav/toolbar", size: CGSize(width: 320, height: 400)) {
         let root = ScreenController.make(title: "Files", text: "Content", probe: "label")

@@ -1783,9 +1783,10 @@
         {
           "api": "UITabBarController / UITabBar / UITabBarItem",
           "status": "approximate",
-          "notes": "Tabs with symbol images and titles in the floating bar, selection, the safe area below; the glass pill over coloured content is opaque where iOS 26 tints what lies beneath; open: badges, the More tab, customisation",
+          "notes": "Tabs with symbol images and titles in the floating bar, selection, the safe area below; the glass pill over coloured content is opaque where iOS 26 tints what lies beneath. Badges and More (2026-10-12, uikit/tabs/more on iOS 27): red 21.5 pt badge capsules beside the symbol, five tabs at most with More's list pushing the rest (moreNavigationController), the buttons shrinking from 94 to 70 to keep the platter 21 in; open: the Edit screen, UITabBarAppearance colours",
           "fixtures": [
             "uikit/tabs/basic",
+            "uikit/tabs/more",
             "ios/representable/hostingsafearea-tabs"
           ]
         },

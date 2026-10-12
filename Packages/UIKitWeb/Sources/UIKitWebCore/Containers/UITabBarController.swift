@@ -2,6 +2,12 @@
 // the container; the iOS 26 tab bar is an 83 pt band at the bottom holding a floating platter
 // (62 tall, one 94 × 54 button per tab overlapping by 8) with a grey lens under the selection.
 
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
+
 /// A container view controller that manages a multiselection interface, where the selection
 /// determines which child view controller to display.
 @MainActor
@@ -13,14 +19,45 @@ open class UITabBarController: UIViewController {
         didSet { setViewControllers(viewControllers ?? [], animated: false) }
     }
 
+    /// The bar shows at most five tabs: with more controllers the fifth is More, a navigation
+    /// controller listing the rest (uikit/tabs/more; `moreNavigationController`).
+    static let maximumTabs = 5
+    public private(set) lazy var moreNavigationController: UINavigationController = {
+        let list = _MoreListController(tabs: self)
+        let navigation = UINavigationController(rootViewController: list)
+        navigation.tabBarItem = UITabBarItem(tabBarSystemItem: .more, tag: 0)
+        return navigation
+    }()
+    /// The controllers the More list holds (those past the fourth).
+    public var overflowControllers: [UIViewController] {
+        guard let controllers = viewControllers, controllers.count > Self.maximumTabs else { return [] }
+        return Array(controllers.dropFirst(Self.maximumTabs - 1))
+    }
+    /// The controllers whose tabs the bar shows: all of them, or the first four and More.
+    public var tabControllers: [UIViewController] {
+        guard let controllers = viewControllers else { return [] }
+        if controllers.count <= Self.maximumTabs { return controllers }
+        return Array(controllers.prefix(Self.maximumTabs - 1)) + [moreNavigationController]
+    }
+    /// The controllers the user may reorder in More's Edit screen (accepted: no edit screen).
+    open var customizableViewControllers: [UIViewController]?
+
     open var selectedIndex: Int = 0 {
         didSet { if selectedIndex != oldValue { showSelected(previous: oldValue) } }
     }
 
     open var selectedViewController: UIViewController? {
-        get { viewControllers?.indices.contains(selectedIndex) == true ? viewControllers?[selectedIndex] : nil }
+        get {
+            let tabs = tabControllers
+            return tabs.indices.contains(selectedIndex) ? tabs[selectedIndex] : nil
+        }
         set {
-            if let controller = newValue, let index = viewControllers?.firstIndex(where: { $0 === controller }) { selectedIndex = index }
+            guard let controller = newValue else { return }
+            if let index = tabControllers.firstIndex(where: { $0 === controller }) { selectedIndex = index }
+            else if overflowControllers.contains(where: { $0 === controller }) {
+                selectedIndex = Self.maximumTabs - 1
+                moreNavigationController.pushViewController(controller, animated: false)
+            }
         }
     }
 
@@ -48,14 +85,19 @@ open class UITabBarController: UIViewController {
             controller.didMove(toParent: self)
         }
         if viewControllers.map({ $0.map { ObjectIdentifier($0) } }) != controllers.map({ ObjectIdentifier($0) }) { viewControllers = controllers; return }
-        tabBar.items = controllers.map { $0.tabBarItem }
-        if selectedIndex >= controllers.count { selectedIndex = 0 }
+        if controllers.count > Self.maximumTabs, moreNavigationController.parent !== self {
+            addChild(moreNavigationController)
+            moreNavigationController.didMove(toParent: self)
+        }
+        tabBar.items = tabControllers.map { $0.tabBarItem }
+        if selectedIndex >= tabControllers.count { selectedIndex = 0 }
         tabBar.selectedItem = tabBar.items?.indices.contains(selectedIndex) == true ? tabBar.items?[selectedIndex] : nil
         if isViewLoaded { showSelected(previous: nil) }
     }
 
     private func showSelected(previous: Int?) {
-        guard let view = viewIfLoaded, let controllers = viewControllers else { return }
+        guard let view = viewIfLoaded else { return }
+        let controllers = tabControllers
         if let previous, controllers.indices.contains(previous), previous != selectedIndex, let old = controllers[previous].viewIfLoaded {
             if hasAppeared { controllers[previous].beginAppearanceTransition(false, animated: false) }
             old.removeFromSuperview()
@@ -144,7 +186,8 @@ open class UITabBar: UIView {
 
     private func select(_ index: Int) {
         guard let items, items.indices.contains(index) else { return }
-        if let controller, let target = controller.viewControllers?[index] {
+        if let controller, controller.tabControllers.indices.contains(index) {
+            let target = controller.tabControllers[index]
             guard controller.delegate?.tabBarController(controller, shouldSelect: target) ?? true else { return }
             controller.selectedIndex = index
         } else {
@@ -153,18 +196,36 @@ open class UITabBar: UIView {
         delegate?.tabBar(self, didSelect: items[index])
     }
 
-    /// The platter's frame within the bar.
-    var platterFrame: CGRect {
+    /// The platter keeps 21 pt margins (uikit/tabs/more: 278 in 320): when the natural buttons
+    /// would overflow it they shrink, their overlap growing by half the shrink (five tabs: 70
+    /// wide, 50 apart).
+    static let platterMargin: CGFloat = 21
+    public var buttonWidth: CGFloat {
         let count = CGFloat(max(1, buttons.count))
-        let width = Self.buttonSize.width + Self.buttonPitch * (count - 1) + 8
+        let natural = Self.buttonSize.width + Self.buttonPitch * (count - 1) + 8
+        let maximum = bounds.width - 2 * Self.platterMargin
+        guard natural > maximum, count > 1, maximum > 0 else { return Self.buttonSize.width }
+        let shrink = (natural - maximum) / (1 + 1.5 * (count - 1))
+        return max(44, Self.buttonSize.width - shrink)
+    }
+    public var buttonPitch: CGFloat {
+        let shrink = Self.buttonSize.width - buttonWidth
+        return Self.buttonPitch - 1.5 * shrink
+    }
+
+    /// The platter's frame within the bar.
+    public var platterFrame: CGRect {
+        let count = CGFloat(max(1, buttons.count))
+        let width = buttonWidth + buttonPitch * (count - 1) + 8
         return CGRect(x: ((bounds.width - width) / 2).rounded(), y: 0, width: width, height: Self.platterHeight)
     }
 
     open override func layoutSubviews() {
         super.layoutSubviews()
         let platter = platterFrame
+        let width = buttonWidth, pitch = buttonPitch
         for (index, button) in buttons.enumerated() {
-            button.frame = CGRect(x: platter.minX + 4 + Self.buttonPitch * CGFloat(index), y: platter.minY + 4, width: Self.buttonSize.width, height: Self.buttonSize.height)
+            button.frame = CGRect(x: platter.minX + 4 + pitch * CGFloat(index), y: platter.minY + 4, width: width, height: Self.buttonSize.height)
             button.isSelected = button.item === selectedItem
         }
     }
@@ -202,6 +263,10 @@ public final class UITabBarAppearance {
 final class TabButton: UIControl {
     let item: UITabBarItem
     private let label = UILabel()
+    /// The badge (uikit/tabs/more): a red capsule 21.5 tall centred 5.5 past the image box's
+    /// trailing edge, 6 from the top, its 12 pt medium white label 4 in; a count is round.
+    private let badge = UIView()
+    private let badgeLabel = UILabel()
 
     init(item: UITabBarItem) {
         self.item = item
@@ -210,6 +275,13 @@ final class TabButton: UIControl {
         accessibilityTraits = .button
         label.textAlignment = .center
         addSubview(label)
+        badge.layer.cornerRadius = 10.75
+        badge.layer.masksToBounds = true
+        badgeLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        badgeLabel.textColor = .white
+        badgeLabel.textAlignment = .center
+        badge.addSubview(badgeLabel)
+        addSubview(badge)
     }
 
     override var accessibilityLabel: String? {
@@ -224,6 +296,22 @@ final class TabButton: UIControl {
         label.textColor = isSelected ? tintColor : .label
         let width = label.intrinsicContentSize.width
         label.frame = CGRect(x: ((bounds.width - width) / 2 * 2).rounded() / 2, y: 35, width: width, height: 12)
+        if let value = item.badgeValue, !value.isEmpty {
+            badge.isHidden = false
+            badge.backgroundColor = item.badgeColor ?? .systemRed
+            badgeLabel.text = value
+            let labelWidth = badgeLabel.intrinsicContentSize.width
+            let badgeWidth = max(21.5, labelWidth + 8)
+            badge.frame = CGRect(x: (bounds.width + 28) / 2 + 5.5 - badgeWidth / 2, y: 6, width: badgeWidth, height: 21.5)
+            badgeLabel.frame = CGRect(x: 4, y: 2, width: badgeWidth - 8, height: 17.5)
+        } else {
+            badge.isHidden = true
+        }
+    }
+
+    override var accessibilityValue: String? {
+        get { super.accessibilityValue ?? item.badgeValue }
+        set { super.accessibilityValue = newValue }
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
@@ -236,13 +324,59 @@ final class TabButton: UIControl {
         }
         let ink = (isSelected ? tintColor ?? .tintColor : .label).rgba(for: style)
         let image = (isSelected ? item.selectedImage : nil) ?? item.image
+        let imageBox = CGRect(x: (bounds.width - 28) / 2, y: 5.5, width: 28, height: 28)
         if let image, image.isSystemSymbol {
-            SymbolPainter.paint(name: image.name, in: context.absoluteRect(CGRect(x: (bounds.width - 28) / 2, y: 5.5, width: 28, height: 28)), color: ink, weight: isSelected ? 600 : 500, into: &list)
+            SymbolPainter.paint(name: image.name, in: context.absoluteRect(imageBox), color: ink, weight: isSelected ? 600 : 500, into: &list)
         }
     }
 
     override func decorateSemantics(_ node: inout SemanticsNode) {
         node.role = .button
         if isSelected { node.isOn = true }
+    }
+}
+
+/// The More tab's list: a row per overflowing controller, its tab item's image and title; a
+/// tap pushes the controller onto the More navigation stack.
+@MainActor
+public final class _MoreListController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    unowned let tabs: UITabBarController
+    private let table = UITableView(frame: .zero, style: .plain)
+
+    init(tabs: UITabBarController) {
+        self.tabs = tabs
+        super.init(nibName: nil, bundle: nil)
+        title = "More"
+    }
+
+    override public func loadView() {
+        table.frame = UIScreen.main.bounds
+        table.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        table.dataSource = self
+        table.delegate = self
+        view = table
+    }
+
+    override public func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        table.reloadData()
+    }
+
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { tabs.overflowControllers.count }
+
+    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "more") ?? UITableViewCell(style: .default, reuseIdentifier: "more")
+        let controller = tabs.overflowControllers[indexPath.row]
+        cell.textLabel?.text = controller.tabBarItem.title ?? controller.title
+        cell.imageView?.image = controller.tabBarItem.image
+        cell.accessoryType = .disclosureIndicator
+        return cell
+    }
+
+    public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: false)
+        let controller = tabs.overflowControllers[indexPath.row]
+        tabs.moreNavigationController.pushViewController(controller, animated: true)
+        tabs.delegate?.tabBarController(tabs, didSelect: controller)
     }
 }

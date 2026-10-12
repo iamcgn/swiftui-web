@@ -112,6 +112,46 @@ import UIKit
         #expect(navigation.navigationBar.frame.height == 106.5)
     }
 
+    /// Six controllers: four tabs and More, whose list pushes the rest; badges on the items;
+    /// the buttons shrink to keep the platter 21 in from the edges (uk-tabbar).
+    @Test func moreTabAndBadges() {
+        let (scene, window) = scene(size: CGSize(width: 320, height: 400))
+        let names = ["Home", "Alerts", "Mail", "Files", "Music", "Settings"]
+        let controllers = names.enumerated().map { index, name -> UIViewController in
+            let controller = screen(name)
+            controller.tabBarItem = UITabBarItem(title: name, image: UIImage(systemName: "star"), tag: index)
+            return controller
+        }
+        controllers[1].tabBarItem.badgeValue = "3"
+        let tabs = UITabBarController()
+        tabs.viewControllers = controllers
+        window.rootViewController = tabs
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 320, height: 400))
+        #expect(tabs.tabBar.items?.count == 5 && tabs.tabBar.items?.last?.title == "More")
+        #expect(tabs.tabBar.platterFrame == CGRect(x: 21, y: 0, width: 278, height: 62))
+        #expect(tabs.tabBar.buttonWidth == 70 && tabs.tabBar.buttonPitch == 50)
+        // The badge shows as the Alerts button's value.
+        let alerts = scene.semanticsTree().first { $0.label == "Alerts" }
+        #expect(alerts?.value == "3")
+        // Selecting More shows its list; a row pushes the controller onto More's stack.
+        tabs.selectedIndex = 4
+        scene.layout(in: CGSize(width: 320, height: 400))
+        #expect(tabs.selectedViewController === tabs.moreNavigationController)
+        let list = tabs.moreNavigationController.topViewController as? _MoreListController
+        #expect(list != nil && tabs.overflowControllers.map(\.title) == ["Music", "Settings"], "four tabs show; More holds the fifth on")
+        let table = list!.view as! UITableView
+        #expect(table.numberOfRows(inSection: 0) == 2 && table.cellForRow(at: IndexPath(row: 1, section: 0))?.textLabel?.text == "Settings")
+        list!.tableView(table, didSelectRowAt: IndexPath(row: 0, section: 0))
+        #expect(tabs.moreNavigationController.topViewController === controllers[4])
+        // Selecting an overflow controller directly lands in More with it pushed.
+        _ = tabs.moreNavigationController.popToRootViewController(animated: false)
+        tabs.selectedIndex = 0
+        tabs.selectedViewController = controllers[5]
+        #expect(tabs.selectedIndex == 4 && tabs.moreNavigationController.topViewController === controllers[5])
+        scene.removeAllWindows()
+    }
+
     @Test func pushedControllersHideTheTabBar() {
         let (scene, window) = scene()
         let root = screen("Feed")
