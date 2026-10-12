@@ -149,4 +149,46 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
         try container.encode(contentsOf: bytes)
     }
 }
+
+// MARK: - Files in memory (sw-dragdrop-os)
+
+/// wasm has no file system: a file that arrives from outside (a dropped file, an opened
+/// document) lives in memory under a `memory:` URL, which `Data(contentsOf:)` reads and
+/// `write(to:)` writes, so `FileRepresentation` imports and exports work as they do with
+/// Foundation's file URLs.
+public enum _MemoryFiles {
+    nonisolated(unsafe) private static var files: [String: Data] = [:]
+    nonisolated(unsafe) private static var counter = 0
+
+    /// Stores `data` under a fresh `memory:` URL named `name`.
+    public static func store(_ data: Data, name: String) -> URL {
+        counter += 1
+        let safe = String(name.map { $0.isLetter || $0.isNumber || $0 == "." || $0 == "-" || $0 == "_" ? $0 : "_" })
+        let url = URL(string: "memory:/\(counter)/\(safe.isEmpty ? "file" : safe)")!
+        files[url.absoluteString] = data
+        return url
+    }
+    public static func read(_ url: URL) -> Data? { files[url.absoluteString] }
+    public static func write(_ data: Data, to url: URL) { files[url.absoluteString] = data }
+    public static func remove(_ url: URL) { files[url.absoluteString] = nil }
+}
+
+extension Data {
+    public struct _FileError: Error, CustomStringConvertible {
+        public let url: URL
+        public var description: String { "no file at \(url.absoluteString): wasm has no file system (memory: URLs only)" }
+    }
+
+    /// The bytes of an in-memory file (`memory:` URLs); any other URL throws.
+    public init(contentsOf url: URL) throws {
+        guard let data = _MemoryFiles.read(url) else { throw _FileError(url: url) }
+        self = data
+    }
+
+    /// Writes the bytes to an in-memory file (`memory:` URLs); any other URL throws.
+    public func write(to url: URL) throws {
+        guard url.scheme == "memory" else { throw _FileError(url: url) }
+        _MemoryFiles.write(self, to: url)
+    }
+}
 #endif

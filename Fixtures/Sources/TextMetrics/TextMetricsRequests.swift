@@ -665,6 +665,7 @@ public enum TextMetricsRequests {
         }
         requests.append(TextMetricRequest(paragraph, defaultFont, width: 150, options: secondary))
         for word in ["Selectable text", "Plain text", "Pulse", "Drag me"] { requests.append(TextMetricRequest(word, defaultFont)) }
+        requests.append(TextMetricRequest("", defaultFont, width: 120))   // dragdrop/external: the empty label over the destination
         requests.append(TextMetricRequest("Mask", .system(size: 40, weight: "bold", design: "default")))
         for word in ["Underlined", "Colored", "Hello World", "Second", "Both", "Struck", "Red strike", "Mixed line", "Solid", "Dotted", "Dashed",
                      "Dash dot", "Dash dot dot", "Dash strike", "MIXED CASE", "mixed case", "mixed Case", "Base", "Up", "Down", "Raised"] {

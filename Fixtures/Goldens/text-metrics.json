@@ -19440,6 +19440,12 @@
       "lastBaseline" : 12,
       "width" : 118.5
     },
+    "system:13:400:default|120.0|" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 0
+    },
     "system:13:400:default|120.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
       "height" : 64,

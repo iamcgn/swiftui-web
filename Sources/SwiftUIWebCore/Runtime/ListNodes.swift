@@ -17,7 +17,7 @@ package protocol _ListGroundProviding: AnyObject {
 }
 
 @MainActor
-package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Content>>, _Interactive, _KeyHandling, _ListGroundProviding {
+package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Content>>, _Interactive, _KeyHandling, _ListGroundProviding, _DropTarget {
     package var _groundColor: Color? { profile.cards ? profile.background : nil }
     package private(set) var child: TypedNode<Content>!
     private let identifier: Int
@@ -404,6 +404,80 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         }
         // Rows removed under an animation linger as ghosts until their transition ends.
         paintExiting(into: &list, context: context)
+        // The insertion line of a targeted drop between the rows: 2 pt of accent across the
+        // rows' content width, with a 6 pt ring at its leading end (approximate, unmeasured).
+        if let insertion = dropInsertion, let row = elements.first(where: { $0.kind == .row && $0.owner === insertion.owner }) {
+            let accent = Color.accentColor.resolve(in: environment)
+            let x = row.contentFrame.minX
+            let width = max(0, frame.width - profile.separatorTrailing - x)
+            let y = context.origin.y + insertion.y
+            list.append(.fillRect(CGRect(x: context.origin.x + x + 3, y: y - 1, width: width - 3, height: 2), accent))
+            list.append(.strokePath(Path(ellipseIn: CGRect(x: context.origin.x + x - 3, y: y - 3, width: 6, height: 6)), style: StrokeStyle(lineWidth: 2), accent))
+        }
+    }
+
+    // MARK: Drops between the rows (sw-dragdrop-os: `ForEach.dropDestination`, `onInsert`)
+
+    /// The targeted insertion: the `ForEach` whose rows take the drop, the offset and the line's y.
+    private struct DropInsertion {
+        let owner: any _ForEachNodeProviding
+        let offset: Int
+        let y: CGFloat
+    }
+    private var dropInsertion: DropInsertion?
+
+    /// The `ForEach`s whose rows accept `item`.
+    private func dropOwners(for item: _TransferItem) -> [any _ForEachNodeProviding] {
+        var owners: [any _ForEachNodeProviding] = []
+        for element in elements where element.kind == .row {
+            guard let owner = element.owner, let drop = owner._dropInsert, !owners.contains(where: { $0 === owner }), drop.accepts(item) else { continue }
+            owners.append(owner)
+        }
+        return owners
+    }
+
+    /// Where `item` dropped at `point` would go: among the rows of the nearest accepting
+    /// `ForEach`, before the first row whose middle the point is above, else after the last.
+    private func insertion(for item: _TransferItem, at point: CGPoint) -> DropInsertion? {
+        let owners = dropOwners(for: item)
+        guard !owners.isEmpty else { return nil }
+        let rows = elements.filter { $0.kind == .row && $0.owner.map { owner in owners.contains { $0 === owner } } ?? false }
+        guard let nearest = rows.min(by: { abs($0.frame.midY - point.y) < abs($1.frame.midY - point.y) }), let owner = nearest.owner else {
+            // No rows yet: the drop inserts at the start of the first ForEach.
+            return DropInsertion(owner: owners[0], offset: 0, y: 0)
+        }
+        let siblings = rows.filter { $0.owner === owner }
+        for row in siblings where point.y < row.frame.midY {
+            return DropInsertion(owner: owner, offset: row.offset, y: row.frame.minY)
+        }
+        let last = siblings.last ?? nearest
+        return DropInsertion(owner: owner, offset: last.offset + 1, y: last.frame.maxY)
+    }
+
+    package func accepts(_ item: _TransferItem) -> Bool { !dropOwners(for: item).isEmpty }
+
+    package func setTargeted(_ targeted: Bool) {
+        if !targeted, let insertion = dropInsertion {
+            dropInsertion = nil
+            insertion.owner._dropInsert?.isTargeted(false)
+            runtime.setNeedsDisplay()
+        }
+    }
+
+    package func dragUpdated(_ item: _TransferItem, at point: CGPoint) {
+        let next = insertion(for: item, at: point)
+        if next?.owner !== dropInsertion?.owner {
+            dropInsertion?.owner._dropInsert?.isTargeted(false)
+            next?.owner._dropInsert?.isTargeted(true)
+        }
+        dropInsertion = next
+        runtime.setNeedsDisplay()
+    }
+
+    package func perform(_ item: _TransferItem, at point: CGPoint) -> Bool {
+        guard let insertion = insertion(for: item, at: point), let drop = insertion.owner._dropInsert else { return false }
+        drop.perform(item, insertion.offset, point)
+        return true
     }
 
     /// iOS edit mode (ios/list/editing): a red disc with a white minus at the row's leading edge
@@ -827,6 +901,8 @@ package protocol _ForEachNodeProviding: AnyObject {
     /// The `ForEach`'s edit actions (`onDelete`, `onMove`), by row offset.
     var _onDelete: ((IndexSet) -> Void)? { get }
     var _onMove: ((IndexSet, Int) -> Void)? { get }
+    /// The `ForEach`'s drop between its rows (`dropDestination`, `onInsert`).
+    var _dropInsert: _ForEachDrop? { get }
 }
 
 /// `swipeActions`: transparent to layout; adds its set to the ones below it in the chain.

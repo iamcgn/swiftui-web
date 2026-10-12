@@ -396,6 +396,9 @@ public final class CanvasSceneHost {
             if self.pointerType(of: e) == .touch, self.touchDown(e) { return }
             self.scene.pointerModifiersChanged(self.modifiers(of: e))
             self.scene.pointerDown(at: self.point(of: e), type: self.pointerType(of: e), time: self.seconds(of: e))
+            // A press on a drag source makes the canvas draggable for this press: the browser
+            // then starts a system drag when the pointer moves (sw-dragdrop-os).
+            self.canvas.draggable = .boolean(self.pointerType(of: e) == .mouse && self.scene.hasDragSource(at: self.point(of: e)))
             self.scheduleFrame()
         }
         // Context menus are the scene's; the browser's stays closed.
@@ -415,16 +418,22 @@ public final class CanvasSceneHost {
         }
         on(canvas, "pointerup") { [weak self] e in
             guard let self, (e.button.number ?? 0) != 2 else { return }
+            self.canvas.draggable = .boolean(false)
+            if self.systemDrag { return }
             if self.pointerType(of: e) == .touch, self.touchUp(e) { return }
             self.scene.pointerUp(at: self.point(of: e), time: self.seconds(of: e))
             self.scheduleFrame()
         }
         on(canvas, "pointercancel") { [weak self] e in
             guard let self else { return }
+            // The browser cancels the pointer when its system drag takes over: the scene's drag
+            // goes on through the drag events.
+            if self.systemDrag { return }
             if self.pointerType(of: e) == .touch, self.touchUp(e) { return }
             self.scene.pointerUp(at: CGPoint(x: -1, y: -1), time: self.seconds(of: e))
             self.scheduleFrame()
         }
+        installDragHandlers()
         // Safari delivers trackpad pinches as gesture events (scale and rotation in degrees).
         on(canvas, "gesturestart") { [weak self] e in
             guard let self else { return }
@@ -828,6 +837,155 @@ public final class CanvasSceneHost {
         fileClosures = [onChange]
         input.onchange = .object(onChange)
         _ = input.click!()
+    }
+
+    // MARK: Drags across the app boundary (sw-dragdrop-os)
+
+    /// Whether the browser carries the scene's drag (its pointer events stopped at `dragstart`).
+    private var systemDrag = false
+    private var dragImage: JSObject?
+    private var dragClosures: [JSClosure] = []
+
+    /// The scene's drag becomes the browser's: `dragstart` fills the `DataTransfer` from the
+    /// scene's items (text under its MIME type, bytes as base64, files as a `DownloadURL`) and
+    /// sets the lifted preview as the drag image; `dragover` and `drop` carry both the scene's
+    /// own drag and drags from other pages and apps (their text at once, files read as bytes
+    /// before the drop is delivered); `dragend` tells the scene how its drag ended.
+    private func installDragHandlers() {
+        on(canvas, "dragstart") { [weak self] e in
+            guard let self else { return }
+            let items = self.scene.beginExternalDrag(at: self.point(of: e))
+            guard !items.isEmpty, let transfer = e.dataTransfer.object else {
+                _ = e.preventDefault!()
+                return
+            }
+            self.systemDrag = true
+            transfer.effectAllowed = .string("copyMove")
+            for item in items {
+                if let text = item.text {
+                    _ = transfer.setData!(item.type, text)
+                } else if let data = item.data {
+                    _ = transfer.setData!(item.type, Self.base64(Array(data)))
+                }
+                if let name = item.fileName, let data = item.data, let blobConstructor = JSObject.global.Blob.function, let urlClass = JSObject.global.URL.object {
+                    let parts = JSObject.global.Array.function!.new()
+                    _ = parts.push!(JSTypedArray<UInt8>(Array(data)).jsValue)
+                    let blob = blobConstructor.new(parts)
+                    if let url = urlClass.createObjectURL?(blob).string {
+                        _ = transfer.setData!("DownloadURL", "\(item.type):\(name):\(url)")
+                    }
+                }
+            }
+            if let preview = self.scene.externalDragPreview(), let image = self.document.createElement!("canvas").object {
+                let scale = self.dpr, width = Double(preview.size.width), height = Double(preview.size.height)
+                image.width = .number(max(1, (width * scale).rounded()))
+                image.height = .number(max(1, (height * scale).rounded()))
+                let style = image.style.object!
+                style.position = .string("absolute"); style.top = .string("-10000px"); style.left = .string("-10000px")
+                style.width = .string("\(width)px"); style.height = .string("\(height)px")
+                _ = self.overlay.appendChild!(image)
+                if let context = image.getContext!("2d").object {
+                    let encoded = DisplayListEncoder.encode(preview.list, font: DisplayListEncoder.cssFont)
+                    let strings = JSObject.global.Array.function!.new()
+                    for string in encoded.strings { _ = strings.push!(string) }
+                    _ = self.bridge.paint!(context, JSTypedArray<Double>(encoded.ops), strings, scale, width, height, JSObject.global.Array.function!.new())
+                }
+                _ = transfer.setDragImage?(image, Double(preview.grab.x), Double(preview.grab.y))
+                self.dragImage = image
+            }
+            self.scheduleFrame()
+        }
+        on(canvas, "dragenter") { e in _ = e.preventDefault!() }
+        on(canvas, "dragover") { [weak self] e in
+            guard let self, let transfer = e.dataTransfer.object else { return }
+            let accepted = self.scene.externalDragUpdated(types: Self.types(of: transfer), at: self.point(of: e))
+            if accepted {
+                _ = e.preventDefault!()
+                transfer.dropEffect = .string("copy")
+            }
+            self.scheduleFrame()
+        }
+        on(canvas, "dragleave") { [weak self] e in
+            guard let self else { return }
+            // Leaving for an element inside the canvas's box is not leaving.
+            if let related = e.relatedTarget.object, related.isSameNode?(self.canvas).boolean == true { return }
+            self.scene.externalDragExited()
+            self.scheduleFrame()
+        }
+        on(canvas, "drop") { [weak self] e in
+            guard let self, let transfer = e.dataTransfer.object else { return }
+            _ = e.preventDefault!()
+            self.canvas.draggable = .boolean(false)
+            let point = self.point(of: e)
+            var items: [ExternalDragItem] = []
+            for type in Self.types(of: transfer) where type != "Files" {
+                let text = transfer.getData!(type).string ?? ""
+                items.append(ExternalDragItem(type: type, text: text))
+            }
+            let files = transfer.files.object
+            let count = Int(files?.length.number ?? 0)
+            guard count > 0 else {
+                _ = self.scene.externalDrop(items: items, at: point)
+                self.scheduleFrame()
+                return
+            }
+            // Files arrive as bytes: every one is read before the drop is delivered.
+            var pending = count
+            var fileItems = Array(repeating: ExternalDragItem(type: "application/octet-stream"), count: count)
+            for index in 0..<count {
+                guard let file = files?[index].object else { pending -= 1; continue }
+                let name = file.name.string ?? "file"
+                let type = file.type.string.flatMap { $0.isEmpty ? nil : $0 } ?? "application/octet-stream"
+                let onBuffer = JSClosure { [weak self] arguments in
+                    MainActor.assumeIsolated {
+                        guard let self else { return }
+                        if let buffer = arguments.first?.object {
+                            let bytes = JSTypedArray<UInt8>(unsafelyWrapping: JSObject.global.Uint8Array.function!.new(buffer))
+                            fileItems[index] = ExternalDragItem(type: type, text: nil, data: Data(bytes.withUnsafeBytes { Array($0) }), fileName: name)
+                        }
+                        pending -= 1
+                        if pending == 0 {
+                            _ = self.scene.externalDrop(items: items + fileItems, at: point)
+                            self.scheduleFrame()
+                        }
+                    }
+                    return .undefined
+                }
+                self.dragClosures.append(onBuffer)
+                _ = file.arrayBuffer?().object?.then?(onBuffer)
+            }
+        }
+        on(canvas, "dragend") { [weak self] e in
+            guard let self else { return }
+            let dropped = e.dataTransfer.object?.dropEffect.string.map { $0 != "none" } ?? false
+            self.systemDrag = false
+            self.canvas.draggable = .boolean(false)
+            if let image = self.dragImage { _ = self.overlay.removeChild!(image); self.dragImage = nil }
+            self.dragClosures.removeAll()
+            self.scene.externalDragEnded(dropped: dropped)
+            self.scheduleFrame()
+        }
+    }
+
+    /// The types a `DataTransfer` carries (`Files` for files).
+    private static func types(of transfer: JSObject) -> [String] {
+        guard let list = transfer.types.object else { return [] }
+        return (0..<Int(list.length.number ?? 0)).compactMap { list[$0].string }
+    }
+
+    private static func base64(_ bytes: [UInt8]) -> String {
+        let table = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+        var out = ""
+        var index = 0
+        while index < bytes.count {
+            let b0 = bytes[index], b1 = index + 1 < bytes.count ? bytes[index + 1] : 0, b2 = index + 2 < bytes.count ? bytes[index + 2] : 0
+            out.append(table[Int(b0 >> 2)])
+            out.append(table[Int((b0 & 3) << 4 | b1 >> 4)])
+            out.append(index + 1 < bytes.count ? table[Int((b1 & 15) << 2 | b2 >> 6)] : "=")
+            out.append(index + 2 < bytes.count ? table[Int(b2 & 63)] : "=")
+            index += 3
+        }
+        return out
     }
 
     /// Hands the browser a file to save: a Blob download named `name` (sw-windows: Save).

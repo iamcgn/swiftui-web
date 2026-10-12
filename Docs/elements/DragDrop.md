@@ -17,8 +17,11 @@ Apple docs: [draggable(_:)](https://developer.apple.com/documentation/swiftui/vi
 | `PasteButton(payloadType:onPaste:)` | implemented: a bordered Paste button, enabled while the pasteboard holds a matching value |
 | System clipboard | copies hand their text to the host clipboard when the page may write it; reads are not attempted (permission prompts) |
 | `onDrag` / `onDrop` (`NSItemProvider`), `DropDelegate`, `DropInfo`, `DropProposal` | not portable: `NSItemProvider` and `NSString` do not exist on wasm, so these forms cannot compile there |
-| `exportableToServices`, `importsItemProviders`, `PasteButton(supportedContentTypes:payloadAction:)` | missing |
-| Drags to and from other apps or the browser page, `FileRepresentation`, `dropDestination` on `List` rows with insertion indices | missing |
+| `FileRepresentation` (`SentTransferredFile`, `ReceivedTransferredFile`) | implemented with synchronous closures (Apple's are `async`): a drag's payload must be ready when the host hands it to the system. A received file is a temporary file (a `memory:` URL on wasm, read by `Data(contentsOf:)`) |
+| Drags to and from other apps and the browser page | implemented (2026-10-11, below): the browser host's HTML5 drag, the AppKit host's `NSDraggingSession` and dragged types |
+| `ForEach.dropDestination(for:action:isTargeted:)` (the action's `Int` is the insertion offset), `onInsert(of:perform:)` (the values, not item providers) | implemented: a drop between a list's rows; the list paints an insertion line (approximate, unmeasured) |
+| `exportableToServices(_:)`, `exportableToServices(_:onEdit:)` | accepted without effect: there are no system services in a browser and the native host does not register with them |
+| `importsItemProviders`, `PasteButton(supportedContentTypes:payloadAction:)` | missing (`NSItemProvider`) |
 
 ## Behaviour
 
@@ -37,6 +40,44 @@ Apple docs: [draggable(_:)](https://developer.apple.com/documentation/swiftui/vi
   destination's type imports (`DataRepresentation`, `CodableRepresentation`).
 
 Layout is untouched (`dragdrop/basic` exact in Tier A/B/C).
+
+## Across the app boundary (2026-10-11, sw-dragdrop-os)
+
+The runtime's drag stays pointer-driven; hosts carry it over the boundary through
+`HostedScene`'s external entry points (`hasDragSource(at:)`, `beginExternalDrag(at:)`,
+`externalDragItems()`, `externalDragPreview()`, `externalDragUpdated(types:at:)`,
+`externalDragExited()`, `externalDrop(items:at:)`, `externalDragEnded(dropped:)`), with
+`ExternalDragItem` (a MIME type or identifier, text, bytes, a file name) as the currency.
+
+- **Items**: a `_TransferItem` exports itself as `text/plain` (a `String`), `text/uri-list` (a
+  `URL`), its data representations under their MIME types (`UTType._mime`: JSON, PNG, …; the
+  identifier itself for custom types) and its file representations with the file's bytes and
+  name. An outside drag becomes a `_TransferItem(external:)` whose exporters give each item's
+  text, URL, bytes and file; destinations load through their type's importers, matched by
+  content type (`UTType.conforms(to:)`, coarse: plain text, text, image, data). Before the drop
+  the host only knows the types: an *announced* item is accepted by type alone (`canLoad`),
+  the data decides at the drop.
+- **Browser host** (`CanvasHost`): a press on a drag source marks the canvas `draggable` for
+  that press (other gestures never become system drags); `dragstart` lifts the payload at once
+  (the browser fires it before the scene's 4 pt threshold), fills the `DataTransfer` (text,
+  base64 for bytes, `DownloadURL` for files) and paints the lifted preview into an offscreen
+  canvas for `setDragImage`; the scene paints no preview of its own while the system carries
+  the drag, and `pointercancel`/`pointerup` are ignored until `dragend`. `dragover` asks the
+  scene (own drag or outside types) and prevents the default when a destination accepts;
+  `dragleave` untargets (an outside drag ends); `drop` reads the strings at once and files
+  through `arrayBuffer()` before delivering; `dragend` reports whether another page took the
+  drag. `Playwright/dragdrop-probe.mjs` drives `dragdrop/external` with synthetic `DragEvent`s
+  in Chromium: 14 checks (the DataTransfer's text, acceptance, the green targeted fill, the
+  dropped label, an outside text drop, a PNG refused).
+- **AppKit host** (`RuntimeView`): once the scene lifts a payload, `mouseDragged` starts an
+  `NSDraggingSession` with a pasteboard item (string, URL, data by type, files written to a
+  temporary directory and offered as file URLs) and the preview rendered by the CoreGraphics
+  painter as the drag image; the view registers for strings, URLs, files, images and data, and
+  `draggingEntered/Updated/Exited`, `performDragOperation` and the session's end forward to
+  the scene. Built and compiled; not driven by a test (AppKit's session needs a real event).
+- **Lists**: `ListContentNode` is a drop target when a `ForEach` in it has a drop; the insertion
+  offset is before the first row of that `ForEach` whose middle the point is above, else after
+  its last; a 2 pt accent line with a ring at its leading end marks it while targeted.
 
 ## Pasteboard
 
@@ -82,9 +123,8 @@ copy and paste in text fields stay the browser's.
 
 ## Open
 
-- Cross-app drags: the browser host would need HTML5 drag events, the native host an
-  `NSDraggingSession`; the payload representations are in place for it.
-- Drop indicators, snap-back animation on cancel, `List`/`ForEach` reordering.
+- The AppKit drag session by hand; the insertion line's geometry; snap-back animation on
+  cancel; `importsItemProviders`; `async` file representation closures.
 - `UIPasteboard`: reading the system clipboard (the browser hands it only to paste events),
   `UIPasteboard.changedNotification`, `detectPatterns`, `UIPasteControl`, `canPerformAction`
   with selectors, a text field's own selection for its edit actions.

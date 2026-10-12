@@ -1,6 +1,12 @@
 // Drag sessions: a press on a draggable view that moves past the threshold lifts the payload
 // (painted as a preview under the pointer), drop destinations under the pointer are targeted,
-// and a release over a destination that accepts the payload delivers it.
+// and a release over a destination that accepts the payload delivers it. Hosts carry drags
+// across the app boundary through the external entry points (sw-dragdrop-os).
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
 
 /// A node that can start a drag.
 @MainActor
@@ -15,18 +21,28 @@ package protocol _DragSource: AnyObject {
 package protocol _DropTarget: AnyObject {
     func accepts(_ item: _TransferItem) -> Bool
     func setTargeted(_ targeted: Bool)
+    /// The drag moved to `point` (the node's coordinates) while targeted: a list moves its
+    /// insertion line. The default ignores it.
+    func dragUpdated(_ item: _TransferItem, at point: CGPoint)
     func perform(_ item: _TransferItem, at point: CGPoint) -> Bool
 }
 
-/// A drag in progress.
+extension _DropTarget {
+    package func dragUpdated(_ item: _TransferItem, at point: CGPoint) {}
+}
+
+/// A drag in progress: the app's own (a source, a preview) or one from outside (an item of
+/// the host's types, its data arriving with the drop).
 package struct DragSession {
-    package let item: _TransferItem
+    package var item: _TransferItem
     package weak var source: ViewNode?
     package weak var previewNode: ViewNode?
     /// The pointer's offset within the preview when the drag started.
     package var grab: CGPoint
     package var location: CGPoint
     package weak var target: (ViewNode & _DropTarget)?
+    /// Whether the host's system drag carries the session (its own pointer events stop).
+    package var isSystemDrag = false
 }
 
 @MainActor
@@ -55,7 +71,7 @@ package final class DraggableNode<Content: View, Payload: Transferable, Preview:
 package final class DropDestinationNode<Content: View, T: Transferable>: UnaryLayoutModifierNode<Content, _DropDestinationModifier<T>>, _DropTarget {
     private var targeted = false
 
-    package func accepts(_ item: _TransferItem) -> Bool { item.load(as: T.self) != nil }
+    package func accepts(_ item: _TransferItem) -> Bool { item.canLoad(as: T.self) }
 
     package func setTargeted(_ targeted: Bool) {
         guard targeted != self.targeted else { return }
@@ -122,8 +138,107 @@ extension Runtime {
             target?.setTargeted(true)
             session.target = target
         }
+        if let target {
+            let origin = target.frameInRoot.origin
+            target.dragUpdated(session.item, at: CGPoint(x: point.x - origin.x, y: point.y - origin.y))
+        }
         dragSession = session
         setNeedsDisplay()
+    }
+
+    /// Cancels the drag in flight: the target is released, nothing is delivered.
+    package func cancelDrag() {
+        guard let session = dragSession else { return }
+        dragSession = nil
+        setPointerStyle(nil)
+        session.target?.setTargeted(false)
+        requestLayout()
+        setNeedsDisplay()
+    }
+
+    // MARK: Across the app boundary (sw-dragdrop-os)
+
+    public func hasDragSource(at point: CGPoint) -> Bool { dragSource(at: point) != nil }
+
+    /// The items of the drag in flight for the host's system drag: none for a drag from outside
+    /// (the host already has it), none before a payload is lifted.
+    public func externalDragItems() -> [ExternalDragItem] {
+        guard let session = dragSession, !session.item.isExternal else { return [] }
+        return session.item.externalItems()
+    }
+
+    /// The host's system drag is starting from the pressed source: the payload lifts now.
+    public func beginExternalDrag(at point: CGPoint) -> [ExternalDragItem] {
+        if dragSession == nil, let pending = pendingDrag {
+            pendingDrag = nil
+            beginDrag(from: pending.source, pressedAt: pending.start, at: point)
+        }
+        guard var session = dragSession, !session.item.isExternal else { return [] }
+        session.isSystemDrag = true
+        dragSession = session
+        return session.item.externalItems()
+    }
+
+    /// A system drag over `point`: the app's own session follows it; a drag from outside opens
+    /// a session of its announced types (the data comes with the drop). Returns whether a
+    /// destination is targeted.
+    public func externalDragUpdated(types: [String], at point: CGPoint) -> Bool {
+        if dragSession == nil || dragSession?.item.isExternal == true && dragSession?.item.external.map(\.type) != types {
+            let items = types.map { ExternalDragItem(type: $0, text: UTType(_mime: $0).isText ? "" : nil, data: Data()) }
+            dragSession = DragSession(item: _TransferItem(external: items), source: nil, previewNode: nil, grab: .zero, location: point, target: nil, isSystemDrag: true)
+        }
+        updateDrag(to: point)
+        return dragSession?.target != nil
+    }
+
+    /// The system drag left the scene: the app's own drag keeps going (it may come back or
+    /// drop elsewhere), one from outside is over.
+    public func externalDragExited() {
+        guard let session = dragSession else { return }
+        if session.item.isExternal {
+            cancelDrag()
+        } else {
+            session.target?.setTargeted(false)
+            var copy = session
+            copy.target = nil
+            dragSession = copy
+            setNeedsDisplay()
+        }
+    }
+
+    /// The system drag dropped: the app's own session ends at the point; one from outside is
+    /// delivered with the items' data.
+    @discardableResult
+    public func externalDrop(items: [ExternalDragItem], at point: CGPoint) -> Bool {
+        guard var session = dragSession else {
+            // A drop without any dragover (synthetic hosts): target and deliver in one go.
+            dragSession = DragSession(item: _TransferItem(external: items), source: nil, previewNode: nil, grab: .zero, location: point, target: nil, isSystemDrag: true)
+            updateDrag(to: point)
+            return endDrag(at: point)
+        }
+        if session.item.isExternal {
+            session.item = _TransferItem(external: items)
+            dragSession = session
+        }
+        updateDrag(to: point)
+        return endDrag(at: point)
+    }
+
+    /// The host's system session for the app's drag ended elsewhere: the drag is over.
+    public func externalDragEnded(dropped: Bool) {
+        guard dragSession != nil else { return }
+        cancelDrag()
+    }
+
+    /// The lifted preview painted at the origin of its own space, for the system's drag image.
+    public func externalDragPreview() -> ExternalDragPreview? {
+        guard let session = dragSession, let preview = session.previewNode else { return nil }
+        var list = DisplayList()
+        let size = preview.frame.size
+        list.append(.beginGroup(opacity: 0.8))
+        preview.paint(into: &list, context: PaintContext(origin: .zero, scale: hostDisplayScale))
+        list.append(.endGroup)
+        return ExternalDragPreview(list: list, size: size, grab: session.grab)
     }
 
     /// Drops at `point`: the targeted destination gets the payload; returns whether it took it.
@@ -143,9 +258,10 @@ extension Runtime {
         return accepted
     }
 
-    /// Paints the dragged preview under the pointer, over everything else.
+    /// Paints the dragged preview under the pointer, over everything else (the system draws
+    /// its own image while it carries the drag).
     package func paintDragPreview(into list: inout DisplayList, context: PaintContext) {
-        guard let session = dragSession, let preview = session.previewNode else { return }
+        guard let session = dragSession, !session.isSystemDrag, let preview = session.previewNode else { return }
         let frame = CGRect(x: session.location.x - session.grab.x, y: session.location.y - session.grab.y,
                            width: preview.frame.width, height: preview.frame.height)
         list.append(.beginGroup(opacity: 0.8))

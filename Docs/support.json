@@ -1283,11 +1283,12 @@
           ]
         },
         {
-          "api": "draggable / dropDestination / Transferable (Proxy, Codable, Data representations)",
+          "api": "draggable / dropDestination / Transferable (Proxy, Codable, Data, File representations) / ForEach.dropDestination / onInsert / exportableToServices",
           "status": "partial",
-          "notes": "In-app drags: a press that moves 4 pt lifts the payload (view or preview painted under the pointer), destinations under the pointer are targeted, release delivers the values and drop point; String/Data/URL transferable, proxy and data conversions between types; no onDrag/onDrop item providers, pasteboard or cross-app drags (Docs/elements/DragDrop.md)",
+          "notes": "In-app drags: a press that moves 4 pt lifts the payload (view or preview painted under the pointer), destinations under the pointer are targeted, release delivers the values and drop point; String/Data/URL transferable, proxy, data and file conversions between types. Across the app boundary (2026-10-11): the browser host hands the lifted payload to an HTML5 drag (DataTransfer text under its MIME type, bytes as base64, files as DownloadURL, the preview as the drag image) and takes drags from other pages and apps (types target the destinations before the data arrives, files read as bytes); the AppKit host runs an NSDraggingSession and registers for dragged types (built, not driven by a test). FileRepresentation with synchronous closures; a dropped file is a temporary file (a memory: URL on wasm, read by Data(contentsOf:)). A drop between a List's ForEach rows (dropDestination(for:action:) with the offset, onInsert) paints an insertion line. exportableToServices is accepted without effect; no importsItemProviders (Docs/elements/DragDrop.md)",
           "fixtures": [
-            "dragdrop/basic"
+            "dragdrop/basic",
+            "dragdrop/external"
           ]
         },
         {

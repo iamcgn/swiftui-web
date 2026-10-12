@@ -30,6 +30,8 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable, Content> {
     /// The edit actions a list applies to these rows (`onDelete`, `onMove`, `editActions:`).
     package var _onDelete: ((IndexSet) -> Void)?
     package var _onMove: ((IndexSet, Int) -> Void)?
+    /// Drops between the rows (`dropDestination(for:action:)`, `onInsert(of:perform:)`).
+    package var _dropInsert: _ForEachDrop?
 
     package init(data: Data, id: KeyPath<Data.Element, ID>, content: @escaping (Data.Element) -> Content) {
         self.data = data
@@ -121,10 +123,37 @@ extension ForEach where Content: View {
         return copy
     }
 
-    /// Insertion by drop is not offered here: the action is kept for API compatibility.
+    /// Sets the insertion action: a drop between the rows of a list carrying one of the content
+    /// types calls it with the insertion offset and the dropped values (the payloads themselves
+    /// here, where Apple hands item providers).
     public func onInsert(of supportedContentTypes: [UTType], perform action: @escaping (Int, [Any]) -> Void) -> ForEach<Data, ID, Content> {
-        self
+        var copy = self
+        copy._dropInsert = _ForEachDrop(
+            accepts: { item in item.exporters.contains { exporter in exporter.contentType.map { type in supportedContentTypes.contains { type.conforms(to: $0) } } ?? false } || (item.value is String && supportedContentTypes.contains { $0.isText }) },
+            perform: { item, offset, _ in action(offset, item.isExternal ? item.external.compactMap { $0.text ?? ($0.data.map { $0 as Any }) } : [item.value]) },
+            isTargeted: { _ in })
+        return copy
     }
+
+    /// Makes the rows a drop destination for `payloadType`: a drop between them calls `action`
+    /// with the values and the offset to insert them at; a list draws the insertion line there.
+    public func dropDestination<T: Transferable>(for payloadType: T.Type = T.self, action: @escaping ([T], Int) -> Void,
+                                                 isTargeted: @escaping (Bool) -> Void = { _ in }) -> ForEach<Data, ID, Content> {
+        var copy = self
+        copy._dropInsert = _ForEachDrop(
+            accepts: { $0.canLoad(as: T.self) },
+            perform: { item, offset, _ in if let value = item.load(as: T.self) { action([value], offset) } },
+            isTargeted: isTargeted)
+        return copy
+    }
+}
+
+/// A `ForEach`'s drop between its rows: whether an item is accepted, the action with the
+/// insertion offset, and the targeting callback.
+public struct _ForEachDrop {
+    package let accepts: (_TransferItem) -> Bool
+    package let perform: (_TransferItem, Int, CGPoint) -> Void
+    package let isTargeted: (Bool) -> Void
 }
 
 /// The edit operations a binding-backed `ForEach` or `List` performs on its collection.

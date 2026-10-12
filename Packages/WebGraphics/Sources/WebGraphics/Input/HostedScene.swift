@@ -130,6 +130,59 @@ public protocol HostedScene: AnyObject {
     func colorPanel(_ identifier: Int, didPick color: RGBA)
     /// The host's chooser closed, or moved to another well.
     func colorPanelDidClose(_ identifier: Int)
+
+    // Drags across the app boundary (sw-dragdrop-os). The scene's own drags stay pointer-driven;
+    // a host that can hand them to the system (the browser's `DataTransfer`, AppKit's dragging
+    // session) asks for the items once the scene lifted a payload and reports the outcome.
+    /// Whether a drag can start from a press at `point` (the browser host marks its canvas
+    /// draggable for that press alone, so other gestures never become system drags).
+    func hasDragSource(at point: CGPoint) -> Bool
+    /// The items of the drag the scene has in flight, for the host's system drag (empty: none).
+    func externalDragItems() -> [ExternalDragItem]
+    /// A press on a drag source: the host's system drag is starting from it, so the scene lifts
+    /// the payload now (the browser fires `dragstart` before the scene's own threshold) and
+    /// returns the items; empty when nothing under the press can be dragged.
+    func beginExternalDrag(at point: CGPoint) -> [ExternalDragItem]
+    /// A system drag (the scene's own, or one from outside carrying `types`) is over `point`:
+    /// returns whether a destination accepts it.
+    func externalDragUpdated(types: [String], at point: CGPoint) -> Bool
+    /// The system drag left the scene.
+    func externalDragExited()
+    /// The system drag dropped `items` at `point`: returns whether a destination took them.
+    func externalDrop(items: [ExternalDragItem], at point: CGPoint) -> Bool
+    /// The host's system session for the scene's drag ended; `dropped` when another app took it.
+    func externalDragEnded(dropped: Bool)
+    /// The image the system drag shows: the lifted preview as a display list in its own space,
+    /// its size, and where the pointer holds it.
+    func externalDragPreview() -> ExternalDragPreview?
+}
+
+/// A drag preview for the host's system drag.
+public struct ExternalDragPreview {
+    public let list: DisplayList
+    public let size: CGSize
+    public let grab: CGPoint
+    public init(list: DisplayList, size: CGSize, grab: CGPoint) {
+        self.list = list
+        self.size = size
+        self.grab = grab
+    }
+}
+
+/// An item of a drag crossing the app boundary: its type (a MIME type such as `text/plain`
+/// or `text/uri-list`, or a uniform type identifier), its text, its bytes and a file's name.
+public struct ExternalDragItem: Equatable, Sendable {
+    public var type: String
+    public var text: String?
+    public var data: Data?
+    public var fileName: String?
+
+    public init(type: String, text: String? = nil, data: Data? = nil, fileName: String? = nil) {
+        self.type = type
+        self.text = text
+        self.data = data
+        self.fileName = fileName
+    }
 }
 
 /// What a scene asks a host's colour chooser to show: the well's semantics identifier (the
@@ -161,6 +214,14 @@ extension HostedScene {
     public func pointerModifiersChanged(_ modifiers: EventModifiers) {}
     public func performAccessibilityAction(semanticsIdentifier: Int, name: String) {}
     public func takeAccessibilityEvents() -> [AccessibilityEvent] { [] }
+    public func hasDragSource(at point: CGPoint) -> Bool { false }
+    public func externalDragItems() -> [ExternalDragItem] { [] }
+    public func beginExternalDrag(at point: CGPoint) -> [ExternalDragItem] { [] }
+    public func externalDragUpdated(types: [String], at point: CGPoint) -> Bool { false }
+    public func externalDragExited() {}
+    public func externalDrop(items: [ExternalDragItem], at point: CGPoint) -> Bool { false }
+    public func externalDragEnded(dropped: Bool) {}
+    public func externalDragPreview() -> ExternalDragPreview? { nil }
 }
 
 /// What a scene asks of the host's assistive layer: a string to announce in a live region, or

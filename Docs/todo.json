@@ -1546,13 +1546,14 @@
       "framework": "SwiftUI",
       "area": "Drag and drop",
       "title": "Drags across the app boundary",
-      "detail": "Drags to and from the browser page (`DataTransfer`) and other native apps (`NSDraggingSession`), `FileRepresentation`, `dropDestination` on `List` rows with insertion indices, `exportableToServices`, `importsItemProviders`.",
+      "detail": "Drags to and from the browser page (`DataTransfer`) and other native apps (`NSDraggingSession`), `FileRepresentation`, `dropDestination` on `List` rows with insertion indices, `exportableToServices`, `importsItemProviders`. Done 2026-10-11 (Phase 9, item 28): HTML5 drags both ways in the browser host (DataTransfer, files, the drag image), NSDraggingSession and dragged types in the AppKit host, FileRepresentation (synchronous closures, memory: files on wasm), ForEach.dropDestination/onInsert with insertion offsets and the list's insertion line, exportableToServices accepted; importsItemProviders stays out (NSItemProvider).",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/DragDrop.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-list-editing-rest",

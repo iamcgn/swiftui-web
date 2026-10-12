@@ -228,6 +228,7 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
     init(frame: NSRect, host: NativeSceneHost) {
         self.host = host
         super.init(frame: frame)
+        registerDragTypes()
     }
 
     required init?(coder: NSCoder) { nil }
@@ -278,7 +279,159 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
 
     override public func mouseDragged(with event: NSEvent) {
         host.scene.pointerMoved(to: point(event), time: event.timestamp)
+        // The scene lifted a payload: the system carries it from here (sw-dragdrop-os).
+        if draggingSession == nil { beginSystemDrag(with: event) }
         if host.scene.needsFrame { needsDisplay = true }
+    }
+
+    // MARK: Drags across the app boundary (sw-dragdrop-os)
+
+    private var draggingSession: NSDraggingSession?
+
+    /// The pasteboard types the view takes from other apps: text, URLs, files, images and
+    /// whatever uniform type a scene's destination names (every drag is offered; the scene
+    /// decides by its types).
+    fileprivate func registerDragTypes() {
+        registerForDraggedTypes([.string, .URL, .fileURL, .png, .tiff, .html, .rtf, .pdf, NSPasteboard.PasteboardType("public.data"), NSPasteboard.PasteboardType("public.json")])
+    }
+
+    /// Starts an `NSDraggingSession` with the scene's items: a pasteboard item carrying the
+    /// text, URL, bytes and file URLs, and the lifted preview as the drag image.
+    private func beginSystemDrag(with event: NSEvent) {
+        let items = host.scene.externalDragItems()
+        guard !items.isEmpty else { return }
+        let pasteboardItem = NSPasteboardItem()
+        var fileURLs: [URL] = []
+        for item in items {
+            let type = Self.pasteboardType(for: item.type)
+            if let text = item.text, item.type == "text/uri-list", let url = URL(string: text) {
+                pasteboardItem.setString(url.absoluteString, forType: .URL)
+                if url.isFileURL { fileURLs.append(url) }
+            } else if let text = item.text {
+                pasteboardItem.setString(text, forType: type)
+            } else if let data = item.data {
+                pasteboardItem.setData(data, forType: type)
+            }
+            if item.fileName != nil, let data = item.data {
+                // A file: written to a temporary file the other app can read.
+                let directory = FileManager.default.temporaryDirectory.appendingPathComponent("swiftui-web-drags", isDirectory: true)
+                try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                let url = directory.appendingPathComponent(item.fileName ?? "file")
+                if (try? data.write(to: url)) != nil { fileURLs.append(url) }
+            }
+        }
+        if let file = fileURLs.first { pasteboardItem.setString(file.absoluteString, forType: .fileURL) }
+        let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
+        let location = point(event)
+        if let preview = host.scene.externalDragPreview(), let image = dragImage(for: preview) {
+            draggingItem.setDraggingFrame(CGRect(x: location.x - preview.grab.x, y: location.y - preview.grab.y, width: preview.size.width, height: preview.size.height), contents: image)
+        } else {
+            draggingItem.setDraggingFrame(CGRect(x: location.x - 8, y: location.y - 8, width: 16, height: 16), contents: nil)
+        }
+        draggingSession = beginDraggingSession(with: [draggingItem], event: event, source: self)
+    }
+
+    /// The lifted preview rendered through the host's painter.
+    private func dragImage(for preview: ExternalDragPreview) -> NSImage? {
+        let scale = window?.backingScaleFactor ?? 2
+        let width = Int((preview.size.width * scale).rounded()), height = Int((preview.size.height * scale).rounded())
+        guard width > 0, height > 0,
+              let bitmap = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                                     space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        // The painter draws top-down: flip the bitmap's space.
+        bitmap.translateBy(x: 0, y: CGFloat(height))
+        bitmap.scaleBy(x: scale, y: -scale)
+        host.painter.paint(preview.list, into: bitmap)
+        guard let image = bitmap.makeImage() else { return nil }
+        return NSImage(cgImage: image, size: preview.size)
+    }
+
+    private static func pasteboardType(for type: String) -> NSPasteboard.PasteboardType {
+        switch type {
+        case "text/plain": return .string
+        case "text/uri-list": return .URL
+        case "text/html": return .html
+        case "text/rtf": return .rtf
+        case "image/png": return .png
+        case "image/jpeg": return NSPasteboard.PasteboardType("public.jpeg")
+        case "application/json": return NSPasteboard.PasteboardType("public.json")
+        case "application/pdf": return .pdf
+        case "application/octet-stream": return NSPasteboard.PasteboardType("public.data")
+        default: return NSPasteboard.PasteboardType(type)
+        }
+    }
+
+    private static func mime(for type: NSPasteboard.PasteboardType) -> String {
+        switch type {
+        case .string: return "text/plain"
+        case .URL: return "text/uri-list"
+        case .fileURL: return "text/uri-list"
+        case .html: return "text/html"
+        case .rtf: return "text/rtf"
+        case .png: return "image/png"
+        case .tiff: return "image/tiff"
+        case .pdf: return "application/pdf"
+        default: return type.rawValue
+        }
+    }
+
+    /// The items of a dragging pasteboard: strings and URLs as text, files with their bytes
+    /// and names, everything else as data under its type.
+    private static func items(of pasteboard: NSPasteboard) -> [ExternalDragItem] {
+        var items: [ExternalDragItem] = []
+        for pasteboardItem in pasteboard.pasteboardItems ?? [] {
+            for type in pasteboardItem.types {
+                if type == .fileURL, let string = pasteboardItem.string(forType: .fileURL), let url = URL(string: string) {
+                    let data = try? Data(contentsOf: url)
+                    let mime = Self.mimeType(forExtension: url.pathExtension)
+                    items.append(ExternalDragItem(type: mime, text: url.absoluteString, data: data, fileName: url.lastPathComponent))
+                } else if let string = pasteboardItem.string(forType: type) {
+                    items.append(ExternalDragItem(type: mime(for: type), text: string, data: Data(string.utf8)))
+                } else if let data = pasteboardItem.data(forType: type) {
+                    items.append(ExternalDragItem(type: mime(for: type), data: data))
+                }
+            }
+        }
+        return items
+    }
+
+    private static func mimeType(forExtension ext: String) -> String {
+        switch ext.lowercased() {
+        case "txt", "text": return "text/plain"
+        case "json": return "application/json"
+        case "png": return "image/png"
+        case "jpg", "jpeg": return "image/jpeg"
+        case "html", "htm": return "text/html"
+        case "csv": return "text/csv"
+        case "xml": return "application/xml"
+        case "rtf": return "text/rtf"
+        case "pdf": return "application/pdf"
+        default: return "application/octet-stream"
+        }
+    }
+
+    private func dragPoint(_ sender: NSDraggingInfo) -> CGPoint { convert(sender.draggingLocation, from: nil) }
+
+    override public func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        draggingUpdated(sender)
+    }
+
+    override public func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        let types = (sender.draggingPasteboard.types ?? []).map { Self.mime(for: $0) }
+        let accepted = host.scene.externalDragUpdated(types: types, at: dragPoint(sender))
+        needsDisplay = true
+        return accepted ? .copy : []
+    }
+
+    override public func draggingExited(_ sender: NSDraggingInfo?) {
+        host.scene.externalDragExited()
+        needsDisplay = true
+    }
+
+    override public func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let accepted = host.scene.externalDrop(items: Self.items(of: sender.draggingPasteboard), at: dragPoint(sender))
+        needsDisplay = true
+        return accepted
     }
 
     // Hovering: a tracking area delivers moves between presses and the exit.
@@ -594,6 +747,16 @@ final class NativeImageLoader: _ImageLoading {
             }
         }
         return .loading
+    }
+}
+
+extension RuntimeView: NSDraggingSource {
+    public func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation { .copy }
+
+    public func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
+        draggingSession = nil
+        host.scene.externalDragEnded(dropped: operation != [])
+        needsDisplay = true
     }
 }
 #endif

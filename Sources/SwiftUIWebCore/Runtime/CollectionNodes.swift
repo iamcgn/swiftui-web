@@ -27,6 +27,7 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
 
     package var _onDelete: ((IndexSet) -> Void)? { view._onDelete }
     package var _onMove: ((IndexSet, Int) -> Void)? { view._onMove }
+    package var _dropInsert: _ForEachDrop? { view._dropInsert }
 
     /// Number of subtrees created over the node's life, for tests.
     package private(set) var created = 0
