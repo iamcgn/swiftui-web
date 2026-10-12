@@ -5,6 +5,7 @@ import Testing
 import SwiftUI
 import SwiftUIWebCore
 import SwiftUIWebHeadless
+import WebFoundation
 
 #if !os(WASI)
 @Suite @MainActor struct NavigationTests {

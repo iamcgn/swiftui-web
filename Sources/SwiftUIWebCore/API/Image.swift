@@ -1,11 +1,9 @@
 // Image: a named image from the app's asset catalogs (decision 0011), its resizing, rendering
 // and interpolation modifiers, and the aspect-ratio layout modifier. Docs/elements/Image.md.
-#if !os(WASI)
 #if os(WASI)
 import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
 #else
 import Foundation
-#endif
 #endif
 
 /// A view that displays an image.
@@ -80,29 +78,6 @@ public struct Image: Equatable, Sendable {
         self.label = label
     }
 
-    #if os(WASI)
-    /// Creates a labeled image that you can use as content for controls. The bundle is the app's
-    /// asset manifest; there is no `Bundle` on wasm.
-    public init(_ name: String) {
-        self.init(source: .named(name), label: name)
-    }
-
-    /// Creates an unlabeled, decorative image.
-    public init(decorative name: String) {
-        self.init(source: .named(name), label: nil)
-        isDecorative = true
-    }
-
-    /// Creates a labeled image that you can use as content for controls, with the specified label.
-    public init(_ name: String, label: Text) {
-        self.init(source: .named(name), label: label.resolvedString)
-    }
-
-    /// Creates an image with a variable value (the value is ignored).
-    public init(_ name: String, variableValue: Double?) {
-        self.init(source: .named(name), label: name)
-    }
-    #else
     /// Creates a labeled image that you can use as content for controls. The bundle is ignored:
     /// every catalog of the app is in one manifest.
     public init(_ name: String, bundle: Bundle? = nil) {
@@ -124,7 +99,6 @@ public struct Image: Equatable, Sendable {
     public init(_ name: String, variableValue: Double?, bundle: Bundle? = nil) {
         self.init(source: .named(name), label: name)
     }
-    #endif
 
     /// Creates a system symbol image: its measured SF Symbol layout size, drawn with an open
     /// icon standing in for the symbol (Docs/elements/Image.md).

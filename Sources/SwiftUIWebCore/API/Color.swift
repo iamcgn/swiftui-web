@@ -1,9 +1,7 @@
-#if !os(WASI)
 #if os(WASI)
 import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
 #else
 import Foundation
-#endif
 #endif
 
 /// A representation of a color that adapts to a given context.
@@ -53,17 +51,11 @@ public struct Color: Hashable, Sendable {
         self.init(storage: .rgba(red: red, green: green, blue: blue, opacity: opacity))
     }
 
-    #if os(WASI)
-    /// Creates a color from a color set in the app's asset catalogs. There is no `Bundle` on wasm.
-    public init(_ name: String) {
-        self.init(storage: .named(name))
-    }
-    #else
-    /// Creates a color from a color set in the app's asset catalogs; the bundle is ignored.
+    /// Creates a color from a color set in the app's asset catalogs; the bundle is ignored
+    /// (every catalog of the app is in one manifest).
     public init(_ name: String, bundle: Bundle? = nil) {
         self.init(storage: .named(name))
     }
-    #endif
 
     /// Creates a constant grayscale color.
     public init(white: Double, opacity: Double = 1) {

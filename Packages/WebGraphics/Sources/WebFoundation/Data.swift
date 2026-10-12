@@ -150,15 +150,22 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
     }
 }
 
-// MARK: - Files in memory (sw-dragdrop-os)
+// MARK: - Files in memory (sw-dragdrop-os, decision 0021)
 
 /// wasm has no file system: a file that arrives from outside (a dropped file, an opened
-/// document) lives in memory under a `memory:` URL, which `Data(contentsOf:)` reads and
-/// `write(to:)` writes, so `FileRepresentation` imports and exports work as they do with
-/// Foundation's file URLs.
+/// document) lives in memory under a `memory:` URL, and the app's own files (`FileManager`'s
+/// directories) under `file:` URLs, which `Data(contentsOf:)` reads and `write(to:)` writes,
+/// so `FileRepresentation` imports and exports and an app's documents work as they do with
+/// Foundation's file URLs. The `file:` ones outside `/tmp/` and the caches go to the host after
+/// every write (`_hostStore`: the browser host keeps them in localStorage, base64 under
+/// `swiftuiweb.files`), so a saved document is there after a reload.
 public enum _MemoryFiles {
     nonisolated(unsafe) private static var files: [String: Data] = [:]
+    nonisolated(unsafe) private static var directories: Set<String> = ["file:///", "file:///Documents/", "file:///Library/", "file:///tmp/"]
     nonisolated(unsafe) private static var counter = 0
+    /// Where the durable files live between loads: the host installs one before the app runs.
+    /// `list` names every kept path, `load` gives a file's bytes as base64, `save` with nil removes.
+    nonisolated(unsafe) public static var _hostStore: (list: () -> [String], load: (String) -> String?, save: (String, String?) -> Void)?
 
     /// Stores `data` under a fresh `memory:` URL named `name`.
     public static func store(_ data: Data, name: String) -> URL {
@@ -168,27 +175,85 @@ public enum _MemoryFiles {
         files[url.absoluteString] = data
         return url
     }
-    public static func read(_ url: URL) -> Data? { files[url.absoluteString] }
-    public static func write(_ data: Data, to url: URL) { files[url.absoluteString] = data }
-    public static func remove(_ url: URL) { files[url.absoluteString] = nil }
+    public static func read(_ url: URL) -> Data? {
+        let key = url.absoluteString
+        if let data = files[key] { return data }
+        guard isDurable(url), let text = _hostStore?.load(url.path), let data = Data(base64Encoded: text) else { return nil }
+        files[key] = data
+        return data
+    }
+    public static func write(_ data: Data, to url: URL) {
+        files[url.absoluteString] = data
+        if url.isFileURL { createDirectory(url.deletingLastPathComponent()) }
+        if isDurable(url) { _hostStore?.save(url.path, data.base64EncodedString()) }
+    }
+    public static func remove(_ url: URL) {
+        files[url.absoluteString] = nil
+        directories.remove(directoryKey(url))
+        if isDurable(url) { _hostStore?.save(url.path, nil) }
+    }
+    public static func exists(_ url: URL) -> Bool {
+        files[url.absoluteString] != nil || (isDurable(url) && _hostStore?.list().contains(url.path) == true)
+    }
+    public static func isDirectory(_ url: URL) -> Bool { directories.contains(directoryKey(url)) }
+    public static func createDirectory(_ url: URL) {
+        var path = url.path
+        while path != "/" && !path.isEmpty {
+            directories.insert("file://" + (path.hasSuffix("/") ? path : path + "/"))
+            path = URL(fileURLWithPath: path).deletingLastPathComponent().path
+        }
+    }
+    /// The files and directories directly under `url`.
+    public static func contents(of url: URL) -> [URL] {
+        let prefix = directoryKey(url)
+        var paths = Set(files.keys.filter { $0.hasPrefix(prefix) })
+        if url.isFileURL, let kept = _hostStore?.list() {
+            for path in kept where ("file://" + path).hasPrefix(prefix) { paths.insert("file://" + path) }
+        }
+        var children: Set<String> = []
+        for path in paths {
+            let rest = path.dropFirst(prefix.count)
+            if let slash = rest.firstIndex(of: "/") { children.insert(prefix + rest[..<slash] + "/") } else { children.insert(path) }
+        }
+        for directory in directories where directory.hasPrefix(prefix) && directory != prefix {
+            let rest = directory.dropFirst(prefix.count).dropLast()
+            if !rest.contains("/") { children.insert(directory) }
+        }
+        return children.sorted().compactMap { URL(string: $0) }
+    }
+
+    private static func directoryKey(_ url: URL) -> String {
+        let text = url.absoluteString
+        return text.hasSuffix("/") ? text : text + "/"
+    }
+    private static func isDurable(_ url: URL) -> Bool {
+        url.isFileURL && !url.path.hasPrefix("/tmp/") && !url.path.hasPrefix("/Library/Caches/")
+    }
 }
 
 extension Data {
     public struct _FileError: Error, CustomStringConvertible {
         public let url: URL
-        public var description: String { "no file at \(url.absoluteString): wasm has no file system (memory: URLs only)" }
+        public var description: String { "The file “\(url.lastPathComponent)” doesn’t exist." }
     }
 
-    /// The bytes of an in-memory file (`memory:` URLs); any other URL throws.
+    /// The bytes of an in-memory file (`memory:` and `file:` URLs); any other URL throws.
     public init(contentsOf url: URL) throws {
         guard let data = _MemoryFiles.read(url) else { throw _FileError(url: url) }
         self = data
     }
 
-    /// Writes the bytes to an in-memory file (`memory:` URLs); any other URL throws.
-    public func write(to url: URL) throws {
-        guard url.scheme == "memory" else { throw _FileError(url: url) }
+    /// Writes the bytes to an in-memory file (`memory:` and `file:` URLs); any other URL throws.
+    public func write(to url: URL, options: WritingOptions = []) throws {
+        guard url.scheme == "memory" || url.isFileURL else { throw _FileError(url: url) }
         _MemoryFiles.write(self, to: url)
+    }
+
+    public struct WritingOptions: OptionSet, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let atomic = WritingOptions(rawValue: 1)
+        public static let withoutOverwriting = WritingOptions(rawValue: 2)
     }
 }
 #endif

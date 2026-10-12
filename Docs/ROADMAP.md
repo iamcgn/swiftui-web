@@ -515,6 +515,7 @@ wontfix.
 
 | Item | Status |
 |---|---|
+| 1 `pf-foundation-module` | 2026-10-12: `Packages/Shadows` — a module named `Foundation` for wasm only (re-exporting WebFoundation, WASILibc and Observation, with `DispatchQueue` over the host's executor), the SwiftUI shim re-exporting it; WebFoundation's `UserDefaults`, `Bundle` (SwiftPM's `Bundle.module` compiles; processed resources copied into the bundle's assets), `FileManager` with durable `file:` URLs, `JSONEncoder`/`JSONDecoder` over the project's coder, `NSError` and `Error.localizedDescription`, all kept by the browser host in localStorage. The 2048 port's `import Foundation` files and libm calls compile as written; Scrumdinger's real FileService, `Bundle.module` and `@Observable` too. Counter +8.7 KB brotli; 168 wasm and 570 native tests pass. |
 
 ## Risk register
 

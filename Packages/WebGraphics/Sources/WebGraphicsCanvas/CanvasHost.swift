@@ -58,6 +58,25 @@ public final class CanvasSceneHost {
             TimeZone._hostSecondsFromGMT = -Int(minutes) * 60
         }
         IntlBridge.install()
+        // `UserDefaults` suites live in localStorage as JSON (decision 0021).
+        if let storage = JSObject.global.localStorage.object {
+            UserDefaults._hostStore = (load: { storage.getItem?("swiftuiweb.defaults." + $0).string },
+                                       save: { _ = storage.setItem?("swiftuiweb.defaults." + $0, $1) })
+            // The app's durable files (`FileManager`'s documents) as base64 under their paths.
+            _MemoryFiles._hostStore = (
+                list: {
+                    var paths: [String] = []
+                    let count = Int(storage.length.number ?? 0)
+                    for index in 0..<count {
+                        if let key = storage.key?(index).string, key.hasPrefix("swiftuiweb.files") { paths.append(String(key.dropFirst("swiftuiweb.files".count))) }
+                    }
+                    return paths
+                },
+                load: { storage.getItem?("swiftuiweb.files" + $0).string },
+                save: { path, text in
+                    if let text { _ = storage.setItem?("swiftuiweb.files" + path, text) } else { _ = storage.removeItem?("swiftuiweb.files" + path) }
+                })
+        }
         scene.hostDisplayScale = JSObject.global.devicePixelRatio.number.map { CGFloat($0) } ?? 1
         document = window.document.object!
         if window.__swiftuiweb.isUndefined {

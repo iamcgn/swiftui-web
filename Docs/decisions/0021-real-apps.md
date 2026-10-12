@@ -74,3 +74,16 @@ protocols (Scrumdinger's services) swap the implementation for the web build.
 - macOS native keeps Apple's Foundation and Combine; the `ObservableObject` ambiguity under
   `import Foundation` + `import SwiftUI` stays recorded in `pf-combine-module` until the
   native host matters enough to shadow there too.
+
+## Outcome of item 1 (2026-10-12)
+
+A module named `Foundation` in `Packages/Shadows` builds and links for wasm beside the SDK's
+(nothing else in the graph imports the SDK's Foundation; JavaScriptKit's
+`JavaScriptFoundationCompat` is not linked), and the SwiftUI shim re-exports it. The 2048
+port's patches for `import Foundation`, libm and `UserDefaults` are gone and its probe runs;
+Scrumdinger's `@Observable` under `import Foundation`, `Bundle.module` and its real
+`FileService` compile. The shadow moves the boundary: files that used to compile against the
+SDK's Foundation now meet WebFoundation's stand-ins, which is where `FileManager`,
+`JSONEncoder`, `NSError` and `Error.localizedDescription` came from. Counter grows 8.7 KB
+brotli. Next: `pf-combine-module`.
+

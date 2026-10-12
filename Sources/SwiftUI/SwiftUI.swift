@@ -13,10 +13,11 @@
 @_exported import Foundation
 @_exported import CoreGraphics
 #elseif os(WASI)
-// wasm: Foundation would add 12 MB of ICU data and a second CGRect (decision 0006);
-// WebFoundation is FoundationEssentials plus the stand-ins that keep its heavy members out
-// of the bundle (decision 0017).
-@_exported import WebFoundation
+// wasm: the SDK's Foundation would add 12 MB of ICU data and a second CGRect (decision 0006);
+// `Foundation` here is Packages/Shadows' (decision 0021): WebFoundation, FoundationEssentials
+// plus the stand-ins that keep its heavy members out of the bundle (decision 0017), with libm,
+// Observation and `DispatchQueue` as Apple's Foundation re-exports them.
+@_exported import Foundation
 #else
 // Linux: Foundation plus the missing Objective-C API value stand-ins.
 @_exported import WebFoundation

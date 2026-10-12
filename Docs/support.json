@@ -2110,6 +2110,48 @@
           "status": "partial",
           "notes": "dateStyle and timeStyle (short 'M/d/yy', medium, long, full with ' at ' from medium on), dateFormat patterns with every LDML letter and quoting, setLocalizedDateFormatFromTemplate and dateFormat(fromTemplate:), date(from:) through the pattern, the symbol arrays; RelativeDateTimeFormatter in whole units (full, spellOut, short, abbreviated) with named days, weeks, months and years (2026-10-09)",
           "noFixture": "DateFormattingTests holds the patterns to Foundation on macOS; WasmFoundationTests the classes."
+        },
+        {
+          "api": "`import Foundation` (Packages/Shadows)",
+          "status": "partial",
+          "notes": "A module named Foundation, linked only on wasm (`.when(platforms: [.wasi])` on the SwiftUI target), re-exporting WebFoundation, WASILibc and Observation so an app file's `import Foundation` beside `import SwiftUI` names one URL, one Data, the formatters, libm and `@Observable`; the SwiftUI shim re-exports it as Apple's does. Not the SDK's Foundation (12 MB of ICU, decision 0006): what it lacks is what WebFoundation lacks (decision 0017, this section) (2026-10-12)",
+          "noFixture": "A module boundary, not a screen; ShadowFoundationTests under Node, the apps of decision 0021."
+        },
+        {
+          "api": "UserDefaults",
+          "status": "partial",
+          "notes": "`standard` and named suites with the property-list scalars (strings, numbers, booleans, Data, Date, URL, arrays and dictionaries of them), the typed getters with Foundation's conversions, `register(defaults:)`, `dictionaryRepresentation`; every change is handed to the host as JSON (`_hostStore`), which the browser host keeps in localStorage under `swiftuiweb.defaults.<suite>`; no change notification, no key-value observing (2026-10-12)",
+          "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a suite through a host store."
+        },
+        {
+          "api": "Bundle",
+          "status": "partial",
+          "notes": "`main`, `init?(path:)`, `init?(url:)`, `init(for:)` (one bundle: the app), `url(forResource:withExtension:subdirectory:)` and `path(forResource:ofType:)` relative to the host's assets directory, `localizedString(forKey:value:table:)` answering the key, `bundleIdentifier` and `infoDictionary` from the host; SwiftPM's generated `Bundle.module` compiles, `Color(_:bundle:)` and `Image(_:bundle:)` take the label on wasm; a package target's processed resources are not yet copied into the bundle (2026-10-12)",
+          "noFixture": "Paths, not a screen; WasmFoundationTests."
+        },
+        {
+          "api": "DispatchQueue / DispatchGroup / DispatchWorkItem / DispatchTime",
+          "status": "partial",
+          "notes": "There is no Dispatch on wasm: `main` and `global()` run `async` work on the main actor after the current turn through the host's executor, `asyncAfter` with monotonic and wall deadlines through `Task.sleep`, `sync` in place, groups notify when their count reaches zero, work items cancel; no concurrency (one thread), no barriers or semaphores (2026-10-12)",
+          "noFixture": "Scheduling, not a screen; ShadowFoundationTests (the in-place forms; the queued forms through the apps)."
+        },
+        {
+          "api": "FileManager / Data(contentsOf:) / Data.write(to:) on file: URLs",
+          "status": "partial",
+          "notes": "The app's files live in memory under `file:` URLs (`_MemoryFiles`, the store `memory:` drops already use): `FileManager.default` with `urls(for:in:)` (/Documents, /Library, caches, application support), `temporaryDirectory`, `fileExists`, `contents(atPath:)`, `createFile`, `createDirectory`, `removeItem`, `copyItem`, `moveItem`, `contentsOfDirectory`, `attributesOfItem` (size); files outside /tmp and the caches go to the host after every write as base64 (`_hostStore`), which the browser host keeps in localStorage under `swiftuiweb.files<path>`, so a saved document is there after a reload (a few MB in all: localStorage's quota); no attributes, dates, enumerators or coordination (2026-10-12)",
+          "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
+        },
+        {
+          "api": "JSONEncoder / JSONDecoder",
+          "status": "partial",
+          "notes": "Over the project's coder (JSONCoder.swift, the one navigation paths and drops use) and WebFoundation's Data, so `encoder.encode(x).write(to:)` type-checks and FoundationEssentials' scanner and writer stay out of the bundle; `outputFormatting`, the date, data and key strategies are stored and not applied (dates as seconds since 2001, keys as written, data as base64 through Codable) (2026-10-12)",
+          "noFixture": "Bytes, not a screen; TransferJSONTests on the coder, WasmFoundationTests on the classes."
+        },
+        {
+          "api": "NSError / Error.localizedDescription",
+          "status": "partial",
+          "notes": "`NSError(domain:code:userInfo:)` with `localizedDescription` from `NSLocalizedDescriptionKey` or the operation sentence, `localizedFailureReason` and `localizedRecoverySuggestion`; every `Error` has `localizedDescription` (an NSError's, a LocalizedError's `errorDescription`, else \"The operation couldn’t be completed. (Type error N.)\") and `_code`/`_domain`; no bridging of Swift errors to NSError instances (2026-10-12)",
+          "noFixture": "Strings, not a screen; WasmFoundationTests."
         }
       ]
     },

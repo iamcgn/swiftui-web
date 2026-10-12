@@ -1845,11 +1845,12 @@
       "kind": "missing",
       "priority": "next",
       "title": "`import Foundation` on wasm",
-      "detail": "An app file that imports Foundation next to SwiftUI fails on wasm: URL, Data, DateFormatter and NumberFormatter are ambiguous between the SDK's Foundation and WebFoundation's stand-ins (decision 0017), and libm (`log2`, `pow`), Dispatch, Observation (`@Observable` under `import Foundation`) and `Bundle` are out of scope where Apple's Foundation re-exports them. A package module named `Foundation`, linked only on wasm, that re-exports WebFoundation, WASILibc, Observation and Dispatch and declares `Bundle` (`main`, `module` for SPM resource targets, `url(forResource:)`), with the `bundle:` labels on `Color` and `Image`; SPM's generated resource accessor then compiles too. All three surveyed apps hit this.",
-      "status": "planned",
+      "detail": "Done 2026-10-12 (Phase 10, item 1, decision 0021): `Packages/Shadows` holds a module named `Foundation`, linked from the `SwiftUI` target only `.when(platforms: [.wasi])` and never built natively, that re-exports WebFoundation, WASILibc and Observation, declares `DispatchQueue` (main and global work on the main actor through the host's executor, `asyncAfter`, `sync` in place, groups, work items, `DispatchTime`), and the SwiftUI shim re-exports it as Apple's does; WebFoundation gains `UserDefaults` (suites as JSON in localStorage through the host), `Bundle` (`main`, SwiftPM's `Bundle.module` accessor compiles, resource URLs under the bundle's assets, where build-wasm.sh now copies a target's processed resources), `FileManager` with durable `file:` URLs (base64 in localStorage), `JSONEncoder`/`JSONDecoder` over the project's coder (moved to WebFoundation as JSONCoder.swift), `NSError` and `Error.localizedDescription`; `Color(_:bundle:)` and `Image(_:bundle:)` take the label everywhere. The 2048 port keeps its `import Foundation` files and its libm calls, the probe (URL, Data, the formatters, Calendar, UserDefaults, DispatchQueue) runs in Chromium, Scrumdinger builds with its real FileService, `Bundle.module` and `@Observable` unpatched. Counter 2,934,562 → 2,943,288 brotli (+8.7 KB). The Node test runner cannot await the event loop, so the queued dispatch forms are covered by the apps' probes. Open: strategies on the JSON coders, `UserDefaults.didChangeNotification`, file attributes and dates, macOS native's `import Foundation` + `import SwiftUI` ambiguity (pf-combine-module). Originally: An app file that imports Foundation next to SwiftUI fails on wasm: URL, Data, DateFormatter and NumberFormatter are ambiguous between the SDK's Foundation and WebFoundation's stand-ins (decision 0017), and libm (`log2`, `pow`), Dispatch, Observation (`@Observable` under `import Foundation`) and `Bundle` are out of scope where Apple's Foundation re-exports them. A package module named `Foundation`, linked only on wasm, that re-exports WebFoundation, WASILibc, Observation and Dispatch and declares `Bundle` (`main`, `module` for SPM resource targets, `url(forResource:)`), with the `bundle:` labels on `Color` and `Image`; SPM's generated resource accessor then compiles too. All three surveyed apps hit this.",
+      "status": "done",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "pf-combine-module",
@@ -1962,7 +1963,7 @@
       "kind": "accepted",
       "priority": "later",
       "title": "Durable files on wasm",
-      "detail": "`FileManager.default.urls(for: .documentDirectory)`, `Data.write(to:)` and `Data(contentsOf:)`, `UserDefaults` and `@AppStorage` compile on wasm but nothing survives a reload (Scrumdinger's FileService loads 'The file doesn't exist' and could not save). A document directory backed by the origin private file system (or localStorage for small files), and UserDefaults over localStorage.",
+      "detail": "Partly done 2026-10-12 with pf-foundation-module: `FileManager`'s directories, `Data.write(to:)`/`Data(contentsOf:)` on file URLs and `UserDefaults` persist through the browser host in localStorage (a few MB in all). Open: `@AppStorage` and `@SceneStorage` do not exist yet (over UserDefaults, with the scene's id), the origin private file system for large files and binary data without base64, `FileManager` attributes, dates and enumerators, `UserDefaults.didChangeNotification` and key-value observing. Originally: `FileManager.default.urls(for: .documentDirectory)`, `Data.write(to:)` and `Data(contentsOf:)`, `UserDefaults` and `@AppStorage` compile on wasm but nothing survives a reload (Scrumdinger's FileService loads 'The file doesn't exist' and could not save). A document directory backed by the origin private file system (or localStorage for small files), and UserDefaults over localStorage.",
       "status": "planned",
       "refs": [
         "Docs/decisions/0021-real-apps.md"

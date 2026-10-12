@@ -1,10 +1,9 @@
-// The JSON coder behind `CodableRepresentation`: a payload encoded by one view and decoded by a
-// drop destination in the same app. Foundation's `JSONEncoder` would extract its scanner,
-// writer, `Decimal` and string members into the wasm bundle, 300 KB the app never runs
-// (decision 0006, the wasm size log); this coder speaks the JSON that `Codable` needs.
-#if os(WASI)
-import WebFoundation
-#else
+// The JSON coder behind `CodableRepresentation` (a payload encoded by one view and decoded by
+// a drop destination in the same app), navigation paths and `UserDefaults` on wasm.
+// Foundation's `JSONEncoder` would extract its scanner, writer, `Decimal` and string members
+// into the wasm bundle, 300 KB the app never runs (decision 0006, the wasm size log); this
+// coder speaks the JSON that `Codable` needs.
+#if !os(WASI)
 import Foundation
 #endif
 
@@ -57,10 +56,10 @@ final class _JSONNodeBox {
 // MARK: - Encoding
 
 /// Encodes a `Codable` transfer item as JSON.
-package struct _TransferJSONEncoder {
-    package init() {}
+public struct _TransferJSONEncoder {
+    public init() {}
 
-    package func encode<T: Encodable>(_ value: T) throws -> Data {
+    public func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = _JSONEncoding(codingPath: [])
         try value.encode(to: encoder)
         var text = ""
@@ -288,10 +287,10 @@ enum _JSONWriter {
 // MARK: - Decoding
 
 /// Decodes a `Codable` transfer item from JSON.
-package struct _TransferJSONDecoder {
-    package init() {}
+public struct _TransferJSONDecoder {
+    public init() {}
 
-    package func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+    public func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         var parser = _JSONParser(bytes: Array(data))
         let node = try parser.parseDocument()
         return try T(from: _JSONDecoding(node: node, codingPath: []))

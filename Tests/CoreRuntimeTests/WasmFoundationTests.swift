@@ -180,6 +180,77 @@ import WebFoundation
         relativeFormatter.calendar = calendar
         #expect(relativeFormatter.localizedString(for: date.addingTimeInterval(-3599), relativeTo: date) == "59 minutes ago")
     }
+
+    // Decision 0021: `UserDefaults` over the host's store, `Bundle` for SPM resource accessors.
+    @Test func userDefaultsRoundTripThroughTheHostStore() throws {
+        nonisolated(unsafe) var saved: [String: String] = [:]
+        UserDefaults._hostStore = (load: { saved[$0] }, save: { saved[$0] = $1 })
+        defer { UserDefaults._hostStore = nil }
+        let suite = try #require(UserDefaults(suiteName: "test.\(Int.random(in: 0..<1_000_000))"))
+        #expect(suite.integer(forKey: "count") == 0 && suite.string(forKey: "name") == nil && !suite.bool(forKey: "flag"))
+        suite.register(defaults: ["count": 7, "name": "default"])
+        #expect(suite.integer(forKey: "count") == 7 && suite.string(forKey: "name") == "default")
+        suite.set(3, forKey: "count")
+        suite.set("ada", forKey: "name")
+        suite.set(true, forKey: "flag")
+        suite.set(2.5, forKey: "ratio")
+        suite.set(["a", "b"], forKey: "tags")
+        suite.set(Data([1, 2]), forKey: "blob")
+        suite.set(URL(string: "https://example.com/x"), forKey: "site")
+        #expect(suite.integer(forKey: "count") == 3 && suite.string(forKey: "count") == "3" && suite.double(forKey: "count") == 3)
+        #expect(suite.string(forKey: "name") == "ada" && suite.bool(forKey: "flag") && suite.double(forKey: "ratio") == 2.5)
+        #expect(suite.stringArray(forKey: "tags") == ["a", "b"] && suite.data(forKey: "blob") == Data([1, 2]))
+        #expect(suite.url(forKey: "site")?.host == "example.com" && suite.object(forKey: "missing") == nil)
+        suite.removeObject(forKey: "flag")
+        #expect(!suite.bool(forKey: "flag") && suite.dictionaryRepresentation().count == 6)
+        // A fresh suite of the same name reads what the host kept.
+        let again = try #require(UserDefaults(suiteName: suite._suiteName))
+        #expect(again.integer(forKey: "count") == 3 && again.stringArray(forKey: "tags") == ["a", "b"] && again.object(forKey: "flag") == nil)
+        #expect(again.data(forKey: "blob") == Data([1, 2]) && again.double(forKey: "ratio") == 2.5)
+        #expect(UserDefaults(suiteName: nil) == nil)
+    }
+
+    @Test func bundleResourcesAreRelativeToTheAssets() throws {
+        let bundle = try #require(Bundle(path: "/anywhere/App_Resources.resources"))
+        #expect(bundle.url(forResource: "ding", withExtension: "wav")?.relativeString == "assets/ding.wav")
+        #expect(bundle.path(forResource: "ding", ofType: "wav") == "assets/ding.wav")
+        #expect(bundle.url(forResource: "a", withExtension: nil, subdirectory: "sounds")?.relativeString == "assets/sounds/a")
+        #expect(bundle.url(forResource: nil, withExtension: "wav") == nil)
+        #expect(Bundle.main.bundlePath == "/" && Bundle(url: URL(fileURLWithPath: "/x")) != nil)
+        #expect(bundle.localizedString(forKey: "Hello", value: nil, table: nil) == "Hello")
+        #expect(bundle.localizedString(forKey: "Hello", value: "Hallo", table: nil) == "Hallo")
+    }
+
+    @Test func filesUnderDocumentsSurviveThroughTheHostStore() throws {
+        nonisolated(unsafe) var kept: [String: String] = [:]
+        _MemoryFiles._hostStore = (list: { Array(kept.keys) }, load: { kept[$0] }, save: { if let text = $1 { kept[$0] = text } else { kept[$0] = nil } })
+        defer { _MemoryFiles._hostStore = nil }
+        let manager = FileManager.default
+        let documents = try #require(manager.urls(for: .documentDirectory, in: .userDomainMask).first)
+        #expect(documents.isFileURL && documents.path == "/Documents" && manager.temporaryDirectory.path == "/tmp")
+        struct Note: Codable, Equatable { var title: String; var count: Int; var tags: [String] }
+        let notes = [Note(title: "a", count: 1, tags: ["x"]), Note(title: "b", count: 2, tags: [])]
+        let file = documents.appendingPathComponent("notes.json")
+        #expect(!manager.fileExists(atPath: file.path))
+        #expect(throws: (any Error).self) { try Data(contentsOf: file) }
+        let encoded = try JSONEncoder().encode(notes)
+        try encoded.write(to: file, options: .atomic)
+        #expect(manager.fileExists(atPath: file.path) && kept.keys.contains("/Documents/notes.json"))
+        #expect(try JSONDecoder().decode([Note].self, from: Data(contentsOf: file)) == notes)
+        #expect(try manager.contentsOfDirectory(atPath: "/Documents") == ["notes.json"])
+        // A temporary file is not kept; a removed one is gone from the host too.
+        try Data([1]).write(to: manager.temporaryDirectory.appendingPathComponent("scratch"))
+        #expect(kept.count == 1)
+        try manager.removeItem(at: file)
+        #expect(!manager.fileExists(atPath: file.path) && kept.isEmpty)
+        #expect(throws: (any Error).self) { try manager.removeItem(at: file) }
+        // Errors describe themselves as Foundation's do.
+        enum Failure: Error { case bad }
+        struct Described: LocalizedError { var errorDescription: String? { "Nope." } }
+        #expect(Described().localizedDescription == "Nope." && Failure.bad.localizedDescription.hasPrefix("The operation couldn’t be completed."))
+        #expect(NSError(domain: "D", code: 3).localizedDescription == "The operation couldn’t be completed. (D error 3.)")
+        #expect(NSError(domain: "D", code: 3, userInfo: [NSLocalizedDescriptionKey: "Custom"]).localizedDescription == "Custom")
+    }
 }
 
 /// The GMT instants of a year's last-Sunday-of-March and last-Sunday-of-October 01:00, as a

@@ -1,11 +1,7 @@
 // Drag and drop inside the app: `draggable` starts a drag session from a press that moves,
 // `dropDestination` receives the payload. Payloads are `Transferable` values carried as they are;
 // a destination for another type reads them through the payload's proxy representation.
-#if os(WASI)
 import WebFoundation
-#else
-import Foundation
-#endif
 
 // MARK: - Uniform type identifiers (the subset the representations name)
 

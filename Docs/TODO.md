@@ -6,8 +6,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | SwiftUI | 4 | 4 | 0 | 0 |
 | UIKit | 1 | 1 | 0 | 0 |
-| Platform | 7 | 3 | 1 | 3 |
-| **All** | **12** | 8 | 1 | 3 |
+| Platform | 6 | 2 | 1 | 3 |
+| **All** | **11** | 7 | 1 | 3 |
 
 ## Next (Phase 8, in order)
 
@@ -29,8 +29,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Platform
 
-- ☐ **`import Foundation` on wasm** `pf-foundation-module` · wasm · missing  
-  An app file that imports Foundation next to SwiftUI fails on wasm: URL, Data, DateFormatter and NumberFormatter are ambiguous between the SDK's Foundation and WebFoundation's stand-ins (decision 0017), and libm (`log2`, `pow`), Dispatch, Observation (`@Observable` under `import Foundation`) and `Bundle` are out of scope where Apple's Foundation re-exports them. A package module named `Foundation`, linked only on wasm, that re-exports WebFoundation, WASILibc, Observation and Dispatch and declares `Bundle` (`main`, `module` for SPM resource targets, `url(forResource:)`), with the `bundle:` labels on `Color` and `Image`; SPM's generated resource accessor then compiles too. All three surveyed apps hit this. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 - ☐ **`import Combine` on wasm** `pf-combine-module` · wasm · missing  
   `import Combine` is `no such module` on wasm; the Combine-free publishers live in SwiftUIWebCore (Just, the subjects, Timer.publish, objectWillChange, `$published`) without operators, `AnyPublisher`, `Cancellable` or a completion path, and `PassthroughSubject.send` is @MainActor where Combine's is nonisolated. A `Combine` module, linked only on wasm, over the same publishers: `AnyPublisher`/`eraseToAnyPublisher`, `Cancellable`, `map`, `filter`, `compactMap`, `removeDuplicates`, `first`, `Publishers.Merge`, `CombineLatest`, `Fail`, `Future`, `sink(receiveCompletion:receiveValue:)`, `store(in: &Set<AnyCancellable>)`, `assign`, `debounce` and `receive(on:)`; completion and failure through the subscription. 2048 and Countries import it; on macOS native Apple's Combine stays and `import Foundation` + `import SwiftUI` leaves ObservableObject ambiguous (recorded, not solved here). ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 - ☐ **Open-source apps as a check** `ap-app-ports` · Examples · infra  
@@ -52,7 +50,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☐ **SwiftData** `pf-swiftdata` · wasm · missing  
   `@Model`, `@Attribute`, `@Relationship`, `#Predicate` and `@ModelActor` macros, `ModelContainer`, `ModelContext` (insert, delete, fetch, save), `FetchDescriptor` with sort and predicate, `@Query` and `.modelContainer(for:)`: a macro package plus an in-memory store persisted to IndexedDB on wasm (decision needed: scope of the predicate language). The Countries app and Backyard Birds are built on it. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 - ☐ **Durable files on wasm** `pf-persistence` · wasm · accepted  
-  `FileManager.default.urls(for: .documentDirectory)`, `Data.write(to:)` and `Data(contentsOf:)`, `UserDefaults` and `@AppStorage` compile on wasm but nothing survives a reload (Scrumdinger's FileService loads 'The file doesn't exist' and could not save). A document directory backed by the origin private file system (or localStorage for small files), and UserDefaults over localStorage. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+  Partly done 2026-10-12 with pf-foundation-module: `FileManager`'s directories, `Data.write(to:)`/`Data(contentsOf:)` on file URLs and `UserDefaults` persist through the browser host in localStorage (a few MB in all). Open: `@AppStorage` and `@SceneStorage` do not exist yet (over UserDefaults, with the scene's id), the origin private file system for large files and binary data without base64, `FileManager` attributes, dates and enumerators, `UserDefaults.didChangeNotification` and key-value observing. Originally: `FileManager.default.urls(for: .documentDirectory)`, `Data.write(to:)` and `Data(contentsOf:)`, `UserDefaults` and `@AppStorage` compile on wasm but nothing survives a reload (Scrumdinger's FileService loads 'The file doesn't exist' and could not save). A document directory backed by the origin private file system (or localStorage for small files), and UserDefaults over localStorage. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
 ## Landed
 
@@ -73,6 +71,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Native text selection, IME and windows** `pf-native-text` · Platform · Native macOS
 - ☑ 2026-10-12 **Linux: build, CI, painter and host** `pf-linux` · Platform · Linux
 - ☑ 2026-10-12 **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · SwiftUI · Other frameworks
+- ☑ 2026-10-12 **`import Foundation` on wasm** `pf-foundation-module` · Platform · wasm
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

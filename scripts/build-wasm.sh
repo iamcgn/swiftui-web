@@ -22,6 +22,14 @@ BUNDLE=".build/wasm/plugins/PackageToJS/outputs/Package"
 case "$PKG" in *Gallery|*Gallery/) ASSETS="$ROOT/Fixtures";; *) ASSETS=".";; esac
 rm -rf "$BUNDLE/assets"
 python3 "$ROOT/scripts/assets.py" "$ASSETS" --js "$BUNDLE/assets/manifest.js" --out "$BUNDLE/assets"
+# A package target's processed resources (`resources: [.process("Resources")]`, SwiftPM lays
+# them out as `<Package>_<Target>.resources`) join the assets, where `Bundle.url(forResource:)`
+# looks (decision 0021); catalogs and string catalogs are the manifest's.
+for RES in .build/wasm/wasm32-unknown-wasip1/*/*.resources; do
+  [[ -d "$RES" ]] || continue
+  (cd "$RES" && find . -type f ! -path '*.xcassets/*' ! -name '*.xcstrings' ! -name 'Info.plist' | while read -r f; do
+    mkdir -p "$OLDPWD/$BUNDLE/assets/$(dirname "$f")" && cp "$f" "$OLDPWD/$BUNDLE/assets/$f"; done)
+done
 # The full SF Symbol layout table (sw-symbols): fetched by the host on the first symbol outside
 # the built-in set.
 cp "$ROOT/Fixtures/Goldens/symbol/metrics-full.txt" "$BUNDLE/assets/symbol-metrics.txt"
