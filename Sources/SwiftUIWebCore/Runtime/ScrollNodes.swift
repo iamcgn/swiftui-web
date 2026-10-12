@@ -56,6 +56,13 @@ extension Axis.Set {
     package init(_ axis: Axis) { self.init(rawValue: 1 << axis.rawValue) }
 }
 
+/// A node that turns a trackpad's sideways scroll into a swipe (a list's rows with actions).
+@MainActor
+package protocol _SwipeWheelReceiving: AnyObject {
+    /// `dx` over `point` (the node's coordinates); returns whether the node took it.
+    func swipeWheel(by dx: CGFloat, at point: CGPoint) -> Bool
+}
+
 /// Node for `ScrollView`. The builder content is wrapped in an implicit centre-aligned `VStack`
 /// (fixture `scroll/children`), which is the single content node placed at `-contentOffset`.
 @MainActor
@@ -458,9 +465,16 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     private var refreshOffset: CGFloat { isRefreshing ? PlatformMetrics.refreshHeight : pullDistance }
     private var canRefresh: Bool { environment.refresh != nil && axes.contains(.vertical) && environment.platformProfile.isIOS }
 
+    /// The finger's raw travel past the top; the content follows it through the rubber band.
+    private var pullTravel: CGFloat = 0
+
     package func pull(by distance: CGFloat) -> Bool {
         guard canRefresh, !isRefreshing, contentOffset.y <= 0 else { return false }
-        pullDistance = max(0, pullDistance + distance * environment.platformProfile.metrics.refreshPullResistance)
+        pullTravel = max(0, pullTravel + distance)
+        // UIScrollView's rubber band: the content moves (1 − 1 / (x·c/d + 1)) · d for a pull of
+        // x against a view d tall, c = 0.55 — half the finger at first, ever less after.
+        let d = max(1, frame.height), c = environment.platformProfile.metrics.refreshRubberBandConstant
+        pullDistance = (1 - 1 / (pullTravel * c / d + 1)) * d
         runtime.requestFullLayout()
         return true
     }
@@ -470,6 +484,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         let threshold = environment.platformProfile.metrics.refreshThreshold
         let triggered = pullDistance >= threshold
         pullDistance = 0
+        pullTravel = 0
         if triggered { beginRefresh() }
         runtime.requestFullLayout()
     }
@@ -892,6 +907,11 @@ extension Runtime {
     /// A wheel event at `point`; deltas are in points (the host has already normalised line and
     /// page modes). Desktop wheel deltas carry the OS's own momentum, so none is added.
     public func scrollWheel(by delta: CGSize, at point: CGPoint) {
+        // A sideways scroll over a list row with swipe actions swipes the row (macOS trackpads).
+        if abs(delta.width) > abs(delta.height), let list = swipeWheelReceiver(at: point) {
+            let origin = list.frameInRoot.origin
+            if list.swipeWheel(by: delta.width, at: CGPoint(x: point.x - origin.x, y: point.y - origin.y)) { return }
+        }
         // A scroll view inside a hosted tree under the pointer takes the wheel first; what it
         // leaves (at its end) chains to the scroll views around it (ios/representable/wheel).
         var delta = delta
@@ -901,6 +921,15 @@ extension Runtime {
             if delta == .zero { return }
         }
         scroll(by: delta, at: point)
+    }
+
+    /// The deepest list under `point` that takes sideways scrolls as swipes.
+    private func swipeWheelReceiver(at point: CGPoint) -> (ViewNode & _SwipeWheelReceiving)? {
+        for node in root.layoutChildren.reversed() {
+            let local = CGPoint(x: point.x - node.frame.minX, y: point.y - node.frame.minY)
+            if let hit = node.hitTest(local, where: { $0 is _SwipeWheelReceiving }) { return hit as? (ViewNode & _SwipeWheelReceiving) }
+        }
+        return nil
     }
 
     /// Registers a scroll view whose momentum or indicators need frames.

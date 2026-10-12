@@ -280,6 +280,12 @@ extension PlatformMetrics {
     package static var swipeActionMinimumWidth: CGFloat { current.swipeActionMinimumWidth }
     package static var swipeActionPadding: CGFloat { current.swipeActionPadding }
     package static var swipeFullFraction: CGFloat { current.swipeFullFraction }
+    package static var swipeSettleDuration: Double { current.swipeSettleDuration }
+    package static var swipeWheelThreshold: CGFloat { current.swipeWheelThreshold }
+    package static var reorderLiftShadowRadius: CGFloat { current.reorderLiftShadowRadius }
+    package static var reorderLiftShadowAlpha: Double { current.reorderLiftShadowAlpha }
+    package static var reorderLiftScale: CGFloat { current.reorderLiftScale }
+    package static var refreshRubberBandConstant: CGFloat { current.refreshRubberBandConstant }
     package static var refreshThreshold: CGFloat { current.refreshThreshold }
     package static var refreshHeight: CGFloat { current.refreshHeight }
     package static var refreshPullResistance: CGFloat { current.refreshPullResistance }

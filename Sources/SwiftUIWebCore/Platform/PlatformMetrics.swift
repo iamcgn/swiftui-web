@@ -347,6 +347,12 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var swipeActionMinimumWidth: CGFloat = 74            // a cell is at least this wide
     package var swipeActionPadding: CGFloat = 16                 // each side of the label
     package var swipeFullFraction: CGFloat = 0.6                 // a swipe past this fraction of the row performs the first action
+    package var swipeSettleDuration: Double = 0.25               // the row eases to rest (or shut) after a swipe (unmeasured; ease-out)
+    package var swipeWheelThreshold: CGFloat = 30                // macOS: a trackpad's sideways scroll past this opens the row's strip
+    package var reorderLiftShadowRadius: CGFloat = 8             // the lifted row's shadow while reordering (unmeasured)
+    package var reorderLiftShadowAlpha: Double = 0.18
+    package var reorderLiftScale: CGFloat = 1.02
+    package var refreshRubberBandConstant: CGFloat = 0.55        // UIScrollView's rubber band: offset = (1 − 1 / (x·c/d + 1)) · d
     package var refreshThreshold: CGFloat = 60                   // the resisted pull that starts a refresh
     package var refreshHeight: CGFloat = 60                      // the band the content moves down while refreshing
     package var refreshPullResistance: CGFloat = 0.5             // the finger's distance past the top counts this much

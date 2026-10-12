@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 5 | 0 | 0 | 5 |
+| SwiftUI | 4 | 0 | 0 | 4 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **21** | 0 | 1 | 20 |
+| **All** | **20** | 0 | 1 | 19 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **List editing: the rest** `sw-list-editing-rest` · List · approximate  
-  The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop. ([List.md](Docs/elements/List.md))
 - ☐ **List looks: the rest** `sw-list-looks-rest` · List · approximate  
   The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron. ([List.md](Docs/elements/List.md))
 - ☐ **iOS presentations and bars: the rest** `sw-ios-presentation-rest` · iOS profile · approximate  
@@ -101,6 +99,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Window commands, dragging and documents** `sw-windows` · SwiftUI · Windows
 - ☑ 2026-10-11 **Table columns, styles and interaction** `sw-table` · SwiftUI · Table
 - ☑ 2026-10-11 **Drags across the app boundary** `sw-dragdrop-os` · SwiftUI · Drag and drop
+- ☑ 2026-10-11 **List editing: the rest** `sw-list-editing-rest` · SwiftUI · List
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

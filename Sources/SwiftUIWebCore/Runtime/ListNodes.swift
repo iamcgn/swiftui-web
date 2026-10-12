@@ -17,7 +17,7 @@ package protocol _ListGroundProviding: AnyObject {
 }
 
 @MainActor
-package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Content>>, _Interactive, _KeyHandling, _ListGroundProviding, _DropTarget {
+package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Content>>, _Interactive, _KeyHandling, _ListGroundProviding, _DropTarget, _FrameSubscriber, _SwipeWheelReceiving {
     package var _groundColor: Color? { profile.cards ? profile.background : nil }
     package private(set) var child: TypedNode<Content>!
     private let identifier: Int
@@ -225,7 +225,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 let height = max(profile.minimumRowHeight, size.height + insets.top + insets.bottom)
                 element.frame = CGRect(x: 0, y: y, width: width, height: height)
                 let contentY = y + (height - size.height) / 2
-                let shift = swipe?.row == index ? swipe!.offset : 0
+                let shift = swipe?.row == index ? presentedSwipeOffset(swipe!) : 0
                 element.contentFrame = CGRect(x: profile.margin + insets.leading + shift, y: contentY, width: available, height: size.height)
                 let (visibility, edges) = element.node.layoutValue(for: ListRowSeparatorKey.self)
                 // A card's last row has no separator: the next element is a header, footer or nothing.
@@ -347,7 +347,16 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             }
         }
         let outline = hasOutline
-        for (index, element) in elements.enumerated() where !element.isHidden {
+        // While a row is being reordered it is painted last, lifted (scaled up a little under a
+        // shadow) at its drag offset; the rows it has passed shift into the gap it left.
+        let lifted = reordering ? pressedRow : nil
+        let liftedShift = lifted.map { reorderShifts(for: $0) } ?? [:]
+        for (index, element) in elements.enumerated() where !element.isHidden && index != lifted {
+            if let shift = liftedShift[index], shift != 0 {
+                list.append(.save)
+                list.append(.concat(CGAffineTransform(translationX: 0, y: shift)))
+            }
+            defer { if let shift = liftedShift[index], shift != 0 { list.append(.restore) } }
             if outline, element.kind == .row, let row = outlineRow(element), row.hasChildren {
                 // The disclosure chevron: 1 pt grey, pointing right, or down while expanded.
                 let centre = CGPoint(x: context.origin.x + PlatformMetrics.listOutlineChevronCentre + CGFloat(row.depth) * PlatformMetrics.listOutlineLevelIndent,
@@ -404,6 +413,24 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         }
         // Rows removed under an animation linger as ghosts until their transition ends.
         paintExiting(into: &list, context: context)
+        if let lifted, lifted < elements.count {
+            let element = elements[lifted]
+            let scale = PlatformMetrics.reorderLiftScale
+            let centre = CGPoint(x: context.origin.x + element.frame.midX, y: context.origin.y + element.frame.midY + dragOffset)
+            list.append(.beginShadow(environment._ink(PlatformMetrics.reorderLiftShadowAlpha), radius: PlatformMetrics.reorderLiftShadowRadius, offset: CGSize(width: 0, height: 2)))
+            list.append(.save)
+            list.append(.concat(CGAffineTransform(translationX: centre.x, y: centre.y).scaledBy(x: scale, y: scale).translatedBy(x: -centre.x + 0, y: -centre.y + 0)))
+            list.append(.concat(CGAffineTransform(translationX: 0, y: dragOffset)))
+            let cell = context.absoluteRect(element.frame.insetBy(dx: PlatformMetrics.listSelectionInset, dy: 0))
+            list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, environment._controlBackground))
+            if let background = backgrounds[ObjectIdentifier(element.node)] {
+                for layer in background.layoutChildren { layer.paint(into: &list, context: context.child(at: layer.presentedFrame)) }
+            }
+            element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))
+            if editingAccessories, element.kind == .row { paintEditAccessories(for: element, into: &list, context: context) }
+            list.append(.restore)
+            list.append(.endGroup)
+        }
         // The insertion line of a targeted drop between the rows: 2 pt of accent across the
         // rows' content width, with a 6 pt ring at its leading end (approximate, unmeasured).
         if let insertion = dropInsertion, let row = elements.first(where: { $0.kind == .row && $0.owner === insertion.owner }) {
@@ -489,7 +516,11 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             let disc = CGRect(x: profile.margin + PlatformMetrics.listEditCircleInset, y: midY - size / 2, width: size, height: size)
             list.append(.fillPath(Path(ellipseIn: context.absoluteRect(disc)), PlatformMetrics.listEditCircleFill))
             let minus = PlatformMetrics.listEditMinusSize
-            list.append(.fillRect(context.absoluteRect(CGRect(x: disc.midX - minus.width / 2, y: disc.midY - minus.height / 2, width: minus.width, height: minus.height)), RGBA(r: 255, g: 255, b: 255)))
+            // The minus turns a quarter turn into a bar while the row's Delete is revealed.
+            let revealed = swipe.map { $0.revealed && elements.indices.contains($0.row) && elements[$0.row].node === element.node } ?? false
+            let bar = revealed ? CGRect(x: disc.midX - minus.height / 2, y: disc.midY - minus.width / 2, width: minus.height, height: minus.width)
+                : CGRect(x: disc.midX - minus.width / 2, y: disc.midY - minus.height / 2, width: minus.width, height: minus.height)
+            list.append(.fillRect(context.absoluteRect(bar), RGBA(r: 255, g: 255, b: 255)))
         }
         if canMove(element) {
             let line = PlatformMetrics.listEditGripLineSize
@@ -526,26 +557,36 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         var startOffset: CGFloat = 0
         /// The finger's distance from where it started plus the resting offset (unresisted).
         var travel: CGFloat = 0
+        /// The offset eases from `from` to `offset` over the settle duration from `start`.
+        var settle: (from: CGFloat, start: Double)?
+        /// iOS edit mode: the Delete revealed by a press on the row's edit circle.
+        var revealed = false
+        /// macOS: a trackpad's sideways scroll accumulated over the row.
+        var wheel: CGFloat = 0
     }
     private var swipe: Swipe?
     /// The mounted action strips per row (by the row node), per edge.
     private var strips: [ObjectIdentifier: [HorizontalEdge: TypedNode<AnyView>]] = [:]
 
-    /// The action sets of a row: its `swipeActions` and, on iOS, a trailing Delete for a row of a
-    /// `ForEach` with `onDelete` that declares no trailing actions itself.
-    private func actionSets(for element: Element) -> [_SwipeActionSet] {
-        guard element.kind == .row, environment.platformProfile.isIOS, !isEditing else { return [] }
-        var sets = element.node.layoutValue(for: SwipeActionsKey.self)
-        if !sets.contains(where: { $0.edge == .trailing }), canDelete(element), let owner = element.owner, let delete = owner._onDelete {
+    /// The action sets of a row: its `swipeActions` (a trackpad swipes them on macOS too) and,
+    /// on iOS, a trailing Delete for a row of a `ForEach` with `onDelete` that declares no
+    /// trailing actions itself. Edit mode swipes nothing, but a press on the edit circle reveals
+    /// the Delete (`revealing`).
+    private func actionSets(for element: Element, revealing: Bool = false) -> [_SwipeActionSet] {
+        guard element.kind == .row else { return [] }
+        if isEditing && !revealing { return [] }
+        var sets = isEditing ? [] : element.node.layoutValue(for: SwipeActionsKey.self)
+        if environment.platformProfile.isIOS, !sets.contains(where: { $0.edge == .trailing }), canDelete(element), let owner = element.owner, let delete = owner._onDelete {
             let offset = element.offset
-            sets.append(_SwipeActionSet(edge: .trailing, allowsFullSwipe: true, content: AnyView(Button("Delete", role: .destructive) { delete(IndexSet(integer: offset)) })))
+            sets.append(_SwipeActionSet(edge: .trailing, allowsFullSwipe: !isEditing, content: AnyView(Button("Delete", role: .destructive) { delete(IndexSet(integer: offset)) })))
         }
         return sets
     }
 
     /// Mounts or updates the strip of an edge's actions for a row; nil when it has none.
     private func strip(for element: Element, edge: HorizontalEdge) -> TypedNode<AnyView>? {
-        let sets = actionSets(for: element).filter { $0.edge == edge }
+        let revealing = swipe.map { $0.revealed && elements.indices.contains($0.row) && elements[$0.row].node === element.node } ?? false
+        let sets = actionSets(for: element, revealing: revealing).filter { $0.edge == edge }
         let key = ObjectIdentifier(element.node)
         guard !sets.isEmpty else {
             if let node = strips[key]?[edge] { node.unmount(); strips[key]?[edge] = nil }
@@ -564,11 +605,23 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
 
     private func stripNode(_ node: TypedNode<AnyView>) -> ViewNode? { node.layoutChildren.first }
 
+    /// The row whose Delete a circle press revealed, waiting for its strip's width.
+    private var pendingReveal: Int?
+
     /// Lays the strips out beside the row content, shifted with it.
     private func layoutStrips() {
+        if let index = pendingReveal, var state = swipe, state.row == index {
+            pendingReveal = nil
+            for edge in [HorizontalEdge.trailing] { _ = strip(for: elements[index], edge: edge).flatMap(stripNode).map { $0.sizeThatFits(ProposedViewSize(width: nil, height: elements[index].frame.height)) } }
+            if let strip = strip(for: elements[index], edge: .trailing), let target = stripNode(strip) {
+                let width = target.sizeThatFits(ProposedViewSize(width: nil, height: elements[index].frame.height)).width
+                settle(&state, to: -width)
+                swipe = state
+            }
+        }
         var live: Set<ObjectIdentifier> = []
         for (index, element) in elements.enumerated() where element.kind == .row {
-            let shift = swipe?.row == index ? swipe!.offset : 0
+            let shift = swipe?.row == index ? presentedSwipeOffset(swipe!) : 0
             live.insert(ObjectIdentifier(element.node))
             for edge in [HorizontalEdge.leading, .trailing] {
                 guard let strip = strip(for: element, edge: edge), let target = stripNode(strip) else { continue }
@@ -616,8 +669,40 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     }
 
     private func closeSwipe() {
-        guard swipe != nil else { return }
-        swipe = nil
+        guard var state = swipe else { return }
+        guard state.offset != 0 else { swipe = nil; runtime.requestFullLayout(); return }
+        // The row eases shut; the state goes once it is there.
+        state.open = false
+        state.revealed = false
+        settle(&state, to: 0)
+        swipe = state
+        runtime.requestFullLayout()
+    }
+
+    /// Starts easing the swiped row from its offset to `target` (swipeSettleDuration, ease-out).
+    private func settle(_ state: inout Swipe, to target: CGFloat) {
+        state.settle = (state.offset, runtime.animationClock)
+        state.offset = target
+        runtime.subscribeFrames(self)
+    }
+
+    /// The offset shown this frame: the settling tween, else the resting offset.
+    private func presentedSwipeOffset(_ state: Swipe) -> CGFloat {
+        guard let settle = state.settle else { return state.offset }
+        let duration = environment.platformProfile.metrics.swipeSettleDuration
+        let t = min(1, max(0, (runtime.animationClock - settle.start) / max(0.001, duration)))
+        let eased = 1 - (1 - t) * (1 - t)
+        return settle.from + (state.offset - settle.from) * CGFloat(eased)
+    }
+
+    package func frameDidAdvance() {
+        guard var state = swipe, let settle = state.settle else { runtime.unsubscribeFrames(self); return }
+        let duration = environment.platformProfile.metrics.swipeSettleDuration
+        if runtime.animationClock - settle.start >= duration {
+            state.settle = nil
+            swipe = state.offset == 0 && !state.open ? nil : state
+            runtime.unsubscribeFrames(self)
+        }
         runtime.requestFullLayout()
     }
 
@@ -693,13 +778,42 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             return
         }
         if width > 0, abs(state.offset) >= width / 2 {
-            state.offset = edge == .trailing ? -width : width
             state.open = true
+            settle(&state, to: edge == .trailing ? -width : width)
             swipe = state
         } else {
-            swipe = nil
+            settle(&state, to: 0)
+            swipe = state
         }
         runtime.requestFullLayout()
+    }
+
+    // MARK: macOS trackpad swipes (sw-list-editing-rest)
+
+    /// A trackpad's sideways scroll over a row with actions: past the threshold the row opens
+    /// (toward the strip's edge) or shuts (the other way). Returns whether the list took it.
+    package func swipeWheel(by dx: CGFloat, at point: CGPoint) -> Bool {
+        guard !environment.platformProfile.isIOS, swipe?.dragging != true,
+              let index = elements.firstIndex(where: { $0.kind == .row && $0.frame.contains(point) }) else { return false }
+        let sets = actionSets(for: elements[index])
+        guard !sets.isEmpty else { return false }
+        var state = swipe?.row == index ? swipe! : Swipe(row: index)
+        if swipe != nil, swipe!.row != index { closeSwipe(); state = Swipe(row: index) }
+        state.wheel += dx
+        let threshold = environment.platformProfile.metrics.swipeWheelThreshold
+        if state.wheel <= -threshold, !state.open || state.offset > 0 {
+            // Scrolling leftwards reveals the trailing strip (or shuts a leading one).
+            let width = stripWidth(index, .trailing)
+            state.wheel = 0
+            if state.offset > 0 || width == 0 { state.open = false; settle(&state, to: 0) } else { state.open = true; settle(&state, to: -width) }
+        } else if state.wheel >= threshold, !state.open || state.offset < 0 {
+            let width = stripWidth(index, .leading)
+            state.wheel = 0
+            if state.offset < 0 || width == 0 { state.open = false; settle(&state, to: 0) } else { state.open = true; settle(&state, to: width) }
+        }
+        swipe = state
+        runtime.requestFullLayout()
+        return true
     }
 
     /// iOS edit mode with rows that can be deleted or moved shows the accessories.
@@ -724,6 +838,28 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     }
 
     package var isEditing: Bool { environment.editMode?.wrappedValue.isEditing ?? false }
+
+    /// Where the lifted row would land now (its `ForEach` offset), from the drag offset.
+    private func reorderDestination(for index: Int) -> Int? {
+        guard let owner = elements[index].owner else { return nil }
+        let siblings = elements.filter { $0.kind == .row && $0.owner === owner }
+        let y = elements[index].frame.midY + dragOffset
+        for element in siblings where y < element.frame.midY { return element.offset }
+        return siblings.count
+    }
+
+    /// The rows the lifted row has passed, each shifted by its height into the gap (by element index).
+    private func reorderShifts(for index: Int) -> [Int: CGFloat] {
+        guard let owner = elements[index].owner, let destination = reorderDestination(for: index) else { return [:] }
+        let from = elements[index].offset
+        let height = elements[index].frame.height
+        var shifts: [Int: CGFloat] = [:]
+        for (elementIndex, element) in elements.enumerated() where element.kind == .row && element.owner === owner && elementIndex != index {
+            if from < destination, element.offset > from, element.offset < destination { shifts[elementIndex] = -height }
+            if from > destination, element.offset >= destination, element.offset < from { shifts[elementIndex] = height }
+        }
+        return shifts
+    }
 
     /// Ends a reorder: the row lands before the row whose top the drop point passed, among the
     /// rows of the same `ForEach`.
@@ -765,11 +901,18 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             runtime.setNeedsDisplay()
             return
         }
-        // iOS edit mode: a press on the delete circle deletes the row.
+        // iOS edit mode: a press on the delete circle reveals the row's Delete (the circle turns
+        // into a bar, the content slides left); the Delete button then deletes, anything else shuts it.
         if isEditing, environment.platformProfile.isIOS, canDelete(element),
-           point.x < element.frame.minX + profile.margin + environment.platformProfile.metrics.listEditLeadingInset {
-            element.owner?._onDelete?(IndexSet(integer: element.offset))
-            runtime.setNeedsDisplay()
+           point.x < element.frame.minX + profile.margin + environment.platformProfile.metrics.listEditLeadingInset,
+           let index = elements.firstIndex(where: { $0.node === element.node }) {
+            var state = Swipe(row: index)
+            state.revealed = true
+            state.open = true
+            swipe = state
+            runtime.requestFullLayout()
+            // The strip exists once laid out: ease to its width on the next pass.
+            pendingReveal = index
             return
         }
         // A row that is a `NavigationLink` pushes; a selectable row toggles its selection. On

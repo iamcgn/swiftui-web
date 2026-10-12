@@ -1560,13 +1560,14 @@
       "framework": "SwiftUI",
       "area": "List",
       "title": "List editing: the rest",
-      "detail": "The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop.",
+      "detail": "The swipe cells' geometry, colours and easing, the Delete button iOS reveals after a press on the edit circle, the lifted row and the animation while reordering, macOS trackpad swipe actions, the refresh spinner's look and the pull's rubber band, editing across sections, `onInsert` by drop. Done 2026-10-11 (Phase 9, item 29): the swipe settle easing, macOS trackpad swipes, the edit circle's Delete reveal (the minus turns into a bar), the lifted row and the gap while reordering, the rubber-band pull, editing across sections tested, onInsert by drop (item 28); the swipe cell geometry stays modelled (no golden can hold a swipe) and the refresh spinner's growth unmeasured.",
       "kind": "approximate",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/List.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-list-looks-rest",

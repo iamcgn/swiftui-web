@@ -88,21 +88,31 @@ row whose middle the drop passed. In edit mode on iOS the rows of a `ForEach` wi
 show a 22 pt red (255, 58, 62) disc with a white minus 17 in from the card's edge and move
 their content 40 in; rows with `onMove` show three grey (197, 197, 199) 21.5 × 1 lines 5 apart,
 18 from the card's trailing edge; other rows keep their place (measured on the simulator,
-Tier A exact, Tier C 0.9 %). A press on the disc deletes the row at once (iOS reveals a Delete
-button first: `sw-list-editing-rest`).
+Tier A exact, Tier C 0.9 %). A press on the disc reveals the row's Delete (2026-10-11): the
+content eases left by the cell's width, the minus turns a quarter turn into a bar, the Delete
+button deletes and a press anywhere else shuts the row.
 
-`swipeActions(edge:allowsFullSwipe:content:)` (iOS): a sideways drag on a row shifts its content
+`swipeActions(edge:allowsFullSwipe:content:)`: a sideways drag on a row (iOS) shifts its content
 and reveals the edge's buttons, laid out outermost first, as full-height cells (74 pt minimum,
 16 pt of padding, red for the destructive role, else the tint or grey (142, 142, 147), white
 labels); past half the strip the row rests open, a press on a cell runs its button and closes
 the row, a press anywhere else closes it, and a drag past 60 % of the row runs the outermost
 action when `allowsFullSwipe`. A row of a `ForEach` with `onDelete` and no trailing actions gets
-a trailing Delete. The geometry and colours are approximate: no golden can hold a swipe.
+a trailing Delete on iOS. On macOS a trackpad's sideways scroll over the row (the wheel's
+horizontal delta) past 30 pt opens the strip toward that edge and the other way shuts it
+(2026-10-11). A released row eases to rest or shut over a quarter second (ease-out; the list
+subscribes to frames meanwhile). The geometry, colours and easing are approximate: no golden
+can hold a swipe.
+
+Reordering (2026-10-11): the row being dragged is painted last, lifted — scaled by 1.02 about
+its centre under an 8 pt shadow at 18 % — at its drag offset, and the rows it has passed shift
+by its height into the gap it left (the same destination rule as the drop). Approximate.
 
 `refreshable(action:)` (iOS, touch): a pull past the top of a scroll view moves the content down
-half the finger's distance; released past 60 pt it runs the action, the content held 60 down
-behind a circular spinner until the action returns. Approximate: the rubber band and the
-spinner's growth are not measured.
+through UIScrollView's rubber band — offset = (1 − 1 / (x · 0.55 / d + 1)) · d for a pull of x
+against a view d tall (half the finger at first, ever less after; 80 pt for a 200 pt pull in a
+300 pt view); released past 60 pt it runs the action, the content held 60 down behind a
+circular spinner until the action returns. The spinner's growth is not measured.
 
 ## Looks (macOS 26.6, `list/alternating`, `list/prominence`, `list/outline`, `list/tint`, `list/separators`, `list/background`, `list/pinning`; iPhone SE simulator `ios/list/spacing`; 2026-09-19)
 
