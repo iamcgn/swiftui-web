@@ -18,7 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../WebGraphics"),
-        .package(path: "../.."),
+        .package(name: "SwiftUIWeb", path: "../.."),
     ],
     targets: [
         .systemLibrary(
@@ -41,7 +41,7 @@ let package = Package(
             name: "SwiftUIWebGTK",
             dependencies: [
                 "WebGraphicsGTK",
-                .product(name: "SwiftUI", package: "swiftui-to-html"),
+                .product(name: "SwiftUI", package: "SwiftUIWeb"),
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
@@ -52,7 +52,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "gtk-counter",
-            dependencies: ["SwiftUIWebGTK", .product(name: "SwiftUI", package: "swiftui-to-html")],
+            dependencies: ["SwiftUIWebGTK", .product(name: "SwiftUI", package: "SwiftUIWeb")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
     ],
