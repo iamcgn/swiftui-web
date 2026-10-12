@@ -236,7 +236,7 @@ extension NavigationLink where Label == Text {
 }
 
 package struct NavigationLinkActivationKey: LayoutValueKey {
-    package nonisolated(unsafe) static let defaultValue: _ActionBox? = nil
+    package static let defaultValue: _ActionBox? = nil
 }
 
 // MARK: - Destinations and titles

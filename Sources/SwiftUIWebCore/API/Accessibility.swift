@@ -435,17 +435,18 @@ public struct AccessibilityFocusState<Value: Hashable>: DynamicProperty {
 // MARK: - Rotors
 
 /// Content of a rotor: entries, built by `AccessibilityRotorContentBuilder`.
+@MainActor @preconcurrency
 public protocol AccessibilityRotorContent {
-    var _rotorEntries: [_AccessibilityRotor.Entry] { get }
+    nonisolated var _rotorEntries: [_AccessibilityRotor.Entry] { get }
 }
 
 /// One rotor entry: a label and the id of the view it points at (marked with
 /// `accessibilityRotorEntry(id:in:)`); `prepare` runs before focus moves there.
 public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
-    package let label: String
-    package let id: ID?
-    package let namespace: Namespace.ID?
-    package let prepare: (@MainActor () -> Void)?
+    nonisolated package let label: String
+    nonisolated(unsafe) package let id: ID?
+    nonisolated package let namespace: Namespace.ID?
+    nonisolated package let prepare: (@MainActor () -> Void)?
 
     public init(_ label: Text, id: ID, in namespace: Namespace.ID? = nil, prepare: @escaping @MainActor () -> Void = {}) {
         self.label = label.resolvedString
@@ -468,12 +469,16 @@ public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
         self.prepare = prepare
     }
 
-    public var _rotorEntries: [_AccessibilityRotor.Entry] { [.init(label: label, id: id.map { AnyHashable($0) }, namespace: namespace, prepare: prepare)] }
+    nonisolated public var _rotorEntries: [_AccessibilityRotor.Entry] {
+        nonisolated(unsafe) let id = id
+        return [.init(label: label, id: id.map { AnyHashable($0) }, namespace: namespace, prepare: prepare)]
+    }
 }
 
 /// Several rotor entries.
 public struct _RotorEntries: AccessibilityRotorContent {
-    public let _rotorEntries: [_AccessibilityRotor.Entry]
+    nonisolated public let _rotorEntries: [_AccessibilityRotor.Entry]
+    nonisolated public init(_rotorEntries: [_AccessibilityRotor.Entry]) { self._rotorEntries = _rotorEntries }
 }
 
 @resultBuilder

@@ -7,7 +7,7 @@ public struct ButtonRole: Equatable, Sendable {
 
 /// Holds a button's action. A class rather than a bare closure field so the runtime's field
 /// reflection stays warning-free (the runtime cannot demangle `@MainActor` function types).
-package final class _ActionBox {
+package final class _ActionBox: @unchecked Sendable {
     package let run: @MainActor () -> Void
     package init(_ run: @escaping @MainActor () -> Void) { self.run = run }
 }
@@ -15,19 +15,19 @@ package final class _ActionBox {
 /// A control that initiates an action.
 public struct Button<Label: View>: View {
     package let action: _ActionBox
-    package let label: Label
+    nonisolated(unsafe) package let label: Label
     package let role: ButtonRole?
     @State private var isPressed = false
 
     /// Creates a button that displays a custom label.
-    public init(action: @escaping @MainActor () -> Void, @ViewBuilder label: () -> Label) {
+    @preconcurrency nonisolated public init(action: @escaping @MainActor () -> Void, @ViewBuilder label: () -> Label) {
         self.action = _ActionBox(action)
         self.label = label()
         self.role = nil
     }
 
     /// Creates a button with a specified role that displays a custom label.
-    public init(role: ButtonRole?, action: @escaping @MainActor () -> Void, @ViewBuilder label: () -> Label) {
+    @preconcurrency nonisolated public init(role: ButtonRole?, action: @escaping @MainActor () -> Void, @ViewBuilder label: () -> Label) {
         self.action = _ActionBox(action)
         self.label = label()
         self.role = role
@@ -58,48 +58,48 @@ public struct Button<Label: View>: View {
 
 extension Button where Label == SwiftUIWebCore.Label<Text, Image> {
     /// Creates a button that generates its label from a localized string key and a system image.
-    public init(_ titleKey: LocalizedStringKey, systemImage: String, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init(_ titleKey: LocalizedStringKey, systemImage: String, action: @escaping @MainActor () -> Void) {
         self.init(action: action) { SwiftUIWebCore.Label(titleKey, systemImage: systemImage) }
     }
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, systemImage: String, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init<S: StringProtocol>(_ title: S, systemImage: String, action: @escaping @MainActor () -> Void) {
         self.init(action: action) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
     }
-    public init(_ titleKey: LocalizedStringKey, systemImage: String, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init(_ titleKey: LocalizedStringKey, systemImage: String, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
         self.init(role: role, action: action) { SwiftUIWebCore.Label(titleKey, systemImage: systemImage) }
     }
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, systemImage: String, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init<S: StringProtocol>(_ title: S, systemImage: String, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
         self.init(role: role, action: action) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
     }
     /// Creates a button with a label from a localized string key and a catalog image.
-    public init(_ titleKey: LocalizedStringKey, image: String, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init(_ titleKey: LocalizedStringKey, image: String, action: @escaping @MainActor () -> Void) {
         self.init(action: action) { SwiftUIWebCore.Label(titleKey, image: image) }
     }
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, image: String, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init<S: StringProtocol>(_ title: S, image: String, action: @escaping @MainActor () -> Void) {
         self.init(action: action) { SwiftUIWebCore.Label(title, image: image) }
     }
 }
 
 extension Button where Label == Text {
     /// Creates a button that generates its label from a localized string key.
-    public init(_ titleKey: LocalizedStringKey, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init(_ titleKey: LocalizedStringKey, action: @escaping @MainActor () -> Void) {
         self.init(action: action) { Text(titleKey) }
     }
 
     /// Creates a button that generates its label from a string.
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init<S: StringProtocol>(_ title: S, action: @escaping @MainActor () -> Void) {
         self.init(action: action) { Text(title) }
     }
 
-    public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
         self.init(role: role, action: action) { Text(titleKey) }
     }
 
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
+    @preconcurrency nonisolated public init<S: StringProtocol>(_ title: S, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
         self.init(role: role, action: action) { Text(title) }
     }
 }
@@ -183,7 +183,7 @@ extension EnvironmentValues {
 
 /// The default button style, based on the button's context (bordered on macOS).
 public struct DefaultButtonStyle {
-    public init() {}
+    @preconcurrency nonisolated public init() {}
 }
 
 extension DefaultButtonStyle: ButtonStyle {
@@ -376,7 +376,7 @@ struct _MacProminentButtonBody: View {
 /// Geometry from `button/basic` goldens (macOS 26.2): 24 pt tall, 12 pt horizontal padding,
 /// label in the 13 pt point-size font (16 pt line), 6 pt corner radius, fill black at 7.5 %.
 public struct BorderedButtonStyle {
-    public init() {}
+    @preconcurrency nonisolated public init() {}
 }
 
 extension BorderedButtonStyle: ButtonStyle {
@@ -387,7 +387,7 @@ extension BorderedButtonStyle: ButtonStyle {
 
 /// A button style that applies standard border prominent artwork based on the button's context.
 public struct BorderedProminentButtonStyle {
-    public init() {}
+    @preconcurrency nonisolated public init() {}
 }
 
 extension BorderedProminentButtonStyle: ButtonStyle {
@@ -399,7 +399,7 @@ extension BorderedProminentButtonStyle: ButtonStyle {
 /// A button style that doesn't apply a border. On macOS the label uses the accent colour
 /// (approximate: Apple's ImageRenderer cannot draw this AppKit-backed style).
 public struct BorderlessButtonStyle {
-    public init() {}
+    @preconcurrency nonisolated public init() {}
 }
 
 extension BorderlessButtonStyle: ButtonStyle {
@@ -410,7 +410,7 @@ extension BorderlessButtonStyle: ButtonStyle {
 
 /// A button style that doesn't style or decorate its content while idle.
 public struct PlainButtonStyle {
-    public init() {}
+    @preconcurrency nonisolated public init() {}
 }
 
 extension PlainButtonStyle: ButtonStyle {

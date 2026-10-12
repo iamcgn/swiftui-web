@@ -67,6 +67,7 @@ public enum _FormStyleKind: Sendable {
 }
 
 /// The appearance and behavior of a form.
+@MainActor @preconcurrency
 public protocol FormStyle: Sendable {
     var _kind: _FormStyleKind { get }
 }
@@ -101,7 +102,7 @@ extension FormStyle where Self == GroupedFormStyle {
 }
 
 package struct FormStyleKey: EnvironmentKey {
-    package static let defaultValue: any FormStyle = AutomaticFormStyle()
+    package static let defaultValue: any FormStyle = MainActor.assumeIsolated { AutomaticFormStyle() }
 }
 
 package struct InFormKey: EnvironmentKey {

@@ -219,6 +219,7 @@ extension View {
 
 /// A type that specifies the appearance and interaction of navigation split views within a
 /// view hierarchy.
+@MainActor @preconcurrency
 public protocol NavigationSplitViewStyle {}
 
 /// A navigation split style that resolves its appearance automatically based on the current

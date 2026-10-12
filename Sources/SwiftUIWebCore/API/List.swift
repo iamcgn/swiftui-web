@@ -719,7 +719,7 @@ package struct _OutlineRow {
 }
 
 package struct OutlineRowKey: LayoutValueKey {
-    package nonisolated(unsafe) static let defaultValue: _OutlineRow? = nil
+    package static let defaultValue: _OutlineRow? = nil
 }
 
 /// How deep a row sits in an outline (children of an expanded row are one deeper).

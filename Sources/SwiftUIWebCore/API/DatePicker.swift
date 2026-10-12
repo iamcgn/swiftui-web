@@ -161,6 +161,7 @@ package final class _DateBinding {
 public enum _DatePickerStyleKind: Sendable { case automatic, compact, field, stepperField, graphical, wheel }
 
 /// A specification for the appearance and interaction of a date picker.
+@MainActor @preconcurrency
 public protocol DatePickerStyle {
     var _kind: _DatePickerStyleKind { get }
 }
@@ -222,7 +223,7 @@ extension DatePickerStyle where Self == WheelDatePickerStyle {
 }
 
 package struct DatePickerStyleKey: EnvironmentKey {
-    package nonisolated(unsafe) static let defaultValue: any DatePickerStyle = DefaultDatePickerStyle()
+    package nonisolated(unsafe) static let defaultValue: any DatePickerStyle = MainActor.assumeIsolated { DefaultDatePickerStyle() }
 }
 
 package struct TimeZoneKey: EnvironmentKey {

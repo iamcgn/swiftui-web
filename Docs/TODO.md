@@ -4,10 +4,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| SwiftUI | 1 | 1 | 0 | 0 |
+| SwiftUI | 2 | 2 | 0 | 0 |
 | UIKit | 1 | 1 | 0 | 0 |
-| Platform | 5 | 1 | 1 | 3 |
-| **All** | **7** | 3 | 1 | 3 |
+| Platform | 10 | 5 | 1 | 4 |
+| **All** | **13** | 8 | 1 | 4 |
 
 ## Next (Phase 8, in order)
 
@@ -15,6 +15,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **NavigationStack inside a sheet** `sw-ios-sheet-nav` · iOS profile · approximate  
   On the iOS profile a sheet whose content is a NavigationStack: its navigationTitle replaces the presenting stack's bar title (`Runtime.navigationTitle` is one value for the window), no bar is drawn when the title is empty even with toolbar items (NavigationNodes.swift `bar(over:)` wants a title or a back button), and the stack's toolbar items are never painted (PresentationNodes drops the sheet toolbar when sheets fill the window). Scrumdinger's add/edit sheets lose their Dismiss and Add buttons. Also an image-only toolbar Button gets an empty accessibility label (SwiftUI derives it from the symbol name). Goldens: a sheet with an inline untitled bar and items, from the simulator. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ◐ **Isolation annotations as Apple declares them** `sw-isolation-fidelity` · SwiftUI · approximate  
+  A Swift 6 app compiles against this package as against Apple's only if every protocol, initializer and modifier carries the same isolation: the protocols Apple marks `@MainActor @preconcurrency` (ToolbarContent, the style protocols, Commands, Gesture, TabContent, the representables, AccessibilityRotorContent, DropDelegate) and not the ones it leaves nonisolated (ListStyle, PickerStyle, TextFieldStyle, DynamicViewContent, ScrollTargetBehavior); view initializers `nonisolated` (1 595 of Apple's are; 627 of ours were isolated), action parameters `@preconcurrency @MainActor` where Apple's are. Done 2026-10-12 for the protocols and for Button and Label (Scrumdinger's `ToolbarButton` and its `Button(_:symbol:)` wrappers would not compile); the sweep over the remaining initializers and modifiers against the SDK's swiftinterface is open. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
 ### UIKit
 
@@ -23,8 +25,16 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Platform
 
-- ☐ **Open-source apps as a check** `ap-app-ports` · Examples · infra  
-  The three surveyed apps (SwiftUI-2048, Scrumdinger, clean-architecture-swiftui) built unmodified from pinned commits by a script (`scripts/check-apps.sh`: clone, wrap in a package over SwiftUIWeb, build for wasm, screenshot the first frame in Playwright) once the gaps above close; the remaining per-app patches listed in the decision shrink to the wontfix set. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **Speech, audio and notifications for the web** `pf-non-web-frameworks` · wasm · missing  
+  Superseded 2026-10-12 (the apps run unmodified or not at all; nothing on the app's side is swapped): the frameworks Scrumdinger and the Countries app reach for get real web behaviour in modules of the same name — `pf-avfoundation-audio`, `pf-speech`, `pf-usernotifications`. What stays out of reach is the compiler, not the web: `@objc` and `#selector` are rejected for wasm ("Objective-C interoperability is disabled"; forcing `-enable-objc-interop` crashes the frontend), see `ap-app-ports`. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ◐ **Open-source apps as a check** `ap-app-ports` · Examples · infra  
+  The four upstream trees (the three apps and the Countries app's EnvironmentOverrides dependency) are git submodules at pinned commits under `Apps/upstream/`, with a SHA-256 manifest per tree; `Apps/Package.swift` mirrors each upstream target (sources, language mode, excludes and resources) and links this package's products, nothing else (`Apps/README.md`). `scripts/check-apps.sh` verifies the pins and that no upstream file differs, then builds each app for wasm; CI runs it. Done: the baseline and the script. Open: the apps build and run (the rows below), a Playwright flow per app, and SwiftUI-2048's `AppDelegate.swift`, which the wasm compiler refuses (`@objc`, `#selector`) — a platform blocker to decide on, not a patch. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **AVAudioPlayer, AVAudioSession, AVAudioEngine** `pf-avfoundation-audio` · Platform · missing  
+  Scrumdinger's AudioService and SpeechService as written: `AVAudioPlayer(contentsOf:)`, `prepareToPlay`, `play`, `currentTime` over an HTMLAudioElement on the bundle's `ding.wav`; `AVAudioSession.sharedInstance()` with `setCategory(_:mode:options:)` and `setActive(_:options:)` accepted, `AVAudioApplication.requestRecordPermission` over `getUserMedia`; `AVAudioEngine` whose `inputNode` is the microphone (`outputFormat(forBus:)`, `installTap(onBus:bufferSize:format:)` delivering `AVAudioPCMBuffer`s from an AudioWorklet, `removeTap`, `prepare`, `start`, `stop`). The module exists (`AVPlayer` for AVKit); the native host plays through AVFoundation itself. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **Speech over the Web Speech API** `pf-speech` · Platform · missing  
+  A `Speech` module: `SFSpeechRecognizer(locale:)`, `requestAuthorization`, `isAvailable`, `recognitionTask(with:resultHandler:)`, `SFSpeechAudioBufferRecognitionRequest` (`shouldReportPartialResults`, `taskHint`, `addsPunctuation`, `append(_:)`), `SFSpeechRecognitionTask.cancel()`, `SFSpeechRecognitionResult.bestTranscription.formattedString` and `isFinal`, over the browser's `SpeechRecognition` with interim results. The browser recognises from the microphone directly: buffers the app appends from its audio tap are accepted and not what is transcribed (a stated deviation; in Chrome the audio goes to Google's service, Safari's is on-device). Availability follows the browser (`isAvailable` false where there is no `SpeechRecognition`). ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **Asset catalogs in the bundle** `pf-xcassets` · Platform · infra  
+  `.process("Media.xcassets")`: the colorsets (light and dark, display-P3 or sRGB components) and imagesets (scale and appearance variants) of an app target's asset catalog compiled into the bundle so `Color(_:bundle:)` and `Image(_:bundle:)` resolve them as on iOS (Scrumdinger's sixteen theme colours, the Countries app's accent). `scripts/build-wasm.sh` copies processed resources and skips xcassets today. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
 ## Soon (the gap sweep)
 
@@ -43,6 +53,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   `@Model`, `@Attribute`, `@Relationship`, `#Predicate` and `@ModelActor` macros, `ModelContainer`, `ModelContext` (insert, delete, fetch, save), `FetchDescriptor` with sort and predicate, `@Query` and `.modelContainer(for:)`: a macro package plus an in-memory store persisted to IndexedDB on wasm (decision needed: scope of the predicate language). The Countries app and Backyard Birds are built on it. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 - ☐ **Durable files on wasm** `pf-persistence` · wasm · accepted  
   Partly done 2026-10-12 with pf-foundation-module: `FileManager`'s directories, `Data.write(to:)`/`Data(contentsOf:)` on file URLs and `UserDefaults` persist through the browser host in localStorage (a few MB in all). Open: `@AppStorage` and `@SceneStorage` do not exist yet (over UserDefaults, with the scene's id), the origin private file system for large files and binary data without base64, `FileManager` attributes, dates and enumerators, `UserDefaults.didChangeNotification` and key-value observing. Originally: `FileManager.default.urls(for: .documentDirectory)`, `Data.write(to:)` and `Data(contentsOf:)`, `UserDefaults` and `@AppStorage` compile on wasm but nothing survives a reload (Scrumdinger's FileService loads 'The file doesn't exist' and could not save). A document directory backed by the origin private file system (or localStorage for small files), and UserDefaults over localStorage. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **UserNotifications over the Notification API** `pf-usernotifications` · Platform · missing  
+  `UNUserNotificationCenter.current()`, `requestAuthorization(options:)`, `notificationSettings()`/`getNotificationSettings`, `UNAuthorizationStatus`, delegate for a foreground presentation, over `Notification.requestPermission` and `new Notification`; `UIApplication.registerForRemoteNotifications` accepted with the delegate's failure callback (no push service). The Countries app's `UserPermissionsInteractor` and `PushNotificationsHandler`. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
 ## Landed
 
@@ -182,4 +194,3 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ✕ **Image(nsImage:) and Image(cgImage:)** `sw-nsimage` · SwiftUI: No CGImage or NSImage exists on wasm; `Image(cgImage:)` could work natively only. Non-goal for the browser; the native painter may add it with the AppKit decision (ix-appkit).
 - ✕ **onDrag / onDrop with NSItemProvider** `sw-itemprovider` · SwiftUI: NSItemProvider and NSString do not exist on wasm; `draggable`/`dropDestination` are the portable forms. Non-goal.
 - ✕ **Storyboards and nibs** `uk-storyboards` · UIKit: Interface Builder archives are undocumented binary formats; apps port their scenes to code. Non-goal.
-- ✕ **Speech, audio sessions, push, @objc** `pf-non-web-frameworks` · Platform: Wontfix: `Speech` (SFSpeechRecognizer), `AVAudioSession`, `AVAudioEngine`, `AVAudioPlayer`, `UserNotifications` (push registration) and `@objc` / `#selector` (no Objective-C runtime on wasm: the compiler rejects the attribute). Apps isolate these behind protocols (Scrumdinger's services) and the web build swaps the implementation; the matrix records them as not applicable.

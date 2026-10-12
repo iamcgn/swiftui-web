@@ -135,6 +135,7 @@ extension DisclosureGroupStyleConfiguration.Content: View {
 }
 
 /// A type that specifies the appearance and behavior of disclosure groups within a view hierarchy.
+@MainActor @preconcurrency
 public protocol DisclosureGroupStyle {
     associatedtype Body: View
     @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body

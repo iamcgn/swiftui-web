@@ -23,7 +23,11 @@ let package = Package(
         .library(name: "SwiftUI", targets: ["SwiftUI"]),
         .library(name: "Charts", targets: ["Charts"]),
         .library(name: "MapKit", targets: ["MapKit"]),
+        .library(name: "AVFoundation", targets: ["AVFoundation"]),
         .library(name: "AVKit", targets: ["AVKit"]),
+        .library(name: "Speech", targets: ["Speech"]),
+        .library(name: "SwiftData", targets: ["SwiftData"]),
+        .library(name: "UserNotifications", targets: ["UserNotifications"]),
         .library(name: "WebKit", targets: ["WebKit"]),
         .library(name: "SwiftUIWebCanvas", targets: ["SwiftUIWebCanvas"]),
         .library(name: "SwiftUIWebNative", targets: ["SwiftUIWebNative"]),
@@ -66,6 +70,9 @@ let package = Package(
         .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVFoundation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "SwiftData", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "UserNotifications", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The representables (decision 0014, Phase 2): UIKit views hosted as SwiftUI leaves.
         .target(

@@ -63,9 +63,10 @@ before the SDK), so the targets live in a package of their own that the `SwiftUI
 depends on with `.when(platforms: [.wasi])`; nothing runs `swift build` in that package on a
 native platform.
 
-Wontfix (`pf-non-web-frameworks`): `Speech`, `AVAudioSession`, `AVAudioEngine`,
+~~Wontfix (`pf-non-web-frameworks`): `Speech`, `AVAudioSession`, `AVAudioEngine`,
 `AVAudioPlayer`, `UserNotifications` and `@objc`/`#selector`. Apps that isolate them behind
-protocols (Scrumdinger's services) swap the implementation for the web build.
+protocols (Scrumdinger's services) swap the implementation for the web build.~~ Withdrawn, see
+the acceptance standard below.
 
 ## Consequences
 
@@ -101,3 +102,34 @@ stand-ins, which is where `FileManager`, `JSONEncoder`, `NSError` and `Error.loc
 came from. A `@StateObject` on the `App` struct, which `Examples/Launches` has as most apps do,
 was a new object on every access with the body read once; the app is now one instance and a
 change re-reads its body. Next: `sw-shape-shortcuts`, `sw-app-api-gaps`, `sw-scene-environment`.
+
+## Acceptance standard (2026-10-12)
+
+The survey above counted "runs after N patches". That is not the bar. An app counts when it
+runs **from its upstream sources exactly as published**: no edited file, no source left out,
+no entry point replaced, no feature swapped for a mock, no test weakened. What this package
+is allowed to add is the API and runtime behaviour the app reaches for, with real web
+behaviour behind it, and a wrapper manifest that names the upstream targets and links this
+package's products where Xcode links Apple's frameworks (`Apps/README.md` records every line
+of that wiring). The earlier outcome statements ("2048 runs modulo three Objective-C lines",
+"Scrumdinger builds after its Speech and audio mock swaps") are withdrawn; by this standard
+no app has passed yet.
+
+The baseline is auditable: the four upstream trees (the three apps and the Countries app's
+`EnvironmentOverrides` dependency) are git submodules under `Apps/upstream/` at the commits in
+`Apps/README.md`, each with a SHA-256 manifest of every tracked file; `scripts/check-apps.sh`
+fails on any pin, file or hash that differs before it builds anything.
+
+### Status at the baseline
+
+| App | Compiles on wasm | What stops it |
+|---|---|---|
+| SwiftUI-2048 | every file but `AppDelegate.swift` | `@objc func newGame` → "Objective-C interoperability is disabled"; `#selector(newGame(_:))` → "'#selector' can only be used with the Objective-C runtime" (forcing `-Xfrontend -enable-objc-interop` crashes the frontend). Also `UIMenuBuilder`, `UIKeyCommand`, `UIMenu.edit/format/view` and `@UIApplicationMain`'s `init()` requirement, which are ours to add. |
+| Scrumdinger | every target but `AudioService` and `SpeechService` | `AVAudioPlayer`, `AVAudioSession`, `AVAudioApplication`, `AVAudioEngine`, `SFSpeechRecognizer`, `SFSpeechAudioBufferRecognitionRequest`, `SFSpeechRecognitionTask` (`pf-avfoundation-audio`, `pf-speech`). Two Swift 6 errors in `ViewComponents` were ours: `ToolbarContent` and `ProgressViewStyle` were not `@MainActor @preconcurrency` as Apple's are (fixed with the protocol family, `sw-isolation-fidelity`). At runtime: `Media.xcassets` theme colours (`pf-xcassets`), the sheet bar (`sw-ios-sheet-nav`), `ProcessInfo.environment` being empty makes `RuntimeEnvironment.current` the physical device, so the real services run, as on a phone. |
+| CountriesSwiftUI | not yet past `EnvironmentOverrides` | its dependency needs `UIGraphicsImageRenderer`, `UIWindow.drawHierarchy`, `UIImageWriteToSavedPhotosAlbum`, the feedback generators and `Bundle.localizations`; then the app's `SwiftData`, `URLSession`, `UserNotifications`, `UIApplicationDelegateAdaptor` and `UISceneConfiguration.delegateClass`. |
+
+The one thing no implementation here can change is the first row's compiler error: wasm Swift
+has no Objective-C runtime, so a source file with `@objc` or `#selector` cannot be compiled
+for it. Whether SwiftUI-2048 stays as a native-host app (macOS has the runtime) with wasm
+recorded as blocked, or is replaced by an app without Objective-C in its sources, is a
+decision for the project owner, not a patch.

@@ -11,6 +11,7 @@ import Foundation
 #endif
 
 /// A gesture: a recogniser over press events that produces values of `Value`.
+@MainActor @preconcurrency
 public protocol Gesture {
     associatedtype Value
     associatedtype Body: Gesture
@@ -406,9 +407,11 @@ extension View {
     nonisolated public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10,
                                               perform action: @escaping @MainActor () -> Void,
                                               onPressingChanged: (@MainActor (Bool) -> Void)? = nil) -> some View {
-        let gesture = LongPressGesture(minimumDuration: minimumDuration, maximumDistance: maximumDistance)
-            .onChanged { pressing in onPressingChanged?(pressing) }
-            .onEnded { _ in action() }
+        let gesture = MainActor.assumeIsolated {
+            LongPressGesture(minimumDuration: minimumDuration, maximumDistance: maximumDistance)
+                .onChanged { pressing in onPressingChanged?(pressing) }
+                .onEnded { _ in action() }
+        }
         return modifier(_GestureModifier(gesture: gesture, priority: .normal, mask: .all))
     }
 }

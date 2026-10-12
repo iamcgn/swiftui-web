@@ -131,6 +131,7 @@ extension MenuStyleConfiguration.Content: View {
 
 /// A type that applies standard interaction behavior and a custom appearance to all menus
 /// within a view hierarchy.
+@MainActor @preconcurrency
 public protocol MenuStyle {
     associatedtype Body: View
     @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body

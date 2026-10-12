@@ -209,6 +209,7 @@ package struct _FindBar: View {
 }
 
 /// A specification for the appearance and interaction of a text editor.
+@MainActor @preconcurrency
 public protocol TextEditorStyle {
     var _paintsBackground: Bool { get }
 }
@@ -233,7 +234,7 @@ extension TextEditorStyle where Self == PlainTextEditorStyle {
 }
 
 package struct TextEditorStyleKey: EnvironmentKey {
-    package nonisolated(unsafe) static let defaultValue: any TextEditorStyle = AutomaticTextEditorStyle()
+    package nonisolated(unsafe) static let defaultValue: any TextEditorStyle = MainActor.assumeIsolated { AutomaticTextEditorStyle() }
 }
 
 package struct ScrollContentBackgroundKey: EnvironmentKey {

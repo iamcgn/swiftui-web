@@ -302,7 +302,7 @@ public struct SubmitTriggers: OptionSet, Sendable {
 }
 
 package struct SubmitActionKey: EnvironmentKey {
-    package nonisolated(unsafe) static let defaultValue: _ActionBox? = nil
+    package static let defaultValue: _ActionBox? = nil
 }
 
 extension EnvironmentValues {

@@ -102,6 +102,7 @@ extension LabeledContentStyleConfiguration.Content: View {
 }
 
 /// The appearance and behavior of a labeled content instance.
+@MainActor @preconcurrency
 public protocol LabeledContentStyle {
     associatedtype Body: View
     @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body

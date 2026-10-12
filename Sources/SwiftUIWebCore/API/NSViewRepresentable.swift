@@ -14,6 +14,7 @@ import Foundation
 #endif
 
 /// A wrapper for an AppKit view that you use to integrate that view into your SwiftUI view hierarchy.
+@MainActor @preconcurrency
 public protocol NSViewRepresentable: View where Body == Never {
     associatedtype NSViewType: AnyObject
     associatedtype Coordinator = Void
@@ -51,6 +52,7 @@ public struct NSViewRepresentableContext<Representable: NSViewRepresentable> {
 }
 
 /// A wrapper that you use to integrate an AppKit view controller into your SwiftUI interface.
+@MainActor @preconcurrency
 public protocol NSViewControllerRepresentable: View where Body == Never {
     associatedtype NSViewControllerType: AnyObject
     associatedtype Coordinator = Void

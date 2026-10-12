@@ -145,6 +145,7 @@ public struct GaugeStyleConfiguration {
 }
 
 /// Defines the implementation of all gauge instances within a view hierarchy.
+@MainActor @preconcurrency
 public protocol GaugeStyle {
     associatedtype Body: View
     @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
@@ -219,7 +220,7 @@ extension GaugeStyle where Self == AccessoryCircularCapacityGaugeStyle {
 }
 
 package struct GaugeStyleKey: EnvironmentKey {
-    package nonisolated(unsafe) static let defaultValue: any GaugeStyle = DefaultGaugeStyle()
+    package nonisolated(unsafe) static let defaultValue: any GaugeStyle = MainActor.assumeIsolated { DefaultGaugeStyle() }
 }
 
 extension EnvironmentValues {

@@ -1978,10 +1978,10 @@
       "area": "wasm",
       "framework": "Platform",
       "kind": "missing",
-      "priority": "later",
-      "status": "wontfix",
-      "title": "Speech, audio sessions, push, @objc",
-      "detail": "Wontfix: `Speech` (SFSpeechRecognizer), `AVAudioSession`, `AVAudioEngine`, `AVAudioPlayer`, `UserNotifications` (push registration) and `@objc` / `#selector` (no Objective-C runtime on wasm: the compiler rejects the attribute). Apps isolate these behind protocols (Scrumdinger's services) and the web build swaps the implementation; the matrix records them as not applicable.",
+      "priority": "next",
+      "status": "planned",
+      "title": "Speech, audio and notifications for the web",
+      "detail": "Superseded 2026-10-12 (the apps run unmodified or not at all; nothing on the app's side is swapped): the frameworks Scrumdinger and the Countries app reach for get real web behaviour in modules of the same name — `pf-avfoundation-audio`, `pf-speech`, `pf-usernotifications`. What stays out of reach is the compiler, not the web: `@objc` and `#selector` are rejected for wasm (\"Objective-C interoperability is disabled\"; forcing `-enable-objc-interop` crashes the frontend), see `ap-app-ports`.",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
       ]
@@ -1993,7 +1993,72 @@
       "kind": "infra",
       "priority": "next",
       "title": "Open-source apps as a check",
-      "detail": "The three surveyed apps (SwiftUI-2048, Scrumdinger, clean-architecture-swiftui) built unmodified from pinned commits by a script (`scripts/check-apps.sh`: clone, wrap in a package over SwiftUIWeb, build for wasm, screenshot the first frame in Playwright) once the gaps above close; the remaining per-app patches listed in the decision shrink to the wontfix set.",
+      "detail": "The four upstream trees (the three apps and the Countries app's EnvironmentOverrides dependency) are git submodules at pinned commits under `Apps/upstream/`, with a SHA-256 manifest per tree; `Apps/Package.swift` mirrors each upstream target (sources, language mode, excludes and resources) and links this package's products, nothing else (`Apps/README.md`). `scripts/check-apps.sh` verifies the pins and that no upstream file differs, then builds each app for wasm; CI runs it. Done: the baseline and the script. Open: the apps build and run (the rows below), a Playwright flow per app, and SwiftUI-2048's `AppDelegate.swift`, which the wasm compiler refuses (`@objc`, `#selector`) — a platform blocker to decide on, not a patch.",
+      "status": "in-progress",
+      "refs": [
+        "Docs/decisions/0021-real-apps.md"
+      ]
+    },
+    {
+      "id": "pf-avfoundation-audio",
+      "area": "Platform",
+      "framework": "Platform",
+      "kind": "missing",
+      "priority": "next",
+      "title": "AVAudioPlayer, AVAudioSession, AVAudioEngine",
+      "detail": "Scrumdinger's AudioService and SpeechService as written: `AVAudioPlayer(contentsOf:)`, `prepareToPlay`, `play`, `currentTime` over an HTMLAudioElement on the bundle's `ding.wav`; `AVAudioSession.sharedInstance()` with `setCategory(_:mode:options:)` and `setActive(_:options:)` accepted, `AVAudioApplication.requestRecordPermission` over `getUserMedia`; `AVAudioEngine` whose `inputNode` is the microphone (`outputFormat(forBus:)`, `installTap(onBus:bufferSize:format:)` delivering `AVAudioPCMBuffer`s from an AudioWorklet, `removeTap`, `prepare`, `start`, `stop`). The module exists (`AVPlayer` for AVKit); the native host plays through AVFoundation itself.",
+      "status": "planned",
+      "refs": [
+        "Docs/decisions/0021-real-apps.md"
+      ]
+    },
+    {
+      "id": "pf-speech",
+      "area": "Platform",
+      "framework": "Platform",
+      "kind": "missing",
+      "priority": "next",
+      "title": "Speech over the Web Speech API",
+      "detail": "A `Speech` module: `SFSpeechRecognizer(locale:)`, `requestAuthorization`, `isAvailable`, `recognitionTask(with:resultHandler:)`, `SFSpeechAudioBufferRecognitionRequest` (`shouldReportPartialResults`, `taskHint`, `addsPunctuation`, `append(_:)`), `SFSpeechRecognitionTask.cancel()`, `SFSpeechRecognitionResult.bestTranscription.formattedString` and `isFinal`, over the browser's `SpeechRecognition` with interim results. The browser recognises from the microphone directly: buffers the app appends from its audio tap are accepted and not what is transcribed (a stated deviation; in Chrome the audio goes to Google's service, Safari's is on-device). Availability follows the browser (`isAvailable` false where there is no `SpeechRecognition`).",
+      "status": "planned",
+      "refs": [
+        "Docs/decisions/0021-real-apps.md"
+      ]
+    },
+    {
+      "id": "pf-usernotifications",
+      "area": "Platform",
+      "framework": "Platform",
+      "kind": "missing",
+      "priority": "later",
+      "title": "UserNotifications over the Notification API",
+      "detail": "`UNUserNotificationCenter.current()`, `requestAuthorization(options:)`, `notificationSettings()`/`getNotificationSettings`, `UNAuthorizationStatus`, delegate for a foreground presentation, over `Notification.requestPermission` and `new Notification`; `UIApplication.registerForRemoteNotifications` accepted with the delegate's failure callback (no push service). The Countries app's `UserPermissionsInteractor` and `PushNotificationsHandler`.",
+      "status": "planned",
+      "refs": [
+        "Docs/decisions/0021-real-apps.md"
+      ]
+    },
+    {
+      "id": "sw-isolation-fidelity",
+      "area": "SwiftUI",
+      "framework": "SwiftUI",
+      "kind": "approximate",
+      "priority": "next",
+      "title": "Isolation annotations as Apple declares them",
+      "detail": "A Swift 6 app compiles against this package as against Apple's only if every protocol, initializer and modifier carries the same isolation: the protocols Apple marks `@MainActor @preconcurrency` (ToolbarContent, the style protocols, Commands, Gesture, TabContent, the representables, AccessibilityRotorContent, DropDelegate) and not the ones it leaves nonisolated (ListStyle, PickerStyle, TextFieldStyle, DynamicViewContent, ScrollTargetBehavior); view initializers `nonisolated` (1 595 of Apple's are; 627 of ours were isolated), action parameters `@preconcurrency @MainActor` where Apple's are. Done 2026-10-12 for the protocols and for Button and Label (Scrumdinger's `ToolbarButton` and its `Button(_:symbol:)` wrappers would not compile); the sweep over the remaining initializers and modifiers against the SDK's swiftinterface is open.",
+      "status": "in-progress",
+      "refs": [
+        "Docs/decisions/0021-real-apps.md"
+      ]
+    },
+    {
+      "id": "pf-xcassets",
+      "area": "Platform",
+      "framework": "Platform",
+      "kind": "infra",
+      "priority": "next",
+      "title": "Asset catalogs in the bundle",
+      "detail": "`.process(\"Media.xcassets\")`: the colorsets (light and dark, display-P3 or sRGB components) and imagesets (scale and appearance variants) of an app target's asset catalog compiled into the bundle so `Color(_:bundle:)` and `Image(_:bundle:)` resolve them as on iOS (Scrumdinger's sixteen theme colours, the Countries app's accent). `scripts/build-wasm.sh` copies processed resources and skips xcassets today.",
       "status": "planned",
       "refs": [
         "Docs/decisions/0021-real-apps.md"

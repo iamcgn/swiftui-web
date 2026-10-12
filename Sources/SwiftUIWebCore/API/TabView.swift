@@ -32,6 +32,7 @@ extension TabView where SelectionValue == Int {
 // MARK: - The Tab API (iOS 18, macOS 15)
 
 /// A type that provides content for a tab view: `Tab` and the views the builder joins.
+@MainActor @preconcurrency
 public protocol TabContent: View {}
 
 /// The builder of a tab view's tabs: the view builder, as every tab is a view here.
@@ -255,6 +256,7 @@ extension View {
 // MARK: - Styles
 
 /// A specification for the appearance and interaction of a tab view.
+@MainActor @preconcurrency
 public protocol TabViewStyle {
     /// Whether the tabs are pages scrolled side by side (`page`) rather than a bar's choices.
     var _isPaged: Bool { get }
@@ -326,7 +328,7 @@ extension TabViewStyle where Self == PageTabViewStyle {
 }
 
 package struct TabViewStyleKey: EnvironmentKey {
-    package nonisolated(unsafe) static let defaultValue: any TabViewStyle = DefaultTabViewStyle()
+    package nonisolated(unsafe) static let defaultValue: any TabViewStyle = MainActor.assumeIsolated { DefaultTabViewStyle() }
 }
 
 extension EnvironmentValues {

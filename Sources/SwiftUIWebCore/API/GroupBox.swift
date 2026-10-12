@@ -88,6 +88,7 @@ extension GroupBoxStyleConfiguration.Content: View {
 }
 
 /// A type that specifies the appearance and interaction of all group boxes within a view hierarchy.
+@MainActor @preconcurrency
 public protocol GroupBoxStyle {
     associatedtype Body: View
     @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body

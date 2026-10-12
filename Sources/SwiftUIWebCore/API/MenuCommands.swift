@@ -5,31 +5,35 @@
 
 /// Conforming types represent a group of related commands that can be exposed to the user via
 /// the main menu on macOS and key commands on iOS.
+@MainActor @preconcurrency
 public protocol Commands {
     associatedtype Body: Commands
     @CommandsBuilder var body: Body { get }
     /// The resolved menus (primitive commands override this).
-    var _commandMenus: [_CommandMenuData] { get }
+    nonisolated var _commandMenus: [_CommandMenuData] { get }
 }
 
 extension Commands {
-    public var _commandMenus: [_CommandMenuData] { body._commandMenus }
+    nonisolated public var _commandMenus: [_CommandMenuData] {
+        nonisolated(unsafe) let commands = self
+        return MainActor.assumeIsolated { commands.body._commandMenus }
+    }
 }
 
 /// An empty group of commands.
 public struct EmptyCommands: Commands {
-    public init() {}
+    nonisolated public init() {}
     public var body: Never { fatalError("EmptyCommands has no body") }
-    public var _commandMenus: [_CommandMenuData] { [] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { [] }
 }
 
 extension Never: Commands {
-    public var _commandMenus: [_CommandMenuData] { [] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { [] }
 }
 
 /// A resolved menu: a `CommandMenu` (its own title) or a `CommandGroup` (a placement in a
 /// standard menu) with its content, whose buttons, toggles, pickers and dividers are its items.
-public struct _CommandMenuData {
+public struct _CommandMenuData: @unchecked Sendable {
     public enum Position: Sendable { case menu, before, after, replacing }
     public let title: String?
     public let placement: CommandGroupPlacement?
@@ -46,10 +50,10 @@ public struct _CommandMenuData {
 
 /// Command menus and groups collected by `commands`.
 public struct _CommandsGroup: Commands {
-    public let menus: [_CommandMenuData]
-    public init(_ menus: [_CommandMenuData]) { self.menus = menus }
+    nonisolated public let menus: [_CommandMenuData]
+    nonisolated public init(_ menus: [_CommandMenuData]) { self.menus = menus }
     public var body: Never { fatalError("_CommandsGroup has no body") }
-    public var _commandMenus: [_CommandMenuData] { menus }
+    nonisolated public var _commandMenus: [_CommandMenuData] { menus }
 }
 
 @resultBuilder
@@ -89,7 +93,7 @@ public struct CommandMenu<Content: View>: Commands {
     }
 
     public var body: Never { fatalError("CommandMenu has no body") }
-    public var _commandMenus: [_CommandMenuData] { [_CommandMenuData(title: name, placement: nil, position: .menu, content: AnyView(content))] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { MainActor.assumeIsolated { [_CommandMenuData(title: name, placement: nil, position: .menu, content: AnyView(content))] } }
 }
 
 /// Groups of controls that you can add to existing command menus.
@@ -109,7 +113,7 @@ public struct CommandGroup<Content: View>: Commands {
     }
 
     public var body: Never { fatalError("CommandGroup has no body") }
-    public var _commandMenus: [_CommandMenuData] { [_CommandMenuData(title: nil, placement: placement, position: position, content: AnyView(content))] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { MainActor.assumeIsolated { [_CommandMenuData(title: nil, placement: placement, position: position, content: AnyView(content))] } }
 }
 
 /// Identifier types for standard locations that new command groups can be placed relative to.
@@ -156,40 +160,40 @@ public struct CommandGroupPlacement: Hashable, Sendable {
 public struct ToolbarCommands: Commands {
     public init() {}
     public var body: Never { fatalError("ToolbarCommands has no body") }
-    public var _commandMenus: [_CommandMenuData] { [] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { [] }
 }
 
 /// The standard sidebar command (Show/Hide Sidebar, ⌃⌘S): the runtime handles the shortcut.
 public struct SidebarCommands: Commands {
     public init() {}
     public var body: Never { fatalError("SidebarCommands has no body") }
-    public var _commandMenus: [_CommandMenuData] { [] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { [] }
 }
 
 /// The standard text editing commands (the responder edit actions handle them).
 public struct TextEditingCommands: Commands {
     public init() {}
     public var body: Never { fatalError("TextEditingCommands has no body") }
-    public var _commandMenus: [_CommandMenuData] { [] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { [] }
 }
 
 /// The standard text formatting commands (accepted).
 public struct TextFormattingCommands: Commands {
     public init() {}
     public var body: Never { fatalError("TextFormattingCommands has no body") }
-    public var _commandMenus: [_CommandMenuData] { [] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { [] }
 }
 
 /// Importing from devices (accepted: no devices on the web).
 public struct ImportFromDevicesCommands: Commands {
     public init() {}
     public var body: Never { fatalError("ImportFromDevicesCommands has no body") }
-    public var _commandMenus: [_CommandMenuData] { [] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { [] }
 }
 
 /// The inspector commands (accepted).
 public struct InspectorCommands: Commands {
     public init() {}
     public var body: Never { fatalError("InspectorCommands has no body") }
-    public var _commandMenus: [_CommandMenuData] { [] }
+    nonisolated public var _commandMenus: [_CommandMenuData] { [] }
 }

@@ -37,7 +37,7 @@ public struct ToolbarPlacement: Hashable, Sendable {
 }
 
 /// One resolved toolbar item.
-public struct _ToolbarItemData {
+public struct _ToolbarItemData: @unchecked Sendable {
     public var id: AnyHashable?
     public var placement: ToolbarItemPlacement
     public var view: AnyView
@@ -51,23 +51,30 @@ public struct _ToolbarItemData {
 }
 
 /// Content of a toolbar: items and groups, or a custom type whose `body` is.
+@MainActor @preconcurrency
 public protocol ToolbarContent {
     associatedtype Body: ToolbarContent
     var body: Body { get }
     /// The resolved items (primitive content overrides this).
-    var _toolbarItems: [_ToolbarItemData] { get }
+    /// Nonisolated as the result builders resolve it eagerly (the conformer's `body` is main-actor
+    /// isolated, like Apple's; a toolbar is built from a view body).
+    nonisolated var _toolbarItems: [_ToolbarItemData] { get }
 }
 
 extension ToolbarContent {
-    public var _toolbarItems: [_ToolbarItemData] { body._toolbarItems }
+    nonisolated public var _toolbarItems: [_ToolbarItemData] {
+        nonisolated(unsafe) let content = self
+        return MainActor.assumeIsolated { content.body._toolbarItems }
+    }
 }
 
 /// Customisable toolbar content (`toolbar(id:content:)`); customisation is not supported.
+@MainActor @preconcurrency
 public protocol CustomizableToolbarContent: ToolbarContent {}
 
 extension Never: ToolbarContent {
     public var body: Never { fatalError("Never has no body") }
-    public var _toolbarItems: [_ToolbarItemData] { [] }
+    nonisolated public var _toolbarItems: [_ToolbarItemData] { [] }
 }
 
 /// A single item.
@@ -93,7 +100,7 @@ public struct ToolbarItem<ID: Hashable, Content: View>: ToolbarContent, Customiz
     package var showsByDefault = true
 
     public var body: Never { fatalError("ToolbarItem has no body") }
-    public var _toolbarItems: [_ToolbarItemData] { [_ToolbarItemData(id: id.map { AnyHashable($0) }, placement: placement, view: AnyView(content), isGroup: false, showsByDefault: showsByDefault)] }
+    nonisolated public var _toolbarItems: [_ToolbarItemData] { MainActor.assumeIsolated { [_ToolbarItemData(id: id.map { AnyHashable($0) }, placement: placement, view: AnyView(content), isGroup: false, showsByDefault: showsByDefault)] } }
 }
 
 /// A group of items sharing a placement: every view in the group is its own item.
@@ -108,16 +115,16 @@ public struct ToolbarItemGroup<Content: View>: ToolbarContent, CustomizableToolb
     }
 
     public var body: Never { fatalError("ToolbarItemGroup has no body") }
-    public var _toolbarItems: [_ToolbarItemData] { [_ToolbarItemData(id: nil, placement: placement, view: AnyView(content), isGroup: true)] }
+    nonisolated public var _toolbarItems: [_ToolbarItemData] { MainActor.assumeIsolated { [_ToolbarItemData(id: nil, placement: placement, view: AnyView(content), isGroup: true)] } }
 }
 
 /// The builder's list of contents.
 public struct _ToolbarContentList: ToolbarContent, CustomizableToolbarContent {
     public typealias Body = Never
-    public let items: [_ToolbarItemData]
-    public init(items: [_ToolbarItemData]) { self.items = items }
+    nonisolated public let items: [_ToolbarItemData]
+    nonisolated public init(items: [_ToolbarItemData]) { self.items = items }
     public var body: Never { fatalError("_ToolbarContentList has no body") }
-    public var _toolbarItems: [_ToolbarItemData] { items }
+    nonisolated public var _toolbarItems: [_ToolbarItemData] { items }
 }
 
 @resultBuilder
@@ -134,7 +141,7 @@ public enum ToolbarContentBuilder {
 /// Registers items with the runtime's toolbar while the content is mounted.
 public struct _ToolbarModifier {
     public var items: [_ToolbarItemData]
-    public init(items: [_ToolbarItemData]) { self.items = items }
+    nonisolated public init(items: [_ToolbarItemData]) { self.items = items }
     /// A customisable toolbar's items carry its id (`toolbar(id:)`).
     public init(id: String, items: [_ToolbarItemData]) {
         self.items = items.map { var item = $0; item.customizationID = id; return item }

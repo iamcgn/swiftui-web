@@ -266,6 +266,7 @@ extension ProgressViewStyleConfiguration.CurrentValueLabel: View {
 }
 
 /// A type that applies standard interaction behavior to all progress views within a view hierarchy.
+@MainActor @preconcurrency
 public protocol ProgressViewStyle {
     associatedtype Body: View
     @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body

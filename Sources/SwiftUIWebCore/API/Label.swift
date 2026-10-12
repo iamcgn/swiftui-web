@@ -3,11 +3,11 @@
 /// The icon is centred on the title's cap height (half the environment font's cap height above
 /// the first baseline), 8 pt before the title (`Docs/elements/Label.md`).
 public struct Label<Title: View, Icon: View>: View {
-    package let title: Title
-    package let icon: Icon
+    nonisolated(unsafe) package let title: Title
+    nonisolated(unsafe) package let icon: Icon
 
     /// Creates a label with a custom title and icon.
-    public init(@ViewBuilder title: () -> Title, @ViewBuilder icon: () -> Icon) {
+    nonisolated public init(@ViewBuilder title: () -> Title, @ViewBuilder icon: () -> Icon) {
         self.title = title()
         self.icon = icon()
     }
@@ -23,24 +23,24 @@ public struct Label<Title: View, Icon: View>: View {
 
 extension Label where Title == Text, Icon == Image {
     /// Creates a label with an icon image and a title generated from a localized string.
-    public init(_ titleKey: LocalizedStringKey, image name: String) {
+    nonisolated public init(_ titleKey: LocalizedStringKey, image name: String) {
         self.init(title: { Text(titleKey) }, icon: { Image(name) })
     }
 
     /// Creates a label with an icon image and a title generated from a string.
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, image name: String) {
+    nonisolated public init<S: StringProtocol>(_ title: S, image name: String) {
         self.init(title: { Text(title) }, icon: { Image(name) })
     }
 
     /// Creates a label with a system symbol image and a title generated from a localized string
     /// (the symbol is a stub until the icon table lands: it draws nothing and has no size).
-    public init(_ titleKey: LocalizedStringKey, systemImage name: String) {
+    nonisolated public init(_ titleKey: LocalizedStringKey, systemImage name: String) {
         self.init(title: { Text(titleKey) }, icon: { Image(systemName: name) })
     }
 
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, systemImage name: String) {
+    nonisolated public init<S: StringProtocol>(_ title: S, systemImage name: String) {
         self.init(title: { Text(title) }, icon: { Image(systemName: name) })
     }
 }
