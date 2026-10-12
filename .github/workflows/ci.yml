@@ -104,6 +104,13 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8768/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node uikit-settings.mjs http://127.0.0.1:8768/index.html --shot ../.build/uikit-settings.png)
           scripts/size-gate.sh Examples/UIKitSettings
+      - name: Launches (an app importing Foundation and Combine, decision 0021)
+        run: |
+          . ~/.swiftly/env.sh
+          scripts/build-wasm.sh Examples/Launches --debug
+          python3 -m http.server 8769 --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8769/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node launches-probe.mjs http://127.0.0.1:8769/index.html)
       - uses: actions/upload-artifact@v4
         with: { name: tier-b, path: .build/tier-b }
 

@@ -71,6 +71,12 @@ public final class NativeHost {
                 return (try? data.write(to: url)) != nil ? url : nil
             }
             self.runtime.mount(self.root())
+            // An app-level `@StateObject` or `@State` change re-reads the app's body (decision 0021).
+            _appRemount = (self.runtime, { [weak self] in
+                guard let self else { return }
+                self.runtime.mount(self.root())
+                self.runtime.requestLayout()
+            })
             self.runtime.restoreWindows()
             self.installMenuBar()
         }

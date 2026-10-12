@@ -19,6 +19,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "WebFoundation", targets: ["WebFoundation"]),
+        .library(name: "WebCombine", targets: ["WebCombine"]),
         .library(name: "WebGraphics", targets: ["WebGraphics"]),
         .library(name: "WebGraphicsCanvas", targets: ["WebGraphicsCanvas"]),
         .library(name: "WebGraphicsNative", targets: ["WebGraphicsNative"]),
@@ -31,6 +32,13 @@ let package = Package(
     targets: [
         .target(
             name: "WebFoundation",
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // Combine without Combine (decision 0021): the ObservableObject family, the publishers
+        // and operators SwiftUI and `import Combine` on wasm are built on.
+        .target(
+            name: "WebCombine",
+            dependencies: ["WebFoundation"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
@@ -51,6 +59,11 @@ let package = Package(
         .target(
             name: "WebGraphicsNative",
             dependencies: ["WebGraphics", "WebGraphicsHeadless"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .testTarget(
+            name: "WebCombineTests",
+            dependencies: ["WebCombine"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .testTarget(

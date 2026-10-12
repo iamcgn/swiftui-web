@@ -251,6 +251,23 @@ import WebFoundation
         #expect(NSError(domain: "D", code: 3).localizedDescription == "The operation couldn’t be completed. (D error 3.)")
         #expect(NSError(domain: "D", code: 3, userInfo: [NSLocalizedDescriptionKey: "Custom"]).localizedDescription == "Custom")
     }
+
+    // The Node test runner cannot wait on the event loop ("async io not supported"), so the
+    // queued forms are covered by Examples/Shadows' probe; the in-place forms here.
+    @Test func dispatchQueuesRunInPlace() {
+        final class Log: @unchecked Sendable { var order: [String] = [] }
+        let log = Log()
+        DispatchQueue.main.sync { log.order.append("sync") }
+        let value = DispatchQueue.global(qos: .background).sync { 7 }
+        let item = DispatchWorkItem { log.order.append("cancelled") }
+        item.cancel()
+        DispatchQueue.main.sync(execute: item)
+        DispatchQueue(label: "work").sync(execute: DispatchWorkItem { log.order.append("item") })
+        #expect(log.order == ["sync", "item"] && value == 7 && item.isCancelled)
+        let now = DispatchTime.now()
+        #expect(now < now + 1 && now < now + .milliseconds(5) && (now + .seconds(2))._delay > 1.9)
+        #expect((DispatchWallTime.now() + 1)._delay > 0.9 && DispatchTimeInterval.milliseconds(1500)._seconds == 1.5)
+    }
 }
 
 /// The GMT instants of a year's last-Sunday-of-March and last-Sunday-of-October 01:00, as a

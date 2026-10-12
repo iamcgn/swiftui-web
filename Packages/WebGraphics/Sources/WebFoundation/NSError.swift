@@ -2,8 +2,25 @@
 // no Objective-C bridge, so `NSError` is a plain error class with a domain, a code and a user
 // info dictionary, and every error describes itself as Foundation's would: a `LocalizedError`
 // by its `errorDescription`, an `NSError` by its user info, anything else by the operation
-// sentence with its type and code.
+// sentence with its type and code. `LocalizedError` is declared here, shadowing
+// FoundationEssentials' (decision 0017): naming that one's protocol descriptor extracts
+// CocoaError.swift and, through it, most of FoundationEssentials (3.3 MB of the Gallery).
 #if os(WASI)
+/// A specialized error that provides localized messages describing the error and why it occurred.
+public protocol LocalizedError: Error {
+    var errorDescription: String? { get }
+    var failureReason: String? { get }
+    var recoverySuggestion: String? { get }
+    var helpAnchor: String? { get }
+}
+
+extension LocalizedError {
+    public var errorDescription: String? { nil }
+    public var failureReason: String? { nil }
+    public var recoverySuggestion: String? { nil }
+    public var helpAnchor: String? { nil }
+}
+
 open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
     public let domain: String
     public let code: Int

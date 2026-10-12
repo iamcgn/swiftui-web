@@ -200,3 +200,37 @@ private struct Point: Equatable { var x = 0; var y = 0 }
         #expect(Themed().theme == "light")
     }
 }
+
+// Decision 0021: a `@StateObject` on the `App` struct is one object for the process.
+@MainActor
+@Suite struct AppStateObjectTests {
+    final class Model: ObservableObject {
+        nonisolated(unsafe) static var made = 0
+        @Published var count = 0
+        init() { Model.made += 1 }
+    }
+    struct Probe: App {
+        @StateObject var model = Model()
+        var body: some Scene { WindowGroup { Text("\(model.count)") } }
+    }
+
+    @Test func appStateObjectIsMadeOnceAndItsChangesRereadTheBody() {
+        Model.made = 0
+        _ = Probe._windows()
+        _ = Probe._rootView()
+        _ = Probe._windows()
+        #expect(Model.made == 1)
+        // A host: the model's change re-reads the body and updates the root in place.
+        let runtime = Runtime()
+        runtime.mount(Probe._rootView())
+        var remounts = 0
+        _appRemount = (runtime, { runtime.mount(Probe._rootView()); remounts += 1 })
+        defer { _appRemount = nil }
+        let texts = { runtime.root.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString } }
+        #expect(texts() == ["0"])
+        Probe._instance.model.count = 5
+        Probe._instance.model.count = 6
+        runtime.flush()
+        #expect(remounts == 1 && texts() == ["6"])
+    }
+}

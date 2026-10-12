@@ -75,15 +75,29 @@ protocols (Scrumdinger's services) swap the implementation for the web build.
   `import Foundation` + `import SwiftUI` stays recorded in `pf-combine-module` until the
   native host matters enough to shadow there too.
 
-## Outcome of item 1 (2026-10-12)
+## Outcome of items 1 and 2 (2026-10-12)
 
 A module named `Foundation` in `Packages/Shadows` builds and links for wasm beside the SDK's
-(nothing else in the graph imports the SDK's Foundation; JavaScriptKit's
-`JavaScriptFoundationCompat` is not linked), and the SwiftUI shim re-exports it. The 2048
-port's patches for `import Foundation`, libm and `UserDefaults` are gone and its probe runs;
-Scrumdinger's `@Observable` under `import Foundation`, `Bundle.module` and its real
-`FileService` compile. The shadow moves the boundary: files that used to compile against the
-SDK's Foundation now meet WebFoundation's stand-ins, which is where `FileManager`,
-`JSONEncoder`, `NSError` and `Error.localizedDescription` came from. Counter grows 8.7 KB
-brotli. Next: `pf-combine-module`.
+(nothing in an app's graph imports the SDK's Foundation; JavaScriptKit's
+`JavaScriptFoundationCompat` is not linked). It cannot be a dependency of this package's
+`SwiftUI` target, though: SwiftPM's wasm test discovery generates `import XCTest`, and XCTest's
+binary module wants the SDK's Foundation (`_BridgedStoredNSError`; the generated runner also
+names `NSObject` and `FileHandle`), so the Linux CI job crashed the compiler. The shadows are
+therefore products an app's `Package.swift` links (two lines, in the README and
+`Examples/Launches`), and the `SwiftUI` shim re-exports `WebFoundation`, `WASILibc` and
+`WebCombine` itself so `import SwiftUI` alone gives libm and the ObservableObject family, as
+Apple's does. Two size traps surfaced on the way: naming FoundationEssentials' `LocalizedError`
+protocol descriptor extracted `CocoaError.swift` and 3.3 MB of FoundationEssentials into the
+Gallery (WebFoundation now declares its own), and a second re-export hop made fixture code's
+`String.contains(_:)` resolve to `_StringProcessing` (the Regex engine; the shim re-exports
+WebFoundation directly). Counter 2,934,562 → 2,967,145 brotli for both items; the Gallery
+3,714,742 → 3,771,277.
 
+The 2048 port's patches for `import Foundation`, `import Combine`, libm and the nonisolated
+model are gone; Scrumdinger's `@Observable` under `import Foundation`, `Bundle.module` and its
+real `FileService` compile; the Countries app moves on to `UserNotifications`. The shadow moved
+the boundary: files that used to compile against the SDK's Foundation now meet WebFoundation's
+stand-ins, which is where `FileManager`, `JSONEncoder`, `NSError` and `Error.localizedDescription`
+came from. A `@StateObject` on the `App` struct, which `Examples/Launches` has as most apps do,
+was a new object on every access with the body read once; the app is now one instance and a
+change re-reads its body. Next: `sw-shape-shortcuts`, `sw-app-api-gaps`, `sw-scene-environment`.

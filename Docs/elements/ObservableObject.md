@@ -6,21 +6,24 @@ Apple docs: [ObservableObject](https://developer.apple.com/documentation/combine
 [ObservedObject](https://developer.apple.com/documentation/swiftui/observedobject),
 [EnvironmentObject](https://developer.apple.com/documentation/swiftui/environmentobject).
 
-Combine is absent on wasm and Linux, so `SwiftUI` provides this family itself (about 250
-lines, no OpenCombine). On Apple platforms Foundation re-exports Combine's names; the `SwiftUI`
-module declares typealiases so `import SwiftUI` resolves to these without ambiguity.
+Combine is absent on wasm and Linux, so the family is the project's own: `WebCombine`
+(Packages/WebGraphics, no OpenCombine), which `SwiftUI` re-exports and which `import Combine`
+names on wasm (Packages/Shadows, decision 0021) with completion, failure and the operators apps
+chain. On Apple platforms Foundation re-exports Combine's names; the `SwiftUI` module declares
+typealiases so `import SwiftUI` resolves to these without ambiguity (a file that also imports
+Foundation directly still sees both: recorded in `pf-combine-module`).
 
 ## API surface
 
 | API | Notes |
 |---|---|
 | `ObservableObject` (`objectWillChange: ObservableObjectPublisher`, a default per-object publisher) | implemented; `ObjectWillChangePublisher` is fixed to `ObservableObjectPublisher` |
-| `ObservableObjectPublisher` (`send`, `subscribe`, `sink`), `AnyCancellable` (`cancel`, `store(in:)`) | implemented as closure subscribers; no other Combine operators |
+| `ObservableObjectPublisher` (`send`, `subscribe`, `sink`), `AnyCancellable` (`cancel`, `store(in:)`) | implemented as closure subscribers; a `Publisher` like any other (map, filter, debounce… from WebCombine's Operators.swift) |
 | `@Published` | implemented through the enclosing-instance subscript: the setter sends `objectWillChange` before assigning; `$property` is a minimal publisher with `sink` on the object's changes |
 | `@StateObject(wrappedValue:)` | implemented: one instance per view identity, kept in the node's slot |
 | `@ObservedObject` (`wrappedValue:`, `initialValue:`), `$object.property` bindings | implemented (re-subscribes when the object changes) |
 | `@EnvironmentObject`, `environmentObject(_:)` | implemented (a missing object traps with Apple's message) |
-| `onReceive`, `Timer.publish`, `NotificationCenter.publisher`, `Just`, `PassthroughSubject`, `CurrentValueSubject`, `$published` as a value publisher | implemented 2026-10-04 (Docs/elements/Lifecycle.md) |
+| `onReceive`, `Timer.publish`, `NotificationCenter.publisher`, `Just`, `PassthroughSubject`, `CurrentValueSubject`, `$published` as a value publisher | implemented 2026-10-04 (Docs/elements/Lifecycle.md); completion, failure, `Future`, `AnyPublisher` and the operators 2026-10-12 (the `import Combine` row of the WebFoundation section) |
 
 ## Behaviour
 

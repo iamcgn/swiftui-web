@@ -6,8 +6,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | SwiftUI | 4 | 4 | 0 | 0 |
 | UIKit | 1 | 1 | 0 | 0 |
-| Platform | 6 | 2 | 1 | 3 |
-| **All** | **11** | 7 | 1 | 3 |
+| Platform | 5 | 1 | 1 | 3 |
+| **All** | **10** | 6 | 1 | 3 |
 
 ## Next (Phase 8, in order)
 
@@ -29,8 +29,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Platform
 
-- ☐ **`import Combine` on wasm** `pf-combine-module` · wasm · missing  
-  `import Combine` is `no such module` on wasm; the Combine-free publishers live in SwiftUIWebCore (Just, the subjects, Timer.publish, objectWillChange, `$published`) without operators, `AnyPublisher`, `Cancellable` or a completion path, and `PassthroughSubject.send` is @MainActor where Combine's is nonisolated. A `Combine` module, linked only on wasm, over the same publishers: `AnyPublisher`/`eraseToAnyPublisher`, `Cancellable`, `map`, `filter`, `compactMap`, `removeDuplicates`, `first`, `Publishers.Merge`, `CombineLatest`, `Fail`, `Future`, `sink(receiveCompletion:receiveValue:)`, `store(in: &Set<AnyCancellable>)`, `assign`, `debounce` and `receive(on:)`; completion and failure through the subscription. 2048 and Countries import it; on macOS native Apple's Combine stays and `import Foundation` + `import SwiftUI` leaves ObservableObject ambiguous (recorded, not solved here). ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 - ☐ **Open-source apps as a check** `ap-app-ports` · Examples · infra  
   The three surveyed apps (SwiftUI-2048, Scrumdinger, clean-architecture-swiftui) built unmodified from pinned commits by a script (`scripts/check-apps.sh`: clone, wrap in a package over SwiftUIWeb, build for wasm, screenshot the first frame in Playwright) once the gaps above close; the remaining per-app patches listed in the decision shrink to the wontfix set. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
@@ -72,6 +70,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Linux: build, CI, painter and host** `pf-linux` · Platform · Linux
 - ☑ 2026-10-12 **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · SwiftUI · Other frameworks
 - ☑ 2026-10-12 **`import Foundation` on wasm** `pf-foundation-module` · Platform · wasm
+- ☑ 2026-10-12 **`import Combine` on wasm** `pf-combine-module` · Platform · wasm
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

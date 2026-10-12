@@ -2,6 +2,7 @@
 // Foundation and Observation are re-exported because real SwiftUI does the same
 // (CGFloat/CGRect, @Observable) and unmodified app sources depend on it.
 @_exported import SwiftUIWebCore
+@_exported import WebCombine
 @_exported import SwiftUIWebUIKit
 // SwiftUI re-exports UIKit on iOS (an `import SwiftUI` file can name `UIColor` or write a
 // `UIViewRepresentable`); here it re-exports UIKitWeb's `UIKit` everywhere (decision 0014).
@@ -14,10 +15,14 @@
 @_exported import CoreGraphics
 #elseif os(WASI)
 // wasm: the SDK's Foundation would add 12 MB of ICU data and a second CGRect (decision 0006);
-// `Foundation` here is Packages/Shadows' (decision 0021): WebFoundation, FoundationEssentials
-// plus the stand-ins that keep its heavy members out of the bundle (decision 0017), with libm,
-// Observation and `DispatchQueue` as Apple's Foundation re-exports them.
-@_exported import Foundation
+// WebFoundation is FoundationEssentials plus the stand-ins that keep its heavy members out of
+// the bundle (decision 0017), with `DispatchQueue`, `UserDefaults`, `Bundle` and `FileManager`
+// (decision 0021); WASILibc is libm and friends, which Apple's Foundation re-exports through
+// Darwin. An app's own `import Foundation` and `import Combine` are Packages/Shadows' modules,
+// which its Package.swift links (they must stay out of this package's test builds: SwiftPM's
+// wasm test discovery imports XCTest, whose module wants the SDK's Foundation).
+@_exported import WebFoundation
+@_exported import WASILibc
 #else
 // Linux: Foundation plus the missing Objective-C API value stand-ins.
 @_exported import WebFoundation
@@ -58,10 +63,10 @@ extension App {
 
 // The Combine-free ObservableObject family: on Apple platforms Foundation re-exports Combine's
 // names, so the module declares these to shadow them (declarations beat re-exports).
-public typealias ObservableObject = SwiftUIWebCore.ObservableObject
-public typealias ObservableObjectPublisher = SwiftUIWebCore.ObservableObjectPublisher
-public typealias Published = SwiftUIWebCore.Published
+public typealias ObservableObject = WebCombine.ObservableObject
+public typealias ObservableObjectPublisher = WebCombine.ObservableObjectPublisher
+public typealias Published = WebCombine.Published
 public typealias StateObject = SwiftUIWebCore.StateObject
 public typealias ObservedObject = SwiftUIWebCore.ObservedObject
 public typealias EnvironmentObject = SwiftUIWebCore.EnvironmentObject
-public typealias AnyCancellable = SwiftUIWebCore.AnyCancellable
+public typealias AnyCancellable = WebCombine.AnyCancellable

@@ -91,7 +91,7 @@ test` without a scratch-path override. JavaScriptKit's test packager requires th
 | Path | Purpose |
 |---|---|
 | `Sources/SwiftUI` | Thin `import SwiftUI` module re-exporting the implementation |
-| `Packages/Shadows` | modules named after Apple's, linked only on wasm (decision 0021): `Foundation` over `WebFoundation` with libm, Observation, `UserDefaults`, `Bundle` and `DispatchQueue`, so an app file's `import Foundation` means what it does on iOS; never built natively |
+| `Packages/Shadows` | `Foundation` and `Combine` modules for wasm (decision 0021): re-exports of `WebFoundation` (with libm, Observation, `UserDefaults`, `Bundle`, `FileManager`, `DispatchQueue`) and `WebCombine`, so an app file's `import Foundation` or `import Combine` means what it does on iOS. An app's `Package.swift` links them (`Examples/Launches`); never built natively and never part of this package's own builds |
 | `Packages/WebGraphics` | the graphics substrate shared with UIKitWeb: geometry, paths, display list, text measuring, the hosts (decision 0014); `WebFoundation`, the Foundation every module imports, with the wasm stand-ins for `Data`, `URL`, `Calendar` and friends that keep FoundationEssentials out of the bundle (decision 0017) |
 | `Packages/UIKitWeb` | `import UIKit` on the same substrate: views, layers, controls, view controllers, Auto Layout (a Cassowary solver, the visual format language), `draw(_:)` with UIBezierPath, `UIView.animate` and Core Animation, navigation and tab bar controllers, `UITableView`, `UICollectionView` with flow, compositional and list layouts, diffable data sources, alerts and sheets, text views, toolbars and search bars, date and wheel pickers, sliders, segmented controls, steppers, progress and activity indicators, page controls; `Examples/UIKitCounter` and `Examples/UIKitSettings` (a tab bar, a navigation stack, an inset grouped table with controls); goldens from real UIKit on an iPhone simulator (`scripts/gen-goldens-sim.sh uikit`, `Fixtures/UIKit`) |
 | `Sources/SwiftUIWebUIKit` | `UIViewRepresentable`, `UIViewControllerRepresentable` and `UIHostingController` over UIKitWeb; `import SwiftUI` re-exports `UIKit` as on iOS (`Docs/elements/Representable.md`) |
@@ -123,6 +123,17 @@ scripts/serve.sh Examples/Counter 8765            # then open http://localhost:8
 scripts/tier-b.sh --filter layout/                # browser fidelity: gallery + Playwright vs goldens
 (cd Tools/Host && /usr/bin/swift run swiftui-host ../../Examples/Counter)   # the bundle in a WKWebView window
 (cd Examples/Counter && swift run Counter)          # the same app natively: AppKit window, CoreGraphics painter
+```
+
+An app package is `Examples/Counter`'s `Package.swift`: the `SwiftUI` and `SwiftUIWebCanvas`
+products of this package. When the app's own files `import Foundation` or `import Combine`
+(most do), it adds `Packages/Shadows` and its two products, as `Examples/Launches` does:
+
+```swift
+.package(name: "Shadows", path: "../../Packages/Shadows"),
+// in the target's dependencies, after the SwiftUI products:
+.product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
+.product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
 ```
 
 `Examples/Landing` is the project's landing page written in SwiftUI and rendered by SwiftUIWeb: a

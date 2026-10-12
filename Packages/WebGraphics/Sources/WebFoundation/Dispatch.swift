@@ -1,8 +1,8 @@
 // `DispatchQueue` on wasm (decision 0021): there is no Dispatch module in the wasm SDK, and
 // Apple's Foundation re-exports it, so apps write `DispatchQueue.main.async` under
-// `import Foundation`. The page has one thread: every queue runs its work on the main actor
-// through the host's executor (JavaScriptEventLoop), `sync` runs it in place, and a deadline
-// waits with `Task.sleep`.
+// `import Foundation` or `import SwiftUI`. The page has one thread: every queue runs its work
+// on the main actor through the host's executor (JavaScriptEventLoop), `sync` runs it in place,
+// and a deadline waits with `Task.sleep`.
 #if os(WASI)
 public struct DispatchQoS: Sendable, Equatable {
     public enum QoSClass: Sendable { case background, utility, `default`, userInitiated, userInteractive, unspecified }

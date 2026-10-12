@@ -14,7 +14,7 @@ public final class CanvasHost {
     public let host: CanvasSceneHost
 
     /// Installs the JavaScript event loop, creates a host in `#app` (or `<body>`) and mounts.
-    public static func launch(windows: [_WindowDescriptor] = [], _ root: @MainActor () -> AnyView) {
+    public static func launch(windows: [_WindowDescriptor] = [], _ root: @escaping @MainActor () -> AnyView) {
         JavaScriptEventLoop.installGlobalExecutor()
         let host = CanvasHost()
         // Open windows are remembered in localStorage and reopened on the next load (sw-windows).
@@ -27,6 +27,8 @@ public final class CanvasHost {
         host.runtime.documentSaveHandler = { [weak host] data, name, _, _ in host?.host.download(Array(data), name: name); return nil }
         host.runtime.installWindows(windows)
         host.mount(root())
+        // An app-level `@StateObject` or `@State` change re-reads the app's body (decision 0021).
+        _appRemount = (host.runtime, { [weak host] in host?.mount(root()) })
         host.runtime.restoreWindows()
         retained = host
     }

@@ -36,8 +36,6 @@ let package = Package(
         // `SwiftUI` module re-exports `UIKit` the way Apple's does on iOS.
         .package(path: "Packages/WebGraphics"),
         .package(path: "Packages/UIKitWeb"),
-        // `Foundation` for wasm (decision 0021): linked only there, see Packages/Shadows.
-        .package(path: "Packages/Shadows"),
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),
         // Only for the `#Preview` macro plugin (expands to nothing); SwiftPM uses prebuilt libraries.
         .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
@@ -51,7 +49,7 @@ let package = Package(
                 "SwiftUIWebUIKit",
                 .product(name: "UIKit", package: "UIKitWeb"),
                 .product(name: "WebFoundation", package: "WebGraphics"),
-                .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
+                .product(name: "WebCombine", package: "WebGraphics"),
                 .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
                 .target(name: "SwiftUIWebNative", condition: .when(platforms: [.macOS])),
             ],
@@ -86,7 +84,7 @@ let package = Package(
         ),
         .target(
             name: "SwiftUIWebCore",
-            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

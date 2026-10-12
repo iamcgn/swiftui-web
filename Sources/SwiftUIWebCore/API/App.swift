@@ -267,12 +267,50 @@ public protocol App {
     static func main()
 }
 
+/// The one instance of each app type, with its dynamic properties installed (decision 0021):
+/// a `@StateObject` model declared on the `App` lives for the process, as SwiftUI keeps one
+/// `App` value. The properties install into a node of their own; when one changes, the host
+/// reads the app's body again and updates the main window's root in place (`_appRemount`;
+/// the other windows keep their descriptors from launch).
+@MainActor private var appInstances: [ObjectIdentifier: (app: Any, storage: AnyObject?)] = [:]
+@MainActor private let appPropertyRuntime = Runtime()
+@MainActor private let appPropertyNode = _AppPropertyNode(parent: nil, runtime: appPropertyRuntime, environment: EnvironmentValues())
+
+/// How a host re-reads the app's body after an app-level state change: its runtime (whose
+/// scheduler coalesces the changes of one flush) and the re-mount.
+@MainActor public var _appRemount: (runtime: Runtime, apply: @MainActor () -> Void)?
+
+@MainActor final class _AppPropertyNode: ViewNode {
+    private var pending = false
+    override package func invalidate() {
+        guard let (runtime, apply) = _appRemount, !pending else { return }
+        pending = true
+        runtime.scheduler.enqueue { [weak self] in
+            self?.pending = false
+            apply()
+        }
+    }
+}
+
 /// Root view of the first window of an app, for hosts.
 extension App {
+    /// The app's instance: made on the first use, its `@StateObject`, `@State` and
+    /// `@Environment` properties installed once.
+    @MainActor
+    public static var _instance: Self {
+        let key = ObjectIdentifier(Self.self)
+        if let existing = appInstances[key]?.app as? Self { return existing }
+        var app = Self()
+        var storage: AnyObject?
+        _DynamicPropertyFields<Self>.installAll(into: &app, node: appPropertyNode, slot: &storage)
+        appInstances[key] = (app, storage)
+        return app
+    }
+
     /// The app's window scenes, in declaration order.
     @MainActor
     public static func _windows() -> [_WindowDescriptor] {
-        Body._windows(of: Self().body)
+        Body._windows(of: _instance.body)
     }
 
     /// The root of the main window: the first window group (or window). A document group's
