@@ -11,10 +11,17 @@ Serve a built bundle first (`scripts/build-wasm.sh <pkg>` then `scripts/serve.sh
   goldens, behaviour steps); run through `scripts/tier-b.sh [--browser chromium|webkit|firefox]`.
 - `counter.mjs`: the Counter example end to end.
 - `landing-perf.mjs`, `landing-mobile.mjs`, `landing-load.mjs`: the landing page's frame phases
-  under wheel scrolling (with a CPU profile), an iPhone-sized touch drag, and the loading screen
+  under wheel scrolling (with a CPU profile), an iPhone-sized finger drag (`--webkit` runs it in
+  WebKit; the drag is the host's scripted one, `__swiftuiwebDebug.drag`), and the loading screen
   across browsers. Serve the release build first (`scripts/build-wasm.sh Examples/Landing`, then
   `python3 -m http.server 8771 --directory Examples/Landing`; pick a port nothing else holds —
   a forgotten server keeps serving an old bundle).
+- `device-perf.mjs <url> --udid <udid>`: the same drag on a real iPhone through `safaridriver -p
+  4444` (Settings › Apps › Safari › Advanced › Remote Automation on the phone; serve the site on
+  the LAN with `--bind 0.0.0.0`). Prints the frame split (`layout`, `render`, `encode`, `paint`,
+  `semantics`, `overlay`), the rAF gaps and the canvas facts. Any page with `?perf` in its URL
+  also shows the frame-time HUD with a "drive" button for the same drag by hand, and records
+  `performance.mark` phases for Safari's timeline.
 - `scroll-probe.mjs`: interactive scrolling in the gallery (`--fixture scroll/long`): a real wheel
   event, 60 in-page wheel ticks with the host's layout + paint time per frame
   (`__swiftuiwebDebug.frameMillis()`), clamping at the top and the indicator fade. Measurements

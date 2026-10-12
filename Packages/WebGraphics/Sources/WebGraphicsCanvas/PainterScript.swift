@@ -360,7 +360,9 @@ enum PainterScript {
         octx.textBaseline = 'alphabetic';
         return { off: off, octx: octx };
       }
+      // Returns the loop's own milliseconds (the host's frame split separates them from the encode).
       function paint(rootCtx, buf, strings, dpr, w, h, bitmaps) {
+        const started = performance.now();
         poolUsed = 0;
         rootCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         rootCtx.clearRect(0, 0, w, h);
@@ -599,6 +601,7 @@ enum PainterScript {
             default: throw new Error('SwiftUIWeb: unknown display op ' + op + ' at ' + (i - 1));
           }
         }
+        return performance.now() - started;
       }
       // The accessibility overlay's elements by semantics identifier: the host positions the
       // ones that moved with one call per frame (each property write crosses the bridge).
@@ -643,8 +646,49 @@ enum PainterScript {
         paint(canvas.getContext('2d'), buf, strings, dpr, w, h, []);
         return canvas.toDataURL('image/png');
       }
+      // The frame-time HUD (`?perf` in the page URL): every animation frame samples the host's
+      // frame split and the gap since the previous frame; a 120-frame window gives the median,
+      // p90 and maximum of each. "drive" runs the host's scripted finger drag up the middle of
+      // the page so a phone measures the same scroll every time; "copy" puts the report on the
+      // clipboard. Gaps over 25 ms with short frames point at the compositor, not at this code.
+      function installHud(debug) {
+        const hud = document.createElement('div');
+        hud.id = 'swiftuiweb-perf';
+        hud.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:2147483647;font:11px/1.35 ui-monospace,Menlo,monospace;color:#fff;background:rgba(0,0,0,.72);padding:6px 8px;border-radius:8px;white-space:pre-wrap;pointer-events:none;max-width:calc(100vw - 16px);box-sizing:border-box';
+        const text = document.createElement('div');
+        const bar = document.createElement('div');
+        bar.style.cssText = 'pointer-events:auto;margin-top:4px;display:flex;gap:6px';
+        const button = (label, action) => { const b = document.createElement('button'); b.textContent = label; b.style.cssText = 'font:inherit;padding:2px 8px;border-radius:6px;border:0;background:#4a8cff;color:#fff'; b.onclick = action; bar.appendChild(b); return b; };
+        hud.appendChild(text); hud.appendChild(bar);
+        document.body.appendChild(hud);
+        const frames = [], gaps = [];
+        let lastCount = debug.frameCount(), lastT = null, report = '';
+        const stat = v => { if (!v.length) return '-'; const s = [...v].sort((a, b) => a - b); const q = p => s[Math.min(s.length - 1, Math.floor(p * s.length))]; return q(0.5).toFixed(1) + '/' + q(0.9).toFixed(1) + '/' + s[s.length - 1].toFixed(1); };
+        const probe = (() => { try { const p = new OffscreenCanvas(1, 1).getContext('2d'); p.filter = 'blur(1px)'; return 'filter ' + (p.filter !== 'none' && p.filter !== '' ? 'yes' : 'no') + ' reset ' + (typeof p.reset === 'function' ? 'yes' : 'no'); } catch (e) { return 'no OffscreenCanvas'; } })();
+        const tick = t => {
+          if (lastT !== null) { gaps.push(t - lastT); if (gaps.length > 120) gaps.shift(); }
+          lastT = t;
+          const count = debug.frameCount();
+          if (count !== lastCount) { lastCount = count; frames.push({ ms: debug.frameMillis(), ...debug.framePhases() }); if (frames.length > 120) frames.shift(); }
+          if (frames.length && (count & 3) === 0) {
+            const canvas = document.querySelector('canvas');
+            const long = frames.filter(f => f.ms > 16).length, dropped = gaps.filter(g => g > 25).length;
+            const last = frames[frames.length - 1];
+            report = 'frame ' + stat(frames.map(f => f.ms)) + ' ms  >16: ' + long + '/' + frames.length + '  gaps>25: ' + dropped + '/' + gaps.length +
+              '\nlayout ' + stat(frames.map(f => f.layout)) + '  render ' + stat(frames.map(f => f.render)) +
+              '\nencode ' + stat(frames.map(f => f.encode)) + '  paint ' + stat(frames.map(f => f.paint)) +
+              '\nsemantics ' + stat(frames.map(f => f.semantics)) + '  overlay ' + stat(frames.map(f => f.overlay)) +
+              '\nops ' + last.ops + '  dpr ' + devicePixelRatio + '  canvas ' + (canvas ? canvas.width + 'x' + canvas.height : '-') + '  pool ' + pool.length + '  ' + probe;
+            text.textContent = report;
+          }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        button('drive', () => { frames.length = 0; gaps.length = 0; debug.drag(innerWidth / 2, innerHeight * 0.75, 0, -innerHeight * 0.6, 0.4); });
+        button('copy', () => { const r = report + '\n' + navigator.userAgent; if (navigator.clipboard) navigator.clipboard.writeText(r); else prompt('report', r); });
+      }
       window.__swiftuiweb = {
-        paint: paint, rasterize: rasterize, measure: measure, forgetMeasurements: forgetMeasurements, imageState: imageState, imageCancel: imageCancel, version: 4,
+        paint: paint, rasterize: rasterize, measure: measure, forgetMeasurements: forgetMeasurements, imageState: imageState, imageCancel: imageCancel, version: 4, installHud: installHud,
         setImageLoadHandler: function (handler) { onImageLoad = handler; },
         overlayAdd: function (id, element) { overlay.set(id, element.style); },
         overlayRemove: function (id) { overlay.delete(id); },

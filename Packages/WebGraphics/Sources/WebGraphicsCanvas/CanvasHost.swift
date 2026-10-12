@@ -729,29 +729,38 @@ public final class CanvasSceneHost {
     private func tick() {
         frameScheduled = false
         let time = now
+        // The gap between consecutive animation frames while frames run back to back: a gap
+        // over one vsync with a short frame means the time went to the compositor, not here.
+        frameGapMillis = lastFrameTime.map { (time - $0) * 1000 } ?? 0
         let elapsed = lastFrameTime.map { min(0.1, time - $0) } ?? 0
+        advanceScriptedDrag(time: time)
         let animating = scene.advanceFrame(elapsed: elapsed)
         lastFrameTime = time
         guard needsLayout || scene.needsFrame else {
             // An animation in a phase that changes nothing on screen (the indicator hold) still
             // needs the clock to advance.
-            if animating { scheduleFrame() } else { lastFrameTime = nil }
+            if animating || scriptedDrag != nil { scheduleFrame() } else { lastFrameTime = nil }
             return
         }
         needsLayout = false
+        mark("layout")
         scene.layout(in: CGSize(width: width, height: height))
         let laidOut = now
+        mark("render")
         let list = scene.render(scale: dpr)
         let rendered = now
-        paint(list)
+        mark("paint")
+        let jsPaintMillis = paint(list)
         let painted = now
+        mark("overlay")
         overlayStart = painted
         updateOverlay()
         updateHostElements()
+        mark(nil)
         lastDisplayList = list
         frameCount += 1
         frameMillis = (now - time) * 1000
-        framePhases = [(laidOut - time) * 1000, (rendered - laidOut) * 1000, (painted - rendered) * 1000, semanticsMillis, (now - painted) * 1000 - semanticsMillis]
+        framePhases = [(laidOut - time) * 1000, (rendered - laidOut) * 1000, (painted - rendered) * 1000 - jsPaintMillis, jsPaintMillis, semanticsMillis, (now - painted) * 1000 - semanticsMillis]
         // The first frame is on screen: a loading screen in the page can go (`index.html`
         // listens for `swiftuiwebready` on the container; it bubbles to the document).
         if frameCount == 1, let event = window.CustomEvent.function {
@@ -761,18 +770,55 @@ public final class CanvasSceneHost {
         }
         // A preference action, observation, scroll animation or an animation the layout just
         // started may need another frame.
-        if animating || scene.isAnimating || scene.needsFrame { scheduleFrame() } else { lastFrameTime = nil }
+        if animating || scene.isAnimating || scene.needsFrame || scriptedDrag != nil { scheduleFrame() } else { lastFrameTime = nil }
     }
 
     /// Time of the previous frame while frames run back to back (scroll animations).
     private var lastFrameTime: Double?
 
+    /// A finger drag the debug bridge scripted (`__swiftuiwebDebug.drag`): one touch moving
+    /// from `start` by `delta` over `duration` seconds, one step per frame, released at the
+    /// end so momentum follows. Measurements on a phone drive it where no input tool reaches.
+    private var scriptedDrag: (start: CGPoint, delta: CGPoint, startTime: Double, duration: Double, began: Bool)?
+    private func advanceScriptedDrag(time: Double) {
+        guard var drag = scriptedDrag else { return }
+        if !drag.began {
+            drag.startTime = time
+            drag.began = true
+            scriptedDrag = drag
+            scene.pointerDown(at: drag.start, type: .touch, time: time)
+            return
+        }
+        let progress = min(1, (time - drag.startTime) / max(0.001, drag.duration))
+        let point = CGPoint(x: drag.start.x + drag.delta.x * progress, y: drag.start.y + drag.delta.y * progress)
+        scene.pointerMoved(to: point, time: time)
+        if progress >= 1 {
+            scene.pointerUp(at: point, time: time)
+            scriptedDrag = nil
+        }
+    }
+
     /// Layout + paint time of the most recent frame in milliseconds (debug bridge), and its
-    /// split into layout, display list, paint, semantics walk and overlay DOM milliseconds.
+    /// split into layout, display list, encode (the typed array and the bridge), the painter's
+    /// Canvas2D loop, semantics walk and overlay DOM milliseconds; the gap since the previous
+    /// animation frame.
     public private(set) var frameMillis: Double = 0
-    public private(set) var framePhases: [Double] = [0, 0, 0, 0, 0]
+    public private(set) var framePhases: [Double] = [0, 0, 0, 0, 0, 0]
+    public private(set) var frameGapMillis: Double = 0
     private var overlayStart: Double = 0
     private var semanticsMillis: Double = 0
+
+    /// A `performance.mark` per phase when the page URL carries `perf`: the browser's timeline
+    /// then shows where a frame went (Safari's Web Inspector over USB on a phone). `nil` ends
+    /// the open measure. Marks accumulate in the performance buffer, hence the opt-in.
+    private lazy var marksEnabled = (window.location.object?.search.string ?? "").contains("perf")
+    private var openMark: String?
+    private func mark(_ phase: String?) {
+        guard marksEnabled, let performance = window.performance.object, let measure = performance.measure.function, let mark = performance.mark.function else { return }
+        if let openMark { _ = measure(this: performance, "swiftuiweb." + openMark, "swiftuiweb." + openMark + ".start") }
+        if let phase { _ = mark(this: performance, "swiftuiweb." + phase + ".start") }
+        openMark = phase
+    }
 
     /// The most recently painted display list and the number of frames painted (debug bridge).
     private var symbolMetricsClosures: [JSClosure] = []
@@ -1068,8 +1114,12 @@ public final class CanvasSceneHost {
     public private(set) var lastDisplayList = DisplayList()
     public private(set) var frameCount = 0
 
-    private func paint(_ list: DisplayList) {
+    /// Encodes and paints the list; returns the painter's own Canvas2D loop time in
+    /// milliseconds (the rest of the phase is the encode and the bridge).
+    @discardableResult
+    private func paint(_ list: DisplayList) -> Double {
         let encoded = DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)
+        lastOpCount = list.commands.count
         let buffer = JSTypedArray<Double>(encoded.ops)
         let strings = JSObject.global.Array.function!.new()
         for s in encoded.strings { _ = strings.push!(s) }
@@ -1081,8 +1131,9 @@ public final class CanvasSceneHost {
             object.pixels = .object(JSObject.global.Uint8ClampedArray.function!.new(JSTypedArray<UInt8>(bitmap.pixels).jsValue))
             _ = bitmaps.push!(object)
         }
-        _ = bridge.paint!(context, buffer, strings, dpr, width, height, bitmaps)
+        return bridge.paint!(context, buffer, strings, dpr, width, height, bitmaps).number ?? 0
     }
+    private var lastOpCount = 0
 
     /// Mirrors the scene's host elements into the elements layer: a clipping wrapper at the
     /// visible frame holding the element at the element's own frame.
@@ -1592,9 +1643,11 @@ public final class CanvasSceneHost {
         let frameMillis = JSClosure { [weak self] _ in .number(self?.frameMillis ?? 0) }
         let framePhases = JSClosure { [weak self] _ in
             let object = JSObject.global.Object.function!.new()
-            let phases = self?.framePhases ?? [0, 0, 0, 0, 0]
-            object.layout = .number(phases[0]); object.render = .number(phases[1]); object.paint = .number(phases[2])
-            object.semantics = .number(phases[3]); object.overlay = .number(phases[4])
+            let phases = self?.framePhases ?? [0, 0, 0, 0, 0, 0]
+            object.layout = .number(phases[0]); object.render = .number(phases[1]); object.encode = .number(phases[2])
+            object.paint = .number(phases[3]); object.semantics = .number(phases[4]); object.overlay = .number(phases[5])
+            object.gap = .number(self?.frameGapMillis ?? 0)
+            object.ops = .number(Double(self?.lastOpCount ?? 0))
             return .object(object)
         }
         let pendingImages = JSClosure { [weak self] _ in self?.bridge.pendingImages!() ?? .number(0) }
@@ -1632,7 +1685,19 @@ public final class CanvasSceneHost {
             }
             return .object(object)
         }
-        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics, foundation]
+        // drag(x, y, dx, dy, seconds): a scripted finger drag (see `scriptedDrag`).
+        let drag = JSClosure { [weak self] arguments in
+            guard let self else { return .undefined }
+            let v = arguments.map { $0.number ?? 0 }
+            guard v.count >= 5 else { return .boolean(false) }
+            self.scriptedDrag = (CGPoint(x: v[0], y: v[1]), CGPoint(x: v[2], y: v[3]), 0, v[4], false)
+            self.scheduleFrame()
+            return .boolean(true)
+        }
+        let dragging = JSClosure { [weak self] _ in .boolean(self?.scriptedDrag != nil) }
+        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics, foundation, drag, dragging]
+        debug.drag = .object(drag)
+        debug.dragging = .object(dragging)
         debug.foundation = .object(foundation)
         debug.framePhases = .object(framePhases)
         debug.animating = .object(animating)
@@ -1643,6 +1708,8 @@ public final class CanvasSceneHost {
         debug.frameCount = .object(frameCount)
         debug.frameMillis = .object(frameMillis)
         JSObject.global.__swiftuiwebDebug = .object(debug)
+        // The frame-time HUD (`?perf`): rolling frame statistics over the page, a scripted drag.
+        if marksEnabled { _ = bridge.installHud?(debug) }
     }
 }
 
