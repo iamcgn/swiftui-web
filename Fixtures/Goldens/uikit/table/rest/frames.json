@@ -1,0 +1,39 @@
+{
+  "fixture" : "uikit\/table\/rest",
+  "frames" : {
+    "rest00" : {
+      "height" : 57,
+      "width" : 320,
+      "x" : 0,
+      "y" : 55.5
+    },
+    "rest01" : {
+      "height" : 57,
+      "width" : 320,
+      "x" : 0,
+      "y" : 112.5
+    },
+    "rest02" : {
+      "height" : 57,
+      "width" : 320,
+      "x" : 0,
+      "y" : 169.5
+    },
+    "rest10" : {
+      "height" : 53,
+      "width" : 320,
+      "x" : 0,
+      "y" : 294.5
+    },
+    "table" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

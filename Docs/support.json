@@ -1682,8 +1682,10 @@
         {
           "api": "UITableView (plain, grouped, inset grouped)",
           "status": "partial",
-          "notes": "The row, header and footer geometry measured on the simulator, recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView; open: the grouped (non-inset) style's exact geometry, right-to-left layouts",
+          "notes": "The row, header and footer geometry measured on the simulator (plain, grouped and inset grouped), recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView, right-to-left layouts (mirrored, approximate); open: the lifted row's shadow",
           "fixtures": [
+            "uikit/table/rest",
+            "uikit/table/rtl",
             "uikit/table/plain",
             "uikit/table/grouped",
             "uikit/table/subtitle",
@@ -1696,9 +1698,10 @@
         {
           "api": "UITableViewCell styles and content configurations (UIListContentConfiguration, contentConfiguration, configurationState, configurationUpdateHandler)",
           "status": "partial",
-          "notes": "The default, subtitle and value cell styles, accessories, list content configurations with the table's metrics, the configuration state machinery (selected, highlighted, editing) with content views reused when they support the new configuration; open: catalog images in list content, the value2 style",
+          "notes": "The default, subtitle and value cell styles, accessories, list content configurations with the table's metrics, imageProperties (tint, corner radius, maximum size, reserved layout size, symbol configuration), the sidebar presets, the configuration state machinery (selected, highlighted, editing) with content views reused when they support the new configuration; open: catalog images in list content, the value2 style",
           "fixtures": [
             "uikit/table/configured",
+            "uikit/table/rest",
             "uikit/table/subtitle",
             "ios/representable/hostingcells",
             "ios/representable/hostingstate"
@@ -1707,7 +1710,7 @@
         {
           "api": "UITableView editing, swipe actions, reordering and batch updates",
           "status": "partial",
-          "notes": "setEditing with the delete and reorder controls, leading and trailing swipe actions, drag reordering, animated insertions and deletions; open: the tracking background while touched, the RowAnimation kinds beyond fade and slide, swipe button fonts",
+          "notes": "setEditing with the delete and reorder controls, leading and trailing swipe actions, drag reordering, animated insertions and deletions with every RowAnimation kind (left, right, top, bottom, middle, none, fade, automatic); open: the tracking background while touched, swipe button widths and fonts",
           "fixtures": [
             "uikit/table/editing"
           ]

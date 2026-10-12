@@ -475,8 +475,20 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 
     open func reloadRows(at indexPaths: [IndexPath], with animation: RowAnimation) { record { $0.reloadedItems.formUnion(indexPaths) } }
     open func reloadSections(_ sections: IndexSet, with animation: RowAnimation) { record { $0.reloadedSections.formUnion(sections) } }
-    open func insertRows(at indexPaths: [IndexPath], with animation: RowAnimation) { record { $0.insertedItems.formUnion(indexPaths) } }
-    open func deleteRows(at indexPaths: [IndexPath], with animation: RowAnimation) { record { $0.deletedItems.formUnion(indexPaths) } }
+    open func insertRows(at indexPaths: [IndexPath], with animation: RowAnimation) {
+        for path in indexPaths { insertionAnimations[path] = animation }
+        record { $0.insertedItems.formUnion(indexPaths) }
+    }
+    open func deleteRows(at indexPaths: [IndexPath], with animation: RowAnimation) {
+        for path in indexPaths { deletionAnimations[path] = animation }
+        record { $0.deletedItems.formUnion(indexPaths) }
+    }
+    /// The `RowAnimation` of each inserted (by its new path) and deleted (by its old path)
+    /// row of the pending update: fade (and `automatic`) fades; left and right slide the cell
+    /// in from or out to that side; top and bottom slide it from or to the row above or below;
+    /// middle grows it from its centre line; none applies at once.
+    var insertionAnimations: [IndexPath: RowAnimation] = [:]
+    var deletionAnimations: [IndexPath: RowAnimation] = [:]
     open func moveRow(at indexPath: IndexPath, to newIndexPath: IndexPath) { record { $0.moves[indexPath] = newIndexPath } }
     open func insertSections(_ sections: IndexSet, with animation: RowAnimation) { record { $0.insertedSections.formUnion(sections) } }
     open func deleteSections(_ sections: IndexSet, with animation: RowAnimation) { record { $0.deletedSections.formUnion(sections) } }
@@ -518,14 +530,19 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
         }
         var startFrames: [IndexPath: CGRect] = [:]
         var fading: [UITableViewCell] = []
+        var deletedKinds: [ObjectIdentifier: RowAnimation] = [:]
         for (oldPath, cell) in visibleCellsByPath {
             if let newPath = retained[oldPath], !replaced.contains(newPath) {
                 retainedCells[newPath] = cell
                 startFrames[newPath] = cell.frame
             } else {
                 fading.append(cell)
+                deletedKinds[ObjectIdentifier(cell)] = deletionAnimations[oldPath] ?? .fade
             }
         }
+        let insertedKinds = insertionAnimations
+        insertionAnimations.removeAll()
+        deletionAnimations.removeAll()
         visibleCellsByPath.removeAll()
         let before = Set(fading.map { ObjectIdentifier($0) }).union(retainedCells.values.map { ObjectIdentifier($0) })
         reload()
@@ -535,21 +552,52 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
             if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
         }
         retainedCells.removeAll()
-        var inserted: [UITableViewCell] = []
+        var inserted: [(UITableViewCell, RowAnimation)] = []
         for (path, cell) in visibleCellsByPath {
             if let start = startFrames[path] {
                 let target = cell.frame
                 UIView.performWithoutAnimation { cell.frame = start }
                 UIView.animate(withDuration: batchUpdateDuration) { cell.frame = target }
             } else if !before.contains(ObjectIdentifier(cell)) {
-                inserted.append(cell)
+                inserted.append((cell, insertedKinds[path] ?? .fade))
             }
         }
         for cell in fading { bringSubviewToFront(cell) }
-        UIView.performWithoutAnimation { for cell in inserted { cell.alpha = 0 } }
+        // Where a row animation starts (inserts) or ends (deletes): its frame shifted off a side,
+        // onto the row above or below, or squeezed to its middle line.
+        func displaced(_ frame: CGRect, by kind: RowAnimation) -> CGRect {
+            switch kind {
+            case .left: return frame.offsetBy(dx: -frame.width, dy: 0)
+            case .right: return frame.offsetBy(dx: frame.width, dy: 0)
+            case .top: return frame.offsetBy(dx: 0, dy: -frame.height)
+            case .bottom: return frame.offsetBy(dx: 0, dy: frame.height)
+            case .middle: return CGRect(x: frame.minX, y: frame.midY, width: frame.width, height: 0)
+            default: return frame
+            }
+        }
+        let targets = inserted.map { ($0.0, $0.0.frame, $0.1) }
+        UIView.performWithoutAnimation {
+            for (cell, frame, kind) in targets {
+                switch kind {
+                case .none: break
+                case .fade, .automatic: cell.alpha = 0
+                default: cell.frame = displaced(frame, by: kind); cell.alpha = kind == .middle ? 1 : cell.alpha
+                }
+            }
+        }
         UIView.animate(withDuration: batchUpdateDuration, animations: {
-            for cell in inserted { cell.alpha = 1 }
-            for cell in fading { cell.alpha = 0 }
+            for (cell, frame, kind) in targets {
+                cell.alpha = 1
+                if kind != .none, kind != .fade, kind != .automatic { cell.frame = frame }
+            }
+            for cell in fading {
+                let kind = deletedKinds[ObjectIdentifier(cell)] ?? .fade
+                switch kind {
+                case .none: break
+                case .fade, .automatic: cell.alpha = 0
+                default: cell.frame = displaced(cell.frame, by: kind)
+                }
+            }
         }, completion: { [weak self] _ in
             guard let self else { return }
             for cell in fading {
@@ -891,6 +939,13 @@ open class UITableViewHeaderFooterView: UIView {
             let size = label.sizeThatFits(CGSize(width: contentView.bounds.width - 32, height: .greatestFiniteMagnitude))
             label.frame = CGRect(x: 16, y: 4.5, width: size.width, height: size.height)
         }
+        // Right-to-left: the title at the trailing (right) edge.
+        if effectiveUserInterfaceLayoutDirection == .rightToLeft {
+            label.frame.origin.x = contentView.bounds.width - 16 - label.frame.width
+            label.textAlignment = .right
+        } else {
+            label.textAlignment = .natural
+        }
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
@@ -1151,7 +1206,9 @@ open class UITableViewCell: UIView {
             // adds the point (ios/representable/hostingcells, hostingmargins: 57, 61, 81, 91;
             // a collection cell adds nothing, hostingcollection: 56, 90, 130).
             let fitted = content.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height
-            return max(56, fitted) + (content is any _HostedCellContentView ? 1 : 0)
+            // A sidebar cell is as tall as its content (53 for a line; uikit/table/rest).
+            let minimum: CGFloat = (content as? UIListContentView)?.isSidebar == true ? 0 : 56
+            return max(minimum, fitted) + (content is any _HostedCellContentView ? 1 : 0)
         }
         if contentView.subviews.contains(where: { !$0.translatesAutoresizingMaskIntoConstraints }) {
             if bounds.width != width { frame.size.width = width }
@@ -1177,7 +1234,14 @@ open class UITableViewCell: UIView {
     /// A content configuration makes the content view that fills the cell's content view and
     /// sizes the row (Containers/ContentConfiguration.swift).
     open var contentConfiguration: (any UIContentConfiguration)? {
-        didSet { installConfiguredContent() }
+        didSet {
+            // A sidebar preset in a table takes the table's fonts (its margins are its own).
+            if var list = contentConfiguration as? UIListContentConfiguration, list.sidebar, !list.tableMetrics, !list.listMetrics {
+                list.tableMetrics = true
+                contentConfiguration = list   // an assignment inside the observer does not observe again
+            }
+            installConfiguredContent()
+        }
     }
     open var backgroundConfiguration: UIBackgroundConfiguration? {
         didSet { if let color = backgroundConfiguration?.backgroundColor { backgroundColor = color } }
@@ -1288,6 +1352,21 @@ open class UITableViewCell: UIView {
                 detail.textAlignment = .right
             }
         }
+        mirrorForRightToLeft(contentWidth: contentWidth, accessoryWidth: accessory.width)
+    }
+
+    /// Right-to-left (uikit/table/rtl, approximate: the mirror of the left-to-right layout):
+    /// the content view and accessory swap sides, the labels right-align within the content.
+    private func mirrorForRightToLeft(contentWidth: CGFloat, accessoryWidth: CGFloat) {
+        guard effectiveUserInterfaceLayoutDirection == .rightToLeft else { return }
+        let width = bounds.width
+        contentView.frame = CGRect(x: width - contentView.frame.maxX, y: 0, width: contentView.frame.width, height: contentView.frame.height)
+        if let accessoryView { accessoryView.frame.origin.x = width - accessoryView.frame.maxX }
+        for label in [textLabel, detailTextLabel].compactMap({ $0 }) {
+            label.frame.origin.x = contentWidth - label.frame.maxX
+            label.textAlignment = style == .value1 || style == .value2 ? (label === detailTextLabel ? .left : .right) : .right
+        }
+        if let imageView { imageView.frame.origin.x = contentWidth - imageView.frame.maxX }
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
@@ -1321,17 +1400,25 @@ open class UITableViewCell: UIView {
                 }
             }
         }
+        // Right-to-left mirrors the accessory to the left edge, the chevron pointing left.
+        let rightToLeft = effectiveUserInterfaceLayoutDirection == .rightToLeft
         switch isEditing ? .none : accessoryType {
         case .disclosureIndicator, .detailDisclosureButton:
             // The chevron: 10.5 × 14 at the content view's right, centred; a 2 pt stroke.
-            let box = context.absoluteRect(CGRect(x: contentWidth, y: (bounds.height - 14) / 2, width: 10.5, height: 14))
+            let box = context.absoluteRect(CGRect(x: rightToLeft ? bounds.width - contentWidth - 10.5 : contentWidth, y: (bounds.height - 14) / 2, width: 10.5, height: 14))
             var chevron = Path()
-            chevron.move(to: CGPoint(x: box.minX + 2, y: box.minY + 1.5))
-            chevron.addLine(to: CGPoint(x: box.maxX - 1.5, y: box.midY))
-            chevron.addLine(to: CGPoint(x: box.minX + 2, y: box.maxY - 1.5))
+            if rightToLeft {
+                chevron.move(to: CGPoint(x: box.maxX - 2, y: box.minY + 1.5))
+                chevron.addLine(to: CGPoint(x: box.minX + 1.5, y: box.midY))
+                chevron.addLine(to: CGPoint(x: box.maxX - 2, y: box.maxY - 1.5))
+            } else {
+                chevron.move(to: CGPoint(x: box.minX + 2, y: box.minY + 1.5))
+                chevron.addLine(to: CGPoint(x: box.maxX - 1.5, y: box.midY))
+                chevron.addLine(to: CGPoint(x: box.minX + 2, y: box.maxY - 1.5))
+            }
             list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round), ink))
         case .checkmark:
-            let box = context.absoluteRect(CGRect(x: contentWidth, y: (bounds.height - 18) / 2, width: 19, height: 18))
+            let box = context.absoluteRect(CGRect(x: rightToLeft ? bounds.width - contentWidth - 19 : contentWidth, y: (bounds.height - 18) / 2, width: 19, height: 18))
             var mark = Path()
             mark.move(to: CGPoint(x: box.minX + 1.5, y: box.midY + 1))
             mark.addLine(to: CGPoint(x: box.minX + 7, y: box.maxY - 2))
@@ -1345,8 +1432,9 @@ open class UITableViewCell: UIView {
         if !(tableStyle != .plain && isLastInSection) {
             let separatorColor = UIColor.separator.rgba(for: userStyle)
             // The separator starts where the content's text does (56 after a list content symbol).
-            let left = max(separatorInset.left, (configuredContent?.view as? UIListContentView)?.textLeading ?? 0)
-            let right: CGFloat = tableStyle == .plain ? 16 : (accessorySize.width > 0 ? 16 : 0)
+            var left = max(separatorInset.left, (configuredContent?.view as? UIListContentView)?.textLeading ?? 0)
+            var right: CGFloat = tableStyle == .plain ? 16 : (accessorySize.width > 0 ? 16 : 0)
+            if rightToLeft { swap(&left, &right) }
             let line = context.absoluteRect(CGRect(x: left, y: bounds.height - 1, width: bounds.width - left - right, height: 1))
             list.append(.fillRect(line, separatorColor))
         }

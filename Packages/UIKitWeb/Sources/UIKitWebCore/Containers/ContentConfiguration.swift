@@ -80,9 +80,26 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
     }
     public enum Layout: Sendable { case cell, subtitle, value }
 
+    /// An image's look and size (`imageProperties`): the tint, a maximum size the image is
+    /// scaled down into, a corner radius, and a reserved width (the text starts past it even
+    /// for a narrower image; uikit/table/rest).
+    public struct ImageProperties: Sendable {
+        public var tintColor: UIColor?
+        public var maximumSize = CGSize.zero
+        public var cornerRadius: CGFloat = 0
+        public var reservedLayoutSize = CGSize.zero
+        public var accessibilityIgnoresInvertColors = false
+        public var preferredSymbolConfiguration: UIImage.SymbolConfiguration?
+    }
+
+    /// The sidebar presets (uikit/table/rest): the image 15 in at its own size, the text 9
+    /// after it, 14.5 above and 14 below (53 for a line).
+    var sidebar = false
+
     public var text: String?
     public var secondaryText: String?
     public var image: UIImage?
+    public var imageProperties = ImageProperties()
     public var textProperties = TextProperties()
     public var secondaryTextProperties = TextProperties(font: .systemFont(ofSize: 15), color: .secondaryLabel)
     public var directionalLayoutMargins = UIEdgeInsets(top: 11, left: 20, bottom: 11, right: 20)
@@ -112,7 +129,7 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
             textProperties.font = .preferredFont(forTextStyle: .body)
             secondaryTextProperties.font = .preferredFont(forTextStyle: layout == .subtitle ? .subheadline : .body)
             secondaryTextProperties.color = .secondaryLabel
-            directionalLayoutMargins = UIEdgeInsets(top: 16.5, left: 16, bottom: 16, right: 16)
+            directionalLayoutMargins = sidebar ? UIEdgeInsets(top: 14.5, left: 15, bottom: 14, right: 16) : UIEdgeInsets(top: 16.5, left: 16, bottom: 16, right: 16)
             textToSecondaryTextVerticalPadding = 0
         }
     }
@@ -126,6 +143,20 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
     public static func subtitleCell() -> UIListContentConfiguration { UIListContentConfiguration(layout: .subtitle) }
     public static func valueCell() -> UIListContentConfiguration { UIListContentConfiguration(layout: .value) }
     public static func plainHeader() -> UIListContentConfiguration { groupedHeader() }
+    /// A sidebar cell: like a cell with the body text and the symbol in the tint (the
+    /// collection sidebar appearance; its own metrics are not measured).
+    public static func sidebarCell() -> UIListContentConfiguration { sidebar(layout: .cell) }
+    public static func sidebarSubtitleCell() -> UIListContentConfiguration { sidebar(layout: .subtitle) }
+    public static func sidebarHeader() -> UIListContentConfiguration { groupedHeader() }
+    public static func accompaniedSidebarCell() -> UIListContentConfiguration { sidebar(layout: .cell) }
+    public static func accompaniedSidebarSubtitleCell() -> UIListContentConfiguration { sidebar(layout: .subtitle) }
+    private static func sidebar(layout: Layout) -> UIListContentConfiguration {
+        var configuration = UIListContentConfiguration(layout: layout)
+        configuration.sidebar = true
+        configuration.imageToTextPadding = 9
+        configuration.directionalLayoutMargins = UIEdgeInsets(top: 14.5, left: 15, bottom: 14, right: 16)
+        return configuration
+    }
     /// A grouped list header (uikit/collection/listheaders): headline text 10 down in 44.5.
     public static func groupedHeader() -> UIListContentConfiguration {
         var configuration = UIListContentConfiguration(layout: .cell)
@@ -182,7 +213,19 @@ public final class UIListContentView: UIView, UIContentView {
         secondaryTextLabel.textColor = list.secondaryTextProperties.color
         secondaryTextLabel.numberOfLines = list.secondaryTextProperties.numberOfLines
         imageView.image = list.image
+        imageView.tintColor = list.imageProperties.tintColor ?? tintColor
+        imageView.layer.cornerRadius = list.imageProperties.cornerRadius
+        imageView.layer.masksToBounds = list.imageProperties.cornerRadius > 0
         setNeedsLayout()
+    }
+
+    /// The image's drawn size: its own, scaled down into `imageProperties.maximumSize` when set.
+    private func imageSize(_ image: UIImage) -> CGSize {
+        let maximum = list.imageProperties.maximumSize
+        var size = image.isSystemSymbol && (list.tableMetrics || list.listMetrics) && !list.sidebar ? CGSize(width: 28, height: 27) : image.size
+        if maximum.width > 0, size.width > maximum.width { size = CGSize(width: maximum.width, height: size.height * maximum.width / size.width) }
+        if maximum.height > 0, size.height > maximum.height { size = CGSize(width: size.width * maximum.height / size.height, height: maximum.height) }
+        return size
     }
 
     /// The content's height for a width: the margins around the text block (one line, or the
@@ -190,13 +233,15 @@ public final class UIListContentView: UIView, UIContentView {
     /// a one-line row is 56 and a two-line one 79.5 (uikit/collection/list).
     /// Where the text starts (the separator of a table cell follows it: 56 after a symbol).
     private(set) var textLeading: CGFloat = 16
+    /// Whether the configuration is a sidebar preset (its rows take their content's height).
+    var isSidebar: Bool { list.sidebar }
 
     public override func sizeThatFits(_ size: CGSize) -> CGSize {
         if list.listMetrics {
             let hasSecondary = secondaryTextLabel.text?.isEmpty == false && list.layout == .subtitle
             return CGSize(width: size.width, height: hasSecondary ? 79.5 : 56)
         }
-        if list.tableMetrics {
+        if list.tableMetrics, !list.sidebar {
             let hasSecondary = secondaryTextLabel.text?.isEmpty == false && list.layout == .subtitle
             return CGSize(width: size.width, height: hasSecondary ? 76.5 : 57)
         }
@@ -208,7 +253,7 @@ public final class UIListContentView: UIView, UIContentView {
             return CGSize(width: size.width, height: roleTextHeight(width: width) + margins.top + margins.bottom)
         }
         let margins = list.directionalLayoutMargins
-        let imageWidth = imageView.image.map { $0.size.width + list.imageToTextPadding } ?? 0
+        let imageWidth = imageView.image.map { max(imageSize($0).width, list.imageProperties.reservedLayoutSize.width) + list.imageToTextPadding } ?? 0
         let width = max(0, size.width - margins.left - margins.right - imageWidth)
         var height = textLabel.text?.isEmpty == false ? textLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height : 0
         if list.layout == .subtitle, secondaryTextLabel.text?.isEmpty == false {
@@ -216,7 +261,7 @@ public final class UIListContentView: UIView, UIContentView {
         } else if list.layout != .subtitle {
             height = max(height, secondaryTextLabel.text?.isEmpty == false ? secondaryTextLabel.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height : 0)
         }
-        if let image = imageView.image { height = max(height, image.size.height) }
+        if let image = imageView.image { height = max(height, imageSize(image).height) }
         return CGSize(width: size.width, height: max(44, height + margins.top + margins.bottom))
     }
 
@@ -234,13 +279,22 @@ public final class UIListContentView: UIView, UIContentView {
         let margins = list.directionalLayoutMargins
         var x = margins.left
         if let image = imageView.image {
-            if image.isSystemSymbol, list.tableMetrics || list.listMetrics {
-                // A symbol in list content: a 28 × 27 slot 14 in, the text 14 after it.
-                imageView.frame = CGRect(x: 14, y: ((bounds.height - 27) / 2).rounded(), width: 28, height: 27)
+            let size = imageSize(image)
+            let reserved = list.imageProperties.reservedLayoutSize
+            if reserved.width > 0 {
+                // A reserved width (uikit/table/rest): the slot starts at the margin, the image
+                // centred in it, the text a margin past it.
+                let slot = CGRect(x: x, y: 0, width: reserved.width, height: bounds.height)
+                imageView.frame = CGRect(x: slot.minX + (reserved.width - size.width) / 2, y: ((bounds.height - size.height) / 2).rounded(), width: size.width, height: size.height)
+                x = slot.maxX + margins.left
+            } else if image.isSystemSymbol, list.tableMetrics || list.listMetrics, !list.sidebar {
+                // A symbol in list content: a 28 × 27 slot 14 in (a capped image centred in it),
+                // the text 14 after it.
+                imageView.frame = CGRect(x: 14 + (28 - size.width) / 2, y: (((bounds.height - 27) / 2).rounded() + (27 - size.height) / 2), width: size.width, height: size.height)
                 x = 56
             } else {
-                imageView.frame = CGRect(x: x, y: ((bounds.height - image.size.height) / 2).rounded(), width: image.size.width, height: image.size.height)
-                x += image.size.width + list.imageToTextPadding
+                imageView.frame = CGRect(x: x, y: ((bounds.height - size.height) / 2).rounded(), width: size.width, height: size.height)
+                x += size.width + list.imageToTextPadding
             }
         } else {
             imageView.frame = .zero
@@ -266,7 +320,7 @@ public final class UIListContentView: UIView, UIContentView {
             secondaryTextLabel.frame = CGRect(x: right - secondaryWidth, y: list.tableMetrics ? 16.5 : ((bounds.height - secondaryHeight) / 2).rounded(), width: secondaryWidth, height: secondaryHeight)
             secondaryTextLabel.textAlignment = .right
         case .cell:
-            let y = list.listRole == .cell ? (list.tableMetrics ? 16.5 : ((bounds.height - textHeight) / 2).rounded()) : margins.top
+            let y = list.listRole == .cell ? (list.tableMetrics && !list.sidebar ? 16.5 : list.sidebar ? margins.top : ((bounds.height - textHeight) / 2).rounded()) : margins.top
             textLabel.frame = CGRect(x: x, y: y, width: width, height: textHeight)
             secondaryTextLabel.frame = .zero
         }

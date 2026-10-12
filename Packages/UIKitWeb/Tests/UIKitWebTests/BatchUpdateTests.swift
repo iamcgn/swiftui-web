@@ -131,4 +131,53 @@ import UIKit
         #expect(first?.superview == nil)
         #expect(table.cellForRow(at: IndexPath(row: 2, section: 0))?.textLabel?.text == "four")
     }
+
+    /// The row animation kinds (uk-table-rest): a left/right insert starts off its side, a
+    /// bottom one on the row below, a middle one squeezed to its centre line; a deleted row
+    /// slides off (or fades) on its way out; `none` applies at once.
+    @Test func rowAnimationKinds() {
+        final class Source: NSObject, UITableViewDataSource {
+            var rows = ["one", "two", "three"]
+            func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { rows.count }
+            func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "cell") ?? UITableViewCell(style: .default, reuseIdentifier: "cell")
+                cell.textLabel?.text = rows[indexPath.row]
+                return cell
+            }
+        }
+        let window = window()
+        let table = UITableView(frame: window.bounds, style: .plain)
+        table.rowHeight = 44
+        let source = Source()
+        table.dataSource = source
+        window.addSubview(table)
+        UIKitScene.shared.layout(in: window.bounds.size)
+        let first = table.cellForRow(at: IndexPath(row: 0, section: 0))!
+        table.performBatchUpdates({
+            source.rows = ["two", "three", "left", "bottom", "middle"]
+            table.deleteRows(at: [IndexPath(row: 0, section: 0)], with: .right)
+            table.insertRows(at: [IndexPath(row: 2, section: 0)], with: .left)
+            table.insertRows(at: [IndexPath(row: 3, section: 0)], with: .bottom)
+            table.insertRows(at: [IndexPath(row: 4, section: 0)], with: .middle)
+        }, completion: nil)
+        // Presented at the start of the animation: the left insert off the left edge, the bottom
+        // one a row lower, the middle one 0 tall at its centre, all opaque; the deleted row still there.
+        let width = window.bounds.width
+        let left = table.cellForRow(at: IndexPath(row: 2, section: 0))!, bottom = table.cellForRow(at: IndexPath(row: 3, section: 0))!, middle = table.cellForRow(at: IndexPath(row: 4, section: 0))!
+        func presentedCentre(_ cell: UITableViewCell) -> CGPoint { cell.layer.presented(.position, model: .point(cell.layer.position)).point }
+        func presentedHeight(_ cell: UITableViewCell) -> CGFloat { cell.layer.presented(.bounds, model: .rect(cell.layer.bounds)).rect.height }
+        #expect(presentedCentre(left).x == -width / 2 && left.alpha == 1, "\(presentedCentre(left))")
+        #expect(presentedCentre(bottom).y == 44 * 4 + 22 && presentedHeight(middle) == 0, "\(presentedCentre(bottom)) \(presentedHeight(middle))")
+        #expect(first.superview === table && first.alpha == 1)
+        _ = UIKitScene.shared.advanceFrame(elapsed: 0.5)
+        #expect(left.frame == CGRect(x: 0, y: 88, width: width, height: 44) && bottom.frame.minY == 132 && middle.frame.height == 44)
+        #expect(first.superview == nil, "the deleted row slid off to the right and left the table")
+        // `none` inserts at once, nothing in flight.
+        table.performBatchUpdates({
+            source.rows.append("none")
+            table.insertRows(at: [IndexPath(row: 5, section: 0)], with: .none)
+        }, completion: nil)
+        let none = table.cellForRow(at: IndexPath(row: 5, section: 0))!
+        #expect(none.alpha == 1 && presentedCentre(none) == none.layer.position)
+    }
 }

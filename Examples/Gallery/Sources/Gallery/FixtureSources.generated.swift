@@ -9580,7 +9580,7 @@ public static let distribution = UIKitFixture("uikit/stack/distribution", size: 
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/configured", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 293, lastLine: 302, declaration: #"""
+        FixtureSource(name: "uikit/table/configured", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 328, lastLine: 337, declaration: #"""
 /// Table cells driven by list content configurations in a plain table.
 public static let configured = UIKitFixture("uikit/table/configured", size: CGSize(width: 320, height: 300)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
@@ -9592,7 +9592,7 @@ public static let configured = UIKitFixture("uikit/table/configured", size: CGSi
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/editing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 253, lastLine: 275, declaration: #"""
+        FixtureSource(name: "uikit/table/editing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 288, lastLine: 310, declaration: #"""
 /// Editing mode: the rows shift right behind delete and insert controls, movable rows show
 /// a reorder handle, a row that cannot be edited stays put.
 public static let editing = UIKitFixture("uikit/table/editing", size: CGSize(width: 320, height: 300),
@@ -9617,7 +9617,7 @@ public static let editing = UIKitFixture("uikit/table/editing", size: CGSize(wid
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 197, lastLine: 203, declaration: #"""
+        FixtureSource(name: "uikit/table/grouped", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 232, lastLine: 238, declaration: #"""
 /// The inset grouped style: two sections with headers and a footer, value1 cells.
 public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(width: 320, height: 400)) {
     make(style: .insetGrouped, cellStyle: .value1, sections: [
@@ -9626,7 +9626,7 @@ public static let grouped = UIKitFixture("uikit/table/grouped", size: CGSize(wid
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 0, section: 1): "row2"])
 }
 """#),
-        FixtureSource(name: "uikit/table/indexed", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 279, lastLine: 289, declaration: #"""
+        FixtureSource(name: "uikit/table/indexed", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 314, lastLine: 324, declaration: #"""
 /// A plain table with lettered section headers and the section index strip.
 public static let indexed = UIKitFixture("uikit/table/indexed", size: CGSize(width: 320, height: 400)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
@@ -9639,7 +9639,7 @@ public static let indexed = UIKitFixture("uikit/table/indexed", size: CGSize(wid
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/pinned", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 205, lastLine: 225, declaration: #"""
+        FixtureSource(name: "uikit/table/pinned", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 240, lastLine: 260, declaration: #"""
 /// Plain-style section headers pin to the top while their section scrolls under them and
 /// are pushed away by the next header.
 public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width: 320, height: 300),
@@ -9662,7 +9662,7 @@ public static let pinned = UIKitFixture("uikit/table/pinned", size: CGSize(width
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 0, section: 1): "row4"], model: model)
 }
 """#),
-        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 183, lastLine: 188, declaration: #"""
+        FixtureSource(name: "uikit/table/plain", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 218, lastLine: 223, declaration: #"""
 /// A plain table: one section without a header, default cells with and without accessories.
 public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 320, height: 400)) {
     make(style: .plain, cellStyle: .default, sections: [
@@ -9670,7 +9670,31 @@ public static let plain = UIKitFixture("uikit/table/plain", size: CGSize(width: 
     ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1", IndexPath(row: 3, section: 0): "row3"])
 }
 """#),
-        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 227, lastLine: 235, declaration: #"""
+        FixtureSource(name: "uikit/table/rest", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 341, lastLine: 350, declaration: #"""
+/// The non-inset grouped style with image properties and the sidebar configuration (uk-table-rest).
+public static let rest = UIKitFixture("uikit/table/rest", size: CGSize(width: 320, height: 400)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+    let source = RestSource()
+    restSources.append(source)
+    let table = UITableView(frame: root.bounds, style: .grouped)
+    table.dataSource = source
+    root.addSubview(table.probe("table"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/table/rtl", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 354, lastLine: 363, declaration: #"""
+/// A plain table laid out right-to-left: the text at the trailing (right) edge, accessories
+/// at the left, the separator inset mirrored.
+public static let rightToLeft = UIKitFixture("uikit/table/rtl", size: CGSize(width: 320, height: 300)) {
+    let root = make(style: .plain, cellStyle: .subtitle, sections: [
+        .init(header: "Header", footer: nil, rows: [("Title", "Detail text", .disclosureIndicator), ("Another", "More", .checkmark)]),
+    ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1"])
+    root.semanticContentAttribute = .forceRightToLeft
+    root.subviews.first?.semanticContentAttribute = .forceRightToLeft
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/table/selection", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 262, lastLine: 270, declaration: #"""
 /// Selecting a row highlights it; deselecting clears it.
 public static let selection = UIKitFixture("uikit/table/selection", size: CGSize(width: 320, height: 400),
                                            model: { TableModel() },
@@ -9681,7 +9705,7 @@ public static let selection = UIKitFixture("uikit/table/selection", size: CGSize
     ], probes: [IndexPath(row: 1, section: 0): "row1"], model: model)
 }
 """#),
-        FixtureSource(name: "uikit/table/selfsizing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 237, lastLine: 249, declaration: #"""
+        FixtureSource(name: "uikit/table/selfsizing", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 272, lastLine: 284, declaration: #"""
 /// Automatic row heights from an estimate: wrapping text labels in default cells and a
 /// custom cell with a constrained label.
 public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSize(width: 320, height: 400)) {
@@ -9696,7 +9720,7 @@ public static let selfSizing = UIKitFixture("uikit/table/selfsizing", size: CGSi
     return root
 }
 """#),
-        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 190, lastLine: 195, declaration: #"""
+        FixtureSource(name: "uikit/table/subtitle", file: "Fixtures/UIKit/Table/TableFixtures.swift", firstLine: 225, lastLine: 230, declaration: #"""
 /// Subtitle cells with a header, under the plain style.
 public static let subtitle = UIKitFixture("uikit/table/subtitle", size: CGSize(width: 320, height: 400)) {
     make(style: .plain, cellStyle: .subtitle, sections: [
@@ -23645,6 +23669,41 @@ final class ConfiguredSource: NSObject, UITableViewDataSource {
     }
 }
 
+/// uikit/table/rest: content configurations' image properties, the sidebar cell and plain
+/// header configurations in a non-inset grouped table.
+final class RestSource: NSObject, UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int { 2 }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 3 : 1 }
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { section == 0 ? "Images" : "Sidebar" }
+    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? { section == 0 ? "Footer under the images." : nil }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+        if indexPath.section == 0 {
+            var content = cell.defaultContentConfiguration()
+            content.image = UIImage(systemName: "star.fill")
+            switch indexPath.row {
+            case 0:
+                content.text = "Rounded, tinted"
+                content.imageProperties.cornerRadius = 6
+                content.imageProperties.tintColor = .systemOrange
+            case 1:
+                content.text = "Capped at 12"
+                content.imageProperties.maximumSize = CGSize(width: 12, height: 12)
+            default:
+                content.text = "Reserved width"
+                content.imageProperties.reservedLayoutSize = CGSize(width: 60, height: 0)
+            }
+            cell.contentConfiguration = content
+        } else {
+            var content = UIListContentConfiguration.sidebarCell()
+            content.text = "Sidebar row"
+            content.image = UIImage(systemName: "folder")
+            cell.contentConfiguration = content
+        }
+        return cell.probe("rest\(indexPath.section)\(indexPath.row)")
+    }
+}
+
 @MainActor public final class TableModel {
     var table: UITableView?
     var source: TableSource?
@@ -23652,7 +23711,7 @@ final class ConfiguredSource: NSObject, UITableViewDataSource {
 }
 
 public enum TableFixtures {
-    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing, indexed, configured]
+    public static let all = [plain, subtitle, grouped, selection, pinned, selfSizing, editing, indexed, configured, rest, rightToLeft]
 
     @MainActor static func make(style: UITableView.Style, cellStyle: UITableViewCell.CellStyle, sections: [TableSource.Section], probes: [IndexPath: String],
                                 model: TableModel? = nil) -> UIView {
@@ -23797,6 +23856,30 @@ public enum TableFixtures {
     }
 
     @MainActor static var configuredSources: [ConfiguredSource] = []
+
+    /// The non-inset grouped style with image properties and the sidebar configuration (uk-table-rest).
+    public static let rest = UIKitFixture("uikit/table/rest", size: CGSize(width: 320, height: 400)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let source = RestSource()
+        restSources.append(source)
+        let table = UITableView(frame: root.bounds, style: .grouped)
+        table.dataSource = source
+        root.addSubview(table.probe("table"))
+        return root
+    }
+
+    @MainActor static var restSources: [RestSource] = []
+
+    /// A plain table laid out right-to-left: the text at the trailing (right) edge, accessories
+    /// at the left, the separator inset mirrored.
+    public static let rightToLeft = UIKitFixture("uikit/table/rtl", size: CGSize(width: 320, height: 300)) {
+        let root = make(style: .plain, cellStyle: .subtitle, sections: [
+            .init(header: "Header", footer: nil, rows: [("Title", "Detail text", .disclosureIndicator), ("Another", "More", .checkmark)]),
+        ], probes: [IndexPath(row: 0, section: 0): "row0", IndexPath(row: 1, section: 0): "row1"])
+        root.semanticContentAttribute = .forceRightToLeft
+        root.subviews.first?.semanticContentAttribute = .forceRightToLeft
+        return root
+    }
 }
 #endif
 """##,

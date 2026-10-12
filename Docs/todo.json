@@ -1700,13 +1700,14 @@
       "framework": "UIKit",
       "area": "Table view",
       "title": "Table view corners",
-      "detail": "The grouped (non-inset) style's geometry, the `RowAnimation` kinds (every animation fades and slides today), swipe button widths and fonts, the lifted row's shadow, the tracking background while touched, `imageProperties`, catalog images in list content (the UIKit harness has no asset catalog), sidebar and `plainHeader` appearances, right-to-left.",
+      "detail": "The grouped (non-inset) style's geometry, the `RowAnimation` kinds (every animation fades and slides today), swipe button widths and fonts, the lifted row's shadow, the tracking background while touched, `imageProperties`, catalog images in list content (the UIKit harness has no asset catalog), sidebar and `plainHeader` appearances, right-to-left. Done 2026-10-12 (Phase 9, item 39): the grouped style's header and footer heights, imageProperties and the sidebar presets measured on the iOS 27 simulator (uikit/table/rest), every RowAnimation kind, right-to-left mirrored (uikit/table/rtl); open: swipe button widths and fonts, the lifted row's shadow, the tracking background, catalog images.",
       "kind": "approximate",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/TableView.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-collection-rest",

@@ -120,6 +120,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 33.5
     },
+    "style:body|;l1|Another" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 61
+    },
     "style:body|;l1|Another title" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -258,6 +264,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 47
     },
+    "style:body|;l1|Sidebar row" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 91
+    },
     "style:body|;l1|Six" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -323,6 +335,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 81.5
+    },
+    "style:body||Capped at 12" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 101
     },
     "style:body||Carrot" : {
       "firstBaseline" : 18.357620599453821,
@@ -438,6 +456,18 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 66
     },
+    "style:body||Reserved width" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 117.5
+    },
+    "style:body||Rounded, tinted" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 121.5
+    },
     "style:body||Sent" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -455,6 +485,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 87
+    },
+    "style:body||Sidebar row" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 91
     },
     "style:body||Small" : {
       "firstBaseline" : 18.357620599453821,
@@ -552,6 +588,18 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 40.5
     },
+    "style:body|250.0;l1|Sidebar row" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 91
+    },
+    "style:body|250.0|Sidebar row" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 91
+    },
     "style:body|256.0|Bluetooth" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -569,6 +617,18 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 40.5
+    },
+    "style:body|259.0;l1|Sidebar row" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 91
+    },
+    "style:body|259.0|Sidebar row" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 91
     },
     "style:body|288.0|A default cell whose text label wraps onto several lines when the text runs past the cell's width" : {
       "firstBaseline" : 18.357620599453821,
@@ -935,6 +995,12 @@
       "height" : 21,
       "lastBaseline" : 15.797740091254949,
       "width" : 69.5
+    },
+    "style:subheadline|;l1|More" : {
+      "firstBaseline" : 15.797740091254949,
+      "height" : 21,
+      "lastBaseline" : 15.797740091254949,
+      "width" : 35.5
     },
     "style:subheadline|;l1|More detail" : {
       "firstBaseline" : 15.797740091254949,
@@ -1344,6 +1410,12 @@
       "lastBaseline" : 12.3779296875,
       "width" : 459
     },
+    "system:13:400:default||Footer under the images." : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 152
+    },
     "system:13:400:default|190.0|Height 13" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -1523,6 +1595,12 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 38.5
+    },
+    "system:15:400:default|;l1|More" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 35.5
     },
     "system:15:400:default|;l1|Options" : {
       "firstBaseline" : 14.2822265625,
@@ -1907,6 +1985,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 87
+    },
+    "system:17:400:default|;l1|Another" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 61
     },
     "system:17:400:default|;l1|Archived: 0" : {
       "firstBaseline" : 16.1865234375,
@@ -2568,6 +2652,12 @@
       "lastBaseline" : 36.4736328125,
       "width" : 181
     },
+    "system:17:400:default|259.0;l1|Sidebar row" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 91
+    },
     "system:17:400:default|278.0|Select some of this text" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2771,6 +2861,18 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 58.5
+    },
+    "system:17:600:default||Images" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 58
+    },
+    "system:17:600:default||Sidebar" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 61.5
     },
     "system:17:600:default|244.0|Delete file?" : {
       "firstBaseline" : 16.1865234375,

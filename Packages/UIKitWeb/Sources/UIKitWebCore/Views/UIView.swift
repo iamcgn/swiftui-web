@@ -320,7 +320,11 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         switch semanticContentAttribute {
         case .forceLeftToRight: return .leftToRight
         case .forceRightToLeft: return .rightToLeft
-        default: return traitCollection.layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
+        default:
+            // A superview's forced attribute reaches its subviews (UIKit sets their layout
+            // direction trait); else the trait collection's.
+            if let superview { return superview.effectiveUserInterfaceLayoutDirection }
+            return traitCollection.layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
         }
     }
 

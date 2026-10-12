@@ -182,3 +182,30 @@ draws a scrim over the rows passing under it: black at 15 % at its top easing to
 down (the golden's grey 217, 230, 238, 247, 254 at 0, 20, 30, 45 and 60 pt; `(1 - t)^1.2`),
 and the scrim rides with a header being pushed away. Pixels: 0.8 % at rest, 1.2 % scrolled,
 1.0 % pushed.
+
+## The rest (2026-10-12, `uikit/table/rest`, `uikit/table/rtl`, Phase 9 item 39)
+
+Measured on the iOS 27 simulator with the view-tree dump. The grouped (non-inset) style: the
+first titled header 55.5 tall, later headers 38, footers 30, the 17 pt semibold header text
+already in place from the inset style, so the "exact geometry" that was open was the two
+header heights. `UIListContentConfiguration.imageProperties`: `tintColor`, `cornerRadius`
+(clipped, `masksToBounds`), `maximumSize`, `reservedLayoutSize` and
+`preferredSymbolConfiguration`. A symbol image takes the 28 × 27 slot at x 14 with the text at
+56; an image capped by `maximumSize` is scaled into it and centred in the same slot; a reserved
+layout size makes the slot that wide at the leading margin (16) with the image centred in it and
+the text after it (width 60 → text at 92). The sidebar presets (`sidebarCell`,
+`sidebarSubtitleCell`, `sidebarHeader`, `accompaniedSidebar…`) use margins 14.5 / 15 / 14 / 16,
+image-to-text padding 9 and the 15 pt image column: a sidebar row is 53 tall in a table, not
+57, and skips the fixed-height fit. `RowAnimation` kinds: `.left`/`.right` slide in from and out
+to the off side, `.top`/`.bottom` a row's height away, `.middle` grows from or shrinks to a
+zero-height line at the row's midline, `.none` lands at once; fades and `.automatic` fade,
+slides do not (`BatchUpdateTests.rowAnimationKinds`). Right-to-left (`semanticContentAttribute =
+.forceRightToLeft`, inherited down the tree by `effectiveUserInterfaceLayoutDirection`): the
+content view and accessory swap sides, labels right-align, the image and the chevron mirror,
+separator insets swap, header and footer labels mirror; the measured RTL label insets are
+irregular (42.5 / 56 on the dump) so the mirrored layout is an approximation (Tier C 0.74 %).
+Pixels for `rest`: frames exact, 2.00 % (the symbol glyphs). iOS 27 draws plain-style headers in
+secondary grey; the model keeps iOS 26's label colour with the rest of the table model.
+
+Open: swipe button widths and fonts, the lifted row's shadow, the tracking background while
+touched, catalog images in list content (the UIKit harness has no asset catalog).
