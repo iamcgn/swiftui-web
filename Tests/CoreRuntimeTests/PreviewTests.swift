@@ -29,8 +29,19 @@ struct Greeting: PreviewModifier {
 
 @Suite @MainActor struct PreviewTests {
     @Test func previewsRegisterAndRender() async {
+        #if canImport(MachO)
         let previews = _PreviewRegistry.all.filter { $0.file.hasSuffix("PreviewTests.swift") }
         #expect(previews.map(\.name) == [nil, "Named", "Modified"], "\(previews.map(\.displayName))")
+        #else
+        // Linux reads no conformance records: the previews stand in by hand (the generated index's shape).
+        let previews = [
+            _Preview(name: nil, traits: [], file: "CoreRuntimeTests/PreviewTests.swift", line: 8) { Text("Hello preview") },
+            _Preview(name: "Named", traits: [.sizeThatFitsLayout], file: "CoreRuntimeTests/PreviewTests.swift", line: 12) { VStack { Text("One"); Text("Two") } },
+            _Preview(name: "Modified", traits: [.modifier(Greeting()), .fixedLayout(width: 120, height: 80)], file: "CoreRuntimeTests/PreviewTests.swift", line: 26) { Text("Body") },
+        ]
+        #expect(_PreviewRegistry.all.isEmpty)
+        #endif
+        guard previews.count == 3 else { return }
         #expect(previews[1].displayName == "Named" && previews[0].displayName == "PreviewTests.swift:8", "\(previews[0].file) \(previews[0].line)")
         #expect(previews[2].fixedSize == CGSize(width: 120, height: 80) && previews[0].fixedSize == nil)
         // The kept body renders.
