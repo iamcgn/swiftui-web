@@ -1770,13 +1770,14 @@
       "framework": "Platform",
       "area": "Performance",
       "title": "First frame and large lists",
-      "detail": "The gallery and progress bundles' first frame on a slow connection, laziness in lists and lazy stacks (sw-lazy, sw-list-looks), a frame budget probe in CI over Examples/Landing.",
+      "detail": "The gallery and progress bundles' first frame on a slow connection, laziness in lists and lazy stacks (sw-lazy, sw-list-looks), a frame budget probe in CI over Examples/Landing. Done 2026-10-12 (Phase 9, item 44): List rows lazy like the lazy stacks', the bundles and first frames measured (Docs/elements/Performance.md: 4 MB gzip, about 21 s on 1.6 Mbps; the first frame 550-850 ms after the resources; scroll frames 7 ms median), scripts/frame-budget.sh and Playwright/frame-budget.mjs gating the landing page in CI (first frame 3 s, scroll median 40 ms); open: releasing far-away lazy elements, a smaller substrate.",
       "kind": "infra",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Playwright/landing-perf.mjs"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "ix-appkit",

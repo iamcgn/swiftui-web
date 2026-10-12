@@ -55,7 +55,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// Rows inherit the style's font and colour; section headers and footers their styling.
     private static func styled(_ environment: EnvironmentValues, _ profile: _ListProfile) -> EnvironmentValues {
         var environment = environment
-        environment._lazyContainerAxis = nil
+        // A list's rows are lazy (pf-perf): a `ForEach` in it creates rows as they come within
+        // a viewport of the visible region, as a lazy stack's does (Docs/elements/Lazy.md).
+        environment._lazyContainerAxis = .vertical
         if let font = profile.rowFont { environment.font = font }
         if let color = profile.rowForeground { environment.foregroundColor = color }
         environment._sectionStyling = _SectionStyling(font: profile.headerFont ?? .subheadline.weight(.semibold), foreground: .secondary, footerFont: profile.footerFont)

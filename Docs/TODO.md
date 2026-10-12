@@ -6,8 +6,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
-| Platform | 4 | 0 | 1 | 3 |
-| **All** | **6** | 0 | 1 | 5 |
+| Platform | 3 | 0 | 1 | 2 |
+| **All** | **5** | 0 | 1 | 4 |
 
 ## Next (Phase 8, in order)
 
@@ -32,8 +32,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Platform
 
-- ☐ **First frame and large lists** `pf-perf` · Performance · infra  
-  The gallery and progress bundles' first frame on a slow connection, laziness in lists and lazy stacks (sw-lazy, sw-list-looks), a frame budget probe in CI over Examples/Landing. ([landing-perf.mjs](Playwright/landing-perf.mjs))
 - ☐ **Native text selection, IME and windows** `pf-native-text` · Native macOS · missing  
   A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host. ([0012-native-painter.md](Docs/decisions/0012-native-painter.md))
 - ☐ **Linux: build, CI, painter and host** `pf-linux` · Linux · infra  
@@ -53,6 +51,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Drag and drop interactions** `uk-dragdrop` · UIKit · Events
 - ☑ 2026-10-12 **UISplitViewController** `uk-splitviewcontroller` · UIKit · Containers
 - ☑ 2026-10-12 **Share and document pickers** `uk-system-sheets` · UIKit · Presentation
+- ☑ 2026-10-12 **First frame and large lists** `pf-perf` · Platform · Performance
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

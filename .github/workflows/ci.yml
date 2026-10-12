@@ -66,6 +66,8 @@ jobs:
         run: cd Playwright && npm install && npx playwright install --with-deps chromium
       - name: Tier B (gallery vs goldens)
         run: . ~/.swiftly/env.sh && scripts/tier-b.sh
+      - name: Landing frame budget (pf-perf)
+        run: . ~/.swiftly/env.sh && scripts/frame-budget.sh
       - name: Counter smoke test and size gate
         run: |
           . ~/.swiftly/env.sh

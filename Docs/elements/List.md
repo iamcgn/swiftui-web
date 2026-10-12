@@ -135,5 +135,7 @@ Every row is laid out (no laziness: `pf-perf`). `listRowHoverEffect` and
 
 ## Not yet covered
 
-Hover highlight, the pinned header's gradient shadow, lazy rows (every row is laid out), the
-focused selection in dark mode and the lifted reorder row's exact look.
+Hover highlight, the pinned header's gradient shadow, the focused selection in dark mode and
+the lifted reorder row's exact look. Rows are lazy since 2026-10-12 (pf-perf): a `ForEach` in
+a list creates rows a viewport ahead of the visible region, as a lazy stack's does
+(`Docs/elements/Performance.md`).

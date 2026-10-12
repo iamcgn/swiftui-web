@@ -53,13 +53,30 @@ import SwiftUIWebHeadless
         let model = Model()
         let r = runtime(Scrolling(model: model))
         #expect(model.proxy != nil)
-        let before = r.probeFrames["row10"]!
+        // Rows are lazy (pf-perf): row 10 lies past the viewport and the one ahead of it in a
+        // 100 pt list, so it is a placeholder until scrolled to.
+        #expect(r.probeFrames["row10"] == nil && r.probeFrames["row3"] != nil)
         model.proxy?.scrollTo(10, anchor: .top)
         relayout(r)
         let after = r.probeFrames["row10"]!
-        #expect(after.minY < before.minY)
+        // The row's text at 22: the row at the top under the list's inset, as it lands eagerly.
+        #expect(after.minY == 22 && r.probeFrames["row3"]!.minY < 0, "\(after)")
         // Clamped to the end: the last row's bottom sits at the viewport's bottom.
         #expect(r.probeFrames["row12"]!.maxY <= 100)
+    }
+
+    struct Long: View {
+        var body: some View {
+            List { ForEach(1...1000, id: \.self) { index in Text("Row \(index)")._probe("r\(index)") } }
+        }
+    }
+
+    @Test func rowsAreCreatedLazily() {
+        // A thousand rows in a 100 pt list: only the rows within a viewport ahead exist (pf-perf).
+        let r = runtime(Long())
+        let created = r.probeFrames.keys.filter { $0.hasPrefix("r") }.count
+        #expect(created > 4 && created < 24, "\(created) rows created")
+        #expect(r.probeFrames["r1"] != nil && r.probeFrames["r500"] == nil)
     }
 
     struct Outline: View {
