@@ -243,7 +243,8 @@ private let drawCallback: GtkDrawingAreaDrawFunc = { _, cr, width, height, data 
 }
 
 private let tickCallback: GtkTickCallback = { _, clock, data in
-    let time = clock.map { gdk_frame_clock_get_frame_time($0) } ?? 0
+    // gint64 imports as Int64 on macOS (long long) and Int on Linux (long); widen explicitly.
+    let time = clock.map { Int64(gdk_frame_clock_get_frame_time($0)) } ?? 0
     let bits = data.map { UInt(bitPattern: $0) }
     return MainActor.assumeIsolated { (host(bits.map { UnsafeMutableRawPointer(bitPattern: $0)! })?.tick(frameTime: time) ?? false) ? G_SOURCE_CONTINUE : G_SOURCE_REMOVE }
 }

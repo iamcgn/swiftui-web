@@ -5,7 +5,8 @@ import Testing
 import SwiftUI
 import SwiftUIWebCore
 import SwiftUIWebHeadless
-import Foundation
+// No Foundation import: on wasm its CGSize would be ambiguous with WebGraphics' in the
+// representable's `sizeThatFits` signatures, and nothing here needs it.
 
 @Suite @MainActor struct NSViewRepresentableTests {
     final class Box { var updates = 0; var dismantled = 0; var text = "" }
