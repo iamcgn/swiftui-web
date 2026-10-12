@@ -1550,9 +1550,11 @@
         {
           "api": "UISlider / UISegmentedControl / UIStepper / UIProgressView",
           "status": "partial",
-          "notes": "Measured looks at their intrinsic sizes, taps and drags set values and send valueChanged; open: slider min/max images, segment images and widths, momentary segments, the stepper's repeat",
+          "notes": "Measured looks at their intrinsic sizes, taps and drags set values and send valueChanged. The rest (2026-10-12, uikit/controls/rest on iOS 27): the slider's end images with the track inset 11 from them, image segments 40 wide, setWidth and apportionsSegmentWidthsByContent (label + 19, at least 32), per-segment enabling, the stepper's autorepeat (0.5 s then every 0.1 s, approximate); open: momentary segments' look, iOS 27's 37 × 24 slider lens",
           "fixtures": [
             "uikit/controls/more"
+          ,
+            "uikit/controls/rest"
           ]
         },
         {
@@ -1566,7 +1568,7 @@
         {
           "api": "UIPageControl",
           "status": "partial",
-          "notes": "Dots for numberOfPages with the current page filled; open: the continuous interaction style, custom indicator images",
+          "notes": "Dots for numberOfPages with the current page filled; taps step back or forward by half, a drag scrubs with allowsContinuousInteraction (2026-10-12); open: custom indicator images, the interaction style's expanded look",
           "fixtures": [
             "uikit/controls/more"
           ]

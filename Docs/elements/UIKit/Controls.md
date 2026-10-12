@@ -49,5 +49,25 @@ iPhone SE simulator on iOS 26. `UISwitch` and `UITextField` have their own pages
   the dots are white (the current one opaque, the others at 45 %) over a material backdrop the
   capture leaves transparent, so on a white page they are as invisible here as in UIKit.
 
-Open: spinning, the slider's minimum and maximum images, segment images and per-segment widths,
-`UIDatePicker`, `UIPickerView`, `UITextView`, `UISearchBar`, `UIToolbar`.
+## The rest (uk-controls-rest, `uikit/controls/rest` on the iOS 27 simulator, 2026-10-12)
+
+- Slider images: `minimumValueImage` sits at the leading edge and `maximumValueImage` at the
+  trailing one, each at its own size centred on the track's middle (y 17 of 34); the track runs
+  11 pt in from each image (28 → 249.5 for 17 and 27.5 pt symbols in 288) and the knob travels
+  within it (`minimumValueImageRect`, `maximumValueImageRect`, `trackRect` with the insets).
+  The images are drawn like a tinted template image. Tier A exact; pixels 1.6 % (iOS 27's lens
+  is 37 × 24 at 5 where the iOS 26 goldens held 38 × 25 at 4; the model keeps 26's).
+- Segment widths: an image segment is 40 wide with its image centred (symbols at their point
+  size, `setImage`, `imageForSegment`); `setWidth(_:forSegmentAt:)` fixes a segment (100, 65,
+  65 for "A", "Second", "C"), the automatic ones sharing the widest natural width, and
+  `apportionsSegmentWidthsByContent` gives each its own (label + 19, at least 32: 32, 65, 32);
+  a frame wider or narrower than the sum scales the automatic segments; `setEnabled(_:forSegmentAt:)`
+  dims a segment to half and ignores its taps; taps land by the segment frames.
+- Stepper autorepeat: the press steps at once, then — `autorepeat` — after 0.5 s and every
+  0.1 s while held, twice as fast after ten repeats (approximate: UIKit's timing is not
+  measured); `isContinuous` false sends one `valueChanged` on release; `wraps` as before.
+- Page control: a tap on the trailing half goes forward, on the leading half back; with
+  `allowsContinuousInteraction` a drag of 10 pt scrubs to the page under the finger.
+
+`ControlsRestTests`. Open: spinning, custom page indicator images, `UIDatePicker`,
+`UIPickerView`, `UITextView`, `UISearchBar`, `UIToolbar`.

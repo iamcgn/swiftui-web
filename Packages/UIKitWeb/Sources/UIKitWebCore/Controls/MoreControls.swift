@@ -13,8 +13,11 @@ open class UISlider: UIControl {
     open var minimumTrackTintColor: UIColor?
     open var maximumTrackTintColor: UIColor?
     open var thumbTintColor: UIColor?
-    open var minimumValueImage: UIImage?
-    open var maximumValueImage: UIImage?
+    /// Images at the ends (uikit/controls/rest): each at its edge, vertically centred, the
+    /// track 11 pt in from it.
+    open var minimumValueImage: UIImage? { didSet { setNeedsDisplay() } }
+    open var maximumValueImage: UIImage? { didSet { setNeedsDisplay() } }
+    static let imageTrackGap: CGFloat = 11
 
     static let height: CGFloat = 34
     static let knobSize = CGSize(width: 38, height: 25)
@@ -41,17 +44,33 @@ open class UISlider: UIControl {
         return range > 0 ? CGFloat((value - minimumValue) / range) : 0
     }
 
-    /// The knob's frame: a 38 × 25 lens 4 down, travelling over the width less its own.
+    /// The knob's frame: a 38 × 25 lens 4 down, travelling over the track's width less its own.
     open func thumbRect(forBounds bounds: CGRect, trackRect: CGRect, value: Float) -> CGRect {
-        let x = ((bounds.width - Self.knobSize.width) * fraction).rounded()
+        let track = self.trackRect(forBounds: bounds)
+        let x = (track.minX - bounds.minX + (track.width - Self.knobSize.width) * fraction).rounded()
         return CGRect(x: bounds.minX + x, y: bounds.minY + 4, width: Self.knobSize.width, height: Self.knobSize.height)
     }
 
-    open func trackRect(forBounds bounds: CGRect) -> CGRect { CGRect(x: bounds.minX, y: bounds.minY + 14, width: bounds.width, height: Self.trackHeight) }
+    open func minimumValueImageRect(forBounds bounds: CGRect) -> CGRect {
+        guard let image = minimumValueImage else { return .zero }
+        return CGRect(x: bounds.minX, y: bounds.minY + (bounds.height - image.size.height) / 2, width: image.size.width, height: image.size.height)
+    }
+
+    open func maximumValueImageRect(forBounds bounds: CGRect) -> CGRect {
+        guard let image = maximumValueImage else { return .zero }
+        return CGRect(x: bounds.maxX - image.size.width, y: bounds.minY + (bounds.height - image.size.height) / 2, width: image.size.width, height: image.size.height)
+    }
+
+    open func trackRect(forBounds bounds: CGRect) -> CGRect {
+        let leading = minimumValueImage.map { $0.size.width + Self.imageTrackGap } ?? 0
+        let trailing = maximumValueImage.map { $0.size.width + Self.imageTrackGap } ?? 0
+        return CGRect(x: bounds.minX + leading, y: bounds.minY + 14, width: max(0, bounds.width - leading - trailing), height: Self.trackHeight)
+    }
 
     private func setValue(atX x: CGFloat) {
-        let travel = bounds.width - Self.knobSize.width
-        let fraction = min(1, max(0, (x - Self.knobSize.width / 2) / max(1, travel)))
+        let track = trackRect(forBounds: bounds)
+        let travel = track.width - Self.knobSize.width
+        let fraction = min(1, max(0, (x - track.minX - Self.knobSize.width / 2) / max(1, travel)))
         let newValue = minimumValue + Float(fraction) * (maximumValue - minimumValue)
         if newValue != value {
             value = newValue
@@ -80,9 +99,14 @@ open class UISlider: UIControl {
         // The empty track is black at 10 % (uikit/controls/more).
         let maximum = (maximumTrackTintColor ?? UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 25.0 / 255), dark: RGBA(r: 255, g: 255, b: 255, a: 25.0 / 255))).rgba(for: style)
         list.append(.fillRRect(track, cornerRadius: track.height / 2, maximum.multiplyingAlpha(by: dim)))
-        let filledWidth = (bounds.width * fraction)
-        let filled = context.absoluteRect(CGRect(x: 0, y: 14, width: filledWidth, height: Self.trackHeight))
+        let trackBounds = trackRect(forBounds: bounds)
+        let filled = context.absoluteRect(CGRect(x: trackBounds.minX, y: 14, width: trackBounds.width * fraction, height: Self.trackHeight))
         list.append(.fillRRect(filled, cornerRadius: filled.height / 2, (minimumTrackTintColor ?? tintColor).rgba(for: style).multiplyingAlpha(by: dim)))
+        // The end images, tinted like a template image (symbols are), dimmed with the control.
+        for (image, rect) in [(minimumValueImage, minimumValueImageRect(forBounds: bounds)), (maximumValueImage, maximumValueImageRect(forBounds: bounds))] {
+            guard let image, !rect.isEmpty else { continue }
+            UIImageView.paint(image, in: context.absoluteRect(rect), tint: tintColor.rgba(for: style).multiplyingAlpha(by: dim), scale: context.scale, style: style, into: &list)
+        }
         let knob = context.absoluteRect(thumbRect(forBounds: bounds, trackRect: track, value: value))
         list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.12 * dim), radius: 4, offset: CGSize(width: 0, height: 2)))
         list.append(.fillRRect(knob, cornerRadius: knob.height / 2, (thumbTintColor ?? .white).rgba(for: style)))
@@ -108,11 +132,17 @@ open class UISegmentedControl: UIControl {
 
     private var titles: [String?] = []
     private var images: [UIImage?] = []
+    /// `setWidth(_:forSegmentAt:)`: a fixed width per segment (0 for the automatic one).
+    private var fixedWidths: [CGFloat] = []
+    private var enabledSegments: [Bool] = []
     open var selectedSegmentIndex: Int = UISegmentedControl.noSegment { didSet { setNeedsLayout(); setNeedsDisplay() } }
     open var isMomentary = false
-    open var apportionsSegmentWidthsByContent = false
+    /// Segments take their content's width (plus 19, at least 32) instead of sharing the widest
+    /// (uikit/controls/rest: "A", "Second", "C" are 32, 65, 32).
+    open var apportionsSegmentWidthsByContent = false { didSet { setNeedsLayout(); invalidateIntrinsicContentSize() } }
     open var selectedSegmentTintColor: UIColor?
     private var labels: [UILabel] = []
+    private var imageViews: [UIImageView] = []
 
     static let height: CGFloat = 32
     /// The titles' size and whether the selected one is medium: 13 with a medium selection for
@@ -128,6 +158,8 @@ open class UISegmentedControl: UIControl {
         for item in items ?? [] {
             if let title = item as? String { titles.append(title); images.append(nil) }
             else if let image = item as? UIImage { titles.append(nil); images.append(image) }
+            fixedWidths.append(0)
+            enabledSegments.append(true)
         }
         rebuild()
         frame.size = sizeThatFits(.zero)
@@ -141,14 +173,20 @@ open class UISegmentedControl: UIControl {
     open var numberOfSegments: Int { titles.count }
 
     open func insertSegment(withTitle title: String?, at segment: Int, animated: Bool) {
-        titles.insert(title, at: min(segment, titles.count))
-        images.insert(nil, at: min(segment, images.count))
+        let at = min(segment, titles.count)
+        titles.insert(title, at: at)
+        images.insert(nil, at: at)
+        fixedWidths.insert(0, at: at)
+        enabledSegments.insert(true, at: at)
         rebuild()
     }
 
     open func insertSegment(with image: UIImage?, at segment: Int, animated: Bool) {
-        titles.insert(nil, at: min(segment, titles.count))
-        images.insert(image, at: min(segment, images.count))
+        let at = min(segment, titles.count)
+        titles.insert(nil, at: at)
+        images.insert(image, at: at)
+        fixedWidths.insert(0, at: at)
+        enabledSegments.insert(true, at: at)
         rebuild()
     }
 
@@ -156,36 +194,89 @@ open class UISegmentedControl: UIControl {
         guard titles.indices.contains(segment) else { return }
         titles.remove(at: segment)
         images.remove(at: segment)
+        fixedWidths.remove(at: segment)
+        enabledSegments.remove(at: segment)
         rebuild()
     }
 
-    open func removeAllSegments() { titles = []; images = []; rebuild() }
-    open func setTitle(_ title: String?, forSegmentAt segment: Int) { guard titles.indices.contains(segment) else { return }; titles[segment] = title; rebuild() }
+    open func removeAllSegments() { titles = []; images = []; fixedWidths = []; enabledSegments = []; rebuild() }
+    open func setTitle(_ title: String?, forSegmentAt segment: Int) { guard titles.indices.contains(segment) else { return }; titles[segment] = title; images[segment] = nil; rebuild() }
     open func titleForSegment(at segment: Int) -> String? { titles.indices.contains(segment) ? titles[segment] : nil }
-    open func setImage(_ image: UIImage?, forSegmentAt segment: Int) { guard images.indices.contains(segment) else { return }; images[segment] = image; rebuild() }
-    open func setEnabled(_ enabled: Bool, forSegmentAt segment: Int) {}
-    open func setWidth(_ width: CGFloat, forSegmentAt segment: Int) {}
+    open func setImage(_ image: UIImage?, forSegmentAt segment: Int) { guard images.indices.contains(segment) else { return }; images[segment] = image; titles[segment] = nil; rebuild() }
+    open func imageForSegment(at segment: Int) -> UIImage? { images.indices.contains(segment) ? images[segment] : nil }
+    open func setEnabled(_ enabled: Bool, forSegmentAt segment: Int) { guard enabledSegments.indices.contains(segment) else { return }; enabledSegments[segment] = enabled; setNeedsLayout() }
+    open func isEnabledForSegment(at segment: Int) -> Bool { enabledSegments.indices.contains(segment) ? enabledSegments[segment] : false }
+    /// A fixed width for a segment (0 restores the automatic one): the others keep theirs.
+    open func setWidth(_ width: CGFloat, forSegmentAt segment: Int) {
+        guard fixedWidths.indices.contains(segment) else { return }
+        fixedWidths[segment] = max(0, width)
+        setNeedsLayout()
+        invalidateIntrinsicContentSize()
+    }
+    open func widthForSegment(at segment: Int) -> CGFloat { fixedWidths.indices.contains(segment) ? fixedWidths[segment] : 0 }
 
     private func rebuild() {
         for label in labels { label.removeFromSuperview() }
-        labels = titles.map { title in
+        for view in imageViews { view.removeFromSuperview() }
+        labels = []
+        imageViews = []
+        for (index, title) in titles.enumerated() {
             let label = UILabel()
             label.text = title
             label.font = .systemFont(ofSize: titleSize)
             label.textAlignment = .center
             addSubview(label)
-            return label
+            labels.append(label)
+            let imageView = UIImageView(image: images[index])
+            imageView.contentMode = .scaleAspectFit
+            addSubview(imageView)
+            imageViews.append(imageView)
         }
         setNeedsLayout()
     }
 
     /// Every segment is as wide as the widest title rounded up plus 19 (uikit/controls/more:
     /// 55 for "Three" at 35.5; uikit/autolayout/hugging: 44 for "One" at 25) and at least 32
-    /// (ios/representable/measure-controls: 64 for "A" and "B"); the control is 32 tall.
+    /// (ios/representable/measure-controls: 64 for "A" and "B"); the control is 32 tall. An
+    /// image segment is 40 wide (uikit/controls/rest).
     static let minimumSegmentWidth: CGFloat = 32
+    static let imageSegmentWidth: CGFloat = 40
+    /// A segment's own content width: its title plus 19 (at least 32), or 40 for an image.
+    private func naturalWidth(_ index: Int) -> CGFloat {
+        if images[index] != nil { return Self.imageSegmentWidth }
+        return max(Self.minimumSegmentWidth, labels[index].intrinsicContentSize.width.rounded(.up) + 19)
+    }
     var segmentWidth: CGFloat {
-        let widest = labels.map { $0.intrinsicContentSize.width }.max() ?? 0
-        return max(Self.minimumSegmentWidth, widest.rounded(.up) + 19)
+        let widest = titles.indices.map { naturalWidth($0) }.max() ?? 0
+        return max(Self.minimumSegmentWidth, widest)
+    }
+
+    /// The segments' widths at the control's size: fixed widths as set, the rest sharing the
+    /// widest natural width (or their own when apportioned); a frame wider or narrower than
+    /// their sum scales the automatic ones.
+    func segmentWidths(for totalWidth: CGFloat) -> [CGFloat] {
+        guard !titles.isEmpty else { return [] }
+        var widths = titles.indices.map { index -> CGFloat in
+            if fixedWidths[index] > 0 { return fixedWidths[index] }
+            return apportionsSegmentWidthsByContent ? naturalWidth(index) : segmentWidth
+        }
+        let automatic = titles.indices.filter { fixedWidths[$0] == 0 }
+        let fixedTotal = titles.indices.filter { fixedWidths[$0] > 0 }.reduce(0) { $0 + widths[$1] }
+        let automaticTotal = automatic.reduce(0) { $0 + widths[$1] }
+        if totalWidth > 0, !automatic.isEmpty, automaticTotal > 0, abs(totalWidth - fixedTotal - automaticTotal) > 0.01 {
+            let scale = max(0, totalWidth - fixedTotal) / automaticTotal
+            for index in automatic { widths[index] *= scale }
+        }
+        return widths
+    }
+
+    /// Where each segment starts.
+    private func segmentFrames() -> [CGRect] {
+        var x: CGFloat = 0
+        return segmentWidths(for: bounds.width).map { width in
+            defer { x += width }
+            return CGRect(x: x, y: 0, width: width, height: bounds.height)
+        }
     }
 
     /// The intrinsic size is the 31 pt alignment rect inside the 32 pt frame: Auto Layout and
@@ -193,20 +284,31 @@ open class UISegmentedControl: UIControl {
     /// ios/representable/measure-controls).
     override open var alignmentRectInsets: UIEdgeInsets { UIEdgeInsets(top: 0.5, left: 0, bottom: 0.5, right: 0) }
 
-    override open func sizeThatFits(_ size: CGSize) -> CGSize {
-        CGSize(width: segmentWidth * CGFloat(max(1, titles.count)), height: Self.height)
-    }
+    /// The natural width: the segments' widths at rest.
+    private var naturalTotalWidth: CGFloat { max(Self.minimumSegmentWidth, segmentWidths(for: 0).reduce(0, +)) }
 
-    override open var intrinsicContentSize: CGSize { CGSize(width: segmentWidth * CGFloat(max(1, titles.count)), height: Self.height - 1) }
+    override open func sizeThatFits(_ size: CGSize) -> CGSize { CGSize(width: naturalTotalWidth, height: Self.height) }
+
+    override open var intrinsicContentSize: CGSize { CGSize(width: naturalTotalWidth, height: Self.height - 1) }
 
     override open func layoutSubviews() {
         super.layoutSubviews()
-        let width = bounds.width / CGFloat(max(1, titles.count))
-        for (index, label) in labels.enumerated() {
+        let frames = segmentFrames()
+        for (index, label) in labels.enumerated() where index < frames.count {
+            let segment = frames[index]
             label.font = .systemFont(ofSize: titleSize, weight: emphasisesSelection && index == selectedSegmentIndex ? .medium : .regular)
+            label.isHidden = titles[index] == nil
             let textSize = label.intrinsicContentSize
             // The label is centred in the segment: 13 pt titles 16 tall at 8, 15 pt ones 18 tall at 7.
-            label.frame = CGRect(x: (width * CGFloat(index) + (width - textSize.width) / 2).rounded(), y: ((Self.height - textSize.height) / 2).rounded(), width: textSize.width, height: textSize.height)
+            label.frame = CGRect(x: (segment.minX + (segment.width - textSize.width) / 2).rounded(), y: ((Self.height - textSize.height) / 2).rounded(), width: textSize.width, height: textSize.height)
+            label.alpha = enabledSegments[index] ? 1 : 0.5
+            // An image segment centres its image at its size (symbols at their point size).
+            let imageView = imageViews[index]
+            imageView.isHidden = images[index] == nil
+            let imageSize = images[index]?.size ?? .zero
+            imageView.frame = CGRect(x: segment.minX + ((segment.width - imageSize.width) / 2), y: (Self.height - imageSize.height) / 2, width: imageSize.width, height: imageSize.height)
+            imageView.tintColor = tintColor
+            imageView.alpha = enabledSegments[index] ? 1 : 0.5
         }
     }
 
@@ -216,7 +318,9 @@ open class UISegmentedControl: UIControl {
         guard wasTracking, isEnabled, let touch = touches.first, !titles.isEmpty else { return }
         let location = touch.location(in: self)
         guard point(inside: location, with: event) else { return }
-        let index = min(titles.count - 1, max(0, Int(location.x / (bounds.width / CGFloat(titles.count)))))
+        let frames = segmentFrames()
+        let index = frames.firstIndex { $0.contains(CGPoint(x: location.x, y: Self.height / 2)) } ?? (location.x < 0 ? 0 : titles.count - 1)
+        guard enabledSegments[index] else { return }
         if index != selectedSegmentIndex || isMomentary {
             selectedSegmentIndex = isMomentary ? UISegmentedControl.noSegment : index
             sendActions(for: .valueChanged)
@@ -228,8 +332,8 @@ open class UISegmentedControl: UIControl {
         let ground: RGBA = style == .dark ? RGBA(r: 118, g: 118, b: 128, a: 0.24) : RGBA(r: 118, g: 118, b: 128, a: 0.12)
         list.append(.fillRRect(rect, cornerRadius: rect.height / 2, ground))
         if titles.indices.contains(selectedSegmentIndex) {
-            let width = bounds.width / CGFloat(titles.count)
-            let lens = context.absoluteRect(CGRect(x: width * CGFloat(selectedSegmentIndex) + 2, y: 2, width: width - 4, height: bounds.height - 4))
+            let segment = segmentFrames()[selectedSegmentIndex]
+            let lens = context.absoluteRect(CGRect(x: segment.minX + 2, y: 2, width: segment.width - 4, height: bounds.height - 4))
             list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.1), radius: 4, offset: CGSize(width: 0, height: 2)))
             list.append(.fillRRect(lens, cornerRadius: lens.height / 2, (selectedSegmentTintColor ?? UIColor(light: .white, dark: RGBA(r: 99, g: 99, b: 102))).rgba(for: style)))
             list.append(.endGroup)
@@ -271,15 +375,57 @@ open class UIStepper: UIControl {
     override open func sizeThatFits(_ size: CGSize) -> CGSize { Self.size }
     override open var intrinsicContentSize: CGSize { Self.size }
 
-    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let wasTracking = isTracking
-        super.touchesEnded(touches, with: event)
-        guard wasTracking, isEnabled, let touch = touches.first else { return }
-        let location = touch.location(in: self)
-        guard point(inside: location, with: event) else { return }
+    /// The side pressed (negative steps down) and the repeat while it is held: UIKit steps on
+    /// the press, then — `autorepeat` — again after half a second and every tenth of a second,
+    /// faster after a while (unmeasured: the delay and rate approximate UIKit's).
+    private var pressedDirection: Double?
+    private var repeatTimer: UIKitScene.Timer?
+    private var repeats = 0
+    static let repeatDelay = 0.5
+    static let repeatInterval = 0.1
+
+    private func step(_ direction: Double) {
         let before = value
-        value += location.x < bounds.midX ? -stepValue : stepValue
-        if value != before { sendActions(for: .valueChanged) }
+        value += direction * stepValue
+        if value != before, isContinuous || !isTracking { sendActions(for: .valueChanged) }
+    }
+
+    private func scheduleRepeat(after delay: Double) {
+        repeatTimer?.cancel()
+        repeatTimer = UIKitScene.shared.schedule(after: delay) { [weak self] in
+            guard let self, let direction = self.pressedDirection else { return }
+            self.repeats += 1
+            self.step(direction)
+            // Ten repeats in, the rate doubles (UIKit accelerates held steppers).
+            self.scheduleRepeat(after: self.repeats >= 10 ? Self.repeatInterval / 2 : Self.repeatInterval)
+        }
+    }
+
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        guard isEnabled, let touch = touches.first else { return }
+        let direction: Double = touch.location(in: self).x < bounds.midX ? -1 : 1
+        pressedDirection = direction
+        repeats = 0
+        step(direction)
+        if autorepeat { scheduleRepeat(after: Self.repeatDelay) }
+    }
+
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        endPress()
+    }
+
+    override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        endPress()
+    }
+
+    private func endPress() {
+        repeatTimer?.cancel()
+        repeatTimer = nil
+        pressedDirection = nil
+        if !isContinuous { sendActions(for: .valueChanged) }
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
@@ -505,12 +651,35 @@ open class UIPageControl: UIControl {
     override open func sizeThatFits(_ size: CGSize) -> CGSize { self.size(forNumberOfPages: numberOfPages) }
     override open var intrinsicContentSize: CGSize { sizeThatFits(.zero) }
 
+    /// A drag along the control scrubs the pages (`allowsContinuousInteraction`): past 10 pt of
+    /// travel the page follows the finger's position across the dots.
+    private var dragStart: CGPoint?
+    private var scrubbing = false
+
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        dragStart = touches.first?.location(in: self)
+        scrubbing = false
+    }
+
+    override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        guard allowsContinuousInteraction, isEnabled, numberOfPages > 0, let touch = touches.first, let start = dragStart else { return }
+        let location = touch.location(in: self)
+        if !scrubbing, abs(location.x - start.x) < 10 { return }
+        scrubbing = true
+        let page = min(numberOfPages - 1, max(0, Int((location.x / max(1, bounds.width)) * CGFloat(numberOfPages))))
+        if page != currentPage { currentPage = page; sendActions(for: .valueChanged) }
+    }
+
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         let wasTracking = isTracking
         super.touchesEnded(touches, with: event)
-        guard wasTracking, isEnabled, let touch = touches.first, numberOfPages > 0 else { return }
+        defer { dragStart = nil; scrubbing = false }
+        guard wasTracking, isEnabled, !scrubbing, let touch = touches.first, numberOfPages > 0 else { return }
         let location = touch.location(in: self)
         guard point(inside: location, with: event) else { return }
+        // A tap on the leading half goes back a page, on the trailing half forward (UIKit's tap).
         let target = location.x < bounds.midX ? currentPage - 1 : currentPage + 1
         let clamped = min(numberOfPages - 1, max(0, target))
         if clamped != currentPage { currentPage = clamped; sendActions(for: .valueChanged) }

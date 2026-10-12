@@ -1,0 +1,33 @@
+{
+  "fixture" : "uikit\/controls\/rest",
+  "frames" : {
+    "apportioned" : {
+      "height" : 32,
+      "width" : 129,
+      "x" : 16,
+      "y" : 184
+    },
+    "imageSegments" : {
+      "height" : 32,
+      "width" : 120,
+      "x" : 16,
+      "y" : 72
+    },
+    "imageSlider" : {
+      "height" : 34,
+      "width" : 288,
+      "x" : 16,
+      "y" : 16
+    },
+    "widthSegments" : {
+      "height" : 32,
+      "width" : 230,
+      "x" : 16,
+      "y" : 128
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

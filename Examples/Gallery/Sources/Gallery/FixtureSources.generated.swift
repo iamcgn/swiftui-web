@@ -8414,7 +8414,7 @@ public static let intrinsic = UIKitFixture("uikit/controls/intrinsic", size: CGS
     return root
 }
 """#),
-        FixtureSource(name: "uikit/controls/more", file: "Fixtures/UIKit/Controls/MoreControlFixtures.swift", firstLine: 11, lastLine: 63, declaration: #"""
+        FixtureSource(name: "uikit/controls/more", file: "Fixtures/UIKit/Controls/MoreControlFixtures.swift", firstLine: 46, lastLine: 98, declaration: #"""
 public static let controls = UIKitFixture("uikit/controls/more", size: CGSize(width: 320, height: 400)) {
     let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
     let slider = UISlider()
@@ -8466,6 +8466,42 @@ public static let controls = UIKitFixture("uikit/controls/more", size: CGSize(wi
     disabledSlider.sizeToFit()
     disabledSlider.frame = CGRect(x: 16, y: 336, width: 200, height: disabledSlider.frame.height)
     root.addSubview(disabledSlider.probe("disabledSlider"))
+    return root
+}
+"""#),
+        FixtureSource(name: "uikit/controls/rest", file: "Fixtures/UIKit/Controls/MoreControlFixtures.swift", firstLine: 11, lastLine: 44, declaration: #"""
+/// The rest of the controls (uk-controls-rest): a slider with minimum and maximum images,
+/// a segmented control of images, one with a fixed first segment width and one apportioned
+/// by content, measured against UIKit on the simulator.
+public static let rest = UIKitFixture("uikit/controls/rest", size: CGSize(width: 320, height: 300)) {
+    let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+    let slider = UISlider()
+    slider.value = 0.5
+    slider.minimumValueImage = UIImage(systemName: "speaker.fill")
+    slider.maximumValueImage = UIImage(systemName: "speaker.wave.3.fill")
+    slider.sizeToFit()
+    slider.frame = CGRect(x: 16, y: 16, width: 288, height: slider.frame.height)
+    root.addSubview(slider.probe("imageSlider"))
+
+    let images = UISegmentedControl(items: [UIImage(systemName: "list.bullet")!, UIImage(systemName: "square.grid.2x2")!, UIImage(systemName: "rectangle.grid.1x2")!])
+    images.selectedSegmentIndex = 0
+    images.sizeToFit()
+    images.frame.origin = CGPoint(x: 16, y: 72)
+    root.addSubview(images.probe("imageSegments"))
+
+    let widths = UISegmentedControl(items: ["A", "Second", "C"])
+    widths.setWidth(100, forSegmentAt: 0)
+    widths.selectedSegmentIndex = 2
+    widths.sizeToFit()
+    widths.frame.origin = CGPoint(x: 16, y: 128)
+    root.addSubview(widths.probe("widthSegments"))
+
+    let apportioned = UISegmentedControl(items: ["A", "Second", "C"])
+    apportioned.apportionsSegmentWidthsByContent = true
+    apportioned.selectedSegmentIndex = 1
+    apportioned.sizeToFit()
+    apportioned.frame.origin = CGPoint(x: 16, y: 184)
+    root.addSubview(apportioned.probe("apportioned"))
     return root
 }
 """#),
@@ -21889,7 +21925,42 @@ import UIKit
 import UIKitFixtureKit
 
 public enum MoreControlFixtures {
-    public static let all = [controls]
+    public static let all = [controls, rest]
+
+    /// The rest of the controls (uk-controls-rest): a slider with minimum and maximum images,
+    /// a segmented control of images, one with a fixed first segment width and one apportioned
+    /// by content, measured against UIKit on the simulator.
+    public static let rest = UIKitFixture("uikit/controls/rest", size: CGSize(width: 320, height: 300)) {
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        let slider = UISlider()
+        slider.value = 0.5
+        slider.minimumValueImage = UIImage(systemName: "speaker.fill")
+        slider.maximumValueImage = UIImage(systemName: "speaker.wave.3.fill")
+        slider.sizeToFit()
+        slider.frame = CGRect(x: 16, y: 16, width: 288, height: slider.frame.height)
+        root.addSubview(slider.probe("imageSlider"))
+
+        let images = UISegmentedControl(items: [UIImage(systemName: "list.bullet")!, UIImage(systemName: "square.grid.2x2")!, UIImage(systemName: "rectangle.grid.1x2")!])
+        images.selectedSegmentIndex = 0
+        images.sizeToFit()
+        images.frame.origin = CGPoint(x: 16, y: 72)
+        root.addSubview(images.probe("imageSegments"))
+
+        let widths = UISegmentedControl(items: ["A", "Second", "C"])
+        widths.setWidth(100, forSegmentAt: 0)
+        widths.selectedSegmentIndex = 2
+        widths.sizeToFit()
+        widths.frame.origin = CGPoint(x: 16, y: 128)
+        root.addSubview(widths.probe("widthSegments"))
+
+        let apportioned = UISegmentedControl(items: ["A", "Second", "C"])
+        apportioned.apportionsSegmentWidthsByContent = true
+        apportioned.selectedSegmentIndex = 1
+        apportioned.sizeToFit()
+        apportioned.frame.origin = CGPoint(x: 16, y: 184)
+        root.addSubview(apportioned.probe("apportioned"))
+        return root
+    }
 
     public static let controls = UIKitFixture("uikit/controls/more", size: CGSize(width: 320, height: 400)) {
         let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))

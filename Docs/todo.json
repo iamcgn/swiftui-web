@@ -1672,13 +1672,14 @@
       "framework": "UIKit",
       "area": "Controls",
       "title": "Slider images, segment images, stepper repeat",
-      "detail": "`UISlider` minimum and maximum images, `UISegmentedControl` images and per-segment widths, `UIStepper.autorepeat` (accepted), `UIPageControl` taps and continuous interaction.",
+      "detail": "`UISlider` minimum and maximum images, `UISegmentedControl` images and per-segment widths, `UIStepper.autorepeat` (accepted), `UIPageControl` taps and continuous interaction. Done 2026-10-12 (Phase 9, item 37): slider end images and the inset track, image segments, setWidth and apportioned widths, per-segment enabling, stepper autorepeat (approximate timing), page control taps and scrubbing — uikit/controls/rest measured on the iOS 27 simulator.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Controls.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-tabbar",

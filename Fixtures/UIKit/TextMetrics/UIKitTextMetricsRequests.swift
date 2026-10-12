@@ -172,6 +172,13 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("One", .system(size: 13, weight: "medium")),
         UIKitTextRequest("Two", .system(size: 13, weight: "medium")),
         UIKitTextRequest("Three", .system(size: 13, weight: "medium")),
+        // uikit/controls/rest (fixed and apportioned segment widths)
+        UIKitTextRequest("A", .system(size: 13)),
+        UIKitTextRequest("Second", .system(size: 13)),
+        UIKitTextRequest("C", .system(size: 13)),
+        UIKitTextRequest("A", .system(size: 13, weight: "medium")),
+        UIKitTextRequest("Second", .system(size: 13, weight: "medium")),
+        UIKitTextRequest("C", .system(size: 13, weight: "medium")),
         // uikit/alert/*, uikit/sheet/page (alert titles 17 semibold, messages 13, actions 17 regular / semibold for cancel)
         UIKitTextRequest("Behind", .system(size: 17)),
         UIKitTextRequest("Presented", .system(size: 17)),

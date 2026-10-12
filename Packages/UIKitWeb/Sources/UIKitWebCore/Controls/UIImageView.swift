@@ -290,6 +290,13 @@ open class UIImageView: UIView, ClockAnimating {
         let rect = context.absoluteRect(imageRect(for: image.size))
         let tint: RGBA? = image.renderingMode == .alwaysTemplate || (image.renderingMode == .automatic && image.isSystemSymbol)
             ? (image.tint ?? tintColor).rgba(for: style) : image.tint?.rgba(for: style)
+        Self.paint(image, in: rect, tint: tint, scale: context.scale, style: style, into: &list)
+    }
+
+    /// Paints `image` into the absolute `rect`: its drawing, a symbol in `tint` (the label colour
+    /// without one), its bytes, or the catalog's variant for the scale (controls draw their
+    /// images through this: a slider's end images).
+    static func paint(_ image: UIImage, in rect: CGRect, tint: RGBA?, scale: CGFloat, style: UIUserInterfaceStyle, into list: inout DisplayList) {
         if let drawing = image.drawing {
             for command in drawing.commands(in: rect) { list.append(command) }
             return
@@ -306,7 +313,7 @@ open class UIImageView: UIView, ClockAnimating {
         }
         let catalog = UIKitScene.shared.assetCatalog
         guard let resource = catalog.image(named: image.name),
-              let variant = resource.variants.first(where: { $0.scale == context.scale }) ?? resource.variants.max(by: { $0.scale < $1.scale }) else { return }
+              let variant = resource.variants.first(where: { $0.scale == scale }) ?? resource.variants.max(by: { $0.scale < $1.scale }) else { return }
         var draw = ImageDraw(file: variant.file, scale: variant.scale, pixelSize: CGSize(width: variant.pixelWidth, height: variant.pixelHeight), rect: rect)
         draw.tint = tint
         list.append(.drawImage(draw))

@@ -1194,6 +1194,12 @@
       "lastBaseline" : 12.3779296875,
       "width" : 8.5
     },
+    "system:13:400:default|;l1|C" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 9.5
+    },
     "system:13:400:default|;l1|corey" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -1223,6 +1229,12 @@
       "height" : 16,
       "lastBaseline" : 12.3779296875,
       "width" : 58.5
+    },
+    "system:13:400:default|;l1|Second" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 46
     },
     "system:13:400:default|;l1|Secondary" : {
       "firstBaseline" : 12.3779296875,
@@ -1308,11 +1320,23 @@
       "lastBaseline" : 12.3779296875,
       "width" : 9
     },
+    "system:13:500:default|;l1|C" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 9.5
+    },
     "system:13:500:default|;l1|One" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
       "lastBaseline" : 12.3779296875,
       "width" : 25.5
+    },
+    "system:13:500:default|;l1|Second" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 47
     },
     "system:13:500:default|;l1|Three" : {
       "firstBaseline" : 12.3779296875,
