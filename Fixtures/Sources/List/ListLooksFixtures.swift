@@ -41,6 +41,40 @@ public enum ListLooksFixtures {
         .probe("list")
     }.platform(.iOS)
 
+    /// `listSectionSpacing(.compact)` between headed sections, and a custom spacing above a
+    /// header-less card (sw-list-looks-rest): measured on the simulator.
+    public static let compactSections = Fixture("ios/list/compact", size: CGSize(width: 320, height: 400)) {
+        List {
+            Section("First") {
+                Text("Apple").probe("c1")
+            }
+            Section("Second") {
+                Text("Cherry").probe("c2")
+            }
+            Section {
+                Text("Carrot").probe("c3")
+            }
+        }
+        .fixtureCompactSections()
+        .probe("list")
+    }.platform(.iOS)
+
+    public static let customSections = Fixture("ios/list/sectionspacing", size: CGSize(width: 320, height: 400)) {
+        List {
+            Section("First") {
+                Text("Apple").probe("s1")
+            }
+            Section {
+                Text("Cherry").probe("s2")
+            }
+            Section {
+                Text("Carrot").probe("s3")
+            }
+        }
+        .fixtureSectionSpacing(40)
+        .probe("list")
+    }.platform(.iOS)
+
     public static let alternating = Fixture("list/alternating", size: CGSize(width: 320, height: 300)) {
         VStack(spacing: 8) {
             #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
@@ -160,5 +194,5 @@ public enum ListLooksFixtures {
         .probe("list")
     }
 
-    public static let all: [Fixture] = [spacing, alternating, prominence, outline, tint, separators, background, pinning]
+    public static let all: [Fixture] = [spacing, compactSections, customSections, alternating, prominence, outline, tint, separators, background, pinning]
 }

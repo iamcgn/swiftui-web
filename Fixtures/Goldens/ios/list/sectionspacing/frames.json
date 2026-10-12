@@ -1,0 +1,33 @@
+{
+  "fixture" : "ios\/list\/sectionspacing",
+  "frames" : {
+    "list" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "s1" : {
+      "height" : 24.5,
+      "width" : 44.5,
+      "x" : 32,
+      "y" : 60.25
+    },
+    "s2" : {
+      "height" : 24.5,
+      "width" : 52,
+      "x" : 32,
+      "y" : 156.25
+    },
+    "s3" : {
+      "height" : 24.5,
+      "width" : 48.5,
+      "x" : 32,
+      "y" : 252.25
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

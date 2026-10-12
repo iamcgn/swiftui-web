@@ -165,11 +165,12 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 } else if element.kind == .row, elements[index - 1].kind == .row {
                     // iOS: a card without a header sits the top inset (35) below the previous
                     // card (ios/representable/form); headers and footers carry their own gaps.
-                    // A custom section spacing stands in for the default 17.5 of it (derived).
-                    if case .custom(let spacing)? = environment._listSectionSpacing {
-                        y += spacing + profile.topInset - PlatformMetrics.listGroupedSectionSpacing
-                    } else {
-                        y += profile.topInset
+                    // A custom section spacing is that gap itself, `.compact` 12
+                    // (ios/list/sectionspacing, ios/list/compact).
+                    switch environment._listSectionSpacing {
+                    case .custom(let spacing)?: y += spacing
+                    case .compact?: y += PlatformMetrics.listGroupedCompactSectionSpacing
+                    default: y += profile.topInset
                     }
                 }
             } else if iOSLayout, index > 0, element.kind == .row, elements[index - 1].kind == .row, let spacing = environment._listRowSpacing {
@@ -185,7 +186,13 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 // default 17.5 of that gap above the header's 10 (ios/list/spacing).
                 let afterFooter = index > 0 && elements[index - 1].kind == .footer
                 var top = index == 0 ? profile.firstHeaderTop : afterFooter ? PlatformMetrics.listGroupedFooterToHeader : profile.headerTop
-                if index > 0, !afterFooter, case .custom(let spacing)? = environment._listSectionSpacing { top = spacing + PlatformMetrics.listGroupedHeaderPadding }
+                if index > 0, !afterFooter {
+                    switch environment._listSectionSpacing {
+                    case .custom(let spacing)?: top = spacing + PlatformMetrics.listGroupedHeaderPadding
+                    case .compact?: top = PlatformMetrics.listGroupedCompactHeaderTop
+                    default: break
+                    }
+                }
                 let size = element.node.sizeThatFits(ProposedViewSize(width: nil, height: nil))
                 element.contentFrame = CGRect(x: profile.margin + profile.contentInset, y: y + top,
                                               width: min(size.width, contentWidth - 2 * profile.contentInset), height: size.height)
@@ -377,16 +384,21 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             if element.kind == .row, let background = backgrounds[ObjectIdentifier(element.node)] {
                 for layer in background.layoutChildren { layer.paint(into: &list, context: context.child(at: layer.presentedFrame)) }
             }
+            let focusedSelection = selected[index] && PlatformMetrics.listSelectionFill == nil && isFocusedInKeyWindow
             if selected[index] {
                 let cell = context.absoluteRect(element.frame.insetBy(dx: PlatformMetrics.listSelectionInset, dy: 0))
-                // A focused list shows its selection in the accent colour; iOS fills the row with its grey.
-                let color = PlatformMetrics.listSelectionFill
-                    ?? (runtime.focusedIdentifier == identifier && runtime.focusVisible
-                        ? Color.accentColor.opacity(PlatformMetrics.listFocusedSelectionAlpha).resolve(in: environment)
-                        : environment._ink(PlatformMetrics.listSelectionAlpha))
-                list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, color))
+                // A focused list in a key window shows its selection in the system's selected
+                // content colour with white text (measured); elsewhere the grey band; iOS fills
+                // the row with its grey.
+                if focusedSelection {
+                    list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listFocusedSelectionCornerRadius, PlatformMetrics.listFocusedSelectionFill))
+                } else {
+                    list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, PlatformMetrics.listSelectionFill ?? environment._ink(PlatformMetrics.listSelectionAlpha)))
+                }
             }
-            element.node.paint(into: &list, context: context.child(at: element.node.presentedFrame))
+            var rowContext = context.child(at: element.node.presentedFrame)
+            if focusedSelection { rowContext.foregroundOverride = RGBA(red: 1, green: 1, blue: 1, alpha: 1) }
+            element.node.paint(into: &list, context: rowContext)
             if let state = swipe, state.row == index, state.offset != 0 {
                 // The revealed strip, clipped to the card.
                 let edge: HorizontalEdge = state.offset < 0 ? .trailing : .leading
@@ -533,6 +545,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     }
 
     // MARK: Selection
+
+    /// Whether the list has keyboard focus in the key window (the accent selection).
+    private var isFocusedInKeyWindow: Bool { runtime.focusedIdentifier == identifier && runtime.hostIsFocused }
 
     package func pressBegan() {}
     package func pressEnded(inside: Bool) {}
@@ -895,8 +910,10 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             return
         }
         guard inside, let element = elements.first(where: { $0.kind == .row && $0.frame.contains(point) }) else { return }
-        // An outline row's chevron column discloses or hides its children.
-        if let row = outlineRow(element), row.hasChildren, point.x < profile.margin + PlatformMetrics.listOutlineIndent + CGFloat(row.depth) * PlatformMetrics.listOutlineLevelIndent + rowInsets(element.node).leading {
+        // An outline row's chevron discloses or hides its children: a press within the chevron's
+        // slot (its centre ± the slot's half width); the rest of the row selects as any row.
+        if let row = outlineRow(element), row.hasChildren,
+           abs(point.x - (PlatformMetrics.listOutlineChevronCentre + CGFloat(row.depth) * PlatformMetrics.listOutlineLevelIndent)) <= PlatformMetrics.listOutlineChevronHitRadius {
             row.toggle.run()
             runtime.setNeedsDisplay()
             return

@@ -125,13 +125,15 @@ circular spinner until the action returns. The spinner's growth is not measured.
 | `listSectionSeparator(.hidden)` | the section's header line disappears; `listSectionSeparatorTint` draws the standard grey (macOS ignores the tint); `listRowSeparator(.hidden, edges: .top)` hides the line above the row | `list/separators` pixels |
 | `scrollContentBackground(.hidden)` | the list's white is gone: what is behind it shows (yellow), the separators stay | `list/background` pixels |
 | Pinned header while scrolling | only the first header pins and it stays as the content scrolls under it; the second section's header scrolls up beneath the strip. The content keeps the 10 pt inset below its last row, so `scrollTo` at the end leaves it 10 above the bottom | `list/pinning` `scroll` |
-| iOS `listRowSpacing(12)`, `listSectionSpacing(30)` | rows become cards of their own, 12 apart, no separators; a section header sits the spacing plus its own 10 below the previous card (the default spacing is 17.5); a header-less card the spacing plus 17.5 (derived) | `a2` (32, 128.25), `b1` (32, 258.75) |
+| iOS `listRowSpacing(12)`, `listSectionSpacing(30)` | rows become cards of their own, 12 apart, no separators; a section header sits the spacing plus its own 10 below the previous card (the default spacing is 17.5); a header-less card sits the spacing itself below the previous card (default 35) | `a2` (32, 128.25), `b1` (32, 258.75); `ios/list/sectionspacing` `s2` (32, 156.25), `s3` (32, 252.25) |
+| iOS `listSectionSpacing(.compact)` (iOS 27 simulator, 2026-10-11) | header-less cards 12 apart; a section header's text 16 below the previous card (27.5 by default) | `ios/list/compact` `c2` (32, 166.75), `c3` (32, 234.75) |
+| Focused selection (macOS 27, measured in a key window with the list first responder, 2026-10-11) | the selected row's band fills with the system's selected content colour (52, 122, 225), 8 pt corners, inset 10 like the grey band; the row's text paints white. An inactive window (the goldens') keeps the grey band. The runtime shows it while the list has keyboard focus and the host is focused (`Runtime.hostIsFocused`); dark mode unverified | `KeyboardTests.listArrowKeysMoveTheSelection` |
+| Outline chevron presses (2026-10-11) | a press within 8 pt of the chevron's centre toggles the row; the rest of the row selects as any row | `ListLooksTests.outlineRowsDiscloseOnAPress` |
 
-The focused accent selection stays by eye (the golden window is never key) and every row is laid
-out (no laziness). `ListSectionSpacing.compact` is accepted as the default.
+Every row is laid out (no laziness: `pf-perf`). `listRowHoverEffect` and
+`listRowHoverEffectDisabled` are accepted without effect (an iPadOS pointer look).
 
 ## Not yet covered
 
-Focused (accent) selection, keyboard navigation and Shift/Cmd ranges, hover highlight, the
-pinned header's gradient shadow, the section separator tint (macOS draws grey), lazy rows
-(every row is laid out), `listRowHoverEffect`, `ListSectionSpacing.compact`.
+Hover highlight, the pinned header's gradient shadow, lazy rows (every row is laid out), the
+focused selection in dark mode and the lifted reorder row's exact look.

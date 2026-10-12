@@ -126,7 +126,8 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var focusRingOpacity = 0.5
     package var focusRingColor = Color(storage: .dynamic(light: RGBA(r: 0, g: 103, b: 244, a: 1), dark: RGBA(r: 26, g: 169, b: 255, a: 1)))   // NSColor.keyboardFocusIndicatorColor in Aqua and Dark Aqua (read 2026-10-11; both at 0.498, the opacity above)
     package var focusRingCornerRadius: CGFloat = 6                // unverified: the ring follows the control's own corners
-    package var listFocusedSelectionAlpha = 0.25                  // unverified: the accent selection of a focused list
+    package var listFocusedSelectionFill = RGBA(r: 52, g: 122, b: 225)   // macOS 27, measured in a key window with the list first responder: the selected row's band, its text white
+    package var listFocusedSelectionCornerRadius: CGFloat = 8     // the band's corners (its inset is the selection's 10)
     package var menuHighlightAlpha = 0.1                          // unverified: the keyboard-highlighted menu row
     package var menuHighlightInset: CGFloat = 5
     package var menuHighlightCornerRadius: CGFloat = 4
@@ -157,6 +158,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listOutlineLevelIndent: CGFloat = 13                    // and 13 more per level
     package var listOutlineChevronCentre: CGFloat = 18.5                // the chevron's centre from the list's leading edge, 1 pt grey (127)
     package var listOutlineChevronSize = CGSize(width: 5, height: 5.5)
+    package var listOutlineChevronHitRadius: CGFloat = 8                // a press this close to the chevron's centre toggles; the rest of the row selects (sw-list-looks-rest)
     package var listOutlineChevronAlpha = 128.0 / 255
     package var listPinnedHeaderLine: CGFloat = 1
     package var listPinnedHeaderShadowAlpha = 7.0 / 255
@@ -789,6 +791,8 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listGroupedHeaderBottom: CGFloat = 10
     package var listGroupedSectionSpacing: CGFloat = 17.5              // ios/list/spacing: the default `listSectionSpacing`; a header block is 10 + text + 10 below it
     package var listGroupedHeaderPadding: CGFloat = 10
+    package var listGroupedCompactSectionSpacing: CGFloat = 12         // ios/list/compact (iOS 27): `.compact` cards 12 apart
+    package var listGroupedCompactHeaderTop: CGFloat = 16              // and a header's text 16 below the previous card (27.5 by default)
     package var listPlainHeaderTop: CGFloat = 32
     package var listPlainContentInset: CGFloat = 16
     package var listLinkChevronSize = CGSize(width: 7, height: 12)

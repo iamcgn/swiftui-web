@@ -216,6 +216,8 @@ extension View {
     public func fixtureListSpacing(row: CGFloat, section: CGFloat) -> some View {
         listRowSpacing(row).listSectionSpacing(section)
     }
+    public func fixtureCompactSections() -> some View { listSectionSpacing(.compact) }
+    public func fixtureSectionSpacing(_ spacing: CGFloat) -> some View { listSectionSpacing(spacing) }
 }
 
 // MARK: - Rich text (text/attributed)

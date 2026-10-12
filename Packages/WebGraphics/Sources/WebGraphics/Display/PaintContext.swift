@@ -11,6 +11,9 @@ public struct PaintContext {
     /// colour filters, blend modes): each painted leaf wraps its own drawing in these groups,
     /// outermost first, unless a compositing group collects the subtree into one.
     public var effects: [PendingEffect] = []
+    /// A colour that replaces every text's (a list's selected row in a focused list paints
+    /// its text white); nil for the texts' own.
+    public var foregroundOverride: RGBA?
 
     public init(origin: CGPoint, scale: CGFloat) {
         self.origin = origin
@@ -34,6 +37,7 @@ public struct PaintContext {
         var child = PaintContext(origin: CGPoint(x: origin.x + frame.minX, y: origin.y + frame.minY), scale: scale)
         child.visibleRect = visibleRect
         child.effects = effects
+        child.foregroundOverride = foregroundOverride
         return child
     }
 

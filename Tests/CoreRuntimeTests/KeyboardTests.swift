@@ -52,10 +52,17 @@ import SwiftUIWebHeadless
         #expect(r.keyDown(key(.end)) && box.selection == 3)
         #expect(r.keyDown(key(.downArrow)) && box.selection == 3)
         #expect(r.keyDown(key(.home)) && box.selection == 1)
-        // The focused list paints its selection in the accent colour.
+        // The focused list in a key window paints its selection in the system's selected content
+        // colour (52, 122, 225; measured) with white text; an inactive window keeps the grey band.
         relayout(r)
-        let commands = r.render(scale: 2).commands.map(\.description)
-        #expect(commands.contains { $0.hasPrefix("fillRRect(10, 10, 300, 24) r=7 #") && !$0.contains("#000000") })
+        var commands = r.render(scale: 2).commands.map(\.description)
+        #expect(commands.contains("fillRRect(10, 10, 300, 24) r=8 #347AE1"))
+        #expect(commands.contains { $0.hasPrefix("drawText(\"Apple\"") && $0.contains("#FFFFFF") })
+        r.hostIsFocused = false
+        commands = r.render(scale: 2).commands.map(\.description)
+        #expect(commands.contains("fillRRect(10, 10, 300, 24) r=7 #000000@\(35.0 / 255)"))
+        #expect(!commands.contains { $0.hasPrefix("drawText(\"Apple\"") && $0.contains("#FFFFFF") })
+        r.hostIsFocused = true
         // Shift extends a multiple selection from the anchor row.
         let set = _KeySetBox()
         let multi = runtime(List(Self.items, selection: Binding<Set<Int>>(get: { set.value }, set: { set.value = $0 })) { Text($0.name) })

@@ -1007,7 +1007,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         let parts = view.parts(context: textContext)
         // A link without a colour of its own takes the accent (text/markdown `link`).
         let resolvedColors = colors.indices.map { index in
-            (colors[index] ?? (parts.indices.contains(index) && parts[index].modifiers.link != nil ? Color.accentColor : inherited)).resolve(in: environment)
+            context.foregroundOverride ?? (colors[index] ?? (parts.indices.contains(index) && parts[index].modifiers.link != nil ? Color.accentColor : inherited)).resolve(in: environment)
         }
         let spacing = TextLayouter.letterSpacing(layoutOptions) + layout.tightening
         let secondary = layoutOptions.textScale == .secondary

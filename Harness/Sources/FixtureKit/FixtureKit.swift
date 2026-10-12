@@ -164,6 +164,24 @@ extension View {
         self
         #endif
     }
+
+    /// `listSectionSpacing(.compact)` (iOS API).
+    public func fixtureCompactSections() -> some View {
+        #if os(iOS)
+        listSectionSpacing(.compact)
+        #else
+        self
+        #endif
+    }
+
+    /// `listSectionSpacing(_:)` alone (iOS API).
+    public func fixtureSectionSpacing(_ spacing: CGFloat) -> some View {
+        #if os(iOS)
+        listSectionSpacing(spacing)
+        #else
+        self
+        #endif
+    }
 }
 
 // MARK: - Rich text (text/attributed)

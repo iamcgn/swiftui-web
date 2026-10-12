@@ -2137,6 +2137,25 @@ public static let list = Fixture("ios/list/basic", size: CGSize(width: 320, heig
     .probe("list")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/list/compact", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 44, lastLine: 60, declaration: #"""
+/// `listSectionSpacing(.compact)` between headed sections, and a custom spacing above a
+/// header-less card (sw-list-looks-rest): measured on the simulator.
+public static let compactSections = Fixture("ios/list/compact", size: CGSize(width: 320, height: 400)) {
+    List {
+        Section("First") {
+            Text("Apple").probe("c1")
+        }
+        Section("Second") {
+            Text("Cherry").probe("c2")
+        }
+        Section {
+            Text("Carrot").probe("c3")
+        }
+    }
+    .fixtureCompactSections()
+    .probe("list")
+}.platform(.iOS)
+"""#),
         FixtureSource(name: "ios/list/editing", file: "Fixtures/Sources/iOS/IOSListEditingFixtures.swift", firstLine: 15, lastLine: 41, declaration: #"""
 /// Edit mode: deletable and movable rows, then deletable-only rows, then plain rows.
 public static let editing = Fixture(
@@ -2211,6 +2230,23 @@ public static let listPlain = Fixture("ios/list/plain", size: CGSize(width: 320,
         Section("Fruit") { Text("Cherry").probe("row3") }
     }
     .listStyle(.plain)
+    .probe("list")
+}.platform(.iOS)
+"""#),
+        FixtureSource(name: "ios/list/sectionspacing", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 62, lastLine: 76, declaration: #"""
+public static let customSections = Fixture("ios/list/sectionspacing", size: CGSize(width: 320, height: 400)) {
+    List {
+        Section("First") {
+            Text("Apple").probe("s1")
+        }
+        Section {
+            Text("Cherry").probe("s2")
+        }
+        Section {
+            Text("Carrot").probe("s3")
+        }
+    }
+    .fixtureSectionSpacing(40)
     .probe("list")
 }.platform(.iOS)
 """#),
@@ -4085,7 +4121,7 @@ public static let basic = Fixture("link/basic", size: CGSize(width: 320, height:
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "list/alternating", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 44, lastLine: 62, declaration: ##"""
+        FixtureSource(name: "list/alternating", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 78, lastLine: 96, declaration: ##"""
 public static let alternating = Fixture("list/alternating", size: CGSize(width: 320, height: 300)) {
     VStack(spacing: 8) {
         #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
@@ -4106,7 +4142,7 @@ public static let alternating = Fixture("list/alternating", size: CGSize(width: 
     .probe("stack")
 }
 """##),
-        FixtureSource(name: "list/background", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 132, lastLine: 140, declaration: #"""
+        FixtureSource(name: "list/background", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 166, lastLine: 174, declaration: #"""
 public static let background = Fixture("list/background", size: CGSize(width: 320, height: 200)) {
     List {
         Text("Apple").probe("row1")
@@ -4144,7 +4180,7 @@ public static let modifiers = Fixture("list/modifiers", size: CGSize(width: 320,
     .probe("list")
 }
 """#),
-        FixtureSource(name: "list/outline", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 81, lastLine: 100, declaration: #"""
+        FixtureSource(name: "list/outline", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 115, lastLine: 134, declaration: #"""
 public static let outline = Fixture("list/outline", size: CGSize(width: 320, height: 300)) {
     VStack(spacing: 8) {
         List(OutlineNode.tree, children: \.children) { node in
@@ -4166,7 +4202,7 @@ public static let outline = Fixture("list/outline", size: CGSize(width: 320, hei
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "list/pinning", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 142, lastLine: 161, declaration: #"""
+        FixtureSource(name: "list/pinning", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 176, lastLine: 195, declaration: #"""
 /// The pinned header follows the sections as the list scrolls (a step scrolls to a row of
 /// the second section).
 public static let pinning = Fixture(
@@ -4188,7 +4224,7 @@ public static let pinning = Fixture(
     .probe("list")
 }
 """#),
-        FixtureSource(name: "list/prominence", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 64, lastLine: 79, declaration: #"""
+        FixtureSource(name: "list/prominence", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 98, lastLine: 113, declaration: #"""
 public static let prominence = Fixture("list/prominence", size: CGSize(width: 320, height: 220)) {
     List {
         Section {
@@ -4231,7 +4267,7 @@ public static let sections = Fixture("list/sections", size: CGSize(width: 320, h
     .probe("list")
 }
 """#),
-        FixtureSource(name: "list/separators", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 111, lastLine: 130, declaration: #"""
+        FixtureSource(name: "list/separators", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 145, lastLine: 164, declaration: #"""
 public static let separators = Fixture("list/separators", size: CGSize(width: 320, height: 300)) {
     List {
         Section("Hidden") {
@@ -4284,7 +4320,7 @@ public static let styles = Fixture("list/styles", size: CGSize(width: 320, heigh
     .probe("stack")
 }
 """##),
-        FixtureSource(name: "list/tint", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 102, lastLine: 109, declaration: #"""
+        FixtureSource(name: "list/tint", file: "Fixtures/Sources/List/ListLooksFixtures.swift", firstLine: 136, lastLine: 143, declaration: #"""
 public static let tint = Fixture("list/tint", size: CGSize(width: 320, height: 200)) {
     List {
         Label("Wi-Fi", systemImage: "wifi").listItemTint(.green).probe("green")
@@ -6032,7 +6068,7 @@ public static let basic = Fixture("table/basic", size: CGSize(width: 360, height
     .probe("table")
 }
 """#),
-        FixtureSource(name: "table/corners", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 133, lastLine: 162, declaration: #"""
+        FixtureSource(name: "table/corners", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 133, lastLine: 164, declaration: ##"""
 /// Corners (sw-table, macOS 27): hidden headers, no alternating bands, the bordered style,
 /// `TableRow` builders and a group of columns, all in one window.
 public static let corners = Fixture("table/corners", size: CGSize(width: 360, height: 360)) {
@@ -6043,6 +6079,7 @@ public static let corners = Fixture("table/corners", size: CGSize(width: 360, he
         }
         .tableColumnHeaders(.hidden)
         .probe("hidden")
+        #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
         Table(fruits) {
             TableColumn("Name", value: \.name)
             Group {
@@ -6053,6 +6090,7 @@ public static let corners = Fixture("table/corners", size: CGSize(width: 360, he
         .alternatingRowBackgrounds(.disabled)
         .tableStyle(.bordered)
         .probe("bordered")
+        #endif
         Table(of: TableFruit.self) {
             TableColumn("Name") { Text($0.name).probe("rowName\($0.id)") }
             TableColumn("Color", value: \.color)
@@ -6063,8 +6101,8 @@ public static let corners = Fixture("table/corners", size: CGSize(width: 360, he
         .probe("rows")
     }
 }
-"""#),
-        FixtureSource(name: "table/outline", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 164, lastLine: 171, declaration: #"""
+"""##),
+        FixtureSource(name: "table/outline", file: "Fixtures/Sources/Table/TableFixtures.swift", firstLine: 166, lastLine: 173, declaration: #"""
 /// Outline rows: a tree with disclosure triangles, the first group expanded by a step.
 public static let outline = Fixture("table/outline", size: CGSize(width: 360, height: 160)) {
     Table(tree, children: \.children) {
@@ -13874,6 +13912,40 @@ public enum ListLooksFixtures {
         .probe("list")
     }.platform(.iOS)
 
+    /// `listSectionSpacing(.compact)` between headed sections, and a custom spacing above a
+    /// header-less card (sw-list-looks-rest): measured on the simulator.
+    public static let compactSections = Fixture("ios/list/compact", size: CGSize(width: 320, height: 400)) {
+        List {
+            Section("First") {
+                Text("Apple").probe("c1")
+            }
+            Section("Second") {
+                Text("Cherry").probe("c2")
+            }
+            Section {
+                Text("Carrot").probe("c3")
+            }
+        }
+        .fixtureCompactSections()
+        .probe("list")
+    }.platform(.iOS)
+
+    public static let customSections = Fixture("ios/list/sectionspacing", size: CGSize(width: 320, height: 400)) {
+        List {
+            Section("First") {
+                Text("Apple").probe("s1")
+            }
+            Section {
+                Text("Cherry").probe("s2")
+            }
+            Section {
+                Text("Carrot").probe("s3")
+            }
+        }
+        .fixtureSectionSpacing(40)
+        .probe("list")
+    }.platform(.iOS)
+
     public static let alternating = Fixture("list/alternating", size: CGSize(width: 320, height: 300)) {
         VStack(spacing: 8) {
             #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
@@ -13993,7 +14065,7 @@ public enum ListLooksFixtures {
         .probe("list")
     }
 
-    public static let all: [Fixture] = [spacing, alternating, prominence, outline, tint, separators, background, pinning]
+    public static let all: [Fixture] = [spacing, compactSections, customSections, alternating, prominence, outline, tint, separators, background, pinning]
 }
 """##,
         "Fixtures/Sources/MatchedGeometry/MatchedGeometryFixtures.swift": #"""
@@ -17210,7 +17282,7 @@ public enum TabViewFixtures {
     public static let all: [Fixture] = [basic, sized, tabAPI]
 }
 """#,
-        "Fixtures/Sources/Table/TableFixtures.swift": #"""
+        "Fixtures/Sources/Table/TableFixtures.swift": ##"""
 // Table fixtures: the macOS table (column headers, rows, alternating backgrounds), key-path
 // and custom columns, column widths, a frame, a selection binding driven by steps, and a sort
 // order binding driven by steps.
@@ -17353,6 +17425,7 @@ public enum TableFixtures {
             }
             .tableColumnHeaders(.hidden)
             .probe("hidden")
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             Table(fruits) {
                 TableColumn("Name", value: \.name)
                 Group {
@@ -17363,6 +17436,7 @@ public enum TableFixtures {
             .alternatingRowBackgrounds(.disabled)
             .tableStyle(.bordered)
             .probe("bordered")
+            #endif
             Table(of: TableFruit.self) {
                 TableColumn("Name") { Text($0.name).probe("rowName\($0.id)") }
                 TableColumn("Color", value: \.color)
@@ -17385,7 +17459,7 @@ public enum TableFixtures {
 
     public static let all: [Fixture] = [basic, widths, sized, selection, sorting, regimes, corners, outline]
 }
-"""#,
+"""##,
         "Fixtures/Sources/Text/TextCompletenessFixtures.swift": #"""
 import SwiftUI
 import FixtureKit

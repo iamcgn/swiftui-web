@@ -696,6 +696,9 @@ extension View {
     nonisolated public func listRowSpacing(_ spacing: CGFloat?) -> some View { environment(\._listRowSpacing, spacing) }
     /// Sets the spacing between a list's sections.
     nonisolated public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View { environment(\._listSectionSpacing, spacing) }
+    /// iPadOS pointer effects on list rows: accepted without effect (macOS and the browser show none).
+    nonisolated public func listRowHoverEffect(_ effect: HoverEffect?) -> some View { self }
+    nonisolated public func listRowHoverEffectDisabled(_ disabled: Bool = true) -> some View { self }
     nonisolated public func listSectionSpacing(_ spacing: CGFloat) -> some View { environment(\._listSectionSpacing, .custom(spacing)) }
     /// Fills every other row of the lists in this view.
     nonisolated public func alternatingRowBackgrounds(_ behavior: AlternatingRowBackgroundBehavior = .enabled) -> some View {

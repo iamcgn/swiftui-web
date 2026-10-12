@@ -83,6 +83,10 @@ import SwiftUIWebHeadless
         r.pointerDown(at: CGPoint(x: 18, y: fruits.midY)); r.pointerUp(at: CGPoint(x: 18, y: fruits.midY))
         relayout(r)
         #expect(r.probeFrames["Apple"] == nil)
+        // A press on the row's text (past the chevron's slot) does not toggle.
+        r.pointerDown(at: CGPoint(x: 60, y: fruits.midY)); r.pointerUp(at: CGPoint(x: 60, y: fruits.midY))
+        relayout(r)
+        #expect(r.probeFrames["Apple"] == nil)
     }
 }
 #endif

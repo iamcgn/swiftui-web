@@ -140,6 +140,7 @@ public enum TableFixtures {
             }
             .tableColumnHeaders(.hidden)
             .probe("hidden")
+            #if !os(iOS)   // macOS-only API (true on macOS, wasm and Linux); the iOS builds render only ios/ fixtures
             Table(fruits) {
                 TableColumn("Name", value: \.name)
                 Group {
@@ -150,6 +151,7 @@ public enum TableFixtures {
             .alternatingRowBackgrounds(.disabled)
             .tableStyle(.bordered)
             .probe("bordered")
+            #endif
             Table(of: TableFruit.self) {
                 TableColumn("Name") { Text($0.name).probe("rowName\($0.id)") }
                 TableColumn("Color", value: \.color)

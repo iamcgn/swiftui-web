@@ -87,7 +87,8 @@ extension PlatformMetrics {
     package static var focusRingOpacity: Double { current.focusRingOpacity }
     package static var focusRingColor: Color { current.focusRingColor }
     package static var focusRingCornerRadius: CGFloat { current.focusRingCornerRadius }
-    package static var listFocusedSelectionAlpha: Double { current.listFocusedSelectionAlpha }
+    package static var listFocusedSelectionFill: RGBA { current.listFocusedSelectionFill }
+    package static var listFocusedSelectionCornerRadius: CGFloat { current.listFocusedSelectionCornerRadius }
     package static var menuHighlightAlpha: Double { current.menuHighlightAlpha }
     package static var menuHighlightInset: CGFloat { current.menuHighlightInset }
     package static var menuHighlightCornerRadius: CGFloat { current.menuHighlightCornerRadius }
@@ -116,6 +117,7 @@ extension PlatformMetrics {
     package static var listOutlineLevelIndent: CGFloat { current.listOutlineLevelIndent }
     package static var listOutlineChevronCentre: CGFloat { current.listOutlineChevronCentre }
     package static var listOutlineChevronSize: CGSize { current.listOutlineChevronSize }
+    package static var listOutlineChevronHitRadius: CGFloat { current.listOutlineChevronHitRadius }
     package static var listOutlineChevronAlpha: Double { current.listOutlineChevronAlpha }
     package static var listPinnedHeaderLine: CGFloat { current.listPinnedHeaderLine }
     package static var listPinnedHeaderShadowAlpha: Double { current.listPinnedHeaderShadowAlpha }
@@ -639,6 +641,8 @@ extension PlatformMetrics {
     package static var listGroupedHeaderBottom: CGFloat { current.listGroupedHeaderBottom }
     package static var listGroupedSectionSpacing: CGFloat { current.listGroupedSectionSpacing }
     package static var listGroupedHeaderPadding: CGFloat { current.listGroupedHeaderPadding }
+    package static var listGroupedCompactSectionSpacing: CGFloat { current.listGroupedCompactSectionSpacing }
+    package static var listGroupedCompactHeaderTop: CGFloat { current.listGroupedCompactHeaderTop }
     package static var listPlainHeaderTop: CGFloat { current.listPlainHeaderTop }
     package static var listPlainContentInset: CGFloat { current.listPlainContentInset }
     package static var listLinkChevronSize: CGSize { current.listLinkChevronSize }
