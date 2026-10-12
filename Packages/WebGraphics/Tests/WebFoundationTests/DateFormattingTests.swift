@@ -183,7 +183,12 @@ let foundationIsCurrent: Bool = {
         #endif
         for offset in offsets {
             // The style measures from the current time; the reference is taken just before each call.
-            for (presentation, theirPresentation) in [(_RelativeDateText.Presentation.numeric, Date.RelativeFormatStyle.Presentation.numeric), (.named, .named)] {
+            // Thirty and sixty days are "4 weeks" or "1 month" depending on the calendar date the
+            // test runs on (month lengths, the DST change): those offsets are compared against the
+            // formatter at a fixed reference below instead (CI at 00:04 UTC on 2026-10-12 saw
+            // Foundation say "in 1 month" where an hour earlier it said "in 4 weeks").
+            let dateDependent = abs(offset) == 2_592_000 || abs(offset) == 5_184_000
+            for (presentation, theirPresentation) in [(_RelativeDateText.Presentation.numeric, Date.RelativeFormatStyle.Presentation.numeric), (.named, .named)] where !dateDependent {
                 for (units, theirUnits) in [(_RelativeDateText.UnitsStyle.wide, Date.RelativeFormatStyle.UnitsStyle.wide), (.abbreviated, .abbreviated), (.narrow, .narrow), (.spellOut, .spellOut)] {
                     let now = Date()
                     let date = now.addingTimeInterval(offset)
