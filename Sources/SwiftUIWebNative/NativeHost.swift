@@ -177,8 +177,6 @@ public final class NativeHost {
         host.makeView(assetManifest: assetManifest)
     }
 }
-#endif
-
 
 /// Places the `NSView`s AppKit representables make as subviews of the runtime's view at their
 /// nodes' frames (the view is flipped, so the scene's coordinates are its own), sizes them by
@@ -347,3 +345,4 @@ final class HostedWindowView: NSView {
     override func keyDown(with event: NSEvent) { host.view.keyDown(with: event); host.requestFrame() }
     override func keyUp(with event: NSEvent) { host.view.keyUp(with: event) }
 }
+#endif
