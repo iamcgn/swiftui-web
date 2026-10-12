@@ -45,10 +45,12 @@ let package = Package(
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // As in the root package: Linux's Testing module declares a `_Testing_UIKit` cross-import
+        // overlay that does not exist there, and `import SwiftUI` re-exports UIKitWeb's `UIKit`.
         .testTarget(
             name: "SwiftUIWebGTKTests",
             dependencies: ["SwiftUIWebGTK", .product(name: "WebGraphicsCairo", package: "WebGraphics")],
-            swiftSettings: [.treatAllWarnings(as: .error)]
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.linux]))]
         ),
         .executableTarget(
             name: "gtk-counter",
