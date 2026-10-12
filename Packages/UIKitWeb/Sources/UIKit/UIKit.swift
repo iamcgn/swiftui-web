@@ -12,7 +12,9 @@
 // of the bundle (decision 0017).
 @_exported import WebFoundation
 #else
+// Linux: Foundation, and WebFoundation's stand-ins for what it lacks (`NSItemProvider`).
 @_exported import Foundation
+@_exported import WebFoundation
 #endif
 
 #if os(WASI)
