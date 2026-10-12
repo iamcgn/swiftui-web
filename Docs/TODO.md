@@ -4,21 +4,15 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| SwiftUI | 4 | 4 | 0 | 0 |
+| SwiftUI | 1 | 1 | 0 | 0 |
 | UIKit | 1 | 1 | 0 | 0 |
 | Platform | 5 | 1 | 1 | 3 |
-| **All** | **10** | 6 | 1 | 3 |
+| **All** | **7** | 3 | 1 | 3 |
 
 ## Next (Phase 8, in order)
 
 ### SwiftUI
 
-- ☐ **contentShape and the Shape shortcuts** `sw-shape-shortcuts` · Shape · missing  
-  `contentShape(_:eoFill:)` and `contentShape(_ kind:_:)` are missing entirely (hit testing of the whole frame; the shape for hover and drag previews), and the iOS 17 static shortcuts `.rect`, `.rect(cornerRadius:style:)`, `.rect(cornerRadii:)`, `.circle`, `.capsule`, `.ellipse`, `.buttonBorder`, `.containerRelative` on Shape and InsettableShape (Scrumdinger uses them in background(_:in:), contentShape and clipShape). ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
-- ☐ **API the surveyed apps reach for** `sw-app-api-gaps` · View composition · missing  
-  `Button(_:systemImage:action:)` and `(_:systemImage:role:action:)`; `alert(isPresented:error:actions:)`, `alert(isPresented:error:actions:message:)`, `alert(_:isPresented:presenting:actions:message:)` and the same `presenting:` form of confirmationDialog; `Transaction(animation:)`; `AnyTransition.modifier(active:identity:)`; `Animation.spring()` is ambiguous between `spring(response:)` and `spring(duration:)` (Apple resolves to duration/bounce: `spring(response:)` needs @_disfavoredOverload); the deprecated forms apps still carry: `navigationBarTitle(_:)`, `navigationViewStyle(StackNavigationViewStyle())`, `ContentSizeCategory` and `\.sizeCategory`, `\.accessibilityEnabled`, `colorScheme(_:)`, `EnvironmentalModifier`. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
-- ☐ **Scene environment modifiers** `sw-scene-environment` · App · missing  
-  `WindowGroup { }.environment(object)`, `.environment(\.key, value)` and `.environmentObject(_:)` (the common way to inject an app model) do not exist on Scene; `_WindowDescriptor.make` is a `package let`, so the root view needs wrapping in the scene modifier. Also `.onChange`, `.handlesExternalEvents` and `.backgroundTask` on Scene as accepted. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 - ☐ **NavigationStack inside a sheet** `sw-ios-sheet-nav` · iOS profile · approximate  
   On the iOS profile a sheet whose content is a NavigationStack: its navigationTitle replaces the presenting stack's bar title (`Runtime.navigationTitle` is one value for the window), no bar is drawn when the title is empty even with toolbar items (NavigationNodes.swift `bar(over:)` wants a title or a back button), and the stack's toolbar items are never painted (PresentationNodes drops the sheet toolbar when sheets fill the window). Scrumdinger's add/edit sheets lose their Dismiss and Add buttons. Also an image-only toolbar Button gets an empty accessibility label (SwiftUI derives it from the symbol name). Goldens: a sheet with an inline untitled bar and items, from the simulator. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
@@ -71,6 +65,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · SwiftUI · Other frameworks
 - ☑ 2026-10-12 **`import Foundation` on wasm** `pf-foundation-module` · Platform · wasm
 - ☑ 2026-10-12 **`import Combine` on wasm** `pf-combine-module` · Platform · wasm
+- ☑ 2026-10-12 **contentShape and the Shape shortcuts** `sw-shape-shortcuts` · SwiftUI · Shape
+- ☑ 2026-10-12 **API the surveyed apps reach for** `sw-app-api-gaps` · SwiftUI · View composition
+- ☑ 2026-10-12 **Scene environment modifiers** `sw-scene-environment` · SwiftUI · App
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

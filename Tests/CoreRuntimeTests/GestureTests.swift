@@ -151,4 +151,39 @@ import SwiftUIWebHeadless
         #expect(high.semanticsTree().contains { $0.label == "Tap" })
     }
 }
+
+// sw-shape-shortcuts (decision 0021): `contentShape` decides where a gesture above it is hit.
+@Suite @MainActor struct ContentShapeTests {
+    @Test func gesturesHitInsideTheContentShape() {
+        let log = Log()
+        let runtime = Runtime()
+        runtime.mount(
+            Color.clear.frame(width: 100, height: 100)
+                .contentShape(.circle)
+                .onTapGesture { log.events.append("tap") }
+        )
+        runtime.layout(in: CGSize(width: 100, height: 100))
+        // The centre is inside the circle, a corner is not.
+        runtime.pointerDown(at: CGPoint(x: 50, y: 50), time: 0)
+        runtime.pointerUp(at: CGPoint(x: 50, y: 50), time: 0.05)
+        runtime.pointerDown(at: CGPoint(x: 3, y: 3), time: 1)
+        runtime.pointerUp(at: CGPoint(x: 3, y: 3), time: 1.05)
+        #expect(log.events == ["tap"])
+        #expect(runtime.interactiveNode(at: CGPoint(x: 50, y: 50)) != nil && runtime.interactiveNode(at: CGPoint(x: 3, y: 3)) == nil)
+    }
+
+    @Test func shortcutsAreTheShapes() {
+        let rect = CGRect(x: 0, y: 0, width: 40, height: 20)
+        func path<S: Shape>(_ shape: S) -> Path { shape.path(in: rect) }
+        #expect(path(.rect) == Rectangle().path(in: rect))
+        #expect(path(.rect(cornerRadius: 5)) == RoundedRectangle(cornerRadius: 5).path(in: rect))
+        #expect(path(.capsule) == Capsule().path(in: rect) && path(.circle) == Circle().path(in: rect))
+        #expect(path(.ellipse) == Ellipse().path(in: rect))
+        #expect(path(.rect(topLeadingRadius: 4)) == UnevenRoundedRectangle(topLeadingRadius: 4).path(in: rect))
+        #expect(path(.buttonBorder) == RoundedRectangle(cornerRadius: 8).path(in: rect))
+        #expect(path(.containerRelative) == ContainerRelativeShape().path(in: rect))
+        #expect(ButtonBorderShape.capsule.path(in: rect) == Capsule().path(in: rect))
+        #expect(ButtonBorderShape.capsule.inset(by: 2).path(in: rect) == Capsule().path(in: rect.insetBy(dx: 2, dy: 2)))
+    }
+}
 #endif

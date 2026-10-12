@@ -59,11 +59,6 @@ package protocol _Adjustable: AnyObject {
 }
 
 extension ViewNode {
-    /// Whether `point` (in this node's coordinate space) is inside the node's bounds.
-    package func contains(_ point: CGPoint) -> Bool {
-        CGRect(origin: .zero, size: frame.size).contains(point)
-    }
-
     /// The deepest node containing `point` (in this node's space) that satisfies `predicate`,
     /// searching later-painted children first.
     package func hitTest(_ point: CGPoint, where predicate: (ViewNode) -> Bool) -> ViewNode? {
@@ -422,6 +417,9 @@ package final class TapGestureNode<Content: View>: UnaryLayoutModifierNode<Conte
     private func event(_ point: CGPoint) -> GestureEvent {
         GestureEvent(location: point, time: runtime.lastPointerTime, clock: runtime.animationClock, windowOrigin: frameInRoot.origin)
     }
+
+    /// A content shape beneath the gesture decides where it is hit (sw-shape-shortcuts).
+    override package func contains(_ point: CGPoint) -> Bool { _contentShapeContains(point) ?? super.contains(point) }
 
     package func pressBegan() {}
     package func pressBegan(at point: CGPoint) { if modifier.count > 1 { recognizer.began(event(point)) } }

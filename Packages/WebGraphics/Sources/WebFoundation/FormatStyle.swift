@@ -428,3 +428,39 @@ open class NumberFormatter: Formatter {
     open override func value(from string: String) -> Any? { core.parse(string) }
 }
 #endif
+
+// MARK: - ListFormatter (decision 0021)
+
+#if os(WASI)
+/// Foundation's `ListFormatter`: items joined as English prose ("a, b, and c", the serial
+/// comma as Foundation's en_US; other locales are not carried).
+open class ListFormatter: Formatter {
+    public var locale: Locale = .current
+    public var itemFormatter: Formatter?
+
+    public override init() { super.init() }
+
+    /// The items joined with the locale's conjunction.
+    open class func localizedString(byJoining strings: [String]) -> String {
+        ListFormatter().string(from: strings) ?? ""
+    }
+
+    open func string(from items: [Any]) -> String? {
+        let strings = items.map { item -> String in
+            if let formatter = itemFormatter, let text = formatter.string(for: item) { return text }
+            return "\(item)"
+        }
+        switch strings.count {
+        case 0: return ""
+        case 1: return strings[0]
+        case 2: return "\(strings[0]) and \(strings[1])"
+        default: return strings.dropLast().joined(separator: ", ") + ", and " + strings[strings.count - 1]
+        }
+    }
+
+    open override func string(for obj: Any?) -> String? {
+        guard let items = obj as? [Any] else { return nil }
+        return string(from: items)
+    }
+}
+#endif

@@ -1,3 +1,10 @@
+// `LocalizedError` for the error alerts: WebFoundation's on wasm, Foundation's elsewhere.
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
+
 /// Sheets, popovers, alerts and menus: presented over the window by the runtime's presentation
 /// layer (`Docs/elements/Presentation.md`). The looks are approximations: on macOS these are
 /// separate windows the hosted golden window cannot capture.
@@ -194,6 +201,61 @@ extension View {
     @_disfavoredOverload
     nonisolated public func alert<S: StringProtocol, A: View>(_ title: S, isPresented: Binding<Bool>, @ViewBuilder actions: @escaping () -> A) -> some View {
         alert(Text(title), isPresented: isPresented, actions: actions) { EmptyView() }
+    }
+
+    // MARK: Alerts over data and errors (sw-app-api-gaps)
+
+    /// Presents an alert using the given data to produce the alert's content.
+    nonisolated public func alert<A: View, M: View, T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: @escaping (T) -> A,
+                                                       @ViewBuilder message: @escaping (T) -> M) -> some View {
+        alert(title, isPresented: isPresented, actions: { if let data { actions(data) } }, message: { if let data { message(data) } })
+    }
+    nonisolated public func alert<A: View, T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: @escaping (T) -> A) -> some View {
+        alert(title, isPresented: isPresented, actions: { if let data { actions(data) } })
+    }
+    nonisolated public func alert<A: View, M: View, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: @escaping (T) -> A,
+                                                       @ViewBuilder message: @escaping (T) -> M) -> some View {
+        alert(Text(titleKey), isPresented: isPresented, presenting: data, actions: actions, message: message)
+    }
+    nonisolated public func alert<A: View, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: @escaping (T) -> A) -> some View {
+        alert(Text(titleKey), isPresented: isPresented, presenting: data, actions: actions)
+    }
+    @_disfavoredOverload
+    nonisolated public func alert<S: StringProtocol, A: View, M: View, T>(_ title: S, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: @escaping (T) -> A,
+                                                                           @ViewBuilder message: @escaping (T) -> M) -> some View {
+        alert(Text(title), isPresented: isPresented, presenting: data, actions: actions, message: message)
+    }
+    @_disfavoredOverload
+    nonisolated public func alert<S: StringProtocol, A: View, T>(_ title: S, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: @escaping (T) -> A) -> some View {
+        alert(Text(title), isPresented: isPresented, presenting: data, actions: actions)
+    }
+
+    /// Presents an alert when an error is present: the title is the error's description.
+    nonisolated public func alert<E: LocalizedError, A: View, M: View>(isPresented: Binding<Bool>, error: E?, @ViewBuilder actions: @escaping (E) -> A,
+                                                                       @ViewBuilder message: @escaping (E) -> M) -> some View {
+        alert(Text(error?.errorDescription ?? ""), isPresented: isPresented, presenting: error, actions: actions, message: message)
+    }
+    nonisolated public func alert<E: LocalizedError, A: View>(isPresented: Binding<Bool>, error: E?, @ViewBuilder actions: @escaping () -> A) -> some View {
+        alert(Text(error?.errorDescription ?? ""), isPresented: isPresented, actions: actions)
+    }
+
+    /// Presents a confirmation dialog using the given data to produce its content.
+    nonisolated public func confirmationDialog<A: View, M: View, T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?,
+                                                                    @ViewBuilder actions: @escaping (T) -> A, @ViewBuilder message: @escaping (T) -> M) -> some View {
+        confirmationDialog(title, isPresented: isPresented, titleVisibility: titleVisibility, actions: { if let data { actions(data) } }, message: { if let data { message(data) } })
+    }
+    nonisolated public func confirmationDialog<A: View, T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?,
+                                                           @ViewBuilder actions: @escaping (T) -> A) -> some View {
+        confirmationDialog(title, isPresented: isPresented, titleVisibility: titleVisibility, actions: { if let data { actions(data) } })
+    }
+    nonisolated public func confirmationDialog<A: View, M: View, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?,
+                                                                    @ViewBuilder actions: @escaping (T) -> A, @ViewBuilder message: @escaping (T) -> M) -> some View {
+        confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions, message: message)
+    }
+    @_disfavoredOverload
+    nonisolated public func confirmationDialog<S: StringProtocol, A: View, M: View, T>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?,
+                                                                                        @ViewBuilder actions: @escaping (T) -> A, @ViewBuilder message: @escaping (T) -> M) -> some View {
+        confirmationDialog(Text(title), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions, message: message)
     }
 
     /// Presents a confirmation dialog when a given condition is true: an alert-like panel on

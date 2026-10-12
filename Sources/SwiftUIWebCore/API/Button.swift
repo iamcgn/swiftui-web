@@ -56,6 +56,32 @@ public struct Button<Label: View>: View {
     }
 }
 
+extension Button where Label == SwiftUIWebCore.Label<Text, Image> {
+    /// Creates a button that generates its label from a localized string key and a system image.
+    public init(_ titleKey: LocalizedStringKey, systemImage: String, action: @escaping @MainActor () -> Void) {
+        self.init(action: action) { SwiftUIWebCore.Label(titleKey, systemImage: systemImage) }
+    }
+    @_disfavoredOverload
+    public init<S: StringProtocol>(_ title: S, systemImage: String, action: @escaping @MainActor () -> Void) {
+        self.init(action: action) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    }
+    public init(_ titleKey: LocalizedStringKey, systemImage: String, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
+        self.init(role: role, action: action) { SwiftUIWebCore.Label(titleKey, systemImage: systemImage) }
+    }
+    @_disfavoredOverload
+    public init<S: StringProtocol>(_ title: S, systemImage: String, role: ButtonRole?, action: @escaping @MainActor () -> Void) {
+        self.init(role: role, action: action) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    }
+    /// Creates a button with a label from a localized string key and a catalog image.
+    public init(_ titleKey: LocalizedStringKey, image: String, action: @escaping @MainActor () -> Void) {
+        self.init(action: action) { SwiftUIWebCore.Label(titleKey, image: image) }
+    }
+    @_disfavoredOverload
+    public init<S: StringProtocol>(_ title: S, image: String, action: @escaping @MainActor () -> Void) {
+        self.init(action: action) { SwiftUIWebCore.Label(title, image: image) }
+    }
+}
+
 extension Button where Label == Text {
     /// Creates a button that generates its label from a localized string key.
     public init(_ titleKey: LocalizedStringKey, action: @escaping @MainActor () -> Void) {

@@ -367,6 +367,12 @@ open class ViewNode {
     /// view's divider zones. The default is `capturesHitTesting` everywhere.
     package func capturesHit(at point: CGPoint) -> Bool { capturesHitTesting }
 
+    /// Whether `point` (in this node's coordinate space) is inside the node: its bounds, or
+    /// its content shape (`contentShape`).
+    package func contains(_ point: CGPoint) -> Bool {
+        CGRect(origin: .zero, size: frame.size).contains(point)
+    }
+
     /// Whether this node is a `Spacer`: stacks size it after every other child, from the leftover
     /// (Layout/StackLayout.swift).
     package var isSpacer: Bool { false }

@@ -19,6 +19,12 @@
           "status": "partial",
           "notes": "One `App` instance per process with its dynamic properties installed once (a `@StateObject` model lives for the process); a change re-reads the app's body and updates the main window's root in place (`_appRemount`, coalesced by the host runtime's scheduler); the other windows and the commands keep their launch-time descriptors (decision 0021, 2026-10-12)",
           "noFixture": "AppStateObjectTests (one instance, the body re-read on a change); Examples/Launches' probe."
+        },
+        {
+          "api": "Scene.environment(_:) / environment(_:_:) / environmentObject(_:) / defaultAppStorage / onChange / handlesExternalEvents",
+          "status": "partial",
+          "notes": "The environment modifiers on a scene wrap every window's root (`_WindowDescriptor.make`), so `WindowGroup { }.environmentObject(model)` reaches the views; `defaultAppStorage`, `onChange(of:)` and `handlesExternalEvents` are accepted (scenes are read at launch and on app-level state changes) (decision 0021, 2026-10-12)",
+          "noFixture": "AppAPIGapsTests.sceneEnvironmentReachesTheRoots."
         }
       ]
     },
@@ -821,6 +827,18 @@
           "status": "partial",
           "notes": "Scenes register as window descriptors; secondary windows open as floating, non-modal windows inside the host (title bar with traffic lights, cascaded, content-sized or defaultSize, at defaultPosition, without a bar for hiddenTitleBar), dragged by their bar and resized by their grip unless contentSize, the pressed window taking Tab; commands' shortcuts work everywhere and the native host builds its menu bar from them; DocumentGroup documents open and save through the host's panels (file input and downloads in the browser); open windows are restored at the next launch (ids, simple values); MenuBarExtra is recorded, not shown; no separate browser windows (Docs/elements/Windows.md) Native host (2026-10-12): window presentations open as real NSWindows (resizable, closing dismisses, the front one topmost); Tools/Host opens .swiftuiweb bundles by double click (scripts/build-host-app.sh).",
           "noFixture": "Windows open as runtime presentations the gallery cannot host; WindowTests and Examples/Windows exercise them."
+        },
+        {
+          "api": "Shape shortcuts: .rect, .rect(cornerRadius:style:), .rect(cornerSize:), .rect(cornerRadii:), .rect(topLeadingRadius:…), .circle, .ellipse, .capsule, .capsule(style:), .containerRelative, .buttonBorder; ButtonBorderShape; buttonBorderShape(_:)",
+          "status": "partial",
+          "notes": "The iOS 17 static shortcuts on Shape, so `.background(.red, in: .rect(cornerRadius: 8))`, `.clipShape(.circle)` and `.contentShape(.rect)` read as written; `ButtonBorderShape` (automatic, capsule, roundedRectangle, roundedRectangle(radius:), circle) as an InsettableShape, the automatic one a radius-8 rounded rectangle (unmeasured); `buttonBorderShape(_:)` stores the shape in the environment, the button styles keep their measured looks (decision 0021, 2026-10-12)",
+          "noFixture": "ContentShapeTests.shortcutsAreTheShapes: each shortcut’s path is the shape’s."
+        },
+        {
+          "api": "Button(_:systemImage:action:) / (_:systemImage:role:action:) / (_:image:action:)",
+          "status": "full",
+          "notes": "The iOS 17 label forms over Label(_:systemImage:) and Label(_:image:) (decision 0021, 2026-10-12)",
+          "noFixture": "AppAPIGapsTests; the label itself is label/basic."
         }
       ]
     },
@@ -1389,6 +1407,30 @@
             "ios/label/basic",
             "ios/label/list"
           ]
+        },
+        {
+          "api": "contentShape(_:eoFill:) / contentShape(_:_:eoFill:) / ContentShapeKinds",
+          "status": "partial",
+          "notes": "The interaction shape decides hit testing: a gesture or control above it (through the modifiers between, which share the frame) is hit inside the shape's path only, and children outside it are not; a view without one answers for its whole frame as before (more permissive than SwiftUI for transparent content). The drag-preview, context-menu-preview, hover-effect and accessibility kinds are accepted (decision 0021, 2026-10-12)",
+          "noFixture": "ContentShapeTests: a tap inside a circle lands, a corner misses."
+        },
+        {
+          "api": "alert(isPresented:error:actions:) / alert(isPresented:error:actions:message:) / alert(_:isPresented:presenting:actions:message:) / confirmationDialog(_:isPresented:titleVisibility:presenting:actions:message:)",
+          "status": "full",
+          "notes": "Over the isPresented forms: the error alert titles itself with the LocalizedError's errorDescription, the presenting forms pass the data to the action and message builders (nothing when nil) (decision 0021, 2026-10-12)",
+          "noFixture": "AppAPIGapsTests.errorAndPresentingAlerts; the panel is alert/basic."
+        },
+        {
+          "api": "Transaction(animation:) / Animation.spring() / AnyTransition.modifier(active:identity:)",
+          "status": "partial",
+          "notes": "`Transaction(animation:)`; `.spring()` with no arguments resolves to the duration/bounce form as Apple's does (measured: damping 1, response 0.5; the response/dampingFraction form is disfavoured); `AnyTransition.modifier(active:identity:)` is accepted as the identity transition (transitions paint as fades, moves and scales; the modifiers are not applied) (decision 0021, 2026-10-12)",
+          "noFixture": "AppAPIGapsTests."
+        },
+        {
+          "api": "Deprecated forms: NavigationView / navigationViewStyle (stack, columns, automatic) / navigationBarTitle(_:) / navigationBarTitle(_:displayMode:) / colorScheme(_:) / ContentSizeCategory / sizeCategory / accessibilityEnabled / EnvironmentalModifier",
+          "status": "partial",
+          "notes": "`NavigationView` is a NavigationStack (every style lays out as a stack), `navigationBarTitle` maps onto navigationTitle and navigationBarTitleDisplayMode, `colorScheme(_:)` sets the environment's scheme for the subtree, `ContentSizeCategory` and `sizeCategory` are DynamicTypeSize under the old names (Comparable, isAccessibilityCategory), `accessibilityEnabled` is false (unknown in a browser), `EnvironmentalModifier` resolves in the node's environment and again when it changes; Apple's deprecation messages are kept (decision 0021, 2026-10-12)",
+          "noFixture": "AppAPIGapsTests.deprecatedFormsMapOntoTheCurrentAPI."
         }
       ]
     },
@@ -2164,6 +2206,12 @@
           "status": "partial",
           "notes": "A module named Combine in Packages/Shadows, linked by an app's Package.swift on wasm and re-exported by the shadow Foundation as Apple's is, over WebCombine (built everywhere, the module SwiftUI's ObservableObject family comes from): `Publisher` with values, completion and failure delivered on the main actor, `Cancellable`/`AnyCancellable` (`store(in:)`), `Just`, `Empty`, `Fail`, `Future`, `Deferred`, `PassthroughSubject` and `CurrentValueSubject` (`send` nonisolated, `send(completion:)`, late subscribers hear the completion), `Sequence.publisher`, `Timer.publish`, `NotificationCenter.publisher`, `objectWillChange`, `$published`; `sink(receiveCompletion:receiveValue:)` and `assign(to:on:)` nonisolated with plain closures (a nonisolated model subscribes in its initialiser), `eraseToAnyPublisher`/`AnyPublisher`, `map` (closure and key path), `tryMap`, `compactMap`, `scan`, `replaceNil`, `replaceEmpty`, `flatMap`, `switchToLatest`, `filter`, `removeDuplicates`, `first`, `first(where:)`, `last`, `dropFirst`, `drop(while:)`, `prefix`, `prefix(while:)`, `collect`, `mapError`, `setFailureType`, `assertNoFailure`, `catch`, `replaceError`, `retry`, `merge(with:)`, `Publishers.Merge`/`MergeMany`/`CombineLatest`, `combineLatest`, `zip`, `prepend`, `append`, `debounce`, `delay`, `throttle`, `timeout`, `receive(on:)`/`subscribe(on:)` (accepted: one thread), `share`, `handleEvents`, `print`, `values`. Apple's operator types (`Publishers.Map<Upstream, T>`) are not spelt; no `Subscriber`/`Subscription` protocols, `Scheduler` or `assign(to: &$published)` (2026-10-12)",
           "noFixture": "Not a screen; WebCombineTests (natively), Examples/Launches under Playwright in CI."
+        },
+        {
+          "api": "ListFormatter",
+          "status": "partial",
+          "notes": "`localizedString(byJoining:)`, `string(from:)` and `string(for:)` as English prose with the serial comma (Foundation's en_US form; other locales not carried), an `itemFormatter` for the items (decision 0021, 2026-10-12)",
+          "noFixture": "Strings, not a screen; WasmFoundationTests."
         }
       ]
     },

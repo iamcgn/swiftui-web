@@ -33,6 +33,9 @@ public struct Transaction {
     /// Creates a transaction.
     public init() {}
 
+    /// Creates a transaction with an animation.
+    public init(animation: Animation?) { self.animation = animation }
+
     /// Adds a completion to run when the animations of this transaction complete.
     public mutating func addAnimationCompletion(criteria: AnimationCompletionCriteria = .logicallyComplete, _ completion: @escaping () -> Void) {
         _completions.append(_AnimationCompletion(criteria: criteria, completion: completion))

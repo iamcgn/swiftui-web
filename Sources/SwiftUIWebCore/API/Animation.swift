@@ -48,7 +48,10 @@ public struct Animation: Equatable, Sendable {
     }
 
     /// A persistent spring animation: `response` is the period of the undamped spring,
-    /// `dampingFraction` the damping ratio (1 settles without bouncing).
+    /// `dampingFraction` the damping ratio (1 settles without bouncing). `.spring()` with no
+    /// arguments is the duration/bounce form, as Apple's resolves it (measured 2026-10-12:
+    /// damping 1, response 0.5), so this one is disfavoured.
+    @_disfavoredOverload
     public static func spring(response: Double = 0.5, dampingFraction: Double = 0.825, blendDuration: Double = 0) -> Animation {
         let omega = 2 * Double.pi / max(response, 0.001)
         // `blendDuration` is accepted: a retargeted animation already starts from the value
@@ -286,6 +289,11 @@ public struct AnyTransition: Sendable {
     public func animation(_ animation: Animation?) -> AnyTransition {
         AnyTransition(kind: kind, animation: animation)
     }
+
+    /// Returns a transition defined between an active modifier and an identity modifier
+    /// (accepted: transitions paint as fades, moves and scales, decision 0021; the modifiers
+    /// are not applied, the view appears and disappears with the identity transition).
+    public static func modifier<E: ViewModifier>(active: E, identity: E) -> AnyTransition { AnyTransition(kind: .identity) }
 
     /// What the transition does at its "removed" end: fade, and an offset in units of the
     /// view's size plus points.

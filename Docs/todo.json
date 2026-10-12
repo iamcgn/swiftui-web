@@ -1873,11 +1873,12 @@
       "kind": "missing",
       "priority": "next",
       "title": "contentShape and the Shape shortcuts",
-      "detail": "`contentShape(_:eoFill:)` and `contentShape(_ kind:_:)` are missing entirely (hit testing of the whole frame; the shape for hover and drag previews), and the iOS 17 static shortcuts `.rect`, `.rect(cornerRadius:style:)`, `.rect(cornerRadii:)`, `.circle`, `.capsule`, `.ellipse`, `.buttonBorder`, `.containerRelative` on Shape and InsettableShape (Scrumdinger uses them in background(_:in:), contentShape and clipShape).",
-      "status": "planned",
+      "detail": "Done 2026-10-12 (Phase 10, item 3, decision 0021): `contentShape` as a node whose interaction shape answers hit tests (a gesture or control above it asks the content shape beneath, through the modifiers between; children outside the shape are not hit; the other kinds accepted), the static shortcuts `.rect`, `.rect(cornerRadius:style:)`, `.rect(cornerSize:)`, `.rect(cornerRadii:)`, `.rect(topLeadingRadius:…)`, `.circle`, `.ellipse`, `.capsule`, `.capsule(style:)`, `.containerRelative`, `.buttonBorder`, `ButtonBorderShape` as an InsettableShape and `buttonBorderShape(_:)` in the environment. `ViewNode.contains(_:)` became overridable. ContentShapeTests. Originally: `contentShape(_:eoFill:)` and `contentShape(_ kind:_:)` are missing entirely (hit testing of the whole frame; the shape for hover and drag previews), and the iOS 17 static shortcuts `.rect`, `.rect(cornerRadius:style:)`, `.rect(cornerRadii:)`, `.circle`, `.capsule`, `.ellipse`, `.buttonBorder`, `.containerRelative` on Shape and InsettableShape (Scrumdinger uses them in background(_:in:), contentShape and clipShape).",
+      "status": "done",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "sw-app-api-gaps",
@@ -1886,11 +1887,12 @@
       "kind": "missing",
       "priority": "next",
       "title": "API the surveyed apps reach for",
-      "detail": "`Button(_:systemImage:action:)` and `(_:systemImage:role:action:)`; `alert(isPresented:error:actions:)`, `alert(isPresented:error:actions:message:)`, `alert(_:isPresented:presenting:actions:message:)` and the same `presenting:` form of confirmationDialog; `Transaction(animation:)`; `AnyTransition.modifier(active:identity:)`; `Animation.spring()` is ambiguous between `spring(response:)` and `spring(duration:)` (Apple resolves to duration/bounce: `spring(response:)` needs @_disfavoredOverload); the deprecated forms apps still carry: `navigationBarTitle(_:)`, `navigationViewStyle(StackNavigationViewStyle())`, `ContentSizeCategory` and `\\.sizeCategory`, `\\.accessibilityEnabled`, `colorScheme(_:)`, `EnvironmentalModifier`.",
-      "status": "planned",
+      "detail": "Done 2026-10-12 (Phase 10, item 3, decision 0021): `Button(_:systemImage:action:)`, `(_:systemImage:role:action:)`, `(_:image:action:)`; `alert(isPresented:error:actions:)`, `alert(isPresented:error:actions:message:)`, `alert(_:isPresented:presenting:actions:message:)` and the `presenting:` confirmationDialog; `Transaction(animation:)`; `.spring()` resolving to the duration/bounce form (`spring(response:)` disfavoured, as measured); `AnyTransition.modifier(active:identity:)` accepted as identity (transitions are paint effects); the deprecated `NavigationView` (a NavigationStack) with `navigationViewStyle`, `navigationBarTitle(_:)` and `(_:displayMode:)`, `colorScheme(_:)`, `ContentSizeCategory` and `sizeCategory`, `accessibilityEnabled`, `EnvironmentalModifier` (resolved in the node's environment); WebFoundation's `ListFormatter`. The Scrumdinger port now carries only its Speech and audio mock swaps. AppAPIGapsTests. Open: `@AppStorage`/`@SceneStorage` (pf-persistence). Originally: `Button(_:systemImage:action:)` and `(_:systemImage:role:action:)`; `alert(isPresented:error:actions:)`, `alert(isPresented:error:actions:message:)`, `alert(_:isPresented:presenting:actions:message:)` and the same `presenting:` form of confirmationDialog; `Transaction(animation:)`; `AnyTransition.modifier(active:identity:)`; `Animation.spring()` is ambiguous between `spring(response:)` and `spring(duration:)` (Apple resolves to duration/bounce: `spring(response:)` needs @_disfavoredOverload); the deprecated forms apps still carry: `navigationBarTitle(_:)`, `navigationViewStyle(StackNavigationViewStyle())`, `ContentSizeCategory` and `\\.sizeCategory`, `\\.accessibilityEnabled`, `colorScheme(_:)`, `EnvironmentalModifier`.",
+      "status": "done",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "sw-scene-environment",
@@ -1899,11 +1901,12 @@
       "kind": "missing",
       "priority": "next",
       "title": "Scene environment modifiers",
-      "detail": "`WindowGroup { }.environment(object)`, `.environment(\\.key, value)` and `.environmentObject(_:)` (the common way to inject an app model) do not exist on Scene; `_WindowDescriptor.make` is a `package let`, so the root view needs wrapping in the scene modifier. Also `.onChange`, `.handlesExternalEvents` and `.backgroundTask` on Scene as accepted.",
-      "status": "planned",
+      "detail": "Done 2026-10-12 (Phase 10, item 3, decision 0021): `environment(_:)`, `environment(_:_:)` and `environmentObject(_:)` on Scene wrap every window's root (`_WindowDescriptor.make` is a var; `_ModifiedScene` replaces it), `defaultAppStorage`, `onChange(of:)` and `handlesExternalEvents` accepted. With item 2's app instance (`_appRemount`), an app-level `@StateObject` passed this way re-reads the body on change. AppAPIGapsTests.sceneEnvironmentReachesTheRoots. Originally: `WindowGroup { }.environment(object)`, `.environment(\\.key, value)` and `.environmentObject(_:)` (the common way to inject an app model) do not exist on Scene; `_WindowDescriptor.make` is a `package let`, so the root view needs wrapping in the scene modifier. Also `.onChange`, `.handlesExternalEvents` and `.backgroundTask` on Scene as accepted.",
+      "status": "done",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "sw-ios-sheet-nav",

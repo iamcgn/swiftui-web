@@ -1,3 +1,10 @@
+import Observation
+import WebCombine
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
 /// A part of an app's user interface with a life cycle managed by the system.
 @MainActor @preconcurrency
 public protocol Scene {
@@ -69,8 +76,9 @@ public struct _WindowDescriptor {
     package var commands: [_CommandMenuData] = []
     /// A `DocumentGroup`'s document operations (the runtime's New, Open and Save).
     package var documentType: _DocumentTypeBox?
-    /// Builds the root for a window; a window group over a value gets the box its binding writes to.
-    package let make: @MainActor (_WindowValueBox?) -> AnyView
+    /// Builds the root for a window; a window group over a value gets the box its binding writes
+    /// to. A scene modifier that wraps the roots (`environment`, `environmentObject`) replaces it.
+    package var make: @MainActor (_WindowValueBox?) -> AnyView
 
     package init(kind: Kind, id: String?, title: String?, valueType: Any.Type? = nil, make: @escaping @MainActor (_WindowValueBox?) -> AnyView) {
         self.kind = kind
@@ -254,6 +262,46 @@ extension Scene {
         let menus = content()._commandMenus
         return _ModifiedScene(base: self) { $0.commands += menus }
     }
+
+    // MARK: Environment on a scene (sw-scene-environment, decision 0021)
+
+    /// Wraps every window's root in `transform`: how the scene modifiers that set the
+    /// environment reach the views.
+    package func _wrappingRoots(_ transform: @escaping @MainActor (AnyView) -> AnyView) -> some Scene {
+        _ModifiedScene(base: self) { descriptor in
+            let make = descriptor.make
+            descriptor.make = { box in transform(make(box)) }
+        }
+    }
+
+    /// Places an observable object in the environment of every window's root.
+    public func environment<T: AnyObject & Observable>(_ object: T?) -> some Scene {
+        nonisolated(unsafe) let object = object
+        return _wrappingRoots { AnyView($0.environment(object)) }
+    }
+
+    /// Sets the environment value of the specified key path for every window's root.
+    public func environment<V>(_ keyPath: WritableKeyPath<EnvironmentValues, V>, _ value: V) -> some Scene {
+        nonisolated(unsafe) let value = value
+        nonisolated(unsafe) let keyPath = keyPath
+        return _wrappingRoots { AnyView($0.environment(keyPath, value)) }
+    }
+
+    /// Supplies an observable object to every window's root view hierarchy.
+    public func environmentObject<T: WebCombine.ObservableObject>(_ object: T) -> some Scene {
+        nonisolated(unsafe) let object = object
+        return _wrappingRoots { AnyView($0.environmentObject(object)) }
+    }
+
+    /// Sets the default storage of `AppStorage` in every window (accepted: one store).
+    public func defaultAppStorage(_ store: UserDefaults) -> some Scene { self }
+
+    /// Adds an action to perform when the given value changes (accepted: scenes are read once).
+    public func onChange<V: Equatable>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some Scene { self }
+    public func onChange<V: Equatable>(of value: V, initial: Bool = false, _ action: @escaping (V, V) -> Void) -> some Scene { self }
+
+    /// Specifies the external events this scene handles (accepted: one window takes them all).
+    public func handlesExternalEvents(matching conditions: Set<String>) -> some Scene { self }
 }
 
 @MainActor @preconcurrency

@@ -575,6 +575,9 @@ package final class GestureNode<Content: View, G: Gesture>: UnaryLayoutModifierN
     /// A high-priority gesture takes the press before its subviews' controls; so does a mask
     /// without `.subviews` (the subviews' gestures and controls are not offered the press).
     override package var capturesHitTesting: Bool { modifier.priority == .high || !modifier.mask.contains(.subviews) }
+
+    /// A content shape beneath the gesture decides where it is hit (sw-shape-shortcuts).
+    override package func contains(_ point: CGPoint) -> Bool { _contentShapeContains(point) ?? super.contains(point) }
     /// A mask without `.gesture` leaves the presses to the subviews (`.none` takes them and
     /// drops them, as `capturesHitTesting` keeps the subviews from them too).
     package var isInteractive: Bool { takesEvents || !modifier.mask.contains(.subviews) }

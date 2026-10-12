@@ -210,6 +210,14 @@ import WebFoundation
         #expect(UserDefaults(suiteName: nil) == nil)
     }
 
+    @Test func listFormatterJoinsAsProse() {
+        #expect(ListFormatter.localizedString(byJoining: []) == "" && ListFormatter.localizedString(byJoining: ["Ann"]) == "Ann")
+        #expect(ListFormatter.localizedString(byJoining: ["Ann", "Bo"]) == "Ann and Bo")
+        #expect(ListFormatter.localizedString(byJoining: ["Ann", "Bo", "Cy"]) == "Ann, Bo, and Cy")
+        let formatter = ListFormatter()
+        #expect(formatter.string(from: [1, 2, 3]) == "1, 2, and 3" && formatter.string(for: "x") == nil)
+    }
+
     @Test func bundleResourcesAreRelativeToTheAssets() throws {
         let bundle = try #require(Bundle(path: "/anywhere/App_Resources.resources"))
         #expect(bundle.url(forResource: "ding", withExtension: "wav")?.relativeString == "assets/ding.wav")
