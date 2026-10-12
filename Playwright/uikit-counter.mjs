@@ -20,6 +20,8 @@ const started = Date.now();
 await page.goto(url, { waitUntil: 'commit', timeout: 180000 });
 await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
 console.log(`first frame after ${((Date.now() - started) / 1000).toFixed(1)} s`);
+// A CI runner may take more than a frame to repaint: poll for the expected text (2 s at most).
+const repainted = async (ready) => { let t = await texts(); for (let i = 0; i < 20 && !ready(t); i++) { await page.waitForTimeout(100); t = await texts(); } return t; };
 const texts = async () => (await page.evaluate(() => window.__swiftuiwebDebug.displayList()))
   .filter(c => c.startsWith('drawText')).map(c => c.match(/"([^"]*)"/)[1]);
 const initial = await texts();
@@ -30,15 +32,13 @@ const box = await plus.boundingBox();
 if (!box) problems.push('no overlay button for "+"');
 else {
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await page.waitForTimeout(100);
-  const afterClick = await texts();
+  const afterClick = await repainted(t => t.includes('Count: 1'));
   if (!afterClick.includes('Count: 1')) problems.push('after click expected "Count: 1": ' + JSON.stringify(afterClick));
 }
 
 await page.locator('button[aria-label="−"]').focus();
 await page.keyboard.press('Enter');
-await page.waitForTimeout(100);
-const afterKey = await texts();
+const afterKey = await repainted(t => t.includes('Count: 0'));
 if (!afterKey.includes('Count: 0')) problems.push('after keyboard expected "Count: 0": ' + JSON.stringify(afterKey));
 
 const roles = await page.evaluate(() => window.__swiftuiwebDebug.semantics().map(n => n.role + ':' + n.label));
