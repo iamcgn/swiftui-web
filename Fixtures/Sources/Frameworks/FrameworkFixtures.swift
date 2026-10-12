@@ -23,12 +23,18 @@ public enum FrameworkFixtures {
     public static let web = Fixture("frameworks/web", size: CGSize(width: 320, height: 240)) {
         VStack(spacing: 8) {
             Text("Web").probe("title")
+            // SwiftUI's `WebView` arrived with the macOS 26 SDK (Xcode 26, Swift 6.2): an older
+            // toolchain building the harness (CI's macos-15 runner) shows the stand-in's white.
             Group {
+                #if compiler(>=6.2)
                 if #available(macOS 26.0, iOS 26.0, *) {
                     WebView(url: URL(string: "about:blank"))
                 } else {
                     Color.white
                 }
+                #else
+                Color.white
+                #endif
             }
             .probe("web")
         }

@@ -1365,7 +1365,7 @@ public static let styles = Fixture("form/styles", size: CGSize(width: 360, heigh
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "frameworks/map", file: "Fixtures/Sources/Frameworks/FrameworkFixtures.swift", firstLine: 38, lastLine: 49, declaration: #"""
+        FixtureSource(name: "frameworks/map", file: "Fixtures/Sources/Frameworks/FrameworkFixtures.swift", firstLine: 44, lastLine: 55, declaration: #"""
 /// A map of the Ferry Building with a marker.
 public static let map = Fixture("frameworks/map", size: CGSize(width: 320, height: 240)) {
     VStack(spacing: 8) {
@@ -1390,17 +1390,23 @@ public static let video = Fixture("frameworks/video", size: CGSize(width: 320, h
     .padding(16)
 }
 """#),
-        FixtureSource(name: "frameworks/web", file: "Fixtures/Sources/Frameworks/FrameworkFixtures.swift", firstLine: 22, lastLine: 36, declaration: ##"""
+        FixtureSource(name: "frameworks/web", file: "Fixtures/Sources/Frameworks/FrameworkFixtures.swift", firstLine: 22, lastLine: 42, declaration: ##"""
 /// A web view on a blank page.
 public static let web = Fixture("frameworks/web", size: CGSize(width: 320, height: 240)) {
     VStack(spacing: 8) {
         Text("Web").probe("title")
+        // SwiftUI's `WebView` arrived with the macOS 26 SDK (Xcode 26, Swift 6.2): an older
+        // toolchain building the harness (CI's macos-15 runner) shows the stand-in's white.
         Group {
+            #if compiler(>=6.2)
             if #available(macOS 26.0, iOS 26.0, *) {
                 WebView(url: URL(string: "about:blank"))
             } else {
                 Color.white
             }
+            #else
+            Color.white
+            #endif
         }
         .probe("web")
     }
@@ -12877,12 +12883,18 @@ public enum FrameworkFixtures {
     public static let web = Fixture("frameworks/web", size: CGSize(width: 320, height: 240)) {
         VStack(spacing: 8) {
             Text("Web").probe("title")
+            // SwiftUI's `WebView` arrived with the macOS 26 SDK (Xcode 26, Swift 6.2): an older
+            // toolchain building the harness (CI's macos-15 runner) shows the stand-in's white.
             Group {
+                #if compiler(>=6.2)
                 if #available(macOS 26.0, iOS 26.0, *) {
                     WebView(url: URL(string: "about:blank"))
                 } else {
                     Color.white
                 }
+                #else
+                Color.white
+                #endif
             }
             .probe("web")
         }

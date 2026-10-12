@@ -80,8 +80,9 @@ const errors = [];
 // Every console message of the current fixture, printed when the fixture never paints.
 let transcript = [];
 page.on('pageerror', e => { errors.push('pageerror: ' + e.message); transcript.push('pageerror: ' + e.message); });
-// The AsyncImage fixture loads an unreachable URL on purpose; the browser's load failure is not an error of ours.
-const expectedConsoleError = text => /never\.png|Failed to load resource/.test(text);
+// The AsyncImage fixture loads an unreachable URL on purpose, and the VideoPlayer fixture's
+// player has a file URL the page may not load; the browser's load failures are not errors of ours.
+const expectedConsoleError = text => /never\.png|Failed to load resource|Not allowed to load local resource/.test(text);
 page.on('console', m => { if (m.type() === 'error' && !expectedConsoleError(m.text())) errors.push('console: ' + m.text()); transcript.push(m.type() + ': ' + m.text()); });
 
 let failures = 0;

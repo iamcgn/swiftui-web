@@ -6,6 +6,9 @@ import WebFoundation
 #else
 import Foundation
 #endif
+#if canImport(FoundationNetworking)
+import FoundationNetworking   // Linux keeps URLRequest here
+#endif
 import SwiftUI
 import Observation
 
