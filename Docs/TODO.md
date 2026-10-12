@@ -4,10 +4,37 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| Platform | 1 | 0 | 1 | 0 |
-| **All** | **1** | 0 | 1 | 0 |
+| SwiftUI | 4 | 4 | 0 | 0 |
+| UIKit | 1 | 1 | 0 | 0 |
+| Platform | 7 | 3 | 1 | 3 |
+| **All** | **12** | 8 | 1 | 3 |
 
 ## Next (Phase 8, in order)
+
+### SwiftUI
+
+- ☐ **contentShape and the Shape shortcuts** `sw-shape-shortcuts` · Shape · missing  
+  `contentShape(_:eoFill:)` and `contentShape(_ kind:_:)` are missing entirely (hit testing of the whole frame; the shape for hover and drag previews), and the iOS 17 static shortcuts `.rect`, `.rect(cornerRadius:style:)`, `.rect(cornerRadii:)`, `.circle`, `.capsule`, `.ellipse`, `.buttonBorder`, `.containerRelative` on Shape and InsettableShape (Scrumdinger uses them in background(_:in:), contentShape and clipShape). ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **API the surveyed apps reach for** `sw-app-api-gaps` · View composition · missing  
+  `Button(_:systemImage:action:)` and `(_:systemImage:role:action:)`; `alert(isPresented:error:actions:)`, `alert(isPresented:error:actions:message:)`, `alert(_:isPresented:presenting:actions:message:)` and the same `presenting:` form of confirmationDialog; `Transaction(animation:)`; `AnyTransition.modifier(active:identity:)`; `Animation.spring()` is ambiguous between `spring(response:)` and `spring(duration:)` (Apple resolves to duration/bounce: `spring(response:)` needs @_disfavoredOverload); the deprecated forms apps still carry: `navigationBarTitle(_:)`, `navigationViewStyle(StackNavigationViewStyle())`, `ContentSizeCategory` and `\.sizeCategory`, `\.accessibilityEnabled`, `colorScheme(_:)`, `EnvironmentalModifier`. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **Scene environment modifiers** `sw-scene-environment` · App · missing  
+  `WindowGroup { }.environment(object)`, `.environment(\.key, value)` and `.environmentObject(_:)` (the common way to inject an app model) do not exist on Scene; `_WindowDescriptor.make` is a `package let`, so the root view needs wrapping in the scene modifier. Also `.onChange`, `.handlesExternalEvents` and `.backgroundTask` on Scene as accepted. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **NavigationStack inside a sheet** `sw-ios-sheet-nav` · iOS profile · approximate  
+  On the iOS profile a sheet whose content is a NavigationStack: its navigationTitle replaces the presenting stack's bar title (`Runtime.navigationTitle` is one value for the window), no bar is drawn when the title is empty even with toolbar items (NavigationNodes.swift `bar(over:)` wants a title or a back button), and the stack's toolbar items are never painted (PresentationNodes drops the sheet toolbar when sheets fill the window). Scrumdinger's add/edit sheets lose their Dismiss and Add buttons. Also an image-only toolbar Button gets an empty accessibility label (SwiftUI derives it from the symbol name). Goldens: a sheet with an inline untitled bar and items, from the simulator. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+
+### UIKit
+
+- ☐ **UIApplicationDelegateAdaptor and app-level UIKit** `uk-app-delegate-adaptor` · App · missing  
+  `@UIApplicationDelegateAdaptor` (and the `UISceneConfiguration.delegateClass` / `UIWindowSceneDelegate` route to a scene delegate), `UIApplication.keyboardWillShowNotification` / `keyboardWillHideNotification` with `UIResponder.keyboardFrameEndUserInfoKey` (the host's text input focus), `UIApplication.openSettingsURLString`, `UIBackgroundFetchResult`, `UIMenuBuilder` and `UIMenu.Identifier` as accepted. A non-final `UIApplicationDelegate` still needs `required init()` and `#selector` has no equivalent (documented). ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+
+### Platform
+
+- ☐ **`import Foundation` on wasm** `pf-foundation-module` · wasm · missing  
+  An app file that imports Foundation next to SwiftUI fails on wasm: URL, Data, DateFormatter and NumberFormatter are ambiguous between the SDK's Foundation and WebFoundation's stand-ins (decision 0017), and libm (`log2`, `pow`), Dispatch, Observation (`@Observable` under `import Foundation`) and `Bundle` are out of scope where Apple's Foundation re-exports them. A package module named `Foundation`, linked only on wasm, that re-exports WebFoundation, WASILibc, Observation and Dispatch and declares `Bundle` (`main`, `module` for SPM resource targets, `url(forResource:)`), with the `bundle:` labels on `Color` and `Image`; SPM's generated resource accessor then compiles too. All three surveyed apps hit this. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **`import Combine` on wasm** `pf-combine-module` · wasm · missing  
+  `import Combine` is `no such module` on wasm; the Combine-free publishers live in SwiftUIWebCore (Just, the subjects, Timer.publish, objectWillChange, `$published`) without operators, `AnyPublisher`, `Cancellable` or a completion path, and `PassthroughSubject.send` is @MainActor where Combine's is nonisolated. A `Combine` module, linked only on wasm, over the same publishers: `AnyPublisher`/`eraseToAnyPublisher`, `Cancellable`, `map`, `filter`, `compactMap`, `removeDuplicates`, `first`, `Publishers.Merge`, `CombineLatest`, `Fail`, `Future`, `sink(receiveCompletion:receiveValue:)`, `store(in: &Set<AnyCancellable>)`, `assign`, `debounce` and `receive(on:)`; completion and failure through the subscription. 2048 and Countries import it; on macOS native Apple's Combine stays and `import Foundation` + `import SwiftUI` leaves ObservableObject ambiguous (recorded, not solved here). ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **Open-source apps as a check** `ap-app-ports` · Examples · infra  
+  The three surveyed apps (SwiftUI-2048, Scrumdinger, clean-architecture-swiftui) built unmodified from pinned commits by a script (`scripts/check-apps.sh`: clone, wrap in a package over SwiftUIWeb, build for wasm, screenshot the first frame in Playwright) once the gaps above close; the remaining per-app patches listed in the decision shrink to the wontfix set. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
 ## Soon (the gap sweep)
 
@@ -17,6 +44,15 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   Japanese and Chinese IMEs and Safari autofill through the overlay input (spike 0.12's risk), a VoiceOver session in Safari; the findings recorded per browser in the matrix. ([ROADMAP.md](Docs/ROADMAP.md))
 
 ## Later (needs a decision, a subsystem or a platform)
+
+### Platform
+
+- ☐ **URLSession over fetch** `pf-urlsession` · wasm · missing  
+  No `URLSession` anywhere: `URLSession.shared` and `URLSession(configuration:)` with `data(for:)`, `data(from:)`, the completion-handler forms and `dataTaskPublisher`, `URLRequest` (method, headers, body), `HTTPURLResponse` (statusCode, headers), `URLError` and `URLSessionConfiguration`, over the browser's fetch (CORS applies) on wasm and Foundation's own elsewhere. The Countries app's web repositories are unreachable without it; most apps load something. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **SwiftData** `pf-swiftdata` · wasm · missing  
+  `@Model`, `@Attribute`, `@Relationship`, `#Predicate` and `@ModelActor` macros, `ModelContainer`, `ModelContext` (insert, delete, fetch, save), `FetchDescriptor` with sort and predicate, `@Query` and `.modelContainer(for:)`: a macro package plus an in-memory store persisted to IndexedDB on wasm (decision needed: scope of the predicate language). The Countries app and Backyard Birds are built on it. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
+- ☐ **Durable files on wasm** `pf-persistence` · wasm · accepted  
+  `FileManager.default.urls(for: .documentDirectory)`, `Data.write(to:)` and `Data(contentsOf:)`, `UserDefaults` and `@AppStorage` compile on wasm but nothing survives a reload (Scrumdinger's FileService loads 'The file doesn't exist' and could not save). A document directory backed by the origin private file system (or localStorage for small files), and UserDefaults over localStorage. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
 ## Landed
 
@@ -151,3 +187,4 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ✕ **Image(nsImage:) and Image(cgImage:)** `sw-nsimage` · SwiftUI: No CGImage or NSImage exists on wasm; `Image(cgImage:)` could work natively only. Non-goal for the browser; the native painter may add it with the AppKit decision (ix-appkit).
 - ✕ **onDrag / onDrop with NSItemProvider** `sw-itemprovider` · SwiftUI: NSItemProvider and NSString do not exist on wasm; `draggable`/`dropDestination` are the portable forms. Non-goal.
 - ✕ **Storyboards and nibs** `uk-storyboards` · UIKit: Interface Builder archives are undocumented binary formats; apps port their scenes to code. Non-goal.
+- ✕ **Speech, audio sessions, push, @objc** `pf-non-web-frameworks` · Platform: Wontfix: `Speech` (SFSpeechRecognizer), `AVAudioSession`, `AVAudioEngine`, `AVAudioPlayer`, `UserNotifications` (push registration) and `@objc` / `#selector` (no Objective-C runtime on wasm: the compiler rejects the attribute). Apps isolate these behind protocols (Scrumdinger's services) and the web build swaps the implementation; the matrix records them as not applicable.

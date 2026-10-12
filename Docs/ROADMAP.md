@@ -498,6 +498,24 @@ painter and a GTK window. `pf-browser-sessions` stays open until a person runs t
 | 47 `pf-linux` | 2026-10-12 (decision 0018): `Packages/WebGraphics`' `WebGraphicsCairo` paints the display list into a `cairo_t` (fills, strokes, clips, transforms, gradients, images, opacity / blend / mask groups, shadows as an offset mask, toy-font text over the shared `TextLayouter` with the San Francisco line metrics) and builds on Linux and macOS (`CairoPainterTests`, `CairoTextEngineTests`); `Packages/LinuxHost` opens a GTK4 window (`GTKSceneHost`: a `GtkDrawingArea` painted by the Cairo painter, GTK4's click, motion, scroll and key controllers into the scene, a tick callback for the frame clock, typing into the focused field) with `gtk-counter` as the Counter app and `GTKHostTests` painting into an image surface without a display; `Packages/WebKitHost`'s `gtk-host` is Tools/Host for Linux (a static server and a `WebKitWebView` in a GTK4 window), built in CI against `libwebkitgtk-6.0-dev` and not yet run under a display. The Linux job installs `libcairo2-dev`, `libgtk-4-dev` and `libwebkitgtk-6.0-dev`; the macOS job `cairo`. `Docs/elements/Linux.md`. |
 | 48 `sw-frameworks` | 2026-10-12 (decision 0018): `Sources/Charts` — `import Charts` unchanged: `Chart` with `BarMark`, `LineMark`, `PointMark`, `AreaMark`, `RuleMark`, `RectangleMark`, `PlottableValue`, the mark modifiers (series colouring with a legend, stacking and dodging, annotations as canvas symbols, interpolation, symbols), `AxisMarks` with grid lines, labels, formats and positions, the scale, legend, axis-title, plot-style and overlay/background modifiers with a `ChartProxy`; painted into an unclipped `Canvas` with the geometry measured from Apple's Charts on macOS 27 (`charts/bar`, `line`, `area`, `scales`: Tier C 0.1–1.5 %, Tier B 0.3–1.7 %; the canvas now resolves erased flat styles as colours). `Sources/MapKit` + `CoreLocation`: `Map` painted from OpenStreetMap raster tiles by Web Mercator with `Marker`s and `Annotation`s; `Sources/AVKit` + `AVFoundation` and `Sources/WebKit`: `VideoPlayer` and `WebView` as **host elements** (`_HostElementAnchor`, `HostedScene.hostElements()`, `PaintContext.clipRect`) that the browser host mirrors as a `<video>` / `<iframe>` layer over the canvas, with painted stand-ins elsewhere (`frameworks/*` frames-only; `Playwright/frameworks-probe.mjs`). `ChartsTests` (10), `FrameworksTests` (5). `Docs/elements/Charts.md`, `Docs/elements/Frameworks.md`. |
 
+### Phase 10 — Open-source apps, unmodified (decision 0021)
+
+Three iOS apps built as they are over this package (SwiftUI-2048, Scrumdinger,
+clean-architecture-swiftui; decision 0021 has the survey): the module-level gaps first (a
+`Foundation` module for wasm over WebFoundation with libm, Dispatch, Observation and `Bundle`;
+a `Combine` module over the Combine-free publishers), then the API the apps reach for
+(`contentShape`, the `Shape` shortcuts, `Button(systemImage:)`, the error and `presenting:`
+alerts, `Transaction(animation:)`, `AnyTransition.modifier`, `Scene.environment`, the deprecated
+navigation forms, `@UIApplicationDelegateAdaptor`), the iOS sheet bar, and `scripts/check-apps.sh`
+building the apps from pinned commits as a standing check. `URLSession`, durable files and
+SwiftData follow with decisions of their own; Speech, audio sessions, push and `@objc` are
+wontfix.
+
+### Phase 10 status
+
+| Item | Status |
+|---|---|
+
 ## Risk register
 
 | Risk | Mitigation |
