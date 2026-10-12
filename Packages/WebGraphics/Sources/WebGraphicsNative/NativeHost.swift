@@ -62,8 +62,25 @@ public final class NativeSceneHost: NSObject, NSApplicationDelegate {
 
     /// Shows the sharing picker for `items` (URLs as URLs, anything else as text) over the view.
     public func share(items: [String], subject: String?) {
+        share(items: items, subject: subject, message: nil, files: [])
+    }
+
+    /// Shows the sharing picker for links, texts, the message, and data (images as `NSImage`s,
+    /// other data written to a temporary file named after the item).
+    public func share(items: [String], subject: String?, message: String?, files: [(data: [UInt8], name: String, mimeType: String)]) {
         guard let view else { return }
-        let objects: [Any] = items.map { item -> Any in URL(string: item).flatMap { $0.scheme != nil ? $0 : nil } ?? item }
+        var objects: [Any] = []
+        if let message { objects.append(message) }
+        objects += items.map { item -> Any in URL(string: item).flatMap { $0.scheme != nil ? $0 : nil } ?? item }
+        for file in files {
+            let data = Data(file.data)
+            if file.mimeType.hasPrefix("image/"), let image = NSImage(data: data) {
+                objects.append(image)
+            } else {
+                let url = FileManager.default.temporaryDirectory.appendingPathComponent(file.name)
+                if (try? data.write(to: url)) != nil { objects.append(url) }
+            }
+        }
         let picker = NSSharingServicePicker(items: objects)
         picker.show(relativeTo: NSRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1), of: view, preferredEdge: .minY)
     }

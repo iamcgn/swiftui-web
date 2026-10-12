@@ -33,7 +33,7 @@ public final class NativeHost {
         host.prepare = { [weak self] in
             guard let self else { return }
             OpenURLAction.systemHandler = { url in host.openURL(url) }
-            ShareAction.systemHandler = { items, subject in host.share(items: items, subject: subject) }
+            ShareAction.systemHandler = { request in host.share(items: request.strings, subject: request.subject, message: request.message, files: request.files) }
             self.runtime.mount(self.root())
         }
     }

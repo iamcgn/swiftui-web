@@ -526,9 +526,9 @@
           ]
         },
         {
-          "api": "ShareLink (item(s), title, custom label) / ShareAction.systemHandler",
+          "api": "ShareLink (item(s), title, custom label, Transferable items with SharePreview) / ShareAction.systemHandler",
           "status": "partial",
-          "notes": "A bordered button with the share symbol; the browser's Web Share and the native NSSharingServicePicker; no Transferable items or previews",
+          "notes": "A bordered button with the share symbol; Transferable items reach the host as links, texts or typed data with the subject, message and preview title (2026-10-11); the browser's Web Share (files where canShare allows) and the native NSSharingServicePicker (images, files); Link shows the hand pointer on hover; the sheet's own looks are the host's",
           "fixtures": [
             "sharelink/basic"
           ]

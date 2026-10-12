@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 11 | 0 | 0 | 11 |
+| SwiftUI | 10 | 0 | 0 | 10 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **27** | 0 | 1 | 26 |
+| **All** | **26** | 0 | 1 | 25 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **ShareLink items and previews** `sw-sharelink` · ShareLink · missing  
-  `Transferable` items, `SharePreview`, `message`; the browser's `navigator.share` and the native sharing service picker behind it; hover looks for `Link`. ([ShareLink.md](Docs/elements/ShareLink.md), [Link.md](Docs/elements/Link.md))
 - ☐ **Toolbar modifiers with an effect** `sw-toolbar` · Toolbar · accepted  
   `toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode` (accepted today), `toolbar(id:)` customisation, `ToolbarCommands`, sheet toolbars, a real `NSToolbar` in the native host. ([Toolbar.md](Docs/elements/Toolbar.md))
 - ☐ **NavigationSplitView chrome** `sw-splitview` · Navigation · approximate  
@@ -107,6 +105,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Contrast and per-presentation schemes** `sw-dark` · SwiftUI · Dark mode
 - ☑ 2026-10-11 **Timeline modes and pausing** `sw-timeline` · SwiftUI · TimelineView
 - ☑ 2026-10-11 **Rendering previews** `sw-previews` · SwiftUI · Preview
+- ☑ 2026-10-11 **ShareLink items and previews** `sw-sharelink` · SwiftUI · ShareLink
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

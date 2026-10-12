@@ -34,4 +34,4 @@ the disabled look, the system opener, custom handlers and redirects.
 
 ## Not yet covered
 
-Hover looks (a pointing hand), underline on hover, `ShareLink`. `Link` inside `Text` markdown (`[text](url)`) and the `link` attribute of an attributed string open through `openURL` since 2026-10-03 (Docs/elements/Text.md, "Rich text").
+A pointing hand on hover since 2026-10-11 (`pointerStyle(.link)`; no underline, as macOS). Open: `ShareLink` inside menus. `Link` inside `Text` markdown (`[text](url)`) and the `link` attribute of an attributed string open through `openURL` since 2026-10-03 (Docs/elements/Text.md, "Rich text").

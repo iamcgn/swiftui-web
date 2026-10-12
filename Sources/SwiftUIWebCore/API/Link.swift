@@ -23,10 +23,13 @@ public struct Link<Label: View>: View {
         let openURL = openURL
         // The label snaps to the pixel grid like a control's (link/basic `customLabel`); the
         // plain style dims a disabled link to 50 % (`buttonPlainDisabledAlpha`).
+        // Hovered, the pointer is the pointing hand (`pointerStyle(.link)`: the browser's and
+        // AppKit's hand cursor); the text keeps its look (sw-sharelink, 2026-10-11).
         return Button(action: { openURL(destination) }) {
             label.foregroundColor(Color(storage: .system(.link)))._pixelAligned()
         }
         .buttonStyle(.plain)
+        .pointerStyle(.link)
     }
 }
 

@@ -35,7 +35,7 @@ public final class CanvasHost {
         // Links open in a new tab; share links use Web Share where the browser offers it.
         let host = self.host
         OpenURLAction.systemHandler = { url in host.openURL(url.absoluteString) }
-        ShareAction.systemHandler = { items, subject in host.share(items: items, subject: subject) }
+        ShareAction.systemHandler = { request in host.share(items: request.strings, subject: request.subject, message: request.message, files: request.files) }
     }
 
     /// Mounts (or replaces) the root view and schedules a frame.

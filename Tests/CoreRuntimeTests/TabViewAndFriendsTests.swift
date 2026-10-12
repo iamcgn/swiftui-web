@@ -121,7 +121,7 @@ import SwiftUIWebHeadless
 
     @Test func shareLink() {
         let box = _ShareBox()
-        ShareAction.systemHandler = { items, subject in box.items = items; box.subject = subject }
+        ShareAction.systemHandler = { request in box.items = request.strings; box.subject = request.subject; box.request = request }
         defer { ShareAction.systemHandler = nil }
         let r = runtime(ShareLink(item: URL(string: "https://www.apple.com")!, subject: Text("Retry"))._probe("share"))
         // A bordered button: 12 + the symbol (14.5) + 8 + "Share…" + 12, the symbol's 17.5 + 8 tall.
@@ -131,12 +131,46 @@ import SwiftUIWebHeadless
         let share = r.probeFrames["share"]!
         r.pointerDown(at: CGPoint(x: share.midX, y: share.midY)); r.pointerUp(at: CGPoint(x: share.midX, y: share.midY))
         #expect(box.items == ["https://www.apple.com"] && box.subject == "Retry")
+        // sw-sharelink: Transferable items with previews reach the host as links, texts or data
+        // with a type (a file for Web Share, an image or a file natively), with the message and
+        // the preview's title; a Color's data form and a custom type's proxy to a URL.
+        struct Photo: Transferable {
+            static var transferRepresentation: some TransferRepresentation<Photo> {
+                DataRepresentation(contentType: .png, exporting: { _ in Data([0x89, 0x50]) }, importing: { _ in Photo() })
+            }
+        }
+        struct Post: Transferable {
+            static var transferRepresentation: some TransferRepresentation<Post> {
+                ProxyRepresentation(exporting: { _ in URL(string: "https://example.com/post")! })
+            }
+        }
+        let t = runtime(VStack {
+            ShareLink(item: Photo(), message: Text("Look"), preview: SharePreview("Sunset", image: Photo()))._probe("photo")
+            ShareLink("Post", item: Post(), preview: SharePreview("A post"))._probe("post")
+            ShareLink(items: ["one", "two"], subject: Text("Two"), message: Text("Both")) { Text("Retry") }._probe("texts")
+        })
+        let photo = t.probeFrames["photo"]!
+        t.pointerDown(at: CGPoint(x: photo.midX, y: photo.midY)); t.pointerUp(at: CGPoint(x: photo.midX, y: photo.midY))
+        #expect(box.request?.items == [_ShareItem(.data(Data([0x89, 0x50]), type: .png))] && box.request?.message == "Look" && box.request?.previewTitle == "Sunset")
+        #expect(box.request?.files.map { ($0.name, $0.mimeType) }.first.map { "\($0.0) \($0.1)" } == "Sunset.png image/png")
+        let post = t.probeFrames["post"]!
+        t.pointerDown(at: CGPoint(x: post.midX, y: post.midY)); t.pointerUp(at: CGPoint(x: post.midX, y: post.midY))
+        #expect(box.request?.items == [_ShareItem(.url("https://example.com/post"))] && box.request?.previewTitle == "A post")
+        let texts = t.probeFrames["texts"]!
+        t.pointerDown(at: CGPoint(x: texts.midX, y: texts.midY)); t.pointerUp(at: CGPoint(x: texts.midX, y: texts.midY))
+        #expect(box.request?.strings == ["one", "two"] && box.request?.subject == "Two" && box.request?.message == "Both" && box.request?.files.isEmpty == true)
+        // A Link shows the pointing hand while hovered.
+        let l = runtime(Link("Retry", destination: URL(string: "https://www.apple.com")!)._probe("link"))
+        let link = l.probeFrames["link"]!
+        l.pointerMoved(to: CGPoint(x: link.midX, y: link.midY))
+        #expect(l.pointerStyle == .link, "\(link)")
     }
 }
 
 private final class _ShareBox: @unchecked Sendable {
     var items: [String] = []
     var subject: String?
+    var request: _ShareRequest?
 }
 #endif
 

@@ -234,10 +234,37 @@ public final class CanvasSceneHost {
     /// Shares `items` through Web Share where the browser offers it (a user gesture must be in
     /// flight): a single URL as a link, anything else as text.
     public func share(items: [String], subject: String?) {
+        share(items: items, subject: subject, message: nil, files: [])
+    }
+
+    /// Shares links and texts, a message, and data as files (Web Share level 2: `files` go
+    /// only where `navigator.canShare` accepts them; a title from the subject, the message
+    /// before the texts).
+    public func share(items: [String], subject: String?, message: String?, files: [(data: [UInt8], name: String, mimeType: String)]) {
         guard let navigator = JSObject.global.navigator.object, navigator.share.function != nil else { return }
         let data = JSObject.global.Object.function!.new()
-        if let first = items.first, first.hasPrefix("http") { data.url = .string(first) } else { data.text = .string(items.joined(separator: "\n")) }
+        var texts: [String] = []
+        if let message { texts.append(message) }
+        for item in items {
+            if data.url.isUndefined, item.hasPrefix("http") { data.url = .string(item) } else { texts.append(item) }
+        }
+        if !texts.isEmpty { data.text = .string(texts.joined(separator: "\n")) }
         if let subject { data.title = .string(subject) }
+        if !files.isEmpty, let fileConstructor = JSObject.global.File.function {
+            let list = JSObject.global.Array.function!.new()
+            for file in files {
+                let bytes = JSTypedArray<UInt8>(file.data)
+                let parts = JSObject.global.Array.function!.new()
+                _ = parts.push!(bytes.jsValue)
+                let options = JSObject.global.Object.function!.new()
+                options.type = .string(file.mimeType)
+                _ = list.push!(fileConstructor.new(parts, file.name, options))
+            }
+            data.files = .object(list)
+            if let canShare = navigator.canShare.function, !(canShare(this: navigator, data).boolean ?? false) {
+                _ = JSObject.global.Reflect.object?.deleteProperty?(data, "files")
+            }
+        }
         _ = navigator.share!(data)
     }
 

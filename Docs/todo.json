@@ -1475,14 +1475,15 @@
       "framework": "SwiftUI",
       "area": "ShareLink",
       "title": "ShareLink items and previews",
-      "detail": "`Transferable` items, `SharePreview`, `message`; the browser's `navigator.share` and the native sharing service picker behind it; hover looks for `Link`.",
+      "detail": "`Transferable` items, `SharePreview`, `message`; the browser's `navigator.share` and the native sharing service picker behind it; hover looks for `Link`. Done 2026-10-11 (Phase 9, item 23): `Transferable` items and `SharePreview` (links, texts and typed data from the representations in order), `message` and the preview title in the request, Web Share with `File`s behind `canShare`, the native picker with `NSImage`s and temporary files; `Link` shows the pointing hand on hover.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/ShareLink.md",
         "Docs/elements/Link.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-toolbar",
