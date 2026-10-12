@@ -113,10 +113,15 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     /// The visible rows: every top-level row and, under the expanded ones, their children.
     private func rows() -> [_TableRow] {
         var result: [_TableRow] = []
+        // No closures over `row`: the release wasm build's region isolation would count the
+        // main-actor-isolated closures as sending the (non-Sendable) row.
         func add(_ row: Value, level: Int) {
-            let kids = children.flatMap { row[keyPath: $0] }
+            var kids: [Value]?
+            if let children { kids = row[keyPath: children] }
             let id = AnyHashable(row.id)
-            result.append(_TableRow(id: id, cells: columns.map { $0.content(row) }, level: level, hasChildren: kids != nil, isExpanded: expanded.contains(id)))
+            var cells: [AnyView] = []
+            for column in columns { cells.append(column.content(row)) }
+            result.append(_TableRow(id: id, cells: cells, level: level, hasChildren: kids != nil, isExpanded: expanded.contains(id)))
             if let kids, expanded.contains(id) { for kid in kids { add(kid, level: level + 1) } }
         }
         for row in data { add(row, level: 0) }

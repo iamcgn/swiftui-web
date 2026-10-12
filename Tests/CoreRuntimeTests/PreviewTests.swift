@@ -61,9 +61,14 @@ struct Greeting: PreviewModifier {
         }
         let texts = m.render(scale: 1).commands.map(\.description).filter { $0.hasPrefix("drawText") }
         #expect(texts.contains { $0.hasPrefix("drawText(\"Hi\"") } && texts.contains { $0.hasPrefix("drawText(\"Body\"") }, "\(texts)")
-        // Registered previews (the generated index) join the list once.
+        // Registered previews (the generated index) join the list once: the three discovered
+        // ones stay three on Apple platforms; on Linux the registered one is the only one.
         _PreviewRegistry.registered = [previews[1]]
+        #if canImport(MachO)
         #expect(_PreviewRegistry.all.filter { $0.file.hasSuffix("PreviewTests.swift") }.count == 3)
+        #else
+        #expect(_PreviewRegistry.all.filter { $0.file.hasSuffix("PreviewTests.swift") }.count == 1)
+        #endif
         _PreviewRegistry.registered = []
     }
 }
