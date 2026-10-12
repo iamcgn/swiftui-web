@@ -5,6 +5,7 @@ import Testing
 import SwiftUI
 import SwiftUIWebHeadless
 
+#if !os(WASI)   // the wasm test build has no MonospaceTextEngine (TextSelectionTests) and no conformance scan
 #Preview {
     Text("Hello preview")
 }
@@ -72,3 +73,4 @@ struct Greeting: PreviewModifier {
         _PreviewRegistry.registered = []
     }
 }
+#endif
