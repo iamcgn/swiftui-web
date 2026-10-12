@@ -5,11 +5,10 @@
 // the session targeted and asked for its proposal, the drop performed on release. The host's
 // external entry points (`HostedScene`, sw-dragdrop-os) carry a session across the app
 // boundary the same way SwiftUI's runtime does: the items' providers become MIME items.
-#if os(WASI)
-import WebFoundation
-#else
+#if !os(WASI)
 import Foundation
 #endif
+import WebFoundation   // Foundation everywhere, and the NSItemProvider stand-in where ObjectiveC is absent (wasm, Linux)
 
 /// What a drop does with the items.
 public enum UIDropOperation: UInt, Sendable { case cancel = 0, forbidden, copy, move }
