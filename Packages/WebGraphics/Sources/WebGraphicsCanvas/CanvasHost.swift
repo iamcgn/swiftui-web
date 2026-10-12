@@ -1695,7 +1695,23 @@ public final class CanvasSceneHost {
             return .boolean(true)
         }
         let dragging = JSClosure { [weak self] _ in .boolean(self?.scriptedDrag != nil) }
-        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics, foundation, drag, dragging]
+        // bench(n): milliseconds for n iterations of plain Swift arithmetic over an array, the
+        // speed of this module's wasm tier on the device, against the same loop in JavaScript.
+        let bench = JSClosure { [weak self] arguments in
+            guard let self else { return .undefined }
+            let n = Int(arguments.first?.number ?? 1_000_000)
+            let start = self.now
+            var values = [Double](repeating: 1, count: 1024)
+            var acc = 0.0
+            for i in 0..<n {
+                let j = i & 1023
+                values[j] = values[j] * 0.5 + Double(i & 255) * 0.25
+                acc += values[j].squareRoot()
+            }
+            return .number((self.now - start) * 1000 + (acc.isNaN ? 1 : 0))
+        }
+        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics, foundation, drag, dragging, bench]
+        debug.bench = .object(bench)
         debug.drag = .object(drag)
         debug.dragging = .object(dragging)
         debug.foundation = .object(foundation)

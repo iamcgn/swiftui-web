@@ -143,7 +143,17 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
             entries[index].placeholder = nil
             changed = true
         }
+        if changed { didMaterialize() }
         return changed
+    }
+
+    /// Elements were created inside a layout pass: the estimate the remaining placeholders are
+    /// sized by changes, so their memos go, with this node's and its ancestors'; nothing else on
+    /// the page is re-measured.
+    private func didMaterialize() {
+        estimate = nil
+        for entry in entries { entry.placeholder?.invalidateSizeMemo() }
+        invalidateSizeMemosUpward()
     }
 
     /// The placeholder element identified by `id` (its own id, or the `id(_:)` on its content).
@@ -169,6 +179,7 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
         placeholder.unmount()
         entries[index].node = node
         entries[index].placeholder = nil
+        didMaterialize()
         return true
     }
 

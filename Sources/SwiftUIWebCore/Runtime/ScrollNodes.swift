@@ -227,8 +227,8 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         if let target = pendingTarget {
             pendingTarget = nil
             // A lazy element not created yet is created where its placeholder sits.
+            // The provider forgets the memos the new element changes (its own and its ancestors').
             if targetRect(id: target.id) == nil, lazyProviders.contains(where: { $0.materialize(id: target.id) }) {
-                runtime.invalidateSizeMemos()
                 contentSize = child.sizeThatFits(contentProposal)
                 lastContentSize = contentSize
                 placeContent(proposal: contentProposal)
@@ -289,7 +289,6 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
             for provider in lazyProviders where provider.materialize(visible: window, contentOrigin: origin) { changed = true }
             guard changed else { return }
             passes += 1
-            runtime.invalidateSizeMemos()
             contentSize = child.sizeThatFits(proposal)
             lastContentSize = contentSize
             contentOffset = clamped(contentOffset)

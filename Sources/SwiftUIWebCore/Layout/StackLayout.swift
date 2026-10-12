@@ -243,8 +243,28 @@ package enum _StackAxisLayout {
         package var length: CGFloat { sizes.reduce(0) { $0 + $1.width } }
     }
 
+    private struct PlanKey: Hashable {
+        let axis: Axis
+        let guide: AlignmentKey
+        let spacing: CGFloat?
+        let proposal: ProposedViewSize
+    }
+
+    /// The plan for `proposal`, memoised on the container for the layout pass: sizing, placing
+    /// and each alignment guide the container's own stack asks for all plan the same way, and
+    /// a plan asks every child stack for its plan in turn.
     package static func plan(axis: Axis, guide: AlignmentKey, spacing: CGFloat?,
                              proposal: ProposedViewSize, subviews: LayoutSubviews) -> Plan {
+        guard let container = subviews.first?.container else {
+            return makePlan(axis: axis, guide: guide, spacing: spacing, proposal: proposal, subviews: subviews)
+        }
+        return container.memoisedPlan(for: PlanKey(axis: axis, guide: guide, spacing: spacing, proposal: proposal)) {
+            makePlan(axis: axis, guide: guide, spacing: spacing, proposal: proposal, subviews: subviews)
+        }
+    }
+
+    private static func makePlan(axis: Axis, guide: AlignmentKey, spacing: CGFloat?,
+                                 proposal: ProposedViewSize, subviews: LayoutSubviews) -> Plan {
         let gaps = StackLayoutEngine.spacings(subviews, axis: axis, explicit: spacing)
         let totalSpacing = gaps.reduce(0, +)
         let cross = proposal[axis.perpendicular]

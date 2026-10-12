@@ -665,6 +665,9 @@ enum PainterScript {
         let lastCount = debug.frameCount(), lastT = null, report = '';
         const stat = v => { if (!v.length) return '-'; const s = [...v].sort((a, b) => a - b); const q = p => s[Math.min(s.length - 1, Math.floor(p * s.length))]; return q(0.5).toFixed(1) + '/' + q(0.9).toFixed(1) + '/' + s[s.length - 1].toFixed(1); };
         const probe = (() => { try { const p = new OffscreenCanvas(1, 1).getContext('2d'); p.filter = 'blur(1px)'; return 'filter ' + (p.filter !== 'none' && p.filter !== '' ? 'yes' : 'no') + ' reset ' + (typeof p.reset === 'function' ? 'yes' : 'no'); } catch (e) { return 'no OffscreenCanvas'; } })();
+        // The engine's speed on this device: 5 M iterations of the same arithmetic loop in the
+        // module's wasm and in JavaScript (a JIT-less engine runs both some 20 times slower).
+        const speed = (() => { const n = 5000000; const t0 = performance.now(); const values = new Float64Array(1024).fill(1); let acc = 0; for (let i = 0; i < n; i++) { const j = i & 1023; values[j] = values[j] * 0.5 + (i & 255) * 0.25; acc += Math.sqrt(values[j]); } const js = performance.now() - t0 + (isNaN(acc) ? 1 : 0); return 'wasm ' + (debug.bench ? debug.bench(n).toFixed(0) : '-') + ' ms  js ' + js.toFixed(0) + ' ms (5M loop)'; })();
         const tick = t => {
           if (lastT !== null) { gaps.push(t - lastT); if (gaps.length > 120) gaps.shift(); }
           lastT = t;
@@ -678,7 +681,7 @@ enum PainterScript {
               '\nlayout ' + stat(frames.map(f => f.layout)) + '  render ' + stat(frames.map(f => f.render)) +
               '\nencode ' + stat(frames.map(f => f.encode)) + '  paint ' + stat(frames.map(f => f.paint)) +
               '\nsemantics ' + stat(frames.map(f => f.semantics)) + '  overlay ' + stat(frames.map(f => f.overlay)) +
-              '\nops ' + last.ops + '  dpr ' + devicePixelRatio + '  canvas ' + (canvas ? canvas.width + 'x' + canvas.height : '-') + '  pool ' + pool.length + '  ' + probe;
+              '\nops ' + last.ops + '  dpr ' + devicePixelRatio + '  canvas ' + (canvas ? canvas.width + 'x' + canvas.height : '-') + '  pool ' + pool.length + '  ' + probe + '\n' + speed;
             text.textContent = report;
           }
           requestAnimationFrame(tick);

@@ -57,6 +57,10 @@ open class ViewNode {
 
     private var sizeCache: [ProposedViewSize: CGSize] = [:]
     private var sizeCacheGeneration: UInt64 = 0
+    /// A layout's intermediate result for a proposal (a stack's plan), memoised with the sizes:
+    /// a stack plans for its size, again to place, and once more for each alignment guide its
+    /// container asks for, and every plan asks the children for theirs.
+    private var planCache: [AnyHashable: Any] = [:]
 
     package init(parent: ViewNode?, runtime: Runtime, environment: EnvironmentValues) {
         self.runtime = runtime
@@ -158,11 +162,7 @@ open class ViewNode {
 
     /// The size this node wants for `proposal`, memoised for the duration of one layout pass.
     package final func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        let generation = runtime.layoutGeneration
-        if sizeCacheGeneration != generation {
-            sizeCache.removeAll(keepingCapacity: true)
-            sizeCacheGeneration = generation
-        }
+        refreshSizeMemo()
         if let cached = sizeCache[proposal] { return cached }
         // The platform metrics of this node's profile, for it and its subtree (restored for the
         // caller: a macOS stack may hold an iOS subtree).
@@ -171,6 +171,42 @@ open class ViewNode {
         let size = computeSizeThatFits(proposal)
         sizeCache[proposal] = size
         return size
+    }
+
+    /// Forgets this node's memoised sizes and its ancestors' (theirs are computed from it):
+    /// a subtree that changed inside one layout pass, such as a lazy element created where a
+    /// placeholder stood. Every other node keeps its memo, where a generation bump
+    /// (`Runtime.invalidateSizeMemos`) would re-measure the whole tree.
+    package final func invalidateSizeMemosUpward() {
+        var node: ViewNode? = self
+        while let current = node {
+            current.invalidateSizeMemo()
+            node = current.parent
+        }
+    }
+
+    /// Forgets this node's memoised sizes alone.
+    package final func invalidateSizeMemo() {
+        sizeCache.removeAll(keepingCapacity: true)
+        planCache.removeAll(keepingCapacity: true)
+    }
+
+    /// The memos go when the runtime's layout generation moved on.
+    private func refreshSizeMemo() {
+        let generation = runtime.layoutGeneration
+        if sizeCacheGeneration != generation {
+            invalidateSizeMemo()
+            sizeCacheGeneration = generation
+        }
+    }
+
+    /// `make()`'s result for `key`, memoised like the sizes (see `planCache`).
+    package final func memoisedPlan<Key: Hashable, Plan>(for key: Key, _ make: () -> Plan) -> Plan {
+        refreshSizeMemo()
+        if let cached = planCache[key] as? Plan { return cached }
+        let plan = make()
+        planCache[key] = plan
+        return plan
     }
 
     /// Layout nodes override this.
