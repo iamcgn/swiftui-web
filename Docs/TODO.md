@@ -5,8 +5,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | SwiftUI | 1 | 0 | 0 | 1 |
-| Platform | 2 | 0 | 1 | 1 |
-| **All** | **3** | 0 | 1 | 2 |
+| Platform | 1 | 0 | 1 | 0 |
+| **All** | **2** | 0 | 1 | 1 |
 
 ## Next (Phase 8, in order)
 
@@ -23,11 +23,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · Other frameworks · missing  
   Separate Apple frameworks. `Charts` is the one apps reach for most and could be a package of its own over the display list; `Map` would need a tile source; `VideoPlayer` and `WebView` need DOM elements under the canvas. Decision needed before any of them starts. ([support.json](Docs/support.json))
-
-### Platform
-
-- ☐ **Linux: build, CI, painter and host** `pf-linux` · Linux · infra  
-  The native headless build and tests are supported on Linux with Swift 6.3.3, alongside wasm cross-compilation. Remaining: a Skia or Cairo painter, a GTK window and the WebKitGTK host. ([ROADMAP.md](Docs/ROADMAP.md))
 
 ## Landed
 
@@ -46,6 +41,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **First frame and large lists** `pf-perf` · Platform · Performance
 - ☑ 2026-10-12 **NSViewRepresentable and NSViewControllerRepresentable** `ix-appkit` · Interop · AppKit
 - ☑ 2026-10-12 **Native text selection, IME and windows** `pf-native-text` · Platform · Native macOS
+- ☑ 2026-10-12 **Linux: build, CI, painter and host** `pf-linux` · Platform · Linux
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

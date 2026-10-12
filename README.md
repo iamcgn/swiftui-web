@@ -1,7 +1,7 @@
 # SwiftUIWeb
 
 An open-source reimplementation of SwiftUI that runs **unmodified SwiftUI source** in the
-browser (WebAssembly + Canvas) today and natively on macOS/Linux later, with 1:1 rendering
+browser (WebAssembly + Canvas) and natively on macOS (AppKit) and Linux (GTK4), with 1:1 rendering
 and behaviour fidelity measured against the real SwiftUI.
 
 **Landing page: [iamcgn.github.io/swiftui-web](https://iamcgn.github.io/swiftui-web/)**, itself
@@ -73,9 +73,9 @@ swift test                      # native runtime + layout tests (fast)
 ### Linux headless tests
 
 Use the pinned Swift 6.3.3 toolchain. The core, headless renderer, UIKitWeb and fixtures build
-on Linux; a native Linux window/painter is still future work. Run `swift test --scratch-path
-.build/native`, `(cd Packages/UIKitWeb && swift test)` and `(cd Packages/WebGraphics && swift
-test)`. Native Foundation geometry and attributed strings retain their identities; WebGraphics
+on Linux. Run `swift test --scratch-path .build/native`, `(cd Packages/UIKitWeb && swift test)`
+and `(cd Packages/WebGraphics && swift test)` (the last needs `libcairo2-dev` for the Cairo
+painter's tests; `brew install cairo` on macOS). Native Foundation geometry and attributed strings retain their identities; WebGraphics
 and WebFoundation supply the missing CoreGraphics and Objective-C-facing value APIs.
 
 `TextField(value:formatter:)` uses Linux's public `NumberFormatter` and `DateFormatter`
@@ -149,6 +149,13 @@ toolchain). `--screenshot out.png` waits for the app's first frame, writes a sna
 `--height` are optional. `scripts/build-host-app.sh` wraps it as `dist/SwiftUIHost.app`, which
 opens `.swiftuiweb` bundles (a built package directory renamed) and bundle folders by double
 click or drop, one window each.
+
+`Packages/LinuxHost` is the Linux window (pf-linux, `Docs/elements/Linux.md`): the display list
+painted by Cairo (`WebGraphicsCairo` in `Packages/WebGraphics`) into a GTK4 `GtkDrawingArea`,
+input through GTK4's event controllers; `(cd Packages/LinuxHost && swift run gtk-counter)` runs
+the Counter app (needs `libgtk-4-dev`, or Homebrew's `gtk4` on macOS). `Packages/WebKitHost`'s
+`gtk-host <package-dir>` is Tools/Host for Linux: the bundle served on 127.0.0.1 and shown in a
+WebKitGTK view (needs `libwebkitgtk-6.0-dev`; built in CI, not yet run under a display).
 
 `SwiftUIWebNative` (decision 0012) is the true native backend: on macOS `App.main()` opens an
 AppKit window whose flipped view paints the display list with CoreGraphics and measures text

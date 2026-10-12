@@ -13,6 +13,7 @@ import PackageDescription
 //   WebGraphicsCanvas    wasm-only Canvas2D painter, canvas host, semantics overlay, text input
 //   WebGraphicsNative    macOS CoreText engine, CoreGraphics painter, AppKit host
 //   WebGraphicsHeadless  recorded text metrics and the asset manifest reader for tests
+//   WebGraphicsCairo     the Cairo painter for Linux (and anywhere cairo is installed; pf-linux)
 let package = Package(
     name: "WebGraphics",
     platforms: [.macOS(.v14)],
@@ -22,6 +23,7 @@ let package = Package(
         .library(name: "WebGraphicsCanvas", targets: ["WebGraphicsCanvas"]),
         .library(name: "WebGraphicsNative", targets: ["WebGraphicsNative"]),
         .library(name: "WebGraphicsHeadless", targets: ["WebGraphicsHeadless"]),
+        .library(name: "WebGraphicsCairo", targets: ["WebGraphicsCairo"]),
     ],
     dependencies: [
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),
@@ -59,6 +61,23 @@ let package = Package(
         .target(
             name: "WebGraphicsHeadless",
             dependencies: ["WebFoundation", "WebGraphics"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // Cairo through pkg-config (libcairo2-dev on Debian and Ubuntu, `brew install cairo`);
+        // the painter paints the display list into an image surface or any cairo context.
+        .systemLibrary(
+            name: "CCairo",
+            pkgConfig: "cairo",
+            providers: [.apt(["libcairo2-dev"]), .brew(["cairo"])]
+        ),
+        .target(
+            name: "WebGraphicsCairo",
+            dependencies: ["WebFoundation", "WebGraphics", "CCairo"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .testTarget(
+            name: "WebGraphicsCairoTests",
+            dependencies: ["WebGraphicsCairo", "WebGraphicsHeadless"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
     ],

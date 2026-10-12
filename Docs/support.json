@@ -2106,6 +2106,30 @@
           "noFixture": "DateFormattingTests holds the patterns to Foundation on macOS; WasmFoundationTests the classes."
         }
       ]
+    },
+    {
+      "title": "Linux (decision 0018, pf-linux)",
+      "framework": "Interop",
+      "entries": [
+        {
+          "api": "CairoPainter / CairoTextEngine (Packages/WebGraphics, WebGraphicsCairo)",
+          "status": "partial",
+          "notes": "The display list painted into a cairo_t: fills, strokes with caps, joins and dashes, path and rounded clips, transforms, linear and radial gradients (angular approximated radially), PNG and bitmap images, opacity and blend groups, masks, shadows as an offset mask at 0.6 alpha (no blur), text through cairo's toy fonts over the shared TextLayouter with the San Francisco line metrics, so the layout matches the other hosts while the glyphs are the distribution's; builds on Linux (libcairo2-dev) and macOS (brew cairo) (Docs/elements/Linux.md, 2026-10-12)",
+          "noFixture": "No Linux goldens: CairoPainterTests paints lists into image surfaces and reads pixels back."
+        },
+        {
+          "api": "GTKHost / GTKSceneHost (Packages/LinuxHost)",
+          "status": "partial",
+          "notes": "A GtkApplication window with a GtkDrawingArea painted by the Cairo painter, the frame clock from a tick callback, presses, moves, wheels and keys through GTK4's event controllers into the scene (Control as command), typing into the focused field through textField(_:didChange:), links by xdg-open; no IME, toolkit selection, drag and drop, pasteboard or host services yet; gtk-counter runs the Counter app (2026-10-12)",
+          "noFixture": "GTKHostTests paints the window's content into an image surface, presses a button and types without a display."
+        },
+        {
+          "api": "gtk-host (Packages/WebKitHost)",
+          "status": "partial",
+          "notes": "Tools/Host for Linux: a static server for the package's index.html and wasm bundle on 127.0.0.1 shown in a WebKitWebView inside a GTK4 window, with --port, --path, --width, --height and --timeout; builds in CI against libwebkitgtk-6.0-dev, not yet run under a display (2026-10-12)",
+          "noFixture": "Needs a display; unverified by hand."
+        }
+      ]
     }
   ]
 }
