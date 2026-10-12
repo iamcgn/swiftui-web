@@ -45,6 +45,11 @@ try {
     return { ua: navigator.userAgent, dpr: devicePixelRatio, viewport: [innerWidth, innerHeight], canvas: [c.width, c.height],
              ops: window.__swiftuiwebDebug.displayList().length, firstFrameMs: window.__swiftuiwebDebug.frameMillis(), ...probe };`);
   console.log('device:', JSON.stringify(facts));
+  // The engine's speed: Safari's WebDriver session on iOS runs without the JIT (a tab opened
+  // by hand on the same phone ran this loop in 8 ms, the session in 200 ms, 2026-10-12), so
+  // the times below are proportions, not the device's absolute ones.
+  const speed = await run(`const n = 5000000; const t0 = performance.now(); const values = new Float64Array(1024).fill(1); let acc = 0; for (let i = 0; i < n; i++) { const j = i & 1023; values[j] = values[j] * 0.5 + (i & 255) * 0.25; acc += Math.sqrt(values[j]); } return { js: performance.now() - t0 + (isNaN(acc) ? 1 : 0), wasm: window.__swiftuiwebDebug.bench ? window.__swiftuiwebDebug.bench(n) : null };`);
+  console.log(`engine: js ${speed.js.toFixed(0)} ms, wasm ${speed.wasm === null ? '-' : speed.wasm.toFixed(0) + ' ms'} for the 5 M loop${speed.js > 50 ? ' — a JIT-less session: times are proportions, the ?perf HUD by hand gives the device\'s own' : ''}`);
   // The sampler: every rAF records the gap since the previous one and, when the host painted a
   // frame in between, that frame's split; it runs until stopped.
   await run(`
@@ -63,15 +68,23 @@ try {
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);`);
-  // A finger drag up the middle of the screen, 500 px over 400 ms, then release: the momentum
-  // scroll follows. W3C touch actions go through the device's own event pipeline.
+  // A finger drag up the middle of the screen, `dragPixels` over 400 ms, then release: the
+  // momentum scroll follows. The host's scripted drag feeds the scene the way a finger does
+  // (W3C touch actions reach the page but hardly the canvas on iOS); a bundle without it
+  // gets the actions.
   const x = Math.round(facts.viewport[0] / 2), y0 = Math.round(facts.viewport[1] * 0.75);
+  const scripted = await run('return typeof window.__swiftuiwebDebug.drag === "function"');
   for (let r = 0; r < repeat; r++) {
-    await request('POST', `/session/${id}/actions`, { actions: [{ type: 'pointer', id: 'finger', parameters: { pointerType: 'touch' }, actions: [
-      { type: 'pointerMove', duration: 0, x, y: y0 },
-      { type: 'pointerDown', button: 0 },
-      { type: 'pointerMove', duration: 400, x, y: y0 - dragPixels },
-      { type: 'pointerUp', button: 0 }] }] });
+    if (scripted) {
+      await run('window.__swiftuiwebDebug.drag(arguments[0], arguments[1], 0, -arguments[2], 0.4)', x, y0, dragPixels);
+      for (let i = 0; i < 40; i++) { await sleep(100); if (!(await run('return window.__swiftuiwebDebug.dragging()'))) break; }
+    } else {
+      await request('POST', `/session/${id}/actions`, { actions: [{ type: 'pointer', id: 'finger', parameters: { pointerType: 'touch' }, actions: [
+        { type: 'pointerMove', duration: 0, x, y: y0 },
+        { type: 'pointerDown', button: 0 },
+        { type: 'pointerMove', duration: 400, x, y: y0 - dragPixels },
+        { type: 'pointerUp', button: 0 }] }] });
+    }
     await sleep(1500);
   }
   const sample = await run('window.__perfSampler.running = false; return window.__perfSampler;');

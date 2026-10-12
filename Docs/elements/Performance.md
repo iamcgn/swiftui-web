@@ -37,8 +37,12 @@ A wheel burst over the landing page lays out and paints a frame in 7 ms median o
 The first numbers from a phone, `Playwright/device-perf.mjs` over the landing page at
 402 × 714 pt, DPR 3 (a 1206 × 2142 canvas). The measuring session is a WebDriver one, and
 on it the engine runs the same loop about 25 times slower than this Mac's WebKit in both
-JavaScript and wasm (200 ms against 7 ms for `__swiftuiwebDebug.bench`'s 5 M iterations), so
-its absolute times are those of a JavaScriptCore without its JIT; the proportions hold.
+JavaScript and wasm (200 ms against 7 ms for `__swiftuiwebDebug.bench`'s 5 M iterations): a
+JavaScriptCore without its JIT. A tab opened by hand on the same phone runs the loop in 8 ms
+(wasm 8 ms), so the session's absolute times are 25 times the real ones; the proportions
+hold, and the script prints the engine line so a JIT-less session is never mistaken for the
+device. By hand, after the fixes below: a scrolled frame 4 ms median, 7 ms p90, 8 ms worst,
+none over 16 ms, no animation-frame gap over 25 ms (the `?perf` HUD, 120 frames).
 
 | | first frame | a lazy grid scrolling in (full layout) | scrolled frame (p50) | of which layout / render / paint |
 |---|---|---|---|---|

@@ -28,9 +28,10 @@ Two multiplications hid on the laptop:
   forgets every size memo on the page; `materializeLazyContent` does up to three passes.
 
 The measuring session's engine runs a plain loop 25 times slower than this Mac's WebKit, in
-JavaScript as in wasm (`__swiftuiwebDebug.bench`, the `?perf` HUD's last line), which is a
-JavaScriptCore without its JIT. Whether that is the WebDriver session or the device's own
-state is open until a by-hand tab reports its line; the proportions above do not depend on it.
+JavaScript as in wasm (`__swiftuiwebDebug.bench`, the `?perf` HUD's last line): Safari's
+WebDriver session on iOS runs JavaScriptCore without its JIT. A tab opened by hand on the same
+phone runs the loop in 8 ms, so the session's times are 25 times the real ones and the
+proportions are what it measures; the HUD by hand is the source of absolute device numbers.
 
 ## Decision
 
@@ -50,8 +51,9 @@ state is open until a by-hand tab reports its line; the proportions above do not
 ## Consequences
 
 On the phone, through the same session: first frame 2.9 s, a grid scrolling in 0.33–0.45 s,
-a scrolled frame 18–20 ms (layout 1, render 8–10, paint 0–1). On the laptop, a grid
-scrolling in 130 → 25 ms, the first frame's layout 440 → 255 ms.
+a scrolled frame 18–20 ms (layout 1, render 8–10, paint 0–1); by hand, a scrolled frame
+4 ms median and 8 ms worst with no frame over 16 ms. On the laptop, a grid scrolling in
+130 → 25 ms, the first frame's layout 440 → 255 ms.
 
 What remains is the display-list walk on scrolled frames (render), which a retained scroll
 content layer would skip (the plan's step 2: `beginLayer` / `endLayer` ops, the host sending
