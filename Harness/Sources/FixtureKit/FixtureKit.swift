@@ -237,3 +237,14 @@ extension View {
         #endif
     }
 }
+
+extension View {
+    /// `fullScreenCover` (iOS API; the macOS harness only compiles the fixture).
+    public func fixtureFullScreenCover<Content: View>(isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> Content) -> some View {
+        #if os(iOS)
+        fullScreenCover(isPresented: isPresented, content: content)
+        #else
+        self
+        #endif
+    }
+}

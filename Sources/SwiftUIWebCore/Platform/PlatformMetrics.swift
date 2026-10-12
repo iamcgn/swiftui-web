@@ -368,13 +368,24 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var refreshHeight: CGFloat = 60                      // the band the content moves down while refreshing
     package var refreshPullResistance: CGFloat = 0.5             // the finger's distance past the top counts this much
 
-    package var presentationPadding: CGFloat = 20
+    package var presentationPadding: CGFloat = 20                 // secondary windows and iOS; macOS 27 sheets, alerts and popovers pad nothing (`sheetsCentred`)
+    package var sheetsCentred = true                              // macOS 27: sheets and alerts are windows centred in the window, popovers windows with a margin (sw-mac-presentation-looks)
+    package var popoverWindowMargin: CGFloat = 13                 // macOS 27 (presentation/mac-popover): the popover window around its content (the arrow and shadow live in it)
     package var presentationCornerRadius: CGFloat = 10
-    package var presentationDimAlpha = 0.2
+    package var presentationDimAlpha = 0.0                        // macOS 27 (presentation/mac-sheet, mac-alert): the parent window is not dimmed behind a sheet or an alert; iOS dims 20 %
     package var presentationShadowAlpha = 0.12
     package var presentationBorderAlpha = 0.15
     package var sheetMargin: CGFloat = 20
-    package var alertWidth: CGFloat = 260
+    package var alertWidth: CGFloat = 260                         // macOS 27 (presentation/mac-alert): 260 wide, title 13 bold then 13 the message, 28 pt capsule buttons
+    package var alertMacTopInset: CGFloat = 20.5
+    package var alertMacTitleMessageGap: CGFloat = 13
+    package var alertMacMessageButtonsGap: CGFloat = 17.5
+    package var alertMacButtonHeight: CGFloat = 28
+    package var alertMacButtonGap: CGFloat = 8
+    package var alertMacSideInset: CGFloat = 16
+    package var alertMacBottomInset: CGFloat = 16                 // 127 in all with the 20.5 top (the capture: labels centred at 183, the window ending at 213)
+    package var alertMacDestructiveFill: RGBA = RGBA(r: 255, g: 220, b: 220)   // the destructive button's capsule (approximate: the capture shows the label's tint)
+    package var alertMacButtonFill: RGBA = RGBA(r: 229, g: 229, b: 229)
     package var popoverArrowHeight: CGFloat = 10
     package var popoverArrowWidth: CGFloat = 24
     package var menuGap: CGFloat = 2

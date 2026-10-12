@@ -71,12 +71,14 @@ import SwiftUIWebHeadless
         #expect(!r.hasPresentations && texts(r) == ["Open"])
         press(r, CGPoint(x: 200, y: 150))
         relayout(r)
-        // Presented: the panel hangs from the top, centred, 20 pt around its content; the window is dimmed.
+        // Presented: the sheet is a window the size of its content, centred (macOS 27,
+        // presentation/mac-sheet), and the window behind it is not dimmed.
         #expect(r.hasPresentations)
         #expect(texts(r) == ["Open", "Inside", "Done"])
         let inside = r.probeFrames["inside"]!
-        #expect(inside.midX == 200 && inside.minY == 20)
-        #expect(r.render(scale: 2).commands.map(\.description).contains("fillRect(0, 0, 400, 300) #000000@0.2"))
+        let panel = r.probeFrames["window.sheet"]!
+        #expect(abs(inside.midX - 200) <= 0.5 && abs(panel.midY - 150) <= 0.5 && panel.minY > 100, "\(panel)")
+        #expect(!r.render(scale: 2).commands.map(\.description).contains { $0.hasPrefix("fillRect(0, 0, 400, 300) #000000@0.2") })
         // A press outside a modal panel reaches nothing beneath; the Done button dismisses through the environment.
         let opens = model.sheet
         press(r, CGPoint(x: 200, y: 250))
@@ -104,9 +106,10 @@ import SwiftUIWebHeadless
         model.popover = true
         relayout(r)
         let open = r.probeFrames["open"]!, inside = r.probeFrames["inside"]!
-        // Below the button (10 pt arrow) and centred on it, with 20 pt of padding.
-        #expect(inside.minY == open.maxY + 10 + 20)
-        #expect(abs(inside.midX - open.midX) < 0.5)
+        // The arrow on the button's top edge (`arrowEdge: .top`): the popover sits above it, its
+        // 13 pt window margin between (macOS 27, presentation/mac-popover), centred on it.
+        #expect(inside.maxY + 13 == open.minY)
+        #expect(abs(inside.midX - open.midX) <= 0.5)
         // Not modal: a press outside dismisses (and is consumed), the binding turns false.
         press(r, CGPoint(x: 20, y: 20))
         #expect(!model.popover)
@@ -184,13 +187,14 @@ import SwiftUIWebHeadless
         model.popover = true
         let r = runtime(AnchoredPopover(model: model, anchor: .point(.topTrailing)))
         let source = r.probeFrames["source"]!, inside = r.probeFrames["inside"]!
-        // The arrow points at the source's top trailing corner; the panel sits above it.
-        #expect(abs(inside.midX - source.maxX) < 0.5)
-        #expect(inside.maxY + 20 + 10 == source.minY)
+        // The arrow on the source's bottom edge at its top trailing corner: the panel sits below
+        // that point, the window margin between.
+        #expect(abs(inside.midX - source.maxX) <= 0.5)
+        #expect(inside.minY == source.minY + 13)
         let rect = runtime(AnchoredPopover(model: model, anchor: .rect(.rect(CGRect(x: 0, y: 0, width: 20, height: 10)))))
         let rectSource = rect.probeFrames["source"]!, rectInside = rect.probeFrames["inside"]!
-        #expect(abs(rectInside.midX - (rectSource.minX + 10)) < 0.5)
-        #expect(rectInside.maxY + 20 + 10 == rectSource.minY)
+        #expect(abs(rectInside.midX - (rectSource.minX + 10)) <= 0.5)
+        #expect(rectInside.minY == rectSource.minY + 10 + 13)
     }
 
     struct StubbornPopover: View {
@@ -239,8 +243,8 @@ import SwiftUIWebHeadless
         model.sheet = true
         let r = runtime(TallSheet(model: model))
         let scroll = r.probeFrames["scroll"]!
-        // The panel keeps 20 pt margins and 20 pt of padding inside a 300 pt window.
-        #expect(scroll.height == 220)
+        // The sheet keeps 20 pt margins inside a 300 pt window and pads nothing itself.
+        #expect(scroll.height == 260)
         #expect(scroll.minY == 20)
         #expect(r.probeFrames["tall"]!.height == 600)
     }

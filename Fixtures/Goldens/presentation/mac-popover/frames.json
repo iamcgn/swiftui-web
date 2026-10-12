@@ -1,0 +1,46 @@
+{
+  "fixture" : "presentation\/mac-popover",
+  "frames" : {
+    "button" : {
+      "height" : 24,
+      "width" : 74,
+      "x" : 163,
+      "y" : 138
+    },
+    "stack" : {
+      "height" : 300,
+      "width" : 400,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 400
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "button" : {
+          "height" : 24,
+          "width" : 74,
+          "x" : 163,
+          "y" : 138
+        },
+        "stack" : {
+          "height" : 300,
+          "width" : 400,
+          "x" : 0,
+          "y" : 0
+        },
+        "window.popover" : {
+          "height" : 101,
+          "width" : 162,
+          "x" : 119,
+          "y" : 37
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

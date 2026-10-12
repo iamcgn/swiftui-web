@@ -187,7 +187,13 @@ public final class FixtureRunner {
             frames += 1
             runtime.layout(in: fixture.size)
         }
-        return collector.frames
+        // The presented panels' frames (`window.<kind>`) join the probes when the fixture
+        // captures its windows (the macOS harness records the presented windows the same way).
+        var result = collector.frames
+        if fixture.capturesWindow {
+            for (name, frame) in runtime.probeFrames where name.hasPrefix("window.") { result[name] = frame }
+        }
+        return result
     }
 
     /// Runs step `index` (0-based) against the instance's model.
@@ -264,5 +270,12 @@ extension View {
     /// The wheel date picker style (the twin of the harness's helper).
     public func fixtureWheelDateStyle() -> some View {
         datePickerStyle(.wheel)
+    }
+}
+
+extension View {
+    /// `fullScreenCover` (the twin of the harness's helper).
+    public func fixtureFullScreenCover<Content: View>(isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> Content) -> some View {
+        fullScreenCover(isPresented: isPresented, content: content)
     }
 }

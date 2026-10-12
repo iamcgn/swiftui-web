@@ -3220,7 +3220,7 @@ public static let fullScreenCover = Fixture(
         Color.white.ignoresSafeArea()
         Button("Show cover") { model.sheet = true }.probe("button")
     }
-    .fullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+    .fixtureFullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
         ZStack {
             Color.yellow.ignoresSafeArea()
             SheetBody()
@@ -4931,6 +4931,71 @@ public static let basic = Fixture(
     .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) { PresentationSheet() }
     .probe("stack")
 }
+"""#),
+        FixtureSource(name: "presentation/mac-alert", file: "Fixtures/Sources/Presentation/PresentationFixtures.swift", firstLine: 71, lastLine: 87, declaration: #"""
+public static let macAlert = Fixture(
+    "presentation/mac-alert", size: CGSize(width: 400, height: 300),
+    model: { PresentationModel() },
+    steps: [FixtureStep("present") { $0.alert = true }]
+) { model in
+    ZStack {
+        Color.white
+        Button("Delete…") { model.alert = true }.probe("button")
+    }
+    .alert("Delete the item?", isPresented: Binding(get: { model.alert }, set: { model.alert = $0 })) {
+        Button("Delete", role: .destructive) {}
+        Button("Cancel", role: .cancel) {}
+    } message: {
+        Text("This cannot be undone.")
+    }
+    .probe("stack")
+}.capturesWindow()
+"""#),
+        FixtureSource(name: "presentation/mac-popover", file: "Fixtures/Sources/Presentation/PresentationFixtures.swift", firstLine: 89, lastLine: 107, declaration: #"""
+public static let macPopover = Fixture(
+    "presentation/mac-popover", size: CGSize(width: 400, height: 300),
+    model: { PresentationModel() },
+    steps: [FixtureStep("present") { $0.popover = true }]
+) { model in
+    ZStack {
+        Color.white
+        Button("Popover") { model.popover = true }
+            .popover(isPresented: Binding(get: { model.popover }, set: { model.popover = $0 })) {
+                VStack(spacing: 8) {
+                    Text("Popover title").font(.headline).probe("popTitle")
+                    Text("A line of content.").probe("popBody")
+                }
+                .padding()
+            }
+            .probe("button")
+    }
+    .probe("stack")
+}.capturesWindow()
+"""#),
+        FixtureSource(name: "presentation/mac-sheet", file: "Fixtures/Sources/Presentation/PresentationFixtures.swift", firstLine: 47, lastLine: 69, declaration: #"""
+/// The macOS looks (sw-mac-presentation-looks, 2026-10-11): each presentation after a step
+/// presents it, the harness recording the presented window's frame as `window.<kind>` and
+/// compositing its content (`Fixture.capturesWindow` on macOS; the panels' own chrome is
+/// the window server's and stays out).
+public static let macSheet = Fixture(
+    "presentation/mac-sheet", size: CGSize(width: 400, height: 300),
+    model: { PresentationModel() },
+    steps: [FixtureStep("present") { $0.sheet = true }]
+) { model in
+    ZStack {
+        Color.white
+        Button("Sheet") { model.sheet = true }.probe("button")
+    }
+    .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+        VStack(spacing: 12) {
+            Text("Sheet title").font(.headline).probe("sheetTitle")
+            Text("Some content under the title.").probe("sheetBody")
+            Button("Done") { model.sheet = false }.probe("sheetDone")
+        }
+        .padding()
+    }
+    .probe("stack")
+}.capturesWindow()
 """#),
         FixtureSource(name: "pressure/alone25", file: "Fixtures/Sources/TextPressure/TextPressureFixtures.swift", firstLine: 98, lastLine: 101, declaration: #"""
 /// The text alone under a squeeze: what it answers to a stack's proposal of exactly 25 and 45.
@@ -14714,7 +14779,69 @@ public enum PresentationFixtures {
         .probe("stack")
     }
 
-    public static let all: [Fixture] = [basic]
+    /// The macOS looks (sw-mac-presentation-looks, 2026-10-11): each presentation after a step
+    /// presents it, the harness recording the presented window's frame as `window.<kind>` and
+    /// compositing its content (`Fixture.capturesWindow` on macOS; the panels' own chrome is
+    /// the window server's and stays out).
+    public static let macSheet = Fixture(
+        "presentation/mac-sheet", size: CGSize(width: 400, height: 300),
+        model: { PresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        ZStack {
+            Color.white
+            Button("Sheet") { model.sheet = true }.probe("button")
+        }
+        .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            VStack(spacing: 12) {
+                Text("Sheet title").font(.headline).probe("sheetTitle")
+                Text("Some content under the title.").probe("sheetBody")
+                Button("Done") { model.sheet = false }.probe("sheetDone")
+            }
+            .padding()
+        }
+        .probe("stack")
+    }.capturesWindow()
+
+    public static let macAlert = Fixture(
+        "presentation/mac-alert", size: CGSize(width: 400, height: 300),
+        model: { PresentationModel() },
+        steps: [FixtureStep("present") { $0.alert = true }]
+    ) { model in
+        ZStack {
+            Color.white
+            Button("Delete…") { model.alert = true }.probe("button")
+        }
+        .alert("Delete the item?", isPresented: Binding(get: { model.alert }, set: { model.alert = $0 })) {
+            Button("Delete", role: .destructive) {}
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This cannot be undone.")
+        }
+        .probe("stack")
+    }.capturesWindow()
+
+    public static let macPopover = Fixture(
+        "presentation/mac-popover", size: CGSize(width: 400, height: 300),
+        model: { PresentationModel() },
+        steps: [FixtureStep("present") { $0.popover = true }]
+    ) { model in
+        ZStack {
+            Color.white
+            Button("Popover") { model.popover = true }
+                .popover(isPresented: Binding(get: { model.popover }, set: { model.popover = $0 })) {
+                    VStack(spacing: 8) {
+                        Text("Popover title").font(.headline).probe("popTitle")
+                        Text("A line of content.").probe("popBody")
+                    }
+                    .padding()
+                }
+                .probe("button")
+        }
+        .probe("stack")
+    }.capturesWindow()
+
+    public static let all: [Fixture] = [basic, macSheet, macAlert, macPopover]
 }
 """#,
         "Fixtures/Sources/Progress/ProgressFixtures.swift": #"""
@@ -19681,7 +19808,7 @@ public enum IOSPresentationFixtures {
             Color.white.ignoresSafeArea()
             Button("Show cover") { model.sheet = true }.probe("button")
         }
-        .fullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+        .fixtureFullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
             ZStack {
                 Color.yellow.ignoresSafeArea()
                 SheetBody()

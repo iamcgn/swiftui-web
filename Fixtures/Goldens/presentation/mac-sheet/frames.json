@@ -1,0 +1,46 @@
+{
+  "fixture" : "presentation\/mac-sheet",
+  "frames" : {
+    "button" : {
+      "height" : 24,
+      "width" : 59.5,
+      "x" : 170.25,
+      "y" : 138
+    },
+    "stack" : {
+      "height" : 300,
+      "width" : 400,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 400
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "button" : {
+          "height" : 24,
+          "width" : 59.5,
+          "x" : 170.25,
+          "y" : 138
+        },
+        "stack" : {
+          "height" : 300,
+          "width" : 400,
+          "x" : 0,
+          "y" : 0
+        },
+        "window.sheet" : {
+          "height" : 115,
+          "width" : 209,
+          "x" : 96,
+          "y" : 92
+        }
+      },
+      "name" : "present"
+    }
+  ]
+}

@@ -70,6 +70,13 @@ package final class PresentationNode: ViewNode {
     /// own profile selection.
     private var metrics: PlatformMetricsTable { environment.platformProfile.metrics }
 
+    /// The frame the platform's window for this presentation would have: the panel, or a
+    /// popover's panel plus its window margin (macOS 27; the harness records the windows).
+    package var windowFrame: CGRect {
+        if case .popover = kind, metrics.sheetsCentred { return panel.insetBy(dx: -metrics.popoverWindowMargin, dy: -metrics.popoverWindowMargin) }
+        return panel
+    }
+
     /// iOS: the medium detent when it is the only one offered (`sheetsFillWindow`).
     private var mediumDetent: Bool { options.detents.contains(.medium) && !options.detents.contains(.large) }
 
@@ -185,8 +192,17 @@ package final class PresentationNode: ViewNode {
 
     package func layout(in window: CGSize) {
         guard let target else { return }
-        let padding = kind.isMenu ? 0 : PlatformMetrics.presentationPadding
         let m = metrics
+        // macOS 27 sheets, alerts and popovers are windows the size of their content (which pads
+        // itself); menus pad nothing either.
+        var padsNothing = kind.isMenu
+        if m.sheetsCentred, !environment.platformProfile.isIOS {
+            switch kind {
+            case .sheet, .alert, .dialog, .popover: padsNothing = true
+            default: break
+            }
+        }
+        let padding: CGFloat = padsNothing ? 0 : PlatformMetrics.presentationPadding
         switch kind {
         case .sheet where options.fullScreen:
             // A full-screen cover: the window is the panel; the content fills it.
@@ -245,7 +261,17 @@ package final class PresentationNode: ViewNode {
             var size = target.sizeThatFits(limit)
             let maximumHeight = max(0, window.height - 2 * PlatformMetrics.sheetMargin - 2 * padding - bar)
             if size.height > maximumHeight { size = target.sizeThatFits(ProposedViewSize(width: limit.width, height: maximumHeight)); size.height = min(size.height, maximumHeight) }
-            panel = CGRect(x: (window.width - size.width) / 2 - padding, y: 0, width: size.width + 2 * padding, height: size.height + 2 * padding + bar)
+            if m.sheetsCentred {
+                // macOS 27 (presentation/mac-sheet): the sheet window is the content's size in
+                // whole points, centred in the window as AppKit rounds (x up at a half, y from the
+                // bottom), no padding of its own.
+                let width = (size.width + 2 * padding).rounded(.up), height = (size.height + 2 * padding + bar).rounded(.up)
+                let x = ((window.width - width) / 2).rounded(.toNearestOrAwayFromZero)
+                let y = window.height - height - ((window.height - height) / 2).rounded(.toNearestOrAwayFromZero)
+                panel = CGRect(x: x, y: y, width: width, height: height)
+            } else {
+                panel = CGRect(x: (window.width - size.width) / 2 - padding, y: 0, width: size.width + 2 * padding, height: size.height + 2 * padding + bar)
+            }
             arrow = nil
             if bar > 0 {
                 layoutToolbar(top: 0)
@@ -256,7 +282,15 @@ package final class PresentationNode: ViewNode {
             layoutToolbar(top: 0)
         case .alert, .dialog:
             let size = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
-            panel = CGRect(x: (window.width - size.width) / 2, y: (window.height - size.height) / 2, width: size.width, height: size.height)
+            if m.sheetsCentred {
+                // macOS 27 (presentation/mac-alert): the alert window centred with AppKit's rounding.
+                let height = size.height.rounded(.up), width = size.width.rounded(.up)
+                let x = ((window.width - width) / 2).rounded(.toNearestOrAwayFromZero)
+                let y = window.height - height - ((window.height - height) / 2).rounded(.toNearestOrAwayFromZero)
+                panel = CGRect(x: x, y: y, width: width, height: height)
+            } else {
+                panel = CGRect(x: (window.width - size.width) / 2, y: (window.height - size.height) / 2, width: size.width, height: size.height)
+            }
             arrow = nil
         case .popover(let edge, let attachment):
             let size = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
@@ -271,6 +305,36 @@ package final class PresentationNode: ViewNode {
             }
             let gap = PlatformMetrics.popoverArrowHeight
             var origin: CGPoint
+            if m.sheetsCentred {
+                // macOS 27 (presentation/mac-popover): the popover window is the content plus a
+                // 15 pt margin all round (the arrow lives in it), its edge on the source's — the
+                // default `.top` arrow edge puts it above the source, `.bottom` below — centred
+                // on the source at whole points.
+                let margin = m.popoverWindowMargin
+                let panelWidth = size.width.rounded(.up), panelHeight = size.height.rounded(.up)
+                switch edge {
+                case .top: origin = CGPoint(x: (source.midX - panelWidth / 2).rounded(), y: source.minY - margin - panelHeight)
+                case .bottom: origin = CGPoint(x: (source.midX - panelWidth / 2).rounded(), y: source.maxY + margin)
+                case .leading: origin = CGPoint(x: source.minX - margin - panelWidth, y: (source.midY - panelHeight / 2).rounded())
+                case .trailing: origin = CGPoint(x: source.maxX + margin, y: (source.midY - panelHeight / 2).rounded())
+                }
+                origin.x = min(max(origin.x, margin), max(margin, window.width - panelWidth - margin))
+                origin.y = min(max(origin.y, margin), max(margin, window.height - panelHeight - margin))
+                panel = CGRect(origin: origin, size: CGSize(width: panelWidth, height: panelHeight))
+                let tip: CGPoint
+                switch edge {
+                case .top: tip = CGPoint(x: source.midX, y: panel.maxY + gap)
+                case .bottom: tip = CGPoint(x: source.midX, y: panel.minY - gap)
+                case .leading: tip = CGPoint(x: panel.maxX + gap, y: source.midY)
+                case .trailing: tip = CGPoint(x: panel.minX - gap, y: source.midY)
+                }
+                // The arrow points away from the panel toward the source: its edge is the opposite one.
+                let arrowEdge: Edge = edge == .top ? .bottom : edge == .bottom ? .top : edge == .leading ? .trailing : .leading
+                arrow = (arrowEdge, tip)
+                contentFrame = panel
+                target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(contentFrame.size), by: runtime.root)
+                return
+            }
             switch edge {
             case .top: origin = CGPoint(x: source.midX - width / 2, y: source.maxY + gap)
             case .bottom: origin = CGPoint(x: source.midX - width / 2, y: source.minY - gap - height)

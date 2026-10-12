@@ -164,7 +164,15 @@ async function settleImages() {
 // One comparison (the initial render, or the render after a behaviour step).
 async function check(name, label, goldenFrames, goldenPng, shotPath) {
   await settleImages();
-  const frames = await page.evaluate(() => window.__galleryFrames || window.__swiftuiwebDebug.frames());
+  // The gallery publishes the probe preference; the presented panels' frames (`window.<kind>`,
+  // a macOS fixture that captures its windows) come from the scene's own probe frames.
+  const frames = await page.evaluate(() => {
+    const published = window.__galleryFrames || window.__swiftuiwebDebug.frames();
+    const scene = window.__swiftuiwebDebug ? window.__swiftuiwebDebug.frames() : {};
+    const merged = Object.assign({}, published);
+    for (const key of Object.keys(scene)) if (key.startsWith('window.')) merged[key] = scene[key];
+    return merged;
+  });
   const mismatches = compareFrames(label, frames, goldenFrames);
   if (mismatches.length && process.env.TIER_B_VERBOSE) { console.log('   frames: ' + JSON.stringify(frames).slice(0, 400)); for (const line of transcript.slice(-12)) console.log('   ' + line.split('\n')[0].slice(0, 200)); }
   const skipped = framesOnly(name) || stepFramesOnly.includes(label);

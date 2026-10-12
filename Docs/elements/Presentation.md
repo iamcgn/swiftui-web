@@ -33,17 +33,24 @@ action, an alert button, a menu row, a press outside) removes the node at once a
 binding. Content is mounted with the presenter's environment plus `dismiss`; `_dismissesOnActivation`
 makes an alert's buttons dismiss after running. `Runtime.dismissTopmostPresentation()` is for hosts.
 
-## Geometry (approximate: macOS shows these in separate windows, so there are no goldens)
+## Geometry (macOS 27 window geometry measured 2026-10-12; the panels' chrome by eye)
 
-iOS is measured: the sheet, its medium detent, the alert and the dialog on the iPhone SE
-simulator are in `Docs/elements/iOS.md` (`ios/sheet/`, `ios/alert/`, `ios/dialog/`; the golden
-captures the whole window). The macOS looks below are by eye.
+iOS is measured: the sheet, its medium detent, the alert and the dialog on the simulator are
+in `Docs/elements/iOS.md` (`ios/sheet/`, `ios/alert/`, `ios/dialog/`; the golden captures the
+whole window). On macOS (sw-mac-presentation-looks) `Fixture.capturesWindow` puts the harness
+window on screen so the presentations open as the separate windows they are; the harness
+records each presented window's frame relative to the content as a probe (`window.sheet`,
+`window.alert`, `window.popover`, `window.menu`; `Runtime` publishes the same names from its
+presentations, `PresentationNode.windowFrame`) and composites the windows' content views into
+the capture (`presentation/mac-sheet`, `mac-alert`, `mac-popover`: Tier A exact, Tier B/C
+≤ 1.4 %). The panels' own chrome — glass, shadow, corners — is the window server's and would
+need screen recording to capture, so it stays by eye.
 
 | Kind | Panel |
 |---|---|
-| Sheet | the content's ideal size (limited to the window minus 20 pt margins on every side: a taller content is proposed the limit, so a `ScrollView` inside scrolls) plus 20 pt padding, centred horizontally, hanging from the top edge; window dimmed by black 20 %; 10 pt corners, 1 pt border at 15 %, a 2 pt shadow ring at 12 % |
-| Popover | content plus 20 pt padding beside the anchor on `arrowEdge` (10 pt gap for a 24 × 10 arrow pointing at the anchor's midpoint), kept 20 pt inside the window |
-| Alert | 260 pt wide, centred; bold 13 pt title, 11 pt secondary message, the actions in a row, 20 pt padding; window dimmed |
+| Sheet | a window exactly the content's size in whole points (the content pads itself; 209 × 115 for a 16 pt-padded three-line sheet), limited to the window minus 20 pt margins (a taller content is proposed the limit, so a `ScrollView` inside scrolls), centred in the window as AppKit rounds (x up at a half, y measured from the bottom); the window behind is **not** dimmed; 10 pt corners, 1 pt border at 15 %, a 2 pt shadow ring at 12 % (by eye) |
+| Popover | a window of the content plus a 13 pt margin all round (the arrow and shadow live in it), its edge on the anchor's: `arrowEdge: .top` (the default) is the arrow on the anchor's top edge, so the popover sits **above** the anchor, `.bottom` below, `.leading`/`.trailing` beside; centred on the anchor at whole points, kept 13 inside the window (162 × 101 for a 16 pt-padded two-line popover above a button) |
+| Alert | a 260 pt window centred (260 × 127 for a title, a message and two buttons); the 13 pt bold title centred 20.5 from the top, the 13 pt message (primary, not secondary) 13 below, 17.5 below it 28 pt capsule buttons sharing the width 8 apart and 16 from the sides — the cancel role first on grey (229), the destructive role on pink (255, 220, 220) with red text — 16 from the bottom; not dimmed |
 | Menu | rows 22 pt tall (a 22 pt check column, the 13 pt title, 16 pt trailing), at least the pop-up's width, 4 pt above and below, 2 pt under the button (above it when it would overflow); 6 pt corners |
 
 ## Verification (2026-09-03)
@@ -58,7 +65,8 @@ every kind in headless Chromium through the accessibility overlay. wasm js tests
 
 The real macOS looks (sheet slide-in and shadow, popover material, alert icon and button
 layout), sizes for wide content (no scrolling inside sheets), `Menu`/`contextMenu`, keyboard
-dismissal, focus moving into the presentation, detents beyond medium and large. The macOS looks
-stay by eye: sheets, popovers and alerts are separate windows the golden harness cannot capture
-(`sw-presentations` accepted them as approximate, 2026-09-18; a window-list capture would be
-the way to measure them). Several presentations from one view work (`oneViewPresentsASheetAndAnAlert`).
+dismissal, focus moving into the presentation, detents beyond medium and large. The macOS
+window geometry is measured (above); the panels' chrome (the sheet's glass and shadow, the
+popover's material and arrow shape, the alert's capsule fills) stays by eye, as does the menu
+window (no fixture presents one). Several presentations from one view work
+(`oneViewPresentsASheetAndAnAlert`).

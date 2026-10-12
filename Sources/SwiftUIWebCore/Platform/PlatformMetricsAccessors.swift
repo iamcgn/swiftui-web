@@ -301,12 +301,23 @@ extension PlatformMetrics {
     package static var refreshHeight: CGFloat { current.refreshHeight }
     package static var refreshPullResistance: CGFloat { current.refreshPullResistance }
     package static var presentationPadding: CGFloat { current.presentationPadding }
+    package static var sheetsCentred: Bool { current.sheetsCentred }
+    package static var popoverWindowMargin: CGFloat { current.popoverWindowMargin }
     package static var presentationCornerRadius: CGFloat { current.presentationCornerRadius }
     package static var presentationDimAlpha: Double { current.presentationDimAlpha }
     package static var presentationShadowAlpha: Double { current.presentationShadowAlpha }
     package static var presentationBorderAlpha: Double { current.presentationBorderAlpha }
     package static var sheetMargin: CGFloat { current.sheetMargin }
     package static var alertWidth: CGFloat { current.alertWidth }
+    package static var alertMacTopInset: CGFloat { current.alertMacTopInset }
+    package static var alertMacTitleMessageGap: CGFloat { current.alertMacTitleMessageGap }
+    package static var alertMacMessageButtonsGap: CGFloat { current.alertMacMessageButtonsGap }
+    package static var alertMacButtonHeight: CGFloat { current.alertMacButtonHeight }
+    package static var alertMacButtonGap: CGFloat { current.alertMacButtonGap }
+    package static var alertMacSideInset: CGFloat { current.alertMacSideInset }
+    package static var alertMacBottomInset: CGFloat { current.alertMacBottomInset }
+    package static var alertMacDestructiveFill: RGBA { current.alertMacDestructiveFill }
+    package static var alertMacButtonFill: RGBA { current.alertMacButtonFill }
     package static var popoverArrowHeight: CGFloat { current.popoverArrowHeight }
     package static var popoverArrowWidth: CGFloat { current.popoverArrowWidth }
     package static var menuGap: CGFloat { current.menuGap }

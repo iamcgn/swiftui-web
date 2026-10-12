@@ -77,13 +77,14 @@ import SwiftUIWebHeadless
         let well = r.semanticsTree().first { $0.role == .button }!
         #expect(well.label == "Accent, color" && well.value == "Red")
         #expect(well.frame.size == CGSize(width: 48, height: 24))
-        // A press opens the preset panel below the well: 16 swatches and the opacity slider.
+        // A press opens the preset panel beside the well (a popover with its arrow on the
+        // well's top edge: above it, macOS 27's placement): 16 swatches and the opacity slider.
         press(r, CGPoint(x: well.frame.midX, y: well.frame.midY))
         relayout(r, height: 500)
         #expect(r.hasPresentations)
         let swatches = r.semanticsTree().filter { $0.role == .button && $0.label != "Accent, color" }
         #expect(swatches.count == 16 && swatches.first?.label == "Red" && swatches.last?.label == "Clear")
-        #expect(swatches.allSatisfy { $0.frame.minY > well.frame.maxY })
+        #expect(swatches.allSatisfy { $0.frame.maxY < well.frame.minY }, "\(swatches.map(\.frame.minY)) vs \(well.frame)")
         #expect(r.semanticsTree().contains { $0.role == .slider })
         // Choosing a swatch sets the colour and closes the panel.
         let blue = swatches.first { $0.label == "Blue" }!

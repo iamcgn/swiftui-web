@@ -395,6 +395,17 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(word, defaultFont))
             requests.append(TextMetricRequest(word, .system(size: 13, weight: "regular", design: "default")))
         }
+        // presentation/mac-* (sw-mac-presentation-looks): the presenting buttons at the window's
+        // width, the sheet's and popover's texts, the alert's 13 pt bold title and 11 pt message
+        // at the alert's content width, its buttons.
+        for word in ["Delete…", "Sheet", "Popover"] { for width: CGFloat? in [nil, 376, 400] { requests.append(TextMetricRequest(word, defaultFont, width: width)) } }
+        for word in ["Sheet title", "Popover title"] { for width: CGFloat? in [nil, 360, 320] { requests.append(TextMetricRequest(word, .style("headline"), width: width)) } }
+        for word in ["Some content under the title.", "A line of content.", "Done"] { for width: CGFloat? in [nil, 360, 320] { requests.append(TextMetricRequest(word, defaultFont, width: width)) } }
+        for width: CGFloat? in [nil, 220, 228, 260] {
+            requests.append(TextMetricRequest("Delete the item?", .system(size: 13, weight: "bold", design: "default"), width: width))
+            requests.append(TextMetricRequest("This cannot be undone.", .system(size: 13, weight: "regular", design: "default"), width: width))
+        }
+        for word in ["Delete", "Cancel"] { for width: CGFloat? in [nil, 104, 110] { requests.append(TextMetricRequest(word, defaultFont, width: width)) } }
         for word in ["One", "Two", "Three", "Four", "Five", "Six", "A", "B", "D", "E", "Low", "High", "Last"] { requests.append(TextMetricRequest(word, defaultFont)) }
         for word in ["BB", "CCC", "F", "G", "H", "Header"] { requests.append(TextMetricRequest(word, defaultFont)) }
         for word in ["Canvas", "Corner"] { requests.append(TextMetricRequest(word, defaultFont)); requests.append(TextMetricRequest(word, defaultFont, width: 100)) }

@@ -176,11 +176,13 @@ import SwiftUIWebHeadless
         custom.secondaryPointerDown(at: CGPoint(x: 200, y: 26))
         custom.layout(in: CGSize(width: 400, height: 200))
         #expect(custom.hasPresentations && custom.semanticsTree().filter { $0.role == .checkbox }.count == 2, "\(custom.semanticsTree().map(\.role))")
-        // A sheet with a toolbar: its panel grows by the 52 pt bar and the item sits in it.
+        // A sheet with a toolbar: its panel grows by the 52 pt bar and the item sits in it (the
+        // sheet centred in the 200 pt window: the 112 pt panel starts at 44, the item 8 below).
         let sheet = runtime(Color.red.sheet(isPresented: .constant(true)) { Color.blue.frame(width: 100, height: 60).toolbar { ToolbarItem { Button("Action") {} } } })
         sheet.layout(in: CGSize(width: 400, height: 200))
         let action = sheet.semanticsTree().first { $0.label == "Action" }!.frame
-        #expect(action.height == 36 && action.minY == 8, "\(action)")
+        let panel = sheet.probeFrames["window.sheet"]!
+        #expect(action.height == 36 && action.minY == panel.minY + 8 && panel.height == 112, "\(action) in \(panel)")
         #expect(sheet.toolbarFrame == nil)
     }
 }

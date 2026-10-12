@@ -2784,6 +2784,12 @@
       "lastBaseline" : 14,
       "width" : 48.5
     },
+    "style:body||Resolve…" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 58
+    },
     "style:body||Right" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -2891,6 +2897,12 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 33.5
+    },
+    "style:body||Show cover" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 70.5
     },
     "style:body||Show sheet" : {
       "firstBaseline" : 14,
@@ -3804,6 +3816,12 @@
       "lastBaseline" : 128,
       "width" : 0
     },
+    "style:body|0.0|Resolve…" : {
+      "firstBaseline" : 14,
+      "height" : 151.5,
+      "lastBaseline" : 147,
+      "width" : 0
+    },
     "style:body|0.0|Right" : {
       "firstBaseline" : 14,
       "height" : 94.5,
@@ -3910,6 +3928,12 @@
       "firstBaseline" : 14,
       "height" : 94.5,
       "lastBaseline" : 90,
+      "width" : 0
+    },
+    "style:body|0.0|Show cover" : {
+      "firstBaseline" : 14,
+      "height" : 170.5,
+      "lastBaseline" : 166,
       "width" : 0
     },
     "style:body|0.0|Show sheet" : {
@@ -4290,6 +4314,12 @@
       "lastBaseline" : 14,
       "width" : 58
     },
+    "style:body|375.0|Resolve…" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 58
+    },
     "style:body|375.0|Search content" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -4301,6 +4331,12 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 100.5
+    },
+    "style:body|375.0|Show cover" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 70.5
     },
     "style:body|375.0|Show sheet" : {
       "firstBaseline" : 14,
@@ -8898,6 +8934,12 @@
       "lastBaseline" : 14,
       "width" : 32
     },
+    "style:headline||Popover title" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 82.5
+    },
     "style:headline||Save" : {
       "firstBaseline" : 14,
       "height" : 18.5,
@@ -9036,6 +9078,12 @@
       "lastBaseline" : 90,
       "width" : 0
     },
+    "style:headline|0.0|Popover title" : {
+      "firstBaseline" : 14,
+      "height" : 227.5,
+      "lastBaseline" : 223,
+      "width" : 0
+    },
     "style:headline|0.0|Save" : {
       "firstBaseline" : 14,
       "height" : 75.5,
@@ -9083,6 +9131,30 @@
       "height" : 18.5,
       "lastBaseline" : 14,
       "width" : 41
+    },
+    "style:headline|320.0|Popover title" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 82.5
+    },
+    "style:headline|320.0|Sheet title" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 67
+    },
+    "style:headline|360.0|Popover title" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 82.5
+    },
+    "style:headline|360.0|Sheet title" : {
+      "firstBaseline" : 14,
+      "height" : 18.5,
+      "lastBaseline" : 14,
+      "width" : 67
     },
     "style:headline|363.0|Sheet title" : {
       "firstBaseline" : 14,
@@ -14904,6 +14976,12 @@
       "lastBaseline" : 13,
       "width" : 9
     },
+    "system:13:400:default||A line of content." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 103.5
+    },
     "system:13:400:default||a link" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -15359,6 +15437,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 39.5
+    },
+    "system:13:400:default||Delete…" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 50
     },
     "system:13:400:default||Detail" : {
       "firstBaseline" : 13,
@@ -16518,6 +16602,12 @@
       "lastBaseline" : 13,
       "width" : 30.5
     },
+    "system:13:400:default||Some content under the title." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 177
+    },
     "system:13:400:default||Star" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -16595,6 +16685,12 @@
       "height" : 16,
       "lastBaseline" : 13,
       "width" : 31.5
+    },
+    "system:13:400:default||This cannot be undone." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 142.5
     },
     "system:13:400:default||Three" : {
       "firstBaseline" : 13,
@@ -17352,6 +17448,12 @@
       "lastBaseline" : 13,
       "width" : 0
     },
+    "system:13:400:default|0.0|A line of content." : {
+      "firstBaseline" : 13,
+      "height" : 240,
+      "lastBaseline" : 237,
+      "width" : 0
+    },
     "system:13:400:default|0.0|a link" : {
       "firstBaseline" : 13,
       "height" : 80,
@@ -17806,6 +17908,12 @@
       "firstBaseline" : 13,
       "height" : 96,
       "lastBaseline" : 93,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Delete…" : {
+      "firstBaseline" : 13,
+      "height" : 112,
+      "lastBaseline" : 109,
       "width" : 0
     },
     "system:13:400:default|0.0|Detail" : {
@@ -18966,6 +19074,12 @@
       "lastBaseline" : 77,
       "width" : 0
     },
+    "system:13:400:default|0.0|Some content under the title." : {
+      "firstBaseline" : 13,
+      "height" : 400,
+      "lastBaseline" : 397,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Star" : {
       "firstBaseline" : 13,
       "height" : 64,
@@ -19042,6 +19156,12 @@
       "firstBaseline" : 13,
       "height" : 80,
       "lastBaseline" : 77,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|This cannot be undone." : {
+      "firstBaseline" : 13,
+      "height" : 304,
+      "lastBaseline" : 301,
       "width" : 0
     },
     "system:13:400:default|0.0|Three" : {
@@ -19362,6 +19482,18 @@
       "lastBaseline" : 93,
       "width" : 95.5
     },
+    "system:13:400:default|104.0|Cancel" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 42
+    },
+    "system:13:400:default|104.0|Delete" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 39.5
+    },
     "system:13:400:default|108.0;l1;tt|The quick brown fox" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -19403,6 +19535,18 @@
       "height" : 80,
       "lastBaseline" : 77,
       "width" : 110
+    },
+    "system:13:400:default|110.0|Cancel" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 42
+    },
+    "system:13:400:default|110.0|Delete" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 39.5
     },
     "system:13:400:default|110.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
@@ -19650,6 +19794,18 @@
       "lastBaseline" : 45,
       "width" : 186
     },
+    "system:13:400:default|220.0|This cannot be undone." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 142.5
+    },
+    "system:13:400:default|228.0|This cannot be undone." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 142.5
+    },
     "system:13:400:default|260.0;l1|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -19661,6 +19817,12 @@
       "height" : 32,
       "lastBaseline" : 29,
       "width" : 227
+    },
+    "system:13:400:default|260.0|This cannot be undone." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 142.5
     },
     "system:13:400:default|266.0|Apple" : {
       "firstBaseline" : 13,
@@ -20118,11 +20280,83 @@
       "lastBaseline" : 13,
       "width" : 75
     },
+    "system:13:400:default|320.0|A line of content." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 103.5
+    },
+    "system:13:400:default|320.0|Done" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 32
+    },
+    "system:13:400:default|320.0|Some content under the title." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 177
+    },
+    "system:13:400:default|360.0|A line of content." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 103.5
+    },
+    "system:13:400:default|360.0|Done" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 32
+    },
+    "system:13:400:default|360.0|Some content under the title." : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 177
+    },
+    "system:13:400:default|376.0|Delete…" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 50
+    },
+    "system:13:400:default|376.0|Popover" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 50
+    },
+    "system:13:400:default|376.0|Sheet" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35.5
+    },
+    "system:13:400:default|400.0|Delete…" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 50
+    },
     "system:13:400:default|400.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 13,
       "height" : 32,
       "lastBaseline" : 29,
       "width" : 355.5
+    },
+    "system:13:400:default|400.0|Popover" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 50
+    },
+    "system:13:400:default|400.0|Sheet" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 35.5
     },
     "system:13:400:monospaced|| code" : {
       "firstBaseline" : 13,
@@ -20550,6 +20784,12 @@
       "lastBaseline" : 13,
       "width" : 62.5
     },
+    "system:13:700:default||Delete the item?" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 105.5
+    },
     "system:13:700:default||Empty" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -20670,6 +20910,12 @@
       "lastBaseline" : 109,
       "width" : 0
     },
+    "system:13:700:default|0.0|Delete the item?" : {
+      "firstBaseline" : 13,
+      "height" : 224,
+      "lastBaseline" : 221,
+      "width" : 0
+    },
     "system:13:700:default|0.0|Empty" : {
       "firstBaseline" : 13,
       "height" : 80,
@@ -20736,6 +20982,24 @@
       "lastBaseline" : 93,
       "width" : 0
     },
+    "system:13:700:default|220.0|Delete the item?" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 105.5
+    },
+    "system:13:700:default|228.0|Delete the item?" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 105.5
+    },
+    "system:13:700:default|260.0|Delete the item?" : {
+      "firstBaseline" : 13,
+      "height" : 16,
+      "lastBaseline" : 13,
+      "width" : 105.5
+    },
     "system:13:800:default||Bold" : {
       "firstBaseline" : 13,
       "height" : 16,
@@ -20796,7 +21060,31 @@
       "lastBaseline" : 72,
       "width" : 0
     },
+    "system:15:400:default|177.0|Choose what to do with the item." : {
+      "firstBaseline" : 15,
+      "height" : 38,
+      "lastBaseline" : 34,
+      "width" : 165.5
+    },
+    "system:15:400:default|242.0|Choose what to do before closing." : {
+      "firstBaseline" : 15,
+      "height" : 19,
+      "lastBaseline" : 15,
+      "width" : 234.5
+    },
     "system:15:400:default|242.0|This cannot be undone." : {
+      "firstBaseline" : 15,
+      "height" : 19,
+      "lastBaseline" : 15,
+      "width" : 161.5
+    },
+    "system:15:400:default|257.0|Choose what to do before closing." : {
+      "firstBaseline" : 15,
+      "height" : 19,
+      "lastBaseline" : 15,
+      "width" : 234.5
+    },
+    "system:15:400:default|257.0|This cannot be undone." : {
       "firstBaseline" : 15,
       "height" : 19,
       "lastBaseline" : 15,
@@ -20934,6 +21222,12 @@
       "lastBaseline" : 16,
       "width" : 49.5
     },
+    "system:17:400:default||Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 58
+    },
     "system:17:400:default||Duplicate" : {
       "firstBaseline" : 16,
       "height" : 20,
@@ -20945,6 +21239,12 @@
       "height" : 20,
       "lastBaseline" : 16,
       "width" : 100
+    },
+    "system:17:400:default||Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 37
     },
     "system:17:400:default||Star" : {
       "firstBaseline" : 16,
@@ -20982,6 +21282,12 @@
       "lastBaseline" : 116,
       "width" : 0
     },
+    "system:17:400:default|0.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 140,
+      "lastBaseline" : 136,
+      "width" : 0
+    },
     "system:17:400:default|0.0|Duplicate" : {
       "firstBaseline" : 16,
       "height" : 180,
@@ -20992,6 +21298,12 @@
       "firstBaseline" : 16,
       "height" : 200,
       "lastBaseline" : 196,
+      "width" : 0
+    },
+    "system:17:400:default|0.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 80,
+      "lastBaseline" : 76,
       "width" : 0
     },
     "system:17:400:default|0.0|Star" : {
@@ -21006,6 +21318,18 @@
       "lastBaseline" : 296,
       "width" : 0
     },
+    "system:17:400:default|85.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 58
+    },
+    "system:17:400:default|85.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 37
+    },
     "system:17:400:default|131.75|Cancel" : {
       "firstBaseline" : 16,
       "height" : 20,
@@ -21018,11 +21342,71 @@
       "lastBaseline" : 16,
       "width" : 49.5
     },
+    "system:17:400:default|131.75|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 58
+    },
+    "system:17:400:default|131.75|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 37
+    },
+    "system:17:400:default|132.0|Cancel" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 52.5
+    },
+    "system:17:400:default|132.0|Delete" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 49.5
+    },
+    "system:17:400:default|132.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 58
+    },
+    "system:17:400:default|132.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 37
+    },
     "system:17:400:default|181.0|Choose what to do with the item." : {
       "firstBaseline" : 16,
       "height" : 40,
       "lastBaseline" : 36,
       "width" : 181
+    },
+    "system:17:400:default|208.0|Cancel" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 52.5
+    },
+    "system:17:400:default|208.0|Copy" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 40
+    },
+    "system:17:400:default|208.0|Delete" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 49.5
+    },
+    "system:17:400:default|208.0|Duplicate" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 72
     },
     "system:17:400:default|211.0|Cancel" : {
       "firstBaseline" : 16,
@@ -21042,11 +21426,71 @@
       "lastBaseline" : 16,
       "width" : 49.5
     },
+    "system:17:400:default|211.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 58
+    },
     "system:17:400:default|211.0|Duplicate" : {
       "firstBaseline" : 16,
       "height" : 20,
       "lastBaseline" : 16,
       "width" : 72
+    },
+    "system:17:400:default|211.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 37
+    },
+    "system:17:400:default|242.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 58
+    },
+    "system:17:400:default|242.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 37
+    },
+    "system:17:400:default|270.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 58
+    },
+    "system:17:400:default|270.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 37
+    },
+    "system:17:400:default|288.0|Cancel" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 52.5
+    },
+    "system:17:400:default|288.0|Delete" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 49.5
+    },
+    "system:17:400:default|288.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 58
+    },
+    "system:17:400:default|288.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 37
     },
     "system:17:600:default||0" : {
       "firstBaseline" : 16,
@@ -21084,6 +21528,18 @@
       "lastBaseline" : 16,
       "width" : 51.5
     },
+    "system:17:600:default||Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 61
+    },
+    "system:17:600:default||Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
     "system:17:600:default|0.0|0" : {
       "firstBaseline" : 16,
       "height" : 20,
@@ -21120,6 +21576,30 @@
       "lastBaseline" : 116,
       "width" : 0
     },
+    "system:17:600:default|0.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 140,
+      "lastBaseline" : 136,
+      "width" : 0
+    },
+    "system:17:600:default|0.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 80,
+      "lastBaseline" : 76,
+      "width" : 0
+    },
+    "system:17:600:default|85.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 61
+    },
+    "system:17:600:default|85.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
     "system:17:600:default|131.75|Cancel" : {
       "firstBaseline" : 16,
       "height" : 20,
@@ -21131,6 +21611,66 @@
       "height" : 20,
       "lastBaseline" : 16,
       "width" : 51.5
+    },
+    "system:17:600:default|131.75|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 61
+    },
+    "system:17:600:default|131.75|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
+    "system:17:600:default|132.0|Cancel" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 55
+    },
+    "system:17:600:default|132.0|Delete" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 51.5
+    },
+    "system:17:600:default|132.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 61
+    },
+    "system:17:600:default|132.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
+    "system:17:600:default|208.0|Cancel" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 55
+    },
+    "system:17:600:default|208.0|Copy" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 41.5
+    },
+    "system:17:600:default|208.0|Delete" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 51.5
+    },
+    "system:17:600:default|208.0|Duplicate" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 75.5
     },
     "system:17:600:default|211.0|Cancel" : {
       "firstBaseline" : 16,
@@ -21144,6 +21684,72 @@
       "lastBaseline" : 16,
       "width" : 51.5
     },
+    "system:17:600:default|211.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 61
+    },
+    "system:17:600:default|211.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
+    "system:17:600:default|242.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 61
+    },
+    "system:17:600:default|242.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
+    "system:17:600:default|270.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 61
+    },
+    "system:17:600:default|270.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
+    "system:17:600:default|288.0|Cancel" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 55
+    },
+    "system:17:600:default|288.0|Delete" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 51.5
+    },
+    "system:17:600:default|288.0|Discard" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 61
+    },
+    "system:17:600:default|288.0|Save" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 38.5
+    },
+    "system:17:700:default|177.0|Item options" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 102
+    },
     "system:17:700:default|181.0|Item options" : {
       "firstBaseline" : 16,
       "height" : 20,
@@ -21155,6 +21761,24 @@
       "height" : 20,
       "lastBaseline" : 16,
       "width" : 133
+    },
+    "system:17:700:default|242.0|The document has unsaved changes that will be lost" : {
+      "firstBaseline" : 16,
+      "height" : 40,
+      "lastBaseline" : 36,
+      "width" : 227
+    },
+    "system:17:700:default|257.0;s5.0|Delete the item?" : {
+      "firstBaseline" : 16,
+      "height" : 20,
+      "lastBaseline" : 16,
+      "width" : 133
+    },
+    "system:17:700:default|257.0;s5.0|The document has unsaved changes that will be lost" : {
+      "firstBaseline" : 16,
+      "height" : 45,
+      "lastBaseline" : 41,
+      "width" : 227
     },
     "system:20:300:default||The quick brown fox" : {
       "firstBaseline" : 19,

@@ -287,14 +287,40 @@ private struct _AlertBody: View {
             .padding(m.alertInsets)
             .frame(width: m.alertWidth)
         } else {
-            VStack(spacing: 12) {
-                title.font(.system(size: 13).bold()).multilineTextAlignment(.center)
-                message.font(.system(size: 11)).foregroundStyle(Color.secondary).multilineTextAlignment(.center)
-                HStack(spacing: 12) { actions }._dismissesOnActivation()
+            // macOS 27 (presentation/mac-alert): the 13 pt bold title 20.5 from the top, the 13 pt
+            // message 13 below it, both centred; 17.5 below, 28 pt capsule buttons sharing the
+            // width 8 apart 16 from the sides (the cancel role first, the destructive one on a
+            // pink fill with red text), 16.5 from the bottom.
+            VStack(spacing: 0) {
+                title.font(.system(size: 13).bold()).multilineTextAlignment(.center).padding(.bottom, m.alertMacTitleMessageGap)
+                message.font(.system(size: 13)).multilineTextAlignment(.center)
+                _AlertActionsLayout(vertical: false, spacing: m.alertMacButtonGap, stackedSpacing: m.alertMacButtonGap, rowInset: 0, height: m.alertMacButtonHeight) { actions }
+                    .buttonStyle(_MacAlertButtonStyle(height: m.alertMacButtonHeight))
+                    ._dismissesOnActivation()
+                    .padding(.top, m.alertMacMessageButtonsGap)
             }
-            .padding(20)
+            .padding(EdgeInsets(top: m.alertMacTopInset, leading: m.alertMacSideInset, bottom: m.alertMacBottomInset, trailing: m.alertMacSideInset))
             .frame(width: m.alertWidth)
         }
+    }
+}
+
+/// macOS 27 alert buttons: capsules on a grey fill, the destructive role on pink with red text.
+package struct _MacAlertButtonStyle: ButtonStyle {
+    let height: CGFloat
+    @Environment(\.platformProfile) private var profile
+
+    package func makeBody(configuration: Configuration) -> some View {
+        let m = profile.metrics
+        let destructive = configuration.role == .destructive
+        let fill = destructive ? m.alertMacDestructiveFill : m.alertMacButtonFill
+        let color: Color = destructive ? Color(red: m.alertDestructiveColor.red, green: m.alertDestructiveColor.green, blue: m.alertDestructiveColor.blue) : .primary
+        return configuration.label
+            .font(.system(size: 13))
+            .foregroundStyle(color)
+            .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
+            .background(Capsule().fill(Color(red: fill.red, green: fill.green, blue: fill.blue)))
+            .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
 

@@ -143,7 +143,7 @@ public enum IOSPresentationFixtures {
             Color.white.ignoresSafeArea()
             Button("Show cover") { model.sheet = true }.probe("button")
         }
-        .fullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+        .fixtureFullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
             ZStack {
                 Color.yellow.ignoresSafeArea()
                 SheetBody()

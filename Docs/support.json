@@ -1094,9 +1094,12 @@
         {
           "api": "sheet / fullScreenCover / popover (isPresented and item forms) / alert / confirmationDialog / dismiss environment action",
           "status": "approximate",
-          "notes": "Presented over the window by the runtime's presentation layer (modal sheets and alerts, popovers and menus dismissed outside; interactiveDismissDisabled keeps them; popovers attach to the bounds, a rect or a point; a sheet is limited to the window so a ScrollView inside scrolls; several presentations from one view). The macOS looks approximate the platform (separate windows there, no goldens; accepted 2026-09-18); no Menu, contextMenu. iOS (2026-09-18, window-captured goldens): the sheet and its medium detent (presentationDetents, presentationDragIndicator); the materials' blur is approximated by their colour. iOS 27 (2026-10-11): the alert redesigned (a 320 pt glass card, leading title and secondary message, 48 pt capsule buttons in a row of two or stacked for one or three and more, the cancel button last), the confirmation dialog a 241 pt white panel centred on its source without an arrow, fullScreenCover filling the window (ios/alert/basic, ios/alert/stacked, ios/dialog/basic, ios/sheet/fullscreen; Docs/elements/iOS.md).",
+          "notes": "Presented over the window by the runtime's presentation layer (modal sheets and alerts, popovers and menus dismissed outside; interactiveDismissDisabled keeps them; popovers attach to the bounds, a rect or a point; a sheet is limited to the window so a ScrollView inside scrolls; several presentations from one view). The macOS window geometry is measured (2026-10-12, sw-mac-presentation-looks: the harness records the presented windows' frames as window.* probes — sheets and alerts centred at their content's size, undimmed; popovers above their anchor for the default arrow edge with a 13 pt window margin; the alert's 13 pt message and 28 pt capsule buttons); the panels' chrome stays by eye; no Menu, contextMenu. iOS (2026-09-18, window-captured goldens): the sheet and its medium detent (presentationDetents, presentationDragIndicator); the materials' blur is approximated by their colour. iOS 27 (2026-10-11): the alert redesigned (a 320 pt glass card, leading title and secondary message, 48 pt capsule buttons in a row of two or stacked for one or three and more, the cancel button last), the confirmation dialog a 241 pt white panel centred on its source without an arrow, fullScreenCover filling the window (ios/alert/basic, ios/alert/stacked, ios/dialog/basic, ios/sheet/fullscreen; Docs/elements/iOS.md).",
           "fixtures": [
-            "presentation/basic"
+            "presentation/basic",
+            "presentation/mac-sheet",
+            "presentation/mac-alert",
+            "presentation/mac-popover"
           ]
         },
         {

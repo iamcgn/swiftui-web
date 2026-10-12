@@ -15,23 +15,67 @@ final class AppKitHost: GoldenHost {
     private let hosting: NSHostingView<AnyView>
     private let window: NSWindow
 
-    init(_ view: AnyView, size: CGSize, colorScheme: ColorScheme) {
+    /// `Fixture.capturesWindow` on macOS (sw-mac-presentation-looks): the window is put on
+    /// screen so sheets, alerts, popovers and menus present as separate windows; their frames
+    /// relative to the window's content join the probes (`window.sheet`, `window.alert`,
+    /// `window.popover`, `window.menu`) and their content views are composited into the
+    /// capture at those frames. The panels' own chrome (glass, shadow, corners) belongs to the
+    /// window server and needs screen recording to capture, so it stays out.
+    private let capturesWindows: Bool
+
+    init(_ view: AnyView, size: CGSize, colorScheme: ColorScheme, capturesWindows: Bool = false) {
         // A CLI process never becomes active, so the offscreen window is never key; controls
         // would draw their inactive look (grey prominent buttons). This is the environment
         // value SwiftUI reads for that, so set it as a key window would.
         let root = AnyView(Self.root(view, collector: collector, colorScheme: colorScheme).environment(\.controlActiveState, .key))
         hosting = NSHostingView(rootView: root)
         hosting.frame = CGRect(origin: .zero, size: size)
-        window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        self.capturesWindows = capturesWindows
+        window = NSWindow(contentRect: CGRect(origin: CGPoint(x: 200, y: 200), size: size), styleMask: [.borderless], backing: .buffered, defer: false)
         // AppKit-backed controls follow the window's appearance, not the environment.
         window.appearance = NSAppearance(named: colorScheme == .dark ? .darkAqua : .aqua)
         window.contentView = hosting
+        if capturesWindows {
+            NSApplication.shared.setActivationPolicy(.regular)
+            window.makeKeyAndOrderFront(nil)
+        }
+    }
+
+    deinit {
+        if capturesWindows { MainActor.assumeIsolated { window.orderOut(nil) } }
+    }
+
+    /// The presented windows: their kind by class, and their frames in the content's top-left space.
+    private func presentedWindows() -> [(kind: String, window: NSWindow)] {
+        guard capturesWindows else { return [] }
+        return NSApp.windows.compactMap { presented in
+            guard presented !== window, presented.isVisible else { return nil }
+            let name = String(describing: type(of: presented))
+            let kind = presented.isSheet && name.contains("Alert") ? "alert" : presented.isSheet ? "sheet" : name.contains("Popover") ? "popover" : name.contains("Menu") ? "menu" : "window"
+            return (kind, presented)
+        }
+    }
+
+    private func relativeFrame(of presented: NSWindow) -> CGRect {
+        CGRect(x: presented.frame.minX - window.frame.minX, y: window.frame.maxY - presented.frame.maxY, width: presented.frame.width, height: presented.frame.height)
+    }
+
+    func settle() {
+        guard capturesWindows else { return }
+        RunLoop.main.run(until: Date().addingTimeInterval(1.0))
     }
 
     func frames() -> [String: CGRect] {
         hosting.layoutSubtreeIfNeeded()
         RunLoop.main.run(until: Date().addingTimeInterval(0.05))
-        return collector.frames
+        var frames = collector.frames
+        var counts: [String: Int] = [:]
+        for (kind, presented) in presentedWindows() {
+            counts[kind, default: 0] += 1
+            let name = counts[kind]! == 1 ? "window.\(kind)" : "window.\(kind)\(counts[kind]!)"
+            frames[name] = relativeFrame(of: presented)
+        }
+        return frames
     }
 
     func png(scale: Int) throws -> (data: Data, width: Int, height: Int) {
@@ -42,6 +86,23 @@ final class AppKitHost: GoldenHost {
         else { throw NSError(domain: "GoldenGen", code: 1, userInfo: [NSLocalizedDescriptionKey: "no bitmap"]) }
         rep.size = bounds.size
         hosting.cacheDisplay(in: bounds, to: rep)
+        let presented = presentedWindows()
+        if !presented.isEmpty, let context = NSGraphicsContext(bitmapImageRep: rep) {
+            // The presented windows' content over the main capture (flipped: y from the top).
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = context
+            for (_, presentedWindow) in presented {
+                guard let content = presentedWindow.contentView, let panel = content.bitmapImageRepForCachingDisplay(in: content.bounds) else { continue }
+                content.cacheDisplay(in: content.bounds, to: panel)
+                let frame = relativeFrame(of: presentedWindow)
+                let image = NSImage(size: frame.size)
+                image.addRepresentation(panel)
+                // The bitmap context is unflipped: convert the top-left frame to bottom-left.
+                let destination = CGRect(x: frame.minX, y: bounds.height - frame.maxY, width: frame.width, height: frame.height)
+                image.draw(in: destination, from: .zero, operation: .sourceOver, fraction: 1)
+            }
+            NSGraphicsContext.restoreGraphicsState()
+        }
         guard let png = rep.representation(using: .png, properties: [:]) else { throw NSError(domain: "GoldenGen", code: 2) }
         return (png, rep.pixelsWide, rep.pixelsHigh)
     }
@@ -80,7 +141,7 @@ func nsFont(_ font: FixtureFont) -> NSFont {
 FixtureAssets.registerFonts()
 
 let platform = GoldenPlatform(profile: "macOS", host: "AppKit", subdirectory: "", fixturePlatform: .macOS,
-                              makeHost: { view, size, scheme, _ in AppKitHost(view, size: size, colorScheme: scheme) },
+                              makeHost: { view, size, scheme, capturesWindow in AppKitHost(view, size: size, colorScheme: scheme, capturesWindows: capturesWindow) },
                               fontMetrics: { fixtureFont in
                                   let font = nsFont(fixtureFont)
                                   return ["capHeight": Double(font.capHeight), "xHeight": Double(font.xHeight),

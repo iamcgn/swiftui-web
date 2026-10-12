@@ -532,11 +532,31 @@ public final class Runtime {
             }
         }
         layoutPresentations(in: size)
+        // The presented panels' frames as probes, the way the macOS harness records the presented
+        // windows (`window.sheet`, `window.alert`, `window.popover`, `window.menu`; a second of a
+        // kind numbered): the desktop profile's presentations are separate windows there.
+        if !environmentIsIOS {
+            var counts: [String: Int] = [:]
+            for presentation in presentations {
+                let kind: String
+                switch presentation.kind {
+                case .sheet: kind = presentation.options.fullScreen ? "window" : "sheet"
+                case .alert, .dialog: kind = "alert"
+                case .popover: kind = "popover"
+                case .menu, .submenu: kind = "menu"
+                case .window: kind = "window"
+                }
+                counts[kind, default: 0] += 1
+                probeFrames[counts[kind]! == 1 ? "window.\(kind)" : "window.\(kind)\(counts[kind]!)"] = presentation.windowFrame
+            }
+        }
         isLayingOut = false
         layoutAnimation = nil
         updateAnimation = nil
         deliverPreferences()
     }
+
+    private var environmentIsIOS: Bool { rootEnvironment.platformProfile.isIOS }
 
     /// Runs every live `onPreferenceChange` action whose value changed in this pass.
     package func deliverPreferences() {
