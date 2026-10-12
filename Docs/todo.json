@@ -1658,13 +1658,14 @@
       "framework": "UIKit",
       "area": "Text",
       "title": "UITextInput for custom text views",
-      "detail": "The `UITextInput` protocol and `UITextInteraction` so an app's own text view can take input through the host overlay; `UIKeyInput` for the simple form.",
+      "detail": "The `UITextInput` protocol and `UITextInteraction` so an app's own text view can take input through the host overlay; `UIKeyInput` for the simple form. Done 2026-10-12 (Phase 9, item 36): UIKeyInput, UITextInputTraits, UITextInput with offset positions and ranges, UITextInputDelegate, UITextInteraction; the scene relays the host's text element to conforming views.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/TextView.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-controls-rest",

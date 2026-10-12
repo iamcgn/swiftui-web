@@ -79,3 +79,21 @@ Measured on `uikit/textview/looks`:
 Tier C within 4.6 % (approximate: the detected links' tint, the handle shapes, glyph
 anti-aliasing). Open: `selectedTextRange` and the browser's selection, data detectors other
 than links, `UITextView.textLayoutManager`, exclusion paths in the middle of a line.
+
+## UIKeyInput, UITextInput and UITextInteraction (uk-text-input, 2026-10-12; `Controls/UITextInput.swift`)
+
+An app's own view that conforms to `UIKeyInput` (`hasText`, `insertText`, `deleteBackward`;
+`UITextInputTraits` with defaults) or `UITextInput` (positions and ranges as character offsets:
+`UITextPosition`, `UITextRange`, `text(in:)`, `replace(_:withText:)`, `selectedTextRange`,
+`beginningOfDocument`/`endOfDocument`, `caretRect(for:)`, the marked-text and comparison
+members with defaults, `inputDelegate`) and can become first responder is a text field to the
+host: its semantics node carries a text element over its bounds (`paintsCaret`, Return not
+submitting, the traits as the element's attributes; a `UITextInput`'s document as the text).
+The scene keeps a shadow of the text the host last had and turns each whole-text report into
+`insertText`/`deleteBackward` calls (the common prefix kept) or, for `UITextInput`, one
+`replace` of the changed range (the common prefix and suffix kept) with the caret placed after
+it and `textWillChange`/`textDidChange` around; the host's selection arrives as
+`selectedTextRange` (UTF-16 offsets converted) with `selectionWillChange`/`selectionDidChange`.
+`UITextInteraction(for: .editable)` added to the view makes a tap begin editing. The view
+paints its own text and caret. `TextInputProtocolTests`.
+

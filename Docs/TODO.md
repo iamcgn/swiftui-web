@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
-| UIKit | 8 | 0 | 0 | 8 |
+| UIKit | 7 | 0 | 0 | 7 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **14** | 0 | 1 | 13 |
+| **All** | **13** | 0 | 1 | 12 |
 
 ## Next (Phase 8, in order)
 
@@ -33,8 +33,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **UITextInput for custom text views** `uk-text-input` · Text · missing  
-  The `UITextInput` protocol and `UITextInteraction` so an app's own text view can take input through the host overlay; `UIKeyInput` for the simple form. ([TextView.md](Docs/elements/UIKit/TextView.md))
 - ☐ **Slider images, segment images, stepper repeat** `uk-controls-rest` · Controls · missing  
   `UISlider` minimum and maximum images, `UISegmentedControl` images and per-segment widths, `UIStepper.autorepeat` (accepted), `UIPageControl` taps and continuous interaction. ([Controls.md](Docs/elements/UIKit/Controls.md))
 - ☐ **Tab bar badges and the More tab** `uk-tabbar` · Navigation · missing  
@@ -65,6 +63,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **UIAppearance proxies** `uk-appearance` · UIKit · Views
 - ☑ 2026-10-12 **Scenes and app lifecycle** `uk-scenes` · UIKit · App
 - ☑ 2026-10-12 **Hardware keyboard and the focus system** `uk-keyboard` · UIKit · Events
+- ☑ 2026-10-12 **UITextInput for custom text views** `uk-text-input` · UIKit · Text
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

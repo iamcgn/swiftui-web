@@ -1621,7 +1621,7 @@
         {
           "api": "UITextView",
           "status": "full",
-          "notes": "Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits, attributed runs, links (attributed and detected) opening through the delegate, the selection painted while editing, exclusion paths, the Helvetica 12 default font; open: the browser's selection in selectedRange, keyboard avoidance",
+          "notes": "Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits, attributed runs, links (attributed and detected) opening through the delegate, the selection painted while editing, exclusion paths, the Helvetica 12 default font; open: the browser's selection in selectedRange, keyboard avoidance. UIKeyInput/UITextInput/UITextInteraction (2026-10-12): an app's own text views take the host's text element, the host's reports relayed as inserts and deletes or replacements of the changed range with the selection following",
           "fixtures": [
             "uikit/textview/basic",
             "uikit/textview/heights",

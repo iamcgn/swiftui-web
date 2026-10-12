@@ -610,23 +610,36 @@ public final class UIKitScene: HostedScene {
     }
 
     public var focusedIdentifier: Int? { (firstResponder as? UIView)?.semanticsIdentifier ?? hostedFocusedTextFieldIdentifier }
-    public var focusedTextFieldIdentifier: Int? { (firstResponder as? any HostTextInput)?.semanticsIdentifier ?? hostedFocusedTextFieldIdentifier }
+    public var focusedTextFieldIdentifier: Int? {
+        if let field = firstResponder as? any HostTextInput { return field.semanticsIdentifier }
+        if let view = firstResponder as? UIView, view is any UIKeyInput { return view.semanticsIdentifier }
+        return hostedFocusedTextFieldIdentifier
+    }
+    /// The shadows of the key-input views the host types into (Controls/UITextInput.swift).
+    var keyInputShadows: [ObjectIdentifier: (shadow: HostKeyInputShadow, view: WeakView)] = [:]
 
     public func textField(_ semanticsIdentifier: Int, didChange text: String) {
         if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextField(semanticsIdentifier, didChange: text); setNeedsFrame(); return }
-        (view(withSemanticsIdentifier: semanticsIdentifier) as? any HostTextInput)?.hostDidChange(text)
+        let target = view(withSemanticsIdentifier: semanticsIdentifier)
+        if let field = target as? any HostTextInput { field.hostDidChange(text) } else if let view = target, view is any UIKeyInput { relayHostText(text, to: view) }
         setNeedsFrame()
     }
 
     public func textFieldDidSubmit(_ semanticsIdentifier: Int) {
         if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextFieldDidSubmit(semanticsIdentifier); setNeedsFrame(); return }
-        (view(withSemanticsIdentifier: semanticsIdentifier) as? any HostTextInput)?.hostDidSubmit()
+        let target = view(withSemanticsIdentifier: semanticsIdentifier)
+        if let field = target as? any HostTextInput { field.hostDidSubmit() } else if let view = target, view is any UIKeyInput { relayHostSubmit(to: view) }
         setNeedsFrame()
+    }
+
+    public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {
+        guard let view = view(withSemanticsIdentifier: semanticsIdentifier), view is any UITextInput else { return }
+        relayHostSelection(start: start, end: end, to: view)
     }
 
     public func textField(_ semanticsIdentifier: Int, focused: Bool) {
         if let host = hostingView(handling: semanticsIdentifier) { host._hostedTextField(semanticsIdentifier, focused: focused); setNeedsFrame(); return }
-        guard let field = view(withSemanticsIdentifier: semanticsIdentifier) as? any HostTextInput else { return }
+        guard let field = view(withSemanticsIdentifier: semanticsIdentifier), field is any HostTextInput || field is any UIKeyInput else { return }
         if focused { _ = field.becomeFirstResponder() } else if field.isFirstResponder { _ = field.resignFirstResponder() }
         setNeedsFrame()
     }
@@ -650,7 +663,8 @@ extension UIView {
 
     /// The semantics node for this view, or nil when it is not an accessibility element.
     func semanticsNode() -> SemanticsNode? {
-        guard isAccessibilityElement else { return nil }
+        // A key-input view is an element whatever the app said: the host's text element needs it.
+        guard isAccessibilityElement || (self is any UIKeyInput && canBecomeFirstResponder) else { return nil }
         let role: SemanticsNode.Role
         let traits = accessibilityTraits
         if traits.contains(.button) { role = .button }
@@ -671,6 +685,11 @@ extension UIView {
         node.isLive = traits.contains(.updatesFrequently)
         node.customActions = accessibilityCustomActions?.map { $0.name } ?? []
         decorateSemantics(&node)
+        // An app's own key-input view takes the host's text element (Controls/UITextInput.swift).
+        if node.textInput == nil, let info = UIKitScene.shared.keyInputInfo(for: self) {
+            node.role = .textField
+            node.textInput = info
+        }
         return node
     }
 }
