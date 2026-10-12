@@ -1,0 +1,21 @@
+{
+  "fixture" : "frameworks\/web",
+  "frames" : {
+    "title" : {
+      "height" : 16,
+      "width" : 27.5,
+      "x" : 146.25,
+      "y" : 16
+    },
+    "web" : {
+      "height" : 184,
+      "width" : 288,
+      "x" : 16,
+      "y" : 40
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

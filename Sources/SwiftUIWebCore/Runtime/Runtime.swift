@@ -415,6 +415,10 @@ public final class Runtime {
     package var nativeViewHostStorage: (any _NativeViewHosting)?
     /// The host showing window presentations as real windows (Runtime/HostedWindows.swift).
     package var realWindowHostStorage: (any _RealWindowHosting)?
+    /// The host elements painted this render and the last complete one (API/HostElement.swift).
+    package var hostElementsThisFrame: [HostElement] = []
+    package var hostElementsLastFrame: [HostElement] = []
+    package var hostElementCounter = 0
     /// Counts the frames the hosted trees were advanced for (`_HostFrame`).
     package var hostFrameNumber: UInt64 = 0
 

@@ -150,6 +150,12 @@ toolchain). `--screenshot out.png` waits for the app's first frame, writes a sna
 opens `.swiftuiweb` bundles (a built package directory renamed) and bundle folders by double
 click or drop, one window each.
 
+`Sources/Charts`, `MapKit`, `AVKit` and `WebKit` are the other Apple frameworks apps import
+unchanged (sw-frameworks, `Docs/elements/Charts.md`, `Docs/elements/Frameworks.md`): Swift
+Charts painted over the display list and measured against Apple's, a `Map` from OpenStreetMap
+tiles, and `VideoPlayer` / `WebView` as host elements the browser shows with a `<video>` or
+`<iframe>` over the canvas.
+
 `Packages/LinuxHost` is the Linux window (pf-linux, `Docs/elements/Linux.md`): the display list
 painted by Cairo (`WebGraphicsCairo` in `Packages/WebGraphics`) into a GTK4 `GtkDrawingArea`,
 input through GTK4's event controllers; `(cd Packages/LinuxHost && swift run gtk-counter)` runs

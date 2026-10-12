@@ -28,14 +28,15 @@ enum NativeGoldens {
         return url.appendingPathComponent("Fixtures/Goldens")
     }()
 
-    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/", "textstyle/", "dark/", "position/", "hover/", "toolbar/", "gesture/", "redacted/", "asyncimage/", "pressure/", "textscale/", "animator/", "matched/", "dragdrop/", "symboleffect/", "shapebool/", "ios/"]
+    static let enabledPrefixes = ["layout/", "paint/", "text/", "button/", "foreach/", "section/", "scroll/", "image/", "color/", "shape/", "toggle/", "label/", "textfield/", "list/", "nav/", "picker/", "slider/", "stepper/", "form/", "lifecycle/", "animation/", "presentation/", "customlayout/", "grid/", "canvas/", "observable/", "timeline/", "focus/", "accessibility/", "transform/", "gradient/", "menu/", "symbol/", "keyboard/", "progress/", "groupbox/", "labeledcontent/", "link/", "disclosure/", "lazy/", "tabview/", "unavailable/", "sharelink/", "splitview/", "gauge/", "datepicker/", "texteditor/", "table/", "colorpicker/", "effects/", "textstyle/", "dark/", "position/", "hover/", "toolbar/", "gesture/", "redacted/", "asyncimage/", "pressure/", "textscale/", "animator/", "matched/", "dragdrop/", "symboleffect/", "shapebool/", "charts/", "frameworks/", "ios/"]
 
     /// Fixtures whose browser render is held to a looser bound (font fallbacks); natively the
     /// fonts are real, but the bound is kept for parity with Tier B.
     static let approximate: Set<String> = ["datepicker/looks", "ios/datepicker/wheel", "ios/representable/hostingsafearea-tabs", "text/system-fonts", "text/fit", "button/styles", "progress/indeterminate",
                                            "texteditor/basic",   // NSTextView's tighter letters and wider spaces wrap one more word onto the first line
                                            "symboleffect/basic",   // four 26 pt stand-in glyphs against SF Symbols (3.2 %)
-                                           "unavailable/basic", "unavailable/corners", "ios/unavailable/basic"]   // 36 pt stand-in symbols above the titles
+                                           "unavailable/basic", "unavailable/corners", "ios/unavailable/basic",   // 36 pt stand-in symbols above the titles
+                                           "charts/bar", "charts/line", "charts/area", "charts/scales"]   // Swift Charts modelled from measurements (Docs/elements/Charts.md)
     /// Probes allowed two points (symbol sizes the metrics table scales to), as in Tier A.
     static let approximateProbes: [String: Set<String>] = [
         "form/grouped": ["nested", "nestedToggle"],   // macOS 26.6 draws the nested checkbox 14 wide (26.2: 16)
@@ -177,7 +178,8 @@ struct Bitmap {
         let runner = FixtureRunner(fixture, textEngine: engine, assets: try NativeGoldens.assets())
         runner.runtime.symbolMetricsDidLoad(NativeGoldens.symbolMetrics)
         // scroll/flash: the capture missed Apple's flash; ours paints the knob at rest.
-        let framesOnly = name.hasPrefix("symbol/") || name == "effects/shadow-offset" || name == "list/tint" || name == "scroll/flash" || name == "ios/nav/list-scroll"
+        // frameworks/: Apple's Map, VideoPlayer and WebView against painted stand-ins and OpenStreetMap tiles.
+        let framesOnly = name.hasPrefix("symbol/") || name.hasPrefix("frameworks/") || name == "effects/shadow-offset" || name == "list/tint" || name == "scroll/flash" || name == "ios/nav/list-scroll"
         compare(runner.layoutFrames(), to: golden.frames, label: name)
         try comparePixels(runner, fixture: fixture, png: "image@2x.png", label: name, framesOnly: framesOnly, painter: painter)
         for (index, step) in (golden.steps ?? []).enumerated() where index < fixture.stepNames.count {

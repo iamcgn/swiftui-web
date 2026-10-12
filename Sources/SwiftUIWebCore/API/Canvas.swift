@@ -9,6 +9,9 @@ public struct Canvas<Symbols: View>: View {
     package let colorMode: ColorRenderingMode
     package let rendersAsynchronously: Bool
     package let symbols: Symbols
+    /// Whether the drawing is clipped to the canvas's bounds (a chart's axis labels spill over
+    /// its edges, as Swift Charts' do).
+    package var clipsToBounds = true
 
     /// Creates and configures a canvas.
     public init(opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear, rendersAsynchronously: Bool = false,
@@ -25,6 +28,11 @@ public struct Canvas<Symbols: View>: View {
     public static func _makeNode(_ context: _NodeContext<Canvas<Symbols>>) -> TypedNode<Canvas<Symbols>> {
         CanvasNode(context)
     }
+}
+
+extension Canvas {
+    /// A canvas whose drawing is not clipped to its bounds (Charts).
+    package func _unclipped() -> Canvas { var c = self; c.clipsToBounds = false; return c }
 }
 
 extension Canvas where Symbols == EmptyView {
@@ -126,7 +134,7 @@ public struct GraphicsContext {
             case .color(let color): return color.resolve(in: environment)
             case .foreground: return (environment.foregroundColor ?? .primary).resolve(in: environment)
             case .background: return Color.white.resolve(in: environment)
-            case .style(let style): return (style as? Color ?? .primary).resolve(in: environment)
+            case .style(let style): return style.resolveColor(in: environment)
             case .linear, .radial, .conic, .tiled: return Color.primary.resolve(in: environment)
             }
         }
@@ -145,7 +153,10 @@ public struct GraphicsContext {
                 return DisplayGradient(kind: .angular(center: center.applying(transform), startAngle: angle.radians + _atan2(Double(transform.b), Double(transform.a))),
                                        stops: gradient.resolvedStops(in: environment))
             case .style(let style):
-                return (style as? any _GradientStyle)?._resolveGradient(in: bounds, environment: environment)
+                // An erased flat style stays a colour: a one-stop gradient paints nothing in Canvas2D.
+                let base = (style as? AnyShapeStyle)?.base ?? style
+                guard !(base is Color), !(base is HierarchicalShapeStyle), let gradient = base as? any _GradientStyle else { return nil }
+                return gradient._resolveGradient(in: bounds, environment: environment)
             case .color, .foreground, .background, .tiled:
                 return nil
             }

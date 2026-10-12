@@ -72,6 +72,11 @@ jobs:
         run: cd Playwright && npm install && npx playwright install --with-deps chromium
       - name: Tier B (gallery vs goldens)
         run: . ~/.swiftly/env.sh && scripts/tier-b.sh
+      - name: Host elements and the map in Chromium (sw-frameworks)
+        run: |
+          python3 -m http.server 8769 --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8769/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node frameworks-probe.mjs http://127.0.0.1:8769/index.html)
       - name: Landing frame budget (pf-perf)
         run: . ~/.swiftly/env.sh && scripts/frame-budget.sh
       - name: Counter smoke test and size gate

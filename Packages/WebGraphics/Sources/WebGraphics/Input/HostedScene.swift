@@ -164,6 +164,37 @@ public protocol HostedScene: AnyObject {
     /// The image the system drag shows: the lifted preview as a display list in its own space,
     /// its size, and where the pointer holds it.
     func externalDragPreview() -> ExternalDragPreview?
+
+    // MARK: Host elements (sw-frameworks)
+
+    /// Platform elements the host places over the painted content after a render: a video
+    /// player, a web view. The scene paints a stand-in underneath for hosts without them.
+    func hostElements() -> [HostElement]
+}
+
+/// An element a host shows over the canvas at a view's frame (`VideoPlayer`, `WebView`).
+public struct HostElement: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable {
+        /// A video: its source, whether it should be playing, muted or looping, with controls.
+        case video(url: String, playing: Bool, muted: Bool, loops: Bool, controls: Bool, rate: Double)
+        /// A web page by URL or inline HTML.
+        case web(url: String?, html: String?)
+
+        public var isVideo: Bool { if case .video = self { return true } else { return false } }
+    }
+    public var identifier: Int
+    public var kind: Kind
+    public var isVideo: Bool { kind.isVideo }
+    /// The element's frame in root coordinates.
+    public var frame: CGRect
+    /// The part of the frame the host may show (a scroll view's clip).
+    public var visibleFrame: CGRect
+    public init(identifier: Int, kind: Kind, frame: CGRect, visibleFrame: CGRect) {
+        self.identifier = identifier
+        self.kind = kind
+        self.frame = frame
+        self.visibleFrame = visibleFrame
+    }
 }
 
 /// What a scene asks the host to share: links and texts, a subject, a message, and data as files.
@@ -255,6 +286,7 @@ public struct ColorPanelRequest: Equatable, Sendable {
 }
 
 extension HostedScene {
+    public func hostElements() -> [HostElement] { [] }
     public func colorPanel(_ identifier: Int, didPick color: RGBA) {}
     public func colorPanelDidClose(_ identifier: Int) {}
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {}

@@ -10,6 +10,8 @@ extension Runtime {
         defer { PlatformMetrics.current = previousMetrics }
         var list = DisplayList()
         let context = PaintContext(origin: .zero, scale: scale)
+        hostElementsThisFrame = []
+        defer { hostElementsLastFrame = hostElementsThisFrame }
         if paintsWindowBackground {
             list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: layoutSize)), rootEnvironment._windowBackground))
         }

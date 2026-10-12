@@ -48,7 +48,7 @@ const frameTolerance = (name, key, expected, id) => name === 'text/fit' ? Math.m
 // A step whose pixels are skipped: uikit/nav/search-results/scroll shows iOS 26's blurred scroll
 // edges under the collapsed bar and the toolbar, which UIKitWeb does not paint (Docs/todo.json uk-materials).
 const stepFramesOnly = ['uikit/nav/search-results/scroll'];
-const framesOnly = (name) => name.startsWith('symbol/') || name === 'effects/shadow-offset' || name === 'list/tint' || name === 'uikit/datepicker/wheels' || name === 'uikit/datepicker/countdown' || name === 'uikit/picker/basic' || name === 'uikit/picker/custom' || name === 'scroll/flash' || name === 'ios/nav/list-scroll';
+const framesOnly = (name) => name.startsWith('symbol/') || name.startsWith('frameworks/') || name === 'effects/shadow-offset' || name === 'list/tint' || name === 'uikit/datepicker/wheels' || name === 'uikit/datepicker/countdown' || name === 'uikit/picker/basic' || name === 'uikit/picker/custom' || name === 'scroll/flash' || name === 'ios/nav/list-scroll';
 mkdirSync(out, { recursive: true });
 
 function goldens(dir, prefix = '') {

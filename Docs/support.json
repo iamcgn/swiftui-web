@@ -801,8 +801,14 @@
         },
         {
           "api": "Chart (Swift Charts) / Map / VideoPlayer / WebView",
-          "status": "missing",
-          "notes": "Separate frameworks, not part of the SwiftUI module yet"
+          "status": "partial",
+          "notes": "Separate frameworks shadowed by SwiftUIWeb's own modules (Charts, MapKit, AVKit, WebKit, CoreLocation; sw-frameworks 2026-10-12): see the Charts and Other frameworks sections",
+          "fixtures": [
+            "charts/bar",
+            "frameworks/map",
+            "frameworks/video",
+            "frameworks/web"
+          ]
         },
         {
           "api": "Window management: WindowGroup (id, title, for: value), Window, Settings, MenuBarExtra, DocumentGroup / FileDocument, openWindow, dismissWindow, openSettings, defaultSize, defaultPosition, windowResizability, windowStyle, commands (CommandMenu, CommandGroup)",
@@ -2128,6 +2134,99 @@
           "status": "partial",
           "notes": "Tools/Host for Linux: a static server for the package's index.html and wasm bundle on 127.0.0.1 shown in a WebKitWebView inside a GTK4 window, with --port, --path, --width, --height and --timeout; builds in CI against libwebkitgtk-6.0-dev, not yet run under a display (2026-10-12)",
           "noFixture": "Needs a display; unverified by hand."
+        }
+      ]
+    },
+    {
+      "title": "Charts (decision 0018, sw-frameworks)",
+      "framework": "SwiftUI",
+      "entries": [
+        {
+          "api": "Chart / Chart(data) / ChartContentBuilder / ForEach",
+          "status": "full",
+          "notes": "Marks collected into records, painted into an unclipped Canvas; the chart fills its proposal (Docs/elements/Charts.md, 2026-10-12)",
+          "fixtures": [
+            "charts/bar",
+            "charts/line",
+            "charts/area",
+            "charts/scales"
+          ]
+        },
+        {
+          "api": "BarMark / LineMark / PointMark / AreaMark / RuleMark / RectangleMark",
+          "status": "partial",
+          "notes": "Measured on macOS 27: bars 70 % of a nominal band (the value end rounded by cornerRadius), 2 pt round-capped lines and rules, 8 pt points, solid areas, stacking by series, dodging by position(by:); SectorMark missing",
+          "fixtures": [
+            "charts/bar",
+            "charts/line",
+            "charts/area",
+            "charts/scales"
+          ]
+        },
+        {
+          "api": "PlottableValue / Plottable (numbers, strings, dates, raw-representable enums)",
+          "status": "full",
+          "notes": "Nominal bands in order of appearance, quantitative scales including zero with nice 1/2/2.5/5 steps over four intervals, temporal scales ticked by the span",
+          "fixtures": [
+            "charts/bar"
+          ]
+        },
+        {
+          "api": "foregroundStyle(by:) / foregroundStyle / opacity / cornerRadius / lineStyle / interpolationMethod / symbol / symbolSize / position(by:) / offset / zIndex / annotation",
+          "status": "partial",
+          "notes": "The palette in Swift Charts' order with a legend; gradients through the canvas; annotations as canvas symbols 4 pt from the mark's frame; monotone and cardinal interpolation drawn as Catmull-Rom; clipShape, shadow and blur accepted",
+          "fixtures": [
+            "charts/line",
+            "charts/area",
+            "charts/scales"
+          ]
+        },
+        {
+          "api": "chartXAxis / chartYAxis / AxisMarks / AxisGridLine / AxisTick / AxisValueLabel",
+          "status": "partial",
+          "notes": "Hidden axes, automatic, stride and explicit values, leading or trailing position, labels with formats or custom content, marks per value; 11 pt secondary labels (12 on iOS) 4 after a tick and 5 below the plot, dashed vertical and solid horizontal 13 % grid lines; ticks themselves are not drawn",
+          "fixtures": [
+            "charts/area",
+            "charts/scales"
+          ]
+        },
+        {
+          "api": "chartXScale / chartYScale / chartForegroundStyleScale / chartSymbolScale / chartLegend / chartXAxisLabel / chartYAxisLabel / chartPlotStyle / chartOverlay / chartBackground / ChartProxy",
+          "status": "partial",
+          "notes": "Fixed domains, colour mappings and palettes, the legend's visibility and side, axis titles (approximate), the plot styled by a closure, overlays with a proxy whose geometry estimates label widths and whose plotFrame is a CGRect; selection, scrolling and gesture modifiers accepted without effect",
+          "fixtures": [
+            "charts/scales"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Other frameworks (decision 0018, sw-frameworks)",
+      "framework": "SwiftUI",
+      "entries": [
+        {
+          "api": "VideoPlayer / AVPlayer / AVPlayerItem / AVQueuePlayer / AVPlayerLooper (AVKit, AVFoundation)",
+          "status": "partial",
+          "notes": "A host element: the browser's <video> over the canvas at the view's frame, clipped by scroll views, following the player's source, play/pause, rate, muting and looping each frame; a black stand-in with a play glyph elsewhere; no playback state back, no picture in picture (Docs/elements/Frameworks.md, 2026-10-12)",
+          "fixtures": [
+            "frameworks/video"
+          ]
+        },
+        {
+          "api": "WebView / WebPage (WebKit)",
+          "status": "partial",
+          "notes": "A host element: a sandboxed <iframe> loading the page's URL or HTML; a white stand-in elsewhere; navigation state is not reported back",
+          "fixtures": [
+            "frameworks/web"
+          ]
+        },
+        {
+          "api": "Map / Marker / Annotation / MapCameraPosition / MKCoordinateRegion / CLLocationCoordinate2D (MapKit, CoreLocation)",
+          "status": "approximate",
+          "notes": "Painted from OpenStreetMap raster tiles fetched by the host and placed by Web Mercator at the zoom fitting the region, markers as red balloons with titles, annotations as views; the look is OpenStreetMap's (frames-only in the pixel tiers); no gestures, camera changes, styles, overlays or user location",
+          "fixtures": [
+            "frameworks/map"
+          ]
         }
       ]
     }

@@ -1,0 +1,21 @@
+{
+  "fixture" : "frameworks\/map",
+  "frames" : {
+    "map" : {
+      "height" : 184,
+      "width" : 288,
+      "x" : 16,
+      "y" : 40
+    },
+    "title" : {
+      "height" : 16,
+      "width" : 26.5,
+      "x" : 146.75,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 240,
+    "width" : 320
+  }
+}

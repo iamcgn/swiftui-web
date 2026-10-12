@@ -20,6 +20,9 @@ public final class CanvasSceneHost {
     private let canvas: JSObject
     private let context: JSObject
     private let overlay: JSObject
+    /// The platform elements over the canvas (`<video>`, `<iframe>`; `HostedScene.hostElements`).
+    private let elementsLayer: JSObject
+    private var hostElementViews: [Int: (wrapper: JSObject, element: JSObject, state: HostElement)] = [:]
     /// The live region announcements are spoken from.
     private let announcer: JSObject
     private let bridge: JSObject
@@ -80,6 +83,18 @@ public final class CanvasSceneHost {
         canvas.style.object!.touchAction = .string("none")
         _ = container.appendChild!(canvas)
         context = canvas.getContext!("2d").object!
+        // Videos and web views sit between the canvas and the accessibility overlay, taking
+        // pointer events themselves; the canvas's painted stand-ins stay underneath.
+        elementsLayer = document.createElement!("div").object!
+        let elementsStyle = elementsLayer.style.object!
+        elementsStyle.position = .string("absolute")
+        elementsStyle.left = .string("0")
+        elementsStyle.top = .string("0")
+        elementsStyle.width = .string("100%")
+        elementsStyle.height = .string("100%")
+        elementsStyle.pointerEvents = .string("none")
+        elementsStyle.overflow = .string("hidden")
+        _ = container.appendChild!(elementsLayer)
         overlay = document.createElement!("div").object!
         let overlayStyle = overlay.style.object!
         overlayStyle.position = .string("absolute")
@@ -732,6 +747,7 @@ public final class CanvasSceneHost {
         let painted = now
         overlayStart = painted
         updateOverlay()
+        updateHostElements()
         lastDisplayList = list
         frameCount += 1
         frameMillis = (now - time) * 1000
@@ -1066,6 +1082,93 @@ public final class CanvasSceneHost {
             _ = bitmaps.push!(object)
         }
         _ = bridge.paint!(context, buffer, strings, dpr, width, height, bitmaps)
+    }
+
+    /// Mirrors the scene's host elements into the elements layer: a clipping wrapper at the
+    /// visible frame holding the element at the element's own frame.
+    private func updateHostElements() {
+        let elements = scene.hostElements()
+        var seen = Set<Int>()
+        for element in elements {
+            seen.insert(element.identifier)
+            var entry = hostElementViews[element.identifier]
+            if let existing = entry, !Self.sameElementKind(existing.state.kind, element.kind) {
+                _ = existing.wrapper.remove!()
+                entry = nil
+            }
+            if entry == nil {
+                let wrapper = document.createElement!("div").object!
+                let wrapperStyle = wrapper.style.object!
+                wrapperStyle.position = .string("absolute")
+                wrapperStyle.overflow = .string("hidden")
+                wrapperStyle.pointerEvents = .string("auto")
+                let created: JSObject
+                switch element.kind {
+                case .video:
+                    created = document.createElement!("video").object!
+                    _ = created.setAttribute!("playsinline", "")
+                case .web:
+                    created = document.createElement!("iframe").object!
+                    _ = created.setAttribute!("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups")
+                    _ = created.setAttribute!("referrerpolicy", "no-referrer")
+                }
+                let style = created.style.object!
+                style.position = .string("absolute")
+                style.border = .string("0")
+                style.margin = .string("0")
+                style.padding = .string("0")
+                style.display = .string("block")
+                style.background = .string(element.kind.isVideo ? "black" : "white")
+                _ = wrapper.appendChild!(created)
+                _ = elementsLayer.appendChild!(wrapper)
+                entry = (wrapper, created, HostElement(identifier: element.identifier, kind: element.kind, frame: .null, visibleFrame: .null))
+            }
+            guard var current = entry else { continue }
+            if current.state.frame != element.frame || current.state.visibleFrame != element.visibleFrame {
+                let wrapperStyle = current.wrapper.style.object!
+                let visible = element.visibleFrame
+                wrapperStyle.left = .string("\(visible.minX)px"); wrapperStyle.top = .string("\(visible.minY)px")
+                wrapperStyle.width = .string("\(max(visible.width, 0))px"); wrapperStyle.height = .string("\(max(visible.height, 0))px")
+                let style = current.element.style.object!
+                style.left = .string("\(element.frame.minX - visible.minX)px"); style.top = .string("\(element.frame.minY - visible.minY)px")
+                style.width = .string("\(element.frame.width)px"); style.height = .string("\(element.frame.height)px")
+            }
+            applyHostElementState(current.element, from: current.state.kind, to: element.kind, fresh: current.state.frame.isNull)
+            current.state = element
+            hostElementViews[element.identifier] = current
+        }
+        for (identifier, entry) in hostElementViews where !seen.contains(identifier) {
+            _ = entry.wrapper.remove!()
+            hostElementViews[identifier] = nil
+        }
+    }
+
+    private static func sameElementKind(_ a: HostElement.Kind, _ b: HostElement.Kind) -> Bool {
+        switch (a, b) {
+        case (.video, .video), (.web, .web): return true
+        default: return false
+        }
+    }
+
+    /// Writes what changed of an element's state: the source, play/pause, the attributes.
+    private func applyHostElementState(_ element: JSObject, from previous: HostElement.Kind, to kind: HostElement.Kind, fresh: Bool) {
+        switch (previous, kind) {
+        case (.video(let oldURL, let wasPlaying, let wasMuted, let didLoop, let hadControls, let oldRate),
+              .video(let url, let playing, let muted, let loops, let controls, let rate)):
+            if fresh || oldURL != url { element.src = .string(url) }
+            if fresh || wasMuted != muted { element.muted = .boolean(muted) }
+            if fresh || didLoop != loops { element.loop = .boolean(loops) }
+            if fresh || hadControls != controls { element.controls = .boolean(controls) }
+            if fresh || oldRate != rate { element.playbackRate = .number(rate == 0 ? 1 : rate) }
+            if fresh || wasPlaying != playing {
+                if playing { _ = element.play?() } else { _ = element.pause?() }
+            }
+        case (.web(let oldURL, let oldHTML), .web(let url, let html)):
+            if fresh || oldHTML != html, let html { element.srcdoc = .string(html) }
+            else if fresh || oldURL != url, let url { element.src = .string(url) }
+        default:
+            break
+        }
     }
 
     private func updateOverlay() {

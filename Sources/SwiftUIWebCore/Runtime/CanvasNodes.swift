@@ -45,7 +45,7 @@ package final class CanvasNode<Symbols: View>: LeafNode<Canvas<Symbols>> {
         _trackingObservation(for: self) { renderer.draw(&graphics, bounds.size) }
         guard !recorder.list.commands.isEmpty else { return }
         list.append(.save)
-        list.append(.clipRect(bounds))
+        if view.clipsToBounds { list.append(.clipRect(bounds)) }
         list.commands.append(contentsOf: recorder.list.commands)
         list.append(.restore)
     }

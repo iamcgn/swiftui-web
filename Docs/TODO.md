@@ -4,9 +4,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| SwiftUI | 1 | 0 | 0 | 1 |
 | Platform | 1 | 0 | 1 | 0 |
-| **All** | **2** | 0 | 1 | 1 |
+| **All** | **1** | 0 | 1 | 0 |
 
 ## Next (Phase 8, in order)
 
@@ -18,11 +17,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   Japanese and Chinese IMEs and Safari autofill through the overlay input (spike 0.12's risk), a VoiceOver session in Safari; the findings recorded per browser in the matrix. ([ROADMAP.md](Docs/ROADMAP.md))
 
 ## Later (needs a decision, a subsystem or a platform)
-
-### SwiftUI
-
-- ☐ **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · Other frameworks · missing  
-  Separate Apple frameworks. `Charts` is the one apps reach for most and could be a package of its own over the display list; `Map` would need a tile source; `VideoPlayer` and `WebView` need DOM elements under the canvas. Decision needed before any of them starts. ([support.json](Docs/support.json))
 
 ## Landed
 
@@ -42,6 +36,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **NSViewRepresentable and NSViewControllerRepresentable** `ix-appkit` · Interop · AppKit
 - ☑ 2026-10-12 **Native text selection, IME and windows** `pf-native-text` · Platform · Native macOS
 - ☑ 2026-10-12 **Linux: build, CI, painter and host** `pf-linux` · Platform · Linux
+- ☑ 2026-10-12 **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · SwiftUI · Other frameworks
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

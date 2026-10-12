@@ -8,7 +8,8 @@ let package = Package(
     platforms: [.macOS("15.4"), .macCatalyst("18.0"), .iOS("26.0")],   // 15.4: TabContent.disabled (tabview/tab-api)
     targets: [
         .target(name: "FixtureKit"),                                     // real-SwiftUI implementation of the fixture API
-        .target(name: "Fixtures", dependencies: ["FixtureKit"]),         // symlink -> ../../Fixtures/Sources
+        .target(name: "Fixtures", dependencies: ["FixtureKit"],         // symlink -> ../../Fixtures/Sources
+                linkerSettings: [.linkedFramework("AVKit"), .linkedFramework("MapKit"), .linkedFramework("WebKit")]),   // sw-frameworks fixtures
         .target(name: "GoldenKit", dependencies: ["FixtureKit", "Fixtures"]),   // generation shared by the hosts below
         .executableTarget(name: "GoldenGen", dependencies: ["GoldenKit", "FixtureKit", "Fixtures"]),          // AppKit window: macOS goldens
         .executableTarget(name: "GoldenGenIOS", dependencies: ["GoldenKit", "FixtureKit", "Fixtures"]), // UIKit window on Mac Catalyst: iOS goldens (scripts/gen-goldens-ios.sh)

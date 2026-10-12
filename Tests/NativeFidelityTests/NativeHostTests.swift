@@ -69,7 +69,6 @@ import SwiftUIWebNative
         #expect(h.view.isAccessibilityElement() == false)
     }
 }
-#endif
 
 // MARK: - pf-native-text (2026-10-12)
 
@@ -164,3 +163,4 @@ import SwiftUIWebNative
         #expect(host.runtime.openWindowCount == 0 && host.realWindows?.openWindowIdentifiers.isEmpty == true)
     }
 }
+#endif

@@ -21,6 +21,10 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "SwiftUI", targets: ["SwiftUI"]),
+        .library(name: "Charts", targets: ["Charts"]),
+        .library(name: "MapKit", targets: ["MapKit"]),
+        .library(name: "AVKit", targets: ["AVKit"]),
+        .library(name: "WebKit", targets: ["WebKit"]),
         .library(name: "SwiftUIWebCanvas", targets: ["SwiftUIWebCanvas"]),
         .library(name: "SwiftUIWebNative", targets: ["SwiftUIWebNative"]),
         .library(name: "SwiftUIWebHeadless", targets: ["SwiftUIWebHeadless"]),
@@ -50,6 +54,18 @@ let package = Package(
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // Swift Charts over the display list (sw-frameworks, decision 0018): `import Charts`.
+        .target(
+            name: "Charts",
+            dependencies: ["SwiftUI"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // Map, VideoPlayer and WebView (sw-frameworks): painted tiles, host elements over the canvas.
+        .target(name: "CoreLocation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AVFoundation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The representables (decision 0014, Phase 2): UIKit views hosted as SwiftUI leaves.
         .target(
             name: "SwiftUIWebUIKit",
@@ -106,7 +122,7 @@ let package = Package(
         ),
         .target(
             name: "SwiftUIWebFixtures",
-            dependencies: ["SwiftUI", "FixtureKit"],
+            dependencies: ["SwiftUI", "FixtureKit", "Charts", "MapKit", "AVKit", "WebKit"],
             path: "Fixtures/Sources",
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
@@ -115,7 +131,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "WebKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(

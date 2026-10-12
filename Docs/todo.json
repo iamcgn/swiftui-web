@@ -1827,13 +1827,16 @@
       "framework": "SwiftUI",
       "area": "Other frameworks",
       "title": "Charts, Map, VideoPlayer, WebView",
-      "detail": "Separate Apple frameworks. `Charts` is the one apps reach for most and could be a package of its own over the display list; `Map` would need a tile source; `VideoPlayer` and `WebView` need DOM elements under the canvas. Decision needed before any of them starts.",
+      "detail": "Separate Apple frameworks. Done 2026-10-12 (Phase 9, item 48, decision 0018): `Charts` as a target of its own over the display list (marks, scales, axes, legends, annotations measured against Apple's Charts on macOS 27: Tier B and C within 1.7 %); `MapKit`/`CoreLocation` painting OpenStreetMap tiles with markers and annotations; `AVKit`/`AVFoundation` and `WebKit` as host elements (the browser's <video> and <iframe> over the canvas at the view's frame, painted stand-ins elsewhere); open: SectorMark, chart selection and scrolling, map gestures and the camera binding, playback state back from the element, native real views on macOS.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
-        "Docs/support.json"
-      ]
+        "Docs/elements/Charts.md",
+        "Docs/elements/Frameworks.md",
+        "Docs/decisions/0018-later-sweep.md"
+      ],
+      "done": "2026-10-12"
     }
   ]
 }

@@ -307,6 +307,62 @@ public static let sizing = Fixture("canvas/sizing", size: CGSize(width: 320, hei
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "charts/area", file: "Fixtures/Sources/Charts/ChartFixtures.swift", firstLine: 50, lastLine: 65, declaration: #"""
+/// An area, a rule at the average with an annotation, the x axis hidden.
+public static let area = Fixture("charts/area", size: CGSize(width: 320, height: 240)) {
+    Chart {
+        ForEach(sales) { sale in
+            AreaMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+        }
+        RuleMark(y: .value("Average", 60))
+            .foregroundStyle(.red)
+            .annotation(position: .top, alignment: .leading) {
+                Text("Average").font(.caption).foregroundStyle(.red)
+            }
+    }
+    .chartXAxis(.hidden)
+    .padding(16)
+    .probe("chart")
+}
+"""#),
+        FixtureSource(name: "charts/bar", file: "Fixtures/Sources/Charts/ChartFixtures.swift", firstLine: 29, lastLine: 36, declaration: #"""
+/// Bars over a nominal x axis and the default quantitative y axis on the trailing edge.
+public static let bar = Fixture("charts/bar", size: CGSize(width: 320, height: 240)) {
+    Chart(sales) { sale in
+        BarMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+    }
+    .padding(16)
+    .probe("chart")
+}
+"""#),
+        FixtureSource(name: "charts/line", file: "Fixtures/Sources/Charts/ChartFixtures.swift", firstLine: 38, lastLine: 48, declaration: #"""
+/// Two line series coloured by their kind with points, and the legend the series make.
+public static let line = Fixture("charts/line", size: CGSize(width: 320, height: 240)) {
+    Chart(sales + stores) { sale in
+        LineMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+            .foregroundStyle(by: .value("Kind", sale.kind))
+        PointMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+            .foregroundStyle(by: .value("Kind", sale.kind))
+    }
+    .padding(16)
+    .probe("chart")
+}
+"""#),
+        FixtureSource(name: "charts/scales", file: "Fixtures/Sources/Charts/ChartFixtures.swift", firstLine: 67, lastLine: 79, declaration: #"""
+/// Horizontal bars with rounded corners, a fixed x domain, the y axis leading and the legend hidden.
+public static let scales = Fixture("charts/scales", size: CGSize(width: 320, height: 240)) {
+    Chart(stores) { sale in
+        BarMark(x: .value("Sales", sale.amount), y: .value("Month", sale.month))
+            .foregroundStyle(by: .value("Kind", sale.kind))
+            .cornerRadius(4)
+    }
+    .chartXScale(domain: 0...100)
+    .chartYAxis { AxisMarks(position: .leading) }
+    .chartLegend(.hidden)
+    .padding(16)
+    .probe("chart")
+}
+"""#),
         FixtureSource(name: "color/named", file: "Fixtures/Sources/Color/ColorFixtures.swift", firstLine: 7, lastLine: 16, declaration: #"""
 public static let named = Fixture("color/named", size: CGSize(width: 340, height: 120)) {
     HStack(spacing: 8) {
@@ -1309,6 +1365,48 @@ public static let styles = Fixture("form/styles", size: CGSize(width: 360, heigh
     .probe("stack")
 }
 """#),
+        FixtureSource(name: "frameworks/map", file: "Fixtures/Sources/Frameworks/FrameworkFixtures.swift", firstLine: 38, lastLine: 49, declaration: #"""
+/// A map of the Ferry Building with a marker.
+public static let map = Fixture("frameworks/map", size: CGSize(width: 320, height: 240)) {
+    VStack(spacing: 8) {
+        Text("Map").probe("title")
+        Map(initialPosition: .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 37.7955, longitude: -122.3937),
+                                                        span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.03)))) {
+            Marker("Ferry Building", coordinate: CLLocationCoordinate2D(latitude: 37.7955, longitude: -122.3937))
+        }
+        .probe("map")
+    }
+    .padding(16)
+}
+"""#),
+        FixtureSource(name: "frameworks/video", file: "Fixtures/Sources/Frameworks/FrameworkFixtures.swift", firstLine: 12, lastLine: 20, declaration: #"""
+/// A video player over a title; the URL has no media, so Apple's view shows its empty state.
+public static let video = Fixture("frameworks/video", size: CGSize(width: 320, height: 240)) {
+    VStack(spacing: 8) {
+        Text("Video").probe("title")
+        VideoPlayer(player: AVPlayer(url: URL(fileURLWithPath: "/nonexistent/clip.mp4")))
+            .probe("player")
+    }
+    .padding(16)
+}
+"""#),
+        FixtureSource(name: "frameworks/web", file: "Fixtures/Sources/Frameworks/FrameworkFixtures.swift", firstLine: 22, lastLine: 36, declaration: ##"""
+/// A web view on a blank page.
+public static let web = Fixture("frameworks/web", size: CGSize(width: 320, height: 240)) {
+    VStack(spacing: 8) {
+        Text("Web").probe("title")
+        Group {
+            if #available(macOS 26.0, iOS 26.0, *) {
+                WebView(url: URL(string: "about:blank"))
+            } else {
+                Color.white
+            }
+        }
+        .probe("web")
+    }
+    .padding(16)
+}
+"""##),
         FixtureSource(name: "gauge/accessory", file: "Fixtures/Sources/Gauge/GaugeFixtures.swift", firstLine: 23, lastLine: 43, declaration: #"""
 public static let accessory = Fixture("gauge/accessory", size: CGSize(width: 320, height: 380)) {
     VStack(spacing: 20) {
@@ -10913,6 +11011,95 @@ public enum CanvasFixtures {
     public static let all: [Fixture] = [basic, sizing, images]
 }
 """#,
+        "Fixtures/Sources/Charts/ChartFixtures.swift": ##"""
+// Swift Charts fixtures (sw-frameworks, Docs/elements/Charts.md): the marks apps reach for first
+// with the default axes and legend, measured against Apple's Charts on macOS. The harness
+// builds these against the real framework; the web build against `Sources/Charts`.
+import SwiftUI
+import FixtureKit
+#if canImport(Charts)
+import Charts
+
+public enum ChartFixtures {
+    struct Sale: Identifiable {
+        let id = UUID()
+        let month: String
+        let amount: Double
+        let kind: String
+    }
+
+    static let sales: [Sale] = [
+        Sale(month: "Jan", amount: 42, kind: "Online"), Sale(month: "Feb", amount: 58, kind: "Online"),
+        Sale(month: "Mar", amount: 35, kind: "Online"), Sale(month: "Apr", amount: 71, kind: "Online"),
+        Sale(month: "May", amount: 64, kind: "Online"), Sale(month: "Jun", amount: 90, kind: "Online"),
+    ]
+
+    static let stores: [Sale] = [
+        Sale(month: "Jan", amount: 30, kind: "Store"), Sale(month: "Feb", amount: 25, kind: "Store"),
+        Sale(month: "Mar", amount: 48, kind: "Store"), Sale(month: "Apr", amount: 40, kind: "Store"),
+        Sale(month: "May", amount: 52, kind: "Store"), Sale(month: "Jun", amount: 45, kind: "Store"),
+    ]
+
+    /// Bars over a nominal x axis and the default quantitative y axis on the trailing edge.
+    public static let bar = Fixture("charts/bar", size: CGSize(width: 320, height: 240)) {
+        Chart(sales) { sale in
+            BarMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+        }
+        .padding(16)
+        .probe("chart")
+    }
+
+    /// Two line series coloured by their kind with points, and the legend the series make.
+    public static let line = Fixture("charts/line", size: CGSize(width: 320, height: 240)) {
+        Chart(sales + stores) { sale in
+            LineMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+                .foregroundStyle(by: .value("Kind", sale.kind))
+            PointMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+                .foregroundStyle(by: .value("Kind", sale.kind))
+        }
+        .padding(16)
+        .probe("chart")
+    }
+
+    /// An area, a rule at the average with an annotation, the x axis hidden.
+    public static let area = Fixture("charts/area", size: CGSize(width: 320, height: 240)) {
+        Chart {
+            ForEach(sales) { sale in
+                AreaMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+            }
+            RuleMark(y: .value("Average", 60))
+                .foregroundStyle(.red)
+                .annotation(position: .top, alignment: .leading) {
+                    Text("Average").font(.caption).foregroundStyle(.red)
+                }
+        }
+        .chartXAxis(.hidden)
+        .padding(16)
+        .probe("chart")
+    }
+
+    /// Horizontal bars with rounded corners, a fixed x domain, the y axis leading and the legend hidden.
+    public static let scales = Fixture("charts/scales", size: CGSize(width: 320, height: 240)) {
+        Chart(stores) { sale in
+            BarMark(x: .value("Sales", sale.amount), y: .value("Month", sale.month))
+                .foregroundStyle(by: .value("Kind", sale.kind))
+                .cornerRadius(4)
+        }
+        .chartXScale(domain: 0...100)
+        .chartYAxis { AxisMarks(position: .leading) }
+        .chartLegend(.hidden)
+        .padding(16)
+        .probe("chart")
+    }
+
+    public static let all: [Fixture] = [bar, line, area, scales]
+}
+#else
+public enum ChartFixtures {
+    public static let all: [Fixture] = []
+}
+#endif
+"""##,
         "Fixtures/Sources/Color/ColorFixtures.swift": #"""
 // Named colours from Fixtures/Assets.xcassets colour sets (float, hex and integer components;
 // the light variant of a set that also has a dark one).
@@ -12664,6 +12851,65 @@ public enum FormFixtures {
     public static let all: [Fixture] = [basic, sections, styles, steps, grouped, groupedBackground]
 }
 """#,
+        "Fixtures/Sources/Frameworks/FrameworkFixtures.swift": ##"""
+// Map, VideoPlayer and WebView (sw-frameworks, Docs/elements/Frameworks.md): the frames are
+// compared; the pixels are Apple's frameworks' on macOS and the stand-ins' or OpenStreetMap's
+// here, so the pixel tiers skip these (`frameworks/` is frames-only).
+import SwiftUI
+import FixtureKit
+#if canImport(MapKit) && canImport(AVKit) && canImport(WebKit)
+import MapKit
+import AVKit
+import WebKit
+
+public enum FrameworkFixtures {
+    /// A video player over a title; the URL has no media, so Apple's view shows its empty state.
+    public static let video = Fixture("frameworks/video", size: CGSize(width: 320, height: 240)) {
+        VStack(spacing: 8) {
+            Text("Video").probe("title")
+            VideoPlayer(player: AVPlayer(url: URL(fileURLWithPath: "/nonexistent/clip.mp4")))
+                .probe("player")
+        }
+        .padding(16)
+    }
+
+    /// A web view on a blank page.
+    public static let web = Fixture("frameworks/web", size: CGSize(width: 320, height: 240)) {
+        VStack(spacing: 8) {
+            Text("Web").probe("title")
+            Group {
+                if #available(macOS 26.0, iOS 26.0, *) {
+                    WebView(url: URL(string: "about:blank"))
+                } else {
+                    Color.white
+                }
+            }
+            .probe("web")
+        }
+        .padding(16)
+    }
+
+    /// A map of the Ferry Building with a marker.
+    public static let map = Fixture("frameworks/map", size: CGSize(width: 320, height: 240)) {
+        VStack(spacing: 8) {
+            Text("Map").probe("title")
+            Map(initialPosition: .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 37.7955, longitude: -122.3937),
+                                                            span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.03)))) {
+                Marker("Ferry Building", coordinate: CLLocationCoordinate2D(latitude: 37.7955, longitude: -122.3937))
+            }
+            .probe("map")
+        }
+        .padding(16)
+    }
+
+    public static let all: [Fixture] = [video, web, map]
+}
+#else
+public enum FrameworkFixtures {
+    public static let all: [Fixture] = []
+}
+#endif
+"""##,
         "Fixtures/Sources/Gauge/GaugeFixtures.swift": #"""
 // Gauge fixtures: the default (linear capacity) gauge with its label forms, bounds and sizing,
 // and the accessory styles (linear, linear capacity, circular, circular capacity).

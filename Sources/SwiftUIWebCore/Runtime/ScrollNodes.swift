@@ -770,6 +770,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
             list.append(.clipRect(bounds))
             // Subtrees entirely outside the viewport (by more than the margin) are not painted.
             context.visibleRect = bounds.insetBy(dx: -PlatformMetrics.scrollCullMargin, dy: -PlatformMetrics.scrollCullMargin)
+            context.clipRect = context.clipRect.map { $0.intersection(bounds) } ?? bounds
         }
         paintChildren(into: &list, context: context)
         if clips { list.append(.restore) }

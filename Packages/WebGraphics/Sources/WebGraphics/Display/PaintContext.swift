@@ -7,6 +7,9 @@ public struct PaintContext {
     /// Absolute area a clipping scroll view can show, plus a margin: nodes whose frames lie
     /// outside it are not painted (`ViewNode.paintChildren`).
     public var visibleRect: CGRect?
+    /// The exact area a clipping scroll view shows (`visibleRect` without its margin): host
+    /// elements are shown through it.
+    public var clipRect: CGRect?
     /// Effects the ancestors applied that SwiftUI distributes to every element (opacity, shadow,
     /// colour filters, blend modes): each painted leaf wraps its own drawing in these groups,
     /// outermost first, unless a compositing group collects the subtree into one.
@@ -36,6 +39,7 @@ public struct PaintContext {
     public func child(at frame: CGRect) -> PaintContext {
         var child = PaintContext(origin: CGPoint(x: origin.x + frame.minX, y: origin.y + frame.minY), scale: scale)
         child.visibleRect = visibleRect
+        child.clipRect = clipRect
         child.effects = effects
         child.foregroundOverride = foregroundOverride
         return child
