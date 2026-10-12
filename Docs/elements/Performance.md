@@ -28,8 +28,35 @@ gate asks for 3 s (a CI runner is several times slower).
 ## Scrolling
 
 A wheel burst over the landing page lays out and paints a frame in 7 ms median on a laptop
-(the worst frame of a burst, a direction reversal, up to 130 ms); 500 rows scrolled in
-8.3 ms median (`Playwright/scroll-probe.mjs`, 2026-09-05). The gate asks for a 40 ms median.
+(the worst frame of a burst, a direction reversal, up to 130 ms — the lazy grids scrolling in,
+25 ms since 2026-10-12); 500 rows scrolled in 8.3 ms median (`Playwright/scroll-probe.mjs`,
+2026-09-05). The gate asks for a 40 ms median.
+
+## On the device (iPhone 17, iOS 27.0, Safari through safaridriver, 2026-10-12)
+
+The first numbers from a phone, `Playwright/device-perf.mjs` over the landing page at
+402 × 714 pt, DPR 3 (a 1206 × 2142 canvas). The measuring session is a WebDriver one, and
+on it the engine runs the same loop about 25 times slower than this Mac's WebKit in both
+JavaScript and wasm (200 ms against 7 ms for `__swiftuiwebDebug.bench`'s 5 M iterations), so
+its absolute times are those of a JavaScriptCore without its JIT; the proportions hold.
+
+| | first frame | a lazy grid scrolling in (full layout) | scrolled frame (p50) | of which layout / render / paint |
+|---|---|---|---|---|
+| before | 5.8 s | 2.8 s | 40–49 ms | 10 / 17–28 / 0–2 |
+| stack plans memoised, lazy elements invalidate locally (`9661ef3`) | 3.8 s | 0.44–0.59 s | 38–49 ms | 10 / 17–28 / 0–2 |
+| text parts, lazy providers and gradient stops cached (`2513c75`) | 2.9 s | 0.33–0.45 s | 18–20 ms | 1 / 8–10 / 0–1 |
+
+What the phone said that the laptop had not: the painter costs 0–2 ms of a frame at DPR 3,
+and the time is layout and the display-list walk, in wasm. Two layout costs were multiplied
+by the page's nesting: a stack planned its subtree once to size, once to place and once more
+for every alignment guide its container asked for, and a lazy grid scrolling in bumped the
+layout generation, re-measuring the whole page three passes over. `?perf` on any page shows
+the frame-time HUD with the engine-speed line; `performance.mark` phases appear in Safari's
+timeline when the inspector is attached.
+
+The same drags on this Mac (Playwright, iPhone 14 emulation, release): a scrolled frame
+4 ms in Chromium and WebKit; the first frame's layout 440 → 255 ms; a grid scrolling in
+130 → 25 ms.
 
 ## Laziness
 
