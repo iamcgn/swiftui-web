@@ -15,6 +15,7 @@ public final class IOSPresentationModel {
     public var dialog = false
     public var tab = 0
     public var selection: Int?
+    public var multiple: Set<Int> = []
     public init() {}
 }
 
@@ -110,6 +111,61 @@ public enum IOSPresentationFixtures {
         }
         .probe("stack")
     }.platform(.iOS).capturesWindow()
+
+    /// An alert with three buttons and a long title (sw-ios-presentation-rest): iOS stacks the
+    /// buttons one per row and wraps the title.
+    public static let alertStacked = Fixture(
+        "ios/alert/stacked", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.alert = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Resolve…") { model.alert = true }.probe("button")
+        }
+        .alert("The document has unsaved changes that will be lost", isPresented: Binding(get: { model.alert }, set: { model.alert = $0 })) {
+            Button("Save") {}
+            Button("Discard", role: .destructive) {}
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Choose what to do before closing.")
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// `fullScreenCover`: the cover fills the window, no card inset or dimming.
+    public static let fullScreenCover = Fixture(
+        "ios/sheet/fullscreen", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Show cover") { model.sheet = true }.probe("button")
+        }
+        .fullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            ZStack {
+                Color.yellow.ignoresSafeArea()
+                SheetBody()
+            }
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// Multiple selection in edit mode: the selection circles, two rows checked by a step.
+    public static let multipleSelection = Fixture(
+        "ios/list/multiselect", size: CGSize(width: 375, height: 360),
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("select") { $0.multiple = [1, 3] }]
+    ) { model in
+        List(selection: Binding(get: { model.multiple }, set: { model.multiple = $0 })) {
+            Text("First").tag(1).probe("first")
+            Text("Second").tag(2).probe("second")
+            Text("Third").tag(3).probe("third")
+        }
+        .fixtureEditModeActive()
+        .probe("list")
+    }.platform(.iOS)
 
     /// The confirmation dialog: a titled action sheet with three actions and a cancel button.
     public static let dialog = Fixture(
@@ -214,7 +270,7 @@ public enum IOSPresentationFixtures {
     }.platform(.iOS)
 
     public static var all: [Fixture] {
-        var fixtures = [sheet, sheetMedium, alert, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection]
+        var fixtures = [sheet, sheetMedium, alert, alertStacked, fullScreenCover, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection, multipleSelection]
         #if canImport(UIKit)
         fixtures.append(sheetRepresentable)
         #endif

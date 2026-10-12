@@ -290,6 +290,12 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var alertButtonHeight: CGFloat = 46.5
     package var alertButtonGap: CGFloat = 8.5
     package var alertButtonFillAlpha = 16.0 / 255                 // iOS: (224) over the card's 239
+    package var alertFill: RGBA? = nil                            // iOS 27: the alert's own glass (237) when set, else presentationGlassFill
+    package var alertStackedButtonGap: CGFloat = 8                // iOS 27: one or three or more buttons stack 8 apart; two share a row
+    package var alertRowButtonInset: CGFloat = 0                  // iOS 27: the two-button row sits 4 further in than the stack
+    package var alertTitleLineSpacing: CGFloat = 0                // iOS 27: a wrapped title's lines 5 further apart (one sample)
+    package var alertCancelFilled = true                          // iOS 26: the cancel button filled with the accent under white; 27: grey like the rest, bold
+    package var alertPlainButtonColorIsAccent = true              // iOS 26: plain buttons in the accent; 27: primary
     package var alertDestructiveColor: RGBA = RGBA(r: 255, g: 56, b: 60)
     package var dialogsArePopovers = false                        // iOS: a confirmation dialog is a glass panel above its source
     package var dialogWidth: CGFloat = 238
@@ -305,6 +311,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var dialogArrowHeight: CGFloat = 13
     package var dialogArrowWidth: CGFloat = 24                    // approximate: the base of the arrow at the panel's edge
     package var dialogSourceGap: CGFloat = 1.25                   // from the arrow's tip to the source's edge
+    package var dialogCentredOnSource = false                     // iOS 27: the panel is centred on its source (no arrow), clamped to the window
     package var dialogGlassFill: RGBA = RGBA(r: 245, g: 246, b: 246)    // iOS: the material over white, no dim
     package var dialogButtonFillAlpha = 16.0 / 255                // (230) over the panel's 245
     package var tabBarAtBottom = false                            // iOS: the floating capsule at the window's bottom
@@ -345,6 +352,8 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listEditGripPitch: CGFloat = 5
     package var listEditGripTrailingInset: CGFloat = 18
     package var listEditGripFill: RGBA = RGBA(r: 197, g: 197, b: 199)
+    package var listSelectionCircleFill: RGBA = RGBA(r: 59, g: 134, b: 247)     // ios/list/multiselect (iOS 27): the checked circle; the ring is the grip grey
+    package var listSelectionCircleStroke: CGFloat = 1.5
     // Swipe actions and pull to refresh (approximate: no golden can hold a swipe or a pull).
     package var swipeActionMinimumWidth: CGFloat = 74            // a cell is at least this wide
     package var swipeActionPadding: CGFloat = 16                 // each side of the label

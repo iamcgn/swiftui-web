@@ -228,6 +228,12 @@ extension PlatformMetrics {
     package static var alertButtonHeight: CGFloat { current.alertButtonHeight }
     package static var alertButtonGap: CGFloat { current.alertButtonGap }
     package static var alertButtonFillAlpha: Double { current.alertButtonFillAlpha }
+    package static var alertFill: RGBA? { current.alertFill }
+    package static var alertStackedButtonGap: CGFloat { current.alertStackedButtonGap }
+    package static var alertRowButtonInset: CGFloat { current.alertRowButtonInset }
+    package static var alertTitleLineSpacing: CGFloat { current.alertTitleLineSpacing }
+    package static var alertCancelFilled: Bool { current.alertCancelFilled }
+    package static var alertPlainButtonColorIsAccent: Bool { current.alertPlainButtonColorIsAccent }
     package static var alertDestructiveColor: RGBA { current.alertDestructiveColor }
     package static var dialogsArePopovers: Bool { current.dialogsArePopovers }
     package static var dialogWidth: CGFloat { current.dialogWidth }
@@ -243,6 +249,7 @@ extension PlatformMetrics {
     package static var dialogArrowHeight: CGFloat { current.dialogArrowHeight }
     package static var dialogArrowWidth: CGFloat { current.dialogArrowWidth }
     package static var dialogSourceGap: CGFloat { current.dialogSourceGap }
+    package static var dialogCentredOnSource: Bool { current.dialogCentredOnSource }
     package static var dialogGlassFill: RGBA { current.dialogGlassFill }
     package static var dialogButtonFillAlpha: Double { current.dialogButtonFillAlpha }
     package static var tabBarAtBottom: Bool { current.tabBarAtBottom }
@@ -279,6 +286,8 @@ extension PlatformMetrics {
     package static var listEditGripPitch: CGFloat { current.listEditGripPitch }
     package static var listEditGripTrailingInset: CGFloat { current.listEditGripTrailingInset }
     package static var listEditGripFill: RGBA { current.listEditGripFill }
+    package static var listSelectionCircleFill: RGBA { current.listSelectionCircleFill }
+    package static var listSelectionCircleStroke: CGFloat { current.listSelectionCircleStroke }
     package static var swipeActionMinimumWidth: CGFloat { current.swipeActionMinimumWidth }
     package static var swipeActionPadding: CGFloat { current.swipeActionPadding }
     package static var swipeFullFraction: CGFloat { current.swipeFullFraction }

@@ -1588,13 +1588,14 @@
       "framework": "SwiftUI",
       "area": "iOS profile",
       "title": "iOS presentations and bars: the rest",
-      "detail": "After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection.",
+      "detail": "After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection. Done 2026-10-11 (Phase 9, item 31): alerts with three buttons and a long title measured on the iOS 27 simulator (the 27 redesign: 320 pt card, leading texts, capsule buttons stacked or in a row), the dialog's 27 panel centred on its source, fullScreenCover, multiple selection in edit mode (selection circles), the card-clipped selection fill, Tier B converting Display P3 goldens; the materials' blur, both-detent sheets, the pill's animation and the date pill's calendar stay approximate.",
       "kind": "approximate",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/iOS.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-mac-presentation-looks",

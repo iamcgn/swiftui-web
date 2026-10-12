@@ -225,7 +225,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 var insets = rowInsets(element.node)
                 insets.leading += outlineIndent(element, hasOutline: outline)
                 // iOS edit mode: the content moves in for the delete circle and leaves the grip its slot.
-                if editingAccessories, canDelete(element) { insets.leading += PlatformMetrics.listEditLeadingInset }
+                if editingAccessories, canDelete(element) || selectionCircles { insets.leading += PlatformMetrics.listEditLeadingInset }
                 if editingAccessories, canMove(element) { insets.trailing += PlatformMetrics.listEditGripWidth }
                 let available = max(0, contentWidth - insets.leading - insets.trailing)
                 let size = element.node.sizeThatFits(ProposedViewSize(width: available, height: nil))
@@ -327,8 +327,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         let selected = elements.map(isSelected)
+        let cards = profile.cards ? cardFrames : []
         if profile.cards {
-            for card in cardFrames {
+            for card in cards {
                 list.append(.fillPath(Path(roundedRect: context.absoluteRect(card), cornerRadius: profile.cardCornerRadius, style: .continuous),
                                       environment._groupedCard))
             }
@@ -390,11 +391,19 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 // A focused list in a key window shows its selection in the system's selected
                 // content colour with white text (measured); elsewhere the grey band; iOS fills
                 // the row with its grey.
+                // A card's selection stays inside the card (ios/list/multiselect: the fill ends at
+                // the card's rounded edges).
+                let card = cards.first { $0.contains(CGPoint(x: $0.midX, y: element.frame.midY)) }
+                if let card {
+                    list.append(.save)
+                    list.append(.clipPath(Path(roundedRect: context.absoluteRect(card), cornerRadius: profile.cardCornerRadius, style: .continuous)))
+                }
                 if focusedSelection {
                     list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listFocusedSelectionCornerRadius, PlatformMetrics.listFocusedSelectionFill))
                 } else {
                     list.append(.fillRRect(cell, cornerRadius: PlatformMetrics.listSelectionCornerRadius, PlatformMetrics.listSelectionFill ?? environment._ink(PlatformMetrics.listSelectionAlpha)))
                 }
+                if card != nil { list.append(.restore) }
             }
             var rowContext = context.child(at: element.node.presentedFrame)
             if focusedSelection { rowContext.foregroundOverride = RGBA(red: 1, green: 1, blue: 1, alpha: 1) }
@@ -523,7 +532,21 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// when the row can be deleted, three grey lines at its trailing edge when it can be moved.
     private func paintEditAccessories(for element: Element, into list: inout DisplayList, context: PaintContext) {
         let midY = element.frame.midY
-        if canDelete(element) {
+        if selectionCircles, let id = element.id, let selection = view.selection {
+            let size = PlatformMetrics.listEditCircleSize
+            let disc = context.absoluteRect(CGRect(x: profile.margin + PlatformMetrics.listEditCircleInset, y: midY - size / 2, width: size, height: size))
+            if selection.isSelected(id) {
+                list.append(.fillPath(Path(ellipseIn: disc), PlatformMetrics.listSelectionCircleFill))
+                var check = Path()
+                check.move(to: CGPoint(x: disc.minX + size * 0.28, y: disc.minY + size * 0.53))
+                check.addLine(to: CGPoint(x: disc.minX + size * 0.44, y: disc.minY + size * 0.69))
+                check.addLine(to: CGPoint(x: disc.minX + size * 0.73, y: disc.minY + size * 0.36))
+                list.append(.strokePath(check, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round), RGBA(r: 255, g: 255, b: 255)))
+            } else {
+                let ring = PlatformMetrics.listSelectionCircleStroke
+                list.append(.strokePath(Path(ellipseIn: disc.insetBy(dx: ring / 2, dy: ring / 2)), style: StrokeStyle(lineWidth: ring), PlatformMetrics.listEditGripFill))
+            }
+        } else if canDelete(element) {
             let size = PlatformMetrics.listEditCircleSize
             let disc = CGRect(x: profile.margin + PlatformMetrics.listEditCircleInset, y: midY - size / 2, width: size, height: size)
             list.append(.fillPath(Path(ellipseIn: context.absoluteRect(disc)), PlatformMetrics.listEditCircleFill))
@@ -833,6 +856,10 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
 
     /// iOS edit mode with rows that can be deleted or moved shows the accessories.
     private var editingAccessories: Bool { isEditing && PlatformMetrics.listEditLeadingInset > 0 }
+    /// iOS edit mode with a multiple selection: every row shows a selection circle
+    /// (ios/list/multiselect: 22 pt, 17 in from the card, a 1.5 pt grey ring; filled with the
+    /// accent and a white check when selected).
+    private var selectionCircles: Bool { editingAccessories && view.selection?.isMultiple == true }
 
     // MARK: Outlines (list/outline: `List(_:children:)`, `OutlineGroup`, `DisclosureGroup` rows)
 

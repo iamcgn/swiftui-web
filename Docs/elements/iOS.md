@@ -115,18 +115,26 @@ the shadows as rings (`PlatformMetricsIOS.swift`).
   bottom, every corner 39, the regular material ((239) over the dimmed white); with
   `presentationDragIndicator(.visible)` a 36 × 5 grabber 5 below the top at black 25 %. A
   representable in a sheet lays out like any leaf (`ios/representable/sheet`).
-- **Alert** (`ios/alert/basic`): a 299 pt card centred with 34 pt corners in the material; a
-  17 pt bold title and a 15 pt message left-aligned 28.5 in, 21.5 from the top and 10.5 apart;
-  27 below the message the buttons share the width in a row 8.5 apart, 13.5 from the sides and
-  13 from the bottom, 46.5 pt capsules: the cancel role first, the accent under a semibold white
-  label; the destructive role red (255, 56, 60) on black 6 %; the rest the accent on that grey
-  (unmeasured).
-- **Confirmation dialog** (`ios/dialog/basic`): on the phone iOS 26 presents it as a glass
-  popover above its source, no dim: 238 wide, 32.5 corners, (245, 246, 246), centred on the
-  source at whole points, its bottom 14.25 above the source's top with a 24 × 13 arrow at the
-  source's centre; a 17 pt bold title, a 17 pt message 4 below, the actions 19 below stacked
-  as full-width 45.5 pt capsules 10.5 apart (black 6 %, the destructive one red), 13.5 from the
-  sides and the bottom; the cancel button is not shown (a tap outside dismisses).
+- **Alert** (iOS 27, `ios/alert/basic` and `ios/alert/stacked` regenerated on the iOS 27
+  simulator, 2026-10-11; iOS 26's 299 pt card with an accent-filled cancel button is gone): a
+  320 pt glass card (237) centred with 34 pt corners over the 20 % dim; a 17 pt bold title
+  and a 15 pt secondary message leading-aligned 31.5 in, the title 25 from the top, the message
+  10.5 below it (a wrapped title's lines 5 further apart — one sample); 21 below the message the
+  48 pt capsule buttons (black 12 %, the (206) over 237): two share a row 16 apart, 20 from the
+  sides; one, or three and more, stack 8 apart 16 from the sides with the cancel button last;
+  16 from the bottom. The cancel label is semibold, the destructive one (216, 63, 56), the rest
+  the primary colour, all 17 pt. Tier C 1.2 % / 2.4 %.
+- **Confirmation dialog** (iOS 27, `ios/dialog/basic` regenerated 2026-10-11): a 241 pt white
+  panel with 32.5 pt corners centred on its source (kept 16 inside the window), no arrow, no
+  dim, a soft shadow; the same 17 pt bold title and 15 pt secondary message 31.5 in (25 from the
+  top, 10.5 apart), the actions 21 below stacked as 208 pt 48 pt capsules 8 apart (black 12 %),
+  16 from the bottom; the cancel button is not shown (a tap outside dismisses). Tier C 1.7 %.
+- **Full-screen cover** (`ios/sheet/fullscreen`, 2026-10-11): `fullScreenCover` fills the
+  window with its content over the system background — no card, no inset, no dim. Tier C 0.75 %.
+- **Multiple selection in edit mode** (`ios/list/multiselect`, 2026-10-11): every row's content
+  moves 40 in for a 22 pt circle 17 from the card's edge: a 1.5 pt (197, 197, 199) ring, or
+  the (59, 134, 247) disc with a white check when selected; a selected row fills with
+  (209, 209, 214) inside the card. Tier A exact, Tier C 0.75 %.
 - **Tab bar** (`ios/tabs/basic`, `ios/tabs/second`): a floating capsule (251, 252, 252),
   270 wide (52.5 in from each side), 58 tall, 23 above the window's bottom, a soft shadow
   below; the content is centred in the window less 83 at the bottom. The tabs share the
@@ -148,12 +156,12 @@ the shadows as rings (`PlatformMetricsIOS.swift`).
 ## Open on the simulator
 
 The materials' blur is approximated by their colour and the shadows by rings. Not measured:
-alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both
-detents, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs,
-badges and the pill's selection animation, a tap on a date pill (iOS opens a calendar popover)
-and selection in edit mode (`Docs/todo.json` `sw-ios-presentation-rest`). The blur inside the
-navigation bar's glass is approximated by the tint alone. Dark-appearance switch and slider
-tracks are painted with the light alphas in white.
+a sheet offering both detents and dragging between them, the tab pill's selection animation,
+a tap on a date pill (iOS opens a calendar popover), a dialog whose source sits at the window's
+edge (the panel is clamped 16 inside). The blur inside the navigation bar's glass is
+approximated by the tint alone. Dark-appearance switch and slider tracks are painted with the
+light alphas in white. The iOS 26 sheets, tab bars, date pills and the single selection keep
+their iOS 26 goldens; alerts, dialogs, the cover and the edit-mode selection come from iOS 27.
 
 ## The Catalyst route (decision 0013), kept for comparison
 

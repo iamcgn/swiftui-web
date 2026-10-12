@@ -835,8 +835,33 @@ extension TextMetricsRequests {
                 requests.append(TextMetricRequest(string, font, width: 211))
             }
         }
+        // ios/alert/stacked, ios/sheet/fullscreen (sw-ios-presentation-rest).
+        for string in ["Resolve…", "Show cover"] {
+            requests.append(TextMetricRequest(string, .style("body")))
+            requests.append(TextMetricRequest(string, .style("body"), width: 375))
+        }
+        requests.append(TextMetricRequest("The document has unsaved changes that will be lost", seventeenBold, width: 242))
+        requests.append(TextMetricRequest("Choose what to do before closing.", .system(size: 15, weight: "regular", design: "default"), width: 242))
+        for string in ["Save", "Discard"] {
+            for font in [seventeen, seventeenSemibold] {
+                requests.append(TextMetricRequest(string, font))
+                for width: CGFloat in [85, 131.75, 211, 242, 270] { requests.append(TextMetricRequest(string, font, width: width)) }
+            }
+        }
         requests.append(TextMetricRequest("Item options", seventeenBold, width: 181))
         requests.append(TextMetricRequest("Choose what to do with the item.", seventeen, width: 181))
+        // iOS 27: the alert's texts 257 wide (320 less the insets), the title's lines 5 apart.
+        for string in ["Delete the item?", "The document has unsaved changes that will be lost"] {
+            requests.append(TextMetricRequest(string, seventeenBold, width: 257, options: TextMetricOptions(lineSpacing: 5)))
+        }
+        for string in ["This cannot be undone.", "Choose what to do before closing."] {
+            requests.append(TextMetricRequest(string, .system(size: 15, weight: "regular", design: "default"), width: 257))
+        }
+        // iOS 27: the dialog's texts within its 241 pt panel (177 wide), the message 15 pt.
+        requests.append(TextMetricRequest("Item options", seventeenBold, width: 177))
+        requests.append(TextMetricRequest("Choose what to do with the item.", .system(size: 15, weight: "regular", design: "default"), width: 177))
+        for string in ["Copy", "Duplicate", "Delete", "Cancel"] { requests.append(TextMetricRequest(string, seventeen, width: 208)); requests.append(TextMetricRequest(string, seventeenSemibold, width: 208)) }
+        for string in ["Delete", "Cancel", "Save", "Discard"] { requests.append(TextMetricRequest(string, seventeen, width: 132)); requests.append(TextMetricRequest(string, seventeenSemibold, width: 132)); requests.append(TextMetricRequest(string, seventeen, width: 288)); requests.append(TextMetricRequest(string, seventeenSemibold, width: 288)) }
         for string in ["Copy", "Duplicate"] {
             requests.append(TextMetricRequest(string, seventeen))
             requests.append(TextMetricRequest(string, seventeen, width: 211))

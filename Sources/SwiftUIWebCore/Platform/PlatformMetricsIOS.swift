@@ -133,9 +133,41 @@ extension PlatformMetricsTable {
         t.sheetMediumSideInset = 6
         t.sheetMediumBottomInset = 6
         t.presentationDimAlpha = 0.2
-        t.alertWidth = 299
+        // iOS 27 alerts and dialogs (ios/alert/basic, ios/alert/stacked, ios/dialog/basic on the
+        // iOS 27 simulator, 2026-10-11): a 320 pt glass panel (237) centred in the window, the
+        // 17 pt bold title and 15 pt secondary message leading-aligned 31.5 in, 48 pt capsule
+        // buttons (a row of two 20 in and 16 apart, otherwise stacked 16 in and 8 apart), 16 above
+        // the bottom; the dialog a 241 pt white panel centred on its source with the same texts
+        // and stacked buttons, no arrow, cancel buttons left out.
+        t.alertWidth = 320
         t.alertCornerRadius = 34
+        t.alertFill = RGBA(r: 237, g: 237, b: 237)
+        t.alertInsets = EdgeInsets(top: 25, leading: 16, bottom: 16, trailing: 16)
+        t.alertTextInset = 15.5
+        t.alertTitleMessageGap = 10.5
+        t.alertMessageButtonsGap = 21
+        t.alertButtonHeight = 48
+        t.alertButtonGap = 16
+        t.alertStackedButtonGap = 8
+        t.alertRowButtonInset = 4
+        t.alertButtonFillAlpha = 31.0 / 255                             // (206) over 237
+        t.alertDestructiveColor = RGBA(r: 216, g: 63, b: 56)
+        t.alertTitleLineSpacing = 5
+        t.alertCancelFilled = false
+        t.alertPlainButtonColorIsAccent = false
         t.dialogsArePopovers = true
+        t.dialogCentredOnSource = true
+        t.dialogWidth = 241
+        t.dialogCornerRadius = 32.5
+        t.dialogInsets = EdgeInsets(top: 25, leading: 16.5, bottom: 16, trailing: 16.5)
+        t.dialogTextInset = 15.5
+        t.dialogMessageSize = 15
+        t.dialogTitleMessageGap = 10.5
+        t.dialogMessageButtonsGap = 21
+        t.dialogButtonHeight = 48
+        t.dialogButtonGap = 8
+        t.dialogGlassFill = RGBA(r: 254, g: 254, b: 254)
+        t.dialogButtonFillAlpha = 31.0 / 255                            // (223) over 254
         t.tabBarAtBottom = true
         t.datePills = true
         t.listSelectionInset = 0

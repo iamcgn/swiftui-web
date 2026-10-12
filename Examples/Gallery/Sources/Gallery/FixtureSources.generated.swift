@@ -1790,7 +1790,7 @@ public static let tiling = Fixture("image/tiling", size: CGSize(width: 300, heig
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "ios/alert/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 95, lastLine: 112, declaration: #"""
+        FixtureSource(name: "ios/alert/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 96, lastLine: 113, declaration: #"""
 /// The alert: title, message, a destructive and a cancel button.
 public static let alert = Fixture(
     "ios/alert/basic", size: phone,
@@ -1806,6 +1806,28 @@ public static let alert = Fixture(
         Button("Cancel", role: .cancel) {}
     } message: {
         Text("This cannot be undone.")
+    }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
+        FixtureSource(name: "ios/alert/stacked", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 115, lastLine: 134, declaration: #"""
+/// An alert with three buttons and a long title (sw-ios-presentation-rest): iOS stacks the
+/// buttons one per row and wraps the title.
+public static let alertStacked = Fixture(
+    "ios/alert/stacked", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.alert = true }]
+) { model in
+    ZStack {
+        Color.white.ignoresSafeArea()
+        Button("Resolve…") { model.alert = true }.probe("button")
+    }
+    .alert("The document has unsaved changes that will be lost", isPresented: Binding(get: { model.alert }, set: { model.alert = $0 })) {
+        Button("Save") {}
+        Button("Discard", role: .destructive) {}
+        Button("Cancel", role: .cancel) {}
+    } message: {
+        Text("Choose what to do before closing.")
     }
     .probe("stack")
 }.platform(.iOS).capturesWindow()
@@ -2000,7 +2022,7 @@ public static let darkText = Fixture("ios/dark/text", size: CGSize(width: 320, h
     .probe("stack")
 }.platform(.iOS).colorScheme(.dark)
 """#),
-        FixtureSource(name: "ios/datepicker/compact", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 180, lastLine: 190, declaration: #"""
+        FixtureSource(name: "ios/datepicker/compact", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 236, lastLine: 246, declaration: #"""
 /// The compact date picker in a form: date, date and time, time; the tinted pills.
 public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(width: 375, height: 360)) {
     Form {
@@ -2013,7 +2035,7 @@ public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(wi
     .probe("form")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/datepicker/wheel", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 192, lastLine: 201, declaration: #"""
+        FixtureSource(name: "ios/datepicker/wheel", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 248, lastLine: 257, declaration: #"""
 /// A list with a selection binding: the selected row's look after a step selects it.
 /// The wheel style (iOS only): the date's three columns and the time's, captured as the window.
 public static let dateWheel = Fixture("ios/datepicker/wheel", size: CGSize(width: 375, height: 520)) {
@@ -2025,7 +2047,7 @@ public static let dateWheel = Fixture("ios/datepicker/wheel", size: CGSize(width
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/dialog/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 114, lastLine: 133, declaration: #"""
+        FixtureSource(name: "ios/dialog/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 170, lastLine: 189, declaration: #"""
 /// The confirmation dialog: a titled action sheet with three actions and a cancel button.
 public static let dialog = Fixture(
     "ios/dialog/basic", size: phone,
@@ -2221,6 +2243,22 @@ public static let listFooterHeader = Fixture("ios/list/footer-header", size: CGS
     .probe("list")
 }.platform(.iOS)
 """#),
+        FixtureSource(name: "ios/list/multiselect", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 155, lastLine: 168, declaration: #"""
+/// Multiple selection in edit mode: the selection circles, two rows checked by a step.
+public static let multipleSelection = Fixture(
+    "ios/list/multiselect", size: CGSize(width: 375, height: 360),
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("select") { $0.multiple = [1, 3] }]
+) { model in
+    List(selection: Binding(get: { model.multiple }, set: { model.multiple = $0 })) {
+        Text("First").tag(1).probe("first")
+        Text("Second").tag(2).probe("second")
+        Text("Third").tag(3).probe("third")
+    }
+    .fixtureEditModeActive()
+    .probe("list")
+}.platform(.iOS)
+"""#),
         FixtureSource(name: "ios/list/plain", file: "Fixtures/Sources/iOS/IOSFixtures.swift", firstLine: 214, lastLine: 223, declaration: #"""
 /// The same rows in the plain list style.
 public static let listPlain = Fixture("ios/list/plain", size: CGSize(width: 320, height: 300)) {
@@ -2250,7 +2288,7 @@ public static let customSections = Fixture("ios/list/sectionspacing", size: CGSi
     .probe("list")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 203, lastLine: 214, declaration: #"""
+        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 259, lastLine: 270, declaration: #"""
 public static let listSelection = Fixture(
     "ios/list/selection", size: CGSize(width: 375, height: 360),
     model: { IOSPresentationModel() },
@@ -2972,7 +3010,7 @@ public static let scrollContent = Fixture("ios/representable/scroll", size: CGSi
     .probe("scroll")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/sheet", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 72, lastLine: 92, declaration: #"""
+        FixtureSource(name: "ios/representable/sheet", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 73, lastLine: 93, declaration: #"""
 /// A representable inside a sheet (ix-containers left it here): the UIKit label sits in
 /// the sheet's content like any leaf.
 public static let sheetRepresentable = Fixture(
@@ -3156,7 +3194,7 @@ public static let tokens = Fixture("ios/search/tokens", size: phone) {
     .probe("nav")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/sheet/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 41, lastLine: 53, declaration: #"""
+        FixtureSource(name: "ios/sheet/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 42, lastLine: 54, declaration: #"""
 /// The default sheet (large detent): the dimmed window, the card's top corners and inset.
 public static let sheet = Fixture(
     "ios/sheet/basic", size: phone,
@@ -3171,7 +3209,27 @@ public static let sheet = Fixture(
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/sheet/medium", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 55, lastLine: 69, declaration: #"""
+        FixtureSource(name: "ios/sheet/fullscreen", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 136, lastLine: 153, declaration: #"""
+/// `fullScreenCover`: the cover fills the window, no card inset or dimming.
+public static let fullScreenCover = Fixture(
+    "ios/sheet/fullscreen", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.sheet = true }]
+) { model in
+    ZStack {
+        Color.white.ignoresSafeArea()
+        Button("Show cover") { model.sheet = true }.probe("button")
+    }
+    .fullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+        ZStack {
+            Color.yellow.ignoresSafeArea()
+            SheetBody()
+        }
+    }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
+        FixtureSource(name: "ios/sheet/medium", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 56, lastLine: 70, declaration: #"""
 /// A medium detent and a hidden drag indicator's opposite: the visible grabber.
 public static let sheetMedium = Fixture(
     "ios/sheet/medium", size: phone,
@@ -3246,7 +3304,7 @@ public static let symbols = Fixture("ios/symbol/basic", size: CGSize(width: 320,
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/tabs/badges", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 156, lastLine: 167, declaration: #"""
+        FixtureSource(name: "ios/tabs/badges", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 212, lastLine: 223, declaration: #"""
 /// Five tabs with badges: a count on the second, a text on the fourth (the bar's slots
 /// narrow; badges sit on the symbols).
 public static let tabsBadges = Fixture("ios/tabs/badges", size: phone) {
@@ -3260,7 +3318,7 @@ public static let tabsBadges = Fixture("ios/tabs/badges", size: phone) {
     .probe("tabs")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/tabs/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 135, lastLine: 145, declaration: #"""
+        FixtureSource(name: "ios/tabs/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 191, lastLine: 201, declaration: #"""
 /// The tab bar: three tabs with symbols, the first selected. No step selects another: a
 /// programmatic selection change leaves iOS 26's pill raised as glass for seconds, so
 /// `ios/tabs/second` starts on the second tab instead.
@@ -3273,7 +3331,7 @@ public static let tabs = Fixture("ios/tabs/basic", size: phone) {
     .probe("tabs")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/tabs/page", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 169, lastLine: 178, declaration: #"""
+        FixtureSource(name: "ios/tabs/page", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 225, lastLine: 234, declaration: #"""
 /// The page style on iPhone: three pages, the page indicator at the bottom.
 public static let tabsPage = Fixture("ios/tabs/page", size: phone) {
     TabView(selection: .constant(1)) {
@@ -3285,7 +3343,7 @@ public static let tabsPage = Fixture("ios/tabs/page", size: phone) {
     .probe("tabs")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/tabs/second", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 147, lastLine: 154, declaration: #"""
+        FixtureSource(name: "ios/tabs/second", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 203, lastLine: 210, declaration: #"""
 public static let tabsSecond = Fixture("ios/tabs/second", size: phone) {
     TabView(selection: .constant(1)) {
         Text("Home content").tabItem { Label("Home", systemImage: "house") }.tag(0)
@@ -19495,6 +19553,7 @@ public final class IOSPresentationModel {
     public var dialog = false
     public var tab = 0
     public var selection: Int?
+    public var multiple: Set<Int> = []
     public init() {}
 }
 
@@ -19590,6 +19649,61 @@ public enum IOSPresentationFixtures {
         }
         .probe("stack")
     }.platform(.iOS).capturesWindow()
+
+    /// An alert with three buttons and a long title (sw-ios-presentation-rest): iOS stacks the
+    /// buttons one per row and wraps the title.
+    public static let alertStacked = Fixture(
+        "ios/alert/stacked", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.alert = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Resolve…") { model.alert = true }.probe("button")
+        }
+        .alert("The document has unsaved changes that will be lost", isPresented: Binding(get: { model.alert }, set: { model.alert = $0 })) {
+            Button("Save") {}
+            Button("Discard", role: .destructive) {}
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Choose what to do before closing.")
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// `fullScreenCover`: the cover fills the window, no card inset or dimming.
+    public static let fullScreenCover = Fixture(
+        "ios/sheet/fullscreen", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button("Show cover") { model.sheet = true }.probe("button")
+        }
+        .fullScreenCover(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            ZStack {
+                Color.yellow.ignoresSafeArea()
+                SheetBody()
+            }
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// Multiple selection in edit mode: the selection circles, two rows checked by a step.
+    public static let multipleSelection = Fixture(
+        "ios/list/multiselect", size: CGSize(width: 375, height: 360),
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("select") { $0.multiple = [1, 3] }]
+    ) { model in
+        List(selection: Binding(get: { model.multiple }, set: { model.multiple = $0 })) {
+            Text("First").tag(1).probe("first")
+            Text("Second").tag(2).probe("second")
+            Text("Third").tag(3).probe("third")
+        }
+        .fixtureEditModeActive()
+        .probe("list")
+    }.platform(.iOS)
 
     /// The confirmation dialog: a titled action sheet with three actions and a cancel button.
     public static let dialog = Fixture(
@@ -19694,7 +19808,7 @@ public enum IOSPresentationFixtures {
     }.platform(.iOS)
 
     public static var all: [Fixture] {
-        var fixtures = [sheet, sheetMedium, alert, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection]
+        var fixtures = [sheet, sheetMedium, alert, alertStacked, fullScreenCover, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection, multipleSelection]
         #if canImport(UIKit)
         fixtures.append(sheetRepresentable)
         #endif

@@ -66,11 +66,14 @@ public struct _PresentationModifier {
     package let isPresented: Binding<Bool>
     package let onDismiss: _DismissBox?
     package let content: _PresentationContentBox
+    /// `fullScreenCover`: the sheet fills the window (no card, no dimming) on every profile.
+    package var fullScreen = false
 
-    package init(kind: _PresentationKind, isPresented: Binding<Bool>, onDismiss: (() -> Void)?, content: @escaping () -> AnyView) {
+    package init(kind: _PresentationKind, isPresented: Binding<Bool>, onDismiss: (() -> Void)?, fullScreen: Bool = false, content: @escaping () -> AnyView) {
         self.kind = kind
         self.isPresented = isPresented
         self.onDismiss = onDismiss.map { _DismissBox($0) }
+        self.fullScreen = fullScreen
         self.content = _PresentationContentBox(content)
     }
 }
@@ -90,7 +93,7 @@ package final class _PresentationContentBox {
 
 extension _PresentationModifier: ViewModifier {
     public func body(content: Content) -> some View {
-        content.modifier(_PresentationSync(kind: kind, presented: isPresented.wrappedValue, binding: isPresented, onDismiss: onDismiss, content: self.content))
+        content.modifier(_PresentationSync(kind: kind, presented: isPresented.wrappedValue, binding: isPresented, onDismiss: onDismiss, content: self.content, fullScreen: fullScreen))
     }
 }
 
@@ -100,13 +103,15 @@ public struct _PresentationSync {
     package let binding: Binding<Bool>
     package let onDismiss: _DismissBox?
     package let content: _PresentationContentBox
+    package var fullScreen = false
 
-    package init(kind: _PresentationKind, presented: Bool, binding: Binding<Bool>, onDismiss: _DismissBox?, content: _PresentationContentBox) {
+    package init(kind: _PresentationKind, presented: Bool, binding: Binding<Bool>, onDismiss: _DismissBox?, content: _PresentationContentBox, fullScreen: Bool = false) {
         self.kind = kind
         self.presented = presented
         self.binding = binding
         self.onDismiss = onDismiss
         self.content = content
+        self.fullScreen = fullScreen
     }
 }
 
@@ -125,6 +130,19 @@ extension View {
     }
 
     /// Presents a sheet using the given item as a data source for the sheet's content.
+    /// Presents a modal view that covers as much of the screen as possible (iOS: the whole window).
+    nonisolated public func fullScreenCover<Content: View>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil,
+                                                           @ViewBuilder content: @escaping () -> Content) -> some View {
+        modifier(_PresentationModifier(kind: .sheet, isPresented: isPresented, onDismiss: onDismiss, fullScreen: true) { AnyView(content()) })
+    }
+
+    nonisolated public func fullScreenCover<Item: Identifiable, Content: View>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil,
+                                                                               @ViewBuilder content: @escaping (Item) -> Content) -> some View {
+        modifier(_PresentationModifier(kind: .sheet, isPresented: _itemBinding(item), onDismiss: onDismiss, fullScreen: true) {
+            item.wrappedValue.map { AnyView(content($0)) } ?? AnyView(EmptyView())
+        })
+    }
+
     nonisolated public func sheet<Item: Identifiable, Content: View>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil,
                                                                      @ViewBuilder content: @escaping (Item) -> Content) -> some View {
         modifier(_PresentationModifier(kind: .sheet, isPresented: _itemBinding(item), onDismiss: onDismiss) {
@@ -257,10 +275,12 @@ private struct _AlertBody: View {
         let m = profile.metrics
         if profile.isIOS {
             VStack(alignment: .leading, spacing: 0) {
-                title.font(.system(size: m.alertTitleSize, weight: .bold)).padding(.horizontal, m.alertTextInset).padding(.bottom, m.alertTitleMessageGap)
-                message.font(.system(size: m.alertMessageSize)).padding(.horizontal, m.alertTextInset)
-                _AlertActionsLayout(vertical: false, spacing: m.alertButtonGap, height: m.alertButtonHeight) { actions }
-                    .buttonStyle(_AlertButtonStyle(height: m.alertButtonHeight, fillAlpha: m.alertButtonFillAlpha, destructive: m.alertDestructiveColor, size: m.alertTitleSize, dialog: false))
+                title.font(.system(size: m.alertTitleSize, weight: .bold)).lineSpacing(m.alertTitleLineSpacing).padding(.horizontal, m.alertTextInset).padding(.bottom, m.alertTitleMessageGap)
+                message.font(.system(size: m.alertMessageSize)).foregroundStyle(m.alertPlainButtonColorIsAccent ? Color.primary : Color.secondary).padding(.horizontal, m.alertTextInset)
+                // Two buttons share a row (4 further in on iOS 27); one or three or more stack.
+                _AlertActionsLayout(vertical: false, spacing: m.alertButtonGap, stackedSpacing: m.alertStackedButtonGap, rowInset: m.alertRowButtonInset, height: m.alertButtonHeight) { actions }
+                    .buttonStyle(_AlertButtonStyle(height: m.alertButtonHeight, fillAlpha: m.alertButtonFillAlpha, destructive: m.alertDestructiveColor, size: m.alertTitleSize, dialog: false,
+                                                   cancelFilled: m.alertCancelFilled, plainIsAccent: m.alertPlainButtonColorIsAccent))
                     ._dismissesOnActivation()
                     .padding(.top, m.alertMessageButtonsGap)
             }
@@ -302,9 +322,10 @@ extension _DialogContent: View {
                 if let title {
                     title.font(.system(size: m.dialogTitleSize, weight: .bold)).padding(.horizontal, m.dialogTextInset).padding(.bottom, m.dialogTitleMessageGap)
                 }
-                message.font(.system(size: m.dialogMessageSize)).padding(.horizontal, m.dialogTextInset)
-                _AlertActionsLayout(vertical: true, spacing: m.dialogButtonGap, height: m.dialogButtonHeight) { actions }
-                    .buttonStyle(_AlertButtonStyle(height: m.dialogButtonHeight, fillAlpha: m.dialogButtonFillAlpha, destructive: m.alertDestructiveColor, size: m.dialogTitleSize, dialog: true))
+                message.font(.system(size: m.dialogMessageSize)).foregroundStyle(m.alertPlainButtonColorIsAccent ? Color.primary : Color.secondary).padding(.horizontal, m.dialogTextInset)
+                _AlertActionsLayout(vertical: true, spacing: m.dialogButtonGap, stackedSpacing: m.dialogButtonGap, rowInset: 0, height: m.dialogButtonHeight) { actions }
+                    .buttonStyle(_AlertButtonStyle(height: m.dialogButtonHeight, fillAlpha: m.dialogButtonFillAlpha, destructive: m.alertDestructiveColor, size: m.dialogTitleSize, dialog: true,
+                                                   cancelFilled: m.alertCancelFilled, plainIsAccent: m.alertPlainButtonColorIsAccent))
                     ._dismissesOnActivation()
                     .padding(.top, m.dialogMessageButtonsGap)
             }
@@ -330,16 +351,21 @@ package struct _AlertButtonStyle: ButtonStyle {
     let destructive: RGBA
     let size: CGFloat
     let dialog: Bool
+    /// iOS 26 filled the cancel button with the accent under white and drew plain buttons in
+    /// the accent; iOS 27 draws every button on the grey capsule, cancel bold, in the primary colour.
+    var cancelFilled = true
+    var plainIsAccent = true
 
     package func makeBody(configuration: Configuration) -> some View {
         let cancel = configuration.role == .cancel && !dialog
+        let filled = cancel && cancelFilled
         let color: Color = configuration.role == .destructive ? Color(red: destructive.red, green: destructive.green, blue: destructive.blue)
-            : cancel ? .white : dialog ? .primary : .accentColor
+            : filled ? .white : dialog || !plainIsAccent ? .primary : .accentColor
         return configuration.label
             .font(.system(size: size, weight: cancel ? .semibold : .regular))
             .foregroundStyle(color)
             .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
-            .background(Capsule().fill(cancel ? Color.accentColor : Color.black.opacity(fillAlpha)))
+            .background(Capsule().fill(filled ? Color.accentColor : Color.black.opacity(fillAlpha)))
             .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
@@ -347,20 +373,29 @@ package struct _AlertButtonStyle: ButtonStyle {
 /// Places alert actions: in a row sharing the width with the cancel button first, or stacked
 /// full width with cancel buttons left out (iOS dialogs).
 package struct _AlertActionsLayout: Layout {
+    /// Always stacked (dialogs); a row otherwise — but only for exactly two buttons: one, or
+    /// three and more, stack too (iOS 27), the cancel button last.
     let vertical: Bool
     let spacing: CGFloat
+    let stackedSpacing: CGFloat
+    /// A row's extra inset at each side (iOS 27: 4).
+    let rowInset: CGFloat
     let height: CGFloat
 
     private func shown(_ subviews: Subviews) -> [Subviews.Element] {
         let ordered = subviews.sorted { ($0[_ButtonRoleKey.self] == .cancel ? 0 : 1) < ($1[_ButtonRoleKey.self] == .cancel ? 0 : 1) }
-        return vertical ? ordered.filter { $0[_ButtonRoleKey.self] != .cancel } : ordered
+        if vertical { return ordered.filter { $0[_ButtonRoleKey.self] != .cancel } }
+        // A stack of three or more puts the cancel button last.
+        return ordered.count == 2 ? ordered : Array(ordered.dropFirst(ordered.first.map { $0[_ButtonRoleKey.self] == .cancel } == true ? 1 : 0)) + ordered.prefix(ordered.first.map { $0[_ButtonRoleKey.self] == .cancel } == true ? 1 : 0)
     }
 
+    private func stacks(_ count: Int) -> Bool { vertical || count != 2 }
+
     package func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let count = CGFloat(shown(subviews).count)
+        let count = shown(subviews).count
         guard count > 0 else { return .zero }
         let width = proposal.width ?? subviews.map { $0.sizeThatFits(.unspecified).width }.reduce(0, +)
-        return CGSize(width: width, height: vertical ? count * height + (count - 1) * spacing : height)
+        return CGSize(width: width, height: stacks(count) ? CGFloat(count) * height + CGFloat(count - 1) * stackedSpacing : height)
     }
 
     package func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
@@ -368,15 +403,16 @@ package struct _AlertActionsLayout: Layout {
         let hidden = subviews.filter { subview in !visible.contains { $0 == subview } }
         for subview in hidden { subview.place(at: bounds.origin, proposal: ProposedViewSize(width: 0, height: 0)) }
         guard !visible.isEmpty else { return }
-        if vertical {
+        if stacks(visible.count) {
             var y = bounds.minY
             for subview in visible {
                 subview.place(at: CGPoint(x: bounds.minX, y: y), proposal: ProposedViewSize(width: bounds.width, height: height))
-                y += height + spacing
+                y += height + stackedSpacing
             }
         } else {
-            let width = (bounds.width - spacing * CGFloat(visible.count - 1)) / CGFloat(visible.count)
-            var x = bounds.minX
+            let available = bounds.width - 2 * rowInset
+            let width = (available - spacing * CGFloat(visible.count - 1)) / CGFloat(visible.count)
+            var x = bounds.minX + rowInset
             for subview in visible {
                 subview.place(at: CGPoint(x: x, y: bounds.minY), proposal: ProposedViewSize(width: width, height: height))
                 x += width + spacing

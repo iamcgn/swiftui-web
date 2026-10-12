@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 3 | 0 | 0 | 3 |
+| SwiftUI | 2 | 0 | 0 | 2 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **19** | 0 | 1 | 18 |
+| **All** | **18** | 0 | 1 | 17 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **iOS presentations and bars: the rest** `sw-ios-presentation-rest` · iOS profile · approximate  
-  After sw-ios-sheets: the materials' blur (sheets, alerts, the dialog and the tab bar are painted as their colour over the dimmed ground, shadows as rings), alerts with three or more buttons (iOS stacks them) or long titles, a sheet offering both detents and dragging between them, `fullScreenCover`, a dialog without room above its source, bars of four or five tabs, badges and the pill's selection animation, a tap on a date pill opening iOS's calendar popover, the disabled compact picker's undimmed label, selection in edit mode and multiple selection. ([iOS.md](Docs/elements/iOS.md))
 - ☐ **Measure the macOS presentation looks** `sw-mac-presentation-looks` · Presentation · approximate  
   The sheet, popover, alert and menu looks on macOS are by eye (separate windows the golden harness cannot capture). A window-list capture (CGWindowListCreateImage over the app's windows after a step presents) in the AppKit golden host would pin the panel geometry, materials and shadows the way `capturesWindow` does on iOS. ([Presentation.md](Docs/elements/Presentation.md))
 - ☐ **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · Other frameworks · missing  
@@ -99,6 +97,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Drags across the app boundary** `sw-dragdrop-os` · SwiftUI · Drag and drop
 - ☑ 2026-10-11 **List editing: the rest** `sw-list-editing-rest` · SwiftUI · List
 - ☑ 2026-10-11 **List looks: the rest** `sw-list-looks-rest` · SwiftUI · List
+- ☑ 2026-10-11 **iOS presentations and bars: the rest** `sw-ios-presentation-rest` · SwiftUI · iOS profile
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

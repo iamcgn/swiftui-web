@@ -108,13 +108,31 @@ function compareFrames(name, frames, goldenFrames) {
 }
 
 // Screenshots the canvas at DPR 2 and returns the fraction of differing pixels vs the golden.
+// Converts RGBA bytes in place from Display P3 to sRGB (the same transfer curve; a linear
+// matrix between the primaries), clamping what sRGB cannot show.
+function p3ToSRGB(data) {
+  const decode = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  const encode = v => { v = Math.min(1, Math.max(0, v)); return Math.round(255 * (v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055)); };
+  const lut = new Float64Array(256); for (let i = 0; i < 256; i++) lut[i] = decode(i);
+  for (let i = 0; i < data.length; i += 4) {
+    const r = lut[data[i]], g = lut[data[i + 1]], bl = lut[data[i + 2]];
+    data[i] = encode(1.2249401 * r - 0.2249404 * g + 0.0000000 * bl);
+    data[i + 1] = encode(-0.0420569 * r + 1.0420571 * g + 0.0000000 * bl);
+    data[i + 2] = encode(-0.0196376 * r - 0.0786361 * g + 1.0982735 * bl);
+  }
+}
+
 async function comparePixels(name, shotPath, goldenPng) {
   const canvas = page.locator('#app canvas');
   try { await canvas.screenshot({ path: shotPath, omitBackground: true }); }
   catch { await canvas.screenshot({ path: shotPath }); }   // Firefox: element screenshots cannot omit the background
   if (!existsSync(goldenPng)) return null;
   const a = PNG.sync.read(readFileSync(shotPath));
-  const b = PNG.sync.read(readFileSync(goldenPng));
+  const goldenBytes = readFileSync(goldenPng);
+  const b = PNG.sync.read(goldenBytes);
+  // The simulator's captures are tagged Display P3 (an iCCP chunk named kCGColorSpaceDisplayP3 that pngjs ignores): saturated
+  // colours must come to sRGB before the compare, as CoreGraphics does for Tier C.
+  if (goldenBytes.includes('DisplayP3')) p3ToSRGB(b.data);
   if (a.width !== b.width || a.height !== b.height) return `size ${a.width}x${a.height} vs ${b.width}x${b.height}`;
   let differing = 0;
   const diff = new PNG({ width: a.width, height: a.height });

@@ -61,6 +61,8 @@ package final class PresentationNode: ViewNode {
         package var detents: Set<PresentationDetent> = [.large]
         package var dragIndicator: Visibility = .automatic
         package var interactiveDismissDisabled = false
+        /// `fullScreenCover`: the content fills the window, undimmed, with no card.
+        package var fullScreen = false
     }
     package var options = Options()
 
@@ -186,6 +188,13 @@ package final class PresentationNode: ViewNode {
         let padding = kind.isMenu ? 0 : PlatformMetrics.presentationPadding
         let m = metrics
         switch kind {
+        case .sheet where options.fullScreen:
+            // A full-screen cover: the window is the panel; the content fills it.
+            panel = CGRect(origin: .zero, size: window)
+            arrow = nil
+            contentFrame = panel
+            target.place(at: .zero, anchor: .topLeading, proposal: ProposedViewSize(window), by: runtime.root)
+            return
         case .sheet where m.sheetsFillWindow:
             // iOS: the large detent's card from `sheetTopInset` to the bottom, the medium detent's
             // card floating in from the sides and the bottom; the content centred in the card.
@@ -202,10 +211,20 @@ package final class PresentationNode: ViewNode {
             return
         case .dialog where m.dialogsArePopovers:
             // iOS: a panel of `dialogWidth` centred on its source and floating above it, an arrow
-            // pointing down at the source (below it when there is no room above).
+            // pointing down at the source (below it when there is no room above); iOS 27 centres
+            // the panel on the source itself, no arrow, kept inside the window.
             let size = target.sizeThatFits(ProposedViewSize(width: m.dialogWidth, height: nil))
             let source = anchor?.frameInRoot ?? CGRect(x: window.width / 2, y: window.height / 2, width: 0, height: 0)
             let x = min(max(0, (source.midX - size.width / 2).rounded(.down)), max(0, window.width - size.width))
+            if m.dialogCentredOnSource {
+                let margin = PlatformMetrics.sheetMargin
+                let y = min(max(margin, (source.midY - size.height / 2).rounded()), max(margin, window.height - size.height - margin))
+                panel = CGRect(x: x, y: y, width: size.width, height: size.height)
+                arrow = nil
+                contentFrame = panel
+                target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(size), by: runtime.root)
+                return
+            }
             let above = source.minY - m.dialogSourceGap - m.dialogArrowHeight - size.height
             if above >= 0 {
                 panel = CGRect(x: x, y: above, width: size.width, height: size.height)
@@ -334,11 +353,14 @@ package final class PresentationNode: ViewNode {
         let black = { (alpha: Double) in self.environment._ink(alpha) }
         let m = metrics
         let iOS = environment.platformProfile.isIOS
-        if isModal && !(kind == .dialog && m.dialogsArePopovers) {
+        if isModal && !(kind == .dialog && m.dialogsArePopovers) && !options.fullScreen {
             list.append(.fillRect(context.absoluteRect(CGRect(origin: .zero, size: runtime.layoutSize)), RGBA(red: 0, green: 0, blue: 0, alpha: m.presentationDimAlpha)))
         }
         let rect = context.absoluteRect(panel)
-        if kind == .sheet && m.sheetsFillWindow {
+        if kind == .sheet && options.fullScreen {
+            // The cover's ground is the system background; its content paints over it.
+            list.append(.fillRect(rect, environment._controlBackground))
+        } else if kind == .sheet && m.sheetsFillWindow {
             // iOS: the large card's top corners only (it runs off the window), the medium card
             // in the glass fill with the grabber when asked for.
             if mediumDetent {
@@ -357,7 +379,7 @@ package final class PresentationNode: ViewNode {
         if iOS && (kind == .alert || (kind == .dialog && m.dialogsArePopovers)) {
             // iOS: a glass card; the dialog with its arrow and a soft shadow around, no border.
             let dialog = kind == .dialog
-            let fill = dialog ? m.dialogGlassFill : m.presentationGlassFill
+            let fill = dialog ? m.dialogGlassFill : (m.alertFill ?? m.presentationGlassFill)
             let radius = dialog ? m.dialogCornerRadius : m.alertCornerRadius
             for (spread, alpha) in [(3.0, 0.03), (8.0, 0.02), (16.0, 0.012), (28.0, 0.008)] {
                 list.append(.fillRRect(rect.insetBy(dx: -spread, dy: -spread).offsetBy(dx: 0, dy: spread / 4), cornerRadius: radius + spread, black(alpha)))
@@ -618,6 +640,7 @@ package final class PresentationSyncNode<Content: View>: UnaryLayoutModifierNode
                     binding.wrappedValue = false
                     onDismiss?.run()
                 }
+                presented?.options.fullScreen = modifier.fullScreen
             }
         } else if let presented {
             self.presented = nil
