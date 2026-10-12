@@ -141,8 +141,12 @@ public struct NSDiffableDataSourceSnapshot<SectionIdentifierType: Hashable & Sen
     }
 }
 
-/// The shared bookkeeping: the applied snapshot and lookups by index path.
-@MainActor
+/// A reorder as the handlers see it: the snapshots before and after and the items' difference.
+public struct NSDiffableDataSourceTransaction<SectionIdentifierType: Hashable & Sendable, ItemIdentifierType: Hashable & Sendable>: Sendable {
+    public let initialSnapshot: NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>
+    public let finalSnapshot: NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>
+    public let difference: CollectionDifference<ItemIdentifierType>
+}
 
 /// A hierarchical snapshot of one section: items under parents, expanded or collapsed
 /// (`UICollectionViewDiffableDataSource.apply(_:to:)`, uikit/collection/outline).
@@ -187,6 +191,21 @@ public struct NSDiffableDataSourceSectionSnapshot<ItemIdentifierType: Hashable &
         } else if let index = rootItems.firstIndex(of: anchor) {
             rootItems.insert(contentsOf: items, at: after ? index + 1 : index)
         }
+    }
+
+    /// Inserts another snapshot's tree beside `item` (an outline item moved with its children).
+    public mutating func insert(_ snapshot: NSDiffableDataSourceSectionSnapshot, before item: ItemIdentifierType) { insert(snapshot, relativeTo: item, after: false) }
+    public mutating func insert(_ snapshot: NSDiffableDataSourceSectionSnapshot, after item: ItemIdentifierType) { insert(snapshot, relativeTo: item, after: true) }
+
+    private mutating func insert(_ snapshot: NSDiffableDataSourceSectionSnapshot, relativeTo anchor: ItemIdentifierType, after: Bool) {
+        insert(snapshot.rootItems, relativeTo: anchor, after: after)
+        func graft(_ parent: ItemIdentifierType) {
+            let kids = snapshot.children[parent] ?? []
+            if !kids.isEmpty { append(kids, to: parent) }
+            for child in kids { graft(child) }
+        }
+        for root in snapshot.rootItems { graft(root) }
+        expanded.formUnion(snapshot.expanded)
     }
 
     public mutating func delete(_ items: [ItemIdentifierType]) {
@@ -324,6 +343,41 @@ open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & 
     }
     open var sectionSnapshotHandlers = SectionSnapshotHandlers()
 
+    /// Callbacks around an interactive reorder (`beginInteractiveMovementForItem` and the
+    /// standard gesture): whether an item may move, and the transaction before and after.
+    public struct ReorderingHandlers {
+        public var canReorderItem: ((ItemIdentifierType) -> Bool)?
+        public var willReorder: ((NSDiffableDataSourceTransaction<SectionIdentifierType, ItemIdentifierType>) -> Void)?
+        public var didReorder: ((NSDiffableDataSourceTransaction<SectionIdentifierType, ItemIdentifierType>) -> Void)?
+        public init() {}
+    }
+    open var reorderingHandlers = ReorderingHandlers()
+
+    public func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
+        guard let item = state.itemIdentifier(for: indexPath), let can = reorderingHandlers.canReorderItem else { return false }
+        return can(item)
+    }
+
+    /// A dropped item moves in the snapshot (and its outline, when the section has one); the
+    /// handlers see the transaction and the view lays out without animating.
+    public func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        guard let item = state.itemIdentifier(for: sourceIndexPath), let target = state.itemIdentifier(for: destinationIndexPath), item != target else { return }
+        let initial = state.snapshot
+        var snapshot = initial
+        if destinationIndexPath > sourceIndexPath { snapshot.moveItem(item, afterItem: target) } else { snapshot.moveItem(item, beforeItem: target) }
+        if let section = state.sectionIdentifier(for: sourceIndexPath.section), var outline = sectionSnapshots[section], state.sectionIdentifier(for: destinationIndexPath.section) == section {
+            let moved = outline.snapshot(of: item, includingParent: true)
+            outline.delete([item])
+            if destinationIndexPath > sourceIndexPath { outline.insert(moved, after: target) } else { outline.insert(moved, before: target) }
+            sectionSnapshots[section] = outline
+        }
+        let transaction = NSDiffableDataSourceTransaction(initialSnapshot: initial, finalSnapshot: snapshot, difference: initial.itemIdentifiers.difference(from: snapshot.itemIdentifiers))
+        reorderingHandlers.willReorder?(transaction)
+        state.snapshot = snapshot
+        collectionView.reloadData()
+        reorderingHandlers.didReorder?(transaction)
+    }
+
     public init(collectionView: UICollectionView, cellProvider: @escaping CellProvider) {
         self.collectionView = collectionView
         self.cellProvider = cellProvider
@@ -381,7 +435,9 @@ open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & 
         guard let item = state.itemIdentifier(for: indexPath), let cell = cellProvider(collectionView, indexPath, item) else { return UICollectionViewCell(frame: .zero) }
         // An outline's list cell indents by its level and shows its disclosure open or closed.
         if let listCell = cell as? UICollectionViewListCell, let section = state.sectionIdentifier(for: indexPath.section), let outline = sectionSnapshots[section] {
-            listCell.indentationLevel = outline.level(of: item)
+            // A sidebar's children of a header item sit level with it (uikit/collection/sidebar).
+            let underHeader = listCell.isSidebarAppearance && (collectionView.collectionViewLayout as? UICollectionViewListLayout)?.listConfiguration.headerMode == .firstItemInSection
+            listCell.indentationLevel = max(0, outline.level(of: item) - (underHeader ? 1 : 0))
             listCell.isOutlineExpanded = outline.isExpanded(item)
         }
         return cell

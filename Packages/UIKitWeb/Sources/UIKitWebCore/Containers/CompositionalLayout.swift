@@ -79,14 +79,89 @@ open class NSCollectionLayoutItem {
     }
 }
 
-/// A supplementary item anchored to an item (stored).
+/// The edges of a directional rectangle.
+public struct NSDirectionalRectEdge: OptionSet, Sendable {
+    public let rawValue: UInt
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+    public static let top = NSDirectionalRectEdge(rawValue: 1 << 0)
+    public static let leading = NSDirectionalRectEdge(rawValue: 1 << 1)
+    public static let bottom = NSDirectionalRectEdge(rawValue: 1 << 2)
+    public static let trailing = NSDirectionalRectEdge(rawValue: 1 << 3)
+    public static let all: NSDirectionalRectEdge = [.top, .leading, .bottom, .trailing]
+}
+
+/// Where a supplementary item attaches: the edges it aligns to (the middle where an axis has
+/// none) and an offset, in points or in fractions of the supplementary item's own size.
+@MainActor
+open class NSCollectionLayoutAnchor {
+    public let edges: NSDirectionalRectEdge
+    public let offset: CGPoint
+    public let isAbsoluteOffset: Bool
+    public var isFractionalOffset: Bool { !isAbsoluteOffset && offset != .zero }
+
+    public init(edges: NSDirectionalRectEdge) {
+        self.edges = edges
+        offset = .zero
+        isAbsoluteOffset = true
+    }
+    public init(edges: NSDirectionalRectEdge, absoluteOffset: CGPoint) {
+        self.edges = edges
+        offset = absoluteOffset
+        isAbsoluteOffset = true
+    }
+    public init(edges: NSDirectionalRectEdge, fractionalOffset: CGPoint) {
+        self.edges = edges
+        offset = fractionalOffset
+        isAbsoluteOffset = false
+    }
+
+    /// The anchored point on `rect`, moved by the offset (fractions of `size`).
+    func point(on rect: CGRect, size: CGSize) -> CGPoint {
+        let x = edges.contains(.leading) ? rect.minX : edges.contains(.trailing) ? rect.maxX : rect.midX
+        let y = edges.contains(.top) ? rect.minY : edges.contains(.bottom) ? rect.maxY : rect.midY
+        let dx = isAbsoluteOffset ? offset.x : offset.x * size.width
+        let dy = isAbsoluteOffset ? offset.y : offset.y * size.height
+        return CGPoint(x: x + dx, y: y + dy)
+    }
+}
+
+/// A supplementary item anchored to an item (a badge at a corner): its container anchor names
+/// the point on the item, its item anchor the point on itself that lands there (the same edges
+/// when nil, so the item sits inside the corner).
 @MainActor
 open class NSCollectionLayoutSupplementaryItem {
     public let layoutSize: NSCollectionLayoutSize
     public let elementKind: String
+    public let containerAnchor: NSCollectionLayoutAnchor
+    public let itemAnchor: NSCollectionLayoutAnchor?
+    open var zIndex = 1
+    open var contentInsets = NSDirectionalEdgeInsets.zero
     public init(layoutSize: NSCollectionLayoutSize, elementKind: String) {
         self.layoutSize = layoutSize
         self.elementKind = elementKind
+        containerAnchor = NSCollectionLayoutAnchor(edges: [.top, .leading])
+        itemAnchor = nil
+    }
+    public init(layoutSize: NSCollectionLayoutSize, elementKind: String, containerAnchor: NSCollectionLayoutAnchor) {
+        self.layoutSize = layoutSize
+        self.elementKind = elementKind
+        self.containerAnchor = containerAnchor
+        itemAnchor = nil
+    }
+    public init(layoutSize: NSCollectionLayoutSize, elementKind: String, containerAnchor: NSCollectionLayoutAnchor, itemAnchor: NSCollectionLayoutAnchor) {
+        self.layoutSize = layoutSize
+        self.elementKind = elementKind
+        self.containerAnchor = containerAnchor
+        self.itemAnchor = itemAnchor
+    }
+
+    /// The supplementary item's frame on an item at `container`.
+    func frame(on container: CGRect) -> CGRect {
+        let size = layoutSize.resolved(in: container.size)
+        let own = CGRect(origin: .zero, size: size)
+        let target = containerAnchor.point(on: container, size: size)
+        let mine = (itemAnchor ?? NSCollectionLayoutAnchor(edges: containerAnchor.edges)).point(on: own, size: size)
+        return CGRect(x: target.x - mine.x, y: target.y - mine.y, width: size.width, height: size.height).inset(by: contentInsets)
     }
 }
 
@@ -162,7 +237,11 @@ open class NSCollectionLayoutSection {
     open var decorationItems: [NSCollectionLayoutDecorationItem] = []
     open var orthogonalScrollingBehavior: OrthogonalScrollingBehavior = .none
     open var supplementariesFollowContentInsets = true
-    open var visibleItemsInvalidationHandler: ((Any, CGPoint, Any) -> Void)?
+    /// Called with the items in view before each layout of the section (an orthogonal section
+    /// as it scrolls, with its own offset; any section as the collection scrolls), to change
+    /// their transform, alpha, z-index or centre.
+    open var visibleItemsInvalidationHandler: VisibleItemsInvalidationHandler?
+    public typealias VisibleItemsInvalidationHandler = ([any NSCollectionLayoutVisibleItem], CGPoint, any NSCollectionLayoutEnvironment) -> Void
 
     public init(group: NSCollectionLayoutGroup) { self.group = group }
 }
@@ -170,6 +249,22 @@ open class NSCollectionLayoutSection {
 /// What the layout knows about its container when a section provider asks.
 public protocol NSCollectionLayoutEnvironment {
     var container: any NSCollectionLayoutContainer { get }
+}
+
+/// An item in view as the invalidation handler sees it: its layout attributes to change.
+@MainActor
+public protocol NSCollectionLayoutVisibleItem: AnyObject {
+    var alpha: CGFloat { get set }
+    var zIndex: Int { get set }
+    var isHidden: Bool { get set }
+    var center: CGPoint { get set }
+    var transform: CGAffineTransform { get set }
+    var name: String? { get }
+    var indexPath: IndexPath { get }
+    var frame: CGRect { get }
+    var bounds: CGRect { get }
+    var representedElementCategory: UICollectionViewLayoutAttributes.Category { get }
+    var representedElementKind: String? { get }
 }
 
 public protocol NSCollectionLayoutContainer {
@@ -208,12 +303,20 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
 
     private var itemAttributes: [IndexPath: UICollectionViewLayoutAttributes] = [:]
     private var supplementary: [String: [Int: UICollectionViewLayoutAttributes]] = [:]
+    /// Supplementary items anchored to items (badges), by kind then item.
+    private var itemSupplementaries: [String: [IndexPath: UICollectionViewLayoutAttributes]] = [:]
     private var decorations: [String: [Int: UICollectionViewLayoutAttributes]] = [:]
-    /// A pinned top boundary item: its natural frame and the end of its section (the next
-    /// section's start), where the following header pushes it away.
-    private struct PinnedHeader { let kind: String; let section: Int; let sectionEnd: CGFloat }
+    /// A pinned boundary item: its natural frame, the start and end of its section, between
+    /// which it holds at the visible top (a header) or bottom (a footer).
+    private struct PinnedHeader { let kind: String; let section: Int; let sectionStart: CGFloat; let sectionEnd: CGFloat; let footer: Bool }
     private var pinned: [PinnedHeader] = []
     private var contentSize = CGSize.zero
+    /// Heights measured for items with an estimated dimension, kept across layouts.
+    private var measuredItems: [IndexPath: CGFloat] = [:]
+    /// The sections' invalidation handlers, by section.
+    private(set) var visibleItemHandlers: [Int: NSCollectionLayoutSection.VisibleItemsInvalidationHandler] = [:]
+    /// The environment sections were made with (handed to the invalidation handlers).
+    private(set) var environment: any NSCollectionLayoutEnvironment = LayoutEnvironment(container: LayoutContainer(contentSize: .zero, contentInsets: .zero))
 
     /// An orthogonally scrolling section: where its scroll view sits in the collection (the
     /// section inset by its content insets) and how wide its content runs.
@@ -221,6 +324,10 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
         let frame: CGRect
         let contentWidth: CGFloat
         let behavior: NSCollectionLayoutSection.OrthogonalScrollingBehavior
+        /// The groups' leading edges in the scroll view's content, and their width (paging snaps to them).
+        let groupStarts: [CGFloat]
+        let groupWidth: CGFloat
+        let leadingInset: CGFloat
     }
     private(set) var orthogonalSections: [Int: OrthogonalSection] = [:]
 
@@ -250,20 +357,29 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
 
     open override var collectionViewContentSize: CGSize { contentSize }
 
+    open override func invalidateLayout() {
+        measuredItems.removeAll()
+        super.invalidateLayout()
+    }
+
     open override func prepare() {
         itemAttributes.removeAll()
         supplementary.removeAll()
+        itemSupplementaries.removeAll()
         decorations.removeAll()
         pinned.removeAll()
         orthogonalSections.removeAll()
+        visibleItemHandlers.removeAll()
         guard let collection = collectionView, let dataSource = collection.dataSource else { contentSize = .zero; return }
         let bounds = collection.bounds
         let vertical = configuration.scrollDirection == .vertical
         var cursor: CGFloat = 0
         let sections = dataSource.numberOfSections(in: collection)
         let environment = LayoutEnvironment(container: LayoutContainer(contentSize: bounds.size, contentInsets: .zero))
+        self.environment = environment
         for section in 0..<sections {
             guard let layoutSection = sectionProvider(section, environment) else { continue }
+            if let handler = layoutSection.visibleItemsInvalidationHandler { visibleItemHandlers[section] = handler }
             let count = dataSource.collectionView(collection, numberOfItemsInSection: section)
             let insets = layoutSection.contentInsets
             let container = vertical
@@ -276,13 +392,31 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
                 let size = boundary.layoutSize.resolved(in: container)
                 let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: boundary.elementKind, with: IndexPath(item: 0, section: section))
                 attribute.frame = vertical ? CGRect(x: insets.leading, y: cursor, width: size.width, height: size.height) : CGRect(x: cursor, y: insets.top, width: size.width, height: size.height)
-                if boundary.pinToVisibleBounds { attribute.zIndex = 1; pinned.append(PinnedHeader(kind: boundary.elementKind, section: section, sectionEnd: 0)) }
+                if boundary.pinToVisibleBounds { attribute.zIndex = 1; pinned.append(PinnedHeader(kind: boundary.elementKind, section: section, sectionStart: sectionStart, sectionEnd: 0, footer: false)) }
                 supplementary[boundary.elementKind, default: [:]][section] = attribute
                 cursor += vertical ? size.height : size.width
             }
             cursor += vertical ? insets.top : insets.leading
             var item = 0
             var groupIndex = 0
+            /// Records a placed group's items and their anchored supplementary items.
+            func record(_ placed: Placed, orthogonal: Bool) {
+                for (path, frame) in placed.frames {
+                    let attribute = UICollectionViewLayoutAttributes(forCellWith: path)
+                    attribute.frame = frame
+                    if orthogonal { attribute.orthogonalSection = section }
+                    itemAttributes[path] = attribute
+                }
+                for (path, items) in placed.supplementaries {
+                    for (kind, frame, zIndex) in items {
+                        let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: kind, with: path)
+                        attribute.frame = frame
+                        attribute.zIndex = zIndex
+                        if orthogonal { attribute.orthogonalSection = section }
+                        itemSupplementaries[kind, default: [:]][path] = attribute
+                    }
+                }
+            }
             if vertical, layoutSection.orthogonalScrollingBehavior != .none {
                 // The groups run sideways in a scroll view of their own, inset by the section's
                 // insets (uikit/collection/orthogonal: 200 pt groups 12 apart from x 16 in a 288
@@ -290,23 +424,23 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
                 let group = layoutSection.group
                 let groupSize = group.layoutSize.resolved(in: container)
                 var x = insets.leading
+                var starts: [CGFloat] = []
+                var height = groupSize.height
                 while item < count {
                     if groupIndex > 0 { x += layoutSection.interGroupSpacing }
                     let placed = place(group, in: CGRect(origin: CGPoint(x: x, y: cursor), size: groupSize), section: section, from: item, count: count)
-                    for (path, frame) in placed.frames {
-                        let attribute = UICollectionViewLayoutAttributes(forCellWith: path)
-                        attribute.frame = frame
-                        attribute.orthogonalSection = section
-                        itemAttributes[path] = attribute
-                    }
+                    record(placed, orthogonal: true)
+                    starts.append(x - insets.leading)
+                    height = max(height, placed.size.height)
                     item = placed.next
                     x += groupSize.width
                     groupIndex += 1
                     if placed.frames.isEmpty { break }
                 }
-                orthogonalSections[section] = OrthogonalSection(frame: CGRect(x: insets.leading, y: cursor, width: bounds.width - insets.leading - insets.trailing, height: groupSize.height),
-                                                                contentWidth: x - insets.leading + insets.trailing, behavior: layoutSection.orthogonalScrollingBehavior)
-                cursor += groupSize.height
+                orthogonalSections[section] = OrthogonalSection(frame: CGRect(x: insets.leading, y: cursor, width: bounds.width - insets.leading - insets.trailing, height: height),
+                                                                contentWidth: x - insets.leading + insets.trailing, behavior: layoutSection.orthogonalScrollingBehavior,
+                                                                groupStarts: starts, groupWidth: groupSize.width, leadingInset: insets.leading)
+                cursor += height
                 item = count
             }
             while item < count {
@@ -315,13 +449,10 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
                 let groupSize = group.layoutSize.resolved(in: container)
                 let origin = vertical ? CGPoint(x: insets.leading, y: cursor) : CGPoint(x: cursor, y: insets.top)
                 let placed = place(group, in: CGRect(origin: origin, size: groupSize), section: section, from: item, count: count)
-                for (path, frame) in placed.frames {
-                    let attribute = UICollectionViewLayoutAttributes(forCellWith: path)
-                    attribute.frame = frame
-                    itemAttributes[path] = attribute
-                }
+                record(placed, orthogonal: false)
                 item = placed.next
-                cursor += vertical ? groupSize.height : groupSize.width
+                // An estimated group is as long as its measured items made it.
+                cursor += vertical ? placed.size.height : placed.size.width
                 groupIndex += 1
                 if placed.next == item, placed.frames.isEmpty { break }
             }
@@ -330,6 +461,7 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
                 let size = boundary.layoutSize.resolved(in: container)
                 let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: boundary.elementKind, with: IndexPath(item: 0, section: section))
                 attribute.frame = vertical ? CGRect(x: insets.leading, y: cursor, width: size.width, height: size.height) : CGRect(x: cursor, y: insets.top, width: size.width, height: size.height)
+                if boundary.pinToVisibleBounds { attribute.zIndex = 1; pinned.append(PinnedHeader(kind: boundary.elementKind, section: section, sectionStart: sectionStart, sectionEnd: 0, footer: true)) }
                 supplementary[boundary.elementKind, default: [:]][section] = attribute
                 cursor += vertical ? size.height : size.width
             }
@@ -341,19 +473,37 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
                 attribute.zIndex = decoration.zIndex - 1
                 decorations[decoration.elementKind, default: [:]][section] = attribute
             }
-            for index in pinned.indices where pinned[index].section == section { pinned[index] = PinnedHeader(kind: pinned[index].kind, section: section, sectionEnd: cursor) }
+            for index in pinned.indices where pinned[index].section == section {
+                let old = pinned[index]
+                pinned[index] = PinnedHeader(kind: old.kind, section: section, sectionStart: old.sectionStart, sectionEnd: cursor, footer: old.footer)
+            }
         }
         contentSize = vertical ? CGSize(width: bounds.width, height: cursor) : CGSize(width: cursor, height: bounds.height)
     }
 
     /// A pinned header's attributes for the current bounds: held at the visible top while its
-    /// section scrolls past, pushed away by the end of its section.
+    /// section scrolls past, pushed away by the end of its section. A pinned footer holds at
+    /// the visible bottom from its section's start until its natural place scrolls into view.
     private func pinnedAttributes(_ header: PinnedHeader) -> UICollectionViewLayoutAttributes? {
         guard let natural = supplementary[header.kind]?[header.section], let collection = collectionView else { return nil }
         let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: header.kind, with: natural.indexPath)
         var frame = natural.frame
+        let vertical = configuration.scrollDirection == .vertical
+        if header.footer {
+            let bottom = vertical
+                ? collection.contentOffset.y + collection.bounds.height - collection.adjustedContentInset.bottom
+                : collection.contentOffset.x + collection.bounds.width - collection.adjustedContentInset.right
+            if vertical {
+                frame.origin.y = max(min(natural.frame.minY, bottom - natural.frame.height), header.sectionStart)
+            } else {
+                frame.origin.x = max(min(natural.frame.minX, bottom - natural.frame.width), header.sectionStart)
+            }
+            attribute.zIndex = 1
+            attribute.frame = frame
+            return attribute
+        }
         let top: CGFloat
-        if configuration.scrollDirection == .vertical {
+        if vertical {
             top = collection.contentOffset.y + collection.adjustedContentInset.top
             frame.origin.y = min(max(natural.frame.minY, top), header.sectionEnd - natural.frame.height)
         } else {
@@ -362,17 +512,37 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
         }
         // A pinned header rides above the cells; one being pushed away by the next section
         // slips under them (uikit/collection/pinned push: the last row covers it).
-        let pushed = (configuration.scrollDirection == .vertical ? frame.minY : frame.minX) < top
+        let pushed = (vertical ? frame.minY : frame.minX) < top
         attribute.zIndex = pushed ? -1 : 1
         attribute.frame = frame
         return attribute
     }
 
+    /// What `place` lays out: the items' frames, their anchored supplementary items, the next
+    /// item to place and the size the group took (its estimated axis measured).
+    private struct Placed {
+        var frames: [IndexPath: CGRect] = [:]
+        var supplementaries: [IndexPath: [(kind: String, frame: CGRect, zIndex: Int)]] = [:]
+        var next: Int
+        var size: CGSize
+    }
+
+    /// An item's height for `width` when its height is estimated: the cell's preferred fit,
+    /// measured once and kept until the layout is invalidated.
+    private func measuredHeight(of item: NSCollectionLayoutItem, at path: IndexPath, width: CGFloat, estimate: CGFloat) -> CGFloat {
+        if let measured = measuredItems[path] { return measured }
+        guard let collection = collectionView else { return estimate }
+        let inner = CGSize(width: max(0, width - item.contentInsets.leading - item.contentInsets.trailing), height: estimate)
+        let height = collection.selfSizedItem(at: path, estimated: inner, fixedWidth: true).height + item.contentInsets.top + item.contentInsets.bottom
+        measuredItems[path] = height
+        return height
+    }
+
     /// Lays a group's subitems out in `frame`, repeating them to fill the group's axis, taking
     /// items from `from`; nested groups recurse. Fixed inter-item spacing comes out of the
     /// fractional items' share; flexible spacing spreads what is left.
-    private func place(_ group: NSCollectionLayoutGroup, in frame: CGRect, section: Int, from: Int, count: Int) -> (frames: [IndexPath: CGRect], next: Int) {
-        var frames: [IndexPath: CGRect] = [:]
+    private func place(_ group: NSCollectionLayoutGroup, in frame: CGRect, section: Int, from: Int, count: Int) -> Placed {
+        var placed = Placed(next: from, size: frame.size)
         var item = from
         let inner = frame.inset(by: group.contentInsets)
         let horizontal = group.axis == .horizontal
@@ -399,7 +569,7 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
                 if slots.count >= 1000 || (index >= group.subitems.count && !subitem.layoutSize.widthDimension.isFractionalWidth && !subitem.layoutSize.heightDimension.isFractionalHeight && extent == 0) { break }
             }
         }
-        guard !slots.isEmpty else { return (frames, item) }
+        guard !slots.isEmpty else { return placed }
         // Fixed spacing comes out of the fractional items' share of the axis.
         let axisLength = horizontal ? inner.width : inner.height
         let fixedTotal = fixed ? spacing * CGFloat(max(0, slots.count - 1)) : 0
@@ -434,27 +604,83 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
         let scale = UIScreen.main.scale
         // Extents land on the pixel grid (90.67 becomes 90.5).
         for index in extents.indices { extents[index] = (extents[index] * scale).rounded() / scale }
+        // A vertical group's estimated items take their measured heights along the axis.
+        if !horizontal {
+            var probe = item
+            for index in slots.indices where probe < count {
+                let slot = slots[index]
+                // A nested group takes an unknown run of items: no measuring past it.
+                if slot is NSCollectionLayoutGroup { break }
+                if slot.layoutSize.heightDimension.isEstimated {
+                    extents[index] = measuredHeight(of: slot, at: IndexPath(item: probe, section: section), width: min(slot.layoutSize.resolved(in: inner.size).width, inner.width), estimate: extents[index])
+                }
+                probe += 1
+            }
+        }
         let gap = fixed ? spacing : (slots.count > 1 ? max(spacing, (axisLength - extents.reduce(0, +)) / CGFloat(slots.count - 1)) : 0)
+        // A horizontal group with an estimated height grows to its tallest item: the items with
+        // estimated heights are measured first, fractional ones then take the group's height.
+        var crossExtent = horizontal ? inner.height : inner.width
+        if horizontal, group.layoutSize.heightDimension.isEstimated {
+            var tallest: CGFloat = 0
+            var probe = item
+            var anyMeasured = false
+            for (index, slot) in slots.enumerated() where probe < count {
+                if slot is NSCollectionLayoutGroup { break }
+                let size = slot.layoutSize.resolved(in: inner.size)
+                if slot.layoutSize.heightDimension.isEstimated {
+                    tallest = max(tallest, measuredHeight(of: slot, at: IndexPath(item: probe, section: section), width: extents[index], estimate: size.height))
+                    anyMeasured = true
+                } else if slot.layoutSize.heightDimension.isAbsolute {
+                    tallest = max(tallest, size.height)
+                    anyMeasured = true
+                }
+                probe += 1
+            }
+            if anyMeasured { crossExtent = tallest }
+        }
         var position: CGFloat = horizontal ? inner.minX : inner.minY
+        var used: CGFloat = 0
         for (index, slot) in slots.enumerated() {
             guard item < count else { break }
             let size = slot.layoutSize.resolved(in: inner.size)
             let extent = extents[index]
             let rounded = (position * scale).rounded() / scale
+            var height = min(size.height, inner.height)
+            if horizontal {
+                if slot.layoutSize.heightDimension.isEstimated, !(slot is NSCollectionLayoutGroup) {
+                    height = measuredHeight(of: slot, at: IndexPath(item: item, section: section), width: extent, estimate: size.height)
+                } else if slot.layoutSize.heightDimension.isFractionalHeight {
+                    height = crossExtent * slot.layoutSize.heightDimension.dimension
+                }
+            }
             let slotFrame = horizontal
-                ? CGRect(x: rounded, y: inner.minY, width: extent, height: min(size.height, inner.height))
+                ? CGRect(x: rounded, y: inner.minY, width: extent, height: height)
                 : CGRect(x: inner.minX, y: rounded, width: min(size.width, inner.width), height: extent)
             if let nested = slot as? NSCollectionLayoutGroup {
-                let placed = place(nested, in: slotFrame, section: section, from: item, count: count)
-                frames.merge(placed.frames) { $1 }
-                item = placed.next
+                let nestedPlaced = place(nested, in: slotFrame, section: section, from: item, count: count)
+                placed.frames.merge(nestedPlaced.frames) { $1 }
+                placed.supplementaries.merge(nestedPlaced.supplementaries) { $1 }
+                item = nestedPlaced.next
             } else {
-                frames[IndexPath(item: item, section: section)] = slotFrame.inset(by: slot.contentInsets)
+                let path = IndexPath(item: item, section: section)
+                let itemFrame = slotFrame.inset(by: slot.contentInsets)
+                placed.frames[path] = itemFrame
+                if !slot.supplementaryItems.isEmpty {
+                    placed.supplementaries[path] = slot.supplementaryItems.map { ($0.elementKind, $0.frame(on: itemFrame), $0.zIndex) }
+                }
                 item += 1
             }
+            used = position + extent - (horizontal ? inner.minX : inner.minY)
             position += extent + gap
         }
-        return (frames, item)
+        placed.next = item
+        if horizontal {
+            placed.size = CGSize(width: frame.width, height: group.layoutSize.heightDimension.isEstimated ? crossExtent + group.contentInsets.top + group.contentInsets.bottom : frame.height)
+        } else {
+            placed.size = CGSize(width: frame.width, height: group.layoutSize.heightDimension.isEstimated ? used + group.contentInsets.top + group.contentInsets.bottom : frame.height)
+        }
+        return placed
     }
 
     open override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
@@ -463,6 +689,7 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
         var extras = supplementary.values.flatMap { $0.values }
             .filter { !pinnedKeys.contains(($0.representedElementKind ?? "") + "#" + "\($0.indexPath.section)") && $0.frame.intersects(rect) }
         extras += pinned.compactMap(pinnedAttributes).filter { $0.frame.intersects(rect) }
+        extras += itemSupplementaries.values.flatMap { $0.values }.filter { $0.frame.intersects(rect) }
         extras.sort { $0.indexPath < $1.indexPath }
         let backgrounds = decorations.values.flatMap { $0.values }.filter { $0.frame.intersects(rect) }.sorted { $0.indexPath < $1.indexPath }
         return backgrounds + items + extras
@@ -471,6 +698,7 @@ open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
     open override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { itemAttributes[indexPath] }
     open override func layoutAttributesForSupplementaryView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         if let header = pinned.first(where: { $0.kind == kind && $0.section == indexPath.section }) { return pinnedAttributes(header) }
+        if let anchored = itemSupplementaries[kind]?[indexPath] { return anchored }
         return supplementary[kind]?[indexPath.section]
     }
     open override func layoutAttributesForDecorationView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { decorations[kind]?[indexPath.section] }

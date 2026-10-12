@@ -174,6 +174,8 @@ enum Generator {
         }
         if let field = view as? UITextField { line += " font=\(field.font.map { "\($0.fontName) \($0.pointSize)" } ?? "nil") border=\(field.borderStyle.rawValue)" }
         if view.layer.cornerRadius != 0 { line += " cornerRadius=\(view.layer.cornerRadius)" }
+        if view.transform != .identity { line += " transform=\(view.transform)" }
+        if view.alpha != 1 { line += " alpha=\(view.alpha)" }
         if let background = view.backgroundColor, background != .clear { line += " background=\(background)" }
         print(line)
         for subview in view.subviews { describe(subview, depth: depth + 1) }

@@ -196,14 +196,26 @@ open class UILabel: UIView {
     var layoutWrapWidth: CGFloat = 0
 
     /// The intrinsic size: unbounded, or wrapped to the preferred layout width; a label that
-    /// wraps reports a point more than its fit (uikit/table/selfsizing: two 15 pt lines fit in
-    /// 36 and take 37 under constraints, three 54 and 55, two 13 pt lines 31.5 and 32.5).
+    /// wraps in a table cell reports a point more than its fit (uikit/table/selfsizing: two
+    /// 15 pt lines fit in 36 and take 37 under constraints, three 54 and 55, two 13 pt lines
+    /// 31.5 and 32.5), while a collection cell's takes its fit (uikit/collection/rest: three
+    /// 15 pt lines in a 70 pt item, 54 and the 16 of margins).
     override open var intrinsicContentSize: CGSize {
         guard hasText else { return .zero }
         let width: CGFloat? = preferredMaxLayoutWidth > 0 ? preferredMaxLayoutWidth : (numberOfLines != 1 && layoutWrapWidth > 0 ? layoutWrapWidth : nil)
         var size = textSize(fitting: width)
-        if width != nil, size.height > font.labelHeight(lines: 1, scale: UIScreen.main.scale) { size.height += 1 }
+        if width != nil, size.height > font.labelHeight(lines: 1, scale: UIScreen.main.scale), isInTableCell { size.height += 1 }
         return size
+    }
+
+    private var isInTableCell: Bool {
+        var view = superview
+        while let current = view {
+            if current is UITableViewCell { return true }
+            if current is UICollectionViewCell { return false }
+            view = current.superview
+        }
+        return true
     }
 
     /// The text's rectangle in `bounds`: one line measures unbounded (it truncates rather than

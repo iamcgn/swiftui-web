@@ -1714,13 +1714,14 @@
       "framework": "UIKit",
       "area": "Collection view",
       "title": "Collection view corners",
-      "detail": "Estimated dimensions in compositional layouts, item supplementary items, `groupPagingCentered`, `visibleItemsInvalidationHandler`, decorations in orthogonal sections, pinned footers, the scroll pocket blur, drag reordering, `UICollectionViewLayout` animation hooks, the diffable move detection when an item also changes section, outline disclosure options and reordering, the sidebar appearance.",
+      "detail": "Estimated dimensions in compositional layouts, item supplementary items, `groupPagingCentered`, `visibleItemsInvalidationHandler`, decorations in orthogonal sections, pinned footers, the scroll pocket blur, drag reordering, `UICollectionViewLayout` animation hooks, the diffable move detection when an item also changes section, outline disclosure options and reordering, the sidebar appearance. Done 2026-10-12 (Phase 9, item 40): estimated items, anchored supplementary items, pinned footers, centred group paging with the invalidation handler and decorations in orthogonal sections (uikit/collection/rest, paging), the sidebar appearances (uikit/collection/sidebar, sidebarplain), interactive movement with reordering handlers, the layout's animation hooks, outline disclosure options, cross-section moves; open: the scroll pocket blur, outline reordering across parents.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/CollectionView.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-dragdrop",

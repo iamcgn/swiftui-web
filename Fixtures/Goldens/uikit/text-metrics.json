@@ -84,6 +84,42 @@
       "lastBaseline" : 36.4736328125,
       "width" : 265.5
     },
+    "style:body:w500||Library" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 55
+    },
+    "style:body:w500||Tags" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 37
+    },
+    "style:body:w500|226.0|Library" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 55
+    },
+    "style:body:w500|226.0|Tags" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 37
+    },
+    "style:body:w500|242.0|Library" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 55
+    },
+    "style:body:w500|242.0|Tags" : {
+      "firstBaseline" : 18.325751773774499,
+      "height" : 24.5,
+      "lastBaseline" : 18.325751773774499,
+      "width" : 37
+    },
     "style:body:XS|;l1|Body XS" : {
       "firstBaseline" : 15.23930123235721,
       "height" : 20.5,
@@ -324,6 +360,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 57
     },
+    "style:body||Blue" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 33.5
+    },
     "style:body||Bluetooth" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -359,6 +401,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 47
+    },
+    "style:body||Favourites" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 78.5
     },
     "style:body||Filled" : {
       "firstBaseline" : 18.357620599453821,
@@ -456,6 +504,18 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 66
     },
+    "style:body||Recents" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 62
+    },
+    "style:body||Red" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 30
+    },
     "style:body||Reserved width" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -473,6 +533,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 35
+    },
+    "style:body||Shared" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 54.5
     },
     "style:body||Short" : {
       "firstBaseline" : 18.357620599453821,
@@ -600,6 +666,12 @@
       "lastBaseline" : 18.357620599453821,
       "width" : 91
     },
+    "style:body|256.0|Blue" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 33.5
+    },
     "style:body|256.0|Bluetooth" : {
       "firstBaseline" : 18.357620599453821,
       "height" : 24.5,
@@ -611,6 +683,30 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 81.5
+    },
+    "style:body|256.0|Favourites" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 78.5
+    },
+    "style:body|256.0|Recents" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 62
+    },
+    "style:body|256.0|Red" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 30
+    },
+    "style:body|256.0|Shared" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 54.5
     },
     "style:body|256.0|Wi-Fi" : {
       "firstBaseline" : 18.357620599453821,
@@ -629,6 +725,36 @@
       "height" : 24.5,
       "lastBaseline" : 18.357620599453821,
       "width" : 91
+    },
+    "style:body|264.0|Blue" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 33.5
+    },
+    "style:body|264.0|Favourites" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 78.5
+    },
+    "style:body|264.0|Recents" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 62
+    },
+    "style:body|264.0|Red" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 30
+    },
+    "style:body|264.0|Shared" : {
+      "firstBaseline" : 18.357620599453821,
+      "height" : 24.5,
+      "lastBaseline" : 18.357620599453821,
+      "width" : 54.5
     },
     "style:body|288.0|A default cell whose text label wraps onto several lines when the text runs past the cell's width" : {
       "firstBaseline" : 18.357620599453821,
@@ -1302,6 +1428,12 @@
       "lastBaseline" : 12.3779296875,
       "width" : 45
     },
+    "system:13:400:default|;l1|6 rows" : {
+      "firstBaseline" : 12.3779296875,
+      "height" : 16,
+      "lastBaseline" : 12.3779296875,
+      "width" : 40.5
+    },
     "system:13:400:default|;l1|A" : {
       "firstBaseline" : 12.3779296875,
       "height" : 16,
@@ -1668,11 +1800,23 @@
       "lastBaseline" : 14.2822265625,
       "width" : 675
     },
+    "system:15:400:default||A longer note that runs past the width of the collection view and wraps onto a second line." : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 616
+    },
     "system:15:400:default||A note cell sized by its constrained label, twelve points above and below the text" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 548.5
+    },
+    "system:15:400:default||A short note." : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 88.5
     },
     "system:15:400:default||Attributed" : {
       "firstBaseline" : 14.2822265625,
@@ -1739,6 +1883,18 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 161.5
+    },
+    "system:15:400:default|264.0|A longer note that runs past the width of the collection view and wraps onto a second line." : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 54,
+      "lastBaseline" : 50.0830078125,
+      "width" : 262.5
+    },
+    "system:15:400:default|264.0|A short note." : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 88.5
     },
     "system:15:400:default|288.0|A longer note that needs a third line at this size once it has said everything it has to say about itself" : {
       "firstBaseline" : 14.2822265625,
@@ -2442,6 +2598,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 97
     },
+    "system:17:400:default||Blue" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 33.5
+    },
     "system:17:400:default||Center" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2465,6 +2627,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 124
+    },
+    "system:17:400:default||Favourites" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 78.5
     },
     "system:17:400:default||Field" : {
       "firstBaseline" : 16.1865234375,
@@ -2514,6 +2682,18 @@
       "lastBaseline" : 16.1865234375,
       "width" : 70
     },
+    "system:17:400:default||Recents" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 62
+    },
+    "system:17:400:default||Red" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 30
+    },
     "system:17:400:default||regular middle, " : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2549,6 +2729,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 94
+    },
+    "system:17:400:default||Shared" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 54.5
     },
     "system:17:400:default||the box on" : {
       "firstBaseline" : 16.1865234375,
@@ -2652,11 +2838,71 @@
       "lastBaseline" : 36.4736328125,
       "width" : 181
     },
+    "system:17:400:default|256.0|Blue" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 33.5
+    },
+    "system:17:400:default|256.0|Favourites" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 78.5
+    },
+    "system:17:400:default|256.0|Recents" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 62
+    },
+    "system:17:400:default|256.0|Red" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 30
+    },
+    "system:17:400:default|256.0|Shared" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 54.5
+    },
     "system:17:400:default|259.0;l1|Sidebar row" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 91
+    },
+    "system:17:400:default|264.0|Blue" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 33.5
+    },
+    "system:17:400:default|264.0|Favourites" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 78.5
+    },
+    "system:17:400:default|264.0|Recents" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 62
+    },
+    "system:17:400:default|264.0|Red" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 30
+    },
+    "system:17:400:default|264.0|Shared" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 54.5
     },
     "system:17:400:default|278.0|Select some of this text" : {
       "firstBaseline" : 16.1865234375,
@@ -2730,11 +2976,47 @@
       "lastBaseline" : 16.1865234375,
       "width" : 40
     },
+    "system:17:500:default||Library" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 55
+    },
+    "system:17:500:default||Tags" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 37
+    },
     "system:17:500:default||Tilted" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 44.5
+    },
+    "system:17:500:default|226.0|Library" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 55
+    },
+    "system:17:500:default|226.0|Tags" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 37
+    },
+    "system:17:500:default|242.0|Library" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 55
+    },
+    "system:17:500:default|242.0|Tags" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 37
     },
     "system:17:600:default:tabular|;l1|0000" : {
       "firstBaseline" : 16.1865234375,
@@ -3211,6 +3493,18 @@
       "spacingBelow" : 0,
       "textToText" : 0,
       "xHeight" : 8.9482421875
+    },
+    "style:body:w500" : {
+      "ascender" : 18.325751773774499,
+      "capHeight" : 11.97802734375,
+      "descender" : -5.9613576012255018,
+      "leading" : 1.7128906250000011,
+      "lineHeight" : 24.287109375,
+      "pointSize" : 17,
+      "spacingAbove" : 0,
+      "spacingBelow" : 0,
+      "textToText" : 0,
+      "xHeight" : 9.0146484375
     },
     "style:body:XS" : {
       "ascender" : 15.23930123235721,

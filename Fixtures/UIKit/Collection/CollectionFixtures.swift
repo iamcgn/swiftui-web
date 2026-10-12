@@ -164,6 +164,73 @@ final class SectionBackgroundView: UICollectionReusableView {
     }
 }
 
+/// A badge anchored to an item's top trailing corner: a red circle with a count.
+final class BadgeView: UICollectionReusableView {
+    let label = UILabel()   // added on first layout: no initializer to mirror on both UIKits
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if label.superview == nil {
+            addSubview(label)
+            label.font = .systemFont(ofSize: 12, weight: .semibold)
+            label.textColor = .white
+            label.textAlignment = .center
+            backgroundColor = .systemRed
+        }
+        layer.cornerRadius = bounds.height / 2
+        label.frame = bounds
+    }
+}
+
+/// A full-width note whose height comes from its wrapping label (12 sideways, 8 above and below).
+final class WrappingNoteCell: UICollectionViewCell {
+    let label = UILabel()   // constrained on first layout: no initializer to mirror on both UIKits
+    private var constrained = false
+    func configure(_ text: String) {
+        label.text = text
+        label.font = .systemFont(ofSize: 15)
+        label.numberOfLines = 0
+        guard !constrained else { return }
+        constrained = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
+            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+        ])
+        contentView.backgroundColor = .systemGray5
+        contentView.layer.cornerRadius = 8
+    }
+}
+
+/// The rest fixture's source: notes sized by their text, badged squares, then rows under a
+/// pinned footer.
+final class CollectionRestSource: GridSource {
+    static let notes = ["A short note.", "A longer note that runs past the width of the collection view and wraps onto a second line."]
+    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if indexPath.section == 0 {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "note", for: indexPath) as! WrappingNoteCell
+            cell.configure(Self.notes[indexPath.item])
+            return indexPath.item == 1 ? cell.probe("note1") : cell
+        }
+        return super.collectionView(collectionView, cellForItemAt: indexPath)
+    }
+    override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        if kind == "badge" {
+            let badge = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "badge", for: indexPath) as! BadgeView
+            badge.label.text = "\(indexPath.item + 1)"
+            return badge.probe("badge\(indexPath.item)")
+        }
+        let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as! SectionHeaderView
+        view.label.text = "6 rows"
+        view.label.font = .systemFont(ofSize: 13)
+        view.label.textColor = .secondaryLabel
+        view.backgroundColor = .systemGray6
+        return view.probe("footer")
+    }
+}
+
 /// The collection view a behaviour fixture scrolls between renders.
 @MainActor public final class CollectionModel {
     var collection: UICollectionView?
@@ -215,7 +282,8 @@ final class PlainListSource: NSObject, UICollectionViewDataSource {
 }
 
 public enum CollectionFixtures {
-    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline, plainList, listPadding, plainFooters]
+    public static let all = [grid, horizontal, sized, headers, selfSizing, compositional, list, orthogonal, listHeaders, firstItem, decoration, pinned, outline, plainList, listPadding, plainFooters,
+                             rest, paging, sidebar, sidebarPlain]
 
     @MainActor static var sources: [GridSource] = []
 
@@ -442,6 +510,157 @@ public enum CollectionFixtures {
         source.counts = [4, 2]
         source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 2, section: 0): "item2", IndexPath(item: 0, section: 1): "item4", IndexPath(item: 1, section: 1): "item5"]
         return make(layout: layout, source: source)
+    }
+
+    /// The rest of the compositional layout: notes with an estimated height (the second wraps),
+    /// 90 pt squares with a 20 pt badge anchored past their top trailing corner, and six rows
+    /// under a 30 pt footer pinned to the visible bottom; the step scrolls 40, keeping every
+    /// probed cell in view (UIKit keeps cells that scroll away, UIKitWeb recycles them), the
+    /// footer riding with the bounds.
+    public static let rest = UIKitFixture("uikit/collection/rest", size: CGSize(width: 320, height: 400),
+                                          model: { CollectionModel() },
+                                          steps: [UIKitFixtureStep("scroll") { model in
+                                                      model.collection?.contentOffset = CGPoint(x: 0, y: 40)
+                                                      model.collection?.layoutIfNeeded()
+                                                  }]) { model in
+        let layout = UICollectionViewCompositionalLayout { section, _ in
+            switch section {
+            case 0:
+                let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44)))
+                let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44)), subitems: [item])
+                let layoutSection = NSCollectionLayoutSection(group: group)
+                layoutSection.interGroupSpacing = 8
+                layoutSection.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16)
+                return layoutSection
+            case 1:
+                let badgeSize = NSCollectionLayoutSize(widthDimension: .absolute(20), heightDimension: .absolute(20))
+                let anchor = NSCollectionLayoutAnchor(edges: [.top, .trailing], fractionalOffset: CGPoint(x: 0.3, y: -0.3))
+                let badge = NSCollectionLayoutSupplementaryItem(layoutSize: badgeSize, elementKind: "badge", containerAnchor: anchor)
+                let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .absolute(90), heightDimension: .absolute(90)), supplementaryItems: [badge])
+                let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(90)), subitems: [item])
+                group.interItemSpacing = .fixed(9)
+                let layoutSection = NSCollectionLayoutSection(group: group)
+                layoutSection.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16)
+                return layoutSection
+            default:
+                let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)))
+                let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)), subitems: [item])
+                let layoutSection = NSCollectionLayoutSection(group: group)
+                layoutSection.interGroupSpacing = 8
+                layoutSection.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 0, trailing: 16)
+                let footer = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(30)), elementKind: UICollectionView.elementKindSectionFooter, alignment: .bottom)
+                footer.pinToVisibleBounds = true
+                layoutSection.boundarySupplementaryItems = [footer]
+                return layoutSection
+            }
+        }
+        let source = CollectionRestSource()
+        source.counts = [2, 3, 6]
+        source.probes = [IndexPath(item: 0, section: 1): "square0", IndexPath(item: 2, section: 1): "square2", IndexPath(item: 0, section: 2): "row0"]
+        let root = make(layout: layout, source: source)
+        let collection = root.subviews.first { $0 is UICollectionView } as! UICollectionView
+        collection.register(WrappingNoteCell.self, forCellWithReuseIdentifier: "note")
+        collection.register(BadgeView.self, forSupplementaryViewOfKind: "badge", withReuseIdentifier: "badge")
+        collection.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "header")
+        model.collection = collection
+        return root
+    }
+
+    /// Centred group paging: 240 × 120 groups 12 apart whose items shrink with their distance
+    /// from the centre (the section's `visibleItemsInvalidationHandler`), over a background
+    /// decoration; the step scrolls the carousel one group on. Two plain rows follow.
+    public static let paging = UIKitFixture("uikit/collection/paging", size: CGSize(width: 320, height: 300),
+                                            model: { CollectionModel() },
+                                            steps: [UIKitFixtureStep("next") { model in
+                                                        guard let collection = model.collection, let carousel = collection.subviews.first(where: { $0 is UIScrollView }) as? UIScrollView else { return }
+                                                        carousel.contentOffset.x += 252
+                                                        collection.layoutIfNeeded()
+                                                    }]) { model in
+        let layout = UICollectionViewCompositionalLayout { section, _ in
+            if section == 0 {
+                let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1)))
+                let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .absolute(240), heightDimension: .absolute(120)), subitems: [item])
+                let layoutSection = NSCollectionLayoutSection(group: group)
+                layoutSection.orthogonalScrollingBehavior = .groupPagingCentered
+                layoutSection.interGroupSpacing = 12
+                layoutSection.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
+                layoutSection.decorationItems = [NSCollectionLayoutDecorationItem.background(elementKind: "background")]
+                layoutSection.visibleItemsInvalidationHandler = { items, offset, environment in
+                    let centre = environment.container.contentSize.width / 2
+                    for item in items where item.representedElementCategory == .cell {
+                        let distance = abs(item.frame.midX - offset.x - centre)
+                        let scale = max(0.85, 1 - distance / 800)
+                        item.transform = CGAffineTransform(scaleX: scale, y: scale)
+                    }
+                }
+                return layoutSection
+            }
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(44)), subitems: [item])
+            let layoutSection = NSCollectionLayoutSection(group: group)
+            layoutSection.interGroupSpacing = 8
+            layoutSection.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 0, trailing: 16)
+            return layoutSection
+        }
+        layout.register(SectionBackgroundView.self, forDecorationViewOfKind: "background")
+        let source = GridSource()
+        source.counts = [4, 2]
+        source.probes = [IndexPath(item: 0, section: 0): "item0", IndexPath(item: 1, section: 0): "item1", IndexPath(item: 2, section: 0): "item2", IndexPath(item: 0, section: 1): "row0"]
+        let root = make(layout: layout, source: source, frame: CGRect(x: 0, y: 0, width: 320, height: 300))
+        model.collection = (root.subviews.first { $0 is UICollectionView } as! UICollectionView)
+        return root
+    }
+
+    /// The sidebar appearance: an outline of header-style parents (first-item headers) over
+    /// sidebar cells, the first expanded.
+    public static let sidebar = UIKitFixture("uikit/collection/sidebar", size: CGSize(width: 320, height: 400)) {
+        makeSidebar(appearance: .sidebar)
+    }
+
+    /// The plain sidebar appearance over the same outline.
+    public static let sidebarPlain = UIKitFixture("uikit/collection/sidebarplain", size: CGSize(width: 320, height: 400)) {
+        makeSidebar(appearance: .sidebarPlain)
+    }
+
+    @MainActor static var sidebarSources: [AnyObject] = []
+    @MainActor static func makeSidebar(appearance: UICollectionLayoutListConfiguration.Appearance) -> UIView {
+        var configuration = UICollectionLayoutListConfiguration(appearance: appearance)
+        configuration.headerMode = .firstItemInSection
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let root = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let collection = UICollectionView(frame: root.bounds, collectionViewLayout: layout)
+        let headerRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, String> { cell, _, item in
+            var content = UIListContentConfiguration.sidebarHeader()
+            content.text = item
+            cell.contentConfiguration = content
+            cell.accessories = [.outlineDisclosure()]
+            cell.probe("header-\(item)")
+        }
+        let rowRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, String> { cell, _, item in
+            var content = UIListContentConfiguration.sidebarCell()
+            content.text = item
+            cell.contentConfiguration = content
+            cell.probe("row-\(item)")
+        }
+        let headers = ["Library", "Tags"]
+        let source = UICollectionViewDiffableDataSource<Int, String>(collectionView: collection) { collection, path, item in
+            collection.dequeueConfiguredReusableCell(using: headers.contains(item) ? headerRegistration : rowRegistration, for: path, item: item)
+        }
+        var sections = NSDiffableDataSourceSnapshot<Int, String>()
+        sections.appendSections([0, 1])
+        source.apply(sections, animatingDifferences: false)
+        var library = NSDiffableDataSourceSectionSnapshot<String>()
+        library.append(["Library"])
+        library.append(["Recents", "Shared", "Favourites"], to: "Library")
+        library.expand(["Library"])
+        source.apply(library, to: 0, animatingDifferences: false)
+        var tags = NSDiffableDataSourceSectionSnapshot<String>()
+        tags.append(["Tags"])
+        tags.append(["Red", "Blue"], to: "Tags")
+        source.apply(tags, to: 1, animatingDifferences: false)
+        sidebarSources.append(source)
+        root.addSubview(collection.probe("collection"))
+        return root
     }
 
     /// Section headers (44 tall) and footers (30 tall) from the flow layout's reference sizes.

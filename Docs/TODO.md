@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
-| UIKit | 4 | 0 | 0 | 4 |
+| UIKit | 3 | 0 | 0 | 3 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **10** | 0 | 1 | 9 |
+| **All** | **9** | 0 | 1 | 8 |
 
 ## Next (Phase 8, in order)
 
@@ -33,8 +33,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Collection view corners** `uk-collection-rest` · Collection view · missing  
-  Estimated dimensions in compositional layouts, item supplementary items, `groupPagingCentered`, `visibleItemsInvalidationHandler`, decorations in orthogonal sections, pinned footers, the scroll pocket blur, drag reordering, `UICollectionViewLayout` animation hooks, the diffable move detection when an item also changes section, outline disclosure options and reordering, the sidebar appearance. ([CollectionView.md](Docs/elements/UIKit/CollectionView.md))
 - ☐ **Drag and drop interactions** `uk-dragdrop` · Events · missing  
   `UIDragInteraction`/`UIDropInteraction`, the table and collection drag and drop delegates over the runtime's drag session (SwiftUI's `draggable` shares it). ([DragDrop.md](Docs/elements/DragDrop.md))
 - ☐ **UISplitViewController** `uk-splitviewcontroller` · Containers · missing  
@@ -61,6 +59,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Slider images, segment images, stepper repeat** `uk-controls-rest` · UIKit · Controls
 - ☑ 2026-10-12 **Tab bar badges and the More tab** `uk-tabbar` · UIKit · Navigation
 - ☑ 2026-10-12 **Table view corners** `uk-table-rest` · UIKit · Table view
+- ☑ 2026-10-12 **Collection view corners** `uk-collection-rest` · UIKit · Collection view
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

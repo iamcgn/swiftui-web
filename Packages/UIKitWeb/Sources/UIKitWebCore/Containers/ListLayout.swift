@@ -26,6 +26,7 @@ public struct UICollectionLayoutListConfiguration: Sendable {
 
     var isGrouped: Bool { appearance == .grouped || appearance == .insetGrouped || appearance == .sidebar }
     var isInset: Bool { appearance == .insetGrouped || appearance == .sidebar }
+    var isSidebar: Bool { appearance == .sidebar || appearance == .sidebarPlain }
 }
 
 /// An accessory a list cell shows at its trailing edge.
@@ -34,6 +35,27 @@ public struct UICellAccessory: Sendable {
     public enum DisplayedState: Sendable { case always, whenEditing, whenNotEditing }
     public let kind: Kind
     public var displayed: DisplayedState = .always
+    /// An outline disclosure's options (`outlineDisclosure(displayed:options:actionHandler:)`).
+    public var outlineOptions = OutlineDisclosureOptions()
+    /// Called when an outline disclosure toggles.
+    public var actionHandler: (@Sendable () -> Void)?
+
+    /// How an outline disclosure behaves: a header's whole row toggles, a cell's chevron alone
+    /// does (the row selects as usual); automatic is the header style.
+    public struct OutlineDisclosureOptions: Sendable {
+        public enum Style: Int, Sendable { case automatic = 0, header, cell }
+        public var style: Style
+        public var isHidden: Bool
+        public var reservedLayoutWidth: CGFloat?
+        public var tintColor: UIColor?
+        public init(style: Style = .automatic, isHidden: Bool = false, reservedLayoutWidth: CGFloat? = nil, tintColor: UIColor? = nil) {
+            self.style = style
+            self.isHidden = isHidden
+            self.reservedLayoutWidth = reservedLayoutWidth
+            self.tintColor = tintColor
+        }
+        var togglesWholeRow: Bool { style != .cell }
+    }
 
     public static func disclosureIndicator(displayed: DisplayedState = .always, options: Any? = nil) -> UICellAccessory { UICellAccessory(kind: .disclosureIndicator, displayed: displayed) }
     public static func checkmark(displayed: DisplayedState = .always, options: Any? = nil) -> UICellAccessory { UICellAccessory(kind: .checkmark, displayed: displayed) }
@@ -43,7 +65,12 @@ public struct UICellAccessory: Sendable {
     public static func reorder(displayed: DisplayedState = .whenEditing, options: Any? = nil) -> UICellAccessory { UICellAccessory(kind: .reorder, displayed: displayed) }
     public static func multiselect(displayed: DisplayedState = .whenEditing, options: Any? = nil) -> UICellAccessory { UICellAccessory(kind: .multiselect, displayed: displayed) }
     public static func label(text: String, displayed: DisplayedState = .always, options: Any? = nil) -> UICellAccessory { UICellAccessory(kind: .label(text), displayed: displayed) }
-    public static func outlineDisclosure(displayed: DisplayedState = .always, options: Any? = nil, actionHandler: (() -> Void)? = nil) -> UICellAccessory { UICellAccessory(kind: .outlineDisclosure, displayed: displayed) }
+    public static func outlineDisclosure(displayed: DisplayedState = .always, options: OutlineDisclosureOptions = OutlineDisclosureOptions(), actionHandler: (@Sendable () -> Void)? = nil) -> UICellAccessory {
+        var accessory = UICellAccessory(kind: .outlineDisclosure, displayed: displayed)
+        accessory.outlineOptions = options
+        accessory.actionHandler = actionHandler
+        return accessory
+    }
 }
 
 extension UICollectionViewCompositionalLayout {
@@ -106,16 +133,22 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
         guard let collection = collectionView, let dataSource = collection.dataSource else { size = .zero; return }
         if !appliedBackground {
             appliedBackground = true
-            collection.backgroundColor = listConfiguration.backgroundColor ?? (listConfiguration.isGrouped ? .systemGroupedBackground : .systemBackground)
+            // The sidebar appearance sits on the secondary background (uikit/collection/sidebar).
+            let ground: UIColor = listConfiguration.appearance == .sidebar ? .secondarySystemBackground : listConfiguration.isGrouped ? .systemGroupedBackground : .systemBackground
+            collection.backgroundColor = listConfiguration.backgroundColor ?? ground
         }
         let width = collection.bounds.width
-        let inset: CGFloat = listConfiguration.isInset ? 16 : 0
+        // The sidebar appearances' rows sit 16 in like the inset grouped cards (without the
+        // card); a plain sidebar's headers span the width (uikit/collection/sidebarplain).
+        let inset: CGFloat = listConfiguration.isInset || listConfiguration.appearance == .sidebarPlain ? 16 : 0
+        let headerInset: CGFloat = listConfiguration.appearance == .sidebarPlain ? 0 : inset
         var y: CGFloat = 0
         let sections = dataSource.numberOfSections(in: collection)
         // Only what the bounds show is measured now; the rest takes the estimate until it appears.
         let window = collection.bounds
         func rowHeight(_ path: IndexPath, estimate: CGFloat) -> CGFloat {
             if let measured = measuredRows[path] { return measured }
+            let inset = isHeaderItem(path) ? headerInset : inset
             guard CGRect(x: inset, y: y, width: width - 2 * inset, height: estimate).intersects(window) else { return estimate }
             let height = collection.selfSizedItem(at: path, estimated: CGSize(width: width - 2 * inset, height: estimate)).height
             measuredRows[path] = height
@@ -134,31 +167,55 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
             // (uikit/collection/listheaders: 44.5 tall for a headline, rows right under it); a
             // first-item header does too, with 17.5 between sections (uikit/collection/firstitem).
             if listConfiguration.headerMode == .firstItemInSection {
-                if section > 0 { y += 17.5 }
+                // The sidebar's sections start at the top and sit 10 apart; the plain sidebar's
+                // headers 22 down and 30 after the last row (uikit/collection/sidebar, sidebarplain).
+                switch listConfiguration.appearance {
+                case .sidebar: if section > 0 { y += 10 }
+                case .sidebarPlain: y += section > 0 ? 30 : 22
+                default: if section > 0 { y += 17.5 }
+                }
             } else if listConfiguration.headerMode == .supplementary {
                 // A plain header sits 22 below what precedes it (uikit/collection/plainlist); a
                 // grouped one directly after, plus `headerTopPadding` (uikit/collection/listpadding).
-                y += listConfiguration.isGrouped ? (listConfiguration.headerTopPadding ?? 0) : 22
+                switch listConfiguration.appearance {
+                case .sidebar: y += listConfiguration.headerTopPadding ?? (section > 0 ? 10 : 0)
+                case .sidebarPlain: y += listConfiguration.headerTopPadding ?? (section > 0 ? 30 : 22)
+                default: y += listConfiguration.isGrouped ? (listConfiguration.headerTopPadding ?? 0) : 22
+                }
                 let path = IndexPath(item: 0, section: section)
                 let height = supplementaryHeight(UICollectionView.elementKindSectionHeader, path, estimate: 44.5)
                 let attribute = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, with: path)
-                attribute.frame = CGRect(x: inset, y: y, width: width - 2 * inset, height: height)
+                attribute.frame = CGRect(x: headerInset, y: y, width: width - 2 * headerInset, height: height)
+                attribute.listAppearance = listConfiguration.appearance
                 supplementary[UICollectionView.elementKindSectionHeader, default: [:]][section] = attribute
                 y += height
+            } else if listConfiguration.appearance == .sidebar {
+                if section > 0 { y += 10 }
+            } else if listConfiguration.appearance == .sidebarPlain {
+                y += section > 0 ? 30 : 22
             } else if listConfiguration.isGrouped {
                 y += listConfiguration.headerTopPadding ?? 35
             }
             for item in 0..<count {
                 let path = IndexPath(item: item, section: section)
+                let header = isHeaderItem(path)
+                let x = header ? headerInset : inset
                 let height = rowHeight(path, estimate: 56)
                 let attribute = UICollectionViewLayoutAttributes(forCellWith: path)
-                attribute.frame = CGRect(x: inset, y: y, width: width - 2 * inset, height: height)
+                attribute.frame = CGRect(x: x, y: y, width: width - 2 * x, height: height)
+                // A plain sidebar's rows start 8 below their header (uikit/collection/sidebarplain).
+                if header, listConfiguration.appearance == .sidebarPlain { y += 8 }
                 let firstRow = listConfiguration.headerMode == .firstItemInSection ? 1 : 0
                 attribute.listPosition = (first: item == firstRow, last: item == count - 1)
                 attribute.listAppearance = listConfiguration.appearance
                 // Separators run between rows; a plain section's last row keeps its own unless a
-                // footer follows (uikit/collection/plainlist, plainfooters).
-                attribute.listSeparatorAfter = item < count - 1 || (!listConfiguration.isGrouped && listConfiguration.footerMode != .supplementary)
+                // footer follows (uikit/collection/plainlist, plainfooters); the sidebar has
+                // none, the plain sidebar one under every row.
+                switch listConfiguration.appearance {
+                case .sidebar: attribute.listSeparatorAfter = false
+                case .sidebarPlain: attribute.listSeparatorAfter = !header
+                default: attribute.listSeparatorAfter = item < count - 1 || (!listConfiguration.isGrouped && listConfiguration.footerMode != .supplementary)
+                }
                 rows[path] = attribute
                 y += height
             }
@@ -245,14 +302,40 @@ open class UICollectionViewListCell: UICollectionViewCell {
     /// The list content configuration a list cell starts from: body text over subheadline
     /// secondary text on the list's metrics (`UIListContentConfiguration.listMetrics`).
     open func defaultContentConfiguration() -> UIListContentConfiguration {
+        let sidebar = listAppearance == .sidebar || listAppearance == .sidebarPlain
         switch supplementaryKind {
-        case UICollectionView.elementKindSectionHeader?: return .groupedHeader()
+        case UICollectionView.elementKindSectionHeader?: return sidebar ? .sidebarHeader() : .groupedHeader()
         case UICollectionView.elementKindSectionFooter?: return .groupedFooter()
-        case nil where isHeaderItem: return .groupedHeader()
+        case nil where isHeaderItem: return sidebar ? .sidebarHeader() : .groupedHeader()
         default:
+            if sidebar { return .sidebarSubtitleCell() }
             var configuration = UIListContentConfiguration.subtitleCell()
             configuration.listMetrics = true
             return configuration
+        }
+    }
+
+    /// The sidebar presets' margins for this list: a plain sidebar's rows start 8 in (their
+    /// text level with the full-width header's at 24) and its headers 24 in; the sidebar's
+    /// rows and headers 16 (uikit/collection/sidebar, sidebarplain).
+    func sidebarMargins(for configuration: UIListContentConfiguration) -> UIEdgeInsets {
+        let header = configuration.listRole == .header
+        switch listAppearance {
+        case .sidebarPlain: return UIEdgeInsets(top: 14, left: header ? 24 : 8, bottom: 13.5, right: header ? 24 : 16)
+        default: return UIEdgeInsets(top: 14, left: 16, bottom: 13.5, right: 16)
+        }
+    }
+
+    open override var contentConfiguration: (any UIContentConfiguration)? {
+        didSet {
+            // A sidebar preset takes the list's margins (unless the app set its own).
+            if let list = contentConfiguration as? UIListContentConfiguration, list.sidebar, !list.tableMetrics, list.usesPresetMargins,
+               listAppearance == .sidebar || listAppearance == .sidebarPlain {
+                var adjusted = list
+                adjusted.directionalLayoutMargins = sidebarMargins(for: list)
+                adjusted.usesPresetMargins = false
+                contentConfiguration = adjusted
+            }
         }
     }
 
@@ -271,6 +354,8 @@ open class UICollectionViewListCell: UICollectionViewCell {
     private var accessorySize: CGSize {
         guard let accessory = accessories.first(where: { $0.displayed != .whenEditing }) else { return .zero }
         switch accessory.kind {
+        case .outlineDisclosure where accessory.outlineOptions.isHidden:
+            return accessory.outlineOptions.reservedLayoutWidth.map { CGSize(width: $0, height: 14) } ?? .zero
         case .disclosureIndicator, .outlineDisclosure: return CGSize(width: 14, height: 14)
         case .checkmark: return CGSize(width: 19, height: 18)
         case .detail: return CGSize(width: 22, height: 22)
@@ -306,7 +391,46 @@ open class UICollectionViewListCell: UICollectionViewCell {
         return attributes
     }
 
+    /// Whether the list is a sidebar appearance (no card, its own header chevron).
+    var isSidebarAppearance: Bool { listAppearance == .sidebar || listAppearance == .sidebarPlain }
+
+    /// A sidebar header's outline chevron: a 2 pt stroke 12 × 6.5 pointing down when expanded,
+    /// 6.5 × 11.5 pointing right when closed, centred 23 from the trailing edge (31 for a
+    /// plain sidebar's full-width header), in the secondary label colour.
+    private func drawSidebarChevron(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle, tint: UIColor?) {
+        let cx = context.origin.x + bounds.width - (listAppearance == .sidebarPlain ? 31 : 23)
+        let cy = context.origin.y + (bounds.height / 2).rounded()
+        var chevron = Path()
+        if isOutlineExpanded {
+            chevron.move(to: (CGPoint(x: cx - 5, y: cy - 2)))
+            chevron.addLine(to: (CGPoint(x: cx, y: cy + 2.5)))
+            chevron.addLine(to: (CGPoint(x: cx + 5, y: cy - 2)))
+        } else {
+            chevron.move(to: (CGPoint(x: cx - 2.25, y: cy - 4.75)))
+            chevron.addLine(to: (CGPoint(x: cx + 2.25, y: cy)))
+            chevron.addLine(to: (CGPoint(x: cx - 2.25, y: cy + 4.75)))
+        }
+        list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round), (tint ?? UIColor.secondaryLabel).rgba(for: userStyle)))
+    }
+
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
+        if isSidebarAppearance {
+            // No card: the row sits on the ground, selected in grey; a header's outline
+            // disclosure is the small chevron; the plain sidebar's rows end in a faint separator
+            // from the text to 8 before the trailing edge (uikit/collection/sidebarplain).
+            if isSelected || isHighlighted, !isHeaderOrFooter {
+                list.append(.fillPath(Path(roundedRect: context.absoluteRect(CGRect(origin: .zero, size: bounds.size)), cornerRadius: 10), UIColor.systemGray4.rgba(for: userStyle)))
+            }
+            if let accessory = accessories.first(where: { $0.displayed != .whenEditing }), case .outlineDisclosure = accessory.kind, !accessory.outlineOptions.isHidden {
+                drawSidebarChevron(into: &list, context: context, style: userStyle, tint: accessory.outlineOptions.tintColor)
+            }
+            if drawsSeparator {
+                let left = (contentConfiguration as? UIListContentConfiguration)?.directionalLayoutMargins.left ?? 8
+                let line = context.absoluteRect(CGRect(x: left, y: bounds.height - 1, width: bounds.width - left - 8, height: 1))
+                list.append(.fillRect(line, UIColor.separator.rgba(for: userStyle).multiplyingAlpha(by: 0.42)))
+            }
+            return
+        }
         if isHeaderOrFooter {
             // Headers and footers: text on the ground, no card. A pinned plain header covers the
             // rows under it with the ground and a 16 pt fade (uikit/collection/plainlist scroll).
@@ -343,6 +467,8 @@ open class UICollectionViewListCell: UICollectionViewCell {
         let contentRight = contentView.frame.maxX
         if let accessory = accessories.first(where: { $0.displayed != .whenEditing }) {
             switch accessory.kind {
+            case .outlineDisclosure where accessory.outlineOptions.isHidden:
+                break
             case .disclosureIndicator, .outlineDisclosure:
                 var chevron = Path()
                 if case .outlineDisclosure = accessory.kind, isOutlineExpanded {
@@ -357,7 +483,9 @@ open class UICollectionViewListCell: UICollectionViewCell {
                     chevron.addLine(to: CGPoint(x: box.maxX - 1.5, y: box.midY))
                     chevron.addLine(to: CGPoint(x: box.minX + 2, y: box.maxY - 1.5))
                 }
-                list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round), ink))
+                let chevronInk: RGBA
+                if case .outlineDisclosure = accessory.kind, let tint = accessory.outlineOptions.tintColor { chevronInk = tint.rgba(for: userStyle) } else { chevronInk = ink }
+                list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round), chevronInk))
             case .checkmark:
                 let box = context.absoluteRect(CGRect(x: contentRight + 2.5, y: ((bounds.height - 18) / 2 * 2).rounded() / 2, width: 19, height: 18))
                 var mark = Path()

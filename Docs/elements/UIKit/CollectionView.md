@@ -223,3 +223,70 @@ at 14 and the first, pushed to 304, shows at -16 under the last row: iOS 26 draw
 header beneath the content (a scroll pocket blurs the band, which UIKitWeb does not paint), so
 its attributes carry a negative z-index and the view drops below the cells. Pixels 1.6 % off the
 simulator at worst. Open: pinned footers, the scroll pocket blur.
+
+## The rest (2026-10-12, `uikit/collection/rest`, `paging`, `sidebar`, `sidebarplain`, Phase 9 item 40)
+
+Measured on the iOS 27 simulator with the view-tree dump. Estimated dimensions: an item of
+`.estimated` height is measured through its cell's `preferredLayoutAttributesFitting` at the
+layout's width (the content view's fitting size with the width required), a horizontal group
+of estimated height grows to its tallest item and a vertical one to the sum; the heights stay
+until the layout is invalidated (a 15 pt note cell is 34 for one line, 70 for three: the fit
+plus the 16 of margins — a collection cell's wrapped label takes its fit, where a table cell's
+takes a point more). Item supplementary items (`NSCollectionLayoutSupplementaryItem` with
+`NSCollectionLayoutAnchor` edges and absolute or fractional offsets, an optional item anchor):
+the container anchor names the point on the item, the item anchor the point of the badge that
+lands there (the same edges when nil, so the badge sits inside the corner), fractional offsets
+in the badge's own size: a 20 pt badge at `[.top, .trailing]` offset (0.3, −0.3) on a 90 pt
+item at 16 sits at (92, 142) for the item at y 148; badges ride above the cells (z-index 1) and
+in an orthogonal section's scroll view. Pinned footers: a bottom boundary item with
+`pinToVisibleBounds` holds at the visible bottom (the offset plus the height less the bottom
+inset) from its section's start until its natural place scrolls in (370 in a 400 pt view, 410
+at offset 40, 558 at the end). `groupPagingCentered`: the carousel starts with its first group
+centred (a 240 pt group in 320: the scroll view's offset −40, through 40 pt side insets) and a
+released drag settles at the nearest group centre (`groupPaging` and
+`continuousGroupLeadingBoundary` at the nearest group's leading edge; `paging` keeps the page
+width). `visibleItemsInvalidationHandler`: called before each layout of a section with copies
+of its elements in view (`NSCollectionLayoutVisibleItem`: the attributes), the section's own
+offset and frames in its scroll view's content for an orthogonal section (the collection's
+otherwise) and the layout environment; the cells take the changed transform, alpha, z-index and
+centre (the carousel's off-centre groups scaled to 0.85: 204 × 102 at x 270). A decoration in
+an orthogonal section spans the section including its insets (152 tall for a 120 pt group in
+16 pt insets) and sits under the carousel. Frames exact; pixels 1.2 % (rest), 0.05 % (paging).
+
+The sidebar appearances on a compact width (`uikit/collection/sidebar`, `sidebarplain`):
+`.sidebar` sits on the secondary system background with no cards and no separators, rows and
+headers 16 in and 288 wide, 52 tall (the body text 14 down, margins 14 / 16 / 13.5 / 16),
+sections 10 apart starting at the top; `.sidebarPlain` on the system background, headers the
+full width 22 below what precedes them (30 after a section's last row) with their text 24 in,
+rows 16 in with their text 8 in (level with the header's), 8 below the header, and a 1 pt
+separator under every row from the text to 8 before the trailing edge in the separator colour
+at 0.42 of its alpha (232 on white). `sidebarHeader()` is the body style at medium weight in
+the secondary label colour (a 24.5 pt label; `UIFont.preferredFont(forTextStyle:weight:)`,
+whose ascent and descent are SF's medium-and-up values, 18.326 / −5.961 at 17), `sidebarCell()`
+the body style; the header's outline chevron is a 2 pt stroke centred 23 from the trailing edge
+(31 for the plain sidebar's full-width header): 12 × 6.5 pointing down when expanded, 6.5 × 11.5
+pointing right when closed, in the secondary label colour. Children of a first-item header are
+not indented. Pixels 0.41 % each. `UICellAccessory.OutlineDisclosureOptions`: `.header` (and
+`.automatic`) toggles on a tap anywhere in the row, `.cell` on the trailing 44 pt only (the row
+selects otherwise), `isHidden` draws nothing and never toggles by tap (`reservedLayoutWidth`
+keeps the room), `tintColor` colours the chevron; the `actionHandler` runs on each toggle.
+
+Interactive movement (`beginInteractiveMovementForItem(at:)`, `updateInteractiveMovementTargetPosition`,
+`endInteractiveMovement`, `cancelInteractiveMovement`, `hasActiveDrag`; the data source's
+`canMoveItemAt` / `moveItemAt:to:`, the delegate's `targetIndexPathForMoveFromItemAt`, the
+layout's `layoutAttributesForInteractivelyMovingItem` / `targetIndexPath(forInteractivelyMovingItem:)`):
+the lifted cell follows the target point above the rest; the cells between its place and the
+item under the finger shift by one (sliding over 0.2 s) and the drop tells the data source. A
+diffable data source moves through `reorderingHandlers` (`canReorderItem`, `willReorder` and
+`didReorder` with an `NSDiffableDataSourceTransaction`: the snapshots and the items'
+`CollectionDifference`), an outline item moving with its subtree (`insert(_ snapshot:before:/after:)`).
+The layout's animation hooks: `prepare(forCollectionViewUpdates:)` hears the batch's
+`UICollectionViewUpdateItem`s (deletes by old path, moves by both) and
+`finalizeCollectionViewUpdates` follows; an inserted cell starts from
+`initialLayoutAttributesForAppearingItem` (frame, alpha, transform) when the layout gives one,
+a deleted cell ends at `finalLayoutAttributesForDisappearingItem`; without them cells fade.
+An item that changes section in an applied snapshot keeps its cell and slides (the retained
+mapping is by identifier). `CollectionRestTests`.
+
+Open: the scroll pocket blur (not painted), outline reordering across parents, the sidebar's
+selected-row tint, orthogonal sections in horizontal layouts.

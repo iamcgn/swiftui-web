@@ -1718,7 +1718,7 @@
         {
           "api": "UICollectionView with a flow layout",
           "status": "partial",
-          "notes": "Item sizes, spacing and insets from the layout and the delegate, horizontal scrolling, self-sizing with estimatedItemSize, selection, supplementary headers and footers; open: decoration views in flow layouts, item animations",
+          "notes": "Item sizes, spacing and insets from the layout and the delegate, horizontal scrolling, self-sizing with estimatedItemSize, selection, supplementary headers and footers, interactive movement (beginInteractiveMovementForItem and friends, canMoveItemAt / moveItemAt), the layout's animation hooks (initial / final attributes for appearing and disappearing items, prepare(forCollectionViewUpdates:)); open: decoration views in flow layouts",
           "fixtures": [
             "uikit/collection/grid",
             "uikit/collection/horizontal",
@@ -1730,9 +1730,13 @@
         {
           "api": "UICollectionViewCompositionalLayout and list layouts (UICollectionLayoutListConfiguration, UICollectionViewListCell, accessories, outlines)",
           "status": "partial",
-          "notes": "Items, groups and sections with fractional and estimated dimensions, orthogonal scrolling, pinned and first-item headers, decoration items, the plain and grouped list appearances with their measured metrics, cell accessories and outline disclosure; open: estimated dimensions across every axis, item animations, swipe actions in list cells",
+          "notes": "Items, groups and sections with fractional, absolute and estimated dimensions (estimated items measured through their cells), item supplementary items on anchors, orthogonal scrolling with the group paging behaviours (centred paging, the invalidation handler), pinned headers and footers, first-item headers, decoration items (orthogonal sections too), the plain, grouped, inset grouped, sidebar and plain sidebar appearances measured on the simulator, list cells with accessories, outlines with disclosure options; open: the scroll pocket blur, the sidebar's selected-row tint",
           "fixtures": [
             "uikit/collection/compositional",
+            "uikit/collection/rest",
+            "uikit/collection/paging",
+            "uikit/collection/sidebar",
+            "uikit/collection/sidebarplain",
             "uikit/collection/orthogonal",
             "uikit/collection/pinned",
             "uikit/collection/decoration",
@@ -1748,7 +1752,7 @@
         {
           "api": "UICollectionViewDiffableDataSource / NSDiffableDataSourceSnapshot / CellRegistration / SupplementaryRegistration",
           "status": "partial",
-          "notes": "Snapshots applied with or without animation, registrations dequeuing configured cells and supplementaries, section snapshots for outlines; open: per-item move detection in animated applies",
+          "notes": "Snapshots applied with or without animation (an item that changes section keeps its cell), registrations dequeuing configured cells and supplementaries, section snapshots for outlines, reordering handlers with transactions driving interactive movement; open: outline reordering across parents",
           "fixtures": [
             "uikit/collection/list",
             "uikit/collection/outline",

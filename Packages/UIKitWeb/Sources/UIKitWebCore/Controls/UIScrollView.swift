@@ -126,6 +126,9 @@ open class UIScrollView: UIView {
     }
     open var isScrollEnabled = true
     open var isPagingEnabled = false
+    /// Where a drag settles instead of a page: an orthogonal section's group paging
+    /// (Containers/UICollectionView.swift) answers the offset for the release offset and velocity.
+    var snapTarget: ((CGPoint, CGPoint) -> CGPoint)?
     open var bounces = true
     open var alwaysBounceVertical = false
     open var alwaysBounceHorizontal = false
@@ -492,6 +495,11 @@ open class UIScrollView: UIView {
                 // Past an edge: spring back, no momentum.
                 delegate?.scrollViewDidEndDragging(self, willDecelerate: false)
                 settle(to: resting, duration: 0.4)
+                return
+            }
+            if let snapTarget {
+                delegate?.scrollViewDidEndDragging(self, willDecelerate: false)
+                settle(to: clamped(snapTarget(contentOffset, velocity)), duration: 0.3)
                 return
             }
             if isPagingEnabled {

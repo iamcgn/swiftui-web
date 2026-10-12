@@ -1,0 +1,124 @@
+{
+  "fixture" : "uikit\/collection\/rest",
+  "frames" : {
+    "badge0" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 92,
+      "y" : 142
+    },
+    "badge1" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 191,
+      "y" : 142
+    },
+    "badge2" : {
+      "height" : 20,
+      "width" : 20,
+      "x" : 290,
+      "y" : 142
+    },
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "footer" : {
+      "height" : 30,
+      "width" : 288,
+      "x" : 16,
+      "y" : 370
+    },
+    "note1" : {
+      "height" : 70,
+      "width" : 288,
+      "x" : 16,
+      "y" : 58
+    },
+    "row0" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 254
+    },
+    "square0" : {
+      "height" : 90,
+      "width" : 90,
+      "x" : 16,
+      "y" : 148
+    },
+    "square2" : {
+      "height" : 90,
+      "width" : 90,
+      "x" : 214,
+      "y" : 148
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "badge0" : {
+          "height" : 20,
+          "width" : 20,
+          "x" : 92,
+          "y" : 102
+        },
+        "badge1" : {
+          "height" : 20,
+          "width" : 20,
+          "x" : 191,
+          "y" : 102
+        },
+        "badge2" : {
+          "height" : 20,
+          "width" : 20,
+          "x" : 290,
+          "y" : 102
+        },
+        "collection" : {
+          "height" : 400,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "footer" : {
+          "height" : 30,
+          "width" : 288,
+          "x" : 16,
+          "y" : 370
+        },
+        "note1" : {
+          "height" : 70,
+          "width" : 288,
+          "x" : 16,
+          "y" : 18
+        },
+        "row0" : {
+          "height" : 44,
+          "width" : 288,
+          "x" : 16,
+          "y" : 214
+        },
+        "square0" : {
+          "height" : 90,
+          "width" : 90,
+          "x" : 16,
+          "y" : 108
+        },
+        "square2" : {
+          "height" : 90,
+          "width" : 90,
+          "x" : 214,
+          "y" : 108
+        }
+      },
+      "name" : "scroll"
+    }
+  ]
+}

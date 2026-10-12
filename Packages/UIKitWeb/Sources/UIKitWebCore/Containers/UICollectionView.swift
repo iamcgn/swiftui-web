@@ -21,7 +21,14 @@ open class UICollectionViewLayoutAttributes {
     var listAppearance: UICollectionLayoutListConfiguration.Appearance?
     /// The orthogonally scrolling section this item belongs to (Containers/CompositionalLayout.swift).
     var orthogonalSection: Int?
+    /// A self-sizing probe for an estimated height: the cell fits the frame's width.
+    var measuresHeightOnly = false
+    /// A copy a section's invalidation handler changed (the cell in view takes it again).
+    var adjustedByHandler = false
     public enum Category { case cell, supplementaryView, decorationView }
+    /// A name for the invalidation handler (nil for cells).
+    open var name: String? { representedElementKind }
+    open var bounds: CGRect { CGRect(origin: .zero, size: frame.size) }
     open var frame: CGRect
     open var indexPath: IndexPath
     open var zIndex = 0
@@ -60,6 +67,43 @@ open class UICollectionViewLayoutAttributes {
         get { frame.size }
         set { frame.size = newValue }
     }
+
+    /// A copy the invalidation handler or an animation can change.
+    open func copy() -> UICollectionViewLayoutAttributes {
+        let copy: UICollectionViewLayoutAttributes
+        switch representedElementCategory {
+        case .cell: copy = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+        case .supplementaryView: copy = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: representedElementKind ?? "", with: indexPath)
+        case .decorationView: copy = UICollectionViewLayoutAttributes(forDecorationViewOfKind: representedElementKind ?? "", with: indexPath)
+        }
+        copy.frame = frame
+        copy.zIndex = zIndex
+        copy.alpha = alpha
+        copy.isHidden = isHidden
+        copy.transform = transform
+        copy.listPosition = listPosition
+        copy.listHeaderPinned = listHeaderPinned
+        copy.listSeparatorAfter = listSeparatorAfter
+        copy.listAppearance = listAppearance
+        copy.orthogonalSection = orthogonalSection
+        return copy
+    }
+}
+
+extension UICollectionViewLayoutAttributes: NSCollectionLayoutVisibleItem {}
+
+/// One change of a batch update as a layout hears of it.
+@MainActor
+public final class UICollectionViewUpdateItem {
+    public enum Action: Int, Sendable { case insert = 0, delete, reload, move, none }
+    public let indexPathBeforeUpdate: IndexPath?
+    public let indexPathAfterUpdate: IndexPath?
+    public let updateAction: Action
+    init(before: IndexPath?, after: IndexPath?, action: Action) {
+        indexPathBeforeUpdate = before
+        indexPathAfterUpdate = after
+        updateAction = action
+    }
 }
 
 /// An abstract base class for generating layout information for a collection view.
@@ -78,6 +122,36 @@ open class UICollectionViewLayout {
     open func layoutAttributesForDecorationView(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
     open func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool { false }
     open func invalidateLayout() { collectionView?.setNeedsReload() }
+    open func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint { proposedContentOffset }
+    open func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint { proposedContentOffset }
+
+    // MARK: Animation hooks (a batch update's appearing and disappearing elements)
+
+    /// Told the changes of a batch update before the new layout's attributes are asked for.
+    open func prepare(forCollectionViewUpdates updateItems: [UICollectionViewUpdateItem]) {}
+    open func finalizeCollectionViewUpdates() {}
+    /// Where an inserted item animates from; nil leaves it fading in at its place (the default).
+    open func initialLayoutAttributesForAppearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+    /// Where a deleted item animates to; nil leaves it fading out where it was.
+    open func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+    open func initialLayoutAttributesForAppearingSupplementaryElement(ofKind elementKind: String, at elementIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+    open func finalLayoutAttributesForDisappearingSupplementaryElement(ofKind elementKind: String, at elementIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+    open func initialLayoutAttributesForAppearingDecorationElement(ofKind elementKind: String, at decorationIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+    open func finalLayoutAttributesForDisappearingDecorationElement(ofKind elementKind: String, at decorationIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? { nil }
+
+    // MARK: Interactive movement
+
+    /// The attributes of an item being dragged: at the finger, above the rest.
+    open func layoutAttributesForInteractivelyMovingItem(at indexPath: IndexPath, withTargetPosition position: CGPoint) -> UICollectionViewLayoutAttributes {
+        let attributes = layoutAttributesForItem(at: indexPath)?.copy() ?? UICollectionViewLayoutAttributes(forCellWith: indexPath)
+        attributes.center = position
+        attributes.zIndex = Int.max
+        return attributes
+    }
+    /// Where a dragged item lands: the item under the finger, else where it was.
+    open func targetIndexPath(forInteractivelyMovingItem previousIndexPath: IndexPath, withPosition position: CGPoint) -> IndexPath {
+        collectionView?.indexPathForItem(at: position) ?? previousIndexPath
+    }
 
     /// Decoration views the layout makes itself (a section background), by element kind.
     var registeredDecorations: [String: () -> UICollectionReusableView] = [:]
@@ -285,6 +359,8 @@ open class UICollectionReusableView: UIView {
     var supplementaryKind: String?
     open func prepareForReuse() {}
     open func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        // The frame is the untransformed one (a handler's scale applies about the centre).
+        transform = .identity
         frame = layoutAttributes.frame
         alpha = layoutAttributes.alpha
         isHidden = layoutAttributes.isHidden
@@ -294,7 +370,12 @@ open class UICollectionReusableView: UIView {
     /// The attributes a self-sizing cell prefers: its content's fitting size (a cell's
     /// `contentView` constraints, compressed), else the layout's estimate.
     open func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
-        let fitting = (self as? UICollectionViewCell)?.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize) ?? systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        let content = (self as? UICollectionViewCell)?.contentView ?? self
+        // An estimated height is measured at the layout's width (a compositional item of
+        // `.fractionalWidth(1)` by `.estimated(44)` wraps its text in that width).
+        let fitting = layoutAttributes.measuresHeightOnly
+            ? content.systemLayoutSizeFitting(CGSize(width: layoutAttributes.frame.width, height: 0), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+            : content.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
         guard fitting.width > 0, fitting.height > 0 else { return layoutAttributes }
         let attributes = UICollectionViewLayoutAttributes(forCellWith: layoutAttributes.indexPath)
         attributes.frame = CGRect(origin: layoutAttributes.frame.origin, size: fitting)
@@ -401,6 +482,8 @@ public protocol UICollectionViewDataSource: AnyObject {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView
+    func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool
+    func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath)
 }
 
 extension UICollectionViewDataSource {
@@ -408,6 +491,8 @@ extension UICollectionViewDataSource {
     public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         UICollectionReusableView(frame: .zero)
     }
+    public func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool { false }
+    public func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {}
 }
 
 /// The methods adopted by the object you use to manage user interactions with items in a
@@ -418,6 +503,7 @@ public protocol UICollectionViewDelegate: UIScrollViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath)
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath)
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath)
+    func collectionView(_ collectionView: UICollectionView, targetIndexPathForMoveFromItemAt originalIndexPath: IndexPath, toProposedIndexPath proposedIndexPath: IndexPath) -> IndexPath
 }
 
 extension UICollectionViewDelegate {
@@ -425,6 +511,7 @@ extension UICollectionViewDelegate {
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {}
     public func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {}
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {}
+    public func collectionView(_ collectionView: UICollectionView, targetIndexPathForMoveFromItemAt originalIndexPath: IndexPath, toProposedIndexPath proposedIndexPath: IndexPath) -> IndexPath { proposedIndexPath }
 }
 
 /// An object that manages an ordered collection of data items and presents them using
@@ -506,8 +593,9 @@ open class UICollectionView: UIScrollView {
             cell.reuseIdentifier = identifier
         }
         // A list cell dequeued as its section's first-item header knows before it is configured.
-        if let listCell = cell as? UICollectionViewListCell {
-            listCell.isHeaderItem = (collectionViewLayout as? UICollectionViewListLayout)?.isHeaderItem(indexPath) ?? false
+        if let listCell = cell as? UICollectionViewListCell, let listLayout = collectionViewLayout as? UICollectionViewListLayout {
+            listCell.isHeaderItem = listLayout.isHeaderItem(indexPath)
+            listCell.listAppearance = listLayout.listConfiguration.appearance
         }
         return cell
     }
@@ -533,9 +621,13 @@ open class UICollectionView: UIScrollView {
 
     /// A supplementary view's size for a section: the data source's view, asked for its preferred
     /// attributes, then returned to its pool (a list header or footer sized by its content).
+    /// The key a supplementary view in view is kept under (boundary items sit at item 0 of
+    /// their section; items' badges carry their item).
+    static func supplementaryKey(_ kind: String, _ indexPath: IndexPath) -> String { kind + "#" + "\(indexPath.section)" + "#" + "\(indexPath.item)" }
+
     func selfSizedSupplementary(ofKind kind: String, at indexPath: IndexPath, estimated: CGSize) -> CGSize {
         guard let dataSource else { return estimated }
-        let key = kind + "#" + "\(indexPath.section)"
+        let key = Self.supplementaryKey(kind, indexPath)
         let attributes = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: kind, with: indexPath)
         attributes.frame = CGRect(origin: .zero, size: estimated)
         if let visible = visibleSupplementaries[key] { return visible.preferredLayoutAttributesFitting(attributes).frame.size }
@@ -547,33 +639,39 @@ open class UICollectionView: UIScrollView {
 
     /// A self-sizing item's size: the data source's cell for it, asked for its preferred
     /// attributes, then returned to the pool.
-    func selfSizedItem(at indexPath: IndexPath, estimated: CGSize) -> CGSize {
+    func selfSizedItem(at indexPath: IndexPath, estimated: CGSize, fixedWidth: Bool = false) -> CGSize {
         guard let dataSource else { return estimated }
         if let visible = visibleCellsByPath[indexPath] {
             let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
             attributes.frame = CGRect(origin: .zero, size: estimated)
+            attributes.measuresHeightOnly = fixedWidth
             return visible.preferredLayoutAttributesFitting(attributes).frame.size
         }
         let cell = dataSource.collectionView(self, cellForItemAt: indexPath)
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
         attributes.frame = CGRect(origin: .zero, size: estimated)
+        attributes.measuresHeightOnly = fixedWidth
         let size = cell.preferredLayoutAttributesFitting(attributes).frame.size
         if let identifier = cell.reuseIdentifier, cell.superview == nil { reusePool[identifier, default: []].append(cell) }
         return size
     }
 
     open func supplementaryView(forElementKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView? {
-        visibleSupplementaries[kind + "#" + "\(indexPath.section)"]
+        visibleSupplementaries[Self.supplementaryKey(kind, indexPath)]
     }
+    open var visibleSupplementaryViews: [UICollectionReusableView] { Array(visibleSupplementaries.values) }
 
     open var visibleCells: [UICollectionViewCell] { visibleCellsByPath.sorted { $0.key < $1.key }.map(\.value) }
     open var indexPathsForVisibleItems: [IndexPath] { visibleCellsByPath.keys.sorted() }
     open func cellForItem(at indexPath: IndexPath) -> UICollectionViewCell? { visibleCellsByPath[indexPath] }
     open func indexPath(for cell: UICollectionViewCell) -> IndexPath? { visibleCellsByPath.first { $0.value === cell }?.key }
     open func indexPathForItem(at point: CGPoint) -> IndexPath? {
-        collectionViewLayout.layoutAttributesForElements(in: CGRect(origin: point, size: CGSize(width: 1, height: 1)))?.first?.indexPath
+        collectionViewLayout.layoutAttributesForElements(in: CGRect(origin: point, size: CGSize(width: 1, height: 1)))?.first { $0.representedElementCategory == .cell && $0.indexPath != movingItem?.current }?.indexPath
     }
     open func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? { collectionViewLayout.layoutAttributesForItem(at: indexPath) }
+    open func layoutAttributesForSupplementaryElement(ofKind kind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        collectionViewLayout.layoutAttributesForSupplementaryView(ofKind: kind, at: indexPath)
+    }
     open var numberOfSections: Int { dataSource?.numberOfSections(in: self) ?? 0 }
     open func numberOfItems(inSection section: Int) -> Int { dataSource?.collectionView(self, numberOfItemsInSection: section) ?? 0 }
 
@@ -601,9 +699,17 @@ open class UICollectionView: UIScrollView {
 
     private func handleTap(_ recognizer: UIGestureRecognizer) {
         guard recognizer.state == .ended, let path = indexPathForItem(at: recognizer.location(in: self)) else { return }
-        // An outline parent's tap expands or collapses it rather than selecting it.
-        if let listCell = visibleCellsByPath[path] as? UICollectionViewListCell, listCell.accessories.contains(where: { if case .outlineDisclosure = $0.kind { return true } else { return false } }),
-           let outline = dataSource as? any _OutlineToggling, outline.toggleOutlineItem(at: path) { return }
+        // An outline parent's tap expands or collapses it rather than selecting it: anywhere
+        // on a header-style row, on the trailing 44 pt of a cell-style one; a hidden disclosure
+        // does not toggle by tap.
+        if let listCell = visibleCellsByPath[path] as? UICollectionViewListCell,
+           let disclosure = listCell.accessories.first(where: { if case .outlineDisclosure = $0.kind { return true } else { return false } }),
+           !disclosure.outlineOptions.isHidden,
+           disclosure.outlineOptions.togglesWholeRow || recognizer.location(in: listCell).x >= listCell.bounds.width - 44,
+           let outline = dataSource as? any _OutlineToggling, outline.toggleOutlineItem(at: path) {
+            disclosure.actionHandler?()
+            return
+        }
         guard allowsSelection else { return }
         if selected.contains(path), allowsMultipleSelection {
             deselectItem(at: path, animated: false)
@@ -680,14 +786,22 @@ open class UICollectionView: UIScrollView {
         }
         var startFrames: [IndexPath: CGRect] = [:]
         var fading: [UICollectionViewCell] = []
+        var fadingPaths: [ObjectIdentifier: IndexPath] = [:]
         for (oldPath, cell) in visibleCellsByPath {
             if let newPath = retained[oldPath], !replaced.contains(newPath), cell.superview === self {
                 retainedCells[newPath] = cell
                 startFrames[newPath] = cell.frame
             } else {
                 fading.append(cell)
+                fadingPaths[ObjectIdentifier(cell)] = oldPath
             }
         }
+        // The layout hears the changes (deletes by old path, inserts by new, moves by both).
+        var updateItems: [UICollectionViewUpdateItem] = []
+        let retainedOld = Set(retained.keys)
+        for path in fadingPaths.values.sorted() where !retainedOld.contains(path) { updateItems.append(UICollectionViewUpdateItem(before: path, after: nil, action: .delete)) }
+        for (old, new) in retained.sorted(by: { $0.key < $1.key }) where old != new { updateItems.append(UICollectionViewUpdateItem(before: old, after: new, action: .move)) }
+        collectionViewLayout.prepare(forCollectionViewUpdates: updateItems)
         visibleCellsByPath.removeAll()
         let before = Set(fading.map { ObjectIdentifier($0) }).union(retainedCells.values.map { ObjectIdentifier($0) })
         needsReload = true
@@ -708,19 +822,43 @@ open class UICollectionView: UIScrollView {
             }
         }
         for cell in fading { bringSubviewToFront(cell) }
-        UIView.performWithoutAnimation { for cell in inserted { cell.alpha = 0 } }
+        // The layout's hooks: an appearing item starts from its initial attributes, a
+        // disappearing one ends at its final attributes (the frame, alpha and transform);
+        // without them items fade in place.
+        var insertedTargets: [ObjectIdentifier: UICollectionViewLayoutAttributes] = [:]
+        UIView.performWithoutAnimation {
+            for cell in inserted {
+                guard let path = visibleCellsByPath.first(where: { $0.value === cell })?.key else { cell.alpha = 0; continue }
+                if let initial = collectionViewLayout.initialLayoutAttributesForAppearingItem(at: path), let target = collectionViewLayout.layoutAttributesForItem(at: path) {
+                    insertedTargets[ObjectIdentifier(cell)] = target
+                    cell.apply(initial)
+                } else {
+                    cell.alpha = 0
+                }
+            }
+        }
+        var finals: [ObjectIdentifier: UICollectionViewLayoutAttributes] = [:]
+        for cell in fading {
+            if let path = fadingPaths[ObjectIdentifier(cell)], let final = collectionViewLayout.finalLayoutAttributesForDisappearingItem(at: path) { finals[ObjectIdentifier(cell)] = final }
+        }
         UIView.animate(withDuration: batchUpdateDuration, animations: {
-            for cell in inserted { cell.alpha = 1 }
-            for cell in fading { cell.alpha = 0 }
+            for cell in inserted {
+                if let target = insertedTargets[ObjectIdentifier(cell)] { cell.apply(target) } else { cell.alpha = 1 }
+            }
+            for cell in fading {
+                if let final = finals[ObjectIdentifier(cell)] { cell.apply(final) } else { cell.alpha = 0 }
+            }
         }, completion: { [weak self] _ in
             guard let self else { return }
             for cell in fading {
                 cell.removeFromSuperview()
                 cell.alpha = 1
+                cell.transform = .identity
                 if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
             }
             completion?(true)
         })
+        collectionViewLayout.finalizeCollectionViewUpdates()
     }
 
     func setNeedsReload() {
@@ -785,7 +923,8 @@ open class UICollectionView: UIScrollView {
             if scrollView.frame != info.frame { scrollView.frame = info.frame }
             let contentSize = CGSize(width: info.contentWidth, height: info.frame.height)
             if scrollView.contentSize != contentSize { scrollView.contentSize = contentSize }
-            scrollView.isPagingEnabled = info.behavior == .paging || info.behavior == .groupPaging || info.behavior == .groupPagingCentered
+            scrollView.isPagingEnabled = info.behavior == .paging
+            scrollView.configure(for: info)
         }
         func isVisible(_ attribute: UICollectionViewLayoutAttributes) -> Bool {
             guard let section = attribute.orthogonalSection, let info = sections[section], let scrollView = orthogonalScrollViews[section] else { return attribute.frame.intersects(visible) }
@@ -805,14 +944,24 @@ open class UICollectionView: UIScrollView {
         for (section, info) in sections where info.frame.intersects(visible) {
             guard let scrollView = orthogonalScrollViews[section] else { continue }
             let window = CGRect(x: info.frame.minX + scrollView.contentOffset.x, y: info.frame.minY, width: info.frame.width, height: info.frame.height)
-            let seen = Set(elements.map { $0.indexPath })
-            for attribute in collectionViewLayout.layoutAttributesForElements(in: window) ?? [] where attribute.representedElementKind == nil && attribute.orthogonalSection == section && !seen.contains(attribute.indexPath) {
+            let seen = Set(elements.map { ObjectIdentifier($0) })
+            for attribute in collectionViewLayout.layoutAttributesForElements(in: window) ?? [] where attribute.orthogonalSection == section && !seen.contains(ObjectIdentifier(attribute)) {
                 elements.append(attribute)
             }
         }
+        // The sections' invalidation handlers see copies of the items in view and change them;
+        // the cells take the changed attributes below.
+        elements = visibleItemsAdjusted(elements, sections: sections)
         let listLayout = collectionViewLayout as? UICollectionViewListLayout
         var corrected = false
+        // Cells in view whose attributes a handler changed take them again.
+        for attribute in elements where attribute.representedElementKind == nil && attribute.adjustedByHandler {
+            guard let cell = visibleCellsByPath[attribute.indexPath] else { continue }
+            cell.apply(attribute)
+            if let section = attribute.orthogonalSection, let info = sections[section] { cell.center = CGPoint(x: attribute.center.x - info.frame.minX, y: attribute.center.y - info.frame.minY) }
+        }
         for attribute in elements where attribute.representedElementKind == nil && visibleCellsByPath[attribute.indexPath] == nil && isVisible(attribute) {
+            if attribute.indexPath == movingItem?.current { continue }
             let cell = retainedCells.removeValue(forKey: attribute.indexPath) ?? dataSource.collectionView(self, cellForItemAt: attribute.indexPath)
             // A list row laid out at an estimate measures itself as it appears.
             if let listLayout, listLayout.needsMeasurement(of: attribute.indexPath) {
@@ -824,7 +973,7 @@ open class UICollectionView: UIScrollView {
             collectionDelegate?.collectionView(self, willDisplay: cell, forItemAt: attribute.indexPath)
             if let section = attribute.orthogonalSection, let info = sections[section], let scrollView = orthogonalScrollViews[section] {
                 // Inside its section's scroll view, in that view's content coordinates.
-                cell.frame = attribute.frame.offsetBy(dx: -info.frame.minX, dy: -info.frame.minY)
+                cell.center = CGPoint(x: attribute.center.x - info.frame.minX, y: attribute.center.y - info.frame.minY)
                 if cell.superview !== scrollView { scrollView.addSubview(cell) }
             } else if cell.superview !== self {
                 addSubview(cell)
@@ -833,17 +982,26 @@ open class UICollectionView: UIScrollView {
         }
         // Headers and footers in view; the ones scrolled away go back to their pool. A pinned
         // header's attributes move with the bounds, so a visible one takes them again.
-        func key(_ element: UICollectionViewLayoutAttributes) -> String { (element.representedElementKind ?? "") + "#" + "\(element.indexPath.section)" }
-        let wanted = Set(elements.filter { $0.representedElementCategory == .supplementaryView }.map(key))
+        func key(_ element: UICollectionViewLayoutAttributes) -> String { Self.supplementaryKey(element.representedElementKind ?? "", element.indexPath) }
+        let wanted = Set(elements.filter { $0.representedElementCategory == .supplementaryView && isVisible($0) }.map(key))
         for (key, view) in visibleSupplementaries where !wanted.contains(key) {
             view.removeFromSuperview()
             visibleSupplementaries.removeValue(forKey: key)
             if let pool = view.supplementaryKey { supplementaryPool[pool, default: []].append(view) }
         }
-        for attribute in elements where attribute.representedElementCategory == .supplementaryView {
+        for attribute in elements where attribute.representedElementCategory == .supplementaryView && isVisible(attribute) {
             guard let kind = attribute.representedElementKind else { continue }
+            // An orthogonal section's badges ride in its scroll view, in its content coordinates.
+            let host: UIView
+            var frame = attribute.frame
+            if let section = attribute.orthogonalSection, let info = sections[section], let scrollView = orthogonalScrollViews[section] {
+                host = scrollView
+                frame = frame.offsetBy(dx: -info.frame.minX, dy: -info.frame.minY)
+            } else {
+                host = self
+            }
             if let view = visibleSupplementaries[key(attribute)] {
-                if view.frame != attribute.frame { view.apply(attribute) }
+                if view.frame != frame || attribute.adjustedByHandler { view.apply(attribute); view.center = CGPoint(x: frame.midX, y: frame.midY) }
                 continue
             }
             let view = dataSource.collectionView(self, viewForSupplementaryElementOfKind: kind, at: attribute.indexPath)
@@ -852,7 +1010,8 @@ open class UICollectionView: UIScrollView {
                 if listLayout.recordMeasured(fitted, kind: kind, section: attribute.indexPath.section) { corrected = true }
             }
             view.apply(attribute)
-            if view.superview !== self { addSubview(view) }
+            view.center = CGPoint(x: frame.midX, y: frame.midY)
+            if view.superview !== host { host.addSubview(view) }
             visibleSupplementaries[key(attribute)] = view
         }
         if corrected {
@@ -864,12 +1023,16 @@ open class UICollectionView: UIScrollView {
         // Raised supplementaries (pinned headers) stay above the cells added after them; lowered
         // ones (a header being pushed away) sit just above the decorations, under the cells.
         for attribute in elements where attribute.representedElementCategory == .supplementaryView && attribute.zIndex != 0 {
-            guard let view = visibleSupplementaries[key(attribute)] else { continue }
+            guard let view = visibleSupplementaries[key(attribute)], let host = view.superview else { continue }
             if attribute.zIndex > 0 {
-                if subviews.last !== view { bringSubviewToFront(view) }
-            } else if let index = subviews.firstIndex(where: { $0 === view }), index != visibleDecorations.count {
-                insertSubview(view, at: visibleDecorations.count)
+                if host.subviews.last !== view { host.bringSubviewToFront(view) }
+            } else if let index = host.subviews.firstIndex(where: { $0 === view }), index != visibleDecorations.count {
+                host.insertSubview(view, at: visibleDecorations.count)
             }
+        }
+        // The dragged item's cell rides above everything at the finger.
+        if let moving = movingItem, let cell = moving.cell {
+            if subviews.last !== cell { bringSubviewToFront(cell) }
         }
         // Decoration views (section backgrounds) in view, behind the cells.
         let wantedDecorations = Set(elements.filter { $0.representedElementCategory == .decorationView }.map(key))
@@ -893,13 +1056,137 @@ open class UICollectionView: UIScrollView {
     open override var contentOffset: CGPoint {
         didSet { if contentOffset != oldValue, !needsReload { setNeedsLayout() } }
     }
+
+    // MARK: Invalidation handlers
+
+    /// Runs the sections' `visibleItemsInvalidationHandler`s over copies of the elements in
+    /// view: an orthogonal section's with its own offset and frames in its scroll view's
+    /// content, the others with the collection's offset. Changed copies replace the originals.
+    private func visibleItemsAdjusted(_ elements: [UICollectionViewLayoutAttributes], sections: [Int: UICollectionViewCompositionalLayout.OrthogonalSection]) -> [UICollectionViewLayoutAttributes] {
+        guard let layout = collectionViewLayout as? UICollectionViewCompositionalLayout, !layout.visibleItemHandlers.isEmpty else { return elements }
+        var result = elements
+        for (section, handler) in layout.visibleItemHandlers.sorted(by: { $0.key < $1.key }) {
+            let indices = result.indices.filter { result[$0].indexPath.section == section && result[$0].representedElementCategory != .decorationView }
+            guard !indices.isEmpty else { continue }
+            let copies = indices.map { result[$0].copy() }
+            let offset: CGPoint
+            if let info = sections[section] {
+                offset = orthogonalScrollViews[section]?.contentOffset ?? .zero
+                for copy in copies { copy.frame = copy.frame.offsetBy(dx: -info.frame.minX, dy: -info.frame.minY) }
+            } else {
+                offset = contentOffset
+            }
+            handler(copies, offset, layout.environment)
+            for (index, copy) in zip(indices, copies) {
+                if let info = sections[section] { copy.frame = copy.frame.offsetBy(dx: info.frame.minX, dy: info.frame.minY) }
+                copy.adjustedByHandler = true
+                result[index] = copy
+            }
+        }
+        return result
+    }
+
+    // MARK: Interactive movement
+
+    /// The item being dragged: where it started, where it is in the data now, and its cell.
+    struct MovingItem {
+        let original: IndexPath
+        var current: IndexPath
+        weak var cell: UICollectionViewCell?
+    }
+    private(set) var movingItem: MovingItem?
+    public var hasActiveDrag: Bool { movingItem != nil }
+
+    /// Lifts the item at `indexPath` for a drag (`canMoveItemAt` permitting); the data source
+    /// hears `moveItemAt:to:` when the drag ends.
+    @discardableResult
+    open func beginInteractiveMovementForItem(at indexPath: IndexPath) -> Bool {
+        guard movingItem == nil, let dataSource, dataSource.collectionView(self, canMoveItemAt: indexPath), let cell = visibleCellsByPath[indexPath] else { return false }
+        movingItem = MovingItem(original: indexPath, current: indexPath, cell: cell)
+        bringSubviewToFront(cell)
+        return true
+    }
+
+    /// Moves the lifted cell to `targetPosition`; passing another item's place swaps the items
+    /// around it (the cells between slide), as UIKit's layout does.
+    open func updateInteractiveMovementTargetPosition(_ targetPosition: CGPoint) {
+        guard var moving = movingItem, let cell = moving.cell else { return }
+        let attributes = collectionViewLayout.layoutAttributesForInteractivelyMovingItem(at: moving.current, withTargetPosition: targetPosition)
+        cell.center = attributes.center
+        cell.transform = attributes.transform
+        var target = collectionViewLayout.targetIndexPath(forInteractivelyMovingItem: moving.current, withPosition: targetPosition)
+        if target != moving.current {
+            target = collectionDelegate?.collectionView(self, targetIndexPathForMoveFromItemAt: moving.original, toProposedIndexPath: target) ?? target
+        }
+        guard target != moving.current, target.section == moving.current.section else { return }
+        // The cells between the lifted item's place and its target shift by one.
+        let from = moving.current, to = target
+        var shifted: [IndexPath: UICollectionViewCell] = [:]
+        for (path, other) in visibleCellsByPath where path.section == from.section && path != from {
+            var newPath = path
+            if from.item < to.item, path.item > from.item, path.item <= to.item { newPath.item -= 1 }
+            else if from.item > to.item, path.item >= to.item, path.item < from.item { newPath.item += 1 }
+            shifted[newPath] = other
+            if newPath != path, let frame = collectionViewLayout.layoutAttributesForItem(at: newPath)?.frame {
+                UIView.animate(withDuration: 0.2) { other.frame = frame }
+            }
+        }
+        for (path, other) in visibleCellsByPath where path.section != from.section { shifted[path] = other }
+        shifted[to] = cell
+        visibleCellsByPath = shifted
+        moving.current = to
+        movingItem = moving
+    }
+
+    /// Drops the item where it is: the data source moves it and the collection lays out.
+    open func endInteractiveMovement() {
+        guard let moving = movingItem else { return }
+        movingItem = nil
+        if moving.current != moving.original { dataSource?.collectionView(self, moveItemAt: moving.original, to: moving.current) }
+        if let cell = moving.cell {
+            cell.transform = .identity
+            if let frame = collectionViewLayout.layoutAttributesForItem(at: moving.current)?.frame { UIView.animate(withDuration: 0.2) { cell.frame = frame } }
+        }
+        setNeedsReload()
+    }
+
+    /// Puts the lifted item back where it started.
+    open func cancelInteractiveMovement() {
+        guard let moving = movingItem else { return }
+        movingItem = nil
+        if let cell = moving.cell { cell.transform = .identity }
+        setNeedsReload()
+    }
+
+    /// The standard gesture: a long press lifts an item, the drag moves it, release drops it
+    /// (`UICollectionViewController.installsStandardGestureForInteractiveMovement`).
+    func installStandardGestureForInteractiveMovement() {
+        guard movementGesture == nil else { return }
+        let press = UILongPressGestureRecognizer()
+        press.addTarget { [weak self] recognizer in
+            guard let self else { return }
+            let location = recognizer.location(in: self)
+            switch recognizer.state {
+            case .began:
+                if let path = indexPathForItem(at: location) { beginInteractiveMovementForItem(at: path) }
+            case .changed: updateInteractiveMovementTargetPosition(location)
+            case .ended: endInteractiveMovement()
+            default: cancelInteractiveMovement()
+            }
+        }
+        addGestureRecognizer(press)
+        movementGesture = press
+    }
+    private var movementGesture: UILongPressGestureRecognizer?
 }
 
 /// The scroll view an orthogonally scrolling section's cells live in: horizontal, without
-/// indicators, telling the collection view when it moves so the cells in view update.
+/// indicators, telling the collection view when it moves so the cells in view update, and
+/// snapping to groups for the group paging behaviours.
 @MainActor
 final class OrthogonalScrollView: UIScrollView {
     var onScroll: (() -> Void)?
+    private var section: UICollectionViewCompositionalLayout.OrthogonalSection?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -910,6 +1197,40 @@ final class OrthogonalScrollView: UIScrollView {
 
     override var contentOffset: CGPoint {
         didSet { if contentOffset != oldValue { onScroll?() } }
+    }
+
+    /// Takes the section's groups for snapping; `groupPagingCentered` starts with its first
+    /// group centred (uikit/collection/paging).
+    func configure(for info: UICollectionViewCompositionalLayout.OrthogonalSection) {
+        let first = section == nil
+        section = info
+        switch info.behavior {
+        case .groupPaging, .groupPagingCentered, .continuousGroupLeadingBoundary:
+            snapTarget = { [weak self] offset, velocity in self?.snapped(offset, velocity: velocity) ?? offset }
+        default:
+            snapTarget = nil
+        }
+        if first, info.behavior == .groupPagingCentered, let start = info.groupStarts.first {
+            contentOffset = CGPoint(x: centredOffset(forGroupAt: start), y: 0)
+        }
+    }
+
+    /// The offset that centres the group starting at `start` in the scroll view.
+    private func centredOffset(forGroupAt start: CGFloat) -> CGFloat {
+        guard let section else { return start }
+        return start - (bounds.width - section.groupWidth) / 2
+    }
+
+    /// The offset a drag settles at: the group the drag and its velocity point at, at the
+    /// leading edge (group paging) or centred (centred paging), within the content.
+    private func snapped(_ offset: CGPoint, velocity: CGPoint) -> CGPoint {
+        guard let section, !section.groupStarts.isEmpty else { return offset }
+        let targets = section.groupStarts.map { section.behavior == .groupPagingCentered ? centredOffset(forGroupAt: $0) : $0 }
+        let projected = offset.x - velocity.x * 0.1
+        var best = targets[0]
+        for target in targets where abs(target - projected) < abs(best - projected) { best = target }
+        let maxOffset = max(0, contentSize.width - bounds.width)
+        return CGPoint(x: min(max(0, best), maxOffset), y: offset.y)
     }
 }
 

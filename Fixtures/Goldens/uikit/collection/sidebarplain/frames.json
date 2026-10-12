@@ -1,0 +1,45 @@
+{
+  "fixture" : "uikit\/collection\/sidebarplain",
+  "frames" : {
+    "collection" : {
+      "height" : 400,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "header-Library" : {
+      "height" : 52,
+      "width" : 320,
+      "x" : 0,
+      "y" : 22
+    },
+    "header-Tags" : {
+      "height" : 52,
+      "width" : 320,
+      "x" : 0,
+      "y" : 268
+    },
+    "row-Favourites" : {
+      "height" : 52,
+      "width" : 288,
+      "x" : 16,
+      "y" : 186
+    },
+    "row-Recents" : {
+      "height" : 52,
+      "width" : 288,
+      "x" : 16,
+      "y" : 82
+    },
+    "row-Shared" : {
+      "height" : 52,
+      "width" : 288,
+      "x" : 16,
+      "y" : 134
+    }
+  },
+  "size" : {
+    "height" : 400,
+    "width" : 320
+  }
+}

@@ -132,6 +132,15 @@ public final class UIFont: Hashable, @unchecked Sendable {
                       weight: m.weight, textStyle: style)
     }
 
+    /// A text style's font at another weight (UIKit: the style's descriptor with a weight
+    /// trait), keeping the style's line metrics: the sidebar header is the body style at
+    /// medium (uikit/collection/sidebar, a 24.5 pt label).
+    public static func preferredFont(forTextStyle style: TextStyle, weight: Weight) -> UIFont {
+        let m = style.metrics
+        return UIFont(resolved: ResolvedFont(family: "system", size: m.size, weight: FontWeight(weight.css), italic: false, textStyle: m.style, weightOverridden: true, profile: "iOS"),
+                      weight: weight, textStyle: style)
+    }
+
     /// A bundled font by its PostScript, full or family name (the scene's asset catalog;
     /// `scripts/assets.py` lists the font files), or any family name the host can draw.
     @MainActor public convenience init?(name: String, size: CGFloat) {
@@ -179,16 +188,22 @@ public final class UIFont: Hashable, @unchecked Sendable {
     /// uikit/label/fonts); a text style's own values; a bundled font's hhea table through the
     /// asset catalog.
     public var ascender: CGFloat {
-        if let styleMetrics { return styleMetrics.ascender }
+        if let styleMetrics { return weightedStyle ? pointSize * 18.3257517737745 / 17 : styleMetrics.ascender }
         if let custom = customResource { return pointSize * custom.ascender / custom.unitsPerEm }
         return pointSize * UIFontMetricsTable.ascender
     }
     /// Negative, as UIKit reports it.
     public var descender: CGFloat {
-        if let styleMetrics { return styleMetrics.descender }
+        if let styleMetrics { return weightedStyle ? -pointSize * 5.961357601225502 / 17 : styleMetrics.descender }
         if let custom = customResource { return pointSize * custom.descender / custom.unitsPerEm }
         return -pointSize * UIFontMetricsTable.descender
     }
+
+    /// A text style at a heavier weight than its own takes SF's medium-and-up ascent and
+    /// descent (the headline's at 17: 18.326 / -5.961 against the body's 18.358 / -5.929) and
+    /// the weight's x-height, keeping the style's size and leading (`style:body:w500` recorded
+    /// on the simulator).
+    private var weightedStyle: Bool { resolved.weightOverridden && weight.css >= 500 }
     public var capHeight: CGFloat {
         if let styleMetrics { return styleMetrics.capHeight }
         if let custom = customResource { return pointSize * custom.capHeight / custom.unitsPerEm }
@@ -196,7 +211,7 @@ public final class UIFont: Hashable, @unchecked Sendable {
     }
     /// Per weight and size: SF's optical sizes lower the x-height from 18 pt up.
     public var xHeight: CGFloat {
-        if let styleMetrics { return styleMetrics.xHeight }
+        if let styleMetrics, !weightedStyle { return styleMetrics.xHeight }
         if let custom = customResource { return pointSize * custom.xHeight / custom.unitsPerEm }
         // SF Mono's regular face has its own x-height (1083/2048 at 15 pt, uikit/label/fonts).
         if resolved.family == "system-monospaced", weight.css == 400 { return pointSize * 1083 / 2048 }

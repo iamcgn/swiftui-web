@@ -102,7 +102,7 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
     public var imageProperties = ImageProperties()
     public var textProperties = TextProperties()
     public var secondaryTextProperties = TextProperties(font: .systemFont(ofSize: 15), color: .secondaryLabel)
-    public var directionalLayoutMargins = UIEdgeInsets(top: 11, left: 20, bottom: 11, right: 20)
+    public var directionalLayoutMargins = UIEdgeInsets(top: 11, left: 20, bottom: 11, right: 20) { didSet { usesPresetMargins = false } }
     public var imageToTextPadding: CGFloat = 16
     public var textToSecondaryTextVerticalPadding: CGFloat = 2
     let layout: Layout
@@ -123,9 +123,13 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
     /// (a subtitle cell's 15.5 with the subheadline secondary text right under it in 76.5), a
     /// value cell's secondary text ending 8 before the content, a symbol image 28 × 27 at 14
     /// with the text starting 56 in.
+    /// Still on the preset's margins: a list cell swaps them for its appearance's.
+    var usesPresetMargins = false
+
     var tableMetrics = false {
         didSet {
             guard tableMetrics else { return }
+            usesPresetMargins = false
             textProperties.font = .preferredFont(forTextStyle: .body)
             secondaryTextProperties.font = .preferredFont(forTextStyle: layout == .subtitle ? .subheadline : .body)
             secondaryTextProperties.color = .secondaryLabel
@@ -147,14 +151,25 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
     /// collection sidebar appearance; its own metrics are not measured).
     public static func sidebarCell() -> UIListContentConfiguration { sidebar(layout: .cell) }
     public static func sidebarSubtitleCell() -> UIListContentConfiguration { sidebar(layout: .subtitle) }
-    public static func sidebarHeader() -> UIListContentConfiguration { groupedHeader() }
+    /// A sidebar header (uikit/collection/sidebar): 17 pt medium text in the secondary colour.
+    public static func sidebarHeader() -> UIListContentConfiguration {
+        var configuration = sidebar(layout: .cell)
+        configuration.textProperties.font = .preferredFont(forTextStyle: .body, weight: .medium)
+        configuration.textProperties.color = .secondaryLabel
+        configuration.listRole = .header
+        return configuration
+    }
     public static func accompaniedSidebarCell() -> UIListContentConfiguration { sidebar(layout: .cell) }
     public static func accompaniedSidebarSubtitleCell() -> UIListContentConfiguration { sidebar(layout: .subtitle) }
     private static func sidebar(layout: Layout) -> UIListContentConfiguration {
         var configuration = UIListContentConfiguration(layout: layout)
         configuration.sidebar = true
+        configuration.textProperties.font = .preferredFont(forTextStyle: .body)
+        configuration.secondaryTextProperties.font = .preferredFont(forTextStyle: layout == .subtitle ? .subheadline : .body)
+        configuration.secondaryTextProperties.color = .secondaryLabel
         configuration.imageToTextPadding = 9
         configuration.directionalLayoutMargins = UIEdgeInsets(top: 14.5, left: 15, bottom: 14, right: 16)
+        configuration.usesPresetMargins = true
         return configuration
     }
     /// A grouped list header (uikit/collection/listheaders): headline text 10 down in 44.5.

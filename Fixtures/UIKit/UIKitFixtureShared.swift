@@ -18,6 +18,8 @@ public enum UIKitFixtureFont: Hashable, Sendable {
     case monospaced(size: CGFloat, weight: String = "regular")
     /// `UIFont(name:size:)` for a bundled font (Fixtures/Fonts).
     case custom(name: String, size: CGFloat)
+    /// A text style at a weight (the style's descriptor with a weight trait): `style:<name>:w<weight>`.
+    case weightedStyle(String, weight: String)
     /// `preferredFont(forTextStyle:compatibleWith:)` at a content size category ("XS", "S", "M",
     /// "L", "XL", "XXL", "XXXL", "AXM", "AXL", "AXXL", "AXXXL", "AXXXXL").
     case scaledStyle(String, category: String)
@@ -43,6 +45,7 @@ public enum UIKitFixtureFont: Hashable, Sendable {
     public var key: String {
         switch self {
         case .style(let name): return "style:\(name)"
+        case .weightedStyle(let name, let weight): return "style:\(name):w\(Self.weights[weight]!.1)"
         case .system(let size, let weight):
             let sizeText = size == size.rounded() ? "\(Int(size))" : "\(size)"
             return "system:\(sizeText):\(Self.weights[weight]!.1):default"
@@ -69,6 +72,14 @@ public enum UIKitFixtureFont: Hashable, Sendable {
     @MainActor public var uiFont: UIFont {
         switch self {
         case .style(let name): return UIFont.preferredFont(forTextStyle: Self.styles[name]!)
+        case .weightedStyle(let name, let weight):
+            #if canImport(UIKitWebCore)
+            return UIFont.preferredFont(forTextStyle: Self.styles[name]!, weight: Self.weights[weight]!.0)
+            #else
+            let base = UIFont.preferredFont(forTextStyle: Self.styles[name]!)
+            let descriptor = base.fontDescriptor.addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: Self.weights[weight]!.0]])
+            return UIFont(descriptor: descriptor, size: 0)
+            #endif
         case .system(let size, let weight): return UIFont.systemFont(ofSize: size, weight: Self.weights[weight]!.0)
         case .monospacedDigit(let size, let weight): return UIFont.monospacedDigitSystemFont(ofSize: size, weight: Self.weights[weight]!.0)
         case .italic(let size): return UIFont.italicSystemFont(ofSize: size)

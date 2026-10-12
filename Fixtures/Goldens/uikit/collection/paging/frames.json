@@ -1,0 +1,82 @@
+{
+  "fixture" : "uikit\/collection\/paging",
+  "frames" : {
+    "background0" : {
+      "height" : 152,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "collection" : {
+      "height" : 300,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    },
+    "item0" : {
+      "height" : 120,
+      "width" : 240,
+      "x" : 40,
+      "y" : 16
+    },
+    "item1" : {
+      "height" : 102,
+      "width" : 204,
+      "x" : 310,
+      "y" : 25
+    },
+    "row0" : {
+      "height" : 44,
+      "width" : 288,
+      "x" : 16,
+      "y" : 160
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "background0" : {
+          "height" : 152,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "collection" : {
+          "height" : 300,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        },
+        "item0" : {
+          "height" : 102,
+          "width" : 204,
+          "x" : -194,
+          "y" : 25
+        },
+        "item1" : {
+          "height" : 120,
+          "width" : 240,
+          "x" : 40,
+          "y" : 16
+        },
+        "item2" : {
+          "height" : 102,
+          "width" : 204,
+          "x" : 310,
+          "y" : 25
+        },
+        "row0" : {
+          "height" : 44,
+          "width" : 288,
+          "x" : 16,
+          "y" : 160
+        }
+      },
+      "name" : "next"
+    }
+  ]
+}
