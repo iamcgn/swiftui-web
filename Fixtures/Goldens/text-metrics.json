@@ -13164,6 +13164,12 @@
       "lastBaseline" : 11,
       "width" : 39
     },
+    "system:11:400:default||Battery" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 38.5
+    },
     "system:11:400:default||C" : {
       "firstBaseline" : 11,
       "height" : 14,
@@ -13452,6 +13458,12 @@
       "lastBaseline" : 81,
       "width" : 0
     },
+    "system:11:400:default|0.0|Battery" : {
+      "firstBaseline" : 11,
+      "height" : 98,
+      "lastBaseline" : 95,
+      "width" : 0
+    },
     "system:11:400:default|0.0|C" : {
       "firstBaseline" : 11,
       "height" : 14,
@@ -13511,6 +13523,12 @@
       "height" : 140,
       "lastBaseline" : 137,
       "width" : 0
+    },
+    "system:11:400:default|360.0|Battery" : {
+      "firstBaseline" : 11,
+      "height" : 14,
+      "lastBaseline" : 11,
+      "width" : 38.5
     },
     "system:11:500:default||Apple" : {
       "firstBaseline" : 11,

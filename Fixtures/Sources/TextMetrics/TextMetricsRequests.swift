@@ -446,6 +446,9 @@ public enum TextMetricsRequests {
             requests.append(TextMetricRequest(word, .system(size: 12, weight: "regular", design: "default")))
         }
         for word in ["A", "B", "C", "D"] { requests.append(TextMetricRequest(word, .system(size: 11, weight: "regular", design: "default"))) }
+        // dark/chrome: the circular gauge's 11 pt label proposed the stack's width.
+        requests.append(TextMetricRequest("Battery", .system(size: 11, weight: "regular", design: "default")))
+        requests.append(TextMetricRequest("Battery", .system(size: 11, weight: "regular", design: "default"), width: 360))
         // DatePicker fixtures: body labels, the field's 13 pt components, the calendar's 13 pt bold
         // header, 10 pt bold weekdays and 11 pt days, the clock's 13 pt numerals and 13 pt medium period.
         for word in ["Date", "When", "Time", "Range", "Off", "Compact", "Field", "Stepper", "Both", "Clock", "Calendar", "Echo"] {

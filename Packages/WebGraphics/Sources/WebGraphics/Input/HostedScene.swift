@@ -28,6 +28,9 @@ public protocol HostedScene: AnyObject {
     var hostColorScheme: ColorScheme { get set }
     /// The system's reduce-motion preference, set by hosts.
     var hostReducesMotion: Bool { get set }
+    /// The system's increase-contrast preference (`prefers-contrast: more`, AppKit's
+    /// `accessibilityDisplayShouldIncreaseContrast`), set by hosts (sw-dark).
+    var hostIncreasesContrast: Bool { get set }
     /// The user's text size as a content size category short name ("XS" … "AXXXXL"), nil when
     /// the host has none (sw-dynamic-type: iOS Safari exposes it through `-apple-system-body`).
     var hostDynamicTypeSize: String? { get set }

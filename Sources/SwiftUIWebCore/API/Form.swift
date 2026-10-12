@@ -28,6 +28,7 @@ public struct Form<Content: View>: View {
 struct _MacForm<Content: View>: View {
     let content: Content
     let kind: _FormStyleKind
+    @Environment(\._scrollContentBackground) private var contentBackground
 
     var body: some View {
         switch kind {
@@ -36,11 +37,14 @@ struct _MacForm<Content: View>: View {
         case .grouped:
             // The table view behind a grouped form keeps its rows on the half-point grid of the
             // window (label/corners: a form at y 106.04 has its first row at 136).
+            // Its ground is the window colour (white; 30 in the dark appearance: dark/chrome),
+            // gone under `scrollContentBackground(.hidden)` (form/grouped-background).
             ScrollView(.vertical) {
                 _FormGroupedContent(content: AnyView(content.environment(\._formStyle, .grouped)))
                     .padding(PlatformMetrics.formGroupedInset)
             }
             .environment(\._scrollContentSnapsToPixels, true)
+            .background(contentBackground == .hidden ? nil : Color(storage: .system(.windowBackground)))
         }
     }
 }

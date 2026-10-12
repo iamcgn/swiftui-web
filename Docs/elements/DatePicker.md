@@ -104,6 +104,14 @@ leading and one tinted pill per value at the trailing edge ("Mar 15, 2025", "11:
 or 40 tall, the row 30 more. Measurements in `Docs/elements/iOS.md`. A tap on a pill does not
 open iOS's calendar popover yet (`sw-ios-presentation-rest`).
 
+## macOS 27 (regenerated 2026-10-11 under decision 0019)
+
+The compact and stepper-field styles are 20 tall (26.2: 22; the `.field` style stays 21), the
+text line 1 down (digits' bottoms at 15), the mini stepper half a point above the field's top
+with its up chevron's feet at 5.5 and the divider at 9.5 (`dateCompactHeight`,
+`dateCompactTextTop`, `dateStepperOffset`, `dateStepperDividerTop`). The dark looks are in
+Docs/elements/DarkMode.md (`dark/chrome`). Tier A exact, Tier C `basic` 2.5 %.
+
 ## Not yet covered
 
 Calendars other than the Gregorian, localised month and weekday names, the compact popover's

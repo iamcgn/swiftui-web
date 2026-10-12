@@ -124,7 +124,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var hoverLiftShadowOffset: CGFloat = 8
     package var focusRingWidth: CGFloat = 3
     package var focusRingOpacity = 0.5
-    package var focusRingColor = Color(storage: .dynamic(light: RGBA(r: 0, g: 103, b: 244, a: 1), dark: RGBA(r: 26, g: 169, b: 255, a: 1)))
+    package var focusRingColor = Color(storage: .dynamic(light: RGBA(r: 0, g: 103, b: 244, a: 1), dark: RGBA(r: 26, g: 169, b: 255, a: 1)))   // NSColor.keyboardFocusIndicatorColor in Aqua and Dark Aqua (read 2026-10-11; both at 0.498, the opacity above)
     package var focusRingCornerRadius: CGFloat = 6                // unverified: the ring follows the control's own corners
     package var listFocusedSelectionAlpha = 0.25                  // unverified: the accent selection of a focused list
     package var menuHighlightAlpha = 0.1                          // unverified: the keyboard-highlighted menu row
@@ -253,6 +253,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var formGroupedCardCornerRadius: CGFloat = 10                  // approximate
     package var formGroupedCardFill = 8.0 / 255
     package var formGroupedSeparatorAlpha = 20.0 / 255
+    package var formGroupedSeparatorAlphaDark = 10.0 / 255                   // white over the 37 card (dark/chrome: 47)
     package var formGroupedSeparatorHeight: CGFloat = 1                     // between rows, not overlapping
     package var formLabeledContentRowOffset: CGFloat = 0.125                // a LabeledContent row sits this much lower in its cell (label/corners, macOS 27)
     package var formGroupedSwitchSize = CGSize(width: 36, height: 16)        // approximate (form/styles pixels)
@@ -434,6 +435,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var gaugeBarHeight: CGFloat = 16
     package var gaugeBarCornerRadius: CGFloat = 1.5                  // from the corner ramp at 2×
     package var gaugeTrackAlpha = 18.0 / 255
+    package var gaugeTrackAlphaDark = 26.0 / 255                     // white in the dark appearance (dark/chrome, macOS 27)
     package var gaugeBoundsSpacing: CGFloat = 8                      // bounds labels to the bar
     package var gaugeAccessoryBarHeight: CGFloat = 8
     package var gaugeAccessorySpacing: CGFloat = 6                   // label, capsule and value in the accessory capacity style
@@ -455,8 +457,9 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var gaugeRingValueLift: CGFloat = 1                      // the centre value sits 1 pt above the centre
     package var gaugeRingEndOffset: CGFloat = 18.385                 // 26 / √2: the arc ends' x and y from the centre
 
-    // DatePicker (macOS 26.2: fixtures datepicker/*, Docs/elements/DatePicker.md)
-    package var dateFieldHeight: CGFloat = 22                        // the field style is 21
+    // DatePicker (macOS 26.2: fixtures datepicker/*, Docs/elements/DatePicker.md; the compact height from 27)
+    package var dateFieldHeight: CGFloat = 21                        // the field style
+    package var dateCompactHeight: CGFloat = 20                      // the compact and stepper-field styles (macOS 27, regenerated 2026-10-11; 26.2 drew them 22)
     package var dateFieldBorderAlpha = 12.0 / 255                    // 243 over white, drawn outside like a text field's
     package var dateDigitWidth: CGFloat = 8                          // tabular digits at 13 pt
     package var dateSeparatorWidth: CGFloat = 4                      // "/", ":" and the space
@@ -465,14 +468,17 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var datePeriodLead: CGFloat = 1                          // the period's text starts a point before its slot
     package var dateFieldInset: CGFloat = 3                          // the field style's content insets
     package var dateFieldTextTop: CGFloat = 1                        // the field style's text line sits 1 pt down, not centred
+    package var dateCompactTextTop: CGFloat = 1                      // the compact styles' body line (18.5, baseline 14) sits 1 pt down in the 20: digits bottom at 15 (macOS 27)
     package var dateStepperBezelInset: CGFloat = 1                   // the stepper styles' bezel starts a point in
     package var dateStepperGap: CGFloat = 9.5
     package var dateStepperSize = CGSize(width: 12.5, height: 20)
+    package var dateStepperOffset: CGFloat = -0.5                    // the stepper sits half a point above the 20 pt field's top (macOS 27, datepicker/basic)
+    package var dateStepperDividerTop: CGFloat = 9.5                 // the divider's top below the stepper's (macOS 27)
     package var dateStepperCornerRadius: CGFloat = 4.5               // approximate
     package var dateStepperDividerInset: CGFloat = 2.5               // approximate
     package var dateStepperChevronInset: CGFloat = 3
     package var dateStepperChevronRise: CGFloat = 3
-    package var dateStepperUpChevronBase: CGFloat = 6.5              // y of the up chevron's feet
+    package var dateStepperUpChevronBase: CGFloat = 5.5              // y of the up chevron's feet (macOS 27; 26.2: 6.5 in the 22 pt field)
     package var dateStepperDownChevronBase: CGFloat = 13.5           // y of the down chevron's feet
     package var dateSelectionCornerRadius: CGFloat = 2               // unverified: the focused component's highlight
     package var calendarSize = CGSize(width: 138.5, height: 148)
@@ -480,6 +486,8 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var calendarBoxSize = CGSize(width: 137.5, height: 148)
     package var calendarBoxCornerRadius: CGFloat = 3                 // approximate
     package var calendarBoxBorderAlpha = 5.0 / 255                   // approximate: the border is barely there
+    package var calendarBoxFillDark = 13.0 / 255                     // the dark appearance fills the box white at 13/255 under a 20/255 edge (dark/chrome)
+    package var calendarBoxBorderAlphaDark = 20.0 / 255
     package var calendarHeaderLeading: CGFloat = 3
     package var calendarHeaderCenter: CGFloat = 10                   // the header line's centre below the box's top
     package var calendarWeekdayCenter: CGFloat = 30
@@ -490,6 +498,10 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var calendarWeekdaySize: CGFloat = 10                    // bold
     package var calendarDaySize: CGFloat = 11
     package var calendarMutedAlpha = 66.0 / 255                      // weekday names and the neighbouring months' days (189)
+    package var calendarMutedAlphaDark = 146.0 / 255                 // white in the dark appearance (dark/chrome)
+    package var calendarHighlightDark = RGBA(r: 70, g: 70, b: 70)    // the selected day's box in the dark appearance (opaque; dark/chrome)
+    package var dateFieldFillDark = RGBA(red: 22.0 / 255, green: 22.0 / 255, blue: 22.0 / 255, alpha: 217.0 / 255)   // the dark field's capsule (dark/chrome)
+    package var dateFieldBorderDark = RGBA(red: 35.0 / 255, green: 35.0 / 255, blue: 35.0 / 255, alpha: 219.0 / 255)  // its 1 pt edge outside
     package var calendarOutOfRangeAlpha = 66.0 / 255                 // days outside the picker's range (datepicker/looks: 189 on 26.6, which greys the neighbouring months lighter, 230)
     package var graphicalDateTimeSpacing: CGFloat = 18               // the calendar to the clock when both components are graphical (datepicker/looks `both`: 275.5 wide)
     // The iOS wheel (ios/datepicker/wheel, iPhone SE simulator, iOS 26): a 320 × 216 picker whose

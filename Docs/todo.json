@@ -1433,13 +1433,14 @@
       "framework": "SwiftUI",
       "area": "Dark mode",
       "title": "Contrast and per-presentation schemes",
-      "detail": "`colorSchemeContrast`, `preferredColorScheme` per presentation, gauge and date picker chrome verified in dark, the focus ring in dark.",
+      "detail": "`colorSchemeContrast`, `preferredColorScheme` per presentation, gauge and date picker chrome verified in dark, the focus ring in dark. Done 2026-10-11 (Phase 9, item 20): `dark/chrome` (macOS 27) verified gauges, date pickers, the colour well and grouped forms in dark and fixed what was black or unpainted (gauge inks, the well frame, the form's ground, the calendar's dark fill); the compact date picker is 20 tall on 27; `colorSchemeContrast` from the hosts; `preferredColorScheme` per presentation; the focus ring's dark colour read from AppKit.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/DarkMode.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-timeline",

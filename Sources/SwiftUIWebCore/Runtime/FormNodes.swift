@@ -272,12 +272,16 @@ package final class FormGroupedNode: LayoutNode<_FormGroupedContent> {
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         let pad = PlatformMetrics.formGroupedRowPadding
+        // The form's ground is the window colour, painted by the form's scroll view (API/Form);
+        // the cards are the ink at 8/255 over it (247 light, 37 dark), the separators the ink at
+        // 20/255 (10/255 dark: dark/chrome).
+        let separatorAlpha = environment.colorScheme == .dark ? PlatformMetrics.formGroupedSeparatorAlphaDark : PlatformMetrics.formGroupedSeparatorAlpha
         for card in cards {
             list.append(.fillRRect(context.absoluteRect(card.frame), cornerRadius: PlatformMetrics.formGroupedCardCornerRadius,
                                    environment._ink(PlatformMetrics.formGroupedCardFill)))
             for cell in card.rowFrames.dropLast() {
                 let line = CGRect(x: cell.minX + pad, y: cell.maxY, width: cell.width - 2 * pad, height: PlatformMetrics.formGroupedSeparatorHeight)
-                list.append(.fillRect(context.absoluteRect(line), environment._ink(PlatformMetrics.formGroupedSeparatorAlpha)))
+                list.append(.fillRect(context.absoluteRect(line), environment._ink(separatorAlpha)))
             }
         }
         for child in paintedChildren { child.paint(into: &list, context: context.child(at: child.presentedFrame)) }

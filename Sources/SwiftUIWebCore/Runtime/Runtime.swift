@@ -57,6 +57,17 @@ public final class Runtime {
             requestFullLayout()
         }
     }
+    /// The system's increase-contrast setting, set by hosts; the root environment's
+    /// `colorSchemeContrast` follows it (views decide what to strengthen; nothing built in does).
+    public var hostIncreasesContrast = false {
+        didSet {
+            guard hostIncreasesContrast != oldValue else { return }
+            rootEnvironment.colorSchemeContrast = hostIncreasesContrast ? .increased : .standard
+            root.environment = rootEnvironment
+            root.reapply?(rootEnvironment)
+            requestFullLayout()
+        }
+    }
     /// The user's text size (a content size category short name), set by hosts; the root
     /// environment's `dynamicTypeSize` follows it (sw-dynamic-type).
     public var hostDynamicTypeSize: String? {

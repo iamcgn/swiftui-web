@@ -9,9 +9,9 @@ Apple docs: [ColorScheme](https://developer.apple.com/documentation/swiftui/colo
 | API | Notes |
 |---|---|
 | `ColorScheme`, `EnvironmentValues.colorScheme`, `.environment(\.colorScheme, …)` | implemented: system colours, label colours, control inks, list and field backgrounds and asset variants follow the environment |
-| `preferredColorScheme(_:)` | implemented: applies to the whole window (the root environment), `nil` returns to the system appearance |
+| `preferredColorScheme(_:)` | implemented: applies to the whole window (the root environment), `nil` returns to the system appearance; inside a sheet, popover or other presentation it applies to that presentation alone (its panel and content; `PresentationNode.preferredColorScheme`, 2026-10-11) |
 | The system appearance | the browser host follows `prefers-color-scheme` (and its changes); the native host follows the window's effective appearance |
-| `colorSchemeContrast`, `ColorSchemeContrast`, `preferredColorScheme` per presentation | missing |
+| `colorSchemeContrast`, `ColorSchemeContrast` | implemented 2026-10-11: `.increased` when the host reports it (`prefers-contrast: more` in the browser, `accessibilityDisplayShouldIncreaseContrast` natively, `Runtime.hostIncreasesContrast`); nothing built in changes its look for it (AppKit's focus and accent colours read the same under the high-contrast appearances) |
 
 ## Behaviour
 
@@ -51,15 +51,29 @@ controls follow the window, not the environment) and the fixture catalog's dark 
 | text field border | black 23/255 | 128 128 128 at 22/255 | |
 | placeholder, disabled field text | secondary, tertiary | secondary, tertiary (154 and 86 over the 30 fill) | |
 
-## Verification (2026-09-04)
+## Measured (macOS 27.0.1, `dark/chrome`, 2026-10-11)
 
-Tier A: 4 fixtures exact. Tier C: `dark/system-colors` and `dark/text` 0.00 %, `dark/list`
-0.02 %, `dark/controls` 0.33 %. `DarkModeTests` cover the tables, the ink swap, field and text
-colours, `preferredColorScheme` on and off, a host scheme change re-resolving a mounted tree and
-the painted window background.
+| Chrome | Light | Dark | Notes |
+|---|---|---|---|
+| Gauge track (linear capacity) | black 18/255 | white 26/255 | the fill the dark green (48, 209, 88) |
+| Gauge ring (accessory circular) | black 216/255 | white 216/255 (the primary) | it was painted black in every scheme before |
+| Date picker field (compact) | white bezel under a black 12/255 edge | (22, 22, 22) at 217/255 under a (35, 35, 35) at 219/255 edge; text (224) | 20 tall on macOS 27 (26.2: 22), the text 1 down, the stepper half a point above the field, its up chevron's feet at 5.5 and the divider at 9.5 |
+| Calendar box | no fill, a 5/255 edge | white 13/255 fill, a 20/255 edge | |
+| Calendar weekday names and other months' days | black 66/255 | white 146/255 | the days the primary (white 216/255) |
+| Selected day | black 35/255 | (70, 70, 70) opaque | |
+| Colour well frame | black 25/255 | white 25/255 | the swatch's red (255, 66, 69) |
+| Grouped form | white ground (the window colour), cards black 8/255 (247), separators black 20/255 | ground (30, 30, 30), cards white 8/255 (37), separators white 10/255 (47) | the form's scroll view paints the ground unless `scrollContentBackground(.hidden)` |
+| Focus ring | (0, 103, 244) at 0.498 | (26, 169, 255) at 0.498 | `NSColor.keyboardFocusIndicatorColor` in Aqua and Dark Aqua (read; the same under the high-contrast appearances) |
+
+## Verification (2026-09-04; `dark/chrome` 2026-10-11)
+
+Tier A: 6 fixtures exact. Tier C: `dark/system-colors` and `dark/text` 0.00 %, `dark/list`
+0.02 %, `dark/controls` 0.33 %, `dark/chrome` 0.63 %; Tier B within 0.7 %. `DarkModeTests` cover
+the tables, the ink swap, field and text colours, `preferredColorScheme` on and off, a host
+scheme change re-resolving a mounted tree, the painted window background, a sheet's own scheme
+and the contrast value.
 
 ## Not yet covered
 
-Sidebar and grouped-form backgrounds, popover and menu panels, the colour picker well, gauge and
-date picker chrome in dark (unverified: they use the ink and background tables), the focus ring,
-`colorSchemeContrast`, per-presentation schemes, the gallery page chrome.
+Sidebar backgrounds, popover and menu panels in dark, the clock face in dark (inks, unmeasured),
+the gallery page chrome, a look for increased contrast.

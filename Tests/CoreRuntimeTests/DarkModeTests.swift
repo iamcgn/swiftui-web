@@ -84,5 +84,36 @@ import SwiftUIWebHeadless
         runtime.layout(in: CGSize(width: 100, height: 50))
         #expect(runtime.render(scale: 2).commands.first?.description == "fillRect(0, 0, 100, 50) #1E1E1E")
     }
+
+    /// sw-dark: `preferredColorScheme` inside a sheet gives the sheet its own appearance (its
+    /// panel and text dark, the window's text still light); `colorSchemeContrast` follows the
+    /// host's increase-contrast setting.
+    @Test func presentationSchemesAndContrast() {
+        let runtime = makeRuntime()
+        runtime.mount(Text("Hi").sheet(isPresented: .constant(true)) { Text("Hi").preferredColorScheme(.dark) })
+        runtime.layout(in: CGSize(width: 200, height: 200))
+        runtime.layout(in: CGSize(width: 200, height: 200))
+        #expect(runtime.hasPresentations && runtime.effectiveColorScheme == .light)
+        let commands = runtime.render(scale: 2).commands.map(\.description)
+        // The window's text is black, the sheet's white on the dark panel (30, 30, 30).
+        #expect(commands.contains { $0.hasPrefix("drawText(\"Hi\"") && $0.contains("#000000@") }, "\(commands)")
+        #expect(commands.contains { $0.hasPrefix("drawText(\"Hi\"") && $0.contains("#FFFFFF@") }, "\(commands)")
+        #expect(commands.contains { $0.hasPrefix("fillRRect") && $0.hasSuffix("#1E1E1E") }, "\(commands)")
+        // Contrast: standard until the host says otherwise, then every view sees `.increased`.
+        @MainActor final class Seen { var contrast: ColorSchemeContrast? }
+        let seen = Seen()
+        struct Reader: View {
+            let seen: Seen
+            @Environment(\.colorSchemeContrast) private var contrast
+            var body: some View { seen.contrast = contrast; return Color.clear }
+        }
+        let r = makeRuntime()
+        r.mount(Reader(seen: seen))
+        r.layout(in: CGSize(width: 100, height: 100))
+        #expect(seen.contrast == .standard)
+        r.hostIncreasesContrast = true
+        r.layout(in: CGSize(width: 100, height: 100))
+        #expect(seen.contrast == .increased)
+    }
 }
 #endif

@@ -204,7 +204,7 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
 
     package var stepperRect: CGRect? {
         guard view.stepper else { return nil }
-        return CGRect(x: frame.width - PlatformMetrics.dateStepperSize.width, y: (frame.height - PlatformMetrics.dateStepperSize.height) / 2,
+        return CGRect(x: frame.width - PlatformMetrics.dateStepperSize.width, y: (frame.height - PlatformMetrics.dateStepperSize.height) / 2 + PlatformMetrics.dateStepperOffset,
                       width: PlatformMetrics.dateStepperSize.width, height: PlatformMetrics.dateStepperSize.height)
     }
 
@@ -254,22 +254,23 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
         if pills { return CGSize(width: pillsWidth, height: pillHeight) }
         if view.stepper {
             let width = PlatformMetrics.dateStepperBezelInset + contentWidth + PlatformMetrics.dateStepperGap + PlatformMetrics.dateStepperSize.width
-            return CGSize(width: width, height: PlatformMetrics.dateFieldHeight)
+            return CGSize(width: width, height: PlatformMetrics.dateCompactHeight)
         }
-        return CGSize(width: contentWidth + 2 * PlatformMetrics.dateFieldInset, height: PlatformMetrics.dateFieldHeight - 1)
+        return CGSize(width: contentWidth + 2 * PlatformMetrics.dateFieldInset, height: PlatformMetrics.dateFieldHeight)
     }
 
     override package var layoutSpacing: ViewSpacing { .textLikeControl }
 
-    /// The text line is centred in the 22 pt stepper styles and a point down in the 21 pt field.
+    /// The text line sits 2 pt down in the 20 pt stepper styles (macOS 27; 26.2 centred it in
+    /// 22) and a point down in the 21 pt field.
     private func lineTop(_ lineHeight: CGFloat) -> CGFloat {
-        view.stepper ? (frame.height - lineHeight) / 2 : PlatformMetrics.dateFieldTextTop
+        view.stepper ? PlatformMetrics.dateCompactTextTop : PlatformMetrics.dateFieldTextTop
     }
 
     override package func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
         let size = sizeThatFits(proposal)
         let metrics = environment.platformProfile.systemFontMetrics(for: pills ? pillFont : font)
-        let baseline = (view.stepper || pills ? (size.height - metrics.lineHeight) / 2 : PlatformMetrics.dateFieldTextTop) + metrics.baseline
+        let baseline = (pills ? (size.height - metrics.lineHeight) / 2 : view.stepper ? PlatformMetrics.dateCompactTextTop : PlatformMetrics.dateFieldTextTop) + metrics.baseline
         return ViewDimensions(size: size, explicit: [VerticalAlignment.firstTextBaseline.key: baseline, VerticalAlignment.lastTextBaseline.key: baseline])
     }
 
@@ -291,7 +292,8 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
         let enabled = environment.isEnabled
-        let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        let dark = environment.colorScheme == .dark
+        let black = { (alpha: Double) in self.environment._ink(alpha) }
         if pills {
             // iOS: a tinted pill per value with the text centred; disabled, the texts alone.
             let font = pillFont
@@ -307,8 +309,11 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
         }
         let bezel = context.absoluteRect(self.bezel)
         let outer = bezel.insetBy(dx: -PlatformMetrics.textFieldBorderWidth, dy: -PlatformMetrics.textFieldBorderWidth)
-        list.append(.fillRRect(outer, cornerRadius: PlatformMetrics.textFieldCornerRadius + PlatformMetrics.textFieldBorderWidth, black(PlatformMetrics.dateFieldBorderAlpha)))
-        list.append(.fillRRect(bezel, cornerRadius: PlatformMetrics.textFieldCornerRadius, environment._controlBackground))
+        // The light capsule: a 12/255 edge outside the white bezel; the dark one a (35) edge
+        // around a (22) fill at 85 % (dark/chrome, macOS 27).
+        list.append(.fillRRect(outer, cornerRadius: PlatformMetrics.textFieldCornerRadius + PlatformMetrics.textFieldBorderWidth,
+                               dark ? PlatformMetrics.dateFieldBorderDark : black(PlatformMetrics.dateFieldBorderAlpha)))
+        list.append(.fillRRect(bezel, cornerRadius: PlatformMetrics.textFieldCornerRadius, dark ? PlatformMetrics.dateFieldFillDark : environment._controlBackground))
         let focused = runtime.focusedIdentifier == identifier
         if focused {
             let ring = outer.insetBy(dx: -PlatformMetrics.focusRingWidth / 2, dy: -PlatformMetrics.focusRingWidth / 2)
@@ -345,7 +350,7 @@ package final class DateFieldNode: LeafNode<_DateFieldHost>, _Interactive, _KeyH
         if let stepper = stepperRect.map(context.absoluteRect) {
             list.append(.fillRRect(stepper, cornerRadius: PlatformMetrics.dateStepperCornerRadius,
                                    black(enabled ? PlatformMetrics.stepperFill : PlatformMetrics.stepperDisabledFill)))
-            let divider = CGRect(x: stepper.minX + PlatformMetrics.dateStepperDividerInset, y: context.round(stepper.midY),
+            let divider = CGRect(x: stepper.minX + PlatformMetrics.dateStepperDividerInset, y: stepper.minY + PlatformMetrics.dateStepperDividerTop,
                                  width: stepper.width - 2 * PlatformMetrics.dateStepperDividerInset, height: 1)
             list.append(.fillRect(divider, black(PlatformMetrics.stepperDividerAlpha)))
             let x0 = stepper.minX + PlatformMetrics.dateStepperChevronInset, x1 = stepper.maxX - PlatformMetrics.dateStepperChevronInset
@@ -569,12 +574,18 @@ package final class CalendarNode: LeafNode<_CalendarHost>, _Interactive {
     }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
-        let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        // The ink: black in the light appearance, white in the dark, where the box is also
+        // filled white at 13/255 under a stronger edge (dark/chrome, macOS 27).
+        let dark = environment.colorScheme == .dark
+        let black = { (alpha: Double) in self.environment._ink(alpha) }
         let box = context.absoluteRect(self.box)
+        if dark {
+            list.append(.fillRRect(box, cornerRadius: PlatformMetrics.calendarBoxCornerRadius, black(PlatformMetrics.calendarBoxFillDark)))
+        }
         list.append(.strokePath(Path(roundedRect: box.insetBy(dx: 0.5, dy: 0.5), cornerRadius: PlatformMetrics.calendarBoxCornerRadius, style: .circular),
-                                style: StrokeStyle(lineWidth: 1), black(PlatformMetrics.calendarBoxBorderAlpha)))
+                                style: StrokeStyle(lineWidth: 1), black(dark ? PlatformMetrics.calendarBoxBorderAlphaDark : PlatformMetrics.calendarBoxBorderAlpha)))
         let primary = Color.primary.resolve(in: environment)
-        let grey = black(PlatformMetrics.calendarMutedAlpha)
+        let grey = black(dark ? PlatformMetrics.calendarMutedAlphaDark : PlatformMetrics.calendarMutedAlpha)
         // Header: "Mar 2025" in 13 pt bold, the controls in the secondary colour.
         let (year, month) = visibleMonth
         let header = _fontFor(size: PlatformMetrics.buttonLabelSize, weight: .bold)
@@ -616,7 +627,7 @@ package final class CalendarNode: LeafNode<_CalendarHost>, _Interactive {
                 let cell = context.absoluteRect(self.cell(row: row, column: column))
                 if day.inMonth, selected.year == year, selected.month == month, selected.day == day.day {
                     let highlight = cell.insetBy(dx: 0, dy: PlatformMetrics.calendarHighlightInset)
-                    list.append(.fillRRect(highlight, cornerRadius: PlatformMetrics.calendarHighlightCornerRadius, black(PlatformMetrics.calendarHighlightAlpha)))
+                    list.append(.fillRRect(highlight, cornerRadius: PlatformMetrics.calendarHighlightCornerRadius, dark ? PlatformMetrics.calendarHighlightDark : black(PlatformMetrics.calendarHighlightAlpha)))
                 }
                 let text = "\(day.day)"
                 let width = _textWidth(text, font: dayFont)
@@ -775,7 +786,7 @@ package final class ClockNode: LeafNode<_ClockHost>, _Interactive {
         let bounds = absoluteBounds(context)
         let center = CGPoint(x: bounds.minX + PlatformMetrics.clockCenter.x, y: bounds.minY + PlatformMetrics.clockCenter.y)
         let radius = PlatformMetrics.clockRadius
-        let black = { (alpha: Double) in RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+        let black = { (alpha: Double) in self.environment._ink(alpha) }
         func circle(_ r: CGFloat) -> Path { Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: 2 * r, height: 2 * r)) }
         // The face, the bezel ring (a vertical gradient) and the inner shadow fading downwards.
         list.append(.fillPath(circle(radius), PlatformMetrics.clockFaceColor))

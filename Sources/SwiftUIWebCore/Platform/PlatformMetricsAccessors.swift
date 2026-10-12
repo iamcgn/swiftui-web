@@ -194,6 +194,7 @@ extension PlatformMetrics {
     package static var formGroupedCardCornerRadius: CGFloat { current.formGroupedCardCornerRadius }
     package static var formGroupedCardFill: Double { current.formGroupedCardFill }
     package static var formGroupedSeparatorAlpha: Double { current.formGroupedSeparatorAlpha }
+    package static var formGroupedSeparatorAlphaDark: Double { current.formGroupedSeparatorAlphaDark }
     package static var formGroupedSeparatorHeight: CGFloat { current.formGroupedSeparatorHeight }
     package static var formLabeledContentRowOffset: CGFloat { current.formLabeledContentRowOffset }
     package static var stepperBaseline: CGFloat { current.stepperBaseline }
@@ -349,6 +350,7 @@ extension PlatformMetrics {
     package static var gaugeBarHeight: CGFloat { current.gaugeBarHeight }
     package static var gaugeBarCornerRadius: CGFloat { current.gaugeBarCornerRadius }
     package static var gaugeTrackAlpha: Double { current.gaugeTrackAlpha }
+    package static var gaugeTrackAlphaDark: Double { current.gaugeTrackAlphaDark }
     package static var gaugeBoundsSpacing: CGFloat { current.gaugeBoundsSpacing }
     package static var gaugeAccessoryBarHeight: CGFloat { current.gaugeAccessoryBarHeight }
     package static var gaugeAccessorySpacing: CGFloat { current.gaugeAccessorySpacing }
@@ -370,6 +372,7 @@ extension PlatformMetrics {
     package static var gaugeRingValueLift: CGFloat { current.gaugeRingValueLift }
     package static var gaugeRingEndOffset: CGFloat { current.gaugeRingEndOffset }
     package static var dateFieldHeight: CGFloat { current.dateFieldHeight }
+    package static var dateCompactHeight: CGFloat { current.dateCompactHeight }
     package static var dateFieldBorderAlpha: Double { current.dateFieldBorderAlpha }
     package static var dateDigitWidth: CGFloat { current.dateDigitWidth }
     package static var dateSeparatorWidth: CGFloat { current.dateSeparatorWidth }
@@ -378,9 +381,12 @@ extension PlatformMetrics {
     package static var datePeriodLead: CGFloat { current.datePeriodLead }
     package static var dateFieldInset: CGFloat { current.dateFieldInset }
     package static var dateFieldTextTop: CGFloat { current.dateFieldTextTop }
+    package static var dateCompactTextTop: CGFloat { current.dateCompactTextTop }
     package static var dateStepperBezelInset: CGFloat { current.dateStepperBezelInset }
     package static var dateStepperGap: CGFloat { current.dateStepperGap }
     package static var dateStepperSize: CGSize { current.dateStepperSize }
+    package static var dateStepperOffset: CGFloat { current.dateStepperOffset }
+    package static var dateStepperDividerTop: CGFloat { current.dateStepperDividerTop }
     package static var dateStepperCornerRadius: CGFloat { current.dateStepperCornerRadius }
     package static var dateStepperDividerInset: CGFloat { current.dateStepperDividerInset }
     package static var dateStepperChevronInset: CGFloat { current.dateStepperChevronInset }
@@ -393,6 +399,8 @@ extension PlatformMetrics {
     package static var calendarBoxSize: CGSize { current.calendarBoxSize }
     package static var calendarBoxCornerRadius: CGFloat { current.calendarBoxCornerRadius }
     package static var calendarBoxBorderAlpha: Double { current.calendarBoxBorderAlpha }
+    package static var calendarBoxFillDark: Double { current.calendarBoxFillDark }
+    package static var calendarBoxBorderAlphaDark: Double { current.calendarBoxBorderAlphaDark }
     package static var calendarHeaderLeading: CGFloat { current.calendarHeaderLeading }
     package static var calendarHeaderCenter: CGFloat { current.calendarHeaderCenter }
     package static var calendarWeekdayCenter: CGFloat { current.calendarWeekdayCenter }
@@ -403,6 +411,10 @@ extension PlatformMetrics {
     package static var calendarWeekdaySize: CGFloat { current.calendarWeekdaySize }
     package static var calendarDaySize: CGFloat { current.calendarDaySize }
     package static var calendarMutedAlpha: Double { current.calendarMutedAlpha }
+    package static var calendarMutedAlphaDark: Double { current.calendarMutedAlphaDark }
+    package static var calendarHighlightDark: RGBA { current.calendarHighlightDark }
+    package static var dateFieldFillDark: RGBA { current.dateFieldFillDark }
+    package static var dateFieldBorderDark: RGBA { current.dateFieldBorderDark }
     package static var calendarOutOfRangeAlpha: Double { current.calendarOutOfRangeAlpha }
     package static var graphicalDateTimeSpacing: CGFloat { current.graphicalDateTimeSpacing }
     package static var wheelSize: CGSize { current.wheelSize }

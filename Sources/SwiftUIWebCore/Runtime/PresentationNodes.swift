@@ -45,6 +45,7 @@ package final class PresentationNode: ViewNode {
         var contentEnvironment = environment
         contentEnvironment.dismiss = DismissAction { [weak self] in self?.dismiss() }
         content = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: contentEnvironment))
+        if preferredColorScheme != nil { applyPreferredColorScheme() }
     }
 
     package var isModal: Bool {
@@ -86,6 +87,25 @@ package final class PresentationNode: ViewNode {
 
     package func update(view: AnyView) {
         content.update(view: view, environment: content.environment, force: false)
+    }
+
+    /// `preferredColorScheme` inside the presentation: the presentation (its panel and content)
+    /// takes the scheme on its own, the window keeps its appearance (sw-dark, 2026-10-11).
+    package var preferredColorScheme: ColorScheme? {
+        didSet { if preferredColorScheme != oldValue { applyPreferredColorScheme() } }
+    }
+
+    /// Moves the presentation and its content to the preferred scheme (the modifier may tell
+    /// it while the content is still being built: `init` applies it afterwards).
+    private func applyPreferredColorScheme() {
+        guard let content else { return }
+        let scheme = preferredColorScheme ?? runtime.rootEnvironment.colorScheme
+        guard scheme != environment.colorScheme else { return }
+        environment.colorScheme = scheme
+        var contentEnvironment = content.environment
+        contentEnvironment.colorScheme = scheme
+        content.update(view: content.view, environment: contentEnvironment, force: true)
+        runtime.requestLayout(invalidatingSizes: true)
     }
 
     private var target: ViewNode? { content.layoutChildren.first }

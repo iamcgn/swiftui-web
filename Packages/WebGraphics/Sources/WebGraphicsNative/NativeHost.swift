@@ -222,6 +222,7 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
         // The window follows the system appearance; the scene paints the background.
         host.scene.hostColorScheme = effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .dark : .light
+        host.scene.hostIncreasesContrast = NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
         host.paintFrame(into: ctx, size: bounds.size) { [weak self] title in self?.window?.title = title }
         drawCaret(in: ctx)
     }

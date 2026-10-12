@@ -27,7 +27,9 @@ package final class GaugeBarNode: LeafNode<_GaugeBar> {
 
     override package var layoutSpacing: ViewSpacing { .plainControl }
 
-    private func black(_ alpha: Double) -> RGBA { RGBA(red: 0, green: 0, blue: 0, alpha: alpha) }
+    /// The control ink: black in the light appearance, white in the dark (dark/chrome: the
+    /// track white at 26/255, the ring the primary white).
+    private func black(_ alpha: Double) -> RGBA { environment._ink(alpha) }
 
     override package func paintSelf(into list: inout DisplayList, context: PaintContext) {
         let bounds = absoluteBounds(context)
@@ -35,7 +37,7 @@ package final class GaugeBarNode: LeafNode<_GaugeBar> {
         switch view.kind {
         case .capacity:
             let radius = PlatformMetrics.gaugeBarCornerRadius
-            list.append(.fillRRect(bounds, cornerRadius: radius, black(PlatformMetrics.gaugeTrackAlpha)))
+            list.append(.fillRRect(bounds, cornerRadius: radius, black(environment.colorScheme == .dark ? PlatformMetrics.gaugeTrackAlphaDark : PlatformMetrics.gaugeTrackAlpha)))
             let width = bounds.width * fraction
             guard width > 0 else { return }
             let tint = (environment._tint ?? Color.green).resolve(in: environment)
@@ -89,12 +91,12 @@ package final class GaugeRingNode: LeafNode<_GaugeRing> {
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
         let radius = PlatformMetrics.gaugeRingRadius
         let stroke = StrokeStyle(lineWidth: PlatformMetrics.gaugeRingStroke, lineCap: .round)
-        let primary = RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.gaugePrimaryAlpha)
+        let primary = environment._ink(PlatformMetrics.gaugePrimaryAlpha)
         let fraction = min(max(presentedFraction, 0), 1)
         if view.capacity {
             var track = Path()
             track.addEllipse(in: CGRect(x: center.x - radius, y: center.y - radius, width: 2 * radius, height: 2 * radius))
-            list.append(.strokePath(track, style: StrokeStyle(lineWidth: PlatformMetrics.gaugeRingStroke), RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.gaugeRingTrackAlpha)))
+            list.append(.strokePath(track, style: StrokeStyle(lineWidth: PlatformMetrics.gaugeRingStroke), environment._ink(PlatformMetrics.gaugeRingTrackAlpha)))
             guard fraction > 0 else { return }
             var arc = Path()
             arc.addArc(center: center, radius: radius, startAngle: .degrees(-90), endAngle: .degrees(-90 + 360 * fraction), clockwise: false)

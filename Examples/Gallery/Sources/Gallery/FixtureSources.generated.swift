@@ -467,6 +467,27 @@ public static let values = Fixture("customlayout/values", size: CGSize(width: 24
     .probe("values")
 }
 """#),
+        FixtureSource(name: "dark/chrome", file: "Fixtures/Sources/Dark/DarkFixtures.swift", firstLine: 95, lastLine: 113, declaration: #"""
+/// sw-dark: the chrome the dark tables had not been checked against — gauges, the date
+/// pickers (field and graphical), the colour well, a grouped form's card.
+public static let chrome = Fixture("dark/chrome", size: CGSize(width: 360, height: 560)) {
+    VStack(alignment: .leading, spacing: 12) {
+        Gauge(value: 0.6) { Text("Level") } currentValueLabel: { Text("60%") }.probe("gauge")
+        Gauge(value: 0.4) { Text("Battery") }.gaugeStyle(.accessoryCircular).probe("circular")
+        DatePicker("When", selection: .constant(DatePickerFixtures.fixed)).environment(\.timeZone, DatePickerFixtures.utc).probe("dateTime")
+        DatePicker("Date", selection: .constant(DatePickerFixtures.fixed), displayedComponents: .date).datePickerStyle(.graphical).environment(\.timeZone, DatePickerFixtures.utc).probe("graphical")
+        ColorPicker("Accent", selection: .constant(.red)).probe("well")
+        Form {
+            Toggle("Enabled", isOn: .constant(true)).probe("formToggle")
+            Text("Plain row").probe("formText")
+        }
+        .formStyle(.grouped)
+        .frame(height: 120)
+        .probe("form")
+    }
+    .probe("stack")
+}.colorScheme(.dark)
+"""#),
         FixtureSource(name: "dark/controls", file: "Fixtures/Sources/Dark/DarkFixtures.swift", firstLine: 41, lastLine: 71, declaration: #"""
 public static let controls = Fixture("dark/controls", size: CGSize(width: 320, height: 460)) {
     VStack(alignment: .leading, spacing: 12) {
@@ -11036,7 +11057,27 @@ public enum DarkFixtures {
         .probe("row")
     }.colorScheme(.dark)
 
-    public static let all: [Fixture] = [systemColors, text, controls, list, images]
+    /// sw-dark: the chrome the dark tables had not been checked against — gauges, the date
+    /// pickers (field and graphical), the colour well, a grouped form's card.
+    public static let chrome = Fixture("dark/chrome", size: CGSize(width: 360, height: 560)) {
+        VStack(alignment: .leading, spacing: 12) {
+            Gauge(value: 0.6) { Text("Level") } currentValueLabel: { Text("60%") }.probe("gauge")
+            Gauge(value: 0.4) { Text("Battery") }.gaugeStyle(.accessoryCircular).probe("circular")
+            DatePicker("When", selection: .constant(DatePickerFixtures.fixed)).environment(\.timeZone, DatePickerFixtures.utc).probe("dateTime")
+            DatePicker("Date", selection: .constant(DatePickerFixtures.fixed), displayedComponents: .date).datePickerStyle(.graphical).environment(\.timeZone, DatePickerFixtures.utc).probe("graphical")
+            ColorPicker("Accent", selection: .constant(.red)).probe("well")
+            Form {
+                Toggle("Enabled", isOn: .constant(true)).probe("formToggle")
+                Text("Plain row").probe("formText")
+            }
+            .formStyle(.grouped)
+            .frame(height: 120)
+            .probe("form")
+        }
+        .probe("stack")
+    }.colorScheme(.dark)
+
+    public static let all: [Fixture] = [systemColors, text, controls, list, images, chrome]
 }
 """#,
         "Fixtures/Sources/DatePicker/DatePickerFixtures.swift": ##"""
@@ -11057,7 +11098,7 @@ public final class DateModel {
 public enum DatePickerFixtures {
     /// 15 March 2025, 15:09 UTC.
     public static let fixed = Date(timeIntervalSinceReferenceDate: 763744140)
-    static let utc = TimeZone(secondsFromGMT: 0)!   // a fixed offset: "UTC" by name needs ICU, absent on wasm
+    public static let utc = TimeZone(secondsFromGMT: 0)!   // a fixed offset: "UTC" by name needs ICU, absent on wasm
 
     public static let basic = Fixture("datepicker/basic", size: CGSize(width: 360, height: 320)) {
         VStack(alignment: .leading, spacing: 12) {

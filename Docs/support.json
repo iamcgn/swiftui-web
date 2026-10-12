@@ -766,9 +766,9 @@
           ]
         },
         {
-          "api": "ColorScheme / colorScheme environment / preferredColorScheme / dark appearance",
+          "api": "ColorScheme / colorScheme environment / preferredColorScheme / colorSchemeContrast / dark appearance",
           "status": "partial",
-          "notes": "Measured dark tables for system colours, labels, link and accent; controls draw with a scheme-aware ink and background; hosts follow the system appearance and preferredColorScheme takes the window. Sidebars, panels, colour picker and gauge chrome unverified in dark (Docs/elements/DarkMode.md)",
+          "notes": "Measured dark tables for system colours, labels, link and accent; controls draw with a scheme-aware ink and background; gauges, date pickers, the colour well, grouped forms and the focus ring verified in dark (dark/chrome, 2026-10-11); hosts follow the system appearance, preferredColorScheme takes the window or the presentation it sits in, colorSchemeContrast follows the host's increase-contrast setting. Sidebars and panels unverified in dark (Docs/elements/DarkMode.md)",
           "fixtures": [
             "dark/system-colors",
             "dark/text",

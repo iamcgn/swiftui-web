@@ -50,7 +50,7 @@ package final class ColorWellNode: LeafNode<_ColorWellHost>, _Interactive, _Drop
         if active || targeted {
             list.append(.fillPath(well, PlatformMetrics.colorWellActiveColor.resolve(in: environment).multiplyingAlpha(by: opacity)))
         } else {
-            list.append(.fillPath(well, RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.colorWellAlpha * opacity)))
+            list.append(.fillPath(well, environment._ink(PlatformMetrics.colorWellAlpha * opacity)))   // white at 25/255 in the dark appearance (dark/chrome)
         }
         let inset = PlatformMetrics.colorWellSwatchInset
         Self.paintSwatch(in: bounds.insetBy(dx: inset, dy: inset), cornerRadius: PlatformMetrics.colorWellCornerRadius - inset,

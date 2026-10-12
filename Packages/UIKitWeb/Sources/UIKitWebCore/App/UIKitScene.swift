@@ -184,6 +184,7 @@ public final class UIKitScene: HostedScene {
     public var imageRasterizer: ImageRasterizer?
     /// Recorded (UIKit's `UIAccessibility.isReduceMotionEnabled` reads it).
     public var hostReducesMotion = false
+    public var hostIncreasesContrast = false
     /// The user's text size from the host (a category short name): the screen's preferred
     /// content size category follows it (sw-dynamic-type).
     public var hostDynamicTypeSize: String? {

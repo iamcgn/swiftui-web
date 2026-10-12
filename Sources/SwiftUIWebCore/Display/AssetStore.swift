@@ -42,8 +42,26 @@ extension EnvironmentValues {
     }
 }
 
+/// The contrast between the app's foreground and background colors.
+public enum ColorSchemeContrast: Hashable, CaseIterable, Sendable {
+    case standard
+    case increased
+}
+
+package struct ColorSchemeContrastKey: EnvironmentKey { package static let defaultValue = ColorSchemeContrast.standard }
+
+extension EnvironmentValues {
+    /// The system's contrast setting (`prefers-contrast: more` on the web, AppKit's increase
+    /// contrast natively), through `Runtime.hostIncreasesContrast`.
+    public var colorSchemeContrast: ColorSchemeContrast {
+        get { self[ColorSchemeContrastKey.self] }
+        set { self[ColorSchemeContrastKey.self] = newValue }
+    }
+}
+
 /// `preferredColorScheme`: records the preference on the runtime, which applies it to the root
-/// environment (the whole window, as on macOS).
+/// environment (the whole window, as on macOS), or on the presentation it sits in (a sheet or
+/// popover with its own appearance).
 public struct _PreferredColorSchemeModifier: Equatable {
     package let scheme: ColorScheme?
     package init(scheme: ColorScheme?) { self.scheme = scheme }
@@ -60,16 +78,38 @@ extension _PreferredColorSchemeModifier: ViewModifier {
 package final class PreferredColorSchemeNode<Content: View>: UnaryLayoutModifierNode<Content, _PreferredColorSchemeModifier> {
     override package init(_ context: _NodeContext<ModifiedContent<Content, _PreferredColorSchemeModifier>>) {
         super.init(context)
-        runtime.preferredColorScheme = modifier.scheme
+        tell(modifier.scheme)
     }
 
     override package func update(view: ModifiedContent<Content, _PreferredColorSchemeModifier>, environment: EnvironmentValues, force: Bool) {
         super.update(view: view, environment: environment, force: force)
-        runtime.preferredColorScheme = modifier.scheme
+        tell(modifier.scheme)
+    }
+
+    /// The presentation the modifier sits in, if any: its scheme is the presentation's own.
+    private var presentationAncestor: PresentationNode? {
+        var current = parent
+        while let node = current {
+            if let presentation = node as? PresentationNode { return presentation }
+            current = node.parent
+        }
+        return nil
+    }
+
+    private func tell(_ scheme: ColorScheme?) {
+        if let presentation = presentationAncestor {
+            presentation.preferredColorScheme = scheme
+        } else {
+            runtime.preferredColorScheme = scheme
+        }
     }
 
     override package func unmount() {
-        if runtime.preferredColorScheme == modifier.scheme { runtime.preferredColorScheme = nil }
+        if let presentation = presentationAncestor {
+            if presentation.preferredColorScheme == modifier.scheme { presentation.preferredColorScheme = nil }
+        } else if runtime.preferredColorScheme == modifier.scheme {
+            runtime.preferredColorScheme = nil
+        }
         super.unmount()
     }
 }

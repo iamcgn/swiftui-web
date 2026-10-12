@@ -56,26 +56,26 @@ import SwiftUIWebHeadless
             DatePicker("Date", selection: .constant(Self.fixed), displayedComponents: .hourAndMinute).labelsHidden()._probe("time")
             DatePicker("Date", selection: .constant(Self.fixed), displayedComponents: .date).datePickerStyle(.field)._probe("field")
         }.padding(20).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading))
-        // Label + 8 + [1 + bezel 72 + 9 + stepper 13]: 131.5 × 22; the date and time 137 + 23; time 57 + 23.
+        // Label + 8 + [1 + bezel 72 + 9 + stepper 13]: 131.5 × 20 (macOS 27; 26.2 drew 22); the date and time 137 + 23; time 57 + 23.
         let date = r.probeFrames["date"]!
-        #expect(date.size == CGSize(width: 131.5, height: 22) && date.minY == 20)
+        #expect(date.size == CGSize(width: 131.5, height: 20) && date.minY == 20)
         #expect(r.probeFrames["dateTime"]?.width == 28.5 + 8 + 160)
-        #expect(r.probeFrames["time"]?.size == CGSize(width: 80, height: 22) && r.probeFrames["time"]?.minY == 88)
+        #expect(r.probeFrames["time"]?.size == CGSize(width: 80, height: 20) && r.probeFrames["time"]?.minY == 84)
         // The field style: the bezel is the control with 3 pt insets, 21 tall.
         #expect(r.probeFrames["field"]?.size == CGSize(width: 28.5 + 8 + 78, height: 21))
         let node = field(r)
-        #expect(node.bezel == CGRect(x: 2, y: 0, width: 70, height: 22))
-        #expect(node.stepperRect == CGRect(x: 82.5, y: 1, width: 12.5, height: 20))
+        #expect(node.bezel == CGRect(x: 2, y: 0, width: 70, height: 20))
+        #expect(node.stepperRect == CGRect(x: 82.5, y: -0.5, width: 12.5, height: 20))   // half a point above the field's top
         #expect(node.slots.map(\.rect.minX) == [3, 23, 43])
         #expect(node.text == "3/15/2025")
         let painted = r.render(scale: 2).commands.map(\.description)
-        // The month is right-aligned in its slot ("3" is 8 wide here), the year at its slot; the
-        // bezel's border box is the 22 pt frame grown by a point.
+        // The month is right-aligned in its slot ("3" is 8 wide here), the year at its slot, the
+        // baseline 1 + 13 down (the recorded 13 pt line); the bezel's border box is the 20 pt frame grown by a point.
         let control = date.minX + 28.5 + 8
         func fmt(_ v: CGFloat) -> String { v == v.rounded() ? "\(Int(v))" : "\(v)" }
-        #expect(painted.contains { $0.hasPrefix("drawText(\"3\"") && $0.contains(" at \(fmt(control + 3 + 16 - 8)),36 ") })
-        #expect(painted.contains { $0.hasPrefix("drawText(\"2025\"") && $0.contains(" at \(fmt(control + 43)),36 ") })
-        #expect(painted.contains { $0.hasPrefix("fillRRect(\(fmt(control + 1)), 19, 72, 24) r=6") })
+        #expect(painted.contains { $0.hasPrefix("drawText(\"3\"") && $0.contains(" at \(fmt(control + 3 + 16 - 8)),34 ") }, "\(painted.filter { $0.hasPrefix("drawText(\"3\"") })")
+        #expect(painted.contains { $0.hasPrefix("drawText(\"2025\"") && $0.contains(" at \(fmt(control + 43)),34 ") })
+        #expect(painted.contains { $0.hasPrefix("fillRRect(\(fmt(control + 1)), 19, 72, 22) r=6") })
     }
 
     @Test func steppingAndSelection() {
@@ -94,7 +94,7 @@ import SwiftUIWebHeadless
         #expect(r.keyDown(KeyEvent(key: .upArrow)) && parts(model.date).year == 2026)
         // The focused field paints the selected slot in the accent colour.
         let painted = r.render(scale: 2).commands.map(\.description)
-        #expect(painted.contains { $0.hasPrefix("fillRRect(43, 3, 32, 16) r=2") })
+        #expect(painted.contains { $0.hasPrefix("fillRRect(43, 1, 32, 16) r=2") }, "\(painted.filter { $0.contains("r=2") })")
     }
 
     @Test func rangeAndPeriod() {
