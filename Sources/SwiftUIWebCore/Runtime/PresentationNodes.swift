@@ -79,6 +79,27 @@ package final class PresentationNode: ViewNode {
         CGRect(x: panel.minX + 13, y: panel.minY + (Self.windowTitleBarHeight - 12) / 2, width: 12, height: 12)
     }
 
+    /// A secondary window's scene options (sw-windows): where it opens, whether its corner
+    /// resizes it, whether it has a title bar.
+    package struct WindowOptions {
+        package var defaultPosition: UnitPoint?
+        package var resizable = true
+        package var hidesTitleBar = false
+    }
+    package var windowOptions = WindowOptions()
+    /// The title bar's height for this window (none when hidden; the lights still show).
+    package var titleBarHeight: CGFloat { windowOptions.hidesTitleBar ? 0 : Self.windowTitleBarHeight }
+    /// Where the user dragged the window to, and the size its corner was dragged to.
+    package var windowOrigin: CGPoint?
+    package var windowSize: CGSize?
+    /// The 16 pt square at the bottom-trailing corner that resizes a resizable window.
+    package var resizeGripFrame: CGRect { CGRect(x: panel.maxX - 16, y: panel.maxY - 16, width: 16, height: 16) }
+    /// The title bar's draggable part (beside the lights), or the top 16 pt without a bar.
+    package var dragBarFrame: CGRect {
+        let height = windowOptions.hidesTitleBar ? 16 : Self.windowTitleBarHeight
+        return CGRect(x: panel.minX + 72, y: panel.minY, width: max(0, panel.width - 72), height: height)
+    }
+
     /// Removes the presentation and resets its binding.
     package func dismiss() {
         runtime.remove(presentation: self)
@@ -257,26 +278,35 @@ package final class PresentationNode: ViewNode {
             panel = CGRect(origin: origin, size: size)
             arrow = nil
         case .window(_, let defaultSize):
-            // Content-sized (or the scene's default size), clamped to the window with a margin,
-            // centred and cascaded by the number of windows already open.
+            // Content-sized (or the scene's default size, or the size its corner was dragged
+            // to), clamped to the window with a margin; at the scene's default position (else
+            // centred) cascaded by the number of windows already open, or where it was dragged.
             let margin = PlatformMetrics.sheetMargin
-            let bar = Self.windowTitleBarHeight + toolbarHeight
+            let bar = titleBarHeight + toolbarHeight
             let available = CGSize(width: max(0, window.width - 2 * margin), height: max(0, window.height - 2 * margin - bar))
             var size: CGSize
-            if let defaultSize {
+            if let dragged = windowSize {
+                size = CGSize(width: min(dragged.width, available.width), height: min(dragged.height, available.height))
+            } else if let defaultSize {
                 size = CGSize(width: min(defaultSize.width, available.width), height: min(defaultSize.height, available.height))
             } else {
                 let natural = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
                 size = CGSize(width: min(natural.width + 2 * padding, available.width), height: min(natural.height + 2 * padding, available.height))
             }
-            let index = runtime.presentations.filter { $0.kind.isWindow }.firstIndex { $0 === self } ?? 0
-            let cascade = CGFloat(index) * Self.windowCascade
-            var origin = CGPoint(x: ((window.width - size.width) / 2 + cascade).rounded(), y: ((window.height - size.height - bar) / 2 + cascade).rounded())
+            var origin: CGPoint
+            if let dragged = windowOrigin {
+                origin = dragged
+            } else {
+                let index = runtime.presentations.filter { $0.kind.isWindow }.firstIndex { $0 === self } ?? 0
+                let cascade = CGFloat(index) * Self.windowCascade
+                let unit = windowOptions.defaultPosition ?? .center
+                origin = CGPoint(x: ((window.width - size.width) * unit.x + cascade).rounded(), y: ((window.height - size.height - bar) * unit.y + cascade).rounded())
+            }
             origin.x = min(max(margin, origin.x), max(margin, window.width - size.width - margin))
             origin.y = min(max(margin, origin.y), max(margin, window.height - size.height - bar - margin))
             panel = CGRect(x: origin.x, y: origin.y, width: size.width, height: size.height + bar)
             arrow = nil
-            layoutToolbar(top: Self.windowTitleBarHeight)
+            layoutToolbar(top: titleBarHeight)
             contentFrame = CGRect(x: panel.minX + padding, y: panel.minY + bar + padding, width: size.width - 2 * padding, height: size.height - 2 * padding)
             target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(contentFrame.size), by: runtime.root)
             return
@@ -370,16 +400,28 @@ package final class PresentationNode: ViewNode {
             list.append(.fillPath(path, environment._windowBackground))
         }
         if case .window(let title, _) = kind {
-            // The title bar: a hairline under it, the traffic lights, the title centred.
+            // The title bar: a hairline under it, the traffic lights, the title centred (a
+            // hidden title bar keeps the lights over the content); a resizable window's grip.
             let bar = CGRect(x: panel.minX, y: panel.minY, width: panel.width, height: Self.windowTitleBarHeight)
-            let separator = context.absoluteRect(CGRect(x: bar.minX, y: bar.maxY - 0.5, width: bar.width, height: 0.5))
-            list.append(.fillRect(separator, black(0.1)))
+            if !windowOptions.hidesTitleBar {
+                let separator = context.absoluteRect(CGRect(x: bar.minX, y: bar.maxY - 0.5, width: bar.width, height: 0.5))
+                list.append(.fillRect(separator, black(0.1)))
+            }
             let lights: [RGBA] = [RGBA(r: 255, g: 95, b: 87), RGBA(r: 254, g: 188, b: 46), RGBA(r: 40, g: 200, b: 64)]
             for (i, color) in lights.enumerated() {
                 let dot = CGRect(x: closeButtonFrame.minX + CGFloat(i) * 20, y: closeButtonFrame.minY, width: 12, height: 12)
                 list.append(.fillPath(Path(ellipseIn: context.absoluteRect(dot)), color))
             }
-            if let title, !title.isEmpty {
+            if windowOptions.resizable {
+                let grip = context.absoluteRect(resizeGripFrame)
+                var lines = Path()
+                for offset in [4.0, 8.0] {
+                    lines.move(to: CGPoint(x: grip.maxX - offset, y: grip.maxY - 3))
+                    lines.addLine(to: CGPoint(x: grip.maxX - 3, y: grip.maxY - offset))
+                }
+                list.append(.strokePath(lines, style: StrokeStyle(lineWidth: 1), black(0.25)))
+            }
+            if let title, !title.isEmpty, !windowOptions.hidesTitleBar {
                 let font = Font.system(size: 13, weight: .semibold).resolve(profile: environment.platformProfile)
                 let layout = runtime.layoutText(title, font: font, width: nil)
                 let x = bar.midX - layout.size.width / 2
@@ -437,6 +479,8 @@ package final class PresentationNode: ViewNode {
     package func interactiveNode(at point: CGPoint) -> (ViewNode & _Interactive)? {
         guard panel.contains(point), let target else { return nil }
         if kind.isWindow, closeButtonFrame.insetBy(dx: -4, dy: -4).contains(point) { return closeButton }
+        if kind.isWindow, windowOptions.resizable, resizeGripFrame.contains(point) { windowHandle.mode = .resize; return windowHandle }
+        if kind.isWindow, dragBarFrame.contains(point) { windowHandle.mode = .move; return windowHandle }
         if let toolbarBar, let hit = toolbarBar.interactiveNode(at: point) { return hit }
         let local = CGPoint(x: point.x - target.frame.minX, y: point.y - target.frame.minY)
         guard target.contains(local) else { return nil }
@@ -445,6 +489,15 @@ package final class PresentationNode: ViewNode {
 
     /// The traffic-light close control of a secondary window.
     private lazy var closeButton: WindowCloseButton = WindowCloseButton(presentation: self)
+    /// The title bar (moves the window) and the corner grip (resizes it).
+    private lazy var windowHandle: WindowHandle = WindowHandle(presentation: self)
+
+    /// The pointer style over a window's grip or bar (`Runtime.updateHover`).
+    package func pointerStyle(at point: CGPoint) -> PointerStyle? {
+        guard kind.isWindow, panel.contains(point) else { return nil }
+        if windowOptions.resizable, resizeGripFrame.contains(point) { return .frameResize(position: .bottomTrailing) }
+        return nil
+    }
 
     package var interactiveNodes: [ViewNode & _Interactive] {
         (toolbarBar?.interactiveNodes ?? []) + (target?.collectNodes(where: { $0.isInteractiveNode }) ?? []).compactMap { $0 as? (ViewNode & _Interactive) }
@@ -606,6 +659,49 @@ package final class PresentationOptionsNode<Content: View>: UnaryLayoutModifierN
             current = node.parent
         }
     }
+}
+
+/// A secondary window's title bar and corner grip: dragging the bar moves the window, dragging
+/// the grip resizes it (the content lays out again at the new size); both clamp to the host.
+@MainActor
+package final class WindowHandle: ViewNode, _Interactive {
+    package enum Mode { case move, resize }
+    private weak var owner: PresentationNode?
+    package var mode = Mode.move
+    private var start: (point: CGPoint, origin: CGPoint, size: CGSize)?
+
+    package init(presentation: PresentationNode) {
+        self.owner = presentation
+        super.init(parent: presentation.runtime.root, runtime: presentation.runtime, environment: presentation.environment)
+    }
+
+    /// The handle covers the whole panel, so press points are panel-relative.
+    override package var frame: CGRect {
+        get { owner?.panel ?? .zero }
+        set {}
+    }
+
+    package func pressBegan() {}
+    package func pressBegan(at point: CGPoint) {
+        guard let owner else { return }
+        start = (point, owner.panel.origin, CGSize(width: owner.panel.width, height: owner.panel.height - owner.titleBarHeight))
+    }
+
+    package func pressMoved(to point: CGPoint) {
+        guard let owner, let start else { return }
+        let dx = point.x - start.point.x, dy = point.y - start.point.y
+        switch mode {
+        case .move: owner.windowOrigin = CGPoint(x: start.origin.x + dx, y: start.origin.y + dy)
+        case .resize: owner.windowSize = CGSize(width: max(120, start.size.width + dx), height: max(60, start.size.height + dy))
+        }
+        runtime.requestLayout(invalidatingSizes: mode == .resize)
+    }
+
+    package func pressEnded(inside: Bool) { start = nil }
+    package var semantics: SemanticsNode {
+        SemanticsNode(role: .group, label: "", frame: owner?.dragBarFrame ?? .zero, identifier: ObjectIdentifier(self).hashValue)
+    }
+    override package var nodeDescription: String { "WindowHandle" }
 }
 
 /// The close control in a secondary window's title bar.

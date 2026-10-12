@@ -1,3 +1,8 @@
+#if os(WASI)
+import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
+#else
+import Foundation
+#endif
 /// Owns one mounted view tree, its scheduler and (from step 9) the layout and painting
 /// pipeline. Hosts (canvas, headless) create one runtime per window.
 @MainActor
@@ -210,6 +215,15 @@ public final class Runtime {
     public var clipboardWriter: ((String) -> Void)?
     /// Window scenes and the secondary windows opened from them (Runtime/WindowNodes.swift).
     package var windowDescriptors: [_WindowDescriptor] = []
+    package var windowStore: (get: () -> String?, set: (String) -> Void)?
+    package var documentOpen: ((_ types: [UTType], _ completion: @escaping @MainActor (Data, String, URL?) -> Void) -> Void)?
+    package var documentSave: ((_ data: Data, _ name: String, _ type: UTType, _ existing: URL?) -> URL?)?
+    /// The app's menu commands (`Scene.commands`), mounted in a hidden tree so their shortcuts
+    /// work; hosts with a menu bar read `commandMenus` (Runtime/CommandMenuNodes.swift).
+    package var commandMenuData: [_CommandMenuData] = []
+    package var commandsRoots: [TypedNode<AnyView>] = []
+    /// The secondary window a press last landed in: Tab cycles its controls (sw-windows).
+    package weak var keyWindow: PresentationNode?
     package var openWindows: [OpenWindow] = []
     package var nextWindowIdentity = 1
     /// Drag and drop (Runtime/DragDropNodes.swift): the drag in progress and the source a press may lift.

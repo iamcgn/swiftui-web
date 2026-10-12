@@ -1,6 +1,7 @@
 import SwiftUIWebCore
 #if os(WASI)
 import JavaScriptEventLoop
+import JavaScriptKit
 @_exported import WebGraphicsCanvas
 
 /// A SwiftUI `Runtime` in the browser: the substrate's `CanvasSceneHost` (decision 0014) with the
@@ -16,8 +17,17 @@ public final class CanvasHost {
     public static func launch(windows: [_WindowDescriptor] = [], _ root: @MainActor () -> AnyView) {
         JavaScriptEventLoop.installGlobalExecutor()
         let host = CanvasHost()
+        // Open windows are remembered in localStorage and reopened on the next load (sw-windows).
+        if let storage = JSObject.global.localStorage.object {
+            host.runtime.windowStateStore = (get: { storage.getItem?("swiftuiweb.windows").string },
+                                             set: { _ = storage.setItem?("swiftuiweb.windows", $0) })
+        }
+        // Documents open through a file input and save as downloads (sw-windows).
+        host.runtime.documentOpenHandler = { [weak host] types, completion in host?.host.openFile(extensions: types.compactMap(\.preferredFilenameExtension), completion: completion) }
+        host.runtime.documentSaveHandler = { [weak host] data, name, _, _ in host?.host.download(Array(data), name: name); return nil }
         host.runtime.installWindows(windows)
         host.mount(root())
+        host.runtime.restoreWindows()
         retained = host
     }
 

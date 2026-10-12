@@ -18,8 +18,12 @@ Apple docs: [WindowGroup](https://developer.apple.com/documentation/swiftui/wind
 | `dismissWindow()`, `dismissWindow(id:)`, `dismissWindow(value:)`, `dismissWindow(id:value:)` | implemented (`dismissWindow()` in the main window does nothing) |
 | `supportsMultipleWindows` | always true |
 | Scene modifiers: `defaultSize` | implemented (the window opens at that size) |
-| Scene modifiers: `windowResizability`, `windowStyle`, `defaultPosition`, `menuBarExtraStyle` | accepted and ignored |
-| `DocumentGroup`, `WindowGroup` restoration, `commands` on scenes, window dragging and resizing, per-window focus and keyboard routing | missing |
+| Scene modifiers: `defaultPosition`, `windowResizability`, `windowStyle` | implemented 2026-10-11: the window opens at the unit point of the host (centred by default), `.contentSize` takes the corner grip away, `.hiddenTitleBar` and `.plain` open it without the 28 pt bar (the lights stay over the content); `menuBarExtraStyle` accepted |
+| Window dragging and resizing | implemented 2026-10-11: the title bar beside the lights (the top 16 pt without a bar) drags the window, a 16 pt grip at the bottom-trailing corner resizes a resizable one (the content lays out again at the new size, a `frameResize` pointer over it); both clamp to the host's margins |
+| Per-window focus and keyboard routing | implemented 2026-10-11: the window a press lands in is the key window (`Runtime.keyWindow`; a new window is key as it opens) and Tab cycles its controls; a press beside every window gives the keyboard back to the main one; keyboard shortcuts stay app-wide |
+| `commands` on scenes: `Commands`, `CommandsBuilder`, `CommandMenu`, `CommandGroup(before:/after:/replacing:)`, `CommandGroupPlacement`, `EmptyCommands`, `ToolbarCommands`, `SidebarCommands`, `TextEditingCommands`, `TextFormattingCommands`, `ImportFromDevicesCommands`, `InspectorCommands` | implemented 2026-10-11: each menu's content is mounted in a hidden tree so its `keyboardShortcut`s match key presses in every host; `Runtime.commandMenus` describes the menus (titles, items with labels, shortcuts, enabled and checked states, dividers; a group's placement names its standard menu) and `performCommand(identifier:)` runs an item; the native host builds `NSApp.mainMenu` from them (the app menu with Quit, File/Edit/View/Window/Help as placements ask, the `CommandMenu`s in order). Browsers have no menu bar: the shortcuts are the commands there |
+| `DocumentGroup(newDocument:editor:)`, `DocumentGroup(viewing:viewer:)`, `FileDocument`, `FileDocumentConfiguration` (`document`, `$document`, `fileURL`, `isEditable`), `FileDocumentReadConfiguration`, `FileDocumentWriteConfiguration`, `FileWrapper` (a wasm stand-in for regular files and directories) | implemented 2026-10-11: the main window shows a new document; File > New ⌘N opens another window with one, Open… ⌘O reads a file through the host (the browser's file input, `NSOpenPanel`) into a new window, Save ⌘S and Save As… ⇧⌘S write the frontmost document's bytes through the host (a download named after the file, `NSSavePanel` or the file's URL); the document commands join the File menu. `ReferenceFileDocument` is not offered |
+| `WindowGroup` restoration | implemented 2026-10-11: hosts give the runtime a store (`windowStateStore`: localStorage in the browser, the defaults natively) where the open windows' ids and their string, integer, double or boolean values are kept; `restoreWindows()` reopens them at the next launch (other value types and documents are not restored) |
 
 ## Behaviour
 
@@ -47,7 +51,13 @@ Covered by `WindowTests` on the headless runtime (scene registration, opening by
 value, closing by the control and by action, settings, non-modality). No goldens: SwiftUI opens
 real windows the harness does not capture, so the chrome is by eye, not measured.
 
+`WindowTests.modifiersDraggingCommandsAndDocuments` covers the modifiers, dragging and
+resizing, the key window, commands (shortcut, description, running an item), documents (new,
+open and save through the host hooks) and restoration.
+
 ## Open
 
 - Real browser windows for `openWindow` (the runtime would need a second host with shared
-  state), window moving and resizing, `DocumentGroup`, restoring windows on reload.
+  state), restoring documents and `Codable` window values, `ReferenceFileDocument`, the
+  standard menus' own items natively (Edit's Undo/Cut/Copy/Paste rows come from the responder
+  commands, not the menu bar).

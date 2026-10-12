@@ -29,7 +29,7 @@ Apple docs: [toolbar(content:)](https://developer.apple.com/documentation/swiftu
 | `searchable(text:tokens:…)` (with `isPresented`, `suggestedTokens`), `token` builder | implemented: tokens precede the text as grey tags (iOS 26's 28.5 pt tags; small ones in the macOS field); `suggestedTokens` is accepted without effect |
 | `searchPresentationToolbarBehavior(_:)` | implemented: `.avoidHidingContent` keeps the iOS bar while presented (unmeasured); the automatic behaviour hides it |
 | `searchToolbarBehavior(.minimize)` (iOS 26), `SearchFieldPlacement.navigationBarDrawer` | accepted without effect |
-| `ToolbarCommands` | with `commands` (sw-windows) |
+| `ToolbarCommands` | compiles (sw-windows: a `Commands` conformance contributing nothing; the painted chrome has no Show/Hide Toolbar menu) |
 | A real `NSToolbar` in the native host | open: the items are arbitrary views, so a real bar needs them hosted as `NSView`s (`ix-appkit`); the native host paints the chrome bar meanwhile |
 
 ## Behaviour

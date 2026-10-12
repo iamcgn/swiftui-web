@@ -794,6 +794,57 @@ public final class CanvasSceneHost {
         return true
     }
 
+    private var fileInput: JSObject?
+    private var fileClosures: [JSClosure] = []
+
+    /// Opens the browser's file picker (a file input clicked inside the press) for the
+    /// extensions and reads the chosen file's bytes (sw-windows: a document group's Open…).
+    public func openFile(extensions: [String], completion: @escaping @MainActor (Data, String, URL?) -> Void) {
+        guard let input = fileInput ?? document.createElement!("input").object else { return }
+        if fileInput == nil {
+            _ = input.setAttribute!("type", "file")
+            let style = input.style.object!
+            style.position = .string("absolute"); style.opacity = .string("0"); style.pointerEvents = .string("none"); style.width = .string("1px"); style.height = .string("1px")
+            _ = overlay.appendChild!(input)
+            fileInput = input
+        }
+        input.accept = .string(extensions.map { "." + $0 }.joined(separator: ","))
+        input.value = .string("")
+        let onChange = JSClosure { [weak self] _ in
+            guard let self, let file = input.files.object?[0].object, let name = file.name.string else { return .undefined }
+            let onBuffer = JSClosure { arguments in
+                MainActor.assumeIsolated {
+                    guard let buffer = arguments.first?.object else { return }
+                    let bytes = JSTypedArray<UInt8>(unsafelyWrapping: JSObject.global.Uint8Array.function!.new(buffer))
+                    completion(Data(bytes.withUnsafeBytes { Array($0) }), name, nil)
+                    self.scheduleFrame()
+                }
+                return .undefined
+            }
+            self.fileClosures.append(onBuffer)
+            _ = file.arrayBuffer?().object?.then?(onBuffer)
+            return .undefined
+        }
+        fileClosures = [onChange]
+        input.onchange = .object(onChange)
+        _ = input.click!()
+    }
+
+    /// Hands the browser a file to save: a Blob download named `name` (sw-windows: Save).
+    public func download(_ bytes: [UInt8], name: String) {
+        guard let blobConstructor = JSObject.global.Blob.function, let urlClass = JSObject.global.URL.object else { return }
+        let parts = JSObject.global.Array.function!.new()
+        _ = parts.push!(JSTypedArray<UInt8>(bytes).jsValue)
+        let blob = blobConstructor.new(parts)
+        guard let url = urlClass.createObjectURL?(blob).string, let anchor = document.createElement!("a").object else { return }
+        anchor.href = .string(url)
+        anchor.download = .string(name)
+        _ = overlay.appendChild!(anchor)
+        _ = anchor.click!()
+        _ = overlay.removeChild!(anchor)
+        _ = urlClass.revokeObjectURL?(url)
+    }
+
     /// `#rrggbb` for a colour input (no alpha).
     private static func hex(_ color: RGBA) -> String {
         func channel(_ value: Double) -> String {

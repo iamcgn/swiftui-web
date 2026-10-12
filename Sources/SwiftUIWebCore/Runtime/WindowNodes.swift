@@ -15,6 +15,7 @@ extension Runtime {
     /// Installs the window actions in the root environment (hosts call this with the app's scenes).
     public func installWindows(_ descriptors: [_WindowDescriptor]) {
         windowDescriptors = descriptors
+        installCommands(documentCommands() + descriptors.flatMap(\.commands))
         rootEnvironment.openWindow = OpenWindowAction { [weak self] id, value in self?.openWindow(id: id, value: value) }
         rootEnvironment.dismissWindow = DismissWindowAction { [weak self] id, value, current in
             guard let self else { return }
@@ -63,7 +64,8 @@ extension Runtime {
     private func present(_ descriptor: _WindowDescriptor, value: AnyHashable?) -> Bool {
         let identity = nextWindowIdentity
         nextWindowIdentity += 1
-        let box = descriptor.valueType == nil ? nil : _WindowValueBox(value?.base)
+        // A value window's box carries its value; a document window's its document state.
+        let box = descriptor.valueType == nil && descriptor.documentType == nil ? nil : _WindowValueBox(value?.base)
         var environment = rootEnvironment
         environment._windowIdentity = identity
         environment.dismissWindow = DismissWindowAction { [weak self] id, value, current in
@@ -73,19 +75,79 @@ extension Runtime {
         let view = descriptor.make(box)
         let node = present(kind: .window(title: descriptor.title, size: descriptor.defaultSize), view: view, environment: environment, anchor: nil) { [weak self] in
             self?.openWindows.removeAll { $0.identity == identity }
+            self?.persistWindows()
         }
+        node.windowOptions = PresentationNode.WindowOptions(defaultPosition: descriptor.defaultPosition, resizable: descriptor.resizable, hidesTitleBar: descriptor.hidesTitleBar)
         box?.onChange = { [weak node, weak self] in
             guard let node, let self else { return }
             node.update(view: descriptor.make(box))
             self.requestLayout()
         }
         openWindows.append(OpenWindow(identity: identity, descriptor: descriptor, value: value, box: box, node: node))
+        // A window just opened is the key window (its document is the frontmost).
+        keyWindow = node
+        persistWindows()
         return true
+    }
+
+    // MARK: Restoration (sw-windows)
+
+    /// Where the open windows are remembered between launches (the browser host's
+    /// localStorage, UserDefaults natively): ids and the values of value window groups when
+    /// they are strings, integers, doubles or booleans. Hosts set it before `installWindows`.
+    public var windowStateStore: (get: () -> String?, set: (String) -> Void)? {
+        get { windowStore }
+        set { windowStore = newValue }
+    }
+
+    private func persistWindows() {
+        guard let store = windowStateStore else { return }
+        let entries: [String] = openWindows.compactMap { window in
+            guard window.descriptor.kind != .settings else { return "settings" }
+            var entry = "id=" + (window.descriptor.id ?? "")
+            if let value = window.value?.base {
+                switch value {
+                case let string as String: entry += "\ts=" + string
+                case let int as Int: entry += "\ti=\(int)"
+                case let double as Double: entry += "\td=\(double)"
+                case let bool as Bool: entry += "\tb=\(bool)"
+                default: return nil
+                }
+            }
+            return entry
+        }
+        store.set(entries.joined(separator: "\n"))
+    }
+
+    /// Reopens the windows a previous launch left open (`windowStateStore`); hosts call it once
+    /// the root is mounted.
+    public func restoreWindows() {
+        guard let stored = windowStateStore?.get(), !stored.isEmpty else { return }
+        for line in stored.split(separator: "\n") {
+            if line == "settings" { openSettings(); continue }
+            let parts = line.split(separator: "\t", omittingEmptySubsequences: false)
+            guard let first = parts.first, first.hasPrefix("id=") else { continue }
+            let id = String(first.dropFirst(3))
+            var value: Any?
+            if parts.count > 1 {
+                let field = parts[1]
+                let payload = String(field.dropFirst(2))
+                switch field.prefix(2) {
+                case "s=": value = payload
+                case "i=": value = Int(payload)
+                case "d=": value = Double(payload)
+                case "b=": value = Bool(payload)
+                default: break
+                }
+            }
+            if value != nil, id.isEmpty { openWindow(id: nil, value: value) } else { openWindow(id: id.isEmpty ? nil : id, value: value) }
+        }
     }
 
     private func bringToFront(_ node: PresentationNode) {
         guard let index = presentations.firstIndex(where: { $0 === node }) else { return }
         presentations.append(presentations.remove(at: index))
+        keyWindow = node
         setNeedsDisplay()
     }
 

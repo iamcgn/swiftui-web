@@ -36,7 +36,9 @@ extension Runtime {
                 node.hoverChanged(inside: true, at: CGPoint(x: point.x - origin.x, y: point.y - origin.y))
             }
         }
-        setPointerStyle(current.reversed().lazy.compactMap { ($0 as? any _PointerStyled)?.pointerStyle }.first ?? nil)
+        // A window's resize grip shows its cursor over everything under it.
+        let windowStyle = point.flatMap { p in presentations.reversed().lazy.compactMap { $0.pointerStyle(at: p) }.first }
+        setPointerStyle(windowStyle ?? current.reversed().lazy.compactMap { ($0 as? any _PointerStyled)?.pointerStyle }.first ?? nil)
         // The open menus highlight the row under the pointer (the topmost menu that contains it).
         var owned = false
         for presentation in presentations.reversed() where presentation.kind.isMenu {

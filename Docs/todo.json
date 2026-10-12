@@ -1518,13 +1518,14 @@
       "framework": "SwiftUI",
       "area": "Windows",
       "title": "Window commands, dragging and documents",
-      "detail": "`commands` on scenes and a menu bar in the native host, dragging and resizing the in-host windows, per-window focus and keyboard routing, `DocumentGroup`, restoration, the accepted scene modifiers (`windowResizability`, `windowStyle`, `defaultPosition`).",
+      "detail": "`commands` on scenes and a menu bar in the native host, dragging and resizing the in-host windows, per-window focus and keyboard routing, `DocumentGroup`, restoration, the accepted scene modifiers (`windowResizability`, `windowStyle`, `defaultPosition`). Done 2026-10-11 (Phase 9, item 26): `commands` (CommandMenu/CommandGroup, shortcuts everywhere, the native menu bar), dragging and resizing in-host windows, the key window for Tab, `DocumentGroup`/`FileDocument` through the hosts' panels, restoration of open windows, `defaultPosition`/`windowResizability`/`windowStyle` with effect.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Windows.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-table",

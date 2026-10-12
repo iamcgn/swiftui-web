@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 8 | 0 | 0 | 8 |
+| SwiftUI | 7 | 0 | 0 | 7 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **24** | 0 | 1 | 23 |
+| **All** | **23** | 0 | 1 | 22 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Window commands, dragging and documents** `sw-windows` · Windows · missing  
-  `commands` on scenes and a menu bar in the native host, dragging and resizing the in-host windows, per-window focus and keyboard routing, `DocumentGroup`, restoration, the accepted scene modifiers (`windowResizability`, `windowStyle`, `defaultPosition`). ([Windows.md](Docs/elements/Windows.md))
 - ☐ **Table columns, styles and interaction** `sw-table` · Table · missing  
   `TableColumnForEach`, column groups, `TableRow` builders, `tableStyle`, `tableColumnHeaders`, `alternatingRowBackgrounds`, disclosure rows, column resizing by drag, row context menus, horizontal scrolling of overflowing columns, scrolling rows; the band look (approximate). ([Table.md](Docs/elements/Table.md))
 - ☐ **Drags across the app boundary** `sw-dragdrop-os` · Drag and drop · missing  
@@ -104,6 +102,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **ShareLink items and previews** `sw-sharelink` · SwiftUI · ShareLink
 - ☑ 2026-10-11 **Toolbar modifiers with an effect** `sw-toolbar` · SwiftUI · Toolbar
 - ☑ 2026-10-11 **NavigationSplitView chrome** `sw-splitview` · SwiftUI · Navigation
+- ☑ 2026-10-11 **Window commands, dragging and documents** `sw-windows` · SwiftUI · Windows
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

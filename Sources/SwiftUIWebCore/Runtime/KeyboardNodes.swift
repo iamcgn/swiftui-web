@@ -146,6 +146,9 @@ extension Runtime {
         let nodes: [ViewNode & _Interactive]
         if let top = presentations.last, top.isModal {
             nodes = top.interactiveNodes
+        } else if let keyWindow, keyWindow.isMounted, presentations.contains(where: { $0 === keyWindow }) {
+            // The secondary window a press last landed in keeps the keyboard (sw-windows).
+            nodes = keyWindow.interactiveNodes
         } else {
             nodes = interactiveNodes
         }
@@ -314,7 +317,9 @@ extension Runtime {
     }
 
     private var shortcutNodes: (presented: [any _ShortcutMatching], window: [any _ShortcutMatching]) {
-        let window = root.descendants(where: { $0 is any _ShortcutMatching }).compactMap { $0 as? any _ShortcutMatching }
+        // The window's own shortcuts, then the app's menu commands' (`Scene.commands`).
+        var window = root.descendants(where: { $0 is any _ShortcutMatching }).compactMap { $0 as? any _ShortcutMatching }
+        for commandsRoot in commandsRoots { window += commandsRoot.descendants(where: { $0 is any _ShortcutMatching }).compactMap { $0 as? any _ShortcutMatching } }
         var presented: [any _ShortcutMatching] = []
         for presentation in presentations.reversed() {
             for child in presentation.structuralChildren {

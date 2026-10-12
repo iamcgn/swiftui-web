@@ -128,6 +128,9 @@ extension Runtime {
         // A touch that stopped a decelerating scroll view belongs to it, not to a control.
         if pan?.active == true { return }
         pendingDrag = dragSource(at: point).map { ($0, point) }
+        // The secondary window a press lands in takes the keyboard (Tab cycles its controls);
+        // a press beside every window gives it back to the main one (sw-windows).
+        if hasPresentations { keyWindow = presentations.last { $0.kind.isWindow && $0.panel.contains(point) } }
         let node = interactiveNode(at: point)
         // A press anywhere but on the selected text clears its selection.
         if let owner = textSelectionOwner, owner !== node { textSelectionOwner = nil }

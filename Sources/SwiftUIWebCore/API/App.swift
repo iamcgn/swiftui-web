@@ -59,6 +59,16 @@ public struct _WindowDescriptor {
     package var title: String?
     package var valueType: Any.Type?
     package var defaultSize: CGSize?
+    /// `defaultPosition`: where the window opens in the host (centred when nil).
+    package var defaultPosition: UnitPoint?
+    /// `windowResizability(.contentSize)`: the window keeps its content's size (no resize grip).
+    package var resizable = true
+    /// `windowStyle(.hiddenTitleBar)` / `.plain`: no title bar (the traffic lights stay).
+    package var hidesTitleBar = false
+    /// `commands` on the scene: the app's menus (`Commands`).
+    package var commands: [_CommandMenuData] = []
+    /// A `DocumentGroup`'s document operations (the runtime's New, Open and Save).
+    package var documentType: _DocumentTypeBox?
     /// Builds the root for a window; a window group over a value gets the box its binding writes to.
     package let make: @MainActor (_WindowValueBox?) -> AnyView
 
@@ -214,10 +224,12 @@ public struct MenuBarExtraStyle: Sendable {
     public static var window: MenuBarExtraStyle { MenuBarExtraStyle() }
 }
 public struct WindowStyle: Sendable {
+    package let hidesTitleBar: Bool
+    package init(hidesTitleBar: Bool = false) { self.hidesTitleBar = hidesTitleBar }
     public static var automatic: WindowStyle { WindowStyle() }
-    public static var hiddenTitleBar: WindowStyle { WindowStyle() }
+    public static var hiddenTitleBar: WindowStyle { WindowStyle(hidesTitleBar: true) }
     public static var titleBar: WindowStyle { WindowStyle() }
-    public static var plain: WindowStyle { WindowStyle() }
+    public static var plain: WindowStyle { WindowStyle(hidesTitleBar: true) }
 }
 
 extension Scene {
@@ -226,10 +238,22 @@ extension Scene {
         _ModifiedScene(base: self) { $0.defaultSize = CGSize(width: width, height: height) }
     }
     public func defaultSize(_ size: CGSize) -> some Scene { defaultSize(width: size.width, height: size.height) }
-    public func windowResizability(_ resizability: WindowResizability) -> some Scene { _ModifiedScene(base: self) { _ in } }
-    public func windowStyle(_ style: WindowStyle) -> some Scene { _ModifiedScene(base: self) { _ in } }
+    /// `.contentSize` keeps an in-host window at its content's size (no resize grip); the
+    /// others let its corner drag.
+    public func windowResizability(_ resizability: WindowResizability) -> some Scene {
+        _ModifiedScene(base: self) { $0.resizable = resizability != .contentSize }
+    }
+    /// `.hiddenTitleBar` and `.plain` open the in-host window without its 28 pt title bar.
+    public func windowStyle(_ style: WindowStyle) -> some Scene { _ModifiedScene(base: self) { $0.hidesTitleBar = style.hidesTitleBar } }
     public func menuBarExtraStyle(_ style: MenuBarExtraStyle) -> some Scene { _ModifiedScene(base: self) { _ in } }
-    public func defaultPosition(_ position: UnitPoint) -> some Scene { _ModifiedScene(base: self) { _ in } }
+    /// Where the in-host window opens (a unit point of the host; centred by default).
+    public func defaultPosition(_ position: UnitPoint) -> some Scene { _ModifiedScene(base: self) { $0.defaultPosition = position } }
+    /// The app's menu commands (`CommandMenu`, `CommandGroup`): their keyboard shortcuts work in
+    /// every host, the native host builds its menu bar from them.
+    public func commands<C: Commands>(@CommandsBuilder content: () -> C) -> some Scene {
+        let menus = content()._commandMenus
+        return _ModifiedScene(base: self) { $0.commands += menus }
+    }
 }
 
 @MainActor @preconcurrency
@@ -251,11 +275,18 @@ extension App {
         Body._windows(of: Self().body)
     }
 
-    /// The root of the main window: the first window group (or window).
+    /// The root of the main window: the first window group (or window). A document group's
+    /// main window gets a value box of its own (`Runtime.mainWindowBox`: its document).
     @MainActor
     public static func _rootView() -> AnyView {
         let windows = _windows()
         let main = windows.first { $0.kind == .windowGroup || $0.kind == .window } ?? windows.first
-        return main?.make(nil) ?? AnyView(EmptyView())
+        guard let main else { return AnyView(EmptyView()) }
+        if main.documentType != nil {
+            let box = _WindowValueBox(nil)
+            Runtime.mainWindowBox = box
+            return main.make(box)
+        }
+        return main.make(nil)
     }
 }
