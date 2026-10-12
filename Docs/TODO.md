@@ -4,10 +4,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
 | Platform | 3 | 0 | 1 | 2 |
-| **All** | **5** | 0 | 1 | 4 |
+| **All** | **4** | 0 | 1 | 3 |
 
 ## Next (Phase 8, in order)
 
@@ -19,11 +18,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
   Japanese and Chinese IMEs and Safari autofill through the overlay input (spike 0.12's risk), a VoiceOver session in Safari; the findings recorded per browser in the matrix. ([ROADMAP.md](Docs/ROADMAP.md))
 
 ## Later (needs a decision, a subsystem or a platform)
-
-### Interop
-
-- ☐ **NSViewRepresentable and NSViewControllerRepresentable** `ix-appkit` · AppKit · missing  
-  Apps written for the macOS profile reach for AppKit representables; there is no AppKitWeb to host them. Out of scope until a decision says whether an AppKitWeb is worth building or the API should compile as an empty view; recorded here so the choice is visible. ([0014-uikitweb.md](Docs/decisions/0014-uikitweb.md))
 
 ### SwiftUI
 
@@ -52,6 +46,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **UISplitViewController** `uk-splitviewcontroller` · UIKit · Containers
 - ☑ 2026-10-12 **Share and document pickers** `uk-system-sheets` · UIKit · Presentation
 - ☑ 2026-10-12 **First frame and large lists** `pf-perf` · Platform · Performance
+- ☑ 2026-10-12 **NSViewRepresentable and NSViewControllerRepresentable** `ix-appkit` · Interop · AppKit
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

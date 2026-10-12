@@ -1784,13 +1784,14 @@
       "framework": "Interop",
       "area": "AppKit",
       "title": "NSViewRepresentable and NSViewControllerRepresentable",
-      "detail": "Apps written for the macOS profile reach for AppKit representables; there is no AppKitWeb to host them. Out of scope until a decision says whether an AppKitWeb is worth building or the API should compile as an empty view; recorded here so the choice is visible.",
+      "detail": "Apps written for the macOS profile reach for AppKit representables; there is no AppKitWeb to host them. Out of scope until a decision says whether an AppKitWeb is worth building or the API should compile as an empty view; recorded here so the choice is visible. Done 2026-10-12 (Phase 9, item 45, decision 0018): NSViewRepresentable and NSViewControllerRepresentable compile everywhere; the native macOS host hosts the real NSView over the painted content (Runtime.nativeViewHost), other hosts an empty sized view (NSViewRepresentableTests, AppKitRepresentableTests); open: layout options, presentation windows, NSHostingView.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/decisions/0014-uikitweb.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "pf-native-text",

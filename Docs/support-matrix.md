@@ -14,8 +14,8 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 |---|---|---|---|---|---|---|
 | SwiftUI | 137 | 37 | 94 | 2 | 2 | 2 |
 | UIKit | 57 | 20 | 33 | 4 | 0 | 0 |
-| Interop | 12 | 0 | 12 | 0 | 0 | 0 |
-| **All** | **206** | 57 | 139 | 6 | 2 | 2 |
+| Interop | 13 | 0 | 13 | 0 | 0 | 0 |
+| **All** | **207** | 57 | 140 | 6 | 2 | 2 |
 
 ## App lifecycle
 
@@ -295,6 +295,7 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 | `Color(uiColor:) / Image(uiImage:) / Font(_ uiFont:)` | 🟢 partial | A UIColor resolves per appearance; a UIImage names its catalog image or symbol (template rendering kept) or carries an image context's recording, replayed at its size, scaled when resizable, its silhouette as a template, with pngData() through the host's rasteriser; a UIFont maps to the text style or size and weight | ios/representable/renderedimage |
 | `UIHostingController` | 🟢 partial | init(rootView:), rootView (animated under withAnimation), sizeThatFits(in:), sizingOptions (preferredContentSize kept current, intrinsicContentSize invalidated on change), safeAreaRegions (a navigation or tab bar's safe area is the content's; empty regions fill the view); navigationTitle and toolbar items become the navigation item's title and bar buttons; the SwiftUI runtime paints into the UIKit scene's display list, takes touches and joins the semantics tree through UIKitWeb's hosting SPI | ios/representable/hostingnav, ios/representable/hostingsizing, ios/representable/hostingsafearea, ios/representable/hostingsafearea-none, ios/representable/hostingsafearea-tabs |
 | `UIHostingConfiguration` | 🟢 partial | SwiftUI content as a table or collection cell's contentConfiguration with margins (16 sideways, 15 above and below, measured), background(_:) and minSize (56 by default); table rows are the fit plus the separator point, collection list cells the fit; the cell's configuration state rebuilds the content through configurationUpdateHandler | ios/representable/hostingcells, ios/representable/hostingmargins, ios/representable/hostingcollection, ios/representable/hostingstate |
+| `NSViewRepresentable / NSViewControllerRepresentable (contexts, coordinators, sizeThatFits, dismantling)` | 🟢 partial | The protocols compile everywhere; on the native macOS host the real NSView joins the window over the painted content at its node's frame (sized by its fitting size, moved with the layout, removed on unmount); the browser, Linux and headless hosts lay the representable out as an empty view of its size (no AppKitWeb: the view class exists only where AppKit does); open: safe-area layout options, views in presentation windows, hover and focus across the seam, NSHostingView | — The native host's NSView draws itself over the painted content, outside the goldens; other hosts show nothing there (NSViewRepresentableTests and AppKitRepresentableTests cover the sizing and the hosting) |
 
 ## WebFoundation on wasm (decision 0017, pf-web-foundation-gaps)
 

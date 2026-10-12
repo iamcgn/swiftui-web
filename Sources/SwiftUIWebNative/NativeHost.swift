@@ -35,6 +35,8 @@ public final class NativeHost {
             guard let self else { return }
             OpenURLAction.systemHandler = { url in host.openURL(url) }
             ShareAction.systemHandler = { request in host.share(items: request.strings, subject: request.subject, message: request.message, files: request.files) }
+            // AppKit representables' views live in the window over the painted content (ix-appkit).
+            self.runtime.nativeViewHost = AppKitViewHost(view: host.view)
             // Open windows are remembered in the defaults and reopened at the next launch; the
             // app's menu commands make the menu bar (sw-windows).
             self.runtime.windowStateStore = (get: { UserDefaults.standard.string(forKey: "swiftuiweb.windows") },
@@ -169,3 +171,40 @@ public final class NativeHost {
     }
 }
 #endif
+
+
+/// Places the `NSView`s AppKit representables make as subviews of the runtime's view at their
+/// nodes' frames (the view is flipped, so the scene's coordinates are its own), sizes them by
+/// their fitting size, and removes them when their nodes unmount (ix-appkit, decision 0018).
+@MainActor
+final class AppKitViewHost: _NativeViewHosting {
+    private weak var view: NSView?
+    init(view: NSView) { self.view = view }
+
+    func attach(_ object: AnyObject, frame: CGRect) {
+        guard let subview = object as? NSView, let view else { return }
+        subview.frame = frame
+        subview.autoresizingMask = []
+        view.addSubview(subview)
+    }
+
+    func move(_ object: AnyObject, to frame: CGRect) {
+        guard let subview = object as? NSView else { return }
+        if subview.superview == nil, let view { view.addSubview(subview) }
+        subview.frame = frame
+    }
+
+    func detach(_ object: AnyObject) { (object as? NSView)?.removeFromSuperview() }
+
+    func fittingSize(of object: AnyObject, proposal: ProposedViewSize) -> CGSize? {
+        guard let subview = object as? NSView else { return nil }
+        var size = subview.fittingSize
+        if size.width <= 0 || size.height <= 0 { size = subview.intrinsicContentSize }
+        guard size.width > 0 || size.height > 0 else { return nil }
+        if let width = proposal.width, size.width <= 0 || size.width > width { size.width = width }
+        if let height = proposal.height, size.height <= 0 || size.height > height { size.height = height }
+        return CGSize(width: max(0, size.width), height: max(0, size.height))
+    }
+
+    func view(of controller: AnyObject) -> AnyObject? { (controller as? NSViewController)?.view }
+}

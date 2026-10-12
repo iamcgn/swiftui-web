@@ -285,3 +285,28 @@ origin inside the outer list, and presses travel from the outer runtime through 
 representable and the hosting view to the inner gestures (`NestedHostingTests`: a red and a blue
 rectangle painted at the node, a tap on the blue one counted). No fixture: the geometry is the
 outer node's and the colours the inner tree's.
+
+## AppKit representables (2026-10-12, ix-appkit, decision 0018)
+
+`NSViewRepresentable` and `NSViewControllerRepresentable` (`API/NSViewRepresentable.swift`)
+with their contexts (`coordinator`, `transaction`, `environment`), `makeCoordinator`,
+`sizeThatFits` and `dismantle…`, compile everywhere: the view type is any object, so the
+protocols place no AppKit requirement on the module. The node (`NativeViewHostNode`) is sized
+by the representable's `sizeThatFits`, else by the host's fitting size of the view, else the
+proposal; `updateNSView` runs on mount and on every update; dismantling runs on unmount.
+
+- The native macOS host (`SwiftUIWebNative`) installs `Runtime.nativeViewHost`
+  (`AppKitViewHost`): the real `NSView` (a controller's `view` for the controller form) joins
+  the runtime's flipped view as a subview at the node's frame after every layout, sized by
+  `fittingSize` (else the intrinsic size) clamped to the proposal, moved as the layout changes
+  and removed when the node unmounts. It draws itself over the painted content, so the scene
+  paints nothing there and the goldens cannot show it. `AppKitRepresentableTests`.
+- Everywhere else — the browser, Linux, the headless runtime, `Tools/Host` (a web view: the app
+  runs as wasm there) — the representable is an empty view of its size and the gap is
+  recorded here. There is no AppKitWeb: the AppKit view class exists only where AppKit does,
+  so an app keeps `makeNSView`'s class under `#if canImport(AppKit)` and gives the
+  representable a stand-in (or the conformance) elsewhere. `NSViewRepresentableTests`.
+
+Open: `_layoutOptions` and the safe area, representables in presentations' windows on the
+native host (they join the main view), hover and focus between AppKit views and the painted
+content, `NSHostingView`.

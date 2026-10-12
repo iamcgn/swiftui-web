@@ -1431,6 +1431,12 @@
             "ios/representable/hostingcollection",
             "ios/representable/hostingstate"
           ]
+        },
+        {
+          "api": "NSViewRepresentable / NSViewControllerRepresentable (contexts, coordinators, sizeThatFits, dismantling)",
+          "status": "partial",
+          "notes": "The protocols compile everywhere; on the native macOS host the real NSView joins the window over the painted content at its node's frame (sized by its fitting size, moved with the layout, removed on unmount); the browser, Linux and headless hosts lay the representable out as an empty view of its size (no AppKitWeb: the view class exists only where AppKit does); open: safe-area layout options, views in presentation windows, hover and focus across the seam, NSHostingView",
+          "noFixture": "The native host's NSView draws itself over the painted content, outside the goldens; other hosts show nothing there (NSViewRepresentableTests and AppKitRepresentableTests cover the sizing and the hosting)"
         }
       ]
     },

@@ -409,6 +409,10 @@ public final class Runtime {
     package var lastPointerType: PointerType = .mouse
     /// The nodes hosting another framework's view trees (Runtime/PlatformViewNodes.swift).
     package var platformHosts: [WeakPlatformHost] = []
+    /// The AppKit views representables made (API/NSViewRepresentable.swift) and the host that
+    /// places them, when there is one.
+    package var nativeViews: [WeakNativeView] = []
+    package var nativeViewHostStorage: (any _NativeViewHosting)?
     /// Counts the frames the hosted trees were advanced for (`_HostFrame`).
     package var hostFrameNumber: UInt64 = 0
 
@@ -560,6 +564,7 @@ public final class Runtime {
         layoutAnimation = nil
         updateAnimation = nil
         deliverPreferences()
+        syncNativeViews()
     }
 
     private var environmentIsIOS: Bool { rootEnvironment.platformProfile.isIOS }
