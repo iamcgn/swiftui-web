@@ -226,7 +226,7 @@
         {
           "api": "List (content, selection, data/id/Range forms) / ListStyle (automatic, inset, plain, bordered, sidebar) / listStyle",
           "status": "partial",
-          "notes": "macOS row geometry, separators, section headers/footers with the pinned first header, styles, single and multiple selection by press, labels' icon slot and tint measured; no outline lists, edit actions, keyboard selection, focused (accent) highlight, alternating backgrounds or custom styles. Editing (2026-09-18): onDelete on the Delete key, onMove by drag, the editActions binding forms, EditMode/EditButton with iOS's delete circle and grip measured (ios/list/editing), swipeActions and the implicit Delete (approximate: no golden holds a swipe), refreshable (approximate). Editing, the rest (2026-10-11): swiped rows ease to rest or shut (0.25 s ease-out), macOS trackpad swipes (the wheel's sideways delta past 30 pt), iOS's edit circle reveals the Delete (the minus turns into a bar) before deleting, the reordered row lifted under a shadow with the passed rows shifting into its gap, UIScrollView's rubber band for pulls, editing across sections, drops between rows (sw-dragdrop-os) — modelled, not measured. Looks (2026-09-19): alternating row fills, headerProminence (no macOS change), outline lists and DisclosureGroup rows with chevrons and indentation, listItemTint, section separators hidden, scrollContentBackground hidden, the pinned header while scrolling and the 10 pt bottom inset, iOS listRowSpacing/listSectionSpacing (Docs/elements/List.md).",
+          "notes": "macOS row geometry, separators, section headers/footers with the pinned first header, styles, single and multiple selection by press, labels' icon slot and tint measured; no outline lists, edit actions, keyboard selection, focused (accent) highlight, alternating backgrounds or custom styles. Editing (2026-09-18): onDelete on the Delete key, onMove by drag, the editActions binding forms, EditMode/EditButton with iOS's delete circle and grip measured (ios/list/editing), swipeActions and the implicit Delete (approximate: no golden holds a swipe), refreshable (approximate). Editing, the rest (2026-10-11): swiped rows ease to rest or shut (0.25 s ease-out), macOS trackpad swipes (the wheel's sideways delta past 30 pt), iOS's edit circle reveals the Delete (the minus turns into a bar) before deleting, the reordered row lifted under a shadow with the passed rows shifting into its gap, UIScrollView's rubber band for pulls, editing across sections, drops between rows (sw-dragdrop-os) — modelled, not measured. Looks (2026-09-19): alternating row fills, headerProminence (no macOS change), outline lists and DisclosureGroup rows with chevrons and indentation, listItemTint, section separators hidden, scrollContentBackground hidden, the pinned header while scrolling and the 10 pt bottom inset, iOS listRowSpacing/listSectionSpacing (Docs/elements/List.md). Looks, the rest (2026-10-11): the focused selection measured in a key window (the (52, 122, 225) band, white text, shown while the list has keyboard focus in a focused host), iOS listSectionSpacing(.compact) and a header-less card's custom spacing measured on the iOS 27 simulator, outline chevron presses limited to the chevron, listRowHoverEffect accepted; lazy rows left to pf-perf, the pinned header's gradient shadow and the hover highlight open.",
           "fixtures": [
             "list/basic",
             "list/sections",
@@ -241,7 +241,9 @@
             "list/separators",
             "list/background",
             "list/pinning",
-            "ios/list/spacing"
+            "ios/list/spacing",
+            "ios/list/compact",
+            "ios/list/sectionspacing"
           ]
         },
         {

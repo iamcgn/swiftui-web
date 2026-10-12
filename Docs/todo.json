@@ -1574,13 +1574,14 @@
       "framework": "SwiftUI",
       "area": "List",
       "title": "List looks: the rest",
-      "detail": "The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron.",
+      "detail": "The focused accent selection (the golden window is never key), lazy rows, listRowHoverEffect, the pinned header's gradient shadow, ListSectionSpacing.compact, the section separator tint macOS draws grey, a header-less card's custom section spacing on iOS (derived, not measured), outline chevron presses limited to the chevron. Done 2026-10-11 (Phase 9, item 30): the focused selection measured in a key window ((52, 122, 225) band, white text), .compact and a header-less card's custom spacing measured on the iOS 27 simulator, chevron presses limited to the chevron, listRowHoverEffect accepted, the section separator tint confirmed grey (list/separators); lazy rows go with pf-perf, the pinned header's gradient shadow stays open.",
       "kind": "approximate",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/List.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-ios-presentation-rest",
