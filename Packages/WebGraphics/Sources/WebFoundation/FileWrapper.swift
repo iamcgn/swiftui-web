@@ -1,6 +1,7 @@
-// Foundation's `FileWrapper` on wasm (decision 0017): FoundationEssentials has none. The surface
-// `FileDocument` uses: a regular file's contents, a directory's children, a preferred name.
-#if os(WASI)
+// Foundation's `FileWrapper` on wasm (decision 0017) and Linux: FoundationEssentials and
+// swift-corelibs-foundation have none. The surface `FileDocument` uses: a regular file's
+// contents, a directory's children, a preferred name.
+#if os(WASI) || os(Linux)
 public final class FileWrapper {
     public private(set) var regularFileContents: Data?
     public private(set) var fileWrappers: [String: FileWrapper]?

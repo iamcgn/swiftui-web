@@ -3,8 +3,8 @@
 // save panels (the browser's file input and downloads, AppKit's panels). The main window opens
 // a new document; File > New opens another window, Open… reads a file into a new window, Save
 // and Save As… write the frontmost document's file.
-#if os(WASI)
-import WebFoundation
+#if os(WASI) || os(Linux)
+import WebFoundation   // its FileWrapper: FoundationEssentials and corelibs Foundation have none
 #else
 import Foundation
 #endif

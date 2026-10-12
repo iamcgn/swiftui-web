@@ -4,6 +4,9 @@ import Testing
 import SwiftUI
 import SwiftUIWebCore
 import SwiftUIWebHeadless
+#if os(Linux)
+import WebFoundation   // FileWrapper
+#endif
 
 #if !os(WASI)
 @Suite @MainActor struct WindowTests {
