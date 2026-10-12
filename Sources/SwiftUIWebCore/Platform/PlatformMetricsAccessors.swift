@@ -74,6 +74,15 @@ extension PlatformMetrics {
     package static var secureBulletPitch: CGFloat { current.secureBulletPitch }
     package static var secureBulletInset: CGFloat { current.secureBulletInset }
     package static var secureBulletBaselineOffset: CGFloat { current.secureBulletBaselineOffset }
+    package static var hoverEffectDuration: Double { current.hoverEffectDuration }
+    package static var hoverHighlightAlpha: Double { current.hoverHighlightAlpha }
+    package static var hoverHighlightPadding: CGFloat { current.hoverHighlightPadding }
+    package static var hoverHighlightCornerRadius: CGFloat { current.hoverHighlightCornerRadius }
+    package static var hoverHighlightScale: CGFloat { current.hoverHighlightScale }
+    package static var hoverLiftScale: CGFloat { current.hoverLiftScale }
+    package static var hoverLiftShadowAlpha: Double { current.hoverLiftShadowAlpha }
+    package static var hoverLiftShadowRadius: CGFloat { current.hoverLiftShadowRadius }
+    package static var hoverLiftShadowOffset: CGFloat { current.hoverLiftShadowOffset }
     package static var focusRingWidth: CGFloat { current.focusRingWidth }
     package static var focusRingOpacity: Double { current.focusRingOpacity }
     package static var focusRingColor: Color { current.focusRingColor }

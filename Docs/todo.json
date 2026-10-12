@@ -1419,13 +1419,14 @@
       "framework": "SwiftUI",
       "area": "Hover",
       "title": "Hover effects on controls",
-      "detail": "`hoverEffect` and the hovered looks of macOS controls (none change today), the tooltip's measured look.",
+      "detail": "`hoverEffect` and the hovered looks of macOS controls (none change today), the tooltip's measured look. Done 2026-10-11 (Phase 9, item 19): `hoverEffect`/`hoverEffectDisabled`/`defaultHoverEffect` with the iPadOS highlight and lift on the iOS profile (approximate: no pointer to measure with), nothing on macOS; macOS controls take no hover look by AppKit's defaults (read, not hovered); the tooltip keeps AppKit's 11 pt font and 1 s delay, its panel look approximate (a real pointer would be needed).",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Hover.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-dark",

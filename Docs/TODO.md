@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 15 | 0 | 0 | 15 |
+| SwiftUI | 14 | 0 | 0 | 14 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **31** | 0 | 1 | 30 |
+| **All** | **30** | 0 | 1 | 29 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Hover effects on controls** `sw-hover-looks` · Hover · missing  
-  `hoverEffect` and the hovered looks of macOS controls (none change today), the tooltip's measured look. ([Hover.md](Docs/elements/Hover.md))
 - ☐ **Contrast and per-presentation schemes** `sw-dark` · Dark mode · missing  
   `colorSchemeContrast`, `preferredColorScheme` per presentation, gauge and date picker chrome verified in dark, the focus ring in dark. ([DarkMode.md](Docs/elements/DarkMode.md))
 - ☐ **Timeline modes and pausing** `sw-timeline` · TimelineView · accepted  
@@ -111,6 +109,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **ContentUnavailableView in containers** `sw-content-unavailable` · SwiftUI · ContentUnavailableView
 - ☑ 2026-10-11 **Slider styles and stepper repeat** `sw-slider-stepper` · SwiftUI · Slider and Stepper
 - ☑ 2026-10-11 **A real colour panel** `sw-colorpicker` · SwiftUI · ColorPicker
+- ☑ 2026-10-11 **Hover effects on controls** `sw-hover-looks` · SwiftUI · Hover
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

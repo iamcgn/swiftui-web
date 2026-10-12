@@ -184,3 +184,73 @@ extension View {
         modifier(_PointerStyleModifier(style: style))
     }
 }
+
+// MARK: - Hover effects (sw-hover-looks)
+
+/// An effect applied when the pointer hovers over a view (iPadOS pointer effects; macOS views
+/// take none, as SwiftUI's).
+public struct HoverEffect: Hashable, Sendable {
+    package enum Kind: Hashable, Sendable { case automatic, highlight, lift }
+    package let kind: Kind
+
+    /// An effect that attempts to determine the effect automatically (the highlight here).
+    public static let automatic = HoverEffect(kind: .automatic)
+    /// The pointer slides under the view and morphs into a translucent rounded rectangle.
+    public static let highlight = HoverEffect(kind: .highlight)
+    /// The view scales up with a shadow while the pointer hides.
+    public static let lift = HoverEffect(kind: .lift)
+}
+
+extension View {
+    /// Applies a pointer hover effect to the view.
+    nonisolated public func hoverEffect(_ effect: HoverEffect = .automatic) -> some View {
+        modifier(_HoverEffectModifier(effect: effect, isEnabled: nil))
+    }
+
+    /// Applies a pointer hover effect to the view, on or off.
+    nonisolated public func hoverEffect(_ effect: HoverEffect = .automatic, isEnabled: Bool) -> some View {
+        modifier(_HoverEffectModifier(effect: effect, isEnabled: isEnabled))
+    }
+
+    /// Adds a condition that controls whether this view and its subviews display hover effects.
+    nonisolated public func hoverEffectDisabled(_ disabled: Bool = true) -> some View {
+        environment(\._hoverEffectsEnabled, !disabled)
+    }
+
+    /// Sets the default hover effect for views in the hierarchy (nil removes it).
+    nonisolated public func defaultHoverEffect(_ effect: HoverEffect?) -> some View {
+        environment(\._defaultHoverEffect, effect)
+    }
+}
+
+package struct HoverEffectsEnabledKey: EnvironmentKey { package static let defaultValue = true }
+package struct DefaultHoverEffectKey: EnvironmentKey { package static let defaultValue: HoverEffect? = nil }
+
+extension EnvironmentValues {
+    package var _hoverEffectsEnabled: Bool {
+        get { self[HoverEffectsEnabledKey.self] }
+        set { self[HoverEffectsEnabledKey.self] = newValue }
+    }
+    package var _defaultHoverEffect: HoverEffect? {
+        get { self[DefaultHoverEffectKey.self] }
+        set { self[DefaultHoverEffectKey.self] = newValue }
+    }
+}
+
+/// `hoverEffect`: the content takes the effect while the pointer is over it (`HoverEffectNode`).
+public struct _HoverEffectModifier {
+    package let effect: HoverEffect
+    package let isEnabled: Bool?
+    public init(effect: HoverEffect, isEnabled: Bool?) {
+        self.effect = effect
+        self.isEnabled = isEnabled
+    }
+}
+
+extension _HoverEffectModifier: ViewModifier {
+    public typealias Body = Never
+
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        HoverEffectNode(context)
+    }
+}

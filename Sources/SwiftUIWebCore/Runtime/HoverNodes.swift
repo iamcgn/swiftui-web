@@ -215,3 +215,62 @@ package final class PointerStyleNode<Content: View>: UnaryLayoutModifierNode<Con
     package var pointerStyle: PointerStyle? { modifier.style }
     package func hoverChanged(inside: Bool, at point: CGPoint) {}
 }
+
+/// `hoverEffect`: on the iOS profile with a pointer the content takes the iPadOS pointer effect
+/// while hovered — the highlight (a translucent rounded rectangle under the view, the content
+/// scaled 1.03) or the lift (scaled 1.15 under a soft shadow) — easing in and out over 0.2 s.
+/// macOS views take no effect (SwiftUI's `hoverEffect` is unavailable there). The looks are
+/// approximations of iPadOS's (the simulator has no pointer to measure them with).
+@MainActor
+package final class HoverEffectNode<Content: View>: UnaryLayoutModifierNode<Content, _HoverEffectModifier>, _HoverTracking {
+    private var isInside = false
+
+    private var effectKind: HoverEffect.Kind? {
+        guard environment.platformProfile.isIOS, environment._hoverEffectsEnabled, modifier.isEnabled ?? true, environment.isEnabled else { return nil }
+        let effect = modifier.effect.kind == .automatic ? (environment._defaultHoverEffect?.kind ?? .highlight) : modifier.effect.kind
+        return effect == .automatic ? .highlight : effect
+    }
+
+    /// The effect's progress, 0 at rest and 1 hovered, eased over 0.2 s.
+    private var progress: Double { presentedEffect([isInside ? 1 : 0])[0] }
+
+    package func hoverChanged(inside: Bool, at point: CGPoint) {
+        guard inside != isInside else { return }
+        let old = progress
+        isInside = inside
+        guard effectKind != nil else { return }
+        let presentation = self.presentation ?? NodePresentation()
+        presentation.effect = Tween(from: [old], to: [inside ? 1 : 0], animation: .easeInOut(duration: PlatformMetrics.hoverEffectDuration), start: runtime.animationClock)
+        self.presentation = presentation
+        runtime.register(animating: self)
+        runtime.setNeedsDisplay()
+    }
+
+    override package var paintsOutsideFrame: Bool { true }
+
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        guard let kind = effectKind else { super.paintTarget(target, in: node, into: &list, context: context); return }
+        let t = progress
+        guard t > 0 else { super.paintTarget(target, in: node, into: &list, context: context); return }
+        let bounds = CGRect(origin: context.origin, size: node.presentedFrame.size)
+        let scale = 1 + (kind == .lift ? PlatformMetrics.hoverLiftScale - 1 : PlatformMetrics.hoverHighlightScale - 1) * t
+        let centre = CGPoint(x: bounds.midX, y: bounds.midY)
+        let transform = CGAffineTransform(translationX: centre.x, y: centre.y).scaledBy(x: scale, y: scale).translatedBy(x: -centre.x, y: -centre.y)
+        if kind == .highlight {
+            let pad = PlatformMetrics.hoverHighlightPadding
+            list.append(.fillRRect(bounds.insetBy(dx: -pad, dy: -pad), cornerRadius: PlatformMetrics.hoverHighlightCornerRadius,
+                                   environment._ink(PlatformMetrics.hoverHighlightAlpha * t)))
+            paintTransformed(transform, into: &list) { list in super.paintTarget(target, in: node, into: &list, context: context) }
+        } else {
+            list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.hoverLiftShadowAlpha * t), radius: PlatformMetrics.hoverLiftShadowRadius,
+                                     offset: CGSize(width: 0, height: PlatformMetrics.hoverLiftShadowOffset * t)))
+            paintTransformed(transform, into: &list) { list in super.paintTarget(target, in: node, into: &list, context: context) }
+            list.append(.endGroup)
+        }
+    }
+
+    override package func unmount() {
+        if isInside { runtime.forgetHover(self) }
+        super.unmount()
+    }
+}

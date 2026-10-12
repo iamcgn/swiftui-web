@@ -112,6 +112,16 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     // AppKit's keyboard focus ring, measured 2026-10-04 by drawing `NSFocusRingPlacement.only`
     // into a bitmap: a solid 3 pt band outside the shape in `keyboardFocusIndicatorColor` at
     // 50 % ((0, 103, 244) light, (26, 169, 255) dark; Docs/elements/Keyboard.md).
+    // hoverEffect (iPadOS pointer effects, approximate: the simulator has no pointer; sw-hover-looks 2026-10-11)
+    package var hoverEffectDuration = 0.2
+    package var hoverHighlightAlpha = 0.1                         // the translucent rounded rect under a highlighted view
+    package var hoverHighlightPadding: CGFloat = 4
+    package var hoverHighlightCornerRadius: CGFloat = 8
+    package var hoverHighlightScale: CGFloat = 1.03
+    package var hoverLiftScale: CGFloat = 1.15
+    package var hoverLiftShadowAlpha = 0.2
+    package var hoverLiftShadowRadius: CGFloat = 12
+    package var hoverLiftShadowOffset: CGFloat = 8
     package var focusRingWidth: CGFloat = 3
     package var focusRingOpacity = 0.5
     package var focusRingColor = Color(storage: .dynamic(light: RGBA(r: 0, g: 103, b: 244, a: 1), dark: RGBA(r: 26, g: 169, b: 255, a: 1)))

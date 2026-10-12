@@ -13,7 +13,8 @@ Apple docs: [onHover(perform:)](https://developer.apple.com/documentation/swiftu
 | `onContinuousHover(coordinateSpace:perform:)`, `HoverPhase` | implemented for `.local` and `.global` (a named space reports local points) |
 | `help(_:)` for `Text`, `LocalizedStringKey` and strings | implemented as a painted tooltip after a 1 s rest; the text is the element's description for assistive technology (the overlay's `title`, 2026-10-04) |
 | `pointerStyle(_:)`, `PointerStyle` (`default`, `link`, `grabIdle`, `grabActive`, `horizontalText`, `verticalText`, `rectSelection`, `zoomIn`, `zoomOut`, `columnResize`, `rowResize`, `frameResize`) | implemented as the host's cursor (`HorizontalDirection`, `VerticalDirection`, `FrameResizePosition`, `FrameResizeDirection` added); image pointers are not offered |
-| Hover effects on controls (`hoverEffect`, hovered looks) | missing; macOS controls do not change on hover |
+| `hoverEffect(_:)`, `hoverEffect(_:isEnabled:)`, `HoverEffect` (`automatic`, `highlight`, `lift`), `hoverEffectDisabled(_:)`, `defaultHoverEffect(_:)` | implemented 2026-10-11 on the iOS profile (iPadOS pointer effects, approximate: the highlight a translucent rounded rect 4 pt around the view at 10 % ink with the content scaled 1.03, the lift the content at 1.15 under a 20 % shadow of radius 12 offset 8, eased over 0.2 s; `automatic` is the highlight unless `defaultHoverEffect` says otherwise); a no-op on macOS, where SwiftUI has no hover effects |
+| Hovered looks of macOS controls | none, as AppKit's: push buttons, checkboxes, pop-ups, switches and sliders track no hover (`NSButton.showsBorderOnlyWhileMouseInside` defaults to false; read 2026-10-11); toolbar items highlight on hover in AppKit, which the painted toolbar does not reproduce |
 
 ## Behaviour
 
@@ -36,7 +37,13 @@ every view under the pointer. Clipping by scroll views and presentations is not 
   padding in a 4 pt rounded panel (light 246 grey / dark 44 grey, a 15 % ink border and a soft
   shadow), 20 pt below the pointer and flipped above it near the bottom, kept inside the window.
   `Runtime.visibleTooltip` reports it for tests. The look is an approximation of the macOS
-  tooltip panel, which lives in its own window and cannot be captured.
+  tooltip panel, which lives in its own window and cannot be captured; what AppKit states is
+  followed: the tooltip font is the 11 pt system font (`NSFont.toolTipsFont(ofSize: 0)`, read
+  2026-10-11) and the delay 1 s. Measuring the panel's padding, corner and material needs a
+  real pointer resting on a view (synthetic events do not reach tracking areas, and the
+  harness does not move the user's cursor), so it stays approximate.
+- `HoverEffectNode` (`hoverEffect`) paints the iPadOS pointer effects on the iOS profile while
+  hovered (above), tweening its progress on the animation clock; nothing on macOS.
 - A representable (`_PlatformViewHostNode`) tracks hover like an `onHover` view and forwards
   it to its UIKit tree, whose hovered pointer interaction contributes a style the same way
   (Docs/elements/Representable.md, 2026-09-18).
@@ -56,5 +63,6 @@ deepest pointer style.
 
 ## Not yet covered
 
-`help` in the accessibility tree (a `title`/description on the overlay element), hover through
-presentations and clipped scroll content, control hover looks, `hoverEffect`, image pointers.
+Hover through presentations and clipped scroll content, the tooltip panel's measured look and
+the iPadOS effects' exact geometry (both need a real pointer), the toolbar items' hover
+highlight, image pointers. `HoverTests.hoverEffectsOnTheIOSProfile` covers the effects.

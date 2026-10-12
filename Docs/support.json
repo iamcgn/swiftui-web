@@ -1200,9 +1200,9 @@
           ]
         },
         {
-          "api": "onHover / onContinuousHover / help / pointerStyle",
+          "api": "onHover / onContinuousHover / help / pointerStyle / hoverEffect",
           "status": "partial",
-          "notes": "Hover tracking from every pointer move (browser pointermove/pointerleave, native tracking area); help paints an approximated tooltip after a 1 s rest; pointerStyle sets the host cursor. help text is the element's description in the accessibility tree; no control hover looks (Docs/elements/Hover.md)",
+          "notes": "Hover tracking from every pointer move (browser pointermove/pointerleave, native tracking area); help paints an approximated tooltip after a 1 s rest (the 11 pt tooltip font); pointerStyle sets the host cursor; hoverEffect paints the iPadOS highlight and lift on the iOS profile (approximate, 2026-10-11) and nothing on macOS, whose controls take no hover look. help text is the element's description in the accessibility tree (Docs/elements/Hover.md)",
           "fixtures": [
             "hover/basic"
           ]
