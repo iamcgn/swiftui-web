@@ -1996,9 +1996,9 @@
           "noFixture": "A pasteboard is not pixels: PasteboardTests in both packages hold the behaviour."
         },
         {
-          "api": "Touches and the responder chain (UITouch, UIEvent, touchesBegan / Moved / Ended / Cancelled, first responder, becomeFirstResponder)",
+          "api": "Touches and the responder chain (UITouch, UIEvent, touchesBegan / Moved / Ended / Cancelled, first responder, becomeFirstResponder) / UIKeyCommand / pressesBegan / pressesEnded / UIFocusSystem / canBecomeFocused / didUpdateFocus",
           "status": "partial",
-          "notes": "One pointer as one touch routed to the hit view's recognizers then the view, cancellation when a recognizer claims it or the host scrolls, first responders for text input; open: multi-touch, the motion and press events",
+          "notes": "One pointer as one touch routed to the hit view's recognizers then the view, cancellation when a recognizer claims it or the host scrolls, first responders for text input. Keyboard (2026-10-12): key commands matched up the responder chain from the first responder or the frontmost controller, presses down the chain with the application marking what nobody took, a focus system moving with Tab/Shift-Tab through enabled controls and cells in reading order and the arrows through rows and items (selectionFollowsFocus), Space/Return activating, a painted focus ring (approximate). Open: multi-touch, the motion events, focus groups and guides",
           "fixtures": [
             "uikit/controls/basic",
             "uikit/textview/basic",

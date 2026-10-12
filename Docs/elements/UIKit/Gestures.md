@@ -63,8 +63,34 @@ without a delegate, a pan failing a long press, `require(toFail:)` between a sin
 tap, and the delegate's failure requirement between a pan and a swipe. No pixels change: the
 goldens are untouched.
 
+## Hardware keyboard and the focus system (uk-keyboard, 2026-10-12; `Events/Keyboard.swift`)
+
+A key from the host (`UIKitScene.keyDown`/`keyUp`) becomes a `UIKey` (characters, modifier
+flags, the host's `KeyEquivalent`; `input` names the arrows and specials as `UIKeyCommand`
+does) and goes down the responder chain from the first responder — else the focused view,
+else the key window's frontmost controller, UIKit's default responder:
+
+- `UIKeyCommand` (title, `input`, `modifierFlags`, a closure action in the selector's place;
+  `UIResponder.keyCommands` overridable, `UIKeyCommand.inputUpArrow`…): the chain is searched
+  up and the first matching command (exact modifiers) runs.
+- Else `pressesBegan`/`pressesEnded` with a `UIPress` and `UIPressesEvent`: the defaults
+  forward to `next`; `UIApplication` at the chain's end marks the press unhandled, so the host
+  learns whether the app took the key.
+- Else the focus system: `UIFocusSystem` (`focusSystem(for:)`, `focusedItem`,
+  `requestFocusUpdate(to:)`, `updateFocusIfNeeded()`), with Tab and Shift-Tab moving through
+  the key window's focusable views in reading order (controls that are enabled, table and
+  collection cells where `allowsFocus`; `UIView.canBecomeFocused` overridable, `isFocused`),
+  the arrows walking a table's rows or a collection's items (`selectionFollowsFocus` selects
+  them), Space and Return sending `touchUpInside`/`primaryActionTriggered` to the focused
+  control. Views and their controllers hear `didUpdateFocus(in:with:)` with a
+  `UIFocusUpdateContext` (previous and next, the heading) and a `UIFocusAnimationCoordinator`
+  that runs animations at once. The focused view carries a focus ring — a 2 pt system-blue
+  (0, 122, 255 at 80 %) rounded ring 2 pt outside it, approximate — once the keyboard moved
+  focus; a touch hides it. `KeyboardTests`.
+
 ## Not yet covered
 
 Two-touch data on `UITouch`, holding a single tap for the double-tap interval, pinches into
 hosted trees, `UIScreenEdgePanGestureRecognizer` driving the navigation controller's interactive
-pop (uk-nav-polish).
+pop (uk-nav-polish); the focus ring's measured look, focus groups and `focusGroupIdentifier`,
+`UIFocusGuide`, the focus system in hosted trees (a representable's keys stay the SwiftUI runtime's).

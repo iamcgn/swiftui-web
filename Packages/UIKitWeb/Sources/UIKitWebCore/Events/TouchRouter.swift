@@ -25,6 +25,7 @@ final class TouchRouter {
 
     /// A press at `point` (in `window`'s coordinates).
     func pointerDown(at point: CGPoint, in window: UIWindow, type: PointerType, time: Double) {
+        UIKitScene.shared.focusSystem.showsFocusRing = false   // a touch hides the keyboard's focus ring
         let hit = window.hitTest(window.convert(point, from: nil), with: nil)
         let touch = UITouch(at: point, in: window, view: hit, type: type == .touch ? .direct : .indirectPointer, timestamp: time)
         if time - lastTapTime < 0.35, abs(point.x - lastTapLocation.x) < 20, abs(point.y - lastTapLocation.y) < 20 { touch.tapCount = 2 }

@@ -1644,13 +1644,14 @@
       "framework": "UIKit",
       "area": "Events",
       "title": "Hardware keyboard and the focus system",
-      "detail": "`UIKeyCommand` on responders, `pressesBegan`/`pressesEnded`, `UIFocusSystem` with the focus ring for keyboard navigation across controls, table and collection cells.",
+      "detail": "`UIKeyCommand` on responders, `pressesBegan`/`pressesEnded`, `UIFocusSystem` with the focus ring for keyboard navigation across controls, table and collection cells. Done 2026-10-12 (Phase 9, item 35): UIKeyCommand with closure actions up the responder chain, pressesBegan/pressesEnded with the application marking unhandled presses, UIFocusSystem with Tab/Shift-Tab, arrow navigation through table rows and collection items, Space/Return activation and a focus ring (approximate look).",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Packages/UIKitWeb/Sources/UIKitWebCore/Events"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-text-input",

@@ -109,6 +109,8 @@ open class UIControl: UIView {
     public enum ContentHorizontalAlignment: Int, Sendable { case center = 0, left, right, fill, leading, trailing }
 
     open var isEnabled = true { didSet { stateDidChange() } }
+    /// Controls take keyboard focus (Events/Keyboard.swift).
+    override open var canBecomeFocused: Bool { true }
     open var isSelected = false { didSet { stateDidChange() } }
     open var isHighlighted = false { didSet { stateDidChange() } }
     open var contentVerticalAlignment: ContentVerticalAlignment = .center

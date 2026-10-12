@@ -277,6 +277,7 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
 /// A view that can be reused in a collection view.
 @MainActor
 open class UICollectionReusableView: UIView {
+    override open var canBecomeFocused: Bool { (closestCollectionContainer as? UICollectionView)?.allowsFocus ?? true }
     public internal(set) var reuseIdentifier: String?
     /// The pool a supplementary view returns to (its kind and identifier).
     var supplementaryKey: String?
@@ -430,6 +431,9 @@ extension UICollectionViewDelegate {
 /// customizable layouts.
 @MainActor
 open class UICollectionView: UIScrollView {
+    /// Keyboard focus (Events/Keyboard.swift): whether the cells take it, and whether it selects.
+    open var allowsFocus = true
+    open var selectionFollowsFocus = false
     public struct ScrollPosition: OptionSet, Sendable {
         public let rawValue: Int
         public init(rawValue: Int) { self.rawValue = rawValue }

@@ -391,6 +391,7 @@ public final class UIKitScene: HostedScene {
         for window in windows where !window.isHidden {
             window.layer.paint(into: &list, context: context, style: style)
         }
+        focusSystem.paintFocusRing(into: &list, context: context)
         return list
     }
 
@@ -496,7 +497,12 @@ public final class UIKitScene: HostedScene {
         }
     }
 
-    public func keyDown(_ event: KeyEvent) -> Bool { false }
+    /// Keys (Events/Keyboard.swift): key commands, presses down the responder chain, focus navigation.
+    public let focusSystem = UIFocusSystem()
+    var activePresses: [KeyEquivalent: UIPress] = [:]
+    var pressUnhandled = false
+    public func keyDown(_ event: KeyEvent) -> Bool { dispatchKeyDown(event) }
+    public func keyUp(_ event: KeyEvent) -> Bool { dispatchKeyUp(event) }
 
     /// A bundled font the host loaded is available: labels measured with a fallback face lay
     /// out again (frames an app fixed with `sizeToFit` before the font arrived stay as they are).

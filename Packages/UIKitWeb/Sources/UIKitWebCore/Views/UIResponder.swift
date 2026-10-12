@@ -53,8 +53,12 @@ open class UIResponder {
     open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { next?.touchesEnded(touches, with: event) }
     open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) { next?.touchesCancelled(touches, with: event) }
 
-    // MARK: Keys
+    // MARK: Keys (Events/Keyboard.swift)
 
+    /// The key commands this responder handles; the chain is searched from the first responder up.
+    open var keyCommands: [UIKeyCommand]? { nil }
     open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) { next?.pressesBegan(presses, with: event) }
+    open func pressesChanged(_ presses: Set<UIPress>, with event: UIPressesEvent?) { next?.pressesChanged(presses, with: event) }
     open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) { next?.pressesEnded(presses, with: event) }
+    open func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) { next?.pressesCancelled(presses, with: event) }
 }

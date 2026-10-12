@@ -136,6 +136,10 @@ public final class UIApplication: UIResponder {
     public var keyWindow: UIWindow? { UIKitScene.shared.windows.first { $0.isKeyWindow } }
     public var isIdleTimerDisabled = false
     public var applicationState: State = .active
+
+    /// The responder chain's end: a press nobody took is unhandled (Events/Keyboard.swift).
+    override public func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) { UIKitScene.shared.pressUnhandled = true }
+    override public func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) { UIKitScene.shared.pressUnhandled = true }
     public var applicationIconBadgeNumber = 0
 
     /// Opens a URL with the host (a new tab in the browser).

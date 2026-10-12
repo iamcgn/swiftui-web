@@ -85,7 +85,7 @@ public final class UITouch: Hashable {
     nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
-/// A key press (the API is accepted; hardware keys reach text fields through the host).
+/// A key press from the host's keyboard (Events/Keyboard.swift sends them down the responder chain).
 @MainActor
 public final class UIPress: Hashable {
     public enum Phase: Int, Sendable { case began = 0, changed, stationary, ended, cancelled }
@@ -99,6 +99,14 @@ public final class UIPress: Hashable {
 public struct UIKey: Sendable {
     public let characters: String
     public let modifierFlags: UIKeyModifierFlags
+    /// The host's key (the arrows, Tab, Return… beside the characters).
+    public let key: KeyEquivalent
+    public var charactersIgnoringModifiers: String { characters }
+    public init(characters: String, modifierFlags: UIKeyModifierFlags, key: KeyEquivalent? = nil) {
+        self.characters = characters
+        self.modifierFlags = modifierFlags
+        self.key = key ?? KeyEquivalent(characters.first ?? " ")
+    }
 }
 
 public struct UIKeyModifierFlags: OptionSet, Sendable {

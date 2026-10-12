@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
-| UIKit | 9 | 0 | 0 | 9 |
+| UIKit | 8 | 0 | 0 | 8 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **15** | 0 | 1 | 14 |
+| **All** | **14** | 0 | 1 | 13 |
 
 ## Next (Phase 8, in order)
 
@@ -33,8 +33,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Hardware keyboard and the focus system** `uk-keyboard` · Events · missing  
-  `UIKeyCommand` on responders, `pressesBegan`/`pressesEnded`, `UIFocusSystem` with the focus ring for keyboard navigation across controls, table and collection cells. ([Events](Packages/UIKitWeb/Sources/UIKitWebCore/Events))
 - ☐ **UITextInput for custom text views** `uk-text-input` · Text · missing  
   The `UITextInput` protocol and `UITextInteraction` so an app's own text view can take input through the host overlay; `UIKeyInput` for the simple form. ([TextView.md](Docs/elements/UIKit/TextView.md))
 - ☐ **Slider images, segment images, stepper repeat** `uk-controls-rest` · Controls · missing  
@@ -66,6 +64,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Measure the macOS presentation looks** `sw-mac-presentation-looks` · SwiftUI · Presentation
 - ☑ 2026-10-12 **UIAppearance proxies** `uk-appearance` · UIKit · Views
 - ☑ 2026-10-12 **Scenes and app lifecycle** `uk-scenes` · UIKit · App
+- ☑ 2026-10-12 **Hardware keyboard and the focus system** `uk-keyboard` · UIKit · Events
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

@@ -262,6 +262,14 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         return nil
     }
 
+    // MARK: Focus (Events/Keyboard.swift)
+
+    /// Whether the view takes keyboard focus (controls and cells do; a plain view does not).
+    open var canBecomeFocused: Bool { false }
+    /// Focus moved to or from this view.
+    open func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {}
+    open var preferredFocusEnvironments: [any UIFocusEnvironment] { [] }
+
     // Tree change hooks
     open func willMove(toSuperview newSuperview: UIView?) {}
     open func didMoveToSuperview() {}

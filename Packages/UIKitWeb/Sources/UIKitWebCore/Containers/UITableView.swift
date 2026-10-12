@@ -110,6 +110,9 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
     public let style: Style
     open weak var dataSource: (any UITableViewDataSource)? { didSet { setNeedsReload() } }
     open weak var tableDelegate: (any UITableViewDelegate)?
+    /// Keyboard focus (Events/Keyboard.swift): whether the cells take it, and whether it selects.
+    open var allowsFocus = true
+    open var selectionFollowsFocus = false
     open var rowHeight: CGFloat = UITableView.automaticDimension { didSet { setNeedsReload() } }
     open var estimatedRowHeight: CGFloat = 0
     open var sectionHeaderHeight: CGFloat = UITableView.automaticDimension
@@ -907,6 +910,7 @@ open class UITableViewHeaderFooterView: UIView {
 /// The visual representation of a single row in a table view.
 @MainActor
 open class UITableViewCell: UIView {
+    override open var canBecomeFocused: Bool { (closestCollectionContainer as? UITableView)?.allowsFocus ?? true }
     public enum CellStyle: Int, Sendable { case `default` = 0, value1, value2, subtitle }
     public enum AccessoryType: Int, Sendable { case none = 0, disclosureIndicator, detailDisclosureButton, checkmark, detailButton }
     public enum SelectionStyle: Int, Sendable { case none = 0, blue, gray, `default` }
