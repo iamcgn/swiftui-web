@@ -71,6 +71,46 @@ import Foundation
         #expect(model.dates.count == 2)
     }
 
+    /// sw-timeline: a hidden host pauses the timeline (its wakes land without a re-render, the
+    /// animation schedule leaves the frame clock) and showing it again renders the current date;
+    /// the content formats dates with the environment's time zone.
+    @Test func hiddenHostsPauseTimelines() async {
+        let model = Model()
+        let r = Runtime()
+        r.mount(Periodic(model: model))
+        r.layout(in: CGSize(width: 100, height: 100))
+        #expect(model.dates.count == 1)
+        r.hostIsVisible = false
+        for _ in 0..<4 {
+            try? await Task.sleep(nanoseconds: 70_000_000)
+            r.layout(in: CGSize(width: 100, height: 100))
+        }
+        #expect(model.dates.count == 1)
+        r.hostIsVisible = true
+        r.layout(in: CGSize(width: 100, height: 100))
+        #expect(model.dates.count == 2)
+        // The animation schedule stops subscribing while hidden and resumes when shown.
+        let animated = Model()
+        let a = Runtime()
+        a.mount(Animated(model: animated))
+        a.layout(in: CGSize(width: 100, height: 100))
+        a.hostIsVisible = false
+        a.advanceAnimations(elapsed: 0.016); a.layout(in: CGSize(width: 100, height: 100))
+        #expect(animated.dates.isEmpty)
+        a.hostIsVisible = true
+        a.layout(in: CGSize(width: 100, height: 100))
+        a.advanceAnimations(elapsed: 0.016); a.layout(in: CGSize(width: 100, height: 100))
+        #expect(animated.dates.count >= 1)
+        // The content's `Text(date, style:)` follows the environment's time zone.
+        let fixed = Date(timeIntervalSinceReferenceDate: 763744140)   // 15:09 UTC
+        let t = Runtime()
+        t.textEngine = MonospaceTextEngine()
+        t.mount(TimelineView(.explicit([fixed])) { _ in Text(fixed, style: .time) }.environment(\.timeZone, TimeZone(secondsFromGMT: 3600)!).environment(\.locale, Locale(identifier: "en_US")))
+        t.layout(in: CGSize(width: 200, height: 50))
+        let texts = t.render(scale: 1).commands.map(\.description).filter { $0.hasPrefix("drawText") }
+        #expect(texts.contains { $0.contains("4:09") }, "\(texts)")
+    }
+
     @Test func explicitScheduleEntries() {
         let base = Date(timeIntervalSinceReferenceDate: 1000)
         let explicit = ExplicitTimelineSchedule([base, base.addingTimeInterval(1)])

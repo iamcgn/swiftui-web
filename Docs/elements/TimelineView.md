@@ -8,7 +8,9 @@ Apple docs: [TimelineView](https://developer.apple.com/documentation/swiftui/tim
 | API | Notes |
 |---|---|
 | `TimelineView(_:content:)`, `TimelineViewDefaultContext` (`date`, `cadence`) | implemented |
-| `.periodic(from:by:)`, `.everyMinute`, `.explicit(_:)`, `.animation`, `.animation(minimumInterval:paused:)` | implemented (`TimelineScheduleMode.lowFrequency` is accepted but not distinguished) |
+| `.periodic(from:by:)`, `.everyMinute`, `.explicit(_:)`, `.animation`, `.animation(minimumInterval:paused:)` | implemented (`TimelineScheduleMode.lowFrequency` is accepted: the runtime always asks for `.normal`, the web having no always-on display mode to lower the frequency for) |
+| Pausing while hidden | implemented 2026-10-11: with the host hidden (`Runtime.hostIsVisible` false: a background tab, a miniaturised window) wakes land without re-rendering and the animation schedule leaves the frame clock; the current date renders once the host shows again |
+| Content reading the environment's calendar and time zone | works: `Text(date, style:)` and the formatted texts take `environment.timeZone` and `calendar` (`TimelineTests`) |
 | Custom `TimelineSchedule` conformances (`entries(from:mode:)`) | implemented (the runtime reads the first entries after the current date) |
 | `Timer`, `Timer.publish`, `RunLoop` scheduling | not available on wasm: Foundation timers never fire there; use `TimelineView` or `.task` with `Task.sleep` |
 
@@ -40,5 +42,5 @@ the animation schedule following frames, and the schedules' entries. wasm js tes
 
 ## Not yet covered
 
-`lowFrequency` mode, `Timer`-based APIs, date formatting for `Text(date, style:)`, timeline
-content that reads the environment's calendar or time zone, pausing when the page is hidden.
+`Timer`-based APIs on wasm; a real low-frequency mode (nothing on the web asks for one).
+`TimelineTests.hiddenHostsPauseTimelines` covers the pause, the resume and the time zone.

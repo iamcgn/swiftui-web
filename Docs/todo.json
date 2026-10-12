@@ -1447,13 +1447,14 @@
       "framework": "SwiftUI",
       "area": "TimelineView",
       "title": "Timeline modes and pausing",
-      "detail": "`lowFrequency` (accepted), pausing when the page is hidden, content reading the environment's calendar and time zone.",
+      "detail": "`lowFrequency` (accepted), pausing when the page is hidden, content reading the environment's calendar and time zone. Done 2026-10-11 (Phase 9, item 21): timelines pause while the host is hidden and render the current date when it shows; `lowFrequency` stays accepted (always `.normal`: the web has no always-on mode); content formats dates with the environment's time zone (tested).",
       "kind": "accepted",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/TimelineView.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-previews",

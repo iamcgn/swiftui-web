@@ -93,7 +93,11 @@ public final class Runtime {
     /// Whether the page is visible and focused, set by hosts; `scenePhase` follows (active while
     /// visible and focused, inactive while visible, background while hidden).
     public var hostIsVisible = true {
-        didSet { if hostIsVisible != oldValue { applyScenePhase() } }
+        didSet {
+            guard hostIsVisible != oldValue else { return }
+            applyScenePhase()
+            hostVisibilityChangedForTimelines()
+        }
     }
     public var hostIsFocused = true {
         didSet { if hostIsFocused != oldValue { applyScenePhase() } }
@@ -209,6 +213,8 @@ public final class Runtime {
     package var matchedGeometry: [MatchedGeometryKey: MatchedGeometryRecord] = [:]
     /// Timeline views re-rendering every frame (Runtime/TimelineNodes.swift).
     package var frameSubscribers: [WeakFrameSubscriber] = []
+    /// The mounted timeline views, told when the host hides or shows (`TimelineNode`).
+    package var timelines: [WeakTimeline] = []
     /// Focus states told when the focused text field changes (Runtime/FocusNodes.swift).
     package var focusBoxes: [WeakFocusBox] = []
 
