@@ -2214,6 +2214,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 61.5
     },
+    "system:17:400:default|;l1|Compact" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 70
+    },
     "system:17:400:default|;l1|Content" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2424,6 +2430,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 78
     },
+    "system:17:400:default|;l1|Primary" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 58.5
+    },
     "system:17:400:default|;l1|Ready" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2478,6 +2490,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 151
     },
+    "system:17:400:default|;l1|Secondary" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 82
+    },
     "system:17:400:default|;l1|Secret" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -2531,6 +2549,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 91.5
+    },
+    "system:17:400:default|;l1|Supplementary" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 116
     },
     "system:17:400:default|;l1|Terms" : {
       "firstBaseline" : 16.1865234375,
@@ -3066,6 +3090,12 @@
       "lastBaseline" : 16.1865234375,
       "width" : 55
     },
+    "system:17:600:default|;l1|Compact" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 72.5
+    },
     "system:17:600:default|;l1|Detail" : {
       "firstBaseline" : 16.1865234375,
       "height" : 20.5,
@@ -3095,6 +3125,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 44.5
+    },
+    "system:17:600:default|;l1|List" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 29
     },
     "system:17:600:default|;l1|Mixed" : {
       "firstBaseline" : 16.1865234375,
@@ -3137,6 +3173,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 44
+    },
+    "system:17:600:default|;l1|Sidebar" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 61.5
     },
     "system:17:600:default|;l1|Vibrant label" : {
       "firstBaseline" : 16.1865234375,

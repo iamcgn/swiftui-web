@@ -463,6 +463,11 @@ extension UINavigationControllerDelegate {
 open class UINavigationBar: UIView {
     /// The bar sits this far below the safe area's top (uikit/nav/basic: y 10 with no status bar).
     static let topOffset: CGFloat = 10
+    /// A split view column's bar: the part of the bar under a floating sidebar (the title and
+    /// items keep out of it), the items' inset from the edges, and the title's nudge.
+    var leadingInset: CGFloat = 0 { didSet { if leadingInset != oldValue { setNeedsLayout() } } }
+    var edgeInset: CGFloat = 16 { didSet { if edgeInset != oldValue { setNeedsLayout() } } }
+    var titleOffset: CGFloat = 0 { didSet { if titleOffset != oldValue { setNeedsLayout() } } }
     /// The content area's height; the inline bar is one content area.
     static let contentHeight: CGFloat = 54
     /// The large title view's height under the content area.
@@ -560,13 +565,17 @@ open class UINavigationBar: UIView {
         backButton?.isHidden = hostsActiveSearch
         for button in leftButtons + rightButtons { button.isHidden = hostsActiveSearch }
         let titleWidth = titleLabel.intrinsicContentSize.width
-        titleLabel.frame = CGRect(x: ((bounds.width - titleWidth) / 2 * 4).rounded() / 4, y: 9.75, width: titleWidth, height: 24.5)
+        // A split view's secondary under the sidebar centres its title in the uncovered part
+        // (`leadingInset`); an overlaid column's title sits 3 left of centre (uikit/split/modes).
+        let titleRoom = bounds.width - leadingInset
+        titleLabel.frame = CGRect(x: leadingInset + ((titleRoom - titleWidth) / 2 * 4).rounded() / 4 + titleOffset, y: 9.75, width: titleWidth, height: 24.5)
         // The large title: 34 pt bold at 16, 49 tall under the content area (uikit/nav/large).
         largeTitleLabel.text = large ? item?.title : nil
         largeTitleLabel.isHidden = !large
         if large { largeTitleLabel.frame = CGRect(x: 16, y: Self.contentHeight, width: largeTitleLabel.intrinsicContentSize.width, height: 49) }
-        // Platters: 44 tall from the bar's top, 16 from the edges, 8 apart (uikit/nav/items).
-        var x: CGFloat = 16
+        // Platters: 44 tall from the bar's top, 16 from the edges, 8 apart (uikit/nav/items);
+        // a split view's tiled columns keep theirs 10 from the edges (uikit/split/columns).
+        var x: CGFloat = leadingInset + edgeInset
         if let backButton {
             backButton.frame = CGRect(x: x, y: 0, width: backButton.platterWidth, height: 44)
             x += backButton.platterWidth + 8
@@ -575,7 +584,7 @@ open class UINavigationBar: UIView {
             button.frame = CGRect(x: x, y: 0, width: button.platterWidth, height: 44)
             x += button.platterWidth + 8
         }
-        var right = bounds.width - 16
+        var right = bounds.width - edgeInset
         for button in rightButtons {
             button.frame = CGRect(x: right - button.platterWidth, y: 0, width: button.platterWidth, height: 44)
             right -= button.platterWidth + 8

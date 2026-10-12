@@ -141,3 +141,48 @@ Tier A exact, UIKit Tier C 1.75 %, Tier B within tolerance. `NavigationPolishTes
 Open: the Edit screen for reordering tabs, `UITabBarAppearance`'s colours, the badge in the
 compact (landscape) bar.
 
+
+## UISplitViewController (2026-10-12, `uikit/split/columns`, `triple`, `modes`, `compact`, `collapsed`, Phase 9 item 42)
+
+`Containers/UISplitViewController.swift`: `init(style:)` (`.doubleColumn`, `.tripleColumn`,
+`.unspecified` for the classic `viewControllers` pair), `setViewController(_:for:)` /
+`viewController(for:)` over the `.primary`, `.supplementary`, `.secondary` and `.compact`
+columns, `preferredDisplayMode` / `displayMode`, `preferredSplitBehavior` / `splitBehavior`,
+`preferredPrimaryColumnWidth(Fraction)` with the minimum and maximum (the supplementary too),
+`primaryEdge`, `show(_:)` / `hide(_:)`, `show(_:sender:)` / `showDetailViewController(_:sender:)`
+(added to `UIViewController`: a navigation controller pushes, a split view's secondary takes
+it, else the parent or a presentation), `displayModeButtonItem` and its visibility,
+`isCollapsed`, `presentsWithGesture` and `showsSecondaryOnlyButton` (accepted), and
+`UISplitViewControllerDelegate` (`topColumnForCollapsingToProposedTopColumn`,
+`displayModeForExpandingToProposedDisplayMode`, `willShow` / `willHide` column,
+`didCollapse` / `didExpand`, `willChangeTo displayMode`, `collapseSecondary:onto:`).
+
+Measured on the iPad Pro 13-inch simulator (iOS 27, `IOS_DEVICE=ipad`; the harness gives
+windows 500 pt and wider a regular width class, as UIKitWeb's scene and the gallery's hosted
+fixtures do; a window past the screen's edge snapshots stale, so the fixtures are 800 and
+1000 wide). The primary, supplementary and secondary controllers are wrapped in navigation
+controllers (the compact column shows as it is). Two columns tiled (`.oneBesideSecondary`):
+the sidebar 320 wide at the leading edge and the secondary spanning the whole width under it,
+its bar's title centred in the uncovered part (the detail's title at 560 in 800) and no
+separator line; the sidebar's bar carries the toggle (`sidebar.leading` in a 44 pt glass
+platter) 10 from its trailing edge with its title centred; `.secondaryOnly` moves the toggle to
+the secondary's leading edge, 10 in. Overlay (`.oneOverSecondary`, the `.overlay` or
+`.displace` behaviour alike for two columns): the secondary spans the width under black at
+20 %, the sidebar over it with its toggle 16 from the edge and its title 3 left of centre. A
+preferred primary width (240) replaces the 320. Three columns: the primary 280 and the
+supplementary 340 wide; at 1000 the three cannot tile (the secondary would keep under 420),
+so the supplementary sits at 0 with the secondary at 341 after a 1 pt `opaqueSeparator` and
+the primary overlays them both, dimmed; "one" beside the secondary is the supplementary
+(`.oneBesideSecondary` hides the primary, whose toggle moves to the supplementary's leading
+edge), "two" adds the primary. Compact widths (under 500, `uikit/split/compact`, `collapsed`
+on the iPhone): a compact column stands in for every other and takes no push from
+`show(.secondary)`; without one the secondary collapses onto the primary's stack and shows on
+top with a back button (the delegate's `topColumnForCollapsing…` returning `.primary` or
+`collapseSecondary:onto:` returning true keeps the primary on top), and expanding gives it
+its column back. Frames exact in every state; UIKit Tier C ≤ 0.26 %, Tier B 11/11.
+`SplitViewControllerTests`.
+
+Open: the sidebar's pan gesture (`presentsWithGesture`), the inspector column,
+`twoDisplaceSecondary`'s slide (laid out as tiled), the mode transitions' animation, the
+sidebar background style, the primary's minimum and maximum from the width (automatic
+dimensions are the measured constants), three tiled columns' exact threshold.

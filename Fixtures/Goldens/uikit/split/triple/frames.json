@@ -1,0 +1,58 @@
+{
+  "fixture" : "uikit\/split\/triple",
+  "frames" : {
+    "primary" : {
+      "height" : 20.5,
+      "width" : 58.5,
+      "x" : 16,
+      "y" : 16
+    },
+    "secondary" : {
+      "height" : 20.5,
+      "width" : 82,
+      "x" : 357,
+      "y" : 16
+    },
+    "split" : {
+      "height" : 600,
+      "width" : 1000,
+      "x" : 0,
+      "y" : 0
+    },
+    "supplementary" : {
+      "height" : 20.5,
+      "width" : 116,
+      "x" : 16,
+      "y" : 16
+    }
+  },
+  "size" : {
+    "height" : 600,
+    "width" : 1000
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "secondary" : {
+          "height" : 20.5,
+          "width" : 82,
+          "x" : 357,
+          "y" : 16
+        },
+        "split" : {
+          "height" : 600,
+          "width" : 1000,
+          "x" : 0,
+          "y" : 0
+        },
+        "supplementary" : {
+          "height" : 20.5,
+          "width" : 116,
+          "x" : 16,
+          "y" : 16
+        }
+      },
+      "name" : "one"
+    }
+  ]
+}

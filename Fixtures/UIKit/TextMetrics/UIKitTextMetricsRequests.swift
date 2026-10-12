@@ -204,6 +204,11 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Sidebar row", .style("body"), width: 250, lines: 0),
         UIKitTextRequest("Another", .style("body")),
         UIKitTextRequest("More", .style("subheadline")),
+        // uikit/split/* (the columns' labels and bar titles)
+        UIKitTextRequest("Primary", .system(size: 17)), UIKitTextRequest("Secondary", .system(size: 17)),
+        UIKitTextRequest("Supplementary", .system(size: 17)), UIKitTextRequest("Compact", .system(size: 17)),
+        UIKitTextRequest("Sidebar", .system(size: 17, weight: "semibold")), UIKitTextRequest("Detail", .system(size: 17, weight: "semibold")),
+        UIKitTextRequest("List", .system(size: 17, weight: "semibold")), UIKitTextRequest("Compact", .system(size: 17, weight: "semibold")),
         // uikit/events/dragdrop
         UIKitTextRequest("Drag me", .system(size: 17)),
         UIKitTextRequest("Nothing dropped", .system(size: 15)),

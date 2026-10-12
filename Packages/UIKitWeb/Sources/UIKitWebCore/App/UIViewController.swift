@@ -185,6 +185,19 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
 
     open var shouldAutomaticallyForwardAppearanceMethods: Bool { true }
 
+    /// Shows a controller the way the hierarchy wants: a navigation controller pushes it, a
+    /// split view controller takes it (`UISplitViewController`), anything else asks its parent
+    /// or presents it.
+    open func show(_ vc: UIViewController, sender: Any?) {
+        if let navigation = self as? UINavigationController { navigation.pushViewController(vc, animated: true); return }
+        if let parent { parent.show(vc, sender: sender) } else { present(vc, animated: true) }
+    }
+
+    /// Shows a detail controller: a split view controller's secondary takes it.
+    open func showDetailViewController(_ vc: UIViewController, sender: Any?) {
+        if let parent { parent.showDetailViewController(vc, sender: sender) } else { show(vc, sender: sender) }
+    }
+
     // MARK: Presentation (Phase 3: sheets; the API is accepted so sources compile)
 
     public private(set) var presentedViewController: UIViewController?

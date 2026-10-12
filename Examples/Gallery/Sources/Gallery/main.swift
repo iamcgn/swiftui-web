@@ -45,8 +45,11 @@ struct UIKitFixtureHost: UIViewControllerRepresentable {
     let steps = uikit.stepNames.enumerated().map { index, name in
         FixtureStep<UIKitFixtureBox>(name) { box in box.instance?.steps[index].run() }
     }
+    // The width class follows the fixture's width as the simulator harness's window does
+    // (500 and up is regular: the iPad's split views, uikit/split/*).
     return Fixture(uikit.name, size: uikit.size, model: { UIKitFixtureBox() }, steps: steps) { box in
         UIKitFixtureHost(fixture: uikit, box: box)
+            .environment(\.horizontalSizeClass, uikit.size.width >= 500 ? .regular : .compact)
     }.platform(.iOS).colorScheme(uikit.style == .dark ? .dark : .light)
 }
 

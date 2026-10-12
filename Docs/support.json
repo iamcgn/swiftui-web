@@ -1797,6 +1797,18 @@
           ]
         },
         {
+          "api": "UISplitViewController (column styles, display modes, split behaviours, column widths, show / hide, displayModeButtonItem, the compact collapse, UISplitViewControllerDelegate)",
+          "status": "partial",
+          "notes": "Two and three columns measured on the iPad Pro simulator: the 320 pt sidebar floating over the full-width secondary with the toggle platter in its bar, overlay modes dimming the secondary, three columns tiling or overlaying by the width, a preferred primary width; compact widths show the compact column or collapse the secondary onto the primary's stack; open: the sidebar pan gesture, the inspector column, the transitions' animation, automatic widths beyond the measured constants",
+          "fixtures": [
+            "uikit/split/columns",
+            "uikit/split/triple",
+            "uikit/split/modes",
+            "uikit/split/compact",
+            "uikit/split/collapsed"
+          ]
+        },
+        {
           "api": "UIPageViewController",
           "status": "partial",
           "notes": "The scroll style's three paging slots with the data source's neighbours loaded as a drag begins, settling on the next page with the delegate's callbacks, setViewControllers, the page indicator from presentationCount and presentationIndex (a tap pages), the page-curl style as a scroll; open: the curl animation, two-page spreads, animated setViewControllers",

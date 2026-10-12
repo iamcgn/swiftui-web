@@ -22,12 +22,18 @@ esac
 DUMP=; if [[ "${1:-}" == "--dump" ]]; then DUMP=--dump; shift; fi
 FILTER="${1:-}"
 
-DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation"
+# IOS_DEVICE=ipad runs on an iPad Pro 13-inch (the regular-width idiom: split view
+# controllers, uk-splitviewcontroller; 1032 pt wide in portrait, so fixtures up to that width
+# fit on the screen — a window past the screen's edge snapshots stale); the default is the iPhone SE.
+case "${IOS_DEVICE:-iphone}" in
+  ipad) DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB"; DEVICE_LABEL="iPad"; DEVICE_FAMILY_IPAD="<integer>2</integer>" ;;
+  *) DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation"; DEVICE_LABEL="SE"; DEVICE_FAMILY_IPAD="" ;;
+esac
 # The harness built with Xcode 27's SDK no longer loads on the iOS 26.0 runtime (a SwiftUI
 # conformance it references is missing there); IOS_RUNTIME selects another installed runtime,
 # e.g. IOS_RUNTIME=com.apple.CoreSimulator.SimRuntime.iOS-27-0 (the golden's meta.json records the host).
 RUNTIME="${IOS_RUNTIME:-com.apple.CoreSimulator.SimRuntime.iOS-26-0}"
-DEVICE_NAME="SwiftUIWeb SE${IOS_RUNTIME:+ ${IOS_RUNTIME##*.}}"
+DEVICE_NAME="SwiftUIWeb ${DEVICE_LABEL}${IOS_RUNTIME:+ ${IOS_RUNTIME##*.}}"
 UDID="$(xcrun simctl list devices -j | python3 -c '
 import json, sys
 name, runtime = sys.argv[1], sys.argv[2]
@@ -68,7 +74,7 @@ cat > "$APP/Info.plist" <<PLIST
 <key>DTPlatformName</key><string>iphonesimulator</string>
 <key>MinimumOSVersion</key><string>26.0</string>
 <key>LSRequiresIPhoneOS</key><true/>
-<key>UIDeviceFamily</key><array><integer>1</integer></array>
+<key>UIDeviceFamily</key><array><integer>1</integer>${DEVICE_FAMILY_IPAD}</array>
 <key>UILaunchScreen</key><dict/>
 <key>UIRequiresFullScreen</key><true/>
 <key>UIStatusBarHidden</key><true/>

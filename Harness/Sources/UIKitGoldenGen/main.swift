@@ -47,6 +47,9 @@ final class Host {
         window = UIWindow(frame: CGRect(origin: .zero, size: size))
         window.overrideUserInterfaceStyle = fixture.style
         window.traitOverrides.verticalSizeClass = .regular   // portrait screens whatever the fixture height
+        // A window outside a scene has no width class of its own: wide fixtures (the iPad's
+        // split views) are regular, the phone-sized ones compact, as UIKitWeb decides at 500.
+        window.traitOverrides.horizontalSizeClass = size.width >= 500 ? .regular : .compact
         window.backgroundColor = .clear
         window.rootViewController = instance.controller
         window.makeKeyAndVisible()

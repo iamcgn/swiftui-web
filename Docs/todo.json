@@ -1742,13 +1742,14 @@
       "framework": "UIKit",
       "area": "Containers",
       "title": "UISplitViewController",
-      "detail": "The column styles, display modes and the compact collapse; the iPad geometry from a simulator of that idiom.",
+      "detail": "The column styles, display modes and the compact collapse; the iPad geometry from a simulator of that idiom. Done 2026-10-12 (Phase 9, item 42): double and triple columns, the beside and overlay modes, column widths, show / hide and the toggle, the compact collapse with and without a compact column, measured on the iPad Pro 13-inch simulator (IOS_DEVICE=ipad; uikit/split/*); open: the sidebar pan gesture, the inspector column, the transitions' animation.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Packages/UIKitWeb/Sources/UIKitWebCore/Containers"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-system-sheets",

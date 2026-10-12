@@ -1,0 +1,40 @@
+{
+  "fixture" : "uikit\/split\/compact",
+  "frames" : {
+    "compact" : {
+      "height" : 20.5,
+      "width" : 70,
+      "x" : 16,
+      "y" : 16
+    },
+    "split" : {
+      "height" : 480,
+      "width" : 320,
+      "x" : 0,
+      "y" : 0
+    }
+  },
+  "size" : {
+    "height" : 480,
+    "width" : 320
+  },
+  "steps" : [
+    {
+      "frames" : {
+        "compact" : {
+          "height" : 20.5,
+          "width" : 70,
+          "x" : 16,
+          "y" : 16
+        },
+        "split" : {
+          "height" : 480,
+          "width" : 320,
+          "x" : 0,
+          "y" : 0
+        }
+      },
+      "name" : "secondary"
+    }
+  ]
+}
