@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
-| UIKit | 11 | 0 | 0 | 11 |
+| UIKit | 9 | 0 | 0 | 9 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **17** | 0 | 1 | 16 |
+| **All** | **15** | 0 | 1 | 14 |
 
 ## Next (Phase 8, in order)
 
@@ -33,10 +33,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **UIAppearance proxies** `uk-appearance` · Views · missing  
-  `appearance()` and `appearance(whenContainedInInstancesOf:)` applied when a view enters a window. ([Views](Packages/UIKitWeb/Sources/UIKitWebCore/Views))
-- ☐ **Scenes and app lifecycle** `uk-scenes` · App · missing  
-  `UIWindowScene`, `UISceneDelegate` and `UIApplication` lifecycle notifications from page visibility and activation; several windows in the host; `UIFeedbackGenerator` as no-ops. ([App](Packages/UIKitWeb/Sources/UIKitWebCore/App))
 - ☐ **Hardware keyboard and the focus system** `uk-keyboard` · Events · missing  
   `UIKeyCommand` on responders, `pressesBegan`/`pressesEnded`, `UIFocusSystem` with the focus ring for keyboard navigation across controls, table and collection cells. ([Events](Packages/UIKitWeb/Sources/UIKitWebCore/Events))
 - ☐ **UITextInput for custom text views** `uk-text-input` · Text · missing  
@@ -68,6 +64,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 ## Landed
 
 - ☑ 2026-10-12 **Measure the macOS presentation looks** `sw-mac-presentation-looks` · SwiftUI · Presentation
+- ☑ 2026-10-12 **UIAppearance proxies** `uk-appearance` · UIKit · Views
+- ☑ 2026-10-12 **Scenes and app lifecycle** `uk-scenes` · UIKit · App
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

@@ -277,6 +277,8 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     }
 
     private func didMoveTree(toWindow window: UIWindow?) {
+        // Appearance proxies apply as the view enters a window (uk-appearance).
+        if window != nil { _UIAppearanceRegistry.shared.apply(to: self) }
         didMoveToWindow()
         if window == nil, isFirstResponder { resignFirstResponder() }
         for subview in subviews { subview.didMoveTree(toWindow: window) }

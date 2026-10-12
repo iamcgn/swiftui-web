@@ -194,9 +194,17 @@ public final class UIKitScene: HostedScene {
             preferredContentSizeCategory = category
         }
     }
-    /// Recorded: the application's state would follow them.
-    public var hostIsVisible = true
-    public var hostIsFocused = true
+    /// The host's visibility and focus drive the app's lifecycle (App/UIScene.swift).
+    public var hostIsVisible = true {
+        didSet { if hostIsVisible != oldValue { applyLifecycle(from: (oldValue, hostIsFocused)) } }
+    }
+    public var hostIsFocused = true {
+        didSet { if hostIsFocused != oldValue { applyLifecycle(from: (hostIsVisible, oldValue)) } }
+    }
+    /// The one window scene (uk-scenes), its delegate once connected, and the class to connect.
+    public private(set) lazy var windowScene = UIWindowScene(session: UISceneSession())
+    public internal(set) var sceneDelegate: (any UISceneDelegate)?
+    public var sceneDelegateType: (any UISceneDelegate.Type)?
     /// The URL a UIKit app would receive through its scene delegate (recorded only).
     public private(set) var lastOpenedURL: String?
     public func handleOpenURL(_ url: String) { lastOpenedURL = url }

@@ -35,6 +35,14 @@ open class UIWindow: UIView {
         isOpaque = true
     }
 
+    /// The scene the window belongs to (the host's one scene; `UIWindow(windowScene:)` sets it).
+    public var windowScene: UIWindowScene? = UIKitScene.shared.windowScene
+
+    public convenience init(windowScene: UIWindowScene) {
+        self.init(frame: windowScene.screen.bounds)
+        self.windowScene = windowScene
+    }
+
     public convenience init() {
         self.init(frame: UIScreen.main.bounds)
     }

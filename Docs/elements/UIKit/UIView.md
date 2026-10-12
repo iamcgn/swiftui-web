@@ -118,3 +118,30 @@ search field, the search cancel circle) are now that blur (sigma 20) under white
 lens black at 7.5 % over it; the SwiftUI iOS tab bar's capsule takes the same blur and tint.
 iOS 26's refraction and highlight rim are not drawn (approximate).
 
+## Appearance proxies (uk-appearance, 2026-10-12)
+
+`UIView.appearance()` and `appearance(whenContainedInInstancesOf:)` return a
+`UIAppearanceProxy<T>` whose dynamic member lookup records every settable key path
+(`UILabel.appearance().textColor = .red`); reading one gives the recorded value (a property
+nothing recorded traps: UIKit's nil has no key-path equivalent). `_UIAppearanceRegistry`
+applies the entries to a view as it enters a window (`didMoveToWindow`), writing over values
+set earlier as UIKit does: the entries of the view's class and superclasses in recording
+order, then the contained ones whose containers (view and view controller classes) appear in
+order along the responder chain. `UIView` and `UIViewController` are `UIAppearanceContainer`s;
+bar items are not proxied. `AppearanceTests`.
+
+## Scenes and the lifecycle (uk-scenes, 2026-10-12; `App/UIScene.swift`)
+
+One `UIWindowScene` stands for the host's page or window (`UIKitScene.windowScene`,
+`UIApplication.connectedScenes`); `UIWindow(windowScene:)` joins it and every window's
+`windowScene` is it. A scene delegate class set on `UIApplication.sceneDelegateType` (what the
+scene manifest names) is created at launch and connected (`scene(_:willConnectTo:options:)`,
+with the page's URL as a `UIOpenURLContext`); its `window` is made key and visible. The host's
+`hostIsVisible` and `hostIsFocused` drive `UIApplication.applicationState` and the scene's
+`activationState`: losing focus resigns active (`sceneWillResignActive`,
+`applicationWillResignActive`, the notifications), hiding the page enters the background,
+showing it enters the foreground, focus activates — `UIScene` and `UIApplication` notifications
+post on `NotificationCenter.default` in UIKit's order (scene first, then the app).
+`UIFeedbackGenerator` and its impact, selection and notification kinds are no-ops (a page has
+no haptics). `SceneLifecycleTests`.
+

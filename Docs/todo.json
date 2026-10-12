@@ -1616,26 +1616,28 @@
       "framework": "UIKit",
       "area": "Views",
       "title": "UIAppearance proxies",
-      "detail": "`appearance()` and `appearance(whenContainedInInstancesOf:)` applied when a view enters a window.",
+      "detail": "`appearance()` and `appearance(whenContainedInInstancesOf:)` applied when a view enters a window. Done 2026-10-12 (Phase 9, item 33): UIAppearanceProxy with dynamic member key paths, applied on entering a window, containment along the responder chain.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Packages/UIKitWeb/Sources/UIKitWebCore/Views"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-scenes",
       "framework": "UIKit",
       "area": "App",
       "title": "Scenes and app lifecycle",
-      "detail": "`UIWindowScene`, `UISceneDelegate` and `UIApplication` lifecycle notifications from page visibility and activation; several windows in the host; `UIFeedbackGenerator` as no-ops.",
+      "detail": "`UIWindowScene`, `UISceneDelegate` and `UIApplication` lifecycle notifications from page visibility and activation; several windows in the host; `UIFeedbackGenerator` as no-ops. Done 2026-10-12 (Phase 9, item 34): UIWindowScene/UISceneDelegate connected at launch, the host's visibility and focus driving the app and scene states with the notifications, UIWindow(windowScene:), feedback generators as no-ops; several scenes stay out (one host window).",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Packages/UIKitWeb/Sources/UIKitWebCore/App"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-keyboard",
