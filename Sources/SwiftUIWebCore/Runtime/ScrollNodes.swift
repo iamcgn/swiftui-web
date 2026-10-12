@@ -200,6 +200,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     }
 
     override package func layoutContents(proposal: ProposedViewSize) {
+        cachedLazyProviders = nil
         contentInsets = safeAreaOverlap + environment._contentMargins.content
         let contentProposal = contentProposal(proposal, insets: contentInsets)
         let size = child.sizeThatFits(contentProposal)
@@ -229,6 +230,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
             // A lazy element not created yet is created where its placeholder sits.
             // The provider forgets the memos the new element changes (its own and its ancestors').
             if targetRect(id: target.id) == nil, lazyProviders.contains(where: { $0.materialize(id: target.id) }) {
+                cachedLazyProviders = nil
                 contentSize = child.sizeThatFits(contentProposal)
                 lastContentSize = contentSize
                 placeContent(proposal: contentProposal)
@@ -274,8 +276,14 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
         return window
     }
 
+    /// The lazy `ForEach`es in the content, found once per layout (every scrolled frame asks
+    /// whether one needs an element; the walk over the content is the cost of a layout).
+    private var cachedLazyProviders: [any _LazyMaterializing]?
     private var lazyProviders: [any _LazyMaterializing] {
-        child.descendants(where: { $0 is _LazyMaterializing }).map { $0 as! any _LazyMaterializing }
+        if let cachedLazyProviders { return cachedLazyProviders }
+        let providers = child.descendants(where: { $0 is _LazyMaterializing }).map { $0 as! any _LazyMaterializing }
+        cachedLazyProviders = providers
+        return providers
     }
 
     /// Creates the lazy elements in the window and lays the content out again with them, a few
@@ -288,6 +296,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
             var changed = false
             for provider in lazyProviders where provider.materialize(visible: window, contentOrigin: origin) { changed = true }
             guard changed else { return }
+            cachedLazyProviders = nil   // the new elements may hold lazy content of their own
             passes += 1
             contentSize = child.sizeThatFits(proposal)
             lastContentSize = contentSize

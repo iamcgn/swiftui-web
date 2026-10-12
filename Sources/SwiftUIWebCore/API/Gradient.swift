@@ -155,6 +155,18 @@ extension Gradient {
     @MainActor package func resolvedStops(in environment: EnvironmentValues) -> [DisplayGradient.Stop] {
         let resolved = stops.map { DisplayGradient.Stop(location: Double(min(max($0.location, 0), 1)), color: $0.color.resolve(in: environment)) }
         guard resolved.count > 1 else { return resolved }
+        if let cached = Self.subdividedStops[resolved] { return cached }
+        let result = Self.subdivide(resolved)
+        if Self.subdividedStops.count >= 256 { Self.subdividedStops.removeAll(keepingCapacity: true) }
+        Self.subdividedStops[resolved] = result
+        return result
+    }
+
+    /// The subdivided stops by their resolved stops: a page's gradients repeat, and every paint
+    /// of one would otherwise mix its stops in Oklab (powers and logarithms per step) again.
+    @MainActor private static var subdividedStops: [[DisplayGradient.Stop]: [DisplayGradient.Stop]] = [:]
+
+    private static func subdivide(_ resolved: [DisplayGradient.Stop]) -> [DisplayGradient.Stop] {
         var result: [DisplayGradient.Stop] = [resolved[0]]
         for (a, b) in zip(resolved, resolved.dropFirst()) {
             let steps = Self.subdivisions

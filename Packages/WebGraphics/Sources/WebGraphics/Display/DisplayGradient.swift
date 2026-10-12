@@ -13,7 +13,7 @@ public struct DisplayGradient: Equatable, Sendable {
         case elliptical(center: CGPoint, startRadius: CGFloat, endRadius: CGFloat, aspect: CGFloat)
     }
 
-    public struct Stop: Equatable, Sendable {
+    public struct Stop: Hashable, Sendable {
         public var location: Double
         public var color: RGBA
         public init(location: Double, color: RGBA) {

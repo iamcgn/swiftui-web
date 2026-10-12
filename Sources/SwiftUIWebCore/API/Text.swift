@@ -551,7 +551,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
     // MARK: Links (markdown `[text](url)`, the `link` attribute)
 
     /// Whether any part is a link: links and selectable text take presses.
-    package var hasLinks: Bool { view.parts(context: textContext).contains { $0.modifiers.link != nil } }
+    package var hasLinks: Bool { parts.contains { $0.modifiers.link != nil } }
     package var isInteractive: Bool { hasLinks || environment._textSelectionEnabled }
 
     // MARK: Selection (`textSelection(.enabled)`, sw-text-selection)
@@ -670,9 +670,21 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
     /// What the text resolves its parts against (dates in the environment's time zone).
     package var textContext: _TextContext { _TextContext(timeZone: environment.timeZone, calendar: environment.calendar) }
 
+    /// The parts and styled runs for the current view and environment, kept until the next
+    /// update: a paint reads them several times over, and a scroll frame paints every text.
+    private var cachedParts: [Text.Part]?
+    private var cachedStyledRuns: (runs: [StyledRun], colors: [Color?])?
+    private func forgetParts() { cachedParts = nil; cachedStyledRuns = nil }
+    package var parts: [Text.Part] {
+        if let cachedParts { return cachedParts }
+        let parts = view.parts(context: textContext)
+        cachedParts = parts
+        return parts
+    }
+
     /// The link under `point` (the node's coordinates), if any.
     package func link(at point: CGPoint) -> URL? {
-        let parts = view.parts(context: textContext)
+        let parts = self.parts
         guard parts.contains(where: { $0.modifiers.link != nil }) else { return nil }
         let (runs, _) = styledRuns
         let layout = textLayout(width: frame.width, height: frame.height)
@@ -760,6 +772,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         let previousView = self.view, previousEnvironment = self.environment
         let previousRuns = styledRuns.runs
         super.update(view: view, environment: environment, force: force)
+        forgetParts()
         scheduleLiveRefresh()
         let transition = environment.contentTransition
         guard transition.fades, styledRuns.runs != previousRuns,
@@ -803,8 +816,9 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
     /// The text's leaves as the engine sees them, with each part's colour; an inline image is a
     /// run one replacement character long measuring the symbol's width at the font.
     package var styledRuns: (runs: [StyledRun], colors: [Color?]) {
-        let parts = view.parts(context: textContext)
-        return (parts.map { part in
+        if let cachedStyledRuns { return cachedStyledRuns }
+        let parts = self.parts
+        let result = (parts.map { part -> StyledRun in
             let font = resolveFont(part.modifiers)
             if let image = part.image {
                 let size = inlineSymbol(for: image, font: font)?.size
@@ -812,6 +826,8 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
             }
             return StyledRun(cased(part.string), font: font)
         }, parts.map(\.modifiers.foregroundColor))
+        cachedStyledRuns = result
+        return result
     }
 
     /// The glyph and size of an inline system image at `font` (`Image(systemName:)` only; other
@@ -842,7 +858,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
     }
 
     /// Each part's own gradient, if it has one.
-    package var runGradients: [(any _GradientStyle)?] { view.parts(context: textContext).map { $0.modifiers.foregroundGradient?.style } }
+    package var runGradients: [(any _GradientStyle)?] { parts.map { $0.modifiers.foregroundGradient?.style } }
 
     /// The environment's layout options with the text's own kerning and tracking.
     package var layoutOptions: TextLayoutOptions {
@@ -931,7 +947,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
 
     /// Each part's baseline offset (its own, else the environment's).
     package var baselineOffsets: [CGFloat] {
-        view.parts(context: textContext).map { $0.modifiers.baselineOffset ?? environment._baselineOffset }
+        parts.map { $0.modifiers.baselineOffset ?? environment._baselineOffset }
     }
 
     /// How far the text grows above and below for baseline offsets: a raised part adds what its
@@ -987,8 +1003,10 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         let roll = outgoing.transition.roll * frame.height
         let current = (view, environment)
         view = outgoing.view; environment = outgoing.environment
+        forgetParts()
         paintText(alpha: 1 - progress, dy: -roll * CGFloat(progress), into: &list, context: context)
         view = current.0; environment = current.1
+        forgetParts()
         paintText(alpha: progress, dy: roll * CGFloat(1 - progress), into: &list, context: context)
     }
 
@@ -1004,7 +1022,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
             return
         }
         let inherited = (environment.foregroundColor ?? .primary)
-        let parts = view.parts(context: textContext)
+        let parts = self.parts
         // A link without a colour of its own takes the accent (text/markdown `link`).
         let resolvedColors = colors.indices.map { index in
             context.foregroundOverride ?? (colors[index] ?? (parts.indices.contains(index) && parts[index].modifiers.link != nil ? Color.accentColor : inherited)).resolve(in: environment)
