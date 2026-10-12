@@ -11,11 +11,14 @@ Apple docs: [toolbar(content:)](https://developer.apple.com/documentation/swiftu
 
 | API | Notes |
 |---|---|
-| `toolbar(content:)`, `toolbar(id:content:)` with `ToolbarContentBuilder` | implemented (customisation is not offered) |
+| `toolbar(content:)`, `toolbar(id:content:)` with `ToolbarContentBuilder` | implemented; a customisable toolbar (2026-10-11) keeps `ToolbarItem(id:showsByDefault: false)` items out until shown, a secondary click on the bar's empty part opens a menu of every item with a check to show or hide it, and `Runtime.setToolbarItem(_:visible:in:)` / `isToolbarItemVisible` hold the choices for the session (Apple's palette sheet is not drawn) |
 | `ToolbarItem(placement:content:)`, `ToolbarItem(id:placement:showsByDefault:content:)`, `ToolbarItemGroup(placement:content:)` | implemented |
 | `ToolbarItemPlacement` (`automatic`, `principal`, `navigation`, `primaryAction`, `secondaryAction`, `status`, `confirmationAction`, `cancellationAction`, `destructiveAction`, `keyboard`, `bottomBar`, `topBar*`, `navigationBar*`) | implemented: `navigation`/leading placements lead, `principal`/`status` centre, the rest trail; `keyboard` and `bottomBar` are dropped |
 | `toolbar(_:for:)` with `Visibility` and `ToolbarPlacement` | implemented for the window toolbar |
-| `toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode`, `ToolbarRole`, `ToolbarTitleDisplayMode` | accepted without effect |
+| `toolbarBackground(_ style:for:)`, `toolbarBackground(_ visibility:for:)` | implemented 2026-10-11: the window toolbar's painted chrome takes the style (or paints no ground and hairline when hidden); the iOS navigation bar's band fills with the style or the window colour (`.visible`) and loses its collapsed glass when hidden; the iOS tab bar's capsule takes the style or goes bare when hidden (unmeasured) |
+| `toolbarRole`, `ToolbarRole` | implemented: `.editor` leads with the title before the navigation items; the others keep the navigation items first |
+| `toolbarTitleDisplayMode`, `ToolbarTitleDisplayMode` | implemented as `navigationBarTitleDisplayMode`: `.inline` inline, `.large` and `.inlineLarge` the large title (iOS); the macOS bar's title is inline either way |
+| Sheet toolbars | implemented 2026-10-11: a `toolbar` inside a sheet (or an in-host window) shows its items in a 52 pt bar across the sheet's top, the panel grown by it (unmeasured: a macOS sheet's bar is the window toolbar's) |
 | Custom `ToolbarContent` types with a `body` | implemented |
 | `searchable(text:placement:prompt:)` (`Text`, key and string prompts), `SearchFieldPlacement` | implemented: a search field at the trailing end of the bar on macOS, at the bottom of an iOS navigation stack (iOS 26, "iOS" below); every placement lands there |
 | `searchable(text:isPresented:…)` | implemented (2026-10-04): the presentation is the field's focus; the binding follows and drives it |
@@ -26,7 +29,8 @@ Apple docs: [toolbar(content:)](https://developer.apple.com/documentation/swiftu
 | `searchable(text:tokens:…)` (with `isPresented`, `suggestedTokens`), `token` builder | implemented: tokens precede the text as grey tags (iOS 26's 28.5 pt tags; small ones in the macOS field); `suggestedTokens` is accepted without effect |
 | `searchPresentationToolbarBehavior(_:)` | implemented: `.avoidHidingContent` keeps the iOS bar while presented (unmeasured); the automatic behaviour hides it |
 | `searchToolbarBehavior(.minimize)` (iOS 26), `SearchFieldPlacement.navigationBarDrawer` | accepted without effect |
-| Toolbar customisation, `ToolbarCommands`, search fields in toolbars, sheet toolbars | missing |
+| `ToolbarCommands` | with `commands` (sw-windows) |
+| A real `NSToolbar` in the native host | open: the items are arbitrary views, so a real bar needs them hosted as `NSView`s (`ix-appkit`); the native host paints the chrome bar meanwhile |
 
 ## Behaviour
 
@@ -118,6 +122,10 @@ band at rest, focus presenting the search (the bar hidden, the scope band, the c
 ending it and clearing the text), completions setting the query or adding a token, scope
 selection, `isSearching`, `avoidHidingContent`, text-entry activation, and the macOS toolbar's
 scope row and suggestion menu.
+
+`ToolbarTests.backgroundsRolesCustomisationAndSheetBars` covers the backgrounds, the editor
+role, customisation (the default visibility, the runtime's switch, the bar's menu) and a
+sheet's bar.
 
 ## Not yet covered
 

@@ -95,6 +95,54 @@ package final class PresentationNode: ViewNode {
         didSet { if preferredColorScheme != oldValue { applyPreferredColorScheme() } }
     }
 
+    // MARK: Sheet toolbars (sw-toolbar)
+
+    /// `toolbar` modifiers inside the presentation: a macOS sheet (or a window) shows their
+    /// items in a bar of its own across its top (unmeasured: the bar is the window toolbar's
+    /// 52 pt row, the sheet's panel grows by it).
+    package private(set) var toolbarSources: [ToolbarSource] = []
+    package private(set) var toolbarBar: ToolbarChromeNode?
+
+    package func registerToolbar(_ node: ViewNode, items: [_ToolbarItemData]) {
+        if let index = toolbarSources.firstIndex(where: { $0.node === node }) {
+            toolbarSources[index].items = items
+        } else {
+            toolbarSources.append(ToolbarSource(node: node, items: items))
+        }
+        runtime.requestLayout(invalidatingSizes: true)
+    }
+
+    package func unregisterToolbar(_ node: ViewNode) {
+        toolbarSources.removeAll { $0.node === node || $0.node == nil }
+        runtime.requestLayout(invalidatingSizes: true)
+    }
+
+    private var toolbarItems: [_ToolbarItemData] { toolbarSources.filter { $0.node?.isMounted == true }.flatMap(\.items) }
+
+    /// The bar's height when the presentation has one: a sheet or window with toolbar items.
+    private var toolbarHeight: CGFloat {
+        guard kind == .sheet || kind.isWindow, !metrics.sheetsFillWindow, !toolbarItems.isEmpty else { return 0 }
+        return Runtime.toolbarHeight
+    }
+
+    /// Builds or drops the bar and lays it out across the panel's top (below a window's title bar).
+    private func layoutToolbar(top: CGFloat) {
+        let items = toolbarItems
+        guard !items.isEmpty, toolbarHeight > 0 else {
+            toolbarBar?.unmount()
+            toolbarBar = nil
+            return
+        }
+        let view = AnyView(_ToolbarBarView(items: items, title: nil, search: nil, scopes: nil))
+        if let toolbarBar {
+            toolbarBar.update(view: view, environment: environment)
+        } else {
+            toolbarBar = ToolbarChromeNode(runtime: runtime, view: view, environment: environment)
+        }
+        toolbarBar?.layout(in: CGSize(width: panel.width, height: Runtime.toolbarHeight))
+        toolbarBar?.frame.origin = CGPoint(x: panel.minX, y: panel.minY + top)
+    }
+
     /// Moves the presentation and its content to the preferred scheme (the modifier may tell
     /// it while the content is still being built: `init` applies it afterwards).
     private func applyPreferredColorScheme() {
@@ -150,13 +198,22 @@ package final class PresentationNode: ViewNode {
             return
         case .sheet:
             // The content's ideal size, limited to the window less the margins (a taller content is
-            // proposed the limit, so a ScrollView inside scrolls).
+            // proposed the limit, so a ScrollView inside scrolls); a toolbar inside adds its bar
+            // across the top.
+            let bar = toolbarHeight
             let limit = ProposedViewSize(width: window.width - 2 * PlatformMetrics.sheetMargin - 2 * padding, height: nil)
             var size = target.sizeThatFits(limit)
-            let maximumHeight = max(0, window.height - 2 * PlatformMetrics.sheetMargin - 2 * padding)
+            let maximumHeight = max(0, window.height - 2 * PlatformMetrics.sheetMargin - 2 * padding - bar)
             if size.height > maximumHeight { size = target.sizeThatFits(ProposedViewSize(width: limit.width, height: maximumHeight)); size.height = min(size.height, maximumHeight) }
-            panel = CGRect(x: (window.width - size.width) / 2 - padding, y: 0, width: size.width + 2 * padding, height: size.height + 2 * padding)
+            panel = CGRect(x: (window.width - size.width) / 2 - padding, y: 0, width: size.width + 2 * padding, height: size.height + 2 * padding + bar)
             arrow = nil
+            if bar > 0 {
+                layoutToolbar(top: 0)
+                contentFrame = CGRect(x: panel.minX + padding, y: panel.minY + bar + padding, width: size.width, height: size.height)
+                target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(contentFrame.size), by: runtime.root)
+                return
+            }
+            layoutToolbar(top: 0)
         case .alert, .dialog:
             let size = target.sizeThatFits(ProposedViewSize(width: nil, height: nil))
             panel = CGRect(x: (window.width - size.width) / 2, y: (window.height - size.height) / 2, width: size.width, height: size.height)
@@ -203,7 +260,7 @@ package final class PresentationNode: ViewNode {
             // Content-sized (or the scene's default size), clamped to the window with a margin,
             // centred and cascaded by the number of windows already open.
             let margin = PlatformMetrics.sheetMargin
-            let bar = Self.windowTitleBarHeight
+            let bar = Self.windowTitleBarHeight + toolbarHeight
             let available = CGSize(width: max(0, window.width - 2 * margin), height: max(0, window.height - 2 * margin - bar))
             var size: CGSize
             if let defaultSize {
@@ -219,6 +276,7 @@ package final class PresentationNode: ViewNode {
             origin.y = min(max(margin, origin.y), max(margin, window.height - size.height - bar - margin))
             panel = CGRect(x: origin.x, y: origin.y, width: size.width, height: size.height + bar)
             arrow = nil
+            layoutToolbar(top: Self.windowTitleBarHeight)
             contentFrame = CGRect(x: panel.minX + padding, y: panel.minY + bar + padding, width: size.width - 2 * padding, height: size.height - 2 * padding)
             target.place(at: contentFrame.origin, anchor: .topLeading, proposal: ProposedViewSize(contentFrame.size), by: runtime.root)
             return
@@ -341,6 +399,7 @@ package final class PresentationNode: ViewNode {
                 list.append(.fillRRect(row, cornerRadius: PlatformMetrics.menuHighlightCornerRadius, black(PlatformMetrics.menuHighlightAlpha)))
             }
         }
+        if let toolbarBar { toolbarBar.paint(into: &list, context: context.child(at: toolbarBar.frame)) }
         if let target { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
     }
 
@@ -378,6 +437,7 @@ package final class PresentationNode: ViewNode {
     package func interactiveNode(at point: CGPoint) -> (ViewNode & _Interactive)? {
         guard panel.contains(point), let target else { return nil }
         if kind.isWindow, closeButtonFrame.insetBy(dx: -4, dy: -4).contains(point) { return closeButton }
+        if let toolbarBar, let hit = toolbarBar.interactiveNode(at: point) { return hit }
         let local = CGPoint(x: point.x - target.frame.minX, y: point.y - target.frame.minY)
         guard target.contains(local) else { return nil }
         return target.hitTest(local, where: { $0.isInteractiveNode }) as? (ViewNode & _Interactive)
@@ -387,17 +447,19 @@ package final class PresentationNode: ViewNode {
     private lazy var closeButton: WindowCloseButton = WindowCloseButton(presentation: self)
 
     package var interactiveNodes: [ViewNode & _Interactive] {
-        (target?.collectNodes(where: { $0.isInteractiveNode }) ?? []).compactMap { $0 as? (ViewNode & _Interactive) }
+        (toolbarBar?.interactiveNodes ?? []) + (target?.collectNodes(where: { $0.isInteractiveNode }) ?? []).compactMap { $0 as? (ViewNode & _Interactive) }
     }
 
     override package var structuralChildren: [ViewNode] { [content] }
     override package var layoutChildren: [ViewNode] { [] }
     /// The content's layout nodes, where the semantics walk starts (it follows painted children,
-    /// which only layout nodes have).
-    package var semanticsRoots: [ViewNode] { content.layoutChildren }
+    /// which only layout nodes have); the toolbar's before them.
+    package var semanticsRoots: [ViewNode] { (toolbarBar?.layoutChildren ?? []) + content.layoutChildren }
     override package var nodeDescription: String { "Presentation(\(kind))" }
 
     override package func unmount() {
+        toolbarBar?.unmount()
+        toolbarBar = nil
         content.unmount()
         super.unmount()
     }

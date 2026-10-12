@@ -43,6 +43,11 @@ public struct _ToolbarItemData {
     public var view: AnyView
     /// Group contents: each element of the view list gets its own platter.
     public var isGroup: Bool
+    /// Whether a customisable toolbar shows the item until the user says otherwise
+    /// (`ToolbarItem(id:placement:showsByDefault:)`).
+    public var showsByDefault = true
+    /// The customisable toolbar the item belongs to (`toolbar(id:)`), if any.
+    public var customizationID: String?
 }
 
 /// Content of a toolbar: items and groups, or a custom type whose `body` is.
@@ -81,11 +86,14 @@ public struct ToolbarItem<ID: Hashable, Content: View>: ToolbarContent, Customiz
     public init(id: ID, placement: ToolbarItemPlacement = .automatic, showsByDefault: Bool = true, @ViewBuilder content: () -> Content) {
         self.id = id
         self.placement = placement
+        self.showsByDefault = showsByDefault
         self.content = content()
     }
 
+    package var showsByDefault = true
+
     public var body: Never { fatalError("ToolbarItem has no body") }
-    public var _toolbarItems: [_ToolbarItemData] { [_ToolbarItemData(id: id.map { AnyHashable($0) }, placement: placement, view: AnyView(content), isGroup: false)] }
+    public var _toolbarItems: [_ToolbarItemData] { [_ToolbarItemData(id: id.map { AnyHashable($0) }, placement: placement, view: AnyView(content), isGroup: false, showsByDefault: showsByDefault)] }
 }
 
 /// A group of items sharing a placement: every view in the group is its own item.
@@ -127,6 +135,10 @@ public enum ToolbarContentBuilder {
 public struct _ToolbarModifier {
     public var items: [_ToolbarItemData]
     public init(items: [_ToolbarItemData]) { self.items = items }
+    /// A customisable toolbar's items carry its id (`toolbar(id:)`).
+    public init(id: String, items: [_ToolbarItemData]) {
+        self.items = items.map { var item = $0; item.customizationID = id; return item }
+    }
 }
 
 extension _ToolbarModifier: ViewModifier {
@@ -152,7 +164,7 @@ extension _ToolbarVisibilityModifier: ViewModifier {
     }
 }
 
-/// The role of a toolbar (`toolbarRole`); accepted without effect.
+/// The role of a toolbar (`toolbarRole`): `.editor` puts the title before the leading items.
 public struct ToolbarRole: Hashable, Sendable {
     package let name: String
     public static let automatic = ToolbarRole(name: "automatic")
@@ -161,7 +173,8 @@ public struct ToolbarRole: Hashable, Sendable {
     public static let navigationStack = ToolbarRole(name: "navigationStack")
 }
 
-/// How a toolbar shows its title (`toolbarTitleDisplayMode`); accepted without effect.
+/// How a toolbar shows its title (`toolbarTitleDisplayMode`): on iOS `.large` is the large
+/// title, `.inline` and `.inlineLarge` the inline one (`navigationBarTitleDisplayMode`).
 public struct ToolbarTitleDisplayMode: Hashable, Sendable {
     package let name: String
     public static let automatic = ToolbarTitleDisplayMode(name: "automatic")
@@ -176,9 +189,11 @@ extension View {
         modifier(_ToolbarModifier(items: content()._toolbarItems))
     }
 
-    /// Populates a customisable toolbar (customisation is not offered; the items show as given).
+    /// Populates a customisable toolbar: items with `showsByDefault: false` stay out until the
+    /// user shows them; a secondary click on the bar offers every item to show or hide
+    /// (`Runtime.setToolbarItem(_:visible:in:)` keeps the choices for the session).
     nonisolated public func toolbar<C: CustomizableToolbarContent>(id: String, @ToolbarContentBuilder content: () -> C) -> some View {
-        modifier(_ToolbarModifier(items: content()._toolbarItems))
+        modifier(_ToolbarModifier(id: id, items: content()._toolbarItems))
     }
 
     /// Shows or hides the window toolbar; other bars are accepted without effect.
@@ -186,15 +201,61 @@ extension View {
         modifier(_ToolbarVisibilityModifier(visibility: bars.isEmpty || bars.contains(where: { $0 == .automatic || $0 == .windowToolbar || $0 == .navigationBar }) ? visibility : .automatic))
     }
 
-    /// Accepted without effect: the bar takes the window background.
-    nonisolated public func toolbarBackground<S: ShapeStyle>(_ style: S, for bars: ToolbarPlacement...) -> some View { self }
+    /// Fills the bars with the style: the window toolbar's painted chrome, the iOS navigation
+    /// bar (a bar behind the title and items instead of iOS 26's bare top), the iOS tab bar's
+    /// capsule (the style instead of the glass).
+    nonisolated public func toolbarBackground<S: ShapeStyle>(_ style: S, for bars: ToolbarPlacement...) -> some View {
+        modifier(_ToolbarBackgroundModifier(style: AnyShapeStyle(style), visibility: nil, bars: bars.isEmpty ? [.automatic] : bars))
+    }
 
-    /// Accepted without effect.
-    nonisolated public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View { self }
+    /// Hides or shows the bars' backgrounds: a hidden window toolbar paints no ground and no
+    /// hairline, a visible iOS navigation bar paints the window colour behind the title.
+    nonisolated public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
+        modifier(_ToolbarBackgroundModifier(style: nil, visibility: visibility, bars: bars.isEmpty ? [.automatic] : bars))
+    }
 
-    /// Accepted without effect.
-    nonisolated public func toolbarRole(_ role: ToolbarRole) -> some View { self }
+    /// Sets the toolbar's role: `.editor` leads with the title (macOS), the others keep the
+    /// navigation items first.
+    nonisolated public func toolbarRole(_ role: ToolbarRole) -> some View {
+        modifier(_ToolbarRoleModifier(role: role))
+    }
 
-    /// Accepted without effect: the title is inline in the bar.
-    nonisolated public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View { self }
+    /// Sets the title's display mode: on iOS `.large` and `.inlineLarge` show the large title,
+    /// `.inline` the inline one; the macOS bar's title is inline either way.
+    nonisolated public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View {
+        modifier(_NavigationTitleDisplayModeModifier(mode: mode == .inline ? .inline : mode == .automatic ? .automatic : .large))
+    }
+}
+
+/// `toolbarBackground`: a style or visibility for some bars, registered with the runtime
+/// while mounted (`ToolbarBackgroundNode`).
+public struct _ToolbarBackgroundModifier {
+    package let style: AnyShapeStyle?
+    package let visibility: Visibility?
+    package let bars: [ToolbarPlacement]
+    public init(style: AnyShapeStyle?, visibility: Visibility?, bars: [ToolbarPlacement]) {
+        self.style = style
+        self.visibility = visibility
+        self.bars = bars
+    }
+}
+
+extension _ToolbarBackgroundModifier: ViewModifier {
+    public typealias Body = Never
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        ToolbarBackgroundNode(context)
+    }
+}
+
+/// `toolbarRole`: registered with the runtime while mounted (`ToolbarRoleNode`).
+public struct _ToolbarRoleModifier {
+    package let role: ToolbarRole
+    public init(role: ToolbarRole) { self.role = role }
+}
+
+extension _ToolbarRoleModifier: ViewModifier {
+    public typealias Body = Never
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        ToolbarRoleNode(context)
+    }
 }

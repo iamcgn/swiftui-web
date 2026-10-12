@@ -165,6 +165,10 @@ public final class Runtime {
     /// (a `UIHostingController`'s navigation item).
     public var _toolbarItems: [_ToolbarItemData] { toolbarSources.flatMap(\.items) }
     package var toolbarVisibility: [ToolbarVisibilitySource] = []
+    package var toolbarBackgrounds: [ToolbarBackgroundSource] = []
+    package var toolbarRoles: [ToolbarRoleSource] = []
+    /// The user's show/hide choices per customisable toolbar (`toolbar(id:)`), for the session.
+    package var toolbarCustomization: [String: [AnyHashable: Bool]] = [:]
     package var toolbar: ToolbarChromeNode?
     package var searchSources: [SearchSource] = []
     /// Whether controls paint as in an active window: the accent-coloured checkbox and switch

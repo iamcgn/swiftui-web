@@ -3,21 +3,73 @@
 // measured 2026-09-04) holding the navigation title and the items in 36 pt capsule platters, and
 // the content is laid out below it.
 
-/// `toolbar`: transparent to layout; registers its items with the runtime.
+/// `toolbar`: transparent to layout; registers its items with the runtime — or with the sheet
+/// or other presentation it sits in, which shows them in a bar of its own (sw-toolbar).
 @MainActor
 package final class ToolbarNode<Content: View>: UnaryLayoutModifierNode<Content, _ToolbarModifier> {
+    private var enclosingPresentation: PresentationNode? {
+        var current = parent
+        while let node = current {
+            if let presentation = node as? PresentationNode { return presentation }
+            current = node.parent
+        }
+        return nil
+    }
+
     override package init(_ context: _NodeContext<ModifiedContent<Content, _ToolbarModifier>>) {
         super.init(context)
-        runtime.registerToolbar(self, items: modifier.items)
+        register(modifier.items)
     }
 
     override package func update(view: ModifiedContent<Content, _ToolbarModifier>, environment: EnvironmentValues, force: Bool) {
         super.update(view: view, environment: environment, force: force)
-        runtime.registerToolbar(self, items: view.modifier.items)
+        register(view.modifier.items)
+    }
+
+    private func register(_ items: [_ToolbarItemData]) {
+        if let presentation = enclosingPresentation { presentation.registerToolbar(self, items: items) } else { runtime.registerToolbar(self, items: items) }
     }
 
     override package func unmount() {
-        runtime.unregisterToolbar(self)
+        if let presentation = enclosingPresentation { presentation.unregisterToolbar(self) } else { runtime.unregisterToolbar(self) }
+        super.unmount()
+    }
+}
+
+/// `toolbarBackground`: registers a style or visibility for its bars while mounted.
+@MainActor
+package final class ToolbarBackgroundNode<Content: View>: UnaryLayoutModifierNode<Content, _ToolbarBackgroundModifier> {
+    override package init(_ context: _NodeContext<ModifiedContent<Content, _ToolbarBackgroundModifier>>) {
+        super.init(context)
+        runtime.setToolbarBackground(self, modifier)
+    }
+
+    override package func update(view: ModifiedContent<Content, _ToolbarBackgroundModifier>, environment: EnvironmentValues, force: Bool) {
+        super.update(view: view, environment: environment, force: force)
+        runtime.setToolbarBackground(self, view.modifier)
+    }
+
+    override package func unmount() {
+        runtime.setToolbarBackground(self, nil)
+        super.unmount()
+    }
+}
+
+/// `toolbarRole`: registers the role while mounted.
+@MainActor
+package final class ToolbarRoleNode<Content: View>: UnaryLayoutModifierNode<Content, _ToolbarRoleModifier> {
+    override package init(_ context: _NodeContext<ModifiedContent<Content, _ToolbarRoleModifier>>) {
+        super.init(context)
+        runtime.setToolbarRole(self, modifier.role)
+    }
+
+    override package func update(view: ModifiedContent<Content, _ToolbarRoleModifier>, environment: EnvironmentValues, force: Bool) {
+        super.update(view: view, environment: environment, force: force)
+        runtime.setToolbarRole(self, view.modifier.role)
+    }
+
+    override package func unmount() {
+        runtime.setToolbarRole(self, nil)
         super.unmount()
     }
 }
@@ -47,6 +99,8 @@ struct _ToolbarBarView: View {
     let title: String?
     let search: SearchSource?
     let scopes: SearchScopeSource?
+    /// `.editor` leads with the title.
+    var role: ToolbarRole = .automatic
 
     private func platters(_ group: ToolbarItemPlacement.Group) -> some View {
         ForEach(Array(items.enumerated()).filter { $0.element.placement.group == group }, id: \.offset) { entry in
@@ -63,12 +117,19 @@ struct _ToolbarBarView: View {
         }
     }
 
-    private var bar: some View {
-        HStack(spacing: 8) {
-            platters(.leading)
+    private var titleView: some View {
+        Group {
             if let title {
                 Text(title).font(.system(size: 15, weight: .semibold)).lineLimit(1).padding(.leading, 8)
             }
+        }
+    }
+
+    private var bar: some View {
+        HStack(spacing: 8) {
+            if role == .editor { titleView }
+            platters(.leading)
+            if role != .editor { titleView }
             Spacer(minLength: 8)
             platters(.principal)
             Spacer(minLength: 8)
@@ -124,12 +185,38 @@ package final class ToolbarChromeNode: ViewNode {
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         let bar = context.absoluteRect(frame)
-        list.append(.fillRect(bar, environment._windowBackground))
-        let hairline = 1 / context.scale
-        list.append(.fillRect(CGRect(x: bar.minX, y: bar.maxY - hairline, width: bar.width, height: hairline), environment._ink(0.12)))
+        // The ground: the window colour under a 12 % hairline; a `toolbarBackground` style
+        // instead, or nothing at all when hidden.
+        let background = runtime.toolbarBackground(for: .windowToolbar)
+        if background.visibility != .hidden {
+            if let style = background.style {
+                style._fill(Path(bar), in: bar, eoFill: false, environment: environment, scale: context.scale, into: &list)
+            } else {
+                list.append(.fillRect(bar, environment._windowBackground))
+            }
+            let hairline = 1 / context.scale
+            list.append(.fillRect(CGRect(x: bar.minX, y: bar.maxY - hairline, width: bar.width, height: hairline), environment._ink(0.12)))
+        }
         for node in content.layoutChildren {
             node.paint(into: &list, context: context.child(at: node.presentedFrame))
         }
+    }
+
+    /// A secondary click on the bar (not on an item) of a customisable toolbar: a menu of every
+    /// item to show or hide.
+    package func presentCustomizationMenu(at point: CGPoint) -> Bool {
+        guard frame.contains(point), interactiveNode(at: point) == nil else { return false }
+        let items = runtime.toolbarItems.filter { $0.customizationID != nil && $0.id != nil }
+        guard !items.isEmpty else { return false }
+        let runtime = self.runtime
+        let rows = AnyView(ForEach(Array(items.enumerated()), id: \.offset) { entry in
+            let item = entry.element
+            Toggle(isOn: Binding(get: { runtime.isToolbarItemVisible(item) }, set: { runtime.setToolbarItem(item.id!, visible: $0, in: item.customizationID!) })) {
+                item.view
+            }
+        })
+        runtime.present(kind: .menu, view: AnyView(_MenuContent(content: rows)), environment: environment, anchor: nil, at: point) {}
+        return true
     }
 
     override package var isLayoutNode: Bool { true }
@@ -179,10 +266,51 @@ extension Runtime {
         requestLayout()
     }
 
-    /// The items every mounted `toolbar` contributes, in tree order.
+    /// The items every mounted `toolbar` contributes, in tree order, the customisable ones the
+    /// user hid (or that hide by default) left out.
     public var toolbarItems: [_ToolbarItemData] {
-        toolbarSources.filter { $0.node?.isMounted == true }.flatMap(\.items)
+        toolbarSources.filter { $0.node?.isMounted == true }.flatMap(\.items).filter { isToolbarItemVisible($0) }
     }
+
+    /// Whether a customisable toolbar shows an item: the user's choice for the session, else
+    /// `showsByDefault`; items outside customisable toolbars always show.
+    public func isToolbarItemVisible(_ item: _ToolbarItemData) -> Bool {
+        guard let toolbarID = item.customizationID, let id = item.id else { return true }
+        return toolbarCustomization[toolbarID]?[id] ?? item.showsByDefault
+    }
+
+    /// Shows or hides an item of a customisable toolbar (`toolbar(id:)`) for the session.
+    public func setToolbarItem(_ id: AnyHashable, visible: Bool, in toolbarID: String) {
+        toolbarCustomization[toolbarID, default: [:]][id] = visible
+        requestLayout()
+    }
+
+    package func setToolbarBackground(_ node: ViewNode, _ modifier: _ToolbarBackgroundModifier?) {
+        toolbarBackgrounds.removeAll { $0.node === node || $0.node == nil }
+        if let modifier { toolbarBackgrounds.append(ToolbarBackgroundSource(node: node, modifier: modifier)) }
+        setNeedsDisplay()
+    }
+
+    /// The background a bar takes: the last mounted `toolbarBackground` naming it (or every bar).
+    package func toolbarBackground(for bar: ToolbarPlacement) -> (style: AnyShapeStyle?, visibility: Visibility?) {
+        var style: AnyShapeStyle?
+        var visibility: Visibility?
+        for source in toolbarBackgrounds where source.node?.isMounted == true {
+            guard source.modifier.bars.contains(where: { $0 == bar || $0 == .automatic }) else { continue }
+            if let s = source.modifier.style { style = s }
+            if let v = source.modifier.visibility { visibility = v }
+        }
+        return (style, visibility)
+    }
+
+    package func setToolbarRole(_ node: ViewNode, _ role: ToolbarRole?) {
+        toolbarRoles.removeAll { $0.node === node || $0.node == nil }
+        if let role { toolbarRoles.append(ToolbarRoleSource(node: node, role: role)) }
+        requestLayout()
+    }
+
+    /// The toolbar's role: the last mounted `toolbarRole`, else automatic.
+    package var toolbarRole: ToolbarRole { toolbarRoles.last { $0.node?.isMounted == true }?.role ?? .automatic }
 
     /// Whether the host should show a toolbar: chrome painting on, items present, not hidden.
     package var showsToolbar: Bool {
@@ -201,7 +329,7 @@ extension Runtime {
         }
         var environment = rootEnvironment
         environment.colorScheme = root.environment.colorScheme
-        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil, search: searchField, scopes: activeSearchScopes))
+        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil, search: searchField, scopes: activeSearchScopes, role: toolbarRole))
         if let toolbar {
             toolbar.update(view: view, environment: environment)
         } else {
@@ -215,6 +343,16 @@ extension Runtime {
 package struct ToolbarSource {
     weak var node: ViewNode?
     var items: [_ToolbarItemData]
+}
+
+package struct ToolbarBackgroundSource {
+    weak var node: ViewNode?
+    var modifier: _ToolbarBackgroundModifier
+}
+
+package struct ToolbarRoleSource {
+    weak var node: ViewNode?
+    var role: ToolbarRole
 }
 
 package struct ToolbarVisibilitySource {

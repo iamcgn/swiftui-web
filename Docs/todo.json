@@ -1490,13 +1490,14 @@
       "framework": "SwiftUI",
       "area": "Toolbar",
       "title": "Toolbar modifiers with an effect",
-      "detail": "`toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode` (accepted today), `toolbar(id:)` customisation, `ToolbarCommands`, sheet toolbars, a real `NSToolbar` in the native host.",
+      "detail": "`toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode` (accepted today), `toolbar(id:)` customisation, `ToolbarCommands`, sheet toolbars, a real `NSToolbar` in the native host. Done 2026-10-11 (Phase 9, item 24): `toolbarBackground` (window, navigation and tab bars), `toolbarRole(.editor)`, `toolbarTitleDisplayMode`, `toolbar(id:)` customisation (showsByDefault, the runtime's switch, a bar menu), sheet toolbars; `ToolbarCommands` lands with `commands` (sw-windows); a real `NSToolbar` waits for hosted NSViews (ix-appkit).",
       "kind": "accepted",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Toolbar.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-splitview",

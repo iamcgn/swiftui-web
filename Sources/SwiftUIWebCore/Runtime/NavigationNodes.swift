@@ -632,7 +632,17 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let bounds = absoluteBounds(context)
         let profile = environment.platformProfile
         let color = (environment.foregroundColor ?? .primary).resolve(in: environment).multiplyingAlpha(by: opacity)
-        if profile.isIOS, bar.large, bar.collapsed { paintGlass(strength: 1, into: &list, bounds: bounds) }
+        // `toolbarBackground(_, for: .navigationBar)`: a style (or the window colour when
+        // `.visible`) fills the bar's band behind the title and items; `.hidden` leaves iOS 26's
+        // bare top and no glass (sw-toolbar, unmeasured).
+        let background = runtime.toolbarBackground(for: .navigationBar)
+        let band = CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: bar.height)
+        if let style = background.style {
+            style._fill(Path(band), in: band, eoFill: false, environment: environment, scale: context.scale, into: &list)
+        } else if background.visibility == .visible {
+            list.append(.fillRect(band, environment._windowBackground))
+        }
+        if profile.isIOS, bar.large, bar.collapsed, background.visibility != .hidden, background.style == nil { paintGlass(strength: 1, into: &list, bounds: bounds) }
         if let title = bar.title {
             if bar.showsLargeTitle {
                 // The large title scrolls up with the content until it is under the inline zone

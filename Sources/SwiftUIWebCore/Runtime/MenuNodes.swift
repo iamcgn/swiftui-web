@@ -254,6 +254,8 @@ extension Runtime {
             let presented = presentationHit(at: point)
             if presented.handled { return }
         }
+        // The window toolbar's customisation menu (`toolbar(id:)`).
+        if let toolbar, toolbar.presentCustomizationMenu(at: point) { return }
         for node in root.layoutChildren.reversed() {
             let shift = node.hitTestOffset
             let local = CGPoint(x: point.x - node.frame.minX - shift.x, y: point.y - node.frame.minY - shift.y)

@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 10 | 0 | 0 | 10 |
+| SwiftUI | 9 | 0 | 0 | 9 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **26** | 0 | 1 | 25 |
+| **All** | **25** | 0 | 1 | 24 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Toolbar modifiers with an effect** `sw-toolbar` · Toolbar · accepted  
-  `toolbarBackground`, `toolbarRole`, `toolbarTitleDisplayMode` (accepted today), `toolbar(id:)` customisation, `ToolbarCommands`, sheet toolbars, a real `NSToolbar` in the native host. ([Toolbar.md](Docs/elements/Toolbar.md))
 - ☐ **NavigationSplitView chrome** `sw-splitview` · Navigation · approximate  
   The sidebar's material and toolbar, dragging the divider, collapsing by drag, the styles (accepted), `preferredCompactColumn` in the iOS profile; the splitview/ fixtures out of the 9 % approximate bound. ([NavigationSplitView.md](Docs/elements/NavigationSplitView.md))
 - ☐ **Window commands, dragging and documents** `sw-windows` · Windows · missing  
@@ -106,6 +104,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Timeline modes and pausing** `sw-timeline` · SwiftUI · TimelineView
 - ☑ 2026-10-11 **Rendering previews** `sw-previews` · SwiftUI · Preview
 - ☑ 2026-10-11 **ShareLink items and previews** `sw-sharelink` · SwiftUI · ShareLink
+- ☑ 2026-10-11 **Toolbar modifiers with an effect** `sw-toolbar` · SwiftUI · Toolbar
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

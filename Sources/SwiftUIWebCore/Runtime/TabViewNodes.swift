@@ -326,9 +326,15 @@ package final class TabViewNode: LayoutNode<_TabViewPrimitive>, _Interactive, _K
             list.append(.fillRRect(barRect.insetBy(dx: -spread / 2, dy: -spread / 2).offsetBy(dx: 0, dy: spread / 2), cornerRadius: radius + spread / 2, black(alpha)))
         }
         // The glass: the content blurred under a thin white tint (the capsule fill over white;
-        // ios/representable/hostingsafearea-tabs over colour), the refraction not drawn.
-        list.append(.backdropBlur(Path(roundedRect: barRect, cornerRadius: radius), bounds: barRect, radius: PlatformMetrics.tabBarGlassSigma))
-        list.append(.fillRRect(barRect, cornerRadius: radius, PlatformMetrics.tabBarCapsuleFill))
+        // ios/representable/hostingsafearea-tabs over colour), the refraction not drawn — or a
+        // `toolbarBackground(_, for: .tabBar)` style in the capsule, nothing when hidden.
+        let background = runtime.toolbarBackground(for: .tabBar)
+        if let style = background.style {
+            style._fill(Path(roundedRect: barRect, cornerRadius: radius), in: barRect, eoFill: false, environment: environment, scale: context.scale, into: &list)
+        } else if background.visibility != .hidden {
+            list.append(.backdropBlur(Path(roundedRect: barRect, cornerRadius: radius), bounds: barRect, radius: PlatformMetrics.tabBarGlassSigma))
+            list.append(.fillRRect(barRect, cornerRadius: radius, PlatformMetrics.tabBarCapsuleFill))
+        }
         if let selectedIndex, selectedIndex < tabs.count {
             let pill = context.absoluteRect(tabs[selectedIndex].segment)
             list.append(.fillRRect(pill, cornerRadius: pill.height / 2, black(PlatformMetrics.tabPillAlpha)))

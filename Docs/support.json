@@ -779,7 +779,7 @@
         {
           "api": "toolbar / ToolbarItem / ToolbarItemGroup / ToolbarItemPlacement / toolbar(_:for:)",
           "status": "partial",
-          "notes": "Items collected on the runtime; hosts that paint window chrome draw a 52 pt bar (measured on a macOS window) with the title and 36 pt capsule platters, leading/principal/trailing by placement; toolbarBackground/toolbarRole accepted without effect; no customisation. Goldens hold the content alone since the bar is window chrome (Docs/elements/Toolbar.md)",
+          "notes": "Items collected on the runtime; hosts that paint window chrome draw a 52 pt bar (measured on a macOS window) with the title and 36 pt capsule platters, leading/principal/trailing by placement; toolbarBackground fills the window, navigation and tab bars (or hides their grounds), toolbarRole(.editor) leads with the title, toolbarTitleDisplayMode maps to the iOS title mode, toolbar(id:) customisation through showsByDefault, the runtime and a bar menu, sheet toolbars in a bar across the sheet (2026-10-11); no real NSToolbar natively (ix-appkit). Goldens hold the content alone since the bar is window chrome (Docs/elements/Toolbar.md)",
           "fixtures": [
             "toolbar/basic"
           ]

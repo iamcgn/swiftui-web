@@ -146,5 +146,42 @@ import SwiftUIWebHeadless
         #expect(runtime.probeFrames["content"]?.width == 16.5 + 8 + 15)   // the plus glyph, 8, "Add" at 5 a character
         #expect(runtime.semanticsTree().contains { $0.role == .button })
     }
+
+    /// sw-toolbar: `toolbarBackground` fills the painted bar with a style or hides its ground
+    /// and hairline, `toolbarRole(.editor)` leads with the title, a customisable toolbar keeps
+    /// `showsByDefault: false` items out until shown (a secondary click on the bar offers them),
+    /// and a sheet's `toolbar` shows a bar across the sheet's top.
+    @Test func backgroundsRolesCustomisationAndSheetBars() {
+        let styled = runtime(Color.red.navigationTitle("Title").toolbar { ToolbarItem { Button("Action") {} } }.toolbarBackground(Color.blue, for: .windowToolbar))
+        var commands = styled.render(scale: 2).commands.map(\.description)
+        #expect(commands.contains { $0.hasPrefix("fillPath") && $0.hasSuffix("#0088FF") } && !commands.contains("fillRect(0, 0, 400, 52) #FFFFFF"), "\(commands.prefix(4))")
+        let hidden = runtime(Color.red.navigationTitle("Title").toolbar { ToolbarItem { Button("Action") {} } }.toolbarBackground(.hidden))
+        commands = hidden.render(scale: 2).commands.map(\.description)
+        #expect(!commands.contains("fillRect(0, 0, 400, 52) #FFFFFF") && !commands.contains("fillRect(0, 51.5, 400, 0.5) #000000@0.12"))
+        // The editor role: the title before the leading item.
+        let editor = runtime(Color.red.navigationTitle("Title").toolbar { ToolbarItem(placement: .navigation) { Button("Back") {} } }.toolbarRole(.editor))
+        let title = editor.semanticsTree().first { $0.label == "Title" }!.frame
+        let back = editor.semanticsTree().first { $0.label == "Back" }!.frame
+        #expect(title.minX < back.minX, "\(title) \(back)")
+        // Customisation: "Two" hides by default; shown through the runtime it joins the bar.
+        let custom = runtime(Color.red.toolbar(id: "main") {
+            ToolbarItem(id: "one") { Button("One") {} }
+            ToolbarItem(id: "two", showsByDefault: false) { Button("Two") {} }
+        })
+        #expect(custom.semanticsTree().contains { $0.label == "One" } && !custom.semanticsTree().contains { $0.label == "Two" })
+        custom.setToolbarItem("two", visible: true, in: "main")
+        custom.layout(in: CGSize(width: 400, height: 200))
+        #expect(custom.semanticsTree().contains { $0.label == "Two" })
+        // A secondary click on the bar's empty middle opens the menu of items (two toggles).
+        custom.secondaryPointerDown(at: CGPoint(x: 200, y: 26))
+        custom.layout(in: CGSize(width: 400, height: 200))
+        #expect(custom.hasPresentations && custom.semanticsTree().filter { $0.role == .checkbox }.count == 2, "\(custom.semanticsTree().map(\.role))")
+        // A sheet with a toolbar: its panel grows by the 52 pt bar and the item sits in it.
+        let sheet = runtime(Color.red.sheet(isPresented: .constant(true)) { Color.blue.frame(width: 100, height: 60).toolbar { ToolbarItem { Button("Action") {} } } })
+        sheet.layout(in: CGSize(width: 400, height: 200))
+        let action = sheet.semanticsTree().first { $0.label == "Action" }!.frame
+        #expect(action.height == 36 && action.minY == 8, "\(action)")
+        #expect(sheet.toolbarFrame == nil)
+    }
 }
 #endif
