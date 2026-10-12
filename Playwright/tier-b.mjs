@@ -21,12 +21,10 @@ const browserName = opt('--browser', 'chromium');
 const pixelTolerance = Number(opt('--pixel-tolerance', browserName === 'firefox' ? 0.05 : 0.03));
 // Browser font fallbacks (weights 300/900, rounded, serif, monospaced) legitimately differ from
 // SF on macOS; those fixtures are held to a looser bound and listed as approximate.
-// splitview/*: Apple's capture drops the sidebar's rows and selection and fills the 8 pt bands
-// beside the sidebar panel with a black-to-clear gradient (about 3.4 % of a 480 × 300 window).
 // texteditor/basic: NSTextView sets SF tighter between letters and wider at spaces than SwiftUI's
 // Text does, so its paragraph keeps one more word on the first line.
 const approximate = ['uikit/label/fitting', 'uikit/stack/distribution', 'uikit/label/fonts', 'uikit/textview/looks', 'datepicker/looks', 'ios/datepicker/wheel', 'ios/representable/hostingsafearea-tabs', 'text/fit', 'uikit/label/wrapping', 'uikit/label/tabular', 'uikit/table/selfsizing', 'uikit/textview/basic', 'uikit/draw/text', 'text/system-fonts', 'button/styles', 'progress/indeterminate', 'splitview/basic', 'splitview/widths', 'splitview/three',
-  'splitview/columns', 'splitview/sized', 'splitview/selection', 'splitview/visibility', 'texteditor/basic', 'symboleffect/basic', 'unavailable/basic', 'unavailable/corners', 'ios/unavailable/basic'];
+  'texteditor/basic', 'symboleffect/basic', 'unavailable/basic', 'unavailable/corners', 'ios/unavailable/basic'];
 const frameCount = () => page.evaluate(() => window.__swiftuiwebDebug.frameCount());
 // ios/symbol/ and ios/label/: the symbol table extrapolates iOS's 28 and 34 pt styles from the macOS sizes (within 1.5 pt),
 // and a label row grows to its icon (Tier A's rule).

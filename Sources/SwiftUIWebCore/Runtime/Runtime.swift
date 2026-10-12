@@ -158,7 +158,9 @@ public final class Runtime {
     /// Whether the runtime draws window chrome a browser page lacks: the toolbar
     /// (`Runtime/ToolbarNodes.swift`). Hosts with a real title bar leave it off or keep the title
     /// out of the bar (`chromeShowsTitle`).
-    public var paintsWindowChrome = false
+    public var paintsWindowChrome = false {
+        didSet { if paintsWindowChrome != oldValue { requestFullLayout() } }
+    }
     public var chromeShowsTitle = true
     package var toolbarSources: [ToolbarSource] = []
     /// The `toolbar` items registered in the tree, for hosts that show them in their own bars

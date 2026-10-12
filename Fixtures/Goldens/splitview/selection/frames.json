@@ -4,26 +4,26 @@
     "placeholder" : {
       "height" : 16,
       "width" : 38.5,
-      "x" : 294.75,
+      "x" : 292.75,
       "y" : 142
     },
     "row1" : {
       "height" : 18.5,
       "width" : 35,
-      "x" : 24,
-      "y" : 24.75
+      "x" : 16,
+      "y" : 16.75
     },
     "row2" : {
       "height" : 18.5,
       "width" : 45,
-      "x" : 24,
-      "y" : 56.75
+      "x" : 16,
+      "y" : 48.75
     },
     "sidebar" : {
-      "height" : 284,
-      "width" : 140,
-      "x" : 8,
-      "y" : 8
+      "height" : 300,
+      "width" : 144,
+      "x" : 0,
+      "y" : 0
     },
     "split" : {
       "height" : 300,
@@ -42,26 +42,26 @@
         "number1" : {
           "height" : 16,
           "width" : 58,
-          "x" : 285,
+          "x" : 283,
           "y" : 142
         },
         "row1" : {
           "height" : 18.5,
           "width" : 35,
-          "x" : 24,
-          "y" : 24.75
+          "x" : 16,
+          "y" : 16.75
         },
         "row2" : {
           "height" : 18.5,
           "width" : 45,
-          "x" : 24,
-          "y" : 56.75
+          "x" : 16,
+          "y" : 48.75
         },
         "sidebar" : {
-          "height" : 284,
-          "width" : 140,
-          "x" : 8,
-          "y" : 8
+          "height" : 300,
+          "width" : 144,
+          "x" : 0,
+          "y" : 0
         },
         "split" : {
           "height" : 300,
@@ -77,26 +77,26 @@
         "number2" : {
           "height" : 16,
           "width" : 60,
-          "x" : 284,
+          "x" : 282,
           "y" : 142
         },
         "row1" : {
           "height" : 18.5,
           "width" : 35,
-          "x" : 24,
-          "y" : 24.75
+          "x" : 16,
+          "y" : 16.75
         },
         "row2" : {
           "height" : 18.5,
           "width" : 45,
-          "x" : 24,
-          "y" : 56.75
+          "x" : 16,
+          "y" : 48.75
         },
         "sidebar" : {
-          "height" : 284,
-          "width" : 140,
-          "x" : 8,
-          "y" : 8
+          "height" : 300,
+          "width" : 144,
+          "x" : 0,
+          "y" : 0
         },
         "split" : {
           "height" : 300,
@@ -112,26 +112,26 @@
         "placeholder" : {
           "height" : 16,
           "width" : 38.5,
-          "x" : 294.75,
+          "x" : 292.75,
           "y" : 142
         },
         "row1" : {
           "height" : 18.5,
           "width" : 35,
-          "x" : 24,
-          "y" : 24.75
+          "x" : 16,
+          "y" : 16.75
         },
         "row2" : {
           "height" : 18.5,
           "width" : 45,
-          "x" : 24,
-          "y" : 56.75
+          "x" : 16,
+          "y" : 48.75
         },
         "sidebar" : {
-          "height" : 284,
-          "width" : 140,
-          "x" : 8,
-          "y" : 8
+          "height" : 300,
+          "width" : 144,
+          "x" : 0,
+          "y" : 0
         },
         "split" : {
           "height" : 300,

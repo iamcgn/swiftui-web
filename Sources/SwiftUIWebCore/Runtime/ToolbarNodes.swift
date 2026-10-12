@@ -101,6 +101,9 @@ struct _ToolbarBarView: View {
     let scopes: SearchScopeSource?
     /// `.editor` leads with the title.
     var role: ToolbarRole = .automatic
+    /// A `NavigationSplitView` in the window: the sidebar toggle leads the bar (macOS puts it
+    /// in the toolbar's leading group; `Runtime.toggleSidebar`).
+    var sidebarToggle: (@MainActor () -> Void)?
 
     private func platters(_ group: ToolbarItemPlacement.Group) -> some View {
         ForEach(Array(items.enumerated()).filter { $0.element.placement.group == group }, id: \.offset) { entry in
@@ -127,6 +130,9 @@ struct _ToolbarBarView: View {
 
     private var bar: some View {
         HStack(spacing: 8) {
+            if let sidebarToggle {
+                Button(action: sidebarToggle) { Image(systemName: "sidebar.leading") }.accessibilityLabel(Text("Toggle Sidebar")).help("Toggle Sidebar")
+            }
             if role == .editor { titleView }
             platters(.leading)
             if role != .editor { titleView }
@@ -312,9 +318,13 @@ extension Runtime {
     /// The toolbar's role: the last mounted `toolbarRole`, else automatic.
     package var toolbarRole: ToolbarRole { toolbarRoles.last { $0.node?.isMounted == true }?.role ?? .automatic }
 
-    /// Whether the host should show a toolbar: chrome painting on, items present, not hidden.
+    /// Whether the window holds a navigation split view (its toggle leads the toolbar).
+    package var hasSplitView: Bool { !root.descendants(where: { $0 is NavigationSplitViewNode }).isEmpty }
+
+    /// Whether the host should show a toolbar: chrome painting on, items (or a split view's
+    /// toggle, or a search field) present, not hidden.
     package var showsToolbar: Bool {
-        paintsWindowChrome && (!toolbarItems.isEmpty || searchField != nil) && !toolbarVisibility.contains { $0.node?.isMounted == true && $0.visibility == .hidden }
+        paintsWindowChrome && (!toolbarItems.isEmpty || searchField != nil || hasSplitView) && !toolbarVisibility.contains { $0.node?.isMounted == true && $0.visibility == .hidden }
     }
 
     /// The bar's frame while it shows; the content is laid out below it.
@@ -329,7 +339,9 @@ extension Runtime {
         }
         var environment = rootEnvironment
         environment.colorScheme = root.environment.colorScheme
-        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil, search: searchField, scopes: activeSearchScopes, role: toolbarRole))
+        var toggle: (@MainActor () -> Void)?
+        if hasSplitView { toggle = { [weak self] in _ = self?.toggleSidebar() } }
+        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil, search: searchField, scopes: activeSearchScopes, role: toolbarRole, sidebarToggle: toggle))
         if let toolbar {
             toolbar.update(view: view, environment: environment)
         } else {

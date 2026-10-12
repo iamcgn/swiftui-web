@@ -51,29 +51,39 @@ public struct NavigationSplitView<Sidebar: View, Content: View, Detail: View>: V
     public init(preferredCompactColumn: Binding<NavigationSplitViewColumn>, @ViewBuilder sidebar: () -> Sidebar,
                 @ViewBuilder detail: () -> Detail) where Content == EmptyView {
         self.init(sidebar: sidebar, detail: detail)
+        compactColumn = preferredCompactColumn
     }
 
     public init(preferredCompactColumn: Binding<NavigationSplitViewColumn>, @ViewBuilder sidebar: () -> Sidebar,
                 @ViewBuilder content: () -> Content, @ViewBuilder detail: () -> Detail) {
         self.init(sidebar: sidebar, content: content, detail: detail)
+        compactColumn = preferredCompactColumn
     }
 
     public init(columnVisibility: Binding<NavigationSplitViewVisibility>, preferredCompactColumn: Binding<NavigationSplitViewColumn>,
                 @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder detail: () -> Detail) where Content == EmptyView {
         self.init(columnVisibility: columnVisibility, sidebar: sidebar, detail: detail)
+        compactColumn = preferredCompactColumn
     }
 
     public init(columnVisibility: Binding<NavigationSplitViewVisibility>, preferredCompactColumn: Binding<NavigationSplitViewColumn>,
                 @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder content: () -> Content, @ViewBuilder detail: () -> Detail) {
         self.init(columnVisibility: columnVisibility, sidebar: sidebar, content: content, detail: detail)
+        compactColumn = preferredCompactColumn
     }
+
+    /// The column a compact width shows (`preferredCompactColumn`), the view's own when unbound.
+    package var compactColumn: Binding<NavigationSplitViewColumn>?
+    @State private var localCompactColumn = NavigationSplitViewColumn.sidebar
 
     public var body: some View {
         let binding = visibility ?? $localVisibility
         // Read the visibility inside the body so observation tracks the model it comes from.
         let value = binding.wrappedValue
+        let compact = compactColumn ?? $localCompactColumn
         _NavigationSplitViewHost(sidebar: AnyView(sidebar), content: content.map { AnyView($0) }, detail: AnyView(detail),
-                                 visibility: value, binding: _SplitVisibilityBinding(binding))
+                                 visibility: value, binding: _SplitVisibilityBinding(binding),
+                                 compactColumn: compact.wrappedValue, compactBinding: _SplitCompactBinding(compact))
     }
 }
 
@@ -116,6 +126,18 @@ package final class _SplitVisibilityBinding {
     }
 }
 
+/// Type-erased access to the compact column binding.
+@MainActor
+package final class _SplitCompactBinding {
+    package let get: () -> NavigationSplitViewColumn
+    package let set: (NavigationSplitViewColumn) -> Void
+
+    package init(_ binding: Binding<NavigationSplitViewColumn>) {
+        get = { binding.wrappedValue }
+        set = { binding.wrappedValue = $0 }
+    }
+}
+
 /// The primitive a `NavigationSplitView` resolves to (`NavigationSplitViewNode`).
 public struct _NavigationSplitViewHost: View {
     package let sidebar: AnyView
@@ -123,13 +145,18 @@ public struct _NavigationSplitViewHost: View {
     package let detail: AnyView
     package let visibility: NavigationSplitViewVisibility
     package let binding: _SplitVisibilityBinding
+    package let compactColumn: NavigationSplitViewColumn
+    package let compactBinding: _SplitCompactBinding
 
-    package init(sidebar: AnyView, content: AnyView?, detail: AnyView, visibility: NavigationSplitViewVisibility, binding: _SplitVisibilityBinding) {
+    package init(sidebar: AnyView, content: AnyView?, detail: AnyView, visibility: NavigationSplitViewVisibility, binding: _SplitVisibilityBinding,
+                 compactColumn: NavigationSplitViewColumn, compactBinding: _SplitCompactBinding) {
         self.sidebar = sidebar
         self.content = content
         self.detail = detail
         self.visibility = visibility
         self.binding = binding
+        self.compactColumn = compactColumn
+        self.compactBinding = compactBinding
     }
 
     public typealias Body = Never
@@ -147,9 +174,15 @@ package struct _SplitColumnWidth: Equatable {
     package var ideal: CGFloat?
     package var max: CGFloat?
 
-    /// The width the column takes given the platform default.
-    package func resolved(default fallback: CGFloat) -> CGFloat {
-        var width = ideal ?? fallback
+    /// The width the column takes given the platform default: the default clamped to the
+    /// range (macOS 27, `splitview/columns` and `three`: a `min: 100, ideal: 120, max: 200`
+    /// sidebar is the 144 default, a `min: 120, ideal: 160, max: 220` content column the 200
+    /// default; a fixed width is the three together). 26.2 took the ideal.
+    package func resolved(default fallback: CGFloat) -> CGFloat { clamped(fallback) }
+
+    /// `width` within the range.
+    package func clamped(_ width: CGFloat) -> CGFloat {
+        var width = width
         if let min { width = Swift.max(width, min) }
         if let max { width = Swift.min(width, max) }
         return width

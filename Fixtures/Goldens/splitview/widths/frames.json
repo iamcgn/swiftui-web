@@ -4,25 +4,25 @@
     "box" : {
       "height" : 20,
       "width" : 40,
-      "x" : 299,
+      "x" : 295,
       "y" : 152
     },
     "detailStack" : {
       "height" : 44,
       "width" : 40,
-      "x" : 299,
+      "x" : 295,
       "y" : 128
     },
     "menu" : {
       "height" : 16,
       "width" : 34,
-      "x" : 66,
+      "x" : 58,
       "y" : 128
     },
     "sidebar" : {
       "height" : 44,
       "width" : 40,
-      "x" : 63,
+      "x" : 55,
       "y" : 128
     },
     "split" : {
@@ -34,13 +34,13 @@
     "swatch" : {
       "height" : 20,
       "width" : 40,
-      "x" : 63,
+      "x" : 55,
       "y" : 152
     },
     "wide" : {
       "height" : 16,
       "width" : 31,
-      "x" : 303.5,
+      "x" : 299.5,
       "y" : 128
     }
   },

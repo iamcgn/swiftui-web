@@ -4,20 +4,20 @@
     "detail" : {
       "height" : 16,
       "width" : 35,
-      "x" : 296.5,
+      "x" : 294.5,
       "y" : 142
     },
     "row1" : {
       "height" : 18.5,
       "width" : 35,
-      "x" : 104,
-      "y" : 74.75
+      "x" : 96,
+      "y" : 66.75
     },
     "sidebar" : {
-      "height" : 184,
-      "width" : 140,
-      "x" : 88,
-      "y" : 58
+      "height" : 200,
+      "width" : 144,
+      "x" : 80,
+      "y" : 50
     },
     "split" : {
       "height" : 200,

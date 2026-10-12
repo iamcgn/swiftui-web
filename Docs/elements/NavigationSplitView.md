@@ -12,13 +12,15 @@ Apple docs: [NavigationSplitView](https://developer.apple.com/documentation/swif
 |---|---|
 | `NavigationSplitView(sidebar:detail:)`, `NavigationSplitView(sidebar:content:detail:)` | implemented: the macOS two- and three-column split |
 | `NavigationSplitView(columnVisibility:…)` (both column counts) | implemented; `.detailOnly` hides the leading columns, `.doubleColumn` hides the sidebar of a three-column split, `.automatic` shows everything; without a binding the view keeps its own visibility |
-| `NavigationSplitView(preferredCompactColumn:…)` (with and without `columnVisibility`) | accepted; compact width is an iOS concern, the column has no effect |
+| `NavigationSplitView(preferredCompactColumn:…)` (with and without `columnVisibility`) | implemented 2026-10-11 for a compact width (the iOS profile): one column fills the view — the preferred one — a link in a leading column shows the detail (its stack pushed; the binding moves to `.detail`) and the stack's pop to its root returns to the column |
 | `NavigationSplitViewVisibility` (`.all`, `.doubleColumn`, `.detailOnly`, `.automatic`), `NavigationSplitViewColumn` | implemented |
 | `navigationSplitViewColumnWidth(_:)`, `navigationSplitViewColumnWidth(min:ideal:max:)` | implemented on the sidebar and content columns (the ideal, clamped to the range; a fixed width is all three); on the detail column ignored (it takes the rest, as on macOS) |
-| `NavigationSplitViewStyle` (`.automatic`, `.balanced`, `.prominentDetail`), `navigationSplitViewStyle(_:)` | accepted; every style is the macOS look |
-| Sidebar toggle | `Runtime.toggleSidebar()` for hosts (a toolbar button) and ⌃⌘S in `Runtime.keyDown`; no toolbar button is painted (window chrome on macOS) |
+| `NavigationSplitViewStyle` (`.automatic`, `.balanced`, `.prominentDetail`), `navigationSplitViewStyle(_:)` | accepted; every style is the macOS look (macOS draws the two alike at a window's width) |
+| Sidebar toggle | `Runtime.toggleSidebar()` for hosts and ⌃⌘S in `Runtime.keyDown`; a host painting window chrome gets the `sidebar.leading` button leading the toolbar (2026-10-11), as macOS puts it |
+| Drag-resizing and collapsing | implemented 2026-10-11: the 8 pt zone on either side of the sidebar's edge and of the content divider shows the column-resize pointer and drags the column within its range (`navigationSplitViewColumnWidth`'s bounds); a sidebar dragged narrower than half its minimum (half the 144 default without one) collapses to `.detailOnly` on release and comes back at its default width |
 | Links in the leading columns | a `NavigationLink` (destination or value form) in the sidebar or content column shows its destination in the detail column, which is an implicit navigation stack (`navigationDestination(for:)` registered in a leading column resolves value links; `Runtime.navigateBack()` and `dismiss` pop) |
-| `NavigationView` (deprecated), `navigationViewStyle`, the sidebar's toolbar and material, drag-resizing the divider, collapsing by dragging | missing |
+| `NavigationView` (deprecated), `navigationViewStyle` | missing |
+| The sidebar's material | the column is the opaque (251) fill the macOS 27 golden shows in a window; the translucent material over the desktop is not drawn |
 
 ## Behaviour
 
@@ -34,7 +36,27 @@ divider. The detail takes the rest of the width, its content centred; it is an i
 default to the sidebar style, drawn without the style's grey background (the panel is the
 background). The split view fills what it is proposed.
 
-## Measured (macOS 26.2, `splitview/basic`, `splitview/widths`, `splitview/three`, `splitview/columns`, `splitview/sized`, `splitview/selection`, `splitview/visibility`, 2026-09-04)
+## Measured (macOS 27, regenerated 2026-10-11; the 26.2 values of 2026-09-04 in brackets)
+
+macOS 27 draws the classic split: the sidebar is a column from the window's edge, full height,
+filled (251, 251, 251) with a half-point (201) line along its trailing edge; the detail starts
+at the column's edge. (26.2 floated a white 140 pt panel inset 8 on every side with 7.5 pt
+corners.) Column widths are the defaults clamped to a `navigationSplitViewColumnWidth` range —
+the ideal is not taken — so a `min: 100, ideal: 120, max: 200` sidebar is 144 and a
+`min: 120, ideal: 160, max: 220` content column 200; a fixed width is itself.
+
+| Property | Value (macOS 27) | Probe |
+|---|---|---|
+| Sidebar column | 144 wide at the origin, full height; `navigationSplitViewColumnWidth(150)` makes it 150 | `sidebar` |
+| Sidebar content | a list's first row at (16, 16.75) (margin 16, top inset 16.75, 32 pt body rows); a `VStack` centred in the column | `row1`, `menu`, `sidebar` in `widths` |
+| Detail | from the column's edge (144; 150 for a 150 column): "Detail" centred in 144…480 at 294.5 | `detail` |
+| Content column | 200 wide at 144 (its range's bounds only), full height; "Cherry" at (160, 14); a 1 pt divider at black 25/255 follows, the detail after it | `content`, `contentRow`, `detail` in `three` |
+| Selection | `List(selection:)` in the sidebar drives the detail: "Number 1" centred at 312 | `splitview/selection` steps |
+
+Tier A exact on every fixture and step; Tier C and B within 0.3 % (the selection steps 2.8 %:
+the selected row's look), so the fixtures left the approximate list.
+
+## Measured (macOS 26.2, kept for the record, 2026-09-04)
 
 | Property | Value | Probe |
 |---|---|---|

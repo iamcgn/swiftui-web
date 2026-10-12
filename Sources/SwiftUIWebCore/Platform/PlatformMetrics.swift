@@ -595,13 +595,16 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var colorPanelSwatchSize: CGFloat = 22                   // unverified: the popover cannot be captured
     package var colorPanelSwatchSpacing: CGFloat = 6
 
-    // NavigationSplitView (macOS 26.2: fixtures splitview/*, Docs/elements/NavigationSplitView.md)
-    package var sidebarDefaultWidth: CGFloat = 140                // the panel; the column is 8 wider
+    // NavigationSplitView (macOS 27, regenerated 2026-10-11: fixtures splitview/*, Docs/elements/NavigationSplitView.md;
+    // 26.2 floated a white 140 pt panel inset 8 with 7.5 pt corners)
+    package var sidebarDefaultWidth: CGFloat = 144                // the sidebar column, from the window's edge
     package var splitContentDefaultWidth: CGFloat = 200
-    package var sidebarInset: CGFloat = 8
-    package var sidebarCornerRadius: CGFloat = 7.5                // from the corner ramp at 2×, approximate
-    package var sidebarPanelColor = RGBA(red: 1, green: 1, blue: 1, alpha: 1)
-    package var splitDividerAlpha = 25.0 / 255                    // the divider's alpha in the golden; black, unverified hue
+    package var sidebarInset: CGFloat = 0
+    package var sidebarCornerRadius: CGFloat = 0
+    package var sidebarPanelColor = RGBA(red: 251.0 / 255, green: 251.0 / 255, blue: 251.0 / 255, alpha: 1)   // the sidebar's fill (dark unverified)
+    package var sidebarDividerColor = RGBA(red: 201.0 / 255, green: 201.0 / 255, blue: 201.0 / 255, alpha: 1)  // the half-point line after the sidebar
+    package var sidebarDividerThickness: CGFloat = 0.5
+    package var splitDividerAlpha = 25.0 / 255                    // the 1 pt divider after the content column; black, unverified hue
 
     // ContentUnavailableView (macOS 26.2: fixture unavailable/basic, Docs/elements/ContentUnavailableView.md)
     package var unavailableSpacing: CGFloat = 12

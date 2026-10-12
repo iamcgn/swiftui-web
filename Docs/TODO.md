@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 9 | 0 | 0 | 9 |
+| SwiftUI | 8 | 0 | 0 | 8 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **25** | 0 | 1 | 24 |
+| **All** | **24** | 0 | 1 | 23 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **NavigationSplitView chrome** `sw-splitview` · Navigation · approximate  
-  The sidebar's material and toolbar, dragging the divider, collapsing by drag, the styles (accepted), `preferredCompactColumn` in the iOS profile; the splitview/ fixtures out of the 9 % approximate bound. ([NavigationSplitView.md](Docs/elements/NavigationSplitView.md))
 - ☐ **Window commands, dragging and documents** `sw-windows` · Windows · missing  
   `commands` on scenes and a menu bar in the native host, dragging and resizing the in-host windows, per-window focus and keyboard routing, `DocumentGroup`, restoration, the accepted scene modifiers (`windowResizability`, `windowStyle`, `defaultPosition`). ([Windows.md](Docs/elements/Windows.md))
 - ☐ **Table columns, styles and interaction** `sw-table` · Table · missing  
@@ -105,6 +103,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Rendering previews** `sw-previews` · SwiftUI · Preview
 - ☑ 2026-10-11 **ShareLink items and previews** `sw-sharelink` · SwiftUI · ShareLink
 - ☑ 2026-10-11 **Toolbar modifiers with an effect** `sw-toolbar` · SwiftUI · Toolbar
+- ☑ 2026-10-11 **NavigationSplitView chrome** `sw-splitview` · SwiftUI · Navigation
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

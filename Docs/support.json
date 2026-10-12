@@ -266,7 +266,7 @@
         {
           "api": "NavigationSplitView (two/three columns, columnVisibility, preferredCompactColumn) / NavigationSplitViewVisibility / navigationSplitViewColumnWidth / NavigationSplitViewStyle",
           "status": "partial",
-          "notes": "The macOS 26 split: a white sidebar panel inset 8 pt (140 wide by default, corner radius 7.5), a 200 pt content column with a 1 pt divider, the detail centred in the rest; column widths (ideal clamped to min/max), visibility through the binding, Runtime.toggleSidebar() and ⌃⌘S; sidebar lists take the sidebar style; links in the leading columns push onto the detail; no toolbar button, material, drag-resizing or collapse animation",
+          "notes": "The macOS 27 split (regenerated 2026-10-11): a 144 pt sidebar column from the edge (251 fill, a half-point line), a 200 pt content column with a 1 pt divider, the detail in the rest; column widths are the defaults clamped to the range; visibility through the binding, Runtime.toggleSidebar(), ⌃⌘S and the toolbar's sidebar button in painted chrome; dividers drag within the range and a sidebar dragged under half its minimum collapses; a compact width (iOS) shows the preferred column and pushes the detail; sidebar lists take the sidebar style; links in the leading columns push onto the detail; the styles look alike; no material or collapse animation",
           "fixtures": [
             "splitview/basic",
             "splitview/widths",

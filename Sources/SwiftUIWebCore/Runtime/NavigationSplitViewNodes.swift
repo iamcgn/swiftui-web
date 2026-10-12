@@ -11,7 +11,7 @@ package final class SplitColumnWidthNode<Content: View>: UnaryLayoutModifierNode
 }
 
 @MainActor
-package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost> {
+package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost>, _Interactive, _HoverTracking, _PointerStyled {
     package private(set) var sidebar: TypedNode<AnyView>!
     package private(set) var content: TypedNode<AnyView>?
     /// The detail column: an implicit navigation stack over the detail view.
@@ -22,6 +22,12 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
     package private(set) var sidebarFrame: CGRect?
     package private(set) var contentFrame: CGRect?
     package private(set) var detailFrame: CGRect = .zero
+    /// Widths the user dragged the dividers to (sw-splitview), clamped to the columns' ranges.
+    package private(set) var sidebarWidthOverride: CGFloat?
+    package private(set) var contentWidthOverride: CGFloat?
+    private enum Divider { case sidebar, content }
+    private var drag: (divider: Divider, startX: CGFloat, startWidth: CGFloat)?
+    private var hoveredDivider: Divider?
 
     /// The detail stack's own path (links in the leading columns push here).
     @MainActor
@@ -39,6 +45,23 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
         sidebar = AnyView._makeNode(_NodeContext(view: context.view.sidebar, parent: self, environment: sidebarEnvironment))
         if let view = context.view.content {
             content = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: leadingEnvironment))
+        }
+        detail.onDepthChanged = { [weak self] before, after in self?.detailPathDidChange(from: before, to: after) }
+    }
+
+    /// Compact: a link pushing onto the detail's stack shows the detail; the stack popping back
+    /// to its root (one group: the detail view) returns to the sidebar (or content) column.
+    private func detailPathDidChange(from before: Int, to after: Int) {
+        guard isCompact else { return }
+        if after > before, compactColumn != .detail {
+            view.compactBinding.set(.detail)
+            setCompact(.detail)
+            runtime.requestLayout(invalidatingSizes: true)
+        } else if after <= 1, before > after, compactColumn == .detail {
+            let column: NavigationSplitViewColumn = content != nil && view.compactColumn == .content ? .content : .sidebar
+            view.compactBinding.set(column)
+            setCompact(column)
+            runtime.requestLayout(invalidatingSizes: true)
         }
     }
 
@@ -72,7 +95,18 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
 
     // MARK: Visibility
 
+    /// A compact width (an iPhone) shows one column: the preferred compact column, the detail
+    /// once a link in a leading column pushes (its stack's back pops back to the column).
+    package var isCompact: Bool { environment.horizontalSizeClass == .compact }
+
+    package var compactColumn: NavigationSplitViewColumn {
+        let column = view.compactColumn
+        if column == .content, content == nil { return .sidebar }
+        return column
+    }
+
     package var showsSidebar: Bool {
+        if isCompact { return compactColumn == .sidebar }
         switch view.visibility.kind {
         case .automatic, .all: return true
         case .doubleColumn: return content == nil
@@ -82,6 +116,7 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
 
     package var showsContent: Bool {
         guard content != nil else { return false }
+        if isCompact { return compactColumn == .content }
         switch view.visibility.kind {
         case .automatic, .all, .doubleColumn: return true
         case .detailOnly: return false
@@ -93,7 +128,8 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
         view.binding.set(showsSidebar ? .detailOnly : .all)
         // Re-read so a binding nobody observes still takes effect.
         let visibility = view.binding.get()
-        view = _NavigationSplitViewHost(sidebar: view.sidebar, content: view.content, detail: view.detail, visibility: visibility, binding: view.binding)
+        view = _NavigationSplitViewHost(sidebar: view.sidebar, content: view.content, detail: view.detail, visibility: visibility, binding: view.binding,
+                                        compactColumn: view.compactColumn, compactBinding: view.compactBinding)
         runtime.requestLayout()
     }
 
@@ -113,14 +149,26 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
     private func plan(size: CGSize) -> Plan {
         var x: CGFloat = 0
         var plan = Plan(detail: .zero)
+        if isCompact {
+            // One column fills the width.
+            let whole = CGRect(origin: .zero, size: size)
+            switch compactColumn {
+            case .sidebar: plan.sidebar = whole; plan.detail = CGRect(x: size.width, y: 0, width: 0, height: size.height)
+            case .content where content != nil: plan.content = whole; plan.detail = CGRect(x: size.width, y: 0, width: 0, height: size.height)
+            default: plan.detail = whole
+            }
+            return plan
+        }
         if showsSidebar {
-            let width = (Self.columnWidth(of: sidebar) ?? _SplitColumnWidth()).resolved(default: PlatformMetrics.sidebarDefaultWidth)
+            let range = Self.columnWidth(of: sidebar) ?? _SplitColumnWidth()
+            let width = range.clamped(sidebarWidthOverride ?? range.resolved(default: PlatformMetrics.sidebarDefaultWidth))
             let inset = PlatformMetrics.sidebarInset
             plan.sidebar = CGRect(x: inset, y: inset, width: width, height: max(0, size.height - 2 * inset))
             x = inset + width
         }
         if showsContent, let content {
-            let width = (Self.columnWidth(of: content) ?? _SplitColumnWidth()).resolved(default: PlatformMetrics.splitContentDefaultWidth)
+            let range = Self.columnWidth(of: content) ?? _SplitColumnWidth()
+            let width = range.clamped(contentWidthOverride ?? range.resolved(default: PlatformMetrics.splitContentDefaultWidth))
             plan.content = CGRect(x: x, y: 0, width: width, height: size.height)
             x += width
             plan.divider = CGRect(x: x, y: 0, width: PlatformMetrics.dividerThickness, height: size.height)
@@ -129,6 +177,73 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
         plan.detail = CGRect(x: x, y: 0, width: max(0, size.width - x), height: size.height)
         return plan
     }
+
+    // MARK: Dividers (sw-splitview)
+
+    /// The 8 pt zone on each side of a divider where a drag resizes the column.
+    private static let dragZone: CGFloat = 4
+
+    private func divider(at point: CGPoint) -> Divider? {
+        guard !isCompact else { return nil }
+        if let sidebar = sidebarFrame, abs(point.x - sidebar.maxX) <= Self.dragZone { return .sidebar }
+        if let content = contentFrame, abs(point.x - (content.maxX + PlatformMetrics.dividerThickness / 2)) <= Self.dragZone { return .content }
+        return nil
+    }
+
+    /// Presses in a divider's zone are the split view's; everything else goes to the columns.
+    override package func capturesHit(at point: CGPoint) -> Bool { divider(at: point) != nil }
+
+    package var isInteractive: Bool { true }
+    package func pressBegan() {}
+    private static var nextIdentifier = 9_800_000
+    private lazy var identifier: Int = { Self.nextIdentifier += 1; return Self.nextIdentifier }()
+    /// A group for the semantics overlay (not focusable: only its dividers take the pointer).
+    package var semantics: SemanticsNode { SemanticsNode(role: .group, label: "", frame: frameInRoot, identifier: identifier) }
+
+    package func pressBegan(at point: CGPoint) {
+        guard let divider = divider(at: point) else { return }
+        switch divider {
+        case .sidebar: drag = (.sidebar, point.x, sidebarFrame?.width ?? 0)
+        case .content: drag = (.content, point.x, contentFrame?.width ?? 0)
+        }
+    }
+
+    package func pressMoved(to point: CGPoint) {
+        guard let drag else { return }
+        let width = drag.startWidth + point.x - drag.startX
+        switch drag.divider {
+        case .sidebar: sidebarWidthOverride = max(0, width)
+        case .content: contentWidthOverride = max(0, width)
+        }
+        runtime.requestLayout(invalidatingSizes: true)
+    }
+
+    package func pressEnded(inside: Bool) {
+        guard let drag else { return }
+        self.drag = nil
+        // A sidebar dragged narrower than half its minimum (half the default without one)
+        // collapses, as AppKit's does; its width comes back when it shows again.
+        if drag.divider == .sidebar, let width = sidebarWidthOverride {
+            let range = Self.columnWidth(of: sidebar) ?? _SplitColumnWidth()
+            let minimum = range.min ?? PlatformMetrics.sidebarDefaultWidth
+            if width < minimum / 2 {
+                sidebarWidthOverride = nil
+                view.binding.set(.detailOnly)
+                let visibility = view.binding.get()
+                view = _NavigationSplitViewHost(sidebar: view.sidebar, content: view.content, detail: view.detail, visibility: visibility, binding: view.binding,
+                                                compactColumn: view.compactColumn, compactBinding: view.compactBinding)
+            }
+        }
+        runtime.requestLayout(invalidatingSizes: true)
+    }
+
+    package func hoverChanged(inside: Bool, at point: CGPoint) {
+        let divider = inside ? divider(at: point) : nil
+        if divider != hoveredDivider { hoveredDivider = divider }
+    }
+
+    /// The column-resize cursor over a divider.
+    package var pointerStyle: PointerStyle? { hoveredDivider != nil || drag != nil ? .columnResize(directions: .all) : nil }
 
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         // The split view fills its proposal; unproposed it takes its columns' widths.
@@ -153,11 +268,17 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
         detailFrame = plan.detail
         if let area = plan.sidebar { for node in sidebar.layoutChildren { placeColumn(node, in: area) } }
         if let area = plan.content, let content { for node in content.layoutChildren { placeColumn(node, in: area) } }
-        placeColumn(detail, in: plan.detail)
+        // A compact split keeps the hidden detail out of the layout (its probes stay silent).
+        if !isCompact || compactColumn == .detail { placeColumn(detail, in: plan.detail) }
+    }
+
+    private func setCompact(_ column: NavigationSplitViewColumn) {
+        view = _NavigationSplitViewHost(sidebar: view.sidebar, content: view.content, detail: view.detail, visibility: view.visibility, binding: view.binding,
+                                        compactColumn: column, compactBinding: view.compactBinding)
     }
 
     override package var paintedChildren: [ViewNode] {
-        (sidebarFrame != nil ? sidebar.layoutChildren : []) + (contentFrame != nil ? content?.layoutChildren ?? [] : []) + [detail]
+        (sidebarFrame != nil ? sidebar.layoutChildren : []) + (contentFrame != nil ? content?.layoutChildren ?? [] : []) + (isCompact && compactColumn != .detail ? [] : [detail])
     }
     override package var structuralChildren: [ViewNode] { [sidebar, content, detail].compactMap { $0 } }
     override package var nodeDescription: String { "NavigationSplitView" }
@@ -173,7 +294,13 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
 
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         if let panel = sidebarFrame {
+            // The column's fill and, on macOS 27, the half-point line along its trailing edge
+            // (inside the area after it: the detail starts at the column's edge).
             list.append(.fillRRect(context.absoluteRect(panel), cornerRadius: PlatformMetrics.sidebarCornerRadius, PlatformMetrics.sidebarPanelColor))
+            if PlatformMetrics.sidebarDividerThickness > 0 {
+                let line = CGRect(x: panel.maxX, y: panel.minY, width: PlatformMetrics.sidebarDividerThickness, height: panel.height)
+                list.append(.fillRect(context.absoluteRect(line), PlatformMetrics.sidebarDividerColor))
+            }
             for node in sidebar.layoutChildren { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
         }
         if contentFrame != nil, let content {

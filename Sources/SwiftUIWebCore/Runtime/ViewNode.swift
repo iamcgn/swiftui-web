@@ -327,6 +327,10 @@ open class ViewNode {
     /// Whether this node takes hits before its children (`highPriorityGesture`).
     package var capturesHitTesting: Bool { false }
 
+    /// Whether this node takes the hit at `point` (in its space) before its children: a split
+    /// view's divider zones. The default is `capturesHitTesting` everywhere.
+    package func capturesHit(at point: CGPoint) -> Bool { capturesHitTesting }
+
     /// Whether this node is a `Spacer`: stacks size it after every other child, from the leftover
     /// (Layout/StackLayout.swift).
     package var isSpacer: Bool { false }

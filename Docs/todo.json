@@ -1504,13 +1504,14 @@
       "framework": "SwiftUI",
       "area": "Navigation",
       "title": "NavigationSplitView chrome",
-      "detail": "The sidebar's material and toolbar, dragging the divider, collapsing by drag, the styles (accepted), `preferredCompactColumn` in the iOS profile; the splitview/ fixtures out of the 9 % approximate bound.",
+      "detail": "The sidebar's material and toolbar, dragging the divider, collapsing by drag, the styles (accepted), `preferredCompactColumn` in the iOS profile; the splitview/ fixtures out of the 9 % approximate bound. Done 2026-10-11 (Phase 9, item 25): the splitview/ goldens regenerated on macOS 27 (the classic column split: 144 pt sidebar from the edge, widths clamped to the range) and all exact at the standard bound; divider dragging with the resize pointer, collapse by drag, the sidebar toggle in the painted toolbar, `preferredCompactColumn` on the iOS profile (one column, the detail pushed by links); the styles stay alike on macOS; the sidebar's translucent material is not drawn.",
       "kind": "approximate",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/NavigationSplitView.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-windows",

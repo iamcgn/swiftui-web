@@ -319,6 +319,10 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// Runs a change to the entries, then slides between the screens it swapped on iOS: the old
     /// top under a pushed one, or the popped one over the new top. The entries `body` retires
     /// stay mounted as the leaving screen until the slide ends (unmounted at once elsewhere).
+    /// Told when the stack's depth changes (a compact split view shows its detail on a push and
+    /// returns to its column on the pop to the root).
+    package var onDepthChanged: ((_ before: Int, _ after: Int) -> Void)?
+
     private func changingScreens(_ body: () -> [Entry]) {
         let before = groups.last ?? []
         let count = groups.count
@@ -331,6 +335,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         } else {
             for entry in retired { entry.node?.unmount() }
         }
+        if groups.count != count { onDepthChanged?(count, groups.count) }
     }
 
     /// Pushes a value: appends it to the path (the binding's owner re-renders the stack).
