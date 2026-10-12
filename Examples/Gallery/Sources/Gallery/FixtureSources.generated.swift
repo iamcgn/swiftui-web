@@ -1894,7 +1894,7 @@ public static let tiling = Fixture("image/tiling", size: CGSize(width: 300, heig
     .probe("stack")
 }
 """#),
-        FixtureSource(name: "ios/alert/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 96, lastLine: 113, declaration: #"""
+        FixtureSource(name: "ios/alert/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 148, lastLine: 165, declaration: #"""
 /// The alert: title, message, a destructive and a cancel button.
 public static let alert = Fixture(
     "ios/alert/basic", size: phone,
@@ -1914,7 +1914,7 @@ public static let alert = Fixture(
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/alert/stacked", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 115, lastLine: 134, declaration: #"""
+        FixtureSource(name: "ios/alert/stacked", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 167, lastLine: 186, declaration: #"""
 /// An alert with three buttons and a long title (sw-ios-presentation-rest): iOS stacks the
 /// buttons one per row and wraps the title.
 public static let alertStacked = Fixture(
@@ -2126,7 +2126,7 @@ public static let darkText = Fixture("ios/dark/text", size: CGSize(width: 320, h
     .probe("stack")
 }.platform(.iOS).colorScheme(.dark)
 """#),
-        FixtureSource(name: "ios/datepicker/compact", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 236, lastLine: 246, declaration: #"""
+        FixtureSource(name: "ios/datepicker/compact", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 288, lastLine: 298, declaration: #"""
 /// The compact date picker in a form: date, date and time, time; the tinted pills.
 public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(width: 375, height: 360)) {
     Form {
@@ -2139,7 +2139,7 @@ public static let datePicker = Fixture("ios/datepicker/compact", size: CGSize(wi
     .probe("form")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/datepicker/wheel", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 248, lastLine: 257, declaration: #"""
+        FixtureSource(name: "ios/datepicker/wheel", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 300, lastLine: 309, declaration: #"""
 /// A list with a selection binding: the selected row's look after a step selects it.
 /// The wheel style (iOS only): the date's three columns and the time's, captured as the window.
 public static let dateWheel = Fixture("ios/datepicker/wheel", size: CGSize(width: 375, height: 520)) {
@@ -2151,7 +2151,7 @@ public static let dateWheel = Fixture("ios/datepicker/wheel", size: CGSize(width
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/dialog/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 170, lastLine: 189, declaration: #"""
+        FixtureSource(name: "ios/dialog/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 222, lastLine: 241, declaration: #"""
 /// The confirmation dialog: a titled action sheet with three actions and a cancel button.
 public static let dialog = Fixture(
     "ios/dialog/basic", size: phone,
@@ -2347,7 +2347,7 @@ public static let listFooterHeader = Fixture("ios/list/footer-header", size: CGS
     .probe("list")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/list/multiselect", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 155, lastLine: 168, declaration: #"""
+        FixtureSource(name: "ios/list/multiselect", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 207, lastLine: 220, declaration: #"""
 /// Multiple selection in edit mode: the selection circles, two rows checked by a step.
 public static let multipleSelection = Fixture(
     "ios/list/multiselect", size: CGSize(width: 375, height: 360),
@@ -2392,7 +2392,7 @@ public static let customSections = Fixture("ios/list/sectionspacing", size: CGSi
     .probe("list")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 259, lastLine: 270, declaration: #"""
+        FixtureSource(name: "ios/list/selection", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 311, lastLine: 322, declaration: #"""
 public static let listSelection = Fixture(
     "ios/list/selection", size: CGSize(width: 375, height: 360),
     model: { IOSPresentationModel() },
@@ -3114,7 +3114,7 @@ public static let scrollContent = Fixture("ios/representable/scroll", size: CGSi
     .probe("scroll")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/representable/sheet", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 73, lastLine: 93, declaration: #"""
+        FixtureSource(name: "ios/representable/sheet", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 125, lastLine: 145, declaration: #"""
 /// A representable inside a sheet (ix-containers left it here): the UIKit label sits in
 /// the sheet's content like any leaf.
 public static let sheetRepresentable = Fixture(
@@ -3313,7 +3313,7 @@ public static let sheet = Fixture(
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/sheet/fullscreen", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 136, lastLine: 153, declaration: #"""
+        FixtureSource(name: "ios/sheet/fullscreen", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 188, lastLine: 205, declaration: #"""
 /// `fullScreenCover`: the cover fills the window, no card inset or dimming.
 public static let fullScreenCover = Fixture(
     "ios/sheet/fullscreen", size: phone,
@@ -3333,7 +3333,7 @@ public static let fullScreenCover = Fixture(
     .probe("stack")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/sheet/medium", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 56, lastLine: 70, declaration: #"""
+        FixtureSource(name: "ios/sheet/medium", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 108, lastLine: 122, declaration: #"""
 /// A medium detent and a hidden drag indicator's opposite: the visible grabber.
 public static let sheetMedium = Fixture(
     "ios/sheet/medium", size: phone,
@@ -3346,6 +3346,60 @@ public static let sheetMedium = Fixture(
     }
     .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
         SheetBody().presentationDetents([.medium]).presentationDragIndicator(.visible)
+    }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
+        FixtureSource(name: "ios/sheet/nav", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 56, lastLine: 81, declaration: #"""
+/// A `NavigationStack` inside a sheet, presented from one (sw-ios-sheet-nav, Scrumdinger's
+/// add screen): the sheet has a bar of its own, inline and untitled (`navigationTitle("")`),
+/// carrying its cancellation and confirmation items; the presenting stack's large title
+/// and items stay as they were under the dimming.
+public static let sheetNav = Fixture(
+    "ios/sheet/nav", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.sheet = true }]
+) { model in
+    NavigationStack {
+        List { Text("Daily Scrum") }
+            .navigationTitle("Scrums")
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Show sheet") { model.sheet = true }.probe("button") } }
+    }
+    .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+        NavigationStack {
+            Form { TextField("Title", text: .constant("")).probe("field") }
+                .navigationTitle("")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Dismiss") { model.sheet = false }.probe("dismiss") }
+                    ToolbarItem(placement: .confirmationAction) { Button("Add") { model.sheet = false }.probe("add") }
+                }
+        }
+    }
+    .probe("stack")
+}.platform(.iOS).capturesWindow()
+"""#),
+        FixtureSource(name: "ios/sheet/nav-titled", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 83, lastLine: 106, declaration: #"""
+/// The same sheet with a title: the sheet's inline bar shows it, the presenting bar's own
+/// title does not change.
+public static let sheetNavTitled = Fixture(
+    "ios/sheet/nav-titled", size: phone,
+    model: { IOSPresentationModel() },
+    steps: [FixtureStep("present") { $0.sheet = true }]
+) { model in
+    NavigationStack {
+        List { Text("Daily Scrum") }
+            .navigationTitle("Scrums")
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Show sheet") { model.sheet = true }.probe("button") } }
+    }
+    .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+        NavigationStack {
+            Form { TextField("Title", text: .constant("")).probe("field") }
+                .navigationTitle("New Scrum")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Dismiss") { model.sheet = false }.probe("dismiss") }
+                    ToolbarItem(placement: .confirmationAction) { Button("Add") { model.sheet = false }.probe("add") }
+                }
+        }
     }
     .probe("stack")
 }.platform(.iOS).capturesWindow()
@@ -3408,7 +3462,7 @@ public static let symbols = Fixture("ios/symbol/basic", size: CGSize(width: 320,
     .probe("stack")
 }.platform(.iOS)
 """#),
-        FixtureSource(name: "ios/tabs/badges", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 212, lastLine: 223, declaration: #"""
+        FixtureSource(name: "ios/tabs/badges", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 264, lastLine: 275, declaration: #"""
 /// Five tabs with badges: a count on the second, a text on the fourth (the bar's slots
 /// narrow; badges sit on the symbols).
 public static let tabsBadges = Fixture("ios/tabs/badges", size: phone) {
@@ -3422,7 +3476,7 @@ public static let tabsBadges = Fixture("ios/tabs/badges", size: phone) {
     .probe("tabs")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/tabs/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 191, lastLine: 201, declaration: #"""
+        FixtureSource(name: "ios/tabs/basic", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 243, lastLine: 253, declaration: #"""
 /// The tab bar: three tabs with symbols, the first selected. No step selects another: a
 /// programmatic selection change leaves iOS 26's pill raised as glass for seconds, so
 /// `ios/tabs/second` starts on the second tab instead.
@@ -3435,7 +3489,7 @@ public static let tabs = Fixture("ios/tabs/basic", size: phone) {
     .probe("tabs")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/tabs/page", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 225, lastLine: 234, declaration: #"""
+        FixtureSource(name: "ios/tabs/page", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 277, lastLine: 286, declaration: #"""
 /// The page style on iPhone: three pages, the page indicator at the bottom.
 public static let tabsPage = Fixture("ios/tabs/page", size: phone) {
     TabView(selection: .constant(1)) {
@@ -3447,7 +3501,7 @@ public static let tabsPage = Fixture("ios/tabs/page", size: phone) {
     .probe("tabs")
 }.platform(.iOS).capturesWindow()
 """#),
-        FixtureSource(name: "ios/tabs/second", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 203, lastLine: 210, declaration: #"""
+        FixtureSource(name: "ios/tabs/second", file: "Fixtures/Sources/iOS/IOSPresentationFixtures.swift", firstLine: 255, lastLine: 262, declaration: #"""
 public static let tabsSecond = Fixture("ios/tabs/second", size: phone) {
     TabView(selection: .constant(1)) {
         Text("Home content").tabItem { Label("Home", systemImage: "house") }.tag(0)
@@ -20276,6 +20330,58 @@ public enum IOSPresentationFixtures {
         .probe("stack")
     }.platform(.iOS).capturesWindow()
 
+    /// A `NavigationStack` inside a sheet, presented from one (sw-ios-sheet-nav, Scrumdinger's
+    /// add screen): the sheet has a bar of its own, inline and untitled (`navigationTitle("")`),
+    /// carrying its cancellation and confirmation items; the presenting stack's large title
+    /// and items stay as they were under the dimming.
+    public static let sheetNav = Fixture(
+        "ios/sheet/nav", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        NavigationStack {
+            List { Text("Daily Scrum") }
+                .navigationTitle("Scrums")
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Show sheet") { model.sheet = true }.probe("button") } }
+        }
+        .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            NavigationStack {
+                Form { TextField("Title", text: .constant("")).probe("field") }
+                    .navigationTitle("")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) { Button("Dismiss") { model.sheet = false }.probe("dismiss") }
+                        ToolbarItem(placement: .confirmationAction) { Button("Add") { model.sheet = false }.probe("add") }
+                    }
+            }
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// The same sheet with a title: the sheet's inline bar shows it, the presenting bar's own
+    /// title does not change.
+    public static let sheetNavTitled = Fixture(
+        "ios/sheet/nav-titled", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        NavigationStack {
+            List { Text("Daily Scrum") }
+                .navigationTitle("Scrums")
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Show sheet") { model.sheet = true }.probe("button") } }
+        }
+        .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            NavigationStack {
+                Form { TextField("Title", text: .constant("")).probe("field") }
+                    .navigationTitle("New Scrum")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) { Button("Dismiss") { model.sheet = false }.probe("dismiss") }
+                        ToolbarItem(placement: .confirmationAction) { Button("Add") { model.sheet = false }.probe("add") }
+                    }
+            }
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
     /// A medium detent and a hidden drag indicator's opposite: the visible grabber.
     public static let sheetMedium = Fixture(
         "ios/sheet/medium", size: phone,
@@ -20493,7 +20599,7 @@ public enum IOSPresentationFixtures {
     }.platform(.iOS)
 
     public static var all: [Fixture] {
-        var fixtures = [sheet, sheetMedium, alert, alertStacked, fullScreenCover, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection, multipleSelection]
+        var fixtures = [sheet, sheetNav, sheetNavTitled, sheetMedium, alert, alertStacked, fullScreenCover, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection, multipleSelection]
         #if canImport(UIKit)
         fixtures.append(sheetRepresentable)
         #endif

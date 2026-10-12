@@ -31,6 +31,7 @@ extension PlatformMetrics {
     package static var buttonProminentDisabledUsesPlainFill: Bool { current.buttonProminentDisabledUsesPlainFill }
     package static var buttonDestructiveTintsLabel: Bool { current.buttonDestructiveTintsLabel }
     package static var checkboxSize: CGFloat { current.checkboxSize }
+    package static var checkboxBaseline: CGFloat { current.checkboxBaseline }
     package static var checkboxLabelSpacing: CGFloat { current.checkboxLabelSpacing }
     package static var checkboxCornerRadius: CGFloat { current.checkboxCornerRadius }
     package static var checkboxFillOn: Double { current.checkboxFillOn }
@@ -128,6 +129,7 @@ extension PlatformMetrics {
     package static var listIdealWidth: CGFloat { current.listIdealWidth }
     package static var controlLabelSpacing: CGFloat { current.controlLabelSpacing }
     package static var popUpHeight: CGFloat { current.popUpHeight }
+    package static var popUpBaseline: CGFloat { current.popUpBaseline }
     package static var popUpTextInset: CGFloat { current.popUpTextInset }
     package static var popUpChevronGap: CGFloat { current.popUpChevronGap }
     package static var popUpChevronWidth: CGFloat { current.popUpChevronWidth }
@@ -169,6 +171,7 @@ extension PlatformMetrics {
     package static var sliderTickTop: CGFloat { current.sliderTickTop }
     package static var sliderIdealWidth: CGFloat { current.sliderIdealWidth }
     package static var stepperSize: CGSize { current.stepperSize }
+    package static var stepperBaseline: CGFloat { current.stepperBaseline }
     package static var stepperRepeatDelay: Double { current.stepperRepeatDelay }
     package static var stepperRepeatInterval: Double { current.stepperRepeatInterval }
     package static var stepperCornerRadius: CGFloat { current.stepperCornerRadius }
@@ -199,9 +202,6 @@ extension PlatformMetrics {
     package static var formGroupedSeparatorAlphaDark: Double { current.formGroupedSeparatorAlphaDark }
     package static var formGroupedSeparatorHeight: CGFloat { current.formGroupedSeparatorHeight }
     package static var formLabeledContentRowOffset: CGFloat { current.formLabeledContentRowOffset }
-    package static var stepperBaseline: CGFloat { current.stepperBaseline }
-    package static var popUpBaseline: CGFloat { current.popUpBaseline }
-    package static var checkboxBaseline: CGFloat { current.checkboxBaseline }
     package static var formGroupedSwitchSize: CGSize { current.formGroupedSwitchSize }
     package static var formGroupedSwitchKnobSize: CGSize { current.formGroupedSwitchKnobSize }
     package static var formGroupedSectionSpacing: CGFloat { current.formGroupedSectionSpacing }
@@ -551,9 +551,9 @@ extension PlatformMetrics {
     package static var unavailableIconSize: CGFloat { current.unavailableIconSize }
     package static var unavailableIconGap: CGFloat { current.unavailableIconGap }
     package static var unavailableDescriptionGap: CGFloat { current.unavailableDescriptionGap }
+    package static var unavailableDescriptionBottom: CGFloat { current.unavailableDescriptionBottom }
     package static var unavailableActionsGap: CGFloat { current.unavailableActionsGap }
     package static var unavailableBottomPadding: CGFloat { current.unavailableBottomPadding }
-    package static var unavailableDescriptionBottom: CGFloat { current.unavailableDescriptionBottom }
     package static var unavailableActionsBottomPadding: CGFloat { current.unavailableActionsBottomPadding }
     package static var gridItemSpacing: CGFloat { current.gridItemSpacing }
     package static var disclosureRowPadding: CGFloat { current.disclosureRowPadding }
@@ -674,6 +674,12 @@ extension PlatformMetrics {
     package static var navigationTitleInset: CGFloat { current.navigationTitleInset }
     package static var navigationLargeTitleCollapse: CGFloat { current.navigationLargeTitleCollapse }
     package static var navigationGlassHeight: CGFloat { current.navigationGlassHeight }
+    package static var navigationBarItemTop: CGFloat { current.navigationBarItemTop }
+    package static var navigationBarItemHeight: CGFloat { current.navigationBarItemHeight }
+    package static var navigationBarItemInset: CGFloat { current.navigationBarItemInset }
+    package static var navigationBarItemPadding: CGFloat { current.navigationBarItemPadding }
+    package static var navigationBarItemSpacing: CGFloat { current.navigationBarItemSpacing }
+    package static var sheetNavigationBarTopInset: CGFloat { current.sheetNavigationBarTopInset }
     package static var navigationBackButtonInset: CGFloat { current.navigationBackButtonInset }
     package static var navigationBackButtonDiameter: CGFloat { current.navigationBackButtonDiameter }
     package static var navigationBackFill: RGBA { current.navigationBackFill }

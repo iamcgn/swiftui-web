@@ -53,6 +53,58 @@ public enum IOSPresentationFixtures {
         .probe("stack")
     }.platform(.iOS).capturesWindow()
 
+    /// A `NavigationStack` inside a sheet, presented from one (sw-ios-sheet-nav, Scrumdinger's
+    /// add screen): the sheet has a bar of its own, inline and untitled (`navigationTitle("")`),
+    /// carrying its cancellation and confirmation items; the presenting stack's large title
+    /// and items stay as they were under the dimming.
+    public static let sheetNav = Fixture(
+        "ios/sheet/nav", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        NavigationStack {
+            List { Text("Daily Scrum") }
+                .navigationTitle("Scrums")
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Show sheet") { model.sheet = true }.probe("button") } }
+        }
+        .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            NavigationStack {
+                Form { TextField("Title", text: .constant("")).probe("field") }
+                    .navigationTitle("")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) { Button("Dismiss") { model.sheet = false }.probe("dismiss") }
+                        ToolbarItem(placement: .confirmationAction) { Button("Add") { model.sheet = false }.probe("add") }
+                    }
+            }
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
+    /// The same sheet with a title: the sheet's inline bar shows it, the presenting bar's own
+    /// title does not change.
+    public static let sheetNavTitled = Fixture(
+        "ios/sheet/nav-titled", size: phone,
+        model: { IOSPresentationModel() },
+        steps: [FixtureStep("present") { $0.sheet = true }]
+    ) { model in
+        NavigationStack {
+            List { Text("Daily Scrum") }
+                .navigationTitle("Scrums")
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Show sheet") { model.sheet = true }.probe("button") } }
+        }
+        .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+            NavigationStack {
+                Form { TextField("Title", text: .constant("")).probe("field") }
+                    .navigationTitle("New Scrum")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) { Button("Dismiss") { model.sheet = false }.probe("dismiss") }
+                        ToolbarItem(placement: .confirmationAction) { Button("Add") { model.sheet = false }.probe("add") }
+                    }
+            }
+        }
+        .probe("stack")
+    }.platform(.iOS).capturesWindow()
+
     /// A medium detent and a hidden drag indicator's opposite: the visible grabber.
     public static let sheetMedium = Fixture(
         "ios/sheet/medium", size: phone,
@@ -270,7 +322,7 @@ public enum IOSPresentationFixtures {
     }.platform(.iOS)
 
     public static var all: [Fixture] {
-        var fixtures = [sheet, sheetMedium, alert, alertStacked, fullScreenCover, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection, multipleSelection]
+        var fixtures = [sheet, sheetNav, sheetNavTitled, sheetMedium, alert, alertStacked, fullScreenCover, dialog, tabs, tabsSecond, tabsBadges, tabsPage, datePicker, listSelection, multipleSelection]
         #if canImport(UIKit)
         fixtures.append(sheetRepresentable)
         #endif

@@ -35,6 +35,52 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// bar under the hidden bar while the search is presented; laid out with the screens.
     private var searchBar: TypedNode<AnyView>?
     private var scopeBar: TypedNode<AnyView>?
+    /// iOS (ios/sheet/nav): the `toolbar` items in the screens' subtrees, shown as pills in the
+    /// top screen's bar; a hosted subtree like the search chrome, hit tested as a child.
+    private var toolbarSources: [ToolbarSource] = []
+    private var itemsBar: TypedNode<AnyView>?
+
+    package func registerToolbar(_ node: ViewNode, items: [_ToolbarItemData]) {
+        if let index = toolbarSources.firstIndex(where: { $0.node === node }) {
+            toolbarSources[index].items = items
+        } else {
+            toolbarSources.append(ToolbarSource(node: node, items: items))
+        }
+        runtime.requestLayout(invalidatingSizes: true)
+    }
+
+    package func unregisterToolbar(_ node: ViewNode) {
+        toolbarSources.removeAll { $0.node === node || $0.node == nil }
+        runtime.requestLayout(invalidatingSizes: true)
+    }
+
+    /// The items whose `toolbar` sits in one of `nodes`' subtrees (a screen's).
+    private func toolbarItems(over nodes: [ViewNode]) -> [_ToolbarItemData] {
+        toolbarSources.filter { source in
+            guard let node = source.node, node.isMounted else { return false }
+            var current: ViewNode? = node
+            while let candidate = current {
+                if nodes.contains(where: { $0 === candidate }) { return true }
+                if candidate === self { return false }
+                current = candidate.parent
+            }
+            return false
+        }.flatMap(\.items)
+    }
+
+    /// Inside a sheet (ios/sheet/nav) the bar sits `sheetNavigationBarTopInset` lower.
+    private var barTopInset: CGFloat {
+        guard environment.platformProfile.isIOS else { return 0 }
+        var current = parent
+        while let node = current {
+            if let presentation = node as? PresentationNode {
+                return presentation.kind == .sheet && !presentation.options.fullScreen ? PlatformMetrics.sheetNavigationBarTopInset : 0
+            }
+            if node is NavigationStackNode { return 0 }
+            current = node.parent
+        }
+        return 0
+    }
 
     package init(_ context: _NodeContext<_NavigationStackHost>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime, environment: context.environment)
@@ -52,7 +98,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         environment.dismiss = DismissAction { [weak self] in self?.pop() }
         environment._underNavigationBar = environment.platformProfile.isIOS && large
         environment._navigationBarOverhang = environment.platformProfile.isIOS
-            ? (large ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight) : 0
+            ? (large ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight) + barTopInset : 0
         return environment
     }
 
@@ -99,6 +145,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// screen's subtree (ios/nav/basic: a 117 pt bar with the large title; ios/nav/inline: 64),
     /// and a pushed screen gets a back button unless it hides it (ios/nav/push*).
     private struct Bar {
+        /// The title drawn (nil for an untitled bar: `navigationTitle("")` with items, ios/sheet/nav).
         var title: String?
         /// A large-title bar (the screen's content lays out under it without its own top inset).
         var large: Bool
@@ -106,6 +153,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         var collapsed: Bool
         var back: Bool
         var height: CGFloat
+        var items: [_ToolbarItemData]
         var showsLargeTitle: Bool { large && !collapsed }
     }
 
@@ -121,17 +169,19 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let mode = (top.descendants(where: { $0 is any _NavigationTitleDisplayModeProviding }).first as? any _NavigationTitleDisplayModeProviding)?._titleDisplayMode ?? .automatic
         let hidesBack = (top.descendants(where: { $0 is any _NavigationBackButtonHiddenProviding }).first as? any _NavigationBackButtonHiddenProviding)?._hidesBackButton ?? false
         let back = index > 0 && !hidesBack
-        guard title != nil || back else { return nil }
+        let items = toolbarItems(over: nodes)
+        guard title != nil || back || !items.isEmpty else { return nil }
         var large: Bool
         switch mode {
         case .inline: large = false
         case .large: large = true
         default: large = index == 0 || previousLarge
         }
-        if title == nil { large = false }
+        // An empty title (ios/sheet/nav) is an inline bar with nothing to draw.
+        if title == nil || title == "" { large = false }
         let showsLarge = large && !collapsed
-        return Bar(title: title, large: large, collapsed: large && collapsed, back: back,
-                   height: showsLarge ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight)
+        return Bar(title: title == "" ? nil : title, large: large, collapsed: large && collapsed, back: back,
+                   height: (showsLarge ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight) + barTopInset, items: items)
     }
 
     /// The bars over `screens`, bottom to top.
@@ -215,6 +265,29 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     }
 
     private var searchChromeNodes: [ViewNode] { (scopeBar?.layoutChildren ?? []) + (searchBar?.layoutChildren ?? []) }
+
+    /// Mounts, updates or drops the top screen's bar items (iOS) and places them across the bar.
+    private func layoutItemsBar(_ bar: Bar?) {
+        guard let bar, !bar.items.isEmpty else {
+            itemsBar?.unmount()
+            itemsBar = nil
+            return
+        }
+        let view = AnyView(_IOSBarItemsView(items: bar.items))
+        var environment = environment
+        environment._automaticLabelContext = .toolbar
+        if let itemsBar {
+            itemsBar.update(view: view, environment: environment, force: false)
+        } else {
+            itemsBar = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: environment))
+        }
+        let band = CGRect(x: 0, y: barTopInset, width: frame.width, height: PlatformMetrics.navigationBarInlineHeight)
+        for node in itemsBar?.layoutChildren ?? [] {
+            node.place(at: band.origin, anchor: .topLeading, proposal: ProposedViewSize(band.size), by: self)
+        }
+    }
+
+    private var itemsBarNodes: [ViewNode] { itemsBar?.layoutChildren ?? [] }
 
     // MARK: The large title collapsing as the screen scrolls (iOS)
 
@@ -552,6 +625,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
                 }
             }
             layoutSearchChrome(chrome, barHeight: (bars.last ?? nil)?.height ?? 0)
+            layoutItemsBar(bars.last ?? nil)
             // Placing the content may have scrolled it (a programmatic target) past the large
             // title: the screen is placed again under the inline bar.
             guard pass == 0, collapseChanged else { break }
@@ -562,7 +636,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         backButton.isShown = (bars.last ?? nil)?.back ?? false
         if backButton.isShown {
             let inset = PlatformMetrics.navigationBackButtonInset
-            backButton.place(at: CGPoint(x: inset, y: inset), anchor: .topLeading, proposal: .unspecified, by: self)
+            backButton.place(at: CGPoint(x: inset, y: inset + barTopInset), anchor: .topLeading, proposal: .unspecified, by: self)
         }
     }
 
@@ -572,7 +646,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let bars = self.bars
         guard let (slide, progress) = activeSlide else {
             paintScreen(groups.last ?? [], bar: bars.last ?? nil, shift: 0, barOpacity: 1, into: &list, context: context)
-            for node in searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
+            for node in itemsBarNodes + searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
             return
         }
         let bounds = absoluteBounds(context)
@@ -588,7 +662,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if cover > 0 { list.append(.fillRect(bounds, RGBA(r: 0, g: 0, b: 0, a: PlatformMetrics.navigationPushDim * cover))) }
         paintScreen(slide.upper, bar: upperBar, shift: width * (1 - cover), barOpacity: cover, into: &list, context: context)
         list.append(.restore)
-        for node in searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
+        for node in itemsBarNodes + searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
     }
 
     /// One screen shifted sideways by `shift`: its ground (a grouped list's continues under the
@@ -634,14 +708,16 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     }
 
     private func paintBar(_ bar: Bar, opacity: Double, into list: inout DisplayList, context: PaintContext) {
-        let bounds = absoluteBounds(context)
+        var bounds = absoluteBounds(context)
         let profile = environment.platformProfile
         let color = (environment.foregroundColor ?? .primary).resolve(in: environment).multiplyingAlpha(by: opacity)
+        // The band fills from the stack's top; the title, glass and back button sit `barTopInset` lower.
+        let band = CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: bar.height)
+        bounds.origin.y += barTopInset
         // `toolbarBackground(_, for: .navigationBar)`: a style (or the window colour when
         // `.visible`) fills the bar's band behind the title and items; `.hidden` leaves iOS 26's
         // bare top and no glass (sw-toolbar, unmeasured).
         let background = runtime.toolbarBackground(for: .navigationBar)
-        let band = CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: bar.height)
         if let style = background.style {
             style._fill(Path(band), in: band, eoFill: false, environment: environment, scale: context.scale, into: &list)
         } else if background.visibility == .visible {
@@ -683,8 +759,8 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if bar.back { backButton.paintLook(into: &list, at: bounds.origin, opacity: opacity, context: context) }
     }
 
-    override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) + searchChromeNodes }
-    override package var structuralChildren: [ViewNode] { [root as ViewNode] + entries.compactMap(\.node) + [scopeBar, searchBar].compactMap { $0 } }
+    override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) + itemsBarNodes + searchChromeNodes }
+    override package var structuralChildren: [ViewNode] { [root as ViewNode] + entries.compactMap(\.node) + [scopeBar, searchBar, itemsBar].compactMap { $0 } }
 
     /// Preferences come from the root and the top screen when the top is a pushed view
     /// (nav/path-change `present`: a value screen under a presented one reports no probe); the
@@ -698,6 +774,8 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
                 sources.append(node)
             }
         }
+        // The bar's items (iOS) report too: ios/sheet/nav probes a button in the bar.
+        if let itemsBar { sources.append(itemsBar) }
         var result: K.Value?
         for child in sources {
             guard let value = child.preferenceValue(for: key) else { continue }
@@ -717,6 +795,8 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         entries.removeAll()
         searchBar?.unmount()
         searchBar = nil
+        itemsBar?.unmount()
+        itemsBar = nil
         scopeBar?.unmount()
         scopeBar = nil
         super.unmount()
@@ -852,19 +932,29 @@ package final class NavigationTitleDisplayModeNode<Content: View>: UnaryLayoutMo
     package var _titleDisplayMode: NavigationBarItem.TitleDisplayMode { modifier.mode }
 }
 
-/// Records the navigation title on the runtime; transparent for layout.
+/// Records the navigation title on the runtime (the window's title); transparent for layout.
+/// A title inside a sheet or other presentation is that presentation's, not the window's.
 @MainActor
 package final class NavigationTitleNode<Content: View>: UnaryLayoutModifierNode<Content, _NavigationTitleModifier>, _NavigationTitleProviding {
     package var _navigationTitle: String { modifier.title }
 
+    private var isPresented: Bool {
+        var current = parent
+        while let node = current {
+            if node is PresentationNode { return true }
+            current = node.parent
+        }
+        return false
+    }
+
     override package init(_ context: _NodeContext<ModifiedContent<Content, _NavigationTitleModifier>>) {
         super.init(context)
-        runtime.navigationTitle = modifier.title
+        if !isPresented { runtime.navigationTitle = modifier.title }
     }
 
     override package func update(view: ModifiedContent<Content, _NavigationTitleModifier>, environment: EnvironmentValues, force: Bool) {
         super.update(view: view, environment: environment, force: force)
-        runtime.navigationTitle = modifier.title
+        if !isPresented { runtime.navigationTitle = modifier.title }
     }
 }
 

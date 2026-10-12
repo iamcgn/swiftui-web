@@ -1915,11 +1915,12 @@
       "kind": "approximate",
       "priority": "next",
       "title": "NavigationStack inside a sheet",
-      "detail": "On the iOS profile a sheet whose content is a NavigationStack: its navigationTitle replaces the presenting stack's bar title (`Runtime.navigationTitle` is one value for the window), no bar is drawn when the title is empty even with toolbar items (NavigationNodes.swift `bar(over:)` wants a title or a back button), and the stack's toolbar items are never painted (PresentationNodes drops the sheet toolbar when sheets fill the window). Scrumdinger's add/edit sheets lose their Dismiss and Add buttons. Also an image-only toolbar Button gets an empty accessibility label (SwiftUI derives it from the symbol name). Goldens: a sheet with an inline untitled bar and items, from the simulator.",
-      "status": "planned",
+      "detail": "On the iOS profile a sheet whose content is a NavigationStack: its navigationTitle replaces the presenting stack's bar title (`Runtime.navigationTitle` is one value for the window), no bar is drawn when the title is empty even with toolbar items (NavigationNodes.swift `bar(over:)` wants a title or a back button), and the stack's toolbar items are never painted (PresentationNodes drops the sheet toolbar when sheets fill the window). Scrumdinger's add/edit sheets lose their Dismiss and Add buttons. Also an image-only toolbar Button gets an empty accessibility label (SwiftUI derives it from the symbol name). Goldens: a sheet with an inline untitled bar and items, from the simulator. Done 2026-10-12: the stack in a sheet has its own bar 5.5 lower (ios/sheet/nav, ios/sheet/nav-titled from iOS 27; the whole ios/sheet/ family regenerated there, the card now starts at 21), an empty title is an inline bar with nothing drawn, a title inside a presentation stays off the window's, and on iOS toolbar items go to the nearest stack's bar as 36 pt pills (the window bar is macOS only); sheet content clipped to the card. IOSSheetNavigationTests tap the pills. The image-only button's accessibility label is still open (sw-toolbar-symbol-label).",
+      "status": "done",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-app-delegate-adaptor",

@@ -8,6 +8,10 @@ public struct ToolbarItemPlacement: Hashable, Sendable {
     package enum Group: Hashable, Sendable { case leading, principal, trailing, hidden }
     package let group: Group
     package let name: String
+    /// iOS puts a cancellation action at the bar's leading end (ios/sheet/nav: Dismiss leads, Add trails).
+    package var iOSGroup: Group { name == "cancellationAction" ? .leading : group }
+    /// iOS bolds the confirmation action's label (ios/sheet/nav: Add, Show sheet).
+    package var isProminentOnIOS: Bool { name == "confirmationAction" }
 
     public static let automatic = ToolbarItemPlacement(group: .trailing, name: "automatic")
     public static let principal = ToolbarItemPlacement(group: .principal, name: "principal")

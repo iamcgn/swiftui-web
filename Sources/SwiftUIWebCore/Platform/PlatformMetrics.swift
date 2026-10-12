@@ -271,7 +271,7 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     // ios/list/selection; Docs/elements/iOS.md). macOS keeps its own looks: these defaults are
     // the switches off and the values macOS's nodes never read.
     package var sheetsFillWindow = false                          // iOS: the sheet is the window's width, its content centred
-    package var sheetTopInset: CGFloat = 0                        // iOS 31: where the large detent's card starts
+    package var sheetTopInset: CGFloat = 0                        // iOS 27 21 (iOS 26: 31): where the large detent's card starts
     package var sheetCornerRadius: CGFloat = 10                   // iOS 39
     package var sheetMediumHeightFraction: CGFloat = 0.5          // iOS 351/667: the medium detent's height over the window's
     package var sheetMediumSideInset: CGFloat = 0                 // iOS 6: the medium card floats in from the sides
@@ -826,6 +826,18 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var navigationGlassHeight: CGFloat = 80                    // iOS 26: the bar's tint over scrolled content eases out this far down (ios/nav/scroll)
     // The back button of a pushed screen (ios/nav/push, ios/nav/push-inline): a glass circle at the
     // bar's leading edge with a chevron; the slide of a push or pop is not measurable from goldens.
+    // Toolbar items in an iOS navigation bar (ios/sheet/nav, iOS 27 on the iPhone SE, 2026-10-12):
+    // 36 pt glass pills 14 down from the bar's top and 20 in from the window's sides, the label in
+    // the body size (semibold for a confirmation action), 12 pt of pill either side of it.
+    package var navigationBarItemTop: CGFloat = 14
+    package var navigationBarItemHeight: CGFloat = 36
+    package var navigationBarItemInset: CGFloat = 20
+    package var navigationBarItemPadding: CGFloat = 12
+    package var navigationBarItemSpacing: CGFloat = 8                  // between two pills of a group (unmeasured)
+    // A navigation stack inside a sheet (ios/sheet/nav): its bar, title and items sit 5.5 lower
+    // than at the window's top (the row under an inline untitled bar at 104.5 from the card's
+    // top, under the large title at 122; 99 and 116.5 at the window's top).
+    package var sheetNavigationBarTopInset: CGFloat = 0
     package var navigationBackButtonInset: CGFloat = 10
     package var navigationBackButtonDiameter: CGFloat = 44
     package var navigationBackFill = RGBA(r: 246, g: 246, b: 246, a: 0.66)    // white → 249.5, the grey ground → 243

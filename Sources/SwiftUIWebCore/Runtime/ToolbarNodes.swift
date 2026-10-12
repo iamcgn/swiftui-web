@@ -4,16 +4,22 @@
 // the content is laid out below it.
 
 /// `toolbar`: transparent to layout; registers its items with the runtime — or with the sheet
-/// or other presentation it sits in, which shows them in a bar of its own (sw-toolbar).
+/// or other presentation it sits in, which shows them in a bar of its own (sw-toolbar). On iOS
+/// the items belong to the navigation bar of the nearest `NavigationStack` (ios/sheet/nav: a
+/// stack inside a sheet shows its own items), and there is no window bar.
 @MainActor
 package final class ToolbarNode<Content: View>: UnaryLayoutModifierNode<Content, _ToolbarModifier> {
-    private var enclosingPresentation: PresentationNode? {
+    private enum Owner { case runtime, presentation(PresentationNode), stack(NavigationStackNode) }
+
+    private var owner: Owner {
+        let isIOS = environment.platformProfile.isIOS
         var current = parent
         while let node = current {
-            if let presentation = node as? PresentationNode { return presentation }
+            if let presentation = node as? PresentationNode { return .presentation(presentation) }
+            if isIOS, let stack = node as? NavigationStackNode { return .stack(stack) }
             current = node.parent
         }
-        return nil
+        return .runtime
     }
 
     override package init(_ context: _NodeContext<ModifiedContent<Content, _ToolbarModifier>>) {
@@ -27,11 +33,19 @@ package final class ToolbarNode<Content: View>: UnaryLayoutModifierNode<Content,
     }
 
     private func register(_ items: [_ToolbarItemData]) {
-        if let presentation = enclosingPresentation { presentation.registerToolbar(self, items: items) } else { runtime.registerToolbar(self, items: items) }
+        switch owner {
+        case .presentation(let presentation): presentation.registerToolbar(self, items: items)
+        case .stack(let stack): stack.registerToolbar(self, items: items)
+        case .runtime: runtime.registerToolbar(self, items: items)
+        }
     }
 
     override package func unmount() {
-        if let presentation = enclosingPresentation { presentation.unregisterToolbar(self) } else { runtime.unregisterToolbar(self) }
+        switch owner {
+        case .presentation(let presentation): presentation.unregisterToolbar(self)
+        case .stack(let stack): stack.unregisterToolbar(self)
+        case .runtime: runtime.unregisterToolbar(self)
+        }
         super.unmount()
     }
 }
@@ -322,9 +336,10 @@ extension Runtime {
     package var hasSplitView: Bool { !root.descendants(where: { $0 is NavigationSplitViewNode }).isEmpty }
 
     /// Whether the host should show a toolbar: chrome painting on, items (or a split view's
-    /// toggle, or a search field) present, not hidden.
+    /// toggle, or a search field) present, not hidden. An iOS window has no toolbar: items go
+    /// to a navigation bar, and the search field to the stack's bottom band.
     package var showsToolbar: Bool {
-        paintsWindowChrome && (!toolbarItems.isEmpty || searchField != nil || hasSplitView) && !toolbarVisibility.contains { $0.node?.isMounted == true && $0.visibility == .hidden }
+        paintsWindowChrome && !rootEnvironment.platformProfile.isIOS && (!toolbarItems.isEmpty || searchField != nil || hasSplitView) && !toolbarVisibility.contains { $0.node?.isMounted == true && $0.visibility == .hidden }
     }
 
     /// The bar's frame while it shows; the content is laid out below it.
@@ -422,5 +437,54 @@ struct _ToolbarScopeRowView: View {
             Spacer(minLength: 0)
         }
         .frame(height: Runtime.toolbarScopeRowHeight)
+    }
+}
+
+/// The items of an iOS navigation bar (ios/sheet/nav, iOS 27): the leading group at the bar's
+/// leading inset, the trailing group at its trailing one, principal items centred, each
+/// button a glass pill (`_IOSBarButtonStyle`).
+struct _IOSBarItemsView: View {
+    let items: [_ToolbarItemData]
+
+    private func pills(_ group: ToolbarItemPlacement.Group) -> some View {
+        ForEach(Array(items.enumerated()).filter { $0.element.placement.iOSGroup == group }, id: \.offset) { entry in
+            entry.element.view
+                .buttonStyle(_IOSBarButtonStyle(prominent: entry.element.placement.isProminentOnIOS))
+                .fixedSize(horizontal: true, vertical: false)
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: PlatformMetrics.navigationBarItemSpacing) {
+            pills(.leading)
+            Spacer(minLength: PlatformMetrics.navigationBarItemSpacing)
+            pills(.principal)
+            Spacer(minLength: PlatformMetrics.navigationBarItemSpacing)
+            pills(.trailing)
+        }
+        .padding(.horizontal, PlatformMetrics.navigationBarItemInset)
+        .padding(.top, PlatformMetrics.navigationBarItemTop)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .font(.body)
+    }
+}
+
+/// An iOS 26 navigation bar button: the label in the body size (semibold for a confirmation
+/// action) in a 36 pt capsule of glass (approximate: a faint rim and a soft shadow over the
+/// bar, the interior a touch lighter than what is behind it), pressed darker.
+struct _IOSBarButtonStyle: ButtonStyle {
+    let prominent: Bool
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .fontWeight(prominent ? .semibold : nil)
+            .padding(.horizontal, PlatformMetrics.navigationBarItemPadding)
+            .frame(minWidth: PlatformMetrics.navigationBarItemHeight, minHeight: PlatformMetrics.navigationBarItemHeight, maxHeight: PlatformMetrics.navigationBarItemHeight)
+            .background(
+                Capsule()
+                    .fill(Color(.sRGB, white: 1, opacity: configuration.isPressed ? 0.3 : 0.45))
+                    .shadow(color: Color(.sRGB, white: 0, opacity: 0.08), radius: 4, y: 2)
+            )
+            .overlay(Capsule().strokeBorder(Color(.sRGB, white: 0, opacity: 0.06), lineWidth: 0.5))
+            .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }

@@ -4,17 +4,15 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
-| SwiftUI | 2 | 2 | 0 | 0 |
+| SwiftUI | 1 | 1 | 0 | 0 |
 | UIKit | 1 | 1 | 0 | 0 |
 | Platform | 10 | 5 | 1 | 4 |
-| **All** | **13** | 8 | 1 | 4 |
+| **All** | **12** | 7 | 1 | 4 |
 
 ## Next (Phase 8, in order)
 
 ### SwiftUI
 
-- ☐ **NavigationStack inside a sheet** `sw-ios-sheet-nav` · iOS profile · approximate  
-  On the iOS profile a sheet whose content is a NavigationStack: its navigationTitle replaces the presenting stack's bar title (`Runtime.navigationTitle` is one value for the window), no bar is drawn when the title is empty even with toolbar items (NavigationNodes.swift `bar(over:)` wants a title or a back button), and the stack's toolbar items are never painted (PresentationNodes drops the sheet toolbar when sheets fill the window). Scrumdinger's add/edit sheets lose their Dismiss and Add buttons. Also an image-only toolbar Button gets an empty accessibility label (SwiftUI derives it from the symbol name). Goldens: a sheet with an inline untitled bar and items, from the simulator. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 - ◐ **Isolation annotations as Apple declares them** `sw-isolation-fidelity` · SwiftUI · approximate  
   A Swift 6 app compiles against this package as against Apple's only if every protocol, initializer and modifier carries the same isolation: the protocols Apple marks `@MainActor @preconcurrency` (ToolbarContent, the style protocols, Commands, Gesture, TabContent, the representables, AccessibilityRotorContent, DropDelegate) and not the ones it leaves nonisolated (ListStyle, PickerStyle, TextFieldStyle, DynamicViewContent, ScrollTargetBehavior); view initializers `nonisolated` (1 595 of Apple's are; 627 of ours were isolated), action parameters `@preconcurrency @MainActor` where Apple's are. Done 2026-10-12 for the protocols and for Button and Label (Scrumdinger's `ToolbarButton` and its `Button(_:symbol:)` wrappers would not compile); the sweep over the remaining initializers and modifiers against the SDK's swiftinterface is open. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
@@ -80,6 +78,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **contentShape and the Shape shortcuts** `sw-shape-shortcuts` · SwiftUI · Shape
 - ☑ 2026-10-12 **API the surveyed apps reach for** `sw-app-api-gaps` · SwiftUI · View composition
 - ☑ 2026-10-12 **Scene environment modifiers** `sw-scene-environment` · SwiftUI · App
+- ☑ 2026-10-12 **NavigationStack inside a sheet** `sw-ios-sheet-nav` · SwiftUI · iOS profile
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

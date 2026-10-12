@@ -108,13 +108,29 @@ glass materials blur an app's ground. Tier A holds every probe exact; Tier C is 
 (the date picker 2.5 %): the materials are painted as their colour over the dimmed white and
 the shadows as rings (`PlatformMetricsIOS.swift`).
 
-- **Sheet** (`ios/sheet/basic`): the window dims 20 % black; the card is white, the window's
-  width, from 31 to the bottom with 39 pt top corners, its content centred in it
+- **Sheet** (`ios/sheet/basic`, regenerated on iOS 27 on 2026-10-12 with the whole `ios/sheet/`
+  family: the harness built with Xcode 27's SDK no longer loads on the iOS 26 runtime): the
+  window dims 20 % black; the card is white, the window's width, from 21 to the bottom (31 on
+  iOS 26) with 39 pt top corners, its content centred in it and clipped to the card
   (`sheetsFillWindow`, `sheetTopInset`, `sheetCornerRadius`). With `presentationDetents([.medium])`
   (`ios/sheet/medium`) the card floats: 351/667 of the window tall, 6 in from the sides and the
   bottom, every corner 39, the regular material ((239) over the dimmed white); with
   `presentationDragIndicator(.visible)` a 36 × 5 grabber 5 below the top at black 25 %. A
   representable in a sheet lays out like any leaf (`ios/representable/sheet`).
+- **A navigation stack in a sheet** (`ios/sheet/nav`, `ios/sheet/nav-titled`, iOS 27,
+  sw-ios-sheet-nav, 2026-10-12): the stack has a bar of its own, 5.5 lower than at the window's
+  top (`sheetNavigationBarTopInset`: the first form row at 104.5 from the card's top under an
+  inline bar, 122 under the large title; 99 and 116.5 at the window's top). `navigationTitle("")`
+  is an inline bar drawing no title; the presenting stack keeps its own title and items
+  (`NavigationTitleNode` leaves `Runtime.navigationTitle` alone inside a presentation).
+- **Navigation bar items** (`ios/sheet/nav`, iOS 27): on iOS a `toolbar`'s items belong to the
+  bar of the nearest `NavigationStack` (`NavigationStackNode.registerToolbar`; the window gets
+  no toolbar on iOS, `Runtime.showsToolbar`) as 36 pt glass pills 14 below the bar's top and
+  20 in from the window's sides, `cancellationAction` leading, the others trailing, the label
+  in the body size with 12 pt of pill either side, semibold for `confirmationAction`
+  (`_IOSBarItemsView`, `_IOSBarButtonStyle`, hosted and hit tested like the search chrome; the
+  glass is approximate: a half-white fill, a faint rim and a soft shadow). A bar with items
+  and no title exists at the inline height.
 - **Alert** (iOS 27, `ios/alert/basic` and `ios/alert/stacked` regenerated on the iOS 27
   simulator, 2026-10-11; iOS 26's 299 pt card with an accent-filled cancel button is gone): a
   320 pt glass card (237) centred with 34 pt corners over the 20 % dim; a 17 pt bold title

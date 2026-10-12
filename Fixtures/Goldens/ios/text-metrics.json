@@ -546,6 +546,12 @@
       "lastBaseline" : 18.5,
       "width" : 31
     },
+    "style:body:w600||Add" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 32
+    },
     "style:body:w600||Alerts content" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -852,6 +858,12 @@
       "lastBaseline" : 18.5,
       "width" : 44
     },
+    "style:body:w600||Show sheet" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 92.5
+    },
     "style:body:w600||Size" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -922,6 +934,12 @@
       "firstBaseline" : 18.5,
       "height" : 75,
       "lastBaseline" : 69,
+      "width" : 0
+    },
+    "style:body:w600|0.0|Add" : {
+      "firstBaseline" : 18.5,
+      "height" : 76.5,
+      "lastBaseline" : 70.5,
       "width" : 0
     },
     "style:body:w600|0.0|Alerts content" : {
@@ -1228,6 +1246,12 @@
       "firstBaseline" : 18.5,
       "height" : 127,
       "lastBaseline" : 121,
+      "width" : 0
+    },
+    "style:body:w600|0.0|Show sheet" : {
+      "firstBaseline" : 18.5,
+      "height" : 232.5,
+      "lastBaseline" : 226.5,
       "width" : 0
     },
     "style:body:w600|0.0|Size" : {
@@ -2340,6 +2364,12 @@
       "lastBaseline" : 18.5,
       "width" : 27
     },
+    "style:body||Daily Scrum" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 91.5
+    },
     "style:body||Date" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -2381,6 +2411,12 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 66.5
+    },
+    "style:body||Dismiss" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 59.5
     },
     "style:body||Done" : {
       "firstBaseline" : 18.5,
@@ -3372,6 +3408,12 @@
       "lastBaseline" : 69,
       "width" : 0
     },
+    "style:body|0.0|Daily Scrum" : {
+      "firstBaseline" : 18.5,
+      "height" : 258.5,
+      "lastBaseline" : 252.5,
+      "width" : 0
+    },
     "style:body|0.0|Date" : {
       "firstBaseline" : 18.5,
       "height" : 101,
@@ -3412,6 +3454,12 @@
       "firstBaseline" : 18.5,
       "height" : 205,
       "lastBaseline" : 199,
+      "width" : 0
+    },
+    "style:body|0.0|Dismiss" : {
+      "firstBaseline" : 18.5,
+      "height" : 180.5,
+      "lastBaseline" : 174.5,
       "width" : 0
     },
     "style:body|0.0|Done" : {
@@ -4199,6 +4247,12 @@
       "height" : 50.5,
       "lastBaseline" : 44.5,
       "width" : 273.5
+    },
+    "style:body|311.0|Daily Scrum" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 91.5
     },
     "style:body|311.0|First" : {
       "firstBaseline" : 18.5,
@@ -8934,6 +8988,12 @@
       "lastBaseline" : 18.5,
       "width" : 39
     },
+    "style:headline||Popover title" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 100.5
+    },
     "style:headline||Save" : {
       "firstBaseline" : 18.5,
       "height" : 24.5,
@@ -9072,6 +9132,12 @@
       "lastBaseline" : 121,
       "width" : 0
     },
+    "style:headline|0.0|Popover title" : {
+      "firstBaseline" : 18.5,
+      "height" : 310.5,
+      "lastBaseline" : 304.5,
+      "width" : 0
+    },
     "style:headline|0.0|Save" : {
       "firstBaseline" : 18.5,
       "height" : 101,
@@ -9119,6 +9185,30 @@
       "height" : 24.5,
       "lastBaseline" : 18.5,
       "width" : 50.5
+    },
+    "style:headline|320.0|Popover title" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 100.5
+    },
+    "style:headline|320.0|Sheet title" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 81.5
+    },
+    "style:headline|360.0|Popover title" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 100.5
+    },
+    "style:headline|360.0|Sheet title" : {
+      "firstBaseline" : 18.5,
+      "height" : 24.5,
+      "lastBaseline" : 18.5,
+      "width" : 81.5
     },
     "style:headline|363.0|Sheet title" : {
       "firstBaseline" : 18.5,
@@ -14940,6 +15030,12 @@
       "lastBaseline" : 12.5,
       "width" : 9
     },
+    "system:13:400:default||A line of content." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 103.5
+    },
     "system:13:400:default||a link" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -15395,6 +15491,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 39.5
+    },
+    "system:13:400:default||Delete…" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 50
     },
     "system:13:400:default||Detail" : {
       "firstBaseline" : 12.5,
@@ -16554,6 +16656,12 @@
       "lastBaseline" : 12.5,
       "width" : 30.5
     },
+    "system:13:400:default||Some content under the title." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 177
+    },
     "system:13:400:default||Star" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -16631,6 +16739,12 @@
       "height" : 16,
       "lastBaseline" : 12.5,
       "width" : 31.5
+    },
+    "system:13:400:default||This cannot be undone." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 142.5
     },
     "system:13:400:default||Three" : {
       "firstBaseline" : 12.5,
@@ -17388,6 +17502,12 @@
       "lastBaseline" : 12.5,
       "width" : 0
     },
+    "system:13:400:default|0.0|A line of content." : {
+      "firstBaseline" : 12.5,
+      "height" : 233,
+      "lastBaseline" : 230,
+      "width" : 0
+    },
     "system:13:400:default|0.0|a link" : {
       "firstBaseline" : 12.5,
       "height" : 78,
@@ -17842,6 +17962,12 @@
       "firstBaseline" : 12.5,
       "height" : 93.5,
       "lastBaseline" : 90.5,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|Delete…" : {
+      "firstBaseline" : 12.5,
+      "height" : 109,
+      "lastBaseline" : 106,
       "width" : 0
     },
     "system:13:400:default|0.0|Detail" : {
@@ -19002,6 +19128,12 @@
       "lastBaseline" : 75,
       "width" : 0
     },
+    "system:13:400:default|0.0|Some content under the title." : {
+      "firstBaseline" : 12.5,
+      "height" : 388,
+      "lastBaseline" : 385,
+      "width" : 0
+    },
     "system:13:400:default|0.0|Star" : {
       "firstBaseline" : 12.5,
       "height" : 62.5,
@@ -19078,6 +19210,12 @@
       "firstBaseline" : 12.5,
       "height" : 78,
       "lastBaseline" : 75,
+      "width" : 0
+    },
+    "system:13:400:default|0.0|This cannot be undone." : {
+      "firstBaseline" : 12.5,
+      "height" : 295,
+      "lastBaseline" : 292,
       "width" : 0
     },
     "system:13:400:default|0.0|Three" : {
@@ -19398,6 +19536,18 @@
       "lastBaseline" : 90.5,
       "width" : 95.5
     },
+    "system:13:400:default|104.0|Cancel" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 42
+    },
+    "system:13:400:default|104.0|Delete" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 39.5
+    },
     "system:13:400:default|108.0;l1;tt|The quick brown fox" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -19439,6 +19589,18 @@
       "height" : 78,
       "lastBaseline" : 75,
       "width" : 110
+    },
+    "system:13:400:default|110.0|Cancel" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 42
+    },
+    "system:13:400:default|110.0|Delete" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 39.5
     },
     "system:13:400:default|110.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 12.5,
@@ -19686,6 +19848,18 @@
       "lastBaseline" : 44,
       "width" : 186
     },
+    "system:13:400:default|220.0|This cannot be undone." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 142.5
+    },
+    "system:13:400:default|228.0|This cannot be undone." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 142.5
+    },
     "system:13:400:default|260.0;l1|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -19697,6 +19871,12 @@
       "height" : 31.5,
       "lastBaseline" : 28.5,
       "width" : 227
+    },
+    "system:13:400:default|260.0|This cannot be undone." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 142.5
     },
     "system:13:400:default|266.0|Apple" : {
       "firstBaseline" : 12.5,
@@ -20154,11 +20334,83 @@
       "lastBaseline" : 12.5,
       "width" : 75
     },
+    "system:13:400:default|320.0|A line of content." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 103.5
+    },
+    "system:13:400:default|320.0|Done" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 32
+    },
+    "system:13:400:default|320.0|Some content under the title." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 177
+    },
+    "system:13:400:default|360.0|A line of content." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 103.5
+    },
+    "system:13:400:default|360.0|Done" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 32
+    },
+    "system:13:400:default|360.0|Some content under the title." : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 177
+    },
+    "system:13:400:default|376.0|Delete…" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 50
+    },
+    "system:13:400:default|376.0|Popover" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 50
+    },
+    "system:13:400:default|376.0|Sheet" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 35.5
+    },
+    "system:13:400:default|400.0|Delete…" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 50
+    },
     "system:13:400:default|400.0|Layout must wrap this sentence onto several lines inside a narrow frame." : {
       "firstBaseline" : 12.5,
       "height" : 31.5,
       "lastBaseline" : 28.5,
       "width" : 355.5
+    },
+    "system:13:400:default|400.0|Popover" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 50
+    },
+    "system:13:400:default|400.0|Sheet" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 35.5
     },
     "system:13:400:monospaced|| code" : {
       "firstBaseline" : 12.5,
@@ -20586,6 +20838,12 @@
       "lastBaseline" : 12.5,
       "width" : 62.5
     },
+    "system:13:700:default||Delete the item?" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 105.5
+    },
     "system:13:700:default||Empty" : {
       "firstBaseline" : 12.5,
       "height" : 16,
@@ -20706,6 +20964,12 @@
       "lastBaseline" : 106,
       "width" : 0
     },
+    "system:13:700:default|0.0|Delete the item?" : {
+      "firstBaseline" : 12.5,
+      "height" : 217.5,
+      "lastBaseline" : 214.5,
+      "width" : 0
+    },
     "system:13:700:default|0.0|Empty" : {
       "firstBaseline" : 12.5,
       "height" : 78,
@@ -20771,6 +21035,24 @@
       "height" : 93.5,
       "lastBaseline" : 90.5,
       "width" : 0
+    },
+    "system:13:700:default|220.0|Delete the item?" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 105.5
+    },
+    "system:13:700:default|228.0|Delete the item?" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 105.5
+    },
+    "system:13:700:default|260.0|Delete the item?" : {
+      "firstBaseline" : 12.5,
+      "height" : 16,
+      "lastBaseline" : 12.5,
+      "width" : 105.5
     },
     "system:13:800:default||Bold" : {
       "firstBaseline" : 12.5,
@@ -24898,6 +25180,7 @@
     }
   },
   "host" : "iPhoneSimulator 26.0 SwiftUIWeb SE",
+  "hostAdditions" : "iPhoneSimulator 27.0 SwiftUIWeb SE iOS-27-0: the ios\/sheet\/nav entries (2026-10-12); the rest from the iOS 26.0 run",
   "macOS" : "26.0.0",
   "platformProfile" : "iOS"
 }

@@ -828,6 +828,11 @@ extension TextMetricsRequests {
             requests.append(TextMetricRequest(string, .style("body")))
             for width: CGFloat in [375, 363] { requests.append(TextMetricRequest(string, .style("body"), width: width)) }
         }
+        // ios/sheet/nav: the bar pills (body; semibold for the confirmation action) and the row.
+        for string in ["Show sheet", "Add"] { requests.append(TextMetricRequest(string, .style("body", weight: "semibold"))) }
+        requests.append(TextMetricRequest("Dismiss", .style("body")))
+        requests.append(TextMetricRequest("Daily Scrum", .style("body")))
+        requests.append(TextMetricRequest("Daily Scrum", .style("body"), width: 311))
         requests.append(TextMetricRequest("Sheet title", .style("headline")))
         for width: CGFloat in [375, 363] { requests.append(TextMetricRequest("Sheet title", .style("headline"), width: width)) }
         for string in ["First", "Second", "Third"] {

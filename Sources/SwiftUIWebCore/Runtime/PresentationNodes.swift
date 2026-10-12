@@ -455,7 +455,13 @@ package final class PresentationNode: ViewNode {
                 let extended = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + m.sheetCornerRadius)
                 list.append(.fillRRect(extended, cornerRadius: m.sheetCornerRadius, environment._windowBackground))
             }
+            // The content is clipped to the card: a navigation stack's ground (ios/sheet/nav)
+            // would square the corners.
+            let card = mediumDetent ? rect : CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + m.sheetCornerRadius)
+            list.append(.save)
+            list.append(.clipRRect(card, cornerRadius: m.sheetCornerRadius))
             if let target { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
+            list.append(.restore)
             return
         }
         if iOS && (kind == .alert || (kind == .dialog && m.dialogsArePopovers)) {
