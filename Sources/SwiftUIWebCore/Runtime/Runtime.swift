@@ -213,6 +213,12 @@ public final class Runtime {
     /// The app's pasteboard (Runtime/PasteboardNodes.swift) and the host's clipboard writer for text.
     package var pasteboard: [_TransferItem] = []
     public var clipboardWriter: ((String) -> Void)?
+    /// The host's share sheet and file panels (hosted UIKit trees use them too; the runtime's
+    /// own sharing goes through `ShareAction.systemHandler`, its documents through the handlers
+    /// in Runtime/DocumentNodes.swift).
+    public var shareHandler: ((HostShareRequest) -> Void)?
+    public var fileOpenHandler: ((HostFileOpenRequest, _ completion: @escaping @MainActor ([HostFile]) -> Void) -> Void)?
+    public var fileSaveHandler: ((HostFile) -> Void)?
     /// Window scenes and the secondary windows opened from them (Runtime/WindowNodes.swift).
     package var windowDescriptors: [_WindowDescriptor] = []
     package var windowStore: (get: () -> String?, set: (String) -> Void)?

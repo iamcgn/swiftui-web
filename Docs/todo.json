@@ -1756,13 +1756,14 @@
       "framework": "UIKit",
       "area": "Presentation",
       "title": "Share and document pickers",
-      "detail": "`UIActivityViewController` over `navigator.share` and the native sharing picker; `UIDocumentPickerViewController` over the browser's file input and `NSOpenPanel`; `UIImagePickerController` likewise. What the host cannot offer is documented per host.",
+      "detail": "`UIActivityViewController` over `navigator.share` and the native sharing picker; `UIDocumentPickerViewController` over the browser's file input and `NSOpenPanel`; `UIImagePickerController` likewise. What the host cannot offer is documented per host. Done 2026-10-12 (Phase 9, item 43): the three controllers over the hosts' share, open and save services (HostedScene handlers, bridged into hosted trees and hosting controllers), documented per host (uikit/sheets/pickers, SystemSheetTests, HostedSystemSheetTests, uikit-sheets-probe.mjs); open: an app's own activities, PHPicker, printing.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/UIKit/Presentation.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "pf-perf",

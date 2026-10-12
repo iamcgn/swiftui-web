@@ -193,6 +193,10 @@ final class _UIHostingView<Content: View>: UIView {
         }
         if runtime.assetCatalog != scene.assetCatalog { runtime.assetCatalog = scene.assetCatalog }
         if runtime.imageRasterizer == nil, let rasterizer = scene.imageRasterizer { runtime.imageRasterizer = rasterizer }
+        // The host's sheets serve both: a UIKit app's hosted SwiftUI shares through the scene's.
+        if runtime.shareHandler == nil { runtime.shareHandler = scene.shareHandler }
+        if runtime.fileOpenHandler == nil { runtime.fileOpenHandler = scene.fileOpenHandler }
+        if runtime.fileSaveHandler == nil { runtime.fileSaveHandler = scene.fileSaveHandler }
         // A SwiftUI tree inside UIKit: the app's UIPasteboard and the runtime's pasteboard are one.
         if scene.pasteboardSource == nil {
             let bridge = runtime.pasteboardBridge

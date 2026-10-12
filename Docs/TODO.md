@@ -6,9 +6,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
-| UIKit | 1 | 0 | 0 | 1 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **7** | 0 | 1 | 6 |
+| **All** | **6** | 0 | 1 | 5 |
 
 ## Next (Phase 8, in order)
 
@@ -30,11 +29,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ☐ **Charts, Map, VideoPlayer, WebView** `sw-frameworks` · Other frameworks · missing  
   Separate Apple frameworks. `Charts` is the one apps reach for most and could be a package of its own over the display list; `Map` would need a tile source; `VideoPlayer` and `WebView` need DOM elements under the canvas. Decision needed before any of them starts. ([support.json](Docs/support.json))
-
-### UIKit
-
-- ☐ **Share and document pickers** `uk-system-sheets` · Presentation · missing  
-  `UIActivityViewController` over `navigator.share` and the native sharing picker; `UIDocumentPickerViewController` over the browser's file input and `NSOpenPanel`; `UIImagePickerController` likewise. What the host cannot offer is documented per host. ([Presentation.md](Docs/elements/UIKit/Presentation.md))
 
 ### Platform
 
@@ -58,6 +52,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Collection view corners** `uk-collection-rest` · UIKit · Collection view
 - ☑ 2026-10-12 **Drag and drop interactions** `uk-dragdrop` · UIKit · Events
 - ☑ 2026-10-12 **UISplitViewController** `uk-splitviewcontroller` · UIKit · Containers
+- ☑ 2026-10-12 **Share and document pickers** `uk-system-sheets` · UIKit · Presentation
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

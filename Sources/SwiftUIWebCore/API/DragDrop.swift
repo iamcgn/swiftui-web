@@ -9,25 +9,8 @@ import Foundation
 
 // MARK: - Uniform type identifiers (the subset the representations name)
 
-/// A uniform type identifier.
-public struct UTType: Hashable, Sendable {
-    public let identifier: String
-    public init(_ identifier: String) { self.identifier = identifier }
-    public init?(exportedAs identifier: String) { self.identifier = identifier }
-
-    public static let item = UTType("public.item")
-    public static let data = UTType("public.data")
-    public static let content = UTType("public.content")
-    public static let text = UTType("public.text")
-    public static let plainText = UTType("public.plain-text")
-    public static let utf8PlainText = UTType("public.utf8-plain-text")
-    public static let url = UTType("public.url")
-    public static let fileURL = UTType("public.file-url")
-    public static let json = UTType("public.json")
-    public static let image = UTType("public.image")
-    public static let png = UTType("public.png")
-    public static let jpeg = UTType("public.jpeg")
-}
+// `UTType` lives in WebGraphics (Input/UTType.swift) so UIKitWeb's document picker can take
+// it too; SwiftUIWebCore re-exports WebGraphics, so apps see it here as before.
 
 // MARK: - Transferable
 
@@ -352,6 +335,7 @@ extension UTType {
     /// The type for a MIME type (or an identifier) a host reported.
     package init(_mime mime: String) {
         let lower = mime.lowercased()
+        let identifier: String
         switch lower.split(separator: ";").first.map(String.init) ?? lower {
         case "text/plain", "text": identifier = "public.utf8-plain-text"
         case "text/uri-list", "url": identifier = "public.url"
@@ -365,6 +349,7 @@ extension UTType {
         case "application/octet-stream", "files": identifier = "public.data"
         default: identifier = mime
         }
+        self.init(identifier)
     }
 
     /// Whether the type is text (its bytes are UTF-8 to read as a string).

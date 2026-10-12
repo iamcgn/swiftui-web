@@ -36,6 +36,14 @@ final class RepresentableTree: _PlatformViewTree {
         scene.pasteboardSource = { (bridge.generation(), bridge.text()) }
         scene.pasteboardSink = { bridge.set($0) }
     }
+
+    /// The host's share sheet and file panels reach the tree's system sheets.
+    func connectHostServices(_ services: _HostServices) {
+        let scene = UIKitScene.shared
+        if let share = services.share { scene.shareHandler = share }
+        if let open = services.open { scene.fileOpenHandler = open }
+        if let save = services.save { scene.fileSaveHandler = save }
+    }
     /// The runtime's rasteriser, handed to the scene for `UIImage.pngData()`.
     var imageRasterizer: ImageRasterizer?
 

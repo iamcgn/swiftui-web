@@ -43,6 +43,12 @@ public protocol HostedScene: AnyObject {
     func handleOpenURL(_ url: String)
     /// Writes text to the system clipboard, when the host may.
     var clipboardWriter: ((String) -> Void)? { get set }
+    /// The host's share sheet (Web Share, `NSSharingServicePicker`), file chooser (a file input,
+    /// `NSOpenPanel`) and file saver (a download, `NSSavePanel`), when it has them
+    /// (uk-system-sheets: `UIActivityViewController`, `UIDocumentPickerViewController`).
+    var shareHandler: ((HostShareRequest) -> Void)? { get set }
+    var fileOpenHandler: ((HostFileOpenRequest, _ completion: @escaping @MainActor ([HostFile]) -> Void) -> Void)? { get set }
+    var fileSaveHandler: ((HostFile) -> Void)? { get set }
     /// Called when the scene needs a frame without the host having asked for one (a state
     /// change, a layout request); the host coalesces calls into its next frame.
     var onNeedsFrame: (@MainActor () -> Void)? { get set }
@@ -155,6 +161,49 @@ public protocol HostedScene: AnyObject {
     /// The image the system drag shows: the lifted preview as a display list in its own space,
     /// its size, and where the pointer holds it.
     func externalDragPreview() -> ExternalDragPreview?
+}
+
+/// What a scene asks the host to share: links and texts, a subject, a message, and data as files.
+public struct HostShareRequest: Sendable {
+    public var items: [String]
+    public var subject: String?
+    public var message: String?
+    public var files: [HostFile]
+    public init(items: [String], subject: String? = nil, message: String? = nil, files: [HostFile] = []) {
+        self.items = items
+        self.subject = subject
+        self.message = message
+        self.files = files
+    }
+}
+
+/// A file the host hands over or takes: its bytes, a name, its type (a MIME type) and, where
+/// the host has one, a location.
+public struct HostFile: Sendable {
+    public var data: Data
+    public var name: String
+    public var mimeType: String
+    public var url: URL?
+    public init(data: Data, name: String, mimeType: String = "application/octet-stream", url: URL? = nil) {
+        self.data = data
+        self.name = name
+        self.mimeType = mimeType
+        self.url = url
+    }
+}
+
+/// What a scene asks the host's file chooser for: the extensions it accepts (empty: any),
+/// whether several files may be chosen, and whether images only (a photo library on hosts
+/// that have one).
+public struct HostFileOpenRequest: Sendable {
+    public var extensions: [String]
+    public var allowsMultiple: Bool
+    public var imagesOnly: Bool
+    public init(extensions: [String] = [], allowsMultiple: Bool = false, imagesOnly: Bool = false) {
+        self.extensions = extensions
+        self.allowsMultiple = allowsMultiple
+        self.imagesOnly = imagesOnly
+    }
 }
 
 /// A drag preview for the host's system drag.

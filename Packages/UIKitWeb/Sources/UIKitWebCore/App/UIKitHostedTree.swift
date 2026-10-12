@@ -140,7 +140,13 @@ public final class UIKitHostedTree {
             if view.frame != frame { view.frame = frame }
         }
         window.layoutIfNeeded()
-        rootViewController?.completeAppearanceIfPending()
+        // The root and whatever it presents appear (a presented system sheet asks the host
+        // from `viewDidAppear`, uk-system-sheets).
+        var controller = rootViewController
+        while let current = controller {
+            current.completeAppearanceIfPending()
+            controller = current.presentedViewController
+        }
         // Appearance callbacks may have changed the tree.
         window.layoutIfNeeded()
     }

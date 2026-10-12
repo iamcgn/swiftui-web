@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 137 | 37 | 94 | 2 | 2 | 2 |
-| UIKit | 56 | 20 | 32 | 4 | 0 | 0 |
+| UIKit | 57 | 20 | 33 | 4 | 0 | 0 |
 | Interop | 12 | 0 | 12 | 0 | 0 | 0 |
-| **All** | **205** | 57 | 138 | 6 | 2 | 2 |
+| **All** | **206** | 57 | 139 | 6 | 2 | 2 |
 
 ## App lifecycle
 
@@ -246,6 +246,7 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 |---|---|---|---|
 | `UIAlertController (alerts and action sheets)` | 🟢 partial | The measured cards with titles, messages, actions in their styles and text fields, present and dismiss with the followed animations; open: the severity badge, action sheets anchored to bar items | uikit/alert/basic, uikit/alert/sheet, uikit/alert/textfield, uikit/alert/textfields |
 | `UIViewController.present / dismiss (page and form sheets, full screen, custom containers) / transitioningDelegate / UISheetPresentationController / UIPopoverPresentationController` | 🟢 partial | The page sheet card with its dimming and a tap outside dismissing, full-screen styles filling the window, appearance callbacks for presented controllers; open: detents and the grabber, popovers, custom presentation controllers and transitioning delegates; custom animators through UIViewControllerTransitioningDelegate, UIViewControllerAnimatedTransitioning and UIViewControllerContextTransitioning (interaction and presentation controllers accepted; 2026-10-04); sheet detents (medium measured, custom resolvers), the grabber and corner radius, popovers kept as arrowed cards or adapted to a sheet, action sheets anchored to a source, the adaptive delegates (2026-10-04) | uikit/alert/anchored, uikit/popover/adapted, uikit/popover/basic, uikit/sheet/medium, uikit/sheet/page |
+| `UIActivityViewController / UIDocumentPickerViewController / UIImagePickerController (the host's share sheet, file chooser and saver)` | 🟢 partial | Presenting one asks the host — Web Share, a file input (image/* for photos) and downloads in the browser; NSSharingServicePicker and the open and save panels natively — and completes when it answers (uncompleted or cancelled where the host has nothing); hosted UIKit trees share the SwiftUI host's services; open: an app's own activities, the chosen activity, directories, PHPickerViewController, printing | uikit/sheets/pickers |
 | `UIMenu / UIAction / UIDeferredMenuElement menus (UIButton.menu, showsMenuAsPrimaryAction, changesSelectionAsPrimaryAction, UIBarButtonItem(menu:), UIContextMenuInteraction, UIEditMenuInteraction)` | 🟡 approximate | Menus open as a floating card under their source (a tap with showsMenuAsPrimaryAction, a long press otherwise, a bar platter tap), with headers, inline sections, submenus in place, states, destructive and disabled rows; context menus on a long press with the preview above the card; edit menus as a capsule bar; the iOS 26 card is unmeasured (the harness cannot open menus) (Docs/elements/UIKit/Menus.md) | — The harness cannot open a menu on the simulator (UIKit presents a button's menu or a context menu only from a real touch), so the open card has no golden; MenuTests cover the behaviour. |
 
 ## UIKit: Auto Layout

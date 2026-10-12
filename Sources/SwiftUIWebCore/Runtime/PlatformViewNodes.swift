@@ -19,6 +19,9 @@ package protocol _PlatformViewTree: AnyObject {
     func prepare(textEngine: any TextEngine, assetCatalog: AssetCatalog)
     /// The runtime's pasteboard, for the tree's own (`UIPasteboard.general` follows it).
     func connectPasteboard(_ bridge: _PasteboardBridge)
+    /// The host's share sheet and file panels, for the tree's own system sheets
+    /// (`UIActivityViewController`, `UIDocumentPickerViewController`, uk-system-sheets).
+    func connectHostServices(_ services: _HostServices)
     /// The host's rasteriser for recorded drawings, if any. Set by the node.
     var imageRasterizer: ImageRasterizer? { get set }
     /// Lays the tree out in `size`, with `safeAreaInsets` as the part of it under the host's
@@ -89,6 +92,7 @@ package protocol _PlatformViewTree: AnyObject {
 }
 
 extension _PlatformViewTree {
+    package func connectHostServices(_ services: _HostServices) {}
     package func hasDragSource(at point: CGPoint) -> Bool { false }
     package var isDragging: Bool { false }
     package func externalDragItems() -> [ExternalDragItem] { [] }
@@ -165,6 +169,7 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
         tree.prepare(textEngine: runtime.textEngine, assetCatalog: runtime.assetCatalog)
         tree.imageRasterizer = runtime.imageRasterizer
         tree.connectPasteboard(runtime.pasteboardBridge)
+        tree.connectHostServices(_HostServices(share: runtime.shareHandler, open: runtime.fileOpenHandler, save: runtime.fileSaveHandler))
     }
 
     /// Runs the representable's update with observation tracking, as a body evaluation: the
@@ -356,6 +361,16 @@ extension Runtime {
 
 package struct WeakPlatformHost {
     package weak var node: (any _PlatformViewHosting)?
+}
+
+/// The host's sheets as a hosted tree sees them (nil where the host has none).
+public struct _HostServices {
+    public let share: ((HostShareRequest) -> Void)?
+    public let open: ((HostFileOpenRequest, _ completion: @escaping @MainActor ([HostFile]) -> Void) -> Void)?
+    public let save: ((HostFile) -> Void)?
+    public init(share: ((HostShareRequest) -> Void)?, open: ((HostFileOpenRequest, _ completion: @escaping @MainActor ([HostFile]) -> Void) -> Void)?, save: ((HostFile) -> Void)?) {
+        self.share = share; self.open = open; self.save = save
+    }
 }
 
 /// A runtime's pasteboard as a hosted tree sees it: its text and the generation its copies

@@ -1,5 +1,6 @@
 #if canImport(AppKit)
 import AppKit
+import UniformTypeIdentifiers
 import WebGraphics
 import WebGraphicsHeadless
 
@@ -106,6 +107,32 @@ public final class NativeSceneHost: NSObject, NSApplicationDelegate {
         // A colour well opens the shared colour panel, which targets the well until it closes
         // or another well takes it (sw-colorpicker; the panel's changes are continuous).
         scene.colorPanelHandler = { [weak self] request in self?.showColorPanel(request) ?? false }
+        // The share sheet and the open and save panels (uk-system-sheets).
+        scene.shareHandler = { [weak self] request in
+            self?.share(items: request.items, subject: request.subject, message: request.message, files: request.files.map { (data: Array($0.data), name: $0.name, mimeType: $0.mimeType) })
+        }
+        scene.fileOpenHandler = { request, completion in
+            let panel = NSOpenPanel()
+            panel.allowsMultipleSelection = request.allowsMultiple
+            panel.canChooseDirectories = false
+            if request.imagesOnly {
+                panel.allowedContentTypes = [.image]
+            } else if !request.extensions.isEmpty {
+                panel.allowedContentTypes = request.extensions.compactMap { UTType(filenameExtension: $0) }
+            }
+            guard panel.runModal() == .OK else { completion([]); return }
+            let files = panel.urls.compactMap { url -> HostFile? in
+                guard let data = try? Data(contentsOf: url) else { return nil }
+                return HostFile(data: data, name: url.lastPathComponent, mimeType: UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream", url: url)
+            }
+            completion(files)
+        }
+        scene.fileSaveHandler = { file in
+            let panel = NSSavePanel()
+            panel.nameFieldStringValue = file.name
+            guard panel.runModal() == .OK, let url = panel.url else { return }
+            try? file.data.write(to: url)
+        }
         prepare?()
         return view
     }

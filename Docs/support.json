@@ -1868,6 +1868,14 @@
           ]
         },
         {
+          "api": "UIActivityViewController / UIDocumentPickerViewController / UIImagePickerController (the host's share sheet, file chooser and saver)",
+          "status": "partial",
+          "notes": "Presenting one asks the host — Web Share, a file input (image/* for photos) and downloads in the browser; NSSharingServicePicker and the open and save panels natively — and completes when it answers (uncompleted or cancelled where the host has nothing); hosted UIKit trees share the SwiftUI host's services; open: an app's own activities, the chosen activity, directories, PHPickerViewController, printing",
+          "fixtures": [
+            "uikit/sheets/pickers"
+          ]
+        },
+        {
           "api": "UIMenu / UIAction / UIDeferredMenuElement menus (UIButton.menu, showsMenuAsPrimaryAction, changesSelectionAsPrimaryAction, UIBarButtonItem(menu:), UIContextMenuInteraction, UIEditMenuInteraction)",
           "status": "approximate",
           "notes": "Menus open as a floating card under their source (a tap with showsMenuAsPrimaryAction, a long press otherwise, a bar platter tap), with headers, inline sections, submenus in place, states, destructive and disabled rows; context menus on a long press with the preview above the card; edit menus as a capsule bar; the iOS 26 card is unmeasured (the harness cannot open menus) (Docs/elements/UIKit/Menus.md)",

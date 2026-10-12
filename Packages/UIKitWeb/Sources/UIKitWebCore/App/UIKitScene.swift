@@ -220,6 +220,11 @@ public final class UIKitScene: HostedScene {
         }
     }
     public var clipboardWriter: ((String) -> Void)?
+    /// The host's share sheet and file panels (Containers/SystemSheets.swift); a hosting
+    /// runtime hands its own down (SwiftUIWebUIKit).
+    public var shareHandler: ((HostShareRequest) -> Void)?
+    public var fileOpenHandler: ((HostFileOpenRequest, _ completion: @escaping @MainActor ([HostFile]) -> Void) -> Void)?
+    public var fileSaveHandler: ((HostFile) -> Void)?
     /// A hosting runtime's pasteboard (SwiftUIWebUIKit installs these): what it holds, with the
     /// generation its copies advance, and where `UIPasteboard.general`'s text goes.
     public var pasteboardSource: (() -> (generation: Int, text: String?))?

@@ -98,3 +98,39 @@ the present and dismiss animations landed: below and in the API section.)
   20.5 tall (19 for a secure field, whose box is 32 tall); the second row sits 33.5 lower. A
   title alone above fields ends 18 below its line (a 64 pt header) rather than 10.5. Three or
   more actions stack under the fields (the sign-in alert is 332 tall). Pixels 1.8 % and 1.5 %.
+
+## System sheets (2026-10-12, `uikit/sheets/pickers`, Phase 9 item 43)
+
+`Containers/SystemSheets.swift`: `UIActivityViewController` (`activityItems`, the completion
+handler, `UIActivityType`, `UIActivity` and `UIActivityItemSource` accepted),
+`UIDocumentPickerViewController` (`forOpeningContentTypes:` with `UTType`s — the type now
+lives in WebGraphics so both frameworks share it — `allowsMultipleSelection`,
+`forExporting:`, `UIDocumentPickerDelegate`) and `UIImagePickerController` (`sourceType`,
+`isSourceTypeAvailable`, `UIImagePickerControllerDelegate` with `originalImage`, `imageURL`
+and `mediaType`). None draws a sheet of its own: presenting one asks the host from
+`viewDidAppear` and dismisses itself when the host answers. The hosts (`HostedScene`'s
+`shareHandler`, `fileOpenHandler`, `fileSaveHandler`; a hosting SwiftUI runtime hands its own
+to hosted UIKit trees through `_PlatformViewTree.connectHostServices`, and a
+`UIHostingController` the scene's to its runtime):
+
+- Browser: the share sheet is Web Share (`navigator.share` with the texts, the first link as
+  `url`, a subject as `title`, images and data as files where `canShare` allows), absent in
+  some browsers and outside a user gesture, when the sheet completes uncompleted. The
+  document picker is a file input (`accept` from the types' extensions, `multiple` for
+  several), the image picker an `image/*` input, which a phone offers from its photo library;
+  the chosen files' bytes land in memory (`memory:` URLs on wasm, which `Data(contentsOf:)`
+  reads) and reach the delegate as URLs named after the originals. Exporting downloads the file.
+  The camera is never a source (`isSourceTypeAvailable(.camera)` is false).
+- macOS (native host): `NSSharingServicePicker`, `NSOpenPanel` (image types for the image
+  picker) and `NSSavePanel`; the picked files' own URLs reach the delegate.
+- Headless and the simulator harness: no host services, so the sheets complete uncompleted
+  or cancelled at once.
+
+`SystemSheetTests` (the requests and completions), `HostedSystemSheetTests` (through a
+representable — a presented controller in a hosted tree now appears, so its `viewDidAppear`
+runs), `Playwright/uikit-sheets-probe.mjs` (Web Share stubbed, files set on the input).
+Pixels 1.03 % at rest.
+
+Open: an app's own `UIActivity`s (hosts show their sheets), the share sheet's chosen activity
+(hosts do not say), the picker's directories and `asCopy: false`, editing in the image picker,
+`PHPickerViewController`, `UIPrintInteractionController`.

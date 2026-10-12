@@ -157,6 +157,14 @@ public final class CanvasSceneHost {
         if let navigator = JSObject.global.navigator.object, let clipboard = navigator.clipboard.object, clipboard.writeText.function != nil {
             scene.clipboardWriter = { text in _ = clipboard.writeText!(text) }
         }
+        // The share sheet, file chooser and downloads (uk-system-sheets).
+        scene.shareHandler = { [weak self] request in
+            self?.share(items: request.items, subject: request.subject, message: request.message, files: request.files.map { (data: Array($0.data), name: $0.name, mimeType: $0.mimeType) })
+        }
+        scene.fileOpenHandler = { [weak self] request, completion in
+            self?.openFile(extensions: request.extensions, imagesOnly: request.imagesOnly, allowsMultiple: request.allowsMultiple) { files in completion(files) }
+        }
+        scene.fileSaveHandler = { [weak self] file in self?.download(Array(file.data), name: file.name) }
         // A colour well opens the browser's colour chooser (sw-colorpicker): a colour input kept
         // under the well, opened inside the press's gesture; `input` events feed the well while
         // the chooser is open, `change` ends it. The input has no alpha: the well's stays.
@@ -809,6 +817,14 @@ public final class CanvasSceneHost {
     /// Opens the browser's file picker (a file input clicked inside the press) for the
     /// extensions and reads the chosen file's bytes (sw-windows: a document group's Open…).
     public func openFile(extensions: [String], completion: @escaping @MainActor (Data, String, URL?) -> Void) {
+        openFile(extensions: extensions, imagesOnly: false, allowsMultiple: false) { files in
+            if let file = files.first { completion(file.data, file.name, file.url) }
+        }
+    }
+
+    /// The file picker for several files, or images only (`accept="image/*"`, which a phone
+    /// offers from its photo library), each read into a `HostFile` with the browser's type.
+    public func openFile(extensions: [String], imagesOnly: Bool, allowsMultiple: Bool, completion: @escaping @MainActor ([HostFile]) -> Void) {
         guard let input = fileInput ?? document.createElement!("input").object else { return }
         if fileInput == nil {
             _ = input.setAttribute!("type", "file")
@@ -817,21 +833,35 @@ public final class CanvasSceneHost {
             _ = overlay.appendChild!(input)
             fileInput = input
         }
-        input.accept = .string(extensions.map { "." + $0 }.joined(separator: ","))
+        input.accept = .string(imagesOnly ? "image/*" : extensions.map { "." + $0 }.joined(separator: ","))
+        input.multiple = .boolean(allowsMultiple)
         input.value = .string("")
         let onChange = JSClosure { [weak self] _ in
-            guard let self, let file = input.files.object?[0].object, let name = file.name.string else { return .undefined }
-            let onBuffer = JSClosure { arguments in
-                MainActor.assumeIsolated {
-                    guard let buffer = arguments.first?.object else { return }
-                    let bytes = JSTypedArray<UInt8>(unsafelyWrapping: JSObject.global.Uint8Array.function!.new(buffer))
-                    completion(Data(bytes.withUnsafeBytes { Array($0) }), name, nil)
-                    self.scheduleFrame()
+            guard let self, let list = input.files.object else { return .undefined }
+            let count = Int(list.length.number ?? 0)
+            guard count > 0 else { return .undefined }
+            nonisolated(unsafe) var files: [HostFile?] = Array(repeating: nil, count: count)
+            nonisolated(unsafe) var remaining = count
+            for index in 0..<count {
+                guard let file = list[index].object, let name = file.name.string else { remaining -= 1; continue }
+                let mimeType = file.type.string ?? "application/octet-stream"
+                let onBuffer = JSClosure { arguments in
+                    MainActor.assumeIsolated {
+                        if let buffer = arguments.first?.object {
+                            let bytes = JSTypedArray<UInt8>(unsafelyWrapping: JSObject.global.Uint8Array.function!.new(buffer))
+                            files[index] = HostFile(data: Data(bytes.withUnsafeBytes { Array($0) }), name: name, mimeType: mimeType)
+                        }
+                        remaining -= 1
+                        if remaining == 0 {
+                            completion(files.compactMap { $0 })
+                            self.scheduleFrame()
+                        }
+                    }
+                    return .undefined
                 }
-                return .undefined
+                self.fileClosures.append(onBuffer)
+                _ = file.arrayBuffer?().object?.then?(onBuffer)
             }
-            self.fileClosures.append(onBuffer)
-            _ = file.arrayBuffer?().object?.then?(onBuffer)
             return .undefined
         }
         fileClosures = [onChange]

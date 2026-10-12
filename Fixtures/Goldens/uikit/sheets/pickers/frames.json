@@ -1,0 +1,33 @@
+{
+  "fixture" : "uikit\/sheets\/pickers",
+  "frames" : {
+    "document" : {
+      "height" : 36,
+      "width" : 180,
+      "x" : 16,
+      "y" : 68
+    },
+    "photo" : {
+      "height" : 36,
+      "width" : 180,
+      "x" : 16,
+      "y" : 120
+    },
+    "share" : {
+      "height" : 36,
+      "width" : 180,
+      "x" : 16,
+      "y" : 16
+    },
+    "status" : {
+      "height" : 18,
+      "width" : 79.5,
+      "x" : 16,
+      "y" : 180
+    }
+  },
+  "size" : {
+    "height" : 220,
+    "width" : 320
+  }
+}
