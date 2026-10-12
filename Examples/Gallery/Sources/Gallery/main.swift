@@ -50,8 +50,21 @@ struct UIKitFixtureHost: UIViewControllerRepresentable {
     }.platform(.iOS).colorScheme(uikit.style == .dark ? .dark : .light)
 }
 
-/// Every fixture the gallery shows: SwiftUI's, then UIKit's hosted.
-let allFixtures: [Fixture] = AllFixtures.all + AllUIKitFixtures.all.map(hostedFixture)
+/// The fixtures' `#Preview` blocks as gallery fixtures (`preview/<name>`): the generated index
+/// registers them (the wasm build reads no conformance records), each shown at its fixed
+/// layout or a card-sized default (sw-previews).
+@MainActor func previewFixtures() -> [Fixture] {
+    _PreviewRegistry.registered = GeneratedPreviews.all
+    return _PreviewRegistry.all.map { preview in
+        let slug = preview.displayName.lowercased().map { $0.isLetter || $0.isNumber ? $0 : "-" }.reduce(into: "") { result, c in
+            if c != "-" || !result.hasSuffix("-") { result.append(c) }
+        }
+        return Fixture("preview/\(slug)", size: preview.fixedSize ?? CGSize(width: 360, height: 200)) { preview.makeView() }
+    }
+}
+
+/// Every fixture the gallery shows: SwiftUI's, then UIKit's hosted, then the previews.
+let allFixtures: [Fixture] = AllFixtures.all + AllUIKitFixtures.all.map(hostedFixture) + previewFixtures()
 /// The names of the hosted UIKit fixtures, whose probes come from `UIKitProbes`.
 let uikitFixtureNames = Set(AllUIKitFixtures.all.map(\.name))
 

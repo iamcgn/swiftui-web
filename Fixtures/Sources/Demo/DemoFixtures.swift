@@ -23,3 +23,28 @@ public enum DemoFixtures {
         }
     }
 }
+
+// MARK: - Previews (sw-previews)
+
+/// A view an app would preview: the gallery lists `#Preview` blocks under "preview/" through
+/// the generated index (`scripts/gen-fixture-sources.py`), natively the registry finds them.
+public struct PreviewCard: View {
+    public let title: String
+    public init(title: String) { self.title = title }
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.headline)
+            Text("A #Preview body, kept by the macro and shown here.").font(.callout).foregroundStyle(.secondary)
+            Button("Action") {}
+        }
+        .padding(16)
+    }
+}
+
+#Preview("Card") {
+    PreviewCard(title: "Preview card")
+}
+
+#Preview("Card, fixed", traits: .fixedLayout(width: 240, height: 120)) {
+    PreviewCard(title: "Fixed 240 × 120")
+}

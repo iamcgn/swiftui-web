@@ -1461,13 +1461,14 @@
       "framework": "SwiftUI",
       "area": "Preview",
       "title": "Rendering previews",
-      "detail": "A macro that keeps the `#Preview` body so the gallery can show an app's previews, `PreviewModifier`, `previewLayout`, `previewDisplayName`; the traits are stubs today.",
+      "detail": "A macro that keeps the `#Preview` body so the gallery can show an app's previews, `PreviewModifier`, `previewLayout`, `previewDisplayName`; the traits are stubs today. Done 2026-10-11 (Phase 9, item 22): the macro keeps the body (a compiler-unique `_PreviewRegistration` enum: global-scope declaration macros allow nothing else), `_PreviewRegistry.all` reads the conformance records natively, the gallery shows `preview/*` from a generated index; `PreviewTrait.fixedLayout`/`.modifier`, `PreviewModifier` with an awaited context; the `PreviewProvider` modifiers compile.",
       "kind": "accepted",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/Preview.md"
-      ]
+      ],
+      "done": "2026-10-11"
     },
     {
       "id": "sw-sharelink",

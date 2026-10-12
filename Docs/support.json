@@ -121,9 +121,9 @@
           ]
         },
         {
-          "api": "#Preview / PreviewTrait / PreviewProvider",
-          "status": "stub",
-          "notes": "The macro expands to nothing (SwiftUIWebMacros, prebuilt swift-syntax) so preview blocks compile; nothing renders previews",
+          "api": "#Preview / PreviewTrait / PreviewModifier / PreviewProvider",
+          "status": "partial",
+          "notes": "The macro keeps each #Preview body as a registration (SwiftUIWebMacros, prebuilt swift-syntax); _PreviewRegistry.all finds them natively in the binary's conformance records and the gallery shows the fixtures' previews (preview/) from a generated index; fixedLayout sizes, PreviewModifier wraps with an awaited shared context (2026-10-11); PreviewProvider and the preview* modifiers compile without effect",
           "fixtures": [],
           "noFixture": "A preview body is not a screen: the macro plugin's expansion is held by PreviewTests, not a golden."
         }

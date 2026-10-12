@@ -5,10 +5,10 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
-| SwiftUI | 12 | 0 | 0 | 12 |
+| SwiftUI | 11 | 0 | 0 | 11 |
 | UIKit | 11 | 0 | 0 | 11 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **28** | 0 | 1 | 27 |
+| **All** | **27** | 0 | 1 | 26 |
 
 ## Next (Phase 8, in order)
 
@@ -28,8 +28,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### SwiftUI
 
-- ☐ **Rendering previews** `sw-previews` · Preview · accepted  
-  A macro that keeps the `#Preview` body so the gallery can show an app's previews, `PreviewModifier`, `previewLayout`, `previewDisplayName`; the traits are stubs today. ([Preview.md](Docs/elements/Preview.md))
 - ☐ **ShareLink items and previews** `sw-sharelink` · ShareLink · missing  
   `Transferable` items, `SharePreview`, `message`; the browser's `navigator.share` and the native sharing service picker behind it; hover looks for `Link`. ([ShareLink.md](Docs/elements/ShareLink.md), [Link.md](Docs/elements/Link.md))
 - ☐ **Toolbar modifiers with an effect** `sw-toolbar` · Toolbar · accepted  
@@ -108,6 +106,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-11 **Hover effects on controls** `sw-hover-looks` · SwiftUI · Hover
 - ☑ 2026-10-11 **Contrast and per-presentation schemes** `sw-dark` · SwiftUI · Dark mode
 - ☑ 2026-10-11 **Timeline modes and pausing** `sw-timeline` · SwiftUI · TimelineView
+- ☑ 2026-10-11 **Rendering previews** `sw-previews` · SwiftUI · Preview
 - ☑ 2026-10-09 **Search results, clear button and hiding on scroll** `uk-searchbar` · UIKit · Bars
 - ☑ 2026-10-09 **UIImage data, tinting and animation** `uk-images` · UIKit · Images
 - ☑ 2026-10-09 **UIRefreshControl** `uk-refresh` · UIKit · Scrolling

@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 137 | 37 | 93 | 2 | 3 | 2 |
+| SwiftUI | 137 | 37 | 94 | 2 | 2 | 2 |
 | UIKit | 54 | 20 | 30 | 4 | 0 | 0 |
 | Interop | 12 | 0 | 12 | 0 | 0 | 0 |
-| **All** | **203** | 57 | 135 | 6 | 3 | 2 |
+| **All** | **203** | 57 | 136 | 6 | 2 | 2 |
 
 ## App lifecycle
 
@@ -38,7 +38,7 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 | `Group(subviews:) / Group(sections:) / ForEach(subviews:) / ForEach(sections:) / SubviewsCollection / SectionCollection / ContainerValues / containerValue(_:_:) / @Entry on ContainerValues` | 🟢 partial | A view's structural children resolved from the value (tuples, ForEach elements with their ids, conditionals, optionals, groups, AnyView, sections, modifiers on a container applied to each child, custom views through a multi-child body); container values and tags per child; slices as views (2026-10-11). Open: lazy containers resolve eagerly, List/Picker do not read container values. | foreach/subviews, foreach/subviews-foreach, foreach/sections, foreach/container-values |
 | `Section (content/header/footer, title forms, deprecated argument orders)` | 🟢 partial | Transparent outside List/Form: header, content and footer flatten in order, exact against goldens; inside List: styled header/footer, spacing, pinned first header (list/sections); no Form styling, isExpanded or collapsible; Tier B (Chromium) exact frames, ≤ 0.3 % pixels | section/* |
 | `DynamicProperty (custom, nested)` | 🟢 partial | update() and nested installation; Tier B (Chromium) within tolerance | observable/object, focus/basic |
-| `#Preview / PreviewTrait / PreviewProvider` | 🟠 stub | The macro expands to nothing (SwiftUIWebMacros, prebuilt swift-syntax) so preview blocks compile; nothing renders previews | — A preview body is not a screen: the macro plugin's expansion is held by PreviewTests, not a golden. |
+| `#Preview / PreviewTrait / PreviewModifier / PreviewProvider` | 🟢 partial | The macro keeps each #Preview body as a registration (SwiftUIWebMacros, prebuilt swift-syntax); _PreviewRegistry.all finds them natively in the binary's conformance records and the gallery shows the fixtures' previews (preview/) from a generated index; fixedLayout sizes, PreviewModifier wraps with an awaited shared context (2026-10-11); PreviewProvider and the preview* modifiers compile without effect | — A preview body is not a screen: the macro plugin's expansion is held by PreviewTests, not a golden. |
 
 ## Views
 
