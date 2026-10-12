@@ -392,8 +392,12 @@ public final class UIKitScene: HostedScene {
             window.layer.paint(into: &list, context: context, style: style)
         }
         focusSystem.paintFocusRing(into: &list, context: context)
+        paintDragPreview(into: &list, context: context, style: style)
         return list
     }
+
+    /// The drag in flight (Events/DragDrop.swift).
+    var dragSession: DragDropSession?
 
     public func imageLoadDidFinish() { setNeedsFrame() }
 
@@ -517,7 +521,7 @@ public final class UIKitScene: HostedScene {
         setNeedsFrame()
     }
     /// The cursor the hovered pointer interaction asks for (Events/Hover.swift).
-    public var pointerCursor: String? { hover.cursor }
+    public var pointerCursor: String? { dragSession != nil ? "grabbing" : hover.cursor }
 
     // MARK: Semantics
 

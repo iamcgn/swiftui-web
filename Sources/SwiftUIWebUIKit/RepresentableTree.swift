@@ -91,6 +91,17 @@ final class RepresentableTree: _PlatformViewTree {
     func hover(at point: CGPoint?) { hosted.hover(at: point) }
     var pointerStyle: PointerStyle? { hosted.pointerCursor.map { PointerStyle(css: $0) } }
 
+    func hasDragSource(at point: CGPoint) -> Bool { hosted.hasDragSource(at: point) }
+    var isDragging: Bool { hosted.isDragging }
+    func externalDragItems() -> [ExternalDragItem] { hosted.externalDragItems() }
+    func beginExternalDrag(at point: CGPoint) -> [ExternalDragItem] { hosted.beginExternalDrag(at: point) }
+    func externalDragUpdated(types: [String], at point: CGPoint) -> Bool { hosted.externalDragUpdated(types: types, at: point) }
+    func externalDragExited() { hosted.externalDragExited() }
+    func externalDrop(items: [ExternalDragItem], at point: CGPoint) -> Bool { hosted.externalDrop(items: items, at: point) }
+    func externalDragEnded(dropped: Bool) { hosted.externalDragEnded(dropped: dropped) }
+    func externalDragPreview() -> ExternalDragPreview? { hosted.externalDragPreview() }
+    func paintDragPreview(into list: inout DisplayList, context: PaintContext) { hosted.paintDragPreview(into: &list, context: context) }
+
     func semantics() -> [SemanticsNode] { hosted.semantics() }
     func contains(semanticsIdentifier: Int) -> Bool { hosted.contains(semanticsIdentifier: semanticsIdentifier) }
     func activate(semanticsIdentifier: Int) { hosted.activate(semanticsIdentifier: semanticsIdentifier) }

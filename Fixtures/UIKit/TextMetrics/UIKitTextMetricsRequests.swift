@@ -204,6 +204,11 @@ public enum UIKitTextMetricsRequests {
         UIKitTextRequest("Sidebar row", .style("body"), width: 250, lines: 0),
         UIKitTextRequest("Another", .style("body")),
         UIKitTextRequest("More", .style("subheadline")),
+        // uikit/events/dragdrop
+        UIKitTextRequest("Drag me", .system(size: 17)),
+        UIKitTextRequest("Nothing dropped", .system(size: 15)),
+        UIKitTextRequest("Nothing dropped", .system(size: 15), lines: 0),
+        UIKitTextRequest("Dropped: Drag me", .system(size: 15)),
         // uikit/collection/rest (estimated notes, the pinned footer), sidebar, sidebarplain
         UIKitTextRequest("A short note.", .system(size: 15), lines: 0),
         UIKitTextRequest("A short note.", .system(size: 15), width: 264, lines: 0),

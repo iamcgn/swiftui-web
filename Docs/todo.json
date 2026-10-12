@@ -1728,13 +1728,14 @@
       "framework": "UIKit",
       "area": "Events",
       "title": "Drag and drop interactions",
-      "detail": "`UIDragInteraction`/`UIDropInteraction`, the table and collection drag and drop delegates over the runtime's drag session (SwiftUI's `draggable` shares it).",
+      "detail": "`UIDragInteraction`/`UIDropInteraction`, the table and collection drag and drop delegates over the runtime's drag session (SwiftUI's `draggable` shares it). Done 2026-10-12 (Phase 9, item 41): the interactions, sessions and proposals, the collection and table delegates with coordinators, the lifted preview, the host's external entry points and the representable bridge (uikit/events/dragdrop, DragDropTests, HostedDragDropTests, uikit-dragdrop-probe.mjs); open: drops between a UIKit tree and SwiftUI destinations, placeholders, targeted previews.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/elements/DragDrop.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "uk-splitviewcontroller",

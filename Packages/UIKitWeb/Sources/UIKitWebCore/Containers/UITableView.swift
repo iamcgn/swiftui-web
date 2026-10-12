@@ -112,6 +112,42 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
     open weak var tableDelegate: (any UITableViewDelegate)?
     /// Keyboard focus (Events/Keyboard.swift): whether the cells take it, and whether it selects.
     open var allowsFocus = true
+
+    // MARK: Drag and drop (Events/DragDrop.swift)
+
+    open weak var dragDelegate: (any UITableViewDragDelegate)? { didSet { installDragLiftIfNeeded() } }
+    open weak var dropDelegate: (any UITableViewDropDelegate)?
+    open var dragInteractionEnabled = true { didSet { installDragLiftIfNeeded() } }
+    public var hasActiveDrag: Bool { UIKitScene.shared.dragSession?.sourceView === self }
+    public var hasActiveDrop: Bool { activeDropSession != nil }
+    var draggedIndexPaths: [IndexPath] = []
+    var activeDropSession: DragDropSession?
+    var lastDropProposal: UITableViewDropProposal?
+    private var dragLift: _DragLiftGestureRecognizer?
+
+    private func installDragLiftIfNeeded() {
+        if dragDelegate != nil, dragInteractionEnabled, dragLift == nil {
+            let lift = _DragLiftGestureRecognizer()
+            lift.addTarget { [weak self] recognizer in self?.handleDragLift(recognizer) }
+            addGestureRecognizer(lift)
+            dragLift = lift
+        } else if let dragLift, dragDelegate == nil || !dragInteractionEnabled {
+            removeGestureRecognizer(dragLift)
+            self.dragLift = nil
+        }
+    }
+
+    private func handleDragLift(_ recognizer: UIGestureRecognizer) {
+        let scene = UIKitScene.shared
+        let point = recognizer.location(in: nil)
+        switch recognizer.state {
+        case .began: scene.beginDrag(from: self, pressedAt: (recognizer as? _DragLiftGestureRecognizer)?.startLocation ?? point, at: point)
+        case .changed: scene.updateDrag(to: point)
+        case .ended: scene.endDrag(at: point)
+        case .cancelled, .failed: scene.cancelDrag()
+        default: break
+        }
+    }
     open var selectionFollowsFocus = false
     open var rowHeight: CGFloat = UITableView.automaticDimension { didSet { setNeedsReload() } }
     open var estimatedRowHeight: CGFloat = 0

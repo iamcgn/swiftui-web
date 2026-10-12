@@ -1,0 +1,27 @@
+{
+  "fixture" : "uikit\/events\/dragdrop",
+  "frames" : {
+    "source" : {
+      "height" : 60,
+      "width" : 120,
+      "x" : 20,
+      "y" : 20
+    },
+    "status" : {
+      "height" : 18,
+      "width" : 116.5,
+      "x" : 20,
+      "y" : 256
+    },
+    "target" : {
+      "height" : 120,
+      "width" : 280,
+      "x" : 20,
+      "y" : 120
+    }
+  },
+  "size" : {
+    "height" : 300,
+    "width" : 320
+  }
+}

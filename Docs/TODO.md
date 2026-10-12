@@ -6,9 +6,9 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 |---|---|---|---|---|
 | Interop | 1 | 0 | 0 | 1 |
 | SwiftUI | 1 | 0 | 0 | 1 |
-| UIKit | 3 | 0 | 0 | 3 |
+| UIKit | 2 | 0 | 0 | 2 |
 | Platform | 4 | 0 | 1 | 3 |
-| **All** | **9** | 0 | 1 | 8 |
+| **All** | **8** | 0 | 1 | 7 |
 
 ## Next (Phase 8, in order)
 
@@ -33,8 +33,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### UIKit
 
-- ☐ **Drag and drop interactions** `uk-dragdrop` · Events · missing  
-  `UIDragInteraction`/`UIDropInteraction`, the table and collection drag and drop delegates over the runtime's drag session (SwiftUI's `draggable` shares it). ([DragDrop.md](Docs/elements/DragDrop.md))
 - ☐ **UISplitViewController** `uk-splitviewcontroller` · Containers · missing  
   The column styles, display modes and the compact collapse; the iPad geometry from a simulator of that idiom. ([Containers](Packages/UIKitWeb/Sources/UIKitWebCore/Containers))
 - ☐ **Share and document pickers** `uk-system-sheets` · Presentation · missing  
@@ -60,6 +58,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Tab bar badges and the More tab** `uk-tabbar` · UIKit · Navigation
 - ☑ 2026-10-12 **Table view corners** `uk-table-rest` · UIKit · Table view
 - ☑ 2026-10-12 **Collection view corners** `uk-collection-rest` · UIKit · Collection view
+- ☑ 2026-10-12 **Drag and drop interactions** `uk-dragdrop` · UIKit · Events
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

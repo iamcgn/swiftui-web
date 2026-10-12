@@ -70,6 +70,35 @@ package protocol _PlatformViewTree: AnyObject {
 
     /// The node was unmounted: the tree comes down.
     func dismantle()
+
+    // MARK: Drags (uk-dragdrop): a tree with drag sessions of its own, in its coordinates
+
+    /// Whether a press at `point` can start a drag inside the tree.
+    func hasDragSource(at point: CGPoint) -> Bool
+    /// Whether the tree has a drag in flight (its own pointer, or the host's system drag).
+    var isDragging: Bool { get }
+    func externalDragItems() -> [ExternalDragItem]
+    func beginExternalDrag(at point: CGPoint) -> [ExternalDragItem]
+    func externalDragUpdated(types: [String], at point: CGPoint) -> Bool
+    func externalDragExited()
+    func externalDrop(items: [ExternalDragItem], at point: CGPoint) -> Bool
+    func externalDragEnded(dropped: Bool)
+    func externalDragPreview() -> ExternalDragPreview?
+    /// Paints the tree's lifted preview (a drag by the pointer) over the host's content.
+    func paintDragPreview(into list: inout DisplayList, context: PaintContext)
+}
+
+extension _PlatformViewTree {
+    package func hasDragSource(at point: CGPoint) -> Bool { false }
+    package var isDragging: Bool { false }
+    package func externalDragItems() -> [ExternalDragItem] { [] }
+    package func beginExternalDrag(at point: CGPoint) -> [ExternalDragItem] { [] }
+    package func externalDragUpdated(types: [String], at point: CGPoint) -> Bool { false }
+    package func externalDragExited() {}
+    package func externalDrop(items: [ExternalDragItem], at point: CGPoint) -> Bool { false }
+    package func externalDragEnded(dropped: Bool) {}
+    package func externalDragPreview() -> ExternalDragPreview? { nil }
+    package func paintDragPreview(into list: inout DisplayList, context: PaintContext) {}
 }
 
 /// One frame of a host runtime, for clocks shared between its hosted trees.
@@ -86,12 +115,15 @@ public struct _HostFrame: Hashable, Sendable {
 @MainActor
 package protocol _PlatformViewHosting: AnyObject {
     var tree: any _PlatformViewTree { get }
+    /// The tree's frame in the window (the drag hooks convert points into the tree's space).
+    var hostFrameInRoot: CGRect { get }
 }
 
 /// The leaf that stands for a hosted tree in the SwiftUI layout.
 @MainActor
 package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _PlatformViewHosting, _FocusBoxObserving, _HoverTracking, _PointerStyled {
     package let tree: any _PlatformViewTree
+    package var hostFrameInRoot: CGRect { frameInRoot }
     /// The size the tree wants for a proposal (the representable's own `sizeThatFits`, else the
     /// framework's rule for the hosted view).
     private let sizing: @MainActor (ProposedViewSize, V, EnvironmentValues) -> CGSize
@@ -281,6 +313,24 @@ extension Runtime {
 
     package func forgetPlatformHost(_ node: any _PlatformViewHosting) {
         platformHosts.removeAll { $0.node == nil || $0.node === node }
+    }
+
+    /// The hosted tree under `point` (window coordinates) and the point in its space.
+    package func platformTree(at point: CGPoint) -> (tree: any _PlatformViewTree, local: CGPoint)? {
+        for entry in platformHosts.reversed() {
+            guard let node = entry.node else { continue }
+            let frame = node.hostFrameInRoot
+            if frame.contains(point) { return (node.tree, CGPoint(x: point.x - frame.minX, y: point.y - frame.minY)) }
+        }
+        return nil
+    }
+
+    /// The hosted tree with a drag in flight, if any.
+    package var draggingPlatformTree: (tree: any _PlatformViewTree, frame: CGRect)? {
+        for entry in platformHosts {
+            if let node = entry.node, node.tree.isDragging { return (node.tree, node.hostFrameInRoot) }
+        }
+        return nil
     }
 
     /// The hosted tree whose elements include `identifier`, if any.

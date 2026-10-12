@@ -1722,6 +1722,12 @@
       "lastBaseline" : 14.2822265625,
       "width" : 60
     },
+    "system:15:400:default|;l1|Dropped: Drag me" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 126.5
+    },
     "system:15:400:default|;l1|Heart" : {
       "firstBaseline" : 14.2822265625,
       "height" : 18,
@@ -1733,6 +1739,12 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 35.5
+    },
+    "system:15:400:default|;l1|Nothing dropped" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 116.5
     },
     "system:15:400:default|;l1|Options" : {
       "firstBaseline" : 14.2822265625,
@@ -1823,6 +1835,12 @@
       "height" : 18,
       "lastBaseline" : 14.2822265625,
       "width" : 69
+    },
+    "system:15:400:default||Nothing dropped" : {
+      "firstBaseline" : 14.2822265625,
+      "height" : 18,
+      "lastBaseline" : 14.2822265625,
+      "width" : 116.5
     },
     "system:15:400:default||red end, " : {
       "firstBaseline" : 14.2822265625,
@@ -2231,6 +2249,12 @@
       "height" : 20.5,
       "lastBaseline" : 16.1865234375,
       "width" : 106.5
+    },
+    "system:17:400:default|;l1|Drag me" : {
+      "firstBaseline" : 16.1865234375,
+      "height" : 20.5,
+      "lastBaseline" : 16.1865234375,
+      "width" : 65
     },
     "system:17:400:default|;l1|Files content" : {
       "firstBaseline" : 16.1865234375,

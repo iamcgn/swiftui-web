@@ -121,8 +121,54 @@ delete, select all), a text field, whose selection the host's input element keep
 cuts its whole text and appends on paste. Typing, the caret, selection and the browser's own
 copy and paste in text fields stay the browser's.
 
+## UIKit (2026-10-12, uk-dragdrop, `Packages/UIKitWeb/Sources/UIKitWebCore/Events/DragDrop.swift`)
+
+`UIDragInteraction` / `UIDragInteractionDelegate` (`itemsForBeginning`, `previewForLifting`,
+`sessionWillBegin`, `session:didEndWith:`, `sessionAllowsMoveOperation`,
+`sessionIsRestrictedToDraggingApplication`), `UIDropInteraction` / `UIDropInteractionDelegate`
+(`canHandle`, `sessionDidEnter` / `Update` / `Exit` / `End`, `performDrop`), `UIDragItem`
+(`itemProvider`, `localObject`, `previewProvider`), `UIDragPreview` and its parameters,
+`UIDropProposal` / `UIDropOperation`, the `UIDragSession` / `UIDropSession` protocols (`items`,
+`location(in:)`, `localDragSession`, `hasItemsConforming(toTypeIdentifiers:)`,
+`canLoadObjects(ofClass: String.self)`, `loadObjects(ofClass:completion:)`, `localContext`,
+`allowsMoveOperation`). Collection views: `dragDelegate` / `dropDelegate`
+(`UICollectionViewDragDelegate`, `UICollectionViewDropDelegate` with `UICollectionViewDropProposal`'s
+intent and a `UICollectionViewDropCoordinator` of `UICollectionViewDropItem`s carrying the
+source index paths of a reorder and the destination), `dragInteractionEnabled`, `hasActiveDrag`
+/ `hasActiveDrop`; table views the same (`UITableViewDragDelegate`, `UITableViewDropDelegate`,
+`UITableViewDropProposal`, `UITableViewDropCoordinator`).
+
+Behaviour: a finger held 0.5 s within 10 pt (a pointer: 4 pt of travel, no wait) on a view
+with a drag interaction, or on a cell of a table or collection with a drag delegate, asks for
+the items and lifts them; the lifted view (the delegate's preview, else the view or cell) is
+painted at 0.8 opacity under the pointer keeping the grab offset, the cursor is `grabbing`. The
+deepest drop interaction (or table / collection drop delegate) under the pointer that can
+handle the session is targeted: it hears `sessionDidEnter`, its proposal is asked on every
+move, `sessionDidExit` when the pointer leaves. Release performs the drop when the proposal is
+copy or move and the source hears the proposal's operation (`forbidden` as forbidden, `cancel`
+with no target). A table's or collection's destination index path is the row or item under the
+pointer, else the end of the section under it. The same session crosses the app boundary
+through the host's entry points as SwiftUI's does (`Docs/elements/DragDrop.md`, "Across the app
+boundary"): the items' providers become `text/plain` (text types), `text/uri-list` (URLs) or
+their bytes, a drag from outside opens a session of its announced types whose data arrives
+with the drop; the system draws its own image, so no preview is painted then. Foundation's
+`NSItemProvider` loads on a queue of its own: a `UIDragItem` fetches its values as it is made
+and the drop finds them (WebFoundation's stand-in on wasm gives them at once); an app on a
+native host that needs the string in the same event can `_preloadText`. Inside a representable
+the hosted tree's session reaches the SwiftUI runtime through `_PlatformViewTree`'s drag
+hooks: the runtime asks the tree under the point for drag sources, paints the tree's preview
+over its content and forwards the external entry points (a drag from outside lands in the tree
+under the point when nothing of the runtime's takes it). `uikit/events/dragdrop` (pixels
+0.48 % at rest), `DragDropTests`, `HostedDragDropTests`, `Playwright/uikit-dragdrop-probe.mjs`
+(the mouse drag, the browser's system drag, a drag from outside, a refused type).
+
 ## Open
 
+- UIKit: drops between a UIKit tree and SwiftUI destinations in the same window (sessions stay
+  with their framework except across the app boundary), `UICollectionViewDropPlaceholder`,
+  the lift and drop animations, `UITargetedDragPreview`, spring-loading, multiple items added
+  to a session, the data source's `moveItemAt` from a reorder drop (the delegate rewrites its
+  data), `UIPasteConfiguration`.
 - The AppKit drag session by hand; the insertion line's geometry; snap-back animation on
   cancel; `importsItemProviders`; `async` file representation closures.
 - `UIPasteboard`: reading the system clipboard (the browser hands it only to paste events),

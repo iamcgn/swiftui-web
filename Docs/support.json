@@ -1552,8 +1552,7 @@
           "status": "partial",
           "notes": "Measured looks at their intrinsic sizes, taps and drags set values and send valueChanged. The rest (2026-10-12, uikit/controls/rest on iOS 27): the slider's end images with the track inset 11 from them, image segments 40 wide, setWidth and apportionsSegmentWidthsByContent (label + 19, at least 32), per-segment enabling, the stepper's autorepeat (0.5 s then every 0.1 s, approximate); open: momentary segments' look, iOS 27's 37 × 24 slider lens",
           "fixtures": [
-            "uikit/controls/more"
-          ,
+            "uikit/controls/more",
             "uikit/controls/rest"
           ]
         },
@@ -2013,6 +2012,14 @@
             "uikit/controls/basic",
             "uikit/textview/basic",
             "uikit/table/selection"
+          ]
+        },
+        {
+          "api": "UIDragInteraction / UIDropInteraction / UIDragItem / UIDragSession / UIDropSession / UIDropProposal, the collection and table drag and drop delegates (dragDelegate / dropDelegate, drop proposals and coordinators)",
+          "status": "partial",
+          "notes": "A long press (a pointer: 4 pt of travel) lifts a drag interaction's items or a cell's, the lifted view painted under the pointer; drop interactions and the table / collection drop delegates are targeted, proposed and performed; the session crosses the app boundary through the host's drag entry points (text, URLs and bytes) and reaches the SwiftUI runtime from inside a representable; open: drops between a UIKit tree and SwiftUI destinations, placeholders, targeted previews, spring-loading",
+          "fixtures": [
+            "uikit/events/dragdrop"
           ]
         },
         {

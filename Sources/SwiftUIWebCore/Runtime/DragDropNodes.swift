@@ -89,8 +89,8 @@ package final class DropDestinationNode<Content: View, T: Transferable>: UnaryLa
 }
 
 extension Runtime {
-    /// Whether a drag is in progress.
-    public var isDragging: Bool { dragSession != nil }
+    /// Whether a drag is in progress (the runtime's own, or one of a hosted tree's).
+    public var isDragging: Bool { dragSession != nil || draggingPlatformTree != nil }
 
     /// The drag source under `point`, if any (window coordinates).
     package func dragSource(at point: CGPoint) -> (ViewNode & _DragSource)? {
@@ -158,20 +158,33 @@ extension Runtime {
 
     // MARK: Across the app boundary (sw-dragdrop-os)
 
-    public func hasDragSource(at point: CGPoint) -> Bool { dragSource(at: point) != nil }
+    /// A drag source of the runtime's own, or one inside a hosted tree under the point
+    /// (a UIKit view with a `UIDragInteraction`, uk-dragdrop).
+    public func hasDragSource(at point: CGPoint) -> Bool {
+        if dragSource(at: point) != nil { return true }
+        if let (tree, local) = platformTree(at: point) { return tree.hasDragSource(at: local) }
+        return false
+    }
 
     /// The items of the drag in flight for the host's system drag: none for a drag from outside
     /// (the host already has it), none before a payload is lifted.
     public func externalDragItems() -> [ExternalDragItem] {
-        guard let session = dragSession, !session.item.isExternal else { return [] }
-        return session.item.externalItems()
+        if let session = dragSession { return session.item.isExternal ? [] : session.item.externalItems() }
+        return draggingPlatformTree?.tree.externalDragItems() ?? []
     }
 
-    /// The host's system drag is starting from the pressed source: the payload lifts now.
+    /// The host's system drag is starting from the pressed source: the payload lifts now (a
+    /// hosted tree's, when the press is inside one).
     public func beginExternalDrag(at point: CGPoint) -> [ExternalDragItem] {
         if dragSession == nil, let pending = pendingDrag {
             pendingDrag = nil
             beginDrag(from: pending.source, pressedAt: pending.start, at: point)
+        }
+        if dragSession == nil {
+            if let dragging = draggingPlatformTree {
+                return dragging.tree.beginExternalDrag(at: CGPoint(x: point.x - dragging.frame.minX, y: point.y - dragging.frame.minY))
+            }
+            if let (tree, local) = platformTree(at: point) { return tree.beginExternalDrag(at: local) }
         }
         guard var session = dragSession, !session.item.isExternal else { return [] }
         session.isSystemDrag = true
@@ -181,19 +194,28 @@ extension Runtime {
 
     /// A system drag over `point`: the app's own session follows it; a drag from outside opens
     /// a session of its announced types (the data comes with the drop). Returns whether a
-    /// destination is targeted.
+    /// destination is targeted. A hosted tree's own drag, or a drag from outside over a hosted
+    /// tree with no destination of the runtime's, is the tree's.
     public func externalDragUpdated(types: [String], at point: CGPoint) -> Bool {
+        if dragSession == nil, let dragging = draggingPlatformTree {
+            return dragging.tree.externalDragUpdated(types: types, at: CGPoint(x: point.x - dragging.frame.minX, y: point.y - dragging.frame.minY))
+        }
         if dragSession == nil || dragSession?.item.isExternal == true && dragSession?.item.external.map(\.type) != types {
             let items = types.map { ExternalDragItem(type: $0, text: UTType(_mime: $0).isText ? "" : nil, data: Data()) }
             dragSession = DragSession(item: _TransferItem(external: items), source: nil, previewNode: nil, grab: .zero, location: point, target: nil, isSystemDrag: true)
         }
         updateDrag(to: point)
-        return dragSession?.target != nil
+        if dragSession?.target != nil { return true }
+        if dragSession?.item.isExternal == true, let (tree, local) = platformTree(at: point) {
+            return tree.externalDragUpdated(types: types, at: local)
+        }
+        return false
     }
 
     /// The system drag left the scene: the app's own drag keeps going (it may come back or
     /// drop elsewhere), one from outside is over.
     public func externalDragExited() {
+        for entry in platformHosts { entry.node?.tree.externalDragExited() }
         guard let session = dragSession else { return }
         if session.item.isExternal {
             cancelDrag()
@@ -207,13 +229,21 @@ extension Runtime {
     }
 
     /// The system drag dropped: the app's own session ends at the point; one from outside is
-    /// delivered with the items' data.
+    /// delivered with the items' data (to the hosted tree under the point when nothing of the
+    /// runtime's takes it).
     @discardableResult
     public func externalDrop(items: [ExternalDragItem], at point: CGPoint) -> Bool {
+        if dragSession == nil, let dragging = draggingPlatformTree {
+            return dragging.tree.externalDrop(items: items, at: CGPoint(x: point.x - dragging.frame.minX, y: point.y - dragging.frame.minY))
+        }
         guard var session = dragSession else {
             // A drop without any dragover (synthetic hosts): target and deliver in one go.
             dragSession = DragSession(item: _TransferItem(external: items), source: nil, previewNode: nil, grab: .zero, location: point, target: nil, isSystemDrag: true)
             updateDrag(to: point)
+            if dragSession?.target == nil, let (tree, local) = platformTree(at: point) {
+                cancelDrag()
+                return tree.externalDrop(items: items, at: local)
+            }
             return endDrag(at: point)
         }
         if session.item.isExternal {
@@ -221,17 +251,23 @@ extension Runtime {
             dragSession = session
         }
         updateDrag(to: point)
+        if dragSession?.target == nil, session.item.isExternal, let (tree, local) = platformTree(at: point) {
+            cancelDrag()
+            return tree.externalDrop(items: items, at: local)
+        }
         return endDrag(at: point)
     }
 
     /// The host's system session for the app's drag ended elsewhere: the drag is over.
     public func externalDragEnded(dropped: Bool) {
+        for entry in platformHosts { entry.node?.tree.externalDragEnded(dropped: dropped) }
         guard dragSession != nil else { return }
         cancelDrag()
     }
 
     /// The lifted preview painted at the origin of its own space, for the system's drag image.
     public func externalDragPreview() -> ExternalDragPreview? {
+        if dragSession == nil, let dragging = draggingPlatformTree { return dragging.tree.externalDragPreview() }
         guard let session = dragSession, let preview = session.previewNode else { return nil }
         var list = DisplayList()
         let size = preview.frame.size
@@ -261,6 +297,10 @@ extension Runtime {
     /// Paints the dragged preview under the pointer, over everything else (the system draws
     /// its own image while it carries the drag).
     package func paintDragPreview(into list: inout DisplayList, context: PaintContext) {
+        for entry in platformHosts {
+            guard let node = entry.node, node.tree.isDragging else { continue }
+            node.tree.paintDragPreview(into: &list, context: context.child(at: node.hostFrameInRoot))
+        }
         guard let session = dragSession, !session.isSystemDrag, let preview = session.previewNode else { return }
         let frame = CGRect(x: session.location.x - session.grab.x, y: session.location.y - session.grab.y,
                            width: preview.frame.width, height: preview.frame.height)

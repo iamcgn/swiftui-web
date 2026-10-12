@@ -213,7 +213,24 @@ public final class UIKitHostedTree {
     }
 
     /// The cursor the hovered view inside asks for.
-    public var pointerCursor: String? { hover.cursor }
+    public var pointerCursor: String? { UIKitScene.shared.dragSession != nil ? "grabbing" : hover.cursor }
+
+    // MARK: Drags (Events/DragDrop.swift): the scene's session, in this tree's window
+
+    public func hasDragSource(at point: CGPoint) -> Bool { UIKitScene.shared.dragSource(at: point, in: window) != nil }
+    /// Whether the scene's drag in flight is this tree's (its session's window).
+    public var isDragging: Bool { UIKitScene.shared.dragSession?.window === window }
+    public func externalDragItems() -> [ExternalDragItem] { isDragging ? UIKitScene.shared.externalDragItems() : [] }
+    public func beginExternalDrag(at point: CGPoint) -> [ExternalDragItem] { UIKitScene.shared.beginExternalDrag(at: point, in: window) }
+    public func externalDragUpdated(types: [String], at point: CGPoint) -> Bool { UIKitScene.shared.externalDragUpdated(types: types, at: point, in: window) }
+    public func externalDragExited() { if isDragging { UIKitScene.shared.externalDragExited() } }
+    public func externalDrop(items: [ExternalDragItem], at point: CGPoint) -> Bool { UIKitScene.shared.externalDrop(items: items, at: point, in: window) }
+    public func externalDragEnded(dropped: Bool) { if isDragging { UIKitScene.shared.externalDragEnded(dropped: dropped) } }
+    public func externalDragPreview() -> ExternalDragPreview? { isDragging ? UIKitScene.shared.externalDragPreview() : nil }
+    public func paintDragPreview(into list: inout DisplayList, context: PaintContext) {
+        guard isDragging else { return }
+        UIKitScene.shared.paintDragPreview(into: &list, context: context, style: window.traitCollection.userInterfaceStyle)
+    }
 
     // MARK: Semantics
 

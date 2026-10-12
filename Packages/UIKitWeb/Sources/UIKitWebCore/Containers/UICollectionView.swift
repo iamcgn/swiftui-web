@@ -1095,7 +1095,46 @@ open class UICollectionView: UIScrollView {
         weak var cell: UICollectionViewCell?
     }
     private(set) var movingItem: MovingItem?
-    public var hasActiveDrag: Bool { movingItem != nil }
+    /// An interactive movement in flight, or a drag session lifted from this collection
+    /// (Events/DragDrop.swift).
+    public var hasActiveDrag: Bool { movingItem != nil || UIKitScene.shared.dragSession?.sourceView === self }
+    public var hasActiveDrop: Bool { activeDropSession != nil }
+
+    // MARK: Drag and drop (Events/DragDrop.swift)
+
+    open weak var dragDelegate: (any UICollectionViewDragDelegate)? { didSet { installDragLiftIfNeeded() } }
+    open weak var dropDelegate: (any UICollectionViewDropDelegate)?
+    /// Whether drags lift from the cells (on by default on iPad, off on iPhone; here on once a
+    /// drag delegate is set unless turned off).
+    open var dragInteractionEnabled = true { didSet { installDragLiftIfNeeded() } }
+    var draggedIndexPaths: [IndexPath] = []
+    var activeDropSession: DragDropSession?
+    var lastDropProposal: UICollectionViewDropProposal?
+    private var dragLift: _DragLiftGestureRecognizer?
+
+    private func installDragLiftIfNeeded() {
+        if dragDelegate != nil, dragInteractionEnabled, dragLift == nil {
+            let lift = _DragLiftGestureRecognizer()
+            lift.addTarget { [weak self] recognizer in self?.handleDragLift(recognizer) }
+            addGestureRecognizer(lift)
+            dragLift = lift
+        } else if let dragLift, dragDelegate == nil || !dragInteractionEnabled {
+            removeGestureRecognizer(dragLift)
+            self.dragLift = nil
+        }
+    }
+
+    private func handleDragLift(_ recognizer: UIGestureRecognizer) {
+        let scene = UIKitScene.shared
+        let point = recognizer.location(in: nil)
+        switch recognizer.state {
+        case .began: scene.beginDrag(from: self, pressedAt: (recognizer as? _DragLiftGestureRecognizer)?.startLocation ?? point, at: point)
+        case .changed: scene.updateDrag(to: point)
+        case .ended: scene.endDrag(at: point)
+        case .cancelled, .failed: scene.cancelDrag()
+        default: break
+        }
+    }
 
     /// Lifts the item at `indexPath` for a drag (`canMoveItemAt` permitting); the data source
     /// hears `moveItemAt:to:` when the drag ends.
