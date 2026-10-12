@@ -120,6 +120,9 @@ public protocol HostedScene: AnyObject {
     /// The element's caret or selection moved (UTF-16 offsets); scenes painting their own
     /// caret (`TextInputInfo.paintsCaret`) follow it.
     func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int)
+    /// The host's input method is composing: `range` (UTF-16 offsets in the field's text) is
+    /// the marked text, underlined until it commits; nil when nothing is marked.
+    func textField(_ semanticsIdentifier: Int, markedRange range: Range<Int>?)
     /// The element's content scrolled (a multi-line editor's textarea), in points.
     func textField(_ semanticsIdentifier: Int, scrolledTo offset: CGFloat)
     /// A bundled font the host loaded is now available: text measured before it lays out again.
@@ -255,6 +258,7 @@ extension HostedScene {
     public func colorPanel(_ identifier: Int, didPick color: RGBA) {}
     public func colorPanelDidClose(_ identifier: Int) {}
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {}
+    public func textField(_ semanticsIdentifier: Int, markedRange range: Range<Int>?) {}
     public func textField(_ semanticsIdentifier: Int, scrolledTo offset: CGFloat) {}
     public func fontsDidLoad() {}
     public func symbolMetricsDidLoad(_ table: [String: [Double]]) {}

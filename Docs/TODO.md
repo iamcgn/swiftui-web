@@ -5,8 +5,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | SwiftUI | 1 | 0 | 0 | 1 |
-| Platform | 3 | 0 | 1 | 2 |
-| **All** | **4** | 0 | 1 | 3 |
+| Platform | 2 | 0 | 1 | 1 |
+| **All** | **3** | 0 | 1 | 2 |
 
 ## Next (Phase 8, in order)
 
@@ -26,8 +26,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Platform
 
-- ☐ **Native text selection, IME and windows** `pf-native-text` · Native macOS · missing  
-  A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host. ([0012-native-painter.md](Docs/decisions/0012-native-painter.md))
 - ☐ **Linux: build, CI, painter and host** `pf-linux` · Linux · infra  
   The native headless build and tests are supported on Linux with Swift 6.3.3, alongside wasm cross-compilation. Remaining: a Skia or Cairo painter, a GTK window and the WebKitGTK host. ([ROADMAP.md](Docs/ROADMAP.md))
 
@@ -47,6 +45,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 - ☑ 2026-10-12 **Share and document pickers** `uk-system-sheets` · UIKit · Presentation
 - ☑ 2026-10-12 **First frame and large lists** `pf-perf` · Platform · Performance
 - ☑ 2026-10-12 **NSViewRepresentable and NSViewControllerRepresentable** `ix-appkit` · Interop · AppKit
+- ☑ 2026-10-12 **Native text selection, IME and windows** `pf-native-text` · Platform · Native macOS
 - ☑ 2026-10-11 **Dynamic Type** `sw-dynamic-type` · SwiftUI · Text
 - ☑ 2026-10-11 **Subviews-based ForEach and Group** `sw-subviews` · SwiftUI · View composition
 - ☑ 2026-10-11 **Layout protocol corners** `sw-custom-layout` · SwiftUI · Layout

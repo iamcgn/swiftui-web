@@ -413,6 +413,8 @@ public final class Runtime {
     /// places them, when there is one.
     package var nativeViews: [WeakNativeView] = []
     package var nativeViewHostStorage: (any _NativeViewHosting)?
+    /// The host showing window presentations as real windows (Runtime/HostedWindows.swift).
+    package var realWindowHostStorage: (any _RealWindowHosting)?
     /// Counts the frames the hosted trees were advanced for (`_HostFrame`).
     package var hostFrameNumber: UInt64 = 0
 
@@ -565,6 +567,7 @@ public final class Runtime {
         updateAnimation = nil
         deliverPreferences()
         syncNativeViews()
+        syncHostedWindows()
     }
 
     private var environmentIsIOS: Bool { rootEnvironment.platformProfile.isIOS }

@@ -55,9 +55,34 @@ real windows the harness does not capture, so the chrome is by eye, not measured
 resizing, the key window, commands (shortcut, description, running an item), documents (new,
 open and save through the host hooks) and restoration.
 
+## Real windows on the native host (2026-10-12, pf-native-text)
+
+`SwiftUIWebNative` installs `Runtime.realWindowHost` (`RealWindowHost`): every `.window`
+presentation opens as an `NSWindow` of its own (titled, closable, miniaturizable, resizable
+when the scene allows; a hidden title bar as a transparent one), cascaded from the main
+window, its content view painting the presentation's content through
+`Runtime.render(hostedWindow:scale:)` (the content at the window's origin; the painted title
+bar, lights and grip stay off, the real window has them) and repainting with each frame of the
+main view. Pointer events in the window reach the runtime in root coordinates (the
+presentation's virtual frame, which is no longer clamped to the main window), keys go through
+the main view's input client (the focused field is the scene's), the window coming to the
+front makes its presentation the topmost, resizing it sets the presentation's size and closing
+it dismisses the presentation (`Runtime/HostedWindows.swift`: `_HostedWindow`,
+`_RealWindowHosting`, `hostedWindows()`, `hostedWindowDidClose`, `hostedWindow(_:didResizeTo:)`,
+`hostedWindowDidBecomeKey`). The browser and headless hosts keep the painted windows inside
+the main view. `NativeTextAndWindowTests.windowPresentationsOpenAsRealWindows`.
+
+`Tools/Host` opens bundles by double click: `scripts/build-host-app.sh` wraps `swiftui-host`
+as `dist/SwiftUIHost.app`, which owns the `.swiftuiweb` package type (a built package
+directory renamed) and takes bundle folders as an alternate handler; each bundle the Finder
+opens (or that is dropped on the app) gets a window and a server of its own, and the command
+line's bundle is served once (AppKit hands it to the open event as well).
+
 ## Open
 
 - Real browser windows for `openWindow` (the runtime would need a second host with shared
   state), restoring documents and `Codable` window values, `ReferenceFileDocument`, the
   standard menus' own items natively (Edit's Undo/Cut/Copy/Paste rows come from the responder
-  commands, not the menu bar).
+  commands, not the menu bar); on the native host, a hosted window's own text input client
+  (keys route through the main view), its own toolbar and menu bar focus, and drags between
+  windows.

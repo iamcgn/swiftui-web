@@ -1798,13 +1798,14 @@
       "framework": "Platform",
       "area": "Native macOS",
       "title": "Native text selection, IME and windows",
-      "detail": "A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host.",
+      "detail": "A caret and selection painted inside the text (the browser's for now), IME marked text, several real windows, the menu bar and window commands, file dialogs, opening bundles by double click in Tools/Host. Done 2026-10-12 (Phase 9, item 46): the native host's text input client keeps a selection and the input method's marked text, painted by the scene (caret, selection, marked underline), with clicks placing the caret and the editing commands; window presentations open as real NSWindows (Runtime.realWindowHost); the menu bar and file dialogs landed with sw-windows; Tools/Host opens .swiftuiweb bundles by double click (scripts/build-host-app.sh); open: a hosted window's own input client, drags between windows, the IME session by hand.",
       "kind": "missing",
       "priority": "later",
-      "status": "planned",
+      "status": "done",
       "refs": [
         "Docs/decisions/0012-native-painter.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "pf-linux",

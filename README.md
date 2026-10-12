@@ -146,7 +146,9 @@ with search and filters (rows link to their gallery fixtures), the todo list fro
 `index.html` and built bundle on 127.0.0.1 and opens it in a WKWebView window (macOS 14+, Apple
 toolchain). `--screenshot out.png` waits for the app's first frame, writes a snapshot and quits;
 `--timeout seconds` quits on its own (both for scripts and CI); `--port`, `--path`, `--width` and
-`--height` are optional.
+`--height` are optional. `scripts/build-host-app.sh` wraps it as `dist/SwiftUIHost.app`, which
+opens `.swiftuiweb` bundles (a built package directory renamed) and bundle folders by double
+click or drop, one window each.
 
 `SwiftUIWebNative` (decision 0012) is the true native backend: on macOS `App.main()` opens an
 AppKit window whose flipped view paints the display list with CoreGraphics and measures text

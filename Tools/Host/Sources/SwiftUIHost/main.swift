@@ -5,7 +5,10 @@
 //                          [--screenshot out.png] [--timeout seconds]
 //
 // --screenshot writes a snapshot of the page once it has loaded and quits; --timeout quits after
-// the given number of seconds (both for scripts and CI).
+// the given number of seconds (both for scripts and CI). Without a package directory the host
+// waits for one from the Finder: `scripts/build-host-app.sh` wraps it as SwiftUIHost.app, which
+// opens `.swiftuiweb` bundles (a built package directory renamed) and plain bundle folders
+// by double click or drop (pf-native-text), one window per bundle.
 import AppKit
 import Foundation
 import Network
@@ -14,7 +17,8 @@ import WebKit
 // MARK: - Arguments
 
 struct Options {
-    var root: URL
+    /// The bundle to serve; nil waits for the Finder to open one.
+    var root: URL?
     var port: UInt16 = 0
     var path = "index.html"
     var width: CGFloat = 900
@@ -44,8 +48,7 @@ struct Options {
             }
             index += 1
         }
-        guard let rootPath else { return nil }
-        root = URL(fileURLWithPath: rootPath).standardizedFileURL
+        root = rootPath.map { URL(fileURLWithPath: $0).standardizedFileURL }
     }
 }
 
@@ -58,11 +61,14 @@ func usage() -> Never {
     exit(64)
 }
 
-guard let options = Options(Array(CommandLine.arguments.dropFirst())) else { usage() }
-var isDirectory: ObjCBool = false
-guard FileManager.default.fileExists(atPath: options.root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
-    FileHandle.standardError.write(Data("swiftui-host: \(options.root.path) is not a directory\n".utf8))
-    exit(66)
+// The Finder launches the app with `-psn_…` or no arguments and opens the bundle afterwards.
+guard let options = Options(CommandLine.arguments.dropFirst().filter { !$0.hasPrefix("-psn") }) else { usage() }
+if let root = options.root {
+    var isDirectory: ObjCBool = false
+    guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
+        FileHandle.standardError.write(Data("swiftui-host: \(root.path) is not a directory\n".utf8))
+        exit(66)
+    }
 }
 
 // MARK: - Static file server
@@ -190,16 +196,54 @@ final class StaticServer: @unchecked Sendable {
 @MainActor
 final class HostDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     let options: Options
-    let server: StaticServer
+    /// The bundle the command line named, served once the app has launched.
+    private var initialServer: StaticServer?
     var window: NSWindow!
     var webView: WKWebView!
+    /// The bundles open: their servers and windows (the Finder may open several).
+    private var opened: [(server: StaticServer, window: NSWindow)] = []
 
-    init(options: Options, server: StaticServer) {
+    init(options: Options, server: StaticServer?) {
         self.options = options
-        self.server = server
+        initialServer = server
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if let server = initialServer {
+            initialServer = nil
+            open(server: server)
+        }
+        if let timeout = options.timeout {
+            DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { exit(0) }
+        }
+    }
+
+    /// The Finder opened bundles (a double click on a `.swiftuiweb` package or a bundle folder,
+    /// a drop on the app): each gets a window.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            // AppKit hands the command line's directory here too (before the launch finishes):
+            // the server made for it serves it once.
+            let path = url.standardizedFileURL.resolvingSymlinksInPath().path
+            if opened.contains(where: { $0.server.root.resolvingSymlinksInPath().path == path }) { continue }
+            if let initial = initialServer, initial.root.resolvingSymlinksInPath().path == path { continue }
+            var isDirectory: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue,
+                  let server = try? StaticServer(root: url.standardizedFileURL, port: 0) else {
+                NSSound.beep()
+                continue
+            }
+            open(server: server)
+        }
+    }
+
+    func application(_ sender: NSApplication, openFile filename: String) -> Bool {
+        application(sender, open: [URL(fileURLWithPath: filename)])
+        return true
+    }
+
+    /// Serves a bundle and shows it in a window of its own.
+    private func open(server: StaticServer) {
         let configuration = WKWebViewConfiguration()
         configuration.preferences.setValue(true, forKey: "developerExtrasEnabled")
         // Page errors are collected for --screenshot diagnostics.
@@ -211,24 +255,25 @@ final class HostDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate 
             (function tick() { window.__hostRaf++; requestAnimationFrame(tick); })();
             """, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         configuration.userContentController.addUserScript(errors)
-        webView = WKWebView(frame: NSRect(x: 0, y: 0, width: options.width, height: options.height), configuration: configuration)
+        let webView = WKWebView(frame: NSRect(x: 0, y: 0, width: options.width, height: options.height), configuration: configuration)
         webView.navigationDelegate = self
-        window = NSWindow(contentRect: webView.frame, styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        window.title = options.root.lastPathComponent
+        let window = NSWindow(contentRect: webView.frame, styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        window.title = server.root.lastPathComponent.replacingOccurrences(of: ".swiftuiweb", with: "")
         window.contentView = webView
-        window.center()
+        window.isReleasedWhenClosed = false
+        if opened.isEmpty { window.center() } else { window.cascadeTopLeft(from: NSPoint(x: opened.last!.window.frame.minX + 24, y: opened.last!.window.frame.maxY - 24)) }
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
-        if let timeout = options.timeout {
-            DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { exit(0) }
-        }
-        server.start { [weak self] port in
+        self.webView = webView
+        self.window = window
+        opened.append((server, window))
+        let path = options.path
+        server.start { port in
             DispatchQueue.main.async {
-                guard let self else { return }
-                let url = URL(string: "http://127.0.0.1:\(port)/\(self.options.path)")!
+                let url = URL(string: "http://127.0.0.1:\(port)/\(path)")!
                 print("swiftui-host: \(url)")
-                self.webView.load(URLRequest(url: url))
+                webView.load(URLRequest(url: url))
             }
         }
     }
@@ -294,12 +339,14 @@ final class HostDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate 
     }
 }
 
-let server: StaticServer
-do {
-    server = try StaticServer(root: options.root, port: options.port)
-} catch {
-    FileHandle.standardError.write(Data("swiftui-host: cannot listen: \(error)\n".utf8))
-    exit(69)
+var server: StaticServer?
+if let root = options.root {
+    do {
+        server = try StaticServer(root: root, port: options.port)
+    } catch {
+        FileHandle.standardError.write(Data("swiftui-host: cannot listen: \(error)\n".utf8))
+        exit(69)
+    }
 }
 let app = NSApplication.shared
 app.setActivationPolicy(.regular)

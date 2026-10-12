@@ -17,6 +17,9 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     private var editBuffer: String?
     /// The selected range in UTF-16 offsets (a caret when empty), while focused.
     package private(set) var selection: Range<Int>?
+    /// The input method's marked text (UTF-16 offsets), underlined until it commits
+    /// (pf-native-text; the browser's input shows its own composition).
+    package private(set) var markedRange: Range<Int>?
 
     override package init(_ context: _NodeContext<_TextFieldCore>) {
         Self.nextIdentifier += 1
@@ -205,7 +208,7 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
                 }
             }
         }
-        if focused { paintCaret(into: &list, rect: rect, text: text) }
+        if focused { paintCaret(into: &list, rect: rect, text: text); paintMarkedText(into: &list, rect: rect, text: text) }
     }
 
     // MARK: Caret and selection
@@ -248,6 +251,21 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
             let to = line == end.line ? end.x : rect.width
             guard to > from else { continue }
             list.append(.fillRect(CGRect(x: rect.minX + from, y: rect.minY + lineHeight * CGFloat(line), width: to - from, height: lineHeight), color))
+        }
+    }
+
+    /// The input method's marked text: a 1 pt underline in the text colour under the marked
+    /// run (AppKit underlines the composition; the segments' thick and thin lines are not kept).
+    private func paintMarkedText(into list: inout DisplayList, rect: CGRect, text: String) {
+        guard let markedRange, !markedRange.isEmpty, !text.isEmpty else { return }
+        let lineHeight = metrics.lineHeight
+        let start = position(of: markedRange.lowerBound, in: text, width: rect.width)
+        let end = position(of: markedRange.upperBound, in: text, width: rect.width)
+        for line in start.line...end.line {
+            let from = line == start.line ? start.x : 0
+            let to = line == end.line ? end.x : rect.width
+            guard to > from else { continue }
+            list.append(.fillRect(CGRect(x: rect.minX + from, y: rect.minY + lineHeight * CGFloat(line + 1) - 1.5, width: to - from, height: 1), caretColor))
         }
     }
 
@@ -311,6 +329,12 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
         runtime.setNeedsDisplay()
     }
 
+    package func setMarkedRange(_ range: Range<Int>?) {
+        guard markedRange != range else { return }
+        markedRange = range
+        runtime.setNeedsDisplay()
+    }
+
     private func commitEdit() {
         guard let buffer = editBuffer else { return }
         editBuffer = nil
@@ -343,12 +367,15 @@ package protocol _TextInputNode: AnyObject {
     func submit()
     /// The host's selection changed (UTF-16 offsets).
     func setSelection(start: Int, end: Int)
+    /// The host's input method marked `range` (nil: nothing marked).
+    func setMarkedRange(_ range: Range<Int>?)
     /// Keyboard focus arrived or left.
     func focusChanged(_ focused: Bool)
 }
 
 extension _TextInputNode {
     package func setSelection(start: Int, end: Int) {}
+    package func setMarkedRange(_ range: Range<Int>?) {}
     package func focusChanged(_ focused: Bool) {}
 }
 
@@ -380,6 +407,11 @@ extension Runtime {
     /// The host's selection or caret moved in the field with this identifier (UTF-16 offsets).
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {
         textInputNode(semanticsIdentifier)?.setSelection(start: start, end: end)
+    }
+
+    /// The host's input method is composing in the field (pf-native-text).
+    public func textField(_ semanticsIdentifier: Int, markedRange range: Range<Int>?) {
+        textInputNode(semanticsIdentifier)?.setMarkedRange(range)
     }
 
     /// The host's textarea scrolled: the editor's painted text follows.

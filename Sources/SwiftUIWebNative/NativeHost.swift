@@ -23,6 +23,8 @@ public final class NativeHost {
 
     public var textEngine: CoreTextEngine { host.textEngine }
     public var painter: CoreGraphicsPainter { host.painter }
+    /// The real windows for the runtime's window presentations (pf-native-text).
+    public private(set) var realWindows: RealWindowHost?
     public var view: RuntimeView! { host.view }
 
     public init(size: CGSize, root: @escaping @MainActor () -> AnyView) {
@@ -37,6 +39,11 @@ public final class NativeHost {
             ShareAction.systemHandler = { request in host.share(items: request.strings, subject: request.subject, message: request.message, files: request.files) }
             // AppKit representables' views live in the window over the painted content (ix-appkit).
             self.runtime.nativeViewHost = AppKitViewHost(view: host.view)
+            // Window presentations open as windows of their own (pf-native-text).
+            let windows = RealWindowHost(runtime: self.runtime, host: host)
+            self.realWindows = windows
+            self.runtime.realWindowHost = windows
+            host.onFrame = { [weak windows] in windows?.redisplay() }
             // Open windows are remembered in the defaults and reopened at the next launch; the
             // app's menu commands make the menu bar (sw-windows).
             self.runtime.windowStateStore = (get: { UserDefaults.standard.string(forKey: "swiftuiweb.windows") },
@@ -207,4 +214,136 @@ final class AppKitViewHost: _NativeViewHosting {
     }
 
     func view(of controller: AnyObject) -> AnyObject? { (controller as? NSViewController)?.view }
+}
+
+
+/// The runtime's `.window` presentations as real `NSWindow`s (pf-native-text): one per
+/// presentation, opened where the presentation would sit (cascaded from the main window),
+/// its content view painting the presentation's content through
+/// `Runtime.render(hostedWindow:scale:)`, its pointer and key events reaching the runtime
+/// in root coordinates, closing dismissing the presentation and resizing following it.
+@MainActor
+public final class RealWindowHost: NSObject, _RealWindowHosting, NSWindowDelegate {
+    private unowned let runtime: Runtime
+    private unowned let host: NativeSceneHost
+    private var windows: [Int: (window: NSWindow, view: HostedWindowView)] = [:]
+    private var closing: Set<Int> = []
+    /// The windows the runtime has, by identity, as last synced.
+    public var openWindowIdentifiers: [Int] { Array(windows.keys) }
+
+    init(runtime: Runtime, host: NativeSceneHost) {
+        self.runtime = runtime
+        self.host = host
+    }
+
+    public func syncWindows(_ list: [_HostedWindow]) {
+        let wanted = Set(list.map(\.id))
+        for (id, entry) in windows where !wanted.contains(id) {
+            closing.insert(id)
+            entry.window.orderOut(nil)
+            entry.window.delegate = nil
+            windows[id] = nil
+            closing.remove(id)
+        }
+        for (index, description) in list.enumerated() {
+            if let entry = windows[description.id] {
+                entry.view.hosted = description
+                if entry.window.title != (description.title ?? "") { entry.window.title = description.title ?? "" }
+                if entry.window.contentView?.bounds.size != description.contentSize { entry.window.setContentSize(description.contentSize) }
+                entry.view.needsDisplay = true
+                continue
+            }
+            let style: NSWindow.StyleMask = description.resizable ? [.titled, .closable, .miniaturizable, .resizable] : [.titled, .closable, .miniaturizable]
+            let window = NSWindow(contentRect: CGRect(origin: .zero, size: description.contentSize), styleMask: style, backing: .buffered, defer: false)
+            window.title = description.title ?? ""
+            window.isReleasedWhenClosed = false
+            if description.hidesTitleBar { window.titlebarAppearsTransparent = true; window.titleVisibility = .hidden }
+            let view = HostedWindowView(runtime: runtime, host: host, description: description)
+            window.contentView = view
+            window.delegate = self
+            // Cascaded from the main window's origin.
+            if let main = host.view.window {
+                let origin = CGPoint(x: main.frame.minX + 24 * CGFloat(index + 1), y: main.frame.maxY - description.contentSize.height - 24 * CGFloat(index + 1) - 28)
+                window.setFrameOrigin(origin)
+            } else {
+                window.center()
+            }
+            windows[description.id] = (window, view)
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(view)
+        }
+    }
+
+    /// Every hosted window repaints with the main view's frame.
+    func redisplay() {
+        for entry in windows.values { entry.view.needsDisplay = true }
+    }
+
+    private func identifier(of window: NSWindow) -> Int? { windows.first { $0.value.window === window }?.key }
+
+    public func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, let id = identifier(of: window), !closing.contains(id) else { return }
+        windows[id] = nil
+        runtime.hostedWindowDidClose(id)
+        host.requestFrame()
+    }
+
+    public func windowDidResize(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, let id = identifier(of: window), let content = window.contentView else { return }
+        runtime.hostedWindow(id, didResizeTo: content.bounds.size)
+        host.requestFrame()
+    }
+
+    public func windowDidBecomeKey(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, let id = identifier(of: window) else { return }
+        runtime.hostedWindowDidBecomeKey(id)
+    }
+}
+
+/// A hosted window's content: the presentation painted at its content origin, events into
+/// the runtime at root coordinates, keys through the main view's input client (the focused
+/// field is the scene's).
+@MainActor
+final class HostedWindowView: NSView {
+    private unowned let runtime: Runtime
+    private unowned let host: NativeSceneHost
+    var hosted: _HostedWindow
+
+    init(runtime: Runtime, host: NativeSceneHost, description: _HostedWindow) {
+        self.runtime = runtime
+        self.host = host
+        hosted = description
+        super.init(frame: CGRect(origin: .zero, size: description.contentSize))
+        wantsLayer = true
+    }
+    required init?(coder: NSCoder) { nil }
+
+    override var isFlipped: Bool { true }
+    override var acceptsFirstResponder: Bool { true }
+
+    override func draw(_ dirtyRect: NSRect) {
+        guard let ctx = NSGraphicsContext.current?.cgContext else { return }
+        host.painter.paint(runtime.render(hostedWindow: hosted.id, scale: window?.backingScaleFactor ?? 2), into: ctx)
+    }
+
+    private func rootPoint(_ event: NSEvent) -> CGPoint {
+        let local = convert(event.locationInWindow, from: nil)
+        return CGPoint(x: local.x + hosted.contentOrigin.x, y: local.y + hosted.contentOrigin.y)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        window?.makeFirstResponder(self)
+        runtime.pointerDown(at: rootPoint(event), type: .mouse, time: event.timestamp)
+        host.requestFrame()
+    }
+    override func mouseDragged(with event: NSEvent) { runtime.pointerMoved(to: rootPoint(event), time: event.timestamp); host.requestFrame() }
+    override func mouseUp(with event: NSEvent) { runtime.pointerUp(at: rootPoint(event), time: event.timestamp); host.requestFrame() }
+    override func mouseMoved(with event: NSEvent) { runtime.pointerMoved(to: rootPoint(event), time: event.timestamp); host.requestFrame() }
+    override func scrollWheel(with event: NSEvent) {
+        runtime.scrollWheel(by: CGSize(width: -event.scrollingDeltaX, height: -event.scrollingDeltaY), at: rootPoint(event))
+        host.requestFrame()
+    }
+    /// Keys go to the main view, whose input client edits the scene's focused field.
+    override func keyDown(with event: NSEvent) { host.view.keyDown(with: event); host.requestFrame() }
+    override func keyUp(with event: NSEvent) { host.view.keyUp(with: event) }
 }

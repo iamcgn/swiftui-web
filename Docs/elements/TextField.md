@@ -100,6 +100,21 @@ blur on Tab all follow. wasm js tests pass.
 Focused look (the ring is an accent stroke, unverified), the caret and selection colours and
 widths (unverified), the rounded bezel on macOS 26.6 (21 pt; the goldens stay at 26.2),
 `lineLimit` on a horizontal field, a vertical field's ellipsis past the limit (clipped here),
-a formatted field's native typing (the macOS host types at the end only), keyboard focus
-order between fields and buttons, text scrolling inside a narrow field (text is clipped), IME
-candidate window placement (unverified by hand), the iPhone reserved-lines rule.
+keyboard focus order between fields and buttons, text scrolling inside a narrow field (text
+is clipped), IME candidate window placement by hand, the iPhone reserved-lines rule.
+
+## Native editing (2026-10-12, pf-native-text)
+
+The macOS host's text input client (`RuntimeView`, `NSTextInputClient`) keeps an editor per
+focused field — a selection in UTF-16 offsets and the input method's marked range — and tells
+the scene, which paints the caret, the selection and a 1 pt underline under the marked text
+(`TextFieldNode.markedRange`, `HostedScene.textField(_:markedRange:)`; the host's own caret
+draws only for scenes that paint none). Typing replaces the selection; Delete, forward
+delete, word delete, the arrows with Shift, Home / End (⌘←/→), Select All and Return (a newline
+in a multi-line editor that does not submit) come through `doCommand`; a click in the field
+puts the caret at the nearest glyph boundary by the text's advances and a drag extends the
+selection. An input method's `setMarkedText` replaces the previous marked text (else the
+selection) and puts the caret where the method says inside it; `insertText` commits over the
+marked range; `firstRect(forCharacterRange:)` places the candidate window at the caret and
+`characterIndex(for:)` answers from the advances. `NativeTextAndWindowTests.selectionAwareEditingAndMarkedText`;
+a Japanese IME session by hand stays with `pf-browser-sessions`.

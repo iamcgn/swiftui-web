@@ -224,8 +224,14 @@ public final class NativeSceneHost: NSObject, NSApplicationDelegate {
         let scale = window?.backingScaleFactor ?? 2
         painter.paint(scene.render(scale: scale), into: ctx)
         if let windowTitle = scene.windowTitle { title(windowTitle) }
+        onFrame?()
         if animating || scene.isAnimating || scene.needsFrame { scheduleFrame() }
     }
+
+    /// Called after each frame of the main view (secondary windows repaint then).
+    public var onFrame: (() -> Void)?
+    /// Asks for a frame (secondary windows' events).
+    public func requestFrame() { scheduleFrame() }
 
     fileprivate func scheduleFrame() {
         guard !frameScheduled else { return }
@@ -272,9 +278,10 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
         drawCaret(in: ctx)
     }
 
-    /// A caret after the focused text field's text (the scene paints the text itself).
+    /// A caret after the focused text field's text, for scenes that paint none of their own
+    /// (SwiftUI's and UIKit's fields paint their caret and selection from the editor's state).
     private func drawCaret(in ctx: CGContext) {
-        guard let field = host.focusedTextField, let input = field.textInput, input.isEnabled else { return }
+        guard let field = host.focusedTextField, let input = field.textInput, input.isEnabled, !input.paintsCaret else { return }
         let shown = input.isSecure ? String(repeating: "•", count: input.text.count) : input.text
         ctx.setFillColor(NSColor.controlAccentColor.cgColor)
         if input.isMultiline {
@@ -300,11 +307,15 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
 
     override public func mouseDown(with event: NSEvent) {
         window?.makeFirstResponder(self)
+        inputContext?.discardMarkedText()
         host.scene.pointerDown(at: point(event), type: .mouse, time: event.timestamp)
+        // The press focused (or kept) a field: the caret goes where it landed.
+        placeCaret(at: point(event), extending: false)
         needsDisplay = true
     }
 
     override public func mouseDragged(with event: NSEvent) {
+        if selectionAnchor != nil, host.focusedTextField != nil { placeCaret(at: point(event), extending: true) }
         host.scene.pointerMoved(to: point(event), time: event.timestamp)
         // The scene lifted a payload: the system carries it from here (sw-dragdrop-os).
         if draggingSession == nil { beginSystemDrag(with: event) }
@@ -505,6 +516,7 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
     }
 
     override public func mouseUp(with event: NSEvent) {
+        selectionAnchor = nil
         host.scene.pointerUp(at: point(event), time: event.timestamp)
         needsDisplay = true
     }
@@ -585,27 +597,114 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
         return KeyEquivalent(Character(first.lowercased()))
     }
 
-    // MARK: NSTextInputClient (the focused text field's editor: typing at the end of the text)
+    // MARK: NSTextInputClient (the focused text field's editor: a selection in the text,
+    // typing replacing it, the input method's marked text; pf-native-text)
 
-    private func setFocusedText(_ text: String) {
-        guard let field = host.focusedTextField else { return }
-        host.scene.textField(field.identifier, didChange: text)
+    /// The editor's state for the focused field: the selection and the marked range, in
+    /// UTF-16 offsets of the field's text (the scene paints the caret, the selection and the
+    /// marked underline from what it is told).
+    private struct Editor { var field: Int; var selection: Range<Int>; var marked: Range<Int>? }
+    private var editor: Editor?
+
+    /// The editor for the focused field: a fresh one (the caret after the text) when the focus
+    /// moved to another field since.
+    private func currentEditor() -> (Editor, TextInputInfo)? {
+        guard let field = host.focusedTextField, let input = field.textInput else { editor = nil; return nil }
+        if editor?.field != field.identifier {
+            let end = input.text.utf16.count
+            editor = Editor(field: field.identifier, selection: end..<end, marked: nil)
+        }
+        if var state = editor {
+            let count = input.text.utf16.count
+            state.selection = min(state.selection.lowerBound, count)..<min(state.selection.upperBound, count)
+            if let marked = state.marked, marked.upperBound > count { state.marked = nil }
+            editor = state
+            return (state, input)
+        }
+        return nil
+    }
+
+    private func utf16Substring(_ text: String, _ range: Range<Int>) -> String {
+        let units = Array(text.utf16)
+        let lower = max(0, min(range.lowerBound, units.count)), upper = max(lower, min(range.upperBound, units.count))
+        return String(decoding: units[lower..<upper], as: UTF16.self)
+    }
+
+    /// Replaces `range` of the focused field's text with `replacement`, leaves the caret after
+    /// it (or at `selection` within the replacement) and tells the scene.
+    private func replace(_ range: Range<Int>, with replacement: String, selection: Range<Int>? = nil, marked: Range<Int>? = nil) {
+        guard let (current, input) = currentEditor() else { return }
+        var state = current
+        let text = input.text
+        let before = utf16Substring(text, 0..<range.lowerBound), after = utf16Substring(text, range.upperBound..<text.utf16.count)
+        let newText = before + replacement + after
+        let caret = range.lowerBound + replacement.utf16.count
+        state.selection = selection ?? caret..<caret
+        state.marked = marked
+        editor = state
+        host.scene.textField(state.field, didChange: newText)
+        host.scene.textField(state.field, selectionStart: state.selection.lowerBound, end: state.selection.upperBound)
+        host.scene.textField(state.field, markedRange: state.marked)
+        needsDisplay = true
+    }
+
+    private func setSelection(_ selection: Range<Int>) {
+        guard let (current, _) = currentEditor() else { return }
+        var state = current
+        state.selection = selection
+        editor = state
+        host.scene.textField(state.field, selectionStart: selection.lowerBound, end: selection.upperBound)
         needsDisplay = true
     }
 
     public func insertText(_ string: Any, replacementRange: NSRange) {
-        guard let field = host.focusedTextField, let input = field.textInput else { return }
+        guard let (state, _) = currentEditor() else { return }
         let inserted = (string as? NSAttributedString)?.string ?? (string as? String) ?? ""
-        setFocusedText(input.text + inserted)
+        // Committed text replaces the marked text, else the selection.
+        let range = replacementRange.location != NSNotFound ? replacementRange.location..<(replacementRange.location + replacementRange.length) : (state.marked ?? state.selection)
+        replace(range, with: inserted)
     }
 
     override public func doCommand(by selector: Selector) {
-        guard let field = host.focusedTextField, let input = field.textInput else { return }
+        guard let (state, input) = currentEditor() else { return }
+        let text = input.text, count = text.utf16.count
+        let selection = state.selection
+        func wordStart(before offset: Int) -> Int {
+            let units = Array(text.utf16.prefix(offset))
+            var index = units.count
+            while index > 0, units[index - 1] == 32 { index -= 1 }
+            while index > 0, units[index - 1] != 32 { index -= 1 }
+            return index
+        }
         switch selector {
-        case #selector(NSResponder.deleteBackward(_:)), #selector(NSResponder.deleteWordBackward(_:)):
-            setFocusedText(String(input.text.dropLast(selector == #selector(NSResponder.deleteWordBackward(_:)) ? input.text.split(separator: " ").last?.count ?? 1 : 1)))
+        case #selector(NSResponder.deleteBackward(_:)):
+            if !selection.isEmpty { replace(selection, with: "") } else if selection.lowerBound > 0 { replace((selection.lowerBound - 1)..<selection.lowerBound, with: "") }
+        case #selector(NSResponder.deleteWordBackward(_:)):
+            if !selection.isEmpty { replace(selection, with: "") } else { replace(wordStart(before: selection.lowerBound)..<selection.lowerBound, with: "") }
+        case #selector(NSResponder.deleteForward(_:)):
+            if !selection.isEmpty { replace(selection, with: "") } else if selection.upperBound < count { replace(selection.upperBound..<(selection.upperBound + 1), with: "") }
+        case #selector(NSResponder.moveLeft(_:)):
+            setSelection(selection.isEmpty ? max(0, selection.lowerBound - 1)..<max(0, selection.lowerBound - 1) : selection.lowerBound..<selection.lowerBound)
+        case #selector(NSResponder.moveRight(_:)):
+            setSelection(selection.isEmpty ? min(count, selection.upperBound + 1)..<min(count, selection.upperBound + 1) : selection.upperBound..<selection.upperBound)
+        case #selector(NSResponder.moveLeftAndModifySelection(_:)):
+            setSelection(max(0, selection.lowerBound - 1)..<selection.upperBound)
+        case #selector(NSResponder.moveRightAndModifySelection(_:)):
+            setSelection(selection.lowerBound..<min(count, selection.upperBound + 1))
+        case #selector(NSResponder.moveToBeginningOfLine(_:)), #selector(NSResponder.moveToBeginningOfDocument(_:)), #selector(NSResponder.moveToLeftEndOfLine(_:)):
+            setSelection(0..<0)
+        case #selector(NSResponder.moveToEndOfLine(_:)), #selector(NSResponder.moveToEndOfDocument(_:)), #selector(NSResponder.moveToRightEndOfLine(_:)):
+            setSelection(count..<count)
+        case #selector(NSResponder.moveToBeginningOfLineAndModifySelection(_:)), #selector(NSResponder.moveToLeftEndOfLineAndModifySelection(_:)):
+            setSelection(0..<selection.upperBound)
+        case #selector(NSResponder.moveToEndOfLineAndModifySelection(_:)), #selector(NSResponder.moveToRightEndOfLineAndModifySelection(_:)):
+            setSelection(selection.lowerBound..<count)
+        case #selector(NSResponder.moveWordLeft(_:)):
+            setSelection(wordStart(before: selection.lowerBound)..<wordStart(before: selection.lowerBound))
+        case #selector(NSResponder.selectAll(_:)):
+            setSelection(0..<count)
         case #selector(NSResponder.insertNewline(_:)):
-            host.scene.textFieldDidSubmit(field.identifier)
+            if input.isMultiline, !input.submitsOnReturn { replace(selection, with: "\n") } else { host.scene.textFieldDidSubmit(state.field) }
             needsDisplay = true
         case #selector(NSResponder.cancelOperation(_:)):
             _ = host.scene.keyDown(KeyEvent(key: .escape))
@@ -617,22 +716,95 @@ public final class RuntimeView: NSView, @preconcurrency NSTextInputClient {
         }
     }
 
-    public func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {}
-    public func unmarkText() {}
-    public func selectedRange() -> NSRange {
-        let count = host.focusedTextField?.textInput?.text.utf16.count ?? 0
-        return NSRange(location: count, length: 0)
+    /// Select All from the Edit menu.
+    override public func selectAll(_ sender: Any?) {
+        if currentEditor() != nil { doCommand(by: #selector(NSResponder.selectAll(_:))) } else { super.selectAll(sender) }
     }
-    public func markedRange() -> NSRange { NSRange(location: NSNotFound, length: 0) }
-    public func hasMarkedText() -> Bool { false }
-    public func attributedSubstring(forProposedRange range: NSRange, actualRange: NSRangePointer?) -> NSAttributedString? { nil }
-    public func validAttributesForMarkedText() -> [NSAttributedString.Key] { [] }
+
+    /// The input method's composition: the marked text replaces the previous marked text (else
+    /// the selection), the caret sits where the method says inside it, the scene underlines it.
+    public func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
+        guard let (state, _) = currentEditor() else { return }
+        let marked = (string as? NSAttributedString)?.string ?? (string as? String) ?? ""
+        let range = replacementRange.location != NSNotFound ? replacementRange.location..<(replacementRange.location + replacementRange.length) : (state.marked ?? state.selection)
+        if marked.isEmpty {
+            replace(range, with: "")
+            return
+        }
+        let start = range.lowerBound
+        let caretStart = start + max(0, min(selectedRange.location, marked.utf16.count))
+        let caretEnd = min(start + marked.utf16.count, caretStart + max(0, selectedRange.length))
+        replace(range, with: marked, selection: caretStart..<caretEnd, marked: start..<(start + marked.utf16.count))
+    }
+
+    public func unmarkText() {
+        guard let (current, _) = currentEditor(), current.marked != nil else { return }
+        var state = current
+        state.marked = nil
+        editor = state
+        host.scene.textField(state.field, markedRange: nil)
+        needsDisplay = true
+    }
+
+    public func selectedRange() -> NSRange {
+        guard let (state, _) = currentEditor() else { return NSRange(location: NSNotFound, length: 0) }
+        return NSRange(location: state.selection.lowerBound, length: state.selection.count)
+    }
+    public func markedRange() -> NSRange {
+        guard let (state, _) = currentEditor(), let marked = state.marked else { return NSRange(location: NSNotFound, length: 0) }
+        return NSRange(location: marked.lowerBound, length: marked.count)
+    }
+    public func hasMarkedText() -> Bool { currentEditor()?.0.marked != nil }
+    public func attributedSubstring(forProposedRange range: NSRange, actualRange: NSRangePointer?) -> NSAttributedString? {
+        guard let (_, input) = currentEditor(), range.location != NSNotFound else { return nil }
+        let substring = utf16Substring(input.text, range.location..<(range.location + range.length))
+        actualRange?.pointee = NSRange(location: range.location, length: substring.utf16.count)
+        return NSAttributedString(string: substring)
+    }
+    public func validAttributesForMarkedText() -> [NSAttributedString.Key] { [.underlineStyle, .markedClauseSegment] }
+
+    /// Where the input method puts its candidate window: the caret's rectangle on screen.
     public func firstRect(forCharacterRange range: NSRange, actualRange: NSRangePointer?) -> NSRect {
-        guard let input = host.focusedTextField?.textInput else { return .zero }
-        let rect = convert(input.textRect, to: nil)
+        guard let (_, input) = currentEditor() else { return .zero }
+        let offset = range.location == NSNotFound ? 0 : range.location
+        let x = input.textRect.minX + host.textEngine.advance(of: utf16Substring(input.text, 0..<offset), font: input.font)
+        let rect = convert(CGRect(x: x, y: input.textRect.minY, width: 1, height: input.textRect.height), to: nil)
         return window?.convertToScreen(rect) ?? rect
     }
-    public func characterIndex(for point: NSPoint) -> Int { 0 }
+
+    /// The character under a point in the focused field, from the text's advances.
+    public func characterIndex(for point: NSPoint) -> Int {
+        guard let (_, input) = currentEditor() else { return NSNotFound }
+        let local = convert(window?.convertPoint(fromScreen: point) ?? point, from: nil)
+        return characterOffset(at: local.x, in: input)
+    }
+
+    /// The UTF-16 offset whose glyph boundary is nearest `x` in the field.
+    private func characterOffset(at x: CGFloat, in input: TextInputInfo) -> Int {
+        let units = Array(input.text.utf16)
+        var best = 0, bestDistance = CGFloat.infinity
+        for offset in 0...units.count {
+            let advance = host.textEngine.advance(of: String(decoding: units[0..<offset], as: UTF16.self), font: input.font)
+            let distance = abs(input.textRect.minX + advance - x)
+            if distance < bestDistance { bestDistance = distance; best = offset }
+        }
+        return best
+    }
+
+    /// A press in the focused field places the caret there (the scene has handled focus);
+    /// dragging extends the selection.
+    fileprivate func placeCaret(at point: CGPoint, extending: Bool) {
+        guard let (state, input) = currentEditor(), input.textRect.contains(point) || extending else { return }
+        let offset = characterOffset(at: point.x, in: input)
+        if extending {
+            let anchor = selectionAnchor ?? state.selection.lowerBound
+            setSelection(min(anchor, offset)..<max(anchor, offset))
+        } else {
+            selectionAnchor = offset
+            setSelection(offset..<offset)
+        }
+    }
+    private var selectionAnchor: Int?
 
     // MARK: Accessibility (the semantics tree as accessibility elements)
 

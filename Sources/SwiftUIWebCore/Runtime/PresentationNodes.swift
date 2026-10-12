@@ -101,6 +101,9 @@ package final class PresentationNode: ViewNode {
     /// Where the user dragged the window to, and the size its corner was dragged to.
     package var windowOrigin: CGPoint?
     package var windowSize: CGSize?
+    /// A window the host shows as a real window of its own (`Runtime.realWindowHost`): its
+    /// frame is not clamped to the main window and the main list does not paint it.
+    package var isHostedWindow = false
     /// The 16 pt square at the bottom-trailing corner that resizes a resizable window.
     package var resizeGripFrame: CGRect { CGRect(x: panel.maxX - 16, y: panel.maxY - 16, width: 16, height: 16) }
     /// The title bar's draggable part (beside the lights), or the top 16 pt without a bar.
@@ -192,6 +195,7 @@ package final class PresentationNode: ViewNode {
 
     package func layout(in window: CGSize) {
         guard let target else { return }
+        isHostedWindow = kind.isWindow && runtime.realWindowHost != nil
         let m = metrics
         // macOS 27 sheets, alerts and popovers are windows the size of their content (which pads
         // itself); menus pad nothing either.
@@ -366,7 +370,7 @@ package final class PresentationNode: ViewNode {
             // centred) cascaded by the number of windows already open, or where it was dragged.
             let margin = PlatformMetrics.sheetMargin
             let bar = titleBarHeight + toolbarHeight
-            let available = CGSize(width: max(0, window.width - 2 * margin), height: max(0, window.height - 2 * margin - bar))
+            let available = isHostedWindow ? CGSize(width: 1e6, height: 1e6) : CGSize(width: max(0, window.width - 2 * margin), height: max(0, window.height - 2 * margin - bar))
             var size: CGSize
             if let dragged = windowSize {
                 size = CGSize(width: min(dragged.width, available.width), height: min(dragged.height, available.height))
@@ -385,8 +389,10 @@ package final class PresentationNode: ViewNode {
                 let unit = windowOptions.defaultPosition ?? .center
                 origin = CGPoint(x: ((window.width - size.width) * unit.x + cascade).rounded(), y: ((window.height - size.height - bar) * unit.y + cascade).rounded())
             }
-            origin.x = min(max(margin, origin.x), max(margin, window.width - size.width - margin))
-            origin.y = min(max(margin, origin.y), max(margin, window.height - size.height - bar - margin))
+            if !isHostedWindow {
+                origin.x = min(max(margin, origin.x), max(margin, window.width - size.width - margin))
+                origin.y = min(max(margin, origin.y), max(margin, window.height - size.height - bar - margin))
+            }
             panel = CGRect(x: origin.x, y: origin.y, width: size.width, height: size.height + bar)
             arrow = nil
             layoutToolbar(top: titleBarHeight)
@@ -412,7 +418,19 @@ package final class PresentationNode: ViewNode {
 
     // MARK: Painting
 
+    /// A hosted window's content for its own window: the background, the toolbar and the
+    /// content, with the panel's content origin at `context.origin` (the title bar is the real
+    /// window's).
+    package func paintHostedWindowContent(into list: inout DisplayList, context: PaintContext) {
+        let bar = titleBarHeight
+        let content = CGRect(x: panel.minX, y: panel.minY + bar, width: panel.width, height: panel.height - bar)
+        list.append(.fillRect(context.absoluteRect(content), environment._windowBackground))
+        if let toolbarBar { toolbarBar.paint(into: &list, context: context.child(at: toolbarBar.frame)) }
+        if let target { target.paint(into: &list, context: context.child(at: target.presentedFrame)) }
+    }
+
     package func paintPresentation(into list: inout DisplayList, context: PaintContext) {
+        if isHostedWindow { return }
         // The dim is always black; the panel, its shadow and border follow the appearance (unverified in dark).
         let black = { (alpha: Double) in self.environment._ink(alpha) }
         let m = metrics
