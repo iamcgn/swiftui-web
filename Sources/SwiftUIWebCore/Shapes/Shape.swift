@@ -1,6 +1,5 @@
 /// A 2D shape that you can use when drawing a view.
-@MainActor @preconcurrency
-public protocol Shape: Animatable, View {
+nonisolated public protocol Shape: Sendable, Animatable, View {
     /// Describes this shape as a path within a rectangular frame of reference.
     nonisolated func path(in rect: CGRect) -> Path
 

@@ -17,6 +17,9 @@ public struct ProgressView<Label: View, CurrentValueLabel: View>: View {
     package var timer: (interval: ClosedRange<Date>, countsDown: Bool)?
     /// `ProgressView(_ progress: Progress)` on Apple platforms: the fraction re-read every frame.
     package var polled: _PolledFraction?
+    /// Made from a style's configuration (`ProgressView(configuration)` inside `makeBody`):
+    /// drawn in the default style, as Apple's, not the style that is building it.
+    package var fromConfiguration = false
 
     @Environment(\.progressViewStyle) private var style
 
@@ -37,7 +40,7 @@ public struct ProgressView<Label: View, CurrentValueLabel: View>: View {
             fractionCompleted: fraction,
             label: label.map { ProgressViewStyleConfiguration.Label(view: AnyView($0)) },
             currentValueLabel: currentValueLabel.map { ProgressViewStyleConfiguration.CurrentValueLabel(view: AnyView($0)) })
-        return style.makeBodyErased(configuration)
+        return (fromConfiguration ? DefaultProgressViewStyle() : style).makeBodyErased(configuration)
     }
 }
 
@@ -228,6 +231,7 @@ extension ProgressView where Label == ProgressViewStyleConfiguration.Label, Curr
         fractionCompleted = configuration.fractionCompleted
         label = configuration.label
         currentValueLabel = configuration.currentValueLabel
+        fromConfiguration = true
     }
 }
 

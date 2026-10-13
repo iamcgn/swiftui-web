@@ -7,9 +7,9 @@ public struct _AppearanceActionModifier {
     package let appear: _ActionBox?
     package let disappear: _ActionBox?
 
-    package init(appear: (@MainActor () -> Void)?, disappear: (@MainActor () -> Void)?) {
-        self.appear = appear.map { _ActionBox($0) }
-        self.disappear = disappear.map { _ActionBox($0) }
+    package init(appear: (() -> Void)?, disappear: (() -> Void)?) {
+        self.appear = appear.map { _ActionBox(plain: $0) }
+        self.disappear = disappear.map { _ActionBox(plain: $0) }
     }
 }
 
@@ -49,12 +49,12 @@ extension _TaskModifier: ViewModifier {
 
 extension View {
     /// Adds an action to perform before this view appears.
-    nonisolated public func onAppear(perform action: (@MainActor () -> Void)? = nil) -> some View {
+    nonisolated public func onAppear(perform action: (() -> Void)? = nil) -> some View {
         modifier(_AppearanceActionModifier(appear: action, disappear: nil))
     }
 
     /// Adds an action to perform after this view disappears.
-    nonisolated public func onDisappear(perform action: (@MainActor () -> Void)? = nil) -> some View {
+    nonisolated public func onDisappear(perform action: (() -> Void)? = nil) -> some View {
         modifier(_AppearanceActionModifier(appear: nil, disappear: action))
     }
 

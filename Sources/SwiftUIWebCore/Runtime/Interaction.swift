@@ -384,7 +384,20 @@ package final class ButtonHostNode: LayoutNode<_ButtonHost>, _Interactive {
     }
 
     package var semantics: SemanticsNode {
-        let label = child.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }.joined(separator: " ")
+        // The texts inside, else the images' labels: a system symbol reads as its description
+        // ("plus" → "Add", as SwiftUI labels an image-only button); an `accessibilityLabel`
+        // inside stands for what it wraps.
+        func labels(under node: ViewNode) -> [String] {
+            if let attributed = node as? any _AccessibilityAttributing, let label = attributed.attributes.label { return [label] }
+            if let text = node as? TextNode { return [text.view.resolvedString] }
+            if let image = node as? ImageNode {
+                guard !image.view.isDecorative, let label = image.view.label else { return [] }
+                if case .system(let name) = image.view.source, label == name { return [_SymbolDescriptions.description(of: name)] }
+                return [label]
+            }
+            return node.structuralChildren.flatMap { labels(under: $0) }
+        }
+        let label = labels(under: child).joined(separator: " ")
         return SemanticsNode(role: .button, label: label, frame: frameInRoot, identifier: identifier)
     }
 }

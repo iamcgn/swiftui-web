@@ -128,8 +128,52 @@ fails on any pin, file or hash that differs before it builds anything.
 | Scrumdinger | every target but `AudioService` and `SpeechService` | `AVAudioPlayer`, `AVAudioSession`, `AVAudioApplication`, `AVAudioEngine`, `SFSpeechRecognizer`, `SFSpeechAudioBufferRecognitionRequest`, `SFSpeechRecognitionTask` (`pf-avfoundation-audio`, `pf-speech`). Two Swift 6 errors in `ViewComponents` were ours: `ToolbarContent` and `ProgressViewStyle` were not `@MainActor @preconcurrency` as Apple's are (fixed with the protocol family, `sw-isolation-fidelity`). At runtime: `Media.xcassets` theme colours (`pf-xcassets`), the sheet bar (`sw-ios-sheet-nav`), `ProcessInfo.environment` being empty makes `RuntimeEnvironment.current` the physical device, so the real services run, as on a phone. |
 | CountriesSwiftUI | not yet past `EnvironmentOverrides` | its dependency needs `UIGraphicsImageRenderer`, `UIWindow.drawHierarchy`, `UIImageWriteToSavedPhotosAlbum`, the feedback generators and `Bundle.localizations`; then the app's `SwiftData`, `URLSession`, `UserNotifications`, `UIApplicationDelegateAdaptor` and `UISceneConfiguration.delegateClass`. |
 
-The one thing no implementation here can change is the first row's compiler error: wasm Swift
-has no Objective-C runtime, so a source file with `@objc` or `#selector` cannot be compiled
-for it. Whether SwiftUI-2048 stays as a native-host app (macOS has the runtime) with wasm
-recorded as blocked, or is replaced by an app without Objective-C in its sources, is a
-decision for the project owner, not a patch.
+The first row's compiler error is a barrier this package cannot lift by adding API: wasm Swift
+is built without Objective-C interop, so `@objc` and `#selector` are rejected at the parse
+(forcing `-enable-objc-interop` on the wasm frontend aborts it). The barrier stays **open**;
+neither a native-only acceptance nor another app in its place is authorised. The
+source-preserving routes, all design-level and material:
+
+1. An Objective-C runtime for wasm and a Swift toolchain built with interop on for the wasm
+   target: `@objc` methods get selectors, `#selector` a `Selector`, `UIKeyCommand(action:)` a
+   real target-action. A port of an open-source runtime (GNUstep's libobjc2 compiles with
+   clang; Apple's objc4 is Darwin-only), then a stdlib/toolchain rebuild — a toolchain
+   project, not a package change; the frontend abort is the first thing to report upstream.
+2. An upstream compiler relaxation: `@objc` accepted as an annotation and `#selector` lowered
+   to a string-backed `Selector` on platforms without the runtime, with the framework (our
+   UIKit) dispatching by name. A Swift evolution matter; this package could then supply
+   `UIMenuBuilder`, `UIKeyCommand`, `UIMenu.edit/format/view` and the `@UIApplicationMain`
+   path, which are ordinary API work.
+3. Nothing else: excluding the file, generating a rewrite without the two lines, or supplying
+   an entry point are the modifications the standard rules out.
+
+Until one of the first two exists, SwiftUI-2048 is "every file but `AppDelegate.swift`
+compiles" and not a wasm app.
+
+### Scrumdinger (2026-10-12, later the same day)
+
+Compiles for wasm from its sources exactly as pinned, every target, after `pf-avfoundation-audio`
+(the audio API its services call, over the browser's audio element and microphone) and the
+`Speech` surface, plus the fidelity fixes the build surfaced in this package (the protocol
+isolation family, nonisolated `Shape`, plain action closures where Apple's are plain, a
+`ProgressView(configuration)` inside a custom style drawing in the default style — an
+unbounded recursion before). In Chromium (`Playwright/scrumdinger-probe.mjs`, a CI step of its
+own): the add sheet with its bar, a title typed, an attendee added with the icon-only button
+(which now reads as "Add Attendee"), the scrum on the list, still there after a reload through
+its `FileService`, the detail screen, the meeting screen. **The meeting is blocked**: the app
+starts its timer only after `requestPermissions()` on its `SpeechService` succeeds, and speech
+is unavailable in the browser by design — the page's `SpeechRecognition` listens to a
+microphone stream of its own rather than the buffers the app appends from its audio tap, and
+in Chrome sends the audio to Google's service; neither is the app's data flow nor an approved
+transmission, so no recogniser is installed and the app presents its own alert. The faithful
+options (the appended buffers into a local recogniser: an AudioWorklet-fed track for
+`SpeechRecognition.start(track)` with `processLocally`, or an in-page model) are in
+`pf-speech` for a decision. A separate-stream recogniser would not count as the meeting
+working even if it were enabled.
+
+Two `Button(action: storedClosure)` warnings remain in the app's build: Apple's frameworks are
+compiled in the Swift 5 language mode, where a Swift 6 app sees `@MainActor` closure
+parameters as preconcurrency; ours are Swift 6 modules, so the same call warns. Building the
+API modules in Swift 5 mode with every Swift 6 upcoming feature except SE-0434 would silence
+it (verified in a scratch package) at the cost of ~120 sites that rely on `@MainActor`
+closures being Sendable; recorded under `sw-isolation-fidelity`, not done.

@@ -116,10 +116,10 @@ package final class LayoutContainerNode<V: View, L: Layout, Content: View>: Layo
             return self.withCache(subviews) { cache in
                 switch key.axis {
                 case .horizontal:
-                    return layout.explicitAlignment(of: HorizontalAlignment(key.type), in: bounds, proposal: proposal,
+                    return self.layout.explicitAlignment(of: HorizontalAlignment(key.type), in: bounds, proposal: proposal,
                                                     subviews: subviews, cache: &cache)
                 case .vertical:
-                    return layout.explicitAlignment(of: VerticalAlignment(key.type), in: bounds, proposal: proposal,
+                    return self.layout.explicitAlignment(of: VerticalAlignment(key.type), in: bounds, proposal: proposal,
                                                     subviews: subviews, cache: &cache)
                 }
             }

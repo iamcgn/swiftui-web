@@ -12,6 +12,8 @@ public struct LabeledContent<Label: View, Content: View>: View {
     package let content: Content
 
     @Environment(\.labeledContentStyle) private var style
+    /// Made from a style's configuration: drawn in the default style, as Apple's.
+    package var fromConfiguration = false
 
     /// Creates a labeled view with a custom label and content.
     public init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
@@ -23,7 +25,7 @@ public struct LabeledContent<Label: View, Content: View>: View {
         let configuration = LabeledContentStyleConfiguration(
             label: LabeledContentStyleConfiguration.Label(view: AnyView(label)),
             content: LabeledContentStyleConfiguration.Content(view: AnyView(content)))
-        style.makeBodyErased(configuration)
+        (fromConfiguration ? AutomaticLabeledContentStyle() : style).makeBodyErased(configuration)
     }
 }
 
@@ -67,6 +69,7 @@ extension LabeledContent where Label == LabeledContentStyleConfiguration.Label, 
     public init(_ configuration: LabeledContentStyleConfiguration) {
         label = configuration.label
         content = configuration.content
+        fromConfiguration = true
     }
 }
 

@@ -315,13 +315,13 @@ extension EnvironmentValues {
 
 extension View {
     /// Adds an action to perform when the user submits a value to this view (Return in a field).
-    nonisolated public func onSubmit(_ action: @escaping @MainActor () -> Void) -> some View {
-        environment(\.submitAction, _ActionBox(action))
+    nonisolated public func onSubmit(_ action: @escaping () -> Void) -> some View {
+        environment(\.submitAction, _ActionBox(plain: action))
     }
 
     /// Adds an action to perform when the user submits a value through one of the triggers.
-    nonisolated public func onSubmit(of triggers: SubmitTriggers, _ action: @escaping @MainActor () -> Void) -> some View {
-        environment(\.submitAction, _ActionBox(action))
+    nonisolated public func onSubmit(of triggers: SubmitTriggers, _ action: @escaping () -> Void) -> some View {
+        environment(\.submitAction, _ActionBox(plain: action))
     }
 
     /// Sets whether to disable autocorrection for this view (the host's input element).

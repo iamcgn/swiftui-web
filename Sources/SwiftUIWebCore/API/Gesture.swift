@@ -405,8 +405,10 @@ extension View {
 
     /// Runs `action` after a press held for `minimumDuration`; `onPressingChanged` follows the press.
     nonisolated public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10,
-                                              perform action: @escaping @MainActor () -> Void,
-                                              onPressingChanged: (@MainActor (Bool) -> Void)? = nil) -> some View {
+                                              perform action: @escaping () -> Void,
+                                              onPressingChanged: ((Bool) -> Void)? = nil) -> some View {
+        nonisolated(unsafe) let action = action
+        nonisolated(unsafe) let onPressingChanged = onPressingChanged
         let gesture = MainActor.assumeIsolated {
             LongPressGesture(minimumDuration: minimumDuration, maximumDistance: maximumDistance)
                 .onChanged { pressing in onPressingChanged?(pressing) }

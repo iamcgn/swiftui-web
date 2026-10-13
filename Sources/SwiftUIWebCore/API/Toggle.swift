@@ -36,6 +36,9 @@ public struct Toggle<Label: View>: View {
     }
 
     @Environment(\.toggleStyle) private var style
+    /// Made from a style's configuration (`Toggle(configuration)` inside `makeBody`): drawn in
+    /// the default style, as Apple's, not the style that is building it.
+    package var fromConfiguration = false
     @Environment(\._formStyle) private var formStyle
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\._inMenu) private var inMenu
@@ -52,7 +55,7 @@ public struct Toggle<Label: View>: View {
                             content: AnyView(_ToggleHost(isOn: isOn, content: AnyView(_SwitchControl(isOn: isOn.wrappedValue, small: true)))),
                             mode: .grouped)
         } else {
-            _ToggleHost(isOn: isOn, content: AnyView(style.makeBodyErased(configuration)))
+            _ToggleHost(isOn: isOn, content: AnyView((fromConfiguration ? DefaultToggleStyle() : style).makeBodyErased(configuration)))
         }
     }
 }
@@ -106,6 +109,7 @@ extension Toggle where Label == ToggleStyleConfiguration.Label {
     /// Creates a toggle based on a toggle style configuration (for custom styles).
     public init(_ configuration: ToggleStyleConfiguration) {
         self.init(isOn: configuration.$isOn) { configuration.label }
+        fromConfiguration = true
     }
 }
 

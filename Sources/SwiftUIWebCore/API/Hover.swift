@@ -149,8 +149,9 @@ extension _PointerStyleModifier: ViewModifier {
 extension View {
     /// Calls `action` with `true` when the pointer enters this view's frame and `false` when it
     /// leaves (or leaves the window).
-    nonisolated public func onHover(perform action: @escaping @MainActor (Bool) -> Void) -> some View {
-        modifier(_HoverModifier(action: action))
+    nonisolated public func onHover(perform action: @escaping (Bool) -> Void) -> some View {
+        nonisolated(unsafe) let action = action
+        return modifier(_HoverModifier(action: { action($0) }))
     }
 
     /// Calls `action` with the pointer's location while it is over this view (in the view's

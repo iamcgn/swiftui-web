@@ -193,7 +193,15 @@ public struct TitleOnlyLabelStyle: LabelStyle {
 /// A label style that only displays the icon of the label.
 public struct IconOnlyLabelStyle: LabelStyle {
     nonisolated public init() {}
-    public func makeBody(configuration: Configuration) -> some View { configuration.icon }
+    /// The icon alone, reading as the title (SwiftUI keeps the title as the accessibility label:
+    /// Scrumdinger's icon-only "Add Attendee" button).
+    public func makeBody(configuration: Configuration) -> some View {
+        if let title = (configuration.title.content.storage as? AnyViewStorage<Text>)?.view {
+            configuration.icon.accessibilityLabel(title)
+        } else {
+            configuration.icon
+        }
+    }
 }
 
 extension LabelStyle where Self == DefaultLabelStyle {

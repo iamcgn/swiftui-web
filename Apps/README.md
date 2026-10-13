@@ -13,7 +13,11 @@ Apps/
 
 `scripts/check-apps.sh` verifies each submodule is at its pin with no file modified, added or
 missing (git status plus the manifest), then builds every app for wasm; `--verify` checks
-only, `--pin` rewrites the manifests after a pin is moved on purpose. CI runs it.
+only, `--pin` rewrites the manifests after a pin is moved on purpose. CI (the browser job,
+`.github/workflows/ci.yml`) checks the submodules out and runs three separate steps, each
+failing on its own: `check-apps.sh --verify` (integrity: the trees are exactly their pins),
+a wasm build of an app (compilation), and its Playwright flow (behaviour). A claim in one is
+not a claim in the others.
 
 ## Pins
 

@@ -61,5 +61,35 @@ import SwiftUIWebHeadless
         #expect(runtime(ProgressView().controlSize(.small)._probe("s")).probeFrames["s"]?.size == CGSize(width: 16, height: 16))
         #expect(commands(ProgressView().controlSize(.small)).first?.contains("w=1.5") == true)
     }
+
+    /// A custom style whose body wraps `ProgressView(configuration)`, as Scrumdinger's
+    /// `RoundedProgressViewStyle` does: the inner view draws in the default style, not the
+    /// custom one again (an unbounded recursion overflowed the stack before 2026-10-12). The
+    /// same rule for Toggle, GroupBox and LabeledContent.
+    struct Rounded: ProgressViewStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            ProgressView(configuration).frame(height: 12).padding(.horizontal).background(Color.gray)._probe("rounded")
+        }
+    }
+    struct Boxed: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View { Toggle(configuration).padding(4)._probe("toggle") }
+    }
+    struct Plain: GroupBoxStyle {
+        func makeBody(configuration: Configuration) -> some View { GroupBox(configuration).padding(2)._probe("box") }
+    }
+    struct Stacked: LabeledContentStyle {
+        func makeBody(configuration: Configuration) -> some View { LabeledContent(configuration).padding(2)._probe("labeled") }
+    }
+
+    @Test func configurationInitializersUseTheDefaultStyle() {
+        let r = runtime(VStack {
+            ProgressView(value: 0.4).progressViewStyle(Rounded())
+            Toggle("On", isOn: .constant(true)).toggleStyle(Boxed())
+            GroupBox("Box") { Text("Inside") }.groupBoxStyle(Plain())
+            LabeledContent("Key", value: "Value").labeledContentStyle(Stacked())
+        })
+        #expect(r.probeFrames["rounded"]?.height == 12)
+        #expect(r.probeFrames["toggle"] != nil && r.probeFrames["box"] != nil && r.probeFrames["labeled"] != nil)
+    }
 }
 #endif

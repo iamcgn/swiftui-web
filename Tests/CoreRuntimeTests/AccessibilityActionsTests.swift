@@ -155,5 +155,20 @@ import SwiftUIWebHeadless
         #expect(holder.rotors[0] == SemanticsRotor(label: "Fruit", entries: [.init(label: "Apple", target: apple.identifier), .init(label: "Banana", target: banana.identifier)]))
         #expect(holder.rotors[1] == SemanticsRotor(label: "Headings", entries: [.init(label: "Bottom", target: footer.identifier), .init(label: "Nowhere", target: nil)]))
     }
+
+    /// A button whose only content is a system symbol reads as the symbol's description, as
+    /// SwiftUI labels it (sw-toolbar-symbol-label, decision 0021: Scrumdinger's "+" is "Add").
+    @Test func imageOnlyButtonsReadAsTheSymbolDescription() {
+        let r = runtime(HStack {
+            Button { } label: { Image(systemName: "plus") }
+            Button { } label: { Image(systemName: "trash.fill") }
+            Button { } label: { Image(systemName: "wand.and.rays") }
+            Button { } label: { Image(systemName: "plus").accessibilityLabel("Create") }
+            Button { } label: { Image(decorative: "badge") }
+            Button { } label: { Label("Add Attendee", systemImage: "plus") }.labelStyle(.iconOnly)
+        })
+        let labels = r.semanticsTree().filter { $0.role == .button }.map(\.label)
+        #expect(labels == ["Add", "Delete", "Wand And Rays", "Create", "", "Add Attendee"], "\(labels)")
+    }
 }
 #endif

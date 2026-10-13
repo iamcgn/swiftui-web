@@ -58,6 +58,7 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+        with: { submodules: true }   # Apps/upstream: the apps of decision 0021 at their pins
       - name: Install toolchain and wasm SDK
         run: |
           brew install swiftly binaryen brotli
@@ -111,6 +112,20 @@ jobs:
           python3 -m http.server 8769 --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8769/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node launches-probe.mjs http://127.0.0.1:8769/index.html)
+      # The apps of decision 0021, three claims kept apart: the upstream trees are exactly their
+      # pins (integrity), an app compiles from them (compilation), the app does what a user does
+      # with it (behaviour). Each step fails on its own.
+      - name: Apps — upstream trees unchanged at their pins (scripts/check-apps.sh --verify)
+        run: scripts/check-apps.sh --verify
+      - name: Apps — Scrumdinger compiles for wasm from its unmodified sources
+        run: |
+          . ~/.swiftly/env.sh
+          scripts/build-wasm.sh Apps --debug --product Scrumdinger
+      - name: Apps — Scrumdinger in Chromium (the add sheet, an attendee, the scrum on file after a reload, the detail; the meeting blocked on speech, pf-speech)
+        run: |
+          python3 -m http.server 8773 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8773/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node scrumdinger-probe.mjs "http://127.0.0.1:8773/index.html?platform=ios")
       - uses: actions/upload-artifact@v4
         with: { name: tier-b, path: .build/tier-b }
 

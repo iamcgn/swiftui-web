@@ -1994,7 +1994,7 @@
       "kind": "infra",
       "priority": "next",
       "title": "Open-source apps as a check",
-      "detail": "The four upstream trees (the three apps and the Countries app's EnvironmentOverrides dependency) are git submodules at pinned commits under `Apps/upstream/`, with a SHA-256 manifest per tree; `Apps/Package.swift` mirrors each upstream target (sources, language mode, excludes and resources) and links this package's products, nothing else (`Apps/README.md`). `scripts/check-apps.sh` verifies the pins and that no upstream file differs, then builds each app for wasm; CI runs it. Done: the baseline and the script. Open: the apps build and run (the rows below), a Playwright flow per app, and SwiftUI-2048's `AppDelegate.swift`, which the wasm compiler refuses (`@objc`, `#selector`) — a platform blocker to decide on, not a patch.",
+      "detail": "The four upstream trees (the three apps and the Countries app's EnvironmentOverrides dependency) are git submodules at pinned commits under `Apps/upstream/`, with a SHA-256 manifest per tree; `Apps/Package.swift` mirrors each upstream target (sources, language mode, excludes and resources) and links this package's products, nothing else (`Apps/README.md`). `scripts/check-apps.sh` verifies the pins and that no upstream file differs, then builds each app for wasm; CI runs it. Done: the baseline and the script. CI (the browser job) checks the submodules out and runs `--verify`, builds Scrumdinger for wasm and runs `Playwright/scrumdinger-probe.mjs`, three separate steps. Scrumdinger compiles from its unmodified sources (2026-10-12) and its add sheet, attendee, persistence across a reload and detail screen run in Chromium; its meeting is blocked on speech (pf-speech). Open: the Countries app (EnvironmentOverrides' UIKit gaps first), and SwiftUI-2048's `AppDelegate.swift`, which the wasm compiler refuses (`@objc`, `#selector`): the source-preserving routes are design-level — an Objective-C runtime for wasm with an interop-enabled toolchain, or an upstream compiler relaxation accepting `@objc`/`#selector` without a runtime (decision 0021); excluding or rewriting the file, replacing the entry point, a native-only acceptance or another app are not authorised.",
       "status": "in-progress",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
@@ -2007,11 +2007,12 @@
       "kind": "missing",
       "priority": "next",
       "title": "AVAudioPlayer, AVAudioSession, AVAudioEngine",
-      "detail": "Scrumdinger's AudioService and SpeechService as written: `AVAudioPlayer(contentsOf:)`, `prepareToPlay`, `play`, `currentTime` over an HTMLAudioElement on the bundle's `ding.wav`; `AVAudioSession.sharedInstance()` with `setCategory(_:mode:options:)` and `setActive(_:options:)` accepted, `AVAudioApplication.requestRecordPermission` over `getUserMedia`; `AVAudioEngine` whose `inputNode` is the microphone (`outputFormat(forBus:)`, `installTap(onBus:bufferSize:format:)` delivering `AVAudioPCMBuffer`s from an AudioWorklet, `removeTap`, `prepare`, `start`, `stop`). The module exists (`AVPlayer` for AVKit); the native host plays through AVFoundation itself.",
-      "status": "planned",
+      "detail": "Scrumdinger's AudioService and SpeechService as written: `AVAudioPlayer(contentsOf:)`, `prepareToPlay`, `play`, `currentTime` over an HTMLAudioElement on the bundle's `ding.wav`; `AVAudioSession.sharedInstance()` with `setCategory(_:mode:options:)` and `setActive(_:options:)` accepted, `AVAudioApplication.requestRecordPermission` over `getUserMedia`; `AVAudioEngine` whose `inputNode` is the microphone (`outputFormat(forBus:)`, `installTap(onBus:bufferSize:format:)` delivering `AVAudioPCMBuffer`s from an AudioWorklet, `removeTap`, `prepare`, `start`, `stop`). The module exists (`AVPlayer` for AVKit); the native host plays through AVFoundation itself. Done 2026-10-12 (Sources/AVFoundation/AVAudio.swift, MediaHost.swift in SwiftUIWebCanvas; AVAudioAndSpeechTests against a fake host). Scrumdinger's AudioService and SpeechService compile and run against it; its meeting reaches neither the player nor the engine yet because the app asks for speech authorisation first (pf-speech).",
+      "status": "done",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
-      ]
+      ],
+      "done": "2026-10-12"
     },
     {
       "id": "pf-speech",
@@ -2020,8 +2021,8 @@
       "kind": "missing",
       "priority": "next",
       "title": "Speech over the Web Speech API",
-      "detail": "A `Speech` module: `SFSpeechRecognizer(locale:)`, `requestAuthorization`, `isAvailable`, `recognitionTask(with:resultHandler:)`, `SFSpeechAudioBufferRecognitionRequest` (`shouldReportPartialResults`, `taskHint`, `addsPunctuation`, `append(_:)`), `SFSpeechRecognitionTask.cancel()`, `SFSpeechRecognitionResult.bestTranscription.formattedString` and `isFinal`, over the browser's `SpeechRecognition` with interim results. The browser recognises from the microphone directly: buffers the app appends from its audio tap are accepted and not what is transcribed (a stated deviation; in Chrome the audio goes to Google's service, Safari's is on-device). Availability follows the browser (`isAvailable` false where there is no `SpeechRecognition`).",
-      "status": "planned",
+      "detail": "A `Speech` module written against Scrumdinger's SpeechService: `SFSpeechRecognizer(locale:)`, `requestAuthorization`, `isAvailable`, `recognitionTask(with:resultHandler:)` and the delegate form, `SFSpeechAudioBufferRecognitionRequest` (`shouldReportPartialResults`, `taskHint`, `addsPunctuation`, `append(_:)`, `endAudio()`), `SFSpeechRecognitionTask` (`cancel`, `finish`, `state`), `SFSpeechRecognitionResult`/`SFTranscription`/segments; a host supplies `_SpeechHost` (2026-10-12). What is NOT done, and not counted: a recogniser. The page's `SpeechRecognition` listens to a microphone stream of its own, not the PCM buffers the app appends from its audio tap, and in Chrome it sends the audio to Google's service — a different data flow and an external transmission nobody approved, so the browser host installs no recogniser at all and `isAvailable` is false (Scrumdinger shows its own \"Not authorized to recognize speech\" alert, which the Playwright flow expects). Faithful options, each consuming the app's appended buffers: (a) the buffers through an `AudioWorklet` into a `MediaStreamTrack` (`AudioContext.createMediaStreamDestination`) handed to `SpeechRecognition.start(track)` with `processLocally: true` (Chrome 138+/the on-device Web Speech additions; feature-detected, unavailable elsewhere) — the app's bytes, recognised on the device; (b) an in-page model (whisper.cpp or Vosk compiled to wasm) fed the buffers directly — the app's bytes, on the device, at the cost of a model download; (c) a server the deployer runs, given the buffers over the deployer's own connection — the app's bytes, but a transmission the deployer must approve. Which to build is a decision to put to Corey; none is implied by the stand-in's existence.",
+      "status": "in-progress",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
       ]
@@ -2059,11 +2060,12 @@
       "kind": "infra",
       "priority": "next",
       "title": "Asset catalogs in the bundle",
-      "detail": "`.process(\"Media.xcassets\")`: the colorsets (light and dark, display-P3 or sRGB components) and imagesets (scale and appearance variants) of an app target's asset catalog compiled into the bundle so `Color(_:bundle:)` and `Image(_:bundle:)` resolve them as on iOS (Scrumdinger's sixteen theme colours, the Countries app's accent). `scripts/build-wasm.sh` copies processed resources and skips xcassets today.",
-      "status": "planned",
+      "detail": "Already there (decision 0011): `scripts/assets.py` reads every `*.xcassets` under the package into the bundle's manifest, colour sets with their appearances included, so Scrumdinger's sixteen theme colours resolve through `Color(_:bundle:)` (checked 2026-10-12: 16 colour sets from its three catalogs). `scripts/build-wasm.sh` gained `--product` for the Apps package and scopes the catalogs to the app's own upstream tree (three apps, three AccentColors).",
+      "status": "done",
       "refs": [
         "Docs/decisions/0021-real-apps.md"
-      ]
+      ],
+      "done": "2026-10-12"
     }
   ]
 }

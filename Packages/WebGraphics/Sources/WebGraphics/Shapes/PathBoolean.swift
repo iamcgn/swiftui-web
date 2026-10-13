@@ -5,7 +5,7 @@
 // fill paints the result. Curves are flattened to 16 segments, so curved boundaries are
 // polygonal at sub-pixel scale.
 
-public enum PathBooleanOperation {
+public enum PathBooleanOperation: Sendable {
     case union, intersection, subtraction, symmetricDifference
 }
 

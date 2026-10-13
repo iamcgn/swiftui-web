@@ -7,6 +7,8 @@ public struct GroupBox<Label: View, Content: View>: View {
     package let content: Content
 
     @Environment(\.groupBoxStyle) private var style
+    /// Made from a style's configuration: drawn in the default style, as Apple's.
+    package var fromConfiguration = false
 
     /// Creates a group box with a custom label.
     public init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
@@ -18,7 +20,7 @@ public struct GroupBox<Label: View, Content: View>: View {
         let configuration = GroupBoxStyleConfiguration(
             label: GroupBoxStyleConfiguration.Label(view: label.map { AnyView($0) } ?? AnyView(EmptyView()), isEmpty: label == nil),
             content: GroupBoxStyleConfiguration.Content(view: AnyView(content)))
-        style.makeBodyErased(configuration)
+        (fromConfiguration ? DefaultGroupBoxStyle() : style).makeBodyErased(configuration)
     }
 }
 
@@ -49,6 +51,7 @@ extension GroupBox where Label == GroupBoxStyleConfiguration.Label, Content == G
     public init(_ configuration: GroupBoxStyleConfiguration) {
         label = configuration.label
         content = configuration.content
+        fromConfiguration = true
     }
 }
 

@@ -2315,6 +2315,18 @@
           ]
         },
         {
+          "api": "AVAudioPlayer / AVAudioSession / AVAudioApplication / AVAudioEngine / AVAudioInputNode / AVAudioPCMBuffer / AVAudioFormat (AVFoundation)",
+          "status": "partial",
+          "notes": "decision 0021, pf-avfoundation-audio (2026-10-12), against Scrumdinger's AudioService and SpeechService: a player over the browser's <audio> element (play, pause, stop, currentTime, duration, volume, rate, loops, the delegate's finish); the session records its category, mode, options and activation, and the record permission is the browser's microphone (getUserMedia, remembered); the engine's input node is the microphone through an AudioContext, mono float buffers to installTap at the browser's sample rate, prepare/start/stop/removeTap; floatChannelData is real memory. A host installs _AVAudioHost (MediaHost.swift in the browser; none natively yet). Not done: AVAudioPlayer(data:) beyond a data URL, output through the engine (mainMixerNode is inert), AVAudioFile, AVAudioRecorder, interruptions and route notifications",
+          "noFixture": "Audio has no pixels; AVAudioAndSpeechTests drive the API against a fake host, and the browser host runs in Playwright/scrumdinger-probe.mjs"
+        },
+        {
+          "api": "SFSpeechRecognizer / SFSpeechAudioBufferRecognitionRequest / SFSpeechRecognitionTask / SFSpeechRecognitionResult / SFTranscription (Speech)",
+          "status": "stub",
+          "notes": "decision 0021, pf-speech (2026-10-12): the surface SpeechService calls (init(locale:), isAvailable, requestAuthorization, recognitionTask with a handler or a delegate, partial and final results, cancel, finish, endAudio) over a host hook, with unit tests against a fake host. No recogniser is installed in the browser: the page's SpeechRecognition listens to a microphone stream of its own rather than the buffers the app appends, and in Chrome sends the audio to Google's service, neither of which is the app's data flow; isAvailable is false and an app sees it (Scrumdinger presents its own alert and does not start its meeting). The faithful options (the appended buffers into a local recogniser) are in Docs/todo.json pf-speech, awaiting a decision",
+          "noFixture": "Nothing to draw; AVAudioAndSpeechTests cover the API against a fake host"
+        },
+        {
           "api": "WebView / WebPage (WebKit)",
           "status": "partial",
           "notes": "A host element: a sandboxed <iframe> loading the page's URL or HTML; a white stand-in elsewhere; navigation state is not reported back",

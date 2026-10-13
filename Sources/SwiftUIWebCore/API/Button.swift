@@ -10,6 +10,12 @@ public struct ButtonRole: Equatable, Sendable {
 package final class _ActionBox: @unchecked Sendable {
     package let run: @MainActor () -> Void
     package init(_ run: @escaping @MainActor () -> Void) { self.run = run }
+    /// A plain closure, as Apple's `onTapGesture`, `onAppear`, `onSubmit` and the like take
+    /// (a Swift 6 app passes a stored `() -> Void` to them); it runs on the main actor.
+    package init(plain run: @escaping () -> Void) {
+        nonisolated(unsafe) let run = run
+        self.run = { run() }
+    }
 }
 
 /// A control that initiates an action.
@@ -508,7 +514,7 @@ extension _TapGestureModifier: ViewModifier {
 
 extension View {
     /// Adds an action to perform when this view recognizes a tap gesture.
-    nonisolated public func onTapGesture(count: Int = 1, perform action: @escaping @MainActor () -> Void) -> some View {
-        modifier(_TapGestureModifier(count: count, action: _ActionBox(action)))
+    nonisolated public func onTapGesture(count: Int = 1, perform action: @escaping () -> Void) -> some View {
+        modifier(_TapGestureModifier(count: count, action: _ActionBox(plain: action)))
     }
 }
