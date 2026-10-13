@@ -18,6 +18,7 @@ enum MixedImports {
         // A nil selector type-checks against the one `Selector`; the save itself is not run here (a download).
         let save: (UIImage, Any?, Selector?, UnsafeMutableRawPointer?) -> Void = UIImageWriteToSavedPhotosAlbum
         _ = save
+        _ = image
         return "\(copySelector) \(Int(bounds.width)) \(Bundle.main.localizations.joined(separator: ","))"
     }
 }

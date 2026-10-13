@@ -70,7 +70,16 @@ let package = Package(
         .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVFoundation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "SwiftData", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "SwiftData", dependencies: ["SwiftUIWebCore", "SwiftDataMacros", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // The `@Model`, `#Predicate` and `@ModelActor` macros (host-compiled, as `#Preview`'s plugin).
+        .macro(
+            name: "SwiftDataMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+            ],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
         .target(name: "UserNotifications", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -116,9 +125,10 @@ let package = Package(
             name: "SwiftUIWebCanvas",
             dependencies: [
                 "SwiftUIWebCore",
-                // The audio and notification stand-ins' host hooks (decision 0021): Web Audio,
-                // the microphone, the Notification API. Speech installs nothing (pf-speech).
-                "AVFoundation", "UserNotifications",
+                // The audio, notification and data stand-ins' host hooks (decision 0021): Web
+                // Audio, the microphone, the Notification API, localStorage for SwiftData's
+                // stores. Speech installs nothing (pf-speech).
+                "AVFoundation", "UserNotifications", "SwiftData",
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
             ],
@@ -142,7 +152,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "UserNotifications", "WebKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(

@@ -14,12 +14,17 @@ public final class CanvasHost {
     public let host: CanvasSceneHost
 
     /// Installs the JavaScript event loop, creates a host in `#app` (or `<body>`) and mounts.
-    public static func launch(windows: [_WindowDescriptor] = [], _ root: @escaping @MainActor () -> AnyView) {
+    /// The platform hosts (audio, notifications, fetch, storage) are installed before `windows`
+    /// is read: reading it makes the `App` value, whose delegate may already open its model
+    /// container (Countries' AppEnvironment.bootstrap, decision 0021).
+    public static func launch(windows: @autoclosure @MainActor () -> [_WindowDescriptor] = [], _ root: @escaping @MainActor () -> AnyView) {
         JavaScriptEventLoop.installGlobalExecutor()
-        let host = CanvasHost()
         MediaHost.install()
         NotificationsHost.install()
         NetworkHost.install()
+        DataHost.install()
+        let host = CanvasHost()
+        let windows = windows()
         // Open windows are remembered in localStorage and reopened on the next load (sw-windows).
         if let storage = JSObject.global.localStorage.object {
             host.runtime.windowStateStore = (get: { storage.getItem?("swiftuiweb.windows").string },

@@ -126,7 +126,7 @@ fails on any pin, file or hash that differs before it builds anything.
 |---|---|---|
 | SwiftUI-2048 | every file but `AppDelegate.swift` | `@objc func newGame` → "Objective-C interoperability is disabled"; `#selector(newGame(_:))` → "'#selector' can only be used with the Objective-C runtime" (forcing `-Xfrontend -enable-objc-interop` crashes the frontend). Also `UIMenuBuilder`, `UIKeyCommand`, `UIMenu.edit/format/view` and `@UIApplicationMain`'s `init()` requirement, which are ours to add. |
 | Scrumdinger | every target but `AudioService` and `SpeechService` | `AVAudioPlayer`, `AVAudioSession`, `AVAudioApplication`, `AVAudioEngine`, `SFSpeechRecognizer`, `SFSpeechAudioBufferRecognitionRequest`, `SFSpeechRecognitionTask` (`pf-avfoundation-audio`, `pf-speech`). Two Swift 6 errors in `ViewComponents` were ours: `ToolbarContent` and `ProgressViewStyle` were not `@MainActor @preconcurrency` as Apple's are (fixed with the protocol family, `sw-isolation-fidelity`). At runtime: `Media.xcassets` theme colours (`pf-xcassets`), the sheet bar (`sw-ios-sheet-nav`), `ProcessInfo.environment` being empty makes `RuntimeEnvironment.current` the physical device, so the real services run, as on a phone. |
-| CountriesSwiftUI | not yet past `EnvironmentOverrides` | its dependency needs `UIGraphicsImageRenderer`, `UIWindow.drawHierarchy`, `UIImageWriteToSavedPhotosAlbum`, the feedback generators and `Bundle.localizations`; then the app's `SwiftData`, `URLSession`, `UserNotifications`, `UIApplicationDelegateAdaptor` and `UISceneConfiguration.delegateClass`. |
+| CountriesSwiftUI | not yet past `EnvironmentOverrides` (at the baseline; every file by 2026-10-13, see below) | its dependency needs `UIGraphicsImageRenderer`, `UIWindow.drawHierarchy`, `UIImageWriteToSavedPhotosAlbum`, the feedback generators and `Bundle.localizations`; then the app's `SwiftData`, `URLSession`, `UserNotifications`, `UIApplicationDelegateAdaptor` and `UISceneConfiguration.delegateClass`. |
 
 The first row's compiler error is a barrier this package cannot lift by adding API: wasm Swift
 is built without Objective-C interop, so `@objc` and `#selector` are rejected at the parse
@@ -177,3 +177,29 @@ parameters as preconcurrency; ours are Swift 6 modules, so the same call warns. 
 API modules in Swift 5 mode with every Swift 6 upcoming feature except SE-0434 would silence
 it (verified in a scratch package) at the cost of ~120 sites that rely on `@MainActor`
 closures being Sendable; recorded under `sw-isolation-fidelity`, not done.
+
+### Countries (2026-10-13)
+
+Compiles for wasm from its sources exactly as pinned, every file, after `uk-app-delegate-adaptor`,
+`pf-usernotifications`, `pf-urlsession` and `pf-swiftdata` — the last written against its
+models and repositories as published: `DBModel.Country`, `CountryDetails` and `Currency` with
+their `@Attribute(.unique)` codes and one-sided `@Relationship(inverse:)` declarations, the
+`@ModelActor` repository's `store(countries:)` (an upsert per fetch), `store(countryDetails:for:)`
+(fresh `Currency` instances each call, neighbours from a `#Predicate` fetch) and
+`countryDetails(for:)` on the main context, the list's search `#Predicate` over
+`localizedStandardContains` sorted by name, the `Query+Search` helper (`@Query var query: [T]`
+assigned through `_query`, `.equatable()`). `SwiftDataTests` holds those shapes verbatim and
+proves upsert, both-sided inverses, delete, predicate/sort, reopen with relationships, in-memory
+independence, autosave counts and a `@Query` following the actor's save; the Launches example
+proves persistence across reloads in Chromium. Those are framework proofs. In Chromium
+(`Playwright/countries-probe.mjs`, a CI step of its own with its evidence): the app launches,
+its persistent `ModelContainer` opens over localStorage (its own "issue with local database"
+footer — the stub fallback — is absent; the hosts now install before the `App` value is made,
+since `AppEnvironment.bootstrap()` opens the container from the delegate), and **its request
+to `https://restcountries.com/v2` fails as that service stands** (a 301 to a deprecation notice
+without a CORS header, verified 2026-10-12 under `pf-urlsession`): the app shows its own
+`ErrorView` ("An Error Occured", the browser's `TypeError: Failed to fetch`, Retry), and Retry
+lands on it again. That is the app's real path for a gone service, recorded with the commit,
+the pin, screenshots and a trace — not a pass. The list, search and detail flows are blocked
+on the external service; `full_app_pass` is false. No fixture data, proxy or endpoint rewrite
+is used, and the endpoint decision is held (`pf-urlsession`).

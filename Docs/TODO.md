@@ -5,8 +5,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | SwiftUI | 1 | 1 | 0 | 0 |
-| Platform | 6 | 3 | 1 | 2 |
-| **All** | **7** | 4 | 1 | 2 |
+| Platform | 5 | 3 | 1 | 1 |
+| **All** | **6** | 4 | 1 | 1 |
 
 ## Next (Phase 8, in order)
 
@@ -35,14 +35,13 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ### Platform
 
-- ☐ **SwiftData** `pf-swiftdata` · wasm · missing  
-  `@Model`, `@Attribute`, `@Relationship`, `#Predicate` and `@ModelActor` macros, `ModelContainer`, `ModelContext` (insert, delete, fetch, save), `FetchDescriptor` with sort and predicate, `@Query` and `.modelContainer(for:)`: a macro package plus an in-memory store persisted to IndexedDB on wasm (decision needed: scope of the predicate language). The Countries app and Backyard Birds are built on it. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 - ☐ **Durable files on wasm** `pf-persistence` · wasm · accepted  
   Partly done 2026-10-12 with pf-foundation-module: `FileManager`'s directories, `Data.write(to:)`/`Data(contentsOf:)` on file URLs and `UserDefaults` persist through the browser host in localStorage (a few MB in all). Open: `@AppStorage` and `@SceneStorage` do not exist yet (over UserDefaults, with the scene's id), the origin private file system for large files and binary data without base64, `FileManager` attributes, dates and enumerators, `UserDefaults.didChangeNotification` and key-value observing. Originally: `FileManager.default.urls(for: .documentDirectory)`, `Data.write(to:)` and `Data(contentsOf:)`, `UserDefaults` and `@AppStorage` compile on wasm but nothing survives a reload (Scrumdinger's FileService loads 'The file doesn't exist' and could not save). A document directory backed by the origin private file system (or localStorage for small files), and UserDefaults over localStorage. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
 ## Landed
 
 - ☑ 2026-10-13 **URLSession over fetch** `pf-urlsession` · Platform · wasm
+- ☑ 2026-10-13 **SwiftData** `pf-swiftdata` · Platform · wasm
 - ☑ 2026-10-12 **Measure the macOS presentation looks** `sw-mac-presentation-looks` · SwiftUI · Presentation
 - ☑ 2026-10-12 **UIAppearance proxies** `uk-appearance` · UIKit · Views
 - ☑ 2026-10-12 **Scenes and app lifecycle** `uk-scenes` · UIKit · App

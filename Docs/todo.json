@@ -1957,11 +1957,17 @@
       "kind": "missing",
       "priority": "later",
       "title": "SwiftData",
-      "detail": "`@Model`, `@Attribute`, `@Relationship`, `#Predicate` and `@ModelActor` macros, `ModelContainer`, `ModelContext` (insert, delete, fetch, save), `FetchDescriptor` with sort and predicate, `@Query` and `.modelContainer(for:)`: a macro package plus an in-memory store persisted to IndexedDB on wasm (decision needed: scope of the predicate language). The Countries app and Backyard Birds are built on it.",
-      "status": "planned",
+      "detail": "SwiftData written against the Countries app's models and repositories (2026-10-13, decision 0021): the `@Model`, `@Attribute`, `@Relationship`, `@Transient`, `#Predicate`, `@ModelActor` and `@Query` macros (SwiftDataMacros; `@Query` is a macro as Apple's — a property wrapper cannot infer the element type), `Schema` with its version, `ModelConfiguration`, `ModelContainer` with its `@MainActor` `mainContext`, `ModelContext` (insert as an upsert by `@Attribute(.unique)` — the stored instance keeps its identity and takes the values, a fresh related instance resolves to the stored one; delete unlinking inverses; fetch with the in-memory `#Predicate`, sort descriptors, limit and offset; `transaction` saving once at its end; autosave; `save`), inverse relationships kept from either side's `inverse:` declaration and through the setters, `PersistentIdentifier`, `FetchDescriptor`, `SortDescriptor`, `ModelActor` with its own context, cross-context sync (a model actor's save reaches the main context's next fetch and its `@Query` at the main actor's next turn), `modelContainer(_:)`/`modelContainer(for:)`/`modelContext(_:)`, `EnvironmentValues.modelContext`. Persistence: a container that is not in-memory-only writes one JSON document per store through the host (localStorage under `swiftuiweb.swiftdata.<name>` in the browser, DataHost.swift) at every save and reads it at open, identifiers kept; an in-memory container is its own (two of one name share nothing). Honest failures: a persistent configuration with no host storage, bytes that are not a store, or a store written by another schema version do not open (`SwiftDataError.storageUnavailable`/`corruptStore`/`incompatibleSchema`; the stored bytes stay untouched — no migration); a host write the browser refuses fails the save and leaves the changes pending. Proof: SwiftDataTests (13, the app's models verbatim in shape and its repository's flows: upsert, both-sided inverses, delete, predicate/sort, reopen with relationships, independence, autosave counts, `@Query` after an actor's save, the Query+Search helper) and Examples/Launches in Chromium (a Visit with its Note per launch, three reloads counted from localStorage, a second container of the name reading the save). The Countries app's own container opens in the browser (the hosts now install before the App value is made); its list stays blocked on its deprecated service (pf-urlsession), so none of this is a Countries pass. Not SwiftData: no SQL (predicates run as closures over the models in memory), no faulting, no migration plans, no CloudKit, no undo, no `enumerate`/batch APIs; `modelContainer(for:)` reports a failed open to `onSetup` and the view then has a non-persistent context (Apple's traps).",
+      "status": "done",
       "refs": [
-        "Docs/decisions/0021-real-apps.md"
-      ]
+        "Docs/decisions/0021-real-apps.md",
+        "Playwright/countries-probe.mjs",
+        "Sources/SwiftData/SwiftData.swift",
+        "Sources/SwiftDataMacros/ModelMacro.swift",
+        "Sources/SwiftUIWebCanvas/DataHost.swift",
+        "Tests/CoreRuntimeTests/SwiftDataTests.swift"
+      ],
+      "done": "2026-10-13"
     },
     {
       "id": "pf-persistence",

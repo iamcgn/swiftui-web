@@ -2196,6 +2196,12 @@
           "noFixture": "No pixels: URLSessionCoreTests, WasmFoundationTests and the Launches probe against local fixtures"
         },
         {
+          "api": "SwiftData: @Model / @Attribute(.unique) / @Relationship(inverse:) / #Predicate / @ModelActor / @Query / ModelContainer / ModelContext / FetchDescriptor",
+          "status": "partial",
+          "notes": "decision 0021, pf-swiftdata (2026-10-13): the macros (SwiftDataMacros), containers and contexts over an in-memory table of rows persisted as one JSON document per store through the host (localStorage in the browser); insert as an upsert by the unique attribute, inverses kept from either side, predicates as closures over the models, sort/limit/offset, transactions and autosave, a model actor's own context synced to the main context and its @Query; a store of another schema version, corrupt bytes, missing storage or a refused write are explicit errors, never an in-memory stand-in. Not done: SQL, faulting, migration plans, CloudKit, undo, batch/enumerate APIs",
+          "noFixture": "No pixels: SwiftDataTests (the Countries models and repository flows) and the Launches reload probe in Chromium"
+        },
+        {
           "api": "JSONEncoder / JSONDecoder",
           "status": "partial",
           "notes": "Over the project's coder (JSONCoder.swift, the one navigation paths and drops use) and WebFoundation's Data, so `encoder.encode(x).write(to:)` type-checks and FoundationEssentials' scanner and writer stay out of the bundle; `outputFormatting`, the date, data and key strategies are stored and not applied (dates as seconds since 2001, keys as written, data as base64 through Codable) (2026-10-12)",

@@ -145,3 +145,54 @@ extension StringProtocol {
 }
 
 #endif
+
+#if os(WASI)
+extension StringProtocol {
+    /// Whether `other` occurs in the string, ignoring case and diacritics (Foundation's
+    /// locale-aware contains, as a search over folded scalars: Latin letters stripped of
+    /// their marks, then lowercased).
+    public func localizedStandardContains<T: StringProtocol>(_ other: T) -> Bool {
+        let needle = _foldedForSearch(String(other))
+        guard !needle.isEmpty else { return false }
+        return _foldedForSearch(String(self))._find(needle, from: nil) != nil
+    }
+
+    public func localizedCaseInsensitiveContains<T: StringProtocol>(_ other: T) -> Bool {
+        let needle = String(other).lowercased()
+        guard !needle.isEmpty else { return false }
+        return String(self).lowercased()._find(needle, from: nil) != nil
+    }
+}
+
+/// Lowercased with the common Latin diacritics dropped: "Côte d'Ivoire" → "cote d'ivoire"
+/// (a table of the precomposed letters apps' data holds; FoundationEssentials on wasm has no
+/// Unicode decomposition to lean on).
+func _foldedForSearch(_ string: String) -> String {
+    var result = ""
+    for character in string.lowercased() {
+        if let plain = _latinFolding[character] { result += plain } else { result.append(character) }
+    }
+    return result
+}
+
+private let _latinFolding: [Character: String] = {
+    var table: [Character: String] = [:]
+    for (plain, accented) in [("a", "àáâãäåāăą"), ("c", "çćĉċč"), ("d", "ďđ"), ("e", "èéêëēĕėęě"), ("g", "ĝğġģ"), ("h", "ĥħ"), ("i", "ìíîïĩīĭįı"),
+                              ("j", "ĵ"), ("k", "ķ"), ("l", "ĺļľŀł"), ("n", "ñńņňŉ"), ("o", "òóôõöøōŏő"), ("r", "ŕŗř"), ("s", "śŝşšș"),
+                              ("t", "ţťŧț"), ("u", "ùúûüũūŭůűų"), ("w", "ŵ"), ("y", "ýÿŷ"), ("z", "źżž"), ("ae", "æ"), ("oe", "œ"), ("ss", "ß")] {
+        for accentedCharacter in accented { table[accentedCharacter] = plain }
+    }
+    return table
+}()
+
+extension StringProtocol {
+    fileprivate func _find(_ needle: String, from: String.Index?) -> Range<String.Index>? {
+        var index = from ?? startIndex
+        while index < endIndex {
+            if self[index...].hasPrefix(needle) { return index..<self.index(index, offsetBy: needle.count) }
+            index = self.index(after: index)
+        }
+        return nil
+    }
+}
+#endif

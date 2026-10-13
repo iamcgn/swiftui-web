@@ -17,7 +17,16 @@ only, `--pin` rewrites the manifests after a pin is moved on purpose. CI (the br
 `.github/workflows/ci.yml`) checks the submodules out and runs three separate steps, each
 failing on its own: `check-apps.sh --verify` (integrity: the trees are exactly their pins),
 a wasm build of an app (compilation), and its Playwright flow (behaviour). A claim in one is
-not a claim in the others.
+not a claim in the others. The flows (`Playwright/scrumdinger-probe.mjs`,
+`Playwright/countries-probe.mjs`) leave `report.json` (commit, pin, every flow's outcome,
+`full_app_pass`), screenshots and a trace under `.build/apps/<app>`, uploaded as the
+`apps-evidence` artifact; `full_app_pass` stays `false` while any flow is blocked, and a
+blocked flow records what blocks it (Scrumdinger's meeting: speech, `pf-speech`; Countries'
+list: its deprecated data service, `pf-urlsession`) rather than being stubbed around.
+
+To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <Scrumdinger|CountriesSwiftUI>`
+(the last product built is what `Apps/index.html` loads), serve `Apps/` and open
+`index.html?platform=ios`.
 
 ## Pins
 

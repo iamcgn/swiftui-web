@@ -47,6 +47,10 @@ for (let load = 1; load <= 3; load++) {
   // UIKit, Foundation and SwiftUI imported together: one Selector ("copy:"), UIScreen's bounds, the bundle's languages (none recorded: the development one).
   const mixed = shown.find(t => t.startsWith('mixed: ')) || '';
   if (!/^mixed: copy: \d+ en$/.test(mixed)) problems.push(`load ${load}: mixed imports "${mixed}", expected "mixed: copy: <width> en"`);
+  // SwiftData (pf-swiftdata): one Visit with its Note per launch, the table read back from localStorage, a second container of the name seeing the save.
+  const data = shown.find(t => t.startsWith('data: ')) || '';
+  const expectedData = `data: ${load} visits, ${load} notes linked, last ${load}, reopened ${load} launch ${load}`;
+  if (data !== expectedData) problems.push(`load ${load}: data "${data}", expected "${expectedData}"`);
   // The network line wraps: join the lines from "network:" up to the button.
   const last = url.includes('slow=') ? 'completions' : 'cancel';
   const settledNetwork = async () => { for (let i = 0; i < 150; i++) { const t = await texts(); const line = networkLine(t); if (line.includes(last)) return line; await page.waitForTimeout(100); } return networkLine(await texts()); };
@@ -56,7 +60,7 @@ for (let load = 1; load <= 3; load++) {
   if (network !== expectedNetwork) problems.push(`load ${load}: network "${network}", expected "${expectedNetwork}"`);
 }
 const stored = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('swiftuiweb.')).sort());
-if (!stored.includes('swiftuiweb.defaults.standard') || !stored.includes('swiftuiweb.files/Documents/launches.json')) problems.push('localStorage keys: ' + stored.join(', '));
+if (!stored.includes('swiftuiweb.defaults.standard') || !stored.includes('swiftuiweb.files/Documents/launches.json') || !stored.includes('swiftuiweb.swiftdata.launches')) problems.push('localStorage keys: ' + stored.join(', '));
 console.log(problems.length ? problems.join('\n') : 'launches OK: three loads counted, on file and settled');
 await browser.close();
 process.exit(problems.length ? 1 : 0);

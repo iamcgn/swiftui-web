@@ -131,11 +131,26 @@ jobs:
           python3 -m http.server 8773 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8773/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node scrumdinger-probe.mjs "http://127.0.0.1:8773/index.html?platform=ios" --out ../.build/apps/scrumdinger)
+      - name: Apps — Countries compiles for wasm from its unmodified sources (SwiftData, URLSession, UserNotifications over the hosts)
+        run: |
+          . ~/.swiftly/env.sh
+          scripts/build-wasm.sh Apps --debug --product CountriesSwiftUI
+      - name: Apps — Countries in Chromium (its persistent container opens; its request to restcountries.com/v2 fails as that service stands and the app shows its own ErrorView with Retry — recorded, not passed; no fixture or proxy)
+        id: countries
+        run: |
+          python3 -m http.server 8774 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8774/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node countries-probe.mjs "http://127.0.0.1:8774/index.html?platform=ios" --out ../.build/apps/countries)
       - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
         if: always() && steps.scrumdinger.outcome != 'skipped'
+        env: { COUNTRIES_PROBE: "${{ steps.countries.outcome }}" }
         run: |
-          test -s .build/apps/scrumdinger/report.json && test -s .build/apps/scrumdinger/trace.zip && ls .build/apps/scrumdinger/*.png >/dev/null
-          python3 -c "import json; r=json.load(open('.build/apps/scrumdinger/report.json')); assert r['full_app_pass'] is False; print({k: v['outcome'] for k, v in r['flows'].items()})"
+          for app in scrumdinger countries; do
+            # The Countries probe is skipped when its build step failed: its evidence is then the build log.
+            if [ "$app" = countries ] && [ "$COUNTRIES_PROBE" = skipped ]; then echo "countries: probe not run"; continue; fi
+            test -s .build/apps/$app/report.json && test -s .build/apps/$app/trace.zip && ls .build/apps/$app/*.png >/dev/null
+            python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is False; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
+          done
       # Evidence, kept whatever the steps above did: Tier B's renders and diffs
       # (scripts/tier-b.sh writes .build/tier-b-chromium: report.json always, renders and
       # diffs on a mismatch) and the apps' reports, screenshots and traces. A step that ran
