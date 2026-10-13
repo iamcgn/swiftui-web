@@ -150,6 +150,32 @@ source-preserving routes, all design-level and material:
 Until one of the first two exists, SwiftUI-2048 is "every file but `AppDelegate.swift`
 compiles" and not a wasm app.
 
+#### The portable port (2026-10-13, not acceptance)
+
+Corey approved a *separate* fork, [iamcgn/SwiftUI-2048](https://github.com/iamcgn/SwiftUI-2048)
+(MIT, Cyandev's copyright and attribution kept), as a portable source port of the game for
+iOS 17+ and the browser: upstream's model and views unchanged, the UIKit/AppKit shells and
+the Objective-C selector replaced by a SwiftUI `App` with a closure-based New Game (a File
+menu command and a visible button) and the arrow keys through `onKeyPress` on the focused
+board. It is published with its tests, a Chromium probe judged against a port of upstream's
+algorithm, and a hosted build. It is **not** the unchanged-app pass of this decision: the
+pinned upstream in `Apps/upstream/SwiftUI-2048` stays the benchmark, the barrier above stays
+open, and `full_app_pass` for SwiftUI-2048 stays `false` here.
+
+Two library gaps the port found, kept apart from the port itself:
+
+- A press on a `focusable()` view swallowed the drag gesture of the view around it (the
+  board's swipes), and a canvas mouse-down let the browser move the page's focus to the body,
+  taking the board's arrow keys away after a click on the button. Fixed in this package
+  (`FocusableNode` as `_FocusOnly`: the press goes to the interactive ancestor and the view
+  takes focus at the release; the canvas host keeps the page's focus on mouse-down unless a
+  system drag began), with GestureTests for both modifier orders.
+- `withTransaction` and `withAnimation` are `@MainActor` here and nonisolated in Apple's
+  SwiftUI (`SwiftUICore.swiftinterface`): upstream's nonisolated `@objc func newGame` calls
+  `withTransaction` and would not compile against this package even with the selector
+  barrier gone. Recorded under `sw-isolation-fidelity`; the port's own helpers are
+  `@MainActor` and sidestep it.
+
 ### Scrumdinger (2026-10-12, later the same day)
 
 Compiles for wasm from its sources exactly as pinned, every target, after `pf-avfoundation-audio`
