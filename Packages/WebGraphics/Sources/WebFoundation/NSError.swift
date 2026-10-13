@@ -47,6 +47,19 @@ public let NSLocalizedRecoverySuggestionErrorKey = "NSLocalizedRecoverySuggestio
 public let NSUnderlyingErrorKey = "NSUnderlyingError"
 public let NSCocoaErrorDomain = "NSCocoaErrorDomain"
 public let NSURLErrorDomain = "NSURLErrorDomain"
+/// Cocoa's error codes apps raise themselves (the Countries app's `Loadable`, decision 0021).
+public let NSUserCancelledError = 3072
+public let NSFileNoSuchFileError = 4
+public let NSFileReadNoSuchFileError = 260
+public let NSURLErrorCancelled = -999
+public let NSURLErrorNotConnectedToInternet = -1009
+public let NSURLErrorTimedOut = -1001
+
+/// A localized string from the main bundle: the string catalogs are not loaded in a page, so
+/// `value` (when given and not empty) else the key, as `Bundle.localizedString` answers.
+public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle = .main, value: String = "", comment: String) -> String {
+    bundle.localizedString(forKey: key, value: value.isEmpty ? nil : value, table: tableName)
+}
 
 extension Error {
     /// Foundation's code for a Swift error: an `NSError`'s, else the case's position in its enum (1-based when it has none).

@@ -269,6 +269,10 @@ import WebCombine
         struct Country: Decodable, Equatable { let name: String }
         func decodeWith<D: TopLevelDecoder>(_ decoder: D, _ input: D.Input) throws -> Country { try decoder.decode(Country.self, from: input) }
         #expect(try decodeWith(JSONDecoder(), Data("{\"name\":\"Chad\"}".utf8)) == Country(name: "Chad"))
+        // `Loadable`'s cancellation error and the key-as-string fallback of NSLocalizedString.
+        let cancelled = NSError(domain: NSCocoaErrorDomain, code: NSUserCancelledError, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("Canceled by user", comment: "")])
+        #expect(cancelled.code == 3072 && cancelled.localizedDescription == "Canceled by user")
+        #expect(NSLocalizedString("key.only", comment: "") == "key.only" && NSLocalizedString("k", value: "Value", comment: "") == "Value")
     }
 
     @Test func filesUnderDocumentsSurviveThroughTheHostStore() throws {

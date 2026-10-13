@@ -96,9 +96,13 @@ What the **source** of whisper.cpp's `whisper.wasm` example says (fetched 2026-1
   `kSampleRate = 16000`, rendered through an `OfflineAudioContext`, up to `kMaxAudio_s = 30*60`
   (`index-tmpl.html`). So the app's appended buffers, resampled to 16 kHz mono, are exactly
   its input — the data flow is faithful by construction.
-- Threads: `n_threads = min(nthreads, min(16, pow2(hardware_concurrency)))`; the build needs
-  WebAssembly SIMD 128-bit and threads, which need `SharedArrayBuffer`, which needs the page
-  served **cross-origin isolated**: its `examples/server.py` sets
+- Memory and threads from its `CMakeLists.txt`: `-s USE_PTHREADS=1`, `PTHREAD_POOL_SIZE_STRICT=0`,
+  `INITIAL_MEMORY=512MB`, `MAXIMUM_MEMORY=2000MB`, `ALLOW_MEMORY_GROWTH=1`, `FORCE_FILESYSTEM=1`
+  (`--bind`; no `-msimd128` flag in that file — the README states the SIMD requirement). So
+  the **runtime budget is 512 MB of wasm memory at start, growable to 2 GB**; the 31 MB
+  quantized model is a download size, not the memory the page takes. `n_threads =
+  min(nthreads, min(16, pow2(hardware_concurrency)))`; threads need `SharedArrayBuffer`,
+  which needs the page served **cross-origin isolated**: its `examples/server.py` sets
   `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`
   ("required headers for SharedArrayBuffer"). Those headers are a deployer's server setting
   and they constrain what else the page may embed (every cross-origin subresource must opt in).
@@ -202,7 +206,7 @@ So the choice is not "external service yes/no" — that is settled (no). It is:
 |---|---|---|
 | Browsers | Chromium ≥ 139 only (feature-detected; `isAvailable` false elsewhere) | in principle any browser whose wasm has SIMD and threads (cross-origin isolation for `SharedArrayBuffer`); **unverified here** — which engine (whisper.cpp or Vosk), which model and whether it runs acceptably on an iPhone's Safari are prerequisites of the B experiment, not facts |
 | Incoming download | the vendor's language pack (reported ≈60 MB, unmeasured), user-prompted | a model the deployer hosts (reported 50–150 MB, unmeasured) |
-| Test infrastructure | **Playwright/Chromium upgrade from 129 to ≥ 139** before anything can be tried; the pack on the runner | the model cached on the runner |
+| Test infrastructure | an installed Chrome ≥ 139 through Playwright's `executablePath` with a throwaway profile (proven with Chrome 155 on this machine: all three APIs present) — the repository's Playwright Chromium 129 lacks them, so a CI run needs either that upgrade or an installed Chrome; plus the en-US pack on the machine (reported `"downloadable"`, not present) | the model cached on the runner; a cross-origin-isolated test server |
 | Combined feasibility | the `start(track)`+`processLocally` pairing with a worklet-generated track is **unproven** (per-API evidence only) | whisper.cpp and Vosk publish wasm builds whose input is Float32 frames; **not run here** — their requirements (SIMD, threads, cross-origin isolation headers on the deployer's server, model hosting) are unverified for this project |
 | CPU / latency | the browser's engine (unmeasured) | windowed, phone CPU cost (unmeasured) |
 | Effort | ~2 days (estimate) | ~1 week + hosting decision (estimate) |
@@ -216,11 +220,14 @@ verify). Nothing in this document picks one.
 A synthetic-PCM experiment that touches no app, no microphone, no service, and installs
 nothing *in the repository*:
 
-- **For A** — prerequisites: (1) a Chromium ≥ 139 available to Playwright (`npx playwright
-  install chromium` at a newer Playwright release — a tooling change to approve separately);
-  (2) the en-US on-device pack present on that machine (`available()` reports `"available"`;
-  `install()` is a user-visible download, run by hand on the test machine, not by CI);
-  (3) one committed WAV with a known utterance. The step: a standalone page (no SwiftUIWeb
+- **For A** — prerequisites: (1) a Chromium ≥ 139: **already satisfied locally** by the
+  installed Google Chrome 155 through `CHROME=… node speech-availability.mjs` (a throwaway
+  profile; no repository upgrade needed for the experiment — CI is another matter); (2) the
+  en-US on-device pack present in that profile: **not satisfied** — `available()` reported
+  `"downloadable"`; `install()` is a user-visible ~60 MB download from the browser vendor,
+  run by hand on the test machine, not by CI and not by this probe — this is the one
+  remaining prerequisite, and granting it is *not* choosing A as the product's backend, only
+  allowing the experiment; (3) one committed WAV with a known utterance. The step: a standalone page (no SwiftUIWeb
   code) decodes the WAV, plays its frames through an AudioWorklet into a
   `MediaStreamAudioDestinationNode` track at 16 kHz, calls `recognition.processLocally = true;
   recognition.start(track)`, and prints the transcript, the time to first interim and to the

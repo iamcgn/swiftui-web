@@ -116,9 +116,9 @@ let package = Package(
             name: "SwiftUIWebCanvas",
             dependencies: [
                 "SwiftUIWebCore",
-                // The audio stand-in's host hooks (decision 0021): Web Audio and the microphone.
-                // Speech installs nothing (pf-speech).
-                "AVFoundation",
+                // The audio and notification stand-ins' host hooks (decision 0021): Web Audio,
+                // the microphone, the Notification API. Speech installs nothing (pf-speech).
+                "AVFoundation", "UserNotifications",
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
             ],
@@ -142,7 +142,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "WebKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "UserNotifications", "WebKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(

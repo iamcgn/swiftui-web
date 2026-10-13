@@ -2327,6 +2327,12 @@
           "noFixture": "Nothing to draw; AVAudioAndSpeechTests cover the API against a fake host"
         },
         {
+          "api": "UNUserNotificationCenter / UNNotificationRequest / UNUserNotificationCenterDelegate (UserNotifications)",
+          "status": "partial",
+          "notes": "decision 0021, pf-usernotifications (2026-10-12): the centre's settings and authorisation over the browser's Notification API (the one prompt, the permission as the browser holds it), local requests shown as notifications after their interval with the delegate's willPresent asked first and a click delivered as the response, pending and delivered lists; no push service (registering for remote notifications fails through the app delegate); browsers without the API have no host and authorise nothing. Not done: badges, categories' actions, attachments, provisional/ephemeral authorisation",
+          "noFixture": "Nothing to draw: UserNotificationsTests against a fake host; the browser host is NotificationsHost.swift"
+        },
+        {
           "api": "WebView / WebPage (WebKit)",
           "status": "partial",
           "notes": "A host element: a sandboxed <iframe> loading the page's URL or HTML; a white stand-in elsewhere; navigation state is not reported back",
