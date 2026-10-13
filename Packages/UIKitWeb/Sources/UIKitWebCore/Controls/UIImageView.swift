@@ -319,3 +319,34 @@ open class UIImageView: UIView, ClockAnimating {
         list.append(.drawImage(draw))
     }
 }
+
+// MARK: - Saving to the photo library
+
+/// A selector by name: wasm Swift has no Objective-C runtime, so `#selector` cannot be
+/// written, but the UIKit functions that take one still need the type for their `nil`
+/// arguments (`UIImageWriteToSavedPhotosAlbum`, decision 0021).
+#if !canImport(ObjectiveC)
+public struct Selector: Hashable, Sendable, ExpressibleByStringLiteral, CustomStringConvertible {
+    public let name: String
+    public init(_ name: String) { self.name = name }
+    public init(stringLiteral value: String) { name = value }
+    public var description: String { name }
+}
+#endif
+
+/// Adds the image to the user's photo library: in the browser, a download of its PNG through
+/// the host's file saver (the closest thing a page has to a camera roll). The completion target
+/// and selector are accepted; without a runtime to dispatch a selector, nothing is called.
+@preconcurrency @MainActor public func UIImageWriteToSavedPhotosAlbum(_ image: UIImage, _ completionTarget: Any?, _ completionSelector: Selector?, _ contextInfo: UnsafeMutableRawPointer?) {
+    guard let data = image.pngData() else { return }
+    UIKitScene.shared.fileSaveHandler?(HostFile(data: data, name: "Image.png", mimeType: "image/png"))
+}
+
+/// Adds the video to the user's photo library: a download of the file.
+@preconcurrency @MainActor public func UISaveVideoAtPathToSavedPhotosAlbum(_ videoPath: String, _ completionTarget: Any?, _ completionSelector: Selector?, _ contextInfo: UnsafeMutableRawPointer?) {
+    guard let data = try? Data(contentsOf: URL(fileURLWithPath: videoPath)) else { return }
+    UIKitScene.shared.fileSaveHandler?(HostFile(data: data, name: URL(fileURLWithPath: videoPath).lastPathComponent, mimeType: "video/mp4"))
+}
+
+/// Whether a video at the path could be saved (any file the page can read).
+@preconcurrency @MainActor public func UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(_ videoPath: String) -> Bool { FileManager.default.fileExists(atPath: videoPath) }

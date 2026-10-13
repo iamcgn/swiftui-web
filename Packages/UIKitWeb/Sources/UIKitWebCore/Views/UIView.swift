@@ -507,6 +507,28 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     /// `UIBezierPath`, `UIColor.setFill`); the default draws nothing (Drawing/GraphicsContext.swift).
     open func draw(_ rect: CGRect) {}
 
+    /// Renders the view and its subviews into the current graphics context at `rect` (a
+    /// snapshot for an image renderer: EnvironmentOverrides' screenshot, decision 0021). The
+    /// layer tree paints as the host paints it, scaled to the rect; `afterScreenUpdates` is
+    /// accepted (there is no pending update to wait for in a recording).
+    @discardableResult
+    open func drawHierarchy(in rect: CGRect, afterScreenUpdates: Bool) -> Bool {
+        guard let context = UIGraphicsGetCurrentContext() else { return false }
+        var list = DisplayList()
+        let origin = context.paintOrigin
+        let scale = bounds.width > 0 && bounds.height > 0 ? CGSize(width: rect.width / bounds.width, height: rect.height / bounds.height) : CGSize(width: 1, height: 1)
+        let scales = scale.width != 1 || scale.height != 1
+        if scales {
+            list.append(.save)
+            list.append(.concat(CGAffineTransform(translationX: origin.x + rect.minX, y: origin.y + rect.minY).scaledBy(x: scale.width, y: scale.height).translatedBy(x: -origin.x - rect.minX, y: -origin.y - rect.minY)))
+        }
+        layer.paint(into: &list, context: PaintContext(origin: CGPoint(x: origin.x + rect.minX - frame.minX, y: origin.y + rect.minY - frame.minY), scale: context.scale),
+                    style: traitCollection.userInterfaceStyle)
+        if scales { list.append(.restore) }
+        context.append(painted: list)
+        return true
+    }
+
     /// Paints the view's own content (labels, images) at the layer's coordinates; the built-in
     /// views override this in place of `draw(_:)`. The default runs `draw(_:)`.
     func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {

@@ -43,7 +43,7 @@ public final class UIGraphicsImageRendererFormat: @unchecked Sendable {
 }
 
 /// What the renderer's drawing block receives: the recording context and shorthands.
-@MainActor
+@preconcurrency @MainActor
 public final class UIGraphicsImageRendererContext {
     public let cgContext: UIGraphicsRecordingContext
     public let format: UIGraphicsImageRendererFormat
@@ -64,8 +64,9 @@ public final class UIGraphicsImageRendererContext {
     public var currentImage: UIImage { UIImage(drawing: UIImageDrawing(commands: cgContext.commands, size: bounds.size, scale: format.scale)) }
 }
 
-/// Runs drawing code and returns what it drew as an image.
-@MainActor
+/// Runs drawing code and returns what it drew as an image (`@preconcurrency` as Apple's: a
+/// Swift 5 mode app renders from a nonisolated helper).
+@preconcurrency @MainActor
 public final class UIGraphicsImageRenderer {
     public let format: UIGraphicsImageRendererFormat
     public let bounds: CGRect

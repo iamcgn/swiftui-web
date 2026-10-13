@@ -110,8 +110,10 @@ open class UIWindow: UIView {
     }
 }
 
-/// The screen the app draws on: its bounds and scale come from the host.
-@MainActor
+/// The screen the app draws on: its bounds and scale come from the host (`@preconcurrency`
+/// as every UIKit class reaches Swift from Objective-C: a Swift 5 mode app reads
+/// `UIScreen.main.bounds` from a nonisolated helper).
+@preconcurrency @MainActor
 public final class UIScreen {
     public static let main = UIScreen()
 

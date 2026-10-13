@@ -239,15 +239,17 @@ extension UIKitScene {
 }
 
 // MARK: - Feedback generators (no haptics in a page: every call is a no-op)
+// `@preconcurrency`, as Apple's UIKit reaches a Swift 6 toolchain: a Swift 5 mode app makes
+// and fires one from a nonisolated helper (EnvironmentOverrides' `Haptic`, decision 0021).
 
-@MainActor
+@preconcurrency @MainActor
 open class UIFeedbackGenerator {
     public init() {}
     public init(view: UIView) {}
     open func prepare() {}
 }
 
-@MainActor
+@preconcurrency @MainActor
 open class UIImpactFeedbackGenerator: UIFeedbackGenerator {
     public enum FeedbackStyle: Int, Sendable { case light, medium, heavy, soft, rigid }
     public let style: FeedbackStyle
@@ -258,13 +260,13 @@ open class UIImpactFeedbackGenerator: UIFeedbackGenerator {
     open func impactOccurred(at location: CGPoint) {}
 }
 
-@MainActor
+@preconcurrency @MainActor
 open class UISelectionFeedbackGenerator: UIFeedbackGenerator {
     open func selectionChanged() {}
     open func selectionChanged(at location: CGPoint) {}
 }
 
-@MainActor
+@preconcurrency @MainActor
 open class UINotificationFeedbackGenerator: UIFeedbackGenerator {
     public enum FeedbackType: Int, Sendable { case success, warning, error }
     open func notificationOccurred(_ type: FeedbackType) {}

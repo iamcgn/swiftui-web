@@ -15,6 +15,10 @@ open class Bundle: @unchecked Sendable {
     public var bundleIdentifier: String? { Bundle._identifier }
     public var infoDictionary: [String: Any]? { Bundle._info }
     public var preferredLocalizations: [String] { [Locale.current.languageCode ?? "en"] }
+    /// The localizations the bundle holds: the catalogs' languages are not read; the
+    /// development language alone (EnvironmentOverrides lists them, decision 0021).
+    public var localizations: [String] { [developmentLocalization ?? "en"] }
+    public var developmentLocalization: String? { "en" }
 
     /// The identifier and Info dictionary the host installs (`CFBundleName` and friends).
     nonisolated(unsafe) public static var _identifier: String?

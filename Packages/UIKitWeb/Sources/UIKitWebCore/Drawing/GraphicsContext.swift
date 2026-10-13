@@ -27,6 +27,10 @@ public final class UIGraphicsRecordingContext {
 
     /// The recorded commands (absolute coordinates through the origin the context was made for).
     private(set) var commands: [DisplayCommand] = []
+    /// The context's origin in the recording's space (where `drawHierarchy` paints a view).
+    var paintOrigin: CGPoint { CGPoint(x: state.ctm.tx, y: state.ctm.ty) }
+    /// Appends a painted display list (a view hierarchy drawn into this context).
+    func append(painted list: DisplayList) { commands += list.commands }
     private var state = State()
     private var stack: [State] = []
     private var path = Path()
