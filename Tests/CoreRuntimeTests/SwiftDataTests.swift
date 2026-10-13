@@ -528,8 +528,14 @@ private struct QueryView<T: PersistentModel>: View {
         // No host storage bound: a persistent configuration does not open (nothing in-memory
         // stands in for it), an in-memory one does.
         _ModelStore.Host.store = nil
-        do { _ = try container(inMemory: false, name: "nohost"); Issue.record("opened without storage") } catch SwiftDataError.storageUnavailable(let store) { #expect(store == "nohost") }
+        do { _ = try container(inMemory: false, name: "nohost"); Issue.record("opened without storage") } catch SwiftDataError.storageUnavailable(let store, _) { #expect(store == "nohost") }
         _ = try container(inMemory: true, name: "nohost")
+        // Storage that refuses to be read (a page denied localStorage): the browser's reason, no trap.
+        struct Denied: Error, CustomStringConvertible { var description: String { "SecurityError: access is denied" } }
+        _ModelStore.Host.store = (load: { _ in throw Denied() }, save: { _, _ in })
+        do { _ = try container(inMemory: false, name: "denied"); Issue.record("opened over denied storage") } catch SwiftDataError.storageUnavailable(let store, let reason) {
+            #expect(store == "denied" && reason.contains("SecurityError"))
+        }
 
         // The host refuses a write (a spent quota): the save throws and the changes stay pending.
         nonisolated(unsafe) var refuse = false

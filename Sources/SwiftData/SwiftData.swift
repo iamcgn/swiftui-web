@@ -334,6 +334,7 @@ public final class ModelContainer: @unchecked Sendable {
     @MainActor public var mainContext: ModelContext {
         if let context = mainContextStorage { return context }
         let context = ModelContext(self)
+        context.isMainActorContext = true
         mainContextStorage = context
         return context
     }
@@ -422,8 +423,12 @@ public final class ModelContext: @unchecked Sendable {
     /// The store generation this context last synced to (`_ModelStore.sync`).
     var syncedGeneration = 0
     /// Told after every save or deletion (`@Query` refetches).
-    var observers: [(id: Int, run: @Sendable () -> Void)] = []
+    /// Told after every save, with whether the saving context is the main actor's (a save in
+    /// `mainContext` happens on the main actor by its contract; any other context's does not).
+    var observers: [(id: Int, run: @Sendable (_ onMainActor: Bool) -> Void)] = []
     private var nextObserver = 1
+    /// The container's `mainContext`: used from the main actor only.
+    var isMainActorContext = false
 
     public init(_ container: ModelContainer) {
         self.container = container
@@ -432,7 +437,7 @@ public final class ModelContext: @unchecked Sendable {
     }
 
     /// The store saved (this context or another of the same store): `@Query` refetches.
-    func storeDidSave() { for observer in observers { observer.run() } }
+    func storeDidSave(by saver: ModelContext) { for observer in observers { observer.run(saver.isMainActorContext) } }
 
     public var hasChanges: Bool { pending }
     public var insertedModelsArray: [any PersistentModel] { order.compactMap { models[$0] }.filter { $0._storage.identifier.isTemporary } }
@@ -616,14 +621,14 @@ public final class ModelContext: @unchecked Sendable {
         try container.store.flush()   // a refused write leaves the changes pending
         pending = false
         for identifier in order { models[identifier]?._storage.hasChanges = false }
-        container.store.didSave()
+        container.store.didSave(by: self)
     }
 
     public func rollback() { pending = false }
     public func processPendingChanges() {}
 
     /// Tells `run` after every save (for `@Query`); the returned closure stops it.
-    func observe(_ run: @escaping @Sendable () -> Void) -> @Sendable () -> Void {
+    func observe(_ run: @escaping @Sendable (_ onMainActor: Bool) -> Void) -> @Sendable () -> Void {
         let id = nextObserver
         nextObserver += 1
         observers.append((id, run))
@@ -663,7 +668,7 @@ public final class _ModelStore: @unchecked Sendable {
     private var contexts: [_WeakContext] = []
     final class _WeakContext { weak var context: ModelContext?; init(_ context: ModelContext) { self.context = context } }
     func attach(_ context: ModelContext) { contexts.append(_WeakContext(context)); contexts.removeAll { $0.context == nil } }
-    func didSave() { for entry in contexts { entry.context?.storeDidSave() } }
+    func didSave(by saver: ModelContext) { for entry in contexts { entry.context?.storeDidSave(by: saver) } }
 
     /// Rows another context saved that `context` does not hold yet: made and adopted, their
     /// relationships resolved (what one context's `@Query` sees after a model actor's save).
@@ -712,8 +717,10 @@ public final class _ModelStore: @unchecked Sendable {
         guard !inMemory else { return }
         // A persistent store needs the host's storage; without it the container does not open
         // (an in-memory stand-in would be reported as persistence that is not there).
-        guard let host = Host.store else { throw SwiftDataError.storageUnavailable(name) }
-        guard let json = try host.load(name) else { return }   // the first open: empty
+        guard let host = Host.store else { throw SwiftDataError.storageUnavailable(name, reason: "no host storage is bound") }
+        let json: String?
+        do { json = try host.load(name) } catch { throw SwiftDataError.storageUnavailable(name, reason: "\(error)") }
+        guard let json else { return }   // the first open: empty
         guard let stored = _StoreCodec.decode(json, store: name) else { throw SwiftDataError.corruptStore(name) }
         // Another schema version wrote the store: no migration here, and its bytes stay as they
         // are — the container fails to open rather than saving over them.
@@ -893,8 +900,9 @@ public enum SwiftDataError: Error, CustomStringConvertible {
     case loadIssueModelContainer
     case missingModelContext
     case duplicateConfiguration
-    /// A persistent configuration with no host storage bound (the browser without localStorage).
-    case storageUnavailable(String)
+    /// A persistent configuration whose host storage is missing or refuses to be read (the
+    /// browser without localStorage, a page denied storage).
+    case storageUnavailable(String, reason: String)
     /// The host holds bytes under the store's name that are not a store document.
     case corruptStore(String)
     /// The store was written by another schema version; there is no migration, and the
@@ -907,7 +915,7 @@ public enum SwiftDataError: Error, CustomStringConvertible {
         case .loadIssueModelContainer: return "SwiftData: the model container could not be loaded"
         case .missingModelContext: return "SwiftData: no model context"
         case .duplicateConfiguration: return "SwiftData: duplicate configuration"
-        case .storageUnavailable(let name): return "SwiftData: no persistent storage for the store '\(name)'"
+        case .storageUnavailable(let name, let reason): return "SwiftData: no persistent storage for the store '\(name)': \(reason)"
         case .corruptStore(let name): return "SwiftData: the stored bytes of '\(name)' are not a store"
         case .incompatibleSchema(let name, let stored, let expected): return "SwiftData: the store '\(name)' was written by schema \(stored), this app expects \(expected)"
         case .saveFailed(let name, let reason): return "SwiftData: the store '\(name)' could not be written: \(reason)"
@@ -1049,13 +1057,9 @@ final class _QueryBox<Element: PersistentModel>: WebCombine.ObservableObject {
         watched = context
         // A save on the main actor (the app's own context) re-reads the view now; a model
         // actor's save reaches the main actor at its next turn.
-        let end = context.observe { [weak self] in
-            #if os(WASI)
-            MainActor.assumeIsolated { self?.objectWillChange.send() }
-            #else
-            if Thread.isMainThread { MainActor.assumeIsolated { self?.objectWillChange.send() } }
+        let end = context.observe { [weak self] onMainActor in
+            if onMainActor { MainActor.assumeIsolated { self?.objectWillChange.send() } }
             else { Task { @MainActor in self?.objectWillChange.send() } }
-            #endif
         }
         stop = { end() }
     }

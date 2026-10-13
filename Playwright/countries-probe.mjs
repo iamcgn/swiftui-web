@@ -22,12 +22,15 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = outIndex > 0 ? process.argv[outIndex + 1] : join(root, '.build', 'apps', 'countries');
 mkdirSync(out, { recursive: true });
 const git = (args) => { try { return execSync(`git ${args}`, { cwd: root, encoding: 'utf8' }).trim(); } catch { return 'unknown'; } };
+// The tested commit is only what ran when the tree is clean; a dirty tree is said so.
+const dirty = git('status --porcelain --untracked-files=normal').split('\n').filter(Boolean);
 const report = {
   app: 'Countries (clean-architecture-swiftui)', upstream: 'https://github.com/nalexn/clean-architecture-swiftui',
-  tested_commit: git('rev-parse HEAD'), app_pinned_revision: git('ls-files --stage Apps/upstream/clean-architecture-swiftui').split(/\s+/)[1] || 'unknown',
+  tested_commit: git('rev-parse HEAD'), working_tree: dirty.length ? `dirty: ${dirty.length} path(s) differ from the commit` : 'clean',
+  app_pinned_revision: git('ls-files --stage Apps/upstream/clean-architecture-swiftui').split(/\s+/)[1] || 'unknown',
   browser: null, url, started: new Date().toISOString(),
   full_app_pass: false,
-  endpoint: { url: 'https://restcountries.com/v2/all', outcome: null },
+  endpoint: { url: null, outcome: null },   // the URL the app actually requested
   flows: {}, problems: [], screenshots: [], trace: null,
   notes: ['The app loads its list from restcountries.com/v2, which answers with a 301 to a deprecation notice and no CORS header (verified 2026-10-12, pf-urlsession): from the page the fetch fails and the app shows its own ErrorView. That is the app\'s real path for a gone service, recorded here, not a pass; no fixture, proxy or endpoint rewrite is used. The list, search and detail flows are blocked on the external service.'],
 };
@@ -41,11 +44,18 @@ await context.tracing.start({ screenshots: true, snapshots: false });
 const page = await context.newPage();
 const problems = report.problems;
 const requests = [];
+// Every request the page makes to the app's endpoint (and the redirects it follows), by URL:
+// the one console error allowed is the browser's report of one of those exact requests.
+const endpointRequests = new Set();
+const isEndpoint = (u) => { try { return new URL(u).hostname.endsWith('restcountries.com'); } catch { return false; } };
+page.on('request', r => { if (isEndpoint(r.url())) { endpointRequests.add(r.url()); requests.push({ url: r.url(), at: new Date().toISOString() }); } });
 page.on('pageerror', e => problems.push('pageerror: ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 6).join(' <- ')));
-// The failed fetch of the deprecated endpoint is the one console error the app provokes; any other counts.
-page.on('console', m => { if (m.type() === 'error' && !/restcountries\.com/.test(m.text() + ' ' + (m.location().url || ''))) problems.push('console: ' + m.text()); });
-page.on('requestfailed', r => requests.push({ url: r.url(), failure: r.failure()?.errorText }));
-page.on('response', r => { if (/restcountries\.com/.test(r.url())) requests.push({ url: r.url(), status: r.status() }); });
+// A CORS refusal is reported at the page's URL with the request's URL in its text; a network
+// failure at the request's URL. Either must name a request the page actually made.
+const aboutEndpoint = (m) => endpointRequests.has(m.location().url || '') || [...endpointRequests].some(u => m.text().includes(u));
+page.on('console', m => { if (m.type() === 'error' && !aboutEndpoint(m)) problems.push('console: ' + m.text() + ' @ ' + (m.location().url || '?')); });
+page.on('requestfailed', r => { if (isEndpoint(r.url())) requests.push({ url: r.url(), failure: r.failure()?.errorText }); });
+page.on('response', r => { if (isEndpoint(r.url())) requests.push({ url: r.url(), status: r.status() }); });
 const texts = () => page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => c.startsWith('drawText')).map(c => c.match(/"([^"]*)"/)[1]));
 const settle = async (ready, tries = 50) => { let t = await texts(); for (let i = 0; i < tries && !ready(t); i++) { await page.waitForTimeout(100); t = await texts(); } return t; };
 const expect = (condition, message) => { if (!condition) { problems.push(message); if (currentFlow) report.flows[currentFlow] = { outcome: 'failed', detail: message }; } };
@@ -78,18 +88,24 @@ try {
   t = await settle(t => t.includes('An Error Occured') || t.includes('Retry') || t.some(x => /^[A-Z][a-z]+$/.test(x) && x !== 'Countries' && x !== 'Retry'), 300);
   const errored = t.includes('An Error Occured');
   const errorText = errored ? t.slice(t.indexOf('An Error Occured') + 1, t.indexOf('Retry')).join(' ') : null;
+  report.endpoint.url = [...endpointRequests][0] || null;
   report.endpoint.outcome = errored ? 'failed: ' + errorText : 'answered: the list is painted';
   report.endpoint.requests = requests;
   await shot('02-after-request');
   if (errored) {
     expect(t.includes('Retry'), 'countries-request: the error view has no Retry: ' + JSON.stringify(t));
     flow('countries-request', 'blocked', 'the app\'s ErrorView: "' + errorText + '" — restcountries.com/v2 is deprecated and refuses the page (no CORS header); an external service, not the app or the framework');
-    // Retry runs the same request again and lands on the same view: the app's own loop, intact.
+    // Retry makes a fresh request to the endpoint (counted, not assumed: a no-op tap would
+    // leave the same screen) and lands on the same view: the app's own loop, intact.
     begin('error-view-retry');
+    const requestsBefore = requests.filter(r => r.at).length;
     await tapText('Retry');
-    t = await settle(t => !t.includes('An Error Occured'), 10);
+    for (let i = 0; i < 100 && requests.filter(r => r.at).length === requestsBefore; i++) await page.waitForTimeout(100);
+    const requestsAfter = requests.filter(r => r.at).length;
+    expect(requestsAfter > requestsBefore, `error-view-retry: no new request to the endpoint after Retry (${requestsBefore} before, ${requestsAfter} after)`);
     t = await settle(t => t.includes('An Error Occured'), 300);
     expect(t.includes('An Error Occured') && t.includes('Retry'), 'error-view-retry: after Retry the view is ' + JSON.stringify(t));
+    report.endpoint.retry_requests = { before: requestsBefore, after: requestsAfter };
     await shot('03-after-retry');
     for (const f of ['countries-list', 'search', 'country-detail']) flow(f, 'blocked', 'needs the list the external service no longer serves');
   } else {

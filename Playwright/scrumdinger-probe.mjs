@@ -23,9 +23,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = outIndex > 0 ? process.argv[outIndex + 1] : join(root, '.build', 'apps', 'scrumdinger');
 mkdirSync(out, { recursive: true });
 const git = (args) => { try { return execSync(`git ${args}`, { cwd: root, encoding: 'utf8' }).trim(); } catch { return 'unknown'; } };
+// The tested commit is only what ran when the tree is clean; a dirty tree is said so.
+const dirty = git('status --porcelain --untracked-files=normal').split('\n').filter(Boolean);
 const report = {
   app: 'Scrumdinger', upstream: 'https://github.com/Sedlacek-Solutions/Scrumdinger',
-  tested_commit: git('rev-parse HEAD'), app_pinned_revision: git('ls-files --stage Apps/upstream/Scrumdinger').split(/\s+/)[1] || 'unknown',
+  tested_commit: git('rev-parse HEAD'), working_tree: dirty.length ? `dirty: ${dirty.length} path(s) differ from the commit` : 'clean', app_pinned_revision: git('ls-files --stage Apps/upstream/Scrumdinger').split(/\s+/)[1] || 'unknown',
   browser: null, url, started: new Date().toISOString(),
   full_app_pass: false,
   flows: {}, problems: [], screenshots: [], trace: null,
