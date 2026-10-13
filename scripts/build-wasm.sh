@@ -12,7 +12,7 @@ while [[ $# -gt 0 ]]; do
     *) echo "unknown argument $1"; exit 1;;
   esac
 done
-PRODUCT_FLAG=(); [[ -n "$PRODUCT" ]] && PRODUCT_FLAG=(--product "$PRODUCT")
+PRODUCT_FLAG=""; [[ -n "$PRODUCT" ]] && PRODUCT_FLAG="--product $PRODUCT"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SDK="swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm"
 # shellcheck disable=SC1091
@@ -22,9 +22,9 @@ cd "$PKG"
 # The 4 MB wasm stack (wasm-ld defaults to 64 KB) is set per package in Package.swift (linkerSettings).
 
 if [[ $DEBUG == 1 ]]; then
-  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path .build/wasm js "${PRODUCT_FLAG[@]}" --use-cdn --debug-info-format dwarf
+  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path .build/wasm js $PRODUCT_FLAG --use-cdn --debug-info-format dwarf
 else
-  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path .build/wasm -c release -Xswiftc -Osize js "${PRODUCT_FLAG[@]}" --use-cdn
+  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path .build/wasm -c release -Xswiftc -Osize js $PRODUCT_FLAG --use-cdn
 fi
 # Asset catalogs (decision 0011): every *.xcassets of the package becomes assets/manifest.js plus
 # the image files in the bundle; index.html includes the script before the module.
