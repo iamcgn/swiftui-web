@@ -144,13 +144,52 @@ public final class UIApplication: UIResponder {
     override public func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) { UIKitScene.shared.pressUnhandled = true }
     public var applicationIconBadgeNumber = 0
 
-    /// Opens a URL with the host (a new tab in the browser).
+    /// Opens a URL with the host (a new tab in the browser). The settings URL
+    /// (`openSettingsURLString`) has nothing to open in a page: the completion says so.
     public func open(_ url: URL, options: [OpenExternalURLOptionsKey: Any] = [:], completionHandler: ((Bool) -> Void)? = nil) {
+        guard url.absoluteString != Self.openSettingsURLString, url.absoluteString != Self.openNotificationSettingsURLString else {
+            completionHandler?(false)
+            return
+        }
         UIKitScene.shared.openURL?(url.absoluteString)
         completionHandler?(true)
     }
 
-    public func canOpenURL(_ url: URL) -> Bool { UIKitScene.shared.openURL != nil }
+    public func open(_ url: URL, options: [OpenExternalURLOptionsKey: Any] = [:]) async -> Bool {
+        await withCheckedContinuation { continuation in open(url, options: options) { continuation.resume(returning: $0) } }
+    }
+
+    public func canOpenURL(_ url: URL) -> Bool {
+        url.absoluteString != Self.openSettingsURLString && url.absoluteString != Self.openNotificationSettingsURLString && UIKitScene.shared.openURL != nil
+    }
+
+    /// The URL that opens the app's settings on iOS; a page has no such place (`open` answers false).
+    public static let openSettingsURLString = "app-settings:"
+    public static let openNotificationSettingsURLString = "app-settings:notifications"
+
+    /// Remote notifications: a page has no push service. Registering reports a failure to the
+    /// delegate right away (the app's `didFailToRegisterForRemoteNotificationsWithError`),
+    /// as iOS does without an entitlement or a network.
+    public func registerForRemoteNotifications() {
+        guard let delegate else { return }
+        let application = self
+        Task { @MainActor in delegate.application(application, didFailToRegisterForRemoteNotificationsWithError: RegistrationError.unavailable) }
+    }
+    public func unregisterForRemoteNotifications() {}
+    public var isRegisteredForRemoteNotifications: Bool { false }
+
+    public enum RegistrationError: Error, CustomStringConvertible {
+        case unavailable
+        public var description: String { "remote notifications are not available in a page" }
+    }
+
+    public struct OpenURLOptionsKey: Hashable, Sendable, RawRepresentable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let sourceApplication = OpenURLOptionsKey(rawValue: "UIApplicationOpenURLOptionsSourceApplicationKey")
+        public static let annotation = OpenURLOptionsKey(rawValue: "UIApplicationOpenURLOptionsAnnotationKey")
+        public static let openInPlace = OpenURLOptionsKey(rawValue: "UIApplicationOpenURLOptionsOpenInPlaceKey")
+    }
 
     public enum State: Int, Sendable {
         case active = 0, inactive, background
@@ -180,6 +219,16 @@ public protocol UIApplicationDelegate: AnyObject {
     func applicationDidEnterBackground(_ application: UIApplication)
     func applicationWillEnterForeground(_ application: UIApplication)
     func applicationWillTerminate(_ application: UIApplication)
+    /// The configuration for a scene about to connect: its `delegateClass` is the scene
+    /// delegate the launch creates (the Countries app's `SceneDelegate`, decision 0021).
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration
+    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>)
+    /// Remote notifications: a page has no push service, so registering fails with
+    /// `UIApplication.RegistrationError.unavailable`, reported through the delegate.
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data)
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error)
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult
+    func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any]) -> Bool
 }
 
 extension UIApplicationDelegate {
@@ -194,4 +243,12 @@ extension UIApplicationDelegate {
     public func applicationDidEnterBackground(_ application: UIApplication) {}
     public func applicationWillEnterForeground(_ application: UIApplication) {}
     public func applicationWillTerminate(_ application: UIApplication) {}
+    public func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        connectingSceneSession.configuration
+    }
+    public func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {}
+    public func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {}
+    public func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}
+    public func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult { .noData }
+    public func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any]) -> Bool { false }
 }

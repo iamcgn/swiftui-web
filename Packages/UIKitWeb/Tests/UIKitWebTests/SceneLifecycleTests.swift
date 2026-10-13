@@ -76,4 +76,93 @@ final class TestSceneDelegate: UIWindowSceneDelegate {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         scene.removeAllWindows()
     }
+
+    /// The Countries app's shape (decision 0021): an app delegate whose
+    /// `configurationForConnecting` names the scene delegate class, launched with an instance
+    /// the caller made (`launchApplication`, what `@UIApplicationDelegateAdaptor` does): the
+    /// launch callbacks, the scene connected to a `SceneDelegate` instance, activation through
+    /// it, the window scene delegate's default `window`, and remote-notification registration
+    /// failing through the delegate.
+    final class CountriesLikeDelegate: UIResponder, UIApplicationDelegate {
+        var launched: [String] = []
+        var registrationError: Error?
+        func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+            launched.append("didFinish"); return true
+        }
+        func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+            launched.append("configure")
+            let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+            config.delegateClass = TestSceneDelegate.self
+            return config
+        }
+        func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) { registrationError = error }
+    }
+    final class WindowlessSceneDelegate: UIResponder, UIWindowSceneDelegate {
+        override init() { super.init() }
+        func sceneDidBecomeActive(_ scene: UIScene) { LifecycleLog.current.events.append("windowless active") }
+    }
+
+    @Test func anAppDelegateLaunchesAndConfiguresItsSceneDelegate() async {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.hostIsVisible = true; scene.hostIsFocused = true
+        scene.sceneDelegateType = nil; scene.disconnectWindowScene()
+        LifecycleLog.current.events = []
+        defer { scene.sceneDelegateType = nil; scene.disconnectWindowScene(); UIApplication.shared.delegate = nil }
+        let delegate = CountriesLikeDelegate()
+        scene.launchApplication(delegate: delegate)
+        #expect(delegate.launched == ["didFinish", "configure"])
+        #expect(UIApplication.shared.delegate === delegate)
+        #expect(scene.sceneDelegate is TestSceneDelegate && scene.windowScene.delegate is TestSceneDelegate)
+        // The scene connected and, the page being visible and focused, became active through its delegate.
+        #expect(LifecycleLog.current.events.first == "connect" && LifecycleLog.current.events.contains("active"), "\(LifecycleLog.current.events)")
+        // Push registration has no service in a page: the delegate hears the failure.
+        UIApplication.shared.registerForRemoteNotifications()
+        await Task.yield(); await Task.yield()
+        #expect(delegate.registrationError != nil && !UIApplication.shared.isRegisteredForRemoteNotifications)
+        // The settings URL opens nothing.
+        var opened: Bool?
+        UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!) { opened = $0 }
+        #expect(opened == false && !UIApplication.shared.canOpenURL(URL(string: UIApplication.openSettingsURLString)!))
+    }
+
+    @Test func aSceneDelegateWithoutAWindowPropertyKeepsItOnTheScene() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.sceneDelegateType = nil; scene.disconnectWindowScene()
+        LifecycleLog.current.events = []
+        defer { scene.sceneDelegateType = nil; scene.disconnectWindowScene(); scene.removeAllWindows() }
+        scene.sceneDelegateType = WindowlessSceneDelegate.self
+        scene.connectWindowScene()
+        let delegate = scene.sceneDelegate as? WindowlessSceneDelegate
+        #expect(delegate != nil && delegate?.window == nil)
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        delegate?.window = window
+        #expect(delegate?.window === window && scene.sceneDelegateWindow === window)
+    }
+
+    /// The keyboard notifications a host drives through `keyboardFrame` (the Countries app
+    /// reads the end frame from `keyboardFrameEndUserInfoKey`).
+    @Test func keyboardFrameChangesPostTheNotifications() {
+        let scene = UIKitScene.shared
+        scene.keyboardFrame = nil
+        var seen: [(Notification.Name, CGRect)] = []
+        let center = NotificationCenter.default
+        let tokens = [UIResponder.keyboardWillShowNotification, UIResponder.keyboardWillHideNotification, UIApplication.keyboardWillChangeFrameNotification].map { name in
+            center.addObserver(forName: name, object: nil, queue: nil) { note in
+                let end = (note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .null
+                let posted = note.name
+                MainActor.assumeIsolated { seen.append((posted, end)) }
+            }
+        }
+        defer { for token in tokens { center.removeObserver(token) }; scene.keyboardFrame = nil }
+        let screen = UIScreen.main.bounds
+        let keyboard = CGRect(x: 0, y: screen.height - 300, width: screen.width, height: 300)
+        scene.keyboardFrame = keyboard
+        scene.keyboardFrame = keyboard   // unchanged: nothing posted
+        scene.keyboardFrame = nil
+        #expect(seen.map(\.0) == [UIResponder.keyboardWillChangeFrameNotification, UIResponder.keyboardWillShowNotification,
+                                  UIResponder.keyboardWillChangeFrameNotification, UIResponder.keyboardWillHideNotification], "\(seen.map(\.0))")
+        #expect(seen[1].1 == keyboard && seen[3].1 == CGRect(x: 0, y: screen.maxY, width: screen.width, height: 300))
+    }
 }

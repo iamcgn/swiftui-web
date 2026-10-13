@@ -75,14 +75,26 @@ public final class UISceneSession: Sendable {
     }
 }
 
-/// The scene configuration a session connects with (its name and delegate class).
-public final class UISceneConfiguration: Sendable {
+/// The scene configuration a session connects with: its name, role and delegate class
+/// (`application(_:configurationForConnecting:options:)` sets `delegateClass` and the launch
+/// connects the scene to an instance of it, decision 0021).
+public final class UISceneConfiguration: @unchecked Sendable {
     public let name: String?
     public let role: UISceneSession.Role
+    public var delegateClass: AnyClass?
+    public var sceneClass: AnyClass?
+    public var storyboard: Any?
     public init(name: String?, sessionRole: UISceneSession.Role = .windowApplication) {
         self.name = name
         self.role = sessionRole
     }
+}
+
+/// What the app delegate answers for a remote notification it was given to fetch for.
+public enum UIBackgroundFetchResult: UInt, Sendable {
+    case newData = 0
+    case noData = 1
+    case failed = 2
 }
 
 /// A URL the scene opened with.
@@ -121,10 +133,18 @@ extension UISceneDelegate {
     public func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {}
 }
 
-/// A window scene's delegate keeps the scene's window.
+/// A window scene's delegate keeps the scene's window (optional, as UIKit's: a delegate that
+/// declares none keeps it on the scene, decision 0021).
 @MainActor
 public protocol UIWindowSceneDelegate: UISceneDelegate {
     var window: UIWindow? { get set }
+}
+
+extension UIWindowSceneDelegate {
+    public var window: UIWindow? {
+        get { UIKitScene.shared.sceneDelegateWindow }
+        set { UIKitScene.shared.sceneDelegateWindow = newValue }
+    }
 }
 
 extension UIApplication {
@@ -164,6 +184,32 @@ extension UISceneSession: Hashable {
 }
 
 extension UIKitScene {
+    /// The launch sequence with a delegate the caller made (a SwiftUI app's
+    /// `@UIApplicationDelegateAdaptor`; `main()` makes its own): the launch callbacks and
+    /// notification, the delegate's window shown, then the scene: the delegate's
+    /// `configurationForConnecting` names the scene delegate class (`delegateClass`), else the
+    /// registered `sceneDelegateType`; with one, the scene connects and activates through it,
+    /// without one the app becomes active directly.
+    public func launchApplication(delegate: any UIApplicationDelegate, launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) {
+        let application = UIApplication.shared
+        application.delegate = delegate
+        _ = delegate.application(application, willFinishLaunchingWithOptions: launchOptions)
+        _ = delegate.application(application, didFinishLaunchingWithOptions: launchOptions)
+        NotificationCenter.default.post(name: UIApplication.didFinishLaunchingNotification, object: application)
+        if let window = delegate.window, !windows.contains(where: { $0 === window }) {
+            window.makeKeyAndVisible()
+        }
+        let contexts: Set<UIOpenURLContext> = lastOpenedURL.flatMap { URL(string: $0) }.map { [UIOpenURLContext(url: $0)] } ?? []
+        let configuration = delegate.application(application, configurationForConnecting: windowScene.session, options: UIScene.ConnectionOptions(urlContexts: contexts))
+        if let named = configuration.delegateClass as? any UISceneDelegate.Type { sceneDelegateType = named }
+        if sceneDelegateType != nil {
+            connectWindowScene()
+        } else {
+            delegate.applicationDidBecomeActive(application)
+            NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: application)
+        }
+    }
+
     /// Connects the scene to the registered delegate class (the launch sequence), with the
     /// URL the page opened with when there is one.
     public func connectWindowScene() {

@@ -4,6 +4,7 @@
 #if os(WASI)
 import Testing
 import WebFoundation
+import WebCombine
 
 @Suite(.serialized) struct WasmFoundationTests {
     @Test func dataSlicesKeepTheirIndices() {
@@ -251,6 +252,23 @@ import WebFoundation
         #expect(Bundle.main.preferredLocalizations == ["pt-BR"])
         Locale._hostIdentifier = "pt_PT"
         #expect(Bundle.main.preferredLocalizations == ["pt-BR"])
+    }
+
+    /// `NSObject` as a delegate base (the Countries app's `RealPushNotificationsHandler`),
+    /// percent encoding with the URL sets (its web repository), `TopLevelDecoder` (its
+    /// `decode(type:decoder:)` chain).
+    @Test func nsObjectPercentEncodingAndTopLevelDecoder() throws {
+        final class Handler: NSObject { var hits = 0; override var description: String { "handler" } }
+        let a = Handler(), b = Handler()
+        #expect(a == a && a != b && a.isEqual(a) && !a.isEqual(b) && Set([a, b]).count == 2 && a.description == "handler")
+        // Qualified here only because the wasm test target links the SDK's Foundation as well
+        // (XCTest wants it); an app sees WebFoundation's alone (the Countries build checks that).
+        #expect("Côte d'Ivoire & co".addingPercentEncoding(withAllowedCharacters: WebFoundation.CharacterSet.urlQueryAllowed) == "C%C3%B4te%20d'Ivoire%20&%20co")
+        #expect("a b/c?d=e".addingPercentEncoding(withAllowedCharacters: WebFoundation.CharacterSet.urlPathAllowed) == "a%20b/c%3Fd=e")
+        #expect("C%C3%B4te%20d".removingPercentEncoding == "Côte d" && "%ZZ".removingPercentEncoding == nil)
+        struct Country: Decodable, Equatable { let name: String }
+        func decodeWith<D: TopLevelDecoder>(_ decoder: D, _ input: D.Input) throws -> Country { try decoder.decode(Country.self, from: input) }
+        #expect(try decodeWith(JSONDecoder(), Data("{\"name\":\"Chad\"}".utf8)) == Country(name: "Chad"))
     }
 
     @Test func filesUnderDocumentsSurviveThroughTheHostStore() throws {

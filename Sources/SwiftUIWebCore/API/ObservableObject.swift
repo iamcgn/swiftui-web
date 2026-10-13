@@ -168,4 +168,11 @@ extension View {
     nonisolated public func environmentObject<T: ObservableObject>(_ object: T) -> some View {
         modifier(_EnvironmentObjectModifier(object: object))
     }
+
+    /// The same for an object whose type is known only at run time (the app-level objects).
+    @MainActor
+    package func _environmentObject(erased object: any WebCombine.ObservableObject) -> AnyView {
+        func open<T: WebCombine.ObservableObject>(_ object: T) -> AnyView { AnyView(environmentObject(object)) }
+        return open(object)
+    }
 }

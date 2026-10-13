@@ -114,3 +114,82 @@ public final class NSItemProvider: @unchecked Sendable {
 private let _textTypeIdentifiers: Set<String> = ["public.utf8-plain-text", "public.plain-text", "public.text"]
 
 #endif
+
+#if os(WASI)
+// MARK: - NSObject (decision 0021: the Countries app subclasses it for its notification
+// delegate; `super.init()`, identity equality, a hash and a description)
+
+/// The protocol the root class conforms to.
+public protocol NSObjectProtocol: AnyObject {
+    func isEqual(_ object: Any?) -> Bool
+    var hash: Int { get }
+    var description: String { get }
+}
+
+/// The root class of most Objective-C class hierarchies, without the runtime: identity
+/// equality and hashing, overridable, as apps subclass it for delegates.
+open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible {
+    public init() {}
+    open func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSObject else { return false }
+        return other === self
+    }
+    open var hash: Int { ObjectIdentifier(self).hashValue }
+    open var description: String { "<\(type(of: self))>" }
+    open var debugDescription: String { description }
+    public static func == (lhs: NSObject, rhs: NSObject) -> Bool { lhs.isEqual(rhs) }
+    public func hash(into hasher: inout Hasher) { hasher.combine(hash) }
+    open class var description: String { "\(self)" }
+    public func isKind(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
+    public func isMember(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
+}
+
+// MARK: - Percent encoding with the URL character sets
+
+extension CharacterSet {
+    private static let unreserved = CharacterSet { $0.isASCII && ($0.properties.isAlphabetic || ("0"..."9").contains($0) || "-._~".unicodeScalars.contains($0)) }
+    private static func allowed(_ extra: String) -> CharacterSet { unreserved.union(CharacterSet(charactersIn: extra)) }
+    /// The sets `URLComponents` allows in each part (RFC 3986 as Foundation applies it).
+    public static let urlQueryAllowed = allowed("!$&'()*+,;=:@/?")
+    public static let urlPathAllowed = allowed("!$&'()*+,;=:@/")
+    public static let urlHostAllowed = allowed("!$&'()*+,;=:[]")
+    public static let urlUserAllowed = allowed("!$&'()*+,;=")
+    public static let urlPasswordAllowed = allowed("!$&'()*+,;=")
+    public static let urlFragmentAllowed = allowed("!$&'()*+,;=:@/?")
+}
+
+extension StringProtocol {
+    /// The string with every byte of a scalar outside `allowedCharacters` as `%XX`.
+    public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
+        var result = ""
+        for scalar in String(self).unicodeScalars {
+            if allowedCharacters.contains(scalar) {
+                result.unicodeScalars.append(scalar)
+            } else {
+                for byte in String(scalar).utf8 { result += "%" + String(byte, radix: 16, uppercase: true).leftPadded(to: 2) }
+            }
+        }
+        return result
+    }
+
+    /// The string with its `%XX` escapes decoded; nil when a sequence is not valid UTF-8.
+    public var removingPercentEncoding: String? {
+        var bytes: [UInt8] = []
+        var iterator = String(self).utf8.makeIterator()
+        while let byte = iterator.next() {
+            if byte == UInt8(ascii: "%") {
+                guard let high = iterator.next(), let low = iterator.next(),
+                      let value = UInt8(String(decoding: [high, low], as: UTF8.self), radix: 16) else { return nil }
+                bytes.append(value)
+            } else {
+                bytes.append(byte)
+            }
+        }
+        return String(validating: bytes, as: UTF8.self)
+    }
+}
+
+extension String {
+    fileprivate func leftPadded(to width: Int) -> String { count >= width ? self : String(repeating: "0", count: width - count) + self }
+}
+#endif

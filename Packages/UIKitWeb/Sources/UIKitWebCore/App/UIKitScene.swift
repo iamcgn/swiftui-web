@@ -205,6 +205,10 @@ public final class UIKitScene: HostedScene {
     public private(set) lazy var windowScene = UIWindowScene(session: UISceneSession())
     public internal(set) var sceneDelegate: (any UISceneDelegate)?
     public var sceneDelegateType: (any UISceneDelegate.Type)?
+    /// The window a scene delegate without a stored `window` keeps (the protocol's default).
+    public var sceneDelegateWindow: UIWindow?
+    /// The on-screen keyboard's frame (`keyboardFrame`, Keyboard.swift).
+    var storedKeyboardFrame: CGRect?
     /// The URL a UIKit app would receive through its scene delegate (recorded only).
     public private(set) var lastOpenedURL: String?
     public func handleOpenURL(_ url: String) { lastOpenedURL = url }

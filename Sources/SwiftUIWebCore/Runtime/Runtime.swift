@@ -102,11 +102,19 @@ public final class Runtime {
             guard hostIsVisible != oldValue else { return }
             applyScenePhase()
             hostVisibilityChangedForTimelines()
+            for observer in Self._hostLifecycleObservers { observer(hostIsVisible, hostIsFocused) }
         }
     }
     public var hostIsFocused = true {
-        didSet { if hostIsFocused != oldValue { applyScenePhase() } }
+        didSet {
+            guard hostIsFocused != oldValue else { return }
+            applyScenePhase()
+            for observer in Self._hostLifecycleObservers { observer(hostIsVisible, hostIsFocused) }
+        }
     }
+    /// Told of every visibility or focus change of any runtime (a UIKit app delegate's scene
+    /// follows the page, decision 0021).
+    public static var _hostLifecycleObservers: [@MainActor (_ visible: Bool, _ focused: Bool) -> Void] = []
     public var scenePhase: ScenePhase { !hostIsVisible ? .background : (hostIsFocused ? .active : .inactive) }
 
     private func applyScenePhase() {

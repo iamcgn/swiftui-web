@@ -4,7 +4,7 @@
 // itself: the buffers an app appends to an `SFSpeechAudioBufferRecognitionRequest` from its own
 // audio tap are accepted and are not what is transcribed (the stated deviation of `pf-speech`).
 // Written against Scrumdinger's SpeechService.
-import WebFoundation
+@_exported import WebFoundation   // as Apple's Speech re-exports Foundation
 import AVFoundation
 
 // MARK: - The host

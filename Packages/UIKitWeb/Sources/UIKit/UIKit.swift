@@ -83,22 +83,8 @@ enum UIKitLaunch {
     nonisolated(unsafe) static var retainedHost: AnyObject?
 
     static func launch<Delegate: UIApplicationDelegate>(_ type: Delegate.Type) {
-        let application = UIApplication.shared
-        let delegate = Delegate()
-        application.delegate = delegate
-        _ = delegate.application(application, willFinishLaunchingWithOptions: nil)
-        _ = delegate.application(application, didFinishLaunchingWithOptions: nil)
-        NotificationCenter.default.post(name: UIApplication.didFinishLaunchingNotification, object: application)
-        if let window = delegate.window, !UIKitScene.shared.windows.contains(where: { $0 === window }) {
-            window.makeKeyAndVisible()
-        }
-        // A registered scene delegate connects now (uk-scenes); the activation goes through the
-        // scene, which tells the app delegate too.
-        if UIKitScene.shared.sceneDelegateType != nil {
-            UIKitScene.shared.connectWindowScene()
-        } else {
-            delegate.applicationDidBecomeActive(application)
-            NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: application)
-        }
+        // The one launch sequence (`UIKitScene.launchApplication`): a registered or configured
+        // scene delegate connects and activates (uk-scenes), else the app becomes active directly.
+        UIKitScene.shared.launchApplication(delegate: Delegate())
     }
 }

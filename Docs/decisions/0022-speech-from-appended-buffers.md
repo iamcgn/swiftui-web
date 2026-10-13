@@ -164,15 +164,16 @@ So the choice is not "external service yes/no" — that is settled (no). It is:
 
 | | A — browser on-device engine fed the exact PCM track | B — in-page model fed the exact buffers |
 |---|---|---|
-| Browsers | Chromium ≥ 139 only (feature-detected; `isAvailable` false elsewhere) | any browser with wasm SIMD + threads |
+| Browsers | Chromium ≥ 139 only (feature-detected; `isAvailable` false elsewhere) | in principle any browser whose wasm has SIMD and threads (cross-origin isolation for `SharedArrayBuffer`); **unverified here** — which engine (whisper.cpp or Vosk), which model and whether it runs acceptably on an iPhone's Safari are prerequisites of the B experiment, not facts |
 | Incoming download | the vendor's language pack (reported ≈60 MB, unmeasured), user-prompted | a model the deployer hosts (reported 50–150 MB, unmeasured) |
 | Test infrastructure | **Playwright/Chromium upgrade from 129 to ≥ 139** before anything can be tried; the pack on the runner | the model cached on the runner |
-| Combined feasibility | the `start(track)`+`processLocally` pairing with a worklet-generated track is **unproven** (per-API evidence only) | whisper.cpp/Vosk wasm builds are known to run; feeding them Float32 frames is their normal input |
+| Combined feasibility | the `start(track)`+`processLocally` pairing with a worklet-generated track is **unproven** (per-API evidence only) | whisper.cpp and Vosk publish wasm builds whose input is Float32 frames; **not run here** — their requirements (SIMD, threads, cross-origin isolation headers on the deployer's server, model hosting) are unverified for this project |
 | CPU / latency | the browser's engine (unmeasured) | windowed, phone CPU cost (unmeasured) |
 | Effort | ~2 days (estimate) | ~1 week + hosting decision (estimate) |
 
 Corey's decision: A (Chromium-first, smaller, hinges on an unproven pairing and a test-browser
-upgrade) or B (every browser, heavier, hosting to arrange). Nothing in this document picks one.
+upgrade) or B (potentially broader, heavier, with engine/model/hosting requirements still to
+verify). Nothing in this document picks one.
 
 ## The smallest isolated feasibility step (before either route is "accepted")
 
@@ -200,10 +201,13 @@ nothing *in the repository*:
 ## Recommendation
 
 A, feature-detected, Chromium-only, with `isAvailable` false everywhere else and the app's own
-alert as today. It is the only option whose bytes never leave the page, whose cost is a
-one-time pack the user is asked for, and whose semantics map onto Apple's one for one. B is
-the fallback if Corey wants Safari/Firefox covered and accepts a model download and the CPU
-cost. C is not recommended.
+alert as today — on the grounds that it is the smaller build, its semantics map onto Apple's
+one for one, and the download is the browser vendor's rather than a file the deployer must
+host. Both A and B keep every byte of audio on the device; that is not what separates them.
+What does: A hinges on an unproven pairing and a test-browser upgrade; B is heavier and needs
+a hosted model. B is the fallback if the A experiment fails or if browsers beyond Chromium
+matter more than the download and CPU cost. C is not recommended. This is a recommendation,
+not a choice; the choice is Corey's.
 
 ## 2048, for the record
 

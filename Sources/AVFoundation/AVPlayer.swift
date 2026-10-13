@@ -3,7 +3,7 @@
 // source, playing, muted, looping, the rate); there is no media pipeline of its own, so
 // times and durations are what the host reports back — nothing yet.
 #if os(WASI)
-import WebFoundation
+@_exported import WebFoundation   // as Apple's AVFoundation re-exports Foundation
 #else
 import Foundation
 #endif

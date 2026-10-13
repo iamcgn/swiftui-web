@@ -328,6 +328,11 @@ public protocol App {
 /// scheduler coalesces the changes of one flush) and the re-mount.
 @MainActor public var _appRemount: (runtime: Runtime, apply: @MainActor () -> Void)?
 
+/// Observable objects the app puts in every window's environment without a modifier: an
+/// `@UIApplicationDelegateAdaptor` delegate that is an `ObservableObject`, as SwiftUI injects
+/// it (decision 0021). Read when the windows are described.
+@MainActor public var _appEnvironmentObjects: [any WebCombine.ObservableObject] = []
+
 @MainActor final class _AppPropertyNode: ViewNode {
     private var pending = false
     override package func invalidate() {
@@ -355,10 +360,27 @@ extension App {
         return app
     }
 
-    /// The app's window scenes, in declaration order.
+    /// Tests: forgets the instance so the next `_instance` makes a new one.
+    @MainActor
+    public static func _resetInstance() { appInstances[ObjectIdentifier(Self.self)] = nil }
+
+    /// The app's window scenes, in declaration order; the app-level environment objects wrap
+    /// every root.
     @MainActor
     public static func _windows() -> [_WindowDescriptor] {
-        Body._windows(of: _instance.body)
+        let windows = Body._windows(of: _instance.body)   // the instance first: its adaptor may register an object
+        let objects = _appEnvironmentObjects
+        guard !objects.isEmpty else { return windows }
+        return windows.map { descriptor in
+            var descriptor = descriptor
+            let make = descriptor.make
+            descriptor.make = { box in
+                var view = make(box)
+                for object in objects { view = AnyView(view._environmentObject(erased: object)) }
+                return view
+            }
+            return descriptor
+        }
     }
 
     /// The root of the main window: the first window group (or window). A document group's

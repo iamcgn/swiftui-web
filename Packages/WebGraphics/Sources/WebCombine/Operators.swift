@@ -568,3 +568,20 @@ public struct Deferred<DeferredPublisher: Publisher>: Publisher {
         createPublisher()._subscribeOnMain(receive, complete)
     }
 }
+
+// MARK: - Top-level coders (decision 0021: `decode(type:decoder:)` on a publisher of data)
+
+/// A type that defines methods for decoding (Combine's; `JSONDecoder` conforms).
+public protocol TopLevelDecoder {
+    associatedtype Input
+    func decode<T: Decodable>(_ type: T.Type, from: Input) throws -> T
+}
+
+/// A type that defines methods for encoding (Combine's; `JSONEncoder` conforms).
+public protocol TopLevelEncoder {
+    associatedtype Output
+    func encode<T: Encodable>(_ value: T) throws -> Output
+}
+
+extension JSONDecoder: TopLevelDecoder {}
+extension JSONEncoder: TopLevelEncoder {}
