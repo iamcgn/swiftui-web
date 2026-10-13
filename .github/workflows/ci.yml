@@ -112,8 +112,10 @@ jobs:
           python3 -m http.server 8769 --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
           # A second local server, no CORS headers: the URLSession check's refused cross-origin request (pf-urlsession).
           python3 -m http.server 8776 --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8769/index.html >/dev/null && curl -sf http://127.0.0.1:8776/fixtures/country.json >/dev/null && break; sleep 1; done
-          (cd Playwright && node launches-probe.mjs "http://127.0.0.1:8769/index.html?cross=http://127.0.0.1:8776")
+          # The slow fixture server (headers now, body later): the timeout-after-headers and in-flight cancellation cases.
+          (cd Playwright && node fixture-server.mjs 8777 >/dev/null 2>&1 &)
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8769/index.html >/dev/null && curl -sf http://127.0.0.1:8776/fixtures/country.json >/dev/null && curl -sf http://127.0.0.1:8777/fixtures/country.json >/dev/null && break; sleep 1; done
+          (cd Playwright && node launches-probe.mjs "http://127.0.0.1:8769/index.html?cross=http://127.0.0.1:8776&slow=http://127.0.0.1:8777")
       # The apps of decision 0021, three claims kept apart: the upstream trees are exactly their
       # pins (integrity), an app compiles from them (compilation), the app does what a user does
       # with it (behaviour). Each step fails on its own.

@@ -19,10 +19,14 @@ enum PageAddresses {
         return ""
         #endif
     }
-    static var cross: String? {
+    static var cross: String? { query("cross") }
+    /// The slow fixture server (`?slow=http://127.0.0.1:PORT`, Playwright/fixture-server.mjs).
+    static var slow: String? { query("slow") }
+
+    private static func query(_ name: String) -> String? {
         #if os(WASI)
         let search = JSObject.global.location.search.string ?? ""
-        guard let range = search.range(of: "cross=") else { return nil }
+        guard let range = search.range(of: name + "=") else { return nil }
         let value = search[range.upperBound...].prefix { $0 != "&" }
         return value.removingPercentEncoding
         #else
@@ -69,6 +73,31 @@ final class NetworkCheck: ObservableObject {
             do { _ = try await fetching.value; parts.append("cancel FAILED (answered)") }
             catch let error as URLError { parts.append("cancel \(error.code.rawValue)") }
             catch { parts.append("cancel FAILED \(error)") }
+            if let slow = PageAddresses.slow {
+                // Timeout after the headers: the server sends them at once and the body 3 s later;
+                // a 0.3 s timeout fires while the body is being read: -1001, not a response.
+                do {
+                    var request = URLRequest(url: URL(string: slow + "/slow?ms=3000")!)
+                    request.timeoutInterval = 0.3
+                    _ = try await session.data(for: request)
+                    parts.append("timeout FAILED (answered)")
+                } catch let error as URLError { parts.append("timeout \(error.code.rawValue)") }
+                catch { parts.append("timeout FAILED \(error)") }
+                // In-flight cancel: the headers are in, the body is 1.5 s away, the task is cancelled
+                // after 0.2 s: -999, and exactly one completion (the late body never answers twice).
+                var completions = 0
+                let inFlight = Task { () throws -> Int in
+                    do { _ = try await session.data(from: URL(string: slow + "/slow?ms=1500")!); completions += 1; return 0 }
+                    catch { completions += 1; throw error }
+                }
+                try? await Task.sleep(nanoseconds: 200_000_000)
+                inFlight.cancel()
+                do { _ = try await inFlight.value; parts.append("inflight FAILED (answered)") }
+                catch let error as URLError { parts.append("inflight \(error.code.rawValue)") }
+                catch { parts.append("inflight FAILED \(error)") }
+                try? await Task.sleep(nanoseconds: 1_600_000_000)   // past the body's arrival: still one completion
+                parts.append("completions \(completions)")
+            }
             summary = "network: " + parts.joined(separator: " | ")
         }
     }

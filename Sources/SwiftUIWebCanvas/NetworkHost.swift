@@ -45,8 +45,12 @@ final class FetchTask: _WebHTTPTask, @unchecked Sendable {
             if let clear = JSObject.global.clearTimeout.function { _ = clear(self.timeout) }
             completion(result)
         }
-        // The timeout: abort after the interval; the rejection below reports `.timedOut`.
+        // The timeout: abort after the interval; a rejection of the headers or of the body then
+        // reports `.timedOut`; an abort the app asked for reports `.cancelled` (`cancelled` is
+        // set by `cancel()` before the signal fires, so the two never swap).
         nonisolated(unsafe) var timedOut = false
+        let cancelledFlag = _CancelFlag()
+        self.cancelledFlag = cancelledFlag
         if request.timeout > 0, let setTimeout = JSObject.global.setTimeout.function, let controller {
             let fire = JSClosure { (_: [JSValue]) -> JSValue in timedOut = true; _ = controller.abort?(); return .undefined }
             closures.append(fire)
@@ -72,7 +76,18 @@ final class FetchTask: _WebHTTPTask, @unchecked Sendable {
                 finish(.success(_WebHTTPResponse(url: url, status: Int(status), headers: headers, body: body)))
                 return .undefined
             }
-            let onBytesError = JSClosure { (_: [JSValue]) -> JSValue in finish(.failure(.unreachable("the response body could not be read"))); return .undefined }
+            // The body can fail after the headers arrived: the timeout fired (-1001), the app
+            // cancelled (-999), or the connection dropped (unreachable with the browser's reason).
+            let onBytesError = JSClosure { (arguments: [JSValue]) -> JSValue in
+                let error = arguments.first?.object
+                let name = error?.name.string ?? ""
+                if name == "AbortError" {
+                    finish(.failure(cancelledFlag.value ? .cancelled : (timedOut ? .timedOut : .cancelled)))
+                } else {
+                    finish(.failure(.unreachable("the response body could not be read: " + (name.isEmpty ? "" : name + ": ") + (error?.message.string ?? ""))))
+                }
+                return .undefined
+            }
             _ = bytesPromise.then!(onBytes, onBytesError)
             FetchTask.retained.append(onBytes)
             FetchTask.retained.append(onBytesError)
@@ -84,7 +99,7 @@ final class FetchTask: _WebHTTPTask, @unchecked Sendable {
             let message = error?.message.string ?? "fetch failed"
             let reason = (name.isEmpty ? "TypeError" : name) + ": " + message
             if name == "AbortError" {
-                finish(.failure(timedOut ? .timedOut : .cancelled))
+                finish(.failure(cancelledFlag.value ? .cancelled : (timedOut ? .timedOut : .cancelled)))
             } else if !(JSObject.global.navigator.onLine.boolean ?? true) {
                 finish(.failure(.notConnected))
             } else {
@@ -99,9 +114,13 @@ final class FetchTask: _WebHTTPTask, @unchecked Sendable {
 
     func cancel() {
         guard !done else { return }
+        cancelledFlag?.value = true
         _ = controller?.abort?()
     }
 
+    private var cancelledFlag: _CancelFlag?
     nonisolated(unsafe) static var retained: [JSClosure] = []
 }
+
+final class _CancelFlag: @unchecked Sendable { var value = false }
 #endif
