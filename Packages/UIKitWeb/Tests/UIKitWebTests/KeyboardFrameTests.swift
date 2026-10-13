@@ -39,14 +39,19 @@ import Foundation
         #expect(_KeyboardFrameEstimator.frame(for: zoomed, screenSize: screen) == nil)
     }
 
-    @Test func anOrdinaryResizeMovesBothViewportsTogether() {
+    @Test func bothViewportsResizedOrNeitherIsNoFrame() {
         // A desktop window resized while a field is focused: window and visual viewport agree.
         let resized = _ViewportReading(windowHeight: 600, visualHeight: 600, textInputFocused: true)
         #expect(_KeyboardFrameEstimator.frame(for: resized, screenSize: CGSize(width: 800, height: 600)) == nil)
-        // Chrome Android's default (the layout viewport itself shrinks for the keyboard):
-        // the same agreement — there is nothing over the page to report, the page got smaller.
+        // `interactive-widget=resizes-content` (Chrome before 108 and Android WebView by default):
+        // the keyboard shrinks the layout viewport with the visual one — the same agreement,
+        // nothing over the page to report, the page got smaller.
         let layoutResized = _ViewportReading(windowHeight: 500, visualHeight: 500, textInputFocused: true)
         #expect(_KeyboardFrameEstimator.frame(for: layoutResized, screenSize: CGSize(width: 390, height: 500)) == nil)
+        // `interactive-widget=overlays-content`: the keyboard shrinks neither viewport; a
+        // viewport difference cannot see it, and the estimate says nothing rather than guessing.
+        let overlaid = _ViewportReading(windowHeight: 844, visualHeight: 844, textInputFocused: true)
+        #expect(_KeyboardFrameEstimator.frame(for: overlaid, screenSize: screen) == nil)
     }
 
     @Test func theUrlBarsFewPointsAreNotAKeyboard() {

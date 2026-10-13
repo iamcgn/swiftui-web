@@ -1,10 +1,14 @@
 // Where the browser's on-screen keyboard is (decision 0021, uk-app-delegate-adaptor: the
 // Countries app's SystemEventsHandler reads `keyboardFrameEndUserInfoKey`). A browser never
 // says "the keyboard is up"; what it exposes is the visual viewport — the part of the layout
-// viewport the user can see — which the keyboard shrinks from the bottom on phones (iOS Safari
-// always; Chrome on Android with `interactive-widget=overlays-content`, and otherwise it
-// shrinks the layout viewport itself, so there is nothing over the page to report). The
-// estimate takes the reading only in the one state that is the keyboard's:
+// viewport the user can see — which the keyboard shrinks from the bottom on phones: iOS Safari,
+// and Chrome on Android since 108, whose default `interactive-widget=resizes-visual` shrinks the
+// visual viewport alone (developer.chrome.com/blog/viewport-resize-behavior). The two other
+// modes give this estimate nothing: `resizes-content` shrinks the layout viewport with the
+// visual one (the page itself gets shorter; the viewports agree — what Chrome before 108 and
+// Android WebView do by default), `overlays-content` shrinks neither (the keyboard covers the
+// page and no viewport says so). The estimate takes the reading only in the one state that is
+// the keyboard's:
 //
 // - a text input has the focus (`document.activeElement` is the canvas's input or textarea):
 //   without one, nothing that shrinks the viewport is a keyboard — the URL bar, a find bar;

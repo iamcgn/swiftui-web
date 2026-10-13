@@ -219,6 +219,10 @@ through `Playwright/device-keyboard.mjs`, **not obtained in this session** — s
 not use the paired iPhone (`available`, not `connected`; the user's hands), and the iOS 27
 Simulator run was inconclusive (the automation's tap never focused the field, so no keyboard
 was asked for). The real-keyboard claim stays open until that script passes on the phone.
-Also recorded: a browser that resizes the layout viewport for the keyboard (Chrome on Android
-without `interactive-widget=overlays-content`) reports nothing — the page itself shrinks; and
-`UIScreen.main.bounds` is not kept to the window for a SwiftUI app.
+The modes this reads are iOS Safari's and Chrome on Android's default since 108
+(`interactive-widget=resizes-visual`: the visual viewport alone shrinks —
+developer.chrome.com/blog/viewport-resize-behavior). Also recorded, as limits rather than
+guesses: `resizes-content` (Chrome before 108, Android WebView by default) shrinks the layout
+viewport with the visual one, so the page itself gets shorter and nothing is reported;
+`overlays-content` shrinks neither, so a viewport difference cannot see the keyboard and
+nothing is reported; and `UIScreen.main.bounds` is not kept to the window for a SwiftUI app.

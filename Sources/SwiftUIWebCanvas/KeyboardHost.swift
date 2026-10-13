@@ -6,10 +6,13 @@
 // user-info keys. Re-read on the visual viewport's `resize` and `scroll`, on `focusin`/
 // `focusout` (the keyboard follows the focus), and on the window's `resize`.
 //
-// What this cannot see: a browser that shrinks the layout viewport for the keyboard instead
-// of the visual one (Chrome on Android without `interactive-widget=overlays-content` in the
-// viewport meta) leaves the two viewports equal — the page itself got shorter, the scene
-// resized, no frame is reported; and a browser without `visualViewport` reports nothing.
+// What this cannot see: a browser whose keyboard shrinks the layout viewport with the visual
+// one (`interactive-widget=resizes-content`; Chrome before 108 and Android WebView by default)
+// leaves the two viewports equal — the page itself got shorter, the scene resized, no frame;
+// one whose keyboard shrinks neither (`interactive-widget=overlays-content`) reports nothing
+// either — a viewport difference cannot see an overlay; and a browser without `visualViewport`
+// reports nothing. Chrome's default since 108 (`resizes-visual`) and iOS Safari are the modes
+// this reads.
 #if os(WASI)
 import JavaScriptKit
 import UIKitWebCore
