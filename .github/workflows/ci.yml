@@ -133,13 +133,15 @@ jobs:
           test -s .build/apps/scrumdinger/report.json && test -s .build/apps/scrumdinger/trace.zip && ls .build/apps/scrumdinger/*.png >/dev/null
           python3 -c "import json; r=json.load(open('.build/apps/scrumdinger/report.json')); assert r['full_app_pass'] is False; print({k: v['outcome'] for k, v in r['flows'].items()})"
       # Evidence, kept whatever the steps above did: Tier B's renders and diffs
-      # (scripts/tier-b.sh writes .build/tier-b-<browser>) and the apps' reports, screenshots
-      # and traces. A step that ran but left no evidence is a failure of its own
-      # (`if-no-files-found: error`); it never changes the test steps' own outcomes.
+      # (scripts/tier-b.sh writes .build/tier-b-chromium: report.json always, renders and
+      # diffs on a mismatch) and the apps' reports, screenshots and traces. A step that ran
+      # but left no evidence is a failure of its own (`if-no-files-found: error`); it never
+      # changes the test steps' own outcomes. `.build` is a hidden directory: upload-artifact
+      # v4 skips those unless told not to, and a glob under one matches nothing at all.
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: tier-b, path: .build/tier-b-*, if-no-files-found: error }
+        with: { name: tier-b, path: .build/tier-b-chromium, if-no-files-found: error, include-hidden-files: true }
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: apps-evidence, path: .build/apps, if-no-files-found: error }
+        with: { name: apps-evidence, path: .build/apps, if-no-files-found: error, include-hidden-files: true }
 

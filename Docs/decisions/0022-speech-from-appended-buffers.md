@@ -153,6 +153,50 @@ Synthetic input, no microphone, no fake-device flags:
    or the test marked as requiring it and run on the machine that has it, reported as skipped
    (not passed) elsewhere. Until then the probe above is the only speech step in CI.
 
+## The one owner choice, stated plainly
+
+Both A and B are **local computation by design**: the only network traffic is an *incoming*
+download (A: the browser's language pack, from the browser vendor, once per language; B: a
+model file, from a host the deployer picks, once). Neither sends audio anywhere, needs a
+service API key, or buys inference. Only C sends audio out, and C is not proposed.
+
+So the choice is not "external service yes/no" — that is settled (no). It is:
+
+| | A — browser on-device engine fed the exact PCM track | B — in-page model fed the exact buffers |
+|---|---|---|
+| Browsers | Chromium ≥ 139 only (feature-detected; `isAvailable` false elsewhere) | any browser with wasm SIMD + threads |
+| Incoming download | the vendor's language pack (reported ≈60 MB, unmeasured), user-prompted | a model the deployer hosts (reported 50–150 MB, unmeasured) |
+| Test infrastructure | **Playwright/Chromium upgrade from 129 to ≥ 139** before anything can be tried; the pack on the runner | the model cached on the runner |
+| Combined feasibility | the `start(track)`+`processLocally` pairing with a worklet-generated track is **unproven** (per-API evidence only) | whisper.cpp/Vosk wasm builds are known to run; feeding them Float32 frames is their normal input |
+| CPU / latency | the browser's engine (unmeasured) | windowed, phone CPU cost (unmeasured) |
+| Effort | ~2 days (estimate) | ~1 week + hosting decision (estimate) |
+
+Corey's decision: A (Chromium-first, smaller, hinges on an unproven pairing and a test-browser
+upgrade) or B (every browser, heavier, hosting to arrange). Nothing in this document picks one.
+
+## The smallest isolated feasibility step (before either route is "accepted")
+
+A synthetic-PCM experiment that touches no app, no microphone, no service, and installs
+nothing *in the repository*:
+
+- **For A** — prerequisites: (1) a Chromium ≥ 139 available to Playwright (`npx playwright
+  install chromium` at a newer Playwright release — a tooling change to approve separately);
+  (2) the en-US on-device pack present on that machine (`available()` reports `"available"`;
+  `install()` is a user-visible download, run by hand on the test machine, not by CI);
+  (3) one committed WAV with a known utterance. The step: a standalone page (no SwiftUIWeb
+  code) decodes the WAV, plays its frames through an AudioWorklet into a
+  `MediaStreamAudioDestinationNode` track at 16 kHz, calls `recognition.processLocally = true;
+  recognition.start(track)`, and prints the transcript, the time to first interim and to the
+  final, and any error. Pass = the known words come back; fail = `InvalidStateError`,
+  `service-not-allowed`, silence, or a transcript that does not depend on the file. This is
+  the combined-API proof the evidence above lacks.
+- **For B** — prerequisites: a wasm build of whisper.cpp or Vosk and one model on the test
+  machine (a download, approved separately); the same WAV. The step: the same page feeds the
+  decoded frames to the model and prints the transcript and timing.
+- Either way the result is a number set (first-interim latency, final latency, CPU) replacing
+  the "unmeasured" labels above, and a yes/no on whether the route can consume the exact
+  buffers. Only then does the Swift-surface test plan below apply.
+
 ## Recommendation
 
 A, feature-detected, Chromium-only, with `isAvailable` false everywhere else and the app's own
