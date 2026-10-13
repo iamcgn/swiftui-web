@@ -5,6 +5,7 @@
 // 2026-10-09): a Gaussian of the ground mixed with a flat tint at an alpha, the plain styles
 // with the ground saturated. A vibrancy effect view is a transparent container (its content
 // draws in its own colours).
+import WebFoundation   // `NSObject` (WebFoundation's on wasm, Foundation's elsewhere)
 
 /// An object that provides a visual effect to a visual effect view.
 open class UIVisualEffect: NSObject {

@@ -31,7 +31,8 @@ final class TestSceneDelegate: UIWindowSceneDelegate {
     func sceneDidEnterBackground(_ scene: UIScene) { LifecycleLog.current.events.append("background") }
 }
 
-@Suite @MainActor struct SceneLifecycleTests {
+// Serialized: every test drives the one shared `UIKitScene`, and the async test yields mid-way.
+@Suite(.serialized) @MainActor struct SceneLifecycleTests {
     @Test func visibilityAndFocusDriveTheStates() {
         let scene = UIKitScene.shared
         scene.removeAllWindows()

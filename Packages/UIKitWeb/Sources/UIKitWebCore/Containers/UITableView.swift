@@ -4,18 +4,9 @@
 // simulator (iOS 26): 56 pt text rows, 73 pt subtitle rows, 1 pt separators 16 in, grouped
 // cards 16 in with 26 pt corners.
 
-#if os(WASI)
+// `NSObject` and `NSObjectProtocol`, which data sources and delegates subclass, are
+// WebFoundation's on wasm (Responder.swift; one declaration) and Foundation's elsewhere.
 import WebFoundation
-
-/// Foundation's root class does not exist on wasm; data sources and delegates written for UIKit
-/// subclass it, so an empty stand-in keeps them compiling.
-open class NSObject {
-    public init() {}
-}
-public protocol NSObjectProtocol: AnyObject {}
-#else
-import Foundation
-#endif
 
 extension IndexPath {
     /// A table row's position (UIKit's additions to Foundation's index path).
