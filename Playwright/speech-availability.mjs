@@ -7,10 +7,13 @@
 // `start.length` is metadata, and the only proof is a call, which this probe does not make —
 // it stays "unproven" until a decision allows an actual recognition. It prints; it asserts nothing.
 //   node speech-availability.mjs http://127.0.0.1:8773/index.html [chromium|webkit|firefox]
+//   CHROME=/path/to/Chrome node speech-availability.mjs <url>   an installed Chrome in a throwaway
+//   profile (never the person's own), for a newer Chromium than Playwright's
 import { chromium, webkit, firefox } from 'playwright';
 const url = process.argv[2] && process.argv[2].startsWith('http') ? process.argv[2] : 'about:blank';
 const engine = { chromium, webkit, firefox }[process.argv[3] || (url === 'about:blank' ? process.argv[2] : null) || 'chromium'];
-const browser = await engine.launch();
+const launch = process.env.CHROME ? { executablePath: process.env.CHROME, args: ['--no-first-run', '--no-default-browser-check'] } : {};
+const browser = await engine.launch(launch);   // Playwright makes a fresh, isolated profile per launch
 const page = await browser.newPage();
 await page.goto(url, { waitUntil: 'commit' });
 const report = await page.evaluate(async () => {

@@ -86,13 +86,37 @@ without first decoding the file into buffers (possible via `decodeAudioData`, a 
 
 ### B. An in-page model consuming the buffers directly
 
-`whisper.cpp` (wasm build; tiny/base English models reported 75–150 MB) or Vosk (wasm;
-models reported ≈50 MB) fed the appended Float32 frames; results after each window. Every
-browser with wasm SIMD and threads; no pack API, but a model download from a host the
-deployer chooses (a transmission of the model to the user, not of audio from them). Latency:
-windowed (1–3 s chunks, unmeasured); CPU heavy on phones (unmeasured). Effort estimate: a
-week, plus a model hosting decision. Faithful in data flow; costly in size and battery; the
-deployer must host the model. Nothing here has been run either.
+What the **source** of whisper.cpp's `whisper.wasm` example says (fetched 2026-10-12 from
+`ggml-org/whisper.cpp` master; nothing executed here):
+
+- Input is float PCM: `full_default(index, audio, lang, nthreads, translate)` copies the
+  JavaScript typed array straight into a `std::vector<float>` (`memoryView.set(audio)`) and
+  calls `whisper_full(ctx, params, pcmf32.data(), pcmf32.size())` on a worker thread
+  (`examples/whisper.wasm/emscripten.cpp`). The page feeds it `Float32Array` mono samples at
+  `kSampleRate = 16000`, rendered through an `OfflineAudioContext`, up to `kMaxAudio_s = 30*60`
+  (`index-tmpl.html`). So the app's appended buffers, resampled to 16 kHz mono, are exactly
+  its input — the data flow is faithful by construction.
+- Threads: `n_threads = min(nthreads, min(16, pow2(hardware_concurrency)))`; the build needs
+  WebAssembly SIMD 128-bit and threads, which need `SharedArrayBuffer`, which needs the page
+  served **cross-origin isolated**: its `examples/server.py` sets
+  `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`
+  ("required headers for SharedArrayBuffer"). Those headers are a deployer's server setting
+  and they constrain what else the page may embed (every cross-origin subresource must opt in).
+- Models and sizes as the example lists them: tiny.en 75 MB, base.en 142 MB, small.en 466 MB;
+  quantized tiny.en Q5_1 **31 MB**, base.en Q5_1 57 MB, small.en Q5_1 182 MB; the README
+  says beyond `small` "the memory requirements and performance are unsatisfactory"; the model
+  is written into the wasm file system (`FS_createDataFile`), so it lives in memory; Firefox
+  "cannot load files exceeding 256 MB". No RAM figure is given.
+- Hosting: the models are fetched from Hugging Face URLs in the example; a deployment would
+  host its chosen model itself (an incoming download to the user, once; cached by the page).
+
+Prerequisites for B, precisely: a cross-origin-isolated origin (COOP/COEP), a browser with
+wasm SIMD and threads, a hosted model (31 MB quantized tiny.en at the smallest), the
+whisper.wasm build (its own licence, MIT) in the bundle, and a 16 kHz mono resample of the
+app's buffers. Not claimed: that it runs on any particular browser or phone, or any latency
+or CPU figure — none was measured; the README's own limit is 120 s of microphone audio and
+"unsatisfactory" beyond `small`. Effort estimate (an estimate): about a week plus the hosting
+decision.
 
 ### C. A recogniser the deployer runs
 
@@ -124,6 +148,18 @@ the served app origin, a secure context): the project's Playwright Chromium is *
 absent, the `start(track)` overload unproven (never called), the worklet pieces present. So option A cannot even be probed in this repository's CI until Playwright (and its
 bundled Chromium) is upgraded past 139 — a tooling change to decide alongside the option, not
 a given.
+
+Second result (2026-10-12, the installed **Google Chrome 155.0.8059.40** through Playwright
+with `CHROME=` — a fresh throwaway profile Playwright makes, not the person's; the served app
+origin `http://127.0.0.1:8772`, a secure context; headless): `SpeechRecognition` present,
+`processLocally` present, `available()` and `install()` present, the worklet pieces present,
+and **`available({langs: ['en-US'], processLocally: true})` → `"downloadable"`**: the on-device
+en-US pack is not on this machine's fresh profile. Nothing was installed (`install()` not
+called) and no recognition was started, so the synthetic-WAV step did **not** run; the
+`start(track)` overload remains unproven. To go further, someone installs the pack by hand
+in that browser (a user-visible download from the browser vendor) — a prerequisite to
+approve, not a step this probe takes. A note on the measurement itself: the status is per
+profile; the person's own Chrome profile may differ, and was not touched.
 
 `available()` only reports (`"available"`, `"downloadable"`, `"downloading"`, `"unavailable"`);
 `install()` is never called. The report answers, per browser and version, whether option A's
