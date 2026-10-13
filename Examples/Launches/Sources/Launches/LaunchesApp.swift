@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct LaunchesApp: App {
     @StateObject private var model = LaunchModel()
+    @StateObject private var network = NetworkCheck()
 
     var body: some Scene {
         WindowGroup {
@@ -11,10 +12,11 @@ struct LaunchesApp: App {
                 Text(model.summary)
                 Text(model.status)
                 Text("mixed: " + MixedImports.check())
+                Text(network.summary).font(.caption)
                 Button("Record again") { model.record() }
             }
             .padding()
-            .onAppear { model.record() }
+            .onAppear { model.record(); network.run() }
         }
     }
 }

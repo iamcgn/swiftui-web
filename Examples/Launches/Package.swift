@@ -20,6 +20,8 @@ let package = Package(
                 .product(name: "SwiftUI", package: "SwiftUIWeb"),
                 .product(name: "SwiftUIWebCanvas", package: "SwiftUIWeb"),
                 .product(name: "UIKit", package: "UIKitWeb"),
+                // The page's origin for the network check (an example's convenience, not an app's).
+                .product(name: "JavaScriptKit", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
                 .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
                 .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
             ],

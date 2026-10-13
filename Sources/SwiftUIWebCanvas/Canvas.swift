@@ -19,6 +19,7 @@ public final class CanvasHost {
         let host = CanvasHost()
         MediaHost.install()
         NotificationsHost.install()
+        NetworkHost.install()
         // Open windows are remembered in localStorage and reopened on the next load (sw-windows).
         if let storage = JSObject.global.localStorage.object {
             host.runtime.windowStateStore = (get: { storage.getItem?("swiftuiweb.windows").string },

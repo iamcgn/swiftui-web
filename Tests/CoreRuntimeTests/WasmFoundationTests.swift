@@ -266,6 +266,11 @@ import WebCombine
         #expect("Côte d'Ivoire & co".addingPercentEncoding(withAllowedCharacters: WebFoundation.CharacterSet.urlQueryAllowed) == "C%C3%B4te%20d'Ivoire%20&%20co")
         #expect("a b/c?d=e".addingPercentEncoding(withAllowedCharacters: WebFoundation.CharacterSet.urlPathAllowed) == "a%20b/c%3Fd=e")
         #expect("C%C3%B4te%20d".removingPercentEncoding == "Côte d" && "%ZZ".removingPercentEncoding == nil)
+        // Foundation's `range(of:)` is a String.Index range (an app slices with it).
+        let search = "?platform=ios&cross=http://x"
+        #expect(search.range(of: "cross=").map { String(search[$0.upperBound...]) } == "http://x" && search.range(of: "nope") == nil)
+        #expect("Hello hello".range(of: "HELLO", options: [.caseInsensitive, .backwards]).map { String("Hello hello"[$0]) } == "hello")
+        #expect("a-b-c".replacingOccurrences(of: "-", with: "+") == "a+b+c")
         struct Country: Decodable, Equatable { let name: String }
         func decodeWith<D: TopLevelDecoder>(_ decoder: D, _ input: D.Input) throws -> Country { try decoder.decode(Country.self, from: input) }
         #expect(try decodeWith(JSONDecoder(), Data("{\"name\":\"Chad\"}".utf8)) == Country(name: "Chad"))
@@ -273,6 +278,42 @@ import WebCombine
         let cancelled = NSError(domain: NSCocoaErrorDomain, code: NSUserCancelledError, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("Canceled by user", comment: "")])
         #expect(cancelled.code == 3072 && cancelled.localizedDescription == "Canceled by user")
         #expect(NSLocalizedString("key.only", comment: "") == "key.only" && NSLocalizedString("k", value: "Value", comment: "") == "Value")
+    }
+
+    /// The public URLSession over the core with a fake host answering at once (the Node runner
+    /// cannot wait for the loop): a 404 is an HTTPURLResponse with its status, headers and
+    /// mime type; a refusal is a URLError with its code; a task cancelled before it resumes
+    /// answers cancelled; the request's method, headers and body reach the host.
+    @Test func urlSessionMapsTheHostsAnswersOntoResponsesAndErrors() throws {
+        final class Host: _WebHTTPTask, @unchecked Sendable { func cancel() {} }
+        nonisolated(unsafe) var sent: [_WebHTTPRequest] = []
+        nonisolated(unsafe) var answers: [Result<_WebHTTPResponse, _WebHTTPFailure>] = [
+            .success(_WebHTTPResponse(url: "https://api.example/x", status: 404, headers: ["Content-Type": "application/json; charset=utf-8", "X-Trace": "1"], body: Array("{}".utf8))),
+            .failure(.unreachable("TypeError: Failed to fetch")),
+        ]
+        _WebHTTPHost.send = { request, completion in sent.append(request); completion(answers.removeFirst()); return Host() }
+        defer { _WebHTTPHost.send = nil }
+        let session = URLSession(configuration: .default)
+        var request = URLRequest(url: URL(string: "https://api.example/x")!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data("{}".utf8)
+        nonisolated(unsafe) var seen: [(Data?, URLResponse?, Error?)] = []
+        let task = session.dataTask(with: request) { seen.append(($0, $1, $2)) }
+        #expect(task.state == .suspended && seen.isEmpty)
+        task.resume()
+        #expect(sent[0].method == "POST" && sent[0].headers["Content-Type"] == "application/json" && sent[0].body == Array("{}".utf8))
+        let http = try #require(seen[0].1 as? HTTPURLResponse)
+        #expect(http.statusCode == 404 && http.mimeType == "application/json" && http.value(forHTTPHeaderField: "x-trace") == "1" && seen[0].0 == Data("{}".utf8) && seen[0].2 == nil)
+        #expect(task.state == .completed && HTTPURLResponse.localizedString(forStatusCode: 404) == "not found")
+        session.dataTask(with: URL(string: "https://restcountries.example/v2/all")!) { seen.append(($0, $1, $2)) }.resume()
+        let refused = try #require(seen[1].2 as? URLError)
+        #expect(refused.code == .cannotConnectToHost && refused.errorCode == -1004 && seen[1].1 == nil && seen[1].0 == nil)
+        // Cancelled before it resumed: never sent.
+        let idle = session.dataTask(with: request) { seen.append(($0, $1, $2)) }
+        idle.cancel()
+        #expect(idle.state == .completed && (idle.error as? URLError)?.code == .cancelled && sent.count == 2)
+        #expect((session.dataTask(with: URL(string: "nowhere")!) { seen.append(($0, $1, $2)) }).error as? URLError == URLError(.badURL))
     }
 
     @Test func filesUnderDocumentsSurviveThroughTheHostStore() throws {

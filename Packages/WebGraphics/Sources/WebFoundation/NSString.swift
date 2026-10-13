@@ -121,12 +121,26 @@ extension StringProtocol {
         return String(whole[..<high])
     }
 
-    /// The range of the first occurrence of `string`, as NSString counts (`NSNotFound` when absent).
-    public func range(of string: some StringProtocol, options: String.CompareOptions = []) -> NSRange {
-        let haystack = options.contains(.caseInsensitive) ? String(self).lowercased() : String(self)
+    /// The range of the first occurrence of `string` (Foundation's `StringProtocol.range(of:)`:
+    /// a `Range<String.Index>`, nil when absent; `.caseInsensitive` honoured, `.backwards` the
+    /// last occurrence).
+    public func range(of string: some StringProtocol, options: String.CompareOptions = []) -> Range<String.Index>? {
+        let whole = String(self)
+        let haystack = options.contains(.caseInsensitive) ? whole.lowercased() : whole
         let needle = options.contains(.caseInsensitive) ? String(string).lowercased() : String(string)
-        guard !needle.isEmpty, let found = haystack._find(needle, from: haystack.startIndex) else { return .notFound }
-        return NSRange(found, in: haystack)
+        guard !needle.isEmpty, haystack.count == whole.count else { return nil }
+        var found: Range<String.Index>?
+        var from = haystack.startIndex
+        while let match = haystack._find(needle, from: from) {
+            found = match
+            if !options.contains(.backwards) { break }
+            from = haystack.index(after: match.lowerBound)
+        }
+        guard let found else { return nil }
+        // Map the lowercase haystack's offsets back onto the original (same character count).
+        let lower = whole.index(whole.startIndex, offsetBy: haystack.distance(from: haystack.startIndex, to: found.lowerBound))
+        let upper = whole.index(lower, offsetBy: haystack.distance(from: found.lowerBound, to: found.upperBound))
+        return lower..<upper
     }
 }
 

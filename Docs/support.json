@@ -2190,6 +2190,12 @@
           "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
         },
         {
+          "api": "URLSession / URLRequest / HTTPURLResponse / URLError / URLSessionConfiguration",
+          "status": "partial",
+          "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, WebSocket tasks, cookies beyond the browser's",
+          "noFixture": "No pixels: URLSessionCoreTests, WasmFoundationTests and the Launches probe against local fixtures"
+        },
+        {
           "api": "JSONEncoder / JSONDecoder",
           "status": "partial",
           "notes": "Over the project's coder (JSONCoder.swift, the one navigation paths and drops use) and WebFoundation's Data, so `encoder.encode(x).write(to:)` type-checks and FoundationEssentials' scanner and writer stay out of the bundle; `outputFormatting`, the date, data and key strategies are stored and not applied (dates as seconds since 2001, keys as written, data as base64 through Codable) (2026-10-12)",

@@ -23,8 +23,11 @@ import WebFoundation
         }
     }
 
-    /// Delivery is a main-actor task after `add` returns: a few turns of the loop.
-    private func delivered() async { for _ in 0..<5 { await Task.yield() } }
+    /// Delivery is a main-actor task after `add` returns: waits, bounded, until `condition`
+    /// holds (a yield per turn, up to a second); the assertion after it decides.
+    private func settled(_ condition: @escaping @MainActor () -> Bool) async {
+        for _ in 0..<1000 { if await MainActor.run(body: condition) { return }; await Task.yield(); try? await Task.sleep(nanoseconds: 1_000_000) }
+    }
 
     private func withoutHost() {
         _UserNotificationsHost.permission = nil
@@ -71,7 +74,7 @@ import WebFoundation
         content.title = "Countries"; content.body = "Chad updated"
         content.userInfo = ["aps": ["country": "TD"]]
         try await center.add(UNNotificationRequest(identifier: "chad", content: content, trigger: nil))
-        await delivered()
+        await settled { shown.count == 1 }
         #expect(handler.presented == ["chad"] && shown.count == 1 && shown[0].title == "Countries" && shown[0].body == "Chad updated" && shown[0].id == "chad")
         #expect(center.pendingRequests.isEmpty && center.deliveredNotifications.map(\.request.identifier) == ["chad"])
         shown[0].click()
@@ -79,14 +82,14 @@ import WebFoundation
         // A delegate that presents nothing: delivered, not shown.
         handler.presentWith = []
         try await center.add(UNNotificationRequest(identifier: "quiet", content: content, trigger: nil))
-        await delivered()
+        await settled { handler.presented.count == 2 }
         #expect(handler.presented == ["chad", "quiet"] && shown.count == 1)
         // A timed request removed before it fires never shows.
         try await center.add(UNNotificationRequest(identifier: "later", content: content, trigger: UNTimeIntervalNotificationTrigger(timeInterval: 0.05, repeats: false)))
         #expect(center.pendingRequests.map(\.identifier) == ["later"])
         center.removePendingNotificationRequests(withIdentifiers: ["later"])
-        try await Task.sleep(nanoseconds: 120_000_000)
-        #expect(handler.presented == ["chad", "quiet"] && shown.count == 1)
+        try await Task.sleep(nanoseconds: 120_000_000)   // past its 50 ms trigger: it had its chance to fire
+        #expect(handler.presented == ["chad", "quiet"] && shown.count == 1 && center.pendingRequests.isEmpty)
         withoutHost()
     }
 }
