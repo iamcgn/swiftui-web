@@ -137,6 +137,34 @@ import SwiftUIWebHeadless
         #expect(ex.events == ["drag"])
     }
 
+    /// A `focusable` view (a 2048 board taking its arrow keys) does not swallow the drag
+    /// gesture of the view around it: the swipe reaches the gesture, and the press still gives
+    /// the board focus when it ends on it.
+    @Test func aFocusableViewPassesThePressToTheGestureAroundIt() {
+        let log = Log()
+        let runtime = runtime(Color.red.frame(width: 40, height: 20).focusable()
+            .onKeyPress(.upArrow) { log.events.append("up"); return .handled }
+            .gesture(DragGesture().onChanged { log.events.append("drag \(Int($0.translation.width))") }.onEnded { _ in log.events.append("ended") }))
+        let board = runtime.semanticsTree().first { $0.isFocusable }!
+        #expect(runtime.focusedIdentifier == nil)
+        press(runtime, from: CGPoint(x: 85, y: 50), through: [CGPoint(x: 100, y: 50), CGPoint(x: 115, y: 50)], to: CGPoint(x: 115, y: 50))
+        #expect(log.events == ["drag 15", "drag 30", "ended"])
+        // The press that ended on the board focused it; its keys arrive now.
+        #expect(runtime.focusedIdentifier == board.identifier)
+        #expect(runtime.keyDown(KeyEvent(key: .upArrow, modifiers: [])) && log.events.last == "up")
+        // A press released off the board leaves focus alone.
+        runtime.focus(semanticsIdentifier: nil)
+        press(runtime, from: CGPoint(x: 85, y: 50), to: CGPoint(x: 150, y: 90))
+        #expect(runtime.focusedIdentifier == nil)
+        // The gesture inside the focusable (the other order) takes the swipe too.
+        let inner = Log()
+        let inside = self.runtime(Color.red.frame(width: 40, height: 20)
+            .gesture(DragGesture().onChanged { inner.events.append("drag \(Int($0.translation.width))") }).focusable())
+        press(inside, from: CGPoint(x: 85, y: 50), through: [CGPoint(x: 100, y: 50)], to: CGPoint(x: 100, y: 50))
+        #expect(inner.events == ["drag 15"])
+        #expect(inside.focusedIdentifier == inside.semanticsTree().first { $0.isFocusable }!.identifier)
+    }
+
     @Test func highPriorityGestureBeatsAnInnerButton() {
         let log = Log()
         let inner = self.runtime(Button("Tap") { log.events.append("button") }.gesture(TapGesture().onEnded { log.events.append("gesture") }))

@@ -449,6 +449,16 @@ public final class CanvasSceneHost {
             self.canvas.draggable = .boolean(self.pointerType(of: e) == .mouse && self.scene.hasDragSource(at: self.point(of: e)))
             self.scheduleFrame()
         }
+        // The browser's default for a mouse-down on the canvas would move the page's focus to
+        // the body, blurring the overlay element of the focused view and with it the scene's
+        // keyboard focus — a click on a button beside a focusable board would take the board's
+        // arrow keys away. Focus stays where it is; the scene moves it itself when a press
+        // lands on a focusable view or a text field. The default stays when the press began a
+        // system drag (`draggable`), which the browser starts from this same event.
+        on(canvas, "mousedown") { [weak self] e in
+            guard let self, self.canvas.draggable.boolean != true else { return }
+            _ = e.preventDefault?()
+        }
         // Context menus are the scene's; the browser's stays closed.
         on(canvas, "contextmenu") { e in _ = e.preventDefault!() }
         on(canvas, "pointermove") { [weak self] e in

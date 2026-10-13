@@ -126,7 +126,18 @@ extension Runtime {
         // The secondary window a press lands in takes the keyboard (Tab cycles its controls);
         // a press beside every window gives it back to the main one (sw-windows).
         if hasPresentations { keyWindow = presentations.last { $0.kind.isWindow && $0.panel.contains(point) } }
-        let node = interactiveNode(at: point)
+        var node = interactiveNode(at: point)
+        // A `focusable` view takes focus from the press at its end and nothing else; the press
+        // goes to the interactive view around it (a gesture, a button) when there is one.
+        focusPressNode = nil
+        if let hit = node, hit is _FocusOnly {
+            focusPressNode = hit
+            if let around = interactiveAncestor(of: hit) { node = around }
+        } else if let hit = node, hit is _PinchTarget {
+            // A gesture inside a focusable view: the press is the view's as much as the
+            // gesture's (a control inside it keeps the press to itself).
+            focusPressNode = focusOnlyAncestor(of: hit)
+        }
         // A press anywhere but on the selected text clears its selection.
         if let owner = textSelectionOwner, owner !== node { textSelectionOwner = nil }
         guard let node else { return }
@@ -135,6 +146,27 @@ extension Runtime {
         // `simultaneousGesture` ancestors see the press the subview took.
         simultaneousPressNodes = simultaneousGestureNodes(above: node)
         for ancestor in simultaneousPressNodes { ancestor.pressBegan(at: local(point, in: ancestor)) }
+    }
+
+    /// The nearest interactive node above `node` that takes presses.
+    private func interactiveAncestor(of node: ViewNode) -> (ViewNode & _Interactive)? {
+        var current = node.parent
+        while let candidate = current {
+            if let interactive = candidate as? (ViewNode & _Interactive), interactive.isInteractive, !(candidate is _FocusOnly) { return interactive }
+            current = candidate.parent
+        }
+        return nil
+    }
+
+    /// The `focusable` view above `node`, reached through gesture nodes only.
+    private func focusOnlyAncestor(of node: ViewNode) -> (ViewNode & _Interactive)? {
+        var current = node.parent
+        while let candidate = current {
+            if candidate is _FocusOnly { return candidate as? (ViewNode & _Interactive) }
+            if candidate.isInteractiveNode, !(candidate is _PinchTarget) { return nil }
+            current = candidate.parent
+        }
+        return nil
     }
 
     /// The `simultaneousGesture` nodes above `node` (outermost last) that take presses.
@@ -193,6 +225,8 @@ extension Runtime {
         let panned = endPan(time: time)
         let simultaneous = simultaneousPressNodes
         simultaneousPressNodes = []
+        let focusing = focusPressNode
+        focusPressNode = nil
         guard let node = pressedNode else { return }
         pressedNode = nil
         if panned {
@@ -200,7 +234,13 @@ extension Runtime {
             for ancestor in simultaneous { ancestor.pressCancelled(at: local(point, in: ancestor)) }
             return
         }
-        node.pressEnded(inside: interactiveNode(at: point) === node, at: local(point, in: node))
+        let released = interactiveNode(at: point)
+        // The focusable view the press began on takes focus when it ends on it.
+        if let focusing, focusing !== node {
+            let localPoint = local(point, in: focusing)
+            focusing.pressEnded(inside: focusing.contains(localPoint), at: localPoint)
+        }
+        node.pressEnded(inside: released === node || (focusing != nil && released === focusing), at: local(point, in: node))
         for ancestor in simultaneous {
             let localPoint = local(point, in: ancestor)
             ancestor.pressEnded(inside: ancestor.contains(localPoint), at: localPoint)

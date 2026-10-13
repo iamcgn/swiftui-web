@@ -399,6 +399,8 @@ public final class Runtime {
 
     /// The interactive node a pointer is currently pressing, and the last pointer position.
     package var pressedNode: (ViewNode & _Interactive)?
+    /// The `focusable` view the press began on while an interactive ancestor took the press.
+    package var focusPressNode: (ViewNode & _Interactive)?
     /// The text whose selection is showing (`textSelection(.enabled)`): a press elsewhere clears it.
     package weak var textSelectionOwner: TextNode? {
         didSet { if let old = oldValue, old !== textSelectionOwner { old.clearSelection() } }

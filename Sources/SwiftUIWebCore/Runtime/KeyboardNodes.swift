@@ -13,6 +13,13 @@ package protocol _KeyHandling: AnyObject {
 @MainActor
 private var nextKeyboardIdentifier = 7_000_000
 
+/// An interactive node whose only business with a press is taking focus from it (`focusable`):
+/// the press itself belongs to the nearest interactive ancestor, as a focusable view in
+/// SwiftUI does not swallow the drag or tap gesture of the view around it (a 2048 board that
+/// is `focusable()` for its arrow keys still takes its swipes).
+@MainActor
+package protocol _FocusOnly: AnyObject {}
+
 /// A node that takes key releases (`onKeyPress` with the up phase).
 @MainActor
 package protocol _KeyUpHandling: AnyObject {
@@ -80,7 +87,7 @@ package final class KeyboardShortcutNode<Content: View>: UnaryLayoutModifierNode
 /// `focusable`: transparent to layout; a focusable element in the overlay whose descendants stay
 /// their own elements; a press focuses it.
 @MainActor
-package final class FocusableNode<Content: View>: UnaryLayoutModifierNode<Content, _FocusableModifier>, _Interactive {
+package final class FocusableNode<Content: View>: UnaryLayoutModifierNode<Content, _FocusableModifier>, _Interactive, _FocusOnly {
     package let identifier: Int
 
     override package init(_ context: _NodeContext<ModifiedContent<Content, _FocusableModifier>>) {
