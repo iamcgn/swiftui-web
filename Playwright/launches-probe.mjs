@@ -59,8 +59,28 @@ for (let load = 1; load <= 3; load++) {
     + (url.includes('slow=') ? ' | timeout -1001 | inflight -999 | completions 1' : '');
   if (network !== expectedNetwork) problems.push(`load ${load}: network "${network}", expected "${expectedNetwork}"`);
 }
+// The keyboard notifications (uk-app-delegate-adaptor), read as the Countries handler reads
+// them. Desktop Chromium has no on-screen keyboard, so this is the host→scene→notification
+// path on SYNTHETIC viewport readings (what the phone's browser would report), not the
+// phone's keyboard: a plain resize of the window stays 0; a reading with a focused input and
+// the visual viewport 336 px short shows 336; the input blurred clears it.
+const keyboardLine = async () => (await texts()).find(t => t.startsWith('keyboard: ')) || '';
+await page.setViewportSize({ width: 375, height: 500 });
+await page.waitForTimeout(300);
+if (await keyboardLine() !== 'keyboard: 0') problems.push(`keyboard after a plain resize: "${await keyboardLine()}", expected "keyboard: 0"`);
+const sceneFrame = () => page.evaluate(() => window.__swiftuiwebDebug.keyboardFrame());
+await page.evaluate(() => window.__swiftuiwebDebug.syntheticKeyboardReading(500, 500 - 336, 0, 1, true));
+await page.waitForTimeout(300);
+if (await keyboardLine() !== 'keyboard: 336') problems.push(`keyboard on a synthetic reading: "${await keyboardLine()}", expected "keyboard: 336"`);
+if (await sceneFrame() !== '164,336') problems.push(`scene keyboard frame: ${await sceneFrame()}, expected "164,336"`);
+await page.evaluate(() => window.__swiftuiwebDebug.syntheticKeyboardReading(500, 250, 0, 2, true));   // pinch-zoomed: not a keyboard
+await page.waitForTimeout(300);
+if (await keyboardLine() !== 'keyboard: 0' || await sceneFrame() !== null) problems.push(`keyboard under zoom: "${await keyboardLine()}" frame ${await sceneFrame()}, expected none`);
+await page.evaluate(() => window.__swiftuiwebDebug.syntheticKeyboardReading(500, 500 - 336, 0, 1, false));   // no focused input
+await page.waitForTimeout(300);
+if (await keyboardLine() !== 'keyboard: 0') problems.push(`keyboard without a focused input: "${await keyboardLine()}", expected "keyboard: 0"`);
 const stored = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('swiftuiweb.')).sort());
 if (!stored.includes('swiftuiweb.defaults.standard') || !stored.includes('swiftuiweb.files/Documents/launches.json') || !stored.includes('swiftuiweb.swiftdata.launches')) problems.push('localStorage keys: ' + stored.join(', '));
-console.log(problems.length ? problems.join('\n') : 'launches OK: three loads counted, on file and settled');
+console.log(problems.length ? problems.join('\n') : 'launches OK: three loads counted, on file and settled; keyboard notifications on synthetic viewport readings (no phone keyboard here)');
 await browser.close();
 process.exit(problems.length ? 1 : 0);

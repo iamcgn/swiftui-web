@@ -24,6 +24,7 @@ public final class CanvasHost {
         NetworkHost.install()
         DataHost.install()
         let host = CanvasHost()
+        KeyboardHost.install()
         let windows = windows()
         // Open windows are remembered in localStorage and reopened on the next load (sw-windows).
         if let storage = JSObject.global.localStorage.object {

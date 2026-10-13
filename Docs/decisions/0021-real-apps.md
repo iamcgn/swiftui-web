@@ -203,3 +203,22 @@ lands on it again. That is the app's real path for a gone service, recorded with
 the pin, screenshots and a trace — not a pass. The list, search and detail flows are blocked
 on the external service; `full_app_pass` is false. No fixture data, proxy or endpoint rewrite
 is used, and the endpoint decision is held (`pf-urlsession`).
+
+### The keyboard host (2026-10-13)
+
+`uk-app-delegate-adaptor` had one gap left open: no browser host set `UIKitScene.keyboardFrame`,
+while the Countries `SystemEventsHandler` consumes `keyboardWillShow`/`keyboardWillHide` and
+`keyboardFrameEndUserInfoKey`. `KeyboardHost` (SwiftUIWebCanvas) now reads the visual viewport
+against the window while a text input has the focus (`_KeyboardFrameEstimator`: a pinch zoom,
+a plain resize, the URL bar's collapse and a shrink without focus are not the keyboard) and
+sets the frame, which posts the notifications. Three kinds of evidence, not interchangeable:
+seven native tests on synthetic readings; the Launches probe in desktop Chromium on synthetic
+readings injected through a debug hook (the host→scene→notification path, read as the
+Countries handler reads it; a plain viewport resize stays 0); and the phone's own keyboard
+through `Playwright/device-keyboard.mjs`, **not obtained in this session** — safaridriver could
+not use the paired iPhone (`available`, not `connected`; the user's hands), and the iOS 27
+Simulator run was inconclusive (the automation's tap never focused the field, so no keyboard
+was asked for). The real-keyboard claim stays open until that script passes on the phone.
+Also recorded: a browser that resizes the layout viewport for the keyboard (Chrome on Android
+without `interactive-widget=overlays-content`) reports nothing — the page itself shrinks; and
+`UIScreen.main.bounds` is not kept to the window for a SwiftUI app.

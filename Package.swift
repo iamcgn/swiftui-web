@@ -129,6 +129,8 @@ let package = Package(
                 // Audio, the microphone, the Notification API, localStorage for SwiftData's
                 // stores. Speech installs nothing (pf-speech).
                 "AVFoundation", "UserNotifications", "SwiftData",
+                // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
+                .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
             ],
