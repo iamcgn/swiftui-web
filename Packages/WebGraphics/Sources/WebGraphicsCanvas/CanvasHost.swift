@@ -141,6 +141,8 @@ public final class CanvasSceneHost {
         hasCoarsePointer = window.matchMedia?("(pointer: coarse)").object?.matches.boolean ?? false
         scene.textEngine = Canvas2DTextEngine(context: context, bridge: bridge)
         scene.assetCatalog = Self.assetCatalog(from: window.__swiftuiwebAssets)
+        // The app's languages reach `Bundle.main` (EnvironmentOverrides lists them, decision 0021).
+        Bundle._hostLocalizations = (languages: scene.assetCatalog.localizations, source: scene.assetCatalog.sourceLanguage)
         loadFonts(scene.assetCatalog, base: window.__swiftuiwebAssets.object?.base.string ?? "")
         scene.onNeedsFrame = { [weak self] in self?.scheduleFrame() }
         // An image the painter had to fetch has arrived: paint the frame again (and let the
@@ -374,7 +376,11 @@ public final class CanvasSceneHost {
                                            underlinePosition: entry.underlinePosition.number ?? 0, underlineThickness: entry.underlineThickness.number ?? 0)
             }
         }
-        return AssetCatalog(images: images, colors: colors, fonts: fonts)
+        var localizations: [String] = []
+        if let list = manifest.localizations.object {
+            for index in 0..<Int(list.length.number ?? 0) { if let tag = list[index].string { localizations.append(tag) } }
+        }
+        return AssetCatalog(images: images, colors: colors, fonts: fonts, localizations: localizations, sourceLanguage: manifest.sourceLanguage.string)
     }
 
     /// Loads the catalog's font files as `FontFace`s under their PostScript and family names,

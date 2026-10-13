@@ -14,11 +14,32 @@ open class Bundle: @unchecked Sendable {
     public var resourceURL: URL? { bundleURL }
     public var bundleIdentifier: String? { Bundle._identifier }
     public var infoDictionary: [String: Any]? { Bundle._info }
-    public var preferredLocalizations: [String] { [Locale.current.languageCode ?? "en"] }
-    /// The localizations the bundle holds: the catalogs' languages are not read; the
-    /// development language alone (EnvironmentOverrides lists them, decision 0021).
-    public var localizations: [String] { [developmentLocalization ?? "en"] }
-    public var developmentLocalization: String? { "en" }
+    /// The app's languages, from its string catalogs and `.lproj` folders as the bundle's build
+    /// recorded them (`scripts/assets.py`, the manifest; the browser host installs them).
+    nonisolated(unsafe) public static var _hostLocalizations: (languages: [String], source: String?)?
+
+    /// The localizations the bundle holds, as on iOS: every language of its string catalogs
+    /// and `.lproj` folders (EnvironmentOverrides builds its locale picker from them, decision
+    /// 0021); the development language alone when the build recorded none.
+    public var localizations: [String] {
+        let recorded = Self._hostLocalizations?.languages ?? []
+        return recorded.isEmpty ? [developmentLocalization ?? "en"] : recorded
+    }
+
+    /// The catalogs' source language (`en` without catalogs).
+    public var developmentLocalization: String? { Self._hostLocalizations?.source ?? "en" }
+
+    /// The bundle's languages the user prefers, best first: the current locale's language
+    /// where the bundle has it (a region-specific tag or its language), else the development one.
+    public var preferredLocalizations: [String] {
+        let current = Locale.current
+        let identifier = current.identifier.replacingOccurrences(of: "_", with: "-")
+        let language = current.languageCode ?? "en"
+        let held = localizations
+        if held.contains(identifier) { return [identifier] }
+        if let match = held.first(where: { $0 == language || $0.hasPrefix(language + "-") }) { return [match] }
+        return [developmentLocalization ?? held.first ?? "en"]
+    }
 
     /// The identifier and Info dictionary the host installs (`CFBundleName` and friends).
     nonisolated(unsafe) public static var _identifier: String?

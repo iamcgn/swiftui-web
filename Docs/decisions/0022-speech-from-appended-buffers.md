@@ -29,7 +29,12 @@ AVAudioEngine tap → request.append(buffer)           (the app, unchanged)
    → onresult (interim + final) → SFSpeechRecognitionResult
 ```
 
-Evidence (fetched 2026-10-12):
+Evidence (fetched 2026-10-12). **What this is evidence of**: each API on its own, from its
+vendor's documentation. **What it is not**: proof that `start(track)` and `processLocally`
+work *together* on the target browser with a worklet-generated track — no such source was
+found, and nothing here has been run. That combined proof is the first deliverable of option
+A if chosen (the availability probe and the synthetic-PCM plan below are written so it can be
+established without installing anything or sending audio anywhere).
 
 - `SpeechRecognition.start(audioTrack)` takes a live audio `MediaStreamTrack` and recognises
   that track instead of the microphone; an `InvalidStateError` if the track is not audio or
@@ -65,29 +70,64 @@ Semantics mapped to Apple's:
 | `isAvailable` | `available({langs: [locale], processLocally: true}) == "available"`; `"downloadable"` → `install()` after `requestAuthorization` (the one prompt the user sees); otherwise false |
 | `requestAuthorization` | `.authorized` once the pack is installed, `.restricted` where local recognition is unavailable |
 
-Constraints: the pack download (~60 MB, once per language, user-visible); recognition is at
-real-time pace, so a 5-minute Scrumdinger meeting transcribes as it happens (latency: the
-queue depth plus the recogniser's own, typically under a second); worklet code must be loaded
-from a `blob:` module URL (the bundle has no separate file). Engineering: ~2 days (worklet,
-host hook, tests), no package size cost worth noting (JS only).
+Constraints, **all unmeasured** (reported figures and estimates, not results from this
+project): the pack download (reported ≈60 MB, once per language, user-visible); recognition
+at real-time pace, so a 5-minute Scrumdinger meeting transcribes as it happens (latency: the
+queue depth plus the recogniser's own — unmeasured); worklet code loaded from a `blob:` module
+URL (the bundle has no separate file). Effort estimate: ~2 days (worklet, host hook, tests) —
+an estimate. Package size: JavaScript only, expected negligible — unmeasured.
+
+Whether the on-device recogniser accepts a worklet-generated track at all (as opposed to a
+microphone or remote track), and at which sample rate, is the open question the probe below
+answers; the Brave report suggests 16 kHz is the safe rate.
 
 What it does not do: run anywhere but Chromium; recognise a URL request (`SFSpeechURLRecognitionRequest`)
 without first decoding the file into buffers (possible via `decodeAudioData`, a second step).
 
 ### B. An in-page model consuming the buffers directly
 
-`whisper.cpp` (wasm build, tiny/base English models 75–150 MB) or Vosk (wasm, ~50 MB models)
-fed the appended Float32 frames; results after each window. Every browser with wasm SIMD and
-threads; no pack API, but a model download from a host the deployer chooses (a transmission
-of the model to the user, not of audio from them). Latency: windowed (1–3 s chunks); CPU heavy
-on phones. Engineering: a week, plus a model hosting decision. Faithful in data flow; costly
-in size and battery; the deployer must host the model.
+`whisper.cpp` (wasm build; tiny/base English models reported 75–150 MB) or Vosk (wasm;
+models reported ≈50 MB) fed the appended Float32 frames; results after each window. Every
+browser with wasm SIMD and threads; no pack API, but a model download from a host the
+deployer chooses (a transmission of the model to the user, not of audio from them). Latency:
+windowed (1–3 s chunks, unmeasured); CPU heavy on phones (unmeasured). Effort estimate: a
+week, plus a model hosting decision. Faithful in data flow; costly in size and battery; the
+deployer must host the model. Nothing here has been run either.
 
 ### C. A recogniser the deployer runs
 
 The buffers over the deployer's own connection to a server the deployer controls (e.g. a
 whisper server). Faithful bytes, but a transmission the deployer must approve and operate; not
 a package default. Out unless Corey wants it.
+
+## A non-installing availability probe (can run now, no decision needed)
+
+A page script, run by hand or in Playwright on the target browser, that **installs nothing,
+starts no recognition and opens no microphone**:
+
+```js
+const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+const report = {
+  hasRecognition: !!R,
+  hasProcessLocally: !!R && 'processLocally' in R.prototype,
+  hasAvailable: !!R && typeof R.available === 'function',
+  startArity: R ? R.prototype.start.length : 0,                 // 1 when start(track) is accepted
+  availability: R && R.available ? await R.available({ langs: ['en-US'], processLocally: true }) : 'n/a',
+  worklet: !!(window.AudioContext && AudioWorkletNode && MediaStreamAudioDestinationNode),
+};
+```
+
+First result (2026-10-12, `Playwright/speech-availability.mjs chromium`): the project's
+Playwright Chromium is **129** (HeadlessChrome/129.0.6668.29): `SpeechRecognition` present,
+`processLocally`/`available`/`install` absent, `start` takes no track, the worklet pieces
+present. So option A cannot even be probed in this repository's CI until Playwright (and its
+bundled Chromium) is upgraded past 139 — a tooling change to decide alongside the option, not
+a given.
+
+`available()` only reports (`"available"`, `"downloadable"`, `"downloading"`, `"unavailable"`);
+`install()` is never called. The report answers, per browser and version, whether option A's
+three pieces exist before anyone commits to it; it goes in `Playwright/speech-availability.mjs`
+and prints, it does not assert.
 
 ## Tests that prove the transcript depends on the buffers (for A or B)
 
@@ -104,9 +144,13 @@ Synthetic input, no microphone, no fake-device flags:
    `endAudio()` yields an empty final; `cancel()` after the first interim yields no final; the
    transcript appears only after the frames are appended, never before (a timestamp check).
    Together these show the words come from the appended bytes and from nothing else.
-4. CI: these need the language pack (A) or model (B) on the runner — a cached download step,
+4. The synthetic PCM is generated, not recorded from a microphone, so the test never touches
+   `getUserMedia` and no fake-device flag is involved: the frames come from decoding the
+   committed WAV (or from `speechSynthesis` rendered offline where a browser allows it) and
+   are pushed through `request.append` exactly as the app pushes its tap's buffers.
+5. CI: these need the language pack (A) or model (B) on the runner — a cached download step,
    or the test marked as requiring it and run on the machine that has it, reported as skipped
-   (not passed) elsewhere.
+   (not passed) elsewhere. Until then the probe above is the only speech step in CI.
 
 ## Recommendation
 

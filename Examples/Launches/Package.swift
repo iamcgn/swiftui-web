@@ -9,6 +9,7 @@ let package = Package(
     dependencies: [
         .package(name: "SwiftUIWeb", path: "../.."),
         .package(name: "Shadows", path: "../../Packages/Shadows"),
+        .package(name: "UIKitWeb", path: "../../Packages/UIKitWeb"),
         // Direct dependency so the PackageToJS command plugin (`swift package js`) is available here.
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),
     ],
@@ -18,6 +19,7 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftUI", package: "SwiftUIWeb"),
                 .product(name: "SwiftUIWebCanvas", package: "SwiftUIWeb"),
+                .product(name: "UIKit", package: "UIKitWeb"),
                 .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
                 .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
             ],

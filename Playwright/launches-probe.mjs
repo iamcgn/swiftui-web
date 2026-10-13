@@ -21,6 +21,9 @@ for (let load = 1; load <= 3; load++) {
   const expected = `launch ${load}.0, ${load} on file, log2(8) = 3.0, /`;
   if (summary !== expected) problems.push(`load ${load}: summary "${summary}", expected "${expected}"`);
   if (status !== `event: settled ${load}`) problems.push(`load ${load}: status "${status}", expected "event: settled ${load}"`);
+  // UIKit, Foundation and SwiftUI imported together: one Selector ("copy:"), UIScreen's bounds, the bundle's languages (none recorded: the development one).
+  const mixed = shown.find(t => t.startsWith('mixed: ')) || '';
+  if (!/^mixed: copy: \d+ en$/.test(mixed)) problems.push(`load ${load}: mixed imports "${mixed}", expected "mixed: copy: <width> en"`);
 }
 const stored = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('swiftuiweb.')).sort());
 if (!stored.includes('swiftuiweb.defaults.standard') || !stored.includes('swiftuiweb.files/Documents/launches.json')) problems.push('localStorage keys: ' + stored.join(', '));

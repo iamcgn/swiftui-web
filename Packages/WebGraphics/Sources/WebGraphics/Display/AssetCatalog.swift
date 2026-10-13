@@ -131,11 +131,18 @@ public struct AssetCatalog: Sendable, Equatable {
     public var images: [String: ImageResource]
     public var colors: [String: [ColorVariant]]
     public var fonts: [String: FontResource]
+    /// The languages the app's string catalogs and `.lproj` folders hold (`Bundle.localizations`),
+    /// and the catalogs' source language (`Bundle.developmentLocalization`).
+    public var localizations: [String]
+    public var sourceLanguage: String?
 
-    public init(images: [String: ImageResource] = [:], colors: [String: [ColorVariant]] = [:], fonts: [String: FontResource] = [:]) {
+    public init(images: [String: ImageResource] = [:], colors: [String: [ColorVariant]] = [:], fonts: [String: FontResource] = [:],
+                localizations: [String] = [], sourceLanguage: String? = nil) {
         self.images = images
         self.colors = colors
         self.fonts = fonts
+        self.localizations = localizations
+        self.sourceLanguage = sourceLanguage
     }
 
     /// The font named by `Font.custom` (its PostScript name, full name or family).

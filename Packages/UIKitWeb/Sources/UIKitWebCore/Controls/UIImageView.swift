@@ -322,18 +322,8 @@ open class UIImageView: UIView, ClockAnimating {
 
 // MARK: - Saving to the photo library
 
-/// A selector by name: wasm Swift has no Objective-C runtime, so `#selector` cannot be
-/// written, but the UIKit functions that take one still need the type for their `nil`
-/// arguments (`UIImageWriteToSavedPhotosAlbum`, decision 0021).
-#if !canImport(ObjectiveC)
-public struct Selector: Hashable, Sendable, ExpressibleByStringLiteral, CustomStringConvertible {
-    public let name: String
-    public init(_ name: String) { self.name = name }
-    public init(stringLiteral value: String) { name = value }
-    public var description: String { name }
-}
-#endif
-
+/// `Selector` for the completion arguments below is WebFoundation's string-backed one where
+/// there is no Objective-C runtime (Responder.swift), Objective-C's on Darwin; one declaration.
 /// Adds the image to the user's photo library: in the browser, a download of its PNG through
 /// the host's file saver (the closest thing a page has to a camera roll). The completion target
 /// and selector are accepted; without a runtime to dispatch a selector, nothing is called.

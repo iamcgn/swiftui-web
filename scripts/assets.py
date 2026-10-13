@@ -315,6 +315,30 @@ def font_metrics(path):
     return metrics
 
 
+def find_localizations(source):
+    """The languages the package is localised into, as `Bundle.localizations` lists them on iOS:
+    every language a string catalog (`*.xcstrings`, JSON with `sourceLanguage` and per-string
+    `localizations`) holds plus every `<lang>.lproj` folder; the development language is the
+    first catalog's `sourceLanguage` (else the first `Base`/`en`). Empty when there is nothing."""
+    languages, sources = set(), []
+    for path in sorted(source.rglob("*.xcstrings")):
+        if any(part in SKIPPED_DIRS for part in path.relative_to(source).parts): continue
+        try:
+            doc = json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError) as error:
+            warn(f"{path}: {error}"); continue
+        if doc.get("sourceLanguage"):
+            languages.add(doc["sourceLanguage"]); sources.append(doc["sourceLanguage"])
+        for entry in doc.get("strings", {}).values():
+            languages.update(entry.get("localizations", {}).keys())
+    for path in sorted(source.rglob("*.lproj")):
+        if any(part in SKIPPED_DIRS for part in path.relative_to(source).parts): continue
+        languages.add(path.stem)
+    if "Base" in languages and len(languages) > 1: languages.discard("Base")
+    return {"languages": sorted(languages), "source": sources[0] if sources else (
+        "en" if "en" in languages else (sorted(languages)[0] if languages else None))}
+
+
 def find_fonts(source):
     found = []
     for suffix in sorted(FONT_SUFFIXES):
@@ -361,9 +385,11 @@ def main():
             shutil.copyfile(path, target)
         metrics["file"] = ("Fonts/" + path.name) if out else relative.as_posix()
         fonts[metrics["postScriptName"]] = metrics
+    localizations = find_localizations(source)
     manifest = {"version": 1, "catalogs": [p.name for p in catalogs],
                 "images": dict(sorted(catalog.images.items())), "colors": dict(sorted(catalog.colors.items())),
-                "fonts": dict(sorted(fonts.items()))}
+                "fonts": dict(sorted(fonts.items())),
+                "localizations": localizations["languages"], "sourceLanguage": localizations["source"]}
     text = json.dumps(manifest, indent=2, sort_keys=True)
     if args.json:
         Path(args.json).parent.mkdir(parents=True, exist_ok=True)

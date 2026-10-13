@@ -10,6 +10,7 @@ struct LaunchesApp: App {
                 Text("Launches").font(.title)
                 Text(model.summary)
                 Text(model.status)
+                Text("mixed: " + MixedImports.check())
                 Button("Record again") { model.record() }
             }
             .padding()

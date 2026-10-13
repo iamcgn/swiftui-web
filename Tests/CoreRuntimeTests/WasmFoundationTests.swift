@@ -229,6 +229,30 @@ import WebFoundation
         #expect(bundle.localizedString(forKey: "Hello", value: "Hallo", table: nil) == "Hallo")
     }
 
+    /// `Bundle.localizations` is what the app's string catalogs and `.lproj` folders hold, as
+    /// the build recorded them (scripts/assets.py → the manifest → the host); the development
+    /// language is the catalogs' source; the preferred one follows the current locale
+    /// (EnvironmentOverrides builds its locale picker from these, decision 0021).
+    @Test func bundleLanguagesComeFromTheRecordedCatalogs() {
+        let previous = Bundle._hostLocalizations
+        defer { Bundle._hostLocalizations = previous }
+        Bundle._hostLocalizations = nil
+        #expect(Bundle.main.localizations == ["en"] && Bundle.main.developmentLocalization == "en")
+        Bundle._hostLocalizations = (languages: ["de", "en", "ja"], source: "en")
+        #expect(Bundle.main.localizations == ["de", "en", "ja"] && Bundle.main.developmentLocalization == "en")
+        let locale = Locale._hostIdentifier
+        defer { Locale._hostIdentifier = locale }
+        Locale._hostIdentifier = "ja_JP"
+        #expect(Bundle.main.preferredLocalizations == ["ja"])
+        Locale._hostIdentifier = "fr_FR"
+        #expect(Bundle.main.preferredLocalizations == ["en"])
+        Bundle._hostLocalizations = (languages: ["pt-BR", "en"], source: "en")
+        Locale._hostIdentifier = "pt_BR"
+        #expect(Bundle.main.preferredLocalizations == ["pt-BR"])
+        Locale._hostIdentifier = "pt_PT"
+        #expect(Bundle.main.preferredLocalizations == ["pt-BR"])
+    }
+
     @Test func filesUnderDocumentsSurviveThroughTheHostStore() throws {
         nonisolated(unsafe) var kept: [String: String] = [:]
         _MemoryFiles._hostStore = (list: { Array(kept.keys) }, load: { kept[$0] }, save: { if let text = $1 { kept[$0] = text } else { kept[$0] = nil } })
