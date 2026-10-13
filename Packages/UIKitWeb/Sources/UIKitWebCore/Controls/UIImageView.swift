@@ -1,8 +1,4 @@
-#if os(WASI)
-import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation itself off wasm, the stand-ins on it (decision 0017); `Selector` where there is no Objective-C runtime
 // UIImage and UIImageView (Docs/elements/UIKit/Drawing.md): catalog images (decision 0011),
 // symbols, images from PNG or JPEG data (a data URL the painters load) and recorded drawings,
 // drawn by content mode (uikit/imageview/modes) with their rendering mode and tint

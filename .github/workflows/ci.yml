@@ -122,10 +122,24 @@ jobs:
           . ~/.swiftly/env.sh
           scripts/build-wasm.sh Apps --debug --product Scrumdinger
       - name: Apps — Scrumdinger in Chromium (the add sheet, an attendee, the scrum on file after a reload, the detail; the meeting blocked on speech, pf-speech)
+        id: scrumdinger
         run: |
           python3 -m http.server 8773 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8773/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node scrumdinger-probe.mjs "http://127.0.0.1:8773/index.html?platform=ios")
+          (cd Playwright && node scrumdinger-probe.mjs "http://127.0.0.1:8773/index.html?platform=ios" --out ../.build/apps/scrumdinger)
+      - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
+        if: always() && steps.scrumdinger.outcome != 'skipped'
+        run: |
+          test -s .build/apps/scrumdinger/report.json && test -s .build/apps/scrumdinger/trace.zip && ls .build/apps/scrumdinger/*.png >/dev/null
+          python3 -c "import json; r=json.load(open('.build/apps/scrumdinger/report.json')); assert r['full_app_pass'] is False; print({k: v['outcome'] for k, v in r['flows'].items()})"
+      # Evidence, kept whatever the steps above did: Tier B's renders and diffs
+      # (scripts/tier-b.sh writes .build/tier-b-<browser>) and the apps' reports, screenshots
+      # and traces. A step that ran but left no evidence is a failure of its own
+      # (`if-no-files-found: error`); it never changes the test steps' own outcomes.
       - uses: actions/upload-artifact@v4
-        with: { name: tier-b, path: .build/tier-b }
+        if: always()
+        with: { name: tier-b, path: .build/tier-b-*, if-no-files-found: error }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: apps-evidence, path: .build/apps, if-no-files-found: error }
 

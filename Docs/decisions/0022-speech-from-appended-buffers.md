@@ -111,16 +111,17 @@ const report = {
   hasRecognition: !!R,
   hasProcessLocally: !!R && 'processLocally' in R.prototype,
   hasAvailable: !!R && typeof R.available === 'function',
-  startArity: R ? R.prototype.start.length : 0,                 // 1 when start(track) is accepted
+  // whether start(track) is accepted is NOT derivable without calling it (start.length is
+  // metadata, not the overload set): it stays "unproven" until a decision allows a call
   availability: R && R.available ? await R.available({ langs: ['en-US'], processLocally: true }) : 'n/a',
   worklet: !!(window.AudioContext && AudioWorkletNode && MediaStreamAudioDestinationNode),
 };
 ```
 
-First result (2026-10-12, `Playwright/speech-availability.mjs chromium`): the project's
-Playwright Chromium is **129** (HeadlessChrome/129.0.6668.29): `SpeechRecognition` present,
-`processLocally`/`available`/`install` absent, `start` takes no track, the worklet pieces
-present. So option A cannot even be probed in this repository's CI until Playwright (and its
+First result (2026-10-12, `Playwright/speech-availability.mjs http://127.0.0.1:8772/index.html?platform=ios`,
+the served app origin, a secure context): the project's Playwright Chromium is **129**
+(HeadlessChrome/129.0.6668.29): `SpeechRecognition` present, `processLocally`/`available`/`install`
+absent, the `start(track)` overload unproven (never called), the worklet pieces present. So option A cannot even be probed in this repository's CI until Playwright (and its
 bundled Chromium) is upgraded past 139 — a tooling change to decide alongside the option, not
 a given.
 

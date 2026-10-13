@@ -1,14 +1,18 @@
 // Reports what the browser offers for decision 0022 (speech from the app's appended buffers)
-// WITHOUT installing a language pack, starting recognition or opening a microphone: the
-// SpeechRecognition constructor, `processLocally`, `available()`, whether `start` takes a
-// track, the on-device availability for en-US, and the Web Audio pieces a worklet-fed track
-// needs. It prints; it asserts nothing (no option is chosen).
-//   node speech-availability.mjs [chromium|webkit|firefox]
+// WITHOUT installing a language pack, starting recognition or opening a microphone, on a
+// representative app origin (the served app page, so permissions policy and secure-context
+// rules apply as they will to the app): the SpeechRecognition constructor, `processLocally`,
+// `available()`/`install()` as properties, the on-device availability for en-US, and the Web
+// Audio pieces a worklet-fed track needs. Whether `start(track)` is accepted is NOT reported:
+// `start.length` is metadata, and the only proof is a call, which this probe does not make —
+// it stays "unproven" until a decision allows an actual recognition. It prints; it asserts nothing.
+//   node speech-availability.mjs http://127.0.0.1:8773/index.html [chromium|webkit|firefox]
 import { chromium, webkit, firefox } from 'playwright';
-const engine = { chromium, webkit, firefox }[process.argv[2] || 'chromium'];
+const url = process.argv[2] && process.argv[2].startsWith('http') ? process.argv[2] : 'about:blank';
+const engine = { chromium, webkit, firefox }[process.argv[3] || (url === 'about:blank' ? process.argv[2] : null) || 'chromium'];
 const browser = await engine.launch();
 const page = await browser.newPage();
-await page.goto('about:blank');
+await page.goto(url, { waitUntil: 'commit' });
 const report = await page.evaluate(async () => {
   const R = window.SpeechRecognition || window.webkitSpeechRecognition;
   let availability = 'n/a';
@@ -19,8 +23,9 @@ const report = await page.evaluate(async () => {
     hasProcessLocally: !!R && 'processLocally' in R.prototype,
     hasAvailable: !!R && typeof R.available === 'function',
     hasInstall: !!R && typeof R.install === 'function',
-    startArity: R ? R.prototype.start.length : 0,
+    startTrackOverload: 'unproven (needs a start(track) call; not made here)',
     onDeviceAvailability: availability,
+    origin: location.origin, secureContext: window.isSecureContext,
     worklet: !!(window.AudioContext && window.AudioWorkletNode && window.MediaStreamAudioDestinationNode),
   };
 });
