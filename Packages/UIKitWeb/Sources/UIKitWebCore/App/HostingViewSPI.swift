@@ -31,6 +31,13 @@ extension UIKitScene {
         return animating
     }
 
+    /// Whether a hosting view on screen still animates or has work pending: an animation the
+    /// hosted tree started during this frame's render (a state change from a key command while
+    /// the frame loop was idle) needs the next frame, which the scene's own clocks cannot see.
+    var hostingViewsAnimating: Bool {
+        hostingViews.contains { $0.view?.window != nil && $0.view?._hostedIsAnimating == true }
+    }
+
     var hostedFocusedTextFieldIdentifier: Int? {
         for entry in hostingViews {
             if let view = entry.view, let identifier = view._hostedFocusedTextFieldIdentifier { return identifier }

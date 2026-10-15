@@ -719,6 +719,9 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     open var _hostedFocusedTextFieldIdentifier: Int? { nil }
     /// Advances the hosted scene's clocks; true while it needs another frame.
     open func _hostedAdvanceFrame(elapsed: Double) -> Bool { false }
+    /// Whether the hosted content still animates or has work pending after a frame: an
+    /// animation it started during the frame's render needs the next one.
+    open var _hostedIsAnimating: Bool { false }
     /// A wheel scroll at `point` (the view's coordinates); true when the hosted scene took it.
     open func _hostedScrollWheel(by delta: CGSize, at point: CGPoint) -> Bool { false }
 

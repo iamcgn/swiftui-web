@@ -266,6 +266,7 @@ final class _UIHostingView<Content: View>: UIView {
         if animating || runtime.needsFrame { setNeedsDisplay() }
         return animating
     }
+    override var _hostedIsAnimating: Bool { runtime.isAnimating || runtime.needsFrame }
     override func _hostedScrollWheel(by delta: CGSize, at point: CGPoint) -> Bool {
         runtime.scroll(by: delta, at: point) != delta
     }

@@ -294,7 +294,7 @@ public final class UIKitScene: HostedScene {
     // MARK: Frames
 
     public private(set) var needsFrame = false
-    public var isAnimating: Bool { !animationGroups.isEmpty || !decelerating.isEmpty || !spinners.isEmpty || !displayLinks.isEmpty }
+    public var isAnimating: Bool { !animationGroups.isEmpty || !decelerating.isEmpty || !spinners.isEmpty || !displayLinks.isEmpty || hostingViewsAnimating }
     /// The activity indicators animating (Controls/MoreControls.swift); their spokes turn on this clock.
     var spinners: [WeakActivityIndicator] = []
     /// The display links added to the run loop (Layers/CADisplayLink.swift); they tick every frame.
