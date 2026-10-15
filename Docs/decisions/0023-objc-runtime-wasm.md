@@ -82,6 +82,12 @@ with the patched frontend (60 passed, 1 expected failure, 25 unsupported, one pa
 for want of a resource dir). The plan's curated `Interpreter/objc_*` list turned out empty:
 every one of those tests imports Foundation, which the v1 SDK does not carry.
 
+Rerun 2026-10-15 (evening) against the bundle assembled from swift-objc-wasm's release-prep
+commit 9b74613 (license files, SPDX headers, rewritten objc4 comments; the bundle now carries
+`LICENSE.txt`, `THIRD_PARTY_NOTICES.md` and a `VERSION` stamp): the 2048 bundle builds, the
+four upstream pins are unchanged, three consecutive probe runs pass, on this branch at
+fbb333cf with a clean tree.
+
 ## Limits, in the order they will matter
 
 - The SDK is local. CI keeps the stock SDK until the bundle is published; the 2048 step is
