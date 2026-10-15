@@ -65,6 +65,16 @@ again), no console or page errors — `full_app_pass: true` (2026-10-14, report 
 `.build/apps/2048`). Native macOS: the root suite (606 tests) and UIKitWeb's (193) pass; the
 stock wasm SDK still builds `SwiftUIWebCanvas`.
 
+Rerun 2026-10-15 on the v1 SDK as it ships (CoreFoundation is not in it; the bundle rebuilt
+from scratch, the four upstream pins verified unchanged): five consecutive probe runs pass on
+a clean commit. Two library defects stood between the first pass and this one, both ours and
+neither in the app's sources: `UIKeyCommand` matched its input string exactly, so the app's
+`input: "N"` never met the ⌘N the browser reports as the key `n` (UIKit matches a letter in
+either case; Shift is a modifier flag), and the UIKit scene did not count a hosted SwiftUI
+animation that a render had just started, so a new game begun while the frame loop was idle
+drew the cleared board and stopped until the next input (`UIKitScene.isAnimating` now asks the
+hosting views). The first pass had coincided with a swipe's animation still running.
+
 ## Limits, in the order they will matter
 
 - The SDK is local. CI keeps the stock SDK until the bundle is published; the 2048 step is
