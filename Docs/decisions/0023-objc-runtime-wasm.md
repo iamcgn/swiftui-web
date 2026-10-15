@@ -82,5 +82,8 @@ hosting views). The first pass had coincided with a swipe's animation still runn
 - No bridging of `String`, `Array`, `Dictionary` or `Error` to Foundation classes without a
   Foundation (`String as NSString` is a compile error), no Objective-C exceptions, no
   corelibs Foundation, XCTest or Swift Testing in the interop SDK, single-threaded only.
+  Decided 2026-10-15: that stays so for v1; v1.5 bridges `String` over the runtime's small
+  `NSString` in WebFoundation; the eventual direction is corelibs Foundation rebuilt with interop
+  on, taken as its own decision when it is scheduled.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.
