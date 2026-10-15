@@ -75,6 +75,13 @@ animation that a render had just started, so a new game begun while the frame lo
 drew the cleared board and stopped until the next input (`UIKitScene.isAnimating` now asks the
 hosting views). The first pass had coincided with a swipe's animation still running.
 
+Compiler-level evidence lives with the runtime (`tests/compiler-checks.sh` in swift-objc-wasm,
+2026-10-15): with interop off the patched compilers emit the same IR as the stock 6.3.3
+toolchain for wasm32 (`llvm-diff`), and the Darwin `swift/test/IRGen/objc_*` lit tests pass
+with the patched frontend (60 passed, 1 expected failure, 25 unsupported, one passing by hand
+for want of a resource dir). The plan's curated `Interpreter/objc_*` list turned out empty:
+every one of those tests imports Foundation, which the v1 SDK does not carry.
+
 ## Limits, in the order they will matter
 
 - The SDK is local. CI keeps the stock SDK until the bundle is published; the 2048 step is
