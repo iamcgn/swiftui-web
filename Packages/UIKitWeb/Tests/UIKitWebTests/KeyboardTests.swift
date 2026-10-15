@@ -16,6 +16,7 @@ final class CommandController: UIViewController {
     init(log: KeyLog) { self.log = log; super.init(nibName: nil, bundle: nil) }
     override var keyCommands: [UIKeyCommand]? {
         [UIKeyCommand(title: "Save", action: { [log] _ in log.events.append("save") }, input: "s", modifierFlags: .command),
+         UIKeyCommand(title: "New", action: { [log] _ in log.events.append("new") }, input: "N", modifierFlags: .command),
          UIKeyCommand(input: UIKeyCommand.inputEscape, modifierFlags: []) { [log] _ in log.events.append("escape") }]
     }
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -69,6 +70,8 @@ final class RowsSource: NSObject, UITableViewDataSource {
         #expect(scene.keyDown(key(KeyEquivalent("s"), "s", .command)) && log.events == ["save"])
         #expect(scene.keyDown(key(.escape)) && log.events.last == "escape")
         #expect(!scene.keyDown(key(KeyEquivalent("s"), "s")), "the bare key is not the command")
+        #expect(scene.keyDown(key(KeyEquivalent("n"), "n", .command)) && log.events.last == "new", "a capital-letter input matches the key as UIKit's does")
+        #expect(!scene.keyDown(key(KeyEquivalent("n"), "N", [.command, .shift])), "Shift is a modifier, not the capital")
         // A press the controller takes is handled; one nobody takes is not.
         #expect(scene.keyDown(key(KeyEquivalent("x"), "x")) && log.events.last == "x began")
         #expect(!scene.keyDown(key(KeyEquivalent("y"), "y")))

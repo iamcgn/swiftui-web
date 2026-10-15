@@ -110,9 +110,13 @@ public final class UIKeyCommand: UICommand {
     nonisolated public static let inputDelete = "\u{08}"
     nonisolated public static let f1 = "UIKeyInputF1"
 
-    /// Whether the command matches a key (its input string and exactly its modifiers).
+    /// Whether the command matches a key: exactly its modifiers, and its input string. A letter
+    /// input matches the key in either case, as UIKit's does (`UIKeyCommand(input: "N",
+    /// modifierFlags: .command)` is ⌘N; Shift is a modifier flag, not a capital letter).
     func matches(_ key: UIKey) -> Bool {
-        key.modifierFlags == modifierFlags && (key.input == input || key.characters == input)
+        guard key.modifierFlags == modifierFlags else { return false }
+        if key.input == input || key.characters == input { return true }
+        return input.count == 1 && key.characters.count == 1 && input.lowercased() == key.characters.lowercased()
     }
 }
 
