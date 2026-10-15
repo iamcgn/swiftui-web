@@ -266,7 +266,10 @@ final class _UIHostingView<Content: View>: UIView {
         if animating || runtime.needsFrame { setNeedsDisplay() }
         return animating
     }
-    override var _hostedIsAnimating: Bool { runtime.isAnimating || runtime.needsFrame }
+    /// Animations only: pending work is the host's to pick up on its next paint, and a hosting
+    /// view a fixture left in a window would otherwise report it for ever to the representables'
+    /// hosted trees (`UIKitScene.advanceTimers`), which treat the answer as their own animating.
+    override var _hostedIsAnimating: Bool { runtime.isAnimating }
     override func _hostedScrollWheel(by delta: CGSize, at point: CGPoint) -> Bool {
         runtime.scroll(by: delta, at: point) != delta
     }
