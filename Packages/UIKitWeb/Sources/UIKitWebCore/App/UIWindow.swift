@@ -210,7 +210,11 @@ public final class UIApplication: UIResponder {
 /// The methods the app object calls on its delegate.
 @MainActor
 public protocol UIApplicationDelegate: AnyObject {
+    #if !canImport(ObjectiveC)
+    /// Without an Objective-C runtime the launch cannot instantiate the delegate class by
+    /// name; with one (decision 0023) it does, as UIKit does.
     init()
+    #endif
     var window: UIWindow? { get set }
     func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool

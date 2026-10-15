@@ -11,34 +11,39 @@ import WebFoundation
 import Foundation
 #endif
 
-// MARK: - UIKeyCommand
+// MARK: - UICommand and UIKeyCommand
 
-/// A key combination a responder handles (`UIResponder.keyCommands`). Actions are closures: there
-/// is no Objective-C runtime for selectors.
+/// A menu element whose action is a selector sent down the responder chain (UIKit's
+/// `UICommand`). Selectors are real with the Objective-C runtime (decision 0023) and names
+/// without it, where only the closure form of `UIKeyCommand` can run.
 @MainActor
-public final class UIKeyCommand: UIMenuElement {
-    public let input: String
-    public let modifierFlags: UIKeyModifierFlags
-    public let discoverabilityTitle: String?
-    public let action: ((UIKeyCommand) -> Void)?
-    public var wantsPriorityOverSystemBehavior = false
-    public var attributes: Attributes = []
-    public var state: State = .off
+open class UICommand: UIMenuElement {
+    public let action: Selector?
+    public var propertyList: Any?
+    public var alternates: [Any]
+    public var discoverabilityTitle: String?
+    public var attributes: Attributes
+    public var state: State
 
-    public init(title: String = "", image: UIImage? = nil, action: ((UIKeyCommand) -> Void)? = nil, input: String, modifierFlags: UIKeyModifierFlags = [],
-                propertyList: Any? = nil, alternates: [Any] = [], discoverabilityTitle: String? = nil, attributes: Attributes = [], state: State = .off) {
-        self.input = input
-        self.modifierFlags = modifierFlags
-        self.discoverabilityTitle = discoverabilityTitle
+    public init(title: String = "", image: UIImage? = nil, action: Selector, propertyList: Any? = nil, alternates: [Any] = [],
+                discoverabilityTitle: String? = nil, attributes: Attributes = [], state: State = .off) {
         self.action = action
+        self.propertyList = propertyList
+        self.alternates = alternates
+        self.discoverabilityTitle = discoverabilityTitle
         self.attributes = attributes
         self.state = state
         super.init(title: title, image: image)
     }
 
-    /// `UIKeyCommand(input:modifierFlags:action:)`, the iOS 13 form with a closure in the selector's place.
-    public convenience init(input: String, modifierFlags: UIKeyModifierFlags, action: @escaping (UIKeyCommand) -> Void) {
-        self.init(action: action, input: input, modifierFlags: modifierFlags)
+    init(title: String, image: UIImage?, selector: Selector?, propertyList: Any?, alternates: [Any], discoverabilityTitle: String?, attributes: Attributes, state: State) {
+        self.action = selector
+        self.propertyList = propertyList
+        self.alternates = alternates
+        self.discoverabilityTitle = discoverabilityTitle
+        self.attributes = attributes
+        self.state = state
+        super.init(title: title, image: image)
     }
 
     public struct Attributes: OptionSet, Sendable {
@@ -50,6 +55,48 @@ public final class UIKeyCommand: UIMenuElement {
     }
 
     public enum State: Int, Sendable { case off, on, mixed }
+}
+
+/// A key combination a responder handles (`UIResponder.keyCommands`), with a selector sent
+/// down the responder chain as on iOS, or a closure (this package's form for builds without a
+/// runtime).
+@MainActor
+public final class UIKeyCommand: UICommand {
+    public let input: String
+    public let modifierFlags: UIKeyModifierFlags
+    /// The closure form's action.
+    public let handler: ((UIKeyCommand) -> Void)?
+    public var wantsPriorityOverSystemBehavior = false
+
+    public init(title: String = "", image: UIImage? = nil, action: ((UIKeyCommand) -> Void)? = nil, input: String, modifierFlags: UIKeyModifierFlags = [],
+                propertyList: Any? = nil, alternates: [Any] = [], discoverabilityTitle: String? = nil, attributes: Attributes = [], state: State = .off) {
+        self.input = input
+        self.modifierFlags = modifierFlags
+        self.handler = action
+        super.init(title: title, image: image, selector: nil, propertyList: propertyList, alternates: alternates,
+                   discoverabilityTitle: discoverabilityTitle, attributes: attributes, state: state)
+    }
+
+    /// UIKit's selector form: the action is sent to the first responder in the chain that
+    /// `canPerformAction(_:withSender:)`.
+    public init(title: String = "", image: UIImage? = nil, action: Selector, input: String, modifierFlags: UIKeyModifierFlags = [],
+                propertyList: Any? = nil, alternates: [Any] = [], discoverabilityTitle: String? = nil, attributes: Attributes = [], state: State = .off) {
+        self.input = input
+        self.modifierFlags = modifierFlags
+        self.handler = nil
+        super.init(title: title, image: image, selector: action, propertyList: propertyList, alternates: alternates,
+                   discoverabilityTitle: discoverabilityTitle, attributes: attributes, state: state)
+    }
+
+    /// `UIKeyCommand(input:modifierFlags:action:)`, the iOS 13 form with a closure in the selector's place.
+    public convenience init(input: String, modifierFlags: UIKeyModifierFlags, action: @escaping (UIKeyCommand) -> Void) {
+        self.init(action: action, input: input, modifierFlags: modifierFlags)
+    }
+
+    /// `UIKeyCommand(input:modifierFlags:action:)` with a selector.
+    public convenience init(input: String, modifierFlags: UIKeyModifierFlags, action: Selector) {
+        self.init(action: action, input: input, modifierFlags: modifierFlags)
+    }
 
     nonisolated public static let inputUpArrow = "UIKeyInputUpArrow"
     nonisolated public static let inputDownArrow = "UIKeyInputDownArrow"
@@ -275,19 +322,49 @@ extension UIKitScene {
         return controller ?? window
     }
 
-    /// A key from the host: the responder chain's key commands first, then `pressesBegan` from
-    /// the first responder (or the key window), then the focus system's navigation.
+    /// Runs a command: its closure, else its selector sent to the first responder from `start`
+    /// up the chain (the application, then the app delegate, at the end) that handles it.
+    @discardableResult
+    func perform(_ command: UICommand, from start: UIResponder?) -> Bool {
+        if let keyCommand = command as? UIKeyCommand, let handler = keyCommand.handler {
+            handler(keyCommand)
+            return true
+        }
+        #if canImport(ObjectiveC)
+        guard let action = command.action else { return false }
+        var responder = start
+        while let current = responder {
+            if current.canPerformAction(action, withSender: command) {
+                _ = current.perform(action, with: command)
+                return true
+            }
+            responder = current.next
+        }
+        if let delegate = UIApplication.shared.delegate as? UIResponder, delegate.canPerformAction(action, withSender: command) {
+            _ = delegate.perform(action, with: command)
+            return true
+        }
+        #endif
+        return false
+    }
+
+    /// A key from the host: the responder chain's key commands first, then the main menu's
+    /// (`UIMenuSystem.main`), then `pressesBegan` from the first responder (or the key window),
+    /// then the focus system's navigation.
     func dispatchKeyDown(_ event: KeyEvent) -> Bool {
         let key = UIKey(characters: event.characters, modifierFlags: UIKeyModifierFlags(event.modifiers), key: event.key)
         let start = keyResponder
         var responder = start
         while let current = responder {
-            if let command = current.keyCommands?.first(where: { $0.matches(key) && !$0.attributes.contains(.disabled) }) {
-                command.action?(command)
+            if let command = current.keyCommands?.first(where: { $0.matches(key) && !$0.attributes.contains(.disabled) }), perform(command, from: start) {
                 setNeedsFrame()
                 return true
             }
             responder = current.next
+        }
+        if let command = UIMenuSystem.main.keyCommands.first(where: { $0.matches(key) && !$0.attributes.contains(.disabled) }), perform(command, from: start) {
+            setNeedsFrame()
+            return true
         }
         let press = UIPress(phase: .began, key: key)
         activePresses[event.key] = press

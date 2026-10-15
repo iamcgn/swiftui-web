@@ -14,7 +14,9 @@ while [[ $# -gt 0 ]]; do
 done
 PRODUCT_FLAG=""; [[ -n "$PRODUCT" ]] && PRODUCT_FLAG="--product $PRODUCT"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SDK="swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm"
+# SWIFTUIWEB_WASM_SDK picks the Swift SDK: the stock one, or the Objective-C runtime one
+# (`swift-<version>-RELEASE_wasm-objc`, decision 0023) that unmodified @objc apps need.
+SDK="${SWIFTUIWEB_WASM_SDK:-swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm}"
 # shellcheck disable=SC1091
 . "$(dirname "$0")/env.sh"
 case "$PKG" in *Gallery|*Gallery/) python3 "$(dirname "$0")/gen-fixture-sources.py";; esac   # fixture code shown in the gallery

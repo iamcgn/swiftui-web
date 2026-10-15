@@ -9,6 +9,9 @@
 import SwiftUIWebCore
 import UIKitWebCore
 import WebCombine
+#if canImport(ObjectiveC)
+import ObjectiveC
+#endif
 
 /// A property wrapper type that you use to create a UIKit app delegate.
 @propertyWrapper
@@ -41,7 +44,15 @@ public enum _UIApplicationDelegateRegistry {
 
     static func delegate<D: UIApplicationDelegate>(of type: D.Type) -> D {
         if let existing = delegates[ObjectIdentifier(type)] as? D { return existing }
+        #if canImport(ObjectiveC)
+        // With the Objective-C runtime (decision 0023) the class is instantiated as UIKit does,
+        // without an `init()` requirement on the protocol.
+        guard let objcType = type as? NSObject.Type, let delegate = objcType.init() as? D else {
+            fatalError("\(type) must inherit from UIResponder (NSObject) to be an app delegate")
+        }
+        #else
         let delegate = D()
+        #endif
         delegates[ObjectIdentifier(type)] = delegate
         if !launched {
             launched = true

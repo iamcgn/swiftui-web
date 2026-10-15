@@ -173,10 +173,13 @@ extension UIApplication {
     public func requestSceneSessionDestruction(_ session: UISceneSession, options: Any?, errorHandler: ((Error) -> Void)? = nil) {}
 }
 
+#if !canImport(ObjectiveC)
+// With the Objective-C runtime NSObject supplies the identity Equatable/Hashable (decision 0023).
 extension UIScene: Hashable {
     nonisolated public static func == (lhs: UIScene, rhs: UIScene) -> Bool { lhs === rhs }
     nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
+#endif
 
 extension UISceneSession: Hashable {
     public static func == (lhs: UISceneSession, rhs: UISceneSession) -> Bool { lhs === rhs }
@@ -196,6 +199,8 @@ extension UIKitScene {
         _ = delegate.application(application, willFinishLaunchingWithOptions: launchOptions)
         _ = delegate.application(application, didFinishLaunchingWithOptions: launchOptions)
         NotificationCenter.default.post(name: UIApplication.didFinishLaunchingNotification, object: application)
+        // The main menu (Containers/MenuBuilder.swift): the delegate's `buildMenu(with:)` runs once the app is up.
+        UIMenuSystem.main.setNeedsRebuild()
         if let window = delegate.window, !windows.contains(where: { $0 === window }) {
             window.makeKeyAndVisible()
         }

@@ -38,7 +38,7 @@ public final class UIDragItem {
 
     public init(itemProvider: NSItemProvider) {
         self.itemProvider = itemProvider
-        #if canImport(ObjectiveC)
+        #if canImport(Darwin)
         for type in itemProvider.registeredTypeIdentifiers {
             itemProvider.loadItem(forTypeIdentifier: type, options: nil) { value, _ in
                 let converted: Loaded?
@@ -65,7 +65,7 @@ public final class UIDragItem {
     /// The value for a type, once it has loaded.
     func value(forTypeIdentifier type: String) -> Loaded? {
         if let value = loaded[type] { return value }
-        #if !canImport(ObjectiveC)
+        #if !canImport(Darwin)
         var result: Loaded?
         itemProvider.loadItem(forTypeIdentifier: type, options: nil) { value, _ in
             switch value {
@@ -127,7 +127,7 @@ public final class UIDragItem {
 }
 
 extension NSItemProvider {
-    #if canImport(ObjectiveC)
+    #if canImport(Darwin)
     static func _make(external item: ExternalDragItem) -> NSItemProvider {
         switch item.type {
         case "text/plain": return NSItemProvider(object: (item.text ?? "") as NSString)
