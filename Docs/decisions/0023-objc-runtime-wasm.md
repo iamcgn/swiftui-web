@@ -1,7 +1,11 @@
 # 0023 — An Objective-C runtime for wasm, and a toolchain with interop on
 
 Date: 2026-10-14
-Status: **working on one machine; not yet in CI** — the SDK is built locally, not published.
+Status: **the SDK is published and CI builds and plays the unmodified 2048 with it** — swift-objc-wasm
+[v0.1.0](https://github.com/iamcgn/swift-objc-wasm/releases/tag/v0.1.0)
+(`swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz`, sha256
+`cc0a9533d197ce94e167b8fba7c276f86eefc2c06f3f54dd4a900a76d02c231a`, 665 MB), installed by URL and
+checksum in `ci.yml`'s browser job (2026-10-17).
 
 ## The requirement
 
@@ -90,8 +94,12 @@ fbb333cf with a clean tree.
 
 ## Limits, in the order they will matter
 
-- The SDK is local. CI keeps the stock SDK until the bundle is published; the 2048 step is
-  not in `ci.yml` yet.
+- The SDK is a release of a sibling project, not swift.org's: CI installs it from the
+  v0.1.0 asset with its checksum, then builds and probes SwiftUI-2048 with
+  `SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc` as the last app step of the browser job
+  (macOS arm64, the swiftly 6.3.3 toolchain; the bundle brings its own patched compilers).
+  Everything else in CI keeps the stock SDK. The 665 MB download is not cached — the workflow
+  caches no SDK — and a second machine installing from the URL is what that step is.
 - No bridging of `String`, `Array`, `Dictionary` or `Error` to Foundation classes without a
   Foundation (`String as NSString` is a compile error), no Objective-C exceptions, no
   corelibs Foundation, XCTest or Swift Testing in the interop SDK, single-threaded only.

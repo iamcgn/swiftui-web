@@ -160,8 +160,9 @@ the Objective-C selector replaced by a SwiftUI `App` with a closure-based New Ga
 menu command and a visible button) and the arrow keys through `onKeyPress` on the focused
 board. It is published with its tests, a Chromium probe judged against a port of upstream's
 algorithm, and a hosted build. It is **not** the unchanged-app pass of this decision: the
-pinned upstream in `Apps/upstream/SwiftUI-2048` stays the benchmark, the barrier above stays
-open, and `full_app_pass` for SwiftUI-2048 stays `false` here.
+pinned upstream in `Apps/upstream/SwiftUI-2048` stays the benchmark, and the port counts for
+nothing in this decision's `full_app_pass` — that is Route 1's, above, recorded by the probe
+against the unmodified sources (CI since 2026-10-17, with the published SDK).
 
 Two library gaps the port found, kept apart from the port itself:
 
