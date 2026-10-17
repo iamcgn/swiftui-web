@@ -142,15 +142,15 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8774/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node countries-probe.mjs "http://127.0.0.1:8774/index.html?platform=ios" --out ../.build/apps/countries)
       # SwiftUI-2048 needs `@objc`/`#selector`, which the stock wasm SDK cannot compile: it is
-      # built with the Objective-C runtime SDK of decision 0023 (swift-objc-wasm's v0.1.0
+      # built with the Objective-C runtime SDK of decision 0023 (swift-objc-wasm's v0.1.1
       # release, pinned by URL and checksum; its own patched compilers over the same swiftly
       # 6.3.3 toolchain, macOS arm64 only). It goes last: the Apps scratch path is shared, and
       # the other apps keep building with the stock SDK.
-      - name: Apps — the Objective-C runtime wasm SDK (swift-objc-wasm v0.1.0, decision 0023)
+      - name: Apps — the Objective-C runtime wasm SDK (swift-objc-wasm v0.1.1, decision 0023)
         run: |
           . ~/.swiftly/env.sh
-          swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.0/swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz \
-            --checksum cc0a9533d197ce94e167b8fba7c276f86eefc2c06f3f54dd4a900a76d02c231a
+          swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.1/swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz \
+            --checksum d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328
           swift sdk list
       - name: Apps — SwiftUI-2048 compiles for wasm from its unmodified sources (@UIApplicationMain, @objc newGame, #selector; the runtime SDK)
         run: |

@@ -2,11 +2,7 @@
 // menus by `UIResponder.buildMenu(with:)` on the application and the app delegate. A page has
 // no menu bar to show it in; its key commands (⌘N and the like) are matched after the responder
 // chain's own (Events/Keyboard.swift) and sent down the chain as selectors (decision 0023).
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation everywhere, and the Selector stand-in where ObjectiveC is absent
 
 /// The object that builds the app's menus.
 @MainActor

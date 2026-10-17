@@ -5,11 +5,7 @@
 // Shift-Tab through the key window's focusable views in reading order (and the arrows through
 // a table's rows or a collection's items), paints a focus ring around the focused view and
 // activates it with Space or Return.
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation everywhere, and the Selector stand-in where ObjectiveC is absent
 
 // MARK: - UICommand and UIKeyCommand
 

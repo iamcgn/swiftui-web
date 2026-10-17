@@ -1,10 +1,6 @@
 // The responder chain: views, view controllers, the window and the application. Touch events
 // walk it from the hit view outwards; the first responder takes keyboard input.
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation everywhere, and the Selector stand-in where ObjectiveC is absent
 
 #if canImport(ObjectiveC)
 /// The responder chain's root: with an Objective-C runtime (decision 0023) it is `NSObject`,

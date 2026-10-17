@@ -2,9 +2,9 @@
 
 Date: 2026-10-14
 Status: **the SDK is published and CI builds and plays the unmodified 2048 with it** — swift-objc-wasm
-[v0.1.0](https://github.com/iamcgn/swift-objc-wasm/releases/tag/v0.1.0)
+[v0.1.1](https://github.com/iamcgn/swift-objc-wasm/releases/tag/v0.1.1)
 (`swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz`, sha256
-`cc0a9533d197ce94e167b8fba7c276f86eefc2c06f3f54dd4a900a76d02c231a`, 665 MB), installed by URL and
+`d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328`, 659 MB), installed by URL and
 checksum in `ci.yml`'s browser job (2026-10-17).
 
 ## The requirement
@@ -95,10 +95,10 @@ fbb333cf with a clean tree.
 ## Limits, in the order they will matter
 
 - The SDK is a release of a sibling project, not swift.org's: CI installs it from the
-  v0.1.0 asset with its checksum, then builds and probes SwiftUI-2048 with
+  v0.1.1 asset with its checksum, then builds and probes SwiftUI-2048 with
   `SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc` as the last app step of the browser job
   (macOS arm64, the swiftly 6.3.3 toolchain; the bundle brings its own patched compilers).
-  Everything else in CI keeps the stock SDK. The 665 MB download is not cached — the workflow
+  Everything else in CI keeps the stock SDK. The 659 MB download is not cached — the workflow
   caches no SDK — and a second machine installing from the URL is what that step is.
 - No bridging of `String`, `Array`, `Dictionary` or `Error` to Foundation classes without a
   Foundation (`String as NSString` is a compile error), no Objective-C exceptions, no
