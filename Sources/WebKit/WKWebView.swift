@@ -304,7 +304,11 @@ public final class WKWebsiteDataStore: NSObject {
 
     private init(persistent: Bool) {
         isPersistent = persistent
+        #if os(WASI)
         httpCookieStore = WKHTTPCookieStore(storage: persistent ? .shared : HTTPCookieStorage())
+        #else
+        httpCookieStore = WKHTTPCookieStore(storage: .shared)   // corelibs Foundation keeps the initializer private
+        #endif
         super.init()
     }
 
