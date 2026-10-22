@@ -55,6 +55,30 @@ import SwiftUIWebHeadless
         #expect(runtime.probeFrames["content"] == CGRect(x: 0, y: -138, width: 200, height: 200))
     }
 
+    /// The inset view sits in the region it creates and gets none of it as safe area: a
+    /// horizontal scroll view as a top inset (the Ember app's feed chips, decision 0021) keeps
+    /// its chips at its own top, and measures the same on every layout rather than growing by
+    /// its previous height each frame.
+    @Test func anInsetViewDoesNotInsetItself() {
+        let runtime = Runtime()
+        runtime.mount(ScrollView {
+            VStack(spacing: 0) { ForEach(0..<5, id: \.self) { _ in Color.green.frame(height: 40) } }._probe("content")
+        }.safeAreaInset(edge: .top, spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) { ForEach(0..<6, id: \.self) { i in Color.blue.frame(width: 70, height: 32)._probe("chip\(i)") } }
+                    .padding(.top, 4).padding(.bottom, 8)
+            }
+            ._probe("bar")
+        }._probe("scroll"))
+        for _ in 0..<3 {
+            runtime.layout(in: CGSize(width: 200, height: 300))
+            _ = runtime.render(scale: 2)
+            #expect(runtime.probeFrames["bar"] == CGRect(x: 0, y: 0, width: 200, height: 44))
+            #expect(runtime.probeFrames["chip0"] == CGRect(x: 0, y: 4, width: 70, height: 32))
+            #expect(runtime.probeFrames["content"] == CGRect(x: 0, y: 44, width: 200, height: 200))
+        }
+    }
+
     @Test func safeAreaPaddingAndIgnoresSafeArea() {
         #expect(frames(Color.red.safeAreaPadding(20)) == ["fillRect(20, 20, 160, 60) #FF383C"])
         #expect(frames(Color.red.safeAreaPadding(.horizontal, 10)) == ["fillRect(10, 0, 180, 100) #FF383C"])

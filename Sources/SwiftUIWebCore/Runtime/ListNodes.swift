@@ -231,7 +231,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 if editingAccessories, canMove(element) { insets.trailing += PlatformMetrics.listEditGripWidth }
                 let available = max(0, contentWidth - insets.leading - insets.trailing)
                 let size = element.node.sizeThatFits(ProposedViewSize(width: available, height: nil))
-                let height = max(profile.minimumRowHeight, size.height + insets.top + insets.bottom)
+                let height = max(environment._defaultMinListRowHeight ?? profile.minimumRowHeight, size.height + insets.top + insets.bottom)
                 element.frame = CGRect(x: 0, y: y, width: width, height: height)
                 let contentY = y + (height - size.height) / 2
                 let shift = swipe?.row == index ? presentedSwipeOffset(swipe!) : 0

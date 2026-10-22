@@ -8,3 +8,21 @@
 @_exported import Observation
 @_exported import Combine
 #endif
+
+#if os(WASI)
+// The bridging casts `error as NSError` and `nsError as Error` compile to calls of these two
+// functions, which the compiler looks up in the module named `Foundation` (decision 0021, the
+// Ember app). An `NSError` is itself; any other error becomes one with the Swift error domain,
+// its description in the user info, as Foundation bridges an error without a domain of its own.
+public func _convertErrorToNSError(_ error: any Error) -> NSError {
+    // `error as? NSError` is the bridge being defined; through `Any` the cast is a plain one.
+    let value: Any = error
+    if let nsError = value as? NSError { return nsError }
+    return NSError(domain: "\(type(of: error))", code: 1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription, "NSUnderlyingError": error])
+}
+
+public func _convertNSErrorToError(_ error: NSError?) -> any Error {
+    if let underlying = error?.userInfo["NSUnderlyingError"] as? any Error { return underlying }
+    return error ?? NSError(domain: "NSCocoaErrorDomain", code: 0)
+}
+#endif

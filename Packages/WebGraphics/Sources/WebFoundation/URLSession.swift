@@ -323,6 +323,9 @@ public final class URLSessionConfiguration: @unchecked Sendable {
     public var waitsForConnectivity = false
     public var httpMaximumConnectionsPerHost = 6
     public var httpShouldSetCookies = true
+    /// Recorded: the browser's jar is what `fetch` sends (HTTPCookie.swift).
+    public var httpCookieStorage: HTTPCookieStorage? = .shared
+    public var httpCookieAcceptPolicy: HTTPCookieStorage.AcceptPolicy = .onlyFromMainDocumentDomain
     public var httpShouldUsePipelining = false
     public var isDiscretionary = false
     public var sessionSendsLaunchEvents = false

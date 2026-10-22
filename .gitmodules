@@ -10,3 +10,6 @@
 [submodule "Apps/upstream/EnvironmentOverrides"]
 	path = Apps/upstream/EnvironmentOverrides
 	url = https://github.com/nalexn/EnvironmentOverrides
+[submodule "Apps/upstream/ember-hackernews"]
+	path = Apps/upstream/ember-hackernews
+	url = https://github.com/DatanoiseTV/ember-hackernews

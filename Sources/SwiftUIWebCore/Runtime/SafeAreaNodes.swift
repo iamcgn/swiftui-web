@@ -176,6 +176,14 @@ package final class SafeAreaInsetNode<Content: View, Inset: View>: SafeAreaNode<
         }
     }
 
+    /// The inset views sit in the region they create; the safe area a target gets is not theirs
+    /// (a horizontal scroll view as the inset would otherwise push its chips down by the bar's
+    /// own height). The frame's unsafe depth beyond the bar stays theirs through the walk.
+    override package func providedSafeAreaInsets(for child: ViewNode) -> EdgeInsets {
+        if insets.values.contains(where: { $0 === child || $0.layoutChildren.contains { $0 === child } }) { return EdgeInsets() }
+        return super.providedSafeAreaInsets(for: child)
+    }
+
     override package var structuralChildren: [ViewNode] { [child] + insetNodes }
     /// Each target's inset view paints (and is hit tested) over it.
     override package func paintedChildren(of target: ViewNode) -> [ViewNode] {

@@ -299,6 +299,10 @@ extension FillShapeView: ShapeView, _ShapePainting {
             gradient._fill(_localPath(shape, in: bounds, direction: environment.layoutDirection), in: bounds, eoFill: fillStyle.isEOFilled, environment: environment, scale: scale, into: &list)
             return
         }
+        if let material = style as? Material {
+            material._fill(_localPath(shape, in: bounds, direction: environment.layoutDirection), in: bounds, environment: environment, into: &list)
+            return
+        }
         let color = _resolveFillColor(style, role: Content.role, in: environment)
         guard color.alpha > 0 else { return }
         list.append(_fillCommand(shape, in: bounds, color: color, fillStyle: fillStyle, direction: environment.layoutDirection))

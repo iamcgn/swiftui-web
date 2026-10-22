@@ -28,6 +28,7 @@ let package = Package(
         .executable(name: "SwiftUI2048", targets: ["SwiftUI2048"]),
         .executable(name: "Scrumdinger", targets: ["Scrumdinger"]),
         .executable(name: "CountriesSwiftUI", targets: ["CountriesSwiftUI"]),
+        .executable(name: "Ember", targets: ["Ember"]),
     ],
     dependencies: [
         .package(name: "SwiftUIWeb", path: ".."),
@@ -111,6 +112,27 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
         ),
+        // MARK: DatanoiseTV/ember-hackernews — one XcodeGen target (project.yml: `Sources` and
+        // `Resources`, SWIFT_VERSION 5.0, iOS 18), the repository root as the target path so
+        // both folders are its; everything else at the root (the Skip port `EmberSkip`, `Tools`,
+        // `docs`, the project and text files) excluded, and of `Resources` the files Xcode
+        // processes through other phases (the plist, the privacy manifest).
+        .executableTarget(
+            name: "Ember",
+            dependencies: swiftUI + [uiKit] + host + [
+                .product(name: "WebKit", package: "SwiftUIWeb"),
+                .product(name: "SafariServices", package: "Shadows", condition: .when(platforms: [.wasi])),
+                .product(name: "Security", package: "Shadows", condition: .when(platforms: [.wasi])),
+            ],
+            path: "upstream/ember-hackernews",
+            exclude: ["EmberSkip", "Tools", "docs", "project.yml", "README.md", "CHANGELOG.md", "LICENSE",
+                      "Resources/Info.plist", "Resources/PrivacyInfo.xcprivacy"],
+            sources: ["Sources"],
+            resources: [.process("Resources/Assets.xcassets"), .process("Resources/Fonts")],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: stack
+        ),
+
         // Its one dependency, nalexn/EnvironmentOverrides 0.0.4 (the version Xcode resolves for
         // `from: "0.0.4"`), from its own pinned submodule: a package fetched by URL could not see
         // this package's SwiftUI (SwiftPM links a target only to the products it declares).

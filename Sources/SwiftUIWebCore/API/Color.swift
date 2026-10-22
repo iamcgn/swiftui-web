@@ -57,6 +57,26 @@ public struct Color: Hashable, Sendable {
         self.init(storage: .named(name))
     }
 
+    /// Creates a constant color from hue, saturation, and brightness values (HSB to sRGB).
+    public init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1) {
+        let h = (hue - hue.rounded(.down)) * 6
+        let sector = Int(h)
+        let f = h - Double(sector)
+        let p = brightness * (1 - saturation)
+        let q = brightness * (1 - saturation * f)
+        let t = brightness * (1 - saturation * (1 - f))
+        let (r, g, b): (Double, Double, Double)
+        switch sector % 6 {
+        case 0: (r, g, b) = (brightness, t, p)
+        case 1: (r, g, b) = (q, brightness, p)
+        case 2: (r, g, b) = (p, brightness, t)
+        case 3: (r, g, b) = (p, q, brightness)
+        case 4: (r, g, b) = (t, p, brightness)
+        default: (r, g, b) = (brightness, p, q)
+        }
+        self.init(storage: .rgba(red: r, green: g, blue: b, opacity: opacity))
+    }
+
     /// Creates a constant grayscale color.
     public init(white: Double, opacity: Double = 1) {
         self.init(storage: .rgba(red: white, green: white, blue: white, opacity: opacity))

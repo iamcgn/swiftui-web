@@ -23,6 +23,8 @@ public final class CanvasHost {
         NotificationsHost.install()
         NetworkHost.install()
         DataHost.install()
+        SecurityHost.install()
+        RegexHost.install()
         let host = CanvasHost()
         KeyboardHost.install()
         let windows = windows()

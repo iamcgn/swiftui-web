@@ -333,11 +333,22 @@ package struct ListStyleKey: EnvironmentKey {
     package static let defaultValue: any ListStyle = DefaultListStyle()
 }
 
+package struct DefaultMinListRowHeightKey: EnvironmentKey {
+    package static let defaultValue: CGFloat? = nil
+}
+
 extension EnvironmentValues {
     package var listStyle: any ListStyle {
         get { self[ListStyleKey.self] }
         set { self[ListStyleKey.self] = newValue }
     }
+
+    /// The least height of a list row: the platform's for the list's style until an app sets it.
+    public var defaultMinListRowHeight: CGFloat {
+        get { self[DefaultMinListRowHeightKey.self] ?? (platformProfile.isIOS ? PlatformMetricsTable.iOS.listGroupedRowHeight : PlatformMetricsTable.macOS.listGroupedRowHeight) }
+        set { self[DefaultMinListRowHeightKey.self] = newValue }
+    }
+    package var _defaultMinListRowHeight: CGFloat? { self[DefaultMinListRowHeightKey.self] }
 }
 
 extension View {

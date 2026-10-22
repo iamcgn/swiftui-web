@@ -6,6 +6,10 @@
 //     .package(name: "Shadows", path: "<SwiftUIWeb>/Packages/Shadows"),
 //     .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
 //     .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
+// `Security` (the keychain item functions over a host store) and `SafariServices`
+// (`SFSafariViewController` over `WKWebView`) live here for the same reason (decision 0021, the
+// Ember app): a root-package module named `Security` would shadow Apple's for every macOS
+// build, the testing library's included. Their sources are `#if os(WASI)` too.
 // A module named `Foundation` must never be built on macOS or Linux (it would shadow the
 // system module for every target compiled after it; the sources are `#if os(WASI)`), and must
 // stay out of SwiftUIWeb's own test builds: SwiftPM's wasm test discovery imports XCTest, whose
@@ -18,9 +22,12 @@ let package = Package(
     products: [
         .library(name: "Foundation", targets: ["Foundation"]),
         .library(name: "Combine", targets: ["Combine"]),
+        .library(name: "Security", targets: ["Security"]),
+        .library(name: "SafariServices", targets: ["SafariServices"]),
     ],
     dependencies: [
         .package(path: "../WebGraphics"),
+        .package(name: "SwiftUIWeb", path: "../.."),
     ],
     targets: [
         .target(
@@ -31,6 +38,16 @@ let package = Package(
         .target(
             name: "Combine",
             dependencies: [.product(name: "WebCombine", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "Security",
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "SafariServices",
+            dependencies: [.product(name: "SwiftUI", package: "SwiftUIWeb"), .product(name: "WebKit", package: "SwiftUIWeb")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
     ]

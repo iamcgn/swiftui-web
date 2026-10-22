@@ -168,6 +168,9 @@ extension ShapeStyle {
         if let modified = self as? any _ModifiedStyle {
             return modified._resolveBaseColor(in: environment).multiplyingAlpha(by: modified._alpha)
         }
+        if let material = self as? Material {
+            return material.tint(in: environment)
+        }
         if let level = self as? HierarchicalShapeStyle, level.level > 0 {
             return level.color(foreground: environment.foregroundColor, isIOS: environment.platformProfile.isIOS).resolve(in: environment)
         }
