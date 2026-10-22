@@ -22,15 +22,23 @@ SDK="${SWIFTUIWEB_WASM_SDK:-swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm}"
 case "$PKG" in *Gallery|*Gallery/) python3 "$(dirname "$0")/gen-fixture-sources.py";; esac   # fixture code shown in the gallery
 cd "$PKG"
 # The 4 MB wasm stack (wasm-ld defaults to 64 KB) is set per package in Package.swift (linkerSettings).
-
+# Each SDK builds in a scratch path of its own: a module the stock SDK's compiler wrote is
+# stale for the Objective-C runtime SDK's and the other way round (the same triple, different
+# compilers and `canImport`s — SwiftPM does not rebuild it). The page loads the bundle from
+# `.build/wasm`, so another SDK's bundle is copied there after its build.
+STOCK_SDK="swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm"
+SCRATCH=.build/wasm; [[ "$SDK" != "$STOCK_SDK" ]] && SCRATCH=".build/wasm-${SDK#swift-*-RELEASE_wasm-}"
 if [[ $DEBUG == 1 ]]; then
-  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path .build/wasm js $PRODUCT_FLAG --use-cdn --debug-info-format dwarf
+  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" js $PRODUCT_FLAG --use-cdn --debug-info-format dwarf
 else
-  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path .build/wasm -c release -Xswiftc -Osize js $PRODUCT_FLAG --use-cdn
+  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" -c release -Xswiftc -Osize js $PRODUCT_FLAG --use-cdn
 fi
 # Asset catalogs (decision 0011): every *.xcassets of the package becomes assets/manifest.js plus
 # the image files in the bundle; index.html includes the script before the module.
 BUNDLE=".build/wasm/plugins/PackageToJS/outputs/Package"
+if [[ "$SCRATCH" != .build/wasm ]]; then
+  rm -rf "$BUNDLE" && mkdir -p "$(dirname "$BUNDLE")" && cp -R "$SCRATCH/plugins/PackageToJS/outputs/Package" "$BUNDLE"
+fi
 # An app of decision 0021 takes the catalogs of its own upstream tree (Apps/README.md), not
 # every app's (three AccentColors).
 case "$PKG" in *Gallery|*Gallery/) ASSETS="$ROOT/Fixtures";; *) ASSETS=".";; esac
@@ -44,7 +52,7 @@ python3 "$ROOT/scripts/assets.py" "$ASSETS" --js "$BUNDLE/assets/manifest.js" --
 # A package target's processed resources (`resources: [.process("Resources")]`, SwiftPM lays
 # them out as `<Package>_<Target>.resources`) join the assets, where `Bundle.url(forResource:)`
 # looks (decision 0021); catalogs and string catalogs are the manifest's.
-for RES in .build/wasm/wasm32-unknown-wasip1/*/*.resources; do
+for RES in "$SCRATCH"/wasm32-unknown-wasip1/*/*.resources; do
   [[ -d "$RES" ]] || continue
   (cd "$RES" && find . -type f ! -path '*.xcassets/*' ! -name '*.xcstrings' ! -name 'Info.plist' | while read -r f; do
     mkdir -p "$OLDPWD/$BUNDLE/assets/$(dirname "$f")" && cp "$f" "$OLDPWD/$BUNDLE/assets/$f"; done)
