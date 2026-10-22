@@ -248,4 +248,35 @@ struct NavigationPayload: Hashable, Codable {
         plain.append(Plain())
         #expect(plain.codable == nil)
     }
+
+    /// A hidden link under a custom row — `ZStack { NavigationLink(value:) { EmptyView() }.opacity(0); row }`,
+    /// the pattern that drops the chevron (the Ember app's story rows, decision 0021) — pushes
+    /// from a tap anywhere in the row: the list finds the link in the row's content, and the
+    /// link's layout value is there although its empty label gives the modifier no target.
+    @Test func aHiddenLinkInAListRowPushesFromTheRow() {
+        var environment = EnvironmentValues()
+        environment.platformProfile = .iOS
+        let r = Runtime(environment: environment)
+        r.mount(NavigationStack {
+            List {
+                ForEach(0..<3, id: \.self) { i in
+                    ZStack {
+                        NavigationLink(value: i) { EmptyView() }.opacity(0)
+                        Color.red.frame(height: 40)._probe("row\(i)")
+                    }
+                }
+            }
+            .listStyle(.plain)
+            .navigationTitle("Feed")
+            .navigationDestination(for: Int.self) { Color.blue._probe("detail\($0)") }
+        })
+        r.layout(in: CGSize(width: 390, height: 844))
+        _ = r.render(scale: 2)
+        let row = r.probeFrames["row1"]!
+        r.pointerDown(at: CGPoint(x: row.midX, y: row.midY)); r.pointerUp(at: CGPoint(x: row.midX, y: row.midY))
+        r.layout(in: CGSize(width: 390, height: 844))
+        _ = r.render(scale: 2)
+        #expect(r.probeFrames["detail1"] != nil)
+        #expect(r.probeFrames["detail0"] == nil)
+    }
 }

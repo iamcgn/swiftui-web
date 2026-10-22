@@ -68,7 +68,10 @@ extension Runtime {
         var finished: [@MainActor () -> Void] = []
         var relayout = false
         for entry in animatingNodes {
-            guard let node = entry.node, let presentation = node.presentation else { continue }
+            // A node that left the tree takes its animations with it (a repeating one would
+            // otherwise keep the scene animating — and laying out — for as long as something
+            // retains the node: the Ember app's shimmer on a skeleton row that had loaded).
+            guard let node = entry.node, node.isMounted, let presentation = node.presentation else { continue }
             // A layout whose parameters tween lays out again each frame (and once settled).
             if node is any _RelayoutWhileAnimating, presentation.effect != nil { relayout = true }
             if let tween = presentation.frame, tween.isFinished(at: now) { presentation.frame = nil }
@@ -123,13 +126,25 @@ extension Runtime {
     /// else the transaction's.
     package func effectiveUpdateAnimation(for node: ViewNode) -> Animation? {
         if let scoped = scopedAnimation(for: node) { return scoped }
-        return updateAnimation
+        return inRepeatingScope(node) ? updateAnimation : nil
+    }
+
+    /// Whether a repeating transaction animation reaches `node`: always for one that ends, for
+    /// `repeatForever` only within the subtrees its transaction invalidated.
+    private func inRepeatingScope(_ node: ViewNode) -> Bool {
+        guard !repeatingAnimationScopes.isEmpty else { return true }
+        var current: ViewNode? = node
+        while let candidate = current {
+            if repeatingAnimationScopes.contains(where: { $0.node === candidate }) { return true }
+            current = candidate.parent
+        }
+        return false
     }
 
     /// The animation for frames placed in the current layout pass at `node`.
     package func effectiveLayoutAnimation(for node: ViewNode) -> Animation? {
         if let scoped = scopedAnimation(for: node) { return scoped }
-        return layoutAnimation
+        return inRepeatingScope(node) ? layoutAnimation : nil
     }
 
     /// The nearest active scope's animation: `.none` without a scope, `.some(nil)` for a scope

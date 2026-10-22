@@ -108,7 +108,8 @@ package final class TabViewNode: LayoutNode<_TabViewPrimitive>, _Interactive, _K
             let tabEnabled = enabled && result[index].isEnabled
             let text: AnyView
             if bottomBar {
-                let tint: Color = selected ? .accentColor : .primary
+                // The selected tab takes `tint(_:)` when set, as UIKit's tab bar takes tintColor.
+                let tint: Color = selected ? (environment._tint ?? .accentColor) : .primary
                 text = AnyView(Text(result[index].title).font(.system(size: PlatformMetrics.tabLabelSize, weight: .medium)).foregroundStyle(tint))
                 let icon = AnyView(Image(systemName: result[index].symbol ?? "").font(.system(size: PlatformMetrics.tabIconSize)).foregroundStyle(tint))
                 if index < icons.count {

@@ -468,6 +468,9 @@ package final class LayoutValueNode<Content: View, K: LayoutValueKey>: UnaryLayo
         return target.layoutValue(for: key)
     }
     override package func layoutValue<Key: LayoutValueKey>(for key: Key.Type) -> Key.Value {
+        // The value is the modifier's whatever it wraps: a `NavigationLink` whose label is an
+        // `EmptyView` (the hidden link under a custom list row) has no target and still activates.
+        if Key.self == K.self, let value = modifier.value as? Key.Value { return value }
         guard let target = targets.first else { return Key.defaultValue }
         return layoutValue(of: target, for: key)
     }

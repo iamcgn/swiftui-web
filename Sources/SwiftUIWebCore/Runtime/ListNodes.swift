@@ -961,10 +961,14 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             pendingReveal = index
             return
         }
-        // A row that is a `NavigationLink` pushes; a selectable row toggles its selection. On
-        // macOS a multiple selection follows the modifier keys: a plain click selects the row
-        // alone, ⌘ toggles it, ⇧ extends the range from the anchor row.
-        element.node.layoutValue(for: NavigationLinkActivationKey.self)?.run()
+        // A row that is a `NavigationLink` pushes — or holds one anywhere in its content (the
+        // hidden link under a custom row, `ZStack { NavigationLink(value:) { EmptyView() }.opacity(0); row }`,
+        // which SwiftUI's list activates from a tap anywhere in the row); a selectable row
+        // toggles its selection. On macOS a multiple selection follows the modifier keys: a
+        // plain click selects the row alone, ⌘ toggles it, ⇧ extends the range from the anchor row.
+        let activation = element.node.layoutValue(for: NavigationLinkActivationKey.self)
+            ?? element.node.descendants(where: { $0.layoutValue(for: NavigationLinkActivationKey.self) != nil }).first?.layoutValue(for: NavigationLinkActivationKey.self)
+        activation?.run()
         if let selection = view.selection, let id = element.id {
             let rows = elements.filter { $0.kind == .row && $0.id != nil }
             let index = rows.firstIndex { $0.id == id }

@@ -43,7 +43,15 @@ open class JSONDecoder {
     public init() {}
 
     open func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
-        try _TransferJSONDecoder().decode(type, from: data)
+        var options = _JSONDecodingOptions()
+        switch dateDecodingStrategy {
+        case .deferredToDate: options.dateStrategy = .deferred
+        case .secondsSince1970: options.dateStrategy = .secondsSince1970
+        case .millisecondsSince1970: options.dateStrategy = .millisecondsSince1970
+        case .iso8601: options.dateStrategy = .iso8601
+        }
+        options.convertsFromSnakeCase = keyDecodingStrategy == .convertFromSnakeCase
+        return try _TransferJSONDecoder().decode(type, from: data, options: options)
     }
 }
 #endif

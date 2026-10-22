@@ -104,3 +104,36 @@ import Foundation
         }
     }
 }
+
+/// The decoder's strategies (a `JSONDecoder` on wasm hands them to the transfer decoder;
+/// the Ember app decodes Algolia's `created_at_i` with `convertFromSnakeCase`).
+@Suite struct JSONDecodingStrategyTests {
+    struct Hit: Decodable, Equatable {
+        let objectId: String
+        let createdAtI: Int
+        let _private: Int?
+        let whenSeconds: Date?
+    }
+
+    @Test func snakeCaseKeysBecomeCamelCase() throws {
+        let json = #"{"object_id": "1", "created_at_i": 1700000000, "_private": 3, "when_seconds": 1700000000}"#
+        var options = _JSONDecodingOptions()
+        options.convertsFromSnakeCase = true
+        options.dateStrategy = .secondsSince1970
+        let hit = try _TransferJSONDecoder().decode(Hit.self, from: Data(json.utf8), options: options)
+        #expect(hit.objectId == "1" && hit.createdAtI == 1_700_000_000 && hit._private == 3)
+        #expect(hit.whenSeconds == Date(timeIntervalSince1970: 1_700_000_000))
+        #expect(_TransferJSONDecoder.snakeToCamel("created_at_i") == "createdAtI")
+        #expect(_TransferJSONDecoder.snakeToCamel("__leading_x__") == "__leadingX__")
+        #expect(_TransferJSONDecoder.snakeToCamel("plain") == "plain")
+    }
+
+    @Test func dateStrategiesReadNumbersAndISO8601() throws {
+        struct Stamp: Decodable { let at: Date }
+        var options = _JSONDecodingOptions()
+        options.dateStrategy = .millisecondsSince1970
+        #expect(try _TransferJSONDecoder().decode(Stamp.self, from: Data(#"{"at": 1700000000000}"#.utf8), options: options).at == Date(timeIntervalSince1970: 1_700_000_000))
+        options.dateStrategy = .iso8601
+        #expect(try _TransferJSONDecoder().decode(Stamp.self, from: Data(#"{"at": "2023-11-14T22:13:20Z"}"#.utf8), options: options).at == Date(timeIntervalSince1970: 1_700_000_000))
+    }
+}
