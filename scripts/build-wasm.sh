@@ -37,7 +37,6 @@ case "$PKG" in *Gallery|*Gallery/) ASSETS="$ROOT/Fixtures";; *) ASSETS=".";; esa
 case "$PRODUCT" in
   SwiftUI2048) ASSETS="upstream/SwiftUI-2048";;
   Scrumdinger) ASSETS="upstream/Scrumdinger";;
-  CountriesSwiftUI) ASSETS="upstream/clean-architecture-swiftui";;
   Ember) ASSETS="upstream/ember-hackernews";;
 esac
 rm -rf "$BUNDLE/assets"

@@ -131,16 +131,16 @@ jobs:
           python3 -m http.server 8773 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8773/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node scrumdinger-probe.mjs "http://127.0.0.1:8773/index.html?platform=ios" --out ../.build/apps/scrumdinger)
-      - name: Apps — Countries compiles for wasm from its unmodified sources (SwiftData, URLSession, UserNotifications over the hosts)
+      - name: Apps — Ember compiles for wasm from its unmodified sources (WebKit, SafariServices, Security over the stand-ins; a release build, as the comment thread's layout is seconds in debug)
         run: |
           . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Apps --debug --product CountriesSwiftUI
-      - name: Apps — Countries in Chromium (its persistent container opens; its request to restcountries.com/v2 fails as that service stands and the app shows its own ErrorView with Retry — recorded, not passed; no fixture or proxy)
-        id: countries
+          scripts/build-wasm.sh Apps --product Ember
+      - name: Apps — Ember in Chromium (the onboarding, the live Top feed and chips, a discussion, save and Saved, search, Settings, a reload — against the live Hacker News API)
+        id: ember
         run: |
-          python3 -m http.server 8774 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8774/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node countries-probe.mjs "http://127.0.0.1:8774/index.html?platform=ios" --out ../.build/apps/countries)
+          python3 -m http.server 8780 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8780/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node ember-probe.mjs "http://127.0.0.1:8780/index.html?platform=ios" --out ../.build/apps/ember)
       # SwiftUI-2048 needs `@objc`/`#selector`, which the stock wasm SDK cannot compile: it is
       # built with the Objective-C runtime SDK of decision 0023 (swift-objc-wasm's v0.1.1
       # release, pinned by URL and checksum; its own patched compilers over the same swiftly
@@ -164,15 +164,15 @@ jobs:
           (cd Playwright && node 2048-probe.mjs "http://127.0.0.1:8775/index.html?platform=ios" --out ../.build/apps/2048)
       - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
         if: always() && steps.scrumdinger.outcome != 'skipped'
-        env: { COUNTRIES_PROBE: "${{ steps.countries.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}" }
+        env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}" }
         run: |
-          for app in scrumdinger countries 2048; do
+          for app in scrumdinger ember 2048; do
             # A probe is skipped when its build step failed: its evidence is then the build log.
-            if [ "$app" = countries ] && [ "$COUNTRIES_PROBE" = skipped ]; then echo "countries: probe not run"; continue; fi
+            if [ "$app" = ember ] && [ "$EMBER_PROBE" = skipped ]; then echo "ember: probe not run"; continue; fi
             if [ "$app" = 2048 ] && [ "$SWIFTUI2048_PROBE" = skipped ]; then echo "2048: probe not run"; continue; fi
             test -s .build/apps/$app/report.json && test -s .build/apps/$app/trace.zip && ls .build/apps/$app/*.png >/dev/null
-            # Scrumdinger and Countries stay false (speech, the dead endpoint); 2048 is the one full pass.
-            expected=False; [ "$app" = 2048 ] && expected=True
+            # Scrumdinger stays false (its meeting waits on speech); Ember and 2048 are full passes.
+            case "$app" in scrumdinger) expected=False;; *) expected=True;; esac
             python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is $expected, r['full_app_pass']; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
           done
       # Evidence, kept whatever the steps above did: Tier B's renders and diffs

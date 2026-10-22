@@ -126,7 +126,7 @@ fails on any pin, file or hash that differs before it builds anything.
 |---|---|---|
 | SwiftUI-2048 | every file, with the Objective-C runtime SDK (decision 0023) | At the baseline: `@objc func newGame` → "Objective-C interoperability is disabled"; `#selector(newGame(_:))` → "'#selector' can only be used with the Objective-C runtime" (forcing `-Xfrontend -enable-objc-interop` crashed the frontend). Route 1 below was built (2026-10-14): with `SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc` the app compiles from its unmodified sources, and `Playwright/2048-probe.mjs` passes (launch, swipes, ⌘N). `UIMenuBuilder`, `UIKeyCommand(action:)`, `UIMenu.edit/format/view` and `UIApplicationMain` were ours to add and are added. The stock SDK still stops at `AppDelegate.swift`. |
 | Scrumdinger | every target but `AudioService` and `SpeechService` | `AVAudioPlayer`, `AVAudioSession`, `AVAudioApplication`, `AVAudioEngine`, `SFSpeechRecognizer`, `SFSpeechAudioBufferRecognitionRequest`, `SFSpeechRecognitionTask` (`pf-avfoundation-audio`, `pf-speech`). Two Swift 6 errors in `ViewComponents` were ours: `ToolbarContent` and `ProgressViewStyle` were not `@MainActor @preconcurrency` as Apple's are (fixed with the protocol family, `sw-isolation-fidelity`). At runtime: `Media.xcassets` theme colours (`pf-xcassets`), the sheet bar (`sw-ios-sheet-nav`), `ProcessInfo.environment` being empty makes `RuntimeEnvironment.current` the physical device, so the real services run, as on a phone. |
-| CountriesSwiftUI | not yet past `EnvironmentOverrides` (at the baseline; every file by 2026-10-13, see below) | its dependency needs `UIGraphicsImageRenderer`, `UIWindow.drawHierarchy`, `UIImageWriteToSavedPhotosAlbum`, the feedback generators and `Bundle.localizations`; then the app's `SwiftData`, `URLSession`, `UserNotifications`, `UIApplicationDelegateAdaptor` and `UISceneConfiguration.delegateClass`. |
+| CountriesSwiftUI (retired 2026-10-22, see "Ember replaces Countries") | not yet past `EnvironmentOverrides` (at the baseline; every file by 2026-10-13, see below) | its dependency needs `UIGraphicsImageRenderer`, `UIWindow.drawHierarchy`, `UIImageWriteToSavedPhotosAlbum`, the feedback generators and `Bundle.localizations`; then the app's `SwiftData`, `URLSession`, `UserNotifications`, `UIApplicationDelegateAdaptor` and `UISceneConfiguration.delegateClass`. |
 
 The first row's compiler error is a barrier this package cannot lift by adding API: wasm Swift
 is built without Objective-C interop, so `@objc` and `#selector` are rejected at the parse
@@ -206,7 +206,7 @@ API modules in Swift 5 mode with every Swift 6 upcoming feature except SE-0434 w
 it (verified in a scratch package) at the cost of ~120 sites that rely on `@MainActor`
 closures being Sendable; recorded under `sw-isolation-fidelity`, not done.
 
-### Countries (2026-10-13)
+### Countries (2026-10-13; retired 2026-10-22, the record stands)
 
 Compiles for wasm from its sources exactly as pinned, every file, after `uk-app-delegate-adaptor`,
 `pf-usernotifications`, `pf-urlsession` and `pf-swiftdata` — the last written against its
@@ -231,6 +231,61 @@ lands on it again. That is the app's real path for a gone service, recorded with
 the pin, screenshots and a trace — not a pass. The list, search and detail flows are blocked
 on the external service; `full_app_pass` is false. No fixture data, proxy or endpoint rewrite
 is used, and the endpoint decision is held (`pf-urlsession`).
+
+### Ember replaces Countries (2026-10-22)
+
+Corey retired the Countries app and chose a replacement, after a search for an open-source
+SwiftUI app whose service answers a browser today (MIT, no packages, a keyless API with a
+CORS header on the exact endpoints the sources call, persistence, flows a probe can drive):
+[DatanoiseTV/ember-hackernews](https://github.com/DatanoiseTV/ember-hackernews) — Ember, a
+shipping Hacker News reader (MIT, 6 200 lines, iOS 18, no third-party packages), pinned at
+`1ed87d7f` (2026-06-24) as `Apps/upstream/ember-hackernews`. Its data comes from
+`hacker-news.firebaseio.com` and `hn.algolia.com`, both answering any origin; its
+persistence is `UserDefaults` and JSON files through `FileManager`; its surface is wide:
+a `TabView`, a `NavigationStack` per tab, a `fullScreenCover` onboarding, a `List` of custom
+rows over hidden `NavigationLink`s, a `LazyVStack` comment thread rendered from HTML into
+`AttributedString`s, `searchable`, `swipeActions`, `contextMenu`, a `Font.custom` (Inter),
+`Material`, and the account features behind `WKWebView`, `SFSafariViewController` and the
+keychain. Countries' retirement is recorded in `Apps/README.md`: the app compiled, the
+service it is written against is gone, and the frameworks it asked for stay proven by their
+tests and the Launches example.
+
+**Ember compiles for wasm from its unmodified sources and its ten flows pass in Chromium
+against the live API** (`Playwright/ember-probe.mjs`, a CI step of its own; `full_app_pass`
+true since 2026-10-22): the onboarding's seven steps to "Start Reading", the Top feed's rows
+(rank, title in Inter, host, points, author, age), the New chip replacing them, a story's
+discussion with its comments and their ages, the story saved from the bar and listed under
+Saved, a search on Algolia from the Search tab's field, the Settings screen down to its
+cache size, and a reload that skips the onboarding and keeps the bookmark. The favicons
+come from `icons.duckduckgo.com`, which sends no CORS header: the browser refuses them and
+the app shows its globe fallback — the app's own path for a failed favicon, counted in the
+report, not a problem of the run.
+
+What the app asked of the library, in the order the build and the flows asked: the WebKit
+UIKit face (`WKWebView` over the host's frame, its configuration, data store and cookie
+store, user scripts, the delegates), `SafariServices` and `Security` as modules of
+`Packages/Shadows` (a root module named `Security` shadows Apple's for every macOS build),
+`HTTPCookie`/`HTTPCookieStorage`, `NSString` with `String as NSString` bridging,
+`NSRegularExpression` over the browser's `RegExp` (UTF-16 indices are `NSRange`'s units; no
+engine in the bundle), `JSONSerialization`, `trimmingCharacters(in:)`, the byte-count and
+compact-name format styles, `URL.resourceValues`, `error as NSError` (the compiler's
+`_convertErrorToNSError` in the module named Foundation), `Material`, `Text.monospacedDigit`,
+`Color(hue:saturation:brightness:)`, `defaultMinListRowHeight`, `UIColor(named:)`; and the
+JSON decoder's key and date strategies, which were recorded and never applied. Runtime
+defects it exposed, fixed: a cross-origin image drawn into the canvas tainted it and the
+frame was abandoned mid-paint (images from another origin now load with CORS); a
+`safeAreaInset`'s inset view got the inset it creates as its own safe area and grew every
+layout; a `.principal` toolbar item did not replace the inline title; the selected tab
+ignored `tint(_:)` and `Color.accentColor` ignored the catalog's `AccentColor`; a list row
+holding a `NavigationLink` under a custom row did not push; a `searchable` on the stack
+itself was not the root screen's; a `repeatForever` transaction animation leaked onto every
+change of the same pass and kept the scene animating.
+
+Known limit, recorded under `sw-perf`: one layout of a discussion's comment thread takes
+about 2.5 s in the release build (and ten in debug) — nested stacks measure their children
+at the cross product of the widths and heights their parents probe, 800 000 `sizeThatFits`
+calls for sixty comments. The thread settles after that one layout; scrolling it is slow.
+CI builds Ember in release and the probe polls generously.
 
 ### The keyboard host (2026-10-13)
 

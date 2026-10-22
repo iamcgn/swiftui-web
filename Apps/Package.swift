@@ -1,5 +1,5 @@
 // swift-tools-version: 6.1
-// The three apps of decision 0021, built from their upstream sources exactly as pinned in
+// The apps of decision 0021, built from their upstream sources exactly as pinned in
 // `Apps/upstream/*` (git submodules; `scripts/check-apps.sh` verifies the pins and that no
 // upstream file differs). This manifest is the only thing that is not upstream's: it names each
 // app's targets, where their sources are, and the SwiftUIWeb products they link in place of
@@ -27,7 +27,6 @@ let package = Package(
     products: [
         .executable(name: "SwiftUI2048", targets: ["SwiftUI2048"]),
         .executable(name: "Scrumdinger", targets: ["Scrumdinger"]),
-        .executable(name: "CountriesSwiftUI", targets: ["CountriesSwiftUI"]),
         .executable(name: "Ember", targets: ["Ember"]),
     ],
     dependencies: [
@@ -97,21 +96,6 @@ let package = Package(
             path: "upstream/Scrumdinger/Library/Sources/Scrum"
         ),
 
-        // MARK: nalexn/clean-architecture-swiftui — its Package.swift's one target (Swift 5 mode,
-        // the same path, exclude and resources), as an executable so the app runs.
-        .executableTarget(
-            name: "CountriesSwiftUI",
-            dependencies: swiftUI + [uiKit] + host + [
-                "EnvironmentOverrides",
-                .product(name: "SwiftData", package: "SwiftUIWeb"),
-                .product(name: "UserNotifications", package: "SwiftUIWeb"),
-            ],
-            path: "upstream/clean-architecture-swiftui/CountriesSwiftUI",
-            exclude: ["Resources/Preview Assets.xcassets"],
-            resources: [.process("Resources/Assets.xcassets"), .process("Resources/Localizable.xcstrings")],
-            swiftSettings: [.swiftLanguageMode(.v5)],
-            linkerSettings: stack
-        ),
         // MARK: DatanoiseTV/ember-hackernews — one XcodeGen target (project.yml: `Sources` and
         // `Resources`, SWIFT_VERSION 5.0, iOS 18), the repository root as the target path so
         // both folders are its; everything else at the root (the Skip port `EmberSkip`, `Tools`,
@@ -131,16 +115,6 @@ let package = Package(
             resources: [.process("Resources/Assets.xcassets"), .process("Resources/Fonts")],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
-        ),
-
-        // Its one dependency, nalexn/EnvironmentOverrides 0.0.4 (the version Xcode resolves for
-        // `from: "0.0.4"`), from its own pinned submodule: a package fetched by URL could not see
-        // this package's SwiftUI (SwiftPM links a target only to the products it declares).
-        .target(
-            name: "EnvironmentOverrides",
-            dependencies: swiftUI,
-            path: "upstream/EnvironmentOverrides/Sources/EnvironmentOverrides",
-            swiftSettings: [.swiftLanguageMode(.v5)]
         ),
     ]
 )

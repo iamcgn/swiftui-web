@@ -4,12 +4,6 @@
 [submodule "Apps/upstream/Scrumdinger"]
 	path = Apps/upstream/Scrumdinger
 	url = https://github.com/Sedlacek-Solutions/Scrumdinger
-[submodule "Apps/upstream/clean-architecture-swiftui"]
-	path = Apps/upstream/clean-architecture-swiftui
-	url = https://github.com/nalexn/clean-architecture-swiftui
-[submodule "Apps/upstream/EnvironmentOverrides"]
-	path = Apps/upstream/EnvironmentOverrides
-	url = https://github.com/nalexn/EnvironmentOverrides
 [submodule "Apps/upstream/ember-hackernews"]
 	path = Apps/upstream/ember-hackernews
 	url = https://github.com/DatanoiseTV/ember-hackernews
