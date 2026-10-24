@@ -64,6 +64,25 @@ public struct Selector: Hashable, Sendable, ExpressibleByStringLiteral, CustomSt
     public var description: String { name }
 }
 
+#endif
+
+#if canImport(ObjectiveC)
+extension Selector {
+    /// The selector's name, as the stand-in without a runtime spells it.
+    public var name: String { String(_sel: self) }
+}
+#endif
+
+#if os(WASI) && canImport(ObjectiveC)
+/// The runtime name of a class (Foundation's; `@UIApplicationMain` names its delegate with it).
+public func NSStringFromClass(_ aClass: AnyClass) -> String { String(cString: class_getName(aClass)) }
+
+/// The class the runtime knows by `aClassName`, or nil.
+public func NSClassFromString(_ aClassName: String) -> AnyClass? { objc_getClass(aClassName) as? AnyClass }
+#endif
+
+#if !canImport(Darwin)
+
 /// An item for the pasteboard commands: a string, or a value with a type identifier.
 public final class NSItemProvider: @unchecked Sendable {
     public private(set) var registeredTypeIdentifiers: [String] = []
@@ -115,9 +134,10 @@ private let _textTypeIdentifiers: Set<String> = ["public.utf8-plain-text", "publ
 
 #endif
 
-#if os(WASI)
+#if os(WASI) && !canImport(ObjectiveC)
 // MARK: - NSObject (decision 0021: the Countries app subclasses it for its notification
-// delegate; `super.init()`, identity equality, a hash and a description)
+// delegate; `super.init()`, identity equality, a hash and a description). With the
+// Objective-C runtime (decision 0023) the real NSObject comes from the ObjectiveC module.
 
 /// The protocol the root class conforms to.
 public protocol NSObjectProtocol: AnyObject {

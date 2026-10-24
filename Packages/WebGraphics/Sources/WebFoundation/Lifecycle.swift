@@ -125,7 +125,7 @@ public final class NotificationToken: NSObjectProtocolToken {
 
 #endif
 
-#if !canImport(ObjectiveC)
+#if !canImport(Darwin)
 
 /// A user activity: the type, title, user info and web page URL the app would continue.
 public final class NSUserActivity: @unchecked Sendable {

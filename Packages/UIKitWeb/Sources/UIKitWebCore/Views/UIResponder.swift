@@ -1,10 +1,24 @@
 // The responder chain: views, view controllers, the window and the application. Touch events
 // walk it from the hit view outwards; the first responder takes keyboard input.
+import WebFoundation   // Foundation everywhere, and the Selector stand-in where ObjectiveC is absent
+
+#if canImport(ObjectiveC)
+/// The responder chain's root: with an Objective-C runtime (decision 0023) it is `NSObject`,
+/// as UIKit's is, so `#selector`, `responds(to:)`, `perform(_:with:)` and target-action work
+/// on every responder.
+public typealias UIResponderBase = NSObject
+#else
+/// The responder chain's root without an Objective-C runtime.
+@MainActor
+open class UIResponderBase {
+    public init() {}
+}
+#endif
 
 /// An abstract interface for responding to and handling events.
 @MainActor
-open class UIResponder {
-    public init() {}
+open class UIResponder: UIResponderBase {
+    public override init() { super.init() }
 
     /// The next object in the responder chain, or nil at the end.
     open var next: UIResponder? { nil }
@@ -12,12 +26,50 @@ open class UIResponder {
     /// The standard edit actions (`UIResponderStandardEditActions`): the defaults do nothing;
     /// text fields and text views act on their text and `UIPasteboard.general`
     /// (App/UIPasteboard.swift).
+    #if canImport(ObjectiveC)
+    @objc open func copy(_ sender: Any?) {}
+    @objc open func cut(_ sender: Any?) {}
+    @objc open func paste(_ sender: Any?) {}
+    @objc open func delete(_ sender: Any?) {}
+    @objc open func select(_ sender: Any?) {}
+    @objc open func selectAll(_ sender: Any?) {}
+    #else
     open func copy(_ sender: Any?) {}
     open func cut(_ sender: Any?) {}
     open func paste(_ sender: Any?) {}
     open func delete(_ sender: Any?) {}
     open func select(_ sender: Any?) {}
     open func selectAll(_ sender: Any?) {}
+    #endif
+
+    // MARK: Commands and menus (Events/Keyboard.swift, Containers/MenuBuilder.swift)
+
+    /// Whether this responder handles `action` (`UIResponderStandardEditActions` and
+    /// target-action): with the runtime, whether it responds to the selector.
+    open func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        #if canImport(ObjectiveC)
+        return responds(to: action)
+        #else
+        return false
+        #endif
+    }
+
+    /// The responder from this one up the chain that handles `action`.
+    open func target(forAction action: Selector, withSender sender: Any?) -> Any? {
+        var responder: UIResponder? = self
+        while let current = responder {
+            if current.canPerformAction(action, withSender: sender) { return current }
+            responder = current.next
+        }
+        return nil
+    }
+
+    /// Adds, removes or replaces the app's menus (`UIMenuSystem.main`); the default changes
+    /// nothing. Called on the application and the app delegate when the menu system rebuilds.
+    open func buildMenu(with builder: any UIMenuBuilder) {}
+
+    /// Adjusts a command's state before it is shown; the default changes nothing.
+    open func validate(_ command: UICommand) {}
 
     open var canBecomeFirstResponder: Bool { false }
     open var canResignFirstResponder: Bool { true }

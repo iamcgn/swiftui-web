@@ -124,7 +124,7 @@ fails on any pin, file or hash that differs before it builds anything.
 
 | App | Compiles on wasm | What stops it |
 |---|---|---|
-| SwiftUI-2048 | every file but `AppDelegate.swift` | `@objc func newGame` → "Objective-C interoperability is disabled"; `#selector(newGame(_:))` → "'#selector' can only be used with the Objective-C runtime" (forcing `-Xfrontend -enable-objc-interop` crashes the frontend). Also `UIMenuBuilder`, `UIKeyCommand`, `UIMenu.edit/format/view` and `@UIApplicationMain`'s `init()` requirement, which are ours to add. |
+| SwiftUI-2048 | every file, with the Objective-C runtime SDK (decision 0023) | At the baseline: `@objc func newGame` → "Objective-C interoperability is disabled"; `#selector(newGame(_:))` → "'#selector' can only be used with the Objective-C runtime" (forcing `-Xfrontend -enable-objc-interop` crashed the frontend). Route 1 below was built (2026-10-14): with `SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc` the app compiles from its unmodified sources, and `Playwright/2048-probe.mjs` passes (launch, swipes, ⌘N). `UIMenuBuilder`, `UIKeyCommand(action:)`, `UIMenu.edit/format/view` and `UIApplicationMain` were ours to add and are added. The stock SDK still stops at `AppDelegate.swift`. |
 | Scrumdinger | every target but `AudioService` and `SpeechService` | `AVAudioPlayer`, `AVAudioSession`, `AVAudioApplication`, `AVAudioEngine`, `SFSpeechRecognizer`, `SFSpeechAudioBufferRecognitionRequest`, `SFSpeechRecognitionTask` (`pf-avfoundation-audio`, `pf-speech`). Two Swift 6 errors in `ViewComponents` were ours: `ToolbarContent` and `ProgressViewStyle` were not `@MainActor @preconcurrency` as Apple's are (fixed with the protocol family, `sw-isolation-fidelity`). At runtime: `Media.xcassets` theme colours (`pf-xcassets`), the sheet bar (`sw-ios-sheet-nav`), `ProcessInfo.environment` being empty makes `RuntimeEnvironment.current` the physical device, so the real services run, as on a phone. |
 | CountriesSwiftUI | not yet past `EnvironmentOverrides` (at the baseline; every file by 2026-10-13, see below) | its dependency needs `UIGraphicsImageRenderer`, `UIWindow.drawHierarchy`, `UIImageWriteToSavedPhotosAlbum`, the feedback generators and `Bundle.localizations`; then the app's `SwiftData`, `URLSession`, `UserNotifications`, `UIApplicationDelegateAdaptor` and `UISceneConfiguration.delegateClass`. |
 
@@ -147,8 +147,9 @@ source-preserving routes, all design-level and material:
 3. Nothing else: excluding the file, generating a rewrite without the two lines, or supplying
    an entry point are the modifications the standard rules out.
 
-Until one of the first two exists, SwiftUI-2048 is "every file but `AppDelegate.swift`
-compiles" and not a wasm app.
+Route 1 exists since 2026-10-14 (decision 0023): with the Objective-C runtime SDK installed,
+SwiftUI-2048 is a wasm app from its unmodified sources; `full_app_pass` for it is recorded by
+`Playwright/2048-probe.mjs`. With the stock SDK it stays "every file but `AppDelegate.swift`".
 
 #### The portable port (2026-10-13, not acceptance)
 
@@ -159,8 +160,9 @@ the Objective-C selector replaced by a SwiftUI `App` with a closure-based New Ga
 menu command and a visible button) and the arrow keys through `onKeyPress` on the focused
 board. It is published with its tests, a Chromium probe judged against a port of upstream's
 algorithm, and a hosted build. It is **not** the unchanged-app pass of this decision: the
-pinned upstream in `Apps/upstream/SwiftUI-2048` stays the benchmark, the barrier above stays
-open, and `full_app_pass` for SwiftUI-2048 stays `false` here.
+pinned upstream in `Apps/upstream/SwiftUI-2048` stays the benchmark, and the port counts for
+nothing in this decision's `full_app_pass` — that is Route 1's, above, recorded by the probe
+against the unmodified sources (CI since 2026-10-17, with the published SDK).
 
 Two library gaps the port found, kept apart from the port itself:
 

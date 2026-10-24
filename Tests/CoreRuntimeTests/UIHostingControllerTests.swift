@@ -195,6 +195,33 @@ import Foundation
         #expect(controller.view.intrinsicContentSize == CGSize(width: 200, height: 40))
     }
 
+    /// An animation the content starts during a frame's render — a state change from a key
+    /// command while the frame loop was idle — keeps the loop going: the scene reports it
+    /// animating after the render, and no longer once it has run its course.
+    @Test func animationStartedDuringRenderKeepsTheSceneAnimating() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.textEngine = engine()
+        scene.configureScreen(size: CGSize(width: 300, height: 300), scale: 2)
+        let controller = UIHostingController(rootView: AnyView(Color.red.frame(width: 100, height: 40)))
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 300, height: 300))
+        _ = scene.render(scale: 2)
+        #expect(!scene.isAnimating)
+        withAnimation(.linear(duration: 1)) { controller.rootView = AnyView(Color.red.frame(width: 200, height: 40)) }
+        // The host's frame: the clocks advance before the layout and render that begin the animation.
+        _ = scene.advanceFrame(elapsed: 0)
+        scene.layout(in: CGSize(width: 300, height: 300))
+        _ = scene.render(scale: 2)
+        #expect(scene.isAnimating, "the animation the render started needs the next frame")
+        _ = scene.advanceFrame(elapsed: 1.1)
+        scene.layout(in: CGSize(width: 300, height: 300))
+        _ = scene.render(scale: 2)
+        #expect(!scene.isAnimating)
+    }
+
     @Test func touchesReachTheContentAndSemanticsJoinTheScene() {
         let model = Model()
         let (_, _) = window(model)

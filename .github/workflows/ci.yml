@@ -141,15 +141,39 @@ jobs:
           python3 -m http.server 8774 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8774/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node countries-probe.mjs "http://127.0.0.1:8774/index.html?platform=ios" --out ../.build/apps/countries)
+      # SwiftUI-2048 needs `@objc`/`#selector`, which the stock wasm SDK cannot compile: it is
+      # built with the Objective-C runtime SDK of decision 0023 (swift-objc-wasm's v0.1.1
+      # release, pinned by URL and checksum; its own patched compilers over the same swiftly
+      # 6.3.3 toolchain, macOS arm64 only). It goes last: the Apps scratch path is shared, and
+      # the other apps keep building with the stock SDK.
+      - name: Apps — the Objective-C runtime wasm SDK (swift-objc-wasm v0.1.1, decision 0023)
+        run: |
+          . ~/.swiftly/env.sh
+          swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.1/swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz \
+            --checksum d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328
+          swift sdk list
+      - name: Apps — SwiftUI-2048 compiles for wasm from its unmodified sources (@UIApplicationMain, @objc newGame, #selector; the runtime SDK)
+        run: |
+          . ~/.swiftly/env.sh
+          SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc scripts/build-wasm.sh Apps --debug --product SwiftUI2048
+      - name: Apps — SwiftUI-2048 in Chromium (the delegate launches, two starting tiles, swipes move them, ⌘N's selector key command starts a new game)
+        id: swiftui2048
+        run: |
+          python3 -m http.server 8775 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8775/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node 2048-probe.mjs "http://127.0.0.1:8775/index.html?platform=ios" --out ../.build/apps/2048)
       - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
         if: always() && steps.scrumdinger.outcome != 'skipped'
-        env: { COUNTRIES_PROBE: "${{ steps.countries.outcome }}" }
+        env: { COUNTRIES_PROBE: "${{ steps.countries.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}" }
         run: |
-          for app in scrumdinger countries; do
-            # The Countries probe is skipped when its build step failed: its evidence is then the build log.
+          for app in scrumdinger countries 2048; do
+            # A probe is skipped when its build step failed: its evidence is then the build log.
             if [ "$app" = countries ] && [ "$COUNTRIES_PROBE" = skipped ]; then echo "countries: probe not run"; continue; fi
+            if [ "$app" = 2048 ] && [ "$SWIFTUI2048_PROBE" = skipped ]; then echo "2048: probe not run"; continue; fi
             test -s .build/apps/$app/report.json && test -s .build/apps/$app/trace.zip && ls .build/apps/$app/*.png >/dev/null
-            python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is False; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
+            # Scrumdinger and Countries stay false (speech, the dead endpoint); 2048 is the one full pass.
+            expected=False; [ "$app" = 2048 ] && expected=True
+            python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is $expected, r['full_app_pass']; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
           done
       # Evidence, kept whatever the steps above did: Tier B's renders and diffs
       # (scripts/tier-b.sh writes .build/tier-b-chromium: report.json always, renders and

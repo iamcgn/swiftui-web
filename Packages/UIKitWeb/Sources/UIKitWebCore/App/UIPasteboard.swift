@@ -198,7 +198,7 @@ open class UIPasteboard {
 
     // MARK: Item providers
 
-    #if !canImport(ObjectiveC)
+    #if !canImport(Darwin)
     /// The items as providers (each value registered under its type); WebFoundation's stand-in
     /// (wasm and Linux) delivers items at once, so providers set here land synchronously.
     public var itemProviders: [NSItemProvider] {
