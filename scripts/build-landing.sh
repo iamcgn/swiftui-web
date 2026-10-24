@@ -44,5 +44,28 @@ sed -e "s|./.build/wasm/plugins/PackageToJS/outputs/Package/|./$PBUNDLE/|g" -e "
   -e "s|data-commit=\"\"|data-commit=\"$(git -C "$ROOT" rev-parse --short HEAD)\"|" \
   "$ROOT/Examples/Progress/index.html" > "$PROGRESS/index.html"
 if [[ -z "${1:-}" ]]; then "$ROOT/scripts/size-gate.sh" Examples/Progress 3670016; fi
+# The apps (decision 0021): the three unmodified iOS apps, each a release build at /apps/<app>/,
+# from Apps/index.html with the bundle path, name and wasm size filled in. The submodules must be
+# checked out at their pins (scripts/check-apps.sh --verify). SwiftUI2048 needs the Objective-C
+# runtime SDK (decision 0023), installed where this runs; it goes last because the Apps scratch
+# path's bundle is the one last built (build-wasm.sh copies the other SDK's bundle into it).
+"$ROOT/scripts/check-apps.sh" --verify
+OBJC_SDK="swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm-objc"
+# shellcheck disable=SC1091
+. "$ROOT/scripts/env.sh"
+swift sdk list | grep -qx "$OBJC_SDK" || { echo "build-landing: the Objective-C runtime SDK $OBJC_SDK is not installed (decision 0023); SwiftUI2048 cannot be built"; exit 1; }
+app_page() {   # app_page <dir> <Product> <name shown while loading>
+  local APP="$DIST/apps/$1" ABUNDLE="bundle-$(git -C "$ROOT" rev-parse --short HEAD)-$(date +%Y%m%d%H%M)"
+  mkdir -p "$APP"
+  cp -R "$ROOT/Apps/.build/wasm/plugins/PackageToJS/outputs/Package" "$APP/$ABUNDLE"
+  local AWASM="$APP/$ABUNDLE/$2.wasm" ABYTES
+  ABYTES=$(stat -f%z "$AWASM" 2>/dev/null || stat -c%s "$AWASM")
+  sed -e "s|./.build/wasm/plugins/PackageToJS/outputs/Package/|./$ABUNDLE/|g" -e "s|data-wasm-bytes=\"\"|data-wasm-bytes=\"$ABYTES\"|" \
+    -e "s|data-wasm=\"\"|data-wasm=\"$2.wasm\"|" -e "s|data-app=\"\"|data-app=\"$3\"|" -e "s|<title>App — SwiftUIWeb</title>|<title>$3 — SwiftUIWeb</title>|" \
+    "$ROOT/Apps/index.html" > "$APP/index.html"
+}
+"$ROOT/scripts/build-wasm.sh" Apps ${1:+"$1"} --product Scrumdinger && app_page scrumdinger Scrumdinger "Scrumdinger"
+"$ROOT/scripts/build-wasm.sh" Apps ${1:+"$1"} --product Ember && app_page ember Ember "Ember"
+SWIFTUIWEB_WASM_SDK="$OBJC_SDK" "$ROOT/scripts/build-wasm.sh" Apps ${1:+"$1"} --product SwiftUI2048 && app_page 2048 SwiftUI2048 "SwiftUI 2048"
 touch "$DIST/.nojekyll"
-echo "Site: $DIST ($(du -sh "$DIST" | cut -f1); gallery $(du -sh "$GALLERY" | cut -f1); progress $(du -sh "$PROGRESS" | cut -f1)); serve with: python3 -m http.server --directory $DIST"
+echo "Site: $DIST ($(du -sh "$DIST" | cut -f1); gallery $(du -sh "$GALLERY" | cut -f1); progress $(du -sh "$PROGRESS" | cut -f1); apps $(du -sh "$DIST/apps" | cut -f1)); serve with: python3 -m http.server --directory $DIST"

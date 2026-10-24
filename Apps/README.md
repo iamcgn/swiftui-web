@@ -30,6 +30,16 @@ runtime SDK, `SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc`, decision 0023;
 built in release, `--debug` lays out a comment thread in tens of seconds), serve `Apps/` and
 open `index.html?platform=ios`.
 
+Published: `scripts/build-landing.sh` builds all three in release into the landing site at
+`/apps/scrumdinger/`, `/apps/ember/` and `/apps/2048/` (each `Apps/index.html` with its bundle
+path and wasm size filled in, so the loading bar can measure the download), and the landing
+page's "Real apps" section links to them; the `Landing page` workflow deploys the site to GitHub
+Pages on a push to main, so https://iamcgn.github.io/swiftui-web/apps/scrumdinger/?platform=ios
+and its siblings are the apps as of main. The workflow runs on macOS for the Objective-C runtime
+SDK. Scrumdinger's meeting transcribes in Chrome (decision 0022's on-device recogniser needs the
+microphone permission and, on an origin's first meeting, installs the English pack); other
+browsers show the app's own "not authorized" alert and run everything else.
+
 ## Pins
 
 | App | Upstream | Commit | Date | Licence |
