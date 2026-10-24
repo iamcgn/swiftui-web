@@ -135,8 +135,9 @@ import WebFoundation
         let session = FakeSession()
         nonisolated(unsafe) var emit: (@MainActor (String, Bool) -> Void)?
         nonisolated(unsafe) var failed: (@MainActor (String) -> Void)?
-        _SpeechHost.availability = { locale, install, completion in
-            #expect(locale == "en-US")
+        // Authorisation asks for the current locale's pack (whatever the machine's is: en-001 on
+        // CI's Linux), a recognizer's availability for its own locale.
+        _SpeechHost.availability = { _, install, completion in
             if let installs { #expect(install == installs) }
             completion(available)
         }
@@ -152,10 +153,18 @@ import WebFoundation
     @Test func authorizationInstallsThePackAndAvailabilityIsTheHostsAnswer() {
         withoutHost()
         _ = hostedSession(available: .available, installs: true)
-        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en_US"))!
+        let recognizer = SFSpeechRecognizer()!   // the current locale, as Scrumdinger's service makes it
         var status: SFSpeechRecognizerAuthorizationStatus?
         SFSpeechRecognizer.requestAuthorization { status = $0 }
         #expect(status == .authorized && recognizer.isAvailable && recognizer.supportsOnDeviceRecognition)
+        // Another locale's recognizer asks the host for its own pack (without installing) and is
+        // unavailable until the answer lands — here at once.
+        _SpeechHost.availability = { locale, install, completion in
+            #expect(locale == "ja-JP" && !install)
+            completion(.available)
+        }
+        let other = SFSpeechRecognizer(locale: Locale(identifier: "ja_JP"))!
+        #expect(!other.isAvailable && other.isAvailable)
         // A locale the device has no pack for: restricted, and not available.
         _SpeechHost._reset()
         _ = hostedSession(available: .unavailable)
