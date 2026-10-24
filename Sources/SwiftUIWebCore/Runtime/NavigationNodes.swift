@@ -177,10 +177,13 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         case .large: large = true
         default: large = index == 0 || previousLarge
         }
-        // An empty title (ios/sheet/nav) is an inline bar with nothing to draw.
+        // An empty title (ios/sheet/nav) is an inline bar with nothing to draw; a principal item
+        // takes the title's place in the inline bar (UIKit's titleView: the title is not drawn).
         if title == nil || title == "" { large = false }
+        let principal = items.contains { $0.placement.iOSGroup == .principal }
+        if principal { large = false }
         let showsLarge = large && !collapsed
-        return Bar(title: title == "" ? nil : title, large: large, collapsed: large && collapsed, back: back,
+        return Bar(title: title == "" || principal ? nil : title, large: large, collapsed: large && collapsed, back: back,
                    height: (showsLarge ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight) + barTopInset, items: items)
     }
 
@@ -199,10 +202,19 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     // MARK: The search field (iOS)
 
     /// The `searchable` in a screen's subtree: iOS 26 puts its field at the bottom of the screen.
+    /// A `searchable` on the stack itself (outside it, above this node) is the root screen's.
     private func search(over nodes: [ViewNode]) -> (any _SearchProviding)? {
         guard environment.platformProfile.isIOS, let top = nodes.first else { return nil }
         if let provider = top as? any _SearchProviding { return provider }
-        return top.descendants(where: { $0 is any _SearchProviding }).first as? any _SearchProviding
+        if let provider = top.descendants(where: { $0 is any _SearchProviding }).first as? any _SearchProviding { return provider }
+        guard root.layoutChildren.first === top else { return nil }
+        var current = parent
+        while let candidate = current {
+            if candidate is NavigationStackNode || candidate is PresentationNode { return nil }
+            if let provider = candidate as? any _SearchProviding { return provider }
+            current = candidate.parent
+        }
+        return nil
     }
 
     /// What the search takes from a screen (ios/search): a 76 pt band at the bottom for the

@@ -20,9 +20,12 @@ public final class CanvasHost {
     public static func launch(windows: @autoclosure @MainActor () -> [_WindowDescriptor] = [], _ root: @escaping @MainActor () -> AnyView) {
         JavaScriptEventLoop.installGlobalExecutor()
         MediaHost.install()
+        SpeechHost.install()
         NotificationsHost.install()
         NetworkHost.install()
         DataHost.install()
+        SecurityHost.install()
+        RegexHost.install()
         let host = CanvasHost()
         KeyboardHost.install()
         let windows = windows()

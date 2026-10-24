@@ -114,6 +114,11 @@ extension Color {
         switch storage {
         case .rgba(let r, let g, let b, let a):
             base = RGBA(red: r, green: g, blue: b, alpha: a)
+        case .system(.accentColor):
+            // The app's accent: its catalog's `AccentColor` set (Xcode's ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME)
+            // when it has one, the platform's blue otherwise.
+            base = environment.assetCatalog.color(named: "AccentColor", scheme: environment.colorScheme, idiom: environment.assetIdiom)
+                ?? environment.platformProfile.resolve(.accentColor, scheme: environment.colorScheme)
         case .system(let system):
             base = environment.platformProfile.resolve(system, scheme: environment.colorScheme)
         case .named(let name):
@@ -167,6 +172,9 @@ extension ShapeStyle {
         }
         if let modified = self as? any _ModifiedStyle {
             return modified._resolveBaseColor(in: environment).multiplyingAlpha(by: modified._alpha)
+        }
+        if let material = self as? Material {
+            return material.tint(in: environment)
         }
         if let level = self as? HierarchicalShapeStyle, level.level > 0 {
             return level.color(foreground: environment.foregroundColor, isIOS: environment.platformProfile.isIOS).resolve(in: environment)

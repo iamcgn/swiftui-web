@@ -205,6 +205,13 @@ public final class Runtime {
     package var animationClock: Double = 0
     /// The transaction animation recorded when state changed; consumed by the next layout.
     package var pendingAnimation: Animation?
+    /// The nodes a repeating transaction animation (`repeatForever`) invalidated: it animates
+    /// their subtrees alone. The flush and layout apply every change of a pass together, so a
+    /// transaction's animation otherwise reaches changes made outside it — harmless for one
+    /// that ends, not for one that does not: a skeleton's shimmer landing on a list row that
+    /// appeared in the same pass would keep the scene animating, and laying out, for good.
+    package var pendingRepeatingScopes: [WeakNode] = []
+    package var repeatingAnimationScopes: [WeakNode] = []
     /// The animation in effect while nodes update (transitions, opacity and colour changes).
     package var updateAnimation: Animation?
     /// The animation in effect while nodes are placed (frame changes).
@@ -537,7 +544,9 @@ public final class Runtime {
         if sizesInvalidated { layoutGeneration += 1 }
         sizesInvalidated = false
         layoutAnimation = pendingAnimation
+        repeatingAnimationScopes = pendingAnimation?.repeatCount == 0 ? pendingRepeatingScopes : []
         pendingAnimation = nil
+        pendingRepeatingScopes.removeAll()
         isLayingOut = true
         layoutSize = size
         probeFrames.removeAll(keepingCapacity: true)
@@ -579,6 +588,7 @@ public final class Runtime {
         isLayingOut = false
         layoutAnimation = nil
         updateAnimation = nil
+        repeatingAnimationScopes.removeAll()
         deliverPreferences()
         syncNativeViews()
         syncHostedWindows()

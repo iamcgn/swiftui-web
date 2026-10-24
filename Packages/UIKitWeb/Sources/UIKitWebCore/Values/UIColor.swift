@@ -41,6 +41,15 @@ public final class UIColor: Hashable, @unchecked Sendable {
         self.init(RGBA(cgColor: cgColor) ?? .black)
     }
 
+    /// A colour set of the app's asset catalog, both appearances; nil for an unknown name.
+    @MainActor
+    public convenience init?(named name: String) {
+        let catalog = UIKitScene.shared.assetCatalog
+        guard let light = catalog.color(named: name, scheme: .light, idiom: "iphone") else { return nil }
+        self.init(light: light, dark: catalog.color(named: name, scheme: .dark, idiom: "iphone") ?? light)
+    }
+
+
     /// Hue, saturation and brightness in 0…1.
     public convenience init(hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
         let h = (hue - hue.rounded(.down)) * 6

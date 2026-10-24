@@ -84,6 +84,8 @@ public struct Text: Equatable, Sendable {
         package var tracking: CGFloat?
         /// Markdown code spans and the `.code` intent: the font's monospaced design.
         package var monospaced = false
+        /// `monospacedDigit()`: the font's tabular figures.
+        package var monospacedDigit = false
         /// A link (markdown `[text](url)`, the `link` attribute): accent-coloured, pressable.
         package var link: URL?
 
@@ -98,6 +100,7 @@ public struct Text: Equatable, Sendable {
             result.kerning = kerning ?? parent.kerning
             result.tracking = tracking ?? parent.tracking
             result.monospaced = monospaced || parent.monospaced
+            result.monospacedDigit = monospacedDigit || parent.monospacedDigit
             result.link = link ?? parent.link
             return result
         }
@@ -182,6 +185,10 @@ public struct Text: Equatable, Sendable {
     public func bold() -> Text { var t = self; t.modifiers.bold = true; return t }
     public func bold(_ isActive: Bool) -> Text { isActive ? bold() : self }
     public func italic() -> Text { var t = self; t.modifiers.italic = true; return t }
+    /// Fixed-width digits (the font's tabular figures), as `Font.monospacedDigit()`.
+    public func monospacedDigit() -> Text { var t = self; t.modifiers.monospacedDigit = true; return t }
+    /// The monospaced design (`Font.monospaced()`), for the whole text.
+    public func monospaced(_ isActive: Bool = true) -> Text { var t = self; t.modifiers.monospaced = isActive; return t }
     public func italic(_ isActive: Bool) -> Text { isActive ? italic() : self }
     public func foregroundColor(_ color: Color?) -> Text {
         var t = self
@@ -806,6 +813,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         }
         if modifiers.italic { resolved.italic = true }
         if modifiers.monospaced, resolved.family.hasPrefix("system") { resolved.family = "system-monospaced" }
+        if modifiers.monospacedDigit { resolved.tabularDigits = true }
         return resolved
     }
 

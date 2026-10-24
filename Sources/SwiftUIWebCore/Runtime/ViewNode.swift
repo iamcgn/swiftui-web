@@ -76,7 +76,10 @@ open class ViewNode {
     package func invalidate() {
         guard isMounted else { return }
         if let transaction = Transaction._current {
-            if !transaction.disablesAnimations, let animation = transaction.animation { runtime.pendingAnimation = animation }
+            if !transaction.disablesAnimations, let animation = transaction.animation {
+                runtime.pendingAnimation = animation
+                if animation.repeatCount == 0 { runtime.pendingRepeatingScopes.append(WeakNode(node: self)) }
+            }
             for entry in transaction._completions where !entry.claimed {
                 entry.claimed = true
                 runtime.pendingAnimationCompletions.append(entry)

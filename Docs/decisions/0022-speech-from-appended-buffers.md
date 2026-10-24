@@ -1,8 +1,8 @@
-# 0022 — Speech recognition from the app's appended buffers (draft)
+# 0022 — Speech recognition from the app's appended buffers
 
-Date: 2026-10-12
-Status: **draft for a decision** — nothing here is built; `pf-speech` stays blocked until one
-option is chosen and authorised.
+Date: 2026-10-12; option A chosen by Corey 2026-10-22; the pairing proven 2026-10-23 (the
+results section at the end).
+Status: **accepted — option A**, built from the results below.
 
 ## The requirement
 
@@ -255,4 +255,71 @@ not a choice; the choice is Corey's.
 ## 2048, for the record
 
 Unchanged by this decision: SwiftUI-2048's wasm barrier (`@objc`, `#selector`) is a compiler
-and runtime matter (decision 0021's two routes), open, with no acceptance by other means.
+and runtime matter (decision 0021's two routes), open, with no acceptance by other means
+(since resolved by decision 0023).
+
+## Results (2026-10-22/23): the pairing works, and what hid it
+
+Corey chose A on 2026-10-22 and authorised the en-US pack download on this Mac and in CI. The
+feasibility step above was then run — Google Chrome 156, the installed one, in throwaway
+profiles — and for a day it reported *no transcript at all*: the pack installed
+(`available()` → `"available"`), `start(track)` was accepted, the recogniser's `soundstart`
+and `speechstart` fired for the fed audio, Chrome's own SODA logs showed a session with audio,
+and not one `result` event followed — for synthetic speech, for a human recording, headless or
+headed, and even for Chrome's fake-microphone path. The same page in Corey's own Chrome (same
+binary, same component versions, the pack freshly installed from the page's `install()` call)
+transcribed the microphone and then the worklet-fed recording word for word.
+
+Two causes, found by running the one page in both browsers and bisecting the launch:
+
+1. **The track's sample rate.** A `MediaStreamAudioDestinationNode` on a default
+   `AudioContext` (48 kHz here) yields a track the on-device recogniser accepts and hears sound
+   in, but never transcribes; the same page with `new AudioContext({ sampleRate: 16000 })`
+   transcribes. The Brave report above was the right lead: the engine wants 16 kHz and does
+   not resample a track for you. The worklet therefore runs in a 16 kHz context and the host
+   resamples the app's buffers (48 kHz from the browser microphone) before feeding it.
+2. **`--no-sandbox`.** Playwright adds `--no-sandbox` to every Chromium it launches unless
+   `chromiumSandbox: true` is passed, and under that switch Chrome's on-device recogniser runs
+   its session and emits nothing — no error, no `nomatch`, just silence (presumably the SODA
+   utility process will not serve an unsandboxed browser). Plain Chrome spawned by hand, headed
+   or `--headless=new`, transcribed; adding Playwright's switches one group at a time to that
+   launch, only `--no-sandbox` broke it; Playwright with `ignoreDefaultArgs: ['--no-sandbox']`
+   transcribed. The repository's probes therefore launch the speech browser with
+   `chromiumSandbox: true`, and nothing about speech can be tested in a container that needs
+   the sandbox off.
+
+Measured with both fixed (Chrome 156, headless, the human recording `human.wav`, 12 s, four
+Harvard sentences, fed at 1024 frames a message after `audiostart`): first interim ≈ 1.3 s
+after the first frames (`soundstart` at 3.6 s from `start`, the lead included), each
+sentence's final ≈ 0.5 s after its last word, the whole transcript exact ("The Birch canoe slid
+on the smooth planks / Glue the sheet to the dark blue background / It is easy to tell the
+depth of a well / These days a chicken leg"); the synthetic fixtures `one.wav` ("one two
+three four five") and `two.wav` ("red green blue yellow") come back as "1 2 3 4 5" and "Red
+green blue yellow" — a recogniser that normalises numerals, so assertions on them accept
+either spelling. The on-device components take 219 MB on disk (`SODA` 25 MB, the en-US pack
+194 MB), downloaded once per Chrome profile — in CI, once per cache key.
+
+Two more facts the probes ran into. `available()` answers **per origin**: a pack on disk that
+this origin never asked `install()` for reports `"downloadable"` (the explainer's
+fingerprinting mitigation), and `install()` then completes at once — so `requestAuthorization`
+always calls `install()` when the answer is downloadable, and a page on a new port is a new
+origin. And Chrome's fake audio device (`--use-file-for-fake-audio-capture`, the Scrumdinger
+probe's microphone) delivers silence while the audio service's own sandbox is on, since that
+process cannot open the file: the probe passes `--disable-features=AudioServiceSandbox`, which
+leaves the browser sandbox — the one the recogniser needs — in place.
+
+Built (2026-10-23): `Sources/Speech/Speech.swift` (the host contract takes buffers:
+`_SpeechSession.append/endAudio/stop/cancel`), `Sources/SwiftUIWebCanvas/SpeechHost.swift`
+(the worklet, the resampler, the recogniser, the cumulative results), `AVAudioAndSpeechTests`
+(the contract against a fake host), Examples/Launches' `SpeechCheck` with
+`Playwright/speech-probe.mjs` (the test plan below, run in CI against the installed Chrome
+with its sandbox on, the pack cached per Chrome version), and Scrumdinger's meeting in
+`Playwright/scrumdinger-probe.mjs` (`full_app_pass` true).
+
+Chrome's `continuous` session reports a final per utterance and keeps running; Apple's
+`SFSpeechRecognitionResult` is cumulative and `isFinal` only once, at the end. The host
+therefore joins every final and the current interim into one transcript per `onresult`
+(`isFinal == false`), and delivers the joined finals as the one final result when the
+session ends — after `endAudio()` has drained the worklet's queue plus a short tail and
+`stop()` has been called — exactly what Scrumdinger's handler expects (it accumulates on
+`isFinal` and stops recording).

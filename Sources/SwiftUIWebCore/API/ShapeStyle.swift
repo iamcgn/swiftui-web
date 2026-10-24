@@ -52,6 +52,65 @@ public struct HierarchicalShapeStyle: ShapeStyle, Hashable, Sendable {
     }
 }
 
+/// A background material: the content beneath, blurred, under a tint of the appearance's
+/// ground (`ultraThin` … `ultraThick`, and `bar`, the material of a toolbar). The substrate
+/// blurs what the view is over (`backdropBlur`); the tint is white in the light appearance and
+/// near-black in the dark one, at an alpha that grows with the thickness (iOS 17 measured
+/// over black and white: ultra-thin 0.55 / thin 0.7 / regular 0.82 / thick 0.9 / ultra-thick
+/// 0.96; the bar is the regular material).
+public struct Material: ShapeStyle, Hashable, Sendable {
+    package enum Thickness: Hashable, Sendable { case ultraThin, thin, regular, thick, ultraThick, bar }
+    package let thickness: Thickness
+    package init(thickness: Thickness) { self.thickness = thickness }
+
+    public static let ultraThinMaterial = Material(thickness: .ultraThin)
+    public static let thinMaterial = Material(thickness: .thin)
+    public static let regularMaterial = Material(thickness: .regular)
+    public static let thickMaterial = Material(thickness: .thick)
+    public static let ultraThickMaterial = Material(thickness: .ultraThick)
+    public static let bar = Material(thickness: .bar)
+
+    package var tintAlpha: Double {
+        switch thickness {
+        case .ultraThin: return 0.55
+        case .thin: return 0.7
+        case .regular, .bar: return 0.82
+        case .thick: return 0.9
+        case .ultraThick: return 0.96
+        }
+    }
+    package var blurRadius: CGFloat {
+        switch thickness {
+        case .ultraThin: return 12
+        case .thin: return 16
+        case .regular, .bar: return 20
+        case .thick: return 24
+        case .ultraThick: return 28
+        }
+    }
+
+    /// The tint over the blur, for the appearance.
+    package func tint(in environment: EnvironmentValues) -> RGBA {
+        environment.colorScheme == .dark ? RGBA(red: 0.12, green: 0.12, blue: 0.12, alpha: tintAlpha) : RGBA(red: 1, green: 1, blue: 1, alpha: tintAlpha)
+    }
+
+    /// Paints the material under `path`: the backdrop blurred within it, then the tint.
+    @MainActor
+    package func _fill(_ path: Path, in bounds: CGRect, environment: EnvironmentValues, into list: inout DisplayList) {
+        list.append(.backdropBlur(path, bounds: bounds, radius: blurRadius))
+        list.append(.fillPath(path, tint(in: environment), eoFill: false))
+    }
+}
+
+extension ShapeStyle where Self == Material {
+    public static var ultraThinMaterial: Material { .ultraThinMaterial }
+    public static var thinMaterial: Material { .thinMaterial }
+    public static var regularMaterial: Material { .regularMaterial }
+    public static var thickMaterial: Material { .thickMaterial }
+    public static var ultraThickMaterial: Material { .ultraThickMaterial }
+    public static var bar: Material { .bar }
+}
+
 extension ShapeStyle where Self == HierarchicalShapeStyle {
     public static var primary: HierarchicalShapeStyle { .primary }
     public static var secondary: HierarchicalShapeStyle { .secondary }

@@ -17,16 +17,18 @@ only, `--pin` rewrites the manifests after a pin is moved on purpose. CI (the br
 `.github/workflows/ci.yml`) checks the submodules out and runs three separate steps, each
 failing on its own: `check-apps.sh --verify` (integrity: the trees are exactly their pins),
 a wasm build of an app (compilation), and its Playwright flow (behaviour). A claim in one is
-not a claim in the others. The flows (`Playwright/scrumdinger-probe.mjs`,
-`Playwright/countries-probe.mjs`) leave `report.json` (commit, pin, every flow's outcome,
+not a claim in the others. The flows leave `report.json` (commit, pin, every flow's outcome,
 `full_app_pass`), screenshots and a trace under `.build/apps/<app>`, uploaded as the
-`apps-evidence` artifact; `full_app_pass` stays `false` while any flow is blocked, and a
-blocked flow records what blocks it (Scrumdinger's meeting: speech, `pf-speech`; Countries'
-list: its deprecated data service, `pf-urlsession`) rather than being stubbed around.
+`apps-evidence` artifact; `full_app_pass` is true only when every flow passed, and a blocked
+flow records what blocks it rather than being stubbed around (Scrumdinger's meeting was
+blocked on speech until decision 0022's recogniser, 2026-10-23; all three apps pass now). The flows (`Playwright/scrumdinger-probe.mjs`, `Playwright/ember-probe.mjs`,
+`Playwright/2048-probe.mjs`) are each a CI step of their own.
 
-To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <Scrumdinger|CountriesSwiftUI>`
-(the last product built is what `Apps/index.html` loads), serve `Apps/` and open
-`index.html?platform=ios`.
+To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <SwiftUI2048|Scrumdinger|Ember>`
+(the last product built is what `Apps/index.html` loads; SwiftUI2048 needs the Objective-C
+runtime SDK, `SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc`, decision 0023; Ember is
+built in release, `--debug` lays out a comment thread in tens of seconds), serve `Apps/` and
+open `index.html?platform=ios`.
 
 ## Pins
 
@@ -34,15 +36,23 @@ To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <Scrumdinge
 |---|---|---|---|---|
 | SwiftUI-2048 | [unixzii/SwiftUI-2048](https://github.com/unixzii/SwiftUI-2048) | `34f315a4103527eac366403b9e4632326cc2f257` | 2020-07-18 | MIT |
 | Scrumdinger | [Sedlacek-Solutions/Scrumdinger](https://github.com/Sedlacek-Solutions/Scrumdinger) | `d575833721b0428ab407ceef10a7d43cffb7ad9f` | 2025-05-17 | MIT |
-| CountriesSwiftUI | [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui) | `9eca97b8cfff96a14084b564b1fefd949c93d232` | 2025-07-14 | MIT |
-| EnvironmentOverrides | [nalexn/EnvironmentOverrides](https://github.com/nalexn/EnvironmentOverrides) (CountriesSwiftUI's dependency, 0.0.4) | `d0b763a678d254e51c74c48e83119bd063250ba3` | 0.0.4 | MIT |
+| Ember | [DatanoiseTV/ember-hackernews](https://github.com/DatanoiseTV/ember-hackernews) | `1ed87d7fcf2f3a6eeb466595f45300e10aba5267` | 2026-06-24 | MIT |
+
+Retired 2026-10-22: [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui)
+(CountriesSwiftUI, pinned `9eca97b8`, with its EnvironmentOverrides dependency) — the app
+compiled from its unmodified sources, and the service it is written against,
+`restcountries.com/v2`, answers a deprecation notice without a CORS header, so no flow of
+it can pass in a browser without a fixture or proxy the standard rules out. Ember took its
+place (decision 0021, "Ember replaces Countries"); the frameworks Countries asked for
+(SwiftData, URLSession, UserNotifications, the delegate adaptor) stay, proven by their tests
+and the Launches example.
 
 ## What the wrapper manifest does, and does not do
 
 Each wrapper target has the upstream target's name, sources (`path:` into the submodule),
 language mode, `exclude:` and `resources:`, and links this package's products where Xcode
-links Apple's frameworks (`SwiftUI`, `UIKit`, `AVFoundation`, `Speech`, `SwiftData`,
-`UserNotifications`, and on wasm the `Foundation` and `Combine` shadows). **Every `.swift` file
+links Apple's frameworks (`SwiftUI`, `UIKit`, `AVFoundation`, `Speech`, `WebKit`, and on
+wasm the `Foundation`, `Combine`, `Security` and `SafariServices` shadows). **Every `.swift` file
 of every app target is compiled.** The excluded files are the non-Swift files Xcode processes
 through other build phases:
 
@@ -54,11 +64,11 @@ through other build phases:
 | AudioService, FileService, SpeechService | `Scrumdinger/Services/Sources/*` (Services/Package.swift) | — | AudioService: `Resources/` (`ding.wav`), as upstream |
 | ViewComponents | `Scrumdinger/ViewComponents/Sources/ViewComponents` | — | — |
 | Configuration, Resources, Scrum | `Scrumdinger/Library/Sources/*` (Library/Package.swift) | — | Resources: `Media.xcassets` (theme colours), as upstream |
-| CountriesSwiftUI | `clean-architecture-swiftui/CountriesSwiftUI` (its Package.swift, Swift 5 mode) | `Resources/Preview Assets.xcassets`, as upstream | `Resources/Assets.xcassets`, `Resources/Localizable.xcstrings`, as upstream |
-| EnvironmentOverrides | `EnvironmentOverrides/Sources/EnvironmentOverrides` (its Package.swift, tools 5.1) | — | — |
+| Ember | `ember-hackernews` (XcodeGen `project.yml`: `Sources` + `Resources`, SWIFT_VERSION 5.0, iOS 18) | `EmberSkip/` (the Skip port), `Tools/`, `docs/`, `project.yml`, the text files, `Resources/Info.plist`, `Resources/PrivacyInfo.xcprivacy` | `Resources/Assets.xcassets` (accent, icon, launch colour), `Resources/Fonts` (Inter), as the target's |
 
-Not compiled from any app: the apps' Xcode test targets (`ScrumdingerUITests`, `UnitTests`,
-`Models/Tests`), their `SwiftUI2048-mac` Catalyst target, and `Preview Content`. The SwiftUI
+Not compiled from any app: the apps' Xcode test targets (`ScrumdingerUITests`,
+`Models/Tests`), their `SwiftUI2048-mac` Catalyst target, Ember's `EmberSkip` (its Skip/Android
+port, a separate app) and `Tools`, and `Preview Content`. The SwiftUI
 2048 Xcode project's `Info.plist` (no scene manifest, no storyboard) is what makes its
 `@UIApplicationMain` delegate create the window itself.
 

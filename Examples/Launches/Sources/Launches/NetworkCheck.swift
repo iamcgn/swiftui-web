@@ -23,7 +23,7 @@ enum PageAddresses {
     /// The slow fixture server (`?slow=http://127.0.0.1:PORT`, Playwright/fixture-server.mjs).
     static var slow: String? { query("slow") }
 
-    private static func query(_ name: String) -> String? {
+    static func query(_ name: String) -> String? {
         #if os(WASI)
         let search = JSObject.global.location.search.string ?? ""
         guard let range = search.range(of: name + "=") else { return nil }

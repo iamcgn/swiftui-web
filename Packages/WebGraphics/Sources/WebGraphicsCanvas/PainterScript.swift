@@ -86,7 +86,13 @@ enum PainterScript {
         img.onerror = () => { entry.failed = true; console.error('SwiftUIWeb: could not load image ' + file); done(); };
         const base = (window.__swiftuiwebAssets && window.__swiftuiwebAssets.base) || '';
         // Absolute URLs (AsyncImage) load as they are; catalog files sit under the asset base.
-        img.src = /^([a-z]+:)?\/\//i.test(file) || file.startsWith('data:') || file.startsWith('/') ? file : base + file;
+        const absolute = /^([a-z]+:)?\/\//i.test(file);
+        // A cross-origin image is asked for with CORS: drawn into the canvas without it, the
+        // image would taint the canvas and every later pixel read (blurs, masks, blend groups)
+        // would throw, abandoning the frame. A server that does not allow the origin then fails
+        // the load — AsyncImage's failure phase — instead of poisoning the page.
+        if (absolute && !file.startsWith(location.origin + '/')) img.crossOrigin = 'anonymous';
+        img.src = absolute || file.startsWith('data:') || file.startsWith('/') ? file : base + file;
         return null;
       }
       // AsyncImage: a load no view needs any more is dropped (the element's source cleared), so

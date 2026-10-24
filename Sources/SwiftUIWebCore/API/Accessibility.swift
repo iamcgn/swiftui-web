@@ -221,6 +221,8 @@ extension View {
 
     /// Specifies whether to hide this view from system accessibility features.
     nonisolated public func accessibilityHidden(_ hidden: Bool) -> some View { accessibility { $0.hidden = hidden } }
+    /// Accepted: the browser has no Smart Invert to exempt the view from.
+    nonisolated public func accessibilityIgnoresInvertColors(_ active: Bool = true) -> some View { self }
 
     /// Adds the given traits to the view.
     nonisolated public func accessibilityAddTraits(_ traits: AccessibilityTraits) -> some View { accessibility { $0.addedTraits = traits } }

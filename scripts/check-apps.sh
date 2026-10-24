@@ -13,7 +13,7 @@ cd "$(dirname "$0")/.."
 mode="${1:-build}"
 status=0
 
-apps=(SwiftUI-2048 Scrumdinger clean-architecture-swiftui EnvironmentOverrides)
+apps=(SwiftUI-2048 Scrumdinger ember-hackernews)
 
 if [[ "$mode" == "--pin" ]]; then
   for app in "${apps[@]}"; do
@@ -53,7 +53,7 @@ done
 
 # shellcheck disable=SC1091
 . scripts/env.sh
-for product in SwiftUI2048 Scrumdinger CountriesSwiftUI; do
+for product in SwiftUI2048 Scrumdinger Ember; do
   echo "== $product (wasm)"
   if (cd Apps && swift build --swift-sdk "${SWIFTUIWEB_WASM_SDK:-swift-6.3.3-RELEASE_wasm}" --product "$product" 2>&1 | grep -E "error:|warning:" | sort -u | sed 's/^/    /'; test "${PIPESTATUS[0]}" -eq 0); then
     echo "✓ $product builds"

@@ -287,13 +287,85 @@ enum _JSONWriter {
 // MARK: - Decoding
 
 /// Decodes a `Codable` transfer item from JSON.
+/// `2023-11-14T22:13:20Z`, with an optional fraction and a `±hh:mm` or `Z` zone — the form
+/// `JSONDecoder.DateDecodingStrategy.iso8601` reads (the `.iso8601` format style is wasm-only).
+func _parseISO8601(_ text: String) -> Date? {
+    let scalars = Array(text.utf8)
+    func digits(_ range: Range<Int>) -> Int? {
+        guard range.upperBound <= scalars.count else { return nil }
+        var value = 0
+        for byte in scalars[range] { guard byte >= 48 && byte <= 57 else { return nil }; value = value * 10 + Int(byte - 48) }
+        return value
+    }
+    guard scalars.count >= 19, let year = digits(0..<4), let month = digits(5..<7), let day = digits(8..<10),
+          let hour = digits(11..<13), let minute = digits(14..<16), let second = digits(17..<19) else { return nil }
+    var index = 19
+    var fraction = 0.0
+    if index < scalars.count, scalars[index] == UInt8(ascii: ".") {
+        index += 1
+        var scale = 0.1
+        while index < scalars.count, scalars[index] >= 48, scalars[index] <= 57 { fraction += Double(scalars[index] - 48) * scale; scale /= 10; index += 1 }
+    }
+    var offset = 0
+    if index < scalars.count {
+        let sign = scalars[index]
+        if sign == UInt8(ascii: "+") || sign == UInt8(ascii: "-"), let h = digits(index + 1..<index + 3), let m = digits(index + 4..<index + 6) {
+            offset = (h * 3600 + m * 60) * (sign == UInt8(ascii: "-") ? -1 : 1)
+        } else if sign != UInt8(ascii: "Z") { return nil }
+    }
+    // Days since 1970-01-01 (a proleptic Gregorian civil-from-days, Howard Hinnant's).
+    let y = month <= 2 ? year - 1 : year
+    let era = (y >= 0 ? y : y - 399) / 400
+    let yoe = y - era * 400
+    let doy = (153 * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
+    let days = era * 146097 + doe - 719468
+    return Date(timeIntervalSince1970: Double(days * 86400 + hour * 3600 + minute * 60 + second - offset) + fraction)
+}
+
+/// What a `JSONDecoder`'s strategies ask of the decoding (the transfer coders use the defaults).
+package struct _JSONDecodingOptions {
+    package enum DateStrategy { case deferred, secondsSince1970, millisecondsSince1970, iso8601 }
+    package var dateStrategy: DateStrategy = .deferred
+    package var convertsFromSnakeCase = false
+    package init() {}
+}
+
 public struct _TransferJSONDecoder {
     public init() {}
 
     public func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+        try decode(type, from: data, options: _JSONDecodingOptions())
+    }
+
+    package func decode<T: Decodable>(_ type: T.Type, from data: Data, options: _JSONDecodingOptions) throws -> T {
         var parser = _JSONParser(bytes: Array(data))
-        let node = try parser.parseDocument()
-        return try T(from: _JSONDecoding(node: node, codingPath: []))
+        var node = try parser.parseDocument()
+        if options.convertsFromSnakeCase { node = Self.convertingKeysFromSnakeCase(node) }
+        return try T(from: _JSONDecoding(node: node, codingPath: [], options: options))
+    }
+
+    /// Every object key as Foundation's `convertFromSnakeCase` reads it: the underscores
+    /// between words dropped and the word after each capitalised (`created_at_i` → `createdAtI`),
+    /// leading and trailing underscores kept.
+    static func convertingKeysFromSnakeCase(_ node: _JSONNode) -> _JSONNode {
+        switch node {
+        case .array(let box): return .array(_JSONArrayBox(box.items.map(convertingKeysFromSnakeCase)))
+        case .object(let box): return .object(_JSONObjectBox(box.entries.map { (snakeToCamel($0.key), convertingKeysFromSnakeCase($0.value)) }))
+        default: return node
+        }
+    }
+
+    static func snakeToCamel(_ key: String) -> String {
+        guard key.contains("_") else { return key }
+        let leading = key.prefix { $0 == "_" }
+        let trailing = key.reversed().prefix { $0 == "_" }
+        let core = key.dropFirst(leading.count).dropLast(trailing.count)
+        guard !core.isEmpty else { return key }
+        let words = core.split(separator: "_", omittingEmptySubsequences: true)
+        guard let first = words.first else { return key }
+        let joined = first.lowercased() + words.dropFirst().map { $0.prefix(1).uppercased() + $0.dropFirst().lowercased() }.joined()
+        return String(leading) + joined + String(trailing)
     }
 }
 
@@ -459,24 +531,43 @@ struct _JSONParser {
 final class _JSONDecoding: Decoder {
     let node: _JSONNode
     let codingPath: [CodingKey]
+    let options: _JSONDecodingOptions
     let userInfo: [CodingUserInfoKey: Any] = [:]
 
-    init(node: _JSONNode, codingPath: [CodingKey]) {
+    init(node: _JSONNode, codingPath: [CodingKey], options: _JSONDecodingOptions = _JSONDecodingOptions()) {
         self.node = node
         self.codingPath = codingPath
+        self.options = options
+    }
+
+    /// A `Date` under a strategy other than its own `Codable` (seconds or milliseconds since
+    /// 1970, ISO 8601), or nil to let the type decode itself.
+    static func date<T>(_ type: T.Type, from node: _JSONNode, codingPath: [CodingKey], options: _JSONDecodingOptions) throws -> T? {
+        guard T.self == Date.self, options.dateStrategy != .deferred else { return nil }
+        switch options.dateStrategy {
+        case .secondsSince1970: return Date(timeIntervalSince1970: try primitive(Double.self, from: node, codingPath: codingPath)) as? T
+        case .millisecondsSince1970: return Date(timeIntervalSince1970: try primitive(Double.self, from: node, codingPath: codingPath) / 1000) as? T
+        case .iso8601:
+            let text = try primitive(String.self, from: node, codingPath: codingPath)
+            guard let date = _parseISO8601(text) else {
+                throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: "Expected date string to be ISO8601-formatted."))
+            }
+            return date as? T
+        case .deferred: return nil
+        }
     }
 
     func container<Key: CodingKey>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
         guard case .object(let object) = node else { throw _JSONDecoding.mismatch([String: Any].self, node, codingPath) }
-        return KeyedDecodingContainer(_JSONKeyedDecoding<Key>(object: object, codingPath: codingPath))
+        return KeyedDecodingContainer(_JSONKeyedDecoding<Key>(object: object, codingPath: codingPath, options: options))
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         guard case .array(let array) = node else { throw _JSONDecoding.mismatch([Any].self, node, codingPath) }
-        return _JSONUnkeyedDecoding(array: array, codingPath: codingPath)
+        return _JSONUnkeyedDecoding(array: array, codingPath: codingPath, options: options)
     }
 
-    func singleValueContainer() throws -> SingleValueDecodingContainer { _JSONSingleValueDecoding(node: node, codingPath: codingPath) }
+    func singleValueContainer() throws -> SingleValueDecodingContainer { _JSONSingleValueDecoding(node: node, codingPath: codingPath, options: options) }
 
     static func mismatch(_ type: Any.Type, _ node: _JSONNode, _ codingPath: [CodingKey]) -> DecodingError {
         if case .null = node {
@@ -523,6 +614,7 @@ final class _JSONDecoding: Decoder {
 struct _JSONKeyedDecoding<Key: CodingKey>: KeyedDecodingContainerProtocol {
     let object: _JSONObjectBox
     let codingPath: [CodingKey]
+    var options = _JSONDecodingOptions()
 
     var allKeys: [Key] { object.entries.compactMap { Key(stringValue: $0.key) } }
     func contains(_ key: Key) -> Bool { object[key.stringValue] != nil }
@@ -551,23 +643,28 @@ struct _JSONKeyedDecoding<Key: CodingKey>: KeyedDecodingContainerProtocol {
     func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { try primitive(type, key) }
     func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { try primitive(type, key) }
     func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { try primitive(type, key) }
-    func decode<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> T { try T(from: _JSONDecoding(node: try node(key), codingPath: path(key))) }
+    func decode<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> T {
+        let child = try node(key)
+        if let date = try _JSONDecoding.date(type, from: child, codingPath: path(key), options: options) { return date }
+        return try T(from: _JSONDecoding(node: child, codingPath: path(key), options: options))
+    }
 
     func nestedContainer<NestedKey: CodingKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> {
-        try _JSONDecoding(node: try node(key), codingPath: path(key)).container(keyedBy: type)
+        try _JSONDecoding(node: try node(key), codingPath: path(key), options: options).container(keyedBy: type)
     }
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
-        try _JSONDecoding(node: try node(key), codingPath: path(key)).unkeyedContainer()
+        try _JSONDecoding(node: try node(key), codingPath: path(key), options: options).unkeyedContainer()
     }
     func superDecoder() throws -> Decoder {
-        _JSONDecoding(node: object[_JSONKey.superKey.stringValue] ?? .null, codingPath: codingPath + [_JSONKey.superKey])
+        _JSONDecoding(node: object[_JSONKey.superKey.stringValue] ?? .null, codingPath: codingPath + [_JSONKey.superKey], options: options)
     }
-    func superDecoder(forKey key: Key) throws -> Decoder { _JSONDecoding(node: try node(key), codingPath: path(key)) }
+    func superDecoder(forKey key: Key) throws -> Decoder { _JSONDecoding(node: try node(key), codingPath: path(key), options: options) }
 }
 
 struct _JSONUnkeyedDecoding: UnkeyedDecodingContainer {
     let array: _JSONArrayBox
     let codingPath: [CodingKey]
+    var options = _JSONDecodingOptions()
     var currentIndex = 0
 
     var count: Int? { array.items.count }
@@ -607,26 +704,29 @@ struct _JSONUnkeyedDecoding: UnkeyedDecodingContainer {
     mutating func decode(_ type: UInt64.Type) throws -> UInt64 { try primitive(type) }
     mutating func decode<T: Decodable>(_ type: T.Type) throws -> T {
         let path = path
-        return try T(from: _JSONDecoding(node: try next(), codingPath: path))
+        let child = try next()
+        if let date = try _JSONDecoding.date(type, from: child, codingPath: path, options: options) { return date }
+        return try T(from: _JSONDecoding(node: child, codingPath: path, options: options))
     }
 
     mutating func nestedContainer<NestedKey: CodingKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> {
         let path = path
-        return try _JSONDecoding(node: try next(), codingPath: path).container(keyedBy: type)
+        return try _JSONDecoding(node: try next(), codingPath: path, options: options).container(keyedBy: type)
     }
     mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
         let path = path
-        return try _JSONDecoding(node: try next(), codingPath: path).unkeyedContainer()
+        return try _JSONDecoding(node: try next(), codingPath: path, options: options).unkeyedContainer()
     }
     mutating func superDecoder() throws -> Decoder {
         let path = path
-        return _JSONDecoding(node: try next(), codingPath: path)
+        return _JSONDecoding(node: try next(), codingPath: path, options: options)
     }
 }
 
 struct _JSONSingleValueDecoding: SingleValueDecodingContainer {
     let node: _JSONNode
     let codingPath: [CodingKey]
+    var options = _JSONDecodingOptions()
 
     private func primitive<T>(_ type: T.Type) throws -> T { try _JSONDecoding.primitive(type, from: node, codingPath: codingPath) }
     func decodeNil() -> Bool { if case .null = node { return true } else { return false } }
@@ -644,5 +744,8 @@ struct _JSONSingleValueDecoding: SingleValueDecodingContainer {
     func decode(_ type: UInt16.Type) throws -> UInt16 { try primitive(type) }
     func decode(_ type: UInt32.Type) throws -> UInt32 { try primitive(type) }
     func decode(_ type: UInt64.Type) throws -> UInt64 { try primitive(type) }
-    func decode<T: Decodable>(_ type: T.Type) throws -> T { try T(from: _JSONDecoding(node: node, codingPath: codingPath)) }
+    func decode<T: Decodable>(_ type: T.Type) throws -> T {
+        if let date = try _JSONDecoding.date(type, from: node, codingPath: codingPath, options: options) { return date }
+        return try T(from: _JSONDecoding(node: node, codingPath: codingPath, options: options))
+    }
 }
