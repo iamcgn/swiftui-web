@@ -11,3 +11,4 @@ Examples/*/dist/
 Harness/.build/
 Harness/.swiftpm/
 Playwright/test-results/
+Playwright/.speech-profile/

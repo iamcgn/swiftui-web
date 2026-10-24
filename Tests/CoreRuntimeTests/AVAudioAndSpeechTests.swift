@@ -1,7 +1,8 @@
 // The AVFoundation audio and Speech stand-ins (decision 0021: pf-avfoundation-audio, pf-speech)
 // against a fake host — what Scrumdinger's AudioService and SpeechService call, in the order
 // they call it. Without a host: players play nothing, the engine fails to start, no permission
-// and no recognition; the browser host installs the audio part (MediaHost.swift), never speech.
+// and no recognition; the browser host installs both (MediaHost.swift, SpeechHost.swift — the
+// recogniser hears the buffers the app appends, decision 0022).
 import Testing
 import AVFoundation
 import Speech
@@ -34,9 +35,7 @@ import WebFoundation
         _AVAudioHost.requestRecordPermission = nil
         _AVAudioHost.openMicrophone = nil
         _AVAudioHost.recordPermission = .undetermined
-        _SpeechHost.isAvailable = nil
-        _SpeechHost.start = nil
-        _SpeechHost.authorization = .notDetermined
+        _SpeechHost._reset()
     }
 
     @Test func playerPlaysThroughTheHostAndIsInertWithoutOne() throws {
@@ -122,37 +121,99 @@ import WebFoundation
         #expect(failure != nil && task.state == .completed)
     }
 
+    /// A host's session: what it was given, and the results it can emit.
     final class FakeSession: _SpeechSession {
-        var stopped = false, cancelled = false
+        var appended: [([Float], Double)] = []
+        var audioEnded = false, stopped = false, cancelled = false
+        func append(_ samples: [Float], sampleRate: Double) { appended.append((samples, sampleRate)) }
+        func endAudio() { audioEnded = true }
         func stop() { stopped = true }
         func cancel() { cancelled = true }
     }
 
-    @Test func aHostedRecognizerDeliversPartialThenFinalResultsAndCancels() {
-        withoutHost()
-        var emit: (@MainActor (String, Bool) -> Void)?
+    private func hostedSession(available: _SpeechAvailability = .available, installs: Bool? = nil) -> (FakeSession, () -> (@MainActor (String, Bool) -> Void)?, () -> (@MainActor (String) -> Void)?) {
         let session = FakeSession()
-        _SpeechHost.isAvailable = { true }
-        _SpeechHost.start = { locale, partial, result, _, _ in
+        nonisolated(unsafe) var emit: (@MainActor (String, Bool) -> Void)?
+        nonisolated(unsafe) var failed: (@MainActor (String) -> Void)?
+        _SpeechHost.availability = { locale, install, completion in
+            #expect(locale == "en-US")
+            if let installs { #expect(install == installs) }
+            completion(available)
+        }
+        _SpeechHost.start = { locale, partial, result, fail in
             #expect(locale == "en-US" && partial)
             emit = result
+            failed = fail
             return session
         }
+        return (session, { emit }, { failed })
+    }
+
+    @Test func authorizationInstallsThePackAndAvailabilityIsTheHostsAnswer() {
+        withoutHost()
+        _ = hostedSession(available: .available, installs: true)
         let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en_US"))!
-        #expect(recognizer.isAvailable)
+        var status: SFSpeechRecognizerAuthorizationStatus?
+        SFSpeechRecognizer.requestAuthorization { status = $0 }
+        #expect(status == .authorized && recognizer.isAvailable && recognizer.supportsOnDeviceRecognition)
+        // A locale the device has no pack for: restricted, and not available.
+        _SpeechHost._reset()
+        _ = hostedSession(available: .unavailable)
+        SFSpeechRecognizer.requestAuthorization { status = $0 }
+        #expect(status == .restricted && !recognizer.isAvailable)
+        withoutHost()
+    }
+
+    @Test func theAppendedBuffersReachTheSessionAndResultsAreCumulativeThenFinal() {
+        withoutHost()
+        let (session, emit, _) = hostedSession()
+        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en_US"))!
         var seen: [(String, Bool)] = []
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
+        // Buffers appended before the task takes the request wait for it (Apple allows the order).
+        request.append(AVAudioPCMBuffer(samples: [0.1, 0.2], sampleRate: 48_000))
+        #expect(session.appended.isEmpty && request.appendedFrames == 2)
         let task = recognizer.recognitionTask(with: request) { result, _ in
             if let result { seen.append((result.bestTranscription.formattedString, result.isFinal)) }
         }
-        emit?("hello", false)
-        emit?("hello world", true)
-        #expect(seen.map(\.0) == ["hello", "hello world"] && seen.map(\.1) == [false, true] && task.state == .completed)
-        #expect(seen.last.map { _ in SFTranscription("hello world").segments.map(\.substring) } == ["hello", "world"])
-        let second = recognizer.recognitionTask(with: SFSpeechAudioBufferRecognitionRequest()) { _, _ in }
-        second.cancel()
-        #expect(second.isCancelled && session.cancelled)
+        #expect(session.appended.count == 1 && session.appended[0].0 == [0.1, 0.2] && session.appended[0].1 == 48_000)
+        request.append(AVAudioPCMBuffer(samples: [0.3], sampleRate: 48_000))
+        #expect(session.appended.count == 2 && request.appendedFrames == 3)
+        emit()?("hello", false)
+        emit()?("hello world", false)
+        #expect(seen.map(\.0) == ["hello", "hello world"] && seen.allSatisfy { !$0.1 } && task.state == .running)
+        // The app ends its audio: the session drains, and the host's final result completes the task.
+        request.endAudio()
+        #expect(session.audioEnded && request.audioEnded)
+        request.append(AVAudioPCMBuffer(samples: [0.4], sampleRate: 48_000))   // after the end: not forwarded
+        #expect(session.appended.count == 2)
+        emit()?("hello world", true)
+        #expect(seen.last?.0 == "hello world" && seen.last?.1 == true && task.state == .completed)
+        #expect(SFTranscription("hello world").segments.map(\.substring) == ["hello", "world"])
+        emit()?("late", true)   // nothing after the final
+        #expect(seen.count == 3)
+        withoutHost()
+    }
+
+    @Test func aTaskCancelsFinishesAndFailsThroughTheSession() {
+        withoutHost()
+        let (session, _, failed) = hostedSession()
+        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en_US"))!
+        let cancelled = recognizer.recognitionTask(with: SFSpeechAudioBufferRecognitionRequest()) { _, _ in }
+        cancelled.cancel()
+        #expect(cancelled.isCancelled && session.cancelled && cancelled.state == .completed)
+        let finished = recognizer.recognitionTask(with: SFSpeechAudioBufferRecognitionRequest()) { _, _ in }
+        finished.finish()
+        #expect(finished.isFinishing && session.stopped && finished.state == .finishing)
+        var failure: Error?
+        let failing = recognizer.recognitionTask(with: SFSpeechAudioBufferRecognitionRequest()) { _, error in failure = error }
+        failed()?("Speech: network")
+        #expect(failure?.localizedDescription == "Speech: network" && failing.state == .completed)
+        // A file request: the host recognises buffers only.
+        var fileFailure: Error?
+        recognizer.recognitionTask(with: SFSpeechURLRecognitionRequest(url: URL(string: "file:///a.wav")!)) { _, error in fileFailure = error }
+        #expect(fileFailure != nil)
         withoutHost()
     }
 }

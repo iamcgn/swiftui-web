@@ -1,15 +1,8 @@
-// The browser behind AVFoundation's audio and the Speech framework (decision 0021,
-// pf-avfoundation-audio, pf-speech): `AVAudioPlayer` plays through an `<audio>` element,
-// `AVAudioEngine.inputNode` is `getUserMedia` through an `AudioContext` whose script processor
-// hands mono float frames to the taps — the app's own buffers, as on a phone.
-//
-// Speech is NOT installed: the page's `SpeechRecognition` listens to a microphone stream of
-// its own rather than the buffers the app appends to its request, and in Chrome it sends the
-// audio to Google's service. Neither is the app's data flow, so `SFSpeechRecognizer.isAvailable`
-// stays false in the browser until a faithful path is designed and authorised (`pf-speech`
-// lists the options: the appended buffers through an AudioWorklet into a MediaStreamTrack for
-// `SpeechRecognition.start(track)` with `processLocally`, or an in-page model consuming the
-// buffers). Nothing here starts a recogniser.
+// The browser behind AVFoundation's audio (decision 0021, pf-avfoundation-audio): `AVAudioPlayer`
+// plays through an `<audio>` element, `AVAudioEngine.inputNode` is `getUserMedia` through an
+// `AudioContext` whose script processor hands mono float frames to the taps — the app's own
+// buffers, as on a phone. The Speech framework's host is SpeechHost (decision 0022): it takes
+// the buffers an app appends to its request, which on Scrumdinger's path are these.
 #if os(WASI)
 import JavaScriptKit
 import AVFoundation

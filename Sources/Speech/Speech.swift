@@ -1,28 +1,64 @@
-// Apple's Speech framework for the web (decision 0021, pf-speech): `SFSpeechRecognizer` over the
-// browser's `SpeechRecognition` (the host installs `_SpeechHost`), delivering partial and final
-// `SFSpeechRecognitionResult`s to a task's handler. The browser recognises from the microphone
-// itself: the buffers an app appends to an `SFSpeechAudioBufferRecognitionRequest` from its own
-// audio tap are accepted and are not what is transcribed (the stated deviation of `pf-speech`).
+// Apple's Speech framework for the web (decisions 0021 and 0022, pf-speech): `SFSpeechRecognizer`
+// over the browser's on-device `SpeechRecognition`, fed the buffers the app appends to its
+// `SFSpeechAudioBufferRecognitionRequest` — the host (`_SpeechHost`) plays them through an
+// AudioWorklet into a MediaStreamTrack the recogniser listens to, so what is transcribed is
+// exactly what the app's audio tap delivered, and nothing leaves the device. Partial results
+// are cumulative, as Apple's are; the one final result comes when the audio ends.
 // Written against Scrumdinger's SpeechService.
 @_exported import WebFoundation   // as Apple's Speech re-exports Foundation
 import AVFoundation
 
 // MARK: - The host
 
-/// What a host provides: whether recognition exists, and a session delivering transcripts.
+/// What a host provides: whether on-device recognition exists for a locale (installing its
+/// language pack when asked to), and a session recognising the buffers it is given.
 public enum _SpeechHost {
-    /// Whether the browser offers speech recognition at all.
-    nonisolated(unsafe) public static var isAvailable: (() -> Bool)?
-    /// Starts recognising in `locale` (a BCP 47 tag), with interim results when `partial`;
-    /// `result` gets the transcript so far and whether it is final, `failed` an error, `ended`
-    /// the session's end; the returned session stops it.
+    /// Asks whether `locale` (a BCP 47 tag) can be recognised on the device; with `install`,
+    /// the host may download the locale's pack first (the one user-visible step, from the
+    /// browser's vendor). The answer arrives when known.
+    nonisolated(unsafe) public static var availability: ((_ locale: String, _ install: Bool, _ completion: @escaping @MainActor (_SpeechAvailability) -> Void) -> Void)?
+    /// Starts a session recognising `locale` with interim results when `partial`; `result`
+    /// gets the transcript so far and whether it is the final one, `failed` an error; the
+    /// returned session takes the audio.
     nonisolated(unsafe) public static var start: ((_ locale: String, _ partial: Bool, _ result: @escaping @MainActor (String, Bool) -> Void,
-                                                  _ failed: @escaping @MainActor (String) -> Void, _ ended: @escaping @MainActor () -> Void) -> (any _SpeechSession)?)?
-    /// The authorisation the host remembers (the browser asks for the microphone on start).
+                                                  _ failed: @escaping @MainActor (String) -> Void) -> (any _SpeechSession)?)?
+    /// The authorisation the host remembers.
     nonisolated(unsafe) public static var authorization: SFSpeechRecognizerAuthorizationStatus = .notDetermined
+    /// What the host last answered per locale: `isAvailable` is synchronous, so it reads this.
+    nonisolated(unsafe) public static var known: [String: _SpeechAvailability] = [:]
+
+    /// Resets to no host.
+    public static func _reset() {
+        availability = nil
+        start = nil
+        authorization = .notDetermined
+        known = [:]
+    }
+
+    static func ask(_ locale: String, install: Bool, _ completion: @escaping @MainActor (_SpeechAvailability) -> Void) {
+        guard let availability else { MainActor.assumeIsolated { completion(.unavailable) }; return }
+        availability(locale, install) { answer in
+            known[locale] = answer
+            completion(answer)
+        }
+    }
 }
 
+public enum _SpeechAvailability: Sendable, Equatable {
+    /// The locale is recognised on the device now.
+    case available
+    /// A language pack would have to be downloaded first.
+    case downloadable
+    /// The browser has no on-device recognition for the locale (or none at all).
+    case unavailable
+}
+
+/// One recognition: the audio goes in as float frames at their sample rate; `endAudio` lets
+/// what was appended finish and then ends with the final result; `stop` finishes with what
+/// has been recognised so far; `cancel` ends with no further results.
 public protocol _SpeechSession: AnyObject {
+    func append(_ samples: [Float], sampleRate: Double)
+    func endAudio()
     func stop()
     func cancel()
 }
@@ -65,33 +101,66 @@ public class SFSpeechRecognizer {
     public let locale: Locale
     public weak var delegate: (any SFSpeechRecognizerDelegate)?
     public var defaultTaskHint: SFSpeechRecognitionTaskHint = .unspecified
-    public var supportsOnDeviceRecognition: Bool { false }
+    /// Recognition here is on the device or not at all.
+    public var supportsOnDeviceRecognition: Bool { _SpeechHost.availability != nil }
     public var queue: DispatchQueue = .main
 
     /// The recognizer for the current locale.
     public convenience init?() { self.init(locale: Locale.current) }
 
     /// A recognizer for the locale (Apple's is nil only for an unsupported locale; whether the
-    /// browser recognises at all is `isAvailable`, asked when the host is in place — an app's
+    /// device recognises it is `isAvailable`, asked of the host when it is in place — an app's
     /// scene can make its recognizer before the host installs).
     public init?(locale: Locale) {
         self.locale = locale
     }
 
-    /// Whether the recognizer is available to process speech right now.
-    public var isAvailable: Bool { _SpeechHost.isAvailable?() ?? false }
+    /// The locale as the browser names it (a BCP 47 tag).
+    var tag: String { Self.tag(for: locale) }
 
-    /// The locales the host can recognise: the browser takes any BCP 47 tag.
+    static func tag(for locale: Locale) -> String {
+        let identifier = locale.identifier.replacingOccurrences(of: "_", with: "-")
+        // "en" alone is no on-device pack; the browser's packs are regioned.
+        if identifier == "en" { return "en-US" }
+        return identifier
+    }
+
+    /// Whether the recognizer is available to process speech right now: the host's last
+    /// answer for the locale. Unknown yet, the host is asked (without installing anything) and
+    /// the answer is false until it arrives — `requestAuthorization` waits for one.
+    public var isAvailable: Bool {
+        if let known = _SpeechHost.known[tag] { return known == .available }
+        guard _SpeechHost.availability != nil else { return false }
+        nonisolated(unsafe) weak let recognizer = self
+        _SpeechHost.ask(tag, install: false) { answer in
+            guard let recognizer else { return }
+            recognizer.delegate?.speechRecognizer(recognizer, availabilityDidChange: answer == .available)
+        }
+        return false
+    }
+
+    /// The locales the host can recognise: the device's packs are asked for one at a time, so
+    /// the current locale stands for them.
     public static func supportedLocales() -> Set<Locale> { [Locale.current] }
 
     public static func authorizationStatus() -> SFSpeechRecognizerAuthorizationStatus { _SpeechHost.authorization }
 
-    /// Asks the user to allow speech recognition. The browser asks for the microphone when
-    /// recognition starts, so the answer is whether recognition exists at all.
+    /// Asks the user to allow speech recognition. The browser's one prompt is the language
+    /// pack's download (when the locale's pack is not on the device yet), so this is where it
+    /// is installed; the answer is `.authorized` once the current locale can be recognised on
+    /// the device and `.restricted` where it cannot.
     public static func requestAuthorization(_ handler: @escaping (SFSpeechRecognizerAuthorizationStatus) -> Void) {
-        let status: SFSpeechRecognizerAuthorizationStatus = (_SpeechHost.isAvailable?() ?? false) ? .authorized : .restricted
-        _SpeechHost.authorization = status
-        handler(status)
+        nonisolated(unsafe) let handler = handler
+        guard _SpeechHost.availability != nil else {
+            _SpeechHost.authorization = .restricted
+            handler(.restricted)
+            return
+        }
+        _SpeechHost.ask(tag(for: Locale.current), install: true) { answer in
+            let status: SFSpeechRecognizerAuthorizationStatus = answer == .available ? .authorized : .restricted
+            _SpeechHost.authorization = status
+            handler(status)
+        }
     }
 
     /// Executes the speech recognition request and delivers the results to the handler.
@@ -99,7 +168,7 @@ public class SFSpeechRecognizer {
     public func recognitionTask(with request: SFSpeechRecognitionRequest, resultHandler: @escaping (SFSpeechRecognitionResult?, Error?) -> Void) -> SFSpeechRecognitionTask {
         let task = SFSpeechRecognitionTask(request: request)
         nonisolated(unsafe) let resultHandler = resultHandler
-        task.start(locale: locale.identifier.replacingOccurrences(of: "_", with: "-"), partial: request.shouldReportPartialResults,
+        task.start(locale: tag, partial: request.shouldReportPartialResults,
                    onResult: { resultHandler($0, nil) }, onError: { resultHandler(nil, $0) })
         return task
     }
@@ -110,7 +179,7 @@ public class SFSpeechRecognizer {
         task.delegate = delegate
         nonisolated(unsafe) let delegate = delegate
         nonisolated(unsafe) let held = task
-        task.start(locale: locale.identifier.replacingOccurrences(of: "_", with: "-"), partial: request.shouldReportPartialResults, onResult: { result in
+        task.start(locale: tag, partial: request.shouldReportPartialResults, onResult: { result in
             if result.isFinal {
                 delegate.speechRecognitionTask(held, didFinishRecognition: result)
                 delegate.speechRecognitionTask(held, didFinishSuccessfully: true)
@@ -159,28 +228,44 @@ public class SFSpeechRecognitionRequest {
 }
 
 /// A request to recognize speech from captured audio content, such as audio from the device's
-/// microphone. The appended buffers are counted and otherwise not used: the browser's
-/// recogniser listens to the microphone itself.
+/// microphone. The appended buffers are what the recogniser hears: they go to the task's
+/// session as they come, and the ones appended before a task takes the request wait for it.
 public final class SFSpeechAudioBufferRecognitionRequest: SFSpeechRecognitionRequest {
     public private(set) var appendedFrames: Int = 0
     public private(set) var audioEnded = false
     public var nativeAudioFormat: AVAudioFormat { AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1) }
     public override init() { super.init() }
 
-    /// Appends audio from a PCM buffer (accepted; the browser transcribes the microphone directly).
-    public func append(_ audioPCMBuffer: AVAudioPCMBuffer) { appendedFrames += Int(audioPCMBuffer.frameLength) }
-
-    /// Marks the end of audio input: the recogniser finishes with what it has.
-    public func endAudio() {
-        audioEnded = true
-        onEndAudio?()
+    /// Appends audio from a PCM buffer: its first channel, at the buffer's sample rate.
+    public func append(_ audioPCMBuffer: AVAudioPCMBuffer) {
+        appendedFrames += Int(audioPCMBuffer.frameLength)
+        guard !audioEnded else { return }
+        let samples = audioPCMBuffer._samples(channel: 0)
+        let rate = audioPCMBuffer.format.sampleRate
+        if let session { session.append(samples, sampleRate: rate) } else { pending.append((samples, rate)) }
     }
 
-    var onEndAudio: (() -> Void)?
+    /// Marks the end of audio input: the recogniser finishes with what was appended.
+    public func endAudio() {
+        guard !audioEnded else { return }
+        audioEnded = true
+        if let session { session.endAudio() } else { pending.removeAll() }
+    }
+
+    /// The session taking the audio, set when a task starts: what was appended before goes first.
+    var session: (any _SpeechSession)? {
+        didSet {
+            guard let session else { return }
+            for (samples, rate) in pending { session.append(samples, sampleRate: rate) }
+            pending.removeAll()
+            if audioEnded { session.endAudio() }
+        }
+    }
+    private var pending: [([Float], Double)] = []
 }
 
-/// A request to recognize speech in a recorded audio file. The browser's recogniser has no
-/// file input: the task fails.
+/// A request to recognize speech in a recorded audio file. The host recognises buffers only;
+/// a file would first be decoded into them (not done): the task fails.
 public final class SFSpeechURLRecognitionRequest: SFSpeechRecognitionRequest {
     public let url: URL
     public init(url: URL) {
@@ -255,29 +340,32 @@ public final class SFSpeechRecognitionTask {
         nonisolated(unsafe) let onError = onError
         nonisolated(unsafe) let task = self
         if request is SFSpeechURLRecognitionRequest {
-            fail(SFSpeechError("Speech: the browser recognises the microphone, not a file"), onError)
+            fail(SFSpeechError("Speech: the host recognises appended buffers, not a file"), onError)
             return
         }
         guard let start = _SpeechHost.start else {
             fail(SFSpeechError("Speech: no speech host"), onError)
             return
         }
-        (request as? SFSpeechAudioBufferRecognitionRequest)?.onEndAudio = { [weak self] in self?.finish() }
         session = start(locale, partial, { transcript, isFinal in
             guard !task.isCancelled, task.state != .completed else { return }
-            task.state = isFinal ? .completed : .running
+            if isFinal {
+                task.state = .completed
+                task.delegate?.speechRecognitionTaskFinishedReadingAudio(task)
+            } else {
+                task.state = .running
+                if !partial { return }
+            }
             onResult(SFSpeechRecognitionResult(transcript, isFinal: isFinal))
         }, { message in
             task.fail(SFSpeechError(message), onError)
-        }, {
-            // The browser's session ended without a final result (silence, or stopped): a
-            // final result from nothing says so, as Apple's does when audio ends.
-            guard !task.isCancelled, task.state != .completed else { return }
-            task.state = .completed
-            onResult(SFSpeechRecognitionResult("", isFinal: true))
         })
-        if session == nil { fail(SFSpeechError("Speech: recognition could not start"), onError) }
-        else if state == .starting { state = .running }
+        guard let session else {
+            fail(SFSpeechError("Speech: recognition could not start"), onError)
+            return
+        }
+        if state == .starting { state = .running }
+        (request as? SFSpeechAudioBufferRecognitionRequest)?.session = session
     }
 
     private func fail(_ error: Error, _ onError: (Error) -> Void) {

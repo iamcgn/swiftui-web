@@ -6,6 +6,7 @@ struct LaunchesApp: App {
     @StateObject private var network = NetworkCheck()
     @State private var data = "data: pending"
     @StateObject private var keyboard = KeyboardCheck()
+    @StateObject private var speech = SpeechCheck()
 
     var body: some Scene {
         WindowGroup {
@@ -18,10 +19,11 @@ struct LaunchesApp: App {
                 TextField("A field for the keyboard", text: .constant(""))
                 Text(data).font(.caption)
                 Text(network.summary).font(.caption).fixedSize(horizontal: false, vertical: true)
+                if !speech.summary.isEmpty { Text(speech.summary).font(.caption).fixedSize(horizontal: false, vertical: true) }
                 Button("Record again") { model.record() }
             }
             .padding()
-            .onAppear { model.record(); network.run(); data = DataCheck.run() }
+            .onAppear { model.record(); network.run(); data = DataCheck.run(); speech.run() }
         }
     }
 }
