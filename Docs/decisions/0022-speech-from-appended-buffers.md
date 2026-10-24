@@ -299,6 +299,23 @@ green blue yellow" — a recogniser that normalises numerals, so assertions on t
 either spelling. The on-device components take 219 MB on disk (`SODA` 25 MB, the en-US pack
 194 MB), downloaded once per Chrome profile — in CI, once per cache key.
 
+Two more facts the probes ran into. `available()` answers **per origin**: a pack on disk that
+this origin never asked `install()` for reports `"downloadable"` (the explainer's
+fingerprinting mitigation), and `install()` then completes at once — so `requestAuthorization`
+always calls `install()` when the answer is downloadable, and a page on a new port is a new
+origin. And Chrome's fake audio device (`--use-file-for-fake-audio-capture`, the Scrumdinger
+probe's microphone) delivers silence while the audio service's own sandbox is on, since that
+process cannot open the file: the probe passes `--disable-features=AudioServiceSandbox`, which
+leaves the browser sandbox — the one the recogniser needs — in place.
+
+Built (2026-10-23): `Sources/Speech/Speech.swift` (the host contract takes buffers:
+`_SpeechSession.append/endAudio/stop/cancel`), `Sources/SwiftUIWebCanvas/SpeechHost.swift`
+(the worklet, the resampler, the recogniser, the cumulative results), `AVAudioAndSpeechTests`
+(the contract against a fake host), Examples/Launches' `SpeechCheck` with
+`Playwright/speech-probe.mjs` (the test plan below, run in CI against the installed Chrome
+with its sandbox on, the pack cached per Chrome version), and Scrumdinger's meeting in
+`Playwright/scrumdinger-probe.mjs` (`full_app_pass` true).
+
 Chrome's `continuous` session reports a final per utterance and keeps running; Apple's
 `SFSpeechRecognitionResult` is cumulative and `isFinal` only once, at the end. The host
 therefore joins every final and the current interim into one transcript per `onresult`

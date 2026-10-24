@@ -188,16 +188,23 @@ isolation family, nonisolated `Shape`, plain action closures where Apple's are p
 unbounded recursion before). In Chromium (`Playwright/scrumdinger-probe.mjs`, a CI step of its
 own): the add sheet with its bar, a title typed, an attendee added with the icon-only button
 (which now reads as "Add Attendee"), the scrum on the list, still there after a reload through
-its `FileService`, the detail screen, the meeting screen. **The meeting is blocked**: the app
-starts its timer only after `requestPermissions()` on its `SpeechService` succeeds, and speech
-is unavailable in the browser by design — the page's `SpeechRecognition` listens to a
-microphone stream of its own rather than the buffers the app appends from its audio tap, and
-in Chrome sends the audio to Google's service; neither is the app's data flow nor an approved
-transmission, so no recogniser is installed and the app presents its own alert. The faithful
-options (the appended buffers into a local recogniser: an AudioWorklet-fed track for
-`SpeechRecognition.start(track)` with `processLocally`, or an in-page model) are in
-`pf-speech` for a decision. A separate-stream recogniser would not count as the meeting
-working even if it were enabled.
+its `FileService`, the detail screen, the meeting screen. **The meeting was blocked** until
+2026-10-23: the app starts its timer only after `requestPermissions()` on its `SpeechService`
+succeeds, and speech was unavailable in the browser by design — the page's `SpeechRecognition`
+listens to a microphone stream of its own rather than the buffers the app appends from its
+audio tap, and in Chrome sends the audio to Google's service; neither is the app's data flow
+nor an approved transmission, so no recogniser was installed and the app presented its own
+alert. A separate-stream recogniser would not have counted as the meeting working.
+
+**The meeting runs (2026-10-23, decision 0022).** The host now recognises exactly the buffers
+the app appends: each `AVAudioPCMBuffer` from its tap goes through an AudioWorklet into a
+MediaStreamTrack that Chrome's on-device `SpeechRecognition` (`processLocally`) listens to;
+nothing leaves the device, and the locale's language pack is the one download, at
+`requestAuthorization`. In the probe the microphone is Chrome's fake device playing a committed
+recording ("one two three four five", looping), the browser the installed Chrome with its
+sandbox on: the app is authorised, starts its engine and timer, accumulates the partial results
+("One two three four five…"), and on leaving saves the history whose screen shows the
+transcript. Scrumdinger's `full_app_pass` is true; the three apps of this decision all pass.
 
 Two `Button(action: storedClosure)` warnings remain in the app's build: Apple's frameworks are
 compiled in the Swift 5 language mode, where a Swift 6 app sees `@MainActor` closure

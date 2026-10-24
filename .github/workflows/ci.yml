@@ -71,6 +71,18 @@ jobs:
         with: { node-version: 20 }
       - name: Playwright
         run: cd Playwright && npm install && npx playwright install --with-deps chromium
+      # Speech (decision 0022) runs in the runner's installed Google Chrome, sandbox on, from a
+      # persistent profile; the on-device components (SODA and the en-US pack, 219 MB from
+      # Google) are cached per Chrome version so the download happens once, not per run.
+      - name: The installed Chrome's version (the speech profile's cache key)
+        id: chrome
+        run: echo "version=$(defaults read '/Applications/Google Chrome.app/Contents/Info.plist' CFBundleShortVersionString)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            Playwright/.speech-profile/SODA
+            Playwright/.speech-profile/SODALanguagePacks
+          key: speech-pack-${{ runner.os }}-chrome-${{ steps.chrome.outputs.version }}
       - name: Tier B (gallery vs goldens)
         run: . ~/.swiftly/env.sh && scripts/tier-b.sh
       - name: Host elements and the map in Chromium (sw-frameworks)
@@ -116,6 +128,8 @@ jobs:
           (cd Playwright && node fixture-server.mjs 8777 >/dev/null 2>&1 &)
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8769/index.html >/dev/null && curl -sf http://127.0.0.1:8776/fixtures/country.json >/dev/null && curl -sf http://127.0.0.1:8777/fixtures/country.json >/dev/null && break; sleep 1; done
           (cd Playwright && node launches-probe.mjs "http://127.0.0.1:8769/index.html?cross=http://127.0.0.1:8776&slow=http://127.0.0.1:8777")
+      - name: Speech from the app's appended buffers (decision 0022) — SFSpeechRecognizer fed committed recordings through Launches' SpeechCheck, transcribed on the device by the installed Chrome
+        run: cd Playwright && node speech-probe.mjs http://127.0.0.1:8769/index.html
       # The apps of decision 0021, three claims kept apart: the upstream trees are exactly their
       # pins (integrity), an app compiles from them (compilation), the app does what a user does
       # with it (behaviour). Each step fails on its own.
@@ -125,7 +139,7 @@ jobs:
         run: |
           . ~/.swiftly/env.sh
           scripts/build-wasm.sh Apps --debug --product Scrumdinger
-      - name: Apps — Scrumdinger in Chromium (the add sheet, an attendee, the scrum on file after a reload, the detail; the meeting blocked on speech, pf-speech)
+      - name: Apps — Scrumdinger in Chrome (the add sheet, an attendee, the scrum on file after a reload, the detail, the meeting — its timer, its transcription of the fake microphone's recording by the on-device recogniser, the history with the transcript)
         id: scrumdinger
         run: |
           python3 -m http.server 8773 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
@@ -171,9 +185,8 @@ jobs:
             if [ "$app" = ember ] && [ "$EMBER_PROBE" = skipped ]; then echo "ember: probe not run"; continue; fi
             if [ "$app" = 2048 ] && [ "$SWIFTUI2048_PROBE" = skipped ]; then echo "2048: probe not run"; continue; fi
             test -s .build/apps/$app/report.json && test -s .build/apps/$app/trace.zip && ls .build/apps/$app/*.png >/dev/null
-            # Scrumdinger stays false (its meeting waits on speech); Ember and 2048 are full passes.
-            case "$app" in scrumdinger) expected=False;; *) expected=True;; esac
-            python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is $expected, r['full_app_pass']; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
+            # All three are full passes (Scrumdinger's meeting since decision 0022's recogniser).
+            python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is True, r['full_app_pass']; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
           done
       # Evidence, kept whatever the steps above did: Tier B's renders and diffs
       # (scripts/tier-b.sh writes .build/tier-b-chromium: report.json always, renders and

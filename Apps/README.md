@@ -19,9 +19,9 @@ failing on its own: `check-apps.sh --verify` (integrity: the trees are exactly t
 a wasm build of an app (compilation), and its Playwright flow (behaviour). A claim in one is
 not a claim in the others. The flows leave `report.json` (commit, pin, every flow's outcome,
 `full_app_pass`), screenshots and a trace under `.build/apps/<app>`, uploaded as the
-`apps-evidence` artifact; `full_app_pass` stays `false` while any flow is blocked, and a
-blocked flow records what blocks it (Scrumdinger's meeting: speech, `pf-speech`) rather than
-being stubbed around. The flows (`Playwright/scrumdinger-probe.mjs`, `Playwright/ember-probe.mjs`,
+`apps-evidence` artifact; `full_app_pass` is true only when every flow passed, and a blocked
+flow records what blocks it rather than being stubbed around (Scrumdinger's meeting was
+blocked on speech until decision 0022's recogniser, 2026-10-23; all three apps pass now). The flows (`Playwright/scrumdinger-probe.mjs`, `Playwright/ember-probe.mjs`,
 `Playwright/2048-probe.mjs`) are each a CI step of their own.
 
 To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <SwiftUI2048|Scrumdinger|Ember>`
