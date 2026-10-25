@@ -536,8 +536,8 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     package var canMoveContentOnly: Bool {
         guard pendingTarget == nil, hasBeenPlaced, !lazyContentNeedsLayout else { return false }
-        if geometryCheckGeneration != runtime.layoutGeneration {
-            geometryCheckGeneration = runtime.layoutGeneration
+        if geometryCheckGeneration != runtime.fullLayoutCount {   // the content can change with every full layout
+            geometryCheckGeneration = runtime.fullLayoutCount
             // Structural descendants: a geometry reader in a background or overlay layer (a
             // fixture probe) reads the scrolled frame too.
             contentReadsGeometry = !child.descendants(where: { $0.readsGeometry }).isEmpty

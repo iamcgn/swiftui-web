@@ -26,7 +26,9 @@ open class ViewNode {
     package let depth: Int
 
     /// The environment in which this node's view lives.
-    package var environment: EnvironmentValues
+    package var environment: EnvironmentValues {
+        didSet { if oldValue.generation != environment.generation { invalidateSizeMemosUpward() } }   // see `clearNeedsUpdate`
+    }
 
     /// Set by `invalidate()`; cleared once the node has been updated.
     package private(set) var needsUpdate = false
@@ -98,12 +100,24 @@ open class ViewNode {
 
     /// Subclasses re-evaluate from their stored state. Must call `clearNeedsUpdate()`.
     package func performUpdate() {
+        needsForcedInvalidation = true
         clearNeedsUpdate()
     }
 
     package func clearNeedsUpdate() {
         needsUpdate = false
+        // Every update is applied through here; a node whose view or environment changed has
+        // forgotten its memoised sizes and its ancestors' as they were assigned (theirs are
+        // computed from it), and the rest of the page keeps its memos across the update, where
+        // a generation bump would measure everything again (a row appearing in Ember's thread
+        // laid the whole thread out again, 100 ms a time). A node re-evaluated by force keeps
+        // nothing: its subtree may have been rebuilt from state its value does not show.
+        if needsForcedInvalidation { needsForcedInvalidation = false; invalidateSizeMemosUpward() }
     }
+
+    /// Set by `performUpdate` (a node invalidated by observation or `invalidate()`): the next
+    /// `clearNeedsUpdate` forgets the memos whatever the value comparison says.
+    package var needsForcedInvalidation = false
 
     /// Starts a new observation session for this node; earlier sessions become stale.
     package func beginObservationSession() {
@@ -166,7 +180,16 @@ open class ViewNode {
     /// The size this node wants for `proposal`, memoised for the duration of one layout pass.
     package final func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         refreshSizeMemo()
+        runtime.measureCount += 1
         if let cached = sizeCache[proposal] { return cached }
+        runtime.computeCount += 1
+        if runtime.profileLayout {
+            let name = nodeDescription
+            runtime.computeHistogram[name, default: 0] += 1
+            runtime.proposalCounts[ObjectIdentifier(self), default: (name, 0)].1 += 1
+            runtime.profiledNodes[ObjectIdentifier(self)] = self
+            runtime.proposalLog[ObjectIdentifier(self), default: []].append("\(proposal.width.map { "\($0)" } ?? "nil")x\(proposal.height.map { "\($0)" } ?? "nil")")
+        }
         // The platform metrics of this node's profile, for it and its subtree (restored for the
         // caller: a macOS stack may hold an iOS subtree).
         let previousMetrics = PlatformMetrics.select(environment.platformProfile)
@@ -457,8 +480,16 @@ open class ViewNode {
 /// can push new view values to their children without casts.
 @MainActor
 open class TypedNode<V: View>: ViewNode {
-    /// The most recent view value.
-    package var view: V
+    /// The most recent view value. A value that differs forgets the memoised sizes computed
+    /// from the old one (this node's and its ancestors'; see `clearNeedsUpdate`); an equal one
+    /// — a body re-evaluated for a change elsewhere hands every node its value again — keeps
+    /// them, which is what makes an update cost its own subtree rather than the page. The
+    /// comparison is `_valuesDiffer`'s cheap one: a value that is neither `Equatable` nor
+    /// plain data (most hold a closure) counts as changed; the member-by-member one, tried,
+    /// reflected over every node of a re-evaluated screen for longer than measuring it took.
+    package var view: V {
+        didSet { if _valuesDiffer(oldValue, view) { invalidateSizeMemosUpward() } }
+    }
 
     package init(view: V, parent: ViewNode?, runtime: Runtime, environment: EnvironmentValues) {
         self.view = view
@@ -474,6 +505,7 @@ open class TypedNode<V: View>: ViewNode {
     }
 
     override package func performUpdate() {
+        needsForcedInvalidation = true
         update(view: view, environment: environment, force: true)
     }
 

@@ -44,7 +44,9 @@ package final class ProgressBarNode: LeafNode<_ProgressBar>, _FrameSubscriber {
         return presentation?.effect?.value(at: runtime.animationClock).first ?? fraction
     }
 
-    package func frameDidAdvance() { runtime.setNeedsDisplay() }
+    // A spinner's tick changes its paint, not its size: a repaint, never a layout that forgets
+    // the memoised sizes (Ember's "loading more" footer made every scrolled frame a full layout).
+    package func frameDidAdvance() { runtime.requestRepaint() }
 
     override package func unmount() {
         runtime.unsubscribeFrames(self)
@@ -145,7 +147,9 @@ package final class ProgressRingNode: LeafNode<_ProgressRing>, _FrameSubscriber 
         return ((steps % PlatformMetrics.spinnerSpokes) + PlatformMetrics.spinnerSpokes) % PlatformMetrics.spinnerSpokes
     }
 
-    package func frameDidAdvance() { runtime.setNeedsDisplay() }
+    // A spinner's tick changes its paint, not its size: a repaint, never a layout that forgets
+    // the memoised sizes (Ember's "loading more" footer made every scrolled frame a full layout).
+    package func frameDidAdvance() { runtime.requestRepaint() }
 
     override package func unmount() {
         runtime.unsubscribeFrames(self)

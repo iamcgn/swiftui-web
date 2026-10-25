@@ -143,7 +143,8 @@ extension Runtime {
     package func subscribeFrames(_ subscriber: any _FrameSubscriber) {
         if !frameSubscribers.contains(where: { $0.subscriber === subscriber }) {
             frameSubscribers.append(WeakFrameSubscriber(subscriber: subscriber))
-            setNeedsDisplay()
+            // A frame, for the subscriber's first tick; whatever else is pending brings its own layout.
+            requestRepaint()
         }
     }
 

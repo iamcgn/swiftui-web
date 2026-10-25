@@ -217,6 +217,13 @@ public final class Runtime {
     /// The animation in effect while nodes are placed (frame changes).
     package var layoutAnimation: Animation?
     package var isLayingOut = false
+    /// Set for the whole of a full `layout(in:)` — the flush of pending updates included, which
+    /// precedes `isLayingOut` — so an update knows which pass it belongs to.
+    package private(set) var inLayoutPass = false
+    /// The full layout pass an update applied now belongs to: the one running, else the next
+    /// (an animation scope marks its subtree's placements for that pass; the memo generation
+    /// no longer moves with every update, so it cannot name the pass).
+    package var upcomingLayoutPass: UInt64 { inLayoutPass ? fullLayoutCount : fullLayoutCount + 1 }
     package var activeAnimationScopes = 0
     package var animatingNodes: [WeakNode] = []
     /// Paint-only animations in flight (a navigation stack's slide): frames keep coming through
@@ -270,6 +277,9 @@ public final class Runtime {
             CustomFontRegistry.register(newValue)
             textLayouts.removeAll()
             root.child?.invalidate()
+            // Images and custom-font texts size from the catalog, not from their view values:
+            // every memoised size goes (the next layout bumps the generation).
+            requestLayout()
         }
     }
 
@@ -344,8 +354,8 @@ public final class Runtime {
     }
 
     /// Asks the host for another frame without a state change (an image finished loading).
-    public func setNeedsDisplay() {
-        requestLayout()
+    public func setNeedsDisplay(file: StaticString = #fileID, line: UInt = #line) {
+        requestLayout(file: file, line: line)
     }
 
     /// Mounts `view` as the root, replacing any previous root view.
@@ -474,13 +484,40 @@ public final class Runtime {
     /// next frame moves their content instead of laying the tree out.
     private var scrolledNodes: [ViewNode & _Scrollable] = []
 
+    /// Why the last `layout(in:)` walked the tree, or "moved"/"repaint" when it did not, with
+    /// the pass's `sizeThatFits` calls and memo misses: the host's frame phases carry them, so
+    /// a frame that should have moved scrolled content and laid out instead says what made it
+    /// (`?perf`, Playwright's frame probes). The site of the last request that invalidated the
+    /// memoised sizes is part of the reason.
+    public private(set) var lastLayoutReason = ""
+    public private(set) var lastLayoutMeasures = 0
+    public private(set) var lastLayoutComputes = 0
+    package var measureCount = 0
+    package var computeCount = 0
+    /// With `profileLayout` on, the last pass's recomputations by node description, and the
+    /// distinct proposals per node (the host's `layoutProfile()`).
+    public var profileLayout = false
+    public private(set) var lastComputeHistogram: [String: Int] = [:]
+    public private(set) var lastProposalHistogram: [String: Int] = [:]
+    package var computeHistogram: [String: Int] = [:]
+    package var proposalCounts: [ObjectIdentifier: (String, Int)] = [:]
+    /// The proposals the most-recomputed node was computed for, in order (`layoutProfile().worst`).
+    package var proposalLog: [ObjectIdentifier: [String]] = [:]
+    package var profiledNodes: [ObjectIdentifier: ViewNode] = [:]
+    package var shareProbes: [String: Int] = [:]
+    public private(set) var lastShareProbes: [String: Int] = [:]
+    public private(set) var lastWorstNodeChain: [String] = []
+    public private(set) var lastWorstNodeProposals: [String] = []
+    private var lastInvalidatingRequest = ""
+    private var lastForcingRequest = ""
+
     package func noteScrolled(_ node: ViewNode & _Scrollable) {
         if !scrolledNodes.contains(where: { $0 === node }) { scrolledNodes.append(node) }
     }
 
-    package func requestLayout(invalidatingSizes: Bool = true) {
+    package func requestLayout(invalidatingSizes: Bool = true, file: StaticString = #fileID, line: UInt = #line) {
         repaintOnly = false
-        if invalidatingSizes { sizesInvalidated = true }
+        if invalidatingSizes { sizesInvalidated = true; lastInvalidatingRequest = "\(file):\(line)" }
         guard !layoutRequested else { return }
         layoutRequested = true
         if !scheduler.hasPendingWork { scheduler.onNeedsFlush?() }
@@ -495,8 +532,9 @@ public final class Runtime {
     private var layoutForced = false
 
     /// Asks for a layout pass that keeps the memoised sizes but re-places everything.
-    package func requestFullLayout() {
+    package func requestFullLayout(file: StaticString = #fileID, line: UInt = #line) {
         layoutForced = true
+        lastForcingRequest = "\(file):\(line)"
         requestLayout(invalidatingSizes: false)
     }
 
@@ -517,26 +555,71 @@ public final class Runtime {
             pendingAnimationCompletions.removeAll()
             if pendingAnimation == nil { fireAnimationCompletions(now: animationClock) }
         }
-        if scheduler.hasPendingWork || size != layoutSize || pendingAnimation != nil || !animatingNodes.isEmpty { sizesInvalidated = true }
+        var reason = ""
+        if scheduler.hasPendingWork { reason = "update" }
+        else if size != layoutSize { reason = "resize" }
+        else if pendingAnimation != nil { reason = "animation" }
+        else if sizesInvalidated { reason = "invalidated by " + lastInvalidatingRequest }
+        // An animation beginning lays out (the pass sets the tweens from the frames it moves);
+        // one in flight only paints, unless a layout parameter tweens (`advanceAnimations`). A
+        // pending update lays out but keeps the memos: the nodes it touches forget their own
+        // and their ancestors' as they are applied (`ViewNode.clearNeedsUpdate`).
+        let updating = scheduler.hasPendingWork
+        if size != layoutSize || pendingAnimation != nil { sizesInvalidated = true }
         // A frame that only scrolled moves the scrolled content and keeps every frame else.
-        if !sizesInvalidated, !layoutForced, presentations.isEmpty, scrolledNodes.allSatisfy(\.canMoveContentOnly) {
+        if !updating, !sizesInvalidated, !layoutForced, presentations.isEmpty, scrolledNodes.allSatisfy(\.canMoveContentOnly) {
             for node in scrolledNodes { node.moveContent() }
             scrolledNodes.removeAll()
             layoutRequested = false
             updateAnimation = nil
+            lastLayoutReason = "moved"; lastLayoutMeasures = 0; lastLayoutComputes = 0
             return
         }
         // A frame that only repaints keeps every frame and size.
-        if repaintOnly, !sizesInvalidated, !scheduler.hasPendingWork, presentations.isEmpty, scrolledNodes.isEmpty {
+        if repaintOnly, !updating, !sizesInvalidated, presentations.isEmpty, scrolledNodes.isEmpty {
             repaintOnly = false
             layoutRequested = false
             updateAnimation = nil
+            lastLayoutReason = "repaint"; lastLayoutMeasures = 0; lastLayoutComputes = 0
             return
+        }
+        if reason.isEmpty {
+            if layoutForced { reason = "forced by " + lastForcingRequest }
+            else if !presentations.isEmpty { reason = "presentation" }
+            else if !scrolledNodes.isEmpty { reason = "scroll needs layout" }
+            else { reason = "requested" }
+        }
+        measureCount = 0; computeCount = 0
+        if profileLayout { computeHistogram.removeAll(); proposalCounts.removeAll(); proposalLog.removeAll(); profiledNodes.removeAll(); shareProbes.removeAll() }
+        defer {
+            lastLayoutReason = reason; lastLayoutMeasures = measureCount; lastLayoutComputes = computeCount
+            if profileLayout {
+                lastComputeHistogram = computeHistogram
+                var proposals: [String: Int] = [:]
+                for (_, entry) in proposalCounts { proposals[entry.0, default: 0] = max(proposals[entry.0, default: 0], entry.1) }
+                lastProposalHistogram = proposals
+                if let worst = proposalCounts.max(by: { $0.value.1 < $1.value.1 }) {
+                    lastWorstNodeProposals = [worst.value.0] + (proposalLog[worst.key] ?? [])
+                    var chain: [String] = []
+                    var node = profiledNodes[worst.key]
+                    while let current = node {
+                        let count = proposalCounts[ObjectIdentifier(current)]?.1 ?? 0
+                        let distinct = Set(proposalLog[ObjectIdentifier(current)] ?? []).count
+                        let sample = Array(Set(proposalLog[ObjectIdentifier(current)] ?? [])).sorted().prefix(8).joined(separator: " ")
+                        chain.append("\(current.nodeDescription.prefix(60)) ×\(count) (\(distinct) distinct: \(sample))")
+                        node = current.parent
+                    }
+                    lastWorstNodeChain = chain
+                }
+                profiledNodes.removeAll()
+                lastShareProbes = shareProbes
+            }
         }
         repaintOnly = false
         layoutForced = false
         scrolledNodes.removeAll()
         fullLayoutCount += 1
+        inLayoutPass = true
         flush()
         applyColorScheme()
         layoutRequested = false
@@ -586,6 +669,7 @@ public final class Runtime {
             }
         }
         isLayingOut = false
+        inLayoutPass = false
         layoutAnimation = nil
         updateAnimation = nil
         repeatingAnimationScopes.removeAll()

@@ -72,12 +72,13 @@ private struct ReadingRows: View {
         let runtime = Runtime()
         runtime.mount(ReadingRows(readings: readings))
         runtime.layout(in: CGSize(width: 100, height: 100))
-        let generation = runtime.layoutGeneration
+        let layouts = runtime.fullLayoutCount
         runtime.scrollWheel(by: CGSize(width: 0, height: 50), at: CGPoint(x: 50, y: 50))
         runtime.layout(in: CGSize(width: 100, height: 100))
         runtime.layout(in: CGSize(width: 100, height: 100))
-        // The reader's global frame moved up by the scroll, which took a full layout.
+        // The reader's global frame moved up by the scroll, which took a full layout (the
+        // memoised sizes stay: the reader's content is rebuilt from its new frame when placed).
         #expect(readings.minY.first == 400 && readings.minY.last == 350)
-        #expect(runtime.layoutGeneration > generation)
+        #expect(runtime.fullLayoutCount > layouts)
     }
 }
