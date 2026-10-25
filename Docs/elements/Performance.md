@@ -80,9 +80,54 @@ first frame within 3 s of the resources arriving (`FIRST_FRAME_MS`), scroll fram
 median (`FRAME_MS`); it prints the gzip size and what a 1.6 Mbps connection would add.
 `Playwright/landing-perf.mjs` keeps the CPU profile for digging.
 
+## A real app's frames (Ember, 2026-10-25)
+
+Ember (decision 0021) at a phone viewport in the installed Chrome on this Mac, release build,
+`?platform=ios`, every frame's phases read in the page as `frameCount()` advances (the probe is
+the session's scratch; the numbers are the host's `framePhases()`, which now also say why the
+frame laid out — `reason` — with the pass's `measures` and `computes`). Before: a scrolled
+frame of the feed was 80 ms, of a comment thread 125 ms; a lazy row materialising in the
+thread took 190–390 ms, a full layout of it 1.5 s. After: 18 and 13–18 ms, 45 ms, 112 ms.
+What it was, in order of size:
+
+- **Every scrolled frame was a full layout with every memo dropped.** Ember's "loading more"
+  footer spinner subscribed to frames and called `setNeedsDisplay()` each tick — a layout
+  request that invalidates every memoised size. A spinner's tick is a repaint
+  (`requestRepaint`); so are a text selection change, a new frame subscriber and an animation
+  in flight (the tweens are read when painting). With that, scroll frames take the
+  move-content path (`reason: moved`) at render + paint cost.
+- **A lazy stack distributed its height.** `LazyVStack` was a `VStack` in a frame; placed by
+  `.frame(maxWidth:)` at its own ideal height, the `VStack` handed each row a share of what its
+  siblings left — a different fractional height per row, per pass and per change of a
+  sibling's size, which no memo matches, and a short row stretched to its share. Every
+  materialised row measured its whole subtree again for the new number: 244 000
+  recomputations a pass, one leaf computed for 1 113 distinct proposals. A lazy stack proposes
+  nothing along its axis (`fixedSize`), as SwiftUI's does (a `Spacer` in one takes its
+  minimum). The same share problem is cut off in every stack: a child of one size (zero and
+  infinite answers equal) or a bounded one offered at least its maximum takes the infinite
+  probe's answer without a probe for the share (`StackLayout.distribute`).
+- **Any update dropped every memo.** The layout generation moved on with every pending
+  update, so a favicon arriving in one row re-measured the screen. Now an updated node
+  forgets its own sizes and its ancestors' as its view or environment is assigned, and the
+  bump is kept for what no view value shows (a resize, an animation beginning, an image,
+  catalog or symbol table arriving). Ember's updates re-evaluate whole screens whose view
+  values hold closures, so they still re-measure that screen (60–100 ms); a member-by-member
+  comparison that would tell equal closures apart cost more in reflection than it saved.
+- **Paint: full-canvas blurs and shadows.** A material bar's backdrop blur copied, blurred
+  and read back the whole canvas (two bars, 30 ms a frame at DPR 2); it works on the strip
+  under its path now. Shadows, opacity, blend and mask groups drew a canvas-sized offscreen
+  back whole, so a shadow's blur was computed over 780 × 1688 pixels; the painter tracks the
+  device box each group's ops painted and composites that. Thread paint 28 → 6 ms.
+
+What remains there: a full layout of a screen costs ~10 µs a measurement (the thread's
+8 300 recomputations are 112 ms; the feed's 5 000, 60–70 ms), which an update of a whole
+screen pays; the onboarding's shimmer (masked, blended gradients every frame) paints at
+~55 ms; and the navigation transition's frames paint both screens.
+
 ## Open
 
 Releasing lazy elements scrolled far away (Apple does), damage rects and content layer
 caching for content in the thousands of rows, a smaller substrate (the text engine's tables
 and the symbol metrics are the largest fixed costs), the first frame's full-page layout
-(measuring only what the first viewport shows).
+(measuring only what the first viewport shows), the cost of one measurement (a release
+profile with names: the release wasm has no name section and its DWARF no addresses).
