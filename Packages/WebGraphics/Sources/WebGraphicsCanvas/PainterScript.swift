@@ -52,19 +52,25 @@ enum PainterScript {
       }
       const lineCaps = ['butt', 'round', 'square'];
       const lineJoins = ['miter', 'round', 'bevel'];
+      // The box of the path last read (its points and control points, which bound the curves),
+      // for the group bounds below.
+      const pathBox = { x0: 0, y0: 0, x1: 0, y1: 0 };
       function readPath(ctx, buf, i) {
         const count = buf[i++];
         ctx.beginPath();
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        const pt = (x, y) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
         for (let k = 0; k < count; k++) {
           const tag = buf[i++];
           switch (tag) {
-            case 0: ctx.moveTo(buf[i++], buf[i++]); break;
-            case 1: ctx.lineTo(buf[i++], buf[i++]); break;
-            case 2: { const x = buf[i++], y = buf[i++], cx = buf[i++], cy = buf[i++]; ctx.quadraticCurveTo(cx, cy, x, y); break; }
-            case 3: { const x = buf[i++], y = buf[i++], c1x = buf[i++], c1y = buf[i++], c2x = buf[i++], c2y = buf[i++]; ctx.bezierCurveTo(c1x, c1y, c2x, c2y, x, y); break; }
+            case 0: { const x = buf[i++], y = buf[i++]; ctx.moveTo(x, y); pt(x, y); break; }
+            case 1: { const x = buf[i++], y = buf[i++]; ctx.lineTo(x, y); pt(x, y); break; }
+            case 2: { const x = buf[i++], y = buf[i++], cx = buf[i++], cy = buf[i++]; ctx.quadraticCurveTo(cx, cy, x, y); pt(x, y); pt(cx, cy); break; }
+            case 3: { const x = buf[i++], y = buf[i++], c1x = buf[i++], c1y = buf[i++], c2x = buf[i++], c2y = buf[i++]; ctx.bezierCurveTo(c1x, c1y, c2x, c2y, x, y); pt(x, y); pt(c1x, c1y); pt(c2x, c2y); break; }
             case 4: ctx.closePath(); break;
           }
         }
+        pathBox.x0 = x0; pathBox.y0 = y0; pathBox.x1 = x1; pathBox.y1 = y1;
         return i;
       }
       // Catalog images by file, loaded on first use; the host is told when one arrives so it
@@ -366,6 +372,41 @@ enum PainterScript {
         octx.textBaseline = 'alphabetic';
         return { off: off, octx: octx };
       }
+      // A group (opacity, shadow, filter, blend, mask) paints into a canvas-sized offscreen; what
+      // it composites back is only the box its ops painted, in device pixels: every drawing op
+      // inside a group unions its box, through the context's transform, into the innermost
+      // group's `box` (padded a pixel for anti-aliasing; a stroke by its width and miter; text
+      // by its measured ink), and a group composited into its parent unions the box it covered,
+      // padded by a shadow's reach. A shadow or a blur over the whole canvas costs the whole
+      // canvas (two shadows under Ember's comment rows were 20 ms of a 35 ms frame); over the
+      // box it costs the box.
+      function unionDeviceBox(ctx, box, x0, y0, x1, y1, pad) {
+        const m = ctx.getTransform();
+        const xs = [m.a * x0 + m.c * y0 + m.e, m.a * x1 + m.c * y0 + m.e, m.a * x0 + m.c * y1 + m.e, m.a * x1 + m.c * y1 + m.e];
+        const ys = [m.b * x0 + m.d * y0 + m.f, m.b * x1 + m.d * y0 + m.f, m.b * x0 + m.d * y1 + m.f, m.b * x1 + m.d * y1 + m.f];
+        const scale = Math.sqrt(Math.max(Math.abs(m.a * m.d - m.b * m.c), m.a * m.a + m.b * m.b));
+        const p = (pad || 0) * scale + 1.5;
+        const bx0 = Math.min(xs[0], xs[1], xs[2], xs[3]) - p, bx1 = Math.max(xs[0], xs[1], xs[2], xs[3]) + p;
+        const by0 = Math.min(ys[0], ys[1], ys[2], ys[3]) - p, by1 = Math.max(ys[0], ys[1], ys[2], ys[3]) + p;
+        if (bx0 < box.x0) box.x0 = bx0; if (bx1 > box.x1) box.x1 = bx1;
+        if (by0 < box.y0) box.y0 = by0; if (by1 > box.y1) box.y1 = by1;
+      }
+      function emptyBox() { return { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity }; }
+      // The box clamped to the canvas, as integers, or null when nothing was painted.
+      function clampedBox(box, cw, ch, pad) {
+        const p = pad || 0;
+        const x0 = Math.max(0, Math.floor(box.x0 - p)), y0 = Math.max(0, Math.floor(box.y0 - p));
+        const x1 = Math.min(cw, Math.ceil(box.x1 + p)), y1 = Math.min(ch, Math.ceil(box.y1 + p));
+        return x1 > x0 && y1 > y0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null;
+      }
+      function textBox(ctx, font, text, x, y, box) {
+        const spacing = setFont(ctx, font);
+        const m = ctx.measureText(text);
+        const ascent = (m.actualBoundingBoxAscent || 0), descent = (m.actualBoundingBoxDescent || 0);
+        const left = (m.actualBoundingBoxLeft || 0);
+        const width = m.width + left + (m.actualBoundingBoxRight || 0) + (spacing + tabularSlot) * text.length;
+        unionDeviceBox(ctx, box, x - left, y - ascent, x - left + width, y + descent, 2);
+      }
       // Returns the loop's own milliseconds (the host's frame split separates them from the encode).
       function paint(rootCtx, buf, strings, dpr, w, h, bitmaps) {
         const started = performance.now();
@@ -375,6 +416,7 @@ enum PainterScript {
         rootCtx.textBaseline = 'alphabetic';
         let ctx = rootCtx;
         const groups = [];
+        let box = null;   // the innermost group's painted box, null outside groups
         let i = 0;
         const n = buf.length;
         while (i < n) {
@@ -388,8 +430,8 @@ enum PainterScript {
             case 6: {
               const opacity = buf[i++];
               const o = beginOffscreen(ctx, dpr, w, h);
-              groups.push({ ctx: ctx, off: o.off, opacity: opacity });
-              ctx = o.octx;
+              groups.push({ ctx: ctx, off: o.off, opacity: opacity, box: emptyBox() });
+              ctx = o.octx; box = groups[groups.length - 1].box;
               break;
             }
             case 7: {
@@ -411,19 +453,34 @@ enum PainterScript {
               }
               parent.save();
               parent.setTransform(1, 0, 0, 1, 0, 0);
-              if (g.blend === 'plus-darker') { plusDarker(parent, source, g.bounds); parent.restore(); ctx = parent; break; }
+              const outer = groups.length ? groups[groups.length - 1].box : null;
+              if (g.blend === 'plus-darker') {
+                plusDarker(parent, source, g.bounds);
+                if (outer) { const b = g.bounds; unionDeviceBox(parent, outer, b.x, b.y, b.x + b.w, b.y + b.h, 0); }
+                parent.restore(); ctx = parent; box = outer; break;
+              }
               if (g.blend) parent.globalCompositeOperation = g.blend;
               parent.globalAlpha = g.opacity;
+              // What the group painted (a filter group's blur reaches its padded bounds; a mask
+              // confines its content, a wider box only costs pixels).
+              let region = g.box;
+              if (g.filter && g.bounds) { region = { x0: Math.min(region.x0, g.bounds.x), y0: Math.min(region.y0, g.bounds.y), x1: Math.max(region.x1, g.bounds.x + g.bounds.w), y1: Math.max(region.y1, g.bounds.y + g.bounds.h) }; }
+              let reach = 0;
               if (g.shadow) {
                 // Canvas blur is twice the Gaussian sigma; everything is in device pixels here.
                 parent.shadowColor = g.shadow.color;
                 parent.shadowBlur = g.shadow.radius * 2 * dpr;
                 parent.shadowOffsetX = g.shadow.dx * dpr;
                 parent.shadowOffsetY = g.shadow.dy * dpr;
+                reach = parent.shadowBlur * 2 + Math.abs(parent.shadowOffsetX) + Math.abs(parent.shadowOffsetY);
               }
-              parent.drawImage(source, 0, 0);
+              const r = clampedBox(region, source.width, source.height, 0);
+              if (r) {
+                parent.drawImage(source, r.x, r.y, r.w, r.h, r.x, r.y, r.w, r.h);
+                if (outer) unionDeviceBox(parent, outer, r.x, r.y, r.x + r.w, r.y + r.h, reach);
+              }
               parent.restore();
-              ctx = parent;
+              ctx = parent; box = outer;
               break;
             }
             case 19: {
@@ -442,8 +499,8 @@ enum PainterScript {
               const probe = deviceBounds(ctx, x, y, rw, rh, 0, o.off.width, o.off.height);
               if (filter.radius !== undefined) { filter.sigma = filter.radius * probe.scale; pad = filter.opaque ? 0 : Math.ceil(filter.sigma * 3); }
               const bounds = pad > 0 ? deviceBounds(ctx, x, y, rw, rh, pad, o.off.width, o.off.height) : probe;
-              groups.push({ ctx: ctx, off: o.off, opacity: 1, filter: filter, bounds: bounds });
-              ctx = o.octx;
+              groups.push({ ctx: ctx, off: o.off, opacity: 1, filter: filter, bounds: bounds, box: emptyBox() });
+              ctx = o.octx; box = groups[groups.length - 1].box;
               break;
             }
             case 23: {
@@ -457,24 +514,31 @@ enum PainterScript {
               const sigma = radius * probe.scale;
               const b = deviceBounds(ctx, x, y, rw, rh, Math.ceil(sigma * 3), target.width, target.height);
               if (sigma > 0 && b.w > 0 && b.h > 0) {
-                const copy = takeOffscreen(target.width, target.height);
+                // Only the padded box is copied and blurred, in an offscreen of its own size: the
+                // result is clipped to the path, which lies inside the box by the kernel's reach
+                // (3σ), so every pixel drawn equals the full-canvas blur — at a fraction of the
+                // work (a material bar over a phone's page is a strip, not the page, and the
+                // alpha readback below is of the strip too).
+                const box = { x: 0, y: 0, w: b.w, h: b.h };
+                const copy = takeOffscreen(b.w, b.h);
                 const cctx = copy.getContext('2d');
                 cctx.setTransform(1, 0, 0, 1, 0, 0);
-                cctx.clearRect(0, 0, copy.width, copy.height);
-                cctx.drawImage(target, 0, 0);
-                const src = blurred(copy, b, sigma, true);
+                cctx.clearRect(0, 0, b.w, b.h);
+                cctx.drawImage(target, b.x, b.y, b.w, b.h, 0, 0, b.w, b.h);
+                const src = blurred(copy, box, sigma, true);
                 if (saturation !== 1) {
                   // The saturation matrix (SVG's feColorMatrix convention) over the blurred box.
                   const s = saturation, lr = 0.2126, lg = 0.7152, lb = 0.0722;
-                  applyColorMatrix(src.getContext('2d'), b, [lr + (1 - lr) * s, lg - lg * s, lb - lb * s, 0, 0,
-                                                            lr - lr * s, lg + (1 - lg) * s, lb - lb * s, 0, 0,
-                                                            lr - lr * s, lg - lg * s, lb + (1 - lb) * s, 0, 0,
-                                                            0, 0, 0, 1, 0]);
+                  applyColorMatrix(src.getContext('2d'), box, [lr + (1 - lr) * s, lg - lg * s, lb - lb * s, 0, 0,
+                                                              lr - lr * s, lg + (1 - lg) * s, lb - lb * s, 0, 0,
+                                                              lr - lr * s, lg - lg * s, lb + (1 - lb) * s, 0, 0,
+                                                              0, 0, 0, 1, 0]);
                 }
                 ctx.save();
                 ctx.clip();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.drawImage(src, b.x, b.y, b.w, b.h, b.x, b.y, b.w, b.h);
+                ctx.drawImage(src, 0, 0, b.w, b.h, b.x, b.y, b.w, b.h);
+                if (box) unionDeviceBox(ctx, box, b.x, b.y, b.x + b.w, b.y + b.h, 0);
                 ctx.restore();
               }
               break;
@@ -482,18 +546,20 @@ enum PainterScript {
             case 21: {
               const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
               const o = beginOffscreen(ctx, dpr, w, h);
-              groups.push({ ctx: ctx, off: o.off, opacity: 1, maskPending: true });
-              ctx = o.octx;
+              groups.push({ ctx: ctx, off: o.off, opacity: 1, maskPending: true, box: emptyBox() });
+              ctx = o.octx; box = groups[groups.length - 1].box;
               break;
             }
             case 22: {
-              // The mask is drawn; the content goes into a second offscreen.
+              // The mask is drawn; the content goes into a second offscreen (its box starts
+              // afresh: the content shows through the mask, within the content's own box).
               const g = groups[groups.length - 1];
               const o = beginOffscreen(g.ctx, dpr, w, h);
               g.mask = g.off;
               g.off = o.off;
               g.maskPending = false;
-              ctx = o.octx;
+              g.box = emptyBox();
+              ctx = o.octx; box = g.box;
               break;
             }
             case 20: {
@@ -501,21 +567,21 @@ enum PainterScript {
               const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++];
               const o = beginOffscreen(ctx, dpr, w, h);
               const bounds = deviceBounds(ctx, x, y, rw, rh, 0, o.off.width, o.off.height);
-              groups.push({ ctx: ctx, off: o.off, opacity: 1, blend: blendOps[mode] || 'source-over', bounds: bounds });
-              ctx = o.octx;
+              groups.push({ ctx: ctx, off: o.off, opacity: 1, blend: blendOps[mode] || 'source-over', bounds: bounds, box: emptyBox() });
+              ctx = o.octx; box = groups[groups.length - 1].box;
               break;
             }
             case 18: {
               const shadowColor = color(buf[i++], buf[i++], buf[i++], buf[i++]);
               const radius = buf[i++], dx = buf[i++], dy = buf[i++];
               const o = beginOffscreen(ctx, dpr, w, h);
-              groups.push({ ctx: ctx, off: o.off, opacity: 1, shadow: { color: shadowColor, radius: radius, dx: dx, dy: dy } });
-              ctx = o.octx;
+              groups.push({ ctx: ctx, off: o.off, opacity: 1, shadow: { color: shadowColor, radius: radius, dx: dx, dy: dy }, box: emptyBox() });
+              ctx = o.octx; box = groups[groups.length - 1].box;
               break;
             }
-            case 8: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++]; ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fillRect(x, y, rw, rh); break; }
-            case 9: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++], r = buf[i++]; ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.beginPath(); ctx.roundRect(x, y, rw, rh, r); ctx.fill(); break; }
-            case 10: { i = readPath(ctx, buf, i); ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fill(buf[i++] === 1 ? 'evenodd' : 'nonzero'); break; }
+            case 8: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++]; ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fillRect(x, y, rw, rh); if (box) unionDeviceBox(ctx, box, x, y, x + rw, y + rh, 0); break; }
+            case 9: { const x = buf[i++], y = buf[i++], rw = buf[i++], rh = buf[i++], r = buf[i++]; ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.beginPath(); ctx.roundRect(x, y, rw, rh, r); ctx.fill(); if (box) unionDeviceBox(ctx, box, x, y, x + rw, y + rh, 0); break; }
+            case 10: { i = readPath(ctx, buf, i); ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]); ctx.fill(buf[i++] === 1 ? 'evenodd' : 'nonzero'); if (box) unionDeviceBox(ctx, box, pathBox.x0, pathBox.y0, pathBox.x1, pathBox.y1, 0); break; }
             case 11: {
               i = readPath(ctx, buf, i);
               ctx.lineWidth = buf[i++];
@@ -529,12 +595,14 @@ enum PainterScript {
               ctx.lineDashOffset = buf[i++];
               ctx.strokeStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]);
               ctx.stroke();
+              if (box) unionDeviceBox(ctx, box, pathBox.x0, pathBox.y0, pathBox.x1, pathBox.y1, ctx.lineWidth * Math.max(1, ctx.miterLimit));
               break;
             }
             case 12: {
               const text = strings[buf[i++]], font = strings[buf[i++]], x = buf[i++], y = buf[i++];
               ctx.fillStyle = color(buf[i++], buf[i++], buf[i++], buf[i++]);
               fillSpacedText(ctx, text, x, y, setFont(ctx, font));
+              if (box) textBox(ctx, font, text, x, y, box);
               break;
             }
             case 17: {
@@ -560,6 +628,7 @@ enum PainterScript {
               octx.fillStyle = g.style;
               octx.fillRect(ox, oy, width, height);
               ctx.drawImage(off, ox, oy, width, height);
+              if (box) unionDeviceBox(ctx, box, ox, oy, ox + width, oy + height, 0);
               break;
             }
             case 13: {
@@ -574,6 +643,7 @@ enum PainterScript {
                 tint = { gradient: g, x, y };
               }
               drawImage(ctx, dpr, file, scale, pw, ph, x, y, rw, rh, tile, top, leading, bottom, trailing, smoothing, tintKind > 0 ? tint : null);
+              if (box) unionDeviceBox(ctx, box, x, y, x + rw, y + rh, 0);
               break;
             }
             case 14: { const a = buf[i++], b = buf[i++], c = buf[i++], d = buf[i++], e = buf[i++], f = buf[i++]; ctx.transform(a, b, c, d, e, f); break; }
@@ -581,11 +651,14 @@ enum PainterScript {
               i = readPath(ctx, buf, i);
               const g = readGradient(ctx, buf, i); i = g.i;
               fillGradient(ctx, g, buf[i++] === 1 ? 'evenodd' : 'nonzero');
+              if (box) unionDeviceBox(ctx, box, pathBox.x0, pathBox.y0, pathBox.x1, pathBox.y1, 0);
               break;
             }
             case 24: {
               const bitmap = (bitmaps || [])[buf[i++]];
-              drawBitmap(ctx, bitmap, buf[i++], buf[i++], buf[i++], buf[i++]);
+              const bx = buf[i++], by = buf[i++], bw = buf[i++], bh = buf[i++];
+              drawBitmap(ctx, bitmap, bx, by, bw, bh);
+              if (box) unionDeviceBox(ctx, box, bx, by, bx + bw, by + bh, 0);
               break;
             }
             case 16: {
@@ -602,6 +675,7 @@ enum PainterScript {
               const g = readGradient(ctx, buf, i); i = g.i;
               ctx.strokeStyle = g.style;
               ctx.stroke();
+              if (box) unionDeviceBox(ctx, box, pathBox.x0, pathBox.y0, pathBox.x1, pathBox.y1, ctx.lineWidth * Math.max(1, ctx.miterLimit));
               break;
             }
             default: throw new Error('SwiftUIWeb: unknown display op ' + op + ' at ' + (i - 1));
