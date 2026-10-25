@@ -1990,11 +1990,14 @@
       "framework": "Platform",
       "kind": "missing",
       "priority": "next",
-      "status": "planned",
+      "status": "done",
+      "done": "2026-10-23",
       "title": "Speech, audio and notifications for the web",
-      "detail": "Superseded 2026-10-12 (the apps run unmodified or not at all; nothing on the app's side is swapped): the frameworks Scrumdinger and the Countries app reach for get real web behaviour in modules of the same name — `pf-avfoundation-audio`, `pf-speech`, `pf-usernotifications`. What stays out of reach is the compiler, not the web: `@objc` and `#selector` are rejected for wasm (\"Objective-C interoperability is disabled\"; forcing `-enable-objc-interop` crashes the frontend), see `ap-app-ports`.",
+      "detail": "Superseded 2026-10-12 (the apps run unmodified or not at all; nothing on the app's side is swapped): the frameworks Scrumdinger and the Countries app reach for get real web behaviour in modules of the same name — `pf-avfoundation-audio`, `pf-speech`, `pf-usernotifications`. What stayed out of reach for a while was the compiler, not the web: `@objc` and `#selector` are rejected by the stock wasm SDK (\"Objective-C interoperability is disabled\"; forcing `-enable-objc-interop` crashes the frontend). DONE 2026-10-23: the three modules are real (`pf-avfoundation-audio`, `pf-usernotifications` 2026-10-12, `pf-speech` 2026-10-23 with decision 0022's on-device recogniser), and the compiler barrier fell to the Objective-C runtime wasm SDK (decision 0023) — see `ap-app-ports`, all three apps pass.",
       "refs": [
-        "Docs/decisions/0021-real-apps.md"
+        "Docs/decisions/0021-real-apps.md",
+        "Docs/decisions/0022-speech-from-appended-buffers.md",
+        "Docs/decisions/0023-objc-runtime-wasm.md"
       ]
     },
     {

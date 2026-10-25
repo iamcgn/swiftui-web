@@ -5,8 +5,8 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 | Framework | Open items | next | soon | later |
 |---|---|---|---|---|
 | SwiftUI | 1 | 1 | 0 | 0 |
-| Platform | 3 | 1 | 1 | 1 |
-| **All** | **4** | 2 | 1 | 1 |
+| Platform | 2 | 0 | 1 | 1 |
+| **All** | **3** | 1 | 1 | 1 |
 
 ## Next (Phase 8, in order)
 
@@ -14,11 +14,6 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 - ◐ **Isolation annotations as Apple declares them** `sw-isolation-fidelity` · SwiftUI · approximate  
   A Swift 6 app compiles against this package as against Apple's only if every protocol, initializer and modifier carries the same isolation: the protocols Apple marks `@MainActor @preconcurrency` (ToolbarContent, the style protocols, Commands, Gesture, TabContent, the representables, AccessibilityRotorContent, DropDelegate) and not the ones it leaves nonisolated (ListStyle, PickerStyle, TextFieldStyle, DynamicViewContent, ScrollTargetBehavior); view initializers `nonisolated` (1 595 of Apple's are; 627 of ours were isolated), action parameters `@preconcurrency @MainActor` where Apple's are. Done 2026-10-12 for the protocols and for Button and Label (Scrumdinger's `ToolbarButton` and its `Button(_:symbol:)` wrappers would not compile); the sweep over the remaining initializers and modifiers against the SDK's swiftinterface is open. Found by the 2048 port (2026-10-13): `withTransaction` and `withAnimation` are `@MainActor` here and nonisolated in Apple's (upstream 2048's nonisolated `@objc func newGame` calls `withTransaction`). ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
-
-### Platform
-
-- ☐ **Speech, audio and notifications for the web** `pf-non-web-frameworks` · wasm · missing  
-  Superseded 2026-10-12 (the apps run unmodified or not at all; nothing on the app's side is swapped): the frameworks Scrumdinger and the Countries app reach for get real web behaviour in modules of the same name — `pf-avfoundation-audio`, `pf-speech`, `pf-usernotifications`. What stays out of reach is the compiler, not the web: `@objc` and `#selector` are rejected for wasm ("Objective-C interoperability is disabled"; forcing `-enable-objc-interop` crashes the frontend), see `ap-app-ports`. ([0021-real-apps.md](Docs/decisions/0021-real-apps.md))
 
 ## Soon (the gap sweep)
 
@@ -36,6 +31,7 @@ Generated from `Docs/todo.json` by `scripts/gen-progress.py`; edit the JSON, not
 
 ## Landed
 
+- ☑ 2026-10-23 **Speech, audio and notifications for the web** `pf-non-web-frameworks` · Platform · wasm
 - ☑ 2026-10-23 **Open-source apps as a check** `ap-app-ports` · Platform · Examples
 - ☑ 2026-10-23 **Speech over the Web Speech API** `pf-speech` · Platform · Platform
 - ☑ 2026-10-13 **URLSession over fetch** `pf-urlsession` · Platform · wasm
