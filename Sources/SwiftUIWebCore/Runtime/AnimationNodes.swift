@@ -89,8 +89,10 @@ extension Runtime {
         for onFinish in finished { onFinish() }
         fireAnimationCompletions(now: now)
         // Repaint while animating and once more when the last animation ends, so the final frame
-        // shows the settled state rather than the last interpolated one.
-        if hadAnimations { setNeedsDisplay() }
+        // shows the settled state rather than the last interpolated one. A repaint: the tweens
+        // are read when painting (`presentedFrame`, the opacities), the laid-out frames stand;
+        // a layout whose parameters tween asks for its own layout below.
+        if hadAnimations { requestRepaint() }
         if relayout { requestLayout(invalidatingSizes: true) }
         let subscribers = advanceFrameSubscribers()
         let tooltip = advanceTooltip()
@@ -151,7 +153,7 @@ extension Runtime {
     /// that disables animation.
     private func scopedAnimation(for node: ViewNode) -> Animation?? {
         guard activeAnimationScopes > 0 else { return nil }
-        let target = isLayingOut ? layoutGeneration : layoutGeneration + 1
+        let target = upcomingLayoutPass
         var current: ViewNode? = node
         while let candidate = current {
             if let scope = candidate as? any _AnimationScoping, scope.scopeGeneration == target { return .some(scope.scopeAnimation) }
@@ -187,7 +189,7 @@ package final class AnimationScopeNode<Content: View, Value: Equatable>: TypedNo
         clearNeedsUpdate()
         if changed {
             scopeAnimation = view.modifier.animation
-            scopeGeneration = runtime.layoutGeneration + 1
+            scopeGeneration = runtime.upcomingLayoutPass
         }
         child.update(view: view.content, environment: environment, force: force)
     }
@@ -222,7 +224,7 @@ package final class TransactionScopeNode<Content: View>: TypedNode<ModifiedConte
         transaction.animation = runtime.updateAnimation
         view.modifier.transform(&transaction)
         scopeAnimation = transaction.disablesAnimations ? nil : transaction.animation
-        scopeGeneration = runtime.layoutGeneration + 1
+        scopeGeneration = runtime.upcomingLayoutPass
         child.update(view: view.content, environment: environment, force: force)
     }
 

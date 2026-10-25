@@ -718,7 +718,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         // A press starts a new selection here (any other text's selection goes).
         runtime.textSelectionOwner = self
         selectionAnchor = characterIndex(at: point)
-        if selection != nil { selection = nil; runtime.setNeedsDisplay() }
+        if selection != nil { selection = nil; runtime.requestRepaint() }   // the selection is paint alone
     }
     package func pressMoved(to point: CGPoint) {
         guard let anchor = selectionAnchor else { return }
@@ -726,7 +726,7 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         let range = min(anchor, focus)..<max(anchor, focus)
         guard range != selection else { return }
         selection = range
-        runtime.setNeedsDisplay()
+        runtime.requestRepaint()
     }
     package func pressEnded(inside: Bool) { pressedLink = nil; selectionAnchor = nil }
     package func pressEnded(inside: Bool, at point: CGPoint) {

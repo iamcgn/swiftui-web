@@ -59,6 +59,20 @@ public protocol HostedScene: AnyObject {
     var needsFrame: Bool { get }
     /// Whether animations are in flight (frames keep coming while true).
     var isAnimating: Bool { get }
+    /// Why the last `layout(in:)` walked the tree (or "moved"/"repaint" when it did not), with
+    /// the pass's measurements and memo misses, for the host's frame statistics; a scene that
+    /// does not know says nothing.
+    var lastLayoutReason: String { get }
+    var lastLayoutMeasures: Int { get }
+    var lastLayoutComputes: Int { get }
+    /// Layout profiling (`layoutProfile()` on the debug bridge): on, the last pass's
+    /// recomputations by node kind and the most proposals any node of a kind was computed for.
+    var profileLayout: Bool { get set }
+    var lastComputeHistogram: [String: Int] { get }
+    var lastProposalHistogram: [String: Int] { get }
+    var lastWorstNodeProposals: [String] { get }
+    var lastWorstNodeChain: [String] { get }
+    var lastShareProbes: [String: Int] { get }
     /// Advances the scene's clocks by `elapsed` seconds before a frame; returns whether an
     /// animation is still running.
     func advanceFrame(elapsed: Double) -> Bool
@@ -338,4 +352,16 @@ extension HostedScene {
         get { 2 }
         set {}
     }
+}
+
+extension HostedScene {
+    public var lastLayoutReason: String { "" }
+    public var lastLayoutMeasures: Int { 0 }
+    public var lastLayoutComputes: Int { 0 }
+    public var profileLayout: Bool { get { false } set {} }
+    public var lastComputeHistogram: [String: Int] { [:] }
+    public var lastProposalHistogram: [String: Int] { [:] }
+    public var lastWorstNodeProposals: [String] { [] }
+    public var lastWorstNodeChain: [String] { [] }
+    public var lastShareProbes: [String: Int] { [:] }
 }

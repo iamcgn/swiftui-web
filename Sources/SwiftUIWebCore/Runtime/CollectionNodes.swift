@@ -186,7 +186,7 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
     /// The average size of the created elements for `proposal`: their layout children summed
     /// along the lazy axis and the widest across it.
     package func estimatedSize(for proposal: ProposedViewSize) -> CGSize {
-        if let estimate, estimate.generation == runtime.layoutGeneration, estimate.proposal == proposal { return estimate.size }
+        if let estimate, estimate.generation == runtime.fullLayoutCount, estimate.proposal == proposal { return estimate.size }
         let axis = lazyAxis ?? .vertical
         var total = CGSize.zero
         var count = 0
@@ -204,7 +204,7 @@ package final class ForEachNode<Data: RandomAccessCollection, ID: Hashable, Cont
         }
         var size = total
         if count > 0 { size[axis] = total[axis] / CGFloat(count) }
-        estimate = (runtime.layoutGeneration, proposal, size)
+        estimate = (runtime.fullLayoutCount, proposal, size)   // per full layout: the elements' sizes may have changed with an update
         return size
     }
 

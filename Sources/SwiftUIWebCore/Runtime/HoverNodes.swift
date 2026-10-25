@@ -12,8 +12,8 @@ package protocol _HoverTracking: AnyObject {
 extension Runtime {
     /// Hover-tracking nodes (paint order), memoised per layout.
     private var hoverTrackingNodes: [ViewNode & _HoverTracking] {
-        if hoverNodesGeneration != layoutGeneration {
-            hoverNodesGeneration = layoutGeneration
+        if hoverNodesGeneration != fullLayoutCount {   // the tree can change with every full layout
+            hoverNodesGeneration = fullLayoutCount
             hoverNodes = ((toolbar?.layoutChildren ?? []) + root.layoutChildren).flatMap { $0.collectNodes(where: { $0 is _HoverTracking }) }.compactMap { $0 as? (ViewNode & _HoverTracking) }
         }
         return hoverNodes

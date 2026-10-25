@@ -15,12 +15,16 @@ Apple docs: [LazyVStack](https://developer.apple.com/documentation/swiftui/lazyv
 
 ## Behaviour
 
-**Stacks.** A `LazyVStack` is a `VStack` of its alignment and spacing stretched to the proposed
-width (`frame(maxWidth: .infinity)` aligned by the stack's alignment at the top) inside a
-`_LazyContainer` (`Runtime/LazyNodes.swift`); a `LazyHStack` an `HStack` stretched to the
-proposed height. Two lazy stacks in an `HStack` therefore share the
-width equally, and a lazy horizontal stack bottom-aligns its children at the bottom of the
-available height.
+**Stacks.** A `LazyVStack` is a `VStack` of its alignment and spacing, proposed nothing along
+its axis (`fixedSize(horizontal: false, vertical: true)`: each child takes its ideal height and
+the stack is their sum whatever height it was proposed, so a `Spacer` in it takes its minimum,
+as in SwiftUI — a distributing stack handed every child a share of its siblings' leftovers, a
+proposal nothing memoises, and stretched short rows; Performance.md, 2026-10-25), stretched to
+the proposed width (`frame(maxWidth: .infinity)` aligned by the stack's alignment at the top)
+inside a `_LazyContainer` (`Runtime/LazyNodes.swift`); a `LazyHStack` an `HStack` proposed
+nothing along its width and stretched to the proposed height. Two lazy stacks in an `HStack`
+therefore share the width equally, and a lazy horizontal stack bottom-aligns its children at
+the bottom of the available height.
 
 **Grids.** `_LazyGridLayout` is a `Layout`: the `GridItem`s are the tracks across the minor axis
 (columns of a vertical grid); cells flow line by line, one per track, in order (a horizontal

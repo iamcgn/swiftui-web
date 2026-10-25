@@ -1683,6 +1683,10 @@ public final class CanvasSceneHost {
             object.paint = .number(phases[3]); object.semantics = .number(phases[4]); object.overlay = .number(phases[5])
             object.gap = .number(self?.frameGapMillis ?? 0)
             object.ops = .number(Double(self?.lastOpCount ?? 0))
+            // Why the frame laid out (or "moved"/"repaint"), with the pass's measurements and memo misses.
+            object.reason = .string(self?.scene.lastLayoutReason ?? "")
+            object.measures = .number(Double(self?.scene.lastLayoutMeasures ?? 0))
+            object.computes = .number(Double(self?.scene.lastLayoutComputes ?? 0))
             return .object(object)
         }
         let pendingImages = JSClosure { [weak self] _ in self?.bridge.pendingImages!() ?? .number(0) }
@@ -1745,7 +1749,29 @@ public final class CanvasSceneHost {
             }
             return .number((self.now - start) * 1000 + (acc.isNaN ? 1 : 0))
         }
-        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics, foundation, drag, dragging, bench]
+        // layoutProfile(on): switches layout profiling; returns the last profiled pass as
+        // { computes: { kind: n }, proposals: { kind: most distinct proposals one node computed } }.
+        let layoutProfile = JSClosure { [weak self] arguments in
+            guard let self else { return .undefined }
+            if let on = arguments.first?.boolean { self.scene.profileLayout = on }
+            let object = JSObject.global.Object.function!.new()
+            let computes = JSObject.global.Object.function!.new(), proposals = JSObject.global.Object.function!.new()
+            for (kind, n) in self.scene.lastComputeHistogram { computes[dynamicMember: kind] = .number(Double(n)) }
+            for (kind, n) in self.scene.lastProposalHistogram { proposals[dynamicMember: kind] = .number(Double(n)) }
+            object.computes = .object(computes); object.proposals = .object(proposals)
+            let worst = JSObject.global.Array.function!.new()
+            for p in self.scene.lastWorstNodeProposals { _ = worst.push!(p) }
+            object.worst = .object(worst)
+            let chain = JSObject.global.Array.function!.new()
+            for p in self.scene.lastWorstNodeChain { _ = chain.push!(p) }
+            object.chain = .object(chain)
+            let shares = JSObject.global.Object.function!.new()
+            for (k, n) in self.scene.lastShareProbes { shares[dynamicMember: k] = .number(Double(n)) }
+            object.shares = .object(shares)
+            return .object(object)
+        }
+        closures += [frames, displayList, frameCount, frameMillis, framePhases, pendingImages, animating, semantics, foundation, drag, dragging, bench, layoutProfile]
+        debug.layoutProfile = .object(layoutProfile)
         debug.bench = .object(bench)
         debug.drag = .object(drag)
         debug.dragging = .object(dragging)

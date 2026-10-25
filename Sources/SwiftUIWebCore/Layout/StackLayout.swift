@@ -11,6 +11,9 @@ package struct StackChildMeasurement {
     package let index: Int
     package let minimum: CGFloat
     package let maximum: CGFloat
+    /// The size at the infinite proposal, whole: a child whose share is at least its maximum
+    /// takes this (see `distribute`).
+    package let maximumSize: CGSize
     package let priority: Double
     package var flexibility: CGFloat { maximum - minimum }
 }
@@ -40,10 +43,12 @@ package enum StackLayoutEngine {
             if subview.isSpacer {
                 spacers.append((position, subview.sizeThatFits(zero)[axis]))
             } else {
+                let maximumSize = subview.sizeThatFits(infinite)
                 measurements.append(StackChildMeasurement(
                     index: position,
                     minimum: subview.sizeThatFits(zero)[axis],
-                    maximum: subview.sizeThatFits(infinite)[axis],
+                    maximum: maximumSize[axis],
+                    maximumSize: maximumSize,
                     priority: subview.priority))
             }
         }
@@ -61,10 +66,31 @@ package enum StackLayoutEngine {
                 a.element.flexibility == b.element.flexibility ? a.offset < b.offset : a.element.flexibility < b.element.flexibility
             }.map(\.element)
             for (k, measurement) in ordered.enumerated() {
-                var proposal = ProposedViewSize.unspecified
-                proposal[axis] = groupAvailable / CGFloat(ordered.count - k)
-                proposal[axis.perpendicular] = crossProposal
-                let size = subviews[measurement.index].sizeThatFits(proposal)
+                let share = groupAvailable / CGFloat(ordered.count - k)
+                let size: CGSize
+                if measurement.maximum.isFinite, measurement.minimum == measurement.maximum
+                    || (share >= measurement.maximum && isBounded(subviews[measurement.index], axis: axis, maximum: measurement.maximum, crossProposal: crossProposal)) {
+                    // A child of one size (its zero and infinite answers agree: a text that
+                    // cannot wrap further, an image, a fixed frame, a row of them), or a bounded
+                    // child offered at least what it takes when offered everything, takes the
+                    // infinite probe's answer, already measured. The share itself is not
+                    // proposed: it is a fraction of what the siblings left, a different number
+                    // for every child, every pass and every change of a sibling's size, and a
+                    // proposal nothing memoises (a stack placed at its own ideal length gave
+                    // every comment of Ember's thread a fresh height every time a lazy row
+                    // appeared, and the row's whole subtree was measured again for it).
+                    size = measurement.maximumSize
+                } else {
+                    var proposal = ProposedViewSize.unspecified
+                    proposal[axis] = share
+                    proposal[axis.perpendicular] = crossProposal
+                    let subview = subviews[measurement.index]
+                    if subview.node.runtime.profileLayout {
+                        let why = share < measurement.maximum ? "share \(share) < max \(measurement.maximum), min \(measurement.minimum)" : "unbounded"
+                        subview.node.runtime.shareProbes["\(subview.node.nodeDescription.prefix(40)) in \(subview.container.nodeDescription.prefix(30)) [\(axis)]: \(why)", default: 0] += 1
+                    }
+                    size = subview.sizeThatFits(proposal)
+                }
                 sizes[measurement.index] = size
                 groupAvailable = max(0, groupAvailable - size[axis])
             }
@@ -84,6 +110,21 @@ package enum StackLayoutEngine {
             }
         }
         return sizes
+    }
+
+    /// A length no layout proposes in earnest: a child's answer to it tells a bounded view (a
+    /// text, an image, a stack of them — the answer is its maximum) from one that takes any
+    /// finite proposal and reports a default when offered infinity (a slider, a text field, a
+    /// gauge, a text editor: the answer is the length). The probe is the same every time, so
+    /// it is measured once per child and memoised like the zero and infinite ones.
+    package static let boundednessProbe: CGFloat = 1_000_000
+
+    /// Whether `subview` takes no more than `maximum` along `axis` for any finite proposal.
+    private static func isBounded(_ subview: LayoutSubview, axis: Axis, maximum: CGFloat, crossProposal: CGFloat?) -> Bool {
+        var probe = ProposedViewSize.unspecified
+        probe[axis] = boundednessProbe
+        probe[axis.perpendicular] = crossProposal
+        return subview.sizeThatFits(probe)[axis] == maximum
     }
 
     /// Ideal sizes (unspecified proposal along the axis).
