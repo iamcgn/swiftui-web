@@ -1,8 +1,10 @@
 name: Landing page
-# Builds Examples/Landing (release wasm bundle) and the fixture gallery (Examples/Gallery, at
-# /gallery/) and publishes them as the gh-pages branch, which GitHub Pages serves at
+# Builds Examples/Landing (release wasm bundle), the fixture gallery (Examples/Gallery, at
+# /gallery/), the progress page (/progress/) and the three unmodified apps of decision 0021
+# (/apps/<app>/) and publishes them as the gh-pages branch, which GitHub Pages serves at
 # https://iamcgn.github.io/swiftui-web/ (repository settings: Pages source "Deploy from a branch",
-# gh-pages, /). The same as running scripts/deploy-landing.sh locally.
+# gh-pages, /). The same as running scripts/deploy-landing.sh locally. A macOS runner: SwiftUI-2048
+# needs the Objective-C runtime wasm SDK (decision 0023), which exists for macOS arm64 only.
 on:
   push:
     branches: [main]
@@ -22,6 +24,7 @@ on:
       - scripts/gen-progress.py
       - Docs/todo.json
       - scripts/assets.py
+      - Apps/**
       - .github/workflows/landing.yml
   workflow_dispatch:
 concurrency:
@@ -33,30 +36,35 @@ env:
   SWIFT_VERSION: "6.3.3"
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
-    container: swift:6.3.3
+    runs-on: macos-15
     steps:
-      - name: Tools (git, python, node for PackageToJS, binaryen for wasm-opt, brotli for the size gates)
-        run: |
-          apt-get update -q
-          DEBIAN_FRONTEND=noninteractive apt-get install -y -q git python3 nodejs binaryen brotli ca-certificates
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/checkout@v4
-      - name: Install wasm SDK
+        with: { submodules: true }   # Apps/upstream: the apps at their pins
+      - name: Install toolchain and the wasm SDKs (the stock one; the Objective-C runtime one of decision 0023 for SwiftUI-2048)
         run: |
+          brew install swiftly binaryen brotli
+          swiftly init --assume-yes --skip-install --no-modify-profile
+          . ~/.swiftly/env.sh
+          swiftly install $SWIFT_VERSION --use --assume-yes
           swift sdk install https://download.swift.org/swift-${SWIFT_VERSION}-release/wasm-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_wasm.artifactbundle.tar.gz \
             --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
-      - name: Cache the wasm build
+          swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.1/swift-${SWIFT_VERSION}-RELEASE_wasm-objc.artifactbundle.tar.gz \
+            --checksum d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Cache the wasm builds
         uses: actions/cache@v4
         with:
           path: |
             Examples/Landing/.build/wasm
             Examples/Gallery/.build/wasm
             Examples/Progress/.build/wasm
-          key: landing-wasm-${{ env.SWIFT_VERSION }}-${{ hashFiles('Examples/Landing/Package.resolved', 'Package.resolved') }}
-          restore-keys: landing-wasm-${{ env.SWIFT_VERSION }}-
+            Apps/.build/wasm
+            Apps/.build/wasm-objc
+          key: landing-wasm-${{ runner.os }}-${{ env.SWIFT_VERSION }}-${{ hashFiles('Examples/Landing/Package.resolved', 'Package.resolved', 'Apps/Package.resolved') }}
+          restore-keys: landing-wasm-${{ runner.os }}-${{ env.SWIFT_VERSION }}-
       - name: Build the site
-        run: scripts/build-landing.sh
+        run: . ~/.swiftly/env.sh && scripts/build-landing.sh
       - name: Publish gh-pages
         env:
           GIT_AUTHOR_NAME: github-actions[bot]

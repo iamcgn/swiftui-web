@@ -19,6 +19,8 @@ html,body{margin:0;height:100%;background:#fff;overflow:hidden;overscroll-behavi
 </style></head>
 <body><div id="app"></div>
 <div id="loading" role="status" aria-live="polite"><div class="name">SwiftUIWeb progress</div><div class="bar"><div class="fill indeterminate"></div></div><div class="status">Loading…</div></div>
+<!-- The bundle's asset manifest: where the host finds assets/ (the SF Symbol metrics table among them). -->
+<script src="./.build/wasm/plugins/PackageToJS/outputs/Package/assets/manifest.js"></script>
 <script type="module">
   import { init } from "./.build/wasm/plugins/PackageToJS/outputs/Package/index.js";
   const wasm = new URL("./.build/wasm/plugins/PackageToJS/outputs/Package/Progress.wasm", import.meta.url);

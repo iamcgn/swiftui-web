@@ -119,6 +119,11 @@ enum Site {
     /// The pages published next to this one (decision 0016): the fixture gallery and the progress page.
     static let gallery = URL(string: "gallery/")!
     static let progress = URL(string: "progress/")!
+    /// The apps of decision 0021, published by scripts/build-landing.sh at /apps/<app>/ (the phone look).
+    static let scrumdinger = URL(string: "apps/scrumdinger/?platform=ios")!
+    static let ember = URL(string: "apps/ember/?platform=ios")!
+    static let game2048 = URL(string: "apps/2048/?platform=ios")!
+    static let appsReadme = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Apps/README.md")!
     static let roadmap = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ROADMAP.md")!
     static let architecture = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ARCHITECTURE.md")!
     static let workflow = URL(string: "https://github.com/iamcgn/swiftui-web/blob/main/Docs/ELEMENT_WORKFLOW.md")!
@@ -144,6 +149,7 @@ struct LandingPage: View {
                 NavigationBar(theme: $theme)
                 Hero()
                 Highlights()
+                RealApps()
                 Demos()
                 IOSDemo()
                 UIKitDemo()
@@ -345,6 +351,53 @@ struct Highlights: View {
                     }
                 }
             }
+        }
+        .padding(.vertical, 40)
+    }
+}
+
+// MARK: - Real apps
+
+struct RealApp: Identifiable {
+    let id: Int
+    let name: String
+    let icon: String
+    let text: String
+    let note: String
+    let url: URL
+}
+
+/// Three published iOS apps running from their upstream sources exactly as published (decision
+/// 0021, Apps/README.md): nothing patched, excluded, mocked or rewritten on the app's side.
+struct RealApps: View {
+    static let items = [
+        RealApp(id: 1, name: "Scrumdinger", icon: "timer", text: "Apple's SwiftUI tutorial app. Add a scrum, start the meeting: the timer runs, the microphone is transcribed, the history keeps the transcript.", note: "Speech is recognised on the device by Chrome's on-device Web Speech; other browsers show the app's own \"not authorized\" alert.", url: Site.scrumdinger),
+        RealApp(id: 2, name: "Ember", icon: "flame.fill", text: "A Hacker News client against the live API: top stories, comment threads, search, settings.", note: "A long thread lays out in a couple of seconds — the layout work is counted in the plan.", url: Site.ember),
+        RealApp(id: 3, name: "SwiftUI 2048", icon: "square.grid.3x3.fill", text: "The 2020 game with its UIKit app delegate and @objc selectors. Swipe to play; ⌘N starts a new game.", note: "Compiled with the Objective-C runtime wasm SDK so the selectors stay as written.", url: Site.game2048),
+    ]
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            SectionHeader(kicker: "Real apps", title: "Shipping apps, unmodified")
+            Text("Each app is a git submodule at a pinned commit, compiled from every one of its Swift files with this package where Xcode links Apple's frameworks. Open one in a phone-sized window.")
+                .foregroundColor(.secondary)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 16)], spacing: 16) {
+                ForEach(Self.items) { app in
+                    Card {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Image(systemName: app.icon).font(.title2).foregroundStyle(Site.gradient)
+                            Text(app.name).font(.headline)
+                            Text(app.text).font(.callout).foregroundColor(.secondary)
+                            Text(app.note).font(.caption).foregroundColor(.secondary)
+                            Button { openURL(app.url) } label: { Label("Open \(app.name)", systemImage: "arrow.up.right.square") }
+                                .buttonStyle(.borderedProminent)
+                                .padding(.top, 4)
+                        }
+                    }
+                }
+            }
+            Link("How the apps are built and verified", destination: Site.appsReadme).font(.callout)
         }
         .padding(.vertical, 40)
     }
