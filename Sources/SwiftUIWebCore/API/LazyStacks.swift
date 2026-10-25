@@ -62,7 +62,14 @@ public struct LazyVStack<Content: View>: View {
 
     public var body: some View {
         _LazyContainer(axis: .vertical, pinnedViews: pinnedViews) {
+            // Along its axis a lazy stack proposes nothing: each child takes its ideal height
+            // and the stack is their sum, whatever height it was proposed (a `Spacer` in one
+            // takes its minimum, as in SwiftUI). A distributing `VStack` would hand every child
+            // a share of what its siblings left — a different, unmemoisable proposal per child
+            // and per pass that measured Ember's whole comment thread again for every lazy row
+            // that appeared, and stretched short rows to their share.
             VStack(alignment: alignment, spacing: spacing) { content }
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .top))
         }
     }
@@ -86,6 +93,7 @@ public struct LazyHStack<Content: View>: View {
     public var body: some View {
         _LazyContainer(axis: .horizontal, pinnedViews: pinnedViews) {
             HStack(alignment: alignment, spacing: spacing) { content }
+                .fixedSize(horizontal: true, vertical: false)
                 .frame(maxHeight: .infinity, alignment: Alignment(horizontal: .leading, vertical: alignment))
         }
     }

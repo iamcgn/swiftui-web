@@ -112,6 +112,10 @@ public final class RecordedTextEngine: TextEngine {
             if let minimum = entries[TextMetricsKey.make(runs: runs, options: options, width: 0)], width <= minimum.width {
                 return layout(from: minimum, runs: runs)
             }
+        } else if options.minimumLines <= 1, let single = entries[TextMetricsKey.make(runs: runs, options: .default, width: nil)] {
+            // Unconstrained, the same single line as the plain recording (a stack's infinite
+            // probe of a `lineLimit` text).
+            return layout(from: single, runs: runs)
         }
         misses.append(key)
         return TextLayout(size: .zero, firstBaseline: 0, lastBaseline: 0, lines: [])
