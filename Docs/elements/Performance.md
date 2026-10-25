@@ -83,9 +83,9 @@ median (`FRAME_MS`); it prints the gzip size and what a 1.6 Mbps connection woul
 ## A real app's frames (Ember, 2026-10-25)
 
 Ember (decision 0021) at a phone viewport in the installed Chrome on this Mac, release build,
-`?platform=ios`, every frame's phases read in the page as `frameCount()` advances (the probe is
-the session's scratch; the numbers are the host's `framePhases()`, which now also say why the
-frame laid out — `reason` — with the pass's `measures` and `computes`). Before: a scrolled
+`?platform=ios`, every frame's phases read in the page as `frameCount()` advances
+(`Playwright/ember-perf.mjs`; the numbers are the host's `framePhases()`, which now also say
+why the frame laid out — `reason` — with the pass's `measures` and `computes`). Before: a scrolled
 frame of the feed was 80 ms, of a comment thread 125 ms; a lazy row materialising in the
 thread took 190–390 ms, a full layout of it 1.5 s. After: 18 and 13–18 ms, 45 ms, 112 ms.
 What it was, in order of size:
