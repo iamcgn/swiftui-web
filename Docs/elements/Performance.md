@@ -124,6 +124,27 @@ What remains there: a full layout of a screen costs ~10 µs a measurement (the t
 screen pays; the onboarding's shimmer (masked, blended gradients every frame) paints at
 ~55 ms; and the navigation transition's frames paint both screens.
 
+### Safari: the blur without a canvas filter (2026-10-28)
+
+The numbers above are Chromium's, and on the phone Ember was still seconds a frame
+(Corey's recording: the onboarding's page transition sat at one offset for whole seconds).
+The same frames in WebKit (`ENGINE=webkit`, Playwright's build; `Playwright/ember-perf.mjs`
+takes the engine from that variable) painted at a flat **430 ms**, whatever they drew, and
+no canvas call accounted for it: the painter's JavaScript Gaussian did. WebKit's 2D context
+has no `filter` — not an attribute that does nothing, no attribute at all; the probe that
+assigned `blur(1px)` and read it back was fooled by its own expando, which is why the HUD
+said `filter yes` — so every blur ran the per-pixel kernel: 2 (6σ + 1) taps a pixel, σ 40
+over a 780 × 342 strip at DPR 2 for each material bar, 210 ms a bar; σ 60 over 1 206 wide
+on the phone at DPR 3, two thousand million multiplies a bar, two bars a frame.
+
+The fallback now draws the box down by k = ⌊σ / 4⌋ (at most 8), blurs the small image by
+three box passes each way (a running sum a pixel, whatever the σ; Kovesi's box widths), and
+draws it back up smoothed into a fresh offscreen, as the native path does. A mean 1–4/255
+from Chrome's native filter over a feed's strip, 6 ms for the strip at any σ (30 ms at σ 2,
+where nothing is drawn down). The probe draws a dot through the filter and reads a
+neighbour. WebKit's Ember paint: 420 → 7–11 ms a frame, the same as Chrome's; the frames
+Corey saw are the HUD's business now, not the painter's.
+
 ## Open
 
 Releasing lazy elements scrolled far away (Apple does), damage rects and content layer

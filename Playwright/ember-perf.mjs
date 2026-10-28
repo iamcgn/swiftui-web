@@ -4,11 +4,12 @@
 // the feed, the top story's discussion, two scrolls of the thread. The app must be built in
 // release (scripts/build-wasm.sh Apps --product Ember) and served; the drags are the host's
 // scripted finger (x, y, dx, dy, seconds). Against the live API, so the story and its thread
-// differ run to run; the shape of the numbers is what to compare.
+// differ run to run; the shape of the numbers is what to compare. ENGINE=webkit runs Playwright's
+// WebKit (the phone's engine: no canvas `filter`, so the painter's own blur) instead of Chrome.
 //   node ember-perf.mjs http://127.0.0.1:8780/index.html?platform=ios [screenshot.png]
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 const url = process.argv[2];
-const browser = await chromium.launch({ channel: 'chrome', chromiumSandbox: true, headless: true });
+const browser = process.env.ENGINE === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ channel: 'chrome', chromiumSandbox: true, headless: true });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
 const page = await context.newPage();
 await page.goto(url, { waitUntil: 'commit' });
