@@ -66,8 +66,10 @@ values tween under `withAnimation` (below).
 
 The browser painter renders the group into an offscreen canvas and, at `endGroup`, applies the
 matrix to the box's `ImageData` (un-premultiplied components, rounded per channel), or blurs with
-`CanvasRenderingContext2D.filter = blur(sigma·scale px)` (a JS separable Gaussian where the context
-has no `filter`, currently Firefox's OffscreenCanvas); an opaque blur copies the original alpha back
+`CanvasRenderingContext2D.filter = blur(sigma·scale px)` (where the context has no `filter` —
+WebKit, Firefox's OffscreenCanvas — the box is drawn down by ⌊σ/4⌋, blurred by three box passes
+each way and drawn back up smoothed: a Gaussian within a few 255ths of the native one at a cost
+that does not grow with σ; see Performance.md); an opaque blur copies the original alpha back
 over the blurred pixels, which un-premultiplication has already edge-normalised. Blend modes map to
 `globalCompositeOperation` (`plusLighter` = `lighter`; `plusDarker` has no canvas operation and is
 computed as max(0, source + destination − 1) over the box). The CoreGraphics painter paints filter

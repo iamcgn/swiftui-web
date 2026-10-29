@@ -231,12 +231,17 @@ enum PainterScript {
       }
       const blendOps = ['source-over', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'soft-light', 'hard-light',
         'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity', 'source-atop', 'destination-over', 'destination-out', 'plus-darker', 'lighter'];
-      // Whether the 2D context supports CSS filters (the blur path); otherwise the JS blur runs.
+      // Whether the 2D context's `filter` blurs (the native path); otherwise the box blur in
+      // script runs. Told by drawing, not by the property: a context without the attribute
+      // takes the assignment as a plain property and reads it back.
       let canvasFilters = null;
       function hasCanvasFilters() {
         if (canvasFilters === null) {
-          const probe = new OffscreenCanvas(1, 1).getContext('2d');
-          canvasFilters = ('filter' in probe) && (probe.filter = 'blur(1px)', probe.filter !== 'none' && probe.filter !== '');
+          const dot = new OffscreenCanvas(9, 9), dctx = dot.getContext('2d');
+          dctx.fillStyle = '#000'; dctx.fillRect(4, 4, 1, 1);
+          const probe = new OffscreenCanvas(9, 9).getContext('2d');
+          probe.filter = 'blur(1px)'; probe.drawImage(dot, 0, 0); probe.filter = 'none';
+          canvasFilters = probe.getImageData(3, 4, 1, 1).data[3] > 0;
         }
         return canvasFilters;
       }
@@ -266,61 +271,89 @@ enum PainterScript {
         }
         octx.putImageData(img, b.x, b.y);
       }
-      // A separable Gaussian over premultiplied pixels (outside the box is transparent).
-      function gaussianBlurData(d, w, h, sigma, keepAlpha) {
-        const radius = Math.ceil(sigma * 3);
-        const kernel = [];
-        let sum = 0;
-        for (let k = -radius; k <= radius; k++) { const v = Math.exp(-(k * k) / (2 * sigma * sigma)); kernel.push(v); sum += v; }
-        for (let k = 0; k < kernel.length; k++) kernel[k] /= sum;
-        const n = w * h * 4;
-        const src = new Float32Array(n), pass = new Float32Array(n);
-        for (let i = 0; i < n; i += 4) { const a = d[i + 3] / 255; src[i] = d[i] * a; src[i + 1] = d[i + 1] * a; src[i + 2] = d[i + 2] * a; src[i + 3] = d[i + 3]; }
-        for (let y = 0; y < h; y++) {
-          for (let x = 0; x < w; x++) {
-            let r = 0, g = 0, b = 0, a = 0;
-            for (let k = 0; k < kernel.length; k++) {
-              const sx = x + k - radius;
-              if (sx < 0 || sx >= w) continue;
-              const o = (y * w + sx) * 4, wt = kernel[k];
-              r += src[o] * wt; g += src[o + 1] * wt; b += src[o + 2] * wt; a += src[o + 3] * wt;
-            }
-            const o = (y * w + x) * 4;
-            pass[o] = r; pass[o + 1] = g; pass[o + 2] = b; pass[o + 3] = a;
-          }
-        }
-        for (let x = 0; x < w; x++) {
-          for (let y = 0; y < h; y++) {
-            let r = 0, g = 0, b = 0, a = 0;
-            for (let k = 0; k < kernel.length; k++) {
-              const sy = y + k - radius;
-              if (sy < 0 || sy >= h) continue;
-              const o = (sy * w + x) * 4, wt = kernel[k];
-              r += pass[o] * wt; g += pass[o + 1] * wt; b += pass[o + 2] * wt; a += pass[o + 3] * wt;
-            }
-            const o = (y * w + x) * 4;
-            const alpha = keepAlpha ? d[o + 3] : a;
-            if (a > 0 && alpha > 0) { const f = 255 / a; d[o] = clamp255(r * f); d[o + 1] = clamp255(g * f); d[o + 2] = clamp255(b * f); }
-            d[o + 3] = clamp255(alpha);
+      // The three box widths whose passes approximate a Gaussian of `sigma` (Kovesi: the box
+      // widths bracketing the ideal one, the first m at the narrower). Returned as radii.
+      function boxRadii(sigma) {
+        const n = 3;
+        const ideal = Math.sqrt((12 * sigma * sigma) / n + 1);
+        let lower = Math.floor(ideal);
+        if (lower % 2 === 0) lower--;
+        const upper = lower + 2;
+        const m = Math.round((12 * sigma * sigma - n * lower * lower - 4 * n * lower - 3 * n) / (-4 * lower - 4));
+        const radii = [];
+        for (let i = 0; i < n; i++) radii.push(((i < m ? lower : upper) - 1) / 2);
+        return radii;
+      }
+      // One box pass over premultiplied floats, along rows (`stride` 1, `step` w) or columns
+      // (`stride` w, `step` 1), with a running window sum: outside the image is transparent, so
+      // an edge fades in alpha and its colour, un-premultiplied by that alpha, stays its own.
+      function boxPass(src, dst, w, h, r, along) {
+        const lines = along ? h : w, length = along ? w : h;
+        const stride = along ? 1 : w, step = along ? w : 1;
+        const div = 2 * r + 1;
+        for (let l = 0; l < lines; l++) {
+          const base = l * step;
+          let sr = 0, sg = 0, sb = 0, sa = 0;
+          const first = Math.min(r, length - 1);
+          for (let i = 0; i <= first; i++) { const o = (base + i * stride) * 4; sr += src[o]; sg += src[o + 1]; sb += src[o + 2]; sa += src[o + 3]; }
+          for (let i = 0; i < length; i++) {
+            const o = (base + i * stride) * 4;
+            dst[o] = sr / div; dst[o + 1] = sg / div; dst[o + 2] = sb / div; dst[o + 3] = sa / div;
+            const add = i + r + 1, drop = i - r;
+            if (add < length) { const p = (base + add * stride) * 4; sr += src[p]; sg += src[p + 1]; sb += src[p + 2]; sa += src[p + 3]; }
+            if (drop >= 0) { const p = (base + drop * stride) * 4; sr -= src[p]; sg -= src[p + 1]; sb -= src[p + 2]; sa -= src[p + 3]; }
           }
         }
       }
+      // A Gaussian of `sigma` over the pixels of `d` (w × h, straight alpha) as three box
+      // passes each way: a running sum a pixel, whatever the sigma. Colours are blurred
+      // premultiplied and divided back out by the blurred alpha.
+      function boxBlurData(d, w, h, sigma) {
+        const n = w * h * 4;
+        let src = new Float32Array(n), dst = new Float32Array(n);
+        for (let i = 0; i < n; i += 4) { const a = d[i + 3] / 255; src[i] = d[i] * a; src[i + 1] = d[i + 1] * a; src[i + 2] = d[i + 2] * a; src[i + 3] = d[i + 3]; }
+        for (const r of boxRadii(sigma)) {
+          boxPass(src, dst, w, h, r, true);
+          boxPass(dst, src, w, h, r, false);
+        }
+        for (let i = 0; i < n; i += 4) {
+          const a = src[i + 3];
+          if (a > 0) { const f = 255 / a; d[i] = clamp255(src[i] * f); d[i + 1] = clamp255(src[i + 1] * f); d[i + 2] = clamp255(src[i + 2] * f); }
+          d[i + 3] = clamp255(a);
+        }
+      }
       // Blurs `off` within `b`: returns the canvas to composite (the browser's filter when it
-      // has one, else the JS blur in place). An opaque blur keeps the original alpha.
+      // has one; otherwise a fresh offscreen holding the box blurred in script). An opaque blur
+      // keeps the original alpha.
       function blurred(off, b, sigma, opaque) {
         if (b.w <= 0 || b.h <= 0 || sigma <= 0) return off;
         const octx = off.getContext('2d');
-        if (!hasCanvasFilters()) {
-          const img = octx.getImageData(b.x, b.y, b.w, b.h);
-          gaussianBlurData(img.data, b.w, b.h, sigma, opaque);
-          octx.putImageData(img, b.x, b.y);
-          return off;
-        }
         const out = takeOffscreen(off.width, off.height);
         const ctx = out.getContext('2d');
-        ctx.filter = 'blur(' + sigma + 'px)';
-        ctx.drawImage(off, 0, 0);
-        ctx.filter = 'none';
+        if (!hasCanvasFilters()) {
+          // WebKit's contexts have no `filter` (Safari, Firefox's OffscreenCanvas): the box is
+          // drawn down by `k` so the blur's sigma is a few pixels, blurred by box passes, and
+          // drawn back up smoothed — a blur of σ ≥ 4 k keeps nothing finer than the small image
+          // holds (a mean 1–4/255 from Chrome's native filter over a feed's strip). The
+          // per-pixel Gaussian this replaced walked 2 (6σ + 1) taps a pixel: σ 60 under a
+          // phone's material bar at DPR 3 was two thousand million multiplies, over a second a
+          // frame, for each of Ember's two bars.
+          const k = Math.max(1, Math.min(8, Math.floor(sigma / 4)));
+          const sw = Math.max(1, Math.round(b.w / k)), sh = Math.max(1, Math.round(b.h / k));
+          const small = new OffscreenCanvas(sw, sh);
+          const sctx = small.getContext('2d');
+          sctx.drawImage(off, b.x, b.y, b.w, b.h, 0, 0, sw, sh);
+          const img = sctx.getImageData(0, 0, sw, sh);
+          boxBlurData(img.data, sw, sh, sigma / k);
+          sctx.putImageData(img, 0, 0);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(small, 0, 0, sw, sh, b.x, b.y, b.w, b.h);
+        } else {
+          ctx.filter = 'blur(' + sigma + 'px)';
+          ctx.drawImage(off, 0, 0);
+          ctx.filter = 'none';
+        }
         if (opaque) {
           const original = octx.getImageData(b.x, b.y, b.w, b.h).data;
           const img = ctx.getImageData(b.x, b.y, b.w, b.h), d = img.data;
@@ -744,7 +777,7 @@ enum PainterScript {
         const frames = [], gaps = [];
         let lastCount = debug.frameCount(), lastT = null, report = '';
         const stat = v => { if (!v.length) return '-'; const s = [...v].sort((a, b) => a - b); const q = p => s[Math.min(s.length - 1, Math.floor(p * s.length))]; return q(0.5).toFixed(1) + '/' + q(0.9).toFixed(1) + '/' + s[s.length - 1].toFixed(1); };
-        const probe = (() => { try { const p = new OffscreenCanvas(1, 1).getContext('2d'); p.filter = 'blur(1px)'; return 'filter ' + (p.filter !== 'none' && p.filter !== '' ? 'yes' : 'no') + ' reset ' + (typeof p.reset === 'function' ? 'yes' : 'no'); } catch (e) { return 'no OffscreenCanvas'; } })();
+        const probe = (() => { try { const p = new OffscreenCanvas(1, 1).getContext('2d'); return 'filter ' + (hasCanvasFilters() ? 'yes' : 'no') + ' reset ' + (typeof p.reset === 'function' ? 'yes' : 'no'); } catch (e) { return 'no OffscreenCanvas'; } })();
         // The engine's speed on this device: 5 M iterations of the same arithmetic loop in the
         // module's wasm and in JavaScript (a JIT-less engine runs both some 20 times slower).
         const speed = (() => { const n = 5000000; const t0 = performance.now(); const values = new Float64Array(1024).fill(1); let acc = 0; for (let i = 0; i < n; i++) { const j = i & 1023; values[j] = values[j] * 0.5 + (i & 255) * 0.25; acc += Math.sqrt(values[j]); } const js = performance.now() - t0 + (isNaN(acc) ? 1 : 0); return 'wasm ' + (debug.bench ? debug.bench(n).toFixed(0) : '-') + ' ms  js ' + js.toFixed(0) + ' ms (5M loop)'; })();
