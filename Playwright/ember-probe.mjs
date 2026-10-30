@@ -85,6 +85,9 @@ const loaded = async () => {
 // A story row: its rank, then a title, a host, points and an author (the texts between two ranks).
 const pixel = (x, y) => page.evaluate(([x, y]) => { const c = document.querySelector('canvas'); const s = c.width / c.clientWidth; const d = c.getContext('2d').getImageData(Math.round(x * s), Math.round(y * s), 1, 1).data; return [d[0], d[1], d[2]]; }, [x, y]);
 const dark = (p) => p[0] < 40 && p[1] < 40 && p[2] < 40;
+// Whether a region is dark: most of a grid of samples around (x, y) (a single pixel can land on
+// a title's white glyph — the live feed's titles differ run to run).
+const mostlyDark = async (x, y) => { let n = 0, total = 0; for (const dx of [-120, -60, 0, 60, 120]) for (const dy of [-30, 0, 30]) { total++; if (dark(await pixel(x + dx, y + dy))) n++; } return n * 2 > total; };
 const frames = () => page.evaluate(() => Array.from(document.querySelectorAll('iframe')).map(f => ({ src: f.src, width: Math.round(f.getBoundingClientRect().width), height: Math.round(f.getBoundingClientRect().height), open: (f.parentElement.querySelector('a[target="_blank"]') || {}).href || null })));
 const idle = async () => { for (let i = 0; i < 40; i++) { const a = await page.evaluate(() => window.__swiftuiwebDebug.frameCount()); await page.waitForTimeout(300); if (a === await page.evaluate(() => window.__swiftuiwebDebug.frameCount())) return; } };
 const control = async (label) => { const box = await page.locator(`[aria-label="${label}"]`).first().boundingBox().catch(() => null); return box; };
@@ -125,7 +128,7 @@ for (let i = 0; i < 10; i++) {
     await idle();
     await tapText('Dark', 0, -20);
     await page.waitForTimeout(800);
-    coverDark = dark(await pixel(195, 600));
+    coverDark = await mostlyDark(195, 600);
     await shot('1b-dark-cover');
   }
   if (button === 'Start Reading') break;
@@ -137,7 +140,7 @@ expect(!shown.includes('Continue') && shown.includes('Top') && shown.includes('N
 begin('dark-mode');
 expect(coverDark, 'picking Dark on the appearance step did not darken the onboarding cover');
 await settle(t => rows(t).length >= 3, 100);
-expect(dark(await pixel(195, 560)), 'the feed is not dark after Dark was picked in the onboarding');
+expect(await mostlyDark(195, 560), 'the feed is not dark after Dark was picked in the onboarding');
 
 begin('feed');
 shown = await settle(t => rows(t).length >= 5, 100);
