@@ -1204,8 +1204,24 @@ public final class CanvasSceneHost {
                 style.margin = .string("0")
                 style.padding = .string("0")
                 style.display = .string("block")
-                style.background = .string(element.kind.isVideo ? "black" : "white")
+                // A frame is clear: a page paints its own background, and one that refuses to
+                // be framed paints nothing (WebKit), so what the view drew beneath shows.
+                style.background = .string(element.kind.isVideo ? "black" : "transparent")
                 _ = wrapper.appendChild!(created)
+                if case .web = element.kind {
+                    // A page that refuses to be framed (`X-Frame-Options`, `frame-ancestors`:
+                    // Hacker News, GitHub, most news sites) shows nothing in the frame, and the
+                    // page around it cannot tell. The way out is a link over the frame's corner
+                    // that opens the page in a tab of its own — the one thing a browser's "open
+                    // in Safari" is (decision 0021, Ember's reader and sign-in sheets).
+                    let open = document.createElement!("a").object!
+                    _ = open.setAttribute!("target", "_blank")
+                    _ = open.setAttribute!("rel", "noopener noreferrer")
+                    _ = open.setAttribute!("aria-label", "Open in browser")
+                    open.textContent = .string("Open \u{2197}")
+                    open.style.object!.cssText = .string("position:absolute;right:12px;bottom:12px;padding:6px 12px;border-radius:999px;background:rgba(28,28,30,0.78);color:#fff;font:600 13px -apple-system,system-ui,sans-serif;text-decoration:none;pointer-events:auto;box-shadow:0 1px 4px rgba(0,0,0,0.3)")
+                    _ = wrapper.appendChild!(open)
+                }
                 _ = elementsLayer.appendChild!(wrapper)
                 entry = (wrapper, created, HostElement(identifier: element.identifier, kind: element.kind, frame: .null, visibleFrame: .null))
             }
@@ -1252,6 +1268,15 @@ public final class CanvasSceneHost {
         case (.web(let oldURL, let oldHTML), .web(let url, let html)):
             if fresh || oldHTML != html, let html { element.srcdoc = .string(html) }
             else if fresh || oldURL != url, let url { element.src = .string(url) }
+            // The open-in-browser link follows the page; an HTML string has no page to open.
+            if fresh || oldURL != url || oldHTML != html, let open = element.parentNode.object?.lastElementChild.object, open.tagName.string == "A" {
+                if let url, html == nil {
+                    _ = open.setAttribute!("href", url)
+                    open.style.object!.display = .string("")
+                } else {
+                    open.style.object!.display = .string("none")
+                }
+            }
         default:
             break
         }

@@ -226,6 +226,12 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
         } else if let presenter = presentingViewController {
             presenter.dismiss(animated: flag, completion: completion)
             return
+        } else if let parent {
+            parent.dismiss(animated: flag, completion: completion)
+            return
+        } else if let hosted = viewIfLoaded?.window as? HostedWindow, let dismiss = hosted.tree?.dismissHandler {
+            // Hosted by another framework's presentation: that closes.
+            dismiss()
         }
         completion?()
     }

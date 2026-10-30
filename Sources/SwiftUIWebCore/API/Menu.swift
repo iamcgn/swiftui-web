@@ -335,6 +335,9 @@ package struct _MenuContent: View {
         VStack(alignment: .leading, spacing: 0) { content }
             .padding(.vertical, PlatformMetrics.menuVerticalPadding)
             .environment(\._inMenu, true)
+            // A menu's items show their titles and icons wherever the menu sits: a toolbar's
+            // icon-only context stops at the menu's own label (Ember's More menu, decision 0021).
+            .environment(\._automaticLabelContext, nil)
             ._dismissesOnActivation()
     }
 }

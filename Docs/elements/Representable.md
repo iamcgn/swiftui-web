@@ -193,6 +193,13 @@ it the window's `safeAreaInsets`, so `safeAreaInsets`, `safeAreaLayoutGuide` and
 `safeAreaInsets` and sets `Runtime.safeAreaInsets`, which lays the root view out inside them
 (an extending root, a scroll view, keeps the frame and insets its content).
 
+## Dismissing through the seam (2026-10-29, `FrameworksTests`)
+
+A hosted controller that dismisses with nothing of UIKit's to dismiss (no presented or
+presenting controller, no parent) runs the SwiftUI environment's `dismiss` of the
+representable's place (`UIKitHostedTree.dismissHandler`): an `SFSafariViewController`'s Done
+inside a `.sheet` closes the sheet, as SwiftUI does on iOS.
+
 ## Lifecycle (2026-09-12, `ios/representable/lifecycle`)
 
 The fixture draws the calls a representable received as bars (one per entry, the kind as a

@@ -38,7 +38,14 @@ Pages on a push to main, so https://iamcgn.github.io/swiftui-web/apps/scrumdinge
 and its siblings are the apps as of main. The workflow runs on macOS for the Objective-C runtime
 SDK. Scrumdinger's meeting transcribes in Chrome (decision 0022's on-device recogniser needs the
 microphone permission and, on an origin's first meeting, installs the English pack); other
-browsers show the app's own "not authorized" alert and run everything else.
+browsers show the app's own "not authorized" alert and run everything else. Ember runs whole
+but for its Hacker News account (decision 0021, "Ember by hand on the phone"): the sign-in
+sheet holds HN's login page in a frame HN refuses to fill (`X-Frame-Options: DENY`), its
+session cookie is cross-origin and HttpOnly, and its forms answer without CORS — signing in,
+voting, commenting and submitting need a same-origin proxy of `news.ycombinator.com` in front
+of the app, which a Pages site cannot be. The reader and sign-in sheets carry an **Open ↗**
+link to the page in a tab of its own; favicons show the app's globe fallback
+(`icons.duckduckgo.com` sends no CORS header).
 
 ## Pins
 

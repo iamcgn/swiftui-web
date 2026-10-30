@@ -58,6 +58,10 @@ final class RepresentableTree: _PlatformViewTree {
         traits.horizontalSizeClass = environment.horizontalSizeClass.map { $0 == .compact ? .compact : .regular }
         traits.verticalSizeClass = environment.verticalSizeClass.map { $0 == .compact ? .compact : .regular }
         hosted.traitOverrides = traits
+        // A controller dismissing with no presenter of UIKit's closes the presentation the
+        // representable sits in (SwiftUI's sheet over an `SFSafariViewController`'s Done).
+        let dismiss = environment.dismiss
+        hosted.dismissHandler = { dismiss() }
         hosted.safeAreaInsets = UIEdgeInsets(top: safeAreaInsets.top, left: safeAreaInsets.leading, bottom: safeAreaInsets.bottom, right: safeAreaInsets.trailing)
         hosted.layout(size: size)
     }
@@ -82,6 +86,28 @@ final class RepresentableTree: _PlatformViewTree {
     func baselines(in size: CGSize) -> (first: CGFloat, last: CGFloat) { hosted.baselines(in: size) }
 
     func paint(into list: inout DisplayList, context: PaintContext) { hosted.paint(into: &list, context: context) }
+
+    /// The views in the tree that are the host's elements (`_UIHostElementProviding`: a
+    /// `WKWebView` with a page), visible and on screen, with their frames in window space and
+    /// their visible frames clipped by the ancestors that clip and the context's clip.
+    func hostElements(in context: PaintContext, identify: (AnyObject) -> Int) -> [HostElement] {
+        var elements: [HostElement] = []
+        func walk(_ view: UIView, clip: CGRect?) {
+            guard !view.isHidden, view.alpha > 0 else { return }
+            let frame = view.convert(view.bounds, to: hosted.window)
+            if let provider = view as? _UIHostElementProviding, let kind = provider._hostElementKind {
+                let absolute = context.absoluteRect(frame)
+                var visible = absolute
+                if let clip { visible = visible.intersection(context.absoluteRect(clip)) }
+                if let rect = context.clipRect { visible = visible.intersection(rect) }
+                elements.append(HostElement(identifier: identify(view), kind: kind, frame: absolute, visibleFrame: visible.isNull ? .zero : visible))
+            }
+            let inner = view.clipsToBounds ? (clip.map { $0.intersection(frame) } ?? frame) : clip
+            for subview in view.subviews { walk(subview, clip: inner) }
+        }
+        walk(hosted.window, clip: nil)
+        return elements
+    }
     func advanceFrame(elapsed: Double, frame: _HostFrame) -> Bool { hosted.advanceFrame(elapsed: elapsed, key: frame) }
 
     func pointerDown(at point: CGPoint, type: PointerType, time: Double) { hosted.pointerDown(at: point, type: type, time: time) }
@@ -173,4 +199,12 @@ enum RepresentableSizing {
     static func size(for proposal: ProposedViewSize, of controller: UIViewController) -> CGSize {
         size(for: proposal, of: controller.view, fallback: controller.preferredContentSize)
     }
+}
+
+/// A UIKit view the host shows as an element of its own where the view is (a `WKWebView`'s
+/// page in the host's `<iframe>`): the kind says what, nil says nothing yet. The hosting tree
+/// collects them when it paints; a change of page asks for a repaint (`setNeedsDisplay`).
+@MainActor
+public protocol _UIHostElementProviding: AnyObject {
+    var _hostElementKind: HostElement.Kind? { get }
 }

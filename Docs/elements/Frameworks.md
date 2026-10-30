@@ -39,7 +39,9 @@ attributes in Chromium; `FrameworksTests` the runtime's reports.
 | `WebView(url:)`, `WebView(_ page:)` | implemented: the host's `<iframe>` (sandboxed: scripts, same-origin, forms, popups) |
 | `WebPage` (`load(URL)`, `load(URLRequest)` off wasm, `load(html:baseURL:)` as `srcdoc`, `url`, `isLoading`, `reload`, `goBack`, `goForward`) | implemented for loading; navigation state is not reported back (`title` is the host name) |
 | `webViewScrollPosition`, `webViewContentBackground`, `webViewLinkPreviews`, the gestures | accepted, no effect |
-| Navigation delegates, JavaScript evaluation, `WKWebView` itself, cookies | missing |
+| `WKWebView` (the UIKit view, `import WebKit`; in a representable or `SFSafariViewController`) | implemented (2026-10-29): a host element like `WebView`'s — the representable tree reports its `_UIHostElementProviding` views after painting, with their frames in window space and the clips of the ancestors that clip; `load(_:)`, `loadHTMLString`, the navigation delegate's start, commit and finish for the load the view began |
+| The Open link | every framed page carries an **Open ↗** link over its corner (`<a target="_blank">`): a site that refuses framing (`X-Frame-Options`, `frame-ancestors`) paints nothing in the frame and the page around it cannot tell, so the link is the way to it; the frame is transparent, so what the view drew beneath (the `WKWebView`'s URL and hint) shows there |
+| Navigation inside the frame, JavaScript evaluation on another origin, the page's cookies | missing by the browser's rules (a frame of another origin is closed to the page around it) |
 
 ## Map (MapKit, CoreLocation)
 

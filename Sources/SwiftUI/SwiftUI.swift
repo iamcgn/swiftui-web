@@ -45,6 +45,9 @@ extension App {
     /// on macOS in an AppKit window painted with CoreGraphics (`SwiftUIWebNative`); elsewhere
     /// (CLIs) lays it out headlessly once and returns.
     public static func main() {
+        // The app's scene gets a window in UIKit once its root is mounted (what the app reaches
+        // through `UIApplication.shared.connectedScenes`).
+        _appDidMount = { runtime in _SwiftUISceneWindow.install(for: runtime) }
         #if os(WASI)
         CanvasHost.launch(windows: Self._windows()) { Self._rootView() }
         #elseif canImport(AppKit)

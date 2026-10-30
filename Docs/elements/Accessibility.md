@@ -10,7 +10,7 @@ Apple docs: [accessibilityLabel(_:)](https://developer.apple.com/documentation/s
 | API | Notes |
 |---|---|
 | `accessibilityLabel`, `accessibilityHint`, `accessibilityValue`, `accessibilityIdentifier` (Text, key and string forms) | implemented |
-| `accessibilityHidden(_:)` | implemented (the subtree contributes no elements) |
+| `accessibilityHidden(_:)` | implemented (the subtree contributes no elements); an outer `accessibilityHidden(false)` shows a hidden subtree again (2026-10-29: a label's icon, hidden beside the title, shown by an icon-only style) |
 | `accessibilityAddTraits`/`accessibilityRemoveTraits` (`isHeader`, `isButton`, `isLink`, `isImage` change the role; others stored) | implemented |
 | `accessibilityElement(children:)` (`.ignore`, `.combine` make one element; `.contain` keeps the parts) | implemented (combined labels join the parts with ", ") |
 | Elements for `Text`, `Image` (label, else the asset name; decorative images none), `Button`, `Toggle` (checkbox / switch), `TextField`, `Slider`, `Stepper`, `Picker` (pop-up, radio group, segmented), `NavigationLink` (button), `List` rows | implemented |

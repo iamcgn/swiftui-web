@@ -129,7 +129,9 @@ package struct AccessibilityAttributes: Equatable, Sendable {
     package var hint: String?
     package var value: String?
     package var identifier: String?
-    package var hidden = false
+    /// Hidden from assistive technology; the outer modifier's answer wins (a label's icon is
+    /// hidden beside the title and shown again, reading as the title, by an icon-only style).
+    package var hidden: Bool?
     package var addedTraits: AccessibilityTraits = []
     package var removedTraits: AccessibilityTraits = []
     package var children: AccessibilityChildBehavior?
@@ -155,7 +157,7 @@ package struct AccessibilityAttributes: Equatable, Sendable {
         if let hint { result.hint = hint }
         if let value { result.value = value }
         if let identifier { result.identifier = identifier }
-        result.hidden = result.hidden || hidden
+        if let hidden { result.hidden = hidden }
         result.addedTraits.formUnion(addedTraits)
         result.removedTraits.formUnion(removedTraits)
         if let children { result.children = children }

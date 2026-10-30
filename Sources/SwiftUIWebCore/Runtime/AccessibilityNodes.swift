@@ -134,7 +134,7 @@ extension Runtime {
         }
         var merged = attributes ?? AccessibilityAttributes()
         for entry in chain.reversed() { merged = entry.merged(over: merged) }
-        if merged.hidden { return }
+        if merged.hidden == true { return }
         if let behavior = merged.children, behavior.kind != .contain {
             // One element for the whole subtree, with the labels of its parts.
             var parts: [SemanticsEntry] = []

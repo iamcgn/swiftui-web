@@ -1,9 +1,10 @@
 // Apple's SafariServices for the web (decision 0021, the Ember app's in-app reader):
 // `SFSafariViewController`, the view controller an app presents to show a web page inside
 // itself. Its view is a `WKWebView` over the page — in the browser the host's `<iframe>` at
-// the view's frame (sites that refuse framing show their refusal there, as the frame does) —
-// under a bar with the dismiss button the app configured, which dismisses the controller as
-// Safari's does. Only the wasm SDK lacks the module; the Apps package links this for wasm alone.
+// the view's frame, with the host's Open link over its corner for a site that refuses to be
+// framed — under a bar with the dismiss button the app configured, which dismisses the
+// controller (and the SwiftUI sheet around it) as Safari's does. Only the wasm SDK lacks the
+// module; the Apps package links this for wasm alone.
 #if os(WASI)
 import WebFoundation
 import SwiftUI
@@ -83,9 +84,11 @@ open class SFSafariViewController: UIViewController {
         webView.frame = CGRect(x: 0, y: bar.frame.maxY, width: view.bounds.width, height: view.bounds.height - bar.frame.maxY)
     }
 
+    /// Done: the delegate hears, then the controller dismisses — through UIKit's presenter when
+    /// it has one, else through the SwiftUI presentation hosting it (Ember's reader sheet).
     private func finish() {
         delegate?.safariViewControllerDidFinish(self)
-        if presentingViewController != nil { dismiss(animated: true) }
+        dismiss(animated: true)
     }
 }
 

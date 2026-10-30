@@ -154,8 +154,14 @@ public final class Runtime {
     package var preferredColorScheme: ColorScheme? {
         didSet { if preferredColorScheme != oldValue { requestLayout() } }
     }
-    /// The scheme the window shows: the preferred one, else the host's. Hosts paint their
-    /// background with it (`paintsWindowBackground`).
+    /// The window's override, set through UIKit (`UIWindow.overrideUserInterfaceStyle` on the
+    /// window a SwiftUI app's scene stands behind; Ember's appearance setting, decision 0021):
+    /// between the tree's preference and the host's scheme.
+    public var interfaceStyleOverride: ColorScheme? {
+        didSet { if interfaceStyleOverride != oldValue { requestLayout() } }
+    }
+    /// The scheme the window shows: the preferred one, else the window's override, else the
+    /// host's. Hosts paint their background with it (`paintsWindowBackground`).
     public var effectiveColorScheme: ColorScheme { rootEnvironment.colorScheme }
     /// Whether `render` starts with the window background (hosts: yes; fixtures and tests: no,
     /// their goldens are transparent).
@@ -332,11 +338,12 @@ public final class Runtime {
     /// Moves the root environment to the effective scheme when it changed, re-applying the
     /// root view so every node resolves its colours again.
     private func applyColorScheme() {
-        let effective = preferredColorScheme ?? hostColorScheme
+        let effective = preferredColorScheme ?? interfaceStyleOverride ?? hostColorScheme
         guard effective != rootEnvironment.colorScheme else { return }
         rootEnvironment.colorScheme = effective
         root.environment = rootEnvironment
         root.reapply?(rootEnvironment)
+        for presentation in presentations { presentation.applyPreferredColorScheme() }
         sizesInvalidated = true
         layoutGeneration += 1
     }
@@ -445,6 +452,9 @@ public final class Runtime {
     /// The host elements painted this render and the last complete one (API/HostElement.swift).
     package var hostElementsThisFrame: [HostElement] = []
     package var hostElementsLastFrame: [HostElement] = []
+    /// The identifiers given to platform views that are host elements, by the view's identity
+    /// (a web view keeps its frame across frames).
+    package var platformHostElementIdentifiers: [ObjectIdentifier: Int] = [:]
     package var hostElementCounter = 0
     /// Counts the frames the hosted trees were advanced for (`_HostFrame`).
     package var hostFrameNumber: UInt64 = 0
