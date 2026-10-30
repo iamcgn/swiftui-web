@@ -49,6 +49,8 @@ page.on('console', m => {
   if (m.type() !== 'error') return;
   if (isFavicon(text)) { report.favicons_refused++; return; }
   if (/net::ERR_FAILED|Failed to load resource/.test(text) && !/firebaseio|algolia/.test(text)) { report.favicons_refused++; return; }
+  // A site refusing to be framed is the site's choice (the reader sheet's Open link is the way out).
+  if (/Refused to (display|frame) |X-Frame-Options|frame-ancestors|allow-scripts and allow-same-origin/.test(text)) return;
   problems.push('console: ' + text.slice(0, 300));
 });
 // The painted texts, each with its font family and position.
@@ -61,7 +63,7 @@ const texts = async () => (await drawn()).map(d => d.text);
 // each poll waits out a frame in flight.
 const settle = async (ready, tries = 60) => { let t = await texts(); for (let i = 0; i < tries && !ready(t); i++) { await page.waitForTimeout(250); t = await texts(); } return t; };
 const expect = (condition, message) => { if (!condition) { problems.push(message); if (currentFlow) report.flows[currentFlow] = { outcome: 'failed', detail: message }; } };
-const FLOWS = ['launch', 'onboarding', 'feed', 'feed-chips', 'story-detail', 'save-story', 'saved-list', 'search', 'settings', 'persists-after-reload'];
+const FLOWS = ['launch', 'onboarding', 'dark-mode', 'feed', 'feed-chips', 'story-detail', 'reader-sheet', 'more-menu', 'save-story', 'saved-list', 'search', 'settings', 'sign-in-sheet', 'persists-after-reload'];
 for (const f of FLOWS) flow(f, 'not-run');
 const begin = (name) => { currentFlow = name; flow(name, 'passed'); };
 const tapText = async (text, dx = 10, dy = -6) => {
@@ -81,6 +83,14 @@ const loaded = async () => {
   await page.waitForTimeout(300);
 };
 // A story row: its rank, then a title, a host, points and an author (the texts between two ranks).
+const pixel = (x, y) => page.evaluate(([x, y]) => { const c = document.querySelector('canvas'); const s = c.width / c.clientWidth; const d = c.getContext('2d').getImageData(Math.round(x * s), Math.round(y * s), 1, 1).data; return [d[0], d[1], d[2]]; }, [x, y]);
+const dark = (p) => p[0] < 40 && p[1] < 40 && p[2] < 40;
+// Whether a region is dark: most of a grid of samples around (x, y) (a single pixel can land on
+// a title's white glyph — the live feed's titles differ run to run).
+const mostlyDark = async (x, y) => { let n = 0, total = 0; for (const dx of [-120, -60, 0, 60, 120]) for (const dy of [-30, 0, 30]) { total++; if (dark(await pixel(x + dx, y + dy))) n++; } return n * 2 > total; };
+const frames = () => page.evaluate(() => Array.from(document.querySelectorAll('iframe')).map(f => ({ src: f.src, width: Math.round(f.getBoundingClientRect().width), height: Math.round(f.getBoundingClientRect().height), open: (f.parentElement.querySelector('a[target="_blank"]') || {}).href || null })));
+const idle = async () => { for (let i = 0; i < 40; i++) { const a = await page.evaluate(() => window.__swiftuiwebDebug.frameCount()); await page.waitForTimeout(300); if (a === await page.evaluate(() => window.__swiftuiwebDebug.frameCount())) return; } };
+const control = async (label) => { const box = await page.locator(`[aria-label="${label}"]`).first().boundingBox().catch(() => null); return box; };
 const rows = (t) => { const ranks = []; for (let i = 0; i < t.length; i++) if (/^\d+$/.test(t[i]) && +t[i] >= 1 && +t[i] <= 30 && (ranks.length === 0 || +t[i] === ranks[ranks.length - 1].rank + 1)) ranks.push({ rank: +t[i], index: i }); return ranks; };
 const finish = async () => {
   report.finished = new Date().toISOString();
@@ -103,6 +113,7 @@ await shot('1-onboarding');
 
 begin('onboarding');
 let steps = 0;
+let coverDark = false;
 for (let i = 0; i < 10; i++) {
   const t = await texts();
   const button = t.includes('Start Reading') ? 'Start Reading' : t.includes('Continue') ? 'Continue' : null;
@@ -110,11 +121,26 @@ for (let i = 0; i < 10; i++) {
   await tapText(button);
   steps++;
   await page.waitForTimeout(500);
+  if (steps === 1) {
+    // The appearance step: Dark applies at once, to the cover itself (the app sets
+    // `overrideUserInterfaceStyle` on the scene's windows; the cover follows the window).
+    await settle(t => t.includes('Choose your look'), 20);
+    await idle();
+    await tapText('Dark', 0, -20);
+    await page.waitForTimeout(800);
+    coverDark = await mostlyDark(195, 600);
+    await shot('1b-dark-cover');
+  }
   if (button === 'Start Reading') break;
 }
 shown = await settle(t => !t.includes('Welcome to Ember') && !t.includes('Start Reading') && t.includes('Top'));
 expect(steps === 7, `the onboarding took ${steps} taps, not 7`);
 expect(!shown.includes('Continue') && shown.includes('Top') && shown.includes('New'), 'the feed did not appear after "Start Reading": ' + JSON.stringify(shown.slice(0, 20)));
+
+begin('dark-mode');
+expect(coverDark, 'picking Dark on the appearance step did not darken the onboarding cover');
+await settle(t => rows(t).length >= 3, 100);
+expect(await mostlyDark(195, 560), 'the feed is not dark after Dark was picked in the onboarding');
 
 begin('feed');
 shown = await settle(t => rows(t).length >= 5, 100);
@@ -150,6 +176,30 @@ expect(shown.some(s => s.startsWith(openTitle.slice(0, 12))), 'the discussion di
 expect(await page.locator('[aria-label="Save story"]').count() > 0, 'the discussion bar has no Save button (an icon button, by its accessibility label)');
 expect(shown.includes('Comments') || shown.some(s => /^\d+$/.test(s)), 'the discussion did not show its comments header: ' + JSON.stringify(shown.slice(0, 20)));
 await shot('4-discussion');
+
+begin('reader-sheet');
+// "Read article" presents the in-app browser (SFSafariViewController over a WKWebView): the
+// host's frame at the web view, the Open link over its corner (most news sites refuse to be
+// framed), and Done closes the sheet.
+const read = await page.locator('[aria-label^="Read article"]').first().boundingBox().catch(() => null);
+if (read) await page.touchscreen.tap(read.x + read.width / 2, read.y + read.height / 2); else problems.push('the discussion has no "Read article" button');
+shown = await settle(t => t.includes('Done'), 40);
+await page.waitForTimeout(1500);
+let hosted = await frames();
+expect(hosted.length === 1 && /^https?:/.test(hosted[0].src) && hosted[0].height > 400, 'the reader sheet shows no frame for the article: ' + JSON.stringify(hosted));
+expect(hosted[0] && hosted[0].open === hosted[0].src, 'the reader frame has no Open link to the article: ' + JSON.stringify(hosted));
+await shot('4b-reader');
+await tapText('Done');
+shown = await settle(t => !t.includes('Done'), 40);
+expect(!shown.includes('Done') && (await frames()).length === 0, 'Done did not close the reader sheet');
+
+begin('more-menu');
+await tap('More actions');
+shown = await settle(t => t.includes('Copy Link'), 20);
+expect(shown.includes('Open Link') && shown.includes('Copy Link') && (shown.includes('Mark as Read') || shown.includes('Mark as Unread')), 'the More menu does not show its items\' titles: ' + JSON.stringify(shown.slice(-8)));
+await shot('4c-more-menu');
+await page.touchscreen.tap(30, 500);
+shown = await settle(t => !t.includes('Copy Link'), 20);
 
 begin('save-story');
 await tap('Save story');
@@ -191,6 +241,34 @@ shown = await settle(t => t.includes('Offline Cache'), 20);
 expect(shown.includes('Offline Cache'), 'the Data section did not scroll into view: ' + JSON.stringify(shown.slice(0, 30)));
 expect(shown.some(s => /^(Zero KB|[\d.,]+ (bytes|KB|MB))$/.test(s)), 'the cache size is not a byte count: ' + JSON.stringify(shown.filter(s => /KB|MB|bytes/.test(s))));
 await shot('8b-settings-data');
+
+begin('sign-in-sheet');
+// Account Features on, then Sign In: the sheet holds Hacker News's login page in the host's
+// frame with the Open link (HN refuses framing; its session is cross-origin, so the account
+// features themselves stay out of reach on a static origin — decision 0021).
+for (let i = 0; i < 8; i++) { const box = await control('Account Features'); if (box && box.y > 80 && box.y < 700) break; await page.mouse.move(195, 500); await page.mouse.wheel(0, box && box.y <= 80 ? -250 : 250); await page.waitForTimeout(300); }
+await idle();
+const account = await control('Account Features');
+expect(!!account, 'the Account Features switch is not on screen');
+if (account) {
+  await page.touchscreen.tap(account.x + account.width - 25, account.y + account.height / 2);
+  let signIn = null;
+  for (let i = 0; i < 20 && !signIn; i++) { await page.waitForTimeout(250); signIn = await page.locator('[aria-label="Sign In"]').first().boundingBox().catch(() => null); }
+  await shot('8c-account');
+  const checked = await page.locator('[aria-label="Account Features"]').first().getAttribute('aria-checked').catch(() => null);
+  expect(!!signIn, `turning Account Features on did not show the Sign In button (switch at ${JSON.stringify(account)}, checked ${checked}, labels ${JSON.stringify(await page.evaluate(() => Array.from(document.querySelectorAll('[aria-label]')).map(e => e.getAttribute('aria-label').slice(0, 24)).slice(10, 40)))})`);
+  if (signIn) {
+    await page.touchscreen.tap(signIn.x + signIn.width / 2, signIn.y + signIn.height / 2);
+    shown = await settle(t => t.includes('Sign in to Hacker News'), 40);
+    await page.waitForTimeout(1500);
+    hosted = await frames();
+    expect(hosted.length === 1 && /news\.ycombinator\.com\/login/.test(hosted[0].src) && hosted[0].open === hosted[0].src, 'the sign-in sheet shows no frame of the login page with its Open link: ' + JSON.stringify(hosted));
+    await shot('8c-sign-in');
+    await tapText('Done');
+    shown = await settle(t => !t.includes('Sign in to Hacker News'), 40);
+    expect(!shown.includes('Sign in to Hacker News'), 'Done did not close the sign-in sheet');
+  }
+}
 
 begin('persists-after-reload');
 await page.reload({ waitUntil: 'commit' });

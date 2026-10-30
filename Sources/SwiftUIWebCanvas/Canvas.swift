@@ -2,6 +2,7 @@ import SwiftUIWebCore
 #if os(WASI)
 import JavaScriptEventLoop
 import JavaScriptKit
+import UIKitWebCore
 @_exported import WebGraphicsCanvas
 
 /// A SwiftUI `Runtime` in the browser: the substrate's `CanvasSceneHost` (decision 0014) with the
@@ -41,6 +42,7 @@ public final class CanvasHost {
         host.mount(root())
         // An app-level `@StateObject` or `@State` change re-reads the app's body (decision 0021).
         _appRemount = (host.runtime, { [weak host] in host?.mount(root()) })
+        _appDidMount?(host.runtime)
         host.runtime.restoreWindows()
         retained = host
     }
@@ -59,6 +61,8 @@ public final class CanvasHost {
         // Links open in a new tab; share links use Web Share where the browser offers it.
         let host = self.host
         OpenURLAction.systemHandler = { url in host.openURL(url.absoluteString) }
+        // `UIApplication.shared.open` from a SwiftUI app reaches the same tab (decision 0021).
+        UIKitScene.shared.openURL = { url in host.openURL(url) }
         ShareAction.systemHandler = { request in host.share(items: request.strings, subject: request.subject, message: request.message, files: request.files) }
     }
 

@@ -177,8 +177,10 @@ package final class PresentationNode: ViewNode {
     }
 
     /// Moves the presentation and its content to the preferred scheme (the modifier may tell
-    /// it while the content is still being built: `init` applies it afterwards).
-    private func applyPreferredColorScheme() {
+    /// it while the content is still being built: `init` applies it afterwards), or to the
+    /// root's when that moved under an open presentation (Ember's onboarding cover picks Dark
+    /// and shows it at once, decision 0021).
+    package func applyPreferredColorScheme() {
         guard let content else { return }
         let scheme = preferredColorScheme ?? runtime.rootEnvironment.colorScheme
         guard scheme != environment.colorScheme else { return }

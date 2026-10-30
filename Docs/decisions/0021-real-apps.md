@@ -294,6 +294,55 @@ at the cross product of the widths and heights their parents probe, 800 000 `siz
 calls for sixty comments. The thread settles after that one layout; scrolling it is slow.
 CI builds Ember in release and the probe polls generously.
 
+### Ember by hand on the phone (2026-10-29)
+
+Corey used the published Ember on his iPhone and asked for it at a usable state: Dark could
+not be set and the sign-in sheet "just printed a URL". A tour of every screen in Chromium and
+WebKit (`Playwright/ember-probe.mjs` now drives fourteen flows) found what the ten flows had
+not, each fixed in the library, none in the app:
+
+- **Dark never applied.** Ember applies its appearance as `overrideUserInterfaceStyle` on
+  every window of every window scene (`UIApplication.shared.connectedScenes`), the reliable
+  way back to System after a forced style. A SwiftUI app had no `UIWindow`: the loop found
+  nothing. The app's launch registers one key window with the UIKit scene
+  (`_SwiftUISceneWindow`, no root controller) whose override drives the runtime's new
+  `interfaceStyleOverride`, between the tree's `preferredColorScheme` and the host's scheme;
+  a presentation open at the time (the onboarding cover) follows the root's scheme at once.
+  `InterfaceStyleOverrideTests` is the shape of Ember's root and cover.
+- **The sign-in and reader sheets showed a URL.** `WKWebView` declared itself a host element
+  (`_UIHostElementProviding`) and nothing collected it: no `<iframe>` ever existed, so the
+  label beneath showed. The representable tree now reports its providers after painting
+  (frames in window space, clipped by the ancestors that clip) and the node registers them
+  like SwiftUI's own host elements. Over every framed page the host places an **Open ↗**
+  link (`<a target="_blank">`, no popup rules) because a site that refuses framing —
+  `news.ycombinator.com`, `github.com`, most news sites — paints nothing and the page around
+  it cannot tell; the frame is transparent so the view's hint shows beneath.
+- **Done did nothing in the reader.** `SFSafariViewController` dismissed only with a
+  `presentingViewController`; hosted by a representable in a SwiftUI sheet it has none. A
+  hosted controller's dismiss with no presenter now runs the environment's `dismiss`
+  (`UIKitHostedTree.dismissHandler`), closing the sheet as SwiftUI does on iOS.
+- **The More menu showed icons alone.** The toolbar's icon-only label context reached the
+  menu's items; a menu's content resets it.
+- **Nine symbols drew the dashed square** (`circle.lefthalf.filled`, the account badges,
+  `checkmark.seal.fill`, `star.slash.fill`, `text.bubble.fill`, `clock.arrow.circlepath`,
+  `iphone.radiowaves.left.and.right`, `square.fill.text.grid.1x2`): mapped to Lucide icons,
+  the table regenerated with the Lucide the committed table came from (1.40.0; later
+  Lucides rename icons).
+- `UIApplication.shared.open` from a SwiftUI app reached nothing; it opens a tab now. A
+  `Label`'s icon beside its title is hidden from accessibility (VoiceOver and the probe read
+  "Sign In", not "Person Crop Circle Badge Plus Sign In").
+
+**What stays out of reach on a static origin, by the web's rules, not the library's:** the
+account features. Hacker News sends `X-Frame-Options: DENY` and `frame-ancestors 'self'`, so
+its login page cannot show inside the app; its session cookie is HttpOnly and cross-origin,
+so a login in another tab cannot reach the app either, and `HNWebWriter`'s posts to
+`news.ycombinator.com` have no CORS header to read. Signing in, voting, commenting and
+submitting need a same-origin proxy of Hacker News in front of the app — a service, not a
+Pages site. Favicons stay the app's globe fallback (`icons.duckduckgo.com` sends no CORS
+header, so the browser will not let the canvas draw them). Everything else — onboarding,
+appearance and accent, the feeds, discussions and their actions, the reader (with Open ↗),
+search, saved and swipes, settings, the dialogs — works in Chromium and WebKit.
+
 ### The keyboard host (2026-10-13)
 
 `uk-app-delegate-adaptor` had one gap left open: no browser host set `UIKitScene.keyboardFrame`,

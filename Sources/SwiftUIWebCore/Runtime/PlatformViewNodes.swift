@@ -31,6 +31,9 @@ package protocol _PlatformViewTree: AnyObject {
     func baselines(in size: CGSize) -> (first: CGFloat, last: CGFloat)
     /// Paints the tree; `context.origin` is the tree's origin in absolute coordinates.
     func paint(into list: inout DisplayList, context: PaintContext)
+    /// The elements the host shows as its own (a web view's frame) among the views painted,
+    /// with their frames in window space; `identify` gives a view its lasting identifier.
+    func hostElements(in context: PaintContext, identify: (AnyObject) -> Int) -> [HostElement]
     /// Advances the tree's clocks by `elapsed` seconds; true means it needs another frame.
     /// `frame` identifies the host's frame: trees sharing one clock advance it once per frame.
     func advanceFrame(elapsed: Double, frame: _HostFrame) -> Bool
@@ -93,6 +96,7 @@ package protocol _PlatformViewTree: AnyObject {
 
 extension _PlatformViewTree {
     package func connectHostServices(_ services: _HostServices) {}
+    package func hostElements(in context: PaintContext, identify: (AnyObject) -> Int) -> [HostElement] { [] }
     package func hasDragSource(at point: CGPoint) -> Bool { false }
     package var isDragging: Bool { false }
     package func externalDragItems() -> [ExternalDragItem] { [] }
@@ -245,6 +249,15 @@ package final class _PlatformViewHostNode<V: View>: LeafNode<V>, _Interactive, _
         let size = presentedFrame.size
         if size != laidOutSize { layoutTree(size: size) }
         tree.paint(into: &list, context: context)
+        // A web view inside is the host's frame at the view's place (Ember's reader and
+        // sign-in sheets, decision 0021), registered like a SwiftUI host element.
+        runtime.hostElementsThisFrame += tree.hostElements(in: context) { [unowned runtime] view in
+            let key = ObjectIdentifier(view)
+            if let identifier = runtime.platformHostElementIdentifiers[key] { return identifier }
+            let identifier = runtime.nextHostElementIdentifier()
+            runtime.platformHostElementIdentifiers[key] = identifier
+            return identifier
+        }
     }
 
     /// A change inside the tree: the sizes may differ, so the next frame lays out again.

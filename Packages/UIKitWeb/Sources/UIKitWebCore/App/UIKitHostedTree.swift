@@ -19,6 +19,10 @@ final class HostedWindow: UIWindow {
 public final class UIKitHostedTree {
     /// The window at the root of the tree (never registered with the scene).
     public let window: UIWindow
+    /// What a controller in the tree dismissing with nothing of UIKit's to dismiss asks of the
+    /// host: the SwiftUI presentation the tree sits in closes, as SwiftUI closes its sheet when
+    /// the hosted controller dismisses (`SFSafariViewController`'s Done, decision 0021).
+    public var dismissHandler: (@MainActor () -> Void)?
     private let touches = TouchRouter()
     private(set) var rootView: UIView?
     private(set) var rootViewController: UIViewController?

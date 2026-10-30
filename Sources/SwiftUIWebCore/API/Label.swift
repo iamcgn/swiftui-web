@@ -15,8 +15,12 @@ public struct Label<Title: View, Icon: View>: View {
     @Environment(\.labelStyle) private var style
 
     public var body: some View {
+        // The icon is decoration beside the title, in every style (a custom one composes the
+        // same icon): a label reads as its title — VoiceOver says "Sign In" for
+        // `Label("Sign In", systemImage:)`, not the symbol's name first. The icon-only styles
+        // show it again, reading as the title.
         let configuration = LabelStyleConfiguration(
-            title: LabelStyleConfiguration.Title(AnyView(title)), icon: LabelStyleConfiguration.Icon(AnyView(icon)))
+            title: LabelStyleConfiguration.Title(AnyView(title)), icon: LabelStyleConfiguration.Icon(AnyView(icon.accessibilityHidden(true))))
         style.makeBodyErased(configuration)
     }
 }
@@ -100,9 +104,9 @@ struct _AutomaticLabelBody: View {
     var body: some View {
         if context == .toolbar {
             if let title = (configuration.title.content.storage as? AnyViewStorage<Text>)?.view {
-                configuration.icon.help(title)
+                configuration.icon.help(title).accessibilityHidden(false).accessibilityLabel(title)
             } else {
-                configuration.icon
+                configuration.icon.accessibilityHidden(false)
             }
         } else {
             TitleAndIconLabelStyle().makeBody(configuration: configuration)
@@ -166,18 +170,19 @@ package struct _TitleAndIconLabel: View {
     package init(configuration: LabelStyleConfiguration) { self.configuration = configuration }
 
     package var body: some View {
+        let icon = configuration.icon
         if let iconLayout {
             HStack(alignment: ._iconCenter, spacing: iconLayout.spacing) {
                 if let scale = iconLayout.scale {
-                    configuration.icon.imageScale(scale).foregroundStyle(iconLayout.tint).frame(width: iconLayout.iconWidth)
+                    icon.imageScale(scale).foregroundStyle(iconLayout.tint).frame(width: iconLayout.iconWidth)
                 } else {
-                    configuration.icon.foregroundStyle(iconLayout.tint).frame(width: iconLayout.iconWidth)
+                    icon.foregroundStyle(iconLayout.tint).frame(width: iconLayout.iconWidth)
                 }
                 _IconAlignedTitle(content: configuration.title)
             }
         } else {
             HStack(alignment: ._iconCenter, spacing: PlatformMetrics.labelIconSpacing) {
-                configuration.icon
+                icon
                 _IconAlignedTitle(content: configuration.title)
             }
         }
@@ -197,9 +202,9 @@ public struct IconOnlyLabelStyle: LabelStyle {
     /// Scrumdinger's icon-only "Add Attendee" button).
     public func makeBody(configuration: Configuration) -> some View {
         if let title = (configuration.title.content.storage as? AnyViewStorage<Text>)?.view {
-            configuration.icon.accessibilityLabel(title)
+            configuration.icon.accessibilityHidden(false).accessibilityLabel(title)
         } else {
-            configuration.icon
+            configuration.icon.accessibilityHidden(false)
         }
     }
 }

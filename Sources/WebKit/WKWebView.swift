@@ -370,13 +370,6 @@ public protocol WKHTTPCookieStoreObserver: AnyObject {
 
 // MARK: - The view
 
-/// What a view that wants the host's element over its frame declares (a web view, a video).
-/// The hosted UIKit tree collects these after painting; the canvas host places the elements.
-@MainActor
-public protocol _UIHostElementProviding: AnyObject {
-    var _hostElementKind: HostElement.Kind? { get }
-}
-
 /// An object that displays interactive web content, such as for an in-app browser.
 @MainActor
 open class WKWebView: UIView, _UIHostElementProviding {
@@ -485,7 +478,10 @@ open class WKWebView: UIView, _UIHostElementProviding {
             self.title = target?.host
             self.isLoading = true
             self.estimatedProgress = 0.1
-            self.placeholder.text = target?.absoluteString ?? ""
+            // Under the frame: seen only where the page paints nothing, which is what a site
+            // that refuses to be framed (Hacker News's login) leaves. The host's Open link over
+            // the frame's corner takes it to a tab of its own.
+            self.placeholder.text = target.map { "\($0.absoluteString)\n\nThis site does not show itself inside another site. Open \u{2197} shows it in a new tab." } ?? ""
             self.setNeedsLayout()
             self.hostElementDidChange()
             self.navigationDelegate?.webView(self, didStartProvisionalNavigation: navigation)

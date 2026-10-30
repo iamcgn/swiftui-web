@@ -8,6 +8,9 @@ import SwiftUIWebHeadless
 import MapKit
 import AVKit
 import WebKit
+#if canImport(FoundationNetworking)
+import FoundationNetworking   // Linux keeps URLRequest here
+#endif
 
 #if !os(WASI)
 @Suite @MainActor struct FrameworksTests {
@@ -62,6 +65,63 @@ import WebKit
         _ = runtime.render(scale: 2)
         #expect(runtime.hostElements()[1].kind == .web(url: nil, html: "<p>Hi</p>"))
         #expect(elements[0].identifier != elements[1].identifier)
+    }
+
+    /// A `WKWebView` inside a representable (Ember's reader and sign-in sheets, decision 0021).
+    struct HostedWebView: UIViewRepresentable {
+        let url: URL
+        func makeUIView(context: Context) -> UIView {
+            let container = UIView()
+            container.clipsToBounds = true
+            let webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+            webView.load(URLRequest(url: url))
+            container.addSubview(webView)
+            webView.frame = CGRect(x: 0, y: 20, width: 320, height: 200)   // below a bar of its own
+            return container
+        }
+        func updateUIView(_ uiView: UIView, context: Context) {}
+    }
+
+    @Test func aUIKitWebViewIsAHostElementWhereItIs() {
+        let runtime = render(VStack(spacing: 0) {
+            Color.red.frame(height: 40)
+            HostedWebView(url: URL(string: "https://news.ycombinator.com/login")!).frame(height: 120)
+        })
+        let elements = runtime.hostElements()
+        #expect(elements.count == 1)
+        #expect(elements[0].kind == .web(url: "https://news.ycombinator.com/login", html: nil))
+        // The view's frame in the window (the stack's 160 pt sit 40 down in 240; the web view 20
+        // into its container), clipped to the container that clips.
+        #expect(elements[0].frame == CGRect(x: 0, y: 100, width: 320, height: 200), "\(elements[0].frame)")
+        #expect(elements[0].visibleFrame == CGRect(x: 0, y: 100, width: 320, height: 100), "\(elements[0].visibleFrame)")
+        // The identifier lasts across frames.
+        runtime.layout(in: CGSize(width: 320, height: 240))
+        _ = runtime.render(scale: 2)
+        #expect(runtime.hostElements().first?.identifier == elements[0].identifier)
+    }
+
+    /// A controller that dismisses itself, as `SFSafariViewController`'s Done does.
+    final class Closer: UIViewController {
+        func close() { dismiss(animated: false) }
+    }
+    struct CloserView: UIViewControllerRepresentable {
+        let keep: (Closer) -> Void
+        func makeUIViewController(context: Context) -> Closer { let c = Closer(); keep(c); return c }
+        func updateUIViewController(_ controller: Closer, context: Context) {}
+    }
+    @Observable final class SheetModel { var shown = true }
+
+    @Test func aHostedControllersDismissClosesTheSheetAround() {
+        let model = SheetModel()
+        var closer: Closer?
+        let runtime = render(Text("Page").sheet(isPresented: Binding(get: { model.shown }, set: { model.shown = $0 })) {
+            CloserView { closer = $0 }
+        })
+        #expect(runtime.hasPresentations && closer != nil)
+        closer?.close()
+        #expect(!model.shown, "the sheet's dismiss ran")
+        runtime.layout(in: CGSize(width: 320, height: 240))
+        #expect(!runtime.hasPresentations)
     }
 
     @Test func elementsInsideScrollViewsAreClippedAndCulled() {

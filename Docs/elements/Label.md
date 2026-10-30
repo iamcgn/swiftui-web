@@ -11,6 +11,7 @@ Apple docs: [Label](https://developer.apple.com/documentation/swiftui/label),
 | `Label(title:icon:)`, `Label(_ titleKey:image:)`, `Label(_ title: S, image:)` | implemented (images from the asset catalog, decision 0011; the harness shadows `Label(_:image:)` like `Image(_:)`) |
 | `Label(_:systemImage:)` | implemented: the symbol's measured size, centred half a cap height (to the half point) above its baseline, drawn with a stand-in glyph (`Docs/elements/Image.md`) |
 | `LabelStyle`, `LabelStyleConfiguration` (`title`, `icon`), `labelStyle(_:)` | implemented |
+| Accessibility | a label reads as its title alone: the configuration's icon is hidden, in the built-in styles and a custom one that composes it; the icon-only styles show it again reading as the title (2026-10-29: `Label("Sign In", systemImage:)` under Ember's settings style was "Person Crop Circle Badge Plus Sign In"). `accessibilityHidden` is outer-wins, not sticky |
 | `.automatic` / `DefaultLabelStyle` (= title and icon), `.titleAndIcon`, `.iconOnly`, `.titleOnly` | implemented |
 | Context-dependent automatic style | implemented 2026-10-11: a label in a toolbar item shows its icon alone with the title as its help (`_AutomaticLabelContext.toolbar`, set by the toolbar chrome node; Apple's documented rule, the chrome lies outside the goldens); everywhere else title and icon |
 

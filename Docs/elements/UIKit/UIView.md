@@ -134,7 +134,11 @@ bar items are not proxied. `AppearanceTests`.
 
 One `UIWindowScene` stands for the host's page or window (`UIKitScene.windowScene`,
 `UIApplication.connectedScenes`); `UIWindow(windowScene:)` joins it and every window's
-`windowScene` is it. A scene delegate class set on `UIApplication.sceneDelegateType` (what the
+`windowScene` is it. A SwiftUI app (`@main` an `App`) gets one key window at launch unless
+its app delegate made one (`_SwiftUISceneWindow`, SwiftUIWebUIKit): what the app reaches
+through `connectedScenes` — its `overrideUserInterfaceStyle` drives the SwiftUI runtime's
+colour scheme (2026-10-29, Ember's appearance setting) — and `UIApplication.shared.open`
+opens a tab from a SwiftUI app as from a UIKit one. A scene delegate class set on `UIApplication.sceneDelegateType` (what the
 scene manifest names) is created at launch and connected (`scene(_:willConnectTo:options:)`,
 with the page's URL as a `UIOpenURLContext`); its `window` is made key and visible. The host's
 `hostIsVisible` and `hostIsFocused` drive `UIApplication.applicationState` and the scene's

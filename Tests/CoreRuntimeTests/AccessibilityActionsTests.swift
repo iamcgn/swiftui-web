@@ -170,5 +170,23 @@ import SwiftUIWebHeadless
         let labels = r.semanticsTree().filter { $0.role == .button }.map(\.label)
         #expect(labels == ["Add", "Delete", "Wand And Rays", "Create", "", "Add Attendee"], "\(labels)")
     }
+
+    /// A label beside its title reads as the title alone, whatever style composes it (Ember's
+    /// settings style, decision 0021: "Sign In", not "Person Crop Circle Badge Plus Sign In").
+    struct IconAndTitle: LabelStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack { configuration.icon.frame(width: 26); configuration.title }
+        }
+    }
+    @Test func labelsReadAsTheirTitles() {
+        let r = runtime(VStack {
+            Button { } label: { Label("Sign In", systemImage: "person.crop.circle.badge.plus") }
+            Button { } label: { Label("Personalize Again", systemImage: "wand.and.stars") }.labelStyle(IconAndTitle())
+            Button { } label: { Label("Settings", systemImage: "gearshape") }.labelStyle(.titleOnly)
+            Button { } label: { Label("Compose", systemImage: "square.and.pencil") }.labelStyle(.iconOnly)
+        })
+        let labels = r.semanticsTree().filter { $0.role == .button }.map(\.label)
+        #expect(labels == ["Sign In", "Personalize Again", "Settings", "Compose"], "\(labels)")
+    }
 }
 #endif

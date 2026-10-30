@@ -328,6 +328,10 @@ public protocol App {
 /// scheduler coalesces the changes of one flush) and the re-mount.
 @MainActor public var _appRemount: (runtime: Runtime, apply: @MainActor () -> Void)?
 
+/// Told by a host once the app's root is mounted in its runtime, before the host runs: the
+/// framework registers what the app may reach through UIKit (the scene's window, decision 0021).
+@MainActor public var _appDidMount: (@MainActor (Runtime) -> Void)?
+
 /// Observable objects the app puts in every window's environment without a modifier: an
 /// `@UIApplicationDelegateAdaptor` delegate that is an `ObservableObject`, as SwiftUI injects
 /// it (decision 0021). Read when the windows are described.

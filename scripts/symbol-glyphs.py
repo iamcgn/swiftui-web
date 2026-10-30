@@ -3,7 +3,7 @@
 draws, taken from the Lucide icon set (ISC licence, https://lucide.dev) and mapped by SF Symbol
 name. SF Symbols themselves are never shipped (Docs/ROADMAP.md); the glyphs are approximate.
 
-    python3 scripts/symbol-glyphs.py path/to/icon-nodes.json
+    python3 scripts/symbol-glyphs.py path/to/icon-nodes.json   # lucide-static 1.40.0 made the committed table
 
 `icon-nodes.json` is Lucide's published node table (npm `lucide-static`, `icon-nodes.json`):
 { "<icon>": [["path", {"d": "…"}], ["circle", {"cx": …}], …] } on a 24 × 24 grid, stroked 2
@@ -24,6 +24,10 @@ OUT = ROOT / "Packages/WebGraphics/Sources/WebGraphics/Text/SystemSymbolGlyphs.s
 # SF Symbol name -> (Lucide icon, fill mode). Fill mode 1 fills the whole glyph, 2 fills its
 # first element and knocks the rest out (the marks inside filled circles), 0 strokes only.
 MAPPING = {
+    # Ember (decision 0021): its appearance picker, account rows, saved and filter chips.
+    "person.crop.circle.badge.plus": ("user-round-plus", 0), "person.crop.circle.badge.checkmark": ("user-round-check", 0),
+    "checkmark.seal.fill": ("badge-check", 2), "star.slash.fill": ("star-off", 1), "text.bubble.fill": ("message-square-text", 2),
+    "iphone.radiowaves.left.and.right": ("vibrate", 0), "square.fill.text.grid.1x2": ("layout-list", 0),
     "star": ("star", 0), "star.fill": ("star", 1), "heart": ("heart", 0), "heart.fill": ("heart", 1),
     "checkmark": ("check", 0), "xmark": ("x", 0), "plus": ("plus", 0), "minus": ("minus", 0),
     "chevron.right": ("chevron-right", 0), "chevron.left": ("chevron-left", 0), "chevron.down": ("chevron-down", 0), "chevron.up": ("chevron-up", 0),
@@ -171,7 +175,7 @@ MAPPING = {
     "uiwindow.split.2x1": ("columns-2", 0), "dock.rectangle": ("panel-bottom", 0), "rectangle.portrait.fill": ("rectangle-vertical", 1),
     "rectangle.inset.filled": ("rectangle-horizontal", 0), "square.on.square": ("copy", 0), "square.fill.on.square.fill": ("copy", 1),
     "square.dashed.inset.filled": ("square-dashed", 0), "circle.dashed": ("circle-dashed", 0), "circle.dotted": ("circle-dashed", 0),
-    "circle.lefthalf.filled": ("circle-half", 0), "circle.righthalf.filled": ("circle-half", 0), "circle.grid.2x2": ("layout-grid", 0),
+    "circle.lefthalf.filled": ("contrast", 0), "circle.righthalf.filled": ("contrast", 0), "circle.grid.2x2": ("layout-grid", 0),
     "circle.grid.3x3": ("grip", 0), "circle.hexagongrid": ("grip", 0), "smallcircle.filled.circle": ("circle-dot", 0), "capsule": ("pill", 0),
     "oval": ("circle", 0), "diamond": ("diamond", 0), "diamond.fill": ("diamond", 1), "octagon": ("octagon", 0), "octagon.fill": ("octagon", 1),
     "hexagon.fill": ("hexagon", 1), "pentagon.fill": ("pentagon", 1), "shield.lefthalf.filled": ("shield-half", 0), "seal.fill": ("badge", 1),
@@ -256,7 +260,7 @@ MAPPING = {
     "battery.75": ("battery-medium", 0), "battery.100.bolt": ("battery-charging", 0), "battery.slash": ("battery-warning", 0), "powerplug.fill": ("plug", 1),
     "cable.connector.horizontal": ("cable", 0), "dial.max": ("gauge", 0), "gauge.with.dots.needle.bottom.50percent": ("gauge", 0), "gauge.with.needle": ("gauge", 0),
     "speedometer.fill": ("gauge", 1), "barometer": ("gauge", 0), "stopwatch.fill": ("timer", 1), "timer.circle": ("timer", 0), "hourglass.bottomhalf.filled": ("hourglass", 0),
-    "clock.arrow.circlepath": ("history", 0), "clock.badge": ("clock-alert", 0), "clock.badge.checkmark": ("clock-check", 0), "alarm.fill": ("alarm-clock", 1),
+    "clock.arrow.circlepath": ("clock-fading", 0), "clock.badge": ("clock-alert", 0), "clock.badge.checkmark": ("clock-check", 0), "alarm.fill": ("alarm-clock", 1),
     "calendar.badge.clock": ("calendar-clock", 0), "calendar.badge.minus": ("calendar-minus", 0), "calendar.badge.exclamationmark": ("calendar-x", 0),
     "calendar.circle": ("calendar", 0), "calendar.day.timeline.left": ("calendar-days", 0), "deskclock": ("clock", 0), "watch": ("watch", 0),
     "apple.watch": ("watch", 0), "applewatch.watchface": ("watch", 0), "iphone.gen3": ("smartphone", 0), "iphone.landscape": ("smartphone", 0),
@@ -362,8 +366,8 @@ MAPPING = {
     "line.3.horizontal.circle": ("menu", 0), "line.3.horizontal.circle.fill": ("menu", 0), "line.2.horizontal": ("equal", 0), "line.horizontal.2.decrease.circle": ("list-filter", 0),
     "line.3.horizontal.decrease.circle.fill": ("list-filter", 0), "line.horizontal.star.fill.line.horizontal": ("star", 1), "line.3.horizontal.button.angledtop.vertical.right": ("menu", 0),
     "line.diagonal": ("slash", 0), "line.diagonal.arrow": ("slash", 0), "line.horizontal.3.decrease": ("list-filter", 0), "slash.circle": ("ban", 0), "slash.circle.fill": ("ban", 2),
-    "circle.slash": ("ban", 0), "circle.slash.fill": ("ban", 2), "circle.lefthalf.striped.horizontal": ("circle-half", 0), "circle.righthalf.striped.horizontal": ("circle-half", 0),
-    "circle.bottomhalf.filled": ("circle-half", 0), "circle.tophalf.filled": ("circle-half", 0), "circle.and.line.horizontal": ("circle-dot", 0), "circle.hexagonpath": ("hexagon", 0),
+    "circle.slash": ("ban", 0), "circle.slash.fill": ("ban", 2), "circle.lefthalf.striped.horizontal": ("contrast", 0), "circle.righthalf.striped.horizontal": ("contrast", 0),
+    "circle.bottomhalf.filled": ("contrast", 0), "circle.tophalf.filled": ("contrast", 0), "circle.and.line.horizontal": ("circle-dot", 0), "circle.hexagonpath": ("hexagon", 0),
     "circle.hexagonpath.fill": ("hexagon", 1), "circle.square": ("circle", 0), "circle.square.fill": ("circle", 1), "circle.badge.checkmark": ("circle-check", 0), "circle.badge.plus": ("circle-plus", 0),
     "circle.badge.minus": ("circle-minus", 0), "circle.badge.xmark": ("circle-x", 0), "circle.badge.questionmark": ("circle-question-mark", 0), "circle.badge.exclamationmark": ("circle-alert", 0),
     "circle.circle.fill": ("circle-dot", 2), "circle.inset.filled.circle": ("circle-dot", 0), "circle.grid.cross": ("grip", 0), "circle.grid.cross.fill": ("grip", 1),

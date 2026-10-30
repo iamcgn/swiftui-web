@@ -77,6 +77,7 @@ public final class NativeHost {
                 self.runtime.mount(self.root())
                 self.runtime.requestLayout()
             })
+            _appDidMount?(self.runtime)
             self.runtime.restoreWindows()
             self.installMenuBar()
         }

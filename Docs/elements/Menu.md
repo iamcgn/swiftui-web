@@ -12,6 +12,7 @@ Apple docs: [Menu](https://developer.apple.com/documentation/swiftui/menu),
 | `MenuStyle`, `MenuStyleConfiguration`, `.automatic`, `.button`, `.borderlessButton`, `menuStyle(_:)` | implemented (`.button` looks like `.automatic` on macOS; `.borderlessButton` drops the box) |
 | `menuIndicator(_:)` | implemented (`.hidden` drops the chevron and its space) |
 | `menuOrder(_:)`, `MenuOrder` | accepted, no effect (fixed order) |
+| A menu in a toolbar | its items show their titles and icons: the toolbar's icon-only label context stops at the menu's own label (2026-10-29, Ember's More menu) |
 | `menuActionDismissBehavior(_:)`, `MenuActionDismissBehavior` (`automatic`, `enabled`, `disabled`) | implemented (2026-10-04): `disabled` keeps the menu open after a button, toggle or picker row |
 | `Button`, `Divider`, nested `Menu` inside a menu | implemented: rows, separators, submenus beside their row |
 | `contextMenu(menuItems:)`, `contextMenu(menuItems:preview:)` | implemented on a secondary click (the preview is not shown) |
