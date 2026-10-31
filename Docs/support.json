@@ -2202,6 +2202,12 @@
           "noFixture": "No pixels: SwiftDataTests (the Countries models and repository flows) and the Launches reload probe in Chromium"
         },
         {
+          "api": "CoreData: NSPersistentContainer / NSManagedObjectContext / NSManagedObject / NSFetchRequest / NSPredicate / NSSortDescriptor / NSBatchDeleteRequest / @FetchRequest / @SectionedFetchRequest / .xcdatamodeld codegen",
+          "status": "partial",
+          "notes": "WebCoreData and the CoreDataModel build plugin (2026-10-31): the plugin reads an app's .xcdatamodeld and writes the classes Xcode's Class Definition and Category/Extension codegen would (typed properties, to-many and ordered accessors, typed fetchRequest()), and the model description NSPersistentContainer(name:) finds; main, private and child contexts over one coordinator, stores shared by name and kept as one JSON document per store through the host (localStorage in the browser), in-memory stores for NSInMemoryStoreType or /dev/null; NSPredicate(format:) with comparisons, string operators [cd], IN, BETWEEN, ANY/ALL/NONE, AND/OR/NOT, %@ %K %d arguments and @count/@sum/@avg/@min/@max; sort descriptors by key or key path; fetch limits, offsets, subentities, dictionary, ID and count results; inverses, the cascade, nullify and deny delete rules, required-attribute validation, rollback and reset; batch deletes; save notifications; @FetchRequest and @SectionedFetchRequest follow inserts, edits and other contexts' saves. Not done: @NSManaged and Manual/None codegen, #keyPath and @objc, NSFetchedResultsController, SUBQUERY/FUNCTION/arithmetic in predicates, faulting, migrations, uniqueness constraints, persistent history, CloudKit mirroring, SortDescriptor-based FetchRequest initializers, transformable values in the stored JSON; perform runs its block at once",
+          "noFixture": "No pixels: CoreDataTests (the Library model through the plugin: predicates, fetches, delete rules, contexts, stores, @FetchRequest views)"
+        },
+        {
           "api": "JSONEncoder / JSONDecoder",
           "status": "partial",
           "notes": "Over the project's coder (JSONCoder.swift, the one navigation paths and drops use) and WebFoundation's Data, so `encoder.encode(x).write(to:)` type-checks and FoundationEssentials' scanner and writer stay out of the bundle; `outputFormatting`, the date, data and key strategies are stored and not applied (dates as seconds since 2001, keys as written, data as base64 through Codable) (2026-10-12)",

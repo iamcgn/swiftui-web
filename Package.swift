@@ -27,6 +27,10 @@ let package = Package(
         .library(name: "AVKit", targets: ["AVKit"]),
         .library(name: "Speech", targets: ["Speech"]),
         .library(name: "SwiftData", targets: ["SwiftData"]),
+        // Core Data (the shadow `CoreData` module in Packages/Shadows re-exports it on wasm), and
+        // the build plugin that turns an app's `.xcdatamodeld` into Swift.
+        .library(name: "WebCoreData", targets: ["WebCoreData"]),
+        .plugin(name: "CoreDataModel", targets: ["CoreDataModel"]),
         .library(name: "UserNotifications", targets: ["UserNotifications"]),
         .library(name: "WebKit", targets: ["WebKit"]),
         .library(name: "SwiftUIWebCanvas", targets: ["SwiftUIWebCanvas"]),
@@ -80,6 +84,17 @@ let package = Package(
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // Core Data over SwiftData's host storage: NSManagedObject, contexts, stores, NSPredicate,
+        // NSSortDescriptor, `@FetchRequest`. Its own module, so nothing here reaches the bundles
+        // of apps that do not import CoreData (the size gate, decision 0006).
+        .target(
+            name: "WebCoreData",
+            dependencies: ["SwiftUIWebCore", "SwiftData", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // The CoreDataModel plugin's tool: `.xcdatamodeld` to Swift (host only).
+        .executableTarget(name: "CoreDataModelGen", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .plugin(name: "CoreDataModel", capability: .buildTool(), dependencies: ["CoreDataModelGen"]),
         .target(name: "UserNotifications", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -156,6 +171,14 @@ let package = Package(
             name: "CoreRuntimeTests",
             dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
+        ),
+        // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).
+        .testTarget(
+            name: "CoreDataTests",
+            dependencies: ["SwiftUI", "WebCoreData", "SwiftData", "SwiftUIWebTestSupport", .product(name: "WebFoundation", package: "WebGraphics")],
+            exclude: ["Library.xcdatamodeld"],
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))],
+            plugins: ["CoreDataModel"]
         ),
         .testTarget(
             name: "LayoutFidelityTests",

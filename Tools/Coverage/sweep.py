@@ -31,7 +31,7 @@ from pathlib import Path
 OURS = {
     "SwiftUI", "UIKit", "Foundation", "Combine", "Security", "SafariServices", "Charts", "MapKit",
     "CoreLocation", "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
-    "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers",
+    "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData",
 }
 STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "Dispatch", "WASILibc"}
 
@@ -176,6 +176,22 @@ def module_names(app):
     return {t["module"] for t in app["targets"]}
 
 
+def data_models(root: Path, base: Path):
+    """The Core Data models (`.xcdatamodeld` bundles, bare `.xcdatamodel` folders) under a folder,
+    as paths relative to the clone, for the CoreDataModel plugin."""
+    found = []
+    for d in sorted((root / base).rglob("*.xcdatamodel*")):
+        rel = d.relative_to(root)
+        if not d.is_dir() or d.suffix not in (".xcdatamodeld", ".xcdatamodel"):
+            continue
+        if d.suffix == ".xcdatamodel" and d.parent.suffix == ".xcdatamodeld":
+            continue
+        if any(EXCLUDE_DIR.match(x) for x in d.relative_to(root / base).parts[:-1]):
+            continue
+        found.append(str(rel))
+    return found
+
+
 def describe_app(entry, root: Path):
     """The sweep's view of one clone: its local targets, the app target's files, the imports."""
     extra = entry.get("exclude", [])
@@ -220,6 +236,7 @@ def describe_app(entry, root: Path):
                 "deps": sorted(set(deps) - {t["name"]}), "third_party": sorted(set(third)),
                 "mode": language_mode_of_package(dump, t), "settings": swift_settings(t),
                 "resources": [r.get("path") for r in t.get("resources") or [] if r.get("path")],
+                "models": data_models(root, src),
                 "executable": t["type"] == "executable",
             })
     # The app target: every Swift file outside the local packages and the excluded folders.
@@ -248,10 +265,14 @@ def describe_app(entry, root: Path):
     if not app_files and executable_locals:
         executable_locals[0]["app"] = True
     elif app_files:
+        models = [m for m in data_models(root, Path(".")) if not excluded(Path(m), extra)
+                  and not any(Path(m).is_relative_to(d) for d in pkg_dirs if str(d) != ".")
+                  and not any(Path(m).is_relative_to(Path(t["source_root"])) for t in targets)]
         targets.append({
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"]}), "third_party": [],
-            "mode": xcode_language_mode(root), "settings": [], "resources": [], "executable": True, "app": True,
+            "mode": xcode_language_mode(root), "settings": [], "resources": [], "models": models,
+            "executable": True, "app": True,
         })
     for t in targets:
         if t["executable"] and not t.get("app"):
@@ -377,6 +398,7 @@ let web: [Target.Dependency] = [
     .product(name: "OSLog", package: "Shadows"),
     .product(name: "CoreGraphics", package: "Shadows"),
     .product(name: "UniformTypeIdentifiers", package: "Shadows"),
+    .product(name: "CoreData", package: "Shadows"),
 ]
 let stack: [LinkerSetting] = [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack-size=4194304"])]
 """
@@ -426,16 +448,27 @@ def cmd_prepare(args):
                     else:
                         dst.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(src, dst)
                     resources.append(f'.process({json.dumps(r)})')
+            # Core Data models go next to the sources, out of the target's files, and the
+            # CoreDataModel plugin generates their classes (as Xcode's codegen does).
+            models = []
+            for m in t.get("models", []):
+                name = Path(m).name
+                if name in models:
+                    continue
+                shutil.copytree(clone_dir / m, dest_root / name, dirs_exist_ok=True)
+                models.append(name)
             kind = "executableTarget" if t.get("app") else "target"
             settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"]
             deps = "web" + "".join(f' + ["{d}"]' for d in t["deps"])
             decls.append(
                 f'        .{kind}(\n            name: "{t["module"]}",\n            dependencies: {deps},\n'
                 f'            path: "Sources/{t["module"]}",\n'
+                + (f'            exclude: [{", ".join(json.dumps(m) for m in models)}],\n' if models else "")
                 + (f'            resources: [{", ".join(resources)}],\n' if resources else "")
                 + f'            swiftSettings: [{", ".join(settings)}]'
-                + (",\n            linkerSettings: stack\n" if t.get("app") else "\n")
-                + "        ),"
+                + (",\n            linkerSettings: stack" if t.get("app") else "")
+                + (',\n            plugins: [.plugin(name: "CoreDataModel", package: "SwiftUIWeb")]' if models else "")
+                + "\n        ),"
             )
     manifest = MANIFEST_HEAD + f"""
 let package = Package(
