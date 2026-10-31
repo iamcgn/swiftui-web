@@ -528,4 +528,25 @@ struct CoreDataTests {
         runtime.layout(in: CGSize(width: 320, height: 400))
         #expect(texts(runtime) == ["unread: Emma", "read: Beloved,Dune"])
     }
+
+    @Test func managedObjectsAreIdentifiableByIdentity() throws {
+        let context = try container().viewContext
+        let dune = book("Dune", in: context)
+        let emma = book("Emma", in: context)
+        #expect(dune.id == ObjectIdentifier(dune))
+        #expect(dune.id != emma.id)
+        // `ForEach` over fetched results needs no `id:`, as on Apple platforms.
+        let runtime = Runtime()
+        runtime.mount(Shelf().environment(\.managedObjectContext, context))
+        runtime.layout(in: CGSize(width: 320, height: 400))
+        #expect(texts(runtime) == ["Dune", "Emma"])
+    }
+}
+
+/// A list of every book by title, with `ForEach` keyed by the objects themselves.
+private struct Shelf: View {
+    @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "title", ascending: true)]) private var books: FetchedResults<Book>
+    var body: some View {
+        VStack { ForEach(books) { Text($0.title ?? "") } }
+    }
 }

@@ -35,6 +35,11 @@ let package = Package(
         .library(name: "UniformTypeIdentifiers", targets: ["UniformTypeIdentifiers"]),
         .library(name: "CoreData", targets: ["CoreData"]),
     ],
+    // `CoreData` (decision 0024): `import Foundation` re-exports WebCoreData too, as Apple's
+    // declares `NSPredicate`, `NSSortDescriptor` and `NSExpression`. Enable it with SwiftUIWeb's.
+    traits: [
+        .trait(name: "CoreData", description: "`import Foundation` re-exports WebCoreData (`NSPredicate`, `NSSortDescriptor`)."),
+    ],
     dependencies: [
         .package(path: "../WebGraphics"),
         .package(name: "SwiftUIWeb", path: "../.."),
@@ -42,7 +47,10 @@ let package = Package(
     targets: [
         .target(
             name: "Foundation",
-            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), "Combine"],
+            dependencies: [
+                .product(name: "WebFoundation", package: "WebGraphics"), "Combine",
+                .product(name: "WebCoreData", package: "SwiftUIWeb", condition: .when(traits: ["CoreData"])),
+            ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

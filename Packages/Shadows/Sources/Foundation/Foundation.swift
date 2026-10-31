@@ -7,6 +7,11 @@
 @_exported import WASILibc
 @_exported import Observation
 @_exported import Combine
+#if CoreData
+// The `CoreData` trait (decision 0024): Apple's Foundation declares `NSPredicate`,
+// `NSSortDescriptor` and `NSExpression`, which live in WebCoreData here.
+@_exported import WebCoreData
+#endif
 #endif
 
 #if os(WASI)
