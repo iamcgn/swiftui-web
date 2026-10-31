@@ -7,7 +7,8 @@
 //     .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
 //     .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
 // `os` and `OSLog` (`Logger` over the console), `CoreGraphics` (the geometry types) and
-// `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest. With
+// `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest, and so is
+// `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
 // `canImport(CoreGraphics) && !os(WASI)`.
 // `Security` (the keychain item functions over a host store) and `SafariServices`
@@ -32,6 +33,7 @@ let package = Package(
         .library(name: "OSLog", targets: ["OSLog"]),
         .library(name: "CoreGraphics", targets: ["CoreGraphics"]),
         .library(name: "UniformTypeIdentifiers", targets: ["UniformTypeIdentifiers"]),
+        .library(name: "CoreData", targets: ["CoreData"]),
     ],
     dependencies: [
         .package(path: "../WebGraphics"),
@@ -75,6 +77,11 @@ let package = Package(
         .target(
             name: "UniformTypeIdentifiers",
             dependencies: [.product(name: "WebGraphics", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "CoreData",
+            dependencies: [.product(name: "WebCoreData", package: "SwiftUIWeb")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
     ]
