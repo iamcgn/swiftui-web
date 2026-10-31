@@ -5,11 +5,12 @@
 // iOS 13, kept undeprecated here so an app's build shows no extra warnings). Each scan
 // first skips `charactersToBeSkipped` (whitespace and newlines unless set), and a failed scan
 // leaves the position where it was, as Foundation's do.
+// Final, unlike Apple's, so a wasm build drops the methods an app never calls (the size gate).
 #if os(WASI)
 
 /// A string parser that scans for substrings or characters in a character set, and for
 /// numeric values from decimal, hexadecimal, and floating-point representations.
-open class Scanner: @unchecked Sendable {
+public final class Scanner: @unchecked Sendable {
     /// How a scanned number is written.
     public enum NumberRepresentation: Sendable {
         case decimal
@@ -19,12 +20,12 @@ open class Scanner: @unchecked Sendable {
     /// The string the scanner reads.
     public let string: String
     /// The characters skipped before each scan.
-    open var charactersToBeSkipped: CharacterSet? = .whitespacesAndNewlines
+    public var charactersToBeSkipped: CharacterSet? = .whitespacesAndNewlines
     /// Whether string scans tell case apart.
-    open var caseSensitive = false
-    open var locale: Any?
+    public var caseSensitive = false
+    public var locale: Any?
     /// Where the next scan starts.
-    open var currentIndex: String.Index
+    public var currentIndex: String.Index
 
     public init(string: String) {
         self.string = string
@@ -32,10 +33,10 @@ open class Scanner: @unchecked Sendable {
     }
 
     /// Whether only skipped characters remain.
-    open var isAtEnd: Bool { skipped(from: currentIndex) == string.endIndex }
+    public var isAtEnd: Bool { skipped(from: currentIndex) == string.endIndex }
 
     /// The position as a count of UTF-16 units (the older API).
-    open var scanLocation: Int {
+    public var scanLocation: Int {
         get { string.utf16.distance(from: string.startIndex, to: currentIndex) }
         set { currentIndex = string.utf16.index(string.startIndex, offsetBy: min(max(0, newValue), string.utf16.count)) }
     }
@@ -43,7 +44,7 @@ open class Scanner: @unchecked Sendable {
     // MARK: Strings and characters
 
     /// Scans `searchString`, returning it as the string spells it.
-    open func scanString(_ searchString: String) -> String? {
+    public func scanString(_ searchString: String) -> String? {
         let start = skipped(from: currentIndex)
         var index = start
         for wanted in searchString.unicodeScalars {
@@ -56,7 +57,7 @@ open class Scanner: @unchecked Sendable {
     }
 
     /// Scans until `substring` (or the end), returning what came before it; nil when nothing did.
-    open func scanUpToString(_ substring: String) -> String? {
+    public func scanUpToString(_ substring: String) -> String? {
         let start = skipped(from: currentIndex)
         guard start < string.endIndex else { return nil }
         let scalars = string.unicodeScalars
@@ -76,17 +77,17 @@ open class Scanner: @unchecked Sendable {
     }
 
     /// Scans the longest run of characters in `set`.
-    open func scanCharacters(from set: CharacterSet) -> String? {
+    public func scanCharacters(from set: CharacterSet) -> String? {
         scanRun(while: { set.contains($0) })
     }
 
     /// Scans the longest run of characters outside `set`.
-    open func scanUpToCharacters(from set: CharacterSet) -> String? {
+    public func scanUpToCharacters(from set: CharacterSet) -> String? {
         scanRun(while: { !set.contains($0) })
     }
 
     /// Scans one character.
-    open func scanCharacter() -> Character? {
+    public func scanCharacter() -> Character? {
         let start = skipped(from: currentIndex)
         guard start < string.endIndex else { return nil }
         currentIndex = string.index(after: start)
@@ -95,15 +96,15 @@ open class Scanner: @unchecked Sendable {
 
     // MARK: Numbers
 
-    open func scanInt(representation: NumberRepresentation = .decimal) -> Int? {
+    public func scanInt(representation: NumberRepresentation = .decimal) -> Int? {
         scanInt64(representation: representation).flatMap { Int(exactly: $0) }
     }
 
-    open func scanInt32(representation: NumberRepresentation = .decimal) -> Int32? {
+    public func scanInt32(representation: NumberRepresentation = .decimal) -> Int32? {
         scanInt64(representation: representation).flatMap { Int32(exactly: $0) }
     }
 
-    open func scanInt64(representation: NumberRepresentation = .decimal) -> Int64? {
+    public func scanInt64(representation: NumberRepresentation = .decimal) -> Int64? {
         let start = skipped(from: currentIndex)
         var index = start
         var negative = false
@@ -117,7 +118,7 @@ open class Scanner: @unchecked Sendable {
         return magnitude > UInt64(Int64.max) ? .max : Int64(magnitude)
     }
 
-    open func scanUInt64(representation: NumberRepresentation = .decimal) -> UInt64? {
+    public func scanUInt64(representation: NumberRepresentation = .decimal) -> UInt64? {
         let start = skipped(from: currentIndex)
         var index = start
         if index < string.endIndex, string.unicodeScalars[index] == "+" { index = string.unicodeScalars.index(after: index) }
@@ -126,7 +127,7 @@ open class Scanner: @unchecked Sendable {
         return value
     }
 
-    open func scanDouble(representation: NumberRepresentation = .decimal) -> Double? {
+    public func scanDouble(representation: NumberRepresentation = .decimal) -> Double? {
         if representation == .hexadecimal { return scanInt64(representation: .hexadecimal).map(Double.init) }
         let start = skipped(from: currentIndex)
         let scalars = string.unicodeScalars
@@ -155,23 +156,23 @@ open class Scanner: @unchecked Sendable {
         return value
     }
 
-    open func scanFloat(representation: NumberRepresentation = .decimal) -> Float? {
+    public func scanFloat(representation: NumberRepresentation = .decimal) -> Float? {
         scanDouble(representation: representation).map(Float.init)
     }
 
     // MARK: The older, pointer-writing forms
 
-    open func scanInt(_ result: UnsafeMutablePointer<Int>?) -> Bool { write(scanInt(), to: result) }
-    open func scanInt32(_ result: UnsafeMutablePointer<Int32>?) -> Bool { write(scanInt32(), to: result) }
-    open func scanInt64(_ result: UnsafeMutablePointer<Int64>?) -> Bool { write(scanInt64(), to: result) }
-    open func scanUnsignedLongLong(_ result: UnsafeMutablePointer<UInt64>?) -> Bool { write(scanUInt64(), to: result) }
-    open func scanDouble(_ result: UnsafeMutablePointer<Double>?) -> Bool { write(scanDouble(), to: result) }
-    open func scanFloat(_ result: UnsafeMutablePointer<Float>?) -> Bool { write(scanFloat(), to: result) }
-    open func scanHexInt64(_ result: UnsafeMutablePointer<UInt64>?) -> Bool { write(scanUInt64(representation: .hexadecimal), to: result) }
-    open func scanHexInt32(_ result: UnsafeMutablePointer<UInt32>?) -> Bool {
+    public func scanInt(_ result: UnsafeMutablePointer<Int>?) -> Bool { write(scanInt(), to: result) }
+    public func scanInt32(_ result: UnsafeMutablePointer<Int32>?) -> Bool { write(scanInt32(), to: result) }
+    public func scanInt64(_ result: UnsafeMutablePointer<Int64>?) -> Bool { write(scanInt64(), to: result) }
+    public func scanUnsignedLongLong(_ result: UnsafeMutablePointer<UInt64>?) -> Bool { write(scanUInt64(), to: result) }
+    public func scanDouble(_ result: UnsafeMutablePointer<Double>?) -> Bool { write(scanDouble(), to: result) }
+    public func scanFloat(_ result: UnsafeMutablePointer<Float>?) -> Bool { write(scanFloat(), to: result) }
+    public func scanHexInt64(_ result: UnsafeMutablePointer<UInt64>?) -> Bool { write(scanUInt64(representation: .hexadecimal), to: result) }
+    public func scanHexInt32(_ result: UnsafeMutablePointer<UInt32>?) -> Bool {
         write(scanUInt64(representation: .hexadecimal).map { UInt32(truncatingIfNeeded: $0) }, to: result)
     }
-    open func scanHexDouble(_ result: UnsafeMutablePointer<Double>?) -> Bool { write(scanDouble(representation: .hexadecimal), to: result) }
+    public func scanHexDouble(_ result: UnsafeMutablePointer<Double>?) -> Bool { write(scanDouble(representation: .hexadecimal), to: result) }
 
     // MARK: Positions
 

@@ -3,10 +3,11 @@
 // info; here every module that imports Foundation sees it. An integer keeps its exact value, a
 // floating-point number its double, a boolean its truth; the accessors convert as Foundation's
 // do (truncating toward zero), and numbers compare by value whatever they hold.
+// Final, unlike Apple's, so a wasm build drops the methods an app never calls (the size gate).
 #if os(WASI)
 
 /// An object wrapper for primitive scalar numeric values.
-open class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomStringConvertible,
+public final class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomStringConvertible,
                      ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, ExpressibleByBooleanLiteral {
     private enum Storage: Sendable { case int(Int64), uint(UInt64), double(Double), bool(Bool) }
     private let storage: Storage
@@ -25,11 +26,11 @@ open class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomStringConv
     public init(value: Float) { storage = .double(Double(value)) }
     public init(value: Bool) { storage = .bool(value) }
 
-    public required convenience init(integerLiteral value: Int) { self.init(value: value) }
-    public required convenience init(floatLiteral value: Double) { self.init(value: value) }
-    public required convenience init(booleanLiteral value: Bool) { self.init(value: value) }
+    public convenience init(integerLiteral value: Int) { self.init(value: value) }
+    public convenience init(floatLiteral value: Double) { self.init(value: value) }
+    public convenience init(booleanLiteral value: Bool) { self.init(value: value) }
 
-    open var doubleValue: Double {
+    public var doubleValue: Double {
         switch storage {
         case .int(let v): return Double(v)
         case .uint(let v): return Double(v)
@@ -37,7 +38,7 @@ open class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomStringConv
         case .bool(let v): return v ? 1 : 0
         }
     }
-    open var int64Value: Int64 {
+    public var int64Value: Int64 {
         switch storage {
         case .int(let v): return v
         case .uint(let v): return Int64(truncatingIfNeeded: v)
@@ -45,30 +46,30 @@ open class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomStringConv
         case .bool(let v): return v ? 1 : 0
         }
     }
-    open var uint64Value: UInt64 {
+    public var uint64Value: UInt64 {
         switch storage {
         case .uint(let v): return v
         default: return UInt64(truncatingIfNeeded: int64Value)
         }
     }
-    open var floatValue: Float { Float(doubleValue) }
-    open var intValue: Int { Int(truncatingIfNeeded: int64Value) }
-    open var int8Value: Int8 { Int8(truncatingIfNeeded: int64Value) }
-    open var int16Value: Int16 { Int16(truncatingIfNeeded: int64Value) }
-    open var int32Value: Int32 { Int32(truncatingIfNeeded: int64Value) }
-    open var uintValue: UInt { UInt(truncatingIfNeeded: uint64Value) }
-    open var uint8Value: UInt8 { UInt8(truncatingIfNeeded: uint64Value) }
-    open var uint16Value: UInt16 { UInt16(truncatingIfNeeded: uint64Value) }
-    open var uint32Value: UInt32 { UInt32(truncatingIfNeeded: uint64Value) }
-    open var boolValue: Bool {
+    public var floatValue: Float { Float(doubleValue) }
+    public var intValue: Int { Int(truncatingIfNeeded: int64Value) }
+    public var int8Value: Int8 { Int8(truncatingIfNeeded: int64Value) }
+    public var int16Value: Int16 { Int16(truncatingIfNeeded: int64Value) }
+    public var int32Value: Int32 { Int32(truncatingIfNeeded: int64Value) }
+    public var uintValue: UInt { UInt(truncatingIfNeeded: uint64Value) }
+    public var uint8Value: UInt8 { UInt8(truncatingIfNeeded: uint64Value) }
+    public var uint16Value: UInt16 { UInt16(truncatingIfNeeded: uint64Value) }
+    public var uint32Value: UInt32 { UInt32(truncatingIfNeeded: uint64Value) }
+    public var boolValue: Bool {
         switch storage {
         case .bool(let v): return v
         default: return doubleValue != 0
         }
     }
-    open var stringValue: String { description }
+    public var stringValue: String { description }
 
-    open var description: String {
+    public var description: String {
         switch storage {
         case .int(let v): return String(v)
         case .uint(let v): return String(v)
@@ -78,13 +79,13 @@ open class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomStringConv
     }
 
     /// Orders this number against another by value.
-    open func compare(_ otherNumber: NSNumber) -> ComparisonResult {
+    public func compare(_ otherNumber: NSNumber) -> ComparisonResult {
         if self < otherNumber { return .orderedAscending }
         if otherNumber < self { return .orderedDescending }
         return .orderedSame
     }
 
-    open func isEqual(to number: NSNumber) -> Bool { self == number }
+    public func isEqual(to number: NSNumber) -> Bool { self == number }
 
     public static func == (lhs: NSNumber, rhs: NSNumber) -> Bool {
         switch (lhs.storage, rhs.storage) {
