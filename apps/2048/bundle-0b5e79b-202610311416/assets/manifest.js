@@ -1,0 +1,1 @@
+(function(){var s=document.currentScript;var base=s&&s.src?s.src.replace(/[^/]*$/,''):'';var m={"version":1,"catalogs":["Assets.xcassets","Preview Assets.xcassets","Assets.xcassets","Preview Assets.xcassets"],"images":{},"colors":{},"fonts":{},"localizations":["Base"],"sourceLanguage":"Base"};m.base=base;window.__swiftuiwebAssets=m;})();
