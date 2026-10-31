@@ -1,0 +1,128 @@
+name: Coverage
+# The coverage diff and the compile sweep (Tools/Coverage/README.md): Apple's iOS SDK surface
+# against SwiftUIWeb's, and the corpus of open-source apps built for wasm with every error
+# classified. The report is the job summary and the `coverage-report` artifact.
+on:
+  push:
+    paths: ["Tools/Coverage/**", ".github/workflows/coverage.yml"]
+  workflow_dispatch:
+env:
+  SWIFT_VERSION: "6.3.3"
+  WASM_SDK: swift-6.3.3-RELEASE_wasm
+  WASM_SDK_URL: https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz
+  WASM_SDK_CHECKSUM: cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
+jobs:
+  apple:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: The newest Xcode on the runner
+        run: |
+          ls -d /Applications/Xcode*.app
+          X="$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)"
+          sudo xcode-select -s "$X" && xcodebuild -version
+      - name: Apple's symbol graphs (iOS SDK)
+        run: Tools/Coverage/apple-symbols.sh .build/coverage/apple
+      - name: Apple's keys
+        run: python3 Tools/Coverage/surface.py apple .build/coverage/apple -o .build/coverage/apple.json
+      - uses: actions/upload-artifact@v4
+        with: { name: coverage-apple, path: .build/coverage/apple.json }
+
+  ours:
+    runs-on: ubuntu-24.04
+    container: swift:6.3.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python and the wasm SDK
+        run: |
+          apt-get update && apt-get install -y python3
+          swift sdk install "$WASM_SDK_URL" --checksum "$WASM_SDK_CHECKSUM"
+      - name: SwiftUIWeb's symbol graphs (wasm, every product an app links)
+        run: |
+          echo '{"apps": []}' > .build-plan.json
+          python3 Tools/Coverage/sweep.py prepare --plan .build-plan.json --work /tmp --batch 0 --root "$PWD" -o .build/coverage/surface
+          swift build --package-path .build/coverage/surface --swift-sdk "$WASM_SDK" --target SweepDeps \
+            -Xswiftc -emit-symbol-graph -Xswiftc -emit-symbol-graph-dir -Xswiftc "$PWD/.build/coverage/ours" \
+            -Xswiftc -symbol-graph-minimum-access-level -Xswiftc public
+      - name: SwiftUIWeb's keys
+        run: python3 Tools/Coverage/surface.py ours .build/coverage/ours -o .build/coverage/ours.json
+      - uses: actions/upload-artifact@v4
+        with: { name: coverage-ours, path: .build/coverage/ours.json }
+
+  plan:
+    runs-on: ubuntu-24.04
+    container: swift:6.3.3
+    outputs:
+      batches: ${{ steps.plan.outputs.batches }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y python3
+      - name: Clone the corpus and read its local packages
+        id: plan
+        run: python3 Tools/Coverage/sweep.py plan --corpus Tools/Coverage/corpus.json --work /tmp/corpus -o plan.json
+      - uses: actions/upload-artifact@v4
+        with: { name: coverage-plan, path: plan.json }
+
+  sweep:
+    needs: plan
+    runs-on: ubuntu-24.04
+    container: swift:6.3.3
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        batch: ${{ fromJSON(needs.plan.outputs.batches) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python and the wasm SDK
+        run: |
+          apt-get update && apt-get install -y python3
+          swift sdk install "$WASM_SDK_URL" --checksum "$WASM_SDK_CHECKSUM"
+      - uses: actions/download-artifact@v4
+        with: { name: coverage-plan }
+      - name: Clone this batch's apps
+        run: python3 Tools/Coverage/sweep.py fetch --plan plan.json --work /tmp/corpus --batch ${{ matrix.batch }}
+      - name: The sweep package
+        run: |
+          python3 Tools/Coverage/sweep.py prepare --plan plan.json --work /tmp/corpus --batch ${{ matrix.batch }} --root "$PWD" -o /tmp/sweep
+          cat /tmp/sweep/Package.swift
+      - name: Build every target and classify the errors
+        run: python3 Tools/Coverage/sweep.py run --plan plan.json --work /tmp/corpus --pkg /tmp/sweep --batch ${{ matrix.batch }} --sdk "$WASM_SDK" -o results-${{ matrix.batch }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-sweep-${{ matrix.batch }}
+          path: results-${{ matrix.batch }}.json
+          if-no-files-found: ignore
+      - name: Keep the build logs
+        if: always()
+        run: cp -R /tmp/sweep/logs sweep-logs || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sweep-logs-${{ matrix.batch }}
+          path: sweep-logs
+          if-no-files-found: ignore
+
+  report:
+    needs: [apple, ours, plan, sweep]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { pattern: coverage-*, path: in, merge-multiple: true }
+      - name: The report
+        run: |
+          ls -R in | head -50
+          python3 Tools/Coverage/report.py --apple in/apple.json \
+            --ours in/ours.json --plan in/plan.json --sweep in/results-*.json \
+            --commit "$GITHUB_SHA" --md coverage.md --json coverage.json
+          cat coverage.md >> "$GITHUB_STEP_SUMMARY"
+          cat coverage.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: report
+          path: |
+            coverage.md
+            coverage.json
