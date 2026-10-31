@@ -2351,6 +2351,24 @@
           "noFixture": "Nothing to draw: UserNotificationsTests against a fake host; the browser host is NotificationsHost.swift"
         },
         {
+          "api": "SHA256 / SHA384 / SHA512 / Insecure.SHA1 / Insecure.MD5 / HMAC / SymmetricKey (CryptoKit)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-10-31): the hash functions (one-shot and incremental, digests as byte sequences described as Apple's), HMAC over any of them with constant-time validation, and symmetric keys from data or random bytes, in pure Swift. Not done: AES, ChaChaPoly, Curve25519, P256, HKDF, the Secure Enclave",
+          "noFixture": "Nothing to draw: FrameworkTests hold every hash and HMAC to the FIPS 180-4, RFC 1321 and RFC 4231 answers"
+        },
+        {
+          "api": "CHHapticEngine / CHHapticPattern / CHHapticEvent / CHHapticPatternPlayer (CoreHaptics)",
+          "status": "stub",
+          "notes": "pf-small-frameworks (2026-10-31): the engine, patterns, events, parameters, curves and players build and run, and capabilitiesForHardware().supportsHaptics is false, as on an iPad or a Mac, so apps take the path they already have for devices without haptics; playing anyway does nothing. A browser has no haptic engine (navigator.vibrate is one motor, and Safari has none)",
+          "noFixture": "Nothing to draw: FrameworkTests build and play a pattern"
+        },
+        {
+          "api": "WidgetCenter / WidgetFamily / TimelineEntry / Timeline (WidgetKit)",
+          "status": "stub",
+          "notes": "pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered",
+          "noFixture": "Nothing to draw: FrameworkTests call the center and build a timeline"
+        },
+        {
           "api": "WebView / WebPage (WebKit)",
           "status": "partial",
           "notes": "A host element: a sandboxed <iframe> loading the page's URL or HTML; a white stand-in elsewhere; navigation state is not reported back",

@@ -32,6 +32,9 @@ let package = Package(
         .library(name: "WebCoreData", targets: ["WebCoreData"]),
         .plugin(name: "CoreDataModel", targets: ["CoreDataModel"]),
         .library(name: "UserNotifications", targets: ["UserNotifications"]),
+        .library(name: "CryptoKit", targets: ["CryptoKit"]),
+        .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
+        .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "WebKit", targets: ["WebKit"]),
         .library(name: "SwiftUIWebCanvas", targets: ["SwiftUIWebCanvas"]),
         .library(name: "SwiftUIWebNative", targets: ["SwiftUIWebNative"]),
@@ -103,6 +106,11 @@ let package = Package(
         .executableTarget(name: "CoreDataModelGen", swiftSettings: [.treatAllWarnings(as: .error)]),
         .plugin(name: "CoreDataModel", capability: .buildTool(), dependencies: ["CoreDataModelGen"]),
         .target(name: "UserNotifications", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Hashes, HMAC and symmetric keys; haptics on hardware without an engine; the app's calls
+        // to its widgets (none on the web). Pure Swift values over WebFoundation.
+        .target(name: "CryptoKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "CoreHaptics", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The representables (decision 0014, Phase 2): UIKit views hosted as SwiftUI leaves.
@@ -186,6 +194,12 @@ let package = Package(
             exclude: ["Library.xcdatamodeld"],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))],
             plugins: ["CoreDataModel"]
+        ),
+        // The small frameworks against known answers (FIPS 180, RFC 1321, RFC 4231 vectors).
+        .testTarget(
+            name: "FrameworkTests",
+            dependencies: ["CryptoKit", "CoreHaptics", "WidgetKit", .product(name: "WebFoundation", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(
             name: "LayoutFidelityTests",
