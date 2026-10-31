@@ -31,10 +31,16 @@ python3 "$ROOT/Tools/Traits/traits.py" . --check Package.swift || true
 # `.build/wasm`, so another SDK's bundle is copied there after its build.
 STOCK_SDK="swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm"
 SCRATCH=.build/wasm; [[ "$SDK" != "$STOCK_SDK" ]] && SCRATCH=".build/wasm-${SDK#swift-*-RELEASE_wasm-}"
+# No `.swift_modhash`: swiftc stamps each object with a hash of its LLVM module (to skip
+# unchanged codegen in incremental builds). On Mach-O and ELF it is a section the loader never
+# maps, but wasm-ld links it as data, so every bundle shipped about 7 KB of hashes that brotli
+# cannot compress, and some of them changed from one clean build to the next (the drift of
+# Counter's compressed size around the decision 0006 budget).
+NO_MODHASH=(-Xswiftc -Xfrontend -Xswiftc -disable-incremental-llvm-codegen)
 if [[ $DEBUG == 1 ]]; then
-  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" js $PRODUCT_FLAG --use-cdn --debug-info-format dwarf
+  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" "${NO_MODHASH[@]}" js $PRODUCT_FLAG --use-cdn --debug-info-format dwarf
 else
-  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" -c release -Xswiftc -Osize js $PRODUCT_FLAG --use-cdn
+  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" -c release -Xswiftc -Osize "${NO_MODHASH[@]}" js $PRODUCT_FLAG --use-cdn
 fi
 # Asset catalogs (decision 0011): every *.xcassets of the package becomes assets/manifest.js plus
 # the image files in the bundle; index.html includes the script before the module.

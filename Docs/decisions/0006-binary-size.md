@@ -63,3 +63,17 @@ about 2.1 MB brotli. `scripts/wasm-size-map.py` reads a linker map.
   into FoundationEssentials.
 - CanvasKit sizing (spike 0.13) not measured yet; the unpkg HEAD request did not return a
   content-length. Known from its docs to be ~7 MB uncompressed; measure before offering it.
+
+## Reproducible size (2026-10-31)
+The same Counter source compressed to anywhere from 3,144,806 to 3,146,569 bytes brotli across CI
+runs, either side of the budget, with the raw size fixed at 12,278,323. `Tools/Size/section-diff.py`
+found the only difference between two clean builds was 541 bytes of the data section, and
+`Tools/Size/data-symbols.py` (with a wasm-ld map) placed all of them in `.swift_modhash`: the
+16-byte hash of its LLVM module that swiftc writes into every object so an incremental build can
+skip unchanged codegen. Mach-O and ELF never load that section; wasm-ld links it as data, so each
+bundle shipped about 7 KB of hashes that brotli cannot compress, and some of them changed from one
+clean build to the next.
+
+`scripts/build-wasm.sh` now passes `-Xfrontend -disable-incremental-llvm-codegen`, so no object
+carries one. Two clean builds (the `Size reproducibility` workflow) are now byte-identical, and
+Counter is 12,271,427 raw, **3,138,675 brotli** (7,053 bytes under the budget, which is unchanged).
