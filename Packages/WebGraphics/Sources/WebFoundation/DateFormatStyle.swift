@@ -548,6 +548,72 @@ open class DateFormatter: Formatter {
     open override func value(from string: String) -> Any? { date(from: string) }
 }
 
+/// Foundation's `ISO8601DateFormatter` on wasm: RFC 3339 text in GMT by default
+/// ("2026-10-31T12:00:00Z"), with the same options for the fields and separators.
+open class ISO8601DateFormatter: Formatter, @unchecked Sendable {
+    public struct Options: OptionSet, Hashable, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let withYear = Options(rawValue: 1 << 0)
+        public static let withMonth = Options(rawValue: 1 << 1)
+        public static let withWeekOfYear = Options(rawValue: 1 << 2)
+        public static let withDay = Options(rawValue: 1 << 4)
+        public static let withTime = Options(rawValue: 1 << 5)
+        public static let withTimeZone = Options(rawValue: 1 << 6)
+        public static let withSpaceBetweenDateAndTime = Options(rawValue: 1 << 7)
+        public static let withDashSeparatorInDate = Options(rawValue: 1 << 8)
+        public static let withColonSeparatorInTime = Options(rawValue: 1 << 9)
+        public static let withColonSeparatorInTimeZone = Options(rawValue: 1 << 10)
+        public static let withFractionalSeconds = Options(rawValue: 1 << 11)
+        public static let withFullDate: Options = [.withYear, .withMonth, .withDay, .withDashSeparatorInDate]
+        public static let withFullTime: Options = [.withTime, .withColonSeparatorInTime, .withTimeZone, .withColonSeparatorInTimeZone]
+        public static let withInternetDateTime: Options = [.withFullDate, .withFullTime]
+    }
+
+    open var formatOptions: Options = .withInternetDateTime
+    open var timeZone: TimeZone! = .gmt
+
+    public override init() { super.init() }
+
+    /// The LDML pattern the options describe.
+    var pattern: String {
+        let options = formatOptions
+        let week = options.contains(.withWeekOfYear)
+        var date: [String] = []
+        if options.contains(.withYear) { date.append(week ? "YYYY" : "yyyy") }
+        if week { date.append("'W'ww") } else if options.contains(.withMonth) { date.append("MM") }
+        if options.contains(.withDay) { date.append(week ? "ee" : "dd") }
+        var pattern = date.joined(separator: options.contains(.withDashSeparatorInDate) ? "-" : "")
+        if options.contains(.withTime) {
+            let time = ["HH", "mm", "ss"].joined(separator: options.contains(.withColonSeparatorInTime) ? ":" : "")
+                + (options.contains(.withFractionalSeconds) ? ".SSS" : "")
+            pattern += (pattern.isEmpty ? "" : options.contains(.withSpaceBetweenDateAndTime) ? " " : "'T'") + time
+        }
+        if options.contains(.withTimeZone) { pattern += options.contains(.withColonSeparatorInTimeZone) ? "XXXXX" : "XXXX" }
+        return pattern
+    }
+
+    open func string(from date: Date) -> String {
+        _DatePattern.format(pattern, Date.input(date, calendar: Calendar(identifier: .iso8601), timeZone: timeZone ?? .gmt))
+    }
+
+    /// The date in `string`, read by the options' pattern; nil when it does not fit.
+    open func date(from string: String) -> Date? {
+        guard let fields = _DatePattern.parse(string, pattern: pattern) else { return nil }
+        return Date(timeIntervalSince1970: fields.time(in: Date.math(calendar: Calendar(identifier: .iso8601), timeZone: timeZone ?? .gmt)))
+    }
+
+    open class func string(from date: Date, timeZone: TimeZone, formatOptions: Options = []) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.timeZone = timeZone
+        formatter.formatOptions = formatOptions
+        return formatter.string(from: date)
+    }
+
+    open override func string(for obj: Any?) -> String? { (obj as? Date).map(string(from:)) }
+    open override func value(from string: String) -> Any? { date(from: string) }
+}
+
 /// Foundation's `RelativeDateTimeFormatter` on wasm: "2 hours ago", "in 3 days".
 open class RelativeDateTimeFormatter: Formatter {
     public enum DateTimeStyle: Int, Sendable { case numeric = 0, named }
