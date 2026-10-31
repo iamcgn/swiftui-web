@@ -5,8 +5,9 @@ apps hit them.
 
 This is a measurement, not the acceptance standard of decision 0021. To get past the first
 missing import and see what an app uses below it, the sweep rewrites copies of the sources: an
-`import` of a module that does not exist on wasm becomes a comment (the line count is kept, so
-every error points at the upstream line). Nothing upstream is edited; the clones are read only.
+`import` of a module that does not exist on wasm becomes `import Foundation` with the original as a
+comment, since every Apple framework re-exports Foundation (the line count is kept, so every error
+points at the upstream line). Nothing upstream is edited; the clones are read only.
 
 Subcommands, in the order the Coverage workflow runs them:
   plan     clone every app, read its local packages, group the apps into batches whose module
@@ -342,7 +343,10 @@ def strip_imports(text, strip):
     for line in text.split("\n"):
         m = IMPORT.match(line)
         if m and m.group(3) in strip:
-            line = f"{m.group(1)}// [sweep] {line.strip()}"
+            # Every Apple framework re-exports Foundation, so a file that imported only CoreData
+            # still sees URL and Date on iOS. Keep that, or the stripped import shows up as
+            # Foundation gaps that are not there.
+            line = f"{m.group(1)}import Foundation // [sweep] {line.strip()}"
         out.append(line)
     return "\n".join(out)
 

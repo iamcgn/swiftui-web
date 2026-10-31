@@ -41,7 +41,8 @@ when they do not, the sweep's heuristics are wrong, not the package.
   batch, so SwiftUIWeb builds once a batch; the batches run in parallel.
 
 To see below the first missing import, the copies (never the clones) have every `import` of a
-module wasm does not have turned into a comment, line numbers kept. This is a measurement and
+module wasm does not have turned into `import Foundation` (Apple's frameworks all re-export it)
+with the original kept as a comment, line numbers kept. This is a measurement and
 nothing more: decision 0021's standard, unmodified sources, stays the bar for an app to count as
 running. The report labels the errors that follow from a removed third-party package, Xcode's
 generated asset symbols (`Color(.brand)`) and Core Data's generated classes, so they are not read
