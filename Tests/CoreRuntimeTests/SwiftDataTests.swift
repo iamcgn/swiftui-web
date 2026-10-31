@@ -613,6 +613,21 @@ private struct QueryView<T: PersistentModel>: View {
         }
     }
 
+    /// A button that inserts a country named after the count it read from the query.
+    struct Numbered: View {
+        @Environment(\.modelContext) private var context
+        @Query(sort: \DBModel.Country.name) private var countries: [DBModel.Country]
+        var body: some View {
+            VStack {
+                ForEach(countries) { Text($0.name) }
+                Button("Add") {
+                    let number = countries.count + 1
+                    context.insert(DBModel.Country(name: "Country \(number)", translations: [:], population: number, alpha3Code: "C\(number)"))
+                }._probe("add")
+            }
+        }
+    }
+
     struct Searching: View {
         @State var countries: [DBModel.Country] = []
         var searchText: String
@@ -653,6 +668,26 @@ private struct QueryView<T: PersistentModel>: View {
         try await sut.store(countries: [.init(name: "Suomi", translations: [:], population: 1, flag: nil, alpha3Code: "FIN")])
         await settled { runtime.layout(in: CGSize(width: 320, height: 400)); return texts(runtime).first == "Iceland" }
         #expect(texts(runtime) == ["Iceland", "Norway", "Poland", "Suomi", "Sweden"])
+    }
+
+    /// Apple's `@Query` holds the results of the view's latest update: an action that inserts
+    /// and then reads the query still reads what the view shows.
+    @Test @MainActor func actionsReadTheResultsOfTheLatestBody() throws {
+        let container = try container()
+        let runtime = Runtime()
+        let size = CGSize(width: 320, height: 400)
+        runtime.mount(Numbered().modelContainer(container))
+        runtime.layout(in: size)
+        func add() {
+            let frame = runtime.probeFrames["add"]!
+            runtime.pointerDown(at: CGPoint(x: frame.midX, y: frame.midY))
+            runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
+            runtime.layout(in: size)
+        }
+        add()
+        #expect(texts(runtime).filter { $0.hasPrefix("Country") } == ["Country 1"])
+        add()
+        #expect(texts(runtime).filter { $0.hasPrefix("Country") } == ["Country 1", "Country 2"])
     }
 
     @Test @MainActor func querySearchHelperRecreatesTheQueryPerSearchText() throws {
