@@ -535,3 +535,59 @@ package enum _MeshCache {
         return bitmap
     }
 }
+
+/// A gradient as a shape style: `Color.gradient` (Docs/coverage.md: 3 apps, bar and line
+/// marks filled `color.gradient`), or a `Gradient` wrapped for a style. It runs from the top of
+/// the bounds to the bottom; a colour's gradient goes from the colour a little lightened at the
+/// top to the colour itself at the bottom (approximate: SwiftUI's is as subtle).
+public struct AnyGradient: ShapeStyle, Equatable, Sendable {
+    package enum Source: Equatable, Sendable {
+        case gradient(Gradient)
+        case color(Color)
+    }
+    package let source: Source
+
+    /// A gradient from the given stops.
+    public init(_ gradient: Gradient) { source = .gradient(gradient) }
+    package init(color: Color) { source = .color(color) }
+
+    /// The flat colour where a gradient cannot be drawn (the colour of a colour's gradient, the
+    /// first stop of the rest).
+    package var baseColor: Color? {
+        switch source {
+        case .color(let color): return color
+        case .gradient(let gradient): return gradient.stops.first?.color
+        }
+    }
+}
+
+extension AnyGradient: _GradientStyle {
+    package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
+        let kind = DisplayGradient.Kind.linear(start: CGPoint(x: bounds.midX, y: bounds.minY), end: CGPoint(x: bounds.midX, y: bounds.maxY))
+        switch source {
+        case .gradient(let gradient):
+            return DisplayGradient(kind: kind, stops: gradient.resolvedStops(in: environment))
+        case .color(let color):
+            let base = color.resolve(in: environment)
+            let mix = 0.15
+            let top = RGBA(red: base.red + (1 - base.red) * mix, green: base.green + (1 - base.green) * mix,
+                           blue: base.blue + (1 - base.blue) * mix, alpha: base.alpha)
+            return DisplayGradient(kind: kind, stops: [DisplayGradient.Stop(location: 0, color: top), DisplayGradient.Stop(location: 1, color: base)])
+        }
+    }
+}
+
+extension Color {
+    /// A gradient from this colour, a little lighter at the top.
+    public var gradient: AnyGradient { AnyGradient(color: self) }
+}
+
+extension ShapeStyle where Self == LinearGradient {
+    /// A gradient from a `Gradient`'s stops, as a style.
+    public static func linearGradient(_ gradient: AnyGradient, startPoint: UnitPoint, endPoint: UnitPoint) -> LinearGradient {
+        switch gradient.source {
+        case .gradient(let stops): return LinearGradient(gradient: stops, startPoint: startPoint, endPoint: endPoint)
+        case .color(let color): return LinearGradient(colors: [color, color], startPoint: startPoint, endPoint: endPoint)
+        }
+    }
+}

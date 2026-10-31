@@ -12,8 +12,16 @@ public final class Runtime {
 
     /// Measures and breaks text. Hosts install their engine before the first layout.
     public var textEngine: any TextEngine = ZeroTextEngine() {
-        didSet { textLayouts.removeAll() }
+        didSet {
+            textLayouts.removeAll()
+            if !(textEngine is ZeroTextEngine) { Self.hostTextEngine = textEngine }
+        }
     }
+
+    /// The text engine and asset catalog a host last installed: a runtime a view makes on its
+    /// own (`ImageRenderer`) measures and draws with them.
+    package static var hostTextEngine: (any TextEngine)?
+    package static var hostAssetCatalog: AssetCatalog?
 
     /// Finished text layouts by their inputs, kept across frames: a scroll or an unrelated state
     /// change lays the whole tree out again, and line breaking every text on a page each frame
@@ -280,6 +288,7 @@ public final class Runtime {
         get { assetStore.catalog }
         set {
             assetStore.catalog = newValue
+            Self.hostAssetCatalog = newValue
             CustomFontRegistry.register(newValue)
             textLayouts.removeAll()
             root.child?.invalidate()

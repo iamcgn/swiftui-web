@@ -2,7 +2,7 @@
 // `SystemEventsHandler` observes `keyboardWillShowNotification` and reads the end frame). A
 // host that knows the on-screen keyboard's frame sets `UIKitScene.keyboardFrame`; the
 // will/did show and hide notifications follow with UIKit's user-info keys. `NSValue` holds the
-// rects where there is no Foundation `NSValue` (wasm).
+// rects where there is no Foundation `NSValue` (wasm); `NSNumber` is WebFoundation's there.
 import WebFoundation
 
 #if os(WASI)
@@ -31,20 +31,6 @@ public final class NSValue: Hashable, @unchecked Sendable, CustomStringConvertib
     public var description: String { "\(stored)" }
 }
 
-/// `NSNumber` where the notification's duration and curve go on wasm.
-public final class NSNumber: Hashable, @unchecked Sendable, CustomStringConvertible {
-    public let doubleValue: Double
-    public init(value: Double) { doubleValue = value }
-    public init(value: Int) { doubleValue = Double(value) }
-    public init(value: Bool) { doubleValue = value ? 1 : 0 }
-    public var intValue: Int { Int(doubleValue) }
-    public var floatValue: Float { Float(doubleValue) }
-    public var boolValue: Bool { doubleValue != 0 }
-    public var uintValue: UInt { UInt(max(0, doubleValue)) }
-    public static func == (lhs: NSNumber, rhs: NSNumber) -> Bool { lhs.doubleValue == rhs.doubleValue }
-    public func hash(into hasher: inout Hasher) { hasher.combine(doubleValue) }
-    public var description: String { "\(doubleValue)" }
-}
 #else
 /// Foundation's `NSValue` with the geometry accessors UIKit adds to it.
 extension NSValue {

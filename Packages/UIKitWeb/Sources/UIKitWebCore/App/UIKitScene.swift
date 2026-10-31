@@ -258,6 +258,7 @@ public final class UIKitScene: HostedScene {
         UIScreen.main.traitCollection.displayScale = scale
         Self.applySizeClasses(for: size)
         UITraitCollection.current = UIScreen.main.traitCollection
+        UIDevice.current.screenDidResize(to: size)
     }
 
     /// The idiom and size classes a host size gives (an iPhone in portrait is compact wide

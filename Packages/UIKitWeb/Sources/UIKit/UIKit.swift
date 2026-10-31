@@ -3,7 +3,7 @@
 // and unmodified app sources depend on it.
 @_exported import UIKitWebCore
 @_exported import Observation
-#if canImport(CoreGraphics)
+#if canImport(CoreGraphics) && !os(WASI)
 @_exported import Foundation
 @_exported import CoreGraphics
 #elseif os(WASI)

@@ -8,7 +8,7 @@
 // `UIViewRepresentable`); here it re-exports UIKitWeb's `UIKit` everywhere (decision 0014).
 @_exported import UIKit
 @_exported import Observation
-#if canImport(CoreGraphics)
+#if canImport(CoreGraphics) && !os(WASI)
 // Apple platforms: CGRect.init(x:y:width:height:) etc. live in the CoreGraphics overlay, which
 // `import Foundation` alone does not surface. Real SwiftUI re-exports CoreGraphics too.
 @_exported import Foundation

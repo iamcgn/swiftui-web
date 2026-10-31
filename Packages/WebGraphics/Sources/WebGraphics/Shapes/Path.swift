@@ -51,7 +51,7 @@ public struct Path: Equatable, Sendable {
         callback(&self)
     }
 
-#if canImport(CoreGraphics)
+#if canImport(CoreGraphics) && !os(WASI)
     /// The path with the elements of a CoreGraphics path (Apple platforms only; there is no
     /// CoreGraphics on wasm).
     public init(_ cgPath: CGPath) {

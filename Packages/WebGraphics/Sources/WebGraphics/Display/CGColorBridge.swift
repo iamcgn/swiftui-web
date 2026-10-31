@@ -5,7 +5,7 @@ extension RGBA {
     /// The colour's straight-alpha sRGB components, or nil when it cannot be read (an unusual
     /// colour space on Apple platforms).
     public init?(cgColor: CGColor) {
-        #if canImport(CoreGraphics)
+        #if canImport(CoreGraphics) && !os(WASI)
         let color: CGColor
         if let space = cgColor.colorSpace, space.model == .rgb {
             color = cgColor
@@ -29,7 +29,7 @@ extension RGBA {
 
     /// The colour as a `CGColor` (sRGB).
     public var cgColor: CGColor {
-        #if canImport(CoreGraphics)
+        #if canImport(CoreGraphics) && !os(WASI)
         return CGColor(srgbRed: red, green: green, blue: blue, alpha: alpha)
         #else
         return CGColor(red: red, green: green, blue: blue, alpha: alpha)

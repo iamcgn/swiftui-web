@@ -71,7 +71,7 @@ import Foundation
         #expect(stroke.dash == [3, 4] && !stroke.isPlain)
         #expect(StrokeStyle().isPlain)
 
-        #if !canImport(CoreGraphics)
+        #if !canImport(CoreGraphics) || os(WASI)
         let gray = CGColor(gray: 0.25, alpha: 0.5)
         #expect(gray.numberOfComponents == 4)
         #expect(RGBA(cgColor: gray) == RGBA(red: 0.25, green: 0.25, blue: 0.25, alpha: 0.5))
