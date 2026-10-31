@@ -21,15 +21,15 @@ import SwiftUIWebHeadless
 
 // Foundation (re-exported natively) has its own classes by these names; the tests and the
 // generated code mean Core Data's.
-typealias NSPredicate = WebCoreData.NSPredicate
-typealias NSCompoundPredicate = WebCoreData.NSCompoundPredicate
-typealias NSComparisonPredicate = WebCoreData.NSComparisonPredicate
-typealias NSExpression = WebCoreData.NSExpression
-typealias NSSortDescriptor = WebCoreData.NSSortDescriptor
-typealias NSSet = WebCoreData.NSSet
-typealias NSOrderedSet = WebCoreData.NSOrderedSet
-typealias NSMutableSet = WebCoreData.NSMutableSet
-typealias NSMutableOrderedSet = WebCoreData.NSMutableOrderedSet
+public typealias NSPredicate = WebCoreData.NSPredicate
+public typealias NSCompoundPredicate = WebCoreData.NSCompoundPredicate
+public typealias NSComparisonPredicate = WebCoreData.NSComparisonPredicate
+public typealias NSExpression = WebCoreData.NSExpression
+public typealias NSSortDescriptor = WebCoreData.NSSortDescriptor
+public typealias NSSet = WebCoreData.NSSet
+public typealias NSOrderedSet = WebCoreData.NSOrderedSet
+public typealias NSMutableSet = WebCoreData.NSMutableSet
+public typealias NSMutableOrderedSet = WebCoreData.NSMutableOrderedSet
 
 /// The Note entity's class ("Category/Extension" codegen: the app writes the class).
 class Note: NSManagedObject, @unchecked Sendable {}
