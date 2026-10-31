@@ -10,7 +10,7 @@ import WebFoundation
 #if !os(WASI)
 @MainActor private final class Taps { var below = 0; var above = 0 }
 
-private enum Store {
+@MainActor private enum Store {
     static let defaults = UserDefaults(suiteName: "swiftui-web.everyday-tests")!
 }
 
