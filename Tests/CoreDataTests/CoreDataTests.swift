@@ -37,6 +37,12 @@ class Note: NSManagedObject, @unchecked Sendable {}
 @MainActor
 @Suite(.serialized)
 struct CoreDataTests {
+    init() {
+        // The SwiftData tests in this process install their own host storage and count its
+        // writes; these stores stay in process memory.
+        _CDStoreData._usesHost = false
+    }
+
     // MARK: Helpers
 
     /// A container over the Library model with an in-memory store, or a named store shared by

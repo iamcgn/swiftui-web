@@ -245,23 +245,26 @@ open class NSManagedObjectContext: CustomStringConvertible, @unchecked Sendable 
         return persistentStoreCoordinator?._rows() ?? [:]
     }
 
+    /// Objects saved since they were registered here (by this context, a child's parent or
+    /// another context): they take their permanent IDs.
+    func _adoptPermanentIDs() {
+        guard let coordinator = persistentStoreCoordinator, !coordinator._permanentKeys.isEmpty else { return }
+        for (key, object) in _registered where object.objectID.isTemporaryID {
+            guard let permanent = coordinator._permanentKeys[key], let id = coordinator._objectID(forKey: permanent) else { continue }
+            object.objectID = id
+            _rekey(object, from: key)
+            if let index = _inserted.firstIndex(where: { $0 === object }), parent == nil {
+                // Saved by another context: no longer an insertion here.
+                _inserted.remove(at: index)
+                object.isInserted = false
+            }
+        }
+    }
+
     /// Takes the source's rows: objects not held yet are made, held objects with no unsaved
     /// changes take the rows' values, and held objects whose rows are gone are let go.
     func _sync(force: Bool = false) {
-        let coordinator = persistentStoreCoordinator
-        // Objects saved since they were registered here: their permanent keys.
-        if let coordinator, !coordinator._permanentKeys.isEmpty {
-            for (key, object) in _registered where object.objectID.isTemporaryID {
-                guard let permanent = coordinator._permanentKeys[key], let id = coordinator._objectID(forKey: permanent) else { continue }
-                object.objectID = id
-                _rekey(object, from: key)
-                if let index = _inserted.firstIndex(where: { $0 === object }), parent == nil {
-                    // Saved by another context: no longer an insertion here.
-                    _inserted.remove(at: index)
-                    object.isInserted = false
-                }
-            }
-        }
+        _adoptPermanentIDs()
         let version = _sourceVersion()
         guard force || version != _syncedVersion else { return }
         _syncedVersion = version
@@ -471,6 +474,9 @@ open class NSManagedObjectContext: CustomStringConvertible, @unchecked Sendable 
     /// Writes the context's changes to its stores (or into its parent).
     open func save() throws {
         guard hasChanges else { return }
+        // A child's objects saved through its parent since: their permanent IDs, so the
+        // parent finds them.
+        _adoptPermanentIDs()
         NotificationCenter.default.post(name: .NSManagedObjectContextWillSave, object: self, userInfo: nil)
         let inserted = _inserted
         let deleted = _deleted

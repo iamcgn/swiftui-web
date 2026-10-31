@@ -53,7 +53,7 @@ final class _CDStoreData {
     static func named(_ name: String) throws -> _CDStoreData {
         if let data = open[name] { return data }
         let data = _CDStoreData(name: name, persistent: true)
-        if let host = _ModelStore.Host.store {
+        if let host = _host {
             let text: String?
             do { text = try host.load(_hostKey(name)) } catch {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSPersistentStoreOpenError,
@@ -73,10 +73,18 @@ final class _CDStoreData {
             data.generation += 1
             data.didChange(onMain: false)
         }
-        try _ModelStore.Host.store?.save(_hostKey(name), nil)
+        try _host?.save(_hostKey(name), nil)
     }
 
     static func _hostKey(_ name: String) -> String { "coredata." + name }
+
+    /// Whether stores are kept through the host's storage (SwiftData's, `_ModelStore.Host`).
+    /// Tests that share a process with SwiftData's turn it off so their saves never reach a
+    /// host another test installed.
+    nonisolated(unsafe) static var _usesHost = true
+    static var _host: (load: (String) throws -> String?, save: (String, String?) throws -> Void)? {
+        _usesHost ? _ModelStore.Host.store : nil
+    }
 
     func attach(_ coordinator: NSPersistentStoreCoordinator) {
         coordinators.removeAll { $0.coordinator == nil }
@@ -124,7 +132,7 @@ final class _CDStoreData {
 
     /// Writes the rows through the host (a persistent store with a host).
     func flush() throws {
-        guard persistent, let host = _ModelStore.Host.store else { return }
+        guard persistent, let host = _CDStoreData._host else { return }
         do {
             try host.save(_CDStoreData._hostKey(name), try encoded())
         } catch {
