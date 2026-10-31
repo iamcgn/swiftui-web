@@ -20,7 +20,10 @@ public protocol _CDKeyValueCoding: AnyObject {
 open class NSPredicate: CustomStringConvertible, @unchecked Sendable {
     let _node: _PredicateNode
 
-    required init(_node node: _PredicateNode) { _node = node }
+    init(_node node: _PredicateNode) { _node = node }
+
+    /// A predicate of this kind over the node (`withSubstitutionVariables`).
+    func _make(_ node: _PredicateNode) -> NSPredicate { NSPredicate(_node: node) }
 
     /// Creates a predicate by substituting the arguments into the format string.
     public convenience init(format predicateFormat: String, _ args: Any...) {
@@ -54,7 +57,7 @@ open class NSPredicate: CustomStringConvertible, @unchecked Sendable {
 
     /// A copy whose `$VARIABLE`s are the values given.
     open func withSubstitutionVariables(_ variables: [String: Any]) -> Self {
-        Self(_node: _node.substituting(variables))
+        (_make(_node.substituting(variables)) as? Self) ?? self
     }
 
     /// Accepted: predicates here are always evaluable.
@@ -68,7 +71,7 @@ open class NSPredicate: CustomStringConvertible, @unchecked Sendable {
 // MARK: - NSComparisonPredicate
 
 /// A specialized predicate for comparing expressions.
-open class NSComparisonPredicate: NSPredicate {
+open class NSComparisonPredicate: NSPredicate, @unchecked Sendable {
     public enum Operator: UInt, Sendable {
         case lessThan = 0, lessThanOrEqualTo, greaterThan, greaterThanOrEqualTo, equalTo, notEqualTo
         case matches, like, beginsWith, endsWith
@@ -100,7 +103,9 @@ open class NSComparisonPredicate: NSPredicate {
         super.init(_node: .comparison(lhs, type, rhs, modifier, options, negateAll: false))
     }
 
-    required init(_node node: _PredicateNode) {
+    override func _make(_ node: _PredicateNode) -> NSPredicate { NSComparisonPredicate(_node: node) }
+
+    override init(_node node: _PredicateNode) {
         if case .comparison(let l, let op, let r, let m, let o, _) = node {
             leftExpression = l; rightExpression = r; predicateOperatorType = op; comparisonPredicateModifier = m; options = o
         } else {
@@ -114,7 +119,7 @@ open class NSComparisonPredicate: NSPredicate {
 // MARK: - NSCompoundPredicate
 
 /// A specialized predicate that evaluates logical combinations of other predicates.
-open class NSCompoundPredicate: NSPredicate {
+open class NSCompoundPredicate: NSPredicate, @unchecked Sendable {
     public enum LogicalType: UInt, Sendable { case not = 0, and, or }
 
     public let compoundPredicateType: LogicalType
@@ -135,7 +140,9 @@ open class NSCompoundPredicate: NSPredicate {
     public convenience init(orPredicateWithSubpredicates subpredicates: [NSPredicate]) { self.init(type: .or, subpredicates: subpredicates) }
     public convenience init(notPredicateWithSubpredicate predicate: NSPredicate) { self.init(type: .not, subpredicates: [predicate]) }
 
-    required init(_node node: _PredicateNode) {
+    override func _make(_ node: _PredicateNode) -> NSPredicate { NSCompoundPredicate(_node: node) }
+
+    override init(_node node: _PredicateNode) {
         switch node {
         case .and(let nodes): compoundPredicateType = .and; subpredicates = nodes.map { NSPredicate(_node: $0) }
         case .or(let nodes): compoundPredicateType = .or; subpredicates = nodes.map { NSPredicate(_node: $0) }

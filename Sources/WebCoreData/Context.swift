@@ -695,7 +695,7 @@ open class NSPersistentStoreRequest: @unchecked Sendable {
 }
 
 /// A description of search criteria used to retrieve data from a persistent store.
-open class NSFetchRequest<ResultType>: NSPersistentStoreRequest, CustomStringConvertible {
+open class NSFetchRequest<ResultType>: NSPersistentStoreRequest, CustomStringConvertible, @unchecked Sendable {
     public var entityName: String?
     private var _entity: NSEntityDescription?
     public var entity: NSEntityDescription? {
@@ -735,7 +735,7 @@ open class NSFetchRequest<ResultType>: NSPersistentStoreRequest, CustomStringCon
 }
 
 /// A description of a column a dictionary fetch returns.
-open class NSExpressionDescription: NSPropertyDescription {
+open class NSExpressionDescription: NSPropertyDescription, @unchecked Sendable {
     public var expression: NSExpression?
     public var expressionResultType: NSAttributeType = .undefinedAttributeType
     public override init() { super.init() }
@@ -747,7 +747,7 @@ open class NSPersistentStoreResult: @unchecked Sendable {
 }
 
 /// The result of a fetch run as a store request.
-open class NSAsynchronousFetchResult: NSPersistentStoreResult {
+open class NSAsynchronousFetchResult: NSPersistentStoreResult, @unchecked Sendable {
     public let finalResult: [Any]?
     init(finalResult: [Any]?) { self.finalResult = finalResult; super.init() }
 }
@@ -758,7 +758,7 @@ public enum NSBatchDeleteRequestResultType: UInt, Sendable {
 }
 
 /// A request that deletes objects in the persistent store without loading them into memory.
-open class NSBatchDeleteRequest: NSPersistentStoreRequest {
+open class NSBatchDeleteRequest: NSPersistentStoreRequest, @unchecked Sendable {
     public let fetchRequest: NSFetchRequest<NSFetchRequestResult>?
     let objectIDs: [NSManagedObjectID]?
     public var resultType: NSBatchDeleteRequestResultType = .resultTypeStatusOnly
@@ -779,7 +779,7 @@ open class NSBatchDeleteRequest: NSPersistentStoreRequest {
 }
 
 /// The result of a batch delete: a status, the deleted IDs, or their count.
-open class NSBatchDeleteResult: NSPersistentStoreResult {
+open class NSBatchDeleteResult: NSPersistentStoreResult, @unchecked Sendable {
     public let result: Any?
     init(result: Any?) { self.result = result; super.init() }
 }

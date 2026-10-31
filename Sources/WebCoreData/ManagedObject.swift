@@ -70,7 +70,7 @@ public final class NSManagedObjectID: NSFetchRequestResult, Hashable, CustomStri
 // MARK: - NSManagedObject
 
 /// A base class that implements the behavior for a Core Data model object.
-open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, ObservableObject, Hashable, CustomStringConvertible, @unchecked Sendable {
+open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, WebCombine.ObservableObject, Hashable, CustomStringConvertible, @unchecked Sendable {
     /// The object's entity.
     public let entity: NSEntityDescription
     /// The object's ID: temporary until the object's context saves it.
@@ -78,7 +78,7 @@ open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, ObservableO
     /// The context the object is registered with.
     public internal(set) weak var managedObjectContext: NSManagedObjectContext?
     /// Emits before the object changes (SwiftUI's `@ObservedObject`).
-    public let objectWillChange = ObservableObjectPublisher()
+    public let objectWillChange = WebCombine.ObservableObjectPublisher()
 
     /// The object's values by property name: attributes as values (integers as `Int64`),
     /// to-one relationships as objects, to-many as `NSSet`/`NSOrderedSet` of objects.
@@ -576,7 +576,7 @@ public final class NSMutableOrderedSet: Sequence, CustomStringConvertible {
         let moving = indexes.filter { current.indices.contains($0) }.map { current[$0] }
         let before = indexes.filter { $0 < idx }.count
         current = current.enumerated().filter { !indexes.contains($0.offset) }.map(\.element)
-        current.insert(contentsOf: moving, at: min(max(idx - before, 0), current.count))
+        current.insert(contentsOf: moving, at: Swift.min(Swift.max(idx - before, 0), current.count))
         object._setRelationship(relationship, current)
     }
     public func makeIterator() -> IndexingIterator<[Any]> { (objects as [Any]).makeIterator() }

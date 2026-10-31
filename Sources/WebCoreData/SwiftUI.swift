@@ -36,7 +36,7 @@ struct _ManagedObjectContextKey: EnvironmentKey {
 
 /// What a fetch request keeps across body evaluations: its subscription to the context, and the
 /// predicate and sort descriptors set through its results (`nsPredicate`, `nsSortDescriptors`).
-final class _FetchBox: ObservableObject, @unchecked Sendable {
+final class _FetchBox: WebCombine.ObservableObject, @unchecked Sendable {
     private var stop: (() -> Void)?
     private weak var watched: NSManagedObjectContext?
     /// The request the view last made (its predicate and sort descriptors, as text): a new one

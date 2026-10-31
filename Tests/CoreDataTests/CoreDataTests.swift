@@ -32,7 +32,7 @@ typealias NSMutableSet = WebCoreData.NSMutableSet
 typealias NSMutableOrderedSet = WebCoreData.NSMutableOrderedSet
 
 /// The Note entity's class ("Category/Extension" codegen: the app writes the class).
-class Note: NSManagedObject {}
+class Note: NSManagedObject, @unchecked Sendable {}
 
 @MainActor
 @Suite(.serialized)

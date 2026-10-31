@@ -348,7 +348,7 @@ func generate(models: [Model], module: String) -> String {
                 let superclass = entity.parent.map(className(of:)) ?? "NSManagedObject"
                 out += """
 
-                public class \(swiftClass): \(superclass) {
+                public class \(swiftClass): \(superclass), @unchecked Sendable {
                     public override class func entity() -> NSEntityDescription {
                         \(modelType).model.entitiesByName[\(literal(entity.name))]!
                     }

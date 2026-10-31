@@ -53,7 +53,7 @@ open class NSPropertyDescription: Hashable, CustomStringConvertible, @unchecked 
 }
 
 /// A description of an attribute of an entity.
-open class NSAttributeDescription: NSPropertyDescription {
+open class NSAttributeDescription: NSPropertyDescription, @unchecked Sendable {
     public var attributeType: NSAttributeType = .undefinedAttributeType
     public var attributeValueClassName: String?
     public var defaultValue: Any?
@@ -77,7 +77,7 @@ open class NSAttributeDescription: NSPropertyDescription {
 }
 
 /// A description of a relationship between two entities.
-open class NSRelationshipDescription: NSPropertyDescription {
+open class NSRelationshipDescription: NSPropertyDescription, @unchecked Sendable {
     public var destinationEntity: NSEntityDescription?
     public var inverseRelationship: NSRelationshipDescription?
     public var maxCount = 0

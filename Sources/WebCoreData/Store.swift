@@ -567,7 +567,7 @@ open class NSPersistentContainer: @unchecked Sendable {
 
 /// A container whose stores mirror to CloudKit on Apple's platforms; here its data stays on the
 /// device.
-open class NSPersistentCloudKitContainer: NSPersistentContainer {
+open class NSPersistentCloudKitContainer: NSPersistentContainer, @unchecked Sendable {
     /// Accepted: there is no CloudKit schema to initialize.
     open func initializeCloudKitSchema(options: Int = 0) throws {}
     open func canUpdateRecord(forManagedObjectWith objectID: NSManagedObjectID) -> Bool { true }
