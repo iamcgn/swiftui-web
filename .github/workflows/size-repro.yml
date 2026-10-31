@@ -31,10 +31,15 @@ jobs:
             cp Examples/Counter/.build/wasm/plugins/PackageToJS/outputs/Package/Counter.wasm .build/size/$n.wasm
             cp Examples/Counter/.build/wasm/wasm32-unknown-wasip1/release/Counter.wasm .build/size/$n-linked.wasm
             scripts/size-gate.sh Examples/Counter 99999999
-            # The same objects linked again with a map, to name what lies at each data address.
+            # The same objects linked again with a map, to name what lies at each data address. The
+            # map flag goes in Counter's wasm-only linker settings (a command-line -Xlinker also
+            # reaches the host macro tools' Apple ld, which has no --Map).
+            cp Examples/Counter/Package.swift .build/size/Package.swift.orig
+            sed -i '' "s|\"stack-size=4194304\"|\"stack-size=4194304\", \"-Xlinker\", \"--Map=$GITHUB_WORKSPACE/.build/size/$n.map\"|" Examples/Counter/Package.swift
+            grep -n -- "--Map" Examples/Counter/Package.swift
             (cd Examples/Counter && . ../../scripts/env.sh && swift build --swift-sdk "swift-$(cat ../../.swift-version)-RELEASE_wasm" \
-              --scratch-path .build/wasm -c release -Xswiftc -Osize --product Counter \
-              -Xlinker --Map="$GITHUB_WORKSPACE/.build/size/$n.map")
+              --scratch-path .build/wasm -c release -Xswiftc -Osize --product Counter)
+            cp .build/size/Package.swift.orig Examples/Counter/Package.swift
             cp Examples/Counter/.build/wasm/wasm32-unknown-wasip1/release/Counter.wasm .build/size/$n-mapped.wasm
             ls -l .build/size
           done
