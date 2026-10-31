@@ -63,6 +63,13 @@ def main(a_path, b_path):
         if not same and len(pa) == len(pb):
             diff = [k for k in range(len(pa)) if pa[k] != pb[k]]
             print(f"   {len(diff)} bytes differ, first at {diff[0]}, last at {diff[-1]}")
+            # The differing window with some context, as text where it is text (to name its source).
+            lo, hi = max(0, diff[0] - 256), min(len(pa), diff[-1] + 257)
+            show = lambda b: "".join(chr(c) if 32 <= c < 127 else "." for c in b)
+            for label, blob in (("a", pa), ("b", pb)):
+                print(f"   {label} [{lo}:{hi}]:")
+                for k in range(lo, hi, 96):
+                    print("     " + show(blob[k:min(k + 96, hi)]))
         if not same and ida == 10:
             fa, fb = functions(a, s1, e1), functions(b, s2, e2)
             moved = sum(1 for x, y in zip(fa, fb) if x != y)
