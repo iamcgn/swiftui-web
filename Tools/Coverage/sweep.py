@@ -491,6 +491,9 @@ def classify(msg):
         return "member", f"{normalize_type(m.group(1))}.{m.group(2)}"
     if m := re.match(r"reference to member '([^']+)' cannot be resolved", msg):
         return "member", f"?.{m.group(1)}"
+    if m := re.match(r"unknown attribute '([^']+)'", msg):
+        # A property wrapper or macro the app uses (@AppStorage, @FetchRequest): keep its name.
+        return "attribute", f"@{m.group(1)}"
     if re.search(r"actor-isolated|Sendable|nonisolated|data race|concurrency|global actor|MainActor", msg):
         return "isolation", re.sub(r"'[^']*'", "'…'", msg)[:160]
     if m := re.search(r"'([^']+)' is (?:unavailable|only available)", msg):

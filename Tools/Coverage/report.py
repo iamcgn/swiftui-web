@@ -148,6 +148,8 @@ def main():
                         origin = "Xcode asset symbol"
                     elif cat in ("name", "type") and key in entities:
                         origin = "Core Data codegen"
+                    elif cat == "attribute":
+                        origin = "Apple" if key[1:] in apple_top or key[1:] in apple_bases else ("third-party or app" if third_names else "app or Xcode")
                     elif cat in ("name", "type"):
                         origin = "Apple" if key in apple_top or key in apple_bases else ("third-party or app" if third_names else "app or Xcode")
                     elif cat == "member":
@@ -161,7 +163,7 @@ def main():
         out.append("### What the builds hit, by how many apps\n")
         out.append("`Apple` means the name exists in Apple's surface, so SwiftUIWeb lacks it or lacks this form of it. "
                    "Errors that follow from a missing third-party package or Xcode-generated code are kept, labelled.\n")
-        for cats, title in ((("name", "type", "member", "availability", "conformance"), "Missing names"),
+        for cats, title in ((("name", "type", "attribute", "member", "availability", "conformance"), "Missing names"),
                             (("isolation",), "Isolation and concurrency"),
                             (("signature", "other"), "Signatures and everything else")):
             rows = [(f"`{k}`", c, len(v["apps"]), v["count"], v.get("origin", ""), v["example"])
