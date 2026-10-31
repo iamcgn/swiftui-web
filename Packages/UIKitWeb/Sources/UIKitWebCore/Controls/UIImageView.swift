@@ -87,7 +87,7 @@ public final class UIImage: Hashable, @unchecked Sendable {
     }
 
     /// An image made by an image context.
-    convenience init(drawing: UIImageDrawing) {
+    public convenience init(drawing: UIImageDrawing) {
         self.init(name: "", isSystemSymbol: false, scale: drawing.scale, size: drawing.size, drawing: drawing)
     }
 

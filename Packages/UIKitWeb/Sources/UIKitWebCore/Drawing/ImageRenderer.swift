@@ -10,7 +10,8 @@ public final class UIImageDrawing: @unchecked Sendable {
     public let size: CGSize
     public let scale: CGFloat
 
-    init(commands: [DisplayCommand], size: CGSize, scale: CGFloat) {
+    /// A drawing from recorded commands (SwiftUI's `ImageRenderer` makes one from a view).
+    public init(commands: [DisplayCommand], size: CGSize, scale: CGFloat) {
         self.commands = commands
         self.size = size
         self.scale = scale

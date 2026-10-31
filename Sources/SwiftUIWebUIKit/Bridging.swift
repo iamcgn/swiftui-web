@@ -59,3 +59,13 @@ extension Font {
         }
     }
 }
+
+extension ImageRenderer {
+    /// The content drawn as a UIImage (a recording of the drawing, at the renderer's scale);
+    /// nil when the content has no size.
+    public var uiImage: UIImage? {
+        let drawn = _draw()
+        guard drawn.size.width > 0, drawn.size.height > 0 else { return nil }
+        return UIImage(drawing: UIImageDrawing(commands: drawn.commands, size: drawn.size, scale: scale))
+    }
+}

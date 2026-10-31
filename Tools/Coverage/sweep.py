@@ -31,6 +31,7 @@ from pathlib import Path
 OURS = {
     "SwiftUI", "UIKit", "Foundation", "Combine", "Security", "SafariServices", "Charts", "MapKit",
     "CoreLocation", "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
+    "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers",
 }
 STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "Dispatch", "WASILibc"}
 
@@ -372,6 +373,10 @@ let web: [Target.Dependency] = [
     .product(name: "Combine", package: "Shadows"),
     .product(name: "Security", package: "Shadows"),
     .product(name: "SafariServices", package: "Shadows"),
+    .product(name: "os", package: "Shadows"),
+    .product(name: "OSLog", package: "Shadows"),
+    .product(name: "CoreGraphics", package: "Shadows"),
+    .product(name: "UniformTypeIdentifiers", package: "Shadows"),
 ]
 let stack: [LinkerSetting] = [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack-size=4194304"])]
 """

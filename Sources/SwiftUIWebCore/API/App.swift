@@ -293,8 +293,8 @@ extension Scene {
         return _wrappingRoots { AnyView($0.environmentObject(object)) }
     }
 
-    /// Sets the default storage of `AppStorage` in every window (accepted: one store).
-    public func defaultAppStorage(_ store: UserDefaults) -> some Scene { self }
+    /// Sets the default storage of `AppStorage` in every window.
+    public func defaultAppStorage(_ store: UserDefaults) -> some Scene { environment(\.defaultAppStorage, store) }
 
     /// Adds an action to perform when the given value changes (accepted: scenes are read once).
     public func onChange<V: Equatable>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some Scene { self }

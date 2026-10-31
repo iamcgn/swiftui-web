@@ -14,13 +14,18 @@ import MachO
 
 /// Creates a preview of a SwiftUI view, kept as a `_Preview` registration.
 @freestanding(declaration)
-public macro Preview(_ name: String? = nil, body: @escaping @MainActor () -> any View) =
+public macro Preview(_ name: String? = nil, @ViewBuilder body: @escaping @MainActor () -> any View) =
     #externalMacro(module: "SwiftUIWebMacros", type: "PreviewMacro")
 
 /// Creates a preview with traits (a fixed layout, orientations, `PreviewModifier`s).
 @freestanding(declaration)
-public macro Preview(_ name: String? = nil, traits: PreviewTrait, _ moreTraits: PreviewTrait..., body: @escaping @MainActor () -> any View) =
+public macro Preview(_ name: String? = nil, traits: PreviewTrait, _ moreTraits: PreviewTrait..., @ViewBuilder body: @escaping @MainActor () -> any View) =
     #externalMacro(module: "SwiftUIWebMacros", type: "PreviewMacro")
+
+/// Marks a variable declared in a `#Preview` body (`@Previewable @State var on = true`) as the
+/// preview's own state: the preview's view keeps it as a stored property.
+@attached(peer)
+public macro Previewable() = #externalMacro(module: "SwiftUIWebMacros", type: "PreviewableMacro")
 
 /// Options a preview declares.
 public struct PreviewTrait: Sendable {
@@ -84,7 +89,7 @@ public struct _Preview: Sendable {
     public let line: Int
     public let body: @MainActor @Sendable () -> any View
 
-    public init(name: String?, traits: [PreviewTrait], file: String, line: Int, body: @escaping @MainActor @Sendable () -> any View) {
+    public init(name: String?, traits: [PreviewTrait], file: String, line: Int, @ViewBuilder body: @escaping @MainActor @Sendable () -> any View) {
         self.name = name
         self.traits = traits
         self.file = file

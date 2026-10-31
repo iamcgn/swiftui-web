@@ -353,16 +353,111 @@ extension UTType {
         identifier.hasPrefix("public.") && (identifier.contains("text") || identifier == "public.json" || identifier == "public.html" || identifier == "public.xml" || identifier == "public.url")
     }
 
-    /// A coarse conformance: the same identifier; the plain-text types to `plain-text`; the
-    /// text types (but URLs) to `text`; PNG and JPEG to `image`; everything to `data`, `item`
-    /// and `content`.
-    package func conforms(to other: UTType) -> Bool {
+    /// Whether the type conforms to another: itself, its parents' chain (PNG to image, Swift
+    /// source to source code to plain text to text, MPEG-4 to movie to audiovisual content),
+    /// the text types (but URLs) to `text`, and everything to `data`, `item` and `content`.
+    public func conforms(to other: UTType) -> Bool {
         if self == other { return true }
         if other == .data || other == .item || other == .content { return true }
-        if other == .plainText { return self == .utf8PlainText }
-        if other == .text { return isText && self != .url && self != .fileURL }
-        if other == .image { return self == .png || self == .jpeg }
+        if other == .plainText && self == .utf8PlainText { return true }
+        if other == .text && isText && self != .url && self != .fileURL { return true }
+        var current = identifier
+        while let parent = Self._parents[current] {
+            if parent == other.identifier { return true }
+            current = parent
+        }
         return false
+    }
+
+    /// Whether the type is a subtype of another (conforms to it and is not it).
+    public func isSubtype(of type: UTType) -> Bool { self != type && conforms(to: type) }
+    /// Whether another type is a subtype of this one.
+    public func isSupertype(of type: UTType) -> Bool { type.isSubtype(of: self) }
+
+    /// The types this one conforms to, through its parents.
+    public var supertypes: Set<UTType> {
+        var found: Set<UTType> = [.data, .item, .content]
+        var current = identifier
+        while let parent = Self._parents[current] { found.insert(UTType(parent)); current = parent }
+        if isText && self != .url && self != .fileURL { found.insert(.text) }
+        found.remove(self)
+        return found
+    }
+
+    /// Each type's parent, for the common types.
+    private static let _parents: [String: String] = [
+        "public.utf8-plain-text": "public.plain-text", "public.utf16-plain-text": "public.plain-text",
+        "public.plain-text": "public.text", "public.html": "public.text", "public.xml": "public.text",
+        "public.json": "public.text", "public.rtf": "public.text", "public.yaml": "public.text", "public.log": "public.text",
+        "public.comma-separated-values-text": "public.delimited-values-text", "public.tab-separated-values-text": "public.delimited-values-text",
+        "public.delimited-values-text": "public.text", "public.source-code": "public.plain-text",
+        "public.swift-source": "public.source-code", "com.netscape.javascript-source": "public.source-code",
+        "public.png": "public.image", "public.jpeg": "public.image", "com.compuserve.gif": "public.image",
+        "public.heic": "public.image", "public.tiff": "public.image", "com.microsoft.bmp": "public.image",
+        "public.svg-image": "public.image", "org.webmproject.webp": "public.image",
+        "public.movie": "public.audiovisual-content", "public.video": "public.movie",
+        "public.mpeg-4": "public.movie", "com.apple.quicktime-movie": "public.movie",
+        "public.audio": "public.audiovisual-content", "public.mp3": "public.audio",
+        "public.mpeg-4-audio": "public.audio", "com.microsoft.waveform-audio": "public.audio",
+        "com.adobe.pdf": "public.composite-content", "org.idpf.epub-container": "public.composite-content",
+        "public.zip-archive": "public.archive", "org.gnu.gnu-zip-archive": "public.archive",
+        "public.folder": "public.directory", "public.file-url": "public.url",
+    ]
+
+    /// The MIME type a browser or a server names the type with; nil when none is known.
+    public var preferredMIMEType: String? {
+        switch identifier {
+        case "public.data", "public.item", "public.content": return nil
+        case "com.compuserve.gif": return "image/gif"
+        case "public.heic": return "image/heic"
+        case "public.tiff": return "image/tiff"
+        case "com.microsoft.bmp": return "image/bmp"
+        case "public.svg-image": return "image/svg+xml"
+        case "org.webmproject.webp": return "image/webp"
+        case "public.mpeg-4": return "video/mp4"
+        case "com.apple.quicktime-movie": return "video/quicktime"
+        case "public.mp3": return "audio/mpeg"
+        case "public.mpeg-4-audio": return "audio/mp4"
+        case "com.microsoft.waveform-audio": return "audio/wav"
+        case "public.zip-archive": return "application/zip"
+        case "org.gnu.gnu-zip-archive": return "application/gzip"
+        case "com.adobe.pdf": return "application/pdf"
+        case "public.vcard": return "text/vcard"
+        case "public.yaml": return "application/x-yaml"
+        case "com.netscape.javascript-source": return "text/javascript"
+        case "public.tab-separated-values-text": return "text/tab-separated-values"
+        case "org.idpf.epub-container": return "application/epub+zip"
+        default:
+            let mime = _mime
+            return mime == identifier ? nil : mime
+        }
+    }
+
+    /// The type a MIME type names, where one is known.
+    public init?(mimeType: String, conformingTo supertype: UTType = .data) {
+        let lower = String((mimeType.lowercased().split(separator: ";").first ?? "").filter { $0 != " " })
+        let extra: [String: String] = [
+            "image/gif": "com.compuserve.gif", "image/heic": "public.heic", "image/tiff": "public.tiff", "image/bmp": "com.microsoft.bmp",
+            "image/svg+xml": "public.svg-image", "image/webp": "org.webmproject.webp", "video/mp4": "public.mpeg-4",
+            "video/quicktime": "com.apple.quicktime-movie", "audio/mpeg": "public.mp3", "audio/mp4": "public.mpeg-4-audio",
+            "audio/wav": "com.microsoft.waveform-audio", "application/zip": "public.zip-archive", "application/gzip": "org.gnu.gnu-zip-archive",
+            "application/pdf": "com.adobe.pdf", "text/vcard": "public.vcard", "text/javascript": "com.netscape.javascript-source",
+            "text/tab-separated-values": "public.tab-separated-values-text", "application/epub+zip": "org.idpf.epub-container",
+        ]
+        if let identifier = extra[lower] {
+            self = UTType(identifier)
+        } else {
+            let type = UTType(_mime: lower)
+            guard type.identifier != lower, type != .data else { return nil }
+            self = type
+        }
+        guard conforms(to: supertype) else { return nil }
+    }
+
+    /// The type for a filename extension that conforms to the given type.
+    public init?(filenameExtension: String, conformingTo supertype: UTType) {
+        guard let type = UTType(filenameExtension: filenameExtension), type.conforms(to: supertype) else { return nil }
+        self = type
     }
 }
 
