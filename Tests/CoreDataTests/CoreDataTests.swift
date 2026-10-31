@@ -528,4 +528,60 @@ struct CoreDataTests {
         runtime.layout(in: CGSize(width: 320, height: 400))
         #expect(texts(runtime) == ["unread: Emma", "read: Beloved,Dune"])
     }
+
+    @Test func actionsReadTheResultsOfTheLatestBody() throws {
+        let container = try container()
+        let runtime = Runtime()
+        let size = CGSize(width: 320, height: 400)
+        runtime.mount(Numbered().environment(\.managedObjectContext, container.viewContext))
+        runtime.layout(in: size)
+        func add() {
+            let frame = runtime.probeFrames["add"]!
+            runtime.pointerDown(at: CGPoint(x: frame.midX, y: frame.midY))
+            runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
+            runtime.layout(in: size)
+        }
+        // The action inserts before it reads the count, and still reads the count it rendered.
+        add()
+        #expect(texts(runtime).filter { $0.hasPrefix("Book") } == ["Book 1"])
+        add()
+        #expect(texts(runtime).filter { $0.hasPrefix("Book") } == ["Book 1", "Book 2"])
+    }
+
+    @Test func managedObjectsAreIdentifiableByIdentity() throws {
+        let context = try container().viewContext
+        let dune = book("Dune", in: context)
+        let emma = book("Emma", in: context)
+        #expect(dune.id == ObjectIdentifier(dune))
+        #expect(dune.id != emma.id)
+        // `ForEach` over fetched results needs no `id:`, as on Apple platforms.
+        let runtime = Runtime()
+        runtime.mount(Shelf().environment(\.managedObjectContext, context))
+        runtime.layout(in: CGSize(width: 320, height: 400))
+        #expect(texts(runtime) == ["Dune", "Emma"])
+    }
+}
+
+/// Adds a book named for the count shown, inserting before reading the count (as an app's
+/// `Note(context:)` then `note.text = "Note \(notes.count + 1)"` does).
+private struct Numbered: View {
+    @Environment(\.managedObjectContext) private var context
+    @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "title", ascending: true)]) private var books: FetchedResults<Book>
+    var body: some View {
+        VStack {
+            ForEach(books) { Text($0.title ?? "") }
+            Button("Add") {
+                let book = Book(context: context)
+                book.title = "Book \(books.count + 1)"
+            }._probe("add")
+        }
+    }
+}
+
+/// A list of every book by title, with `ForEach` keyed by the objects themselves.
+private struct Shelf: View {
+    @FetchRequest(sortDescriptors: [NSSortDescriptor(key: "title", ascending: true)]) private var books: FetchedResults<Book>
+    var body: some View {
+        VStack { ForEach(books) { Text($0.title ?? "") } }
+    }
 }

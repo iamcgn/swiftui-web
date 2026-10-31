@@ -358,6 +358,10 @@ def cmd_fetch(args):
             clone(app["repo"], Path(args.work) / app["name"], app["sha"])
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "Traits"))
+import traits as app_traits  # noqa: E402  (Tools/Traits: which package traits an app needs, decision 0024)
+
+
 # MARK: prepare
 
 def strip_imports(text, strip):
@@ -414,6 +418,7 @@ def cmd_prepare(args):
         shutil.rmtree(pkg / "Sources")
     pkg.mkdir(parents=True, exist_ok=True)
     mapping, decls, strips = {}, [], {}
+    uses_core_data = False  # turns on the CoreData trait (decision 0024), as an app's own manifest would
     for app in plan["apps"]:
         if app.get("batch") != args.batch:
             continue
@@ -436,7 +441,10 @@ def cmd_prepare(args):
                 used.add(name.lower())
                 dest = dest_root / rel.parent / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
-                dest.write_text(strip_imports((clone_dir / f).read_text(errors="replace"), strip))
+                text = (clone_dir / f).read_text(errors="replace")
+                if app_traits.CORE_DATA_NAMES.search(app_traits.code_only(text)):
+                    uses_core_data = True
+                dest.write_text(strip_imports(text, strip))
                 mapping[str(dest.resolve())] = {"app": app["name"], "file": f}
             resources = []
             for r in t["resources"]:
@@ -451,6 +459,7 @@ def cmd_prepare(args):
             # Core Data models go next to the sources, out of the target's files, and the
             # CoreDataModel plugin generates their classes (as Xcode's codegen does).
             models = []
+            uses_core_data = uses_core_data or bool(t.get("models"))
             for m in t.get("models", []):
                 name = Path(m).name
                 if name in models:
@@ -470,6 +479,7 @@ def cmd_prepare(args):
                 + (',\n            plugins: [.plugin(name: "CoreDataModel", package: "SwiftUIWeb")]' if models else "")
                 + "\n        ),"
             )
+    traits = ', traits: ["CoreData"]' if uses_core_data else ""
     manifest = MANIFEST_HEAD + f"""
 let package = Package(
     name: "Sweep",
@@ -477,9 +487,9 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [.macOS(.v14)],
     dependencies: [
-        .package(name: "SwiftUIWeb", path: "{root}"),
+        .package(name: "SwiftUIWeb", path: "{root}"{traits}),
         .package(name: "UIKitWeb", path: "{root}/Packages/UIKitWeb"),
-        .package(name: "Shadows", path: "{root}/Packages/Shadows"),
+        .package(name: "Shadows", path: "{root}/Packages/Shadows"{traits}),
     ],
     targets: [
         .target(name: "SweepDeps", dependencies: web, path: "Sources/SweepDeps"),
@@ -493,7 +503,8 @@ let package = Package(
     (pkg / "Package.swift").write_text(manifest)
     (pkg / "mapping.json").write_text(json.dumps(mapping))
     (pkg / "strip.json").write_text(json.dumps(strips))
-    print(f"wrote {pkg / 'Package.swift'} ({len(decls)} targets, {len(mapping)} files)")
+    print(f"wrote {pkg / 'Package.swift'} ({len(decls)} targets, {len(mapping)} files"
+          f"{', CoreData trait' if uses_core_data else ''})")
 
 
 # MARK: run and classify

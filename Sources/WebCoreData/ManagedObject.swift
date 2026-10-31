@@ -598,3 +598,8 @@ public let NSPersistentStoreIncompatibleVersionHashError = 134100
 public let NSMigrationMissingSourceModelError = 134130
 public let NSDetailedErrorsKey = "NSDetailedErrors"
 public let NSAffectedObjectsErrorKey = "NSAffectedObjectsErrorKey"
+
+// Apple's Core Data makes every managed object `Identifiable` by its identity (iOS 13), so
+// `ForEach(items)` and `List(items)` take fetched results as they are. An entity's own `id`
+// attribute does not change that: the conformance is the class's, as on Apple platforms.
+extension NSManagedObject: Identifiable {}
