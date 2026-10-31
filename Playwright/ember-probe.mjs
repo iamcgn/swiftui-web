@@ -30,7 +30,7 @@ const report = {
   tested_commit: git('rev-parse HEAD'), working_tree: dirty.length ? `dirty: ${dirty.length} path(s) differ from the commit` : 'clean',
   working_tree_changes: dirty, app_pinned_revision: git('ls-files --stage Apps/upstream/ember-hackernews').split(/\s+/)[1] || 'unknown',
   browser: null, url, started: new Date().toISOString(),
-  full_app_pass: false, flows: {}, problems: [], favicons_refused: 0, screenshots: [], trace: null,
+  full_app_pass: false, flows: {}, problems: [], favicons_refused: 0, framed_site_errors: [], screenshots: [], trace: null,
   notes: ['Every flow talks to the live Hacker News API (hacker-news.firebaseio.com, hn.algolia.com): the titles and counts differ per run; the probe asserts shapes, not values.'],
 };
 let currentFlow = null;
@@ -43,7 +43,18 @@ await context.tracing.start({ screenshots: true, snapshots: false });
 const page = await context.newPage();
 const problems = report.problems;
 const isFavicon = (text) => /icons\.duckduckgo\.com/.test(text) || /could not load image https:\/\/icons\.duckduckgo\.com/.test(text);
-page.on('pageerror', e => problems.push('pageerror: ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 6).join(' <- ')));
+// A script error inside an article the reader sheet frames is that site's own bug (the live feed
+// picks the article): it is counted, not failed. An error whose stack names our origin, or no
+// origin at all, is the app's and fails the run.
+const appOrigin = new URL(url).origin;
+const isFramedSiteError = (stack) => {
+  const origins = [...(stack || '').matchAll(/https?:\/\/[^/\s)]+/g)].map(m => m[0]);
+  return origins.length > 0 && origins.every(o => o !== appOrigin);
+};
+page.on('pageerror', e => {
+  if (isFramedSiteError(e.stack)) { report.framed_site_errors.push(e.message + ' ' + (e.stack || '').split('\n').slice(1, 3).join(' <- ')); return; }
+  problems.push('pageerror: ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 6).join(' <- '));
+});
 page.on('console', m => {
   const text = m.text();
   if (m.type() !== 'error') return;
@@ -97,7 +108,7 @@ const finish = async () => {
   try { await context.tracing.stop({ path: join(out, 'trace.zip') }); report.trace = 'trace.zip'; } catch (e) { problems.push('trace: ' + e.message); }
   report.full_app_pass = Object.values(report.flows).every(f => f.outcome === 'passed') && problems.length === 0;
   writeFileSync(join(out, 'report.json'), JSON.stringify(report, null, 2) + '\n');
-  console.log(JSON.stringify({ full_app_pass: report.full_app_pass, flows: report.flows, problems: report.problems, favicons_refused: report.favicons_refused }, null, 2));
+  console.log(JSON.stringify({ full_app_pass: report.full_app_pass, flows: report.flows, problems: report.problems, favicons_refused: report.favicons_refused, framed_site_errors: report.framed_site_errors }, null, 2));
   await browser.close();
   process.exit(report.full_app_pass ? 0 : 1);
 };
