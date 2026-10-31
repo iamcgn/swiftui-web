@@ -4,6 +4,7 @@ Two measurements that turn "runs any SwiftUI iOS app" from a goal into a ranked 
 the `Coverage` workflow (`.github/workflows/coverage.yml`), on a push that touches this folder or
 by hand; the report is the run's job summary and its `report` artifact (`coverage.md`, and
 `coverage.json` with every missing key and every classified error).
+A snapshot of the report is kept in `Docs/coverage.md`; refresh it from a run's log or artifact.
 
 ## The surface diff
 
