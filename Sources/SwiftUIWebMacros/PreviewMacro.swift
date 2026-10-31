@@ -62,7 +62,7 @@ public struct PreviewMacro: DeclarationMacro {
         for item in closure.statements {
             if let variable = item.item.as(VariableDeclSyntax.self), variable.attributes.contains(where: isPreviewable) {
                 var stripped = variable
-                stripped.attributes = AttributeListSyntax(variable.attributes.filter { !isPreviewable($0) })
+                stripped.attributes = variable.attributes.filter { !isPreviewable($0) }
                 properties.append(stripped.trimmedDescription)
             } else {
                 statements.append(item.trimmedDescription)
