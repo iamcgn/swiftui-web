@@ -11,7 +11,7 @@ import WebFoundation
 @MainActor private final class Taps { var below = 0; var above = 0 }
 
 private enum Store {
-    nonisolated(unsafe) static let defaults = UserDefaults(suiteName: "swiftui-web.everyday-tests")!
+    static let defaults = UserDefaults(suiteName: "swiftui-web.everyday-tests")!
 }
 
 private struct StoredCounter: View {

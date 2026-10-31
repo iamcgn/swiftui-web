@@ -57,7 +57,7 @@ struct LinearExpression {
     static func - (lhs: LinearExpression, rhs: Double) -> LinearExpression { lhs + (-rhs) }
 
     // Where CGFloat is its own type (Apple platforms); on wasm and Linux it is Double.
-    #if canImport(CoreGraphics)
+    #if canImport(CoreGraphics) && !os(WASI)
     static func + (lhs: LinearExpression, rhs: CGFloat) -> LinearExpression { lhs + Double(rhs) }
     static func - (lhs: LinearExpression, rhs: CGFloat) -> LinearExpression { lhs + Double(-rhs) }
     static func * (lhs: LinearExpression, rhs: CGFloat) -> LinearExpression { lhs * Double(rhs) }

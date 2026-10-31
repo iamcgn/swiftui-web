@@ -5,7 +5,7 @@
 // (`CGMutablePath()`, `move(to:)`, `addArc(center:…)`, `addPath`, `closeSubpath`) compiles
 // unchanged. `UIBezierPath.cgPath` stays the substrate's `Path` on both.
 
-#if canImport(CoreGraphics)
+#if canImport(CoreGraphics) && !os(WASI)
 import CoreGraphics
 
 extension Path {

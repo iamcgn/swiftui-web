@@ -273,7 +273,7 @@ extension LayerKeyPath {
     /// where `as?` cannot test it; the type id can).
     @MainActor static func color(_ any: Any) -> RGBA? {
         if let color = any as? UIColor { return color.rgba(for: .light) }
-        #if canImport(CoreGraphics)
+        #if canImport(CoreGraphics) && !os(WASI)
         if CFGetTypeID(any as CFTypeRef) == CGColor.typeID { return RGBA(cgColor: any as! CGColor) }
         return nil
         #else

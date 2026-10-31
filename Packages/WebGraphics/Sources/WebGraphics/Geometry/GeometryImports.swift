@@ -1,6 +1,6 @@
 // One place that documents which module provides CGFloat & friends per platform; every file
 // that needs them repeats the same three-line conditional import (Swift imports are per file).
-#if canImport(CoreGraphics)
+#if canImport(CoreGraphics) && !os(WASI)
 @_exported import CoreGraphics
 #elseif !os(WASI)
 @_exported import Foundation

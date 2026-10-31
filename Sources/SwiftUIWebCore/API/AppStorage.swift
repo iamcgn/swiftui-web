@@ -251,8 +251,9 @@ extension AppStorage {
 // MARK: - The default store
 
 package struct DefaultAppStorageKey: EnvironmentKey {
-    // `UserDefaults` is not Sendable everywhere; the default is nil (the standard defaults).
-    package nonisolated(unsafe) static let defaultValue: UserDefaults? = nil
+    // Computed, since `UserDefaults` is Sendable on Apple's SDKs and not everywhere else; the
+    // default is nil (the standard defaults).
+    package static var defaultValue: UserDefaults? { nil }
 }
 
 extension EnvironmentValues {

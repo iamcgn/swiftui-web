@@ -534,7 +534,7 @@ public struct GraphicsContext {
         filters.append(filter)
     }
 
-    #if canImport(CoreGraphics)
+    #if canImport(CoreGraphics) && !os(WASI)
     /// Runs `content` with a scratch Core Graphics context the canvas's size. The web has no
     /// Core Graphics, so what is drawn into it is not shown (accepted for source compatibility).
     @MainActor public func withCGContext(content: (CGContext) throws -> Void) rethrows {

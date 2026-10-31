@@ -84,7 +84,7 @@ public final class UIBezierPath {
     public func addClip() { UIGraphicsGetCurrentContext()?.clip(to: cgPath, evenOdd: usesEvenOddFillRule) }
 }
 
-#if !canImport(CoreGraphics)
+#if !canImport(CoreGraphics) || os(WASI)
 /// Blend modes as CoreGraphics names them (accepted; drawing uses normal compositing).
 public enum CGBlendMode: Int32, Sendable {
     case normal = 0, multiply, screen, overlay, darken, lighten, colorDodge, colorBurn, softLight, hardLight, difference, exclusion

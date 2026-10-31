@@ -93,7 +93,7 @@ struct _GlassBackground: View {
 public struct GlassEffectContainer<Content: View>: View {
     let content: Content
 
-    @preconcurrency nonisolated public init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+    public init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
         self.content = content()
     }
 

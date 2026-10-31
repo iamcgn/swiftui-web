@@ -118,7 +118,7 @@ public struct CGRect: Equatable, Hashable, Sendable {
 
 #endif
 
-#if !canImport(CoreGraphics)
+#if !canImport(CoreGraphics) || os(WASI)
 
 public struct CGVector: Equatable, Hashable, Sendable {
     public var dx: CGFloat

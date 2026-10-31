@@ -7,7 +7,9 @@
 //     .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
 //     .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
 // `os` and `OSLog` (`Logger` over the console), `CoreGraphics` (the geometry types) and
-// `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest.
+// `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest. With
+// `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
+// `canImport(CoreGraphics) && !os(WASI)`.
 // `Security` (the keychain item functions over a host store) and `SafariServices`
 // (`SFSafariViewController` over `WKWebView`) live here for the same reason (decision 0021, the
 // Ember app): a root-package module named `Security` would shadow Apple's for every macOS

@@ -7,12 +7,12 @@
 // CoreGraphics, the name shadows CoreGraphics's class (a real `CGGradient` cannot be read back)
 // on Apple platforms and stands in for it on wasm, with `CGColorSpace`, `CFArray` and the
 // drawing options here.
-#if canImport(CoreGraphics)
+#if canImport(CoreGraphics) && !os(WASI)
 import CoreGraphics
 import Foundation
 #endif
 
-#if !canImport(CoreGraphics)
+#if !canImport(CoreGraphics) || os(WASI)
 /// A colour space stand-in on wasm: every colour is sRGB (decision 0006).
 public final class CGColorSpace: @unchecked Sendable {
     public static let sRGB = "kCGColorSpaceSRGB"
@@ -79,7 +79,7 @@ public final class UIGraphicsGradient: @unchecked Sendable {
     }
 
     private static func colors(in array: CFArray) -> [CGColor] {
-        #if canImport(CoreGraphics)
+        #if canImport(CoreGraphics) && !os(WASI)
         return (array as NSArray).compactMap { element in
             CFGetTypeID(element as CFTypeRef) == CGColor.typeID ? (element as! CGColor) : nil
         }
