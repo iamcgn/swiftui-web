@@ -431,6 +431,8 @@ def cmd_prepare(args):
     manifest = MANIFEST_HEAD + f"""
 let package = Package(
     name: "Sweep",
+    // Required as soon as any app target carries localized resources (.lproj, .xcstrings).
+    defaultLocalization: "en",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "{root}"),

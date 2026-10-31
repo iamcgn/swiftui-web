@@ -119,6 +119,7 @@ jobs:
             --ours in/ours.json --plan in/plan.json --sweep in/results-*.json \
             --commit "$GITHUB_SHA" --md coverage.md --json coverage.json
           cat coverage.md >> "$GITHUB_STEP_SUMMARY"
+          cat coverage.md
       - uses: actions/upload-artifact@v4
         with:
           name: report
