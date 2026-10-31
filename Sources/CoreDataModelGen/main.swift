@@ -421,9 +421,7 @@ func generate(models: [Model], module: String) -> String {
                 }
                 out += "}\n"
             }
-            if entity.parent == nil {
-                out += "\nextension \(swiftClass): Identifiable {}\n"
-            }
+            // `Identifiable` is NSManagedObject's own (WebCoreData), as on Apple platforms.
         }
 
         // The model's description.

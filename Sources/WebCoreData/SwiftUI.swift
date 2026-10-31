@@ -1,7 +1,10 @@
 // SwiftUI's Core Data integration: `@FetchRequest` and `@SectionedFetchRequest` over the
-// environment's `managedObjectContext`. A fetch request reads its context on every read and
-// refetches after every change the context sees (an insert, a property set, a save, another
-// context's save), as Apple's does through a fetched results controller.
+// environment's `managedObjectContext`. A fetch request refetches after every change the context
+// sees (an insert, a property set, a save, another context's save), as Apple's does through a
+// fetched results controller. Its results are the ones fetched for the view's latest body: an
+// action that inserts an object and then reads the results still sees the earlier ones until the
+// view updates, as on Apple platforms (`"Note \(notes.count + 1)"` after an insert names the new
+// note 1, not 2).
 
 import SwiftUIWebCore
 import WebCombine
@@ -44,6 +47,8 @@ final class _FetchBox: WebCombine.ObservableObject, @unchecked Sendable {
     private var signature: String?
     var predicateOverride: NSPredicate??
     var sortOverride: [NSSortDescriptor]?
+    /// The results fetched for the view's latest body (`[Result]`), until the next update.
+    private var snapshot: Any?
 
     init() {}
 
@@ -84,6 +89,21 @@ final class _FetchBox: WebCombine.ObservableObject, @unchecked Sendable {
         objectWillChange.send()
     }
 
+    /// Fetches the request's results for the body about to be evaluated.
+    func refresh<T>(_ request: NSFetchRequest<T>, in context: NSManagedObjectContext) {
+        watch(context)
+        adopt(request)
+        snapshot = fetch(request, in: context)
+    }
+
+    /// The results of the latest update; a fetch now if there has been none (a read outside a
+    /// body, before the view is shown).
+    func results<T>(_ request: NSFetchRequest<T>, in context: NSManagedObjectContext) -> [T] {
+        if let snapshot = snapshot as? [T] { return snapshot }
+        refresh(request, in: context)
+        return snapshot as? [T] ?? []
+    }
+
     /// The request's results in the context, with the overrides applied.
     func fetch<T>(_ request: NSFetchRequest<T>, in context: NSManagedObjectContext) -> [T] {
         if request.entity == nil, request.entityName == nil, let type = T.self as? NSManagedObject.Type {
@@ -115,9 +135,7 @@ public struct FetchRequest<Result: NSFetchRequestResult>: DynamicProperty {
 
     /// The fetched results of the fetch request.
     public var wrappedValue: FetchedResults<Result> {
-        box.watch(context)
-        box.adopt(request)
-        return FetchedResults(results: box.fetch(request, in: context), box: box, request: request)
+        FetchedResults(results: box.results(request, in: context), box: box, request: request)
     }
 
     /// The request's configuration, as a binding (`$items.nsPredicate`).
@@ -140,7 +158,10 @@ public struct FetchRequest<Result: NSFetchRequestResult>: DynamicProperty {
         public var nsSortDescriptors: [NSSortDescriptor]
     }
 
-    nonisolated public mutating func update() {}
+    /// Fetches for the body about to be evaluated (the runtime calls this before each body).
+    public mutating func update() {
+        box.refresh(request, in: context)
+    }
 
     /// A request for the entity's objects, sorted and filtered.
     public init(entity: NSEntityDescription, sortDescriptors: [NSSortDescriptor], predicate: NSPredicate? = nil, animation: Animation? = nil) {
@@ -218,12 +239,13 @@ public struct SectionedFetchRequest<SectionIdentifier: Hashable, Result: NSFetch
 
     /// The fetched results, by section.
     public var wrappedValue: SectionedFetchResults<SectionIdentifier, Result> {
-        box.watch(context)
-        box.adopt(request)
-        return SectionedFetchResults(results: box.fetch(request, in: context), section: section, box: box, request: request)
+        SectionedFetchResults(results: box.results(request, in: context), section: section, box: box, request: request)
     }
 
-    nonisolated public mutating func update() {}
+    /// Fetches for the body about to be evaluated (the runtime calls this before each body).
+    public mutating func update() {
+        box.refresh(request, in: context)
+    }
 
     public init(fetchRequest: NSFetchRequest<Result>, sectionIdentifier: KeyPath<Result, SectionIdentifier>, animation: Animation? = nil) {
         request = fetchRequest

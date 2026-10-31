@@ -39,6 +39,12 @@ let package = Package(
         .library(name: "FixtureKit", targets: ["FixtureKit"]),
         .library(name: "SwiftUIWebFixtures", targets: ["SwiftUIWebFixtures"]),
     ],
+    // Opt-in parts of the `SwiftUI` module (decision 0024). An app enables one on its dependency,
+    // `.package(name: "SwiftUIWeb", path: ..., traits: ["CoreData"])`; Tools/Traits/traits.py
+    // says which an app needs. Off by default, so Counter's bundle stays as it is (decision 0006).
+    traits: [
+        .trait(name: "CoreData", description: "`import SwiftUI` re-exports WebCoreData on wasm (`@FetchRequest`, `FetchedResults`), as Apple's SwiftUI declares them."),
+    ],
     dependencies: [
         // The graphics substrate shared with UIKitWeb (decision 0014), and UIKitWeb itself: the
         // `SwiftUI` module re-exports `UIKit` the way Apple's does on iOS.
@@ -60,6 +66,7 @@ let package = Package(
                 .product(name: "WebCombine", package: "WebGraphics"),
                 .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
                 .target(name: "SwiftUIWebNative", condition: .when(platforms: [.macOS])),
+                .target(name: "WebCoreData", condition: .when(platforms: [.wasi], traits: ["CoreData"])),
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),

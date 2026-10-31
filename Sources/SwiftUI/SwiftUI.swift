@@ -23,6 +23,12 @@
 // wasm test discovery imports XCTest, whose module wants the SDK's Foundation).
 @_exported import WebFoundation
 @_exported import WASILibc
+#if CoreData
+// The `CoreData` trait (decision 0024): Apple's SwiftUI declares `@FetchRequest`,
+// `FetchedResults` and `\.managedObjectContext`, so a file that imports only SwiftUI uses them.
+// Only on wasm: on macOS the names would collide with Apple's Foundation (`NSPredicate`, `NSSet`).
+@_exported import WebCoreData
+#endif
 #else
 // Linux: Foundation plus the missing Objective-C API value stand-ins.
 @_exported import WebFoundation
