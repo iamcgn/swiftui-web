@@ -38,7 +38,7 @@ jobs:
             sed -i '' "s|\"stack-size=4194304\"|\"stack-size=4194304\", \"-Xlinker\", \"--Map=$GITHUB_WORKSPACE/.build/size/$n.map\"|" Examples/Counter/Package.swift
             grep -n -- "--Map" Examples/Counter/Package.swift
             (cd Examples/Counter && . ../../scripts/env.sh && swift build --swift-sdk "swift-$(cat ../../.swift-version)-RELEASE_wasm" \
-              --scratch-path .build/wasm -c release -Xswiftc -Osize --product Counter)
+              --scratch-path .build/wasm -c release -Xswiftc -Osize -Xswiftc -Xfrontend -Xswiftc -disable-incremental-llvm-codegen --product Counter)
             cp .build/size/Package.swift.orig Examples/Counter/Package.swift
             cp Examples/Counter/.build/wasm/wasm32-unknown-wasip1/release/Counter.wasm .build/size/$n-mapped.wasm
             ls -l .build/size
