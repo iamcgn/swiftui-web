@@ -29,10 +29,27 @@ jobs:
             rm -rf Examples/Counter/.build
             scripts/build-wasm.sh Examples/Counter
             cp Examples/Counter/.build/wasm/plugins/PackageToJS/outputs/Package/Counter.wasm .build/size/$n.wasm
+            cp Examples/Counter/.build/wasm/wasm32-unknown-wasip1/release/Counter.wasm .build/size/$n-linked.wasm
             scripts/size-gate.sh Examples/Counter 99999999
+            # The same objects linked again with a map, to name what lies at each data address.
+            (cd Examples/Counter && . ../../scripts/env.sh && swift build --swift-sdk "swift-$(cat ../../.swift-version)-RELEASE_wasm" \
+              --scratch-path .build/wasm -c release -Xswiftc -Osize --product Counter \
+              -Xlinker --Map="$GITHUB_WORKSPACE/.build/size/$n.map")
+            cp Examples/Counter/.build/wasm/wasm32-unknown-wasip1/release/Counter.wasm .build/size/$n-mapped.wasm
+            ls -l .build/size
           done
       - name: Compare the two
         run: python3 Tools/Size/section-diff.py .build/size/a.wasm .build/size/b.wasm
+      - name: Compare the linked modules (before PackageToJS's wasm-opt) and the relinks
+        run: |
+          echo "linked a vs b: $(cmp -l .build/size/a-linked.wasm .build/size/b-linked.wasm | wc -l) bytes differ"
+          cmp -s .build/size/a-linked.wasm .build/size/a-mapped.wasm && echo "a: relink identical" || echo "a: relink differs"
+      - name: Name the differing data
+        run: python3 Tools/Size/data-symbols.py .build/size/a-mapped.wasm .build/size/b-mapped.wasm .build/size/a.map
+      - uses: actions/upload-artifact@v4
+        with:
+          name: size-repro
+          path: .build/size/*.map
       - name: What wasm-opt's strip passes would save
         run: |
           wasm-opt --enable-bulk-memory --enable-sign-ext --enable-mutable-globals --enable-nontrapping-float-to-int \
