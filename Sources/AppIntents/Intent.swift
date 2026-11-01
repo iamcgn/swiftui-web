@@ -1,9 +1,5 @@
 // The intent itself, what it returns, and how Shortcuts summarizes its parameters.
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation, with LocalizedStringResource on wasm and Linux
 import SwiftUI
 
 /// An action the app offers to Siri, Shortcuts, widgets and its own buttons.

@@ -2,11 +2,7 @@
 // Siri, so the shortcuts an app declares are kept as values and never offered; the Siri tip and
 // the link to Shortcuts show nothing. A button or toggle made with an intent runs the intent's
 // `perform()` when pressed, as it does in an app on iOS.
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation, with LocalizedStringResource on wasm and Linux
 import SwiftUI
 
 /// A word Siri fills into a phrase.

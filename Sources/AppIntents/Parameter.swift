@@ -3,11 +3,7 @@
 // only the app sets them: a parameter holds what the app assigned, else its default, and asking
 // the user for a value (`requestValue`, `requestDisambiguation`, `requestConfirmation`) throws,
 // since there is no one to ask.
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation, with LocalizedStringResource on wasm and Linux
 import SwiftUI
 
 /// The optional types, so a parameter can answer nil when it holds nothing.

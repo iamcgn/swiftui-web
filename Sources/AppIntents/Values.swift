@@ -6,11 +6,7 @@
 // The declarations follow Apple's (Xcode 26.3) so the intents, entities and queries apps
 // declare compile unchanged; the resolver machinery behind Apple's parameter initializers is
 // left out, since nothing here resolves a value from Siri.
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation, with LocalizedStringResource on wasm and Linux
 import SwiftUI
 
 // MARK: Values an intent can take

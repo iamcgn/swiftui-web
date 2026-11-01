@@ -9,6 +9,9 @@ import SwiftUI
 import SwiftUIWebCore
 import SwiftUIWebHeadless
 import AppIntents
+#if os(Linux)
+import WebFoundation   // LocalizedStringResource
+#endif
 
 #if !os(WASI)
 @MainActor private final class IntentLog {
