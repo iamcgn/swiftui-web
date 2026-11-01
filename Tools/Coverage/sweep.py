@@ -159,6 +159,33 @@ def swift_settings(target):
     return out
 
 
+C_SOURCES = {".c", ".cc", ".cpp", ".cxx", ".m", ".mm"}
+C_HEADERS = {".h", ".hh", ".hpp", ".inc", ".def", ".modulemap"}
+# An Objective-C target this small is a shim (swift-navigation's UIKitNavigationShim): its headers
+# stand in for it so the Swift targets above it still build. A bigger one (Firebase) is left out.
+SHIM_LIMIT = 4
+
+
+def c_settings(target):
+    """The header search paths and defines a C target declares for every platform, as manifest source."""
+    out = []
+    for s in target.get("settings") or []:
+        if s.get("tool") not in ("c", "cxx"):
+            continue
+        cond = s.get("condition") or {}
+        if cond.get("platformNames") and not {"linux", "wasi"} & set(cond["platformNames"]):
+            continue
+        kind = s.get("kind") or {}
+        for key in ("headerSearchPath", "define"):
+            if key in kind:
+                value = kind[key].get("_0") if isinstance(kind[key], dict) else kind[key]
+                if isinstance(value, str):
+                    entry = f".{key}({json.dumps(value)})"
+                    if entry not in out:
+                        out.append(entry)
+    return out
+
+
 def dependency_names(dep):
     """(kind, name, package) for a dump-package target dependency."""
     for kind in ("target", "byName", "product"):
@@ -287,10 +314,22 @@ def describe_remote_packages(work: Path, keys, notes):
             files = [str(f.relative_to(root)) for f in sorted(src.rglob("*.swift"))
                      if f.is_file() and not any(str(f.relative_to(root)).startswith(e.rstrip("/") + "/") or str(f.relative_to(root)) == e for e in excludes)
                      and not (f.parent == root and is_manifest(f.name))]
+            c_kind = None
             if not files:
-                left_out.add(t["name"])
-                notes.append(f"package {identity}: target {t['name']} has no Swift sources (C or Objective-C), not built")
-                continue
+                found = [f for f in src.rglob("*") if f.is_file()]
+                sources = [f for f in found if f.suffix in C_SOURCES]
+                objc = [f for f in sources if f.suffix in (".m", ".mm")]
+                has_headers = any(f.suffix in C_HEADERS for f in found)
+                if not objc and (sources or has_headers):
+                    c_kind = "c"  # built as it is, by the wasm SDK's clang
+                elif objc and len(objc) <= SHIM_LIMIT and has_headers:
+                    c_kind = "headers"  # its headers only, so the module exists
+                    notes.append(f"package {identity}: Objective-C shim {t['name']} stands in with its headers only")
+                else:
+                    left_out.add(t["name"])
+                    why = f"{len(objc)} Objective-C files" if objc else "no sources"
+                    notes.append(f"package {identity}: target {t['name']} has {why}, not built")
+                    continue
             deps, syntax = [], []
             for d in t.get("dependencies", []):
                 if not condition_allows_ios(d):
@@ -311,6 +350,8 @@ def describe_remote_packages(work: Path, keys, notes):
                 "third_party": [], "mode": language_mode_of_package(dump, t), "settings": swift_settings(t),
                 "resources": [r.get("path") for r in t.get("resources") or [] if r.get("path")],
                 "models": [], "executable": False, "macro": kind == "macro",
+                **({"c": c_kind, "public_headers": t.get("publicHeadersPath") or "include",
+                    "c_settings": c_settings(t), "exclude": t.get("exclude", [])} if c_kind else {}),
             })
     # What depends on a target that is not built is not built either (its module stays missing).
     missing = {n for n in left_out if "<-" not in n}
@@ -669,6 +710,26 @@ def cmd_prepare(args):
             declared.add(t["module"])
             clone_dir = work / (t.get("base") or app["name"])
             dest_root = pkg / "Sources" / t["module"]
+            if t.get("c"):
+                # A C target: its folder as it is (an Objective-C shim: without its .m files, plus
+                # an empty source so the target has one), built by the SDK's clang.
+                src = clone_dir / t["source_root"]
+                skip_objc = t["c"] == "headers"
+                shutil.copytree(src, dest_root, dirs_exist_ok=True, symlinks=False,
+                                ignore=lambda d, names: [n for n in names if skip_objc and Path(n).suffix in (".m", ".mm")
+                                                         or n in (".git", ".build") or is_manifest(n)
+                                                         or not (Path(d) / n).exists()])
+                if skip_objc:
+                    (dest_root / "_sweep_shim.c").write_text("/* The sweep builds this Objective-C shim's headers only. */\n")
+                excludes = [e for e in t.get("exclude", []) if (dest_root / e).exists()]
+                decls.append(
+                    f'        .target(\n            name: "{t["module"]}",\n            dependencies: [{", ".join(json.dumps(d) for d in t["deps"])}],\n'
+                    f'            path: "Sources/{t["module"]}",\n'
+                    + (f'            exclude: [{", ".join(json.dumps(e) for e in excludes)}],\n' if excludes else "")
+                    + f'            publicHeadersPath: {json.dumps(t["public_headers"])},\n'
+                    + f'            cSettings: [{", ".join(t["c_settings"])}]\n        ),'
+                )
+                continue
             if t.get("macro"):
                 # Built for the host against the sweep package's swift-syntax; sources as they are.
                 uses_syntax = True
@@ -731,10 +792,13 @@ def cmd_prepare(args):
                 models.append(name)
             kind = "executableTarget" if t.get("app") else "target"
             settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"]
-            deps = "web" + "".join(f' + ["{d}"]' for d in t["deps"])
+            extra = [json.dumps(d) for d in t["deps"]]
             if t.get("syntax"):
                 uses_syntax = True
-                deps += "".join(f' + [.product(name: "{n}", package: "swift-syntax")]' for n in t["syntax"])
+                extra += [f'.product(name: "{n}", package: "swift-syntax")' for n in t["syntax"]]
+            # One typed array, not a chain of `+`: a long chain is more than the manifest's type
+            # checker will take (IcySky's 32 targets).
+            deps = f"web + ([{', '.join(extra)}] as [Target.Dependency])" if extra else "web"
             decls.append(
                 f'        .{kind}(\n            name: "{t["module"]}",\n            dependencies: {deps},\n'
                 f'            path: "Sources/{t["module"]}",\n'
@@ -750,7 +814,15 @@ def cmd_prepare(args):
         return f', traits: [{", ".join(json.dumps(t) for t in names)}]' if names else ""
     # The packages' macros build against the swift-syntax SwiftUIWeb already resolves.
     syntax_dependency = f'\n        .package(url: "{SYNTAX_PACKAGE}", from: "601.0.1"),' if uses_syntax else ""
+    # Each target is its own statement: one `targets: [...]` literal holding every package's
+    # targets is more than the manifest's type checker will take in reasonable time.
+    appended = "\n".join("targets.append(\n" + d.strip().rstrip(",") + "\n)" for d in decls)
     manifest = MANIFEST_HEAD + f"""
+var targets: [Target] = [
+    .target(name: "SweepDeps", dependencies: web, path: "Sources/SweepDeps"),
+]
+{appended}
+
 let package = Package(
     name: "Sweep",
     // Required as soon as any app target carries localized resources (.lproj, .xcstrings).
@@ -761,10 +833,7 @@ let package = Package(
         .package(name: "UIKitWeb", path: "{root}/Packages/UIKitWeb"),
         .package(name: "Shadows", path: "{root}/Packages/Shadows"{traits_for("Shadows")}),{syntax_dependency}
     ],
-    targets: [
-        .target(name: "SweepDeps", dependencies: web, path: "Sources/SweepDeps"),
-{chr(10).join(decls)}
-    ]
+    targets: targets
 )
 """
     deps_dir = pkg / "Sources" / "SweepDeps"
