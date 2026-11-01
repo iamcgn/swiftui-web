@@ -317,7 +317,7 @@ import SwiftUIWebHeadless
         #expect(!r.hasPresentations)
     }
 
-    final class PathBox: @unchecked Sendable { var path: [String] = [] }
+    @Observable final class PathBox: @unchecked Sendable { var path: [String] = [] }
 
     @Test func presentationModePopsAPushedDestination() {
         let box = PathBox(), seen = Seen()
