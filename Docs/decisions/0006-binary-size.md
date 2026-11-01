@@ -56,6 +56,18 @@ links the whole library (6.3 MB raw) and the Regex engine with it. Decision 0017
 `WebFoundation` module whose stand-ins shadow those types on wasm; Counter fell from 3.05 MB to
 about 2.1 MB brotli. `scripts/wasm-size-map.py` reads a linker map.
 
+## 2026-11-01: public symbols internalized at link
+PR 19 left Counter 366 bytes under the budget. `Tools/Size/map-diff.py` and the Size compare
+workflow (`.github/workflows/size-compare.yml`) diff two link maps symbol by symbol; they showed
+that the linker kept public declarations nothing called (`NSString.draw(at:withAttributes:)`,
+`UIFontDescriptor.withDesign(_:)`) though the bundle exports only 16 symbols: without
+`-internalize-at-link` the compiler marks every public declaration as used. `scripts/build-wasm.sh`
+now passes `-Xfrontend -internalize-at-link` to release builds, so `--gc-sections` drops public
+code the app doesn't reach. Counter 3,145,362 → 3,050,901 bytes brotli, the counter smoke test
+unchanged. Adding `-conditional-runtime-records` as well saved nothing (3,052,530). Unused public
+API in the libraries now costs an app nothing; types still cost their metadata, and class
+methods stay reachable through their vtables.
+
 ## Open items
 - Whether a user's explicit `import Foundation` next to `import SwiftUI` makes `CGRect` ambiguous
   on wasm (two modules declaring it). Test in Phase 1 step 1; if it does, evaluate a

@@ -1,0 +1,68 @@
+# Builds Counter's release bundle at two commits, each also linked with a map, and lists what
+# grew between them (Tools/Size/map-diff.py), so a change near the decision 0006 budget can be
+# traced to the symbols it added. Run by hand, base is the commit to compare against and the
+# workflow's own ref is the one compared; on a push that changes the tools, base is main's
+# previous commit (what the last merge added). The bundles' brotli sizes go to the log too.
+name: Size compare
+on:
+  push:
+    paths: ['Tools/Size/map-diff.py', '.github/workflows/size-compare.yml']
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Commit to compare against
+        required: true
+      app:
+        description: Example package to build
+        default: Examples/Counter
+env:
+  SWIFT_VERSION: 6.3.3
+jobs:
+  compare:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: head, fetch-depth: 0 }
+      - name: Check out the base
+        env: { BASE: "${{ inputs.base || 'origin/main~1' }}" }
+        run: git -C head worktree add --detach "$GITHUB_WORKSPACE/base" "$BASE" && git -C base log -1 --oneline && git -C head log -1 --oneline
+      - name: Install toolchain and wasm SDK
+        run: |
+          brew install swiftly binaryen brotli
+          swiftly init --assume-yes --skip-install --no-modify-profile
+          . ~/.swiftly/env.sh
+          swiftly install $SWIFT_VERSION --use --assume-yes
+          swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
+            --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
+      - name: Build both, with maps
+        env: { APP: "${{ inputs.app || 'Examples/Counter' }}" }
+        run: |
+          . ~/.swiftly/env.sh
+          mkdir -p "$GITHUB_WORKSPACE/size"
+          NAME=$(basename "$APP")
+          for side in base head; do
+            (
+              cd "$GITHUB_WORKSPACE/$side"
+              scripts/build-wasm.sh "$APP"
+              scripts/size-gate.sh "$APP" 99999999 | sed "s|^|$side: |"
+              # The map flag goes in the app's wasm-only linker settings (a command-line -Xlinker
+              # also reaches the host macro tools' Apple ld, which has no --Map), as size-repro does.
+              sed -i '' "s|\"stack-size=4194304\"|\"stack-size=4194304\", \"-Xlinker\", \"--Map=$GITHUB_WORKSPACE/size/$side.map\"|" "$APP/Package.swift"
+              # The same build script again, so the map's link has the side's own flags; only the
+              # link reruns.
+              scripts/build-wasm.sh "$APP" > "$GITHUB_WORKSPACE/size/$side-build.log" 2>&1 \
+                || { tail -50 "$GITHUB_WORKSPACE/size/$side-build.log"; exit 1; }
+              git checkout -- "$APP/Package.swift"
+              cp "$APP/.build/wasm/wasm32-unknown-wasip1/release/$NAME.wasm" "$GITHUB_WORKSPACE/size/$side-linked.wasm"
+              cp "$APP/.build/wasm/plugins/PackageToJS/outputs/Package/$NAME.wasm" "$GITHUB_WORKSPACE/size/$side.wasm"
+            )
+          done
+          ls -l "$GITHUB_WORKSPACE/size"
+      - name: The exports
+        run: |
+          for side in base head; do
+            python3 head/Tools/Size/exports.py size/$side-linked.wasm --show 15
+            python3 head/Tools/Size/exports.py size/$side.wasm --show 15
+          done
+      - name: What changed
+        run: . ~/.swiftly/env.sh && python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 80
