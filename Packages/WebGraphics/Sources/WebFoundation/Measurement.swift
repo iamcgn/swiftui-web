@@ -317,6 +317,7 @@ public struct Measurement<UnitType: Unit>: CustomStringConvertible, CustomDebugS
     }
 
     public var description: String { "\(value) \(unit.symbol)" }
+    public var debugDescription: String { description }
 }
 
 extension Measurement where UnitType: Dimension {
