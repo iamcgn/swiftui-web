@@ -99,7 +99,7 @@ open class UnitLength: Dimension, @unchecked Sendable {
     public static let inches = UnitLength(symbol: "in", converter: linear(0.0254))
     public static let feet = UnitLength(symbol: "ft", converter: linear(0.3048))
     public static let yards = UnitLength(symbol: "yd", converter: linear(0.9144))
-    public static let miles = UnitLength(symbol: "mi", converter: linear(1609.34))
+    public static let miles = UnitLength(symbol: "mi", converter: linear(1609.344))   // Apple's factor (corelibs on Linux has 1609.34)
     public static let scandinavianMiles = UnitLength(symbol: "smi", converter: linear(10000))
     public static let lightyears = UnitLength(symbol: "ly", converter: linear(9.461e+15))
     public static let nauticalMiles = UnitLength(symbol: "NM", converter: linear(1852))
