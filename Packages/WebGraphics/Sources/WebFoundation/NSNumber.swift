@@ -5,7 +5,6 @@
 // do (truncating toward zero), and numbers compare by value whatever they hold.
 // Final, unlike Apple's, so a wasm build drops the methods an app never calls (the size gate).
 #if os(WASI)
-import FoundationEssentials
 
 /// An object wrapper for primitive scalar numeric values.
 public final class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomStringConvertible,
@@ -112,26 +111,11 @@ extension Int {
     public init(truncating number: NSNumber) { self = number.intValue }
 }
 
-/// Foundation's decimal number class. Here it is `NSNumber` itself: a value from a decimal keeps
-/// its double, which is exact for prices and the amounts apps show (StoreKit's `SKProduct.price`).
+/// Foundation's decimal number class. Here it is `NSNumber` itself, holding a double, which is
+/// exact for prices and the amounts apps show (StoreKit's `SKProduct.price`). There is no bridge
+/// to `Decimal`: parsing one links FoundationEssentials' locale machinery, megabytes an app pays
+/// for even when it never calls it.
 public typealias NSDecimalNumber = NSNumber
-
-extension NSNumber {
-    /// A number with the value of a decimal.
-    public convenience init(decimal: Decimal) {
-        self.init(value: Double(decimal.description) ?? 0)
-    }
-
-    /// The number's value as a decimal.
-    public var decimalValue: Decimal {
-        switch storage {
-        case .int(let value): return Decimal(value)
-        case .uint(let value): return Decimal(value)
-        case .double(let value): return Decimal(string: String(value)) ?? Decimal(value)
-        case .bool(let value): return value ? 1 : 0
-        }
-    }
-}
 
 extension Int64 {
     public init(truncating number: NSNumber) { self = number.int64Value }
