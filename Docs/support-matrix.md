@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 161 | 42 | 110 | 3 | 5 | 1 |
+| SwiftUI | 162 | 42 | 110 | 3 | 6 | 1 |
 | UIKit | 58 | 20 | 34 | 4 | 0 | 0 |
 | Interop | 30 | 0 | 30 | 0 | 0 | 0 |
-| **All** | **249** | 62 | 174 | 7 | 5 | 1 |
+| **All** | **250** | 62 | 174 | 7 | 6 | 1 |
 
 ## App lifecycle
 
@@ -210,6 +210,7 @@ Generated from `Docs/support.json` (last edited 2026-10-11) by `scripts/gen-prog
 | `SHA256 / SHA384 / SHA512 / Insecure.SHA1 / Insecure.MD5 / HMAC / SymmetricKey (CryptoKit)` | 🟢 partial | pf-small-frameworks (2026-10-31): the hash functions (one-shot and incremental, digests as byte sequences described as Apple's), HMAC over any of them with constant-time validation, and symmetric keys from data or random bytes, in pure Swift. Not done: AES, ChaChaPoly, Curve25519, P256, HKDF, the Secure Enclave | — Nothing to draw: FrameworkTests hold every hash and HMAC to the FIPS 180-4, RFC 1321 and RFC 4231 answers |
 | `CHHapticEngine / CHHapticPattern / CHHapticEvent / CHHapticPatternPlayer (CoreHaptics)` | 🟠 stub | pf-small-frameworks (2026-10-31): the engine, patterns, events, parameters, curves and players build and run, and capabilitiesForHardware().supportsHaptics is false, as on an iPad or a Mac, so apps take the path they already have for devices without haptics; playing anyway does nothing. A browser has no haptic engine (navigator.vibrate is one motor, and Safari has none) | — Nothing to draw: FrameworkTests build and play a pattern |
 | `WidgetCenter / WidgetFamily / TimelineEntry / Timeline (WidgetKit)` | 🟠 stub | pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered | — Nothing to draw: FrameworkTests call the center and build a timeline |
+| `Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit)` | 🟠 stub | pf-small-frameworks (2026-11-01): a web page has no App Store account, so the store is empty. Product.products(for:) loads none, the transaction sequences (updates, all, currentEntitlements, unfinished) end without an element, entitlements and subscription statuses are absent, AppStore.sync succeeds, AppTransaction.shared throws, and a purchase throws productUnavailable. The original API matches: a products request lists every identifier as invalid, a payment added to the queue fails as not allowed, a restore finishes empty, Apple Music capabilities are none. ProductView shows its product as unavailable (a custom ProductViewStyle gets that state), StoreView lists its products that way, SubscriptionStoreView shows its marketing content over a note, the review prompt shows nothing, and the App Store sheets close as soon as they open. Not done: selling anything (a web payment provider would be a different API) | — Nothing to draw beyond text: StoreKitTests check the empty store, the refused payments and the views' unavailable state |
 | `WebView / WebPage (WebKit)` | 🟢 partial | A host element: a sandboxed <iframe> loading the page's URL or HTML; a white stand-in elsewhere; navigation state is not reported back | frameworks/web |
 | `Map / Marker / Annotation / MapCameraPosition / MKCoordinateRegion / CLLocationCoordinate2D (MapKit, CoreLocation)` | 🟡 approximate | Painted from OpenStreetMap raster tiles fetched by the host and placed by Web Mercator at the zoom fitting the region, markers as red balloons with titles, annotations as views; the look is OpenStreetMap's (frames-only in the pixel tiers); no gestures, camera changes, styles, overlays or user location | frameworks/map |
 
