@@ -41,7 +41,14 @@ NO_MODHASH=(-Xswiftc -Xfrontend -Xswiftc -disable-incremental-llvm-codegen)
 if [[ $DEBUG == 1 ]]; then
   swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" "${NO_MODHASH[@]}" js $PRODUCT_FLAG --use-cdn --debug-info-format dwarf
 else
-  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" -c release -Xswiftc -Osize "${NO_MODHASH[@]}" js $PRODUCT_FLAG --use-cdn
+  # `-internalize-at-link`: without it the compiler marks every public declaration as used, so
+  # the linker keeps each library's whole public surface whether or not the app calls it (an
+  # unused `NSString.draw(at:)` shipped in Counter). With it, public symbols are ordinary ones
+  # that `--gc-sections` drops when nothing references them. An executable is the end of the
+  # line, so nothing outside the bundle can need them (decision 0006: Counter 3,145,362 →
+  # 3,050,901 bytes brotli).
+  swift package --disable-sandbox --swift-sdk "$SDK" --scratch-path "$SCRATCH" -c release -Xswiftc -Osize "${NO_MODHASH[@]}" \
+    -Xswiftc -Xfrontend -Xswiftc -internalize-at-link js $PRODUCT_FLAG --use-cdn
 fi
 # Asset catalogs (decision 0011): every *.xcassets of the package becomes assets/manifest.js plus
 # the image files in the bundle; index.html includes the script before the module.
