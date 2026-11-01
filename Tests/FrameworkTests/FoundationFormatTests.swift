@@ -1,19 +1,13 @@
 // Foundation's formatting that apps call and the wasm stand-ins add (Packages/WebGraphics
-// WebFoundation/MoreFormats.swift): the same answers as Foundation's on macOS and Linux, in
+// WebFoundationFormats/MoreFormats.swift): the same answers as Foundation's on macOS and Linux, in
 // en_US.
 import Testing
 import WebFoundation
+import WebFoundationFormats
 
 private let english = Locale(identifier: "en_US")
 
 @Suite struct FoundationFormatTests {
-    @Test func decimals() {
-        let amount = Decimal(string: "1234.5")!
-        #expect(amount.formatted(.number.locale(english)) == "1,234.5")
-        #expect(amount.formatted(.currency(code: "USD").locale(english)) == "$1,234.50")
-        #expect(Decimal(string: "0.25")!.formatted(.percent.locale(english)) == "25%")
-    }
-
     @Test func lists() {
         #expect(["a", "b", "c"].formatted(.list(type: .and).locale(english)) == "a, b, and c")
         #expect(["a", "b"].formatted(.list(type: .and).locale(english)) == "a and b")

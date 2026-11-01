@@ -4,6 +4,7 @@
 // Combine's names. Linked by an app's Package.swift, never by this project's own targets.
 #if os(WASI)
 @_exported import WebFoundation
+@_exported import WebFoundationFormats
 @_exported import WASILibc
 @_exported import Observation
 @_exported import Combine
