@@ -22,7 +22,8 @@ SDK="${SWIFTUIWEB_WASM_SDK:-swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm}"
 case "$PKG" in *Gallery|*Gallery/) python3 "$(dirname "$0")/gen-fixture-sources.py";; esac   # fixture code shown in the gallery
 cd "$PKG"
 # Package traits the app needs (decision 0024): a Core Data app whose files import only SwiftUI
-# or Foundation needs the CoreData trait on its SwiftUIWeb and Shadows dependencies.
+# or Foundation needs the CoreData trait on its SwiftUIWeb and Shadows dependencies, and an app
+# that names Decimal needs the DecimalFormatting trait on Shadows for Decimal.formatted.
 python3 "$ROOT/Tools/Traits/traits.py" . --check Package.swift || true
 # The 4 MB wasm stack (wasm-ld defaults to 64 KB) is set per package in Package.swift (linkerSettings).
 # Each SDK builds in a scratch path of its own: a module the stock SDK's compiler wrote is

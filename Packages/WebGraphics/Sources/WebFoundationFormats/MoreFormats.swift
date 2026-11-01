@@ -7,9 +7,9 @@
 // A module of its own, which `import Foundation` (Packages/Shadows) re-exports and `import
 // SwiftUI` does not: on wasm a type's protocol conformances keep its code in every bundle that
 // links its module, used or not, and these are ~100 KB that an app with no `import Foundation`
-// (Counter) would ship (decision 0006's budget). Not `Decimal.FormatStyle` either: naming
-// `Decimal` links Foundation's Decimal and what it reaches (3.4 MB, AttributedString and the
-// collections among them) into every app that links this module.
+// (Counter) would ship (decision 0006's budget). `Decimal.FormatStyle` is in WebDecimalFormats:
+// naming `Decimal` links Foundation's Decimal and what it reaches (3.4 MB, AttributedString and
+// the collections among them) into every app that links the module that names it.
 #if os(WASI)
 import WebFoundation
 

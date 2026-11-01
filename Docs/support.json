@@ -2172,9 +2172,15 @@
           "noFixture": "DateFormattingTests holds the patterns to Foundation on macOS; WasmFoundationTests the classes."
         },
         {
+          "api": "Decimal.FormatStyle / Decimal.formatted",
+          "status": "partial",
+          "notes": "Decimal.FormatStyle with its Percent and Currency styles, the .number, .percent and .currency(code:) shorthands, precision and grouping, and .formatted(); the value goes through its exact text to the shared number core, so digits past a Double's 15 or 16 are rounded. English output in every locale. On wasm it comes with `import Foundation` only when the app enables Shadows' DecimalFormatting trait, which Tools/Traits/traits.py asks of an app that names Decimal (decision 0024); not done: NSDecimalNumber, parsing strategies (2026-11-01)",
+          "noFixture": "FrameworkTests.FoundationFormatTests holds the answers to Foundation's on macOS and Linux, and runs them on wasm."
+        },
+        {
           "api": "ListFormatStyle / Duration.TimeFormatStyle / Duration.UnitsFormatStyle / DateComponentsFormatter / NSCalendar.Unit / Locale.Language / Locale.LanguageCode / Locale.Region / FileManager.containerURL",
           "status": "partial",
-          "notes": "Lists of strings joined with 'and' or 'or' ('a, b, and c'); durations as clock times ('1:05:05', '65:05') and as units in the wide, abbreviated and narrow widths ('3 hours, 5 minutes', '3 hr, 5 min', '3h 5m'); DateComponentsFormatter's positional, abbreviated, brief, short and full styles with the zero-dropping and padding behaviours and maximumUnitCount (spellOut is written as full); a locale's language, script and region; an app group's container is a folder of its own in the page's files. English output in every locale; not done: likely-subtag expansion (maximalIdentifier is the identifier as given), months and years in DateComponentsFormatter beyond their average lengths, Decimal.FormatStyle (naming Decimal links Foundation's Decimal into every app; it needs a build-time switch) (pf-everyday-apis, 2026-10-31)",
+          "notes": "Lists of strings joined with 'and' or 'or' ('a, b, and c'); durations as clock times ('1:05:05', '65:05') and as units in the wide, abbreviated and narrow widths ('3 hours, 5 minutes', '3 hr, 5 min', '3h 5m'); DateComponentsFormatter's positional, abbreviated, brief, short and full styles with the zero-dropping and padding behaviours and maximumUnitCount (spellOut is written as full); a locale's language, script and region; an app group's container is a folder of its own in the page's files. English output in every locale; not done: likely-subtag expansion (maximalIdentifier is the identifier as given), months and years in DateComponentsFormatter beyond their average lengths (pf-everyday-apis, 2026-10-31)",
           "noFixture": "FrameworkTests.FoundationFormatTests holds the answers to Foundation's on macOS and Linux, and runs them on wasm."
         },
         {

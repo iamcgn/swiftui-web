@@ -40,3 +40,15 @@ write it from `traits.py` the way the sweep does.
 `Examples/CoreDataNotes` is built and probed in Chromium in CI. Its view imports only SwiftUI,
 its predicate file imports only Foundation, and the probe covers adds, a clear, and a reload
 that keeps the notes. Counter's bundle is unchanged, since the trait is off for it.
+
+## Later: `DecimalFormatting` (2026-11-01)
+`Decimal.FormatStyle` lives in WebDecimalFormats (Packages/WebGraphics), because naming
+`Decimal` links Foundation's Decimal and what it reaches (3.4 MB) into every bundle that links
+the module that names it. Packages/Shadows declares a second trait, `DecimalFormatting`, with
+which the `Foundation` shadow re-exports WebDecimalFormats. Only Shadows has it: Apple's SwiftUI
+gets Decimal's formatting from Foundation too, and here `import SwiftUI` does not re-export the
+Foundation shadow. `traits.py` asks for it when an app's code names `Decimal`, since such an
+app already ships Decimal, and `scripts/build-wasm.sh` warns when the manifest leaves it off.
+The app sweep enables each trait its apps need, and the surface build enables all of them
+(`sweep.py prepare --all-traits`) so the coverage diff counts their keys. Counter enables
+neither.
