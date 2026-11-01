@@ -140,6 +140,7 @@ import WebCombine
         var environment = EnvironmentValues()
         #expect(TintShapeStyle().resolveColor(in: environment) == Color.accentColor.resolve(in: environment))
         environment._tint = .red
-        #expect(ShapeStyle.tint.resolveColor(in: environment) == Color.red.resolve(in: environment))
+        let tint: TintShapeStyle = .tint
+        #expect(tint.resolveColor(in: environment) == Color.red.resolve(in: environment))
     }
 }
