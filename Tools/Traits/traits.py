@@ -6,7 +6,10 @@ brings `NSPredicate` and `NSSortDescriptor`. Here those live in WebCoreData, whi
 module and the `Foundation` shadow re-export only when the app enables the `CoreData` trait on
 the SwiftUIWeb and Shadows packages. `Decimal`'s formatting (`.formatted(.currency(code:))`) lives
 in WebDecimalFormats, which the `Foundation` shadow re-exports only with the `DecimalFormatting`
-trait on Shadows. Every other app's bundle leaves them out (decision 0006's size budget).
+trait on Shadows. `DateComponentsFormatter`, `ByteCountFormatter` and the list and duration
+styles live in WebFoundationFormats, which `import Foundation` always re-exports and `import
+SwiftUI` re-exports with the `FoundationFormats` trait on SwiftUIWeb. Every other app's bundle
+leaves them out (decision 0006's size budget).
 
     Tools/Traits/traits.py <app-dir>                       # the traits it needs, with the evidence
     Tools/Traits/traits.py <app-dir> --check Package.swift # warn when the manifest leaves one off
@@ -31,12 +34,23 @@ CORE_DATA_NAMES = re.compile(
 # Decimal already links Foundation's Decimal; the formatting adds little beside it.
 DECIMAL_NAMES = re.compile(r"\bDecimal\b")
 
+# What makes an app need Foundation's extra formatting where it imports only SwiftUI: a name
+# WebFoundationFormats declares. `import Foundation` re-exports the module anyway; the trait makes
+# `import SwiftUI` re-export it too, as Apple's SwiftUI re-exports Foundation.
+FORMATS_NAMES = re.compile(
+    r"\b(?:DateComponentsFormatter|ByteCountFormatter|NSCalendar|ListFormatStyle|currencyCode|currencySymbol)\b"
+    r"|\.list\(type:|\.units\(allowed:|\.time\(pattern:|\bLocale\.(?:Language|LanguageCode|Region|Script)\b"
+    r"|containerURL\(forSecurityApplicationGroupIdentifier:"
+)
+
 # Each trait: what makes an app need it, and the packages the app enables it on.
 TRAITS = {
     "CoreData": (CORE_DATA_NAMES, ("SwiftUIWeb", "Shadows"), "uses Core Data",
                  "files that import only SwiftUI or Foundation will not see @FetchRequest or NSPredicate"),
     "DecimalFormatting": (DECIMAL_NAMES, ("Shadows",), "uses Decimal",
                           "files that import Foundation will not see Decimal.formatted or Decimal.FormatStyle"),
+    "FoundationFormats": (FORMATS_NAMES, ("SwiftUIWeb",), "uses Foundation's extra formatting",
+                          "files that import only SwiftUI will not see DateComponentsFormatter, ByteCountFormatter or list formatting"),
 }
 
 

@@ -23,7 +23,8 @@ case "$PKG" in *Gallery|*Gallery/) python3 "$(dirname "$0")/gen-fixture-sources.
 cd "$PKG"
 # Package traits the app needs (decision 0024): a Core Data app whose files import only SwiftUI
 # or Foundation needs the CoreData trait on its SwiftUIWeb and Shadows dependencies, and an app
-# that names Decimal needs the DecimalFormatting trait on Shadows for Decimal.formatted.
+# that names Decimal needs the DecimalFormatting trait on Shadows for Decimal.formatted; one that
+# names DateComponentsFormatter or the like needs FoundationFormats on SwiftUIWeb.
 python3 "$ROOT/Tools/Traits/traits.py" . --check Package.swift || true
 # The 4 MB wasm stack (wasm-ld defaults to 64 KB) is set per package in Package.swift (linkerSettings).
 # Each SDK builds in a scratch path of its own: a module the stock SDK's compiler wrote is

@@ -83,4 +83,35 @@ extension Locale: CurrencyNaming {}
         #expect(FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.app")?.path.hasSuffix("group.app") == true)
     }
     #endif
+    @Test func byteCounts() {
+        func file(_ count: Int64) -> String { ByteCountFormatter.string(fromByteCount: count, countStyle: .file) }
+        #expect(file(0) == "Zero KB")
+        #expect(file(1) == "1 byte")
+        #expect(file(999) == "999 bytes")
+        #expect(file(1_000) == "1 KB")
+        #expect(file(1_500_000) == "1.5 MB")
+        #expect(file(2_000_000_000) == "2 GB")
+        #expect(file(1_234_567_890) == "1.23 GB")
+        #expect(ByteCountFormatter.string(fromByteCount: 1_048_576, countStyle: .memory) == "1 MB")
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = .useMB
+        formatter.countStyle = .decimal
+        #expect(formatter.string(fromByteCount: 1_500_000) == "1.5 MB")
+    }
+
+    @Test func nsStringNumbers() {
+        func string(_ text: String) -> NSString { NSString(string: text) }
+        #expect(string("12.5 kg").doubleValue == 12.5)
+        #expect(string("  -3e2xyz").doubleValue == -300)
+        #expect(string(".5").doubleValue == 0.5)
+        #expect(string("abc").doubleValue == 0)
+        #expect(string("42abc").integerValue == 42)
+        #expect(string("-7.9").intValue == -7)
+        #expect(string("YES").boolValue && string("007").boolValue && !string("0").boolValue && !string("no").boolValue)
+    }
+
+    @Test func currentCalendarAndTemporaryDirectory() {
+        #expect(NSCalendar.current.identifier == Calendar.current.identifier)
+        #expect(NSTemporaryDirectory().hasSuffix("/"))
+    }
 }

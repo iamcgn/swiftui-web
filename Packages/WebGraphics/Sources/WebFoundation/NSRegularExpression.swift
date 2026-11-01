@@ -43,6 +43,58 @@ public final class NSString: Hashable, CustomStringConvertible, @unchecked Senda
     public func hash(into hasher: inout Hasher) { hasher.combine(string) }
     public static func == (lhs: NSString, rhs: NSString) -> Bool { lhs.string == rhs.string }
     public func isEqual(to aString: String) -> Bool { string == aString }
+
+    /// The number at the start of the string, after any whitespace (0 when there is none), as
+    /// Foundation reads it: `("12.5 kg" as NSString).doubleValue` is 12.5.
+    public var doubleValue: Double { Double(Self.leadingNumber(string, fraction: true)) ?? 0 }
+    public var floatValue: Float { Float(doubleValue) }
+    /// The integer at the start of the string (0 when there is none; clamped to the type's range).
+    public var integerValue: Int {
+        let digits = Self.leadingNumber(string, fraction: false)
+        if let value = Int(digits) { return value }
+        return digits.isEmpty ? 0 : (digits.hasPrefix("-") ? Int.min : Int.max)
+    }
+    public var intValue: Int32 { Int32(clamping: integerValue) }
+    public var longLongValue: Int64 { Int64(integerValue) }
+    /// True when the string starts, after whitespace and zeros, with Y, y, T, t or a digit 1-9.
+    public var boolValue: Bool {
+        var rest = string.drop { $0 == " " || $0 == "\t" || $0 == "\n" || $0 == "\r" }
+        if rest.first == "+" || rest.first == "-" { rest = rest.dropFirst() }
+        rest = rest.drop { $0 == "0" }
+        guard let first = rest.first else { return false }
+        return "YyTt123456789".contains(first)
+    }
+
+    /// The longest prefix (after whitespace) that reads as a number: a sign, digits and, with
+    /// `fraction`, a decimal part and an exponent.
+    static func leadingNumber(_ text: String, fraction: Bool) -> String {
+        let chars = Array(text.unicodeScalars.drop { $0 == " " || $0 == "\t" || $0 == "\n" || $0 == "\r" })
+        var i = 0
+        func digits() -> Int {
+            let start = i
+            while i < chars.count, (48...57).contains(chars[i].value) { i += 1 }
+            return i - start
+        }
+        if i < chars.count, chars[i] == "+" || chars[i] == "-" { i += 1 }
+        var count = digits()
+        if fraction, i < chars.count, chars[i] == "." {
+            let dot = i
+            i += 1
+            let after = digits()
+            if count + after == 0 { i = dot }
+            count += after
+        }
+        guard count > 0 else { return "" }
+        if fraction, i < chars.count, chars[i] == "e" || chars[i] == "E" {
+            let mark = i
+            i += 1
+            if i < chars.count, chars[i] == "+" || chars[i] == "-" { i += 1 }
+            if digits() == 0 { i = mark }
+        }
+        var result = String.UnicodeScalarView()
+        result.append(contentsOf: chars[0..<i])
+        return String(result)
+    }
 }
 
 extension String: @retroactive _ObjectiveCBridgeable {
