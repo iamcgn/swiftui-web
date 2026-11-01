@@ -236,9 +236,33 @@ public final class UIFont: Hashable, @unchecked Sendable {
     }
 }
 
-/// The font descriptor's nested types apps name (`UICalendarView.fontDesign`); the descriptor
-/// itself is not modelled.
+/// A description of a font: here the font it was read from, so `withDesign(_:)` and
+/// `withSize(_:)` give back a font the text engine can draw (`UIFont(descriptor:size:)`).
 public final class UIFontDescriptor {
+    /// The font this descriptor describes.
+    let font: UIFont
+
+    init(font: UIFont) { self.font = font }
+
+    /// The descriptor's size in points.
+    public var pointSize: CGFloat { font.resolved.size }
+
+    /// The same font in a design of the system font (rounded, serif, monospaced), or nil for a
+    /// font that is not the system font, as UIKit gives for a named font.
+    public func withDesign(_ design: SystemDesign) -> UIFontDescriptor? {
+        guard font.resolved.family.hasPrefix("system") else { return nil }
+        var resolved = font.resolved
+        resolved.family = design == .default ? "system" : "system-" + design.rawValue
+        return UIFontDescriptor(font: UIFont(resolved: resolved, weight: font.weight, textStyle: font.textStyle))
+    }
+
+    /// The same font at another size.
+    public func withSize(_ size: CGFloat) -> UIFontDescriptor {
+        var resolved = font.resolved
+        resolved.size = size
+        return UIFontDescriptor(font: UIFont(resolved: resolved, weight: font.weight, textStyle: font.textStyle))
+    }
+
     /// A design of the system font.
     public struct SystemDesign: Hashable, Sendable, RawRepresentable {
         public let rawValue: String
@@ -247,5 +271,17 @@ public final class UIFontDescriptor {
         public static let rounded = SystemDesign(rawValue: "rounded")
         public static let serif = SystemDesign(rawValue: "serif")
         public static let monospaced = SystemDesign(rawValue: "monospaced")
+    }
+}
+
+extension UIFont {
+    /// The font's descriptor, to derive a font in another design or size from.
+    public var fontDescriptor: UIFontDescriptor { UIFontDescriptor(font: self) }
+
+    /// The font a descriptor describes, at `size` (0 keeps the descriptor's size).
+    public convenience init(descriptor: UIFontDescriptor, size: CGFloat) {
+        var resolved = descriptor.font.resolved
+        if size > 0 { resolved.size = size }
+        self.init(resolved: resolved, weight: descriptor.font.weight, textStyle: descriptor.font.textStyle)
     }
 }

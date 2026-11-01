@@ -257,6 +257,25 @@ struct StringDrawingStyle {
     }
 }
 
+#if os(WASI) && !canImport(ObjectiveC)
+/// `(text as NSString).draw(...)`: the same drawing and measuring as the string's.
+@MainActor
+extension NSString {
+    public func draw(at point: CGPoint, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
+        string.draw(at: point, withAttributes: attributes)
+    }
+    public func draw(in rect: CGRect, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
+        string.draw(in: rect, withAttributes: attributes)
+    }
+    public func size(withAttributes attributes: [NSAttributedString.Key: Any]? = nil) -> CGSize {
+        string.size(withAttributes: attributes)
+    }
+    public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) -> CGRect {
+        string.boundingRect(with: size, options: options, attributes: attributes, context: context)
+    }
+}
+#endif
+
 @MainActor
 extension StringProtocol {
     /// Draws the string with its top-left corner at `point`, unwrapped (line breaks only at newlines).

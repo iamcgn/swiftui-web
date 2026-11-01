@@ -171,6 +171,24 @@ def main():
             if rows:
                 out.append(f"#### {title}\n")
                 out.append(md_table(["Key", "Kind", "Apps", "Errors", "Origin", "First seen"], rows) + "\n")
+        # One key, "cannot infer contextual base in reference to member '…'", is the largest
+        # group, and its key hides the member: `.v17`, `.insetGrouped`. Most follow from a missing
+        # type or overload upstream; the members show which.
+        inferred = defaultdict(lambda: {"apps": set(), "count": 0, "example": None})
+        for a in apps:
+            for t in a["targets"]:
+                for e in t["errors"]:
+                    m = re.match(r"cannot infer contextual base in reference to member '([^']+)'", e["msg"])
+                    if m:
+                        b = inferred[m.group(1)]
+                        b["apps"].add(a["name"]); b["count"] += 1
+                        b["example"] = b["example"] or f"{a['name']}: {e['file']}:{e['line']}"
+        if inferred:
+            rows = [(f"`.{k}`", len(v["apps"]), v["count"], v["example"])
+                    for k, v in sorted(inferred.items(), key=lambda kv: (-len(kv[1]["apps"]), -kv[1]["count"], kv[0]))][:50]
+            out.append("#### The members behind \"cannot infer contextual base\"\n")
+            out.append(md_table(["Member", "Apps", "Errors", "First seen"], rows) + "\n")
+            data["inferred_members"] = [{"member": k, "apps": sorted(v["apps"]), "count": v["count"]} for k, v in inferred.items()]
         data["errors"] = [{"category": c, "key": k, "apps": sorted(v["apps"]), "count": v["count"],
                            "origin": v.get("origin", ""), "example": v["example"]} for (c, k), v in ranked]
 
