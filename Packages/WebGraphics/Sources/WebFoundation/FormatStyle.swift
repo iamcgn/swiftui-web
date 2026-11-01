@@ -383,6 +383,9 @@ open class NumberFormatter: Formatter {
     open var maximumFractionDigits = 0
     open var usesGroupingSeparator = false
     open var currencyCode = "USD"
+    /// The locale the formatter is for. Kept, not applied: numbers format as en_US
+    /// (decision 0017).
+    open lazy var locale: Locale = .current
 
     private var core: _NumberFormatting {
         var core: _NumberFormatting
@@ -416,11 +419,16 @@ open class NumberFormatter: Formatter {
         case let value as Int64: return core.format(value)
         case let value as UInt: return core.format(value)
         case let value as Int32: return core.format(value)
+        case let value as NSNumber: return string(from: value)
         default: return nil
         }
     }
 
+    @_disfavoredOverload
     public func string(from value: Double) -> String? { core.format(value) }
+
+    /// The string for a number (Foundation's only `string(from:)`).
+    public func string(from number: NSNumber) -> String? { core.format(number.doubleValue) }
 
     /// The number in `string`, nil when it does not parse.
     public func number(from string: String) -> Double? { core.parse(string) }

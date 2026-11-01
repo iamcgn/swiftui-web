@@ -31,7 +31,7 @@ from pathlib import Path
 OURS = {
     "SwiftUI", "UIKit", "Foundation", "Combine", "Security", "SafariServices", "Charts", "MapKit",
     "CoreLocation", "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
-    "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "WidgetKit",
+    "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "WidgetKit", "StoreKit",
 }
 STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "Dispatch", "WASILibc"}
 
@@ -403,6 +403,7 @@ let web: [Target.Dependency] = [
     .product(name: "CryptoKit", package: "SwiftUIWeb"),
     .product(name: "CoreHaptics", package: "SwiftUIWeb"),
     .product(name: "WidgetKit", package: "SwiftUIWeb"),
+    .product(name: "StoreKit", package: "SwiftUIWeb"),
     .product(name: "WebKit", package: "SwiftUIWeb"),
     .product(name: "UIKit", package: "UIKitWeb"),
     .product(name: "Foundation", package: "Shadows"),

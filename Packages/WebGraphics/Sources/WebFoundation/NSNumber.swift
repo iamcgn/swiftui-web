@@ -111,6 +111,12 @@ extension Int {
     public init(truncating number: NSNumber) { self = number.intValue }
 }
 
+/// Foundation's decimal number class. Here it is `NSNumber` itself, holding a double, which is
+/// exact for prices and the amounts apps show (StoreKit's `SKProduct.price`). There is no bridge
+/// to `Decimal`: parsing one links FoundationEssentials' locale machinery, megabytes an app pays
+/// for even when it never calls it.
+public typealias NSDecimalNumber = NSNumber
+
 extension Int64 {
     public init(truncating number: NSNumber) { self = number.int64Value }
 }

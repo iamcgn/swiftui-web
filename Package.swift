@@ -35,6 +35,7 @@ let package = Package(
         .library(name: "CryptoKit", targets: ["CryptoKit"]),
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
+        .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "WebKit", targets: ["WebKit"]),
         .library(name: "SwiftUIWebCanvas", targets: ["SwiftUIWebCanvas"]),
         .library(name: "SwiftUIWebNative", targets: ["SwiftUIWebNative"]),
@@ -113,6 +114,13 @@ let package = Package(
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // In-app purchases with an empty store (no products load on the web) and its SwiftUI views.
+        .target(
+            name: "StoreKit",
+            dependencies: ["SwiftUI", .product(name: "WebFoundation", package: "WebGraphics"),
+                           .product(name: "WebDecimalFormats", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
         // The representables (decision 0014, Phase 2): UIKit views hosted as SwiftUI leaves.
         .target(
             name: "SwiftUIWebUIKit",
@@ -184,7 +192,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).
