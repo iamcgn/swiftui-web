@@ -141,6 +141,16 @@ extension ShapeStyle where Self == ForegroundStyle {
     public static var foreground: ForegroundStyle { ForegroundStyle() }
 }
 
+/// The tint of the current environment (`tint(_:)`, the accent colour unless overridden).
+@frozen
+public struct TintShapeStyle: ShapeStyle, Sendable {
+    public init() {}
+}
+
+extension ShapeStyle where Self == TintShapeStyle {
+    public static var tint: TintShapeStyle { TintShapeStyle() }
+}
+
 extension ShapeStyle where Self == Color {
     public static var red: Color { .red }
     public static var orange: Color { .orange }
@@ -178,6 +188,9 @@ extension ShapeStyle {
         }
         if let gradient = self as? AnyGradient, let color = gradient.baseColor {
             return color.resolve(in: environment)
+        }
+        if self is TintShapeStyle {
+            return (environment._tint ?? .accentColor).resolve(in: environment)
         }
         if let level = self as? HierarchicalShapeStyle, level.level > 0 {
             return level.color(foreground: environment.foregroundColor, isIOS: environment.platformProfile.isIOS).resolve(in: environment)

@@ -104,6 +104,22 @@ import SwiftUIWebHeadless
         #expect(held.probeFrames["idle"] != nil)
     }
 
+    @Test func spatialTapsReportWhereTheyLanded() {
+        let log = Log()
+        let runtime = runtime(Color.red.frame(width: 40, height: 20).gesture(SpatialTapGesture().onEnded { log.events.append("\(Int($0.location.x)),\(Int($0.location.y))") }))
+        runtime.pointerDown(at: CGPoint(x: 90, y: 45), time: 0); runtime.pointerUp(at: CGPoint(x: 92, y: 46), time: 0.05)
+        #expect(log.events == ["12,6"])
+        // A press that moves away is no tap; a global space reports window points; counts hold.
+        runtime.pointerDown(at: CGPoint(x: 90, y: 45), time: 1); runtime.pointerUp(at: CGPoint(x: 118, y: 46), time: 1.05)
+        #expect(log.events == ["12,6"])
+        let global = Log()
+        let g = self.runtime(Color.red.frame(width: 40, height: 20).gesture(SpatialTapGesture(count: 2, coordinateSpace: .global).onEnded { global.events.append("\(Int($0.location.x)),\(Int($0.location.y))") }))
+        g.pointerDown(at: CGPoint(x: 100, y: 50), time: 0); g.pointerUp(at: CGPoint(x: 100, y: 50), time: 0.05)
+        #expect(global.events.isEmpty)
+        g.pointerDown(at: CGPoint(x: 101, y: 51), time: 0.2); g.pointerUp(at: CGPoint(x: 101, y: 51), time: 0.25)
+        #expect(global.events == ["101,51"])
+    }
+
     @Test func sequencedSimultaneousAndExclusive() {
         let log = Log()
         let sequence = LongPressGesture(minimumDuration: 0.1).sequenced(before: DragGesture(minimumDistance: 0))

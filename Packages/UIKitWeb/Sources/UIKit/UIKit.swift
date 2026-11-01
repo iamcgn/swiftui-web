@@ -9,8 +9,10 @@
 #elseif os(WASI)
 // wasm: Foundation would add 12 MB of ICU data and a second CGRect (decision 0006);
 // WebFoundation is FoundationEssentials plus the stand-ins that keep its heavy members out
-// of the bundle (decision 0017).
+// of the bundle (decision 0017). WASILibc is libm and friends (`ceil`, `sqrt`), which UIKit
+// re-exports through Foundation and Darwin.
 @_exported import WebFoundation
+@_exported import WASILibc
 #else
 // Linux: Foundation, and WebFoundation's stand-ins for what it lacks (`NSItemProvider`).
 @_exported import Foundation
