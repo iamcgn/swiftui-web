@@ -257,6 +257,8 @@ public struct ActionSheet {
 private struct _LegacyAlertButtons: View {
     let buttons: [Alert.Button]
 
+    nonisolated init(buttons: [Alert.Button]) { self.buttons = buttons }
+
     var body: some View {
         ForEach(0..<buttons.count, id: \.self) { index in
             let button = buttons[index]
