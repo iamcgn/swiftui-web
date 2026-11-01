@@ -13,6 +13,11 @@
 // `NSSortDescriptor` and `NSExpression`, which live in WebCoreData here.
 @_exported import WebCoreData
 #endif
+#if DecimalFormatting
+// The `DecimalFormatting` trait: `Decimal.formatted` and `Decimal.FormatStyle`, kept out of apps
+// that never name Decimal, since naming it links Foundation's Decimal (3.4 MB).
+@_exported import WebDecimalFormats
+#endif
 #endif
 
 #if os(WASI)

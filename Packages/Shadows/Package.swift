@@ -37,8 +37,11 @@ let package = Package(
     ],
     // `CoreData` (decision 0024): `import Foundation` re-exports WebCoreData too, as Apple's
     // declares `NSPredicate`, `NSSortDescriptor` and `NSExpression`. Enable it with SwiftUIWeb's.
+    // `DecimalFormatting`: `import Foundation` re-exports WebDecimalFormats (`Decimal.FormatStyle`),
+    // for an app that names Decimal (Tools/Traits/traits.py).
     traits: [
         .trait(name: "CoreData", description: "`import Foundation` re-exports WebCoreData (`NSPredicate`, `NSSortDescriptor`)."),
+        .trait(name: "DecimalFormatting", description: "`import Foundation` re-exports WebDecimalFormats (`Decimal.formatted`, `Decimal.FormatStyle`)."),
     ],
     dependencies: [
         .package(path: "../WebGraphics"),
@@ -50,6 +53,7 @@ let package = Package(
             dependencies: [
                 .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), "Combine",
                 .product(name: "WebCoreData", package: "SwiftUIWeb", condition: .when(traits: ["CoreData"])),
+                .product(name: "WebDecimalFormats", package: "WebGraphics", condition: .when(traits: ["DecimalFormatting"])),
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),

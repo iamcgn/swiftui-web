@@ -10,6 +10,7 @@ import PackageDescription
 //   WebFoundation        Foundation for the substrate: Foundation itself, or FoundationEssentials
 //                        plus the wasm stand-ins for its heaviest value types (decision 0017)
 //   WebFoundationFormats list, duration and date-components formatting; `import Foundation` only
+//   WebDecimalFormats    `Decimal`'s formatting; `import Foundation` with the DecimalFormatting trait
 //   WebGraphics          geometry, display list, paths, text engine protocol, HostedScene
 //   WebGraphicsCanvas    wasm-only Canvas2D painter, canvas host, semantics overlay, text input
 //   WebGraphicsNative    macOS CoreText engine, CoreGraphics painter, AppKit host
@@ -21,6 +22,7 @@ let package = Package(
     products: [
         .library(name: "WebFoundation", targets: ["WebFoundation"]),
         .library(name: "WebFoundationFormats", targets: ["WebFoundationFormats"]),
+        .library(name: "WebDecimalFormats", targets: ["WebDecimalFormats"]),
         .library(name: "WebCombine", targets: ["WebCombine"]),
         .library(name: "WebGraphics", targets: ["WebGraphics"]),
         .library(name: "WebGraphicsCanvas", targets: ["WebGraphicsCanvas"]),
@@ -40,6 +42,14 @@ let package = Package(
         // (Packages/Shadows), so an app that never formats a list or a duration does not ship it.
         .target(
             name: "WebFoundationFormats",
+            dependencies: ["WebFoundation"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // `Decimal.FormatStyle` on wasm. Naming `Decimal` links Foundation's Decimal (3.4 MB), so
+        // `import Foundation` re-exports this only for an app that enables Shadows' DecimalFormatting
+        // trait, which Tools/Traits/traits.py asks of an app that names Decimal (decision 0024).
+        .target(
+            name: "WebDecimalFormats",
             dependencies: ["WebFoundation"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),

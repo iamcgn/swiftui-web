@@ -40,7 +40,7 @@ jobs:
       - name: SwiftUIWeb's symbol graphs (wasm, every product an app links)
         run: |
           echo '{"apps": []}' > .build-plan.json
-          python3 Tools/Coverage/sweep.py prepare --plan .build-plan.json --work /tmp --batch 0 --root "$PWD" -o .build/coverage/surface
+          python3 Tools/Coverage/sweep.py prepare --plan .build-plan.json --work /tmp --batch 0 --root "$PWD" --all-traits -o .build/coverage/surface
           swift build --package-path .build/coverage/surface --swift-sdk "$WASM_SDK" --target SweepDeps \
             -Xswiftc -emit-symbol-graph -Xswiftc -emit-symbol-graph-dir -Xswiftc "$PWD/.build/coverage/ours" \
             -Xswiftc -symbol-graph-minimum-access-level -Xswiftc public

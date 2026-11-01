@@ -421,7 +421,9 @@ def cmd_prepare(args):
         shutil.rmtree(pkg / "Sources")
     pkg.mkdir(parents=True, exist_ok=True)
     mapping, decls, strips = {}, [], {}
-    uses_core_data = False  # turns on the CoreData trait (decision 0024), as an app's own manifest would
+    # The package traits this batch's apps need (decision 0024), as each app's own manifest would
+    # enable them; --all-traits turns every one on (the surface build, which has no apps).
+    traits_needed = set(app_traits.TRAITS) if args.all_traits else set()
     for app in plan["apps"]:
         if app.get("batch") != args.batch:
             continue
@@ -445,8 +447,7 @@ def cmd_prepare(args):
                 dest = dest_root / rel.parent / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 text = (clone_dir / f).read_text(errors="replace")
-                if app_traits.CORE_DATA_NAMES.search(app_traits.code_only(text)):
-                    uses_core_data = True
+                traits_needed |= set(app_traits.needed_in_text(text))
                 dest.write_text(strip_imports(text, strip))
                 mapping[str(dest.resolve())] = {"app": app["name"], "file": f}
             resources = []
@@ -462,7 +463,8 @@ def cmd_prepare(args):
             # Core Data models go next to the sources, out of the target's files, and the
             # CoreDataModel plugin generates their classes (as Xcode's codegen does).
             models = []
-            uses_core_data = uses_core_data or bool(t.get("models"))
+            if t.get("models"):
+                traits_needed.add("CoreData")
             for m in t.get("models", []):
                 name = Path(m).name
                 if name in models:
@@ -482,7 +484,9 @@ def cmd_prepare(args):
                 + (',\n            plugins: [.plugin(name: "CoreDataModel", package: "SwiftUIWeb")]' if models else "")
                 + "\n        ),"
             )
-    traits = ', traits: ["CoreData"]' if uses_core_data else ""
+    def traits_for(package):
+        names = [t for t in app_traits.TRAITS if t in traits_needed and package in app_traits.TRAITS[t][1]]
+        return f', traits: [{", ".join(json.dumps(t) for t in names)}]' if names else ""
     manifest = MANIFEST_HEAD + f"""
 let package = Package(
     name: "Sweep",
@@ -490,9 +494,9 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [.macOS(.v14)],
     dependencies: [
-        .package(name: "SwiftUIWeb", path: "{root}"{traits}),
+        .package(name: "SwiftUIWeb", path: "{root}"{traits_for("SwiftUIWeb")}),
         .package(name: "UIKitWeb", path: "{root}/Packages/UIKitWeb"),
-        .package(name: "Shadows", path: "{root}/Packages/Shadows"{traits}),
+        .package(name: "Shadows", path: "{root}/Packages/Shadows"{traits_for("Shadows")}),
     ],
     targets: [
         .target(name: "SweepDeps", dependencies: web, path: "Sources/SweepDeps"),
@@ -507,7 +511,7 @@ let package = Package(
     (pkg / "mapping.json").write_text(json.dumps(mapping))
     (pkg / "strip.json").write_text(json.dumps(strips))
     print(f"wrote {pkg / 'Package.swift'} ({len(decls)} targets, {len(mapping)} files"
-          f"{', CoreData trait' if uses_core_data else ''})")
+          + "".join(f", {t} trait" for t in app_traits.TRAITS if t in traits_needed) + ")")
 
 
 # MARK: run and classify
@@ -671,6 +675,7 @@ def main():
     p = sub.add_parser("prepare"); p.add_argument("--plan", required=True); p.add_argument("--work", required=True)
     p.add_argument("--batch", type=int, required=True); p.add_argument("--root", required=True)
     p.add_argument("--strip"); p.add_argument("-o", "--out", required=True)
+    p.add_argument("--all-traits", action="store_true", help="enable every package trait (the surface build)")
     p = sub.add_parser("run"); p.add_argument("--plan", required=True); p.add_argument("--work", required=True)
     p.add_argument("--pkg", required=True); p.add_argument("--batch", type=int, required=True)
     p.add_argument("--sdk", required=True); p.add_argument("-o", "--out", required=True)

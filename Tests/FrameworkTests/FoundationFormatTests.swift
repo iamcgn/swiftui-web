@@ -1,13 +1,25 @@
 // Foundation's formatting that apps call and the wasm stand-ins add (Packages/WebGraphics
-// WebFoundationFormats/MoreFormats.swift): the same answers as Foundation's on macOS and Linux, in
-// en_US.
+// WebFoundationFormats/MoreFormats.swift and WebDecimalFormats/DecimalFormats.swift): the same
+// answers as Foundation's on macOS and Linux, in en_US.
 import Testing
 import WebFoundation
 import WebFoundationFormats
+import WebDecimalFormats
 
 private let english = Locale(identifier: "en_US")
 
 @Suite struct FoundationFormatTests {
+    @Test func decimals() {
+        let amount = Decimal(string: "1234.5")!
+        #expect(amount.formatted(.number.locale(english)) == "1,234.5")
+        #expect(amount.formatted(.currency(code: "USD").locale(english)) == "$1,234.50")
+        #expect(amount.formatted(.number.precision(.fractionLength(2)).locale(english)) == "1,234.50")
+        #expect(amount.formatted(.number.grouping(.never).locale(english)) == "1234.5")
+        #expect(Decimal(string: "0.25")!.formatted(.percent.locale(english)) == "25%")
+        #expect(Decimal(string: "-3")!.formatted(.currency(code: "EUR").locale(english)) == "-€3.00")
+        #expect(Decimal(string: "1500")!.formatted(.currency(code: "JPY").locale(english)) == "¥1,500")
+    }
+
     @Test func lists() {
         #expect(["a", "b", "c"].formatted(.list(type: .and).locale(english)) == "a, b, and c")
         #expect(["a", "b"].formatted(.list(type: .and).locale(english)) == "a and b")
