@@ -25,6 +25,11 @@ extension String {
     }
 }
 
+/// A type that names itself with a localizable string (AppIntents' display representations).
+public protocol CustomLocalizedStringResourceConvertible {
+    var localizedStringResource: LocalizedStringResource { get }
+}
+
 /// A reference to a localizable string, accessible from another process.
 public struct LocalizedStringResource: Hashable, Sendable, Codable, CustomStringConvertible,
                                        ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
