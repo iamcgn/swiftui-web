@@ -285,7 +285,7 @@ def describe_remote_packages(work: Path, keys, notes):
                 left_out.add(t["name"]); continue
             excludes = [str(Path(path) / e) for e in t.get("exclude", [])]
             files = [str(f.relative_to(root)) for f in sorted(src.rglob("*.swift"))
-                     if not any(str(f.relative_to(root)).startswith(e.rstrip("/") + "/") or str(f.relative_to(root)) == e for e in excludes)
+                     if f.is_file() and not any(str(f.relative_to(root)).startswith(e.rstrip("/") + "/") or str(f.relative_to(root)) == e for e in excludes)
                      and not (f.parent == root and is_manifest(f.name))]
             if not files:
                 left_out.add(t["name"])
@@ -304,6 +304,7 @@ def describe_remote_packages(work: Path, keys, notes):
                     deps.extend(products[name][1])
                 elif name:
                     left_out.add(f"{t['name']}<-{name}")
+                    notes.append(f"package {identity}: target {t['name']} needs {name}, which no pinned package vends")
             targets.append({
                 "module": t["name"], "source_root": path, "files": files, "base": f"{PACKAGES_DIR}/{key}",
                 "remote": key, "deps": sorted(set(deps) - {t["name"]}), "syntax": sorted(set(syntax)),
@@ -319,7 +320,8 @@ def describe_remote_packages(work: Path, keys, notes):
         for t in targets:
             if not t.get("skip") and any(d in missing or d not in {x["module"] for x in targets} for d in t["deps"]):
                 t["skip"] = True; missing.add(t["module"]); changed = True
-                notes.append(f"package target {t['module']} depends on one that is not built; not built")
+                gone = [d for d in t["deps"] if d in missing or d not in {x["module"] for x in targets}]
+                notes.append(f"package target {t['module']} depends on {', '.join(gone[:3])}, not built; not built either")
     built = [t for t in targets if not t.get("skip")]
     modules = {t["module"] for t in built}
     vends = {name: [n for n in names if n in modules] for name, (_, names) in products.items()}
@@ -543,9 +545,17 @@ def cmd_plan(args):
             apps.append({**entry, "sha": None, "error": str(e).splitlines()[0][:300]})
             print(f"{entry['name']}: {e}", file=sys.stderr)
             continue
-        info = describe_app(entry, dest, work)
+        try:
+            info = describe_app(entry, dest, work)
+        except Exception as e:  # one app's odd package must not stop the sweep: build it without packages
+            print(f"{entry['name']}: packages not usable ({type(e).__name__}: {str(e)[:200]}); building without them", file=sys.stderr)
+            info = describe_app(entry, dest)
+            info["notes"].append(f"its packages could not be described ({type(e).__name__}); built without them")
         apps.append({**entry, "sha": sha, **info})
         print(f"{entry['name']}: {sha[:10]} {info['files']} files, {len(info['targets'])} targets, missing imports {info['missing_imports']}")
+        for note in info["notes"]:
+            if note.startswith("package"):
+                print(f"  {note}")
     # Batches: no module name twice in one sweep package.
     batches = []
     for app in apps:
