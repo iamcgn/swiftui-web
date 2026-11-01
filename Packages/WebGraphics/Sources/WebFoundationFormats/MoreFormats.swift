@@ -1,63 +1,17 @@
-// More of Foundation's formatting on wasm (decision 0017): `Decimal.FormatStyle`, list
-// formatting (`["a", "b"].formatted()`), `Duration`'s time and units styles,
-// `DateComponentsFormatter` with `NSCalendar.Unit`, `Locale.Language` and its parts, and the
-// app group container. English output, as the other stand-ins; held to Foundation's output on
-// macOS and Linux by the root package's FrameworkTests.
+// More of Foundation's formatting on wasm (decision 0017): list formatting
+// (`["a", "b"].formatted()`), `Duration`'s time and units styles, `DateComponentsFormatter`
+// with `NSCalendar.Unit`, `Locale.Language` and its parts, and the app group container. English
+// output, as the other stand-ins; held to Foundation's output on macOS and Linux by the root
+// package's FrameworkTests.
+//
+// A module of its own, which `import Foundation` (Packages/Shadows) re-exports and `import
+// SwiftUI` does not: on wasm a type's protocol conformances keep its code in every bundle that
+// links its module, used or not, and these are ~100 KB that an app with no `import Foundation`
+// (Counter) would ship (decision 0006's budget). Not `Decimal.FormatStyle` either: naming
+// `Decimal` links Foundation's Decimal and what it reaches (3.4 MB, AttributedString and the
+// collections among them) into every app that links this module.
 #if os(WASI)
-
-// MARK: - Decimal
-
-extension Decimal {
-    /// The decimal as a `Double`, through its exact text.
-    fileprivate var _double: Double { Double(description) ?? 0 }
-
-    /// A structure that converts between decimal values and their textual representations.
-    public struct FormatStyle: WebFoundation.FormatStyle, Hashable, Sendable {
-        var core = _NumberFormatting()
-        public init() {}
-        public init(locale: Locale) {}
-        public func format(_ value: Decimal) -> String { core.format(value._double) }
-        public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
-        public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
-        public func locale(_ locale: Locale) -> Self { self }
-
-        /// The decimal as a percentage (0.25 → "25%").
-        public struct Percent: WebFoundation.FormatStyle, Hashable, Sendable {
-            var core = _NumberFormatting(style: .percent)
-            public init() {}
-            public init(locale: Locale) {}
-            public func format(_ value: Decimal) -> String { core.format(value._double) }
-            public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
-            public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
-            public func locale(_ locale: Locale) -> Self { self }
-        }
-
-        /// The decimal as an amount of a currency (12.5 → "$12.50").
-        public struct Currency: WebFoundation.FormatStyle, Hashable, Sendable {
-            var core: _NumberFormatting
-            public init(code: String, locale: Locale = .current) { core = _NumberFormatting(style: .currency(code)) }
-            public func format(_ value: Decimal) -> String { core.format(value._double) }
-            public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
-            public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
-            public func locale(_ locale: Locale) -> Self { self }
-        }
-    }
-
-    /// The decimal formatted by `style`.
-    public func formatted<S: WebFoundation.FormatStyle>(_ style: S) -> S.FormatOutput where S.FormatInput == Decimal { style.format(self) }
-    /// The decimal formatted the default way ("1,234.5").
-    public func formatted() -> String { FormatStyle().format(self) }
-}
-
-extension FormatStyle where Self == Decimal.FormatStyle {
-    public static var number: Decimal.FormatStyle { Decimal.FormatStyle() }
-}
-extension FormatStyle where Self == Decimal.FormatStyle.Percent {
-    public static var percent: Decimal.FormatStyle.Percent { Decimal.FormatStyle.Percent() }
-}
-extension FormatStyle where Self == Decimal.FormatStyle.Currency {
-    public static func currency(code: String) -> Decimal.FormatStyle.Currency { Decimal.FormatStyle.Currency(code: code) }
-}
+import WebFoundation
 
 // MARK: - Lists
 
