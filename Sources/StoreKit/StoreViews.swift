@@ -383,10 +383,14 @@ public struct SubscriptionStoreButtonLabel: Hashable, Sendable {
 
 /// Closes a store sheet as soon as it opens: the App Store's sheets have nothing to show on the
 /// web.
-struct _UnavailableStoreSheet: ViewModifier {
+struct _UnavailableStoreSheet {
     let isPresented: Binding<Bool>
     let closed: () -> Void
+}
 
+// The conformance is in an extension so the modifier's initializer stays nonisolated (the
+// View modifiers that make it are).
+extension _UnavailableStoreSheet: ViewModifier {
     func body(content: Content) -> some View {
         content.onChange(of: isPresented.wrappedValue, initial: true) { _, presented in
             guard presented else { return }

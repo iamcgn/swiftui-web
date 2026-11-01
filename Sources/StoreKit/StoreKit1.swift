@@ -50,11 +50,11 @@ public struct SKError: Error, Hashable, Sendable {
     public static var cloudServicePermissionDenied: Code { .cloudServicePermissionDenied }
     public static var cloudServiceNetworkConnectionFailed: Code { .cloudServiceNetworkConnectionFailed }
     public static var unsupportedPlatform: Code { .unsupportedPlatform }
+}
 
-    /// Matches an error against a code (`catch SKError.paymentCancelled`).
-    public static func ~= (code: Code, error: any Error) -> Bool {
-        (error as? SKError)?.code == code
-    }
+/// Matches an error against an App Store error code (`catch SKError.paymentCancelled`).
+public func ~= (code: SKError.Code, error: any Error) -> Bool {
+    (error as? SKError)?.code == code
 }
 
 // MARK: - Products
