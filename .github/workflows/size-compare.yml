@@ -67,12 +67,31 @@ jobs:
           done
       - name: What changed
         run: . ~/.swiftly/env.sh && python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 80
-      - name: TEMPORARY experiment, head linked without exporting every public symbol
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: TEMPORARY experiment, head with public symbols internalized at link
         run: |
           . ~/.swiftly/env.sh
+          (cd head/Playwright && npm install >/dev/null && npx playwright install chromium >/dev/null)
           cd head
-          sed -i '' 's|"stack-size=4194304"|"stack-size=4194304", "-Xlinker", "--no-export-dynamic"|' Examples/Counter/Package.swift
-          scripts/build-wasm.sh Examples/Counter
-          scripts/size-gate.sh Examples/Counter 99999999 | sed 's|^|no-export: |'
-          python3 Tools/Size/exports.py Examples/Counter/.build/wasm/plugins/PackageToJS/outputs/Package/Counter.wasm --show 40
-          git checkout -- Examples/Counter/Package.swift
+          cp scripts/build-wasm.sh /tmp/build-wasm.orig
+          for variant in internalize conditional; do
+            case $variant in
+              internalize) EXTRA='-Xswiftc -Xfrontend -Xswiftc -internalize-at-link';;
+              conditional) EXTRA='-Xswiftc -Xfrontend -Xswiftc -internalize-at-link -Xswiftc -Xfrontend -Xswiftc -conditional-runtime-records';;
+            esac
+            cp /tmp/build-wasm.orig scripts/build-wasm.sh
+            sed -i '' "s|-disable-incremental-llvm-codegen)|-disable-incremental-llvm-codegen $EXTRA)|" scripts/build-wasm.sh
+            grep -n "NO_MODHASH=" scripts/build-wasm.sh
+            rm -rf Examples/Counter/.build
+            if scripts/build-wasm.sh Examples/Counter > /tmp/$variant.log 2>&1; then
+              scripts/size-gate.sh Examples/Counter 99999999 | sed "s|^|$variant: |"
+              python3 -m http.server 8765 --bind 127.0.0.1 --directory Examples/Counter >/dev/null 2>&1 & SERVER=$!
+              for i in $(seq 1 60); do curl -sf http://127.0.0.1:8765/index.html >/dev/null && break; sleep 1; done
+              (cd Playwright && node counter.mjs http://127.0.0.1:8765/index.html) 2>&1 | tail -3 | sed "s|^|$variant smoke: |" || echo "$variant smoke: FAILED"
+              kill $SERVER || true
+            else
+              echo "$variant: build FAILED"; grep -E "error|warning: unknown" /tmp/$variant.log | head -20
+            fi
+          done
+          cp /tmp/build-wasm.orig scripts/build-wasm.sh
