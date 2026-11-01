@@ -95,7 +95,10 @@ def main():
         out.append("## The corpus\n")
         out.append("Each app built for wasm from its sources at the commit shown, with every `import` of a module "
                    "wasm does not have taken out so the build reaches the code below it (a measurement only; "
-                   "decision 0021's standard is unchanged). A module whose dependency failed is blocked, not built.\n")
+                   "decision 0021's standard is unchanged). The app's pinned packages build from source with it; a "
+                   "module whose package failed is built without that package, its imports taken out the same way, "
+                   "so the module's own errors still count. `In packages` is how many of the errors are in the packages' "
+                   "own files.\n")
         rows = []
         for a in sorted(apps, key=lambda a: a["name"]):
             st = Counter(t["status"] for t in a["targets"])
@@ -105,10 +108,11 @@ def main():
             result = "compiles" if st.get("ok") == len(a["targets"]) else ", ".join(f"{v} {k}" for k, v in st.items())
             rows.append((a["name"] + (" (control)" if a.get("control") else ""), f"[{(a.get('sha') or '')[:7]}](https://github.com/{a['repo']}/tree/{a.get('sha')})",
                          a.get("files"), "/".join(a.get("modes", [])), result, errs,
-                         ", ".join(fw) or "—", len(third), a.get("os_condition_files", 0)))
+                         ", ".join(fw) or "—", len(third), a.get("os_condition_files", 0),
+                         sum(1 for t in a["targets"] for e in t["errors"] if e.get("package"))))
         failed = [a for a in plan.get("apps", []) if not a.get("sha")]
         out.append(md_table(["App", "Commit", "Files", "Mode", "Modules", "Errors", "Apple frameworks missing",
-                             "Third-party packages", "Files with os()"], rows) + "\n")
+                             "Third-party packages", "Files with os()", "In packages"], rows) + "\n")
         if failed:
             out.append("Not cloned: " + ", ".join(f"{a['name']} ({a.get('error', '')[:80]})" for a in failed) + "\n")
         out.append("`Files with os()` counts files with an `#if os(iOS)` (or another Apple platform) condition: on wasm "

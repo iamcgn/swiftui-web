@@ -683,6 +683,32 @@ let stack: [LinkerSetting] = [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack
 """
 
 
+DECL_NAME = re.compile(r'name: "([^"]+)"')
+
+
+def render_manifest(parts, drops=None):
+    """The sweep package's manifest from prepare's parts, with `drops` ({module: dependencies})
+    taken out of those targets' dependencies (a package target that did not build). Each target is
+    its own statement: one `targets: [...]` literal holding every package's targets is more than
+    the manifest's type checker will take in reasonable time."""
+    drops = drops or {}
+    out = []
+    for d in parts["decls"]:
+        m = DECL_NAME.search(d)
+        gone = drops.get(m.group(1), ()) if m else ()
+        if gone:
+            lines = d.split("\n")
+            for i, line in enumerate(lines):
+                if line.strip().startswith("dependencies:"):
+                    for n in gone:
+                        q = json.dumps(n)
+                        line = line.replace(q + ", ", "").replace(", " + q, "").replace(q, "")
+                    lines[i] = line
+            d = "\n".join(lines)
+        out.append("targets.append(\n" + d.strip().rstrip(",") + "\n)")
+    return parts["head"] + "\n".join(out) + "\n" + parts["tail"]
+
+
 def cmd_prepare(args):
     plan = json.loads(Path(args.plan).read_text())
     pkg = Path(args.out)
@@ -817,13 +843,12 @@ def cmd_prepare(args):
     syntax_dependency = f'\n        .package(url: "{SYNTAX_PACKAGE}", from: "601.0.1"),' if uses_syntax else ""
     # Each target is its own statement: one `targets: [...]` literal holding every package's
     # targets is more than the manifest's type checker will take in reasonable time.
-    appended = "\n".join("targets.append(\n" + d.strip().rstrip(",") + "\n)" for d in decls)
-    manifest = MANIFEST_HEAD + f"""
+    head = MANIFEST_HEAD + """
 var targets: [Target] = [
     .target(name: "SweepDeps", dependencies: web, path: "Sources/SweepDeps"),
 ]
-{appended}
-
+"""
+    tail = f"""
 let package = Package(
     name: "Sweep",
     // Required as soon as any app target carries localized resources (.lproj, .xcstrings).
@@ -837,12 +862,15 @@ let package = Package(
     targets: targets
 )
 """
+    parts = {"head": head, "decls": decls, "tail": tail}
+    manifest = render_manifest(parts)
     deps_dir = pkg / "Sources" / "SweepDeps"
     deps_dir.mkdir(parents=True, exist_ok=True)
     (deps_dir / "Deps.swift").write_text("".join(f"import {m}\n" for m in sorted(OURS - {"CoreLocation"})))
     (pkg / "Package.swift").write_text(manifest)
     (pkg / "mapping.json").write_text(json.dumps(mapping))
     (pkg / "strip.json").write_text(json.dumps(strips))
+    (pkg / "manifest.json").write_text(json.dumps(parts))
     print(f"wrote {pkg / 'Package.swift'} ({len(decls)} targets, {len(mapping)} files"
           + "".join(f", {t} trait" for t in app_traits.TRAITS if t in traits_needed) + ")")
 
@@ -923,7 +951,9 @@ def rewrite_sources(mapping, work, app_name, strip):
     for dest, where in mapping.items():
         if where["app"] == app_name:
             source = work / where.get("base", app_name) / where["file"]
-            Path(dest).write_text(strip_imports(source.read_text(errors="replace"), strip))
+            text = strip_imports(source.read_text(errors="replace"), strip)
+            if Path(dest).read_text(errors="replace") != text:  # an unchanged file keeps its build
+                Path(dest).write_text(text)
 
 
 def cmd_run(args):
@@ -934,6 +964,9 @@ def cmd_run(args):
     logs.mkdir(exist_ok=True)
     mapping = json.loads((pkg / "mapping.json").read_text())
     strips = json.loads((pkg / "strip.json").read_text())
+    parts_file = pkg / "manifest.json"
+    parts = json.loads(parts_file.read_text()) if parts_file.exists() else None
+    drops = {}  # module -> the dependencies it is built without (package targets that failed)
 
     def build(target, timeout):
         cmd = ["swift", "build", "--package-path", str(pkg), "--scratch-path", str(pkg / ".build"),
@@ -966,9 +999,17 @@ def cmd_run(args):
                 if built[t["module"]]["status"] != "ok":
                     failed.add(t["module"])
                 continue
-            if blocked:
+            if blocked and not parts:
                 status.append({"module": t["module"], "status": "blocked", "by": blocked, "errors": []})
                 failed.add(t["module"]); continue
+            if blocked:
+                # A package it uses did not build: build it without that package, its imports
+                # taken out as the sweep takes out any module that does not exist on wasm, so its
+                # own errors still count (an app is never hidden behind a package's failure).
+                drops[t["module"]] = sorted(set(drops.get(t["module"], [])) | set(blocked))
+                (pkg / "Package.swift").write_text(render_manifest(parts, drops))
+                strips[app["name"]] = sorted(set(strips[app["name"]]) | set(blocked))
+                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]))
             code, out = build(t["module"], 2400)
             # A module the wasm SDK turns out not to have (or not to show to this target) is
             # taken out like the others and the target built again, once.
@@ -994,7 +1035,8 @@ def cmd_run(args):
             if not ok:
                 failed.add(t["module"])
             status.append({"module": t["module"], "status": "ok" if ok else ("timeout" if code == "timeout" else "errors"),
-                           "errors": errors, "tail": "" if ok or errors else out[-3000:]})
+                           "errors": errors, "tail": "" if ok or errors else out[-3000:],
+                           **({"without": blocked} if blocked else {})})
             if t.get("remote"):
                 status[-1]["package"] = t["remote"]
                 built[t["module"]] = {k: v for k, v in status[-1].items() if k != "errors"}
