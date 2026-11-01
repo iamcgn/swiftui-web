@@ -26,6 +26,7 @@ public typealias NSCompoundPredicate = WebCoreData.NSCompoundPredicate
 public typealias NSComparisonPredicate = WebCoreData.NSComparisonPredicate
 public typealias NSExpression = WebCoreData.NSExpression
 public typealias NSSortDescriptor = WebCoreData.NSSortDescriptor
+public typealias SortDescriptor<Compared> = WebCoreData.SortDescriptor<Compared>
 public typealias NSSet = WebCoreData.NSSet
 public typealias NSOrderedSet = WebCoreData.NSOrderedSet
 public typealias NSMutableSet = WebCoreData.NSMutableSet
@@ -216,6 +217,15 @@ struct CoreDataTests {
         #expect(try books(context, NSPredicate(format: "author.name == %@", "Ursula K. Le Guin")).compactMap(\.title) == ["A Wizard of Earthsea", "The Dispossessed"])
         #expect(try books(context, NSPredicate(format: "title CONTAINS[c] %@", "dune")).count == 2)
         #expect(try books(context, NSPredicate(format: "rating >= 4.3")).count == 2)
+
+        // Foundation's SortDescriptor, turned into the descriptor a fetch sorts with.
+        let byRating = NSFetchRequest<Book>(entityName: "Book")
+        byRating.sortDescriptors = [NSSortDescriptor(SortDescriptor(\Book.rating, order: .reverse))]
+        #expect(try context.fetch(byRating).compactMap(\.title) == ["Dune", "The Dispossessed", "A Wizard of Earthsea", "Children of Dune"])
+        #expect(byRating.sortDescriptors?.first?.key == "rating")
+        #expect(byRating.sortDescriptors?.first?.ascending == false)
+        byRating.sortDescriptors = [NSSortDescriptor(SortDescriptor(\Book.title))]
+        #expect(try context.fetch(byRating).compactMap(\.title) == ["A Wizard of Earthsea", "Children of Dune", "Dune", "The Dispossessed"])
 
         let request = NSFetchRequest<Book>(entityName: "Book")
         request.sortDescriptors = [NSSortDescriptor(keyPath: \Book.rating, ascending: false)]
@@ -474,6 +484,14 @@ struct CoreDataTests {
         }
     }
 
+    /// Sorted by Foundation's SortDescriptor, as apps written for iOS 15 and later do.
+    struct BookTitlesReversed: View {
+        @FetchRequest(sortDescriptors: [SortDescriptor(\.title, order: .reverse)]) private var books: FetchedResults<Book>
+        var body: some View {
+            VStack { ForEach(books) { Text($0.title ?? "") } }
+        }
+    }
+
     struct ReadingList: View {
         @SectionedFetchRequest(sectionIdentifier: \Book.isRead, sortDescriptors: [NSSortDescriptor(key: "isRead", ascending: true), NSSortDescriptor(key: "title", ascending: true)])
         private var sections: SectionedFetchResults<Bool, Book>
@@ -515,6 +533,17 @@ struct CoreDataTests {
         try books(container.viewContext).first { $0.title == "Dune" }?.title = "Emma"
         runtime.layout(in: CGSize(width: 320, height: 400))
         #expect(texts(runtime) == ["Beloved", "Emma"])
+    }
+
+    @Test func fetchRequestSortsBySortDescriptors() throws {
+        let container = try container()
+        book("Dune", in: container.viewContext)
+        book("Beloved", in: container.viewContext)
+        book("Emma", in: container.viewContext)
+        let runtime = Runtime()
+        runtime.mount(BookTitlesReversed().environment(\.managedObjectContext, container.viewContext))
+        runtime.layout(in: CGSize(width: 320, height: 400))
+        #expect(texts(runtime) == ["Emma", "Dune", "Beloved"])
     }
 
     @Test func sectionedFetchRequestGroupsResults() throws {

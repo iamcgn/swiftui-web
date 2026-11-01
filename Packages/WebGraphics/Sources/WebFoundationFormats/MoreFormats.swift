@@ -1,8 +1,8 @@
 // More of Foundation's formatting on wasm (decision 0017): list formatting
 // (`["a", "b"].formatted()`), `Duration`'s time and units styles, `DateComponentsFormatter`
-// with `NSCalendar.Unit`, `Locale.Language` and its parts, and the app group container. English
-// output, as the other stand-ins; held to Foundation's output on macOS and Linux by the root
-// package's FrameworkTests.
+// with `NSCalendar.Unit`, `Locale.Language` and its parts, a locale's currency, and the app
+// group container. English output, as the other stand-ins; held to Foundation's output on
+// macOS and Linux by the root package's FrameworkTests.
 //
 // A module of its own, which `import Foundation` (Packages/Shadows) re-exports and `import
 // SwiftUI` does not: on wasm a type's protocol conformances keep its code in every bundle that
@@ -568,6 +568,45 @@ extension Locale {
     public var language: Language { Language(identifier: identifier) }
     /// The locale's region.
     public var region: Region? { regionCode.map { Region($0) } }
+
+    /// The currency of the locale's region, as an ISO 4217 code ("USD" for en_US, "EUR" for
+    /// de_DE); nil when the locale names no region, or one not in the table below.
+    public var currencyCode: String? { regionCode.flatMap { Locale._currencies[$0.uppercased()] } }
+
+    /// The symbol the locale writes its own currency with ("$" for en_US, "€" for de_DE), else
+    /// the currency's code.
+    public var currencySymbol: String? {
+        guard let code = currencyCode else { return nil }
+        switch code {
+        case "USD", "CAD", "AUD", "NZD", "MXN", "SGD", "HKD", "ARS", "CLP", "COP": return "$"
+        case "EUR": return "€"
+        case "GBP": return "£"
+        case "INR": return "₹"
+        case "KRW": return "₩"
+        case "BRL": return "R$"
+        case "ILS": return "₪"
+        case "UAH": return "₴"
+        case "VND": return "₫"
+        case "PHP": return "₱"
+        case "THB": return "฿"
+        case "NGN": return "₦"
+        default: return code
+        }
+    }
+
+    /// Each region's currency (CLDR's current tender).
+    static let _currencies: [String: String] = {
+        var table: [String: String] = [:]
+        for euro in ["AT", "BE", "CY", "DE", "EE", "ES", "FI", "FR", "GR", "HR", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PT", "SI", "SK"] {
+            table[euro] = "EUR"
+        }
+        let pairs = "US USD GB GBP CA CAD AU AUD NZ NZD JP JPY CN CNY IN INR KR KRW MX MXN BR BRL CH CHF SE SEK NO NOK DK DKK PL PLN "
+            + "CZ CZK HU HUF TR TRY ZA ZAR SG SGD HK HKD TW TWD TH THB ID IDR MY MYR PH PHP VN VND IL ILS AE AED SA SAR EG EGP "
+            + "NG NGN KE KES AR ARS CL CLP CO COP PE PEN UA UAH RO RON IS ISK PK PKR BD BDT"
+        let words = pairs.split(separator: " ").map(String.init)
+        for index in stride(from: 0, to: words.count - 1, by: 2) { table[words[index]] = words[index + 1] }
+        return table
+    }()
 }
 
 // MARK: - App group containers
