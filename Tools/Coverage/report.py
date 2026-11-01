@@ -189,6 +189,27 @@ def main():
             out.append("#### The members behind \"cannot infer contextual base\"\n")
             out.append(md_table(["Member", "Apps", "Errors", "First seen"], rows) + "\n")
             data["inferred_members"] = [{"member": k, "apps": sorted(v["apps"]), "count": v["count"]} for k, v in inferred.items()]
+        # Most errors sit in a few apps, and within each app in a few files: one type or package
+        # that fails takes every line using it with it. The heaviest apps' files and keys show
+        # the root to fix first.
+        heavy = sorted(apps, key=lambda a: -sum(len(t["errors"]) for t in a["targets"]))[:6]
+        heavy = [a for a in heavy if any(t["errors"] for t in a["targets"])]
+        if heavy:
+            out.append("#### Where the heaviest apps' errors are\n")
+            data["heavy_apps"] = []
+            for a in heavy:
+                files, keys = Counter(), Counter()
+                for t in a["targets"]:
+                    for e in t["errors"]:
+                        files[e["file"]] += 1
+                        keys[f"{e['category']}: {e['key']}"] += 1
+                total = sum(files.values())
+                third = [m for m in a.get("stripped", []) if m not in APPLE]
+                out.append(f"**{a['name']}**: {total} errors in {len(files)} files"
+                           + (f"; packages taken out: {', '.join(sorted(third))}" if third else "") + "\n")
+                out.append(md_table(["File", "Errors"], [(f"`{f}`", n) for f, n in files.most_common(8)]) + "\n")
+                out.append(md_table(["Key", "Errors"], [(f"`{k}`", n) for k, n in keys.most_common(8)]) + "\n")
+                data["heavy_apps"].append({"app": a["name"], "errors": total, "files": files.most_common(20), "keys": keys.most_common(20)})
         data["errors"] = [{"category": c, "key": k, "apps": sorted(v["apps"]), "count": v["count"],
                            "origin": v.get("origin", ""), "example": v["example"]} for (c, k), v in ranked]
 
