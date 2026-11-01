@@ -168,7 +168,7 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
                 if case .failure = result { log.entries.append("redeem failed") }
             }
             .subscriptionStatusTask(for: "pro") { state in
-                let count = await state.map { @Sendable in $0.count }.value
+                let count = await state.map { @Sendable statuses in statuses.count }.value
                 log.entries.append("statuses \(count.map { String($0) } ?? "nil")")
             })
         for _ in 0..<400 where !log.entries.contains(where: { $0.hasPrefix("statuses") }) {
