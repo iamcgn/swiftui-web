@@ -1,64 +1,21 @@
-# Builds the Counter release bundle twice from clean and compares the two wasm modules section by
-# section: the same raw size has compressed to different brotli sizes across CI runs (a ~1.5 KB
-# spread around the decision 0006 budget). Runs on changes to Tools/Size or by hand.
+# Temporary probe (reverted in the next commit): prints Apple's AppIntents interface.
 name: Size reproducibility
 on:
-  push:
-    paths: ['Tools/Size/**', '.github/workflows/size-repro.yml']
   workflow_dispatch:
-env:
-  SWIFT_VERSION: 6.3.3
 jobs:
   counter-twice:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
-      - name: Install toolchain and wasm SDK
+      - name: AppIntents interface
         run: |
-          brew install swiftly binaryen brotli
-          swiftly init --assume-yes --skip-install --no-modify-profile
-          . ~/.swiftly/env.sh
-          swiftly install $SWIFT_VERSION --use --assume-yes
-          swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
-            --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
-      - name: Build Counter twice from clean
-        run: |
-          . ~/.swiftly/env.sh
-          mkdir -p .build/size
-          for n in a b; do
-            rm -rf Examples/Counter/.build
-            scripts/build-wasm.sh Examples/Counter
-            cp Examples/Counter/.build/wasm/plugins/PackageToJS/outputs/Package/Counter.wasm .build/size/$n.wasm
-            cp Examples/Counter/.build/wasm/wasm32-unknown-wasip1/release/Counter.wasm .build/size/$n-linked.wasm
-            scripts/size-gate.sh Examples/Counter 99999999
-            # The same objects linked again with a map, to name what lies at each data address. The
-            # map flag goes in Counter's wasm-only linker settings (a command-line -Xlinker also
-            # reaches the host macro tools' Apple ld, which has no --Map).
-            cp Examples/Counter/Package.swift .build/size/Package.swift.orig
-            sed -i '' "s|\"stack-size=4194304\"|\"stack-size=4194304\", \"-Xlinker\", \"--Map=$GITHUB_WORKSPACE/.build/size/$n.map\"|" Examples/Counter/Package.swift
-            grep -n -- "--Map" Examples/Counter/Package.swift
-            (cd Examples/Counter && . ../../scripts/env.sh && swift build --swift-sdk "swift-$(cat ../../.swift-version)-RELEASE_wasm" \
-              --scratch-path .build/wasm -c release -Xswiftc -Osize -Xswiftc -Xfrontend -Xswiftc -disable-incremental-llvm-codegen --product Counter)
-            cp .build/size/Package.swift.orig Examples/Counter/Package.swift
-            cp Examples/Counter/.build/wasm/wasm32-unknown-wasip1/release/Counter.wasm .build/size/$n-mapped.wasm
-            ls -l .build/size
-          done
-      - name: Compare the two
-        run: python3 Tools/Size/section-diff.py .build/size/a.wasm .build/size/b.wasm
-      - name: Compare the linked modules (before PackageToJS's wasm-opt) and the relinks
-        run: |
-          echo "linked a vs b: $(cmp -l .build/size/a-linked.wasm .build/size/b-linked.wasm | wc -l) bytes differ"
-          cmp -s .build/size/a-linked.wasm .build/size/a-mapped.wasm && echo "a: relink identical" || echo "a: relink differs"
-      - name: Name the differing data
-        run: python3 Tools/Size/data-symbols.py .build/size/a-mapped.wasm .build/size/b-mapped.wasm .build/size/a.map
-      - uses: actions/upload-artifact@v4
-        with:
-          name: size-repro
-          path: .build/size/*.map
-      - name: What wasm-opt's strip passes would save
-        run: |
-          wasm-opt --enable-bulk-memory --enable-sign-ext --enable-mutable-globals --enable-nontrapping-float-to-int \
-            --strip-debug --strip-producers .build/size/a.wasm -o .build/size/a-stripped.wasm || true
-          for f in .build/size/a.wasm .build/size/a-stripped.wasm; do
-            [ -f "$f" ] && echo "$f: raw $(stat -f%z "$f") brotli $(brotli -q 11 -c "$f" | wc -c | tr -d ' ')"
+          X="$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)"
+          sudo xcode-select -s "$X" && xcodebuild -version
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          f=$(ls $SDK/System/Library/Frameworks/AppIntents.framework/Modules/AppIntents.swiftmodule/arm64e-apple-ios.swiftinterface)
+          echo "=== AppIntents"
+          sed -E 's/@available\([^)]*\) *//g; s/@_[A-Za-z]+(\([^)]*\))? *//g' "$f" | grep -vE '^\s*$|^\s*//' | grep -vE '^\s*(@backDeployed|#if|#else|#endif)'
+          for m in WidgetKit SwiftUI SwiftUICore; do
+            g=$(ls $SDK/System/Library/Frameworks/$m.framework/Modules/$m.swiftmodule/arm64e-apple-ios.swiftinterface)
+            echo "=== $m"
+            grep -nE "AppIntent|AppEntity|IntentResult|AppShortcut|SiriTip|ShortcutsLink" "$g" | sed -E 's/@available\([^)]*\) *//g' | head -200
           done
