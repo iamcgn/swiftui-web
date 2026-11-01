@@ -739,6 +739,14 @@ open class NSSortDescriptor: CustomStringConvertible, Hashable, @unchecked Senda
         read = { ($0 as? Root)?[keyPath: keyPath] }
     }
 
+    /// A descriptor that orders whole objects with `ascendingOrder` (true when the first comes
+    /// before the second in ascending order) and names `keyPath` as its key.
+    init(keyPath: AnyKeyPath?, rootType: Any.Type, ascending: Bool, ascendingOrder: @escaping (Any, Any) -> Bool) {
+        _key = nil; self.keyPath = keyPath; self.rootType = rootType; self.ascending = ascending
+        comparator = { a, b in ascendingOrder(a, b) ? .orderedAscending : ascendingOrder(b, a) ? .orderedDescending : .orderedSame }
+        read = { $0 }
+    }
+
     private init(copying other: NSSortDescriptor, ascending: Bool) {
         _key = other._key; keyPath = other.keyPath; rootType = other.rootType; self.ascending = ascending
         comparator = other.comparator; read = other.read

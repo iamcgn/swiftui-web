@@ -194,7 +194,17 @@ def data_models(root: Path, base: Path):
         if any(EXCLUDE_DIR.match(x) for x in d.relative_to(root / base).parts[:-1]):
             continue
         found.append(str(rel))
-    return found
+    # Xcode builds one model per name. A second copy by the same name (a stale one left beside
+    # the project, as Dime's top-level MainModel.xcdatamodeld) loses to the copy with more
+    # attributes, so the classes come from the model the app was written against.
+    best = {}
+    for rel in found:
+        name = Path(rel).name
+        size = sum(c.read_text(errors="replace").count("<attribute ")
+                   for c in (root / rel).rglob("contents"))
+        if name not in best or size > best[name][1]:
+            best[name] = (rel, size)
+    return [rel for rel in found if best[Path(rel).name][0] == rel]
 
 
 def describe_app(entry, root: Path):

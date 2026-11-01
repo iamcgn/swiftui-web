@@ -386,14 +386,19 @@ public struct Predicate<T>: @unchecked Sendable {
 public struct SortDescriptor<Compared>: @unchecked Sendable {
     public enum Order: Sendable { case forward, reverse }
     public let order: Order
-    let compare: (Compared, Compared) -> Bool
+    /// The key path the descriptor sorts by.
+    public let keyPath: PartialKeyPath<Compared>?
+    /// Whether the first value comes before the second, the order applied.
+    let ordersBefore: (Compared, Compared) -> Bool
     public init<Value: Comparable>(_ keyPath: KeyPath<Compared, Value>, order: Order = .forward) {
         self.order = order
-        compare = { a, b in order == .forward ? a[keyPath: keyPath] < b[keyPath: keyPath] : a[keyPath: keyPath] > b[keyPath: keyPath] }
+        self.keyPath = keyPath
+        ordersBefore = { a, b in order == .forward ? a[keyPath: keyPath] < b[keyPath: keyPath] : a[keyPath: keyPath] > b[keyPath: keyPath] }
     }
     public init<Value: Comparable>(_ keyPath: KeyPath<Compared, Value?>, order: Order = .forward) {
         self.order = order
-        compare = { a, b in
+        self.keyPath = keyPath
+        ordersBefore = { a, b in
             switch (a[keyPath: keyPath], b[keyPath: keyPath]) {
             case (nil, nil): return false
             case (nil, _): return order == .forward
@@ -404,7 +409,14 @@ public struct SortDescriptor<Compared>: @unchecked Sendable {
     }
     public init(_ keyPath: KeyPath<Compared, String>, comparator: Any? = nil, order: Order = .forward) {
         self.order = order
-        compare = { a, b in order == .forward ? a[keyPath: keyPath] < b[keyPath: keyPath] : a[keyPath: keyPath] > b[keyPath: keyPath] }
+        self.keyPath = keyPath
+        ordersBefore = { a, b in order == .forward ? a[keyPath: keyPath] < b[keyPath: keyPath] : a[keyPath: keyPath] > b[keyPath: keyPath] }
+    }
+
+    /// How two values order under the descriptor, its order applied (Foundation's
+    /// `SortComparator.compare`).
+    public func compare(_ lhs: Compared, _ rhs: Compared) -> ComparisonResult {
+        ordersBefore(lhs, rhs) ? .orderedAscending : ordersBefore(rhs, lhs) ? .orderedDescending : .orderedSame
     }
 }
 
@@ -587,8 +599,8 @@ public final class ModelContext: @unchecked Sendable {
         if !descriptor.sortBy.isEmpty {
             result.sort { a, b in
                 for descriptor in descriptor.sortBy {
-                    if descriptor.compare(a, b) { return true }
-                    if descriptor.compare(b, a) { return false }
+                    if descriptor.ordersBefore(a, b) { return true }
+                    if descriptor.ordersBefore(b, a) { return false }
                 }
                 return false
             }

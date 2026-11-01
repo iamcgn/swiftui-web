@@ -8,7 +8,23 @@ import WebDecimalFormats
 
 private let english = Locale(identifier: "en_US")
 
+/// Reads `currencyCode` without its deprecation on Apple platforms (apps still call it, and
+/// warnings are errors here).
+private protocol CurrencyNaming { var currencyCode: String? { get } }
+extension Locale: CurrencyNaming {}
+
 @Suite struct FoundationFormatTests {
+    @Test func currencies() {
+        func code(_ identifier: String) -> String? { (Locale(identifier: identifier) as any CurrencyNaming).currencyCode }
+        #expect(code("en_US") == "USD")
+        #expect(code("de_DE") == "EUR")
+        #expect(code("ja_JP") == "JPY")
+        #expect(code("en_GB") == "GBP")
+        #expect(Locale(identifier: "en_US").currencySymbol == "$")
+        #expect(Locale(identifier: "de_DE").currencySymbol == "€")
+        #expect(Locale(identifier: "en_GB").currencySymbol == "£")
+    }
+
     @Test func decimals() {
         let amount = Decimal(string: "1234.5")!
         #expect(amount.formatted(.number.locale(english)) == "1,234.5")
