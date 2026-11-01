@@ -194,9 +194,27 @@ public struct Alert {
     public struct Button {
         enum Style { case `default`, cancel, destructive }
 
-        let style: Style
-        let label: Text
-        let action: (() -> Void)?
+        /// The button's parts, boxed (see `_LegacyAlertStorage`).
+        final class Storage {
+            let style: Style
+            let label: Text
+            let action: (() -> Void)?
+
+            init(style: Style, label: Text, action: (() -> Void)?) {
+                self.style = style
+                self.label = label
+                self.action = action
+            }
+        }
+
+        let storage: Storage
+        var style: Style { storage.style }
+        var label: Text { storage.label }
+        var action: (() -> Void)? { storage.action }
+
+        init(style: Style, label: Text, action: (() -> Void)?) {
+            storage = Storage(style: style, label: label, action: action)
+        }
 
         /// A button with the default style.
         public static func `default`(_ label: Text, action: (() -> Void)? = {}) -> Alert.Button {
@@ -219,22 +237,32 @@ public struct Alert {
         }
     }
 
-    let title: Text
-    let message: Text?
-    let buttons: [Alert.Button]
+    let storage: _LegacyAlertStorage
 
     /// An alert with one button: `dismissButton`, or "OK" when there is none.
     public init(title: Text, message: Text? = nil, dismissButton: Alert.Button? = nil) {
-        self.title = title
-        self.message = message
-        self.buttons = [dismissButton ?? .default(Text("OK"))]
+        storage = _LegacyAlertStorage(title: title, message: message, buttons: [dismissButton ?? .default(Text("OK"))])
     }
 
     /// An alert with two buttons.
     public init(title: Text, message: Text? = nil, primaryButton: Alert.Button, secondaryButton: Alert.Button) {
+        storage = _LegacyAlertStorage(title: title, message: message, buttons: [primaryButton, secondaryButton])
+    }
+}
+
+/// The title, message and buttons of an `Alert` or `ActionSheet`, boxed. On wasm every type's
+/// value witnesses ship in every bundle; a struct holding `Text`s gets its own (~45 KB for these
+/// two and `Alert.Button`, decision 0006's budget), while a struct holding one class reference
+/// shares the runtime's.
+final class _LegacyAlertStorage {
+    let title: Text
+    let message: Text?
+    let buttons: [Alert.Button]
+
+    init(title: Text, message: Text?, buttons: [Alert.Button]) {
         self.title = title
         self.message = message
-        self.buttons = [primaryButton, secondaryButton]
+        self.buttons = buttons
     }
 }
 
@@ -242,14 +270,10 @@ public struct Alert {
 public struct ActionSheet {
     public typealias Button = Alert.Button
 
-    let title: Text
-    let message: Text?
-    let buttons: [ActionSheet.Button]
+    let storage: _LegacyAlertStorage
 
     public init(title: Text, message: Text? = nil, buttons: [ActionSheet.Button] = [.cancel()]) {
-        self.title = title
-        self.message = message
-        self.buttons = buttons
+        storage = _LegacyAlertStorage(title: title, message: message, buttons: buttons)
     }
 }
 
@@ -281,13 +305,13 @@ private func _legacyAlertButtons(_ buttons: [Alert.Button]) -> AnyView {
 
 extension Alert {
     fileprivate var view: AnyView {
-        AnyView(_AlertContent(title: title, message: AnyView(message), actions: _legacyAlertButtons(buttons)))
+        AnyView(_AlertContent(title: storage.title, message: AnyView(storage.message), actions: _legacyAlertButtons(storage.buttons)))
     }
 }
 
 extension ActionSheet {
     fileprivate var view: AnyView {
-        AnyView(_DialogContent(title: title, message: AnyView(message), actions: _legacyAlertButtons(buttons)))
+        AnyView(_DialogContent(title: storage.title, message: AnyView(storage.message), actions: _legacyAlertButtons(storage.buttons)))
     }
 }
 
