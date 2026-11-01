@@ -1,6 +1,7 @@
 // `String(localized:)` and `LocalizedStringResource` on wasm, where FoundationEssentials has
-// neither (Docs/coverage.md: `localized:` is an extraneous label in 7 apps, the resource type
-// is missing in 4). Both look the key up in the bundle's string tables the way
+// neither, and the resource on Linux, where swift-corelibs-foundation lacks it
+// (Docs/coverage.md: `localized:` is an extraneous label in 7 apps, the resource type is
+// missing in 4). Both look the key up in the bundle's string tables the way
 // `Bundle.localizedString(forKey:value:table:)` does, falling back to the default value and
 // then to the key. The key of an interpolated literal is its text with the values in place
 // (Foundation's turns the values into format specifiers and substitutes after the lookup, so a
@@ -23,6 +24,14 @@ extension String {
     public init(localized resource: LocalizedStringResource) {
         self = resource.resolved
     }
+}
+
+#endif
+
+#if os(WASI) || os(Linux)
+/// A type that names itself with a localizable string (AppIntents' display representations).
+public protocol CustomLocalizedStringResourceConvertible {
+    var localizedStringResource: LocalizedStringResource { get }
 }
 
 /// A reference to a localizable string, accessible from another process.

@@ -2399,6 +2399,12 @@
           "noFixture": "Nothing to draw beyond text: StoreKitTests check the empty store, the refused payments and the views' unavailable state"
         },
         {
+          "api": "AppIntent / @Parameter / AppEntity / AppEnum / EntityQuery / AppShortcutsProvider / Button(intent:) (AppIntents)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-01): intents run when the app runs them. A parameter holds what the app set, else its default, else nil when optional; perform() and calling the intent return its result; entities, their @Property values, their queries and app enums show themselves as declared. A button or toggle made with an intent runs perform() when pressed. Parameter summaries (When, Switch, Case) and shortcut phrases keep their text. Asking the user for a value, a choice or a confirmation throws, since a web page has no Siri or Shortcuts to ask; donations and shortcuts are kept but nothing reads them, and SiriTipView and ShortcutsLink show nothing",
+          "noFixture": "Nothing to draw: AppIntentsTests run intents, read parameters, entities and summaries, and press intent buttons and toggles"
+        },
+        {
           "api": "WebView / WebPage (WebKit)",
           "status": "partial",
           "notes": "A host element: a sandboxed <iframe> loading the page's URL or HTML; a white stand-in elsewhere; navigation state is not reported back",

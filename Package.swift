@@ -36,6 +36,7 @@ let package = Package(
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
+        .library(name: "AppIntents", targets: ["AppIntents"]),
         .library(name: "WebKit", targets: ["WebKit"]),
         .library(name: "SwiftUIWebCanvas", targets: ["SwiftUIWebCanvas"]),
         .library(name: "SwiftUIWebNative", targets: ["SwiftUIWebNative"]),
@@ -121,6 +122,9 @@ let package = Package(
                            .product(name: "WebDecimalFormats", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // Intents, entities and App Shortcuts. Nothing runs them from Siri or Shortcuts on the web;
+        // Button(intent:) and Toggle(isOn:intent:) run them.
+        .target(name: "AppIntents", dependencies: ["SwiftUI", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The representables (decision 0014, Phase 2): UIKit views hosted as SwiftUI leaves.
         .target(
             name: "SwiftUIWebUIKit",
@@ -192,7 +196,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).
