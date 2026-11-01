@@ -58,10 +58,15 @@ private struct LookupFailed: CustomNSError {}
     }
     #endif
 
-    @Test func sleepAndClocks() {
+    @Test func sleep() {
         let start = Date()
         Thread.sleep(forTimeInterval: 0.02)
         #expect(Date().timeIntervalSince(start) >= 0.02)
+    }
+
+    #if os(WASI) || canImport(Darwin)
+    // Apple's Foundation brings these from Dispatch and CoreFoundation; Linux's doesn't.
+    @Test func clockNames() {
         #expect(NSEC_PER_SEC == 1_000_000_000)
         #expect(NSEC_PER_MSEC == 1_000_000)
         #expect(USEC_PER_SEC == 1_000_000)
@@ -69,6 +74,7 @@ private struct LookupFailed: CustomNSError {}
         let interval: CFTimeInterval = 1.5
         #expect(interval == 1.5)
     }
+    #endif
 
     @Test func appendingAndErrorNames() {
         #expect("Image".appending("Cache") == "ImageCache")
