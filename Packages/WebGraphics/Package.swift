@@ -9,6 +9,7 @@ import PackageDescription
 // Module layout:
 //   WebFoundation        Foundation for the substrate: Foundation itself, or FoundationEssentials
 //                        plus the wasm stand-ins for its heaviest value types (decision 0017)
+//   WebFoundationFormats list, duration and date-components formatting; `import Foundation` only
 //   WebGraphics          geometry, display list, paths, text engine protocol, HostedScene
 //   WebGraphicsCanvas    wasm-only Canvas2D painter, canvas host, semantics overlay, text input
 //   WebGraphicsNative    macOS CoreText engine, CoreGraphics painter, AppKit host
@@ -19,6 +20,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "WebFoundation", targets: ["WebFoundation"]),
+        .library(name: "WebFoundationFormats", targets: ["WebFoundationFormats"]),
         .library(name: "WebCombine", targets: ["WebCombine"]),
         .library(name: "WebGraphics", targets: ["WebGraphics"]),
         .library(name: "WebGraphicsCanvas", targets: ["WebGraphicsCanvas"]),
@@ -32,6 +34,13 @@ let package = Package(
     targets: [
         .target(
             name: "WebFoundation",
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // Foundation's less used formatting on wasm, re-exported by `import Foundation` only
+        // (Packages/Shadows), so an app that never formats a list or a duration does not ship it.
+        .target(
+            name: "WebFoundationFormats",
+            dependencies: ["WebFoundation"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // Combine without Combine (decision 0021): the ObservableObject family, the publishers

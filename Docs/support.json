@@ -371,9 +371,9 @@
           ]
         },
         {
-          "api": "Gradient / LinearGradient / RadialGradient / AngularGradient / EllipticalGradient / MeshGradient / HierarchicalShapeStyle / AnyShapeStyle, ShapeStyle.in / opacity / levels (fills, strokes, backgrounds, text, symbols, template images, Canvas shading)",
+          "api": "Gradient / LinearGradient / RadialGradient / AngularGradient / EllipticalGradient / MeshGradient / HierarchicalShapeStyle / AnyShapeStyle, ShapeStyle.in / opacity / levels (fills, strokes, backgrounds, text, symbols, template images, Canvas shading) / TintShapeStyle (.tint)",
           "status": "full",
-          "notes": "Display-list gradient ops painted by Canvas2D, stops blended in Oklab (≤ 0.08 % pixels); text foreground gradients through an offscreen mask; Canvas gradient shadings; .primary keeps the inherited style. Elliptical gradients (radii as fractions of the bounds), mesh gradients rasterised into a bitmap at the paint scale (bicubic patches, device or perceptual colours; ≤ 0.84 % against SwiftUI), in(_:), opacity and the hierarchical levels (0.5 / 0.25 / 0.18 / 0.18) on gradients, gradients on symbols and template images (2026-10-11). Open: animating a mesh, Bézier control points, a mesh in text",
+          "notes": "Display-list gradient ops painted by Canvas2D, stops blended in Oklab (≤ 0.08 % pixels); text foreground gradients through an offscreen mask; Canvas gradient shadings; .primary keeps the inherited style. Elliptical gradients (radii as fractions of the bounds), mesh gradients rasterised into a bitmap at the paint scale (bicubic patches, device or perceptual colours; ≤ 0.84 % against SwiftUI), in(_:), opacity and the hierarchical levels (0.5 / 0.25 / 0.18 / 0.18) on gradients, gradients on symbols and template images (2026-10-11); .tint is the environment's tint, the accent colour unless tint(_:) sets one (2026-10-31). Open: animating a mesh, Bézier control points, a mesh in text",
           "fixtures": [
             "gradient/basic",
             "gradient/text",
@@ -1245,9 +1245,9 @@
           ]
         },
         {
-          "api": "gesture / highPriorityGesture / simultaneousGesture / GestureMask / DragGesture / LongPressGesture / TapGesture / MagnifyGesture / RotateGesture / MagnificationGesture / RotationGesture / onLongPressGesture / sequenced / simultaneously / exclusively / GestureState / updating / map",
+          "api": "gesture / highPriorityGesture / simultaneousGesture / GestureMask / DragGesture / LongPressGesture / TapGesture / SpatialTapGesture / MagnifyGesture / RotateGesture / MagnificationGesture / RotationGesture / onLongPressGesture / sequenced / simultaneously / exclusively / GestureState / updating / map",
           "status": "full",
-          "notes": "Recognisers fed by the press events of the deepest interactive node (highPriorityGesture takes the press first, simultaneousGesture ancestors share it, GestureMask honoured); drags report local or global values with velocity, long presses tick on the animation clock, taps count within 0.35 s; pinches from control-wheel events, Safari gesture events and two touches reach the magnify and rotate gestures; GestureState applies the updating and reset transactions (Docs/elements/Gestures.md)",
+          "notes": "Recognisers fed by the press events of the deepest interactive node (highPriorityGesture takes the press first, simultaneousGesture ancestors share it, GestureMask honoured); drags report local or global values with velocity, long presses tick on the animation clock, taps count within 0.35 s and SpatialTapGesture reports where the last one landed, local or global; pinches from control-wheel events, Safari gesture events and two touches reach the magnify and rotate gestures; GestureState applies the updating and reset transactions (Docs/elements/Gestures.md)",
           "fixtures": [
             "gesture/basic",
             "gesture/pinch"
@@ -1431,6 +1431,12 @@
           "status": "partial",
           "notes": "`NavigationView` is a NavigationStack (every style lays out as a stack), `navigationBarTitle` maps onto navigationTitle and navigationBarTitleDisplayMode, `colorScheme(_:)` sets the environment's scheme for the subtree, `ContentSizeCategory` and `sizeCategory` are DynamicTypeSize under the old names (Comparable, isAccessibilityCategory), `accessibilityEnabled` is false (unknown in a browser), `EnvironmentalModifier` resolves in the node's environment and again when it changes; Apple's deprecation messages are kept (decision 0021, 2026-10-12)",
           "noFixture": "AppAPIGapsTests.deprecatedFormsMapOntoTheCurrentAPI."
+        },
+        {
+          "api": "Alert / Alert.Button / ActionSheet / alert(isPresented:content:) / alert(item:content:) / actionSheet(isPresented:content:) / actionSheet(item:content:) / navigationBarHidden / disableAutocorrection",
+          "status": "full",
+          "notes": "The iOS 13 value forms map onto the current presentations: an Alert is the alert with its title, message and buttons (\"OK\" when it names none; .default, .cancel and .destructive become the button roles), an ActionSheet the confirmation dialog, the item forms present while the item is set; navigationBarHidden is the navigation bar's toolbar visibility and disableAutocorrection is autocorrectionDisabled. Apple's deprecation of these is soft, so they compile without warnings (pf-everyday-apis, 2026-10-31)",
+          "noFixture": "AppAPIGapsTests.valueAlertsAndActionSheets and renamedModifiersAndTheTintStyle."
         }
       ]
     },
@@ -2044,9 +2050,9 @@
           "noFixture": "Motion is not a still: AnimationTests and RepresentableTests hold the curves on the headless clock; the table batch-update goldens hold the end states."
         },
         {
-          "api": "Core Animation (CABasicAnimation, CAKeyframeAnimation, CAAnimationGroup, CATransaction, CADisplayLink, layer implicit animations)",
+          "api": "Core Animation (CABasicAnimation, CAKeyframeAnimation, CAAnimationGroup, CATransaction, CADisplayLink, CACurrentMediaTime, layer implicit animations)",
           "status": "partial",
-          "notes": "Explicit animations on layer properties joined to the scene's implicit transaction (a layer animates implicitly only once committed, as in Core Animation), keyframes through every value with keyTimes and the discrete mode, additive animations over a moving model, groups playing their children in their own windows with their own curves, display links ticking on the scene's clock with timestamps and frame rate ranges; open: timing functions beyond the four curves and cubic points, removedOnCompletion semantics, cubic keyframe paths, rotation modes",
+          "notes": "Explicit animations on layer properties joined to the scene's implicit transaction (a layer animates implicitly only once committed, as in Core Animation), keyframes through every value with keyTimes and the discrete mode, additive animations over a moving model, groups playing their children in their own windows with their own curves, display links ticking on the scene's clock with timestamps and frame rate ranges; open: timing functions beyond the four curves and cubic points, removedOnCompletion semantics, cubic keyframe paths, rotation modes; CACurrentMediaTime() is a monotonic clock in seconds that starts at its first reading (only differences mean anything, as on Apple's platforms, 2026-10-31)",
           "noFixture": "Motion is not a still: AnimationTests and LayerAnimationRestTests hold the interpolation on the headless clock."
         },
         {
@@ -2158,6 +2164,12 @@
           "status": "partial",
           "notes": "dateStyle and timeStyle (short 'M/d/yy', medium, long, full with ' at ' from medium on), dateFormat patterns with every LDML letter and quoting, setLocalizedDateFormatFromTemplate and dateFormat(fromTemplate:), date(from:) through the pattern, the symbol arrays; RelativeDateTimeFormatter in whole units (full, spellOut, short, abbreviated) with named days, weeks, months and years (2026-10-09)",
           "noFixture": "DateFormattingTests holds the patterns to Foundation on macOS; WasmFoundationTests the classes."
+        },
+        {
+          "api": "ListFormatStyle / Duration.TimeFormatStyle / Duration.UnitsFormatStyle / DateComponentsFormatter / NSCalendar.Unit / Locale.Language / Locale.LanguageCode / Locale.Region / FileManager.containerURL",
+          "status": "partial",
+          "notes": "Lists of strings joined with 'and' or 'or' ('a, b, and c'); durations as clock times ('1:05:05', '65:05') and as units in the wide, abbreviated and narrow widths ('3 hours, 5 minutes', '3 hr, 5 min', '3h 5m'); DateComponentsFormatter's positional, abbreviated, brief, short and full styles with the zero-dropping and padding behaviours and maximumUnitCount (spellOut is written as full); a locale's language, script and region; an app group's container is a folder of its own in the page's files. English output in every locale; not done: likely-subtag expansion (maximalIdentifier is the identifier as given), months and years in DateComponentsFormatter beyond their average lengths, Decimal.FormatStyle (naming Decimal links Foundation's Decimal into every app; it needs a build-time switch) (pf-everyday-apis, 2026-10-31)",
+          "noFixture": "FrameworkTests.FoundationFormatTests holds the answers to Foundation's on macOS and Linux, and runs them on wasm."
         },
         {
           "api": "`import Foundation` (Packages/Shadows)",

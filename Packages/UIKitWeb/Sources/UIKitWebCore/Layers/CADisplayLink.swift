@@ -78,3 +78,18 @@ public final class CADisplayLink {
 struct WeakDisplayLink {
     weak var link: CADisplayLink?
 }
+
+#if !canImport(QuartzCore)
+// Apple's platforms have Core Animation's own.
+
+/// The clock `CACurrentMediaTime()` counts on, started the first time it is read.
+private let mediaTimeOrigin = ContinuousClock.now
+
+/// The current absolute time, in seconds, on a monotonic clock. As on Apple's platforms, only
+/// differences between two readings mean anything (here the clock starts at the first reading).
+public func CACurrentMediaTime() -> Double {
+    let elapsed = ContinuousClock.now - mediaTimeOrigin
+    let (seconds, attoseconds) = elapsed.components
+    return Double(seconds) + Double(attoseconds) / 1e18
+}
+#endif

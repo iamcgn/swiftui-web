@@ -108,4 +108,39 @@ import WebCombine
         #expect(texts(runtime).contains("4 XL dark") && runtime.navigationTitle == "Old")
         #expect(ContentSizeCategory.accessibilityLarge.isAccessibilityCategory && ContentSizeCategory.small < .large)
     }
+
+    /// The value alerts and action sheets of iOS 13 present as the current alert and dialog.
+    @Test func valueAlertsAndActionSheets() {
+        struct Item: Identifiable { let id: Int }
+        func shown(_ view: some View) -> [String] {
+            let runtime = Runtime()
+            runtime.mount(view)
+            runtime.layout(in: CGSize(width: 300, height: 300))
+            return runtime.presentations.flatMap { $0.content.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString } }
+        }
+        let single = shown(Text("root").alert(isPresented: .constant(true)) { Alert(title: Text("Saved"), message: Text("All done.")) })
+        #expect(single.contains("Saved") && single.contains("All done.") && single.contains("OK"))
+        let pair = shown(Text("root").alert(item: .constant(Item(id: 3))) { item in
+            Alert(title: Text("Delete \(item.id)?"), primaryButton: .destructive(Text("Delete")) {}, secondaryButton: .cancel())
+        })
+        #expect(pair.contains("Delete 3?") && pair.contains("Delete") && pair.contains("Cancel"))
+        #expect(shown(Text("root").alert(item: .constant(nil as Item?)) { _ in Alert(title: Text("Never")) }).isEmpty)
+        let sheet = shown(Text("root").actionSheet(isPresented: .constant(true)) {
+            ActionSheet(title: Text("Share"), buttons: [.default(Text("Copy")), .cancel()])
+        })
+        #expect(sheet.contains("Share") && sheet.contains("Copy") && sheet.contains("Cancel"))
+    }
+
+    @Test func renamedModifiersAndTheTintStyle() {
+        let runtime = Runtime()
+        runtime.mount(NavigationStack {
+            TextField("Name", text: .constant("")).disableAutocorrection(true).navigationTitle("Hidden").navigationBarHidden(true)
+        })
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        var environment = EnvironmentValues()
+        #expect(TintShapeStyle().resolveColor(in: environment) == Color.accentColor.resolve(in: environment))
+        environment._tint = .red
+        let tint: TintShapeStyle = .tint
+        #expect(tint.resolveColor(in: environment) == Color.red.resolve(in: environment))
+    }
 }

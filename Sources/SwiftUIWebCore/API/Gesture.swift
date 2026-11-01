@@ -51,6 +51,31 @@ public struct TapGesture: Gesture {
     @MainActor public func _makeRecognizer() -> _GestureRecognizer<Void> { TapRecognizer(count: count) }
 }
 
+/// Recognises one or more taps and reports where the last one landed.
+public struct SpatialTapGesture: Gesture {
+    public typealias Body = Never
+
+    /// The tap's location in the gesture's coordinate space.
+    public struct Value: Equatable, Sendable {
+        public var location: CGPoint
+    }
+
+    public var count: Int
+    public var coordinateSpace: CoordinateSpace
+
+    public init(count: Int = 1, coordinateSpace: CoordinateSpace = .local) {
+        self.count = count
+        self.coordinateSpace = coordinateSpace
+    }
+
+    public init(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol) {
+        self.init(count: count, coordinateSpace: coordinateSpace.coordinateSpace)
+    }
+
+    public var body: Never { fatalError() }
+    @MainActor public func _makeRecognizer() -> _GestureRecognizer<Value> { SpatialTapRecognizer(count: count, global: coordinateSpace.isGlobal) }
+}
+
 /// Recognises a press held for `minimumDuration` without moving more than `maximumDistance`.
 public struct LongPressGesture: Gesture {
     public typealias Value = Bool

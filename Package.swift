@@ -198,7 +198,7 @@ let package = Package(
         // The small frameworks against known answers (FIPS 180, RFC 1321, RFC 4231 vectors).
         .testTarget(
             name: "FrameworkTests",
-            dependencies: ["CryptoKit", "CoreHaptics", "WidgetKit", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["CryptoKit", "CoreHaptics", "WidgetKit", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(

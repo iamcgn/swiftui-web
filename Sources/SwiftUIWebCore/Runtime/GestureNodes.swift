@@ -106,6 +106,34 @@ final class TapRecognizer: _GestureRecognizer<Void> {
     }
 }
 
+/// `SpatialTapGesture`: a `TapGesture` that reports where the last tap was released.
+@MainActor
+final class SpatialTapRecognizer: _GestureRecognizer<SpatialTapGesture.Value> {
+    private let taps: TapRecognizer
+    private let global: Bool
+    private var location: CGPoint = .zero
+
+    init(count: Int, global: Bool) {
+        taps = TapRecognizer(count: count)
+        self.global = global
+        super.init()
+        taps.endedHandlers.append { [unowned self] _ in self.emitEnded(SpatialTapGesture.Value(location: self.location)) }
+    }
+
+    override func began(_ event: GestureEvent) { taps.began(event) }
+
+    override func ended(_ event: GestureEvent, inside: Bool) {
+        location = global ? CGPoint(x: event.location.x + event.windowOrigin.x, y: event.location.y + event.windowOrigin.y) : event.location
+        taps.ended(event, inside: inside)
+        finish()
+    }
+
+    override func cancel() {
+        taps.cancel()
+        finish()
+    }
+}
+
 /// `LongPressGesture`: reports `true` once the press has been held; ends (recognises) then.
 @MainActor
 final class LongPressRecognizer: _GestureRecognizer<Bool> {
