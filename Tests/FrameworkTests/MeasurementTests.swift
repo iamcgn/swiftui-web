@@ -8,7 +8,7 @@ private func close(_ a: Double, _ b: Double, within tolerance: Double = 1e-3) ->
 
 @Suite struct MeasurementTests {
     @Test func converts() {
-        #expect(close(Measurement(value: 1, unit: UnitLength.miles).converted(to: .meters).value, 1609.344))
+        #expect(close(Measurement(value: 1, unit: UnitLength.miles).converted(to: .meters).value, 1609.34))   // Foundation's factor, not the exact 1609.344
         #expect(close(Measurement(value: 72, unit: UnitTemperature.fahrenheit).converted(to: .celsius).value, 22.222))
         #expect(close(Measurement(value: 0, unit: UnitTemperature.celsius).converted(to: .kelvin).value, 273.15))
         #expect(close(Measurement(value: 1, unit: UnitSpeed.knots).converted(to: .kilometersPerHour).value, 1.852))
