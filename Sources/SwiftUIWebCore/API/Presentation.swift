@@ -20,6 +20,29 @@ package struct DismissKey: EnvironmentKey {
     package nonisolated(unsafe) static let defaultValue = DismissAction {}
 }
 
+package struct IsPresentedKey: EnvironmentKey {
+    package static let defaultValue = false
+}
+
+/// The presentation a view is in, read through `@Environment(\.presentationMode)`.
+public struct PresentationMode {
+    /// Whether the view is in a presentation.
+    public private(set) var isPresented: Bool
+    let dismissAction: DismissAction
+
+    init(isPresented: Bool, dismissAction: DismissAction) {
+        self.isPresented = isPresented
+        self.dismissAction = dismissAction
+    }
+
+    /// Dismisses the presentation the view is in (or pops its navigation destination).
+    @MainActor public mutating func dismiss() {
+        guard isPresented else { return }
+        dismissAction()
+        isPresented = false
+    }
+}
+
 package struct DismissesOnActivationKey: EnvironmentKey {
     package static let defaultValue = false
 }
@@ -29,6 +52,19 @@ extension EnvironmentValues {
     public var dismiss: DismissAction {
         get { self[DismissKey.self] }
         set { self[DismissKey.self] = newValue }
+    }
+
+    /// Whether the view is in a presentation: a sheet, popover, alert or window, or a
+    /// destination pushed onto a navigation stack.
+    public package(set) var isPresented: Bool {
+        get { self[IsPresentedKey.self] }
+        set { self[IsPresentedKey.self] = newValue }
+    }
+
+    /// The presentation the view is in, as a binding (the API before `dismiss`, iOS 13).
+    public var presentationMode: Binding<PresentationMode> {
+        let mode = PresentationMode(isPresented: isPresented, dismissAction: dismiss)
+        return Binding(get: { mode }, set: { _ in })
     }
 
     /// Whether buttons in this environment dismiss the presentation after their action (alerts).
