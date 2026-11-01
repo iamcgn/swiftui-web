@@ -994,8 +994,10 @@ extension Scene {
 }
 
 /// A property wrapper that fetches a set of models and keeps those models in sync with the
-/// underlying data: the environment's context, fetched on every read, refetched after every
-/// save (the view updates through the box's `objectWillChange`). The initializers live in the
+/// underlying data: the environment's context, fetched as each body is about to be evaluated
+/// (`update()`), and the view re-read after every save (the box's `objectWillChange`). As on
+/// Apple platforms, the results are those of the latest body: an action that inserts and then
+/// reads the query still sees what the view shows until the view updates. The initializers live in the
 /// struct with `Result == [Element]`, as Apple's: `@Query var items: [Item]` infers `Element`
 /// from the one callable with no arguments.
 @MainActor
@@ -1005,15 +1007,13 @@ public struct Query<Element: PersistentModel, Result>: DynamicProperty {
     private let fetch: @MainActor (ModelContext) -> Result
     private var animation: Animation?
 
-    /// The models now: fetched from the context on each read, and the context watched so a
-    /// save re-reads the body.
-    public var wrappedValue: Result {
-        box.watch(context)
-        return fetch(context)
-    }
+    /// The models of the latest update (a fetch now when there has been none, as for a read
+    /// before the view is shown).
+    public var wrappedValue: Result { box.results(fetch, in: context) }
     public var fetchError: Error? { nil }
     public var modelContext: ModelContext { context }
-    nonisolated public mutating func update() {}
+    /// Fetches for the body about to be evaluated, and watches the context so a save re-reads it.
+    public mutating func update() { box.refresh(fetch, in: context) }
 
     private static func fetching(_ descriptor: FetchDescriptor<Element>) -> @MainActor (ModelContext) -> [Element] {
         { (try? $0.fetch(descriptor)) ?? [] }
@@ -1045,12 +1045,29 @@ public struct Query<Element: PersistentModel, Result>: DynamicProperty {
     }
 }
 
-/// The subscription behind a `@Query`: the context's observer, dropped when the box goes.
+/// The state behind a `@Query`: the context's observer, dropped when the box goes, and the
+/// results fetched for the latest body.
 @MainActor
 final class _QueryBox<Element: PersistentModel>: WebCombine.ObservableObject {
     private var stop: (@Sendable () -> Void)?
     private weak var watched: ModelContext?
+    /// The query's `Result` as of the latest update.
+    private var snapshot: Any?
     nonisolated init() {}
+
+    func refresh<Result>(_ fetch: @MainActor (ModelContext) -> Result, in context: ModelContext) {
+        watch(context)
+        snapshot = fetch(context)
+    }
+
+    func results<Result>(_ fetch: @MainActor (ModelContext) -> Result, in context: ModelContext) -> Result {
+        if let snapshot = snapshot as? Result { return snapshot }
+        watch(context)
+        let value = fetch(context)
+        snapshot = value
+        return value
+    }
+
     func watch(_ context: ModelContext) {
         guard watched !== context else { return }
         stop?()
