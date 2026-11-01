@@ -3,6 +3,7 @@
 // on the scene's frame clock (UIKit's deceleration rate: the velocity keeps 0.998 of itself per
 // millisecond), rubber banding past the edges, paging, and the indicators UIKit shows while
 // the content moves (3 pt bars 3 in from the edges and the ends, black at 35 %, uikit/textview).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// The methods a scroll view's delegate implements.
 @MainActor
@@ -37,6 +38,9 @@ extension UIScrollViewDelegate {
 /// A view that allows the scrolling and zooming of its contained views.
 @MainActor
 open class UIScrollView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum IndicatorStyle: Int, Sendable { case `default` = 0, black, white }
     public enum ContentInsetAdjustmentBehavior: Int, Sendable { case automatic = 0, scrollableAxes, never, always }
     public enum KeyboardDismissMode: Int, Sendable { case none = 0, onDrag, interactive }

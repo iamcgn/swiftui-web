@@ -86,6 +86,9 @@ open class UIVibrancyEffect: UIVisualEffect {
 /// An object that implements some complex visual effects.
 @MainActor
 open class UIVisualEffectView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     open var effect: UIVisualEffect? { didSet { setNeedsDisplay() } }
     /// The view for content to be placed over the effect.
     public let contentView = UIView()

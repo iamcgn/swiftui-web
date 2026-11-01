@@ -2,11 +2,15 @@
 // view controllers whose top one fills the container, under a translucent bar 10 below the
 // safe area's top: an inline title (54 pt bar) or a large one (106.5), items and the back
 // button as glass platters. Measured on the iPhone SE simulator (iOS 26).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A container view controller that defines a stack-based scheme for navigating hierarchical
 /// content.
 @MainActor
 open class UINavigationController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public private(set) var viewControllers: [UIViewController] = []
     public let navigationBar = UINavigationBar()
     open weak var delegate: (any UINavigationControllerDelegate)?
@@ -461,6 +465,9 @@ extension UINavigationControllerDelegate {
 /// Navigational controls in a bar along the top of the screen.
 @MainActor
 open class UINavigationBar: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     /// The bar sits this far below the safe area's top (uikit/nav/basic: y 10 with no status bar).
     static let topOffset: CGFloat = 10
     /// A split view column's bar: the part of the bar under a floating sidebar (the title and
@@ -625,6 +632,9 @@ public final class UINavigationBarAppearance {
 /// a 17 pt medium title 12 in, a 23 × 22 image, or the back chevron.
 @MainActor
 final class BarPlatterButton: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     enum Kind { case title(String), image(String), chevron }
     let kind: Kind
     weak var item: UIBarButtonItem?

@@ -109,6 +109,9 @@ open class UICalendarSelectionMultiDate: UICalendarSelection {
 /// A view that displays a calendar with date-specific decorations and selection.
 @MainActor
 open class UICalendarView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     /// A mark under a day: a dot of a colour (the default), a symbol, or a view (drawn as a dot).
     public final class Decoration {
         public enum Size: Int, Sendable { case small = 0, medium, large }

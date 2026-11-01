@@ -3,6 +3,7 @@
 // origin, turns UIKit touches into the runtime's pointer, exposes the runtime's semantics tree
 // through UIKitWeb's hosting SPI and advances the runtime's clock with the scene's
 // (Docs/elements/Representable.md).
+import WebFoundation   // NSCoder, for init?(coder:)
 import SwiftUIWebCore
 import UIKitWebCore
 
@@ -17,6 +18,9 @@ public struct UIHostingControllerSizingOptions: OptionSet, Sendable {
 /// A UIKit view controller that manages a SwiftUI view hierarchy.
 @MainActor
 open class UIHostingController<Content: View>: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     /// The root view of the SwiftUI view hierarchy managed by this view controller.
     public var rootView: Content {
         didSet { hostingView?.rootView = rootView }
@@ -129,6 +133,9 @@ final class BridgedBarItem {
 /// The view a hosting controller manages: a SwiftUI runtime in a UIKit view.
 @MainActor
 final class _UIHostingView<Content: View>: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let runtime: Runtime
     /// Setting the root inside `withAnimation` animates the change, as a state change would.
     var rootView: Content {

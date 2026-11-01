@@ -10,6 +10,9 @@ import Foundation
 /// The strip of index titles: 11 pt semibold letters in the tint, centred as a column.
 @MainActor
 final class SectionIndexView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     static let width: CGFloat = 15
     static let font = UIFont.systemFont(ofSize: 11, weight: .semibold)
     /// The pitch of the titles' column (uikit/table/indexed: cap tops 14 apart, the column centred).

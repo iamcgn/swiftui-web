@@ -162,6 +162,9 @@ import Foundation
     }
 
     final class LoggingController: UIViewController {
+        /// No archive to decode on the web: nil, as for an archive this class cannot read.
+        required init?(coder: NSCoder) { return nil }
+
         let model: Model
         init(_ model: Model) { self.model = model; super.init(nibName: nil, bundle: nil) }
         override func viewDidLoad() { super.viewDidLoad(); model.counts.appearances.append("load") }

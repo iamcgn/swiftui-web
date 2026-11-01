@@ -276,6 +276,9 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
 /// A collection view cell that provides list features and default styling.
 @MainActor
 open class UICollectionViewListCell: UICollectionViewCell {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     open var accessories: [UICellAccessory] = [] { didSet { setNeedsLayout(); setNeedsDisplay() } }
     open var indentationLevel = 0 { didSet { setNeedsLayout() } }
     /// An outline parent's state: the disclosure chevron points down when expanded.

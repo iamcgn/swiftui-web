@@ -2,6 +2,7 @@
 // through the layer (frame, bounds, center, transform); subviews are the layer's sublayers in
 // order; layout is the needs-layout cycle with autoresizing; input is hit testing plus the
 // responder chain.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// An object that manages the content for a rectangular area on the screen.
 @MainActor
@@ -22,6 +23,16 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
 
     public convenience override init() {
         self.init(frame: .zero)
+    }
+
+    /// A view from an archive. The web has no storyboards or nibs, so there is never one to
+    /// read: the view is a zero-size one, as `init(frame: .zero)` makes. UIKit's own subclasses
+    /// return nil here, since an archive is the only thing they could be built from this way.
+    public required init?(coder: NSCoder) {
+        layer = (Self.layerClass as? CALayer.Type)?.init() ?? CALayer()
+        super.init()
+        layer.view = self
+        layer.contentsScale = UIScreen.main.scale
     }
 
     // MARK: Geometry

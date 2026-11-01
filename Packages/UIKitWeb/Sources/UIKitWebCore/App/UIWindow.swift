@@ -9,6 +9,9 @@ import Foundation
 /// The backdrop for the app's user interface and the object that dispatches events to views.
 @MainActor
 open class UIWindow: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     /// The root view controller, whose view fills the window.
     open var rootViewController: UIViewController? {
         didSet {

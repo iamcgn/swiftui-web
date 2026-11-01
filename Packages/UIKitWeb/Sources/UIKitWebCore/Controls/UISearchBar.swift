@@ -5,6 +5,7 @@
 // no capsule. A prompt adds a 34 pt band above the field with a centred 14 pt label; the bookmark
 // (or results list) button sits at the field's end while it has no text, the clear button once
 // it edits (uikit/search/looks). Measured on the iPhone SE simulator (uikit/search/basic).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// The methods a search bar's delegate implements.
 @MainActor
@@ -37,6 +38,9 @@ extension UISearchBarDelegate {
 /// A specialized view for receiving search-related information from the user.
 @MainActor
 open class UISearchBar: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Style: Int, Sendable { case `default` = 0, prominent, minimal }
 
     static let height: CGFloat = 64
@@ -225,6 +229,9 @@ open class UISearchBar: UIView {
 /// The search bar's field: a glass capsule with a magnifier and 17 pt medium text.
 @MainActor
 open class UISearchTextField: UITextField {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     weak var searchBar: UISearchBar?
     weak var searchController: UISearchController?
     var showsCapsule = true { didSet { setNeedsDisplay() } }
@@ -325,6 +332,9 @@ open class UISearchTextField: UITextField {
 /// The search bar's Cancel button: a 44 pt glass circle with a light cross.
 @MainActor
 final class SearchCancelButton: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     var isProminent = false { didSet { setNeedsDisplay() } }
 
     override init(frame: CGRect) {
@@ -375,6 +385,9 @@ extension UISearchControllerDelegate {
 /// and, active, takes the navigation bar's place with the results controller's view under it.
 @MainActor
 open class UISearchController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public let searchBar = UISearchBar()
     public let searchResultsController: UIViewController?
     open weak var searchResultsUpdater: (any UISearchResultsUpdating)?
@@ -431,6 +444,9 @@ open class UISearchController: UIViewController {
 /// the field 38 tall 5 in (uikit/nav/search).
 @MainActor
 final class FloatingSearchPlatter: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let field: UISearchTextField
 
     init(field: UISearchTextField) {

@@ -1,5 +1,6 @@
 // UIViewController (Docs/elements/UIKit/UIViewController.md): view loading, the appearance
 // and layout callbacks, and containment.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// An object that manages a view hierarchy for your UIKit app.
 @MainActor
@@ -13,6 +14,12 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
 
     public override convenience init() {
         self.init(nibName: nil, bundle: nil)
+    }
+
+    /// A controller from an archive. The web has no storyboards, so it is a controller with no
+    /// nib, as `init(nibName: nil, bundle: nil)` makes. UIKit's own subclasses return nil here.
+    public required init?(coder: NSCoder) {
+        super.init()
     }
 
     // MARK: The view

@@ -4,6 +4,7 @@
 // text 7 in and 1.5 down) borders, the clear button (17 pt `xmark.circle.fill` at 80 % white
 // centred 15 from the right edge), left and right views flush to the edges, all measured on
 // `uikit/textfield/looks`; typing goes through the host's input element (`TextInputInfo`).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 #if !os(WASI)
 import Foundation
@@ -34,6 +35,9 @@ extension UITextFieldDelegate {
 /// An object that displays an editable text area in your interface.
 @MainActor
 open class UITextField: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum BorderStyle: Int, Sendable { case none = 0, line, bezel, roundedRect }
     public enum ViewMode: Int, Sendable { case never = 0, whileEditing, unlessEditing, always }
 

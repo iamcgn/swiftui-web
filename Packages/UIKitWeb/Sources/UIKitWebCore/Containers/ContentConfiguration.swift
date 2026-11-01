@@ -2,6 +2,7 @@
 // makes a content view that fills the cell's content view and sizes the row; the list content
 // configuration draws a text, a secondary text and an image like the cell styles, and
 // SwiftUIWebUIKit's `UIHostingConfiguration` hosts SwiftUI in a cell.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// The state a configuration is updated for.
 public protocol UIConfigurationState {}
@@ -199,6 +200,9 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
 /// The view a list content configuration makes.
 @MainActor
 public final class UIListContentView: UIView, UIContentView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public let textLabel = UILabel()
     public let secondaryTextLabel = UILabel()
     public let imageView = UIImageView()

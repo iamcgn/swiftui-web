@@ -70,6 +70,9 @@ public final class NSTextContainer {
 /// A scrollable, multiline text region.
 @MainActor
 open class UITextView: UIScrollView, HostTextInput {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     open var text: String! = "" {
         didSet {
             if !settingAttributedText { storedAttributedText = nil }

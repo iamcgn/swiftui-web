@@ -6,6 +6,7 @@
 // widened by the inter-page spacing (−10 … 330 for 20), its slots 320 apart plus the spacing,
 // 374 tall under a 26 pt page control centred at the bottom; the page-curl style shows its page
 // edge to edge and scrolls like the scroll style (the curl itself is not drawn).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 @MainActor
 public protocol UIPageViewControllerDataSource: AnyObject {
@@ -40,6 +41,9 @@ public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, 
 /// A container view controller that manages navigation between pages of content.
 @MainActor
 open class UIPageViewController: UIViewController, UIScrollViewDelegate {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum TransitionStyle: Int, Sendable { case pageCurl = 0, scroll }
     public enum NavigationOrientation: Int, Sendable { case horizontal = 0, vertical }
     public enum SpineLocation: Int, Sendable { case none = 0, min, mid, max }

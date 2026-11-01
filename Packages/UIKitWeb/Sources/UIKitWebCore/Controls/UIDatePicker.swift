@@ -15,6 +15,9 @@ public enum UIDatePickerStyle: Int, Sendable { case automatic = 0, wheels, compa
 /// A control for inputting date and time values.
 @MainActor
 open class UIDatePicker: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Mode: Int, Sendable { case time = 0, date, dateAndTime, countDownTimer }
 
     /// The date, kept between `minimumDate` and `maximumDate` as UIKit keeps it.
@@ -439,6 +442,9 @@ open class UIDatePicker: UIControl {
 /// wheels for the time capsule; 320 wide, as tall as its content, staying a popover on the iPhone.
 @MainActor
 final class DatePickerEditorController: UIViewController, UIPopoverPresentationControllerDelegate {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     private weak var owner: UIDatePicker?
     private let kind: UIDatePicker.CapsuleKind
     let picker = UIDatePicker()

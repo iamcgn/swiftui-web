@@ -38,6 +38,9 @@ extension UIPickerViewDelegate {
 /// A view that uses a spinning-wheel or slot-machine metaphor to show one or more sets of values.
 @MainActor
 open class UIPickerView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     /// The sentinel the delegate's default `viewForRow` returns.
     static let noRowView = UIView()
 

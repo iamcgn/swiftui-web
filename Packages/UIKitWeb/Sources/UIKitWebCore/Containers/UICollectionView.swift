@@ -351,6 +351,9 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
 /// A view that can be reused in a collection view.
 @MainActor
 open class UICollectionReusableView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     override open var canBecomeFocused: Bool { (closestCollectionContainer as? UICollectionView)?.allowsFocus ?? true }
     public internal(set) var reuseIdentifier: String?
     /// The pool a supplementary view returns to (its kind and identifier).
@@ -387,6 +390,9 @@ open class UICollectionReusableView: UIView {
 /// A single data item when that item is within the collection view's visible bounds.
 @MainActor
 open class UICollectionViewCell: UICollectionReusableView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public let contentView = UIView()
     open var backgroundView: UIView? { didSet { oldValue?.removeFromSuperview(); if let view = backgroundView { insertSubview(view, at: 0) } } }
     open var selectedBackgroundView: UIView?
@@ -518,6 +524,9 @@ extension UICollectionViewDelegate {
 /// customizable layouts.
 @MainActor
 open class UICollectionView: UIScrollView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     /// Keyboard focus (Events/Keyboard.swift): whether the cells take it, and whether it selects.
     open var allowsFocus = true
     open var selectionFollowsFocus = false
@@ -1224,6 +1233,9 @@ open class UICollectionView: UIScrollView {
 /// snapping to groups for the group paging behaviours.
 @MainActor
 final class OrthogonalScrollView: UIScrollView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     var onScroll: (() -> Void)?
     private var section: UICollectionViewCompositionalLayout.OrthogonalSection?
 

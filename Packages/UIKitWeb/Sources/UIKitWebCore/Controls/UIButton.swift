@@ -1,10 +1,14 @@
 // UIButton (Docs/elements/UIKit/UIButton.md): the system button (a tinted 15 pt title with
 // 6 pt above and below, at least 30 wide) and the plain, gray, tinted and filled configurations
 // of iOS 15 (a body title in 7 × 12 insets).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control that executes your custom code in response to user interactions.
 @MainActor
 open class UIButton: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum ButtonType: Int, Sendable {
         case custom = 0, system, detailDisclosure, infoLight, infoDark, contactAdd, close
         public static let roundedRect = ButtonType.system

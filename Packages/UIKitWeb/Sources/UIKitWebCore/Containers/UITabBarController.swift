@@ -12,6 +12,9 @@ import Foundation
 /// determines which child view controller to display.
 @MainActor
 open class UITabBarController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public let tabBar = UITabBar()
     open weak var delegate: (any UITabBarControllerDelegate)?
 
@@ -261,6 +264,9 @@ public final class UITabBarAppearance {
 /// a grey lens behind the selected one (uikit/tabs/basic).
 @MainActor
 final class TabButton: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let item: UITabBarItem
     private let label = UILabel()
     /// The badge (uikit/tabs/more): a red capsule 21.5 tall centred 5.5 past the image box's
@@ -340,6 +346,9 @@ final class TabButton: UIControl {
 /// tap pushes the controller onto the More navigation stack.
 @MainActor
 public final class _MoreListController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     unowned let tabs: UITabBarController
     private let table = UITableView(frame: .zero, style: .plain)
 

@@ -36,6 +36,9 @@ open class UISwipeActionsConfiguration {
 /// A revealed action's button: its colour behind a 17 pt white title, at least 74 wide.
 @MainActor
 final class SwipeActionButton: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let action: UIContextualAction
     static let font = UIFont.systemFont(ofSize: 17)
     static let minimumWidth: CGFloat = 74

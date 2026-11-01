@@ -92,6 +92,9 @@ extension UITableViewDelegate {
 /// A view that presents data using rows in a single column.
 @MainActor
 open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Style: Int, Sendable { case plain = 0, grouped, insetGrouped }
     public enum ScrollPosition: Int, Sendable { case none = 0, top, middle, bottom }
     public enum RowAnimation: Int, Sendable { case fade = 0, right, left, top, bottom, none, middle, automatic = 100 }
@@ -916,6 +919,9 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 /// footer 4.5 down.
 @MainActor
 open class UITableViewHeaderFooterView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public let reuseIdentifier: String?
     public private(set) var textLabel: UILabel?
     public private(set) var detailTextLabel: UILabel?
@@ -992,6 +998,9 @@ open class UITableViewHeaderFooterView: UIView {
 /// The visual representation of a single row in a table view.
 @MainActor
 open class UITableViewCell: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     override open var canBecomeFocused: Bool { (closestCollectionContainer as? UITableView)?.allowsFocus ?? true }
     public enum CellStyle: Int, Sendable { case `default` = 0, value1, value2, subtitle }
     public enum AccessoryType: Int, Sendable { case none = 0, disclosureIndicator, detailDisclosureButton, checkmark, detailButton }
