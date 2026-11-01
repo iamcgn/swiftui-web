@@ -253,22 +253,6 @@ public struct ActionSheet {
     }
 }
 
-/// The value buttons as SwiftUI buttons with the matching roles.
-/// (The conformance is an extension's, so the value is built outside the main actor.)
-private struct _LegacyAlertButtons {
-    let buttons: [Alert.Button]
-}
-
-extension _LegacyAlertButtons: View {
-    var body: some View {
-        ForEach(0..<buttons.count, id: \.self) { index in
-            let button = buttons[index]
-            let action = button.action
-            Button(role: button.role, action: { action?() }) { button.label }
-        }
-    }
-}
-
 extension Alert.Button {
     fileprivate var role: ButtonRole? {
         switch style {
@@ -279,15 +263,31 @@ extension Alert.Button {
     }
 }
 
+/// A button's action, carried into the button's main-actor action (alert actions run there).
+private struct _LegacyAlertAction: @unchecked Sendable {
+    let run: (() -> Void)?
+}
+
+/// The value buttons as SwiftUI buttons with the matching roles. A function, not a view type:
+/// on wasm a type's `View` conformance keeps its body in every bundle (~65 KB here, decision
+/// 0006's budget), while a function's code goes only into the apps that call it.
+private func _legacyAlertButtons(_ buttons: [Alert.Button]) -> AnyView {
+    AnyView(ForEach(0..<buttons.count, id: \.self) { index -> Button<Text> in
+        let button = buttons[index]
+        let action = _LegacyAlertAction(run: button.action)
+        return Button(role: button.role, action: { action.run?() }) { button.label }
+    })
+}
+
 extension Alert {
     fileprivate var view: AnyView {
-        AnyView(_AlertContent(title: title, message: AnyView(message), actions: AnyView(_LegacyAlertButtons(buttons: buttons))))
+        AnyView(_AlertContent(title: title, message: AnyView(message), actions: _legacyAlertButtons(buttons)))
     }
 }
 
 extension ActionSheet {
     fileprivate var view: AnyView {
-        AnyView(_DialogContent(title: title, message: AnyView(message), actions: AnyView(_LegacyAlertButtons(buttons: buttons))))
+        AnyView(_DialogContent(title: title, message: AnyView(message), actions: _legacyAlertButtons(buttons)))
     }
 }
 
