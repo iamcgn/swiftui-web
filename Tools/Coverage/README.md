@@ -38,8 +38,14 @@ when they do not, the sweep's heuristics are wrong, not the package.
   target, with its local dependencies, language mode, defines and resources;
 - every other Swift file outside tests, extensions, widgets and the other platforms' folders is
   the app target, with one `@main`; its language mode is the Xcode project's `SWIFT_VERSION`;
-- apps are grouped into batches whose module names do not collide, one generated package per
-  batch, so SwiftUIWeb builds once a batch; the batches run in parallel.
+- every third-party package the app pins (its `Package.resolved`, Xcode's or a local package's)
+  is cloned at the pinned revision and built from source the same way, as a real build would:
+  the targets the app's code reaches, macro targets included (built for the host against
+  swift-syntax). Binary, system-library and plugin targets, C-only targets and whatever needs
+  them are left out, and an import of one of those is taken out like a missing framework;
+- apps are grouped into batches whose module names do not collide (two apps pinning a package
+  at the same revision share it), one generated package per batch, so SwiftUIWeb builds once a
+  batch; the batches run in parallel.
 
 To see below the first missing import, the copies (never the clones) have every `import` of a
 module wasm does not have turned into `import Foundation` (Apple's frameworks all re-export it)
@@ -51,8 +57,10 @@ as SwiftUIWeb gaps.
 
 Known limits: SwiftPM stops at a module whose dependency failed, so a modular app's errors are
 those of its lowest broken modules (the report marks the rest blocked); `#if os(iOS)` is false on
-wasm, so files with it compile their other branch (the report counts them); macro targets,
-plugins and binary targets are not built.
+wasm, so files with it compile their other branch (the report counts them); build-tool
+plugins (code generators such as swift-openapi-generator's), binary targets and C or
+Objective-C targets are not built. A package's errors count toward the first app of its batch
+that pins it, and show in the report with the package's name before the file.
 
 ## Running it by hand
 

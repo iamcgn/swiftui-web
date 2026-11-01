@@ -206,7 +206,8 @@ def main():
                 total = sum(files.values())
                 third = [m for m in a.get("stripped", []) if m not in APPLE]
                 out.append(f"**{a['name']}**: {total} errors in {len(files)} files"
-                           + (f"; packages taken out: {', '.join(sorted(third))}" if third else "") + "\n")
+                           + (f"; {len(a['packages'])} packages built from source" if a.get("packages") else "")
+                           + (f"; modules taken out: {', '.join(sorted(third))}" if third else "") + "\n")
                 out.append(md_table(["File", "Errors"], [(f"`{f}`", n) for f, n in files.most_common(8)]) + "\n")
                 out.append(md_table(["Key", "Errors"], [(f"`{k}`", n) for k, n in keys.most_common(8)]) + "\n")
                 data["heavy_apps"].append({"app": a["name"], "errors": total, "files": files.most_common(20), "keys": keys.most_common(20)})
