@@ -254,11 +254,12 @@ public struct ActionSheet {
 }
 
 /// The value buttons as SwiftUI buttons with the matching roles.
-private struct _LegacyAlertButtons: View {
+/// (The conformance is an extension's, so the value is built outside the main actor.)
+private struct _LegacyAlertButtons {
     let buttons: [Alert.Button]
+}
 
-    nonisolated init(buttons: [Alert.Button]) { self.buttons = buttons }
-
+extension _LegacyAlertButtons: View {
     var body: some View {
         ForEach(0..<buttons.count, id: \.self) { index in
             let button = buttons[index]
