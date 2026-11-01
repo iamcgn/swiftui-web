@@ -48,19 +48,18 @@ jobs:
               # The map flag goes in the app's wasm-only linker settings (a command-line -Xlinker
               # also reaches the host macro tools' Apple ld, which has no --Map), as size-repro does.
               sed -i '' "s|\"stack-size=4194304\"|\"stack-size=4194304\", \"-Xlinker\", \"--Map=$GITHUB_WORKSPACE/size/$side.map\"|" "$APP/Package.swift"
-              (cd "$APP" && . "$GITHUB_WORKSPACE/$side/scripts/env.sh" && swift build --swift-sdk "swift-$(cat "$GITHUB_WORKSPACE/$side/.swift-version")-RELEASE_wasm" \
-                --scratch-path .build/wasm -c release -Xswiftc -Osize -Xswiftc -Xfrontend -Xswiftc -disable-incremental-llvm-codegen --product "$NAME" -v) \
-                > "$GITHUB_WORKSPACE/size/$side-build.log" 2>&1 || { tail -50 "$GITHUB_WORKSPACE/size/$side-build.log"; exit 1; }
+              # The same build script again, so the map's link has the side's own flags; only the
+              # link reruns.
+              scripts/build-wasm.sh "$APP" > "$GITHUB_WORKSPACE/size/$side-build.log" 2>&1 \
+                || { tail -50 "$GITHUB_WORKSPACE/size/$side-build.log"; exit 1; }
               git checkout -- "$APP/Package.swift"
               cp "$APP/.build/wasm/wasm32-unknown-wasip1/release/$NAME.wasm" "$GITHUB_WORKSPACE/size/$side-linked.wasm"
               cp "$APP/.build/wasm/plugins/PackageToJS/outputs/Package/$NAME.wasm" "$GITHUB_WORKSPACE/size/$side.wasm"
             )
           done
           ls -l "$GITHUB_WORKSPACE/size"
-      - name: The link's flags and exports
+      - name: The exports
         run: |
-          # Every flag of the final link that decides what stays: exports, dead stripping.
-          grep -oE -- '-Xlinker [^ ]+|--export[^ ]*|--gc-sections|--no-gc-sections|-export-dynamic|-rdynamic' size/head-build.log | sort | uniq -c
           for side in base head; do
             python3 head/Tools/Size/exports.py size/$side-linked.wasm --show 15
             python3 head/Tools/Size/exports.py size/$side.wasm --show 15
