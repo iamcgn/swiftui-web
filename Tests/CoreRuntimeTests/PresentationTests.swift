@@ -273,5 +273,65 @@ import SwiftUIWebHeadless
         #expect(!model.alert && model.sheet)
         #expect(r.probeFrames["ok"] == nil && r.probeFrames["inside"] != nil)
     }
+
+    // `@Environment(\.presentationMode)` (the API before `dismiss`): false at the root, true in a
+    // sheet and in a pushed destination, and its `dismiss()` closes either.
+    final class Seen: @unchecked Sendable { var presented: [String: Bool] = [:] }
+
+    struct ModeReader: View {
+        let name: String
+        let seen: Seen
+        @Environment(\.presentationMode) private var presentationMode
+        var body: some View {
+            seen.presented[name] = presentationMode.wrappedValue.isPresented
+            return Button("Done") { presentationMode.wrappedValue.dismiss() }._probe(name)
+        }
+    }
+
+    struct ModeSheetPresenter: View {
+        let model: Model
+        let seen: Seen
+        var body: some View {
+            ModeReader(name: "root", seen: seen)
+                .sheet(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 }), onDismiss: { model.dismissed += 1 }) {
+                    ModeReader(name: "sheet", seen: seen)
+                }
+        }
+    }
+
+    @Test func presentationModeReadsAndDismissesASheet() {
+        let model = Model(), seen = Seen()
+        let r = runtime(ModeSheetPresenter(model: model, seen: seen))
+        #expect(seen.presented["root"] == false)
+        // At the root, dismissing does nothing.
+        let root = r.probeFrames["root"]!
+        press(r, CGPoint(x: root.midX, y: root.midY))
+        #expect(!model.sheet && model.dismissed == 0)
+        model.sheet = true
+        relayout(r)
+        #expect(r.hasPresentations && seen.presented["sheet"] == true)
+        let done = r.probeFrames["sheet"]!
+        press(r, CGPoint(x: done.midX, y: done.midY))
+        #expect(!model.sheet && model.dismissed == 1)
+        relayout(r)
+        #expect(!r.hasPresentations)
+    }
+
+    @Observable final class PathBox: @unchecked Sendable { var path: [String] = [] }
+
+    @Test func presentationModePopsAPushedDestination() {
+        let box = PathBox(), seen = Seen()
+        let r = runtime(NavigationStack(path: Binding(get: { box.path }, set: { box.path = $0 })) {
+            ModeReader(name: "root", seen: seen)
+                .navigationDestination(for: String.self) { _ in ModeReader(name: "pushed", seen: seen) }
+        })
+        #expect(seen.presented["root"] == false)
+        box.path.append("Detail")
+        relayout(r)
+        #expect(seen.presented["pushed"] == true)
+        let done = r.probeFrames["pushed"]!
+        press(r, CGPoint(x: done.midX, y: done.midY))
+        #expect(box.path.isEmpty)
+    }
 }
 #endif

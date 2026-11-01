@@ -92,10 +92,12 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         settleBarModes(force: false)
     }
 
-    private func contentEnvironment(large: Bool) -> EnvironmentValues {
+    /// The environment of the root (`pushed` false) or of a pushed destination.
+    private func contentEnvironment(large: Bool, pushed: Bool = false) -> EnvironmentValues {
         var environment = environment
         environment._navigationContext = context
         environment.dismiss = DismissAction { [weak self] in self?.pop() }
+        if pushed { environment.isPresented = true }
         environment._underNavigationBar = environment.platformProfile.isIOS && large
         environment._navigationBarOverhang = environment.platformProfile.isIOS
             ? (large ? PlatformMetrics.navigationBarLargeHeight : PlatformMetrics.navigationBarInlineHeight) + barTopInset : 0
@@ -392,10 +394,10 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
             return
         }
         if let node = entry.node as? TypedNode<AnyView> {
-            node.update(view: view, environment: contentEnvironment(large: entry.largeBar), force: force)
+            node.update(view: view, environment: contentEnvironment(large: entry.largeBar, pushed: true), force: force)
         } else {
             entry.node?.unmount()
-            entry.node = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: contentEnvironment(large: entry.largeBar)))
+            entry.node = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: contentEnvironment(large: entry.largeBar, pushed: true)))
         }
     }
 
