@@ -44,6 +44,9 @@ open class UIActivity {
 /// A view controller that offers the system share sheet for the items.
 @MainActor
 open class UIActivityViewController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public typealias CompletionWithItemsHandler = (UIActivityType?, Bool, [Any]?, Error?) -> Void
     public let activityItems: [Any]
     public let applicationActivities: [UIActivity]?
@@ -130,6 +133,9 @@ extension UIDocumentPickerDelegate {
 /// are handed to the delegate as URLs, as UIKit does with copies.
 @MainActor
 open class UIDocumentPickerViewController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Mode: Sendable { case open, export }
     public let mode: Mode
     /// The extensions opened (empty: any file; "jpg", "png"… for images).
@@ -242,6 +248,9 @@ extension UIImagePickerControllerDelegate {
 /// hosts offer: `isSourceTypeAvailable(.camera)` is false.
 @MainActor
 open class UIImagePickerController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum SourceType: Int, Sendable { case photoLibrary = 0, camera, savedPhotosAlbum }
     public struct InfoKey: Hashable, RawRepresentable, Sendable {
         public let rawValue: String

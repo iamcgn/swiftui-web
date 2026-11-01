@@ -5,6 +5,9 @@
 /// A control that executes your custom code in response to user interactions.
 @MainActor
 open class UIButton: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum ButtonType: Int, Sendable {
         case custom = 0, system, detailDisclosure, infoLight, infoDark, contactAdd, close
         public static let roundedRect = ButtonType.system

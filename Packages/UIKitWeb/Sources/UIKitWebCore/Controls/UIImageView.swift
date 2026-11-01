@@ -165,6 +165,9 @@ public final class UIImage: Hashable, @unchecked Sendable {
 /// An object that displays a single image or a sequence of animated images in your interface.
 @MainActor
 open class UIImageView: UIView, ClockAnimating {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     open var image: UIImage? { didSet { if image != oldValue { imageDidChange() } } }
 
     private func imageDidChange() {

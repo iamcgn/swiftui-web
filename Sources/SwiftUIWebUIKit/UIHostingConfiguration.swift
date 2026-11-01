@@ -70,6 +70,9 @@ public struct UIHostingConfiguration<Content: View, Background: View>: UIContent
 /// The hosted content: the background behind the content inset by the margins, in one runtime.
 @MainActor
 final class _UIHostingContentView<Content: View, Background: View>: UIView, UIContentView, _HostedCellContentView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     private var hosted: UIHostingConfiguration<Content, Background>
     private let hostingView: _UIHostingView<AnyView>
 

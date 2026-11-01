@@ -36,6 +36,9 @@ extension UISplitViewControllerDelegate {
 /// A container view controller that implements a hierarchical interface.
 @MainActor
 open class UISplitViewController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Style: Int, Sendable { case unspecified = 0, doubleColumn, tripleColumn }
     public enum Column: Int, Sendable { case primary = 0, supplementary, secondary, compact, inspector }
     public enum DisplayMode: Int, Sendable { case automatic = 0, secondaryOnly, oneBesideSecondary, oneOverSecondary, twoBesideSecondary, twoOverSecondary, twoDisplaceSecondary }

@@ -6,6 +6,9 @@ import UIKit
 @testable import UIKitWebCore
 
 @MainActor private final class Page: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let index: Int
     init(_ index: Int) { self.index = index; super.init(nibName: nil, bundle: nil) }
 }

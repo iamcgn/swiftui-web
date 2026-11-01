@@ -34,6 +34,9 @@ extension UITextFieldDelegate {
 /// An object that displays an editable text area in your interface.
 @MainActor
 open class UITextField: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum BorderStyle: Int, Sendable { case none = 0, line, bezel, roundedRect }
     public enum ViewMode: Int, Sendable { case never = 0, whileEditing, unlessEditing, always }
 

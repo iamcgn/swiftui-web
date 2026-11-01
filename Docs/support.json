@@ -1533,6 +1533,12 @@
           ]
         },
         {
+          "api": "init?(coder:) on UIView and UIViewController / NSCoder / NSCoding / NSSecureCoding",
+          "status": "partial",
+          "notes": "Every UIKit view and controller class has the required init?(coder:), so an app subclass written for iOS compiles as it is, its super.init(coder:) included: UIView's gives a zero-size view and UIViewController's a controller with no nib, while UIKit's own subclasses return nil (they are built from an archive only, and the web has no storyboards or nibs). NSCoder holds nothing: every decode finds no value and encoding is dropped. Not done: NSKeyedArchiver / NSKeyedUnarchiver (pf-nscoder, 2026-11-01)",
+          "noFixture": "CoderTests: an app subclass built from a coder runs its setup; UIKit's own classes give nil."
+        },
+        {
           "api": "CALayer (cornerRadius / cornerCurve / maskedCorners / border / shadow / opacity / mask / backgroundColor / sublayers / zPosition)",
           "status": "partial",
           "notes": "Painted into the display list at the layer's frame; continuous corners as SwiftUI's; masksToBounds clips; open: layer transforms beyond translation, CAShapeLayer paths beyond fills and strokes",

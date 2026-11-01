@@ -373,6 +373,9 @@ public protocol WKHTTPCookieStoreObserver: AnyObject {
 /// An object that displays interactive web content, such as for an in-app browser.
 @MainActor
 open class WKWebView: UIView, _UIHostElementProviding {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public let configuration: WKWebViewConfiguration
     open weak var navigationDelegate: (any WKNavigationDelegate)?
     open weak var uiDelegate: (any WKUIDelegate)?

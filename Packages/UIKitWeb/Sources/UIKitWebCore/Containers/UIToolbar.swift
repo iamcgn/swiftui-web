@@ -7,6 +7,9 @@
 /// A control that displays one or more buttons along the bottom edge of your interface.
 @MainActor
 open class UIToolbar: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     static let height: CGFloat = 48
     static let sideInset: CGFloat = 16
     static let spacing: CGFloat = 12

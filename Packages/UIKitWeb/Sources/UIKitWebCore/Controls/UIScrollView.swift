@@ -37,6 +37,9 @@ extension UIScrollViewDelegate {
 /// A view that allows the scrolling and zooming of its contained views.
 @MainActor
 open class UIScrollView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum IndicatorStyle: Int, Sendable { case `default` = 0, black, white }
     public enum ContentInsetAdjustmentBehavior: Int, Sendable { case automatic = 0, scrollableAxes, never, always }
     public enum KeyboardDismissMode: Int, Sendable { case none = 0, onDrag, interactive }

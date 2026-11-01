@@ -5,6 +5,9 @@
 /// A control that offers a binary choice, such as on/off.
 @MainActor
 open class UISwitch: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Style: Int, Sendable { case automatic = 0, checkbox, sliding }
 
     open var isOn = false { didSet { if isOn != oldValue { setNeedsDisplay() } } }

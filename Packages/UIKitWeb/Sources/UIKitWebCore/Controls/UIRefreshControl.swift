@@ -14,6 +14,9 @@ import Foundation
 /// A standard control that can initiate the refreshing of a scroll view's contents.
 @MainActor
 open class UIRefreshControl: UIControl, ClockAnimating {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     static let height: CGFloat = 60
     static let spinnerCentre: CGFloat = 30
     static let titleTop: CGFloat = 60.75

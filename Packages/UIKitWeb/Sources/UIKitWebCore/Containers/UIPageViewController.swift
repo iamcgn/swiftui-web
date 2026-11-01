@@ -40,6 +40,9 @@ public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, 
 /// A container view controller that manages navigation between pages of content.
 @MainActor
 open class UIPageViewController: UIViewController, UIScrollViewDelegate {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum TransitionStyle: Int, Sendable { case pageCurl = 0, scroll }
     public enum NavigationOrientation: Int, Sendable { case horizontal = 0, vertical }
     public enum SpineLocation: Int, Sendable { case none = 0, min, mid, max }

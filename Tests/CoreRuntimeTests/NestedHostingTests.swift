@@ -24,6 +24,9 @@ import Foundation
     }
 
     final class Hosting: UIViewController {
+        /// No archive to decode on the web: nil, as for an archive this class cannot read.
+        required init?(coder: NSCoder) { return nil }
+
         let model: Model
         init(_ model: Model) { self.model = model; super.init(nibName: nil, bundle: nil) }
         override func viewDidLoad() {

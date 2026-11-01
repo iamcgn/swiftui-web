@@ -199,6 +199,9 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
 /// The view a list content configuration makes.
 @MainActor
 public final class UIListContentView: UIView, UIContentView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public let textLabel = UILabel()
     public let secondaryTextLabel = UILabel()
     public let imageView = UIImageView()

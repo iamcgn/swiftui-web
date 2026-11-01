@@ -13,6 +13,9 @@ import WebKit
 /// An object that provides a visible standard interface for browsing the web.
 @MainActor
 open class SFSafariViewController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     /// The configuration of a Safari view controller.
     open class Configuration {
         public var entersReaderIfAvailable = false

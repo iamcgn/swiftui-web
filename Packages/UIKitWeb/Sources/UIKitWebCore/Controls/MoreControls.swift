@@ -6,6 +6,9 @@
 /// A control for selecting a single value from a continuous range of values.
 @MainActor
 open class UISlider: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     open var value: Float = 0 { didSet { value = min(max(value, minimumValue), maximumValue); setNeedsDisplay() } }
     open var minimumValue: Float = 0
     open var maximumValue: Float = 1
@@ -128,6 +131,9 @@ open class UISlider: UIControl {
 /// discrete button.
 @MainActor
 open class UISegmentedControl: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public static let noSegment = -1
 
     private var titles: [String?] = []
@@ -344,6 +350,9 @@ open class UISegmentedControl: UIControl {
 /// A control for incrementing or decrementing a value.
 @MainActor
 open class UIStepper: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     open var value: Double = 0 {
         didSet {
             if wraps {
@@ -466,6 +475,9 @@ open class UIStepper: UIControl {
 /// A view that depicts the progress of a task over time.
 @MainActor
 open class UIProgressView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Style: Int, Sendable { case `default` = 0, bar }
 
     open var progress: Float = 0 { didSet { progress = min(1, max(0, progress)); setNeedsDisplay() } }
@@ -520,6 +532,9 @@ open class UIProgressView: UIView {
 /// A view that shows that a task is in progress.
 @MainActor
 open class UIActivityIndicatorView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Style: Int, Sendable { case medium = 100, large = 101 }
 
     open var style: Style { didSet { frame.size = Self.size(for: style); setNeedsDisplay() } }
@@ -623,6 +638,9 @@ struct WeakActivityIndicator {
 /// the app's document or other data-model entity.
 @MainActor
 open class UIPageControl: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     open var numberOfPages = 0 { didSet { frame.size = sizeThatFits(.zero); setNeedsDisplay() } }
     open var currentPage = 0 { didSet { setNeedsDisplay() } }
     open var hidesForSinglePage = false

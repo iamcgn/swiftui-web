@@ -118,6 +118,9 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
 }
 
 final class AppearanceViewController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let preferences: Preferences
     init(preferences: Preferences) {
         self.preferences = preferences
@@ -141,6 +144,9 @@ final class AppearanceViewController: UIViewController {
 }
 
 final class TextSizeViewController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let preferences: Preferences
     private let label = UILabel()
     init(preferences: Preferences) {

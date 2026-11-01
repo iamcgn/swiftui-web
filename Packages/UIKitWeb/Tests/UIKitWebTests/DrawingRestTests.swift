@@ -140,6 +140,9 @@ import WebGraphicsHeadless
         #expect(bezier.cgPath.contains(CGPoint(x: 50, y: 20)) && bezier.cgPath.contains(CGPoint(x: 105, y: 5)) && !bezier.cgPath.contains(CGPoint(x: 80, y: 5)))
         let (scene, root) = scene()
         final class PathView: UIView {
+            /// No archive to decode on the web: nil, as for an archive this class cannot read.
+            required init?(coder: NSCoder) { return nil }
+
             let path: CGPath
             init(path: CGPath, frame: CGRect) { self.path = path; super.init(frame: frame) }
             override func draw(_ rect: CGRect) {

@@ -5,6 +5,9 @@
 /// A streamlined interface for laying out a collection of views in either a column or a row.
 @MainActor
 open class UIStackView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Distribution: Int, Sendable { case fill = 0, fillEqually, fillProportionally, equalSpacing, equalCentering }
     public enum Alignment: Int, Sendable {
         case fill = 0, leading = 1, firstBaseline = 2, center = 3, trailing = 4, lastBaseline = 5

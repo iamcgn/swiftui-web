@@ -21,6 +21,9 @@ public final class UIAlertAction {
 /// An object that displays an alert message.
 @MainActor
 open class UIAlertController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     public enum Style: Int, Sendable { case actionSheet = 0, alert }
 
     public let preferredStyle: Style
@@ -127,6 +130,9 @@ open class UIAlertController: UIViewController {
 /// 8 apart; the cancel action filled with the tint, the others with the tertiary fill).
 @MainActor
 final class AlertCardView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     unowned let controller: UIAlertController
     private let titleLabel = UILabel()
     private let messageLabel = UILabel()
@@ -266,6 +272,9 @@ final class AlertCardView: UIView {
 /// title, the others in the tertiary fill with a 17 pt title, red for a destructive one).
 @MainActor
 final class AlertActionButton: UIControl {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let action: UIAlertAction
     private let label = UILabel()
 
@@ -300,6 +309,9 @@ final class AlertActionButton: UIControl {
 /// controller's view as the card its style calls for.
 @MainActor
 final class PresentationContainerView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     /// Weak: the presenter owns the presented controller, and a container whose controller has
     /// gone (a presenter released while presenting) leaves the window at the next layout.
     private(set) weak var controller: UIViewController?
@@ -475,6 +487,9 @@ final class PresentationContainerView: UIView {
 /// The sheet's grabber.
 @MainActor
 final class GrabberView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         isUserInteractionEnabled = false
@@ -488,6 +503,9 @@ final class GrabberView: UIView {
 /// A popover's arrow (the panel's colour).
 @MainActor
 final class PopoverArrowView: UIView {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     var pointsDown = true { didSet { setNeedsDisplay() } }
     override init(frame: CGRect) {
         super.init(frame: frame)

@@ -100,6 +100,9 @@ public struct UIKitFixture: Sendable {
 /// The controller a view fixture is hosted in: the fixture view is its view.
 @MainActor
 public final class UIKitFixtureController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    public required init?(coder: NSCoder) { return nil }
+
     private let content: UIView
 
     public init(_ content: UIView) {

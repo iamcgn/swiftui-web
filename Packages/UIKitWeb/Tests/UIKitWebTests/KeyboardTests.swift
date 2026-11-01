@@ -12,6 +12,9 @@ import Foundation
 @MainActor final class KeyLog { var events: [String] = [] }
 
 final class CommandController: UIViewController {
+    /// No archive to decode on the web: nil, as for an archive this class cannot read.
+    required init?(coder: NSCoder) { return nil }
+
     let log: KeyLog
     init(log: KeyLog) { self.log = log; super.init(nibName: nil, bundle: nil) }
     override var keyCommands: [UIKeyCommand]? {

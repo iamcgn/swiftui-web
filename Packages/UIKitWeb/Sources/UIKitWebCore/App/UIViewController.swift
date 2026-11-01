@@ -15,6 +15,12 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
         self.init(nibName: nil, bundle: nil)
     }
 
+    /// A controller from an archive. The web has no storyboards, so it is a controller with no
+    /// nib, as `init(nibName: nil, bundle: nil)` makes. UIKit's own subclasses return nil here.
+    public required init?(coder: NSCoder) {
+        super.init()
+    }
+
     // MARK: The view
 
     private var _view: UIView?
