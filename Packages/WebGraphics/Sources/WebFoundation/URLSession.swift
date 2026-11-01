@@ -273,6 +273,42 @@ public struct URLError: Error, Hashable, @unchecked Sendable, CustomStringConver
         public static let cannotDecodeRawData = Code(rawValue: -1015)
         public static let cannotParseResponse = Code(rawValue: -1017)
         public static let secureConnectionFailed = Code(rawValue: -1200)
+        // The rest of Foundation's codes, which the browser's fetch never reports; computed, so an
+        // app that never names them does not ship them.
+        public static var backgroundSessionRequiresSharedContainer: Code { Code(rawValue: -995) }
+        public static var backgroundSessionInUseByAnotherProcess: Code { Code(rawValue: -996) }
+        public static var backgroundSessionWasDisconnected: Code { Code(rawValue: -997) }
+        public static var dnsLookupFailed: Code { Code(rawValue: -1006) }
+        public static var httpTooManyRedirects: Code { Code(rawValue: -1007) }
+        public static var redirectToNonExistentLocation: Code { Code(rawValue: -1010) }
+        public static var userAuthenticationRequired: Code { Code(rawValue: -1013) }
+        public static var zeroByteResource: Code { Code(rawValue: -1014) }
+        public static var cannotDecodeContentData: Code { Code(rawValue: -1016) }
+        public static var internationalRoamingOff: Code { Code(rawValue: -1018) }
+        public static var callIsActive: Code { Code(rawValue: -1019) }
+        public static var dataNotAllowed: Code { Code(rawValue: -1020) }
+        public static var requestBodyStreamExhausted: Code { Code(rawValue: -1021) }
+        public static var appTransportSecurityRequiresSecureConnection: Code { Code(rawValue: -1022) }
+        public static var fileDoesNotExist: Code { Code(rawValue: -1100) }
+        public static var fileIsDirectory: Code { Code(rawValue: -1101) }
+        public static var noPermissionsToReadFile: Code { Code(rawValue: -1102) }
+        public static var dataLengthExceedsMaximum: Code { Code(rawValue: -1103) }
+        public static var fileOutsideSafeArea: Code { Code(rawValue: -1104) }
+        public static var serverCertificateHasBadDate: Code { Code(rawValue: -1201) }
+        public static var serverCertificateUntrusted: Code { Code(rawValue: -1202) }
+        public static var serverCertificateHasUnknownRoot: Code { Code(rawValue: -1203) }
+        public static var serverCertificateNotYetValid: Code { Code(rawValue: -1204) }
+        public static var clientCertificateRejected: Code { Code(rawValue: -1205) }
+        public static var clientCertificateRequired: Code { Code(rawValue: -1206) }
+        public static var cannotLoadFromNetwork: Code { Code(rawValue: -2000) }
+        public static var cannotCreateFile: Code { Code(rawValue: -3000) }
+        public static var cannotOpenFile: Code { Code(rawValue: -3001) }
+        public static var cannotCloseFile: Code { Code(rawValue: -3002) }
+        public static var cannotWriteToFile: Code { Code(rawValue: -3003) }
+        public static var cannotRemoveFile: Code { Code(rawValue: -3004) }
+        public static var cannotMoveFile: Code { Code(rawValue: -3005) }
+        public static var downloadDecodingFailedMidStream: Code { Code(rawValue: -3006) }
+        public static var downloadDecodingFailedToComplete: Code { Code(rawValue: -3007) }
     }
 
     public let code: Code

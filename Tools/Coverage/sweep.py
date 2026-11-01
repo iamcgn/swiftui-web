@@ -95,6 +95,11 @@ def clone(repo, dest, ref=None):
     return sh(["git", "rev-parse", "HEAD"], cwd=dest).stdout.strip()
 
 
+def is_manifest(name: str) -> bool:
+    """Whether a file name is a SwiftPM manifest (`Package.swift`, `Package@swift-5.9.swift`)."""
+    return name == "Package.swift" or name.startswith("Package@swift")
+
+
 def excluded(rel: Path, extra):
     parts = rel.parts[:-1]
     if any(EXCLUDE_DIR.match(p) for p in parts):
@@ -231,6 +236,9 @@ def describe_app(entry, root: Path):
             files = [str(f.relative_to(root)) for f in sorted((root / src).rglob("*.swift"))
                      if not any(EXCLUDE_DIR.match(x) for x in f.relative_to(root / src).parts[:-1])]
             files = [f for f in files if Path(f).name not in t.get("exclude", [])]
+            # A target at the package's own folder (`path: "."`) holds its manifest, which is
+            # SwiftPM's to read, not a source of the module (BackyardBirds' data package).
+            files = [f for f in files if not (Path(f).parent == Path(p["dir"]) and is_manifest(Path(f).name))]
             targets.append({
                 "module": t["name"], "source_root": str(src), "files": files,
                 "deps": sorted(set(deps) - {t["name"]}), "third_party": sorted(set(third)),
@@ -243,7 +251,7 @@ def describe_app(entry, root: Path):
     app_files = []
     for f in sorted(root.rglob("*.swift")):
         rel = f.relative_to(root)
-        if rel.name == "Package.swift" or rel.name.startswith("Package@swift"):
+        if is_manifest(rel.name):
             continue
         if excluded(rel, extra) or any(rel.is_relative_to(d) for d in pkg_dirs if str(d) != "."):
             continue

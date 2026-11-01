@@ -32,11 +32,7 @@ extension UIPresentationController {
     public var presentedView: UIView? { presentedViewController.viewIfLoaded }
 
     /// The delegate hearing of dismissals (a sheet's or a popover's).
-    var adaptiveDelegate: (any UIAdaptivePresentationControllerDelegate)? {
-        if let sheet = self as? UISheetPresentationController { return sheet.delegate }
-        if let popover = self as? UIPopoverPresentationController { return popover.delegate }
-        return nil
-    }
+    var adaptiveDelegate: (any UIAdaptivePresentationControllerDelegate)? { delegate }
 }
 
 /// A sheet's detents, grabber and corners.
@@ -82,7 +78,6 @@ open class UISheetPresentationController: UIPresentationController {
     open var prefersEdgeAttachedInCompactHeight = false
     open var widthFollowsPreferredContentSizeWhenEdgeAttached = false
     open var prefersPageSizing = true
-    open weak var delegate: (any UISheetPresentationControllerDelegate)?
 
     /// The detent the sheet rests at: the selected one, else the first.
     var currentDetent: Detent? {
@@ -130,7 +125,6 @@ open class UIPopoverPresentationController: UIPresentationController {
     open var passthroughViews: [UIView]?
     open var backgroundColor: UIColor?
     open var popoverLayoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-    open weak var delegate: (any UIPopoverPresentationControllerDelegate)?
     /// The direction the arrow points once presented.
     public internal(set) var arrowDirection: UIPopoverArrowDirection = .unknown
 

@@ -344,7 +344,7 @@ final class PresentationContainerView: UIView {
             controller.dismiss(animated: true) { [weak controller] in
                 guard let controller, let presentation = controller.presentationController else { return }
                 presentation.adaptiveDelegate?.presentationControllerDidDismiss(presentation)
-                (presentation as? UIPopoverPresentationController)?.delegate?.popoverPresentationControllerDidDismissPopover(presentation as! UIPopoverPresentationController)
+                if let popover = presentation as? UIPopoverPresentationController { (popover.delegate as? any UIPopoverPresentationControllerDelegate)?.popoverPresentationControllerDidDismissPopover(popover) }
             }
         }
     }

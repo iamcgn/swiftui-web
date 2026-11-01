@@ -55,6 +55,10 @@ public protocol UIViewControllerInteractiveTransitioning: AnyObject {
 open class UIPresentationController {
     public let presentedViewController: UIViewController
     public let presentingViewController: UIViewController?
+    /// The delegate hearing of the presentation's dismissal and adaptation. A sheet's or a
+    /// popover's delegate is this one; UIKit's Swift interface narrows its type per subclass,
+    /// which a Swift class cannot, so an app's sheet or popover delegate is stored here too.
+    open weak var delegate: (any UIAdaptivePresentationControllerDelegate)?
     public init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?) {
         self.presentedViewController = presentedViewController
         self.presentingViewController = presentingViewController
