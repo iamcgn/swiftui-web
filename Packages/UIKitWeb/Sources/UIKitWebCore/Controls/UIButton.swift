@@ -1,6 +1,7 @@
 // UIButton (Docs/elements/UIKit/UIButton.md): the system button (a tinted 15 pt title with
 // 6 pt above and below, at least 30 wide) and the plain, gray, tinted and filled configurations
 // of iOS 15 (a body title in 7 × 12 insets).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control that executes your custom code in response to user interactions.
 @MainActor

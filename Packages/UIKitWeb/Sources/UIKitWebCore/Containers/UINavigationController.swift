@@ -2,6 +2,7 @@
 // view controllers whose top one fills the container, under a translucent bar 10 below the
 // safe area's top: an inline title (54 pt bar) or a large one (106.5), items and the back
 // button as glass platters. Measured on the iPhone SE simulator (iOS 26).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A container view controller that defines a stack-based scheme for navigating hierarchical
 /// content.

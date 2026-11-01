@@ -1,6 +1,7 @@
 // UIHostingConfiguration (Docs/elements/Representable.md): SwiftUI content as a table or
 // collection cell's `contentConfiguration`, hosted by the same runtime `UIHostingController`
 // uses, with margins (the cell's layout margins by default), a background and a minimum size.
+import WebFoundation   // NSCoder, for init?(coder:)
 import SwiftUIWebCore
 import UIKitWebCore
 

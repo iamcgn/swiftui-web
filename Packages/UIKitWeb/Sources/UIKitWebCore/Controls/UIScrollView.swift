@@ -3,6 +3,7 @@
 // on the scene's frame clock (UIKit's deceleration rate: the velocity keeps 0.998 of itself per
 // millisecond), rubber banding past the edges, paging, and the indicators UIKit shows while
 // the content moves (3 pt bars 3 in from the edges and the ends, black at 35 %, uikit/textview).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// The methods a scroll view's delegate implements.
 @MainActor

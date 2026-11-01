@@ -2,6 +2,7 @@
 // through the layer (frame, bounds, center, transform); subviews are the layer's sublayers in
 // order; layout is the needs-layout cycle with autoresizing; input is hit testing plus the
 // responder chain.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// An object that manages the content for a rectangular area on the screen.
 @MainActor

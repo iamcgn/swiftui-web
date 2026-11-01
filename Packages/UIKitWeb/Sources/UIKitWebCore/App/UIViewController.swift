@@ -1,5 +1,6 @@
 // UIViewController (Docs/elements/UIKit/UIViewController.md): view loading, the appearance
 // and layout callbacks, and containment.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// An object that manages a view hierarchy for your UIKit app.
 @MainActor

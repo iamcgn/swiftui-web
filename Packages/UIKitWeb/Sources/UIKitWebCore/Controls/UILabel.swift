@@ -2,6 +2,8 @@
 // is the font's line height per line plus its leading between lines, rounded up to the pixel
 // (UIFont.labelHeight), centred vertically in the bounds as UIKit does. Attributed text draws
 // its runs' fonts and colours; `adjustsFontSizeToFitWidth` scales the text to fit.
+import WebFoundation   // NSCoder, for init?(coder:)
+
 #if !os(WASI)
 import Foundation
 #endif

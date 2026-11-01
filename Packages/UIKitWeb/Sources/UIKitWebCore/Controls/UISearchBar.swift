@@ -5,6 +5,7 @@
 // no capsule. A prompt adds a 34 pt band above the field with a centred 14 pt label; the bookmark
 // (or results list) button sits at the field's end while it has no text, the clear button once
 // it edits (uikit/search/looks). Measured on the iPhone SE simulator (uikit/search/basic).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// The methods a search bar's delegate implements.
 @MainActor

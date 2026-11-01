@@ -1,6 +1,7 @@
 // UIAlertController and modal presentation (Docs/elements/UIKit/Presentation.md): alerts and
 // action sheets as the iOS 26 centred glass card, presented view controllers as a page sheet
 // card over a dimmed screen. Geometry from UIKit on the iPhone SE simulator.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// An action that can be taken when the user taps a button in an alert.
 @MainActor

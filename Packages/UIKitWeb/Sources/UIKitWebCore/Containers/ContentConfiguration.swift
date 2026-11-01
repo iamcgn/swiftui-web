@@ -2,6 +2,7 @@
 // makes a content view that fills the cell's content view and sizes the row; the list content
 // configuration draws a text, a secondary text and an image like the cell styles, and
 // SwiftUIWebUIKit's `UIHostingConfiguration` hosts SwiftUI in a cell.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// The state a configuration is updated for.
 public protocol UIConfigurationState {}

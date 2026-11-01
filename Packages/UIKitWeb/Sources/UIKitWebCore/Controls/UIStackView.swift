@@ -1,6 +1,7 @@
 // UIStackView (Docs/elements/UIKit/UIStackView.md): arranged subviews along an axis. UIKit's
 // stack view is Auto Layout underneath; this one computes the same frames directly from the
 // arranged views' intrinsic sizes, hugging and compression priorities.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A streamlined interface for laying out a collection of views in either a column or a row.
 @MainActor

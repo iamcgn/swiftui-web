@@ -3,6 +3,7 @@
 // origin, turns UIKit touches into the runtime's pointer, exposes the runtime's semantics tree
 // through UIKitWeb's hosting SPI and advances the runtime's clock with the scene's
 // (Docs/elements/Representable.md).
+import WebFoundation   // NSCoder, for init?(coder:)
 import SwiftUIWebCore
 import UIKitWebCore
 

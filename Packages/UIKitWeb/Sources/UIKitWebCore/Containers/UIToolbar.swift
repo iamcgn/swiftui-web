@@ -3,6 +3,7 @@
 // tint), 12 apart, a fixed space adding its width and the flexible spaces sharing what is left;
 // without a flexible space the items sit centred. Measured on the iPhone SE simulator
 // (uikit/toolbar/basic).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control that displays one or more buttons along the bottom edge of your interface.
 @MainActor

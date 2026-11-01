@@ -4,6 +4,7 @@
 // menu, a `UIContextMenuInteraction`'s long press (with its preview) and a
 // `UIEditMenuInteraction`'s horizontal bar. The iOS 26 card cannot be opened by the harness,
 // so its geometry is approximate (not measured).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A container for grouping related menu elements.
 @MainActor

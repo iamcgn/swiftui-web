@@ -6,6 +6,7 @@
 // widened by the inter-page spacing (−10 … 330 for 20), its slots 320 apart plus the spacing,
 // 374 tall under a 26 pt page control centred at the bottom; the page-curl style shows its page
 // edge to edge and scrolls like the scroll style (the curl itself is not drawn).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 @MainActor
 public protocol UIPageViewControllerDataSource: AnyObject {

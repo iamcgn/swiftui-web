@@ -4,6 +4,7 @@
 // text 7 in and 1.5 down) borders, the clear button (17 pt `xmark.circle.fill` at 80 % white
 // centred 15 from the right edge), left and right views flush to the edges, all measured on
 // `uikit/textfield/looks`; typing goes through the host's input element (`TextInputInfo`).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 #if !os(WASI)
 import Foundation

@@ -116,7 +116,7 @@ let package = Package(
         // The representables (decision 0014, Phase 2): UIKit views hosted as SwiftUI leaves.
         .target(
             name: "SwiftUIWebUIKit",
-            dependencies: ["SwiftUIWebCore", .product(name: "UIKitWebCore", package: "UIKitWeb")],
+            dependencies: ["SwiftUIWebCore", .product(name: "UIKitWebCore", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // Compiler plugin: `#Preview` expands to nothing, so preview blocks in app sources compile.

@@ -1,6 +1,7 @@
 // UISwitch (Docs/elements/UIKit/UISwitch.md): the 51 × 31 switch with a 27 pt white knob 2 pt
 // in, green (or the tint) when on, the system fill when off (the geometry SwiftUIWeb's iOS
 // toggle paints).
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control that offers a binary choice, such as on/off.
 @MainActor

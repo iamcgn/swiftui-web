@@ -2,6 +2,7 @@
 // UIStepper, UIProgressView, UIActivityIndicatorView, UIPageControl. Geometry from UIKit on the
 // iPhone SE simulator (iOS 26, `uikit/controls/more`); the looks are the iOS 26 glass controls
 // drawn flat.
+import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control for selecting a single value from a continuous range of values.
 @MainActor
