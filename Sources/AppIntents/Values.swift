@@ -42,7 +42,10 @@ extension Date: _IntentValue {}
 extension URL: _IntentValue {}
 extension DateComponents: _IntentValue {}
 extension AttributedString: _IntentValue {}
+#if !os(WASI)
+// FoundationEssentials has no Measurement on wasm.
 extension Measurement: _IntentValue {}
+#endif
 
 extension Never: _IntentValue {
     public typealias ValueType = Never
