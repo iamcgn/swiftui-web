@@ -458,6 +458,13 @@ def cmd_prepare(args):
                 traits_needed |= set(app_traits.needed_in_text(text))
                 dest.write_text(strip_imports(text, strip))
                 mapping[str(dest.resolve())] = {"app": app["name"], "file": f}
+            if not t["files"]:
+                # A target with no Swift sources (an Objective-C or C package, whose only Swift
+                # file was its manifest) still needs its folder, so the module exists for the
+                # targets that import it.
+                dest_root.mkdir(parents=True, exist_ok=True)
+                (dest_root / "_NoSwiftSources.swift").write_text(
+                    "// This target has no Swift sources in the app's repository.\n")
             resources = []
             for r in t["resources"]:
                 src = clone_dir / t["source_root"] / r
