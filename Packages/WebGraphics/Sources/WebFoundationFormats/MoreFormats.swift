@@ -330,6 +330,10 @@ open class NSCalendar {
     }
 
     public init() {}
+
+    /// The user's current calendar (`NSCalendar.current` is a `Calendar` in Swift).
+    open class var current: Calendar { Calendar.current }
+    open class var autoupdatingCurrent: Calendar { Calendar.autoupdatingCurrent }
 }
 
 /// Formats an amount of time ("1h 5m", "1:05:03", "1 hour, 5 minutes").
@@ -456,6 +460,85 @@ open class DateComponentsFormatter: Formatter {
         case .brief: return "\(count)\(brief)"
         case .short: return "\(count) \(short)"
         default: return "\(count) \(full)"
+        }
+    }
+}
+
+// MARK: - ByteCountFormatter
+
+/// Formats a byte count ("1.5 MB", "Zero KB"), as Foundation's adaptive formatter does: whole
+/// kilobytes, megabytes to one decimal, larger units to two, trailing zeros dropped.
+open class ByteCountFormatter: Formatter {
+    public struct Units: OptionSet, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let useBytes = Units(rawValue: 1 << 0)
+        public static let useKB = Units(rawValue: 1 << 1)
+        public static let useMB = Units(rawValue: 1 << 2)
+        public static let useGB = Units(rawValue: 1 << 3)
+        public static let useTB = Units(rawValue: 1 << 4)
+        public static let usePB = Units(rawValue: 1 << 5)
+        public static let useEB = Units(rawValue: 1 << 6)
+        public static let useZB = Units(rawValue: 1 << 7)
+        public static let useYBOrHigher = Units(rawValue: 0x0FF << 8)
+        public static let useAll = Units(rawValue: 0x0FFFF)
+    }
+
+    /// Whether a kilobyte is 1,000 bytes (file, decimal) or 1,024 (memory, binary).
+    public enum CountStyle: Int, Sendable { case file = 0, memory, decimal, binary }
+
+    /// The units to choose from; empty means all.
+    open var allowedUnits: Units = []
+    open var countStyle: CountStyle = .file
+    /// Whether zero reads "Zero KB" rather than "0 bytes".
+    open var allowsNonnumericFormatting = true
+    open var includesUnit = true
+    open var includesCount = true
+    /// Whether "(1,500,000 bytes)" follows a count in a larger unit.
+    open var includesActualByteCount = false
+    open var isAdaptive = true
+    open var zeroPadsFractionDigits = false
+
+    public override init() { super.init() }
+
+    /// `byteCount` formatted in `countStyle` with the default units.
+    open class func string(fromByteCount byteCount: Int64, countStyle: CountStyle) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = countStyle
+        return formatter.string(fromByteCount: byteCount)
+    }
+
+    open func string(fromByteCount byteCount: Int64) -> String {
+        let names = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+        if byteCount == 0 && allowsNonnumericFormatting && includesCount && includesUnit { return "Zero KB" }
+        let base: Double = countStyle == .memory || countStyle == .binary ? 1024 : 1000
+        let allowed = allowedUnits.isEmpty ? Units.useAll : allowedUnits
+        let usable = names.indices.filter { index in
+            index == 8 ? !allowed.isDisjoint(with: .useYBOrHigher) : allowed.contains(Units(rawValue: 1 << UInt(index)))
+        }
+        func size(_ unit: Int) -> Double { (0..<unit).reduce(1) { value, _ in value * base } }
+        let magnitude = Double(byteCount.magnitude)
+        // The largest allowed unit the count reaches, or the smallest allowed one.
+        let unit = usable.last { magnitude >= size($0) } ?? usable.first ?? 0
+        let amount = Double(byteCount) / size(unit)
+        var number = _NumberFormatting()
+        let digits = !isAdaptive ? (unit == 0 ? 0 : 2) : unit <= 1 ? 0 : unit == 2 ? 1 : 2
+        number.maximumFractionDigits = digits
+        number.minimumFractionDigits = zeroPadsFractionDigits ? digits : 0
+        let count = number.format(amount)
+        let name = unit == 0 ? (byteCount.magnitude == 1 ? "byte" : "bytes") : names[unit]
+        var text = includesCount && includesUnit ? "\(count) \(name)" : includesCount ? count : name
+        if includesActualByteCount && unit > 0 && includesCount {
+            text += " (\(_NumberFormatting().format(Double(byteCount))) bytes)"
+        }
+        return text
+    }
+
+    open override func string(for obj: Any?) -> String? {
+        switch obj {
+        case let value as Int64: return string(fromByteCount: value)
+        case let value as Int: return string(fromByteCount: Int64(value))
+        default: return nil
         }
     }
 }

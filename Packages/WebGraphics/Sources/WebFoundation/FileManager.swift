@@ -123,4 +123,8 @@ public struct ObjCBool: Sendable, ExpressibleByBooleanLiteral {
     public init(_ value: Bool) { boolValue = value }
     public init(booleanLiteral value: Bool) { boolValue = value }
 }
+
+/// The path of the temporary directory (`FileManager.default.temporaryDirectory`).
+public func NSTemporaryDirectory() -> String { FileManager.default.temporaryDirectory.path + "/" }
+
 #endif

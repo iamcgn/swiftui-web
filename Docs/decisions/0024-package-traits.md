@@ -52,3 +52,11 @@ app already ships Decimal, and `scripts/build-wasm.sh` warns when the manifest l
 The app sweep enables each trait its apps need, and the surface build enables all of them
 (`sweep.py prepare --all-traits`) so the coverage diff counts their keys. Counter enables
 neither.
+
+## Later: `FoundationFormats` (2026-11-01)
+`DateComponentsFormatter`, `ByteCountFormatter`, `NSCalendar` and the list and duration styles
+live in WebFoundationFormats, which the `Foundation` shadow always re-exports. Apple's SwiftUI
+re-exports all of Foundation, so apps name them in files that import only SwiftUI (Swift Charts
+Examples' accessibility helpers). SwiftUIWeb declares a third trait, `FoundationFormats`, with
+which `import SwiftUI` re-exports WebFoundationFormats on wasm. `traits.py` asks for it when an
+app's code names one of the module's types or styles. Counter still enables none of them.

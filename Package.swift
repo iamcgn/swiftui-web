@@ -49,6 +49,7 @@ let package = Package(
     // says which an app needs. Off by default, so Counter's bundle stays as it is (decision 0006).
     traits: [
         .trait(name: "CoreData", description: "`import SwiftUI` re-exports WebCoreData on wasm (`@FetchRequest`, `FetchedResults`), as Apple's SwiftUI declares them."),
+        .trait(name: "FoundationFormats", description: "`import SwiftUI` re-exports WebFoundationFormats on wasm (`DateComponentsFormatter`, `ByteCountFormatter`, list and duration formatting), as Apple's SwiftUI re-exports Foundation."),
     ],
     dependencies: [
         // The graphics substrate shared with UIKitWeb (decision 0014), and UIKitWeb itself: the
@@ -72,6 +73,7 @@ let package = Package(
                 .target(name: "SwiftUIWebCanvas", condition: .when(platforms: [.wasi])),
                 .target(name: "SwiftUIWebNative", condition: .when(platforms: [.macOS])),
                 .target(name: "WebCoreData", condition: .when(platforms: [.wasi], traits: ["CoreData"])),
+                .product(name: "WebFoundationFormats", package: "WebGraphics", condition: .when(platforms: [.wasi], traits: ["FoundationFormats"])),
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),

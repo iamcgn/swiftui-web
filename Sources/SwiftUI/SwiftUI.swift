@@ -29,6 +29,13 @@
 // Only on wasm: on macOS the names would collide with Apple's Foundation (`NSPredicate`, `NSSet`).
 @_exported import WebCoreData
 #endif
+#if FoundationFormats
+// The `FoundationFormats` trait: Apple's SwiftUI re-exports all of Foundation, so a file that
+// imports only SwiftUI can name `DateComponentsFormatter` or `ByteCountFormatter`. Here their
+// module rides along only when the app names them: its conformances keep its code in every
+// bundle that links it (decision 0006's budget).
+@_exported import WebFoundationFormats
+#endif
 #else
 // Linux: Foundation plus the missing Objective-C API value stand-ins.
 @_exported import WebFoundation
