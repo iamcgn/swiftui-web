@@ -35,7 +35,7 @@ jobs:
       - name: Breakdown
         run: |
           . ~/.swiftly/env.sh
-          for n in main branch; do echo "######## $n"; python3 scripts/wasm-size-map.py .build/size/$n.map --top 60; done
+          for n in main branch; do echo "######## $n"; python3 scripts/wasm-size-map.py .build/size/$n.map --top 3000; done
       - name: Archive members extracted only on this branch
         run: |
           cd .build/size
