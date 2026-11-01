@@ -168,10 +168,11 @@ private struct Shortcuts: AppShortcutsProvider {
     }
 
     @Test func summaryAndPhrasesKeepTheirText() {
-        let summary = LogIntent.parameterSummary
-        #expect(summary.text.hasPrefix("Log ${"))
-        #expect(summary.text.contains(" for ${"))
-        #expect(summary.additionalParameters.count == 2)
+        // The summary is opaque, as apps declare it; its concrete type is the sentence.
+        let summary = LogIntent.parameterSummary as? IntentParameterSummary<LogIntent>
+        #expect(summary?.text.hasPrefix("Log ${") == true)
+        #expect(summary?.text.contains(" for ${") == true)
+        #expect(summary?.additionalParameters.count == 2)
 
         let shortcuts = Shortcuts.appShortcuts
         #expect(shortcuts.count == 2)
