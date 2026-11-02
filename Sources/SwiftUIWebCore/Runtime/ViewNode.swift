@@ -555,7 +555,7 @@ package final class CompositeNode<V: View>: TypedNode<V> {
     package private(set) var propertyStorage: AnyObject?
 
     /// The tween of an `Animatable` view's data (AnimatableBodies.swift).
-    private var animatableDriver: _AnimatableBodyDriver<V>?
+    private var animatableDriver: _AnimatableBodyDriver?
 
     package init(_ context: _NodeContext<V>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
@@ -567,11 +567,7 @@ package final class CompositeNode<V: View>: TypedNode<V> {
         let changed = force || needsUpdate
             || _valuesDiffer(self.view, view)
             || self.environment.generation != environment.generation
-        if V.self is any Animatable.Type, _AnimatableBodyTween.dataDiffers(self.view, view) {
-            let driver = animatableDriver ?? _AnimatableBodyDriver<V>(node: self)
-            animatableDriver = driver
-            driver.update(shown: driver.presented(self.view), new: view)
-        }
+        if _isAnimatableBody(V.self) { _AnimatableBodyDriver.change(&animatableDriver, node: self, old: self.view, new: view) }
         self.view = view
         self.environment = environment
         clearNeedsUpdate()

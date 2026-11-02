@@ -41,7 +41,7 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
     package private(set) var bodyEvaluations = 0
     package private(set) var propertyStorage: AnyObject?
     /// The tween of an `AnimatableModifier`'s data (AnimatableBodies.swift).
-    private var animatableDriver: _AnimatableBodyDriver<Modifier>?
+    private var animatableDriver: _AnimatableBodyDriver?
 
     init(_ context: _NodeContext<ModifiedContent<Content, Modifier>>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
@@ -55,11 +55,7 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
             || _valuesDiffer(self.view.modifier, view.modifier)
             || _valuesDiffer(self.view.content, view.content)
             || self.environment.generation != environment.generation
-        if Modifier.self is any Animatable.Type, _AnimatableBodyTween.dataDiffers(self.view.modifier, view.modifier) {
-            let driver = animatableDriver ?? _AnimatableBodyDriver<Modifier>(node: self)
-            animatableDriver = driver
-            driver.update(shown: driver.presented(self.view.modifier), new: view.modifier)
-        }
+        if _isAnimatableBody(Modifier.self) { _AnimatableBodyDriver.change(&animatableDriver, node: self, old: self.view.modifier, new: view.modifier) }
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
