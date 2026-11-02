@@ -8,7 +8,7 @@ import Foundation
 #endif
 
 /// An action a swiped row shows as a button.
-@MainActor
+@preconcurrency @MainActor
 open class UIContextualAction {
     public enum Style: Int, Sendable { case normal = 0, destructive }
     public typealias Handler = (UIContextualAction, UIView, @escaping (Bool) -> Void) -> Void
@@ -26,7 +26,7 @@ open class UIContextualAction {
 }
 
 /// The actions a row shows on one side.
-@MainActor
+@preconcurrency @MainActor
 open class UISwipeActionsConfiguration {
     public let actions: [UIContextualAction]
     open var performsFirstActionWithFullSwipe = true
@@ -34,7 +34,7 @@ open class UISwipeActionsConfiguration {
 }
 
 /// A revealed action's button: its colour behind a 17 pt white title, at least 74 wide.
-@MainActor
+@preconcurrency @MainActor
 final class SwipeActionButton: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }

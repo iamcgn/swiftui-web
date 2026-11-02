@@ -18,7 +18,7 @@ public struct UITransitionContextViewKey: Hashable, Sendable {
 }
 
 /// What an animator learns about and reports on a transition.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIViewControllerContextTransitioning: AnyObject {
     var containerView: UIView { get }
     var isAnimated: Bool { get }
@@ -33,7 +33,7 @@ public protocol UIViewControllerContextTransitioning: AnyObject {
 }
 
 /// An object that moves the views of a transition.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIViewControllerAnimatedTransitioning: AnyObject {
     func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> Double
     func animateTransition(using transitionContext: any UIViewControllerContextTransitioning)
@@ -45,13 +45,13 @@ extension UIViewControllerAnimatedTransitioning {
 }
 
 /// An interaction controller (accepted: transitions here run to completion).
-@MainActor
+@preconcurrency @MainActor
 public protocol UIViewControllerInteractiveTransitioning: AnyObject {
     func startInteractiveTransition(_ transitionContext: any UIViewControllerContextTransitioning)
 }
 
 /// A presentation controller (accepted: the container lays presented views out itself).
-@MainActor
+@preconcurrency @MainActor
 open class UIPresentationController {
     public let presentedViewController: UIViewController
     public let presentingViewController: UIViewController?
@@ -66,7 +66,7 @@ open class UIPresentationController {
 }
 
 /// The object a presented controller names to supply the animators of its presentation.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIViewControllerTransitioningDelegate: AnyObject {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> (any UIViewControllerAnimatedTransitioning)?
     func animationController(forDismissed dismissed: UIViewController) -> (any UIViewControllerAnimatedTransitioning)?
@@ -84,7 +84,7 @@ extension UIViewControllerTransitioningDelegate {
 }
 
 /// The context the scene and navigation controllers hand to custom animators.
-@MainActor
+@preconcurrency @MainActor
 final class TransitionContext: UIViewControllerContextTransitioning {
     let containerView: UIView
     let isAnimated = true

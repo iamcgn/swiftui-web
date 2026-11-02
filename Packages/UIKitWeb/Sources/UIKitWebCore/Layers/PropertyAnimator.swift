@@ -29,7 +29,7 @@ public enum UIViewAnimatingPosition: Int, Sendable { case end = 0, start, curren
 public enum UIViewAnimatingState: Int, Sendable { case inactive = 0, active, stopped }
 
 /// A class that animates changes to views and allows the dynamic modification of those animations.
-@MainActor
+@preconcurrency @MainActor
 open class UIViewPropertyAnimator {
     public let duration: Double
     public private(set) var timingParameters: (any UITimingCurveProvider)?

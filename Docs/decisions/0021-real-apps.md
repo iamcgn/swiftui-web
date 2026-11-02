@@ -213,6 +213,14 @@ API modules in Swift 5 mode with every Swift 6 upcoming feature except SE-0434 w
 it (verified in a scratch package) at the cost of ~120 sites that rely on `@MainActor`
 closures being Sendable; recorded under `sw-isolation-fidelity`, not done.
 
+UIKitWebCore's main-actor declarations (its classes, protocols and drawing functions, and the
+members of its main-actor extensions, since an extension takes no `@preconcurrency`) are
+`@preconcurrency @MainActor` as of 2026-11-02, as Apple's UIKit reaches Swift: the packages apps
+pin (Kingfisher's placeholders and drawing, SwiftyForm's cells, AlertKit) touch UIKit from
+nonisolated code, which a Swift 5 mode module may. Before, each call was an error (~540 in the
+coverage sweep across ten apps). `Examples/Launches/Sources/Launches/NonisolatedUIKit.swift`
+compiles and runs that pattern in CI.
+
 ### Countries (2026-10-13; retired 2026-10-22, the record stands)
 
 Compiles for wasm from its sources exactly as pinned, every file, after `uk-app-delegate-adaptor`,

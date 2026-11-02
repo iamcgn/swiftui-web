@@ -6,7 +6,7 @@
 // controller appearance callbacks work as they do in a UIKit app.
 
 /// A window the scene does not show on its own: the root of a tree hosted elsewhere.
-@MainActor
+@preconcurrency @MainActor
 final class HostedWindow: UIWindow {
     weak var tree: UIKitHostedTree?
     /// The host's safe area, not the screen's.
@@ -15,7 +15,7 @@ final class HostedWindow: UIWindow {
 
 /// A UIKit view or view controller hosted inside another scene. Points are in the tree's own
 /// coordinates, with the origin at the top left of the space the host gives it.
-@MainActor
+@preconcurrency @MainActor
 public final class UIKitHostedTree {
     /// The window at the root of the tree (never registered with the scene).
     public let window: UIWindow

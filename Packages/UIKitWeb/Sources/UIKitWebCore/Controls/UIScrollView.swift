@@ -6,7 +6,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// The methods a scroll view's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIScrollViewDelegate: AnyObject {
     func scrollViewDidScroll(_ scrollView: UIScrollView)
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView)
@@ -36,7 +36,7 @@ extension UIScrollViewDelegate {
 }
 
 /// A view that allows the scrolling and zooming of its contained views.
-@MainActor
+@preconcurrency @MainActor
 open class UIScrollView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -590,7 +590,7 @@ extension UIKitScene {
 }
 
 /// A scroll indicator: a 1.5 pt-cornered bar, black at 35 % (white at 50 % for the white style).
-@MainActor
+@preconcurrency @MainActor
 final class ScrollIndicatorView: UIView {
     var style: UIScrollView.IndicatorStyle = .default
 

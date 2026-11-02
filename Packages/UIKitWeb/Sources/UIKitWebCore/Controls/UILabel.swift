@@ -9,7 +9,7 @@ import Foundation
 #endif
 
 /// A view that displays one or more lines of informational text.
-@MainActor
+@preconcurrency @MainActor
 open class UILabel: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

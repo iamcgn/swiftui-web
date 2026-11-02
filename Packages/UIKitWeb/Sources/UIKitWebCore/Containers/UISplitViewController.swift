@@ -10,7 +10,7 @@ import Foundation
 #endif
 
 /// The methods the split view controller's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UISplitViewControllerDelegate: AnyObject {
     func splitViewController(_ svc: UISplitViewController, topColumnForCollapsingToProposedTopColumn proposedTopColumn: UISplitViewController.Column) -> UISplitViewController.Column
     func splitViewController(_ svc: UISplitViewController, displayModeForExpandingToProposedDisplayMode proposedDisplayMode: UISplitViewController.DisplayMode) -> UISplitViewController.DisplayMode
@@ -34,7 +34,7 @@ extension UISplitViewControllerDelegate {
 }
 
 /// A container view controller that implements a hierarchical interface.
-@MainActor
+@preconcurrency @MainActor
 open class UISplitViewController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

@@ -9,7 +9,7 @@ import Foundation
 #endif
 
 /// Notifications an app posts for assistive technology, and the assistive settings.
-@MainActor
+@preconcurrency @MainActor
 public enum UIAccessibility {
     public struct Notification: RawRepresentable, Hashable, Sendable {
         public let rawValue: UInt32
@@ -61,7 +61,7 @@ public enum UIAccessibility {
 }
 
 /// A named action assistive technology offers on an element (a button in the overlay).
-@MainActor
+@preconcurrency @MainActor
 open class UIAccessibilityCustomAction {
     public typealias Handler = (UIAccessibilityCustomAction) -> Bool
     open var name: String
@@ -96,7 +96,7 @@ public enum UIAccessibilityNavigationStyle: Int, Sendable {
 }
 
 /// The accessibility properties a view stores beyond its element ones.
-@MainActor
+@preconcurrency @MainActor
 final class ViewAccessibilityState {
     var customActions: [UIAccessibilityCustomAction]?
     var elements: [Any]?

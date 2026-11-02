@@ -320,7 +320,7 @@ extension UICollectionView {
 }
 
 /// A collection view data source driven by snapshots.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & Sendable, ItemIdentifierType: Hashable & Sendable>: NSObject, UICollectionViewDataSource, _OutlineToggling {
     public typealias CellProvider = (UICollectionView, IndexPath, ItemIdentifierType) -> UICollectionViewCell?
     public typealias SupplementaryViewProvider = (UICollectionView, String, IndexPath) -> UICollectionReusableView?
@@ -476,7 +476,7 @@ open class UICollectionViewDiffableDataSource<SectionIdentifierType: Hashable & 
 }
 
 /// A table view data source driven by snapshots.
-@MainActor
+@preconcurrency @MainActor
 open class UITableViewDiffableDataSource<SectionIdentifierType: Hashable & Sendable, ItemIdentifierType: Hashable & Sendable>: NSObject, UITableViewDataSource {
     public typealias CellProvider = (UITableView, IndexPath, ItemIdentifierType) -> UITableViewCell?
 

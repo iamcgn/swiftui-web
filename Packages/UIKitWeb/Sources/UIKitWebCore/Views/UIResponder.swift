@@ -9,14 +9,14 @@ import WebFoundation   // Foundation everywhere, and the Selector stand-in where
 public typealias UIResponderBase = NSObject
 #else
 /// The responder chain's root without an Objective-C runtime.
-@MainActor
+@preconcurrency @MainActor
 open class UIResponderBase {
     public init() {}
 }
 #endif
 
 /// An abstract interface for responding to and handling events.
-@MainActor
+@preconcurrency @MainActor
 open class UIResponder: UIResponderBase {
     public override init() { super.init() }
 

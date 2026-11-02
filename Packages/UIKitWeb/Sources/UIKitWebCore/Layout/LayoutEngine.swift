@@ -7,7 +7,7 @@
 // coordinates; the system layout guides are insets of their owner and a guide the app made has
 // four variables of its own in its owner's coordinates. Solved frames land on the pixel grid.
 
-@MainActor
+@preconcurrency @MainActor
 final class LayoutEngine {
     private struct Variables {
         let x, y, width, height: LayoutVariable
@@ -249,7 +249,7 @@ final class LayoutEngine {
 }
 
 /// Per-view Auto Layout state, kept out of `UIView`'s declaration.
-@MainActor
+@preconcurrency @MainActor
 final class ViewLayoutState {
     var constraints: [NSLayoutConstraint] = []
     var guides: [UILayoutGuide] = []

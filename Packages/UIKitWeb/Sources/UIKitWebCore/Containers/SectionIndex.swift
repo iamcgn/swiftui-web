@@ -8,7 +8,7 @@ import Foundation
 #endif
 
 /// The strip of index titles: 11 pt semibold letters in the tint, centred as a column.
-@MainActor
+@preconcurrency @MainActor
 final class SectionIndexView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }

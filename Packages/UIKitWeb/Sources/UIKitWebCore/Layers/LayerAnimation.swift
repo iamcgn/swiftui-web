@@ -82,7 +82,7 @@ enum AnimationCurve {
 }
 
 /// One `UIView.animate` block: its timing and the layer changes recorded inside it.
-@MainActor
+@preconcurrency @MainActor
 final class UIViewAnimationGroup {
     private(set) var duration: Double
     let delay: Double
@@ -265,7 +265,7 @@ final class UIViewAnimationGroup {
 }
 
 /// The animation block being recorded, if any.
-@MainActor
+@preconcurrency @MainActor
 enum UIViewAnimationContext {
     static var current: UIViewAnimationGroup?
     static var disabled = false

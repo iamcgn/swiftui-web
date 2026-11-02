@@ -4,7 +4,7 @@
 
 /// An abstract superclass for items that can be added to a bar that appears at the bottom or
 /// top of the screen.
-@MainActor
+@preconcurrency @MainActor
 open class UIBarItem {
     open var title: String? { didSet { itemDidChange() } }
     open var image: UIImage? { didSet { itemDidChange() } }
@@ -22,7 +22,7 @@ open class UIBarItem {
 }
 
 /// A specialized button for placement on a toolbar, navigation bar, or shortcuts bar.
-@MainActor
+@preconcurrency @MainActor
 open class UIBarButtonItem: UIBarItem {
     public enum Style: Int, Sendable { case plain = 0, done = 2 }
     public enum SystemItem: Int, Sendable {
@@ -122,7 +122,7 @@ open class UIBarButtonItem: UIBarItem {
 }
 
 /// An item in a tab bar.
-@MainActor
+@preconcurrency @MainActor
 open class UITabBarItem: UIBarItem {
     public enum SystemItem: Int, Sendable { case more = 0, favorites, featured, topRated, recents, contacts, history, bookmarks, search, downloads, mostRecent, mostViewed }
 
@@ -162,7 +162,7 @@ open class UITabBarItem: UIBarItem {
 }
 
 /// The items a navigation bar shows for a view controller.
-@MainActor
+@preconcurrency @MainActor
 open class UINavigationItem {
     public enum LargeTitleDisplayMode: Int, Sendable { case automatic = 0, always, never, inline }
     public enum BackButtonDisplayMode: Int, Sendable { case `default` = 0, generic, minimal }

@@ -16,7 +16,7 @@ extension UIViewController: UIAppearanceContainer {}
 
 /// A class whose appearance can be customised through a proxy (views here). The factories
 /// live in the protocol extension: a class method cannot return a generic over `Self`.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIAppearance: UIView {}
 
 extension UIView: UIAppearance {}
@@ -51,7 +51,7 @@ public struct UIAppearanceProxy<T: UIView> {
 }
 
 /// The recorded appearance entries, applied to views entering a window.
-@MainActor
+@preconcurrency @MainActor
 public final class _UIAppearanceRegistry {
     public static let shared = _UIAppearanceRegistry()
 

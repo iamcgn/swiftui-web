@@ -13,7 +13,7 @@ import Foundation
 public enum UIDatePickerStyle: Int, Sendable { case automatic = 0, wheels, compact, inline }
 
 /// A control for inputting date and time values.
-@MainActor
+@preconcurrency @MainActor
 open class UIDatePicker: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -440,7 +440,7 @@ open class UIDatePicker: UIControl {
 
 /// The popover a compact picker presents: an inline calendar for the date capsule, the time
 /// wheels for the time capsule; 320 wide, as tall as its content, staying a popover on the iPhone.
-@MainActor
+@preconcurrency @MainActor
 final class DatePickerEditorController: UIViewController, UIPopoverPresentationControllerDelegate {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -489,7 +489,7 @@ final class DatePickerEditorController: UIViewController, UIPopoverPresentationC
 /// around the selected one on a 32 pt pitch, shrinking and fading with the angle
 /// (approximate: UIKit renders a real cylinder). A column may carry a unit label after its
 /// selected row (the count-down timer's "hour" and "min", 17 pt semibold).
-@MainActor
+@preconcurrency @MainActor
 enum WheelPainter {
     struct Column {
         let centre: CGFloat

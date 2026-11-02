@@ -84,7 +84,7 @@ open class UIVibrancyEffect: UIVisualEffect {
 }
 
 /// An object that implements some complex visual effects.
-@MainActor
+@preconcurrency @MainActor
 open class UIVisualEffectView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -126,7 +126,7 @@ open class UIVisualEffectView: UIView {
 /// simulator's pill over yellow in ios/representable/hostingsafearea-tabs (the ground at 69 %
 /// under white); over white it is the 252 the UIKit goldens measured. The glass's refraction
 /// and highlight rim are not drawn (approximate).
-@MainActor
+@preconcurrency @MainActor
 enum GlassPainter {
     static let sigma: CGFloat = 20
     static let lightTint = RGBA(red: 1, green: 1, blue: 1, alpha: 0.31)

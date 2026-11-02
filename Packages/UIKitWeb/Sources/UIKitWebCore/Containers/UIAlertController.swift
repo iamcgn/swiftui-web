@@ -4,7 +4,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// An action that can be taken when the user taps a button in an alert.
-@MainActor
+@preconcurrency @MainActor
 public final class UIAlertAction {
     public enum Style: Int, Sendable { case `default` = 0, cancel, destructive }
     public let title: String?
@@ -20,7 +20,7 @@ public final class UIAlertAction {
 }
 
 /// An object that displays an alert message.
-@MainActor
+@preconcurrency @MainActor
 open class UIAlertController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -129,7 +129,7 @@ open class UIAlertController: UIViewController {
 /// The alert card: a glass capsule-cornered panel with the title (17 pt semibold, 28 in, 21.5
 /// down), the message (15 pt, 23 tall lines) and the action buttons (48 tall capsules 14 in,
 /// 8 apart; the cancel action filled with the tint, the others with the tertiary fill).
-@MainActor
+@preconcurrency @MainActor
 final class AlertCardView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -271,7 +271,7 @@ final class AlertCardView: UIView {
 
 /// One action button: a 48 pt capsule (the cancel action in the tint with a white semibold
 /// title, the others in the tertiary fill with a 17 pt title, red for a destructive one).
-@MainActor
+@preconcurrency @MainActor
 final class AlertActionButton: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -308,7 +308,7 @@ final class AlertActionButton: UIControl {
 
 /// What a presentation puts in the window: a dimming view over the presenter and the presented
 /// controller's view as the card its style calls for.
-@MainActor
+@preconcurrency @MainActor
 final class PresentationContainerView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -486,7 +486,7 @@ final class PresentationContainerView: UIView {
 }
 
 /// The sheet's grabber.
-@MainActor
+@preconcurrency @MainActor
 final class GrabberView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -502,7 +502,7 @@ final class GrabberView: UIView {
 }
 
 /// A popover's arrow (the panel's colour).
-@MainActor
+@preconcurrency @MainActor
 final class PopoverArrowView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }

@@ -3,7 +3,7 @@
 // the host's pointer, and the semantics tree from the views' accessibility properties.
 
 /// The UIKit app as a hosted scene. One per process, like `UIApplication.shared`.
-@MainActor
+@preconcurrency @MainActor
 public final class UIKitScene: HostedScene {
     public static let shared = UIKitScene()
 
@@ -660,7 +660,7 @@ public final class UIKitScene: HostedScene {
 }
 
 /// The engine before a host installs one: nothing measures, so layout stays finite.
-@MainActor
+@preconcurrency @MainActor
 final class PlaceholderTextEngine: TextEngine {
     func layout(_ runs: [StyledRun], options: TextLayoutOptions, width: CGFloat?) -> TextLayout {
         TextLayout(size: .zero, firstBaseline: 0, lastBaseline: 0, lines: [])

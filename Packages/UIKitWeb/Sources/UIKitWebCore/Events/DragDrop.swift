@@ -14,7 +14,7 @@ import WebFoundation   // Foundation everywhere, and the NSItemProvider stand-in
 public enum UIDropOperation: UInt, Sendable { case cancel = 0, forbidden, copy, move }
 
 /// One item of a drag: its provider and, for the app's own drags, a local object.
-@MainActor
+@preconcurrency @MainActor
 public final class UIDragItem {
     public let itemProvider: NSItemProvider
     public var localObject: Any?
@@ -153,7 +153,7 @@ extension NSItemProvider {
 }
 
 /// The preview a drag shows: a view painted under the pointer.
-@MainActor
+@preconcurrency @MainActor
 public final class UIDragPreview {
     public let view: UIView
     public let parameters: UIDragPreviewParameters
@@ -170,7 +170,7 @@ public struct UIDragPreviewParameters: Sendable {
 }
 
 /// What a drag and a drop session have in common: the items and where the pointer is.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIDragDropSession: AnyObject {
     var items: [UIDragItem] { get }
     func location(in view: UIView) -> CGPoint
@@ -182,13 +182,13 @@ public protocol UIDragDropSession: AnyObject {
 }
 
 /// The source side of a drag.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIDragSession: UIDragDropSession {
     var localContext: Any? { get set }
 }
 
 /// The destination side: the session as a drop target sees it.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIDropSession: UIDragDropSession {
     /// The app's own drag behind the drop, nil for one from outside.
     var localDragSession: (any UIDragSession)? { get }
@@ -205,7 +205,7 @@ public struct UIDropSessionProgressIndicatorStyle: OptionSet, Sendable {
 }
 
 /// The proposal a drop interaction's delegate answers while a session is over its view.
-@MainActor
+@preconcurrency @MainActor
 open class UIDropProposal {
     public let operation: UIDropOperation
     public var isPrecise = false
@@ -214,7 +214,7 @@ open class UIDropProposal {
 }
 
 /// The scene's session: both sides of a drag, local or from outside.
-@MainActor
+@preconcurrency @MainActor
 final class DragDropSession: UIDragSession, UIDropSession {
     var items: [UIDragItem]
     var localContext: Any?
@@ -262,7 +262,7 @@ final class DragDropSession: UIDragSession, UIDropSession {
 // MARK: - Interactions
 
 /// The methods a drag interaction's delegate implements to provide the items and hear of the session.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIDragInteractionDelegate: AnyObject {
     func dragInteraction(_ interaction: UIDragInteraction, itemsForBeginning session: any UIDragSession) -> [UIDragItem]
     func dragInteraction(_ interaction: UIDragInteraction, previewForLifting item: UIDragItem, session: any UIDragSession) -> UIDragPreview?
@@ -282,7 +282,7 @@ extension UIDragInteractionDelegate {
 
 /// Lets a view start drags: a long press (0.5 s, a finger) or a 4 pt travel (a pointer)
 /// asks the delegate for items and lifts them.
-@MainActor
+@preconcurrency @MainActor
 public final class UIDragInteraction: UIInteraction {
     public weak var delegate: (any UIDragInteractionDelegate)?
     public var isEnabled = true
@@ -329,7 +329,7 @@ public final class UIDragInteraction: UIInteraction {
 }
 
 /// The methods a drop interaction's delegate implements to accept items.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIDropInteractionDelegate: AnyObject {
     func dropInteraction(_ interaction: UIDropInteraction, canHandle session: any UIDropSession) -> Bool
     func dropInteraction(_ interaction: UIDropInteraction, sessionDidEnter session: any UIDropSession)
@@ -349,7 +349,7 @@ extension UIDropInteractionDelegate {
 }
 
 /// Lets a view receive drops.
-@MainActor
+@preconcurrency @MainActor
 public final class UIDropInteraction: UIInteraction, _DropReceiver {
     public weak var delegate: (any UIDropInteractionDelegate)?
     public private(set) weak var view: UIView?
@@ -366,7 +366,7 @@ public final class UIDropInteraction: UIInteraction, _DropReceiver {
 }
 
 /// What the scene targets: a drop interaction, or a table or collection view with a drop delegate.
-@MainActor
+@preconcurrency @MainActor
 protocol _DropReceiver: AnyObject {
     var receiverView: UIView? { get }
     func canHandle(_ session: DragDropSession) -> Bool
@@ -379,7 +379,7 @@ protocol _DropReceiver: AnyObject {
 }
 
 /// What the scene lifts from: a drag interaction, or a table or collection view with a drag delegate.
-@MainActor
+@preconcurrency @MainActor
 protocol _DragSourceView: AnyObject {
     func dragItems(for session: DragDropSession, at point: CGPoint) -> [UIDragItem]
     func dragSessionWillBegin(_ session: DragDropSession)
@@ -389,7 +389,7 @@ protocol _DragSourceView: AnyObject {
 }
 
 /// Recognizes the lift: a finger held 0.5 s within 10 pt, or a pointer that travels 4 pt.
-@MainActor
+@preconcurrency @MainActor
 final class _DragLiftGestureRecognizer: UIGestureRecognizer {
     private(set) var startLocation = CGPoint.zero
     private var timer: UIKitScene.Timer?
@@ -644,7 +644,7 @@ extension UIDragInteraction: _DragSourceView {
 // MARK: - Collection views
 
 /// The methods a collection view's drag delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UICollectionViewDragDelegate: AnyObject {
     func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: any UIDragSession, at indexPath: IndexPath) -> [UIDragItem]
     func collectionView(_ collectionView: UICollectionView, itemsForAddingTo session: any UIDragSession, at indexPath: IndexPath, point: CGPoint) -> [UIDragItem]
@@ -665,7 +665,7 @@ extension UICollectionViewDragDelegate {
 }
 
 /// How a collection view's drop lands: at an index path (inserting) or into an item.
-@MainActor
+@preconcurrency @MainActor
 public final class UICollectionViewDropProposal: UIDropProposal {
     public enum Intent: Int, Sendable { case unspecified = 0, insertAtDestinationIndexPath, insertIntoDestinationIndexPath }
     public let intent: Intent
@@ -676,7 +676,7 @@ public final class UICollectionViewDropProposal: UIDropProposal {
 }
 
 /// One item of a collection drop: its drag item and, for a reorder, where it came from.
-@MainActor
+@preconcurrency @MainActor
 public final class UICollectionViewDropItem {
     public let dragItem: UIDragItem
     public let sourceIndexPath: IndexPath?
@@ -687,7 +687,7 @@ public final class UICollectionViewDropItem {
 }
 
 /// The drop as the delegate performs it: the items, the destination and the moves it asks for.
-@MainActor
+@preconcurrency @MainActor
 public final class UICollectionViewDropCoordinator {
     public let items: [UICollectionViewDropItem]
     public let destinationIndexPath: IndexPath?
@@ -709,7 +709,7 @@ public final class UICollectionViewDropCoordinator {
 }
 
 /// The methods a collection view's drop delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UICollectionViewDropDelegate: AnyObject {
     func collectionView(_ collectionView: UICollectionView, canHandle session: any UIDropSession) -> Bool
     func collectionView(_ collectionView: UICollectionView, dropSessionDidEnter session: any UIDropSession)
@@ -798,7 +798,7 @@ extension UICollectionView: _DragSourceView, _DropReceiver {
 
 // MARK: - Table views
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UITableViewDragDelegate: AnyObject {
     func tableView(_ tableView: UITableView, itemsForBeginning session: any UIDragSession, at indexPath: IndexPath) -> [UIDragItem]
     func tableView(_ tableView: UITableView, dragSessionWillBegin session: any UIDragSession)
@@ -812,7 +812,7 @@ extension UITableViewDragDelegate {
     public func tableView(_ tableView: UITableView, dragSessionAllowsMoveOperation session: any UIDragSession) -> Bool { true }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public final class UITableViewDropProposal: UIDropProposal {
     public enum Intent: Int, Sendable { case unspecified = 0, insertAtDestinationIndexPath, insertIntoDestinationIndexPath, automatic }
     public let intent: Intent
@@ -822,7 +822,7 @@ public final class UITableViewDropProposal: UIDropProposal {
     }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public final class UITableViewDropItem {
     public let dragItem: UIDragItem
     public let sourceIndexPath: IndexPath?
@@ -832,7 +832,7 @@ public final class UITableViewDropItem {
     }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public final class UITableViewDropCoordinator {
     public let items: [UITableViewDropItem]
     public let destinationIndexPath: IndexPath?
@@ -849,7 +849,7 @@ public final class UITableViewDropCoordinator {
     public func drop(_ dragItem: UIDragItem, intoRowAt indexPath: IndexPath, rect: CGRect) {}
 }
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UITableViewDropDelegate: AnyObject {
     func tableView(_ tableView: UITableView, canHandle session: any UIDropSession) -> Bool
     func tableView(_ tableView: UITableView, dropSessionDidEnter session: any UIDropSession)

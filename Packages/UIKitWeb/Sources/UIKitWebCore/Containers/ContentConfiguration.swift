@@ -30,7 +30,7 @@ public struct UICellConfigurationState: UIConfigurationState, Sendable {
 }
 
 /// The requirements for an object that provides the configuration for a content view.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIContentConfiguration {
     func makeContentView() -> UIView & UIContentView
     func updated(for state: any UIConfigurationState) -> Self
@@ -41,7 +41,7 @@ extension UIContentConfiguration {
 }
 
 /// The requirements for a content view that you create using a configuration.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIContentView: AnyObject {
     var configuration: any UIContentConfiguration { get set }
     func supports(_ configuration: any UIContentConfiguration) -> Bool
@@ -53,7 +53,7 @@ extension UIContentView {
 
 /// A content view hosting another framework's tree (SwiftUIWebUIKit's hosting configuration):
 /// its fit is the content's, and a table row adds its separator point to it.
-@MainActor
+@preconcurrency @MainActor
 public protocol _HostedCellContentView: AnyObject {}
 
 /// A cell's background (accepted: the colour applies; the rest is stored).
@@ -198,7 +198,7 @@ public struct UIListContentConfiguration: UIContentConfiguration, Sendable {
 }
 
 /// The view a list content configuration makes.
-@MainActor
+@preconcurrency @MainActor
 public final class UIListContentView: UIView, UIContentView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -347,7 +347,7 @@ public final class UIListContentView: UIView, UIContentView {
 }
 
 /// The content view a cell's configuration made, kept with the configuration that made it.
-@MainActor
+@preconcurrency @MainActor
 final class ConfiguredContent {
     let view: UIView & UIContentView
     init(view: UIView & UIContentView) { self.view = view }

@@ -8,7 +8,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// The methods a search bar's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UISearchBarDelegate: AnyObject {
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
@@ -36,7 +36,7 @@ extension UISearchBarDelegate {
 }
 
 /// A specialized view for receiving search-related information from the user.
-@MainActor
+@preconcurrency @MainActor
 open class UISearchBar: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -227,7 +227,7 @@ open class UISearchBar: UIView {
 }
 
 /// The search bar's field: a glass capsule with a magnifier and 17 pt medium text.
-@MainActor
+@preconcurrency @MainActor
 open class UISearchTextField: UITextField {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -330,7 +330,7 @@ open class UISearchTextField: UITextField {
 }
 
 /// The search bar's Cancel button: a 44 pt glass circle with a light cross.
-@MainActor
+@preconcurrency @MainActor
 final class SearchCancelButton: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -359,13 +359,13 @@ final class SearchCancelButton: UIControl {
 }
 
 /// The methods a search results updater implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UISearchResultsUpdating: AnyObject {
     func updateSearchResults(for searchController: UISearchController)
 }
 
 /// The methods a search controller's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UISearchControllerDelegate: AnyObject {
     func willPresentSearchController(_ searchController: UISearchController)
     func didPresentSearchController(_ searchController: UISearchController)
@@ -383,7 +383,7 @@ extension UISearchControllerDelegate {
 /// A view controller that manages the display of search results based on interactions with a
 /// search bar; in a navigation item the bar shows under the title (Containers/UINavigationController.swift)
 /// and, active, takes the navigation bar's place with the results controller's view under it.
-@MainActor
+@preconcurrency @MainActor
 open class UISearchController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -442,7 +442,7 @@ open class UISearchController: UIViewController {
 
 /// The glass capsule a navigation controller's floating bar shows a search field in: 48 tall,
 /// the field 38 tall 5 in (uikit/nav/search).
-@MainActor
+@preconcurrency @MainActor
 final class FloatingSearchPlatter: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }

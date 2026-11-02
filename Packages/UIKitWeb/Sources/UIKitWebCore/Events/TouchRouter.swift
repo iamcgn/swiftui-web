@@ -3,7 +3,7 @@
 // routes the pointer over its windows through one router; a tree hosted inside another
 // framework's scene (SwiftUIWeb's representables, decision 0014) owns its own.
 
-@MainActor
+@preconcurrency @MainActor
 final class TouchRouter {
     private var activeTouch: UITouch?
     /// Whether a press is in progress (a pointer move then drags rather than hovers).

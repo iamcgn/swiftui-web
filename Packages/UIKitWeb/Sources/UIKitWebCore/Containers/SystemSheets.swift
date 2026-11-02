@@ -28,7 +28,7 @@ public struct UIActivityType: Hashable, RawRepresentable, Sendable {
 
 /// An activity an app adds to the share sheet (accepted; hosts show their own sheets, so an
 /// app's activities are not offered).
-@MainActor
+@preconcurrency @MainActor
 open class UIActivity {
     public typealias ActivityType = UIActivityType
     public init() {}
@@ -42,7 +42,7 @@ open class UIActivity {
 }
 
 /// A view controller that offers the system share sheet for the items.
-@MainActor
+@preconcurrency @MainActor
 open class UIActivityViewController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -104,7 +104,7 @@ open class UIActivityViewController: UIViewController {
 }
 
 /// An object that provides the share sheet's items lazily, per activity.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIActivityItemSource: AnyObject {
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any?
@@ -118,7 +118,7 @@ extension UIActivityItemSource {
 // MARK: - Documents
 
 /// The methods a document picker's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIDocumentPickerDelegate: AnyObject {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController)
@@ -131,7 +131,7 @@ extension UIDocumentPickerDelegate {
 /// A view controller that offers the host's file chooser for the types (opening), or its file
 /// saver for a document (exporting). Picked files land in the app's temporary directory and
 /// are handed to the delegate as URLs, as UIKit does with copies.
-@MainActor
+@preconcurrency @MainActor
 open class UIDocumentPickerViewController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -233,7 +233,7 @@ open class UIDocumentPickerViewController: UIViewController {
 // MARK: - Images
 
 /// The methods an image picker's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIImagePickerControllerDelegate: AnyObject {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any])
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController)
@@ -246,7 +246,7 @@ extension UIImagePickerControllerDelegate {
 /// A view controller that offers the host's image chooser (a phone's photo library through
 /// the browser's `image/*` input; the open panel on the Mac). The camera is not a source the
 /// hosts offer: `isSourceTypeAvailable(.camera)` is false.
-@MainActor
+@preconcurrency @MainActor
 open class UIImagePickerController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

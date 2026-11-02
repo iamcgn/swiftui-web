@@ -132,7 +132,7 @@ public struct UITraitCollection: Hashable, Sendable {
 }
 
 /// An object that carries a trait collection.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITraitEnvironment: AnyObject {
     var traitCollection: UITraitCollection { get }
     func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?)
@@ -199,7 +199,7 @@ public final class UITraitChangeRegistration: Hashable, @unchecked Sendable {
 
 /// A registered observer: the traits it watches and what to call (an implementation detail
 /// `UITraitChangeObservable` stores on its adopters).
-@MainActor
+@preconcurrency @MainActor
 public struct TraitChangeObserver {
     let registration: UITraitChangeRegistration
     let traits: [UITrait]
@@ -207,7 +207,7 @@ public struct TraitChangeObserver {
 }
 
 /// An object whose trait changes can be observed with handlers (views and view controllers).
-@MainActor
+@preconcurrency @MainActor
 public protocol UITraitChangeObservable: AnyObject {
     var traitChangeObservers: [TraitChangeObserver] { get set }
     var traitCollection: UITraitCollection { get }

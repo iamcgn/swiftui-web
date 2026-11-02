@@ -19,7 +19,7 @@ extension IndexPath {
 }
 
 /// The methods that an object adopts to manage data and provide cells for a table view.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITableViewDataSource: AnyObject {
     func numberOfSections(in tableView: UITableView) -> Int
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
@@ -48,7 +48,7 @@ extension UITableViewDataSource {
 
 /// Methods for managing selections, configuring section headers and footers, deleting and
 /// reordering cells, and performing other actions in a table view.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITableViewDelegate: UIScrollViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
@@ -90,7 +90,7 @@ extension UITableViewDelegate {
 }
 
 /// A view that presents data using rows in a single column.
-@MainActor
+@preconcurrency @MainActor
 open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -917,7 +917,7 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 /// The header or footer of a table section: a 17 pt semibold title (plain: 16 in, 2 down in
 /// 28; grouped: 32 in, 27 down in a 55.5 first header, 9.5 in a 38 pt later one) or a 13 pt
 /// footer 4.5 down.
-@MainActor
+@preconcurrency @MainActor
 open class UITableViewHeaderFooterView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -996,7 +996,7 @@ open class UITableViewHeaderFooterView: UIView {
 }
 
 /// The visual representation of a single row in a table view.
-@MainActor
+@preconcurrency @MainActor
 open class UITableViewCell: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

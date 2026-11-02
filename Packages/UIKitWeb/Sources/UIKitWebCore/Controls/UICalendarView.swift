@@ -11,7 +11,7 @@ import Foundation
 #endif
 
 /// The delegate hearing of decorations and the visible month.
-@MainActor
+@preconcurrency @MainActor
 public protocol UICalendarViewDelegate: AnyObject {
     func calendarView(_ calendarView: UICalendarView, decorationFor dateComponents: DateComponents) -> UICalendarView.Decoration?
     func calendarView(_ calendarView: UICalendarView, didChangeVisibleDateComponentsFrom previousDateComponents: DateComponents)
@@ -23,7 +23,7 @@ extension UICalendarViewDelegate {
 }
 
 /// A selection behaviour a calendar view applies to taps on its days.
-@MainActor
+@preconcurrency @MainActor
 open class UICalendarSelection: NSObject {
     public override init() { super.init() }
     /// The view the behaviour is installed on.
@@ -33,7 +33,7 @@ open class UICalendarSelection: NSObject {
     func tapped(_ day: DateComponents) {}
 }
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UICalendarSelectionSingleDateDelegate: AnyObject {
     func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?)
     func dateSelection(_ selection: UICalendarSelectionSingleDate, canSelectDate dateComponents: DateComponents?) -> Bool
@@ -44,7 +44,7 @@ extension UICalendarSelectionSingleDateDelegate {
 }
 
 /// Selects one day at a time.
-@MainActor
+@preconcurrency @MainActor
 open class UICalendarSelectionSingleDate: UICalendarSelection {
     open weak var delegate: (any UICalendarSelectionSingleDateDelegate)?
     open var selectedDate: DateComponents? { didSet { calendarView?.setNeedsDisplay() } }
@@ -64,7 +64,7 @@ open class UICalendarSelectionSingleDate: UICalendarSelection {
     }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UICalendarSelectionMultiDateDelegate: AnyObject {
     func multiDateSelection(_ selection: UICalendarSelectionMultiDate, didSelectDate dateComponents: DateComponents)
     func multiDateSelection(_ selection: UICalendarSelectionMultiDate, didDeselectDate dateComponents: DateComponents)
@@ -78,7 +78,7 @@ extension UICalendarSelectionMultiDateDelegate {
 }
 
 /// Toggles days in and out of a set.
-@MainActor
+@preconcurrency @MainActor
 open class UICalendarSelectionMultiDate: UICalendarSelection {
     open weak var delegate: (any UICalendarSelectionMultiDateDelegate)?
     open var selectedDates: [DateComponents] = [] { didSet { calendarView?.setNeedsDisplay() } }
@@ -107,7 +107,7 @@ open class UICalendarSelectionMultiDate: UICalendarSelection {
 }
 
 /// A view that displays a calendar with date-specific decorations and selection.
-@MainActor
+@preconcurrency @MainActor
 open class UICalendarView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -364,7 +364,7 @@ struct CalendarGrid {
 /// Paints a month grid: the title with its disclosure chevron, the paging chevrons, the weekday
 /// initials and the day numbers (the selected day semibold on a disc of the tint at 12 %,
 /// unavailable days in the quaternary label colour).
-@MainActor
+@preconcurrency @MainActor
 enum CalendarPainter {
     static let titleFont = UIFont.systemFont(ofSize: 17, weight: .semibold)
     static let weekdayFont = UIFont.systemFont(ofSize: 13, weight: .semibold)
