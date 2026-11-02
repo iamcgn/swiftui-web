@@ -316,6 +316,76 @@ import WebCombine
         #expect((session.dataTask(with: URL(string: "nowhere")!) { seen.append(($0, $1, $2)) }).error as? URLError == URLError(.badURL))
     }
 
+    /// A data task made without a completion handler reports to the session's delegate in
+    /// Foundation's order, as Kingfisher's and Alamofire's session delegates expect: the
+    /// response (where the delegate may cancel), the data, then completion; a failure is
+    /// completion with its error. Unimplemented methods answer as Foundation does, and the
+    /// session lets its delegate go when invalidated.
+    @Test func dataTasksWithoutAHandlerReportToTheDelegate() throws {
+        final class Host: _WebHTTPTask, @unchecked Sendable { func cancel() {} }
+        final class Delegate: NSObject, URLSessionDataDelegate {
+            var events: [String] = []
+            var cancelsResponses = false
+            func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
+                            completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+                events.append("response \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+                completionHandler(cancelsResponses ? .cancel : .allow)
+            }
+            func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+                events.append("data \(String(decoding: data, as: UTF8.self))")
+            }
+            func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+                events.append("complete \((error as? URLError)?.errorCode ?? 0)")
+            }
+            func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) { events.append("invalid") }
+        }
+        final class Sender: URLAuthenticationChallengeSender {
+            func use(_ credential: URLCredential, for challenge: URLAuthenticationChallenge) {}
+            func continueWithoutCredential(for challenge: URLAuthenticationChallenge) {}
+            func cancel(_ challenge: URLAuthenticationChallenge) {}
+        }
+        nonisolated(unsafe) var answers: [Result<_WebHTTPResponse, _WebHTTPFailure>] = [
+            .success(_WebHTTPResponse(url: "https://img.example/a.png", status: 200, headers: ["Content-Type": "image/png"], body: Array("png".utf8))),
+            .failure(.unreachable("TypeError: Failed to fetch")),
+            .success(_WebHTTPResponse(url: "https://img.example/b.png", status: 404, headers: [:], body: Array("gone".utf8))),
+        ]
+        _WebHTTPHost.send = { _, completion in completion(answers.removeFirst()); return Host() }
+        defer { _WebHTTPHost.send = nil }
+        let delegate = Delegate()
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: .main)
+
+        let task = session.dataTask(with: URL(string: "https://img.example/a.png")!)
+        #expect(delegate.events.isEmpty)
+        task.resume()
+        #expect(delegate.events == ["response 200", "data png", "complete 0"])
+        #expect((task.response as? HTTPURLResponse)?.statusCode == 200 && task.state == .completed)
+
+        delegate.events = []
+        session.dataTask(with: URLRequest(url: URL(string: "https://img.example/down.png")!)).resume()
+        #expect(delegate.events == ["complete -1004"])
+
+        delegate.events = []
+        delegate.cancelsResponses = true
+        let cancelled = session.dataTask(with: URL(string: "https://img.example/b.png")!)
+        cancelled.resume()
+        #expect(delegate.events == ["response 404", "complete -999"])
+        #expect((cancelled.error as? URLError)?.code == .cancelled)
+
+        // A challenge the delegate doesn't answer gets Foundation's default handling.
+        let space = URLProtectionSpace(host: "img.example", port: 443, protocol: NSURLProtectionSpaceHTTPS, realm: nil,
+                                       authenticationMethod: NSURLAuthenticationMethodServerTrust)
+        let challenge = URLAuthenticationChallenge(protectionSpace: space, proposedCredential: nil, previousFailureCount: 0,
+                                                   failureResponse: nil, error: nil, sender: Sender())
+        nonisolated(unsafe) var answered: URLSession.AuthChallengeDisposition?
+        delegate.urlSession(session, didReceive: challenge) { disposition, _ in answered = disposition }
+        #expect(answered == .performDefaultHandling && space.receivesCredentialSecurely && space.serverTrust == nil)
+        let credential = URLCredential(user: "ada", password: "secret", persistence: .forSession)
+        #expect(credential.hasPassword && credential.user == "ada" && credential.persistence == .forSession)
+
+        session.finishTasksAndInvalidate()
+        #expect(delegate.events.last == "invalid" && session.delegate == nil)
+    }
+
     @Test func filesUnderDocumentsSurviveThroughTheHostStore() throws {
         nonisolated(unsafe) var kept: [String: String] = [:]
         _MemoryFiles._hostStore = (list: { Array(kept.keys) }, load: { kept[$0] }, save: { if let text = $1 { kept[$0] = text } else { kept[$0] = nil } })

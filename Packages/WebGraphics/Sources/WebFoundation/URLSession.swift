@@ -448,17 +448,23 @@ public final class URLSession: @unchecked Sendable {
     public static let shared = URLSession(configuration: .default)
     public let configuration: URLSessionConfiguration
     public var sessionDescription: String?
-    public weak var delegate: AnyObject?
+    /// The delegate (URLSessionDelegate.swift), held until the session is invalidated, as
+    /// Foundation holds it.
+    public private(set) var delegate: (any URLSessionDelegate)?
+    public let delegateQueue: OperationQueue
     let core: _WebURLSession
     private var nextTaskIdentifier = 1
 
     public init(configuration: URLSessionConfiguration) {
         self.configuration = configuration
         core = _WebURLSession(configuration: configuration.core)
+        delegateQueue = OperationQueue()
     }
-    public convenience init(configuration: URLSessionConfiguration, delegate: AnyObject?, delegateQueue: OperationQueue?) {
-        self.init(configuration: configuration)
+    public init(configuration: URLSessionConfiguration, delegate: (any URLSessionDelegate)?, delegateQueue queue: OperationQueue?) {
+        self.configuration = configuration
+        core = _WebURLSession(configuration: configuration.core)
         self.delegate = delegate
+        delegateQueue = queue ?? OperationQueue()
     }
 
     /// Maps the host's answer: a response of any status is `(data, HTTPURLResponse)`; a
@@ -480,7 +486,7 @@ public final class URLSession: @unchecked Sendable {
         }
     }
 
-    private func makeTask(_ request: URLRequest, completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
+    func makeTask(_ request: URLRequest, completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
         let identifier = nextTaskIdentifier
         nextTaskIdentifier += 1
         guard let url = request.url, url.scheme != nil else {
@@ -514,8 +520,9 @@ public final class URLSession: @unchecked Sendable {
     public func dataTask(with url: URL, completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
         makeTask(URLRequest(url: url), completionHandler: completionHandler)
     }
-    public func dataTask(with request: URLRequest) -> URLSessionDataTask { makeTask(request) { _, _, _ in } }
-    public func dataTask(with url: URL) -> URLSessionDataTask { makeTask(URLRequest(url: url)) { _, _, _ in } }
+    /// A task that reports to the delegate (URLSessionDelegate.swift).
+    public func dataTask(with request: URLRequest) -> URLSessionDataTask { delegatedTask(request) }
+    public func dataTask(with url: URL) -> URLSessionDataTask { delegatedTask(URLRequest(url: url)) }
 
     /// Retrieves the contents of a URL request and delivers the data asynchronously; a
     /// cancelled Swift task cancels the request (`URLError.cancelled`).
@@ -564,8 +571,19 @@ public final class URLSession: @unchecked Sendable {
         return try await data(for: uploading)
     }
 
-    public func invalidateAndCancel() { core.cancelAll() }
-    public func finishTasksAndInvalidate() {}
+    /// Cancels the session's tasks, tells the delegate the session is invalid and lets it go.
+    public func invalidateAndCancel() {
+        core.cancelAll()
+        invalidate()
+    }
+    /// Lets running tasks finish; tells the delegate the session is invalid and lets it go.
+    public func finishTasksAndInvalidate() { invalidate() }
+
+    private func invalidate() {
+        guard let delegate else { return }
+        self.delegate = nil
+        delegate.urlSession(self, didBecomeInvalidWithError: nil)
+    }
     public func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void) { completionHandler([]) }
 }
 

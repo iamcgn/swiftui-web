@@ -11,6 +11,9 @@
 import CoreGraphics
 import Foundation
 #endif
+#if os(WASI)
+import WebFoundation   // `CFArray`, with Core Foundation's other names (CoreFoundation.swift there)
+#endif
 
 #if !canImport(CoreGraphics) || os(WASI)
 /// A colour space stand-in on wasm: every colour is sRGB (decision 0006).
@@ -25,8 +28,10 @@ public final class CGColorSpace: @unchecked Sendable {
 public func CGColorSpaceCreateDeviceRGB() -> CGColorSpace { CGColorSpace(numberOfComponents: 3) }
 public func CGColorSpaceCreateDeviceGray() -> CGColorSpace { CGColorSpace(numberOfComponents: 1) }
 
-/// `[colors] as CFArray` in gradient code: an array of anything on wasm.
+#if !os(WASI)
+/// `[colors] as CFArray` in gradient code: an array of anything (WebFoundation's on wasm).
 public typealias CFArray = [Any]
+#endif
 
 /// Whether a gradient extends past its start and end locations.
 public struct CGGradientDrawingOptions: OptionSet, Sendable {

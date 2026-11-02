@@ -11,7 +11,8 @@
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
 // `canImport(CoreGraphics) && !os(WASI)`.
-// `Dispatch` (WebFoundation's queues, for packages that import it by name),
+// `Dispatch` (WebFoundation's queues, for packages that import it by name), `CoreFoundation`
+// (WebFoundation's CF names, which `Security` re-exports as Apple's does),
 // `Security` (the keychain item functions over a host store) and `SafariServices`
 // (`SFSafariViewController` over `WKWebView`) live here for the same reason (decision 0021, the
 // Ember app): a root-package module named `Security` would shadow Apple's for every macOS
@@ -36,6 +37,7 @@ let package = Package(
         .library(name: "UniformTypeIdentifiers", targets: ["UniformTypeIdentifiers"]),
         .library(name: "CoreData", targets: ["CoreData"]),
         .library(name: "Dispatch", targets: ["Dispatch"]),
+        .library(name: "CoreFoundation", targets: ["CoreFoundation"]),
     ],
     // `CoreData` (decision 0024): `import Foundation` re-exports WebCoreData too, as Apple's
     // declares `NSPredicate`, `NSSortDescriptor` and `NSExpression`. Enable it with SwiftUIWeb's.
@@ -70,8 +72,13 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
-            name: "Security",
+            name: "CoreFoundation",
             dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "Security",
+            dependencies: ["CoreFoundation", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

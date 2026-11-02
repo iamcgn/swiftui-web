@@ -162,6 +162,27 @@ extension StringProtocol {
         guard !needle.isEmpty else { return false }
         return String(self).lowercased()._find(needle, from: nil) != nil
     }
+
+    /// The range of the first scalar in `aSet`, or the last with `.backwards`; `.anchored` looks
+    /// only at the first scalar (the last, backwards). Within `aRange` when given.
+    public func rangeOfCharacter(from aSet: CharacterSet, options mask: String.CompareOptions = [], range aRange: Range<String.Index>? = nil) -> Range<String.Index>? {
+        let scalars = unicodeScalars
+        let bounds = aRange ?? startIndex..<endIndex
+        let backwards = mask.contains(.backwards)
+        var found: Range<String.Index>?
+        var index = bounds.lowerBound
+        while index < bounds.upperBound {
+            let next = scalars.index(after: index)
+            if aSet.contains(scalars[index]) {
+                if !backwards { return index..<next }
+                if !mask.contains(.anchored) || next >= bounds.upperBound { found = index..<next }
+            } else if !backwards && mask.contains(.anchored) {
+                return nil
+            }
+            index = next
+        }
+        return found
+    }
 }
 
 /// Lowercased with the common Latin diacritics dropped: "Côte d'Ivoire" → "cote d'ivoire"
