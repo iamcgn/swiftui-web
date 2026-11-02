@@ -50,8 +50,12 @@ public final class JSONSerialization {
     /// Returns JSON data from a Foundation object.
     public class func data(withJSONObject obj: Any, options opt: WritingOptions = []) throws -> Data {
         let root = try node(from: obj, top: !opt.contains(.fragmentsAllowed))
+        var format = _JSONFormat()
+        format.prettyPrinted = opt.contains(.prettyPrinted)
+        format.sortedKeys = opt.contains(.sortedKeys)
+        format.escapesSlashes = !opt.contains(.withoutEscapingSlashes)
         var text = ""
-        try _JSONWriter.write(opt.contains(.sortedKeys) ? sorted(root) : root, into: &text)
+        try _JSONWriter.write(root, into: &text, format: format)
         return Data(text.utf8)
     }
 
@@ -82,14 +86,6 @@ public final class JSONSerialization {
         case is NSNull: return .null
         case Optional<Any>.none: return .null
         default: throw _Error(description: "Invalid type in JSON write (\(type(of: object)))")
-        }
-    }
-
-    private static func sorted(_ node: _JSONNode) -> _JSONNode {
-        switch node {
-        case .array(let box): return .array(_JSONArrayBox(box.items.map(sorted)))
-        case .object(let box): return .object(_JSONObjectBox(box.entries.map { ($0.key, sorted($0.value)) }.sorted { $0.0 < $1.0 }))
-        default: return node
         }
     }
 
