@@ -193,8 +193,11 @@ open class NSCache<KeyType: AnyObject, ObjectType: AnyObject>: NSObject, @unchec
     }
 }
 
-/// What a cache tells its delegate (Apple's method is optional: here it has a default).
-public protocol NSCacheDelegate: NSObjectProtocol {
+/// What a cache tells its delegate (Apple's method is optional: here it has a default). It
+/// refines `AnyObject`, not `NSObjectProtocol`: with the interop SDK that is the Objective-C
+/// protocol, and a Swift protocol refining it crashes the 6.3 compiler while it emits the
+/// protocol's metadata. Delegates are `NSObject` subclasses either way.
+public protocol NSCacheDelegate: AnyObject {
     func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: Any)
 }
 
