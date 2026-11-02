@@ -16,12 +16,14 @@
 #if os(WASI)
 #if !canImport(ObjectiveC)
 /// A static, plain-text Unicode string object, bridged from `String` (`as NSString`).
-public final class NSString: Hashable, CustomStringConvertible, @unchecked Sendable {
+public final class NSString: Hashable, CustomStringConvertible, ExpressibleByStringLiteral, @unchecked Sendable {
     public let string: String
     private lazy var utf16: [UInt16] = Array(string.utf16)
 
     public init(string: String) { self.string = string }
     public init() { string = "" }
+    /// `let key: NSString = "name"`, as Foundation's bridged string takes a literal.
+    public convenience init(stringLiteral value: String) { self.init(string: value) }
 
     /// The number of UTF-16 code units.
     public var length: Int { string.utf16.count }

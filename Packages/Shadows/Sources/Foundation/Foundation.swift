@@ -8,6 +8,9 @@
 @_exported import WASILibc
 @_exported import Observation
 @_exported import Combine
+// Apple's Foundation brings CoreGraphics' `CGFloat` and geometry types with it: a package file
+// that imports only Foundation names `CGFloat` (Kingfisher, the sweep's package build).
+@_exported import CoreGraphics
 #if CoreData
 // The `CoreData` trait (decision 0024): Apple's Foundation declares `NSPredicate`,
 // `NSSortDescriptor` and `NSExpression`, which live in WebCoreData here.
@@ -29,6 +32,10 @@ public func _convertErrorToNSError(_ error: any Error) -> NSError {
     // `error as? NSError` is the bridge being defined; through `Any` the cast is a plain one.
     let value: Any = error
     if let nsError = value as? NSError { return nsError }
+    if let custom = error as? any CustomNSError {
+        // A `CustomNSError` names its own domain, code and user info, as on Apple platforms.
+        return NSError(domain: type(of: custom).errorDomain, code: custom.errorCode, userInfo: custom.errorUserInfo)
+    }
     return NSError(domain: "\(type(of: error))", code: 1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription, "NSUnderlyingError": error])
 }
 
