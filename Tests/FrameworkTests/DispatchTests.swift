@@ -55,7 +55,8 @@ private final class Box: @unchecked Sendable {
     }
 
     /// Lets queued work run: the wasm test runner has no event loop to sleep on (Node's WASI
-    /// can't wait), so there it yields to the main actor's queued jobs instead.
+    /// can't wait), so there it yields to the main actor's queued jobs instead. For the same
+    /// reason no test here takes a time limit: its watchdog sleeps. The loops are bounded.
     private func pause() async {
         #if os(WASI)
         await Task.yield()
@@ -64,7 +65,7 @@ private final class Box: @unchecked Sendable {
         #endif
     }
 
-    @Test(.timeLimit(.minutes(1))) func groupsAndWorkItemsNotify() async {
+    @Test func groupsAndWorkItemsNotify() async {
         let box = Box()
         let group = DispatchGroup()
         // Their own queues, not `.main`: Linux's test runner doesn't drain the main queue.
@@ -81,7 +82,7 @@ private final class Box: @unchecked Sendable {
 
     #if !os(WASI)
     // A timer waits out real time, which the wasm test runner can't (see `pause()`).
-    @Test(.timeLimit(.minutes(1))) func timersFireUntilCancelled() async {
+    @Test func timersFireUntilCancelled() async {
         let ticks = Box()
         let timer = DispatchSource.makeTimerSource(queue: DispatchQueue(label: "timer"))
         timer.schedule(deadline: .now() + .milliseconds(5), repeating: .milliseconds(10))
