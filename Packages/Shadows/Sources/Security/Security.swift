@@ -6,19 +6,13 @@
 // the wasm SDK has no Security module, so the file is empty elsewhere; the Apps package links
 // this product for wasm alone.
 //
-// Core Foundation is not in the wasm SDK either: `CFDictionary` is the Swift dictionary an
-// app writes `as CFDictionary` (an identity coercion here, a bridge on Darwin), `CFString` is
-// `String`, `CFTypeRef` is `AnyObject` (the copied value comes back boxed, so the app's
-// `result as? Data` succeeds as it does with an `NSData`).
+// Core Foundation is not in the wasm SDK either: its names are WebFoundation's
+// (CoreFoundation.swift), re-exported here as Apple's Security re-exports Core Foundation.
+// `CFDictionary` is the Swift dictionary an app writes `as CFDictionary` (an identity coercion
+// here, a bridge on Darwin), `CFString` is `String`, `CFTypeRef` is `AnyObject` (the copied
+// value comes back boxed, so the app's `result as? Data` succeeds as it does with an `NSData`).
 #if os(WASI)
-import WebFoundation
-
-public typealias CFString = String
-public typealias CFDictionary = [String: Any]
-public typealias CFTypeRef = AnyObject
-public typealias OSStatus = Int32
-public typealias CFBoolean = Bool
-public typealias CFNumber = Int
+@_exported import CoreFoundation
 
 // MARK: - Item classes and attribute keys (the CFString constants, by their C names)
 
@@ -47,6 +41,9 @@ public let kSecAttrAccessibleAfterFirstUnlock: CFString = "ck"
 public let kSecAttrAccessibleWhenUnlockedThisDeviceOnly: CFString = "aku"
 public let kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly: CFString = "cku"
 public let kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly: CFString = "akpu"
+// Deprecated on Apple platforms, still named by keychain wrappers (SwiftKeychainWrapper).
+public let kSecAttrAccessibleAlways: CFString = "dk"
+public let kSecAttrAccessibleAlwaysThisDeviceOnly: CFString = "dku"
 
 public let kSecValueData: CFString = "v_Data"
 public let kSecValueRef: CFString = "v_Ref"

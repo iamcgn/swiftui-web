@@ -373,3 +373,17 @@ guesses: `resizes-content` (Chrome before 108, Android WebView by default) shrin
 viewport with the visual one, so the page itself gets shorter and nothing is reported;
 `overlays-content` shrinks neither, so a viewport difference cannot see the keyboard and
 nothing is reported; and `UIScreen.main.bounds` is not kept to the window for a SwiftUI app.
+
+### Packages' session delegates and Core Foundation names (2026-11-02)
+
+The coverage sweep builds apps' pinned packages from source, and the image and networking
+packages (Kingfisher, Alamofire) fetch through a session delegate rather than a completion
+handler. On the web a data task made without a completion handler now reports to the session's
+`URLSessionDataDelegate` in Foundation's order: the response (the delegate may cancel there),
+the data, then completion, or completion with the `URLError` when the fetch fails. The browser
+checks certificates, answers HTTP authentication and follows redirects itself, so the challenge
+and redirection methods are never called, as on iOS for a trusted server that asks for no
+credentials. The delegate methods have defaults that answer as Foundation does when a delegate
+leaves one out. Core Foundation's names (`CFDictionary`, `CFString`, `kCFBooleanTrue`, `noErr`)
+are the Swift types they bridge to, in WebFoundation for `import Foundation` and in a
+`CoreFoundation` shadow that `Security` re-exports, as Apple's does.
