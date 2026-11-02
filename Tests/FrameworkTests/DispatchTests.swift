@@ -54,7 +54,17 @@ private final class Box: @unchecked Sendable {
         #expect((now + .seconds(1)).uptimeNanoseconds > now.uptimeNanoseconds && (now + .seconds(1)) > now && (now - .milliseconds(1)) < now)
     }
 
-    @Test(.timeLimit(.minutes(1))) func groupsNotifyAndTimersFire() async {
+    /// Lets queued work run: the wasm test runner has no event loop to sleep on (Node's WASI
+    /// can't wait), so there it yields to the main actor's queued jobs instead.
+    private func pause() async {
+        #if os(WASI)
+        await Task.yield()
+        #else
+        try? await Task.sleep(nanoseconds: 5_000_000)
+        #endif
+    }
+
+    @Test(.timeLimit(.minutes(1))) func groupsAndWorkItemsNotify() async {
         let box = Box()
         let group = DispatchGroup()
         // Their own queues, not `.main`: Linux's test runner doesn't drain the main queue.
@@ -65,24 +75,29 @@ private final class Box: @unchecked Sendable {
         let item = DispatchWorkItem(flags: .barrier) { box.append(3) }
         item.notify(queue: done) { box.append(4) }
         queue.async(execute: item)
-        for _ in 0..<400 where box.values.count < 4 { try? await Task.sleep(nanoseconds: 5_000_000) }
+        for _ in 0..<400 where box.values.count < 4 { await pause() }
         #expect(box.values.sorted() == [1, 2, 3, 4])
+    }
 
+    #if !os(WASI)
+    // A timer waits out real time, which the wasm test runner can't (see `pause()`).
+    @Test(.timeLimit(.minutes(1))) func timersFireUntilCancelled() async {
         let ticks = Box()
-        let timer = DispatchSource.makeTimerSource(queue: done)
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue(label: "timer"))
         timer.schedule(deadline: .now() + .milliseconds(5), repeating: .milliseconds(10))
         timer.setEventHandler { ticks.append(0) }
         timer.setCancelHandler { ticks.append(-1) }
         timer.resume()
-        for _ in 0..<400 where ticks.values.count < 2 { try? await Task.sleep(nanoseconds: 5_000_000) }
+        for _ in 0..<400 where ticks.values.count < 2 { await pause() }
         timer.cancel()
         #expect(timer.isCancelled)
-        for _ in 0..<400 where !ticks.values.contains(-1) { try? await Task.sleep(nanoseconds: 5_000_000) }
+        for _ in 0..<400 where !ticks.values.contains(-1) { await pause() }
         let fired = ticks.values.filter { $0 == 0 }.count
         #expect(fired >= 2 && ticks.values.contains(-1))
         try? await Task.sleep(nanoseconds: 40_000_000)
         #expect(ticks.values.filter { $0 == 0 }.count <= fired + 1)
     }
+    #endif
 
     @Test func percentEncodingAndSelectorNames() {
         #expect("a b&c".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) == "a%20b&c")
