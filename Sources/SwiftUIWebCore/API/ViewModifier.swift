@@ -18,6 +18,12 @@ public protocol ViewModifier {
     ) -> TypedNode<ModifiedContent<Content, Self>>
 }
 
+/// A modifier that can create another modifier with animation (iOS 13; `Animatable` and
+/// `ViewModifier` together say the same since iOS 17): its body is evaluated each frame with its
+/// animatable data interpolated (Runtime/AnimatableBodies.swift).
+@MainActor @preconcurrency
+public protocol AnimatableModifier: Animatable, ViewModifier {}
+
 extension ViewModifier where Body == Never {
     /// Primitive modifiers (those the runtime applies directly) have no body.
     nonisolated public func body(content: Content) -> Never {

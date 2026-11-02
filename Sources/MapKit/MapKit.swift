@@ -84,6 +84,12 @@ public struct MapCamera: Hashable, Sendable {
     }
 }
 
+/// Equal when the same object, as `NSObject` makes a map item on Apple platforms.
+extension MKMapItem: Hashable {
+    public static func == (lhs: MKMapItem, rhs: MKMapItem) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+
 /// A place on the map.
 public final class MKMapItem: @unchecked Sendable {
     public let coordinate: CLLocationCoordinate2D

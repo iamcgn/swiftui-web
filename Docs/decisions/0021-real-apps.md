@@ -402,3 +402,14 @@ against Foundation's own output on macOS and Linux. Two deliberate differences: 
 its own keyed coding, because naming it would link Foundation's Decimal machinery into every app
 (WebDecimalFormats); and base64 decoding still reads an array of bytes, so stores the Core Data
 and SwiftData stand-ins wrote earlier stay readable.
+
+### Animatable bodies, identity hashing and mutexes (2026-11-02)
+
+Three gaps the objc sweep counted across apps. `AnimatableModifier` (swiftuipager in EhPanda and
+two others) did not exist, and custom views and modifiers that conform to `Animatable` snapped
+to their new value instead of interpolating: both now evaluate their body each frame under an
+animation (Docs/elements/Animation.md). `CLLocation` and `MKMapItem` are `Hashable` by identity,
+as `NSObject` makes them on Apple platforms, so a model storing one can be `Hashable`
+(FoodTruck's `ParkingSpot`). And the Foundation shadow declares the five POSIX mutex calls
+SwiftSoup's `Mutex` makes, each succeeding at once on the page's one thread.
+
