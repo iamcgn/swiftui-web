@@ -16,7 +16,7 @@ import SwiftUIWebHeadless
     /// A view whose width is its animatable data.
     struct Bar: View, Animatable {
         var width: CGFloat
-        var animatableData: CGFloat {
+        nonisolated var animatableData: CGFloat {
             get { width }
             set { width = newValue }
         }
@@ -31,7 +31,7 @@ import SwiftUIWebHeadless
     /// A modifier that widens its content by its progress.
     struct Grow: AnimatableModifier {
         var progress: CGFloat
-        var animatableData: CGFloat {
+        nonisolated var animatableData: CGFloat {
             get { progress }
             set { progress = newValue }
         }
